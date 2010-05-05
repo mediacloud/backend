@@ -1,0 +1,61 @@
+These are very brief, likely incomplete, installation instructions.  If you
+want to install the system, follow these instructions as they are and
+send any questions to info@mediacloud.org.
+
+These instructions assume comfort with postgresql and especially with perl. You
+will have a difficult time installing the system if you do not have experience
+with perl and cpan.
+
+* Install perl.
+
+* Install postgresql (8.3 or greater).  Make sure that plperl support
+  is included in your postgresql installation, or install the necessary
+  addon packages for it.
+
+* Create a postgres database and user.  The database user must be a superuser
+  to run some of the plperl procedural scripts. 
+  (sudo su -; su - postgres; createuser -s mediaclouduser; 
+  createdb --owner mediaclouduser mediacloud)
+
+* Run script/mediawords.sql under the new database and user to create the
+  mediacloud database. 
+  (psql -U mediaclouduser mediacloud < script/mediawords.sql)
+  
+* Copy mediawords.yml.dist to mediawords.yml and edit to suit your local
+  configuration.  
+  
+* If you want to use calais tagging, you'll need to apply for a calais key 
+  and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
+  default_tag_modules setting to 'NYTTopics Calais',
+  
+* Copy lib/MediaWords/DB.pm.dist to lib/MediaWords/DB.pm and edit to suit
+  your local database details.
+  
+* As root, run 'PERL5LIB=<mediacloud dir>/lib cpan Bundle::MediaWords' to
+  install the many, many perl module dependencies.  Expect this to take a
+  long time and install scores of module.  I suggest running 
+  'o conf prerequisites_policy follow' from within the cpan shell, eg:
+  
+  ****
+  # PERL5LIB=/home/hroberts/mediawords/lib cpan
+  cpan# o conf prerequisites_policy follow
+  cpan# install Bundle::MediaWords
+  ...
+  ****
+  
+  Even with the prerequisites_policy set to follow, there are several modules
+  that have interactive dependencies, so you'll have occasionally to check
+  the installation process and respond to any questions that come up.
+  
+* Run script/mediawords_server.pl.  This should start up the web server.
+  If the command line returns no errors, go to http://localhost:3000 
+  (or replace localhost with whatever host the system is on) to
+  access the server.
+  
+* Walk through the instructions in README.tutorial to setup a source
+  in the web app; download, extract, and tag its stories; and browse
+  the results.
+
+* Perform brilliant analysis, fix our broken code, document how the system
+  works, and otherwise contribute to the project.
+

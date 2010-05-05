@@ -1,0 +1,18 @@
+[% title = 'Story: Delete Tag Confirmation' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+<p>
+Are you sure you want to delete the '[% tag.tag | html %]' tag 
+from the '[% story.title | html %]' story?
+</p>
+
+<form action="[% c.uri_for('/stories/delete/') _ story.stories_id _ '/' _ tag.tags_id _ '/' _ 'yes' %]">
+<input type="submit" value="Delete" />
+</form>
+
+</fieldset>
+  
+
+ 
+[% INCLUDE include/footer.tt2 %]

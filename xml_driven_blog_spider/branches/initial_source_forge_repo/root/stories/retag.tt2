@@ -1,0 +1,46 @@
+[% title = 'Stories: Retag: ' _ story.title %]
+[% INCLUDE include/header.tt2 %]
+
+<p><b><a href="[% c.uri_for("/stories/view/") _ story.stories_id %]">[% story.title | html %]</a></b></p>
+
+<p><b>Story Text</b></p>
+
+<p>
+[% story_text | html | html_line_break %]
+</p>
+
+<p>
+[% FOREACH download IN story.downloads -%]
+download [% download.downloads_id %]: 
+<a href="[% download.url %]">view live</a> |
+<a href="[% c.uri_for("/downloads/view/") _ download.downloads_id %]">view download</a> |
+<a href="[% c.uri_for("/downloads/mextract/") _ download.downloads_id %]">review extraction</a><br />
+[% END -%]
+</p>
+
+<p><b>Tags</b></p>
+
+<ul>
+
+[% FOREACH module IN tags.pairs %]
+
+<li>
+[% module.key | html %]
+
+<ul>
+
+[% FOREACH tag IN module.value.tags %]
+<li>[% tag | html %]</li>
+[% END -%]
+
+</ul>
+
+</li>
+
+[% END # FOREACH module IN tags.pairs -%]
+
+</ul>
+
+
+[% INCLUDE include/footer.tt2 %]
+

@@ -1,0 +1,13 @@
+[% title = 'Sources List' %]
+[% INCLUDE dashboard/header.tt2 %]
+
+<div align="center">
+
+[% FOREACH medium IN media -%]
+
+[ <a href="[%- c.uri_for('/dashboard/medium/') _ medium.media_id -%]">[%- medium.name | html -%]</a> ]<br />
+
+[% END # FOREACH medium IN media -%]
+
+
+[% INCLUDE dashboard/footer.tt2 %]

@@ -1,0 +1,39 @@
+[% title = 'Scrape' -%]
+[% INCLUDE include/feeds_header.tt2 -%]
+
+<fieldset>
+
+[% form.render %]
+
+</fieldset>
+
+[% IF links -%]
+
+<form action="[% c.uri_for('/feeds/scrape_import/' _ medium.media_id) %]" method="POST" >
+
+<table>
+
+<tr><th>import?</th><th>name</th><th>url</th></tr>
+[% FOREACH link IN links -%]
+
+<tr>
+<td><input name="links" type="checkbox" value="[% link.name _ ':' _ link.url %]" checked="checked" /></td>
+<td nowrap>[% link.name %]</td>
+<td><a href="[% link.url | html %]">[% link.url %]</a></td>
+</tr>
+
+[% END # FOREACH link -%]
+ 
+</table>
+
+<p>
+<input type="submit" value="Import Feeds" />
+</p>
+
+</form>
+ 
+[% END # IF links -%]
+ 
+ 
+ 
+[% INCLUDE include/footer.tt2 -%]

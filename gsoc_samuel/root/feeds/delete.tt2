@@ -1,0 +1,17 @@
+[% title = 'Delete' %]
+[% INCLUDE include/feeds_header.tt2 %]
+
+<fieldset>
+<p>
+The '[% medium.name _ ': ' _ feed.name | html %]' feed has [% downloads %] downloads and [% stories %] stories.  Are you sure you want to delete the feed?
+</p>
+
+<form action="[% c.uri_for('/feeds/delete/') _ feed.feeds_id _ '/' _ 'yes' %]">
+<input type="submit" value="Delete" />
+</form>
+
+</fieldset>
+  
+
+ 
+[% INCLUDE include/footer.tt2 %]

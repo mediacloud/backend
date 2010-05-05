@@ -1,0 +1,42 @@
+[% title = 'List' %]
+[% INCLUDE include/feeds_header.tt2 %]
+
+<table>
+
+<tr>
+<th>name</th>
+<th>live url</th>
+<th>tags</th>
+<th>edit</th>
+<th>delete</th>
+<th>dls</th>
+</tr>
+
+[% FOREACH feed IN feeds -%]
+
+<tr [% IF even %]id="even"[% END %]>
+
+<td><a href="[% c.uri_for('/stories/list/') _ feed.feeds_id %]">[% feed.name | html %]</a></td>
+
+<td><a href="[% feed.url %]">view&nbsp;live</a></td>
+
+<td><div style="font-size: 80%;">[% feed.tag_names.join(', ') | html %]
+(<a href="[% c.uri_for('/feeds/edit_tags/') _ feed.feeds_id %]">edit</a>)</div></td>
+
+<td><a href="[% c.uri_for('/feeds/edit/') _ feed.feeds_id %]">edit</a></td>
+
+<td><a href="[% c.uri_for('/feeds/delete/') _ feed.feeds_id %]">delete</a></td>
+
+<td><a href="[% c.uri_for('/downloads/list') %]?f=[% feed.feeds_id %]">view</a></td>
+
+</tr>
+
+[%  SET even = !even %]
+[% END # FOREACH feeds -%]
+
+</table>
+
+<p>
+</p>
+
+[% INCLUDE include/footer.tt2 %]

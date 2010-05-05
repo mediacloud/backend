@@ -1,0 +1,64 @@
+These are very brief, likely incomplete, installation instructions.  If you
+want to install the system, follow these instructions as they are and
+send any questions to info@mediacloud.org.
+
+These instructions assume comfort with postgresql and especially with perl. You
+will have a difficult time installing the system if you do not have experience
+with perl and cpan.
+
+* Install perl.
+
+* Install postgresql (8.3 or greater).  Make sure that plperl support
+  is included in your postgresql installation, or install the necessary
+  addon packages for it.  E.g. on Ubuntu run: 
+  	sudo apt-get install postgresql;
+	sudo apt-get install postgresql-plperl-8.3;
+	sudo apt-get install postgresql-server-dev-8.3;
+
+   (The postgresql server dev package is needed by some of the perl modules that mediacloud depends on.)
+
+* Create a postgres database and user.  The database user must be a superuser
+  to run some of the plperl procedural scripts. Run the following commands:
+     sudo su -
+     su - postgres
+     createuser -s mediaclouduser --pwprompt 
+     createdb --owner mediaclouduser mediacloud
+
+* Run script/mediawords.sql under the new database and user to create the
+  mediacloud database. E.G.
+  psql -h HOST -U mediaclouduser mediacloud < script/mediawords.sql
+
+  Where HOST is the name of the database e.g. localhost is you're running the psql client on the same machine as the server. (Alternatively, you can access postgres through Unix domain sockets but you need to edit pg_hba.conf) 
+  
+* Copy mediawords.yml.dist to mediawords.yml and edit to suit your local
+  configuration.  Note if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment 'default_tag_module', you should also uncomment 'mediawords'.
+  
+* If you want to use calais tagging, you'll need to apply for a calais key 
+  and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
+  default_tag_modules setting to 'NYTTopics Calais',
+  
+* Copy lib/MediaWords/DB.pm.dist to lib/MediaWords/DB.pm and edit to suit
+  your local database details.
+
+* OPTIONAL: On Ubuntu run the following command to try to install some of the perl module dependencies using the package manager.  Not all perl modules are in the repository so you will still need to follow the next step to install the remaining module depencies:
+
+            cat <MEDIACLOUD_DIR>/lib/Bundle/MediaWords.pm  | grep ':' | grep -v 'package ' | xargs -n 1 apt-cache search | uniq | sed -e 's/ - .*//' | sudo xargs apt-get install --install-recommends   
+
+* As root, run 
+       PERL5LIB=<MEDIACLOUD_DIR>/lib PERL_MM_USE_DEFAULT=1 perl -MCPAN -e 'install Bundle::MediaWords'
+
+where <MEDIACLOUD_DIR> is the root directory for mediacloud.  This will install the many, many perl module dependencies.  Expect this to take a long time and install scores of modules.  The PERL_MM_USE_DEFAULT environment variable is set to indicate a noninteractive sesssion, however not all modules respect this setting so you may have to occasionally check
+  the installation process and respond to any questions that come up.
+  
+* Run script/mediawords_server.pl.  This should start up the web server.
+  If the command line returns no errors, go to http://localhost:3000 
+  (or replace localhost with whatever host the system is on) to
+  access the server.
+  
+* Walk through the instructions in README.tutorial to setup a source
+  in the web app; download, extract, and tag its stories; and browse
+  the results.
+
+* Perform brilliant analysis, fix our broken code, document how the system
+  works, and otherwise contribute to the project.
+

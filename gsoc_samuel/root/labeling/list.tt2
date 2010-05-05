@@ -1,0 +1,216 @@
+
+
+
+<H1> 
+   Labeling tool - Prototype Version
+</H1>
+<table>
+	<tr>
+	<td>
+		<!-- <form name="inputForm" method="post" action=[% c.uri_for('url_get_do') %]>
+
+		<input type="text" name="url" value="" size="20" />
+
+		<input type="submit" name="submit" value="Submit" /> 
+		</form> -->
+	</td>
+	<td>
+		<form name="inputForm" method="post" action=[% c.uri_for('url_get_db') %]>
+		<input type ="hidden" name="cnt" value=[% cnt %]>
+                <input type="submit" name="startLabelingBtn" value="Go Labeling" />
+                </form>
+	</td>
+   </tr>
+	<tr>
+		<td>
+		<div>
+   		<iframe id="WebPageFrame" SRC="[%- c.uri_for('/labeling/iframe') -%]"style="width: 1015px; height: 731px"></iframe> 
+		</div>
+		<form name="labelingForm" method="post" action=[% c.uri_for('add_instance') %] >
+		<div class="DOM Properties" style="position:absolute; left:1100px; top: 100px; width: 500px; height: 725px; border-width:thin; border-color: red; border-style:solid; " >
+			<table>
+				<tr>
+					<td> <input type ="radio" name="contentType" value="Main Content"/> Main Content</td>
+					<td> <input type ="radio" name="contentType" value="Noisy Content"/> Noisy Content </td>
+					<input type="submit" name="addBtn" value="Add" />
+					
+				</tr>
+				<tr>
+					<td> Tag Name</td>
+					
+					<td> <input type ="text" id="txtTagName"> </td>
+				</tr>
+				<tr>
+					<td> Inner HTML </td>
+					<td> <input type="text" name="txtInnerHtml" id="txtInnerHtml"> </input> </td>
+				</tr>
+				<tr>
+
+		                        <td> Inner Text: </td>
+
+					<td> <input name="txtInnerText" id="txtInnerText"> </input> </td>
+
+                            	</tr>
+				 <tr>
+
+                                <td> Inner  Text Current </td>
+
+                                <td> <textarea rows="20" cols="20" name="txtInnerTextCurrent" id="txtInnerTextCurrent" > </textarea> </td>
+
+
+
+                            </tr>
+
+				<tr>
+
+                                <td> Inner  Text All </td>
+
+                                <td> <textarea rows="20" cols="20" id="txtInnerTextAll" > </textarea> </td>
+
+                                
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Img Num: </td>
+
+                                <td> <input name="txtImgNum" ID="txtImgNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Interaction Num: </td>
+
+                                <td> <input name="txtInteractionNum" ID="txtInteractionNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Form Num: </td>
+
+                                <td> <input name="txtFormNum" ID="txtFormNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Option Num: </td>
+
+                                <td> <input  name="txtOptionNum" ID="txtOptionNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Table Num: </td>
+
+                                <td> <input  name="txtTableNum" ID="txtTableNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Div Num: </td>
+
+                                <td> <input name="txtDivNum" ID="txtDivNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Link Num: </td>
+
+                                <td> <input name="txtLinkNum" ID="txtLinkNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Para Num: </td>
+
+                                <td> <input  name="txtParaNum" ID="txtParaNum" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Link To Text Ratio: </td>
+
+                                <td> <input name="txtLinkToTextRatio" type ="text" ID="txtLinkToTextRatio" ></input> </td>
+
+                            </tr>
+
+                            
+
+                            <tr>
+
+                                <td> CenterX: </td>
+
+                                <td> <input name="txtCenterX" ID="txtCenterX" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> CenterY: </td>
+
+                                <td> <input  name="txtCenterY" ID="txtCenterY" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Width: </td>
+
+                                <td> <input name="txtWidth" ID="txtWidth" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Height: </td>
+
+                                <td> <input  name="txtHeight" ID="txtHeight" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> DOM Height: </td>
+
+                                <td> <input name="txtDOMHeight" ID="txtDOMHeight" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Header Around: </td>
+
+                                <td> <input name="txtHeaderAround" ID="txtHeaderAround" ></input> </td>
+
+                            </tr>
+
+                             <tr>
+
+                                <td> Link Length: </td>
+
+                                <td> <input name="txtLinkLength" ID="txtLinkLength" ></input> </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <td> Max String Length Ratio: </td>
+
+                                <td> <input name="txtStringLength" ID="txtStringLength" ></input> </td>
+
+                            </tr>
+			</table>	
+		</div>
+		</form>
+		</td>
+	</tr>
+</form>

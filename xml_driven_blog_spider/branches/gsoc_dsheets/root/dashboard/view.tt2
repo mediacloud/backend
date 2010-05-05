@@ -1,0 +1,15 @@
+[% title = medium.name _ ' Week of ' _ date_string %]
+[% INCLUDE dashboard/header.tt2 %]
+
+<table align="center">
+<tr>
+<td width="800">
+<p>
+[%- word_cloud -%]
+</p>
+</td>
+</tr>
+
+</table>
+
+[% INCLUDE dashboard/footer.tt2 %]

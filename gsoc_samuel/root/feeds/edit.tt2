@@ -1,0 +1,48 @@
+
+[% INCLUDE include/feeds_header.tt2 %]
+
+<fieldset>
+[% form.render %]
+</fieldset>
+
+[% IF stories -%]
+
+<h2>Parser Test Results: [% feed.name | html %]  parsed with '[% c.request.param('parser_module') | html %]': [% stories_parsed %] parsed / [% stories.size %] stories total</h2>
+
+[% IF stories.size == 0 -%]
+
+<div id="story_parse_text">
+(no stories have been downloaded for this feed yet)
+</div>
+
+[% END #[% IF stories.size == 0 -%]
+ 
+[% FOREACH story IN stories -%]
+
+[% IF story.story_text_broken -%]
+<div id="story_parse_test_broken">
+<h3>[% story.title | html %]</h3>
+[% ELSE #[% IF story.story_text_broken -%]
+<div id="story_parse_test">
+<h3>[% story.title | html %]</h3>
+[% END #[% IF story.story_text_broken -%]
+
+
+<p>
+<a href="[% story.url | html %]" target="mediawords_preview">view live</a> | 
+<a href="[% c.uri_for('/downloads/view/') _ story.downloads_id | html %]" target="mediawords_preview">view content</a>
+</p>
+
+<blockquote>
+[% story.story_text %]
+</blockquote>
+
+<p>(note that the parse test is only run against the first page of html of each story)</p>
+
+</div>
+
+[% END # [% FOREACH story IN stories -%]
+
+[% END # IF stories -%]
+ 
+[% INCLUDE include/footer.tt2 %]

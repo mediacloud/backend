@@ -1,0 +1,23 @@
+\?
+\d
+select * from downloads
+\d downloads
+\d
+\d download_texts
+select * from tags
+select * from stories
+\d download_texts
+\d
+select * from feeds
+select * from tags
+\d
+select * from story_texts
+select count(*) from story texts
+\c mediacloud
+select * from story_texts
+select count(*) from story_texts
+du -K
+du -k
+\help
+show
+\show

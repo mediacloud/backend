@@ -1,0 +1,106 @@
+<spidered_sites>
+  <site base_domain="foo.bar">
+      <url_to_blog_home_conversion>
+        <regular_expression_replace>
+          <find_expression></find_expression>
+          <replace_expression></replace_expression>
+        </regular_expression_replace>
+        <get_tilda_directory_root/>
+        <get_canonicalized_prefix/>
+        <get_domain_only_url/>
+      </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <require_string>user</require_string>
+        <forbid_string>user</forbid_string>
+      </blog_url_validation>
+  </site>
+  <site base_domain="24open.ru">
+    <url_to_blog_home_conversion>
+      <regular_expression_replace_url_path>
+        <find_expression>^(\/[^\/]*\/blog)\/.*</find_expression>
+        <replace_expression>$1</replace_expression>
+      </regular_expression_replace_url_path>
+      <regular_expression_replace_url_path>
+        <find_expression>^(\/[^\/.]+)\/?$</find_expression>
+        <replace_expression>$1\/blog</replace_expression>
+      </regular_expression_replace_url_path>
+    </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <require_string>http://www.24open.ru</require_string>
+        <require_string>/blog</require_string>
+      </blog_url_validation>
+  </site>
+  <site base_domain="babyblog.ru">
+    <url_to_blog_home_conversion>
+      <regular_expression_replace_url_path>
+        <find_expression>^\/user\/lenta\/</find_expression>
+        <replace_expression>\/user\/</replace_expression>
+      </regular_expression_replace_url_path>
+      <regular_expression_replace_url_path>
+        <find_expression>^\/user\/info\/</find_expression>
+        <replace_expression>\/user\/</replace_expression>
+      </regular_expression_replace_url_path>
+      <regular_expression_replace_url_path>
+        <find_expression>^\/user\/post\/</find_expression>
+        <replace_expression>\/user\/</replace_expression>
+      </regular_expression_replace_url_path>
+      <get_child_directory parent_directory="/user" />
+    </url_to_blog_home_conversion>
+    <blog_url_validation>
+      <require_string_starts_with>http://www.babyblog.ru/user</require_string_starts_with>
+    </blog_url_validation>
+  </site>
+  <site base_domain="ya.ru">
+    <url_to_blog_home_conversion>
+      <get_domain_only_url/>
+    </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <forbid_string>http://my.ya.ru</forbid_string>
+        <forbid_string>http://www.ya.ru</forbid_string>
+        <forbid_string>http://ya.ru</forbid_string>
+      </blog_url_validation>
+  </site>
+  <site base_domain="mail.ru">
+      <url_to_blog_home_conversion>
+        <get_child_directory parent_directory="/mail" />
+      </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <require_string>blogs.mail.ru/mail/</require_string>
+      </blog_url_validation>
+  </site>
+  <site base_domain="privet.ru">
+      <url_to_blog_home_conversion>
+        <change_subdomain new_subdomain="blogs" />
+        <get_child_directory parent_directory="/user" />
+      </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <require_string_starts_with>http://blogs.privet.ru/user</require_string_starts_with>
+      </blog_url_validation>
+  </site>
+  <site base_domain="liveinternet.ru">
+      <url_to_blog_home_conversion>
+        <get_child_directory parent_directory="/users" />
+      </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <require_string_starts_with>http://www.liveinternet.ru/users</require_string_starts_with>
+      </blog_url_validation>
+  </site>
+  <site base_domain="diary.ru">
+      <url_to_blog_home_conversion>
+        <get_tilda_directory_root/>
+      </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <require_string>~</require_string>
+        <require_string>www.diary.ru</require_string>
+      </blog_url_validation>
+  </site>
+  <site base_domain="livejournal.com">
+    <url_to_blog_home_conversion>
+      <get_domain_only_url/>
+    </url_to_blog_home_conversion>
+      <blog_url_validation>
+        <forbid_string>http://www.livejournal.com</forbid_string>
+        <forbid_string>http://livejournal.com</forbid_string>
+      </blog_url_validation>
+  </site>
+</spidered_sites>

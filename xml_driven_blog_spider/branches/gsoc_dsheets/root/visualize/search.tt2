@@ -1,0 +1,14 @@
+[% title = 'Visualize Media' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+[% form.render %]
+
+</fieldset>
+
+<p />
+
+<img src=" [% url %] " />
+
+[% INCLUDE include/footer.tt2 %]

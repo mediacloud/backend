@@ -1,0 +1,21 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: url
+    label: URL
+    comment: url to scrape
+    size: 60
+    constraints:
+        - Required
+  
+  - type: Text
+    name: ignore_patterns
+    label: Ignore patterns
+    comment: ignore any feed link whose url matches one of these space separated strings
+    size: 30
+        
+  - type: Submit
+    value: Scrape
+    comment: "(may take a couple of minutes -- please be patient)"
+ 

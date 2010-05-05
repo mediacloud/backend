@@ -1,0 +1,37 @@
+package MediaWords::DB;
+
+use strict;
+use warnings;
+
+use base 'DBIx::Class::Schema';
+
+__PACKAGE__->load_classes;
+
+
+# Created by DBIx::Class::Schema::Loader v0.04999_02 @ 2008-03-06 18:46:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wXcXYixAy0uBrYdHuKCPag
+
+
+#Copy this file to lib/MediaWords/DB.pm and then edit CONNECT_INFO
+#
+#
+#Replace DATABASENAME, HOSTNAME, USERNAME, and PASSWORD with the appropriate values to connect to your postgresql database
+use constant CONNECT_INFO => (
+        'dbi:Pg:dbname=DATABASENAME;host=HOSTNAME',
+        'USERNAME',
+        'PASSWORD',
+        {AutoCommit => 1, 
+         RaiseError => 1}
+    );
+
+sub connect_info {
+    return CONNECT_INFO;
+}
+    
+sub authenticate {
+    return __PACKAGE__->connect(CONNECT_INFO);
+}
+
+
+# You can replace this text with custom content, and it will be preserved on regeneration
+1;

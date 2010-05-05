@@ -1,0 +1,30 @@
+[% title = 'Add Media' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<form action="[% c.uri_for('/media/create_with_tags_do') %]" method="POST">
+
+<p>
+[% c.flash.results | html_entity  | html_line_break -%]
+</p>
+
+<p>Enter up to media source one per line.  The format is: <br>
+Media_Source_URL tag_set:tag [... ,tag_set:tag]
+</p>
+
+<textarea name="urls" rows="20" cols="80">
+[% c.flash.url_list | html_entity -%]
+</textarea>
+
+<p>
+<input type="submit" value="Add Media" />
+</p>
+
+</form> 
+
+</fieldset>
+  
+
+ 
+[% INCLUDE include/footer.tt2 %]

@@ -1,0 +1,15 @@
+---
+name: MediaWords
+
+### database settings. at least one database connection must be defined
+database:
+    - label : "production"
+      host  : "localhost"
+      db    : "mediacloud"
+      user  : "mediaclouduser"
+      pass  : "secretpassword"
+    - label : "test"
+      host  : "localhost"
+      db    : "mediacloudtest"
+      user  : "mediacloudtestuser"
+      pass  : "secretpassword"

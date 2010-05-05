@@ -1,0 +1,20 @@
+---
+name: MediaWords
+
+# everything below is optional.  the system should work out of the box without 
+# touching any of these other than calais_key for tagging
+
+#session:
+    #expires: 3600
+    #storage: "~/tmp/mediawords-session" # directory where web app sessions are stored.  default to $homedir/tmp
+
+#mediawords:
+    #base_url: "http://your.mediacloud.server/and/path" # defaults to http://$hostname:$port/.
+    #data_dir: "<bindir>/../data" # parent directory of the content/ directory with all downloaded content is stored
+    #fetch_remote_content: "yes" # fetch content from another instance of MediaCloud?
+    #fetch_remote_content_user: username
+    #fetch_remote_content_password: password
+    #fetch_remote_content_url: "http://admin.mediacloud.org/admin/downloads/view/"
+    #calais_key: "enteryourkey" # needed for calais tagging
+    #yahoo_key: "enteryourkey" # needed for yahoo tagging
+    #default_tag_module: "NYTTopics Calais" # default to just NYTTopics
