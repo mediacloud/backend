@@ -1,0 +1,66 @@
+These are very brief, likely incomplete, installation instructions.  If you
+want to install the system, follow these instructions as they are and
+send any questions to info@mediacloud.org.
+
+These instructions assume comfort with postgresql and especially with perl. You
+will have a difficult time installing the system if you do not have experience
+with perl and cpan.
+
+* Install perl.
+
+* Install postgresql (8.4 or greater).  Make sure that plperl support
+  is included in your postgresql installation, or install the necessary
+  addon packages for it.  E.g. on Ubuntu run: 
+  	sudo apt-get install postgresql;
+	sudo apt-get install postgresql-plperl-8.4;
+	sudo apt-get install postgresql-server-dev-8.4;
+
+   (The postgresql server dev package is needed by some of the perl modules that mediacloud depends on.)
+
+* Create a postgres database and user.  The database user must be a superuser
+  to run some of the plperl procedural scripts. Run the following commands:
+     sudo su -
+     su - postgres
+     createuser -s mediaclouduser --pwprompt 
+     createdb --owner mediaclouduser mediacloud
+
+* Copy mediawords.yml.dist to mediawords.yml.
+
+* Fill in the database section in mediawords.yml with the connection information for the database you created above
+
+* OPTIONAL: Edit the other sections of mediawords.yml to suit your local
+  configuration.  NOTE THAT if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment 'default_tag_module', you should also uncomment 'mediawords'.
+  
+* OPTIONAL: If you want to use calais tagging, you'll need to apply for a calais key 
+  and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
+  default_tag_modules setting to 'NYTTopics Calais',
+
+* IMPORTANT: On Ubuntu you must install the following packages inorder to build the perl modules: libxml2-dev, libdb-dev, libtest-www-mechanize-perl. Running the following command to install these packages:
+      sudo apt-get install libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev
+
+* OPTIONAL: On Ubuntu run the following command to try to install some of the perl module dependencies using the package manager.  Not all perl modules are in the repository so you will still need to follow the next step to install the remaining module depencies:
+
+            cat <MEDIACLOUD_DIR>/lib/Bundle/MediaWords.pm  | grep ':' | grep -v 'package ' | xargs -n 1 apt-cache search | uniq | sed -e 's/ - .*//' | sudo xargs apt-get install --install-recommends   
+
+* Configure cpan on your system if you have not already done so. As root, run the cpan command and answer the configuration questions. You should generally just be able to accept the defaults.
+
+* As root, run 
+       PERL5LIB=<MEDIACLOUD_DIR>/lib PERL_MM_USE_DEFAULT=1 perl -MCPAN -e 'install Bundle::MediaWords'
+
+where <MEDIACLOUD_DIR> is the root directory for mediacloud.  This will install the many, many perl module dependencies.  Expect this to take a long time and install scores of modules.  The PERL_MM_USE_DEFAULT environment variable is set to indicate a noninteractive sesssion, however not all modules respect this setting so you may have to occasionally check
+  the installation process and respond to any questions that come up.
+
+* Run ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
+  
+* Run script/mediawords_server.pl.  This should start up the web server.
+  If the command line returns no errors, go to http://localhost:3000 
+  (or replace localhost with whatever host the system is on) to
+  access the server.
+  
+* Walk through the instructions in README.tutorial to setup a source
+  in the web app; download, extract, and tag its stories; and browse
+  the results.
+
+* Perform brilliant analysis, fix our broken code, document how the system
+  works, and otherwise contribute to the project.
+

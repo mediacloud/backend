@@ -1,0 +1,17 @@
+#!/bin/sh
+
+read PGPASSWORD
+export PGPASSWORD
+
+FILE=$1
+
+PGHOST=$2
+export PGHOST
+
+PGDATABASE=$3
+export PGDATABASE
+
+PGUSER=$4
+export PGUSER
+
+$FILE

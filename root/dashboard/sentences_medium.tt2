@@ -1,0 +1,44 @@
+[% medium_name = medium.name | translate_if_necessary %]
+
+[% IF (term == translated_term) %]
+[% title = 'Sentences in ' _ medium_name _ ' Including "' _ term _ '" for the Week of ' _ date %]
+[% ELSE %]
+[% title = 'Sentences in ' _ medium_name _ ' Including "' _ term _ '" (' _ translated_term _ ') for the Week of ' _ date %]
+[% END %]
+
+[% INCLUDE dashboard/header.tt2 %]
+[% IF ! c.flash.translate %]
+[% params.translate = 1%]
+<p> <a href="[% c.uri_for( '/dashboard/sentences_medium/' _ dashboard.dashboards_id, params ) %]">Show translated sentences</a> </p>
+[% ELSE %]
+[% params.translate = 0 %]
+<p> <a href="[% c.uri_for( '/dashboard/sentences_medium/' _ dashboard.dashboards_id, params ) %]">Hide translated sentences</a> </p>
+[% END %]
+ 
+<fieldset>
+
+<p><b>Word Frequency - [% medium.stem_percentage * 100 | format( "%.3f%%" ) %]</b></p>
+
+
+[% FOREACH sentence IN sentences %]
+<p>
+[% IF c.flash.translate %]
+<b>Original Sentence:</b>
+[% END %]
+[% sentence.sentence | html %] <a href="[% sentence.url %]">&gt;</a>
+
+[% IF c.flash.translate %]
+<br/>
+<b>Translated Sentence:</b>
+[% sentence.sentence | translate | html_strip %] <a href="[% sentence.url %]">&gt;</a>
+[% END %]
+
+</p>
+
+
+[% END #[% FOREACH sentence IN sentences %]
+
+
+</fieldset>
+
+[% INCLUDE dashboard/footer.tt2 %]

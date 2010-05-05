@@ -1,0 +1,20 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: name
+    label: Name
+    comment: Display name for media set
+    constraints:
+        - Required
+
+  - type: Text
+    name: tag_name
+    label: Collection Tag
+    size: 48
+    comment: Name of tag marking which media sources to include in the set. (collection:ap_eng_us_top100_20091015)
+    constraints:
+        - Required
+
+  - type: Submit
+    value: Go

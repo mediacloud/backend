@@ -1,0 +1,23 @@
+auto_fieldset:
+    
+elements:
+  - type: Text
+    name: name
+    label: Name
+    size: 48
+    comment: name of media source (New York Times)
+    constraints:
+        - Required
+        
+  - type: Text
+    name: url
+    label: URL
+    size: 48
+    comment: url of media source home page (http://nytimes.com)
+    constraints:
+        - Required
+        - type: URL
+          message: This is not a url
+        
+  - type: Submit
+    value: Save
