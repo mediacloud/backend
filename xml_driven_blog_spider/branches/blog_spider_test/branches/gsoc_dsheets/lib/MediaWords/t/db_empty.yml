@@ -1,6 +1,0 @@
----
-name: MediaWords
-
-### database settings. at least one database connection must be defined
-database:
-    
