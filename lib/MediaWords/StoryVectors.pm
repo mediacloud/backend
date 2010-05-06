@@ -46,7 +46,7 @@ sub _get_story_text
 
 }
 
-# given a hash of word counts by sentence, insert the words into the db using sql COPY for performance
+# given a hash of word counts by sentence, insert the words into the db
 sub _insert_story_sentence_words
 {
     my ( $db, $story, $word_counts ) = @_;
