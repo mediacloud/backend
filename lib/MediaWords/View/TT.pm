@@ -43,6 +43,8 @@ sub new
     $self->{template}->context->define_filter(
         translate_if_necessary => sub {
             my $nr = shift;
+            
+            return $nr;
 
 	    return $nr if !defined($nr) || !defined(trim($nr));
 
