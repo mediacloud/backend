@@ -11,7 +11,6 @@ use URI::Escape;
 use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Translate;
-use MediaWords::Util::Translate;
 
 use Perl6::Say;
 use Data::Dumper;
@@ -87,7 +86,7 @@ sub list : Local
     MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
     
     my $dashboard_topic;
-    if( my $id = $c->req->param( 'dashboard_topics_id' ) )
+    if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
     {
         $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
     }
@@ -95,10 +94,10 @@ sub list : Local
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
     
     $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ dashboard_topic } = $dashboard_topic;
     $c->stash->{ media } = $media;
     $c->stash->{ collection_media_sets } = $collection_media_sets;
     $c->stash->{ dashboard_topics } = $dashboard_topics;
-    $c->stash->{ dashboard_topic } = $dashboard_topic;
     $c->stash->{ dashboard_dates } = $dashboard_dates;
     $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
     
@@ -113,11 +112,10 @@ sub _translate_word_list
 
     for my $word ( @{ $words } ) 
     {
-
-         my $translated_word = { %{$word} };
-	 $translated_word->{term} = MediaWords::Util::Translate::translate( $translated_word->{ term } );
+        my $translated_word = { %{$word} };
+	    $translated_word->{term} = MediaWords::Util::Translate::translate( $translated_word->{ term } );
 	 
-	 push @{$ret}, $translated_word;
+	    push @{$ret}, $translated_word;
     }
 
     return $ret;
@@ -129,14 +127,20 @@ sub _translate_word_list
 # the given term
 sub get_word_cloud
 {
-    my ( $self, $c, $dashboard, $words, $media_set, $date ) = @_;
+    my ( $self, $c, $dashboard, $words, $media_set, $date, $dashboard_topic ) = @_;
         
     my $cloud = HTML::TagCloud->new;
+
+    my $dashboard_topics_id = $dashboard_topic ? $dashboard_topic->{ dashboard_topics_id } : undef;
 
     for my $word ( @{ $words } ) 
     {
         my $url = $c->uri_for( "/dashboard/sentences/" . $dashboard->{ dashboards_id }, 
-            { media_sets_id => $media_set->{ media_sets_id }, date => $date, stem => $word->{ stem }, term => $word->{ term } } );
+            { media_sets_id => $media_set->{ media_sets_id }, 
+              date => $date, 
+              stem => $word->{ stem }, 
+              term => $word->{ term },
+              dashboard_topics_id => $dashboard_topics_id } );
 
          die "0 stem count for word:" . Dumper($word) if ($word->{ stem_count} == 0);
          my $term = $word->{ term };
@@ -265,11 +269,11 @@ sub get_media_set_from_params
 # $c->flash or to null
 sub get_dashboard_topic_clause
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $dashboard_topic ) = @_;
     
-    if ( my $id = $c->flash->{ dashboard_topics_id } )
+    if ( $dashboard_topic && $dashboard_topic->{ dashboard_topics_id } )
     {
-        return "dashboard_topics_id = $id";
+        return "dashboard_topics_id = $dashboard_topic->{ dashboard_topics_id }";
     }
     else
     {
@@ -282,15 +286,15 @@ sub get_dashboard_topic_clause
 # and words_b is the converse
 sub compare_media_set_words
 {
-    my ( $self, $c, $media_set_a, $media_set_b, $date ) = @_;
+    my ( $self, $c, $media_set_a, $media_set_b, $date, $dashboard_topic ) = @_;
 
     my $db = $c->dbis;
     
-    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $c );
+    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
-    # computer min_stem_count_* from the min stem_count in the set, divided by some factor.
-    # we use this number instead of 0 for words with no stem_count to avoid only as relatively 
-    # prevalent words those that only appear in one source
+    # compute min_stem_count_* from the max stem_count in the set, divided by some factor.
+    # we use this number instead of 0 for words with no stem_count to avoid finding only 
+    # prevalent words that only appear in one source
     my ( $max_stem_count_a ) = $db->query( "select max( stem_count ) " .
                                            "  from ( select stem_count from top_500_weekly_words_normalized " .
                                            "      where media_sets_id = ? and publish_week = date_trunc( 'week', ?::date ) " .
@@ -304,16 +308,9 @@ sub compare_media_set_words
 
     my $min_stem_count_a = $max_stem_count_a / 50;
     my $min_stem_count_b = $max_stem_count_a / 50;
-    # $min_stem_count_a /= 2;
-    # $min_stem_count_b /= 2;
 
     # setup equations for relative prevalence here just to make the query below cleaner.
     # the coalesce stuff is necessary to assign non-null values to words not in one of the sets
-    # my $pr_a = "( ( coalesce ( a.stem_count, 0 ) * coalesce ( a.stem_count, 0 ) ) / " .
-    #            "  greatest( $min_stem_count_a, coalesce ( b.stem_count, 0 ) ) )";
-    # my $pr_b = "( ( coalesce ( b.stem_count, 0 ) * coalesce ( b.stem_count, 0 ) ) / " .
-    #            "  greatest( $min_stem_count_b, coalesce ( a.stem_count, 0 ) ) )";
-    
     my $pr_a = "( ( coalesce( a.stem_count, 0 ) * sqrt ( coalesce( a.stem_count, 0 ) ) ) / " .
                "  greatest( $min_stem_count_a, coalesce( b.stem_count, 0 ) ) )";
     my $pr_b = "( ( coalesce( b.stem_count, 0 ) * sqrt ( coalesce( b.stem_count, 0 ) ) ) / " .
@@ -333,7 +330,7 @@ sub compare_media_set_words
                                    "  order by stem_count desc",
                                    $media_set_a->{ media_sets_id }, $date, $media_set_b->{ media_sets_id }, $date )->hashes;
 
-    # sort and then deep copy words_a into words_b
+    # sort and then deep copy words_a into words_b to avoid having to run the query again
     my $words_b = [ map { my $h = { %{ $_ } }; $h->{ stem_count } = $h->{ stem_count_b }; $h }
                      sort { $b->{ stem_count_b } <=> $a->{ stem_count_b } } @{ $words_a } ];
     
@@ -358,12 +355,16 @@ sub compare : Local
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
     
-    my ( $words_a, $words_b ) = $self->compare_media_set_words( $c, $media_set_a, $media_set_b, $date );
+    my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' );
+    my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
     
-    my $word_cloud_a = $self->get_word_cloud( $c, $dashboard, $words_a, $media_set_a, $date );
-    my $word_cloud_b = $self->get_word_cloud( $c, $dashboard, $words_b, $media_set_b, $date );
+    my ( $words_a, $words_b ) = $self->compare_media_set_words( $c, $media_set_a, $media_set_b, $date, $dashboard_topic );
+    
+    my $word_cloud_a = $self->get_word_cloud( $c, $dashboard, $words_a, $media_set_a, $date, $dashboard_topic );
+    my $word_cloud_b = $self->get_word_cloud( $c, $dashboard, $words_b, $media_set_b, $date, $dashboard_topic );
     
     $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ dashboard_topic } = $dashboard_topic;
     $c->stash->{ media_set_a } = $media_set_a;
     $c->stash->{ media_set_b } = $media_set_b;
     $c->stash->{ word_cloud_a } = $word_cloud_a;
@@ -387,11 +388,9 @@ sub view : Local
         return $self->compare( $c, $dashboards_id );
     }
     
-    if ( my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' ) )
-    {
-        $c->flash->{ dashboard_topics_id } = $dashboard_topics_id;
-    }
-    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $c );
+    my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' ) || 0;
+    my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
+    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
     
     my $media_set = $self->get_media_set_from_params( $c );
     
@@ -425,7 +424,7 @@ sub view : Local
 
     $c->keep_flash( ('translate') );
 
-    my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date );
+    my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
     
     my $term_chart_url = MediaWords::Util::Chart::get_daily_term_chart_url( 
         $c->dbis, $media_set, $date, 7, $words, $dashboard_topic_clause );
@@ -433,6 +432,7 @@ sub view : Local
     my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
     
     $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ dashboard_topic } = $dashboard_topic;
     $c->stash->{ media_set } = $media_set;
     $c->stash->{ word_cloud } = $word_cloud;
     $c->stash->{ term_chart_url } = $term_chart_url;
@@ -464,9 +464,9 @@ sub _set_translate_state
 # if the dashboard_topics_id is set in the user session, restrict to the topic query
 sub get_medium_day_sentences
 {
-    my ( $c, $media_id, $stem, $date_string, $days, $num_sentences ) = @_;
+    my ( $c, $media_id, $stem, $dashboard_topic, $date_string, $days, $num_sentences ) = @_;
 
-    if ( my $dashboard_topics_id = $c->flash->{ dashboard_topics_id } )
+    if ( $dashboard_topic )
     {
         return $c->dbis->query( 
             "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
@@ -478,7 +478,7 @@ sub get_medium_day_sentences
             "    and sswq.stem = dt.query and dt.dashboard_topics_id = ? " .
             "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
             "  limit $num_sentences",
-            $media_id, $stem, $date_string, $dashboard_topics_id )->hashes;
+            $media_id, $stem, $date_string, $dashboard_topic->{ dashboard_topics_id } )->hashes;
     }
     else
     {
@@ -513,7 +513,9 @@ sub sentences_medium : Local
     
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
     
-    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $c );
+    my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' ) || 0;
+    my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
+    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
     
     ( $medium->{ stem_percentage } ) = $c->dbis->query(
         "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float )  as stem_percentage " .
@@ -530,7 +532,8 @@ sub sentences_medium : Local
     for my $days (0 .. 6) 
     {
         my $day_sentences = get_medium_day_sentences( 
-            $c, $media_id, $stem, $date_string, $days, ( MAX_MEDIUM_SENTENCES - @{ $sentences } )  );
+            $c, $media_id, $stem, $dashboard_topic, $date_string, $days, 
+            ( MAX_MEDIUM_SENTENCES - @{ $sentences } )  );
         
         push( @{ $sentences }, @{ $day_sentences } );
         
@@ -543,6 +546,7 @@ sub sentences_medium : Local
     $c->keep_flash( ('translate') );
 
     $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ dashboard_topic } = $dashboard_topic;
     $c->stash->{ term } = $term;
     $c->stash->{ translated_term} = MediaWords::Util::Translate::translate ($term);
     $c->stash->{ medium } = $medium;    
@@ -563,6 +567,10 @@ sub sentences : Local
     my $stem = $c->req->param( 'stem' ) || die( 'no stem' );
     my $term = $c->req->param( 'term' ) || die( 'no term' );
 
+    my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' ) || 0;
+    my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
+    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+
     my $date = $self->get_start_of_week( $c, $c->req->param('date') );
 
     my $media_set = $self->get_media_set_from_params( $c );
@@ -570,11 +578,14 @@ sub sentences : Local
     if ( $media_set->{ set_type } eq 'medium' )
     {
         $c->res->redirect( $c->uri_for( '/dashboard/sentences_medium/' . $dashboards_id, 
-            { media_id => $media_set->{ media_id }, date => $date, term => $term, stem => $stem } ) );
+            { media_id => $media_set->{ media_id }, 
+              date => $date, 
+              term => $term, 
+              stem => $stem, 
+              dashboard_topics_id => $dashboard_topics_id } ) );
         return;
     }
 
-    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $c );
     my $media = $c->dbis->query( 
         "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float ) as stem_percentage, " . 
         "    m.media_id, m.name " .
@@ -591,6 +602,7 @@ sub sentences : Local
         $media_set->{ media_sets_id }, $date, $date, $stem )->hashes;   
   
     $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ dashboard_topic } = $dashboard_topic;
     $c->stash->{ media } = $media;
     $c->stash->{ media_set } = $media_set;
     $c->stash->{ date } = $date;

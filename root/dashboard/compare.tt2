@@ -1,4 +1,9 @@
 [% title =  media_set_a.name _ ' v. ' _ media_set_b.name _ ' Week of ' _ date %]
+
+[% IF dashboard_topic %]
+[% title = title _ ' on the topic ' _ dashboard_topic.name %]
+[% END %]
+
 [% INCLUDE dashboard/header.tt2 %]
 
 <fieldset>

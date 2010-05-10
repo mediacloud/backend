@@ -152,7 +152,7 @@ sub _add_stories_and_content_downloads
                     $self->engine->dbs->rollback;
                     $self->engine->dbs->query( "update downloads set state = 'pending' where downloads_id = ?", 
                                                $download->{ downloads_id } );
-                    die( "requeue download for guid conflict" );
+                    die( "requeue '$url' due to guid conflict" );
                 }
                 else
                 {

@@ -1,3 +1,7 @@
+[% IF dashboard_topic %]
+[% title = title _ ' on ' _ dashboard_topic.name %]
+[% END %]
+
 <html>
 
 <head>
@@ -66,7 +70,7 @@ span.tagcloud24 { font-size: 36px;}
 [
 <a href="[% c.uri_for('/dashboard/list/') _ dashboard.dashboards_id %]">Dashboard Home</a>
 [% IF media_set %]
-| <a href="[% c.uri_for( '/dashboard/list/' _ dashboard.dashboards_id, { date => date, compare_media_sets_id => media_set.media_sets_id } ) %]">Compare [% media_set.name | html %]</a>
+| <a href="[% c.uri_for( '/dashboard/list/' _ dashboard.dashboards_id, { date => date, compare_media_sets_id => media_set.media_sets_id, dashboard_topics_id => dashboard_topic.dashboard_topics_id } ) %]">Compare [% media_set.name | html %]</a>
 [% END %]
 ]
 </div>

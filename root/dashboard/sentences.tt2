@@ -9,7 +9,7 @@
 <ul>
 [% FOREACH medium IN media %]
 
-[% params = { media_id => medium.media_id, term => term, stem => stem, date => date } %]
+[% params = { media_id => medium.media_id, term => term, stem => stem, date => date, dashboard_topics_id => dashboard_topic.dashboard_topics_id } %]
 [% medium_name = medium.name | translate_if_necessary %]
     
 <li><a href="[% c.uri_for('/dashboard/sentences_medium/' _ dashboard.dashboards_id, params ) %]">[% medium.name | html %]</a> 

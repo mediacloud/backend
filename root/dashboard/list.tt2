@@ -75,7 +75,6 @@
 </div>
 
 <input type="hidden" name="compare_media_sets_id" value="[% compare_media_sets_id %]" />
-<input type="hidden" name="dashboard_topics_id" value="[% dashboard_topic.dashboard_topics_id %]" />
 <input type="hidden" name="dashboards_id" value="[% dashboard.dashboards_id %]" />
 
 <div class="submit">
