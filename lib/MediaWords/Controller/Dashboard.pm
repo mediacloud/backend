@@ -355,7 +355,7 @@ sub compare : Local
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
     
-    my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' );
+    my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' ) || 0;
     my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
     
     my ( $words_a, $words_b ) = $self->compare_media_set_words( $c, $media_set_a, $media_set_b, $date, $dashboard_topic );
