@@ -152,7 +152,7 @@ sub dedup_sentences
     my $deduped_sentences = [];
     for my $sentence ( @{ $sentences } )
     {
-        my $num_dups = count_duplicate_sentences( $db, $sentence, scalar(@{ $deduped_sentences }), $story );
+        my $num_dups = count_duplicate_sentences( $db, $sentence, scalar( @{ $deduped_sentences } ), $story );
             
         if ( $num_dups == 0 )
         {
@@ -160,7 +160,7 @@ sub dedup_sentences
         }
         else
         {
-            print STDERR "ignoring duplicate sentence: '$sentence'\n";
+            # print STDERR "ignoring duplicate sentence: '$sentence'\n";
         }        
     }
     
