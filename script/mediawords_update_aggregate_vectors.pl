@@ -26,20 +26,21 @@ sub run_daemon
     
     while ( 1 )
     {
-        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '1 day' )" )->flat;
+        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '28 hours' )" )->flat;
         if ( !( $db->query( "select 1 from daily_words where publish_day = ?::date", $yesterday )->hash ) )
         {
             print STDERR "update_aggregate_vectors: yesterday\n";
             MediaWords::StoryVectors::update_aggregate_words( $db, $yesterday, $yesterday );
         }
-    
-        my $media_sets = $db->query( "select * from media_sets where vectors_added = false" )->hashes;
-        for my $media_set ( @{ $media_sets } )
-        {
-            print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
-            MediaWords::StoryVectors::update_aggregate_words( $db, undef, undef, 0, undef, $media_set->{ media_sets_id } );
-            $db->query( "update media_sets set vectors_added = true where media_sets_id = ?", $media_set->{ media_sets_id } );
-        }
+
+        # this is almost as slow as just revectoring everthing, so I'm commenting out for now
+        # my $media_sets = $db->query( "select * from media_sets where vectors_added = false" )->hashes;
+        # for my $media_set ( @{ $media_sets } )
+        # {
+        #     print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
+        #     MediaWords::StoryVectors::update_aggregate_words( $db, undef, undef, 0, undef, $media_set->{ media_sets_id } );
+        #     $db->query( "update media_sets set vectors_added = true where media_sets_id = ?", $media_set->{ media_sets_id } );
+        # }
         
         my $dashboard_topics = $db->query( "select * from dashboard_topics where vectors_added = false" )->hashes;
         for my $dashboard_topic ( @{ $dashboard_topics } )
