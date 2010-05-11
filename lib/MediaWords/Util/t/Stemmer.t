@@ -22,7 +22,20 @@ use Perl6::Say;
 
 use Lingua::Stem::Snowball;
 use MediaWords::Util::Stemmer;
-use Search::FreeText::LexicalAnalysis::Tokenize;
+
+# simple tokenizer
+sub _tokenize
+{
+    my ( $s ) = @_;
+    
+    my $tokens = [];
+    while ( $s->[0] =~ m~(\w[\w']*)~g )
+    {
+        push( @{ $tokens }, lc( $1 ) );
+    }
+    
+    return $tokens;
+}
 
 #From http://en.wikipedia.org/wiki/Stemming
 my $stemmer_test_text =  <<'__END_TEST_CASE__';
@@ -34,10 +47,8 @@ my $stemmer_test_ru_text = <<'__END_TEST_CASE__';
 Сте́мминг — это процесс нахождения основы слова для заданного исходного слова. Основа слова необязательно совпадает с морфологическим корнем слова. Алгоритм стемминга представляет собой давнюю проблему в области компьютерных наук. Первый документ по этому вопросу был опубликован в 1968 году. Данный процесс применяется в поиcковых системах для обобщения поискового запроса пользователя.
 __END_TEST_CASE__
 
-  my $tokenizer  = new Search::FreeText::LexicalAnalysis::Tokenize();
-
  {
- my @split_words = @{$tokenizer->process([$stemmer_test_text ])};
+ my @split_words = @{ _tokenize([$stemmer_test_text] )};
 
  #print @split_words;
  #exit;
@@ -72,7 +83,7 @@ my $temp = $stemmer_test_ru_text;
 #say "$temp";
 #say lc $temp;
 
-@split_words =  @{$tokenizer->process([$temp ])};
+@split_words =  @{_tokenize([$temp] )};
 
 #print STDERR "stemmer_test_ru_text " . Dumper(utf8::decode($stemmer_test_ru_text));
 #my @split_words = @{$tokenizer->process([$stemmer_test_ru_text ])};
@@ -97,7 +108,7 @@ my $mw_stem_result = $mw_stemmer->stem(@split_words);
 
     isnt(
        join ("_", @$mw_stem_result),
-       join ("_", @{$tokenizer->process([lc $stemmer_test_ru_text ])}),
+       join ("_", @{_tokenize([lc $stemmer_test_ru_text ])}),
        "Stemmer compare with no stemming test"
     );
 
