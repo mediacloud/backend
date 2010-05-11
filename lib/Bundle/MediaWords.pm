@@ -7,6 +7,10 @@ __END__
 
 =head1 CONTENTS
 
+Perl6::Say
+
+Algorithm::Cluster
+
 Task::Catalyst
 
 BerkeleyDB
@@ -87,8 +91,6 @@ Regexp::Optimizer
 IPC::Run3
 
 Dir::Self
-
-Perl6::Say
 
 Perl::Tidy
 
