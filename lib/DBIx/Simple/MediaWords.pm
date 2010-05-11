@@ -89,6 +89,8 @@ sub find_by_id
 
     my $id_col = $self->primary_key_column($table);
 
+    confess "undefined primary key column for table '$table'" unless defined($id_col);
+
     return $self->query( "select * from $table where $id_col = ?", $id )->hash;
 }
 
