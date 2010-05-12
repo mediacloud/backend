@@ -11,7 +11,7 @@
 --block-brace-tightness=0
 --block-brace-vertical-tightness=0
 --nobrace-left-and-indent
---brace-tightness=1
+--brace-tightness=0
 --brace-vertical-tightness=0
 --brace-vertical-tightness-closing=0
 --break-at-old-keyword-breakpoints
@@ -53,7 +53,7 @@
 --outdent-labels
 --outdent-long-comments
 --outdent-long-quotes
---paren-tightness=1
+--paren-tightness=0
 --paren-vertical-tightness=0
 --paren-vertical-tightness-closing=0
 --pass-version-line
