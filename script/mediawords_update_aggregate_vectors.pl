@@ -59,9 +59,9 @@ sub run_daemon
 
 sub main 
 {
-    my $top_500_only = ( $ARGV[0] eq '-5' ) && shift( @ARGV );
-    my $daemon = ( $ARGV[0] eq '-d' ) && shift( @ARGV );
-    my $force = ( $ARGV[0] eq '-f' ) && shift( @ARGV );
+    my $top_500_only = ( "$ARGV[0]" eq '-5' ) && shift( @ARGV );
+    my $daemon = ( "$ARGV[0]" eq '-d' ) && shift( @ARGV );
+    my $force = ( "$ARGV[0]" eq '-f' ) && shift( @ARGV );
     
     my ( $start_date, $end_date ) = @ARGV;
     
