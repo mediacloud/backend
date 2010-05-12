@@ -46,18 +46,20 @@ sub _get_dashboard_dates
 {
     my ( $self, $c, $dashboard ) = @_;
 
-    my ( $date, $end_date ) = $c->dbis->query( 
-        "select date_trunc( 'week', start_date ), date_trunc( 'week', end_date ) from dashboards where dashboards_id = ?",
+    my ( $now, $date, $end_date ) = $c->dbis->query( 
+        "select date_trunc( 'day', now() ), date_trunc( 'week', start_date ), date_trunc( 'week', end_date ) " . 
+        "  from dashboards where dashboards_id = ?",
         $dashboard->{ dashboards_id } )->flat;
     
+    $now = substr( $now, 0, 10 );
     $date = substr( $date, 0, 10 );
     $end_date = substr( $end_date, 0, 10 );    
     
     my $dates;
-    while ( $date le $end_date )
+    while ( ( $date le $end_date ) && ( $date le $now ) )
     {
         push( @{ $dates }, $date );
-        $date = Date::Format::time2str( '%Y-%m-%d', Date::Parse::str2time( $date ) + ( 86400 * 7 ) );
+        $date = Date::Format::time2str( '%Y-%m-%d', Date::Parse::str2time( $date ) + ( 86400 * 7 ) + 100 );
     }
     
     return $dates;
