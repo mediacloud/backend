@@ -47,7 +47,7 @@ sub _get_dashboard_dates
     my ( $self, $c, $dashboard ) = @_;
 
     my ( $now, $date, $end_date ) = $c->dbis->query( 
-        "select date_trunc( 'day', now() ), date_trunc( 'week', start_date ), date_trunc( 'week', end_date ) " . 
+        "select date_trunc( 'week', now() ), date_trunc( 'week', start_date ), date_trunc( 'week', end_date ) " . 
         "  from dashboards where dashboards_id = ?",
         $dashboard->{ dashboards_id } )->flat;
     
