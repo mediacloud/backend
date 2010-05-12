@@ -64,7 +64,7 @@
 --short-concatenation-item-length=8
 --noshow-options
 --space-for-semicolon
---square-bracket-tightness=1
+--square-bracket-tightness=0
 --square-bracket-vertical-tightness=0
 --square-bracket-vertical-tightness-closing=0
 --static-block-comments
