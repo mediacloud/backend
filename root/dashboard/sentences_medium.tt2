@@ -1,4 +1,8 @@
+[% IF c.flash.translate %]
 [% medium_name = medium.name | translate_if_necessary %]
+[% ELSE %]
+[% medium_name = medium.name %]
+[% END %]
 
 [% IF (term == translated_term) %]
 [% title = 'Sentences in ' _ medium_name _ ' Including "' _ term _ '" for the Week of ' _ date %]
