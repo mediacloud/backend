@@ -47,6 +47,8 @@ Text::Similarity::Overlaps
 
 Tie::Cache::LRU
 
+CHI
+
 Lingua::Stem
 
 Lingua::Stem::Snowball
