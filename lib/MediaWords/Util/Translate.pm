@@ -13,7 +13,24 @@ use strict;
 use WebService::Google::Language;
 use Perl6::Say;
 use Text::Trim;
-use Tie::Cache::LRU;
+use CHI;
+
+my $media_cloud_root_dir;
+
+BEGIN
+{
+    use FindBin;
+    my $source_file_dir = "$FindBin::Bin";
+    $media_cloud_root_dir = "$source_file_dir/../../../";
+}
+
+my $cache = CHI->new(
+		     driver     => 'FastMmap',
+		     expires_in => '1 week',
+		     expires_variance => '0.1',
+		     root_dir   => "$media_cloud_root_dir/data/cache123213",
+		     cache_size => '3m'
+		    );
 
 sub _translate
 {
@@ -53,24 +70,22 @@ sub _translate
     }
 }
 
-tie my %cache, 'Tie::Cache::LRU', 10000;
-
 sub translate
 {
   my $text = shift;
 
-  if (defined($cache{$text}))
-  {
-      #say STDERR "Translation for '$text' in cache";
+  my $ret = $cache->get($text);
+  if ( !defined( $ret) ) {
+    #say STDERR "Translation for '$text' not in cache";
+    $ret =  _translate($text);
+    $cache->set( $text, $ret );
   }
   else
   {
-      #say STDERR "Translation for '$text' not in cache";
-      $cache{$text} = _translate($text);
-
+     #say STDERR "Translation for '$text' in cache";
   }
 
-  return $cache{$text};
+  return $ret;
 }
 
 1;
