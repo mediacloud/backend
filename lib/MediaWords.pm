@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Catalyst::Runtime '5.70';
+
 #use Catalyst::Runtime;
 
 use DBIx::Simple::MediaWords;
@@ -53,17 +54,17 @@ sub uri_for
 {
     my ( $self, $path, $args ) = @_;
 
-    if ( !$self->config->{mediawords}->{base_url} )
+    if ( !$self->config->{ mediawords }->{ base_url } )
     {
-        shift(@_);
-        return $self->SUPER::uri_for(@_);
+        shift( @_ );
+        return $self->SUPER::uri_for( @_ );
     }
 
-    my $uri = URI->new( $self->config->{mediawords}->{base_url} . $path );
+    my $uri = URI->new( $self->config->{ mediawords }->{ base_url } . $path );
 
-    if ($args)
+    if ( $args )
     {
-        $uri->query_form($args);
+        $uri->query_form( $args );
     }
 
     return $uri->as_string();
@@ -73,18 +74,16 @@ sub create_form
 {
     my ( $self, $args ) = @_;
 
-    my $ret = HTML::FormFu::Unicode->new(
-                      $args
-    );
+    my $ret = HTML::FormFu::Unicode->new( $args );
 
-    return $ret;    
+    return $ret;
 }
 
 # shortcut to dbis model
 sub dbis
 {
 
-    return $_[0]->model('DBIS')->dbis;
+    return $_[ 0 ]->model( 'DBIS' )->dbis;
 }
 
 =head1 NAME

@@ -12,9 +12,9 @@ my $help = 0;
 
 GetOptions( 'help|?' => \$help );
 
-pod2usage(1) if ( $help || !$ARGV[0] );
+pod2usage( 1 ) if ( $help || !$ARGV[ 0 ] );
 
-print request( $ARGV[0] )->content . "\n";
+print request( $ARGV[ 0 ] )->content . "\n";
 
 1;
 

@@ -18,7 +18,7 @@ use MediaWords::DBI::Downloads;
 use MediaWords::Util::Config;
 use MediaWords::Crawler::BlogPageProcessor;
 
-our @ISA = ("MediaWords::Crawler::BlogPageProcessor");
+our @ISA = ( "MediaWords::Crawler::BlogPageProcessor" );
 
 # METHODS
 
@@ -28,16 +28,16 @@ sub _get_page_content
 
     my $ua = LWP::UserAgent->new;
 
-    $ua->from('mediawords@cyber.law.harvard.edu');
-    $ua->agent('mediawords bot (http://cyber.law.harvard.edu)');
+    $ua->from( 'mediawords@cyber.law.harvard.edu' );
+    $ua->agent( 'mediawords bot (http://cyber.law.harvard.edu)' );
 
-    $ua->timeout(20);
+    $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );
-    $ua->max_redirect(15);
+    $ua->max_redirect( 15 );
 
     print "starting get of $url\n";
 
-    my $response = $ua->get($url);
+    my $response = $ua->get( $url );
 
     die "Failed to get $url " unless $response;
 
@@ -48,13 +48,13 @@ sub _get_page_content
 
 sub _get_live_journal_profile_page_country
 {
-    my ($response) = @_;
+    my ( $response ) = @_;
 
     my $url = URI->new( $response->request->uri )->canonical;
 
     if ( $url =~ /\/$/ )
     {
-        chop($url);
+        chop( $url );
     }
 
     die unless $url =~ /\.livejournal.com/;
@@ -65,42 +65,42 @@ sub _get_live_journal_profile_page_country
 
     my $p = HTML::LinkExtractor->new( undef, $profile_url );
 
-    $p->strip(1);
+    $p->strip( 1 );
 
-    $p->parse( \_get_page_content($profile_url) );
+    $p->parse( \_get_page_content( $profile_url ) );
 
     #print "Grabbing country links from $profile_url\n";
 
-    my @country_name_links = grep { $_->{class} eq 'country-name' } @{ $p->links };
+    my @country_name_links = grep { $_->{ class } eq 'country-name' } @{ $p->links };
 
-    return unless scalar(@country_name_links) == 1;
+    return unless scalar( @country_name_links ) == 1;
 
     #print "Successfully pulled country_name_links\n";
 
-    my $country_name = $country_name_links[0]->{_TEXT};
+    my $country_name = $country_name_links[ 0 ]->{ _TEXT };
     return $country_name;
 }
 
 sub _live_journal_profile_country_is_russian
 {
-    my ($response) = @_;
+    my ( $response ) = @_;
 
-    my $country_name = _get_live_journal_profile_page_country($response);
+    my $country_name = _get_live_journal_profile_page_country( $response );
 
     return $country_name eq 'Russian Federation';
 }
 
 sub is_russian
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     #print "IN LiveJournal is_russian\n";
 
-    my $url = $self->{response}->request->uri;
+    my $url = $self->{ response }->request->uri;
 
     return 0 if ( $url !~ /\.livejournal.com/ );
 
-    return _live_journal_profile_country_is_russian( $self->{response} );
+    return _live_journal_profile_country_is_russian( $self->{ response } );
 }
 
 sub new
@@ -110,8 +110,8 @@ sub new
     my $self = {};
     bless( $self, $class );
 
-    $self->{download} = $download;
-    $self->{response} = $response;
+    $self->{ download } = $download;
+    $self->{ response } = $response;
 
     return $self;
 }

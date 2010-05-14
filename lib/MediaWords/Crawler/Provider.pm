@@ -60,16 +60,16 @@ sub new
     my $self = {};
     bless( $self, $class );
 
-    $self->engine($engine);
+    $self->engine( $engine );
 
-    $self->{downloads} = MediaWords::Crawler::Downloads_Queue->new();
+    $self->{ downloads } = MediaWords::Crawler::Downloads_Queue->new();
     return $self;
 }
 
 # run before forking engine to perform one time setup tasks
 sub _setup
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     if ( !$_setup )
     {
@@ -85,23 +85,23 @@ sub _setup
         $dbs->query(
 "UPDATE downloads set state = 'pending' where state = 'queued' and type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss')"
         );
-        $dbs->query("UPDATE downloads set state = 'queued' where state = 'fetching'");
+        $dbs->query( "UPDATE downloads set state = 'queued' where state = 'fetching'" );
 
-        my $dbs_result = $dbs->query("SELECT * from downloads_media where state =  'queued'");
+        my $dbs_result = $dbs->query( "SELECT * from downloads_media where state =  'queued'" );
 
         #print Dumper ($dbs);
         #print Dumper($dbs_result);
 
         my @queued_downloads = $dbs_result->hashes();
 
-	$dbs_result = $dbs->query("SELECT * from downloads_non_media where state =  'queued'");
-	push @queued_downloads, ($dbs_result->hashes() );
+        $dbs_result = $dbs->query( "SELECT * from downloads_non_media where state =  'queued'" );
+        push @queued_downloads, ( $dbs_result->hashes() );
 
-        print STDERR "Provider _setup queued_downloads array length = " . scalar(@queued_downloads) . "\n";
+        print STDERR "Provider _setup queued_downloads array length = " . scalar( @queued_downloads ) . "\n";
 
-        for my $d (@queued_downloads)
+        for my $d ( @queued_downloads )
         {
-            $self->{downloads}->_queue_download($d);
+            $self->{ downloads }->_queue_download( $d );
         }
     }
 }
@@ -216,7 +216,7 @@ sub _setup
 # no hosts get hung b/c a download sits around in the fetching state forever
 sub _timeout_stale_downloads
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     if ( $_last_stale_download_check > ( time() - STALE_DOWNLOAD_INTERVAL ) )
     {
@@ -224,20 +224,20 @@ sub _timeout_stale_downloads
     }
     $_last_stale_download_check = time();
 
-    my $dbs = $self->engine->dbs;
-    my @downloads =
-      $dbs->query("SELECT * from downloads_media where state = 'fetching' and download_time < (now() - interval '5 minutes')")
+    my $dbs       = $self->engine->dbs;
+    my @downloads = $dbs->query(
+        "SELECT * from downloads_media where state = 'fetching' and download_time < (now() - interval '5 minutes')" )
       ->hashes;
 
-    for my $download (@downloads)
+    for my $download ( @downloads )
     {
-        $download->{state}         = ('error');
-        $download->{error_message} = ($download_timed_out_error_message);
-        $download->{download_time} = ('now()');
+        $download->{ state }         = ( 'error' );
+        $download->{ error_message } = ( $download_timed_out_error_message );
+        $download->{ download_time } = ( 'now()' );
 
-        $dbs->update_by_id( "downloads", $download->{downloads_id}, $download );
+        $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-        print STDERR "timed out stale download " . $download->{downloads_id} . " for url " . $download->{url} . "\n";
+        print STDERR "timed out stale download " . $download->{ downloads_id } . " for url " . $download->{ url } . "\n";
     }
 
 }
@@ -246,7 +246,7 @@ sub _timeout_stale_downloads
 # this subroutine expects to be executed in a transaction
 sub _add_stale_feeds
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     if ( ( time() - $_last_stale_feed_check ) < STALE_FEED_CHECK_INTERVAL )
     {
@@ -259,53 +259,51 @@ sub _add_stale_feeds
 
     my $dbs = $self->engine->dbs;
 
-    my $constraint = "((last_download_time IS NULL "
-	. "OR (last_download_time < (NOW() - interval ' "
-	. STALE_FEED_INTERVAL
-	. " seconds'))) "
-	. "AND url LIKE 'http://%')";
+    my $constraint =
+      "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " . STALE_FEED_INTERVAL .
+      " seconds'))) " . "AND url LIKE 'http://%')";
 
-        #     my $downloads_ids = $dbs->query("INSERT INTO downloads "
-        # . "(feeds_id, url, host, type, sequence, state, priority, "
-        # . "download_time, extracted) "
-        # . "SELECT feeds_id, url, "
-        # . "lower(substring(url from '//([^/?#]*)')) AS host, "
-        # . "'feed' AS type, 1 AS sequence, 'queued' AS state, "
-        # . "(CASE WHEN last_download_time IS NULL THEN 10 ELSE 0 END) "
-        # . "AS priority, NOW() AS download_time, 'f' AS extracted "
-        # . "FROM feeds WHERE url IS NOT NULL "
-        # . "AND " . $constraint . " RETURNING feeds_id, downloads_id")->map();
-        # 
-    my @feeds =
-	$dbs->query("SELECT * FROM feeds WHERE " . $constraint)->hashes();
+    #     my $downloads_ids = $dbs->query("INSERT INTO downloads "
+    # . "(feeds_id, url, host, type, sequence, state, priority, "
+    # . "download_time, extracted) "
+    # . "SELECT feeds_id, url, "
+    # . "lower(substring(url from '//([^/?#]*)')) AS host, "
+    # . "'feed' AS type, 1 AS sequence, 'queued' AS state, "
+    # . "(CASE WHEN last_download_time IS NULL THEN 10 ELSE 0 END) "
+    # . "AS priority, NOW() AS download_time, 'f' AS extracted "
+    # . "FROM feeds WHERE url IS NOT NULL "
+    # . "AND " . $constraint . " RETURNING feeds_id, downloads_id")->map();
+    #
+    my @feeds = $dbs->query( "SELECT * FROM feeds WHERE " . $constraint )->hashes();
 
-        #     $dbs->query("UPDATE feeds SET last_download_time=(NOW()"
-        # . "+ age(to_timestamp(CAST(random()*"
-        # . int(STALE_FEED_INTERVAL / 4) . " AS INTEGER)),"
-        # . " timestamp with time zone 'epoch'))"
-        # . "WHERE " . $constraint);
+    #     $dbs->query("UPDATE feeds SET last_download_time=(NOW()"
+    # . "+ age(to_timestamp(CAST(random()*"
+    # . int(STALE_FEED_INTERVAL / 4) . " AS INTEGER)),"
+    # . " timestamp with time zone 'epoch'))"
+    # . "WHERE " . $constraint);
 
   DOWNLOAD:
-    for my $feed (@feeds)
+    for my $feed ( @feeds )
     {
-        if ( !$feed->{url} || substr($feed->{url}, 0, 7) ne 'http://' )
+        if ( !$feed->{ url } || substr( $feed->{ url }, 0, 7 ) ne 'http://' )
         {
-	    # TODO: report an error?
+
+            # TODO: report an error?
             next DOWNLOAD;
         }
 
         my $priority = 0;
-        if ( !$feed->{last_download_time} )
+        if ( !$feed->{ last_download_time } )
         {
             $priority = 10;
         }
 
-        my $host = lc( ( URI::Split::uri_split( $feed->{url} ) )[1] );
+        my $host = lc( ( URI::Split::uri_split( $feed->{ url } ) )[ 1 ] );
         my $download = $self->engine->dbs->create(
             'downloads',
             {
-                feeds_id      => $feed->{feeds_id},
-                url           => $feed->{url},
+                feeds_id      => $feed->{ feeds_id },
+                url           => $feed->{ url },
                 host          => $host,
                 type          => 'feed',
                 sequence      => 1,
@@ -315,18 +313,18 @@ sub _add_stale_feeds
                 extracted     => 'f'
             }
         );
-        
-        $download->{ _media_id } = $feed->{ media_id } ;
 
-        $self->{downloads}->_queue_download($download);
+        $download->{ _media_id } = $feed->{ media_id };
+
+        $self->{ downloads }->_queue_download( $download );
 
         # add a random skew to each feed so not every feed is downloaded at the same time
         my $skew = int( rand( STALE_FEED_INTERVAL / 4 ) ) - ( STALE_FEED_INTERVAL / 8 );
-        $feed->{last_download_time} = \"now() + interval '$skew seconds'";
+        $feed->{ last_download_time } = \"now() + interval '$skew seconds'";
 
         #print STDERR "updating feed: " . $feed->{feeds_id} . "\n";
 
-        $dbs->update_by_id( 'feeds', $feed->{feeds_id}, $feed );
+        $dbs->update_by_id( 'feeds', $feed->{ feeds_id }, $feed );
     }
 
     print STDERR "end _add_stale_feeds\n";
@@ -338,12 +336,12 @@ sub _queue_download_list
 {
     my ( $self, $downloads ) = @_;
 
-    for my $download ( @{$downloads} )
+    for my $download ( @{ $downloads } )
     {
-        $download->{state} = ('queued');
-        $self->engine->dbs->update_by_id( 'downloads', $download->{downloads_id}, $download );
+        $download->{ state } = ( 'queued' );
+        $self->engine->dbs->update_by_id( 'downloads', $download->{ downloads_id }, $download );
 
-        $self->{downloads}->_queue_download($download);
+        $self->{ downloads }->_queue_download( $download );
     }
 
     return;
@@ -354,19 +352,19 @@ sub _queue_download_list_with_per_site_limit
 {
     my ( $self, $downloads, $site_limit ) = @_;
 
-    for my $download ( @{$downloads} )
+    for my $download ( @{ $downloads } )
     {
-        my $site = MediaWords::Crawler::Downloads_Queue::get_download_site_from_hostname( $download->{host} );
+        my $site = MediaWords::Crawler::Downloads_Queue::get_download_site_from_hostname( $download->{ host } );
 
-        my $site_queued_download_count = $self->{downloads}->_get_queued_downloads_count( $site, 1 );
+        my $site_queued_download_count = $self->{ downloads }->_get_queued_downloads_count( $site, 1 );
 
         next if ( $site_queued_download_count > $site_limit );
 
-        $download->{state} = ('queued');
+        $download->{ state } = ( 'queued' );
 
-        $self->engine->dbs->update_by_id( 'downloads', $download->{downloads_id}, $download );
+        $self->engine->dbs->update_by_id( 'downloads', $download->{ downloads_id }, $download );
 
-        $self->{downloads}->_queue_download($download);
+        $self->{ downloads }->_queue_download( $download );
     }
 
     return;
@@ -376,14 +374,15 @@ my $_pending_download_sites;
 
 sub _get_pending_downloads_sites
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     if ( !$_pending_download_sites )
     {
         $_pending_download_sites =
-          $self->engine->dbs->query("SELECT distinct(site) from downloads_sites where state='pending' ")->flat();
+          $self->engine->dbs->query( "SELECT distinct(site) from downloads_sites where state='pending' " )->flat();
 
         print "Updating _pending_download_sites\n";
+
         #print Dumper($_pending_download_sites);
     }
 
@@ -393,7 +392,7 @@ sub _get_pending_downloads_sites
 # add all pending downloads to the $_downloads list
 sub _add_pending_downloads
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $interval = $self->engine->pending_check_interval || DEFAULT_PENDING_CHECK_INTERVAL;
 
@@ -403,7 +402,7 @@ sub _add_pending_downloads
     }
     $_last_pending_check = time();
 
-    my $current_queue_size = $self->{downloads}->_get_downloads_size;
+    my $current_queue_size = $self->{ downloads }->_get_downloads_size;
     if ( $current_queue_size > MAX_QUEUED_DOWNLOADS )
     {
         print "skipping add pending downloads due to queue size ($current_queue_size)\n";
@@ -412,33 +411,36 @@ sub _add_pending_downloads
 
     print "Not skipping add pending downloads queue size($current_queue_size) \n";
 
-    my @downloads_non_media = $self->engine->dbs->query( "SELECT * from downloads_non_media where state = 'pending' ORDER BY downloads_id limit ? ", int( int(MAX_QUEUED_DOWNLOADS) / 2 ) )->hashes;
+    my @downloads_non_media =
+      $self->engine->dbs->query( "SELECT * from downloads_non_media where state = 'pending' ORDER BY downloads_id limit ? ",
+        int( int( MAX_QUEUED_DOWNLOADS ) / 2 ) )->hashes;
     $self->_queue_download_list_with_per_site_limit( \@downloads_non_media, 100000 );
-    say "Queued " .  scalar(@downloads_non_media) . ' non_media downloads';
-    
-    my @sites = map { $_->{media_id} } @{ $self->{downloads}->_get_download_media_ids };
+    say "Queued " . scalar( @downloads_non_media ) . ' non_media downloads';
+
+    my @sites = map { $_->{ media_id } } @{ $self->{ downloads }->_get_download_media_ids };
 
     #print Dumper(@sites);
     @sites = grep { $_ =~ /\./ } @sites;
     push( @sites, @{ $self->_get_pending_downloads_sites() } );
-    @sites = List::MoreUtils::uniq(@sites);
+    @sites = List::MoreUtils::uniq( @sites );
 
-    my @sites_with_queued_downloads = grep { $self->{downloads}->_get_queued_downloads_count( $_, 1 ) > 0 } @sites;
+    my @sites_with_queued_downloads = grep { $self->{ downloads }->_get_queued_downloads_count( $_, 1 ) > 0 } @sites;
 
-    my $site_download_queue_limit = int( int(MAX_QUEUED_DOWNLOADS) / ( scalar(@sites) + 1 ) );
+    my $site_download_queue_limit = int( int( MAX_QUEUED_DOWNLOADS ) / ( scalar( @sites ) + 1 ) );
 
     my @downloads =
       $self->engine->dbs->query( "SELECT * from downloads_media where state = 'pending' ORDER BY downloads_id asc limit ? ",
-        int( int(MAX_QUEUED_DOWNLOADS) / 10 ) )->hashes;
+        int( int( MAX_QUEUED_DOWNLOADS ) / 10 ) )->hashes;
     $self->_queue_download_list_with_per_site_limit( \@downloads, $site_download_queue_limit );
 
-    @downloads = $self->engine->dbs->query( "SELECT * from downloads_media where state = 'pending' ORDER BY RANDOM() limit ? ",
-        int( int(MAX_QUEUED_DOWNLOADS) / 20 ) )->hashes;
+    @downloads =
+      $self->engine->dbs->query( "SELECT * from downloads_media where state = 'pending' ORDER BY RANDOM() limit ? ",
+        int( int( MAX_QUEUED_DOWNLOADS ) / 20 ) )->hashes;
     $self->_queue_download_list_with_per_site_limit( \@downloads, $site_download_queue_limit );
 
-    for my $site (@sites)
+    for my $site ( @sites )
     {
-        my $site_queued_downloads   = $self->{downloads}->_get_queued_downloads_count( $site, 1 );
+        my $site_queued_downloads = $self->{ downloads }->_get_queued_downloads_count( $site, 1 );
         my $site_downloads_to_fetch = $site_download_queue_limit - $site_queued_downloads;
 
         next if ( $site_downloads_to_fetch < 0 );
@@ -460,9 +462,9 @@ sub _get_pending_downloads_for_site
         $site, $max_downloads )->hashes;
 
     #rip out the 'site' field since this isn't part of the downloads table
-    for my $site_download (@site_downloads)
+    for my $site_download ( @site_downloads )
     {
-        delete( $site_download->{site} );
+        delete( $site_download->{ site } );
     }
 
     return @site_downloads;
@@ -471,7 +473,7 @@ sub _get_pending_downloads_for_site
 # add all pending downloads to the $_downloads list
 sub _retry_timed_out_spider_downloads
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $interval = $self->engine->pending_check_interval || DEFAULT_PENDING_CHECK_INTERVAL;
 
@@ -497,13 +499,14 @@ sub _retry_timed_out_spider_downloads
 # that meets the throttling requirement
 sub provide_downloads
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    sleep(1);
+    sleep( 1 );
 
     $self->_setup();
 
     $self->_timeout_stale_downloads();
+
     # $self->engine->dbs->transaction(sub { $self->_add_stale_feeds(); });
     $self->_add_stale_feeds();
 
@@ -512,11 +515,11 @@ sub provide_downloads
 
     my @downloads;
   MEDIA_ID:
-    for my $media_id ( @{ $self->{downloads}->_get_download_media_ids } )
+    for my $media_id ( @{ $self->{ downloads }->_get_download_media_ids } )
     {
 
         # we just slept for 1 so only bother calling time() if throttle is greater than 1
-        if ( ( $self->engine->throttle > 1 ) && ( $media_id->{time} > ( time() - $self->engine->throttle ) ) )
+        if ( ( $self->engine->throttle > 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
         {
 
             print STDERR "provide downloads: skipping media id $media_id->{media_id} because of throttling\n";
@@ -527,18 +530,18 @@ sub provide_downloads
 
         foreach ( 1 .. 3 )
         {
-            if ( my $download = $self->{downloads}->_pop_download( $media_id->{media_id} ) )
+            if ( my $download = $self->{ downloads }->_pop_download( $media_id->{ media_id } ) )
             {
                 push( @downloads, $download );
             }
         }
     }
 
-    print STDERR "provide downloads: " . scalar(@downloads) . " downloads\n";
+    print STDERR "provide downloads: " . scalar( @downloads ) . " downloads\n";
 
     if ( !@downloads )
     {
-        sleep(10);
+        sleep( 10 );
     }
 
     return \@downloads;
@@ -547,12 +550,12 @@ sub provide_downloads
 # calling engine
 sub engine
 {
-    if ( $_[1] )
+    if ( $_[ 1 ] )
     {
-        $_[0]->{engine} = $_[1];
+        $_[ 0 ]->{ engine } = $_[ 1 ];
     }
 
-    return $_[0]->{engine};
+    return $_[ 0 ]->{ engine };
 }
 
 1;

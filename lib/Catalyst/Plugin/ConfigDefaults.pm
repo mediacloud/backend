@@ -10,10 +10,10 @@ use strict;
 sub setup
 {
     my $c = shift;
-    
-    MediaWords::Util::Config::set_config($c->config);
-    
-    $c->NEXT::setup(@_);
+
+    MediaWords::Util::Config::set_config( $c->config );
+
+    $c->NEXT::setup( @_ );
 }
 
 1;

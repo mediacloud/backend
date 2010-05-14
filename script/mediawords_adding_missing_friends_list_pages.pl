@@ -44,7 +44,7 @@ sub main
     my $found_blogs_batch_size      = 1000;
     my $found_blogs_id_window_end   = $found_blogs_id_window_start + $found_blogs_batch_size;
 
-    ( my $max_found_blogs_id ) = $dbs->query("select max(found_blogs_id) from found_blogs")->flat();
+    ( my $max_found_blogs_id ) = $dbs->query( "select max(found_blogs_id) from found_blogs" )->flat();
 
     while ( $found_blogs_id_window_start <= $max_found_blogs_id )
     {
@@ -79,20 +79,18 @@ sub main
             print STDERR ' while ( my $found_blog' . "\n";
 
             # ignore found_blogs for multi-processor runs
-            if ( ( $found_blog->{found_blogs_id} + $process_num ) % $num_processes )
+            if ( ( $found_blog->{ found_blogs_id } + $process_num ) % $num_processes )
             {
-                print STDERR "Ignoring  " . $found_blog->{found_blogs_id} . "  + $process_num \n";
+                print STDERR "Ignoring  " . $found_blog->{ found_blogs_id } . "  + $process_num \n";
                 next;
             }
 
-            print STDERR "processing found_blog id:"
-              . $found_blog->{found_blogs_id} . "  -- "
-              . ( ( time() ) - $previous_processed_found_blog_end_time )
-              . " since last found_blog processed\n";
+            print STDERR "processing found_blog id:" . $found_blog->{ found_blogs_id } . "  -- " .
+              ( ( time() ) - $previous_processed_found_blog_end_time ) . " since last found_blog processed\n";
 
             $found_blog_found = 1;
 
-            MediaWords::Crawler::BlogSpiderDbUtils::add_friends_list_page( $dbs, $found_blog->{url} );
+            MediaWords::Crawler::BlogSpiderDbUtils::add_friends_list_page( $dbs, $found_blog->{ url } );
 
             $previous_processed_found_blog_end_time = time();
 

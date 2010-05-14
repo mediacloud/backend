@@ -30,11 +30,11 @@ my $_cached_max_found_blogs_id  = 0;
 
 sub get_max_found_blogs_id
 {
-    my ($dbh) = @_;
+    my ( $dbh ) = @_;
 
-    my $max_found_blogs_id_row = $dbh->query("select max(found_blogs_id) as max_id from found_blogs");
+    my $max_found_blogs_id_row = $dbh->query( "select max(found_blogs_id) as max_id from found_blogs" );
 
-    my $max_found_blogs_id = $max_found_blogs_id_row->hash()->{max_id};
+    my $max_found_blogs_id = $max_found_blogs_id_row->hash()->{ max_id };
 
     $_cached_max_found_blogs_id = $max_found_blogs_id;
 
@@ -46,18 +46,17 @@ sub scroll_found_blogs_id_window
     $_found_blogs_id_start = $_found_blogs_id_stop;
     $_found_blogs_id_stop  = $_found_blogs_id_start + $_found_blogs_id_window_size;
 
-    print STDERR "story_id windows: $_found_blogs_id_start -- $_found_blogs_id_stop   (max_found_blogs_id: "
-      . $_cached_max_found_blogs_id
-      . ")  -- "
-      . localtime() . "\n";
+    print STDERR "story_id windows: $_found_blogs_id_start -- $_found_blogs_id_stop   (max_found_blogs_id: " .
+      $_cached_max_found_blogs_id . ")  -- " .
+      localtime() . "\n";
 }
 
 sub get_rows_in_found_blogs_id_window
 {
-    my ($dbh) = @_;
+    my ( $dbh ) = @_;
 
-    print STDERR "starting fetching rows in window $_found_blogs_id_start - $_found_blogs_id_stop  ... -- "
-      . localtime() . "\n";
+    print STDERR "starting fetching rows in window $_found_blogs_id_start - $_found_blogs_id_stop  ... -- " . localtime() .
+      "\n";
 
     my $rows =
       $dbh->query( "select * from found_blogs where found_blogs.found_blogs_id < ? and found_blogs.found_blogs_id >= ? ",
@@ -72,9 +71,9 @@ my @_existing_media_sub_tables;
 
 sub exists_media_id_sub_table
 {
-    my ($media_id) = @_;
+    my ( $media_id ) = @_;
 
-    if ( defined( $_existing_media_sub_tables[$media_id] ) )
+    if ( defined( $_existing_media_sub_tables[ $media_id ] ) )
     {
         return 1;
     }
@@ -84,9 +83,9 @@ sub exists_media_id_sub_table
 
 sub isNonnegativeInteger
 {
-    my ($val) = @_;
+    my ( $val ) = @_;
 
-    return int($val) eq $val;
+    return int( $val ) eq $val;
 }
 
 sub insert_validation_download
@@ -99,7 +98,7 @@ sub insert_validation_download
         'downloads',
         {
             url           => $url,
-            host          => lc( ( URI::Split::uri_split( $url ) )[1] ),
+            host          => lc( ( URI::Split::uri_split( $url ) )[ 1 ] ),
             type          => $downloads_type,
             sequence      => 0,
             state         => 'pending',
@@ -110,7 +109,7 @@ sub insert_validation_download
 
     my $id = $dbh->last_insert_id( undef, undef, 'downloads', undef );
 
-    confess "Could not get last id inserted" if ( !defined($id) );
+    confess "Could not get last id inserted" if ( !defined( $id ) );
 
     #print Dumper($id);
 
@@ -128,15 +127,15 @@ sub main
 {
     my $result = &prompt( "y", "Are you sure you wish to continue?", "", "n" );
 
-    exit unless ($result);
+    exit unless ( $result );
 
     my $dbh = TableCreationUtils::get_database_handle();
 
-    my $max_found_blogs_id = get_max_found_blogs_id($dbh);
+    my $max_found_blogs_id = get_max_found_blogs_id( $dbh );
 
     while ( $_found_blogs_id_start <= $max_found_blogs_id )
     {
-        my $rows_to_insert = get_rows_in_found_blogs_id_window($dbh);
+        my $rows_to_insert = get_rows_in_found_blogs_id_window( $dbh );
 
         my $rows_fetched_in_batch = 0;
 
@@ -146,14 +145,14 @@ sub main
             $rows_fetched_in_batch++;
             insert_validation_download(
                 $dbh,
-                $found_blog_hash->{found_blogs_id},
-                $found_blog_hash->{url},
+                $found_blog_hash->{ found_blogs_id },
+                $found_blog_hash->{ url },
                 'spider_validation_blog_home'
             );
             insert_validation_download(
                 $dbh,
-                $found_blog_hash->{found_blogs_id},
-                $found_blog_hash->{rss},
+                $found_blog_hash->{ found_blogs_id },
+                $found_blog_hash->{ rss },
                 'spider_validation_rss'
             );
         }

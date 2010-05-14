@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# accept a list of urls and file names on standard input and get those in parallel.  for each url, store the 
+# accept a list of urls and file names on standard input and get those in parallel.  for each url, store the
 # Storable of the response in the associated file name.
 #
 # input format:
@@ -17,17 +17,17 @@ use LWP::UserAgent;
 use Parallel::ForkManager;
 use Storable;
 
-use constant NUM_PARALLEL => 10;
+use constant NUM_PARALLEL      => 10;
 use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
-use constant TIMEOUT => 60;
-use constant MAX_REDIRECT => 15;
-use constant BOT_FROM => 'mediacloud@cyber.law.harvard.edu';
-use constant BOT_AGENT => 'mediacloud bot (http://mediacloud.org)';
+use constant TIMEOUT           => 60;
+use constant MAX_REDIRECT      => 15;
+use constant BOT_FROM          => 'mediacloud@cyber.law.harvard.edu';
+use constant BOT_AGENT         => 'mediacloud bot (http://mediacloud.org)';
 
-sub main 
+sub main
 {
     my $requests;
-    
+
     while ( my $line = <STDIN> )
     {
         chomp( $line );
@@ -39,43 +39,43 @@ sub main
         {
             warn( "Unable to parse line: $line" );
         }
-        
+
     }
-    
+
     if ( !$requests || !@{ $requests } )
     {
         return;
     }
 
     my $pm = new Parallel::ForkManager( NUM_PARALLEL );
-    
+
     my $ua = LWP::UserAgent->new();
 
     $ua->from( BOT_FROM );
-    $ua->agent( BOT_AGENT );        
+    $ua->agent( BOT_AGENT );
 
     $ua->timeout( TIMEOUT );
     $ua->max_size( MAX_DOWNLOAD_SIZE );
     $ua->max_redirect( MAX_REDIRECT );
-    
-    my $i = 0;
+
+    my $i     = 0;
     my $total = scalar( @{ $requests } );
     for my $request ( @{ $requests } )
     {
         $i++;
         $pm->start and next;
-        
+
         print STDERR "fetch [$i/$total] : $request->{ url }\n";
-        
+
         my $response = $ua->get( $request->{ url } );
-        
+
         print STDERR "got [$i/$total]: $request->{ url }\n";
 
         Storable::store( $response, $request->{ file } );
-        
-        $pm->finish
+
+        $pm->finish;
     }
-    
+
     $pm->wait_all_children;
 }
 

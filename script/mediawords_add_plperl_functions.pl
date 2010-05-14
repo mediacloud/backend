@@ -23,12 +23,13 @@ use MediaWords::Pg::Schema;
 
 sub main
 {
-    if ( $ARGV[0] eq '-p' )
+    if ( $ARGV[ 0 ] eq '-p' )
     {
         print MediaWords::Pg::Schema::get_sql_function_definitions . "\n";
     }
-    else {
-        my $db = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    else
+    {
+        my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
         MediaWords::Pg::Schema::add_functions( $db );
     }
 }

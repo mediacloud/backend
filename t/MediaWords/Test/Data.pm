@@ -17,12 +17,12 @@ use Data::Dumper;
 sub _get_data_file
 {
     my ( $key ) = @_;
-    
-    if ( $key =~ /[^a-z0-9_]/i ) 
+
+    if ( $key =~ /[^a-z0-9_]/i )
     {
         die( "data key can only include /[a-z0-9_]/i" );
     }
-    
+
     return "$FindBin::Bin/../t/data/$key.pl";
 }
 
@@ -30,14 +30,14 @@ sub _get_data_file
 sub store_test_data
 {
     my ( $key, $data ) = @_;
-    
+
     my $file = _get_data_file( $key );
-        
-    if ( !open( FILE, ">$file" ) ) 
+
+    if ( !open( FILE, ">$file" ) )
     {
         die( "Unable to open file $file: $!" );
     }
-    
+
     print FILE Dumper( $data );
 
     close( FILE );
@@ -47,10 +47,10 @@ sub store_test_data
 sub fetch_test_data
 {
     my ( $key ) = @_;
-    
+
     my $file = _get_data_file( $key );
-    
-    if ( !open( FILE, "<$file" ) ) 
+
+    if ( !open( FILE, "<$file" ) )
     {
         die( "Unable to open file $file: $!" );
     }
@@ -60,15 +60,16 @@ sub fetch_test_data
     {
         $data .= $line;
     }
-    
+
     close( FILE );
-    
+
     my $VAR1;
     eval( $data );
-    if ($@) {
+    if ( $@ )
+    {
         die( "error restoring data: $@" );
     }
-    
+
     return $VAR1;
 }
 

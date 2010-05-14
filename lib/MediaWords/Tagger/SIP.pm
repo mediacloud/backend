@@ -29,27 +29,27 @@ use BerkeleyDB;
 
 use MediaWords::Util::Config;
 
-my $filename  = MediaWords::Util::Config::get_config->{mediawords}->{data_dir} . "/tagger/sip_data.dbm";
+my $filename  = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir } . "/tagger/sip_data.dbm";
 my $threshold = 5;
 my $max_sip   = 10;
 
 sub get_tags
 {
-    my ($content) = @_;
+    my ( $content ) = @_;
 
     my @tags;
     eval {
         my $bdb = new BerkeleyDB::Hash( -Filename => $filename, -Flags => DB_CREATE )
-            or die "Cannot open $filename: $!\n";
+          or die "Cannot open $filename: $!\n";
 
-            my $data_dir = MediaWords::Util::Config::get_config->{mediawords}->{data_dir};
+        my $data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
 
-        if ( get_val( $bdb, "IS_MY_BDB_TRAINED_LONG_KEY" ) == 0 )   
+        if ( get_val( $bdb, "IS_MY_BDB_TRAINED_LONG_KEY" ) == 0 )
         {
             for my $f (
                 qw/nyt_current_history.txt sex.txt alice_in_wonderland.txt emma.txt jane_eyre.txt
                 pride_and_prejudice.txt thesaurus.txt devils_dictionary.txt frankenstein.txt/
-                )
+              )
             {
                 train_file( $bdb, "$data_dir/tagger/sip-books/$f" );
             }
@@ -59,10 +59,13 @@ sub get_tags
         @tags = sip_content( $bdb, $content );
         close $bdb->db_close();
     };
-    
-    if ($@) {
+
+    if ( $@ )
+    {
         return { error => $@ };
-    } else {
+    }
+    else
+    {
         return { tags => \@tags };
     }
 
@@ -91,21 +94,21 @@ sub incr_val
 sub add_word
 {
     my ( $db_handle, $word ) = @_;
-    incr_val( $db_handle, lc($word) );
+    incr_val( $db_handle, lc( $word ) );
     incr_val( $db_handle, "count" );
 }
 
 sub get_prob
 {
     my ( $db_handle, $word ) = @_;
-    return get_val( $db_handle, lc($word) ) / get_val( $db_handle, "count" );
+    return get_val( $db_handle, lc( $word ) ) / get_val( $db_handle, "count" );
 }
 
 sub train_file
 {
     my ( $db_handle, $file ) = @_;
     open( FILE, "<$file" );
-    while (<FILE>)
+    while ( <FILE> )
     {
         chomp;
         train_content( $db_handle, $_ );
@@ -115,7 +118,7 @@ sub train_file
 
 sub seperate_words
 {
-    my ($text) = @_;
+    my ( $text ) = @_;
     return map { /([\w\-']+)/i }    #strip out puncuation, besides apostraphes and hyphens
       split /\s+/s, $text;
 }
@@ -125,7 +128,7 @@ sub train_content
     my $word;
     my ( $db_handle, $content ) = @_;
 
-    foreach $word ( seperate_words($content) )
+    foreach $word ( seperate_words( $content ) )
     {
         add_word( $db_handle, $word );
     }
@@ -143,23 +146,23 @@ sub sip_content
 {
     my ( $db_handle, $content ) = @_;
 
-    my @words       = seperate_words($content);
+    my @words       = seperate_words( $content );
     my $total_count = @words;
     my %distribution;
     my $word;
     my $word_count;
 
     #count the number of times each word appears
-    foreach $word (@words)
+    foreach $word ( @words )
     {
-        $word_count = $distribution{$word};
+        $word_count = $distribution{ $word };
         if ( !$word_count )
         {
-            $distribution{$word} = 1;
+            $distribution{ $word } = 1;
         }
         else
         {
-            $distribution{$word} = $word_count + 1;
+            $distribution{ $word } = $word_count + 1;
         }
     }
 
@@ -168,21 +171,21 @@ sub sip_content
     {
         if ( get_prob( $db_handle, $word ) > 0 )
         {
-            $distribution{$word} = ( $word_count / $total_count ) / get_prob( $db_handle, $word );
+            $distribution{ $word } = ( $word_count / $total_count ) / get_prob( $db_handle, $word );
         }
     }
 
     #sort from most improbable down
-    @words = sort { $distribution{$b} <=> $distribution{$a} } keys %distribution;
+    @words = sort { $distribution{ $b } <=> $distribution{ $a } } keys %distribution;
 
     #return words more improbable than the threshold
     my @res;
     my $count = 0;
     do
     {
-        push( @res, shift(@words) );
+        push( @res, shift( @words ) );
         $count++;
-    } while ( $distribution{ $res[-1] } >= $threshold && $count < $max_sip );
+    } while ( $distribution{ $res[ -1 ] } >= $threshold && $count < $max_sip );
 
     return @res;
 }

@@ -29,7 +29,7 @@ sub is_stop_stem
     }
     else
     {
-        pg_log("unknown stop list size: $size");
+        pg_log( "unknown stop list size: $size" );
         return 'f';
     }
 

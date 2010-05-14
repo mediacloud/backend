@@ -20,10 +20,10 @@ use Perl::Tidy 20090616;
 sub main
 {
 
-  Perl::Tidy::perltidy(
-		       argv => \@ARGV,
-		       perltidyrc => "$FindBin::Bin/mediawords_perltidy_config_file"
-		       );
+    Perl::Tidy::perltidy(
+        argv       => \@ARGV,
+        perltidyrc => "$FindBin::Bin/mediawords_perltidy_config_file"
+    );
 }
 
 main();

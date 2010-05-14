@@ -37,11 +37,11 @@ sub fetch_tags
 
     $content =~ s/[^[:ascii:]]/ /g;
 
-    my $key = MediaWords::Util::Config::get_config->{mediawords}->{calais_key};
+    my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ calais_key };
 
     #Uncomment this line to change the opencalais server.  We needed this in the 4.0 change over but probably don't now...
     #$Net::Calais::CALAIS_URL = 'http://api1.opencalais.com/enlighten/rest/';
-    
+
     my $calais = Net::Calais->new( apikey => $key );
 
     my $calais_response;
@@ -49,10 +49,10 @@ sub fetch_tags
         no warnings;
         $calais_response = $calais->enlighten( $content, contentType => "text/txt", outputFormat => "xml/rdf" );
     }
-    
+
     if ( !$calais_response )
     {
-        if ( $calais->{error} eq CALAIS_OVERLIMIT_ERROR )
+        if ( $calais->{ error } eq CALAIS_OVERLIMIT_ERROR )
         {
             return { error => "over calais request limit", overlimit => 1 };
         }
@@ -74,30 +74,33 @@ sub fetch_tags
     my $tags = {};
     while ( $terms =~ /(\w+): (.+)/ig )
     {
+
         # Relations are just relation type headers e.g. 'Company' so we don't want them to be tags
         next if ( $1 eq 'Relations' );
 
-        # Position relations i.e. job titles such as 'president Chief of Staff , Democratic leader' are noise to us so skip them
+     # Position relations i.e. job titles such as 'president Chief of Staff , Democratic leader' are noise to us so skip them
         next if ( $1 eq 'Position' );
 
-        for my $t ( map { lc($_) } split( ', ', $2 ) )
+        for my $t ( map { lc( $_ ) } split( ', ', $2 ) )
         {
             if ( ( $t !~ /^[a-z]+\:\/\// ) & ( $t !~ /\@/ ) )
             {
-                    $t =~ s/^(\s+)//;
-                    $t =~ s/(\s+)$//;
-                    $t =~ s/(\s+)/ /g;
-                    
-                    if ($t)
-                    {              
-                        $tags->{$t} = 1;
-                    }
+                $t =~ s/^(\s+)//;
+                $t =~ s/(\s+)$//;
+                $t =~ s/(\s+)/ /g;
+
+                if ( $t )
+                {
+                    $tags->{ $t } = 1;
+                }
             }
         }
     }
 
-    return { tags => [ sort { $a cmp $b } ( keys( %{$tags} ) ) ],
-             content => $calais_response };
+    return {
+        tags => [ sort { $a cmp $b } ( keys( %{ $tags } ) ) ],
+        content => $calais_response
+    };
 }
 
 sub get_tags
@@ -106,29 +109,30 @@ sub get_tags
 
     my $tags;
 
-    for ( my $i = 0; 1 ; $i++ ) 
+    for ( my $i = 0 ; 1 ; $i++ )
     {
         $tags = fetch_tags( $content );
 
-        if ( $tags->{tags} )
+        if ( $tags->{ tags } )
         {
             return $tags;
         }
-        elsif ( $tags->{overlimit} )
+        elsif ( $tags->{ overlimit } )
         {
             if ( $i >= MAX_OVERLIMIT_RETRIES )
             {
                 last;
             }
-        } elsif ( $i >= MAX_ERROR_RETRIES ) 
+        }
+        elsif ( $i >= MAX_ERROR_RETRIES )
         {
             last;
         }
 
-        sleep min( (2 ** $i), MAX_WAIT_SECONDS ) ;
+        sleep min( ( 2**$i ), MAX_WAIT_SECONDS );
     }
-    
-    return { error => "too many errors from calais.  last error: " . $tags->{error} };
+
+    return { error => "too many errors from calais.  last error: " . $tags->{ error } };
 }
 
 1;

@@ -22,12 +22,11 @@ use MediaWords::DB;
 use Perl6::Say;
 use Data::Dumper;
 
-
 sub _feed_item_age
 {
-   my ($item) = @_;
+    my ( $item ) = @_;
 
-   return (time - Date::Parse::str2time( $item->pubDate ));
+    return ( time - Date::Parse::str2time( $item->pubDate ) );
 }
 
 sub _is_recently_updated
@@ -54,7 +53,7 @@ sub _is_recently_updated
     my $feed = Feed::Scrape->parse_feed( $response->decoded_content );
 
     my $medium_name;
-    if ($feed)
+    if ( $feed )
     {
         $medium_name = $feed->title;
     }
@@ -62,7 +61,7 @@ sub _is_recently_updated
     {
         print STDERR "Unable to parse feed '$feed_url' ($medium_url)\n";
         $medium_name = $medium_url;
-	return;
+        return;
     }
 
     my $last_post_date = 0;
@@ -71,15 +70,15 @@ sub _is_recently_updated
 
     my $age_in_seconds = $days * 60 * 60 * 24;
 
-    my @recent_items = grep { _feed_item_age( $_ ) < (86400 *90) } $feed->get_item;
+    my @recent_items = grep { _feed_item_age( $_ ) < ( 86400 * 90 ) } $feed->get_item;
 
-    if (scalar(@recent_items)  >= 2 )
+    if ( scalar( @recent_items ) >= 2 )
     {
-      return 1;
+        return 1;
     }
     else
     {
-      return 0;
+        return 0;
     }
 }
 
@@ -92,7 +91,7 @@ sub main
 
     if ( !$file || !$out_file )
     {
-        die("usage: mediawords_find_recently_updated_blogs.pl <csv file> <output file>\n");
+        die( "usage: mediawords_find_recently_updated_blogs.pl <csv file> <output file>\n" );
     }
 
     my $csv = Text::CSV_XS->new( { binary => 1 } ) || die "Cannot use CSV: " . Text::CSV_XS->error_diag();
@@ -101,7 +100,7 @@ sub main
 
     open( my $out_fh, ">:encoding(utf8)", $out_file ) or die "Unable to create file $out_file: $!\n";
 
-    my $header_line = $csv->getline($fh);
+    my $header_line = $csv->getline( $fh );
     $csv->column_names( $header_line );
 
     $csv->print( $out_fh, $header_line );
@@ -114,17 +113,17 @@ sub main
     my $recent_blogs = 0;
     my $old_blogs    = 0;
 
-    while ( my $colref = $csv->getline($fh) )
+    while ( my $colref = $csv->getline( $fh ) )
     {
 
         my %hr;
-        @hr{ @{ $csv->{_COLUMN_NAMES} } } = @$colref;
+        @hr{ @{ $csv->{ _COLUMN_NAMES } } } = @$colref;
 
         my $row = \%hr;
 
-	my $media_url = $row->{url} || $row->{source};
+        my $media_url = $row->{ url } || $row->{ source };
 
-	my $feed_url  = $row->{rss} || $row->{feedurl};
+        my $feed_url = $row->{ rss } || $row->{ feedurl };
 
         if ( _is_recently_updated( $media_url, $feed_url ) )
         {

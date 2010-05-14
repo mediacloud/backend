@@ -65,7 +65,6 @@ use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 # only apply similarity test to this many characters of the story text and desciption
 use constant MAX_SIMILARITY_LENGTH => 8192;
 
-
 # additions -- add some mutiple of these absolute numbers to each line
 
 # add COMMENT_ADDITION * num of comment ids or classes before current line
@@ -126,14 +125,14 @@ my $_NOISE_WORDS = [
 sub preprocess
 {
 
-    return HTML::CruftText::clearCruftText(@_);
+    return HTML::CruftText::clearCruftText( @_ );
 }
 
 #todo explain what this function really does
 # return the ratio of html characters to text characters
 sub get_html_density
 {
-    my ($line) = @_;
+    my ( $line ) = @_;
 
     if ( !$line )
     {
@@ -145,23 +144,23 @@ sub get_html_density
     while ( $line =~ /(<\/?([a-z]*) ?[^>]*>)/g )
     {
         my ( $tag, $tag_name ) = ( $1, $2 );
-        my $len = length($1);
+        my $len = length( $1 );
 
-        if ( lc($tag_name) eq 'p' )
+        if ( lc( $tag_name ) eq 'p' )
         {
             $len *= P_DISCOUNT;
         }
-        elsif ( lc($tag_name) eq 'li' )
+        elsif ( lc( $tag_name ) eq 'li' )
         {
             $len *= LI_DISCOUNT;
         }
-        elsif ( lc($tag_name) eq 'a' )
+        elsif ( lc( $tag_name ) eq 'a' )
         {
-            if ( pos($line) == 0 )
+            if ( pos( $line ) == 0 )
             {
                 $len *= 2;
             }
-            elsif ( pos($line) > 32 )
+            elsif ( pos( $line ) > 32 )
             {
                 $len *= A_DISCOUNT;
             }
@@ -170,28 +169,28 @@ sub get_html_density
         $html_length += $len;
     }
 
-    for my $noise_word ( @{$_NOISE_WORDS} )
+    for my $noise_word ( @{ $_NOISE_WORDS } )
     {
         while ( $line =~ /$noise_word/ig )
         {
-            $html_length += length($noise_word);
+            $html_length += length( $noise_word );
         }
     }
 
-    return ( $html_length / length($line) );
+    return ( $html_length / length( $line ) );
 }
 
 # find various markers that can be used to discount line scores
 # return a hash of the found markers
 sub find_markers
 {
-    my ($lines) = @_;
+    my ( $lines ) = @_;
 
     my $markers = {};
 
-    while ( my ( $name, $pattern ) = each( %{$_MARKER_PATTERNS} ) )
+    while ( my ( $name, $pattern ) = each( %{ $_MARKER_PATTERNS } ) )
     {
-        $markers->{$name} = [ indexes { $_ =~ $pattern } @{$lines} ];
+        $markers->{ $name } = [ indexes { $_ =~ $pattern } @{ $lines } ];
     }
 
     return $markers;
@@ -201,24 +200,24 @@ sub find_markers
 # { linenum1 => 1, linenum2 => 1, ...}
 sub get_clickprint_map
 {
-    my ($markers) = @_;
+    my ( $markers ) = @_;
 
     my $clickprint_map;
 
-    if ( !defined( $markers->{startclickprintinclude} ) )
+    if ( !defined( $markers->{ startclickprintinclude } ) )
     {
         return;
     }
 
-    $markers->{endclickprintinclude}   ||= [];
-    $markers->{startclickprintexclude} ||= [];
-    $markers->{endclickprintexclude}   ||= [];
+    $markers->{ endclickprintinclude }   ||= [];
+    $markers->{ startclickprintexclude } ||= [];
+    $markers->{ endclickprintexclude }   ||= [];
 
-    while ( my $start_include = shift( @{ $markers->{startclickprintinclude} } ) )
+    while ( my $start_include = shift( @{ $markers->{ startclickprintinclude } } ) )
     {
-        my $end_include = shift( @{ $markers->{endclickprintinclude} } );
+        my $end_include = shift( @{ $markers->{ endclickprintinclude } } );
 
-        if ( !defined($end_include) )
+        if ( !defined( $end_include ) )
         {
             print STDERR
 "Invalid clickprint: startclickprintinclude at line: $start_include does not have a matching endclickprintinclude";
@@ -227,18 +226,18 @@ sub get_clickprint_map
 
         for ( my $i = $start_include ; $i <= $end_include ; $i++ )
         {
-            $clickprint_map->{$i} = 1;
+            $clickprint_map->{ $i } = 1;
         }
 
-        if ( my $start_exclude = shift( @{ $markers->{startclickprintexclude} } ) )
+        if ( my $start_exclude = shift( @{ $markers->{ startclickprintexclude } } ) )
         {
             if ( $start_exclude > $end_include )
             {
-                unshift( @{ $markers->{startclickprintexclude} }, $start_exclude );
+                unshift( @{ $markers->{ startclickprintexclude } }, $start_exclude );
             }
             else
             {
-                my $end_exclude = shift( @{ $markers->{endclickprintexclude} } )
+                my $end_exclude = shift( @{ $markers->{ endclickprintexclude } } )
                   || $end_include;
 
                 #TODO consider just printing an error and returning of the startexclude does not have a matching end exclude
@@ -247,7 +246,7 @@ sub get_clickprint_map
                 {
                     for ( my $i = $start_exclude + 1 ; $i < $end_exclude ; $i++ )
                     {
-                        $clickprint_map->{$i} = 0;
+                        $clickprint_map->{ $i } = 0;
                     }
                 }
             }
@@ -261,16 +260,16 @@ sub get_clickprint_map
 # { linenum1 => 1, linenum2 => 1, ...}
 sub get_sphereit_map
 {
-    my ($markers) = @_;
+    my ( $markers ) = @_;
 
     my $sphereit_map;
-    while ( my $start = shift( @{ $markers->{sphereitbegin} } ) )
+    while ( my $start = shift( @{ $markers->{ sphereitbegin } } ) )
     {
-        my $end = shift( @{ $markers->{sphereitend} } ) || $start;
+        my $end = shift( @{ $markers->{ sphereitend } } ) || $start;
 
         for ( my $i = $start ; $i <= $end ; $i++ )
         {
-            $sphereit_map->{$i} = 1;
+            $sphereit_map->{ $i } = 1;
         }
     }
 
@@ -310,7 +309,7 @@ sub within_proximity
 
     for ( my $j = 1 ; ( ( $i - $j ) >= 0 ) && ( $j <= PROXIMITY_LINES ) ; $j++ )
     {
-        if ( $scores->[ $i - $j ]->{is_story} )
+        if ( $scores->[ $i - $j ]->{ is_story } )
         {
             return 1;
         }
@@ -329,18 +328,18 @@ sub get_description_similarity_discount
         return 1;
     }
 
-    if ( length( $line ) > MAX_SIMILARITY_LENGTH ) 
+    if ( length( $line ) > MAX_SIMILARITY_LENGTH )
     {
         $line = substr( $line, 0, MAX_SIMILARITY_LENGTH );
     }
-     
-    if ( length( $description ) > MAX_SIMILARITY_LENGTH ) 
+
+    if ( length( $description ) > MAX_SIMILARITY_LENGTH )
     {
         $description = substr( $description, 0, MAX_SIMILARITY_LENGTH );
     }
 
-    my $stripped_line = html_strip($line);
-    my $stripped_description = html_strip($description);
+    my $stripped_line        = html_strip( $line );
+    my $stripped_description = html_strip( $description );
 
     my $score =
       Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
@@ -349,7 +348,7 @@ sub get_description_similarity_discount
     if (   ( DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
         || ( DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
     {
-        die("DESCRIPTION_SIMILARITY_DISCOUNT must be between 0 and 1");
+        die( "DESCRIPTION_SIMILARITY_DISCOUNT must be between 0 and 1" );
     }
 
     my $power = 1 / DESCRIPTION_SIMILARITY_DISCOUNT;
@@ -364,7 +363,7 @@ my $_last_time;
 
 sub print_time
 {
-    my ($s) = @_;
+    my ( $s ) = @_;
 
     return;
 
@@ -384,15 +383,15 @@ sub find_auto_excluded_lines
 {
     my ( $lines ) = @_;
 
-    my $markers        = find_markers($lines);
-    my $clickprint_map = get_clickprint_map($markers);
-    my $sphereit_map   = get_sphereit_map($markers);
+    my $markers        = find_markers( $lines );
+    my $clickprint_map = get_clickprint_map( $markers );
+    my $sphereit_map   = get_sphereit_map( $markers );
 
     my $ret = [];
 
-    for ( my $i = 0 ; $i < @{$lines} ; $i++ )
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
-        my $line = defined( $lines->[$i] )? $lines->[$i] : '';
+        my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
 
         $line =~ s/^\s*//;
         $line =~ s/\s*$//;
@@ -400,52 +399,52 @@ sub find_auto_excluded_lines
 
         my $explanation;
 
-	my $auto_exclude = 0;
+        my $auto_exclude = 0;
 
         if (   REQUIRE_BODY
-            && $markers->{body}
-            && ( $i < ( $markers->{body}->[0] || 0 ) ) )
+            && $markers->{ body }
+            && ( $i < ( $markers->{ body }->[ 0 ] || 0 ) ) )
         {
             $explanation .= "require body";
-	    $auto_exclude = 1;
+            $auto_exclude = 1;
         }
         elsif ( REQUIRE_NON_BLANK && ( $line =~ /^\s*$/ ) )
         {
             $explanation .= "require non-blank";
-	    $auto_exclude = 1;
+            $auto_exclude = 1;
         }
         elsif ( REQUIRE_NON_HTML && MediaWords::Util::HTML::html_strip( $line ) !~ /[\w]/i )
         {
             $explanation .= "require non-html";
-	    $auto_exclude = 1;
+            $auto_exclude = 1;
         }
-        elsif ( REQUIRE_WORD && ( decode_entities($line) !~ /\w{4}/i ) )
+        elsif ( REQUIRE_WORD && ( decode_entities( $line ) !~ /\w{4}/i ) )
         {
             $explanation .= "require word";
-	    $auto_exclude = 1;
+            $auto_exclude = 1;
         }
         elsif (REQUIRE_CLICKPRINT
             && $clickprint_map
-            && !$clickprint_map->{$i} )
+            && !$clickprint_map->{ $i } )
         {
             $explanation .= "require clickprint";
-	    $auto_exclude = 1;
+            $auto_exclude = 1;
         }
-        elsif ( REQUIRE_SPHEREIT && $sphereit_map && !$sphereit_map->{$i} )
+        elsif ( REQUIRE_SPHEREIT && $sphereit_map && !$sphereit_map->{ $i } )
         {
             $explanation .= "require sphereit";
-	    $auto_exclude = 1;
+            $auto_exclude = 1;
         }
 
-	if ($auto_exclude)
-	{
-	    $ret->[$i] = [1, $explanation];
-	}
-	else
-	{
-	    $ret->[$i] = [0];
-	}
-      }
+        if ( $auto_exclude )
+        {
+            $ret->[ $i ] = [ 1, $explanation ];
+        }
+        else
+        {
+            $ret->[ $i ] = [ 0 ];
+        }
+    }
 
     return $ret;
 }
@@ -457,16 +456,16 @@ sub score_lines
 {
     my ( $lines, $title, $description ) = @_;
 
-    my $auto_excluded_lines = find_auto_excluded_lines($lines);
+    my $auto_excluded_lines = find_auto_excluded_lines( $lines );
 
-    return heuristically_scored_lines($lines, $title, $description, $auto_excluded_lines );
+    return heuristically_scored_lines( $lines, $title, $description, $auto_excluded_lines );
 }
 
 sub heuristically_scored_lines
 {
     my ( $lines, $title, $description, $auto_excluded_lines ) = @_;
 
-    return _heuristically_scored_lines_impl($lines, $title, $description, $auto_excluded_lines, 0);
+    return _heuristically_scored_lines_impl( $lines, $title, $description, $auto_excluded_lines, 0 );
 }
 
 sub _heuristically_scored_lines_impl
@@ -476,7 +475,7 @@ sub _heuristically_scored_lines_impl
     # use Data::Dumper;
     # die ( Dumper( @_ ) );
 
-    print_time("score_lines");
+    print_time( "score_lines" );
 
     my $title_text = html_strip( $title );
 
@@ -484,15 +483,15 @@ sub _heuristically_scored_lines_impl
     $title_text =~ s/\s*$//;
     $title_text =~ s/\s+/ /;
 
-    if ( !defined($lines) )
+    if ( !defined( $lines ) )
     {
         return;
     }
 
-    my $markers        = find_markers($lines);
-    my $clickprint_map = get_clickprint_map($markers);
-    my $sphereit_map   = get_sphereit_map($markers);
-    print_time("find_markers");
+    my $markers        = find_markers( $lines );
+    my $clickprint_map = get_clickprint_map( $markers );
+    my $sphereit_map   = get_sphereit_map( $markers );
+    print_time( "find_markers" );
 
     #print "markers: ";
     #use Data::Dumper;
@@ -506,15 +505,15 @@ sub _heuristically_scored_lines_impl
 
     my $found_article_title = 0;
 
-    for ( my $i = 0 ; $i < @{$lines} ; $i++ )
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
-        my $line = defined( $lines->[$i] )? $lines->[$i] : '';
+        my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
 
         $line =~ s/^\s*//;
         $line =~ s/\s*$//;
         $line =~ s/\s+/ /;
 
-        my $line_text = html_strip($line);
+        my $line_text = html_strip( $line );
 
         $line_text =~ s/^\s*//;
         $line_text =~ s/\s*$//;
@@ -526,12 +525,12 @@ sub _heuristically_scored_lines_impl
 
         my ( $html_density, $discounted_html_density, $explanation );
 
-        if (   $markers->{comment}
-            && $markers->{comment}->[0]
-            && ( $markers->{comment}->[0] == $i ) )
+        if (   $markers->{ comment }
+            && $markers->{ comment }->[ 0 ]
+            && ( $markers->{ comment }->[ 0 ] == $i ) )
         {
             $comment_addition += COMMENT_ADDITION;
-            shift( @{ $markers->{comment} } );
+            shift( @{ $markers->{ comment } } );
         }
         else
         {
@@ -543,28 +542,28 @@ sub _heuristically_scored_lines_impl
             $comment_addition = 0;
         }
 
-	    if ($auto_excluded_lines->[$i]->[0])
-	    {
-    	    my $auto_exclude_explanation = $auto_excluded_lines->[$i]->[1];
-    	    my $explanation_codes = { 
-        	    "require body"          => REQUIRE_BODY,
-        	    "require non-blank"     => REQUIRE_NON_BLANK,
-        	    "require non-html"      => REQUIRE_NON_HTML,
-        	    "require word"          => REQUIRE_WORD, 
-        	    "require clickprint"    => REQUIRE_CLICKPRINT,
-        	    "require sphereit"      => REQUIRE_SPHEREIT
-    	    };
-	    
-    	    $discounted_html_density = $explanation_codes->{ $auto_exclude_explanation } ||
-    	        confess "Invalid explanation: $auto_exclude_explanation";
+        if ( $auto_excluded_lines->[ $i ]->[ 0 ] )
+        {
+            my $auto_exclude_explanation = $auto_excluded_lines->[ $i ]->[ 1 ];
+            my $explanation_codes        = {
+                "require body"       => REQUIRE_BODY,
+                "require non-blank"  => REQUIRE_NON_BLANK,
+                "require non-html"   => REQUIRE_NON_HTML,
+                "require word"       => REQUIRE_WORD,
+                "require clickprint" => REQUIRE_CLICKPRINT,
+                "require sphereit"   => REQUIRE_SPHEREIT
+            };
 
-    	    $explanation .= "$auto_exclude_explanation\n";
-	    }
+            $discounted_html_density = $explanation_codes->{ $auto_exclude_explanation }
+              || confess "Invalid explanation: $auto_exclude_explanation";
+
+            $explanation .= "$auto_exclude_explanation\n";
+        }
         else
         {
-            $html_density = get_html_density($line);
+            $html_density = get_html_density( $line );
 
-            if (   ( length($line) < MINIMUM_CHARACTERS )
+            if (   ( length( $line ) < MINIMUM_CHARACTERS )
                 && ( $html_density < MINIMUM_CHARACTERS_SCORE ) )
             {
                 $explanation .= "minimum characters score: " . MINIMUM_CHARACTERS_SCORE . "\n";
@@ -589,18 +588,18 @@ sub _heuristically_scored_lines_impl
                 }
             }
 
-            if ($comment_addition)
+            if ( $comment_addition )
             {
                 $explanation .= "comment addition: $comment_addition\n";
                 $discounted_html_density += $comment_addition;
             }
 
-            if ( length($line) > LENGTH_DISCOUNT_LENGTH )
+            if ( length( $line ) > LENGTH_DISCOUNT_LENGTH )
             {
                 $explanation .= "length discount: " . LENGTH_DISCOUNT . "\n";
                 $discounted_html_density *= LENGTH_DISCOUNT;
             }
-            if ( length($line) > ( 4 * LENGTH_DISCOUNT_LENGTH ) )
+            if ( length( $line ) > ( 4 * LENGTH_DISCOUNT_LENGTH ) )
             {
                 $explanation .= "super length discount: " . LENGTH_DISCOUNT . "\n";
                 $discounted_html_density *= LENGTH_DISCOUNT;
@@ -612,19 +611,19 @@ sub _heuristically_scored_lines_impl
                 $discounted_html_density *= COPYRIGHT_DISCOUNT;
             }
 
-            if ( $clickprint_map && $clickprint_map->{$i} )
+            if ( $clickprint_map && $clickprint_map->{ $i } )
             {
                 $explanation .= "clickprint discount: " . CLICKPRINT_DISCOUNT . "\n";
                 $discounted_html_density *= CLICKPRINT_DISCOUNT;
             }
 
-            if ( $sphereit_map && $sphereit_map->{$i} )
+            if ( $sphereit_map && $sphereit_map->{ $i } )
             {
                 $explanation .= "sphereit discount: " . SPHEREIT_DISCOUNT . "\n";
                 $discounted_html_density *= SPHEREIT_DISCOUNT;
             }
 
-            if ($last_story_line)
+            if ( $last_story_line )
             {
                 my $distance_to_last_story_line = $i - $last_story_line;
                 if ( $distance_to_last_story_line
@@ -653,30 +652,30 @@ sub _heuristically_scored_lines_impl
             }
         }
 
-        $score->{html_density}            = $html_density            || 0;
-        $score->{discounted_html_density} = $discounted_html_density || 0;
-        $score->{explanation}             = $explanation             || '';
-        $score->{is_story} = ( $line && ( $discounted_html_density < MAX_HTML_DENSITY ) ) || 0;
-        $score->{line_number} = $i;
+        $score->{ html_density }            = $html_density            || 0;
+        $score->{ discounted_html_density } = $discounted_html_density || 0;
+        $score->{ explanation }             = $explanation             || '';
+        $score->{ is_story } = ( $line && ( $discounted_html_density < MAX_HTML_DENSITY ) ) || 0;
+        $score->{ line_number } = $i;
 
-        if ( $score->{is_story} )
+        if ( $score->{ is_story } )
         {
             $last_story_line = $i;
         }
 
         # print "score: [" . $score->{is_story} . " / " . $score->{html_density} . "] $line\n";
 
-        push( @{$scores}, $score );
+        push( @{ $scores }, $score );
     }
-    
-    print_time("loop_lines");
+
+    print_time( "loop_lines" );
 
     #In rare cases we won't match the article title and we'll discount all lines
     #we rescore the article without looking for the title to fix this
     if ( !$found_article_title && !$skip_title_search )
     {
         $skip_title_search = 1;
-        return  _heuristically_scored_lines_impl($lines, $title, $description, $auto_excluded_lines, $skip_title_search );
+        return _heuristically_scored_lines_impl( $lines, $title, $description, $auto_excluded_lines, $skip_title_search );
     }
 
     return $scores;

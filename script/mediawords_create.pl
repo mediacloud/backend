@@ -16,11 +16,11 @@ GetOptions(
     'help|?'         => \$help
 );
 
-pod2usage(1) if ( $help || !$ARGV[0] );
+pod2usage( 1 ) if ( $help || !$ARGV[ 0 ] );
 
 my $helper = Catalyst::Helper->new( { '.newfiles' => !$force, mech => $mech } );
 
-pod2usage(1) unless $helper->mk_component( 'MediaWords', @ARGV );
+pod2usage( 1 ) unless $helper->mk_component( 'MediaWords', @ARGV );
 
 1;
 

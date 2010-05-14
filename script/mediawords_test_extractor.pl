@@ -32,10 +32,10 @@ sub text_length
 
     my $hs = HTML::Strip->new();
 
-    my $tmp = ( $hs->parse($html_text) );
+    my $tmp = ( $hs->parse( $html_text ) );
     $hs->eof();
 
-    my $ret = length($tmp);
+    my $ret = length( $tmp );
 
     return $ret;
 }
@@ -44,16 +44,15 @@ sub get_lines_that_should_be_in_story
 {
     ( my $download, my $dbs ) = @_;
 
-    my @story_lines =
-      $dbs->query(
+    my @story_lines = $dbs->query(
         "select * from extractor_training_lines where extractor_training_lines.downloads_id = ? order by line_number ",
-        $download->{downloads_id} )->hashes;
+        $download->{ downloads_id } )->hashes;
 
     my $line_should_be_in_story = {};
 
-    for my $story_line (@story_lines)
+    for my $story_line ( @story_lines )
     {
-        $line_should_be_in_story->{ $story_line->{line_number} } = $story_line->{required} ? 'required' : 'optional';
+        $line_should_be_in_story->{ $story_line->{ line_number } } = $story_line->{ required } ? 'required' : 'optional';
     }
 
     return $line_should_be_in_story;
@@ -64,7 +63,7 @@ sub get_cached_extractor_line_scores
     ( my $download, my $dbs ) = @_;
 
     return $dbs->query( " SELECT  * from extractor_results_cache where downloads_id = ? order by line_number asc ",
-        $download->{downloads_id} )->hashes;
+        $download->{ downloads_id } )->hashes;
 }
 
 sub store_extractor_line_scores
@@ -73,21 +72,21 @@ sub store_extractor_line_scores
 
     $dbs->begin_work;
 
-    $dbs->query( 'DELETE FROM extractor_results_cache where downloads_id = ?', $download->{downloads_id} );
+    $dbs->query( 'DELETE FROM extractor_results_cache where downloads_id = ?', $download->{ downloads_id } );
 
     my $line_number = 0;
-    for my $score ( @{$scores} )
+    for my $score ( @{ $scores } )
     {
 
         #print (keys %{$score}) . "\n";
         $dbs->insert(
             'extractor_results_cache',
             {
-                is_story                => $score->{is_story},
-                explanation             => $score->{explanation},
-                discounted_html_density => $score->{discounted_html_density},
-                html_density            => $score->{html_density},
-                downloads_id            => $download->{downloads_id},
+                is_story                => $score->{ is_story },
+                explanation             => $score->{ explanation },
+                discounted_html_density => $score->{ discounted_html_density },
+                html_density            => $score->{ html_density },
+                downloads_id            => $download->{ downloads_id },
                 line_number             => $line_number,
             }
         );
@@ -109,7 +108,7 @@ sub get_extractor_scores_for_lines
         $ret = get_cached_extractor_line_scores( $download, $dbs );
     }
 
-    if ( !defined($ret) || !@{$ret} )
+    if ( !defined( $ret ) || !@{ $ret } )
     {
         $ret = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description, );
         store_extractor_line_scores( $ret, $lines, $download, $dbs );
@@ -121,8 +120,8 @@ sub get_extractor_scores_for_lines
 sub get_character_count_for_story
 {
     ( my $download, my $line_should_be_in_story ) = @_;
-    my $lines = get_preprocessed_content_lines_for_download($download);
-    my $story_characters = sum( map { text_length( $lines->[$_] ) } keys %{$line_should_be_in_story} );
+    my $lines = get_preprocessed_content_lines_for_download( $download );
+    my $story_characters = sum( map { text_length( $lines->[ $_ ] ) } keys %{ $line_should_be_in_story } );
 
     return $story_characters;
 }
@@ -133,14 +132,14 @@ sub get_preprocessed_content_lines_for_download
 {
     ( my $download ) = @_;
 
-    if ( defined( $_processed_lines_cache->{ $download->{downloads_id} } ) )
+    if ( defined( $_processed_lines_cache->{ $download->{ downloads_id } } ) )
     {
-        return $_processed_lines_cache->{ $download->{downloads_id} };
+        return $_processed_lines_cache->{ $download->{ downloads_id } };
     }
 
-    my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines($download);
+    my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
 
-    $_processed_lines_cache = { $download->{downloads_id} => $preprocessed_lines };
+    $_processed_lines_cache = { $download->{ downloads_id } => $preprocessed_lines };
 
     return $preprocessed_lines;
 }
@@ -153,23 +152,23 @@ sub processDownload
 
     my $line_should_be_in_story = get_lines_that_should_be_in_story( $download, $dbs );
 
-    my @required_lines = grep { $line_should_be_in_story->{$_} eq 'required' } keys %{$line_should_be_in_story};
-    my @optional_lines = grep { $line_should_be_in_story->{$_} eq 'optional' } keys %{$line_should_be_in_story};
+    my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
+    my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
 
-    my $preprocessed_lines = get_preprocessed_content_lines_for_download($download);
+    my $preprocessed_lines = get_preprocessed_content_lines_for_download( $download );
 
-    my $story_line_count = scalar( keys %{$line_should_be_in_story} );
+    my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
 
     my $story_title =
-      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{stories_id} )->flat->[0];
+      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
     my $story_description =
-      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{stories_id} )->flat->[0];
+      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
 
     my $scores = [];
 
     $scores = get_extractor_scores_for_lines( $preprocessed_lines, $story_title, $story_description, $download, $dbs );
 
-    my @extracted_lines = map { $_->{line_number} } grep { $_->{is_story} } @{$scores};
+    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
     my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
     my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
@@ -180,34 +179,32 @@ sub processDownload
 
     my $missing_characters = 0;
 
-    for my $missing_line_number (@missing_lines)
+    for my $missing_line_number ( @missing_lines )
     {
-        $missing_characters += text_length( $preprocessed_lines->[$missing_line_number] );
+        $missing_characters += text_length( $preprocessed_lines->[ $missing_line_number ] );
 
-        $download_errors .= "missing line $missing_line_number: " . $preprocessed_lines->[$missing_line_number] . "\n";
+        $download_errors .= "missing line $missing_line_number: " . $preprocessed_lines->[ $missing_line_number ] . "\n";
     }
     my $extra_characters = 0;
 
-    for my $extra_line_number (@extra_lines)
+    for my $extra_line_number ( @extra_lines )
     {
-        $extra_characters += text_length( $preprocessed_lines->[$extra_line_number] );
-        $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[$extra_line_number] . "\n";
+        $extra_characters += text_length( $preprocessed_lines->[ $extra_line_number ] );
+        $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
     }
 
-    if ($download_errors)
+    if ( $download_errors )
     {
         my $story_title =
-          $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{stories_id} )->flat->[0];
+          $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
 
-        print "****\nerrors in download "
-          . $download->{downloads_id} . ": "
-          . $story_title . "\n"
-          . "$download_errors\n****\n";
+        print "****\nerrors in download " . $download->{ downloads_id } . ": " . $story_title . "\n" .
+          "$download_errors\n****\n";
         $errors++;
     }
 
-    my $extra_line_count   = scalar(@extra_lines);
-    my $missing_line_count = scalar(@missing_lines);
+    my $extra_line_count   = scalar( @extra_lines );
+    my $missing_line_count = scalar( @missing_lines );
 
     return {
         story_characters   => $story_characters,
@@ -228,35 +225,32 @@ sub extractAndScoreDownloads
 
     my $downloads = shift;
 
-    my @downloads = @{$downloads};
+    my @downloads = @{ $downloads };
 
-    @downloads = sort { $a->{downloads_id} <=> $b->{downloads_id} } @downloads;
+    @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
     my $download_results = [];
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
-    for my $download (@downloads)
+    for my $download ( @downloads )
     {
         my $download_result = processDownload( $download, $dbs );
 
-        push( @{$download_results}, $download_result );
+        push( @{ $download_results }, $download_result );
     }
 
-    my $all_story_characters   = sum( map { $_->{story_characters} } @{$download_results} );
-    my $all_extra_characters   = sum( map { $_->{extra_characters} } @{$download_results} );
-    my $all_missing_characters = sum( map { $_->{missing_characters} } @{$download_results} );
-    my $all_story_lines        = sum( map { $_->{story_line_count} } @{$download_results} );
-    my $all_extra_lines        = sum( map { $_->{extra_line_count} } @{$download_results} );
-    my $all_missing_lines      = sum( map { $_->{missing_line_count} } @{$download_results} );
-    my $errors                 = sum( map { $_->{errors} } @{$download_results} );
+    my $all_story_characters   = sum( map { $_->{ story_characters } } @{ $download_results } );
+    my $all_extra_characters   = sum( map { $_->{ extra_characters } } @{ $download_results } );
+    my $all_missing_characters = sum( map { $_->{ missing_characters } } @{ $download_results } );
+    my $all_story_lines        = sum( map { $_->{ story_line_count } } @{ $download_results } );
+    my $all_extra_lines        = sum( map { $_->{ extra_line_count } } @{ $download_results } );
+    my $all_missing_lines      = sum( map { $_->{ missing_line_count } } @{ $download_results } );
+    my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
 
-    print "$errors errors / " . scalar(@downloads) . " downloads\n";
-    print "lines: $all_story_lines story / $all_extra_lines ("
-      . $all_extra_lines / $all_story_lines
-      . ") extra / $all_missing_lines ("
-      . $all_missing_lines / $all_story_lines
-      . ") missing\n";
+    print "$errors errors / " . scalar( @downloads ) . " downloads\n";
+    print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
+      ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
     if ( $all_story_characters == 0 )
     {
@@ -264,11 +258,9 @@ sub extractAndScoreDownloads
     }
     else
     {
-        print "characters: $all_story_characters story / $all_extra_characters ("
-          . $all_extra_characters / $all_story_characters
-          . ") extra / $all_missing_characters ("
-          . $all_missing_characters / $all_story_characters
-          . ") missing\n";
+        print "characters: $all_story_characters story / $all_extra_characters (" .
+          $all_extra_characters / $all_story_characters . ") extra / $all_missing_characters (" .
+          $all_missing_characters / $all_story_characters . ") missing\n";
     }
 }
 
@@ -278,7 +270,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
     my $file;
     my @download_ids;
@@ -291,25 +283,24 @@ sub main
 
     my $downloads;
 
-    if (@download_ids)
+    if ( @download_ids )
     {
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
-    elsif ($file)
+    elsif ( $file )
     {
-        open( DOWNLOAD_ID_FILE, $file ) || die("Could not open file: $file");
+        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
         @download_ids = <DOWNLOAD_ID_FILE>;
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
     else
     {
-        $downloads =
-          $dbs->query(
+        $downloads = $dbs->query(
 "SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
-          )->hashes;
+        )->hashes;
     }
 
-    extractAndScoreDownloads($downloads);
+    extractAndScoreDownloads( $downloads );
 }
 
 main();

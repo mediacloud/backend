@@ -32,11 +32,11 @@ sub new
     my $self = {};
     bless( $self, $class );
 
-    $self->engine($engine);
-    $self->{non_spidered_uris}           = {};
-    $self->{non_spidered_urls}           = {};
-    $self->{already_processed_url_count} = 0;
-    $self->{not_yet_processed_url_count} = 0;
+    $self->engine( $engine );
+    $self->{ non_spidered_uris }           = {};
+    $self->{ non_spidered_urls }           = {};
+    $self->{ already_processed_url_count } = 0;
+    $self->{ not_yet_processed_url_count } = 0;
     return $self;
 }
 
@@ -63,7 +63,7 @@ sub _url_already_spidered
         $url
     )->hashes;
 
-    if ( scalar(@$downloads) )
+    if ( scalar( @$downloads ) )
     {
 
         #print "Link '$url' already in downloads table not re-adding\n";
@@ -85,14 +85,14 @@ sub _url_already_processed
 
     my $rejected_blogs = $dbs->query( "select * from rejected_blogs where url = ? limit 1", $url )->hashes;
 
-    if ( scalar(@$rejected_blogs) )
+    if ( scalar( @$rejected_blogs ) )
     {
         return 1;
     }
 
     my $found_blogs = $dbs->query( "select * from found_blogs where url = ? limit 1", $url )->hashes;
 
-    if ( scalar(@$found_blogs) )
+    if ( scalar( @$found_blogs ) )
     {
         return 1;
     }
@@ -109,23 +109,23 @@ sub list_contains
 {
     ( my $value, my $list ) = @_;
 
-    return any { $_ eq $value } @{$list};
+    return any { $_ eq $value } @{ $list };
 }
 
 sub _is_url_non_spidered_host
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    return !MediaWords::Crawler::BlogUrlProcessor::is_spidered_host($url);
+    return !MediaWords::Crawler::BlogUrlProcessor::is_spidered_host( $url );
 }
 
 sub _is_url_black_listed_for_spider
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    my $ret = !MediaWords::Crawler::BlogUrlProcessor::is_blog_home_page_url($url);
+    my $ret = !MediaWords::Crawler::BlogUrlProcessor::is_blog_home_page_url( $url );
 
-    if ($ret)
+    if ( $ret )
     {
 
         #print "XXX Blacklisted url: $url\n";
@@ -142,30 +142,30 @@ sub _is_url_black_listed_for_spider
 sub _uri_should_be_spidered
 {
     my ( $self, $uri ) = @_;
-    if ( defined( $self->{non_spidered_uris}->{ $uri . '' } ) )
+    if ( defined( $self->{ non_spidered_uris }->{ $uri . '' } ) )
     {
 
         #print "_uri_should_be_spidered returning false for uri '$uri'\n";
         return 0;
     }
 
-    my $url = MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url($uri);
+    my $url = MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url( $uri );
 
-    if ( defined( $self->{non_spidered_urls}->{$url} ) )
+    if ( defined( $self->{ non_spidered_urls }->{ $url } ) )
     {
 
         #print "_uri_should_be_spidered returning false for url '$url'\n ";
         return 0;
     }
 
-    my $ret = $self->_url_should_be_spidered_impl($url);
+    my $ret = $self->_url_should_be_spidered_impl( $url );
 
     if ( !$ret )
     {
 
         #print "_uri_should_be_spidered updating black list with uri: '$uri' and 'url: '$url'\n";
-        $self->{non_spidered_uris}->{ $uri . '' } = 1;
-        $self->{non_spidered_urls}->{$url} = 1;
+        $self->{ non_spidered_uris }->{ $uri . '' } = 1;
+        $self->{ non_spidered_urls }->{ $url } = 1;
     }
 
     return $ret;
@@ -175,18 +175,18 @@ sub _url_should_be_spidered_impl
 {
     my ( $self, $url ) = @_;
 
-    return 0 if ( _is_url_black_listed_for_spider($url) );
+    return 0 if ( _is_url_black_listed_for_spider( $url ) );
 
-    if ( $self->_url_already_processed($url) || $self->_url_already_spidered($url) )
+    if ( $self->_url_already_processed( $url ) || $self->_url_already_spidered( $url ) )
     {
         print STDERR "Already processed $url\n";
-        $self->{already_processed_url_count}++;
+        $self->{ already_processed_url_count }++;
         return 0;
     }
     else
     {
         print STDERR "Not yet processed $url\n";
-        $self->{not_yet_processed_url_count}++;
+        $self->{ not_yet_processed_url_count }++;
         return 1;
     }
 
@@ -197,7 +197,7 @@ sub _add_spider_download
 {
     my ( $self, $download, $uri ) = @_;
 
-    my $url = MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url($uri);
+    my $url = MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url( $uri );
 
     my $dbs = $self->engine->dbs;
 
@@ -207,8 +207,8 @@ sub _add_spider_download
         'downloads',
         {
             url    => $url,
-            parent => $download->{downloads_id},
-            host   => lc( ( URI::Split::uri_split($url) )[1] ),
+            parent => $download->{ downloads_id },
+            host   => lc( ( URI::Split::uri_split( $url ) )[ 1 ] ),
 
             #                stories_id    => 1,
             type          => 'spider_blog_home',
@@ -220,7 +220,7 @@ sub _add_spider_download
         }
     );
 
-    die unless $self->_url_already_processed($url);
+    die unless $self->_url_already_processed( $url );
 
     #$dbs->commit;
 }
@@ -228,9 +228,9 @@ sub _add_spider_download
 #TODO refactor this sub exists in multiple places
 sub _get_site_from_url
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    my $host = lc( ( URI::Split::uri_split($url) )[1] );
+    my $host = lc( ( URI::Split::uri_split( $url ) )[ 1 ] );
 
     ##strip out sub domains
 
@@ -245,15 +245,15 @@ sub _log_link_to_non_spidered_host
 {
     my ( $self, $uri ) = @_;
 
-    my $url = MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url($uri);
+    my $url = MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url( $uri );
 
-    my $host = lc( ( URI::Split::uri_split($url) )[1] );
+    my $host = lc( ( URI::Split::uri_split( $url ) )[ 1 ] );
 
     my $dbs = $self->engine->dbs;
 
     print "Logging non spidered_host link for '$host' from '$url'\n";
 
-    if ( !$dbs->dbh->{AutoCommit} )
+    if ( !$dbs->dbh->{ AutoCommit } )
     {
         $dbs->commit;
     }
@@ -265,9 +265,9 @@ sub _log_link_to_non_spidered_host
     # TODO we should probably just use a sql update statement.
     # Transactions don't actually protect us from race conditions.
 
-    $non_spidered_host_hash->{linked_to_count}++;
+    $non_spidered_host_hash->{ linked_to_count }++;
 
-    $dbs->update_by_id( 'non_spidered_hosts', $non_spidered_host_hash->{non_spidered_hosts_id}, $non_spidered_host_hash );
+    $dbs->update_by_id( 'non_spidered_hosts', $non_spidered_host_hash->{ non_spidered_hosts_id }, $non_spidered_host_hash );
 
     $dbs->commit;
 
@@ -275,7 +275,7 @@ sub _log_link_to_non_spidered_host
 
     if ( ( $_non_host_link_count % 500 ) == 0 )
     {
-        my $site = _get_site_from_url($url);
+        my $site = _get_site_from_url( $url );
         $dbs->create(
             'non_blog_host_links',
             {
@@ -300,18 +300,18 @@ sub _get_possible_blog_uris
 
     #we only care about links to web pages
     #i.e. '<a href=..' we want to ignore other things such as <img & javascript links
-    my $links = [ grep { $_->{tag} eq 'a' } @{ $p->links } ];
+    my $links = [ grep { $_->{ tag } eq 'a' } @{ $p->links } ];
 
-    $links = [ grep { $_->{href}->scheme eq 'http' } @{$links} ];
+    $links = [ grep { $_->{ href }->scheme eq 'http' } @{ $links } ];
 
-    return map { $_->{href} } @$links;
+    return map { $_->{ href } } @$links;
 }
 
 sub _log_already_processed_url_count
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    my $already_processed_urls_for_post = $self->{already_processed_url_count};
+    my $already_processed_urls_for_post = $self->{ already_processed_url_count };
 
     my $dbs = $self->engine->dbs;
 
@@ -326,9 +326,9 @@ sub _log_already_processed_url_count
 
 sub _log_not_yet_processed_url_count
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    my $not_yet_processed_urls_for_post = $self->{not_yet_processed_url_count};
+    my $not_yet_processed_urls_for_post = $self->{ not_yet_processed_url_count };
 
     my $dbs = $self->engine->dbs;
 
@@ -344,8 +344,8 @@ sub _process_links
     my ( $self, $download, $response ) = @_;
 
     #these are post page specific counts;
-    $self->{already_processed_url_count} = 0;
-    $self->{not_yet_processed_url_count} = 0;
+    $self->{ already_processed_url_count } = 0;
+    $self->{ not_yet_processed_url_count } = 0;
 
     my @uris = $self->_get_possible_blog_uris( $download, $response );
 
@@ -353,20 +353,20 @@ sub _process_links
 
     my $uris_spidered           = 0;
     my $uris_non_blog_host_uris = 0;
-    for my $uri (@uniq_uris)
+    for my $uri ( @uniq_uris )
     {
-        if ( $self->_uri_should_be_spidered($uri) )
+        if ( $self->_uri_should_be_spidered( $uri ) )
         {
 
             #print STDERR "XXX spidering blog url '$uri' \n";
             $self->_add_spider_download( $download, $uri );
             $uris_spidered++;
         }
-        elsif ( _is_url_non_spidered_host( MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url($uri) ) )
+        elsif ( _is_url_non_spidered_host( MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url( $uri ) ) )
         {
 
             #print STDERR "XXX Not spidering non-blog host url '$uri' \n";
-            $self->_log_link_to_non_spidered_host($uri);
+            $self->_log_link_to_non_spidered_host( $uri );
             $uris_non_blog_host_uris++;
         }
         else
@@ -380,9 +380,9 @@ sub _process_links
 
     #Update already processed and newly processed counts in the database
     $self->_log_already_processed_url_count();
-    $self->{already_processed_url_count} = 0;
+    $self->{ already_processed_url_count } = 0;
     $self->_log_not_yet_processed_url_count();
-    $self->{not_yet_processed_url_count} = 0;
+    $self->{ not_yet_processed_url_count } = 0;
 
     #print STDERR "_process_links_returning\n";
     return;
@@ -391,12 +391,12 @@ sub _process_links
 # calling engine
 sub engine
 {
-    if ( $_[1] )
+    if ( $_[ 1 ] )
     {
-        $_[0]->{engine} = $_[1];
+        $_[ 0 ]->{ engine } = $_[ 1 ];
     }
 
-    return $_[0]->{engine};
+    return $_[ 0 ]->{ engine };
 }
 
 1;

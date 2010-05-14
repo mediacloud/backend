@@ -15,16 +15,17 @@ my $_yahoo_term_url = 'http://search.yahooapis.com/ContentAnalysisService/V1/ter
 # send the content to yahoo for term extraction
 sub get_tags
 {
-    my ($content) = @_;
+    my ( $content ) = @_;
 
     #print "get_keywords_from_yahoo: $content\n";
 
     my $ua = LWP::UserAgent::Determined->new();
 
-    my $key = MediaWords::Util::Config::get_config->{mediawords}->{yahoo_key};
-    
-    if (!$key) {
-        die("no yahoo_key found in mediawords.yml");
+    my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ yahoo_key };
+
+    if ( !$key )
+    {
+        die( "no yahoo_key found in mediawords.yml" );
     }
 
     my $response = $ua->post( $_yahoo_term_url, { appid => $key, context => $content } );
@@ -39,17 +40,19 @@ sub get_tags
 
     my $data = $xml->parse( $response->content() );
 
-    if ( $data->{Error} )
+    if ( $data->{ Error } )
     {
-        return { error => "Error returned from yahoo term extraction: " . $data->{Error}->{Message} };
+        return { error => "Error returned from yahoo term extraction: " . $data->{ Error }->{ Message } };
     }
 
     #print "get_keywords_from_yahoo xml: " . $response->content() . "\n";
 
-    if ( $data->{ResultSet}->{Result} )
+    if ( $data->{ ResultSet }->{ Result } )
     {
-        return { tags => [ sort { $a cmp $b } map { lc($_) } @{ $data->{ResultSet}->{Result} } ],
-                 content => $response->content };
+        return {
+            tags    => [ sort { $a cmp $b } map { lc( $_ ) } @{ $data->{ ResultSet }->{ Result } } ],
+            content => $response->content
+        };
     }
     else
     {

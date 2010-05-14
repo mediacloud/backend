@@ -11,41 +11,45 @@ use MediaWords::Pg;
 use Lingua::Stem;
 use Lingua::Stem::Snowball;
 
-has '_english_stemmer' => ( 
-			   is => 'rw',
-#			   default => sub {Lingua::Stem->new; } ,
-			   default => sub {Lingua::Stem::Snowball->new(
-									lang => 'en',
-									encoding => 'UTF-8')
-			   } ,
-			  );
+has '_english_stemmer' => (
+    is => 'rw',
 
-has '_russian_stemmer' => ( 
-			   is => 'rw',
-			   default => sub { Lingua::Stem::Snowball->new(
-									lang => 'ru',
-									encoding => 'UTF-8') },
-			  );
+    #			   default => sub {Lingua::Stem->new; } ,
+    default => sub {
+        Lingua::Stem::Snowball->new(
+            lang     => 'en',
+            encoding => 'UTF-8'
+        );
+    },
+);
 
-
+has '_russian_stemmer' => (
+    is      => 'rw',
+    default => sub {
+        Lingua::Stem::Snowball->new(
+            lang     => 'ru',
+            encoding => 'UTF-8'
+        );
+    },
+);
 
 sub debug_output
 {
-  if ($MediaWords::Pg::in_pl_perl)
-  {
-      pg_log(@_);
-  }
-  else
-  {
-      say STDERR @_;
-  }
+    if ( $MediaWords::Pg::in_pl_perl )
+    {
+        pg_log( @_ );
+    }
+    else
+    {
+        say STDERR @_;
+    }
 
-  return;
+    return;
 }
 
 sub stem
 {
-    my $self = shift;
+    my $self  = shift;
     my @words = @_;
 
     $@ = '';

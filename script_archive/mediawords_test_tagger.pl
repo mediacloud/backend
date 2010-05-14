@@ -24,7 +24,7 @@ sub add_tags_to_story
 
     my $text = $story->story_texts_id->story_text;
 
-    my $terms = MediaWords::Tagger::get_tags_for_modules( $text, ["Calais"] );
+    my $terms = MediaWords::Tagger::get_tags_for_modules( $text, [ "Calais" ] );
 
 }
 
@@ -34,7 +34,7 @@ sub add_tags_to_feed_stories
     my ( $db, $feed_tag ) = @_;
 
     my @stories =
-      $db->resultset('Stories')
+      $db->resultset( 'Stories' )
       ->search( { 'stories_tags_maps.tags_id' => $feed_tag->tags_id }, { join => 'stories_tags_maps' } );
 
     for my $story ( @stories[ 10 .. 30 ] )
@@ -53,8 +53,8 @@ sub main
 
     my $db = MediaWords::DB::authenticate();
 
-    my @feed_tags = $db->resultset('Tags')->search( { 'tag_sets_id.name' => 'term_study' }, { join => 'tag_sets_id' } );
-    for my $feed_tag (@feed_tags)
+    my @feed_tags = $db->resultset( 'Tags' )->search( { 'tag_sets_id.name' => 'term_study' }, { join => 'tag_sets_id' } );
+    for my $feed_tag ( @feed_tags )
     {
         add_tags_to_feed_stories( $db, $feed_tag );
     }

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-BEGIN { $ENV{CATALYST_ENGINE} ||= 'CGI' }
+BEGIN { $ENV{ CATALYST_ENGINE } ||= 'CGI' }
 
 use strict;
 use warnings;

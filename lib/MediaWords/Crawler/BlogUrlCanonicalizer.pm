@@ -24,14 +24,14 @@ use MediaWords::Crawler::BlogUrlProcessor;
 
 sub get_canonical_blog_url
 {
-    my ($uri) = @_;
+    my ( $uri ) = @_;
 
     #print "get_canonical_blog_url '$uri'\n";
 
     #my $rules = MediaWords::Crawler::BlogUrlProcessor::get_base_site_rules($uri);
 
     #print Dumper($rules);
-    my $ret = MediaWords::Crawler::BlogUrlProcessor::canonicalize_url($uri);
+    my $ret = MediaWords::Crawler::BlogUrlProcessor::canonicalize_url( $uri );
 
     #print "get_canonical_blog_url returning:'$ret'\n";
 

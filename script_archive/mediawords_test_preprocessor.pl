@@ -19,13 +19,13 @@ use HTML::Strip;
 sub main
 {
     my $text;
-    while (<>)
+    while ( <> )
     {
         $text .= $_;
     }
 
-    my $lines = MediaWords::Crawler::Extractor::preprocess($text);
-    print join "\n", @{$lines};
+    my $lines = MediaWords::Crawler::Extractor::preprocess( $text );
+    print join "\n", @{ $lines };
 }
 
 main();

@@ -14,7 +14,7 @@ use URI::URL;
 # so http://foo.bar/foobar/foo/bar?foo=bar returns http://foo.bar/foobar/foo
 sub _get_url_base
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
     if ( $url !~ m~^([^\?]*/[^\?/]*)/[^\?/]*/?(\?.*)?$~i )
     {
@@ -68,7 +68,7 @@ sub _link_is_next_page
     }
 
     # match the parent directories of the two urls
-    if ( _get_url_base($full_url) ne _get_url_base($base_url) )
+    if ( _get_url_base( $full_url ) ne _get_url_base( $base_url ) )
     {
         return 0;
     }
@@ -84,7 +84,7 @@ sub get_next_page_url
 {
     my ( $class, $validate_sub, $base_url ) = @_;
 
-    my $content_ref = \$_[3];
+    my $content_ref = \$_[ 3 ];
 
     # blogs and forums almost never have paging but often have 'next' story / thread links
     if ( $base_url =~ /blog|forum|discuss/ )
@@ -97,7 +97,7 @@ sub get_next_page_url
     my $url;
     my $length = 32;
 
-    my $content_length = length($$content_ref);
+    my $content_length = length( $$content_ref );
     for ( my $i = 0 ; $i < $content_length ; $i++ )
     {
         if ( substr( $$content_ref, $i, 3 ) =~ /<a\s/is )
@@ -121,9 +121,9 @@ sub get_next_page_url
             my $raw_url = $1;
             my $text    = $2;
 
-            my $full_url = lc( url( decode_entities($raw_url) )->abs($base_url)->as_string() );
+            my $full_url = lc( url( decode_entities( $raw_url ) )->abs( $base_url )->as_string() );
 
-            if ( _link_is_next_page( $raw_url, $full_url, $text, $base_url ) && !$validate_sub->($full_url) )
+            if ( _link_is_next_page( $raw_url, $full_url, $text, $base_url ) && !$validate_sub->( $full_url ) )
             {
                 $url = $full_url;
 
@@ -133,9 +133,9 @@ sub get_next_page_url
         }
     }
 
-    if ($url)
+    if ( $url )
     {
-        return url( decode_entities($url) )->abs($base_url)->as_string();
+        return url( decode_entities( $url ) )->abs( $base_url )->as_string();
     }
     else
     {

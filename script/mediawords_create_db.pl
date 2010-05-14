@@ -21,27 +21,28 @@ use Term::Prompt;
 
 sub main
 {
-    my $warning_message =    "Warning this script will delete all information in the current media cloud database and create a new database. Are you sure you wish to continue?";
+    my $warning_message =
+"Warning this script will delete all information in the current media cloud database and create a new database. Are you sure you wish to continue?";
 
-    my $continue_and_reset_db = &prompt("y", $warning_message, "", "n");
+    my $continue_and_reset_db = &prompt( "y", $warning_message, "", "n" );
 
     exit if !$continue_and_reset_db;
 
     my $result = MediaWords::Pg::Schema::recreate_db();
-    
-    if ($result)
+
+    if ( $result )
     {
-	say;
-	say "Warning:";
-	say "Error creating database";
+        say;
+        say "Warning:";
+        say "Error creating database";
     }
     else
     {
-     say ;
-     say ;
-     say ;
-     say "Database creation successfull.";
-     say;
+        say;
+        say;
+        say;
+        say "Database creation successfull.";
+        say;
     }
 }
 

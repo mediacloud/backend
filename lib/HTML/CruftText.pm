@@ -25,7 +25,7 @@ my $_MARKER_PATTERNS = {
 };
 
 # blank everything within these elements
-my $_SCRUB_TAGS = [qw/script style frame applet/];
+my $_SCRUB_TAGS = [ qw/script style frame applet/ ];
 
 # METHODS
 
@@ -33,16 +33,16 @@ my $_SCRUB_TAGS = [qw/script style frame applet/];
 # doesn't get confused about where tags end
 sub _remove_tags_in_comments
 {
-    my ($lines) = @_;
+    my ( $lines ) = @_;
 
     my $state = 'text';
 
-    for ( my $i = 0 ; $i < @{$lines} ; $i++ )
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
-        my $line = \$lines->[$i];
+        my $line = \$lines->[ $i ];
 
         my $pos    = 0;
-        my $length = length($$line);
+        my $length = length( $$line );
         while ( $pos < $length )
         {
 
@@ -96,7 +96,7 @@ sub _remove_tags_in_comments
                 if (   ( substr( $$line, $pos, 1 ) eq '<' )
                     || ( substr( $$line, $pos, 1 ) eq '>' ) )
                 {
-                    substr( $lines->[$i], $pos, 1 ) = '|';
+                    substr( $lines->[ $i ], $pos, 1 ) = '|';
                     $pos += 1;
                 }
                 elsif ( substr( $$line, $pos, 2 ) eq '--' )
@@ -128,7 +128,7 @@ sub _remove_tags_in_comments
 
         if ( $state eq 'comment' )
         {
-            $lines->[$i] .= ' -->';
+            $lines->[ $i ] .= ' -->';
             if ( defined( $lines->[ $i + 1 ] ) )
             {
                 $lines->[ $i + 1 ] = '<!-- ' . $lines->[ $i + 1 ];
@@ -137,7 +137,7 @@ sub _remove_tags_in_comments
         }
         elsif ( $state eq 'declaration' )
         {
-            $lines->[$i] .= ' >';
+            $lines->[ $i ] .= ' >';
             if ( defined( $lines->[ $i + 1 ] ) )
             {
                 $lines->[ $i + 1 ] = '<!DECLARATION ' . $lines->[ $i + 1 ];
@@ -160,21 +160,21 @@ sub _remove_tags_in_comments
 #
 sub _fix_multiline_tags
 {
-    my ($lines) = @_;
+    my ( $lines ) = @_;
 
     my $add_start_tag;
-    for ( my $i = 0 ; $i < @{$lines} ; $i++ )
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
-        if ($add_start_tag)
+        if ( $add_start_tag )
         {
-            $lines->[$i] = "<$add_start_tag " . $lines->[$i];
+            $lines->[ $i ] = "<$add_start_tag " . $lines->[ $i ];
             $add_start_tag = undef;
         }
 
-        if ( $lines->[$i] =~ /<([^ >]*)[^>]*$/ )
+        if ( $lines->[ $i ] =~ /<([^ >]*)[^>]*$/ )
         {
             $add_start_tag = $1;
-            $lines->[$i] .= ' >';
+            $lines->[ $i ] .= ' >';
         }
     }
 }
@@ -184,13 +184,13 @@ sub _fix_multiline_tags
 #We go the conservative thing of only deleting stuff before the first <body> tag and stuff after the last </body> tag.
 sub _remove_nonbody_text
 {
-    my ($lines) = @_;
+    my ( $lines ) = @_;
 
     my $add_start_tag;
 
     my $state = 'before_body';
 
-    my $body_open_tag_line_number = first_index { $_ =~ /<body/i } @{$lines};
+    my $body_open_tag_line_number = first_index { $_ =~ /<body/i } @{ $lines };
 
     if ( $body_open_tag_line_number != -1 )
     {
@@ -198,27 +198,27 @@ sub _remove_nonbody_text
         #delete everything before <body>
         for ( my $line_number_to_clear = 0 ; $line_number_to_clear < $body_open_tag_line_number ; $line_number_to_clear++ )
         {
-            $lines->[$line_number_to_clear] = '';
+            $lines->[ $line_number_to_clear ] = '';
         }
 
-        $lines->[$body_open_tag_line_number] =~ s/^.*?\<body/<body/i;
+        $lines->[ $body_open_tag_line_number ] =~ s/^.*?\<body/<body/i;
     }
 
-    my $body_close_tag_line_number = last_index { $_ =~ /<\/body/i } @{$lines};
+    my $body_close_tag_line_number = last_index { $_ =~ /<\/body/i } @{ $lines };
 
     if ( $body_close_tag_line_number != -1 )
     {
 
         #delete everything after </body>
 
-        $lines->[$body_close_tag_line_number] =~ s/<\/body>.*/<\/body>/i;
+        $lines->[ $body_close_tag_line_number ] =~ s/<\/body>.*/<\/body>/i;
         for (
             my $line_number_to_clear = ( $body_close_tag_line_number + 1 ) ;
-            $line_number_to_clear < scalar( @{$lines} ) ;
+            $line_number_to_clear < scalar( @{ $lines } ) ;
             $line_number_to_clear++
           )
         {
-            $lines->[$line_number_to_clear] = '';
+            $lines->[ $line_number_to_clear ] = '';
         }
     }
 }
@@ -231,9 +231,9 @@ sub _remove_nonclickprint_text
 
     my $found_clickprint = 0;
 
-    while ( ( $i < @{$lines} ) && !$found_clickprint )
+    while ( ( $i < @{ $lines } ) && !$found_clickprint )
     {
-        if ( $lines->[$i] =~ $_MARKER_PATTERNS->{startclickprintinclude} )
+        if ( $lines->[ $i ] =~ $_MARKER_PATTERNS->{ startclickprintinclude } )
         {
             $found_clickprint = 1;
         }
@@ -252,13 +252,13 @@ sub _remove_nonclickprint_text
 
     for ( my $j = 0 ; $j < $i ; $j++ )
     {
-        $lines->[$j] = '';
+        $lines->[ $j ] = '';
     }
 
-    my $current_substring = \$lines->[$i];
+    my $current_substring = \$lines->[ $i ];
     my $state             = "before_clickprint";
 
-    while ( $i < @{$lines} )
+    while ( $i < @{ $lines } )
     {
 
         #		print
@@ -266,16 +266,16 @@ sub _remove_nonclickprint_text
 
         if ( $state eq "before_clickprint" )
         {
-            if ( $$current_substring =~ $_MARKER_PATTERNS->{startclickprintinclude} )
+            if ( $$current_substring =~ $_MARKER_PATTERNS->{ startclickprintinclude } )
             {
                 $$current_substring =~
                   "s/.*?$_MARKER_PATTERNS->{startclickprintinclude}/$_MARKER_PATTERNS->{startclickprintinclude}/";
 
-                $$current_substring =~ $_MARKER_PATTERNS->{startclickprintinclude};
+                $$current_substring =~ $_MARKER_PATTERNS->{ startclickprintinclude };
 
-                $current_substring = \substr( $$current_substring, length($`) + length($&) );
+                $current_substring = \substr( $$current_substring, length( $` ) + length( $& ) );
 
-                $current_substring = \_get_string_after_comment_end_tags($current_substring);
+                $current_substring = \_get_string_after_comment_end_tags( $current_substring );
 
                 $state = "in_click_print";
             }
@@ -289,19 +289,19 @@ sub _remove_nonclickprint_text
         {
 
             #			print "in_click_print\n";
-            if ( $$current_substring =~ $_MARKER_PATTERNS->{startclickprintexclude} )
+            if ( $$current_substring =~ $_MARKER_PATTERNS->{ startclickprintexclude } )
             {
-                $current_substring = \substr( $$current_substring, length($&) + length($`) );
+                $current_substring = \substr( $$current_substring, length( $& ) + length( $` ) );
 
-                $current_substring = \_get_string_after_comment_end_tags($current_substring);
+                $current_substring = \_get_string_after_comment_end_tags( $current_substring );
                 $state             = "in_click_print_exclude";
 
             }
-            elsif ( $$current_substring =~ $_MARKER_PATTERNS->{endclickprintinclude} )
+            elsif ( $$current_substring =~ $_MARKER_PATTERNS->{ endclickprintinclude } )
             {
-                $current_substring = \substr( $$current_substring, length($&) + length($`) );
+                $current_substring = \substr( $$current_substring, length( $& ) + length( $` ) );
 
-                $current_substring = \_get_string_after_comment_end_tags($current_substring);
+                $current_substring = \_get_string_after_comment_end_tags( $current_substring );
 
                 $state = 'before_clickprint';
                 next;
@@ -310,15 +310,15 @@ sub _remove_nonclickprint_text
 
         if ( $state eq 'in_click_print_exclude' )
         {
-            if ( $$current_substring =~ $_MARKER_PATTERNS->{endclickprintexclude} )
+            if ( $$current_substring =~ $_MARKER_PATTERNS->{ endclickprintexclude } )
             {
-                my $index = index( $$current_substring, $_MARKER_PATTERNS->{endclickprintexclude} );
+                my $index = index( $$current_substring, $_MARKER_PATTERNS->{ endclickprintexclude } );
 
-                substr( $$current_substring, 0, length($`), '' );
+                substr( $$current_substring, 0, length( $` ), '' );
 
-                $current_substring = \substr( $$current_substring, length($&) );
+                $current_substring = \substr( $$current_substring, length( $& ) );
 
-                $current_substring = \_get_string_after_comment_end_tags($current_substring);
+                $current_substring = \_get_string_after_comment_end_tags( $current_substring );
 
                 $state = "in_click_print";
                 next;
@@ -330,9 +330,9 @@ sub _remove_nonclickprint_text
         }
 
         $i++;
-        if ( $i < @{$lines} )
+        if ( $i < @{ $lines } )
         {
-            $current_substring = \$lines->[$i];
+            $current_substring = \$lines->[ $i ];
         }
     }
 }
@@ -345,7 +345,7 @@ sub _get_string_after_comment_end_tags
 
     if ( $$current_substring =~ /^\s*-->/ )
     {
-        $comment_end_pos = length($&);
+        $comment_end_pos = length( $& );
     }
     return substr( $$current_substring, $comment_end_pos );
 }
@@ -353,14 +353,14 @@ sub _get_string_after_comment_end_tags
 # remove text wthin script, style, iframe, and applet tags and
 sub _remove_script_text
 {
-    my ($lines) = @_;
+    my ( $lines ) = @_;
 
     my $state = 'text';
     my $start_scrub_tag_name;
 
-    for ( my $i = 0 ; $i < @{$lines} ; $i++ )
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
-        my $line = $lines->[$i];
+        my $line = $lines->[ $i ];
 
         #print "line $i: $line\n";
         my @scrubs;
@@ -373,21 +373,21 @@ sub _remove_script_text
             #print "found tag $tag_name\n";
             if ( $state eq 'text' )
             {
-                if ( grep { lc($tag_name) eq $_ } @{$_SCRUB_TAGS} )
+                if ( grep { lc( $tag_name ) eq $_ } @{ $_SCRUB_TAGS } )
                 {
 
                     #print "found scrub tag\n";
                     $state                = 'scrub_text';
-                    $start_scrub_pos      = pos($line);
+                    $start_scrub_pos      = pos( $line );
                     $start_scrub_tag_name = $tag_name;
                 }
             }
             elsif ( $state eq 'scrub_text' )
             {
-                if ( lc($tag_name) eq lc("/$start_scrub_tag_name") )
+                if ( lc( $tag_name ) eq lc( "/$start_scrub_tag_name" ) )
                 {
                     $state = 'text';
-                    my $end_scrub_pos = pos($line) - length($tag);
+                    my $end_scrub_pos = pos( $line ) - length( $tag );
 
                     # delay actual scrubbing of text until the end so that we don't
                     # have to reset the position of the state machine
@@ -398,16 +398,16 @@ sub _remove_script_text
 
         if ( $state eq 'scrub_text' )
         {
-            push( @scrubs, [ $start_scrub_pos, length($line) - $start_scrub_pos ] );
+            push( @scrubs, [ $start_scrub_pos, length( $line ) - $start_scrub_pos ] );
         }
 
         my $scrubbed_length = 0;
-        for my $scrub (@scrubs)
+        for my $scrub ( @scrubs )
         {
 
             #print "scrub line $i\n";
-            substr( $lines->[$i], $scrub->[0] - $scrubbed_length, $scrub->[1] ) = '';
-            $scrubbed_length += $scrub->[1];
+            substr( $lines->[ $i ], $scrub->[ 0 ] - $scrubbed_length, $scrub->[ 1 ] ) = '';
+            $scrubbed_length += $scrub->[ 1 ];
         }
 
         #print "scrubbed line: $lines->[$i]\n";
@@ -418,23 +418,23 @@ sub clearCruftText
 {
     my $lines = shift;
 
-    if ( !ref($lines) )
+    if ( !ref( $lines ) )
     {
         $lines = [ split( /[\n\r]+/, $lines ) ];
     }
 
-    print_time("split_lines");
+    print_time( "split_lines" );
 
-    _remove_tags_in_comments($lines);
-    print_time("remove tags");
-    _fix_multiline_tags($lines);
-    print_time("fix multiline");
-    _remove_script_text($lines);
-    print_time("remove scripts");
-    _remove_nonbody_text($lines);
-    print_time("remove nonbody");
-    _remove_nonclickprint_text($lines);
-    print_time("remove clickprint");
+    _remove_tags_in_comments( $lines );
+    print_time( "remove tags" );
+    _fix_multiline_tags( $lines );
+    print_time( "fix multiline" );
+    _remove_script_text( $lines );
+    print_time( "remove scripts" );
+    _remove_nonbody_text( $lines );
+    print_time( "remove nonbody" );
+    _remove_nonclickprint_text( $lines );
+    print_time( "remove clickprint" );
 
     return $lines;
 }
@@ -446,7 +446,7 @@ sub print_time
 {
     return;
 
-    my ($s) = @_;
+    my ( $s ) = @_;
 
     my $t = Time::HiRes::gettimeofday();
     $_start_time ||= $t;

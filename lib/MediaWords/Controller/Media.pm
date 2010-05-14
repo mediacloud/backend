@@ -31,7 +31,7 @@ sub make_edit_form
 
     #print STDERR Dumper($c->request);
 
-    $form->stash->{c} = $c;
+    $form->stash->{ c } = $c;
 
     $form->process( $c->request );
 
@@ -42,35 +42,36 @@ sub create : Local
 {
     my ( $self, $c ) = @_;
 
-    $c->stash->{template} = 'media/create.tt2';
+    $c->stash->{ template } = 'media/create.tt2';
 }
 
 sub create_batch : Local
 {
     my ( $self, $c ) = @_;
 
-    $c->stash->{template} = 'media/create_batch.tt2';
+    $c->stash->{ template } = 'media/create_batch.tt2';
 }
 
 # find the media source by the url or the url with/without the trailing slash
 sub find_medium_by_url
 {
     my ( $self, $c, $url ) = @_;
-    
+
     my $base_url = $url;
 
     $base_url =~ m~^([a-z]*)://~;
     my $protocol = $1 || 'http';
-    
+
     $base_url =~ s~^([a-z]+://)?(www\.)?~~;
     $base_url =~ s~/$~~;
-    
-    my $url_permutations = 
-        [ "$protocol://$base_url", "$protocol://www.$base_url", "$protocol://$base_url/", "$protocol://www.$base_url/" ];
 
-    my $medium = $c->dbis->query( "select * from media where url in (?, ?, ?, ?) order by length(url) desc", 
-                                  @{ $url_permutations } )->hash;
-                                  
+    my $url_permutations =
+      [ "$protocol://$base_url", "$protocol://www.$base_url", "$protocol://$base_url/", "$protocol://www.$base_url/" ];
+
+    my $medium =
+      $c->dbis->query( "select * from media where url in (?, ?, ?, ?) order by length(url) desc", @{ $url_permutations } )
+      ->hash;
+
     return $medium;
 }
 
@@ -79,15 +80,15 @@ sub find_medium_by_url
 sub find_medium_by_response
 {
     my ( $self, $c, $response ) = @_;
-    
+
     my $r = $response;
-    
+
     my $medium;
     while ( $r && !( $medium = $self->find_medium_by_url( $c, $r->request->url ) ) )
     {
-        $r = $r->previous;        
+        $r = $r->previous;
     }
-    
+
     return $medium;
 }
 
@@ -98,36 +99,35 @@ sub find_medium_by_response
 sub find_media_from_urls
 {
     my ( $self, $c, $urls_string ) = @_;
-        
+
     my $url_media = [];
-    
+
     my $urls = [ split( "\n", $urls_string ) ];
-    
-    for my $tagged_url ( @{ $urls} )
+
+    for my $tagged_url ( @{ $urls } )
     {
         my $medium;
-        
-        my ( $url, $tags_string) = ( $tagged_url =~ /^\r*\s*([^\s]*)(?:\s+(.*))?/ );
-                
-                
-        if ( $url !~ m~^[a-z]+://~ ) 
+
+        my ( $url, $tags_string ) = ( $tagged_url =~ /^\r*\s*([^\s]*)(?:\s+(.*))?/ );
+
+        if ( $url !~ m~^[a-z]+://~ )
         {
             $url = "http://$url";
         }
 
-        $medium->{ url } = $url;
+        $medium->{ url }         = $url;
         $medium->{ tags_string } = $tags_string;
 
         if ( $url !~ /$RE{URI}/ )
         {
             $medium->{ message } = "'$url' is not a valid url";
         }
-        
+
         $medium->{ medium } = $self->find_medium_by_url( $c, $url );
-        
+
         push( @{ $url_media }, $medium );
     }
-        
+
     return $url_media;
 }
 
@@ -138,16 +138,17 @@ sub find_media_from_urls
 sub get_url_medium_index_from_url
 {
     my ( $self, $url_media, $url ) = @_;
-        
-    for ( my $i = 0; $i < @{ $url_media }; $i++ )
+
+    for ( my $i = 0 ; $i < @{ $url_media } ; $i++ )
     {
+
         #print STDERR "'$url_media->[ $i ]->{ url }' eq '$url'\n";
         if ( $url_media->[ $i ]->{ url } eq $url )
         {
             return $i;
         }
     }
-    
+
     warn( "Unable to find url '" . $url . "' in url_media list" );
     return undef;
 }
@@ -156,19 +157,19 @@ sub get_url_medium_index_from_url
 sub get_medium_title_from_response
 {
     my ( $self, $response ) = @_;
-    
+
     my $content = $response->decoded_content;
 
     my ( $title ) = ( $content =~ /<title>(.*?)<\/title>/is );
-    $title = html_strip($title);
+    $title = html_strip( $title );
     $title = trim( $title );
     $title ||= trim( $response->request->url );
     $title =~ s/\s+/ /g;
-    
+
     $title =~ s/^\W*home\W*//i;
-    
-    $title = substr($title, 0, 128);
-    
+
+    $title = substr( $title, 0, 128 );
+
     return $title;
 }
 
@@ -176,23 +177,23 @@ sub get_medium_title_from_response
 sub add_missing_media_from_urls
 {
     my ( $self, $c, $url_media ) = @_;
-    
-    my $fetch_urls = [ map { $_->{ url } } grep { !( $_->{ medium } ) }  @{ $url_media } ]; 
+
+    my $fetch_urls = [ map { $_->{ url } } grep { !( $_->{ medium } ) } @{ $url_media } ];
 
     my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
-    
+
     for my $response ( @{ $responses } )
     {
         my $original_request = MediaWords::Util::Web->get_original_request( $response );
-        my $url = $original_request->url;
+        my $url              = $original_request->url;
 
         my $url_media_index = $self->get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )
         {
+
             # add message to missing url_media in the loop at the end of this function
             next;
         }
-            
 
         if ( !$response->is_success )
         {
@@ -201,64 +202,68 @@ sub add_missing_media_from_urls
         }
 
         my $title = $self->get_medium_title_from_response( $response );
-        
+
         my $medium = $self->find_medium_by_response( $c, $response );
-        
+
         if ( !$medium )
         {
             if ( $medium = $c->dbis->query( "select * from media where name = ?", $title )->hash )
             {
-                $url_media->[ $url_media_index ]->{ message } = "using existing medium with duplicate title '$title' already in database for '$url'";
+                $url_media->[ $url_media_index ]->{ message } =
+                  "using existing medium with duplicate title '$title' already in database for '$url'";
             }
-            else {
+            else
+            {
                 $medium = $c->dbis->create( 'media', { name => $title, url => $url, moderated => 'f', feeds_added => 'f' } );
             }
         }
 
         $url_media->[ $url_media_index ]->{ medium } = $medium;
     }
-    
+
     # add error message for any url_media that were not found
     # if there's just one missing
     for my $url_medium ( @{ $url_media } )
     {
-        if (! $url_medium->{ medium } )
+        if ( !$url_medium->{ medium } )
         {
             $url_medium->{ message } = "Unable to find medium for url '$url_medium->{ url }'";
         }
     }
-}    
+}
 
 # given a list of media sources as returned by find_media_from_urls, add the tags
 # in the tags_string of each medium to that medium
 sub add_media_tags_from_strings
 {
     my ( $self, $c, $url_media, $global_tags_string ) = @_;
-    
+
     for my $url_medium ( grep { $_->{ medium } } @{ $url_media } )
     {
-        if ( $global_tags_string ) 
+        if ( $global_tags_string )
         {
             if ( $url_medium->{ tags_string } )
             {
                 $url_medium->{ tags_string } .= ";$global_tags_string";
             }
-            else {
+            else
+            {
                 $url_medium->{ tags_string } = $global_tags_string;
             }
-        }   
+        }
 
-        for my $tag_string ( split( /;/, $url_medium->{ tags_string } ) ) 
+        for my $tag_string ( split( /;/, $url_medium->{ tags_string } ) )
         {
             my ( $tag_set_name, $tag_name ) = split( ':', lc( $tag_string ) );
-            
-            my $tag_sets_id = $c->dbis->query( "select tag_sets_id from tag_sets where name = ?", lc( $tag_set_name ) )->list;
+
+            my $tag_sets_id =
+              $c->dbis->query( "select tag_sets_id from tag_sets where name = ?", lc( $tag_set_name ) )->list;
             if ( !$tag_sets_id )
             {
                 $url_medium->{ message } .= " Unable to find tag set '$tag_set_name'";
                 next;
             }
-            
+
             my $tags_id = $c->dbis->find_or_create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } )->{ tags_id };
             my $media_id = $url_medium->{ medium }->{ media_id };
 
@@ -278,7 +283,7 @@ sub find_or_create_media_from_urls
     my $url_media = $self->find_media_from_urls( $c, $urls_string );
 
     $self->add_missing_media_from_urls( $c, $url_media );
-    
+
     $self->add_media_tags_from_strings( $c, $url_media, $tags_string );
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
@@ -289,18 +294,22 @@ sub create_do : Local
 {
     my ( $self, $c ) = @_;
 
-    my $error_messages = $self->find_or_create_media_from_urls( $c, $c->request->param( 'urls' ), $c->request->param( 'tags' ) );
-    
+    my $error_messages =
+      $self->find_or_create_media_from_urls( $c, $c->request->param( 'urls' ), $c->request->param( 'tags' ) );
+
     my $status_msg;
     if ( @{ $error_messages } )
     {
-        $status_msg = join( "\n", "Errors adding some media sources, see below.  Any urls not mentioned below were added successfully.", @{ $error_messages } );
+        $status_msg = join( "\n",
+            "Errors adding some media sources, see below.  Any urls not mentioned below were added successfully.",
+            @{ $error_messages } );
     }
-    else {
-        $status_msg = "All media sources were added successfully."
-    }    
-    
-    $c->response->redirect( $c->uri_for('/media/list', { status_msg => $status_msg } ) );
+    else
+    {
+        $status_msg = "All media sources were added successfully.";
+    }
+
+    $c->response->redirect( $c->uri_for( '/media/list', { status_msg => $status_msg } ) );
 }
 
 sub edit : Local
@@ -309,31 +318,31 @@ sub edit : Local
 
     $id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for("/media/edit_do/$id") );
+    my $form = $self->make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
 
     my $medium = $c->dbis->find_by_id( 'media', $id );
 
-    $form->default_values($medium);
+    $form->default_values( $medium );
 
     $form->process;
 
-    $c->stash->{form}     = $form;
-    $c->stash->{template} = 'media/edit.tt2';
-    $c->stash->{title}    = 'Edit Media Source';
+    $c->stash->{ form }     = $form;
+    $c->stash->{ template } = 'media/edit.tt2';
+    $c->stash->{ title }    = 'Edit Media Source';
 }
 
 sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for("/media/edit_do/$id") );
+    my $form = $self->make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
     my $medium = $c->dbis->find_by_id( 'media', $id );
 
     if ( !$form->submitted_and_valid )
     {
-        $c->stash->{form}     = $form;
-        $c->stash->{template} = 'media/edit.tt2';
-        $c->stash->{title}    = 'Edit Media Source';
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'media/edit.tt2';
+        $c->stash->{ title }    = 'Edit Media Source';
     }
     else
     {
@@ -341,11 +350,14 @@ sub edit_do : Local
 
         if ( $medium->{ moderated } )
         {
-            $c->response->redirect( $c->uri_for( '/feeds/list/' . $medium->{media_id}, { status_msg => 'Media source updated.' } ) );
+            $c->response->redirect(
+                $c->uri_for( '/feeds/list/' . $medium->{ media_id }, { status_msg => 'Media source updated.' } ) );
         }
-        else {
-            $c->response->redirect( $c->uri_for( '/media/moderate/' . ( $medium->{media_id} - 1 ), 
-                                                 { status_msg => 'Media source updated.' } ) );
+        else
+        {
+            $c->response->redirect(
+                $c->uri_for( '/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => 'Media source updated.' } )
+            );
         }
     }
 }
@@ -361,18 +373,18 @@ sub delete : Local
 
     my $deleteme_tags_id = MediaWords::Util::Tags::lookup_or_create_tag( $c->dbis, 'workflow:deleteme' )->{ tags_id };
 
-    my ($marked_for_deletion) =
+    my ( $marked_for_deletion ) =
       $c->dbis->query( "select 1 from media_tags_map " . "where tags_id = $deleteme_tags_id and media_id = ?", $id )->flat;
 
-    if ($marked_for_deletion)
+    if ( $marked_for_deletion )
     {
         $status_msg = 'Medium already marked for deletion.';
         $c->response->redirect( $c->uri_for( "/media/list", { status_msg => $status_msg } ) );
     }
-    elsif ( !defined($confirm) )
+    elsif ( !defined( $confirm ) )
     {
-        $c->stash->{medium}   = $medium;
-        $c->stash->{template} = 'media/delete.tt2';
+        $c->stash->{ medium }   = $medium;
+        $c->stash->{ template } = 'media/delete.tt2';
     }
     else
     {
@@ -384,7 +396,7 @@ sub delete : Local
         {
             $c->dbis->query( "insert into media_tags_map (tags_id, media_id) values (?, ?)", $deleteme_tags_id, $id );
             $c->dbis->query( "update media set moderated = true where media_id = ?", $medium->{ media_id } );
-            
+
             $status_msg = 'Media source marked for deletion.';
         }
 
@@ -393,10 +405,11 @@ sub delete : Local
         if ( $medium->{ moderated } )
         {
             $c->response->redirect( $c->uri_for( '/media/list', { status_msg => $status_msg } ) );
-        } 
-        else {
-            $c->response->redirect( $c->uri_for( '/media/moderate/' . ( $medium->{ media_id } - 1 ), 
-                                                 { status_msg => $status_msg } ) );
+        }
+        else
+        {
+            $c->response->redirect(
+                $c->uri_for( '/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
         }
     }
 }
@@ -424,60 +437,60 @@ sub search_paged_media
 sub get_potential_merge_media
 {
     my ( $self, $c, $medium ) = @_;
-    
-    my $host = lc( ( URI::Split::uri_split( $medium->{ url } ) )[1] );
-    
+
+    my $host = lc( ( URI::Split::uri_split( $medium->{ url } ) )[ 1 ] );
+
     my @name_parts = split( /\./, $host );
-    
+
     my $second_level_domain = $name_parts[ $#name_parts - 1 ];
     if ( ( $second_level_domain eq 'com' ) || ( $second_level_domain eq 'co' ) )
     {
         $second_level_domain = $name_parts[ $#name_parts - 2 ] || 'domainnotfound';
     }
-    
+
     my $pattern = "%$second_level_domain%";
-        
-    return $c->dbis->query( "select * from media where ( name like ? or url like ? ) and media_id <> ?", 
-                            $pattern, $pattern, $medium->{ media_id } )->hashes;    
+
+    return $c->dbis->query( "select * from media where ( name like ? or url like ? ) and media_id <> ?",
+        $pattern, $pattern, $medium->{ media_id } )->hashes;
 }
 
 # go to the next media source in the moderation queue
 sub moderate : Local
 {
     my ( $self, $c, $prev_media_id ) = @_;
-    
-    
-    
+
     $prev_media_id ||= 0;
-    if ( $prev_media_id && $c->request->param( 'approve' ))
+    if ( $prev_media_id && $c->request->param( 'approve' ) )
     {
         $c->dbis->query( "update media set moderated = 't' where media_id = ?", $prev_media_id );
     }
-    
-    my $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " .
-                                 "  order by media_id", $prev_media_id )->hashes;
+
+    my $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " . "  order by media_id",
+        $prev_media_id )->hashes;
 
     my ( $medium, $tag_names, $feeds, $merge_media );
 
     if ( @{ $media } )
     {
-        $medium = $media->[0];
-        $tag_names = $c->dbis->query( "select ts.name||':'||t.tag from tags t, media_tags_map mtm, tag_sets ts " .
-                                      "  where t.tags_id = mtm.tags_id and t.tag_sets_id = ts.tag_sets_id and mtm.media_id = ?",
-                                      $medium->{ media_id } )->flat;
+        $medium    = $media->[ 0 ];
+        $tag_names = $c->dbis->query(
+            "select ts.name||':'||t.tag from tags t, media_tags_map mtm, tag_sets ts " .
+              "  where t.tags_id = mtm.tags_id and t.tag_sets_id = ts.tag_sets_id and mtm.media_id = ?",
+            $medium->{ media_id }
+        )->flat;
         $feeds = $c->dbis->query( "select * from feeds where media_id = ? order by name", $medium->{ media_id } )->hashes;
-        
+
         $merge_media = $self->get_potential_merge_media( $c, $medium );
-        
+
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
 
-    $c->stash->{ medium } = $medium;
-    $c->stash->{ tag_names } = $tag_names;
-    $c->stash->{ feeds } = $feeds;
-    $c->stash->{ queue_size } = scalar( @{ $media } );
+    $c->stash->{ medium }      = $medium;
+    $c->stash->{ tag_names }   = $tag_names;
+    $c->stash->{ feeds }       = $feeds;
+    $c->stash->{ queue_size }  = scalar( @{ $media } );
     $c->stash->{ merge_media } = $merge_media;
-    $c->stash->{ template } = 'media/moderate.tt2';
+    $c->stash->{ template }    = 'media/moderate.tt2';
 }
 
 # display search form, and results of a query was submitted.
@@ -495,27 +508,26 @@ sub search : Local
 
     $form->process( $c->request );
 
-    my $p = $c->request->param('p') || 1;
-    my $q = $c->request->param('q');
-    my $f = $c->request->param('f');
-    my @m = $c->request->param('m');
+    my $p = $c->request->param( 'p' ) || 1;
+    my $q = $c->request->param( 'q' );
+    my $f = $c->request->param( 'f' );
+    my @m = $c->request->param( 'm' );
 
     my ( $media, $pager );
 
-    if ($q)
+    if ( $q )
     {
         ( $media, $pager ) = $self->search_paged_media( $c, $q, $p, ROWS_PER_PAGE );
     }
-    elsif ($f)
+    elsif ( $f )
     {
         ( $media, $pager ) = $c->dbis->query_paged_hashes(
-            "select * from media m "
-              . "where not exists (select 1 from feeds f where f.media_id = m.media_id) "
-              . "order by media_id desc",
+            "select * from media m " . "where not exists (select 1 from feeds f where f.media_id = m.media_id) " .
+              "order by media_id desc",
             $p, ROWS_PER_PAGE
         );
     }
-    elsif (@m)
+    elsif ( @m )
     {
         $media = $c->dbis->query( "select * from media where media_id in (??) order by name", @m )->hashes;
     }
@@ -524,30 +536,30 @@ sub search : Local
         ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by name", $p, ROWS_PER_PAGE );
     }
 
-    for my $m ( @{$media} )
+    for my $m ( @{ $media } )
     {
-        $m->{tag_names} = $c->dbis->query(
-            "select ts.name||':'||t.tag from tags t, media_tags_map mtm, tag_sets ts "
-              . "where t.tags_id = mtm.tags_id and t.tag_sets_id = ts.tag_sets_id and mtm.media_id = ?",
-            $m->{media_id}
+        $m->{ tag_names } = $c->dbis->query(
+            "select ts.name||':'||t.tag from tags t, media_tags_map mtm, tag_sets ts " .
+              "where t.tags_id = mtm.tags_id and t.tag_sets_id = ts.tag_sets_id and mtm.media_id = ?",
+            $m->{ media_id }
         )->flat;
-        ( $m->{feed_count} ) = $c->dbis->query( "select count(*) from feeds where media_id = ?", $m->{media_id} )->flat;
+        ( $m->{ feed_count } ) = $c->dbis->query( "select count(*) from feeds where media_id = ?", $m->{ media_id } )->flat;
     }
 
-    $c->stash->{media}     = $media;
-    $c->stash->{pager}     = $pager;
-    $c->stash->{pager_url} = $c->uri_for( '/media/search', { q => $q, m => \@m, f => $f } );
+    $c->stash->{ media }     = $media;
+    $c->stash->{ pager }     = $pager;
+    $c->stash->{ pager_url } = $c->uri_for( '/media/search', { q => $q, m => \@m, f => $f } );
 
-    $c->stash->{q}        = $q;
-    $c->stash->{form}     = $form;
-    $c->stash->{template} = 'media/search.tt2';
+    $c->stash->{ q }        = $q;
+    $c->stash->{ form }     = $form;
+    $c->stash->{ template } = 'media/search.tt2';
 }
 
 # alias for search
 sub list : Local
 {
-    my $self = shift(@_);
-    return $self->search(@_);
+    my $self = shift( @_ );
+    return $self->search( @_ );
 }
 
 sub edit_tags : Local
@@ -556,22 +568,22 @@ sub edit_tags : Local
 
     if ( !$media_id )
     {
-        die("no media_id");
+        die( "no media_id" );
     }
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
     if ( !$medium )
     {
-        die("Unable to find medium $media_id");
+        die( "Unable to find medium $media_id" );
     }
 
     my $action = $c->uri_for( '/media/edit_tags_do/' . $media_id );
 
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
 
-    $c->stash->{form}     = $form;
-    $c->stash->{medium}   = $medium;
-    $c->stash->{template} = 'media/edit_tags.tt2';
+    $c->stash->{ form }     = $form;
+    $c->stash->{ medium }   = $medium;
+    $c->stash->{ template } = 'media/edit_tags.tt2';
 }
 
 sub edit_tags_do : Local
@@ -580,16 +592,16 @@ sub edit_tags_do : Local
 
     if ( !$media_id )
     {
-        die("no media_id");
+        die( "no media_id" );
     }
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
     if ( !$medium )
     {
-        die("Unable to find medium $media_id");
+        die( "Unable to find medium $media_id" );
     }
 
-    my $action = $c->uri_for('/media/edit_tags_do/') . $media_id;
+    my $action = $c->uri_for( '/media/edit_tags_do/' ) . $media_id;
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
 
     if ( !$form->submitted_and_valid )
@@ -602,27 +614,27 @@ sub edit_tags_do : Local
     $c->response->redirect( $c->uri_for( "/feeds/list/" . $media_id, { status_msg => 'Tags updated.' } ) );
 }
 
-
 # delete all feeds belonging to this media source
 sub delete_feeds : Local
 {
     my ( $self, $c, $media_id, $confirm ) = @_;
-    
+
     my $medium = $c->dbis->query( "select * from media where media_id = ?", $media_id )->hash;
-    
+
     if ( $medium->{ moderated } )
     {
         my $error = "You can only delete the feeds of media sources that have not yet been moderated";
-        $c->response->redirect( $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
+        $c->response->redirect(
+            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
         return;
     }
-    
-    if ( !defined($confirm) )
+
+    if ( !defined( $confirm ) )
     {
-        $c->stash->{medium}   = $medium;
-        $c->stash->{template} = 'media/delete_feeds.tt2';
+        $c->stash->{ medium }   = $medium;
+        $c->stash->{ template } = 'media/delete_feeds.tt2';
     }
-    else 
+    else
     {
         my $status_msg;
         if ( $confirm ne 'yes' )
@@ -635,7 +647,8 @@ sub delete_feeds : Local
             $status_msg = 'Media source feeds deleted.';
         }
 
-        $c->response->redirect( $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
+        $c->response->redirect(
+            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
     }
 }
 
@@ -643,30 +656,33 @@ sub delete_feeds : Local
 sub delete_unmoderated_feed : Local
 {
     my ( $self, $c, $feeds_id ) = @_;
-    
-    my $medium = $c->dbis->query( 
-        "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", 
-        $feeds_id )->hash;
-    
+
+    my $medium =
+      $c->dbis->query( "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", $feeds_id )
+      ->hash;
+
     if ( $medium->{ moderated } )
     {
         my $error = "You can only delete the feeds of media sources that have not yet been moderated";
-        $c->response->redirect( $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
+        $c->response->redirect(
+            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
         return;
     }
-    
+
     $c->dbis->query( "delete from feeds where feeds_id = ?", $feeds_id );
     my $status_msg = 'Media source feed deleted.';
-    $c->response->redirect( $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
+    $c->response->redirect(
+        $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
 }
 
 # merge the tags of medium_a into medium_b
 sub merge_media_tags
 {
     my ( $self, $c, $medium_a, $medium_b ) = @_;
-    
-    my $tags_ids = $c->dbis->query( "select tags_id from media_tags_map mtm where media_id = ?", $medium_a->{ media_id } )->flat;
-    
+
+    my $tags_ids =
+      $c->dbis->query( "select tags_id from media_tags_map mtm where media_id = ?", $medium_a->{ media_id } )->flat;
+
     for my $tags_id ( @{ $tags_ids } )
     {
         $c->dbis->find_or_create( 'media_tags_map', { media_id => $medium_b->{ media_id }, tags_id => $tags_id } );
@@ -677,31 +693,32 @@ sub merge_media_tags
 sub merge : Local
 {
     my ( $self, $c, $media_id_a, $media_id_b, $confirm ) = @_;
-    
+
     my $medium_a = $c->dbis->find_by_id( 'media', $media_id_a );
     my $medium_b = $c->dbis->find_by_id( 'media', $media_id_b );
 
     $confirm ||= 'no';
 
-    if ( ! $medium_a->{ moderated } && ( $confirm eq 'yes' ) )
-    {        
+    if ( !$medium_a->{ moderated } && ( $confirm eq 'yes' ) )
+    {
         $self->merge_media_tags( $c, $medium_a, $medium_b );
-        
+
         $c->dbis->delete_by_id( 'media', $medium_a->{ media_id } );
-        
-        $c->response->redirect( $c->uri_for( '/media/moderate/' . $medium_a->{ media_id }) );
+
+        $c->response->redirect( $c->uri_for( '/media/moderate/' . $medium_a->{ media_id } ) );
     }
-    else {
+    else
+    {
         my $status_msg;
-        if ( $medium_a->{ moderated } ) 
+        if ( $medium_a->{ moderated } )
         {
             $status_msg = "$medium_a->{ name } must not have been moderated to be merged.";
         }
-        
-        $c->stash->{ medium_a } = $medium_a;
-        $c->stash->{ medium_b } = $medium_b;
+
+        $c->stash->{ medium_a }   = $medium_a;
+        $c->stash->{ medium_b }   = $medium_b;
         $c->stash->{ status_msg } = $status_msg;
-        $c->stash->{ template } = 'media/merge.tt2';
+        $c->stash->{ template }   = 'media/merge.tt2';
     }
 }
 

@@ -36,24 +36,24 @@ sub store_preprocessed_result
     my ( $download, $preprocessed_lines ) = @_;
 
     my $doc  = XML::LibXML::Document->new();
-    my $root = $doc->createElement('download_test_results');
-    $doc->setEncoding('UTF-8');
-    $doc->setDocumentElement($root);
-    my $download_element = create_download_element($download);
+    my $root = $doc->createElement( 'download_test_results' );
+    $doc->setEncoding( 'UTF-8' );
+    $doc->setDocumentElement( $root );
+    my $download_element = create_download_element( $download );
 
-    $root->appendChild($download_element);
+    $root->appendChild( $download_element );
 
-    my $preprocessed_lines_element = XML::LibXML::Element->new('preprocessed_lines_base64_encoded');
+    my $preprocessed_lines_element = XML::LibXML::Element->new( 'preprocessed_lines_base64_encoded' );
 
-    my $lines_concated = join "", map { $_ . "\n" } @{$preprocessed_lines};
+    my $lines_concated = join "", map { $_ . "\n" } @{ $preprocessed_lines };
 
     #$lines_concated = encode('utf8',$lines_concated  );
 
-    my $data_section = XML::LibXML::CDATASection->new( encode_base64($lines_concated) );
+    my $data_section = XML::LibXML::CDATASection->new( encode_base64( $lines_concated ) );
 
-    $preprocessed_lines_element->appendChild($data_section);
+    $preprocessed_lines_element->appendChild( $data_section );
 
-    $root->appendChild($preprocessed_lines_element);
+    $root->appendChild( $preprocessed_lines_element );
 
     print "XML file:$output_dir/$download->{downloads_id}.xml\n";
 
@@ -69,17 +69,17 @@ sub stored_preprocessed_info
 
     my $downloads = shift;
 
-    my @downloads = @{$downloads};
+    my @downloads = @{ $downloads };
 
-    @downloads = sort { $a->{downloads_id} <=> $b->{downloads_id} } @downloads;
+    @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
     my $download_results = [];
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
-    for my $download (@downloads)
+    for my $download ( @downloads )
     {
-        my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines($download);
+        my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
 
         store_preprocessed_result( $download, $preprocessed_lines );
     }
@@ -88,12 +88,12 @@ sub stored_preprocessed_info
 
 sub create_download_element
 {
-    my ($download) = @_;
+    my ( $download ) = @_;
 
-    my $download_element = XML::LibXML::Element->new('download');
-    foreach my $key ( sort keys %{$download} )
+    my $download_element = XML::LibXML::Element->new( 'download' );
+    foreach my $key ( sort keys %{ $download } )
     {
-        $download_element->appendTextChild( $key, $download->{$key} );
+        $download_element->appendTextChild( $key, $download->{ $key } );
     }
 
     return $download_element;
@@ -105,7 +105,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
     my $file;
     my @download_ids;
@@ -116,32 +116,31 @@ sub main
         'regenerate_database_cache' => \$_re_generate_cache,
     ) or die;
 
-    unless ($file || (@download_ids)) 
+    unless ( $file || ( @download_ids ) )
     {
-         die "no options given ";
+        die "no options given ";
     }
 
     my $downloads;
 
-    if (@download_ids)
+    if ( @download_ids )
     {
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
-    elsif ($file)
+    elsif ( $file )
     {
-        open( DOWNLOAD_ID_FILE, $file ) || die("Could not open file: $file");
+        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
         @download_ids = <DOWNLOAD_ID_FILE>;
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
     else
     {
-        $downloads =
-          $dbs->query(
+        $downloads = $dbs->query(
 "SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
-          )->hashes;
+        )->hashes;
     }
 
-    stored_preprocessed_info($downloads);
+    stored_preprocessed_info( $downloads );
 }
 
 main();

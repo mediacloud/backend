@@ -27,7 +27,7 @@ sub url_in_downloads
 
     my $found_downloads = $dbs->query( "select * from downloads where url = ? limit 1", $url )->hashes;
 
-    if ( scalar(@$found_downloads) )
+    if ( scalar( @$found_downloads ) )
     {
         return 1;
     }
@@ -35,14 +35,13 @@ sub url_in_downloads
     return 0;
 }
 
-
 sub add_friends_list_page
 {
     my ( $dbs, $url, $download ) = @_;
 
-    my $friends_list_page = MediaWords::Crawler::BlogUrlProcessor::get_friends_list($url);
+    my $friends_list_page = MediaWords::Crawler::BlogUrlProcessor::get_friends_list( $url );
 
-    return if ( !defined($friends_list_page) );
+    return if ( !defined( $friends_list_page ) );
 
     print STDERR "Add spider friends_list_page download '$friends_list_page'\n";
 
@@ -52,9 +51,9 @@ sub add_friends_list_page
 
     my $parent;
 
-    if ( defined($download) )
+    if ( defined( $download ) )
     {
-        $parent = $download->{downloads_id};
+        $parent = $download->{ downloads_id };
     }
 
     $dbs->create(
@@ -62,7 +61,7 @@ sub add_friends_list_page
         {
             url    => $friends_list_page,
             parent => $parent,
-            host   => lc( ( URI::Split::uri_split($friends_list_page) )[1] ),
+            host   => lc( ( URI::Split::uri_split( $friends_list_page ) )[ 1 ] ),
 
             type          => 'spider_blog_friends_list',
             sequence      => 0,

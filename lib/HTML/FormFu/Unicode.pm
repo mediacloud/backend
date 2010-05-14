@@ -13,7 +13,7 @@ sub render
 {
     my $self = shift @_;
 
-    return encode( "UTF-8", $self->SUPER::render(@_) );
+    return encode( "UTF-8", $self->SUPER::render( @_ ) );
 }
 
 1;

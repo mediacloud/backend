@@ -23,12 +23,12 @@ BEGIN
 {
     use constant MODULES => qw(Calais);
 
-    for my $module (MODULES)
+    for my $module ( MODULES )
     {
-        eval("use MediaWords::Tagger::${module};");
-        if ($@)
+        eval( "use MediaWords::Tagger::${module};" );
+        if ( $@ )
         {
-            die("error loading $module: $@");
+            die( "error loading $module: $@" );
         }
     }
 }
@@ -42,7 +42,7 @@ use MediaWords::Crawler::Extractor;
 use MediaWords::DBI::Downloads;
 use List::Uniq ':all';
 
-my $warning_message =  <<END;
+my $warning_message = <<END;
  
  WARNING: THIS SCRIPT NO LONGER WORKS
 
@@ -65,7 +65,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     my $downloads_processed = 0;
@@ -74,7 +74,7 @@ sub main
     my $downloads_batch_size      = 10000;
     my $downloads_id_window_end   = $downloads_id_window_start + $downloads_batch_size;
 
-    ( my $max_downloads_id ) = $dbs->query("select max(downloads_id) from downloads")->flat();
+    ( my $max_downloads_id ) = $dbs->query( "select max(downloads_id) from downloads" )->flat();
 
     while ( $downloads_id_window_start <= $max_downloads_id )
     {
@@ -109,16 +109,14 @@ sub main
             print STDERR ' while ( my $download' . "\n";
 
             # ignore downloads for multi-processor runs
-            if ( ( $download->{downloads_id} + $process_num ) % $num_processes )
+            if ( ( $download->{ downloads_id } + $process_num ) % $num_processes )
             {
-                print STDERR "Ignoring  " . $download->{downloads_id} . "  + $process_num \n";
+                print STDERR "Ignoring  " . $download->{ downloads_id } . "  + $process_num \n";
                 next;
             }
 
-            print STDERR "processing download id:"
-              . $download->{downloads_id} . "  -- "
-              . ( ( time() ) - $previous_processed_down_load_end_time )
-              . " since last download processed\n";
+            print STDERR "processing download id:" . $download->{ downloads_id } . "  -- " .
+              ( ( time() ) - $previous_processed_down_load_end_time ) . " since last download processed\n";
 
             $download_found = 1;
 
@@ -128,11 +126,9 @@ sub main
 
             my $extracted_text_end_time = time();
 
-            print STDERR "Got extracted text took "
-              . ( $extracted_text_end_time - $extracted_text_start_time )
-              . " secs : "
-              . length($extracted_text)
-              . "characters\n";
+            print STDERR "Got extracted text took " . ( $extracted_text_end_time - $extracted_text_start_time ) .
+              " secs : " .
+              length( $extracted_text ) . "characters\n";
 
             print STDERR "Completed storing updated download text information for  download $download->{downloads_id}\n";
 
@@ -164,13 +160,13 @@ sub main
 
 ## THIS SCRIPT IS CURRENTLY BROKEN SO JUST PRINT THE WARNING MESSAGE & EXIT
 {
-  print STDERR $warning_message;
+    print STDERR $warning_message;
 
-  print STDERR "EXITING WITHOUT ACTUALLY TRYING RUN ANYTHING SINCE IT WOULD JUST CRASH\n\n";
-  print STDERR "COMMENT OUT the exit statement if you really want to run it\n";
+    print STDERR "EXITING WITHOUT ACTUALLY TRYING RUN ANYTHING SINCE IT WOULD JUST CRASH\n\n";
+    print STDERR "COMMENT OUT the exit statement if you really want to run it\n";
 
-  #COMMENT OUT NEXT LINE IF YOU WANT TO TRY TO RUN IT
-  exit -1;
+    #COMMENT OUT NEXT LINE IF YOU WANT TO TRY TO RUN IT
+    exit -1;
 }
 
 eval { main(); };

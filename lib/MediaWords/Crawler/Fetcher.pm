@@ -12,30 +12,30 @@ sub new
     my $self = {};
     bless( $self, $class );
 
-    $self->engine($engine);
+    $self->engine( $engine );
 
     return $self;
 }
 
 sub do_fetch
 {
-    my ( $download, $dbs) = @_;
+    my ( $download, $dbs ) = @_;
 
-    $download->{download_time} = 'now()';
-    $download->{state}         = 'fetching';
+    $download->{ download_time } = 'now()';
+    $download->{ state }         = 'fetching';
 
-    $dbs->update_by_id( "downloads", $download->{downloads_id}, $download );
+    $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
     my $ua = LWP::UserAgent->new();
 
-    $ua->from('mediawords@cyber.law.harvard.edu');
-    $ua->agent('mediawords bot (http://cyber.law.harvard.edu)');
+    $ua->from( 'mediawords@cyber.law.harvard.edu' );
+    $ua->agent( 'mediawords bot (http://cyber.law.harvard.edu)' );
 
-    $ua->timeout(20);
+    $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );
-    $ua->max_redirect(15);
+    $ua->max_redirect( 15 );
 
-    my $response = $ua->get( $download->{url} );
+    my $response = $ua->get( $download->{ url } );
 
     #     if (!$response->is_success )
     #     {
@@ -48,7 +48,6 @@ sub do_fetch
     return $response;
 }
 
-
 sub fetch_download
 {
     my ( $self, $download ) = @_;
@@ -60,18 +59,18 @@ sub fetch_download
 
     #print "fetcher " . $self->engine->fetcher_number . " download: " . $download->{url} . "\n";
 
-    return do_fetch($download, $dbs);
+    return do_fetch( $download, $dbs );
 }
 
 # calling engine
 sub engine
 {
-    if ( $_[1] )
+    if ( $_[ 1 ] )
     {
-        $_[0]->{engine} = $_[1];
+        $_[ 0 ]->{ engine } = $_[ 1 ];
     }
 
-    return $_[0]->{engine};
+    return $_[ 0 ]->{ engine };
 }
 
 1;

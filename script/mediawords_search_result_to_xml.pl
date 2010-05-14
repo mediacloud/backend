@@ -23,35 +23,35 @@ Readonly my $download_text_wild_card_query_search => q{ to_tsvector('english', d
 sub addDownloadChild
 {
     my ( $db, $story, $row, $matching_downloads_for_story, $or_query_list ) = @_;
-    my $download = XML::LibXML::Element->new('download');
+    my $download = XML::LibXML::Element->new( 'download' );
 
-    my $downloads_id = $row->{downloads_id};
+    my $downloads_id = $row->{ downloads_id };
 
-    $download->setAttribute( 'downloads_id', $row->{downloads_id} );
-    $download->setAttribute( 'matching', defined( $matching_downloads_for_story->{$downloads_id} ) ? 'true' : 'false' );
+    $download->setAttribute( 'downloads_id', $row->{ downloads_id } );
+    $download->setAttribute( 'matching', defined( $matching_downloads_for_story->{ $downloads_id } ) ? 'true' : 'false' );
 
-    if ( defined( $matching_downloads_for_story->{$downloads_id} ) )
+    if ( defined( $matching_downloads_for_story->{ $downloads_id } ) )
     {
-        for my $or_query_term ( @{$or_query_list} )
+        for my $or_query_term ( @{ $or_query_list } )
         {
             my $download_text_matches_or_query_term = $db->query(
 "select  $download_text_wild_card_query_search as sub_query_matches from download_texts where downloads_id = ? ",
                 "'$or_query_term'", $downloads_id
-            )->hash->{sub_query_matches};
+            )->hash->{ sub_query_matches };
 
-            my $sub_query_match_element = XML::LibXML::Element->new('sub_query_term');
-            $sub_query_match_element->appendText($or_query_term);
+            my $sub_query_match_element = XML::LibXML::Element->new( 'sub_query_term' );
+            $sub_query_match_element->appendText( $or_query_term );
 
             $sub_query_match_element->setAttribute( 'matches', $download_text_matches_or_query_term ? 'true' : 'false' );
-            $download->appendChild($sub_query_match_element);
+            $download->appendChild( $sub_query_match_element );
         }
     }
 
-    $download->appendTextChild( 'url',  $row->{download_url} );
-    $download->appendTextChild( 'host', $row->{host} );
-    $download->appendTextChild( 'text', $row->{download_text} );
+    $download->appendTextChild( 'url',  $row->{ download_url } );
+    $download->appendTextChild( 'host', $row->{ host } );
+    $download->appendTextChild( 'text', $row->{ download_text } );
 
-    $story->appendChild($download);
+    $story->appendChild( $download );
 }
 
 sub get_matching_downloads_for_story
@@ -62,7 +62,7 @@ sub get_matching_downloads_for_story
 "select downloads.downloads_id from downloads, download_texts where $download_text_wild_card_query_search and downloads.downloads_id=download_texts.downloads_id and downloads.stories_id = ? "
           . ' order by sequence',
         $search_query, $story_id
-    )->map_hashes('downloads_id');
+    )->map_hashes( 'downloads_id' );
 
     return $matching_downloads_for_story;
 }
@@ -86,7 +86,7 @@ sub add_downloads_to_story
 
     my $matching_downloads_for_story = get_matching_downloads_for_story( $db, $full_ts_query, $story_id );
 
-    confess if ( scalar( keys %{$matching_downloads_for_story} ) == 0 );
+    confess if ( scalar( keys %{ $matching_downloads_for_story } ) == 0 );
 
     while ( my $row = $downloads_for_story->hash() )
     {
@@ -102,10 +102,10 @@ sub add_feed_elements_to_story
       $db->query( "SELECT * from feeds_stories_map where stories_id = ? order by feeds_id", $story_id );
     while ( my $row = $feeds_for_story_id->hash() )
     {
-        my $feed_element = XML::LibXML::Element->new('feed');
-        $feed_element->setAttribute( 'feeds_id', $row->{feeds_id} );
+        my $feed_element = XML::LibXML::Element->new( 'feed' );
+        $feed_element->setAttribute( 'feeds_id', $row->{ feeds_id } );
 
-        $story->appendChild($feed_element);
+        $story->appendChild( $feed_element );
     }
 }
 
@@ -126,8 +126,7 @@ sub get_matching_articles
 sub get_matching_articles_within_date_range
 {
     ( my $db, my $search_query, my $start_date, my $end_date ) = @_;
-    my $matching_articles =
-      $db->query(
+    my $matching_articles = $db->query(
 "select stories.*, stories.url as story_url from download_texts, downloads, stories where $download_text_wild_card_query_search and downloads.downloads_id=download_texts.downloads_id and downloads.stories_id=stories.stories_id "
           . ' and publish_date >= ?  and publish_date <= ? '
           . ' order by media_id, stories.stories_id',
@@ -142,7 +141,7 @@ sub get_ts_or_query_from_list
 {
     ( my $ored_query_terms ) = @_;
 
-    my $or_query = join "|", ( map { "'$_'" } @{$ored_query_terms} );
+    my $or_query = join "|", ( map { "'$_'" } @{ $ored_query_terms } );
 
     return $or_query;
 }
@@ -151,7 +150,7 @@ sub create_feed_element
 {
     ( my $feeds_id, my $feed_name, my $feed_url ) = @_;
 
-    my $feed_element = XML::LibXML::Element->new('feed');
+    my $feed_element = XML::LibXML::Element->new( 'feed' );
 
     $feed_element->setAttribute( 'feeds_id', $feeds_id );
 
@@ -173,7 +172,7 @@ sub add_feeds_to_media_element
     {
         my $feed_element = create_feed_element( $feeds_id, $feed_name, $feed_url );
 
-        $media_element->appendChild($feed_element);
+        $media_element->appendChild( $feed_element );
     }
 }
 
@@ -181,15 +180,15 @@ sub create_story_element
 {
     ( my $row ) = @_;
 
-    my $story = XML::LibXML::Element->new('story');
+    my $story = XML::LibXML::Element->new( 'story' );
 
-    $story->setAttribute( 'stories_id',   $row->{stories_id} );
-    $story->setAttribute( 'guid',         $row->{stories_id} );
-    $story->setAttribute( 'publish_date', $row->{publish_date} );
+    $story->setAttribute( 'stories_id',   $row->{ stories_id } );
+    $story->setAttribute( 'guid',         $row->{ stories_id } );
+    $story->setAttribute( 'publish_date', $row->{ publish_date } );
 
-    $story->appendTextChild( 'title',       $row->{title} );
-    $story->appendTextChild( 'url',         $row->{story_url} );
-    $story->appendTextChild( 'description', $row->{description} || '' );
+    $story->appendTextChild( 'title',       $row->{ title } );
+    $story->appendTextChild( 'url',         $row->{ story_url } );
+    $story->appendTextChild( 'description', $row->{ description } || '' );
 
     return $story;
 }
@@ -206,17 +205,17 @@ sub create_calais_tags_element
     );
 
     #list of calias tags
-    my $calais_tags_element = XML::LibXML::Element->new('calais_tags');
+    my $calais_tags_element = XML::LibXML::Element->new( 'calais_tags' );
 
     while ( $story_tag_rows->into( my $tags_id, my $tag ) )
     {
 
         #create element for a single calais tag
-        my $calais_tag_element = XML::LibXML::Element->new('calais_tag');
+        my $calais_tag_element = XML::LibXML::Element->new( 'calais_tag' );
         $calais_tag_element->setAttribute( 'tags_id', $tags_id );
-        $calais_tag_element->appendText($tag);
+        $calais_tag_element->appendText( $tag );
 
-        $calais_tags_element->appendChild($calais_tag_element);
+        $calais_tags_element->appendChild( $calais_tag_element );
     }
 
     return $calais_tags_element;
@@ -228,13 +227,13 @@ sub create_media_element
 
     print STDERR "creating XML node for media_id $media_id\n";
 
-    my $media_element = XML::LibXML::Element->new('medium');
+    my $media_element = XML::LibXML::Element->new( 'medium' );
     $media_element->setAttribute( 'media_id', $media_id );
 
     my $media_row = $db->query( "SELECT * from media where media_id = ?", $media_id )->hash;
 
-    $media_element->appendTextChild( 'name', $media_row->{name} );
-    $media_element->appendTextChild( 'url',  $media_row->{url} );
+    $media_element->appendTextChild( 'name', $media_row->{ name } );
+    $media_element->appendTextChild( 'url',  $media_row->{ url } );
 
     add_feeds_to_media_element( $db, $media_element, $media_id );
 
@@ -273,14 +272,14 @@ sub main
     ) or die "$usage\n";
 
     die "$usage\n"
-      unless $output_file && (@or_query);
+      unless $output_file && ( @or_query );
 
     die "$usage\n"
       if ( ( $start_date or $end_date ) and ( !( $start_date and $end_date ) ) );
 
     print STDERR "starting --  " . localtime() . "\n";
 
-    my $db = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "starting -- search query " . localtime() . "\n";
@@ -299,9 +298,9 @@ sub main
     }
 
     my $doc  = XML::LibXML::Document->new();
-    my $root = $doc->createElement('search_results');
+    my $root = $doc->createElement( 'search_results' );
 
-    $doc->setDocumentElement($root);
+    $doc->setDocumentElement( $root );
 
     my $media_element;
     my $last_media_id = -1;
@@ -313,24 +312,24 @@ sub main
 
     while ( my $row = $matching_articles->hash() )
     {
-        if ( $last_media_id != $row->{media_id} )
+        if ( $last_media_id != $row->{ media_id } )
         {
-            $media_element = create_media_element( $db, $row->{media_id} );
-            $root->appendChild($media_element);
-            $last_media_id = $row->{media_id};
+            $media_element = create_media_element( $db, $row->{ media_id } );
+            $root->appendChild( $media_element );
+            $last_media_id = $row->{ media_id };
         }
 
-        my $stories_id = $row->{stories_id};
+        my $stories_id = $row->{ stories_id };
         if ( $last_story_id != $stories_id )
         {
 
-            $story = create_story_element($row);
+            $story = create_story_element( $row );
 
             add_feed_elements_to_story( $db, $story, $stories_id );
             my $calais_tags_element = create_calais_tags_element( $db, $stories_id );
-            $story->appendChild($calais_tags_element);
+            $story->appendChild( $calais_tags_element );
             add_downloads_to_story( $db, $story, $stories_id, $full_ts_query_string, \@or_query );
-            $media_element->appendChild($story);
+            $media_element->appendChild( $story );
             $last_story_id = $stories_id;
         }
     }

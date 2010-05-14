@@ -16,12 +16,12 @@ BEGIN
 {
     use constant MODULES => qw(Calais);
 
-    for my $module (MODULES)
+    for my $module ( MODULES )
     {
-        eval("use MediaWords::Tagger::${module};");
-        if ($@)
+        eval( "use MediaWords::Tagger::${module};" );
+        if ( $@ )
         {
-            die("error loading $module: $@");
+            die( "error loading $module: $@" );
         }
     }
 }
@@ -45,7 +45,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     my $download_texts_processed = 0;
@@ -54,7 +54,7 @@ sub main
     my $download_texts_batch_size      = 100;
     my $download_texts_id_window_end   = $download_texts_id_window_start + $download_texts_batch_size;
 
-    ( my $max_download_texts_id ) = $dbs->query("select max(download_texts_id) from download_texts")->flat();
+    ( my $max_download_texts_id ) = $dbs->query( "select max(download_texts_id) from download_texts" )->flat();
 
     while ( $download_texts_id_window_start < $max_download_texts_id )
     {

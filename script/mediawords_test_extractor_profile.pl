@@ -31,27 +31,29 @@ sub main
 
     my @downloads;
 
-    if (@download_ids)
+    if ( @download_ids )
     {
         @downloads =
-          $db->resultset('Downloads')->search( {}, { where => 'me.downloads_id in (' . join( ",", @download_ids ) . ')' } );
+          $db->resultset( 'Downloads' )
+          ->search( {}, { where => 'me.downloads_id in (' . join( ",", @download_ids ) . ')' } );
     }
-    elsif ($file)
+    elsif ( $file )
     {
 
         #TODO we should really validate the file or escape the lines. Building our own SQL statement is bad.
-        open( DOWNLOAD_ID_FILE, $file ) || die("Could not open file: $file");
+        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
         @download_ids = <DOWNLOAD_ID_FILE>;
         @downloads =
-          $db->resultset('Downloads')->search( {}, { where => 'me.downloads_id in (' . join( ",", @download_ids ) . ')' } );
+          $db->resultset( 'Downloads' )
+          ->search( {}, { where => 'me.downloads_id in (' . join( ",", @download_ids ) . ')' } );
     }
     else
     {
-        @downloads = $db->resultset('Downloads')->search(
+        @downloads = $db->resultset( 'Downloads' )->search(
             {},
             {
                 where =>
-                  'me.downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id limit 60)',
+'me.downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id limit 60)',
             }
         );
     }
@@ -71,10 +73,10 @@ sub text_length
 
     my $hs = HTML::Strip->new();
 
-    my $tmp = ( $hs->parse($html_text) );
+    my $tmp = ( $hs->parse( $html_text ) );
     $hs->eof();
 
-    my $ret = length($tmp);
+    my $ret = length( $tmp );
 
     return $ret;
 }
@@ -84,7 +86,7 @@ sub extractAndScoreDownloads
 
     my $downloads = shift;
 
-    my @downloads = @{$downloads};
+    my @downloads = @{ $downloads };
 
     @downloads = sort { $a->downloads_id <=> $b->downloads_id } @downloads;
 
@@ -94,7 +96,7 @@ sub extractAndScoreDownloads
 
     my ( $all_story_lines, $all_extra_lines, $all_missing_lines );
 
-    for my $download (@downloads)
+    for my $download ( @downloads )
     {
         my ( $story_characters, $extra_characters, $missing_characters );
 
@@ -110,7 +112,7 @@ sub extractAndScoreDownloads
 
         my @story_lines = $download->extractor_training_lines;
         my $line_is_story;
-        for my $story_line (@story_lines)
+        for my $story_line ( @story_lines )
         {
             print "story_line: " . $story_line->line_number . "\n";
             $line_is_story->{ $story_line->line_number } = $story_line->required ? 'required' : 'optional';
@@ -122,42 +124,41 @@ sub extractAndScoreDownloads
         my $missing_lines = [];
         my $download_errors;
         my $story_text;
-        for ( my $i = 0 ; $i < @{$scores} ; $i++ )
+        for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
         {
-            my $score     = $scores->[$i];
-            my $error_tag = "\n [" . $i . ' / ' . $score->{html_density} . ' / ' . $score->{discounted_html_density} . ']';
-            if ( $score->{is_story} && !$line_is_story->{$i} )
+            my $score = $scores->[ $i ];
+            my $error_tag =
+              "\n [" . $i . ' / ' . $score->{ html_density } . ' / ' . $score->{ discounted_html_density } . ']';
+            if ( $score->{ is_story } && !$line_is_story->{ $i } )
             {
-                $extra_characters += text_length( $lines->[$i] );
+                $extra_characters += text_length( $lines->[ $i ] );
                 $extra_line_count++;
-                $download_errors .= "extra: " . $lines->[$i] . $error_tag . "\n";
+                $download_errors .= "extra: " . $lines->[ $i ] . $error_tag . "\n";
             }
-            elsif ( !$score->{is_story}
-                && ( $line_is_story->{$i} eq 'required' ) )
+            elsif ( !$score->{ is_story }
+                && ( $line_is_story->{ $i } eq 'required' ) )
             {
-                $missing_characters += text_length( $lines->[$i] );
+                $missing_characters += text_length( $lines->[ $i ] );
                 $missing_line_count++;
 
-                $download_errors .= "missing: " . $lines->[$i] . $error_tag . "\n";
+                $download_errors .= "missing: " . $lines->[ $i ] . $error_tag . "\n";
             }
 
-            if ( $score->{is_story} )
+            if ( $score->{ is_story } )
             {
-                $story_text .= $lines->[$i];
+                $story_text .= $lines->[ $i ];
             }
         }
 
-        if ($download_errors)
+        if ( $download_errors )
         {
-            print "****\nerrors in download "
-              . $download->downloads_id . ": "
-              . $download->stories_id->title . "\n"
-              . "$download_errors\n****\n";
+            print "****\nerrors in download " . $download->downloads_id . ": " . $download->stories_id->title . "\n" .
+              "$download_errors\n****\n";
             $errors++;
         }
 
         push(
-            @{$download_results},
+            @{ $download_results },
             {
                 story_characters   => $story_characters   || 0,
                 extra_characters   => $extra_characters   || 0,
@@ -179,26 +180,23 @@ sub extractAndScoreDownloads
         #print "story text:\n****\n$story_text\n****\n";
     }
 
-    my $sorted_download_results = [ sort { $a->{accuracy} <=> $b->{accuracy} } @{$download_results} ];
+    my $sorted_download_results = [ sort { $a->{ accuracy } <=> $b->{ accuracy } } @{ $download_results } ];
 
-    for ( my $i = 0 ; $i < @{$sorted_download_results} ; $i++ )
+    for ( my $i = 0 ; $i < @{ $sorted_download_results } ; $i++ )
     {
-        my $r = $sorted_download_results->[$i];
+        my $r = $sorted_download_results->[ $i ];
 
         print "$i: ";
-        print $r->{accuracy} . " ";
+        print $r->{ accuracy } . " ";
 
-        print $r->{story_characters} . " ";
-        print $r->{extra_characters} . " ";
-        print $r->{missing_characters} . "\n";
+        print $r->{ story_characters } . " ";
+        print $r->{ extra_characters } . " ";
+        print $r->{ missing_characters } . "\n";
     }
 
-    print "$errors errors / " . scalar(@downloads) . " downloads\n";
-    print "lines: $all_story_lines story / $all_extra_lines ("
-      . $all_extra_lines / $all_story_lines
-      . ") extra / $all_missing_characters ("
-      . $all_missing_lines / $all_story_lines
-      . ") missing\n";
+    print "$errors errors / " . scalar( @downloads ) . " downloads\n";
+    print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
+      ") extra / $all_missing_characters (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
     if ( $all_story_characters == 0 )
     {
@@ -206,11 +204,9 @@ sub extractAndScoreDownloads
     }
     else
     {
-        print "characters: $all_story_characters story / $all_extra_characters ("
-          . $all_extra_characters / $all_story_characters
-          . ") extra / $all_missing_characters ("
-          . $all_missing_characters / $all_story_characters
-          . ") missing\n";
+        print "characters: $all_story_characters story / $all_extra_characters (" .
+          $all_extra_characters / $all_story_characters . ") extra / $all_missing_characters (" .
+          $all_missing_characters / $all_story_characters . ") missing\n";
     }
 }
 

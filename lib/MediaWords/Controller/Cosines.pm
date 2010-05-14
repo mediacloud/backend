@@ -28,7 +28,7 @@ my @media_titles = qw{New_York_Times Daily_Kos Fox_News ABC_news Bitch_Phd};
 sub index : Path : Args(0)
 {
 
-    return media_tag_counts(@_);
+    return media_tag_counts( @_ );
 }
 
 #################################################################################
@@ -46,8 +46,8 @@ sub index : Path : Args(0)
 
 sub cosine_distance
 {
-    my (@vector1) = @{ $_[0] };
-    my (@vector2) = @{ $_[1] };
+    my ( @vector1 ) = @{ $_[ 0 ] };
+    my ( @vector2 ) = @{ $_[ 1 ] };
     if ( scalar @vector1 != scalar @vector2 )
     {
         print "error! " . scalar @vector1 . " not equal to " . scalar @vector2 . "\n";
@@ -56,12 +56,12 @@ sub cosine_distance
     my $sum;
     for ( my $i = 0 ; $i < @vector1 ; $i++ )
     {
-        $sum += defined $vector1[$i] && defined $vector2[$i] ? $vector1[$i] * $vector2[$i] : 0;
+        $sum += defined $vector1[ $i ] && defined $vector2[ $i ] ? $vector1[ $i ] * $vector2[ $i ] : 0;
     }
     my $arccos;
-    if ( norm(@vector1) * norm(@vector2) > 0 )
+    if ( norm( @vector1 ) * norm( @vector2 ) > 0 )
     {
-        $arccos = $sum / ( norm(@vector1) * norm(@vector2) );
+        $arccos = $sum / ( norm( @vector1 ) * norm( @vector2 ) );
     }
     else
     {
@@ -76,7 +76,7 @@ sub norm
     my $sum;
     for ( my $i = 0 ; $i < @vector ; $i++ )
     {
-        $sum += defined $vector[$i] ? $vector[$i] * $vector[$i] : 0;
+        $sum += defined $vector[ $i ] ? $vector[ $i ] * $vector[ $i ] : 0;
     }
     return sqrt $sum;
 }
@@ -84,49 +84,49 @@ sub norm
 # main comparison routine
 sub compare_sources
 {
-    my ($db) = @_;
+    my ( $db ) = @_;
 
     # parses files (really any string works) into an array of hash refs to hashes of word types to word token counts
-    foreach my $media (@media_texts)
+    foreach my $media ( @media_texts )
     {
         my $hash = {};
-        foreach my $article (@$media)
+        foreach my $article ( @$media )
         {
-            my $text = lc($article);
+            my $text = lc( $article );
             $text =~ s/[^\w^'^ ]//gi;
             $text =~ s/\s+/ /g;
             while ( $text =~ s/(.*?)\s+// )
             {
 
                 #print "token: $1\n";
-                if ( $hash->{$1} )
+                if ( $hash->{ $1 } )
                 {
-                    $hash->{$1} = $hash->{$1} + 1;
+                    $hash->{ $1 } = $hash->{ $1 } + 1;
                 }
                 else
                 {
-                    $hash->{$1} = 1;
+                    $hash->{ $1 } = 1;
                 }
             }
 
             #print "token: $text\n";
-            if ( $hash->{$text} )
+            if ( $hash->{ $text } )
             {
-                $hash->{$text} = $hash->{$text} + 1;
+                $hash->{ $text } = $hash->{ $text } + 1;
             }
             else
             {
-                $hash->{$text} = 1;
+                $hash->{ $text } = 1;
             }
         }
 
         #clear out stopwords
-        my $stopwords = getStopWords('en');
+        my $stopwords = getStopWords( 'en' );
         while ( $stopwords =~ s/(.*?)\s+// )
         {
-            if ( $hash->{$1} )
+            if ( $hash->{ $1 } )
             {
-                $hash->{$1} = 0;
+                $hash->{ $1 } = 0;
             }
         }
         push( @text_hashes, $hash );
@@ -137,11 +137,11 @@ sub compare_sources
     # collects all word types in corpus into a master hash, %corpus: word type => array index
     for ( my $index = 0 ; $index < @text_hashes ; ++$index )
     {
-        my $hash    = $text_hashes[$index];
+        my $hash    = $text_hashes[ $index ];
         my $counter = 0;
         foreach my $key ( keys %$hash )
         {
-            $corpus{$key} = $counter++ unless $corpus{$key};
+            $corpus{ $key } = $counter++ unless $corpus{ $key };
         }
     }
 
@@ -151,13 +151,13 @@ sub compare_sources
     # and word tokens to get
     for ( my $index = 0 ; $index < @text_hashes ; ++$index )
     {
-        my $hash = $text_hashes[$index];
+        my $hash = $text_hashes[ $index ];
         my @word_vector;
         foreach my $key ( keys %corpus )
         {
-            $word_vector[ $corpus{$key} ] = $hash->{$key};
+            $word_vector[ $corpus{ $key } ] = $hash->{ $key };
         }
-        $word_vectors[$index] = [@word_vector];
+        $word_vectors[ $index ] = [ @word_vector ];
     }
 
     print STDERR "computing cosine distances\n";
@@ -173,33 +173,32 @@ sub compare_sources
         my $subdistances = [];
         for ( my $index2 = 0 ; $index2 < $index ; ++$index2 )
         {
-            my $distance = cosine_distance( $word_vectors[$index], $word_vectors[$index2] );
+            my $distance = cosine_distance( $word_vectors[ $index ], $word_vectors[ $index2 ] );
             $largest_dif  = $distance if $distance > $largest_dif;
             $smallest_dif = $distance if $distance < $smallest_dif;
-            $subdistances->[$index2] = $distance;
+            $subdistances->[ $index2 ] = $distance;
         }
-        $distances->[$index] = $subdistances;
-        my @media_name = $db->query( "select name from media where media_id =?", $media_ids[$index] )->flat;
-        $media_names->[$index] = $media_name[0];
+        $distances->[ $index ] = $subdistances;
+        my @media_name = $db->query( "select name from media where media_id =?", $media_ids[ $index ] )->flat;
+        $media_names->[ $index ] = $media_name[ 0 ];
     }
 
     for ( my $index = 0 ; $index < @word_vectors ; ++$index )
     {
         for ( my $index2 = @word_vectors ; $index2 > $index ; --$index2 )
         {
-            $distances->[$index]->[$index2] = $distances->[$index2]->[$index];
+            $distances->[ $index ]->[ $index2 ] = $distances->[ $index2 ]->[ $index ];
         }
     }
 
     print "results:<br />";
     for ( my $i = 0 ; $i < scalar @$distances ; ++$i )
     {
-        my $subdistance = $distances->[$i];
+        my $subdistance = $distances->[ $i ];
         for ( my $j = 0 ; $j < $i ; ++$j )
         {
-            print "distance between text $media_names->[$i] and $media_names->[$j] is:\n"
-              . $subdistance->[$j]
-              . " absolute units<br />";    #"
+            print "distance between text $media_names->[$i] and $media_names->[$j] is:\n" . $subdistance->[ $j ] .
+              " absolute units<br />";    #"
         }
     }
     print "<br />normalized table<br />";
@@ -208,25 +207,25 @@ sub compare_sources
     print "<td></td>\n";
     for ( my $j = 0 ; $j < scalar @$distances ; ++$j )
     {
-        print "<td>" . $media_names->[$j] . "</td>\n";
+        print "<td>" . $media_names->[ $j ] . "</td>\n";
     }
     print "</tr>";
     for ( my $i = 0 ; $i < scalar @$distances - 1 ; ++$i )
     {
-        my $subdistance = $distances->[$i];
+        my $subdistance = $distances->[ $i ];
         print "<tr>\n";
 
-        print "<td>" . $media_names->[$i] . "</td>\n";
+        print "<td>" . $media_names->[ $i ] . "</td>\n";
         for ( my $j = 0 ; $j < $i ; ++$j )
         {
-            my $color = round( 255 * ( $subdistance->[$j] - $smallest_dif ) / ( $largest_dif - $smallest_dif ) );
+            my $color = round( 255 * ( $subdistance->[ $j ] - $smallest_dif ) / ( $largest_dif - $smallest_dif ) );
             printf( "<td style='background:#%02x%02x%02x;", 255 - $color, $color, 128 );
 
             #incase of dynamic text coloring
             print "color:#000000;";    # if $color < 80;
-            print "'>"
-              . round( 1000000 * ( $subdistance->[$j] - $smallest_dif ) / ( $largest_dif - $smallest_dif ) ) / 1000000
-              . "</td>\n";
+            print "'>" .
+              round( 1000000 * ( $subdistance->[ $j ] - $smallest_dif ) / ( $largest_dif - $smallest_dif ) ) / 1000000 .
+              "</td>\n";
         }
         print "<td>same</td>\n";       #"
 
@@ -237,9 +236,9 @@ sub compare_sources
 
             #incase of dynamic text coloring
             print "color:#000000;";    # if $color < 80;
-            print "'>"
-              . round( 1000000 * ( $subdistance->[ $j + 1 ] - $smallest_dif ) / ( $largest_dif - $smallest_dif ) ) / 1000000
-              . "</td>\n";
+            print "'>" .
+              round( 1000000 * ( $subdistance->[ $j + 1 ] - $smallest_dif ) / ( $largest_dif - $smallest_dif ) ) / 1000000 .
+              "</td>\n";
         }
 
         print "</tr>\n";
@@ -253,7 +252,7 @@ sub build_media_data
 {
     my ( $self, $c, $num ) = @_;
 
-    my $media_id = $media_ids[$num];    #$c->request->param('media_id_' . $num);
+    my $media_id = $media_ids[ $num ];    #$c->request->param('media_id_' . $num);
     print STDERR $media_id . " " . $num . " db index and array index\n";
     if ( !$media_id )
     {
@@ -275,7 +274,7 @@ sub build_media_data
 
         for ( my $j = 0 ; $j < scalar @lines ; ++$j )
         {
-            $array->[$j] = $lines[$j];
+            $array->[ $j ] = $lines[ $j ];
         }
 
     }
@@ -287,11 +286,11 @@ sub build_media_data
 
         if ( !$medium )
         {
-            die("Unable to find medium $media_id");
+            die( "Unable to find medium $media_id" );
         }
 
         # this should be done using $medium->query probably
-        my ($num_of_stories) = $c->dbis->query( "select count(*) from stories where media_id=?;", $media_id )->flat;
+        my ( $num_of_stories ) = $c->dbis->query( "select count(*) from stories where media_id=?;", $media_id )->flat;
 
         my $increment;    #change to some parameter later
         my $i = 0;
@@ -310,13 +309,13 @@ sub build_media_data
 
         for ( my $j = 0 ; ( $j * $increment ) < $num_of_stories ; ++$j )
         {
-            my $story_id = @story_indexes[ $j * $increment ]->[0];
+            my $story_id = @story_indexes[ $j * $increment ]->[ 0 ];
             print STDERR round( $j * 1000 / $SAMPLESIZE ) / 10 . "% of the way done: " . $story_id . " is being read\n";
 
             #testing printf printf STDERR ("%x",round($j*1000/$SAMPLESIZE)/10);
             my $story = $c->dbis->query( "select * from stories where stories_id =?", $story_id )->hash;
             my $text = MediaWords::DBI::Stories::get_text( $c->dbis, $story );
-            $array->[$j] = $text;
+            $array->[ $j ] = $text;
             print FILE $text . "\n";
         }
 
@@ -347,13 +346,13 @@ sub media_tag_counts : Local
 
     compare_sources( $c->dbis );
 
-    my @all_media = $c->dbis->query("select * from media order by name asc")->hashes;
+    my @all_media = $c->dbis->query( "select * from media order by name asc" )->hashes;
 
     # increase from 1000 to handle all media
     $Template::Directive::WHILE_MAX = 2000;
 
-    $c->stash->{all_media} = [@all_media];
-    $c->stash->{template}  = 'cosines/media_tag_counts.tt2';
+    $c->stash->{ all_media } = [ @all_media ];
+    $c->stash->{ template }  = 'cosines/media_tag_counts.tt2';
 }
 
 =head1 AUTHOR

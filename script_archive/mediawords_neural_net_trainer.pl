@@ -61,7 +61,7 @@ sub get_cached_extractor_line_scores
     ( my $download, my $dbs ) = @_;
 
     return $dbs->query( " SELECT  * from extractor_results_cache where downloads_id = ? order by line_number asc ",
-        $download->{downloads_id} )->hashes;
+        $download->{ downloads_id } )->hashes;
 }
 
 sub store_extractor_line_scores
@@ -70,21 +70,21 @@ sub store_extractor_line_scores
 
     $dbs->begin_work;
 
-    $dbs->query( 'DELETE FROM extractor_results_cache where downloads_id = ?', $download->{downloads_id} );
+    $dbs->query( 'DELETE FROM extractor_results_cache where downloads_id = ?', $download->{ downloads_id } );
 
     my $line_number = 0;
-    for my $score ( @{$scores} )
+    for my $score ( @{ $scores } )
     {
 
         #print (keys %{$score}) . "\n";
         $dbs->insert(
             'extractor_results_cache',
             {
-                is_story                => $score->{is_story},
-                explanation             => $score->{explanation},
-                discounted_html_density => $score->{discounted_html_density},
-                html_density            => $score->{html_density},
-                downloads_id            => $download->{downloads_id},
+                is_story                => $score->{ is_story },
+                explanation             => $score->{ explanation },
+                discounted_html_density => $score->{ discounted_html_density },
+                html_density            => $score->{ html_density },
+                downloads_id            => $download->{ downloads_id },
                 line_number             => $line_number,
             }
         );
@@ -106,9 +106,9 @@ sub get_extractor_scores_for_lines
         $ret = get_cached_extractor_line_scores( $download, $dbs );
     }
 
-    if ( !defined($ret) || !@{$ret} )
+    if ( !defined( $ret ) || !@{ $ret } )
     {
-        my $lines = get_preprocessed_content_lines_for_download($download);
+        my $lines = get_preprocessed_content_lines_for_download( $download );
         $ret = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description, );
         store_extractor_line_scores( $ret, $lines, $download, $dbs );
     }
@@ -121,10 +121,10 @@ sub get_input_array
 
     my $input = [];
 
-    $input->[ $input_array_indexes->{html_density} ]            = $line_score->{html_density};
-    $input->[ $input_array_indexes->{discounted_html_density} ] = $line_score->{discounted_html_density};
-    $input->[ $input_array_indexes->{line_number} ] = 0;    #$line_score->{line_number};
-    $input->[ $input_array_indexes->{media_id} ]    = 0;    #$download->{media_id};
+    $input->[ $input_array_indexes->{ html_density } ]            = $line_score->{ html_density };
+    $input->[ $input_array_indexes->{ discounted_html_density } ] = $line_score->{ discounted_html_density };
+    $input->[ $input_array_indexes->{ line_number } ] = 0;    #$line_score->{line_number};
+    $input->[ $input_array_indexes->{ media_id } ]    = 0;    #$download->{media_id};
 
     return $input;
 }
@@ -135,11 +135,11 @@ sub get_result_array
 
     my $result;
 
-    if ( !( $line_score->{is_story} ) )
+    if ( !( $line_score->{ is_story } ) )
     {
         $result = $excluded;
     }
-    elsif ( ( $line_score->{explanation} ) =~ /title match discount/i )
+    elsif ( ( $line_score->{ explanation } ) =~ /title match discount/i )
     {
         $result = $optional;
     }
@@ -159,13 +159,13 @@ sub train_with_download
     my $scores = [];
 
     my $story_title =
-      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{stories_id} )->flat->[0];
+      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
     my $story_description =
-      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{stories_id} )->flat->[0];
+      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
 
     $scores = get_extractor_scores_for_lines( $story_title, $story_description, $download, $dbs );
 
-    foreach my $line_score (@$scores)
+    foreach my $line_score ( @$scores )
     {
         my $result = get_result_array( $download, $line_score );
 
@@ -182,15 +182,15 @@ sub train_with_downloads
 
     my $downloads = shift;
 
-    my @downloads = @{$downloads};
+    my @downloads = @{ $downloads };
 
-    @downloads = sort { $a->{downloads_id} <=> $b->{downloads_id} } @downloads;
+    @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
     my $download_results = [];
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
-    for my $download (@downloads)
+    for my $download ( @downloads )
     {
         print "Training with Download: $download->{downloads_id} \n";
         train_with_download( $download, $dbs );
@@ -205,28 +205,28 @@ sub test_with_download
     my $scores = [];
 
     my $story_title =
-      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{stories_id} )->flat->[0];
+      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
     my $story_description =
-      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{stories_id} )->flat->[0];
+      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
 
     $scores = get_extractor_scores_for_lines( $story_title, $story_description, $download, $dbs );
 
-    foreach my $line_score (@$scores)
+    foreach my $line_score ( @$scores )
     {
         my $result = get_result_array( $download, $line_score );
 
         my $input = get_input_array( $download, $line_score );
 
-        my $winner_index = $_net->winner($input);
+        my $winner_index = $_net->winner( $input );
 
-        die unless defined($result);
-        if ( $result->[$winner_index] )
+        die unless defined( $result );
+        if ( $result->[ $winner_index ] )
         {
             print "Neural net correctly predicted winner $winner_index\n";
         }
         else
         {
-            print "Incorrectly predicted $winner_index instead of " . ( first_index { $_ } @{$result} ) . "\n";
+            print "Incorrectly predicted $winner_index instead of " . ( first_index { $_ } @{ $result } ) . "\n";
         }
     }
 
@@ -237,15 +237,15 @@ sub test_with_downloads
 {
     my $downloads = shift;
 
-    my @downloads = @{$downloads};
+    my @downloads = @{ $downloads };
 
-    @downloads = sort { $a->{downloads_id} <=> $b->{downloads_id} } @downloads;
+    @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
     my $download_results = [];
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
-    for my $download (@downloads)
+    for my $download ( @downloads )
     {
 
         print "Download: $download->{downloads_id} \n";
@@ -260,7 +260,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
     my $file;
     my @download_ids;
@@ -273,26 +273,25 @@ sub main
 
     my $downloads;
 
-    if (@download_ids)
+    if ( @download_ids )
     {
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
-    elsif ($file)
+    elsif ( $file )
     {
-        open( DOWNLOAD_ID_FILE, $file ) || die("Could not open file: $file");
+        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
         @download_ids = <DOWNLOAD_ID_FILE>;
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
     else
     {
-        $downloads =
-          $dbs->query(
+        $downloads = $dbs->query(
 "SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
-          )->hashes;
+        )->hashes;
     }
 
-    train_with_downloads($downloads);
-    test_with_downloads($downloads);
+    train_with_downloads( $downloads );
+    test_with_downloads( $downloads );
 }
 
 main();

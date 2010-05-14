@@ -26,7 +26,7 @@ my $_primary_key_columns = {};
 sub new
 {
     my $proto = shift;
-    my $class = ref($proto) || $proto;
+    my $class = ref( $proto ) || $proto;
 
     my $self = $class->SUPER::new();
 
@@ -37,32 +37,32 @@ sub new
 
 sub query
 {
-  my $self = shift @_;
+    my $self = shift @_;
 
-  my $ret =  $self->SUPER::query(@_);
+    my $ret = $self->SUPER::query( @_ );
 
-  return $ret;
+    return $ret;
 
 }
 
 sub query_continue_on_error
 {
-  my $self = shift @_;
+    my $self = shift @_;
 
-  my $ret =  $self->SUPER::query(@_);
+    my $ret = $self->SUPER::query( @_ );
 
-  return $ret;
+    return $ret;
 }
 
 sub query_only_warn_on_error
 {
-  my $self = shift @_;
+    my $self = shift @_;
 
-  my $ret =  $self->SUPER::query(@_);
+    my $ret = $self->SUPER::query( @_ );
 
-  warn "Problem executing DBIx::simple->query(" . scalar (join ",", @_) . ") :" . $self->error 
+    warn "Problem executing DBIx::simple->query(" . scalar( join ",", @_ ) . ") :" . $self->error
       unless $ret;
-  return $ret;
+    return $ret;
 }
 
 # get the primary key column for the table
@@ -70,14 +70,14 @@ sub primary_key_column
 {
     my ( $self, $table ) = @_;
 
-    if ( my $id_col = $_primary_key_columns->{$table} )
+    if ( my $id_col = $_primary_key_columns->{ $table } )
     {
         return $id_col;
     }
 
-    my ($id_col) = $self->dbh->primary_key( undef, undef, $table );
+    my ( $id_col ) = $self->dbh->primary_key( undef, undef, $table );
 
-    $_primary_key_columns->{$table} = $id_col;
+    $_primary_key_columns->{ $table } = $id_col;
 
     return $id_col;
 }
@@ -87,9 +87,9 @@ sub find_by_id
 {
     my ( $self, $table, $id ) = @_;
 
-    my $id_col = $self->primary_key_column($table);
+    my $id_col = $self->primary_key_column( $table );
 
-    confess "undefined primary key column for table '$table'" unless defined($id_col);
+    confess "undefined primary key column for table '$table'" unless defined( $id_col );
 
     return $self->query( "select * from $table where $id_col = ?", $id )->hash;
 }
@@ -100,19 +100,19 @@ sub update_by_id
 {
     my ( $self, $table, $id, $hash ) = @_;
 
-    delete( $hash->{submit} );
+    delete( $hash->{ submit } );
 
-    my $id_col = $self->primary_key_column($table);
+    my $id_col = $self->primary_key_column( $table );
 
     my $hidden_values = {};
-    for my $k ( grep( /^_/,  keys( %{ $hash } ) ) )
+    for my $k ( grep( /^_/, keys( %{ $hash } ) ) )
     {
         $hidden_values->{ $k } = $hash->{ $k };
         delete( $hash->{ $k } );
     }
-    
+
     my $r = $self->update( $table, $hash, { $id_col => $id } );
-    
+
     while ( my ( $k, $v ) = each( %{ $hidden_values } ) )
     {
         $hash->{ $k } = $v;
@@ -124,7 +124,7 @@ sub delete_by_id
 {
     my ( $self, $table, $id ) = @_;
 
-    my $id_col = $self->primary_key_column($table);
+    my $id_col = $self->primary_key_column( $table );
 
     return $self->query( "delete from $table where $id_col = ?", $id );
 }
@@ -134,38 +134,38 @@ sub create
 {
     my ( $self, $table, $hash ) = @_;
 
-    delete( $hash->{submit} );
+    delete( $hash->{ submit } );
 
     $self->insert( $table, $hash );
 
     my $id;
 
     eval {
-    $id = $self->last_insert_id( undef, undef, $table, undef );
+        $id = $self->last_insert_id( undef, undef, $table, undef );
 
-    confess "Could not get last id inserted" if (!defined($id));
+        confess "Could not get last id inserted" if ( !defined( $id ) );
     };
 
-    confess "Error getting last_insert_id $@" if ($@);
-    
+    confess "Error getting last_insert_id $@" if ( $@ );
+
     my $ret = $self->find_by_id( $table, $id );
 
-    confess "could not find new id '$id' in table '$table' " unless ($ret);
+    confess "could not find new id '$id' in table '$table' " unless ( $ret );
 
-    return $ret;    
+    return $ret;
 }
 
 # run create for the given table, retrieving the given fields from the request object
 sub create_from_request
 {
     my ( $self, $table, $request, $fields ) = @_;
-    
+
     my $hash;
     for my $field ( @{ $fields } )
     {
         $hash->{ $field } = $request->param( $field );
     }
-    
+
     return $self->create( $table, $hash );
 }
 
@@ -175,7 +175,7 @@ sub find_or_create
 {
     my ( $self, $table, $hash ) = @_;
 
-    delete( $hash->{submit} );
+    delete( $hash->{ submit } );
 
     if ( my $row = $self->select( $table, '*', $hash )->hash )
     {
@@ -199,14 +199,14 @@ sub query_paged_hashes
 
     $query .= " limit ( $rows_per_page + 1 ) offset $offset";
 
-    my $rs = $self->query($query);
+    my $rs = $self->query( $query );
 
     my $list = [];
-    my $i = 0;
+    my $i    = 0;
     my $hash;
     while ( ( $hash = $rs->hash ) && ( $i++ < $rows_per_page ) )
     {
-        push( @{$list}, $hash );
+        push( @{ $list }, $hash );
     }
 
     my $max = $offset + $i;
@@ -224,24 +224,28 @@ sub query_paged_hashes
 # executes the supplied subroutine inside a transaction
 sub transaction
 {
-    my ($self, $tsub, @tsub_args) = @_;
+    my ( $self, $tsub, @tsub_args ) = @_;
 
-    $self->query('START TRANSACTION');
-    
+    $self->query( 'START TRANSACTION' );
+
     eval {
-	if ($tsub->(@tsub_args)) {
-	    $self->query('COMMIT');
-	}
-	else {
-	    $self->query('ROLLBACK');
-	}
+        if ( $tsub->( @tsub_args ) )
+        {
+            $self->query( 'COMMIT' );
+        }
+        else
+        {
+            $self->query( 'ROLLBACK' );
+        }
     };
 
-    if (my $x = $@) {
-	$self->query('ROLLBACK');
-	# TODO: This obliterates any stack trace that exists.
-	# See <http://stackoverflow.com/questions/971273/perl-sigdie-eval-and-stack-trace>
-	die $x;
+    if ( my $x = $@ )
+    {
+        $self->query( 'ROLLBACK' );
+
+        # TODO: This obliterates any stack trace that exists.
+        # See <http://stackoverflow.com/questions/971273/perl-sigdie-eval-and-stack-trace>
+        die $x;
     }
 }
 

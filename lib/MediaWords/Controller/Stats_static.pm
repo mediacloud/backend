@@ -11,7 +11,7 @@ use DBIx::Simple;
 sub index : Path : Args(0)
 {
 
-    return media_tag_counts(@_);
+    return media_tag_counts( @_ );
 }
 
 # get the url of a chart image for the given tag counts
@@ -26,20 +26,20 @@ sub get_tag_count_chart_url
         return "";
     }
 
-    my $max_tag_count = $media_tags[0]->{'media_tag_count'};
+    my $max_tag_count = $media_tags[ 0 ]->{ 'media_tag_count' };
 
     my $data = "";
-    foreach my $tag_count_row (@media_tags)
+    foreach my $tag_count_row ( @media_tags )
     {
         if ( $data ne "" )
         {
             $data = $data . ',';
         }
-        $data .= ( ( $tag_count_row->{'media_tag_count'} / $max_tag_count ) * 100 );
+        $data .= ( ( $tag_count_row->{ 'media_tag_count' } / $max_tag_count ) * 100 );
     }
 
-    my $tags = join( '|', reverse map { uri_escape( $_->{'tag_name'} ) } @media_tags );
-    my $esc_title = uri_escape($title);
+    my $tags = join( '|', reverse map { uri_escape( $_->{ 'tag_name' } ) } @media_tags );
+    my $esc_title = uri_escape( $title );
 
     my $url = "http://chart.apis.google.com/chart?cht=bhs&chs=350x300&chd=t:$data&chxt=y&chxl=0:|$tags&chtt=$esc_title";
 }
@@ -59,27 +59,27 @@ sub stash_media_tag_counts
 
     if ( $media_id !~ /^\d+$/ )
     {
-        die("Invalid medium $media_id");
+        die( "Invalid medium $media_id" );
     }
 
-    my $media_name = $self->get_media_id_value_map($c)->{$media_id};
+    my $media_name = $self->get_media_id_value_map( $c )->{ $media_id };
 
-    if ( !defined($media_name) )
+    if ( !defined( $media_name ) )
     {
-        die("Unable to find medium $media_id");
+        die( "Unable to find medium $media_id" );
     }
 
     my $result = $c->dbis->query(
-        "select tags_id, media_tag_count, tag_name from top_ten_tags_for_media "
-          . "where media_id=? and tag_sets_id = ? limit 10",
+        "select tags_id, media_tag_count, tag_name from top_ten_tags_for_media " .
+          "where media_id=? and tag_sets_id = ? limit 10",
         $media_id, $tag_sets_id
     );
 
     my $chart_url = $self->get_tag_count_chart_url( $c, $result, $media_name );
 
-    $c->stash->{media_id}->{$num}   = $media_id;
-    $c->stash->{media_name}->{$num} = $media_name;
-    $c->stash->{chart_url}->{$num}  = $chart_url;
+    $c->stash->{ media_id }->{ $num }   = $media_id;
+    $c->stash->{ media_name }->{ $num } = $media_name;
+    $c->stash->{ chart_url }->{ $num }  = $chart_url;
 }
 
 sub get_media_id_value_map
@@ -95,7 +95,7 @@ sub get_media_id_value_map
             my ( $self, $c ) = @_;
             if ( !%media_id_value_map )
             {
-                my $result = $c->dbis->query("select media_id, name from media");
+                my $result = $c->dbis->query( "select media_id, name from media" );
 
                 %media_id_value_map = $result->flat();
             }
@@ -115,17 +115,17 @@ sub get_NYTTopics_tag_sets_id
 
         sub get_NYTopics_tag_id_ref
         {
-            my ($c) = @_;
-            if ( !defined($nyt_topics_tag_sets_id) )
+            my ( $c ) = @_;
+            if ( !defined( $nyt_topics_tag_sets_id ) )
             {
-                ($nyt_topics_tag_sets_id) =
-                  $c->dbis->query("select tag_sets_id from tag_sets where name = 'NYTTopics'")->flat;
+                ( $nyt_topics_tag_sets_id ) =
+                  $c->dbis->query( "select tag_sets_id from tag_sets where name = 'NYTTopics'" )->flat;
             }
             return \$nyt_topics_tag_sets_id;
         }
     }
 
-    return get_NYTopics_tag_id_ref($c);
+    return get_NYTopics_tag_id_ref( $c );
 
 }
 
@@ -139,17 +139,16 @@ sub get_Calais_tag_sets_id
 
         sub get_calais_tag_sets_id_ref
         {
-            my ($c) = @_;
-            if ( !defined($calais_tag_sets_id) )
+            my ( $c ) = @_;
+            if ( !defined( $calais_tag_sets_id ) )
             {
-                ($calais_tag_sets_id) =
-                  $c->dbis->query("select tag_sets_id from tag_sets where name = 'Calais'")->flat;
+                ( $calais_tag_sets_id ) = $c->dbis->query( "select tag_sets_id from tag_sets where name = 'Calais'" )->flat;
             }
             return \$calais_tag_sets_id;
         }
     }
 
-    return get_calais_tag_sets_id_ref($c);
+    return get_calais_tag_sets_id_ref( $c );
 
 }
 
@@ -160,9 +159,9 @@ sub media_tag_counts : Local
 
     my $use_countries;
     my $tags        = [];
-    my $tag_sets_id = $c->request->param('tag_sets_id');
+    my $tag_sets_id = $c->request->param( 'tag_sets_id' );
 
-    $tag_sets_id ||= ${  $self->get_Calais_tag_sets_id($c) };
+    $tag_sets_id ||= ${ $self->get_Calais_tag_sets_id( $c ) };
 
     for my $i ( 1 .. 3 )
     {
@@ -172,7 +171,7 @@ sub media_tag_counts : Local
     # increase from 1000 to handle all media_tag_counts
     $Template::Directive::WHILE_MAX = 2000;
 
-    $c->stash->{template} = 'stats/media_tag_counts_simple.tt2';
+    $c->stash->{ template } = 'stats/media_tag_counts_simple.tt2';
 }
 
 =head1 AUTHOR

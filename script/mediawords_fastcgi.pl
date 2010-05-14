@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-BEGIN { $ENV{CATALYST_ENGINE} ||= 'FastCGI' }
+BEGIN { $ENV{ CATALYST_ENGINE } ||= 'FastCGI' }
 
 use strict;
 use warnings;
@@ -23,7 +23,7 @@ GetOptions(
     'keeperr|e'   => \$keep_stderr,
 );
 
-pod2usage(1) if $help;
+pod2usage( 1 ) if $help;
 
 MediaWords->run(
     $listen,

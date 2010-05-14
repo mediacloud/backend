@@ -12,28 +12,28 @@ my $_topics;
 sub get_topics_hash
 {
 
-    my $data_dir = MediaWords::Util::Config::get_config->{mediawords}->{data_dir};
+    my $data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
 
     my $nyt_file = "$data_dir/tagger/nyt_topics.txt";
     if ( !open( FILE, $nyt_file ) )
     {
-        die("Unable to open file $nyt_file: $!");
+        die( "Unable to open file $nyt_file: $!" );
     }
 
     my $topics = {};
-    map { chomp($_); $topics->{ lc($_) } = 1; } (<FILE>);
+    map { chomp( $_ ); $topics->{ lc( $_ ) } = 1; } ( <FILE> );
 
-    close(FILE);
+    close( FILE );
 
     my $nyt_stop_file = "$data_dir/tagger/nyt_topics_stopwords.txt";
     if ( !open( FILE, $nyt_stop_file ) )
     {
-        die("Unable to open file $nyt_stop_file: $!");
+        die( "Unable to open file $nyt_stop_file: $!" );
     }
 
-    map { chomp($_); delete( $topics->{ lc($_) } ) } (<FILE>);
+    map { chomp( $_ ); delete( $topics->{ lc( $_ ) } ) } ( <FILE> );
 
-    close(FILE);
+    close( FILE );
 
     return $topics;
 }
@@ -42,7 +42,7 @@ sub get_topics_hash
 sub initialize_topics
 {
 
-    if ($_topics)
+    if ( $_topics )
     {
         return;
     }
@@ -52,12 +52,11 @@ sub initialize_topics
 
 sub get_tags
 {
-    my ($text) = @_;
+    my ( $text ) = @_;
 
-    eval {
-        initialize_topics();
-    };
-    if ($@) {
+    eval { initialize_topics(); };
+    if ( $@ )
+    {
         return { error => $@ };
     }
 
@@ -72,22 +71,22 @@ sub get_tags
             $word =~ s/^\s+//;
             $word =~ s/\s+$//;
 
-            if ( length($word) > 3 )
+            if ( length( $word ) > 3 )
             {
 
                 #print "check word: $word\n";
-                if ( $_topics->{$word} )
+                if ( $_topics->{ $word } )
                 {
 
                     #print "match\n";
-                    $matching_topics->{ lc($word) } = 1;
+                    $matching_topics->{ lc( $word ) } = 1;
                     $i += $j;
                 }
             }
         }
     }
 
-    return { tags => [ sort { $a cmp $b } keys( %{$matching_topics} ) ] };
+    return { tags => [ sort { $a cmp $b } keys( %{ $matching_topics } ) ] };
 }
 
 1;

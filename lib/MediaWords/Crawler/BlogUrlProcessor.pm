@@ -31,7 +31,7 @@ sub _log
 {
     my @args = @_;
 
-    if ($_verbose_logs)
+    if ( $_verbose_logs )
     {
         print @args;
     }
@@ -40,10 +40,10 @@ sub _log
 
 sub get_base_site_from_url
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
     _log "get_base_site_from_url: url = '$url'\n";
-    my $host = lc( ( URI::Split::uri_split($url) )[1] );
+    my $host = lc( ( URI::Split::uri_split( $url ) )[ 1 ] );
 
     ##strip out sub domains
 
@@ -57,20 +57,20 @@ my $base_site_rules_cache = {};
 
 sub get_base_site_rules
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    my $base_site = get_base_site_from_url($url);
+    my $base_site = get_base_site_from_url( $url );
 
-    if ( exists( $base_site_rules_cache->{$base_site} ) )
+    if ( exists( $base_site_rules_cache->{ $base_site } ) )
     {
-        return $base_site_rules_cache->{$base_site};
+        return $base_site_rules_cache->{ $base_site };
     }
 
     print "Looking up base site rules for '$base_site'\n";
 
     my $parser = XML::LibXML->new;
 
-    my $doc = $parser->parse_file($_xml_driver_file_location);
+    my $doc = $parser->parse_file( $_xml_driver_file_location );
 
     #print Dumper($doc);
 
@@ -86,16 +86,16 @@ sub get_base_site_rules
 
     #print Dumper(@node_list);
 
-    $base_site_rules_cache->{$base_site} = $node_list[0];
+    $base_site_rules_cache->{ $base_site } = $node_list[ 0 ];
 
-    return $base_site_rules_cache->{$base_site};
+    return $base_site_rules_cache->{ $base_site };
 }
 
 sub is_spidered_host
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    if ( get_base_site_rules($url) )
+    if ( get_base_site_rules( $url ) )
     {
         _log "XXX '$url' is spidered host\n";
         return 1;
@@ -109,28 +109,29 @@ sub is_spidered_host
 
 sub get_rss_detection_method
 {
-    my ($url) = @_;
-    my $base_site_rules = get_base_site_rules($url);
+    my ( $url ) = @_;
+    my $base_site_rules = get_base_site_rules( $url );
 
     return 0 if ( !$base_site_rules );
 
-    my $rss_detection_method_element = ( $base_site_rules->getChildrenByTagName('rss_detection_method')->get_nodelist() )[0];
+    my $rss_detection_method_element =
+      ( $base_site_rules->getChildrenByTagName( 'rss_detection_method' )->get_nodelist() )[ 0 ];
 
     return 0 if ( !$rss_detection_method_element );
 
-    return $rss_detection_method_element->getAttribute("type");
+    return $rss_detection_method_element->getAttribute( "type" );
 }
 
 sub get_friends_list
 {
-    my ($url) = @_;
-    my $base_site_rules = get_base_site_rules($url);
+    my ( $url ) = @_;
+    my $base_site_rules = get_base_site_rules( $url );
 
     #print "NO base site rules\n"   if ( !$base_site_rules );
     return if ( !$base_site_rules );
 
     my $blog_url_to_friends_list_page_element =
-      ( $base_site_rules->getChildrenByTagName('blog_url_to_friends_list_page')->get_nodelist() )[0];
+      ( $base_site_rules->getChildrenByTagName( 'blog_url_to_friends_list_page' )->get_nodelist() )[ 0 ];
 
     #print "NO friends list element\n"  if ( !$blog_url_to_friends_list_page_element );
     return if ( !$blog_url_to_friends_list_page_element );
@@ -145,11 +146,11 @@ sub test_url
 {
     my ( $url, $url_tests_element ) = @_;
 
-    my @blog_url_validation_rules = $url_tests_element->getChildrenByTagName('*');
+    my @blog_url_validation_rules = $url_tests_element->getChildrenByTagName( '*' );
 
     #_log Dumper(@url_conversion_rules);
 
-    for my $url_validation_rule (@blog_url_validation_rules)
+    for my $url_validation_rule ( @blog_url_validation_rules )
     {
         _log "validation url using\n";
         _log Dumper( $url_validation_rule->toString );
@@ -165,13 +166,14 @@ sub test_url
 
 sub is_blog_home_page_url_impl
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    my $base_site_rules = get_base_site_rules($url);
+    my $base_site_rules = get_base_site_rules( $url );
 
     return 0 if ( !$base_site_rules );
 
-    my $blog_url_validation_element = ( $base_site_rules->getChildrenByTagName('blog_url_validation')->get_nodelist() )[0];
+    my $blog_url_validation_element =
+      ( $base_site_rules->getChildrenByTagName( 'blog_url_validation' )->get_nodelist() )[ 0 ];
 
     return 0 if ( !$blog_url_validation_element );
 
@@ -180,11 +182,11 @@ sub is_blog_home_page_url_impl
 
 sub is_blog_home_page_url
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    my $ret = is_blog_home_page_url_impl($url);
+    my $ret = is_blog_home_page_url_impl( $url );
 
-    if ($ret)
+    if ( $ret )
     {
         _log " is_blog_home_page_url: '$url' is blog home page\n";
     }
@@ -230,21 +232,21 @@ sub canonicalize_url_impl
 
     #_log $url_conversion_rule_element->toString() . "\n";
 
-    my @url_conversion_rules = $url_conversion_rule_element->getChildrenByTagName('*');
+    my @url_conversion_rules = $url_conversion_rule_element->getChildrenByTagName( '*' );
 
     #_log Dumper(@url_conversion_rules);
 
     my $ret = $url;
 
-    for my $conversion_rule (@url_conversion_rules)
+    for my $conversion_rule ( @url_conversion_rules )
     {
         _log Dumper( $conversion_rule->toString );
 
         switch ( $conversion_rule->nodeName )
         {
             case 'append_directory' { $ret = append_directory( $ret, $conversion_rule ); }
-            case 'get_tilda_directory_root' { $ret = canonicalize_tilda_url($ret); }
-            case 'get_domain_only_url'      { $ret = get_domain_only_url($ret); }
+            case 'get_tilda_directory_root' { $ret = canonicalize_tilda_url( $ret ); }
+            case 'get_domain_only_url'      { $ret = get_domain_only_url( $ret ); }
             case 'get_base_directory'       { $ret = get_base_directory( $ret, $conversion_rule ); }
             case 'get_child_directory'      { $ret = get_child_directory( $ret, $conversion_rule ); }
             case 'change_subdomain'         { $ret = change_subdomain( $ret, $conversion_rule ); }
@@ -272,39 +274,40 @@ sub canonicalize_url_impl
 
 sub canonicalize_url
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
     _log "string canonicalize_url\n";
 
     my $ret             = $url;
-    my $base_site_rules = get_base_site_rules($url);
+    my $base_site_rules = get_base_site_rules( $url );
 
     return $ret if ( !$base_site_rules );
 
     my $url_conversion_rule_element =
-      ( $base_site_rules->getChildrenByTagName('url_to_blog_home_conversion')->get_nodelist() )[0];
+      ( $base_site_rules->getChildrenByTagName( 'url_to_blog_home_conversion' )->get_nodelist() )[ 0 ];
 
     #The standard case of only 1 conversion rule list.
-    if ($url_conversion_rule_element)
+    if ( $url_conversion_rule_element )
     {
         return canonicalize_url_impl( $url, $url_conversion_rule_element );
     }
     else
     {
         my $multiple_url_conversion_rule_element =
-          ( $base_site_rules->getChildrenByTagName('multiple_url_to_blog_home_conversion')->get_nodelist() )[0];
+          ( $base_site_rules->getChildrenByTagName( 'multiple_url_to_blog_home_conversion' )->get_nodelist() )[ 0 ];
 
-        my @cases = $multiple_url_conversion_rule_element->getChildrenByTagName('*');
+        my @cases = $multiple_url_conversion_rule_element->getChildrenByTagName( '*' );
 
-        for my $case (@cases)
+        for my $case ( @cases )
         {
             if ( ( $case->nodeName ne 'default' ) )
             {
-                my $url_tests = ( $case->getChildrenByTagName('url_tests')->get_nodelist() )[0];
+                my $url_tests = ( $case->getChildrenByTagName( 'url_tests' )->get_nodelist() )[ 0 ];
 
                 next unless test_url( $url, $url_tests );
             }
-            $url_conversion_rule_element = ( $case->getChildrenByTagName('url_to_blog_home_conversion')->get_nodelist() )[0];
+            $url_conversion_rule_element =
+              ( $case->getChildrenByTagName( 'url_to_blog_home_conversion' )->get_nodelist() )[ 0 ];
 
             $ret = canonicalize_url_impl( $url, $url_conversion_rule_element );
             _log "multiple url site url: '$url' is canonicalized to $ret\n";
@@ -319,8 +322,8 @@ sub regex_replace_impl
 {
     my ( $string, $conversion_rule ) = @_;
 
-    my $find_regex_element    = ( $conversion_rule->getChildrenByTagName('find_expression')->get_nodelist() )[0];
-    my $replace_regex_element = ( $conversion_rule->getChildrenByTagName('replace_expression')->get_nodelist() )[0];
+    my $find_regex_element    = ( $conversion_rule->getChildrenByTagName( 'find_expression' )->get_nodelist() )[ 0 ];
+    my $replace_regex_element = ( $conversion_rule->getChildrenByTagName( 'replace_expression' )->get_nodelist() )[ 0 ];
 
     die unless ( $find_regex_element && $replace_regex_element );
 
@@ -329,7 +332,7 @@ sub regex_replace_impl
 
     _log "Before string '$string'\n";
     _log "s/'$find_regex'/'$replace_regex'/;\n";
-    eval("\$string =~ s/$find_regex/$replace_regex/;");
+    eval( "\$string =~ s/$find_regex/$replace_regex/;" );
     _log "After string '$string'\n";
 
     return $string;
@@ -340,7 +343,7 @@ sub regular_expression_replace_in_query
     my ( $url, $conversion_rule ) = @_;
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
     $query = regex_replace_impl( $query, $conversion_rule );
 
@@ -355,7 +358,7 @@ sub regular_expression_replace_in_path_and_query
     my ( $url, $conversion_rule ) = @_;
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
     my $path_and_query = "$path?$query";
     $path_and_query = regex_replace_impl( $path_and_query, $conversion_rule );
@@ -372,11 +375,11 @@ sub regular_expression_replace_in_path
     my ( $url, $conversion_rule ) = @_;
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
     $path = regex_replace_impl( $path, $conversion_rule );
 
-    if ( $conversion_rule->getAttribute("perserve_query") )
+    if ( $conversion_rule->getAttribute( "perserve_query" ) )
     {
 
         #_log Dumper ($scheme, $auth, $path, $query );
@@ -397,9 +400,9 @@ sub set_path
     my ( $url, $conversion_rule ) = @_;
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
-    $path = $conversion_rule->getAttribute("path");
+    $path = $conversion_rule->getAttribute( "path" );
 
     die unless $path;
 
@@ -415,9 +418,9 @@ sub set_query
     my ( $url, $conversion_rule ) = @_;
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
-    $query = $conversion_rule->getAttribute("query");
+    $query = $conversion_rule->getAttribute( "query" );
 
     die unless $query;
 
@@ -433,9 +436,9 @@ sub append_directory
     my ( $url, $conversion_rule ) = @_;
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
-    my $directory = $conversion_rule->getAttribute("directory");
+    my $directory = $conversion_rule->getAttribute( "directory" );
 
     die unless $directory;
 
@@ -444,7 +447,7 @@ sub append_directory
 
     $path = "$path/$directory/";
 
-    if ( $conversion_rule->getAttribute("perserve_query") )
+    if ( $conversion_rule->getAttribute( "perserve_query" ) )
     {
 
         #_log Dumper ($scheme, $auth, $path, $query );
@@ -466,13 +469,13 @@ sub change_subdomain
 
     _log "Before '$url'\n";
 
-    my $new_sub_domain = $conversion_rule->getAttribute("new_subdomain");
+    my $new_sub_domain = $conversion_rule->getAttribute( "new_subdomain" );
 
     die if ( !$new_sub_domain );
 
-    my $base_site = get_base_site_from_url($url);
+    my $base_site = get_base_site_from_url( $url );
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
     $auth = "$new_sub_domain.$base_site";
 
@@ -489,7 +492,7 @@ sub get_base_directory
 
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
     $path =~ s/^(\/[^\/]+\/).*/$1/;
 
@@ -506,15 +509,15 @@ sub get_child_directory
 
     _log "Before '$url'\n";
 
-    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split($url);
+    my ( $scheme, $auth, $path, $query, $frag ) = URI::Split::uri_split( $url );
 
-    my $parent_directory = $conversion_rule->getAttribute("parent_directory");
+    my $parent_directory = $conversion_rule->getAttribute( "parent_directory" );
 
     die if ( !$parent_directory );
 
     return $url if ( index( $path, $parent_directory ) != 0 );
 
-    my $path_part_to_update = \substr( $path, length($parent_directory) );
+    my $path_part_to_update = \substr( $path, length( $parent_directory ) );
 
     $$path_part_to_update =~ s/\/([^\/?]*).*/\/$1/;
 
@@ -528,17 +531,17 @@ sub get_child_directory
 
 sub get_domain_only_url
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
     _log "Before '$url'\n";
 
-    $url = lc( URI::Split::uri_join( ( URI::Split::uri_split($url) )[ 0 .. 1 ] ) );
+    $url = lc( URI::Split::uri_join( ( URI::Split::uri_split( $url ) )[ 0 .. 1 ] ) );
     _log "After '$url'\n";
     return $url;
 }
 
 sub canonicalize_tilda_url
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
     _log "Before '$url'\n";
 
     $url =~ s/~([^\/?]*).*/~$1/;

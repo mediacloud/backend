@@ -19,16 +19,16 @@ use TableCreationUtils;
 
 sub create_media_tag_tag_counts_temp_table
 {
-    my ($table_space) = @_;
+    my ( $table_space ) = @_;
 
-    my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "creating media_tag_tag_counts_new table \n";
 
-    eval { $dbh->query("DROP TABLE if exists media_tag_tag_counts_new"); };
+    eval { $dbh->query( "DROP TABLE if exists media_tag_tag_counts_new" ); };
 
-    if ( defined($table_space) && $table_space ne '' )
+    if ( defined( $table_space ) && $table_space ne '' )
     {
         execute_query(
 "create table media_tag_tag_counts_new  (media_id integer NOT NULL, tag_sets_id integer NOT NULL, tags_id integer NOT NULL, tag_tags_id integer NOT NULL, tag_count integer NOT NULL) TABLESPACE $table_space "
@@ -73,7 +73,7 @@ sub main
 
     print STDERR "starting --  " . localtime() . "\n";
 
-    create_media_tag_tag_counts_temp_table($table_space);
+    create_media_tag_tag_counts_temp_table( $table_space );
 
     (
         system(
@@ -85,15 +85,15 @@ sub main
     print STDERR "creating indices ... -- " . localtime() . "\n";
     my $now = time();
 
-    execute_query("create index media_tag_tag_counts_media_and_tag_$now on media_tag_tag_counts_new(media_id, tags_id)");
-    execute_query("create index media_tag_tag_counts_tag_$now on media_tag_tag_counts_new(tags_id)");
-    execute_query("create index media_tag_tag_counts_media_$now on media_tag_tag_counts_new(media_id)");
+    execute_query( "create index media_tag_tag_counts_media_and_tag_$now on media_tag_tag_counts_new(media_id, tags_id)" );
+    execute_query( "create index media_tag_tag_counts_tag_$now on media_tag_tag_counts_new(tags_id)" );
+    execute_query( "create index media_tag_tag_counts_media_$now on media_tag_tag_counts_new(media_id)" );
     print STDERR "replacing table ... -- " . localtime() . "\n";
-    eval { execute_query("drop table media_tag_tag_counts") };
-    execute_query("alter table media_tag_tag_counts_new rename to media_tag_tag_counts") || die "db error";
+    eval { execute_query( "drop table media_tag_tag_counts" ) };
+    execute_query( "alter table media_tag_tag_counts_new rename to media_tag_tag_counts" ) || die "db error";
 
     print STDERR "analyzing table ... -- " . localtime() . "\n";
-    execute_query("analyze media_tag_tag_counts");
+    execute_query( "analyze media_tag_tag_counts" );
     print STDERR "Finished creating media_tag_tag_counts table ... -- " . localtime() . "\n";
 }
 

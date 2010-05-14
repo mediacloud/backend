@@ -24,60 +24,61 @@ use constant COLLECTION_TAG => 'bloglines_top1000_20091012';
 sub create_media
 {
     my ( $medium_name, $feed_url ) = @_;
-    
+
     eval {
-        
+
         my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
-    
+
         my $ua = LWP::UserAgent->new;
-        
+
         $ua->timeout( 10 );
-        
+
         my $response = $ua->request( HTTP::Request->new( GET => $feed_url ) );
 
         my $feed;
-        if ( ! $response->is_success ) 
+        if ( !$response->is_success )
         {
             print STDERR "Unable to fetch '$feed_url': " . $response->status_line . "\n";
         }
         else
-        {        
+        {
             $feed = Feed::Scrape->parse_feed( $response->decoded_content );
         }
-        
+
         my $medium_url;
-        if ( $feed )    
+        if ( $feed )
         {
             $medium_url = $feed->link;
         }
-        else {
+        else
+        {
             $medium_url = $feed_url;
-            print STDERR "Unable to parse feed '$feed_url'\n";                        
+            print STDERR "Unable to parse feed '$feed_url'\n";
         }
-    
+
         my $medium = $db->query( "select * from media where name = ? or url = ?", $medium_name, $medium_url )->hash;
-    
+
         if ( !$medium )
         {
             if ( $feed )
             {
-                $medium = $db->create( 'media', 
-                    { name => $medium_name, url => $medium_url, moderated => 't', feeds_added => 't' } );
+                $medium =
+                  $db->create( 'media', { name => $medium_name, url => $medium_url, moderated => 't', feeds_added => 't' } );
                 $db->create( 'feeds', { name => $medium_name, url => $feed_url, media_id => $medium->{ media_id } } );
             }
-            else 
+            else
             {
-                $medium = $db->create( 'media', { name => $medium_name, url => $medium_url, moderated => 'f', feeds_added => 'f' } );
-            }                
+                $medium =
+                  $db->create( 'media', { name => $medium_name, url => $medium_url, moderated => 'f', feeds_added => 'f' } );
+            }
         }
-    
-    
+
         my $tag_set = $db->find_or_create( 'tag_sets', { name => 'collection' } );
 
         my $tag = $db->find_or_create( 'tags', { tag => COLLECTION_TAG, tag_sets_id => $tag_set->{ tag_sets_id } } );
-    
+
         $db->find_or_create( 'media_tags_map', { media_id => $medium->{ media_id }, tags_id => $tag->{ tags_id } } );
-    
+
         print STDERR "added $medium_name, $medium_url, $feed_url\n";
     };
     if ( $@ )
@@ -92,25 +93,27 @@ sub main
     for my $i ( 1 .. 10 )
     {
         print STDERR "fetching page $i\n";
-        my $response = LWP::UserAgent->new->request( HTTP::Request->new( GET => "http://beta.bloglines.com/topfeeds?page=$i" ) );
-        
-        if ( !$response->is_success ) 
+        my $response =
+          LWP::UserAgent->new->request( HTTP::Request->new( GET => "http://beta.bloglines.com/topfeeds?page=$i" ) );
+
+        if ( !$response->is_success )
         {
-            my $response = LWP::UserAgent->new->request( HTTP::Request->new( GET => "http://beta.bloglines.com/topfeeds?page=$i" ) );
+            my $response =
+              LWP::UserAgent->new->request( HTTP::Request->new( GET => "http://beta.bloglines.com/topfeeds?page=$i" ) );
             die( "Unable to download page $i: " . $response->as_string );
         }
 
-        if ( !$response->is_success ) 
+        if ( !$response->is_success )
         {
             die( "Unable to download page $i: " . $response->as_string );
         }
-        
+
         $html .= $response->content;
     }
-    
+
     my $lines = [ split( "\n", $html ) ];
-    
-    for ( my $i = 0; $i < @{ $lines }; $i++ )
+
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
         if ( my ( $feed_url ) = ( $lines->[ $i ] =~ m~<a href="([^"]*)" title="Subscribe to Feed">~ ) )
         {
@@ -119,21 +122,21 @@ sub main
                 if ( $lines->[ $i ] =~ m~title="Preview">$~ )
                 {
                     my $name = $lines->[ ++$i ];
-                    
+
                     $name = trim( $name );
 
                     create_media( $name, $feed_url );
-                    
+
                     last;
                 }
             }
         }
     }
-    
+
 }
 
-main();  
-    
+main();
+
 __END__
   <div class="bl_subItem bl_preview">
   <a href="/b/preview?siteid=2655254" title="Preview">Preview</a>

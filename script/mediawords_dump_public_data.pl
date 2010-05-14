@@ -43,18 +43,18 @@ sub dump_table
 
     print "dumping $file ...\n";
 
-    my $fh = FileHandle->new(">$file");
+    my $fh = FileHandle->new( ">$file" );
     if ( !$fh )
     {
-        die("Unable to open file $file");
+        die( "Unable to open file $file" );
     }
 
-    $db->dbh->do("copy $table to STDOUT with csv header");
+    $db->dbh->do( "copy $table to STDOUT with csv header" );
 
     my $buf;
-    while ( $db->dbh->pg_getcopydata($buf) >= 0 )
+    while ( $db->dbh->pg_getcopydata( $buf ) >= 0 )
     {
-        $fh->print($buf);
+        $fh->print( $buf );
     }
 
     $fh->close;
@@ -66,23 +66,23 @@ sub main
 
     if ( !$dir || !$tar_file )
     {
-        die("usage: mediawords_dump_public_data.pl <working directory> <output tar file>");
+        die( "usage: mediawords_dump_public_data.pl <working directory> <output tar file>" );
     }
 
     my $dump_dir = "$dir/mediacloud-dump";
-    if ( !mkdir($dump_dir) )
+    if ( !mkdir( $dump_dir ) )
     {
-        die("Unable to mkdir $dump_dir: $!");
+        die( "Unable to mkdir $dump_dir: $!" );
     }
 
-    my $db = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
-    if ( !chdir($dump_dir) )
+    if ( !chdir( $dump_dir ) )
     {
-        die("Unable to chdir $dump_dir: $!");
+        die( "Unable to chdir $dump_dir: $!" );
     }
 
-    my $omit_tag_sets = join( ',', map { $db->dbh->quote($_) } (OMIT_TAG_SETS) );
+    my $omit_tag_sets = join( ',', map { $db->dbh->quote( $_ ) } ( OMIT_TAG_SETS ) );
 
     dump_table( $db, 'media' );
     dump_table( $db, 'feeds' );
@@ -97,14 +97,14 @@ sub main
     dump_table( $db, 'feeds_stories_map' );
     dump_table( $db, 'stories_tags_map' );
 
-    if ( !chdir($dir) )
+    if ( !chdir( $dir ) )
     {
-        die("Unable to chdir $dir: $!");
+        die( "Unable to chdir $dir: $!" );
     }
 
-    IPC::System::Simple::system("tar -cvzf $tar_file mediacloud-dump/");
+    IPC::System::Simple::system( "tar -cvzf $tar_file mediacloud-dump/" );
 
-    File::Path::rmtree($dump_dir);
+    File::Path::rmtree( $dump_dir );
 }
 
 main();

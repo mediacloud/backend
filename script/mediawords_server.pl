@@ -2,8 +2,8 @@
 
 BEGIN
 {
-    $ENV{CATALYST_ENGINE} ||= 'HTTP';
-    $ENV{CATALYST_SCRIPT_GEN} = 30;
+    $ENV{ CATALYST_ENGINE } ||= 'HTTP';
+    $ENV{ CATALYST_SCRIPT_GEN } = 30;
     require Catalyst::Engine::HTTP;
 }
 
@@ -18,9 +18,9 @@ my $debug             = 0;
 my $fork              = 0;
 my $help              = 0;
 my $host              = undef;
-my $port              = $ENV{MEDIAWORDS_PORT} || $ENV{CATALYST_PORT} || 3000;
+my $port              = $ENV{ MEDIAWORDS_PORT } || $ENV{ CATALYST_PORT } || 3000;
 my $keepalive         = 0;
-my $restart           = $ENV{MEDIAWORDS_RELOAD} || $ENV{CATALYST_RELOAD} || 0;
+my $restart           = $ENV{ MEDIAWORDS_RELOAD } || $ENV{ CATALYST_RELOAD } || 0;
 my $restart_delay     = 1;
 my $restart_regex     = '\.yml$|\.yaml$|\.pm$';
 my $restart_directory = undef;
@@ -40,15 +40,15 @@ GetOptions(
     'restartdirectory=s' => \$restart_directory,
 );
 
-pod2usage(1) if $help;
+pod2usage( 1 ) if $help;
 
-if ( $restart && $ENV{CATALYST_ENGINE} eq 'HTTP' )
+if ( $restart && $ENV{ CATALYST_ENGINE } eq 'HTTP' )
 {
-    $ENV{CATALYST_ENGINE} = 'HTTP::Restarter';
+    $ENV{ CATALYST_ENGINE } = 'HTTP::Restarter';
 }
-if ($debug)
+if ( $debug )
 {
-    $ENV{CATALYST_DEBUG} = 1;
+    $ENV{ CATALYST_DEBUG } = 1;
 }
 
 # This is require instead of use so that the above environment

@@ -9,25 +9,26 @@ use strict;
 use HTML::Entities;
 
 # strip the html tags, html comments, any any text within TITLE, SCRIPT, APPLET, OBJECT, and STYLE tags
-sub strip {
-  local $_ = $_[0] || $_;
-  
-  if ( !defined( $_ ) ) 
-  {
-      return undef;
-  }
-  
-# ALGORITHM:
-#   find < ,
-#       comment <!-- ... -->,
-#       or comment <? ... ?> ,
-#       or one of the start tags which require correspond
-#           end tag plus all to end tag
-#       or if \s or ="
-#           then skip to next "
-#           else [^>]
-#   >
-  s{
+sub strip
+{
+    local $_ = $_[ 0 ] || $_;
+
+    if ( !defined( $_ ) )
+    {
+        return undef;
+    }
+
+    # ALGORITHM:
+    #   find < ,
+    #       comment <!-- ... -->,
+    #       or comment <? ... ?> ,
+    #       or one of the start tags which require correspond
+    #           end tag plus all to end tag
+    #       or if \s or ="
+    #           then skip to next "
+    #           else [^>]
+    #   >
+    s{
     <               # open tag
     (?:             # open group (A)
       (!--) |       #   comment (1) or
@@ -71,9 +72,9 @@ sub strip {
       (?:\s[^>]*)?  #   skip junk to ">"
     )               # end if (3)
     >               # tag closed
-   }{}gsxi;          # STRIP THIS TAG
-   
-   return $_ ? HTML::Entities::decode_entities($_) : "";
+   }{}gsxi;    # STRIP THIS TAG
+
+    return $_ ? HTML::Entities::decode_entities( $_ ) : "";
 }
 
 1;

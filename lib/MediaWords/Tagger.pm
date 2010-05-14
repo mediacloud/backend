@@ -8,20 +8,20 @@ BEGIN
 {
     use constant MODULES => qw(NYTTopics Yahoo Calais);
 
-    for my $module (MODULES)
+    for my $module ( MODULES )
     {
-        eval("use MediaWords::Tagger::${module};");
-        if ($@)
+        eval( "use MediaWords::Tagger::${module};" );
+        if ( $@ )
         {
-            die("error loading $module: $@");
+            die( "error loading $module: $@" );
         }
     }
 }
 
 sub get_all_tags
 {
-    my ($text) = @_;
-    
+    my ( $text ) = @_;
+
     return get_tags_for_modules( $text, [ MODULES ] );
 }
 
@@ -30,12 +30,12 @@ sub get_tags_for_modules
     my ( $text, $module_list ) = @_;
 
     my $all_tags = {};
-    for my $module ( @{$module_list} )
+    for my $module ( @{ $module_list } )
     {
-        $all_tags->{$module} = eval( "MediaWords::Tagger::${module}::get_tags( \$text )" );
-        if ($@)
+        $all_tags->{ $module } = eval( "MediaWords::Tagger::${module}::get_tags( \$text )" );
+        if ( $@ )
         {
-            die("error with module $module: $@");
+            die( "error with module $module: $@" );
         }
     }
 

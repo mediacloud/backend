@@ -17,13 +17,13 @@ use MediaWords::Util::StopWords;
 
 sub fetch_topics
 {
-    my ($urls) = @_;
+    my ( $urls ) = @_;
 
     my $topics = {};
 
-    my $responses = MediaWords::Util::Web::ParallelGet($urls);
+    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
 
-    for my $response ( @{$responses} )
+    for my $response ( @{ $responses } )
     {
 
         if ( !$response->is_success() )
@@ -53,12 +53,12 @@ sub fetch_topics
 
                 $topic =~ s/ \(.*\)$//;
 
-                $topics->{ lc($topic) } = 1;
+                $topics->{ lc( $topic ) } = 1;
             }
         }
     }
 
-    return [ keys( %{$topics} ) ];
+    return [ keys( %{ $topics } ) ];
 }
 
 sub get_wayback_urls
@@ -67,15 +67,15 @@ sub get_wayback_urls
     for my $letter ( 'a' .. 'z' )
     {
         push(
-            @{$wayback_urls},
+            @{ $wayback_urls },
             "http://web.archive.org/web/*/http://topics.nytimes.com/top/reference/timestopics/all/$letter/index.html"
         );
     }
 
-    my $responses = MediaWords::Util::Web::ParallelGet($wayback_urls);
+    my $responses = MediaWords::Util::Web::ParallelGet( $wayback_urls );
 
     my $nyt_urls;
-    for my $response ( @{$responses} )
+    for my $response ( @{ $responses } )
     {
         if ( !$response->is_success() )
         {
@@ -89,7 +89,7 @@ sub get_wayback_urls
             m~(http://web.archive.org/web/[0-9]+/http://topics.nytimes.com/top/reference/timestopics/all/[a-z]/index.html)~g
           )
         {
-            push( @{$nyt_urls}, $1 );
+            push( @{ $nyt_urls }, $1 );
         }
     }
 
@@ -98,7 +98,7 @@ sub get_wayback_urls
 
 sub main
 {
-    my ($option) = @ARGV;
+    my ( $option ) = @ARGV;
 
     my $topics = {};
 
@@ -111,25 +111,25 @@ sub main
 
     for my $letter ( 'a' .. 'z' )
     {
-        push( @{$all_urls}, "http://topics.nytimes.com/top/reference/timestopics/all/$letter/index.html" );
+        push( @{ $all_urls }, "http://topics.nytimes.com/top/reference/timestopics/all/$letter/index.html" );
     }
 
-    my $topics = fetch_topics($all_urls);
+    my $topics = fetch_topics( $all_urls );
 
     my $stop_word_lookup = MediaWords::Util::StopWords::get_long_stop_word_lookup();
-    $stop_word_lookup->{homer} = 1;
-    $stop_word_lookup->{queen} = 1;
+    $stop_word_lookup->{ homer } = 1;
+    $stop_word_lookup->{ queen } = 1;
 
     my $stopped_topics;
-    for my $topic ( @{$topics} )
+    for my $topic ( @{ $topics } )
     {
-        if ( !$stop_word_lookup->{$topic} )
+        if ( !$stop_word_lookup->{ $topic } )
         {
-            push( @{$stopped_topics}, $topic );
+            push( @{ $stopped_topics }, $topic );
         }
     }
 
-    print join( "\n", sort @{$stopped_topics} ) . "\n";
+    print join( "\n", sort @{ $stopped_topics } ) . "\n";
 }
 
 main();

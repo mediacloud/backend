@@ -12,14 +12,14 @@ BEGIN
 
 use MediaWords::DB;
 
-my $_story_tag_sets = [qw(manual_term Calais Yahoo NYTTopics SIP)];
+my $_story_tag_sets = [ qw(manual_term Calais Yahoo NYTTopics SIP) ];
 
 # print the text and the tags of the given story
 sub print_story
 {
     my ( $db, $story ) = @_;
 
-    my @tags = $db->resultset('Tags')->search(
+    my @tags = $db->resultset( 'Tags' )->search(
         {
             'tag_sets_id.name'             => $_story_tag_sets,
             'stories_tags_maps.stories_id' => $story->stories_id
@@ -29,13 +29,13 @@ sub print_story
 
     my $tag_sets_hash = {};
     my $tag_hash      = {};
-    for my $tag (@tags)
+    for my $tag ( @tags )
     {
         $tag_hash->{ lc( $tag->tag ) } = 1;
         $tag_sets_hash->{ $tag->tag_sets_id->name } = 1;
     }
 
-    if ( !$tag_sets_hash->{manual_term} )
+    if ( !$tag_sets_hash->{ manual_term } )
     {
         next;
     }
@@ -60,7 +60,7 @@ sub print_story
 
     print "\nTAGS:\n\n";
 
-    for my $t ( sort { $a cmp $b } keys( %{$tag_hash} ) )
+    for my $t ( sort { $a cmp $b } keys( %{ $tag_hash } ) )
     {
         print "$t\n";
     }
@@ -76,10 +76,10 @@ sub print_tag_stories
     print( ( "*" x 40 ) . "\n" . "START FEED: " . $feed_tag->tag . "\n" . ( "*" x 40 ) . "\n" );
 
     my @stories =
-      $db->resultset('Stories')
+      $db->resultset( 'Stories' )
       ->search( { 'stories_tags_maps.tags_id' => $feed_tag->tags_id }, { join => 'stories_tags_maps' } );
 
-    for my $story (@stories)
+    for my $story ( @stories )
     {
         print_story( $db, $story );
     }
@@ -91,8 +91,8 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my @feed_tags = $db->resultset('Tags')->search( { 'tag_sets_id.name' => 'term_study' }, { join => 'tag_sets_id' } );
-    for my $feed_tag (@feed_tags)
+    my @feed_tags = $db->resultset( 'Tags' )->search( { 'tag_sets_id.name' => 'term_study' }, { join => 'tag_sets_id' } );
+    for my $feed_tag ( @feed_tags )
     {
         print_tag_stories( $db, $feed_tag );
     }

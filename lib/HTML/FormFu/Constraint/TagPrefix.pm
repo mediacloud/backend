@@ -9,7 +9,7 @@ sub constrain_value
 
     my @tags = split( ' ', $value );
 
-    for my $tag (@tags)
+    for my $tag ( @tags )
     {
         if ( !( $tag =~ /\:/ ) )
         {

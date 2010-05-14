@@ -25,21 +25,22 @@ use constant COLLECTION_TAG => 'russian_yandex_20100316';
 sub create_medium
 {
     my ( $medium_url, $medium_name ) = @_;
-    
+
     eval {
-        
+
         my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
-    
+
         my $medium = $db->query( 'select * from media where url = ?', $medium_url )->hash;
         $medium ||= $db->query( 'select * from media where name = ?', $medium_name )->hash;
-        $medium ||= $db->create( 'media', { name => $medium_name, url => $medium_url, moderated => 'true', feeds_added => 'false' } );
-    
+        $medium ||=
+          $db->create( 'media', { name => $medium_name, url => $medium_url, moderated => 'true', feeds_added => 'false' } );
+
         my $tag_set = $db->find_or_create( 'tag_sets', { name => 'collection' } );
 
         my $tag = $db->find_or_create( 'tags', { tag => COLLECTION_TAG, tag_sets_id => $tag_set->{ tag_sets_id } } );
-    
+
         $db->find_or_create( 'media_tags_map', { media_id => $medium->{ media_id }, tags_id => $tag->{ tags_id } } );
-    
+
         print STDERR "added $medium_name, $medium_url\n";
     };
     if ( $@ )
@@ -52,25 +53,25 @@ sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
-    
+
     my $ua = LWP::UserAgent->new;
-    
+
     for my $i ( 1 .. 20 )
     {
         print "fetching http://blogs.yandex.ru/top/?page=$i\n";
         my $html = $ua->get( "http://blogs.yandex.ru/top/?page=$i" )->decoded_content;
         print "fetched.\n";
-        
+
         while ( $html =~ m~"></a><a href="([^"]*)" title="([^"]*)">~gi )
         {
             my ( $url, $title ) = ( $1, $2 );
             create_medium( $url, $title );
         }
-    }    
+    }
 }
 
-main();  
-    
+main();
+
 __END__
 
 "></a><a href="http://unab0mber.livejournal.com/" title="Abandon all hope ye who enter here">

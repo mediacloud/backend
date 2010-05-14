@@ -33,7 +33,7 @@ sub main
 
     if ( !$file || !$out_file )
     {
-        die("usage: mediawords_find_recently_updated_blogs.pl <csv file> <output file>\n");
+        die( "usage: mediawords_find_recently_updated_blogs.pl <csv file> <output file>\n" );
     }
 
     my $csv_in = Text::CSV_XS->new( { binary => 1 } ) || die "Cannot use CSV: " . Text::CSV_XS->error_diag();
@@ -42,13 +42,13 @@ sub main
 
     open( my $out_fh, ">", $out_file ) or die "Unable to create file $out_file: $!\n";
 
-    my $in_header_line = $csv_in->getline($fh);
-    $csv_in->column_names($in_header_line);
+    my $in_header_line = $csv_in->getline( $fh );
+    $csv_in->column_names( $in_header_line );
 
     my $csv_out = Text::CSV_XS->new( { binary => 1 } ) || die "Cannot use CSV: " . Text::CSV_XS->error_diag();
     my $output_header_line = [ @$in_header_line, 'translated' ];
 
-    $csv_out->column_names($output_header_line);
+    $csv_out->column_names( $output_header_line );
 
     $csv_out->print( $out_fh, $output_header_line );
     say $out_fh;
@@ -60,24 +60,24 @@ sub main
     my $recent_blogs = 0;
     my $old_blogs    = 0;
 
-    while ( my $colref = $csv_in->getline($fh) )
+    while ( my $colref = $csv_in->getline( $fh ) )
     {
 
         my %hr;
-        @hr{ @{ $csv_in->{_COLUMN_NAMES} } } = @$colref;
+        @hr{ @{ $csv_in->{ _COLUMN_NAMES } } } = @$colref;
 
         my $row = \%hr;
 
-        my $term            = $row->{term};
-        my $translated_term = MediaWords::Util::Translate::translate($term);
+        my $term            = $row->{ term };
+        my $translated_term = MediaWords::Util::Translate::translate( $term );
 
-        $row->{translated} = $translated_term;
+        $row->{ translated } = $translated_term;
 
         print STDERR "Recent blog $row->{url} $row->{rss} \n";
 
         #print STDERR "BLOGS ADDED: " . ++$media_added . "\n";
 
-        my $out_colref = [ map { $row->{$_} } $csv_out->column_names ];
+        my $out_colref = [ map { $row->{ $_ } } $csv_out->column_names ];
         $csv_out->print( $out_fh, $out_colref );
         say $out_fh;
 

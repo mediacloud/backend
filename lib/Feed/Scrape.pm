@@ -21,54 +21,56 @@ use constant MAX_INDEX_URLS => 1000;
 use constant MAX_SCRAPED_URL_LENGTH => 256;
 
 # list of url patterns to ignore
-use constant URL_IGNORE_PATTERNS => ( 'add.my.yahoo.com', 'login.', 'fusion.google.com/add', 'gif', 'jpg', 'png', 'xml:lang',
-                                      'feedback', 'error', 'digg.com', 'bloglines', 'doubleclick',
-                                      'classified' );
+use constant URL_IGNORE_PATTERNS => (
+    'add.my.yahoo.com', 'login.',   'fusion.google.com/add', 'gif',      'jpg',       'png',
+    'xml:lang',         'feedback', 'error',                 'digg.com', 'bloglines', 'doubleclick',
+    'classified'
+);
 
 #
 # Note: We consider just using Feed::Find from CPAN but didn't find it sufficent so we created Feed::Scrape
 #
 # Details:
-# Feed::Find is much simpler and less effective than our Feed::Scrape stuff, 
-# mostly because Feed::Scrape is more inclusive but goes to the trouble of 
-# actually downloading anything that looks like it might be a feed to verify. We found it 
+# Feed::Find is much simpler and less effective than our Feed::Scrape stuff,
+# mostly because Feed::Scrape is more inclusive but goes to the trouble of
+# actually downloading anything that looks like it might be a feed to verify. We found it
 # necessary to actually download the feeds to get any sort of accuracy in finding the feeds,
 # albeit at the cost of downloading them.
 #
-# Note that Feed::Scrape uses the non-threaded, pseudo parallel fetching of just submitting a 
+# Note that Feed::Scrape uses the non-threaded, pseudo parallel fetching of just submitting a
 # bunch of requests serially and then collecting the results from each request as each server responds.
-
-
 
 # STATICS
 
 my $_verbose = 0;
 
-my $_feed_find_domains = [ qw/24open.ru damochka.ru babyblog.ru ya.ru mail.ru privet.ru 
-                              liveinternet.ru rambler.ru mylove.ru i.ua diary.ru livejournal.com/ ];
-                            
+my $_feed_find_domains = [
+    qw/24open.ru damochka.ru babyblog.ru ya.ru mail.ru privet.ru
+      liveinternet.ru rambler.ru mylove.ru i.ua diary.ru livejournal.com/
+];
+
 # INTERNAL METHODS
 
 # return true if the url is from one of the domains in $_feed_find_domains
 sub _is_feed_find_url
 {
     my ( $url ) = @_;
-    
+
     $url =~ m~^https?://(?:[^/]*\.)?([^\./]*\.[^\/]*)(/.*)?~;
-    
+
     my $domain = $1;
-    
+
     return grep { $_ eq $domain } @{ $_feed_find_domains };
 }
 
 sub _log_message
 {
-   my @args = @_;
+    my @args = @_;
 
-   if ($_verbose)
-   {
-       warn(@args);
-   }
+    if ( $_verbose )
+    {
+        warn( @args );
+    }
 }
 
 # given a list of urls, return a list of feeds in the form of { name => $name, url => $url }
@@ -79,20 +81,20 @@ sub _validate_and_name_feed_urls
 
     my $links = [];
 
-    my $responses = MediaWords::Util::Web::ParallelGet($urls);
+    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
 
-    for my $response ( @{$responses} )
-    {        
+    for my $response ( @{ $responses } )
+    {
         if ( !$response->is_success )
         {
-            _log_message("failed to get url: " . $response->request->url . " with error: " . $response->status_line);
+            _log_message( "failed to get url: " . $response->request->url . " with error: " . $response->status_line );
             next;
         }
 
         my $content = $response->decoded_content;
 
         my $url = MediaWords::Util::Web->get_original_request( $response )->url;
-     
+
         if ( my $feed = $class->parse_feed( $content ) )
         {
             push( @{ $links }, { name => $feed->title() || '', url => $url } );
@@ -107,8 +109,8 @@ sub _resolve_relative_url
 {
     my ( $class, $base_url, $url ) = @_;
 
-    my $resolved_url = url( decode_entities($url) )->abs($base_url)->as_string();
-    
+    my $resolved_url = url( decode_entities( $url ) )->abs( $base_url )->as_string();
+
     #$c->log->debug("resolve_relative_url: $base_url + $url => $resolved_url");
 
     return $resolved_url;
@@ -118,29 +120,29 @@ sub _resolve_relative_url
 sub _is_valid_url
 {
     my ( $class, $url ) = @_;
-    
-    if ( length( $url ) > MAX_SCRAPED_URL_LENGTH ) 
+
+    if ( length( $url ) > MAX_SCRAPED_URL_LENGTH )
     {
         return 0;
     }
-    
-    if ( grep { $url =~ /$_/i } URL_IGNORE_PATTERNS ) 
+
+    if ( grep { $url =~ /$_/i } URL_IGNORE_PATTERNS )
     {
         return 0;
     }
-    
+
     if ( $url !~ /$RE{URI}/ )
     {
         return 0;
     }
-    
+
     if ( $url !~ /^https?/i )
     {
         return 0;
     }
 
     return 1;
-}   
+}
 
 # METHODS
 
@@ -151,8 +153,9 @@ sub parse_feed
     my ( $class, $content ) = @_;
 
     # fix content in various ways to make sure it will parse
-    
+
     my $chunk = substr( $content, 0, 1024 );
+
     # make sure that there's some sort of feed id in the first chunk of the file
     if ( $chunk =~ /<html/i )
     {
@@ -165,13 +168,13 @@ sub parse_feed
         warn "Feed not parsed -- missing feed tag in first 1024 characters";
         return undef;
     }
-        
+
     # parser doesn't like files that start with comments
     $content =~ s/^<!--[^>]*-->\s*<\?/<\?/;
 
     my $feed;
     eval { $feed = XML::FeedPP->new( $content, -type => 'string' ) };
-    if ($@)
+    if ( $@ )
     {
         return undef;
     }
@@ -187,22 +190,22 @@ sub get_valid_feeds_from_urls
 {
     my ( $class, $urls ) = @_;
 
-    if ( !$urls || !@{$urls} )
+    if ( !$urls || !@{ $urls } )
     {
         return [];
     }
 
     my $url_hash;
-    $urls = [ grep { !$url_hash->{$_}++ } @{$urls} ];
+    $urls = [ grep { !$url_hash->{ $_ }++ } @{ $urls } ];
 
-    $urls = [ grep { $_ !~ /\.(gif|jpg|jpeg|png|css|js)/i } @{$urls} ];
+    $urls = [ grep { $_ !~ /\.(gif|jpg|jpeg|png|css|js)/i } @{ $urls } ];
 
-    my $links = $class->_validate_and_name_feed_urls($urls);
-    
+    my $links = $class->_validate_and_name_feed_urls( $urls );
+
     my $u = {};
     map { $u->{ normalize_feed_url( $_->{ url } ) } = $_ } @{ $links };
 
-    return [ sort { $a->{name} cmp $b->{name} } values( %{ $u } ) ];
+    return [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
 }
 
 # parse the html feed link tags
@@ -221,14 +224,14 @@ sub get_feed_urls_from_html_links
         if ( $link =~ m~href=["']([^"']*)["']~i )
         {
             my $url = $class->_resolve_relative_url( $base_url, $1 );
-                        
-             _log_message("match link: $url");
-             push( @{$urls}, $url);
+
+            _log_message( "match link: $url" );
+            push( @{ $urls }, $url );
         }
     }
 
     my $r;
-    return [ grep { !$r->{$_}++ } @{$urls} ];
+    return [ grep { !$r->{ $_ }++ } @{ $urls } ];
 }
 
 # parse the html for anything that looks like a feed url
@@ -241,18 +244,18 @@ sub get_feed_urls_from_html
     #_log_message("scrape html: $html");
 
     my $urls = [];
-    
+
     # look for quoted urls
     while ( $html =~ m~["']([^"']*(?:feed|rss|syndication|sitemap|xml|rdf|atom)[^"']*)["']~gi )
     {
         my $url = $1;
-        
+
         my $quoted_url = $class->_resolve_relative_url( $base_url, $url );
 
-        if ( $class->_is_valid_url( $quoted_url ) ) 
+        if ( $class->_is_valid_url( $quoted_url ) )
         {
-            _log_message("matched quoted url: $quoted_url");
-            push( @{$urls}, $quoted_url );
+            _log_message( "matched quoted url: $quoted_url" );
+            push( @{ $urls }, $quoted_url );
         }
     }
 
@@ -261,24 +264,24 @@ sub get_feed_urls_from_html
     {
         my $unquoted_url = $class->_resolve_relative_url( $base_url, $1 );
 
-        if ( $class->_is_valid_url( $unquoted_url ) ) 
+        if ( $class->_is_valid_url( $unquoted_url ) )
         {
-            _log_message("matched unquoted url: $unquoted_url");
-            push( @{$urls}, $unquoted_url );
+            _log_message( "matched unquoted url: $unquoted_url" );
+            push( @{ $urls }, $unquoted_url );
         }
     }
 
     my $r;
-    return [ grep { !$r->{$_}++ } @{$urls} ];
+    return [ grep { !$r->{ $_ }++ } @{ $urls } ];
 }
 
 # combination of get_feeds_urls_from_html and get_valid_feeds_from_urls
 sub get_valid_feeds_from_html
 {
 
-    my $class    = shift(@_);
-    my $base_url = shift(@_);
-    my $html     = shift(@_);
+    my $class    = shift( @_ );
+    my $base_url = shift( @_ );
+    my $html     = shift( @_ );
 
     my $urls = $class->get_feed_urls_from_html( $base_url, $html );
 
@@ -288,40 +291,40 @@ sub get_valid_feeds_from_html
 # try to find all rss feeds for a site from the home page url of the site.  return a list
 # of urls of found rss feeds.
 #
-# if there's only a single urls and we recognize the url as a bloghost for which feed::find will work, 
+# if there's only a single urls and we recognize the url as a bloghost for which feed::find will work,
 # use that (to avoid the very expensive recursion and validation involved below).
-# 
+#
 # otherwise, fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
 sub get_valid_feeds_from_index_url
 {
-    my $class   = shift(@_);
-    my $urls    = shift(@_);
-    my $recurse = shift(@_);
+    my $class   = shift( @_ );
+    my $urls    = shift( @_ );
+    my $recurse = shift( @_ );
 
-    if ( ! ref( $urls ) && _is_feed_find_url( $urls ) )
+    if ( !ref( $urls ) && _is_feed_find_url( $urls ) )
     {
         return $class->get_valid_feeds_from_urls( [ Feed::Find->find( $urls ) ], @_ );
     }
 
-    if ( ! ref( $urls ) ) 
+    if ( !ref( $urls ) )
     {
         $urls = [ $urls ];
     }
-    
-    $#{ $urls } = List::Util::min( $#{ $urls }, MAX_INDEX_URLS - 1);
+
+    $#{ $urls } = List::Util::min( $#{ $urls }, MAX_INDEX_URLS - 1 );
 
     my $responses = MediaWords::Util::Web::ParallelGet( $urls );
-        
+
     my $scraped_url_lookup = {};
 
     for my $response ( @{ $responses } )
-    {            
+    {
         my $feed_urls = $class->get_feed_urls_from_html( $response->request->url, $response->decoded_content );
-        
+
         map { $scraped_url_lookup->{ $_ }++ } @{ $feed_urls };
     }
-    
+
     # if recurse is a ref, use it as a list of urls not to scrape and the undef it so that we don't recurse further
     if ( ref( $recurse ) )
     {
@@ -330,22 +333,22 @@ sub get_valid_feeds_from_index_url
     }
 
     my $scraped_urls = [ keys( %{ $scraped_url_lookup } ) ];
-    $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, MAX_INDEX_URLS - 1);
+    $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, MAX_INDEX_URLS - 1 );
 
     my $valid_feeds = $class->get_valid_feeds_from_urls( $scraped_urls, @_ );
-    
-    if ( $recurse ) 
+
+    if ( $recurse )
     {
         map { delete( $scraped_url_lookup->{ $_->{ url } } ) } @{ $valid_feeds };
         $scraped_urls = [ keys( %{ $scraped_url_lookup } ) ];
 
         push( @{ $valid_feeds }, @{ $class->get_valid_feeds_from_index_url( $scraped_urls, $valid_feeds, @_ ) } );
-        
+
         my $u = {};
         map { $u->{ normalize_feed_url( $_->{ url } ) } = $_ } @{ $valid_feeds };
         $valid_feeds = [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
     }
-    
+
     return $valid_feeds;
 }
 
@@ -353,21 +356,21 @@ sub get_valid_feeds_from_index_url
 sub normalize_feed_url
 {
     my ( $url ) = @_;
-    
+
     $url =~ lc( $url );
-    
+
     # remove multiple formats of the same feed
     $url =~ s/(atom|rdf|xml|feed|application)/rss/g;
-    
+
     # after multiple format normalization, treat http://cnn.com/feed/rss and http://cnn.com/feed as duplicates
     $url =~ s/rss\/rss/rss/g;
-    
+
     # if there are really long cgi params, it's more likely to be junk
     $url =~ s/(\?.{32,})//;
-    
+
     # remove tailing slashes
     $url =~ s/\/+$//;
-    
+
     return $url;
 }
 

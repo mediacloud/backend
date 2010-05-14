@@ -9,8 +9,8 @@ sub constrain_value
 {
     my ( $self, $value ) = @_;
 
-    eval { XML::FeedPP->new($value) };
-    if ($@)
+    eval { XML::FeedPP->new( $value ) };
+    if ( $@ )
     {
         return 0;
     }

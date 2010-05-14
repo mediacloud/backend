@@ -8,7 +8,7 @@ use base 'Catalyst::Controller';
 # Sets the actions in this controller to be registered with no prefix
 # so they function identically to actions created in MyApp.pm
 #
-__PACKAGE__->config->{namespace} = '';
+__PACKAGE__->config->{ namespace } = '';
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ sub default : Private
     my ( $self, $c ) = @_;
 
     # Hello World
-    $c->response->redirect( $c->uri_for('/media/list') );
+    $c->response->redirect( $c->uri_for( '/media/list' ) );
 }
 
 =head2 end

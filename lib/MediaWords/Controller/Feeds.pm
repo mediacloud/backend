@@ -34,8 +34,9 @@ sub get_feed_download_counts
 {
     my ( $self, $c, $medium ) = @_;
 
-    return $c->dbis->query( "select d.feeds_id as feeds_id, count(downloads_id) as download_count from downloads d, feeds f "
-          . "where f.media_id = ? grou by d.feeds_id" )->map;
+    return $c->dbis->query(
+        "select d.feeds_id as feeds_id, count(downloads_id) as download_count from downloads d, feeds f " .
+          "where f.media_id = ? grou by d.feeds_id" )->map;
 }
 
 sub list : Local
@@ -62,18 +63,18 @@ sub list : Local
 
     # if there aren't any feeds, return the feed scraping page instead of
     # the feed list
-    if ( !@{$feeds} )
+    if ( !@{ $feeds } )
     {
         return $self->scrape( $c, $media_id );
     }
 
     # for each feed, load any other data needed for the feed within the template
-    for my $f ( @{$feeds} )
+    for my $f ( @{ $feeds } )
     {
-        $f->{tag_names} = $c->dbis->query(
-            "select ts.name||':'||t.tag from tags t, feeds_tags_map ftm, tag_sets ts "
-              . "where t.tags_id = ftm.tags_id and t.tag_sets_id = ts.tag_sets_id and ftm.feeds_id = ?",
-            $f->{feeds_id}
+        $f->{ tag_names } = $c->dbis->query(
+            "select ts.name||':'||t.tag from tags t, feeds_tags_map ftm, tag_sets ts " .
+              "where t.tags_id = ftm.tags_id and t.tag_sets_id = ts.tag_sets_id and ftm.feeds_id = ?",
+            $f->{ feeds_id }
         )->flat;
     }
 
@@ -81,11 +82,11 @@ sub list : Local
 
     # FIXME: this is too slow -hal
     #$c->stash->{feed_download_counts} = $self->get_feed_download_counts($c, $medium);
-    $c->stash->{medium} = $medium;
-    $c->stash->{feeds}  = $feeds;
+    $c->stash->{ medium } = $medium;
+    $c->stash->{ feeds }  = $feeds;
 
     # set the template used to generate the html.  This template can be found in mediawords/feeds/list.tt2
-    $c->stash->{template} = 'feeds/list.tt2';
+    $c->stash->{ template } = 'feeds/list.tt2';
 }
 
 sub make_edit_form
@@ -115,10 +116,10 @@ sub create : Local
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
-    $c->stash->{medium}   = $medium;
-    $c->stash->{form}     = $form;
-    $c->stash->{template} = 'feeds/edit.tt2';
-    $c->stash->{title}    = 'Create ' . $medium->{name} . ' feed';
+    $c->stash->{ medium }   = $medium;
+    $c->stash->{ form }     = $form;
+    $c->stash->{ template } = 'feeds/edit.tt2';
+    $c->stash->{ title }    = 'Create ' . $medium->{ name } . ' feed';
 }
 
 sub create_do : Local
@@ -162,7 +163,7 @@ sub make_scrape_form
         {
             load_config_file => $c->path_to() . '/root/forms/scrape_feeds.yml',
             method           => 'post',
-            action           => $c->uri_for( '/feeds/scrape/' . $medium->{media_id} )
+            action           => $c->uri_for( '/feeds/scrape/' . $medium->{ media_id } )
         }
     );
 
@@ -181,11 +182,11 @@ sub scrape : Local
 
     my $form = $self->make_scrape_form( $c, $medium );
 
-    $form->get_field('url')->value( $medium->{url} );
+    $form->get_field( 'url' )->value( $medium->{ url } );
 
-    $c->stash->{form}     = $form;
-    $c->stash->{medium}   = $medium;
-    $c->stash->{template} = 'feeds/scrape.tt2';
+    $c->stash->{ form }     = $form;
+    $c->stash->{ medium }   = $medium;
+    $c->stash->{ template } = 'feeds/scrape.tt2';
 
     if ( !$form->submitted_and_valid )
     {
@@ -193,17 +194,17 @@ sub scrape : Local
     }
     else
     {
-        my $url             = $c->request->param('url');
-        my $ignore_patterns = $c->request->param('ignore_patterns');
-        my $recurse         = $c->request->param('recurse');
+        my $url             = $c->request->param( 'url' );
+        my $ignore_patterns = $c->request->param( 'ignore_patterns' );
+        my $recurse         = $c->request->param( 'recurse' );
 
         my $existing_urls = [];
-        
-        my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url
-            ( $url, $recurse, $c->dbis, $ignore_patterns, $existing_urls );
-        
-        $c->stash->{links} = $links;
-        $c->stash->{existing_urls}= $existing_urls;
+
+        my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( $url, $recurse, $c->dbis, $ignore_patterns,
+            $existing_urls );
+
+        $c->stash->{ links }         = $links;
+        $c->stash->{ existing_urls } = $existing_urls;
     }
 }
 
@@ -213,28 +214,28 @@ sub add_default_scraped_tags
     my ( $self, $c, $feed ) = @_;
 
     my $content_type = 'news';
-    if ( $feed->{url} =~ /blog/ )
+    if ( $feed->{ url } =~ /blog/ )
     {
         $content_type = 'blog';
     }
 
     my $tag_set = $c->dbis->find_or_create( 'tag_sets', { name => 'content_type' } );
-    my $tag = $c->dbis->find_or_create( 'tags', { tag => $content_type, tag_sets_id => $tag_set->{tag_sets_id} } );
+    my $tag = $c->dbis->find_or_create( 'tags', { tag => $content_type, tag_sets_id => $tag_set->{ tag_sets_id } } );
 
-    $c->dbis->find_or_create( 'feeds_tags_map', { tags_id => $tag->{tags_id}, feeds_id => $feed->{feeds_id} } );
+    $c->dbis->find_or_create( 'feeds_tags_map', { tags_id => $tag->{ tags_id }, feeds_id => $feed->{ feeds_id } } );
 }
 
 sub scrape_import : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
-    my @links = $c->request->param('links');
+    my @links = $c->request->param( 'links' );
 
-    for my $link (@links)
+    for my $link ( @links )
     {
         if ( !( $link =~ /(.*):(http:\/\/.*)/ ) )
         {
-            $c->log->error("Unable to parse scrape import link: $link");
+            $c->log->error( "Unable to parse scrape import link: $link" );
         }
 
         my $feed = $c->dbis->create(
@@ -258,25 +259,25 @@ sub edit : Local
 
     $feeds_id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for("/feeds/edit_do/$feeds_id") );
+    my $form = $self->make_edit_form( $c, $c->uri_for( "/feeds/edit_do/$feeds_id" ) );
 
     my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
-    $feed->{medium} = $c->dbis->find_by_id( 'media', $feed->{media_id} );
+    $feed->{ medium } = $c->dbis->find_by_id( 'media', $feed->{ media_id } );
 
-    $form->default_values($feed);
+    $form->default_values( $feed );
 
-    $c->stash->{medium}   = $feed->{medium};
-    $c->stash->{feed}     = $feed;
-    $c->stash->{form}     = $form;
-    $c->stash->{template} = 'feeds/edit.tt2';
-    $c->stash->{title}    = 'Edit ' . $feed->{medium}->{name} . ': ' . $feed->{name} . ' Feed Source';
+    $c->stash->{ medium }   = $feed->{ medium };
+    $c->stash->{ feed }     = $feed;
+    $c->stash->{ form }     = $form;
+    $c->stash->{ template } = 'feeds/edit.tt2';
+    $c->stash->{ title }    = 'Edit ' . $feed->{ medium }->{ name } . ': ' . $feed->{ name } . ' Feed Source';
 }
 
 sub edit_do : Local
 {
     my ( $self, $c, $feeds_id ) = @_;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for("/feeds/edit_do/$feeds_id") );
+    my $form = $self->make_edit_form( $c, $c->uri_for( "/feeds/edit_do/$feeds_id" ) );
 
     my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
 
@@ -285,17 +286,17 @@ sub edit_do : Local
 
         $c->dbis->update_by_id( 'feeds', $feeds_id, $form->params );
 
-        $c->response->redirect( $c->uri_for( "/feeds/list/" . $feed->{media_id}, { status_msg => 'Feed updated.' } ) );
+        $c->response->redirect( $c->uri_for( "/feeds/list/" . $feed->{ media_id }, { status_msg => 'Feed updated.' } ) );
     }
     else
     {
 
-        my $medium = $c->dbis->find_by_id( 'media', $feed->{media_id} );
+        my $medium = $c->dbis->find_by_id( 'media', $feed->{ media_id } );
 
-        $c->stash->{medium}   = $medium;
-        $c->stash->{form}     = $form;
-        $c->stash->{template} = 'feeds/edit.tt2';
-        $c->stash->{title}    = 'Edit ' . $medium->{name} . ': ' . $feed->{name} . ' Feed Source ';
+        $c->stash->{ medium }   = $medium;
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'feeds/edit.tt2';
+        $c->stash->{ title }    = 'Edit ' . $medium->{ name } . ': ' . $feed->{ name } . ' Feed Source ';
     }
 }
 
@@ -304,32 +305,33 @@ sub delete : Local
     my ( $self, $c, $feeds_id, $confirm ) = @_;
 
     my $feed   = $c->dbis->find_by_id( 'feeds', $feeds_id );
-    my $medium = $c->dbis->find_by_id( 'media', $feed->{media_id} );
+    my $medium = $c->dbis->find_by_id( 'media', $feed->{ media_id } );
 
     my $status_msg;
 
     my $deleteme_tags_id = MediaWords::Util::Tags::lookup_or_create_tag( $c->dbis, 'workflow:deleteme' )->{ tags_id };
-                                             
-    my ($marked_for_deletion) = $c->dbis->query("select 1 from feeds_tags_map " . 
-                                                "where tags_id = $deleteme_tags_id and feeds_id = ?", $feeds_id)->flat;
-    
-    if ($marked_for_deletion) 
+
+    my ( $marked_for_deletion ) =
+      $c->dbis->query( "select 1 from feeds_tags_map " . "where tags_id = $deleteme_tags_id and feeds_id = ?", $feeds_id )
+      ->flat;
+
+    if ( $marked_for_deletion )
     {
         $status_msg = 'Feed already marked for deletion.';
-        $c->response->redirect( $c->uri_for( "/feeds/list/" . $medium->{media_id}, { status_msg => $status_msg } ) );
+        $c->response->redirect( $c->uri_for( "/feeds/list/" . $medium->{ media_id }, { status_msg => $status_msg } ) );
     }
-    elsif ( !defined($confirm) )
+    elsif ( !defined( $confirm ) )
     {
 
-        my ($downloads) = $c->dbis->query( "select count(*) from downloads where feeds_id = ?",         $feeds_id )->flat;
-        my ($stories)   = $c->dbis->query( "select count(*) from feeds_stories_map where feeds_id = ?", $feeds_id )->flat;
+        my ( $downloads ) = $c->dbis->query( "select count(*) from downloads where feeds_id = ?",         $feeds_id )->flat;
+        my ( $stories )   = $c->dbis->query( "select count(*) from feeds_stories_map where feeds_id = ?", $feeds_id )->flat;
 
-        $c->stash->{downloads} = $downloads;
-        $c->stash->{stories}   = $stories;
+        $c->stash->{ downloads } = $downloads;
+        $c->stash->{ stories }   = $stories;
 
-        $c->stash->{medium}   = $medium;
-        $c->stash->{feed}     = $feed;
-        $c->stash->{template} = 'feeds/delete.tt2';
+        $c->stash->{ medium }   = $medium;
+        $c->stash->{ feed }     = $feed;
+        $c->stash->{ template } = 'feeds/delete.tt2';
     }
     else
     {
@@ -339,13 +341,13 @@ sub delete : Local
         }
         else
         {
-                                                     
-            $c->dbis->query("insert into feeds_tags_map (tags_id, feeds_id) values (?, ?)", $deleteme_tags_id, $feeds_id);
-            
+
+            $c->dbis->query( "insert into feeds_tags_map (tags_id, feeds_id) values (?, ?)", $deleteme_tags_id, $feeds_id );
+
             $status_msg = 'Feed marked for deletion.';
         }
 
-        $c->response->redirect( $c->uri_for( "/feeds/list/" . $medium->{media_id}, { status_msg => $status_msg } ) );
+        $c->response->redirect( $c->uri_for( "/feeds/list/" . $medium->{ media_id }, { status_msg => $status_msg } ) );
     }
 }
 
@@ -355,24 +357,24 @@ sub edit_tags : Local
 
     if ( !$feeds_id )
     {
-        die("no feeds_id");
+        die( "no feeds_id" );
     }
 
     my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
     if ( !$feed )
     {
-        die("Unable to find feed $feeds_id");
+        die( "Unable to find feed $feeds_id" );
     }
 
-    my $medium = $c->dbis->find_by_id( 'media', $feed->{media_id} );
+    my $medium = $c->dbis->find_by_id( 'media', $feed->{ media_id } );
 
     my $action = $c->uri_for( '/feeds/edit_tags_do/' . $feeds_id );
 
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
-    $c->stash->{form}     = $form;
-    $c->stash->{medium}   = $medium;
-    $c->stash->{template} = 'feeds/edit_tags.tt2';
+    $c->stash->{ form }     = $form;
+    $c->stash->{ medium }   = $medium;
+    $c->stash->{ template } = 'feeds/edit_tags.tt2';
 }
 
 sub edit_tags_do : Local
@@ -381,16 +383,16 @@ sub edit_tags_do : Local
 
     if ( !$feeds_id )
     {
-        die("no feeds_id");
+        die( "no feeds_id" );
     }
 
     my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
     if ( !$feed )
     {
-        die("Unable to find feed $feeds_id");
+        die( "Unable to find feed $feeds_id" );
     }
 
-    my $action = $c->uri_for('/feeds/edit_tags_do/') . $feeds_id;
+    my $action = $c->uri_for( '/feeds/edit_tags_do/' ) . $feeds_id;
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
     if ( !$form->submitted_and_valid )
@@ -400,7 +402,7 @@ sub edit_tags_do : Local
 
     MediaWords::Util::Tags->save_tags( $c, $feeds_id, 'feeds' );
 
-    $c->response->redirect( $c->uri_for( "/feeds/list/" . $feed->{media_id}, { status_msg => 'Tags updated.' } ) );
+    $c->response->redirect( $c->uri_for( "/feeds/list/" . $feed->{ media_id }, { status_msg => 'Tags updated.' } ) );
 }
 
 # accept a list of feed urls and create feeds from them
@@ -410,17 +412,17 @@ sub batch_create : Local
 
     if ( !$media_id )
     {
-        die("no media_id");
+        die( "no media_id" );
     }
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
     if ( !$medium )
     {
-        die("Unable to find medium $media_id");
+        die( "Unable to find medium $media_id" );
     }
 
-    $c->stash->{medium}   = $medium;
-    $c->stash->{template} = 'feeds/batch_create.tt2';
+    $c->stash->{ medium }   = $medium;
+    $c->stash->{ template } = 'feeds/batch_create.tt2';
 }
 
 sub batch_create_do : Local
@@ -429,43 +431,42 @@ sub batch_create_do : Local
 
     if ( !$media_id )
     {
-        die("no media_id");
+        die( "no media_id" );
     }
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
     if ( !$medium )
     {
-        die("Unable to find medium $media_id");
+        die( "Unable to find medium $media_id" );
     }
 
-    my $urls = [ map { $_ =~ s/[\n\r\s]//g; $_ } split( "\n", $c->request->param('urls') ) ];
+    my $urls = [ map { $_ =~ s/[\n\r\s]//g; $_ } split( "\n", $c->request->param( 'urls' ) ) ];
 
     my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_urls( $urls, $c );
 
-    for my $link ( @{$links} )
+    for my $link ( @{ $links } )
     {
         my $feed = $c->dbis->create(
             'feeds',
             {
                 media_id => $media_id,
-                name     => $link->{name} || '(no name)',
-                url      => $link->{url}
+                name     => $link->{ name } || '(no name)',
+                url      => $link->{ url }
             }
         );
         $self->add_default_scraped_tags( $c, $feed );
     }
 
     my $status_msg;
-    if ( @{$links} < @{$urls} )
+    if ( @{ $links } < @{ $urls } )
     {
         my $skipped_urls = [
-            grep
-            {
+            grep {
                 my $a = $_;
-                !( grep { $a eq lc( $_->{url} ) } @{$links} )
-              } @{$urls}
+                !( grep { $a eq lc( $_->{ url } ) } @{ $links } )
+              } @{ $urls }
         ];
-        $status_msg = "The following urls were skipped: " . join( ', ', @{$skipped_urls} );
+        $status_msg = "The following urls were skipped: " . join( ', ', @{ $skipped_urls } );
     }
     else
     {

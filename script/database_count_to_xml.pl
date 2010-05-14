@@ -50,15 +50,15 @@ my $count_queries = {
 sub get_results_element
 {
     my $db      = TableCreationUtils::get_database_handle();
-    my $results = XML::LibXML::Element->new('results');
+    my $results = XML::LibXML::Element->new( 'results' );
 
-    while ( my ( $value, $query ) = each(%$count_queries) )
+    while ( my ( $value, $query ) = each( %$count_queries ) )
     {
 
         #   my $downloads_count = $db->query("select count(*)  as downloads_count from downloads;")->flat->[0];
         #  $results->appendTextChild('downloads_count', $downloads_count);
 
-        my $downloads_count = $db->query($query)->flat->[0];
+        my $downloads_count = $db->query( $query )->flat->[ 0 ];
         $results->appendTextChild( $value, $downloads_count );
     }
 
@@ -72,7 +72,7 @@ sub get_results_element
 sub main
 {
 
-    my $xml_file_name = shift(@ARGV);
+    my $xml_file_name = shift( @ARGV );
 
     die "Must specify file name" unless $xml_file_name;
 
@@ -84,14 +84,14 @@ sub main
     {
         binmode $fh;    # drop all PerlIO layers possibly created by a use open pragma
         my $parser = XML::LibXML->new;
-        $doc = $parser->parse_fh($fh);
+        $doc = $parser->parse_fh( $fh );
         $historical_results = $doc->documentElement() || die;
     }
     else
     {
         $doc                = XML::LibXML::Document->new();
-        $historical_results = $doc->createElement('historical_results');
-        $doc->setDocumentElement($historical_results);
+        $historical_results = $doc->createElement( 'historical_results' );
+        $doc->setDocumentElement( $historical_results );
 
         #print "Creating file\n";
         #exit;
@@ -99,7 +99,7 @@ sub main
 
     my $results = get_results_element();
 
-    $historical_results->appendChild($results);
+    $historical_results->appendChild( $results );
 
     $doc->toFile( $xml_file_name, 1 );
 

@@ -29,16 +29,16 @@ sub new
     my $self = {};
     bless( $self, $class );
 
-    $self->engine($engine);
+    $self->engine( $engine );
 
     return $self;
 }
 
 sub _get_site_from_url
 {
-    my ($url) = @_;
+    my ( $url ) = @_;
 
-    my $host = lc( ( URI::Split::uri_split($url) )[1] );
+    my $host = lc( ( URI::Split::uri_split( $url ) )[ 1 ] );
 
     ##strip out sub domains
 
@@ -54,7 +54,7 @@ sub _log_rejected_blog
     my $url = MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url( $response->request->url );
     my $title = encode( 'utf-8', $response->title );
 
-    my $site = _get_site_from_url($url);
+    my $site = _get_site_from_url( $url );
 
     $self->engine->dbs->create(
         'rejected_blogs',
@@ -75,9 +75,9 @@ sub _log_found_blog_and_add_spider_rss_download
     my $title     = encode( 'utf-8', $response->title );
     my @rss_feeds = $blog_page->get_rss_feeds( $download, $response );
 
-    my $rss = $rss_feeds[0];
+    my $rss = $rss_feeds[ 0 ];
 
-    my $site = _get_site_from_url($url);
+    my $site = _get_site_from_url( $url );
 
     $self->engine->dbs->create(
         'found_blogs',
@@ -89,7 +89,7 @@ sub _log_found_blog_and_add_spider_rss_download
         }
     );
 
-    MediaWords::Crawler::BlogSpiderDbUtils::add_friends_list_page( $self->engine->dbs, $download->{url}, $download );
+    MediaWords::Crawler::BlogSpiderDbUtils::add_friends_list_page( $self->engine->dbs, $download->{ url }, $download );
 
     $self->_add_spider_rss_download( $download, $rss );
 }
@@ -118,8 +118,8 @@ sub _add_spider_rss_download
         'downloads',
         {
             url    => $rss,
-            parent => $download->{downloads_id},
-            host   => lc( ( URI::Split::uri_split($rss) )[1] ),
+            parent => $download->{ downloads_id },
+            host   => lc( ( URI::Split::uri_split( $rss ) )[ 1 ] ),
 
             #                stories_id    => 1,
             type          => 'spider_rss',
@@ -140,7 +140,7 @@ sub _process_spidered_download
 
     #hack to handle redirects or other weirdness
     if (   $self->_url_already_processed( $url->canonical )
-        || $self->_url_already_processed( MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url($url) ) )
+        || $self->_url_already_processed( MediaWords::Crawler::BlogUrlCanonicalizer::get_canonical_blog_url( $url ) ) )
     {
         return;
     }
@@ -173,14 +173,14 @@ sub _url_already_processed
 
     my $rejected_blogs = $dbs->query( "select * from rejected_blogs where url = ? limit 1", $url )->hashes;
 
-    if ( scalar(@$rejected_blogs) )
+    if ( scalar( @$rejected_blogs ) )
     {
         return 1;
     }
 
     my $found_blogs = $dbs->query( "select * from found_blogs where url = ? limit 1", $url )->hashes;
 
-    if ( scalar(@$found_blogs) )
+    if ( scalar( @$found_blogs ) )
     {
         return 1;
     }
@@ -191,12 +191,12 @@ sub _url_already_processed
 # calling engine
 sub engine
 {
-    if ( $_[1] )
+    if ( $_[ 1 ] )
     {
-        $_[0]->{engine} = $_[1];
+        $_[ 0 ]->{ engine } = $_[ 1 ];
     }
 
-    return $_[0]->{engine};
+    return $_[ 0 ]->{ engine };
 }
 
 1;

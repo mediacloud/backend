@@ -14,22 +14,22 @@ use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::DBI::Feeds;
 
-sub main {
-    
-    my $db= DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+sub main
+{
 
-    $db->dbh->{AutoCommit} = 0;
-    
-    
-    my $feeds = $db->query("select * from feeds order by feeds_id desc")->hashes;
-    
-    for my $feed (@{$feeds}) {
+    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+
+    $db->dbh->{ AutoCommit } = 0;
+
+    my $feeds = $db->query( "select * from feeds order by feeds_id desc" )->hashes;
+
+    for my $feed ( @{ $feeds } )
+    {
         print "feed: $feed->{feeds_id}\n";
-        MediaWords::DBI::Feeds::add_archive_feed_downloads($db, $feed);
+        MediaWords::DBI::Feeds::add_archive_feed_downloads( $db, $feed );
         $db->commit();
     }
-    
-    
+
 }
 
 main();

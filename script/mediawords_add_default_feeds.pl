@@ -14,32 +14,30 @@ use DBIx::Simple::MediaWords;
 use Feed::Scrape::MediaWords;
 use MediaWords::DB;
 
-
 sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
-    
+
     while ( 1 )
     {
         my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
-        
+
         my $media = $db->query( "select * from media where feeds_added = false order by media_id" )->hashes;
-        
+
         for my $medium ( @{ $media } )
         {
             my $existing_urls = [];
-            
-            my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( $medium->{ url }, 1, $db, [], $existing_urls );
-            
-            for my $feed_link ( @{ $feed_links } ) 
+
+            my $feed_links =
+              Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( $medium->{ url }, 1, $db, [], $existing_urls );
+
+            for my $feed_link ( @{ $feed_links } )
             {
                 print "ADDED $medium->{ name }: $feed_link->{ name } - $feed_link->{ url }\n";
                 my $feed = { name => $feed_link->{ name }, url => $feed_link->{ url }, media_id => $medium->{ media_id } };
-                eval {
-                    $db->create( 'feeds', $feed );
-                };
-                
+                eval { $db->create( 'feeds', $feed ); };
+
                 if ( $@ )
                 {
                     my $error = "Error adding feed $feed_link->{ url }: $@\n";
@@ -48,22 +46,25 @@ sub main
                     next;
                 }
             }
-            
+
             if ( @{ $existing_urls } )
             {
                 my $error = "These urls were found but already exist in the database:\n" .
-                    join( "\n", map { "\t$_" } @{ $existing_urls } ) . "\n";
+                  join( "\n", map { "\t$_" } @{ $existing_urls } ) . "\n";
                 $medium->{ moderation_notes } .= $error;
                 print $error;
             }
-                        
-            $db->query( "update media set feeds_added = true, moderation_notes = ? where media_id = ?", 
-                        $medium->{ moderation_notes }, $medium->{ media_id } );
+
+            $db->query(
+                "update media set feeds_added = true, moderation_notes = ? where media_id = ?",
+                $medium->{ moderation_notes },
+                $medium->{ media_id }
+            );
         }
-        
+
         $db->disconnect;
-        
-        sleep(60);
+
+        sleep( 60 );
     }
 }
 

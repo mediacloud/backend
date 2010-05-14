@@ -30,46 +30,44 @@ sub extract_text
     my ( $process_num, $num_processes ) = @_;
 
     my $db = MediaWords::DB::connect_to_db;
-    
+
     $db->dbh->{ AutoCommit } = 0;
 
     while ( 1 )
     {
         print STDERR "[$process_num] find new downloads ...\n";
 
-        my $downloads =
-          $db->query( "SELECT d.* from downloads d "
-              . "  where d.extracted='f' and d.type='content' and d.state='success' "
-              . "    and  (( ( d.feeds_id + $process_num ) % $num_processes ) = 0 ) "
-              . " order by stories_id desc "
-              . "  limit "
-              . PROCESS_SIZE );
+        my $downloads = $db->query(
+            "SELECT d.* from downloads d " . "  where d.extracted='f' and d.type='content' and d.state='success' " .
+              "    and  (( ( d.feeds_id + $process_num ) % $num_processes ) = 0 ) " . " order by stories_id desc " .
+              "  limit " . PROCESS_SIZE );
+
         # my $downloads = $db->query( "select * from downloads where stories_id = 418981" );
         my $download_found;
         while ( my $download = $downloads->hash() )
         {
             $download_found = 1;
 
-            print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
+            print STDERR
+              "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
             my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
-                        
-            my $remaining_download =
-              $db->query(
+
+            my $remaining_download = $db->query(
                 "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
-                $download->{stories_id} )->hash;
+                $download->{ stories_id } )->hash;
             if ( !$remaining_download )
             {
-                my $story = $db->find_by_id( 'stories', $download->{stories_id} );
+                my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
 
                 # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
-                # 
+                #
                 # print STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) \n";
                 # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
                 # {
                 #     print STDERR "[$process_num] $download->{downloads_id} $module: "
                 #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
                 # }
-                
+
                 MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
             }
             else
@@ -77,7 +75,7 @@ sub extract_text
                 print STDERR "[$process_num] pending more downloads ...\n";
             }
         }
-        
+
         $db->commit;
 
         if ( !$download_found )
@@ -92,7 +90,7 @@ sub extract_text
 # fork of $num_processes
 sub main
 {
-    my ($num_processes) = @ARGV;
+    my ( $num_processes ) = @ARGV;
 
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
@@ -106,13 +104,13 @@ sub main
     {
         if ( !fork )
         {
-            while (1)
+            while ( 1 )
             {
                 eval {
                     print STDERR "[$i] START\n";
                     extract_text( $i, $num_processes );
                 };
-                if ($@)
+                if ( $@ )
                 {
                     print STDERR "[$i] extract_text failed with error: $@\n";
                     print STDERR "[$i] sleeping before restart ...\n";

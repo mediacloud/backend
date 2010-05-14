@@ -13,7 +13,7 @@ use TableCreationUtils;
 
 sub main
 {
-    TableCreationUtils::add_spider_downloads_from_stdin('spider_blog_home', 1);
+    TableCreationUtils::add_spider_downloads_from_stdin( 'spider_blog_home', 1 );
 }
 
 main();

@@ -10,54 +10,58 @@ use Text::Trim;
 sub new
 {
     my $class = shift;
-    my $self  = $class->NEXT::new(@_);
-    $self->{template}->context->define_filter(
+    my $self  = $class->NEXT::new( @_ );
+    $self->{ template }->context->define_filter(
         round => sub {
             my $nr = shift;
-            $nr = int($nr);
+            $nr = int( $nr );
         }
     );
 
-    $self->{template}->context->define_filter(
+    $self->{ template }->context->define_filter(
         html_strip => sub {
-	    #$Data::Dumper::Purity = 1;
-	    #$Data::Dumper::Useperl = 1;
+
+            #$Data::Dumper::Purity = 1;
+            #$Data::Dumper::Useperl = 1;
             my $nr = shift;
-	    #say STDERR "Stripping: '$nr'"  if (length($nr) > 0 );
-	    ##say STDERR Dumper($nr)  if (length($nr) > 0 );
-            $nr = html_strip($nr);
-	    ##say STDERR Dumper($nr)  if (length($nr) > 0 );
-	    #say STDERR "Striped '$nr'"  if (length($nr) > 0 );
-	    #$nr;
+
+            #say STDERR "Stripping: '$nr'"  if (length($nr) > 0 );
+            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
+            $nr = html_strip( $nr );
+            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
+            #say STDERR "Striped '$nr'"  if (length($nr) > 0 );
+            #$nr;
         }
     );
 
-    $self->{template}->context->define_filter(
+    $self->{ template }->context->define_filter(
         translate => sub {
             my $nr = shift;
-            $nr =  MediaWords::Util::Translate::translate($nr);
+            $nr = MediaWords::Util::Translate::translate( $nr );
+
             #$nr = html_strip($nr);
         }
     );
 
-    $self->{template}->context->define_filter(
+    $self->{ template }->context->define_filter(
         translate_if_necessary => sub {
             my $nr = shift;
-            
+
             return $nr;
 
-	    return $nr if !defined($nr) || !defined(trim($nr));
+            return $nr if !defined( $nr ) || !defined( trim( $nr ) );
 
-            my $tr =  MediaWords::Util::Translate::translate($nr);
-	    if ($tr eq $nr)
-	    {
-	       return $nr;
-	    }
-	    else
-	    {
-	      $nr = html_strip("$nr ($tr)");
-	      return $nr;
-	    }
+            my $tr = MediaWords::Util::Translate::translate( $nr );
+            if ( $tr eq $nr )
+            {
+                return $nr;
+            }
+            else
+            {
+                $nr = html_strip( "$nr ($tr)" );
+                return $nr;
+            }
+
             #$nr = html_strip($nr);
         }
     );

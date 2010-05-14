@@ -26,25 +26,25 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
     my $file;
     my @download_ids;
 
     GetOptions(
-        'file|f=s'                  => \$file,
-        'downloads|d=s'             => \@download_ids,
+        'file|f=s'      => \$file,
+        'downloads|d=s' => \@download_ids,
     ) or die "Usage program  -f | -d ";
 
     my $downloads;
 
-    if (@download_ids)
+    if ( @download_ids )
     {
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
-    elsif ($file)
+    elsif ( $file )
     {
-        open( DOWNLOAD_ID_FILE, $file ) || die("Could not open file: $file");
+        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
         @download_ids = <DOWNLOAD_ID_FILE>;
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
@@ -55,7 +55,7 @@ sub main
 
     print "DOWNLOAD TEXT\n";
 
-    for my $download (@{$downloads})
+    for my $download ( @{ $downloads } )
     {
         print "DOWNLOAD TEXT\n";
         print MediaWords::DBI::Downloads::get_previously_extracted_text( $dbs, $download );

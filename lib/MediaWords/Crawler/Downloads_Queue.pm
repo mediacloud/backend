@@ -29,7 +29,7 @@ Readonly my $_debug_mode => 0;
 
 sub new
 {
-    my ($class) = @_;
+    my ( $class ) = @_;
 
     my $self = {};
     bless( $self, $class );
@@ -44,11 +44,11 @@ sub _get_download_queue_file_name
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $data_dir = $config->{mediawords}->{download_queue_dir} || $config->{mediawords}->{data_dir};
+    my $data_dir = $config->{ mediawords }->{ download_queue_dir } || $config->{ mediawords }->{ data_dir };
 
     my $queue_dir = "$data_dir/download_queues";
 
-    File::Path::mkpath($queue_dir);
+    File::Path::mkpath( $queue_dir );
     my $ret = "$queue_dir/$media_id";
     print "_get_download_queue_file_name returning: $ret\n";
 
@@ -70,9 +70,9 @@ sub _get_media_download_queue
 
 sub get_download_site_from_hostname
 {
-    my ($host_name) = @_;
+    my ( $host_name ) = @_;
 
-    confess unless defined($host_name);
+    confess unless defined( $host_name );
     $host_name =~ s/.*\.([^.]*\.[^.]*)/$1/;
 
     return $host_name;
@@ -84,18 +84,18 @@ sub _queue_download
 
     my $media_id;
 
-    if ( ($download->{type} =~ /^spider_.*/) || ($download->{type} eq 'archival_only') )
+    if ( ( $download->{ type } =~ /^spider_.*/ ) || ( $download->{ type } eq 'archival_only' ) )
     {
-        my $host = $download->{host};
+        my $host = $download->{ host };
 
-        $host     = get_download_site_from_hostname($host);
+        $host     = get_download_site_from_hostname( $host );
         $media_id = $host;
     }
     else
     {
         $media_id = $download->{ _media_id };
-        
-        if ( ! defined( $media_id ) )
+
+        if ( !defined( $media_id ) )
         {
             die( "missing media_id" );
         }
@@ -103,20 +103,20 @@ sub _queue_download
 
     #print STDERR "Provider _queue_download media_id $media_id\n";
 
-    $_downloads->{$media_id}->{queued} ||= $self->_get_media_download_queue($media_id);
-    $_downloads->{$media_id}->{time}   ||= 0;
+    $_downloads->{ $media_id }->{ queued } ||= $self->_get_media_download_queue( $media_id );
+    $_downloads->{ $media_id }->{ time }   ||= 0;
 
-    my $pending = $_downloads->{$media_id}->{queued};
+    my $pending = $_downloads->{ $media_id }->{ queued };
 
     #my $download_serialized = $_serializer->freeze($download);
 
-    if ( $download->{priority} && ( $download->{priority} > 0 ) )
+    if ( $download->{ priority } && ( $download->{ priority } > 0 ) )
     {
-        unshift( @{$pending}, $download );
+        unshift( @{ $pending }, $download );
     }
     else
     {
-        push( @{$pending}, $download );
+        push( @{ $pending }, $download );
     }
 
     $_downloads_count++;
@@ -126,14 +126,14 @@ sub _queue_download
 sub _pop_download
 {
     my ( $self, $media_id ) = @_;
-    $_downloads->{$media_id}->{time} = time;
+    $_downloads->{ $media_id }->{ time } = time;
 
-    $_downloads->{$media_id}->{queued} ||= [];
+    $_downloads->{ $media_id }->{ queued } ||= [];
 
-    my $download_serialized = shift( @{ $_downloads->{$media_id}->{queued} } );
+    my $download_serialized = shift( @{ $_downloads->{ $media_id }->{ queued } } );
     my $download            = $download_serialized;
 
-    if ($download)
+    if ( $download )
     {
         $_downloads_count--;
     }
@@ -144,11 +144,11 @@ sub _pop_download
 # get list of download media_id times in the form of { media_id => $media_id, time => $time }
 sub _get_download_media_ids
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     return [
-        map { { media_id => $_, time => $_downloads->{$_}->{time} } }
-          keys( %{$_downloads} )
+        map { { media_id => $_, time => $_downloads->{ $_ }->{ time } } }
+          keys( %{ $_downloads } )
     ];
 }
 
@@ -156,24 +156,24 @@ sub _get_queued_downloads_count
 {
     my ( $self, $media_id, $quiet ) = @_;
 
-    unless ( defined($quiet) ) { print "_get_queued_downloads_count media='$media_id'\n"; }
+    unless ( defined( $quiet ) ) { print "_get_queued_downloads_count media='$media_id'\n"; }
 
     my $ret;
 
-    if ( !defined($_downloads->{$media_id}) || !$_downloads->{$media_id} )
+    if ( !defined( $_downloads->{ $media_id } ) || !$_downloads->{ $media_id } )
     {
         $ret = 0;
     }
-    elsif ( !$_downloads->{$media_id}->{queued} )
+    elsif ( !$_downloads->{ $media_id }->{ queued } )
     {
         $ret = 0;
     }
     else
     {
-        $ret = scalar( @{ $_downloads->{$media_id}->{queued} } );
+        $ret = scalar( @{ $_downloads->{ $media_id }->{ queued } } );
     }
 
-    unless ( defined($quiet) ) { print "_get_queued_downloads_count media='$media_id' returning '$ret'\n"; }
+    unless ( defined( $quiet ) ) { print "_get_queued_downloads_count media='$media_id' returning '$ret'\n"; }
 
     return $ret;
 }
@@ -187,15 +187,15 @@ sub _get_queued_downloads_count
 
 sub _verify_downloads_count
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
     my $downloads_count_real = 0;
 
-    for my $a ( values( %{$_downloads} ) )
+    for my $a ( values( %{ $_downloads } ) )
     {
-        if ( @{ $a->{queued} } )
+        if ( @{ $a->{ queued } } )
         {
-            $downloads_count_real += scalar( @{ $a->{queued} } );
+            $downloads_count_real += scalar( @{ $a->{ queued } } );
         }
     }
 
@@ -206,9 +206,9 @@ sub _verify_downloads_count
 # get total number of queued downloads
 sub _get_downloads_size
 {
-    my ($self) = @_;
+    my ( $self ) = @_;
 
-    if ($_debug_mode)
+    if ( $_debug_mode )
     {
         $self->_verify_downloads_count();
     }

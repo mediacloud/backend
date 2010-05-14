@@ -20,7 +20,7 @@ sub main
 
     my $topics = MediaWords::Tagger::NYTTopics::get_topics_hash();
 
-    my $tags_rs = $db->resultset('Tags')->search( { 'tag_sets_id.name' => 'NYTTopics' }, { join => 'tag_sets_id' } );
+    my $tags_rs = $db->resultset( 'Tags' )->search( { 'tag_sets_id.name' => 'NYTTopics' }, { join => 'tag_sets_id' } );
 
     while ( my $tag = $tags_rs->next )
     {

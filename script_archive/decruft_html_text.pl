@@ -5,6 +5,7 @@
 use strict;
 
 my $cwd;
+
 BEGIN
 {
     use FindBin;
@@ -30,9 +31,9 @@ sub main
 
     my $original_text = join '', @lines;
 
-    my $actual_preprocessed_text_array = HTML::CruftText::clearCruftText($original_text);
+    my $actual_preprocessed_text_array = HTML::CruftText::clearCruftText( $original_text );
 
-    my $actual_preprocessed_text = join( "\n", map { $_  } @{$actual_preprocessed_text_array} );
+    my $actual_preprocessed_text = join( "\n", map { $_ } @{ $actual_preprocessed_text_array } );
 
     say $actual_preprocessed_text;
 }

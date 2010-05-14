@@ -20,7 +20,7 @@ my $_stories_id_stop        = $_stories_id_start + $_stories_id_window_size;
 
 sub get_stories_map_with_tags
 {
-    my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "grabing stories  -- " . localtime() . "\n";
@@ -31,7 +31,7 @@ sub get_stories_map_with_tags
 
     print STDERR "creating stories hash map -- " . localtime() . "\n";
 
-    my $stories_map = $stories_rows->map_hashes('stories_id');
+    my $stories_map = $stories_rows->map_hashes( 'stories_id' );
 
     {
         print STDERR "grabbing from  stories_tags_map  -- " . localtime() . "\n";
@@ -46,9 +46,9 @@ sub get_stories_map_with_tags
 
         while ( $stories_tags_map_rows->fetch )
         {
-            if ( $stories_map->{$stories_id} )
+            if ( $stories_map->{ $stories_id } )
             {
-                $stories_map->{$stories_id}->{tag_list_hash}->{ int($tags_id) } = 1;
+                $stories_map->{ $stories_id }->{ tag_list_hash }->{ int( $tags_id ) } = 1;
 
                 #            print STDERR "($stories_tag_map_id, $stories_id, $tags_id) \n";
             }
@@ -63,7 +63,7 @@ sub get_tag_set
 {
     ( my $tags_id ) = @_;
 
-    return get_tags_map()->{$tags_id}->{tag_sets_id};
+    return get_tags_map()->{ $tags_id }->{ tag_sets_id };
 }
 
 my $_tags_map;
@@ -71,18 +71,18 @@ my $_tags_map;
 sub get_tags_map
 {
 
-    if ( !defined($_tags_map) )
+    if ( !defined( $_tags_map ) )
     {
-        my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+        my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
           || die DBIx::Simple::MediaWords->error;
 
         print STDERR "grabbing from tags  -- " . localtime() . "\n";
 
-        my $tags_rows = $dbh->query("select tags_id, tag_sets_id from tags ");
+        my $tags_rows = $dbh->query( "select tags_id, tag_sets_id from tags " );
 
         print STDERR "creating tags hash map -- " . localtime() . "\n";
 
-        my $tags_map = $tags_rows->map_hashes('tags_id');
+        my $tags_map = $tags_rows->map_hashes( 'tags_id' );
 
         $_tags_map = $tags_map;
     }
@@ -96,13 +96,13 @@ sub get_media_tag_hash_count_from_stories_map
 
     print STDERR "filling in tag_info in media_tag_hash_count map -- " . localtime() . "\n";
 
-    my $number_of_stories = scalar( keys %{$stories_map} );
+    my $number_of_stories = scalar( keys %{ $stories_map } );
 
     my $completed_stories = 0;
 
-    my @story_ids = keys %{$stories_map};
+    my @story_ids = keys %{ $stories_map };
 
-    foreach my $story_id (@story_ids)
+    foreach my $story_id ( @story_ids )
     {
 
         if ( ( $completed_stories % 1000 ) == 0 )
@@ -112,29 +112,29 @@ sub get_media_tag_hash_count_from_stories_map
 
         #        if ($stories_map->{$story_id}->{tag_list_hash})
         {
-            my @tag_list = keys %{ $stories_map->{$story_id}->{tag_list_hash} };
+            my @tag_list = keys %{ $stories_map->{ $story_id }->{ tag_list_hash } };
 
             my $media_id;
-            $media_id = int( $stories_map->{$story_id}->{media_id} );
+            $media_id = int( $stories_map->{ $story_id }->{ media_id } );
 
-            foreach my $tag (@tag_list)
+            foreach my $tag ( @tag_list )
             {
 
-                $media_tag_hash_count->{$media_id}->{ int($tag) } ||= {};
+                $media_tag_hash_count->{ $media_id }->{ int( $tag ) } ||= {};
 
-                foreach my $tag_tag (@tag_list)
+                foreach my $tag_tag ( @tag_list )
                 {
                     if (   ( $tag != $tag_tag )
-                        && ( get_tag_set($tag) == get_tag_set($tag_tag) ) )
+                        && ( get_tag_set( $tag ) == get_tag_set( $tag_tag ) ) )
                     {
-                        $media_tag_hash_count->{$media_id}->{ int($tag) }->{ int($tag_tag) }++;
+                        $media_tag_hash_count->{ $media_id }->{ int( $tag ) }->{ int( $tag_tag ) }++;
                     }
                 }
             }
         }
 
         #TODO IS THIS SAFE?
-        delete( $stories_map->{$story_id} );
+        delete( $stories_map->{ $story_id } );
         $completed_stories++;
     }
 
@@ -143,12 +143,12 @@ sub get_media_tag_hash_count_from_stories_map
 
 sub get_max_stories_id
 {
-    my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
-    my $max_stories_id_row = $dbh->query("select max(stories_id) as max_id from stories") || die $dbh->error;
+    my $max_stories_id_row = $dbh->query( "select max(stories_id) as max_id from stories" ) || die $dbh->error;
 
-    my $max_stories_id = $max_stories_id_row->hash()->{max_id};
+    my $max_stories_id = $max_stories_id_row->hash()->{ max_id };
 
     return $max_stories_id;
 }
@@ -158,10 +158,9 @@ sub scroll_stories_id_window
     $_stories_id_start = $_stories_id_stop;
     $_stories_id_stop  = $_stories_id_start + $_stories_id_window_size;
 
-    print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: "
-      . get_max_stories_id()
-      . ")  -- "
-      . localtime() . "\n";
+    print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " . get_max_stories_id() .
+      ")  -- " .
+      localtime() . "\n";
 }
 
 sub get_media_tag_hash_count
@@ -182,22 +181,22 @@ sub insert_rows_for_media_id
 
     my $rows_for_media_id = 0;
 
-    my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     #$dbh->dbh->{AutoCommit} = 0;
 
-    foreach my $tag ( sort { $a <=> $b } keys %{$current_media_tag_hash_count} )
+    foreach my $tag ( sort { $a <=> $b } keys %{ $current_media_tag_hash_count } )
     {
 
         #            print "\tTAG '$tag': ";
-        if ( $current_media_tag_hash_count->{$tag} )
+        if ( $current_media_tag_hash_count->{ $tag } )
         {
-            my $tag_sets_id = get_tag_set($tag);
+            my $tag_sets_id = get_tag_set( $tag );
 
             my @top_ten_tag_tags = (
-                sort { $current_media_tag_hash_count->{$tag}->{$b} <=> $current_media_tag_hash_count->{$tag}->{$a} }
-                  keys %{ $current_media_tag_hash_count->{$tag} }
+                sort { $current_media_tag_hash_count->{ $tag }->{ $b } <=> $current_media_tag_hash_count->{ $tag }->{ $a } }
+                  keys %{ $current_media_tag_hash_count->{ $tag } }
             );
 
             if ( !@top_ten_tag_tags )
@@ -218,16 +217,16 @@ sub insert_rows_for_media_id
       #                 print STDERR "\t" . join " ,", map { $current_media_tag_hash_count->{$tag}->{$_} } @top_ten_tag_tags;
       #                 print STDERR "\n";
 
-            foreach my $tag_tag (@top_ten_tag_tags)
+            foreach my $tag_tag ( @top_ten_tag_tags )
             {
-                my $tag_count = $current_media_tag_hash_count->{$tag}->{$tag_tag};
+                my $tag_count = $current_media_tag_hash_count->{ $tag }->{ $tag_tag };
 
                 my $row_to_insert = {
-                    tags_id     => int($tag),
-                    tag_tags_id => int($tag_tag),
-                    tag_sets_id => int($tag_sets_id),
-                    media_id    => int($media_id),
-                    tag_count   => int($tag_count)
+                    tags_id     => int( $tag ),
+                    tag_tags_id => int( $tag_tag ),
+                    tag_sets_id => int( $tag_sets_id ),
+                    media_id    => int( $media_id ),
+                    tag_count   => int( $tag_count )
                 };
 
                 #                     print "Row to insert ";
@@ -263,18 +262,18 @@ sub get_rows_to_insert
 
     print STDERR "start creating rows to insert -- " . localtime() . "\n";
 
-    my @media_id_list = sort { $a <=> $b } keys %{$media_tag_hash_count};
+    my @media_id_list = sort { $a <=> $b } keys %{ $media_tag_hash_count };
 
-    foreach my $media_id (@media_id_list)
+    foreach my $media_id ( @media_id_list )
     {
         print STDERR "Media_id: $media_id  -- " . localtime() . "\n";
 
-        my $current_media_tag_hash_count = $media_tag_hash_count->{$media_id};
+        my $current_media_tag_hash_count = $media_tag_hash_count->{ $media_id };
 
         insert_rows_for_media_id( $current_media_tag_hash_count, $media_id );
 
         #TODO FREE MEMORY -- IS THIS SAFE?
-        delete( $media_tag_hash_count->{$media_id} );
+        delete( $media_tag_hash_count->{ $media_id } );
     }
 
     return $rows_to_insert;
@@ -282,12 +281,12 @@ sub get_rows_to_insert
 
 sub create_media_tag_tag_counts_temp_table
 {
-    my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "creating media_tag_tag_counts_new table \n";
 
-    eval { $dbh->query("DROP TABLE if exists media_tag_tag_counts_new"); };
+    eval { $dbh->query( "DROP TABLE if exists media_tag_tag_counts_new" ); };
 
     $dbh->query(
 "create table media_tag_tag_counts_new  (media_id integer NOT NULL, tag_sets_id integer NOT NULL, tags_id integer NOT NULL, tag_tags_id integer NOT NULL, tag_count integer NOT NULL) "
@@ -314,7 +313,7 @@ sub main
 
     while ( $_stories_id_start <= $max_stories_id )
     {
-        my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+        my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
           || die DBIx::Simple::MediaWords->error;
 
         my $rows_to_insert = get_rows_to_insert();
@@ -322,25 +321,25 @@ sub main
         scroll_stories_id_window();
     }
 
-    my $dbh = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info)
+    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "creating indices ... -- " . localtime() . "\n";
     my $now = time();
-    $dbh->query("create index media_tag_tag_counts_count_$now on media_tag_tag_counts_new(tag_count)");
-    $dbh->query("create index media_tag_tag_counts_tag_$now on media_tag_tag_counts_new(tags_id)");
-    $dbh->query("create index media_tag_tag_counts_tag_tag_$now on media_tag_tag_counts_new(tag_tags_id)");
-    $dbh->query("create index media_tag_tag_counts_media_$now on media_tag_tag_counts_new(media_id)");
+    $dbh->query( "create index media_tag_tag_counts_count_$now on media_tag_tag_counts_new(tag_count)" );
+    $dbh->query( "create index media_tag_tag_counts_tag_$now on media_tag_tag_counts_new(tags_id)" );
+    $dbh->query( "create index media_tag_tag_counts_tag_tag_$now on media_tag_tag_counts_new(tag_tags_id)" );
+    $dbh->query( "create index media_tag_tag_counts_media_$now on media_tag_tag_counts_new(media_id)" );
     $dbh->query(
 "create index media_tag_tag_counts_media_and_tag_and_tag_tag_$now on media_tag_tag_counts_new(media_id, tags_id, tag_tags_id)"
     );
-    $dbh->query("create index media_tag_tag_counts_media_and_tag_$now on media_tag_tag_counts_new(media_id, tags_id)");
+    $dbh->query( "create index media_tag_tag_counts_media_and_tag_$now on media_tag_tag_counts_new(media_id, tags_id)" );
     print STDERR "replacing table ... -- " . localtime() . "\n";
-    eval { $dbh->query("drop table media_tag_tag_counts") };
-    $dbh->query("alter table media_tag_tag_counts_new rename to media_tag_tag_counts");
+    eval { $dbh->query( "drop table media_tag_tag_counts" ) };
+    $dbh->query( "alter table media_tag_tag_counts_new rename to media_tag_tag_counts" );
 
     print STDERR "analyzing table ... -- " . localtime() . "\n";
-    $dbh->query("analyze media_tag_tag_counts");
+    $dbh->query( "analyze media_tag_tag_counts" );
 }
 
 main();

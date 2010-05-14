@@ -9,12 +9,11 @@ BEGIN
     use lib "$FindBin::Bin/.";
 }
 
-
 use TableCreationUtils;
 
 sub main
 {
-    TableCreationUtils::add_spider_downloads_from_stdin('spider_posting', 0);
+    TableCreationUtils::add_spider_downloads_from_stdin( 'spider_posting', 0 );
 }
 
 main();

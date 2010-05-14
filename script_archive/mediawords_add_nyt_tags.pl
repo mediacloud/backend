@@ -31,19 +31,19 @@ sub get_tags_id
 {
     my ( $db, $term ) = @_;
 
-    if ( $_tags_id_cache->{$term} )
+    if ( $_tags_id_cache->{ $term } )
     {
-        return $_tags_id_cache->{$term};
+        return $_tags_id_cache->{ $term };
     }
 
-    my $tag = $db->resultset('Tags')->find_or_create(
+    my $tag = $db->resultset( 'Tags' )->find_or_create(
         {
             tag         => $term,
             tag_sets_id => $_nyt_tag_sets_id
         }
     );
 
-    $_tags_id_cache->{$term} = $tag->tags_id;
+    $_tags_id_cache->{ $term } = $tag->tags_id;
 
     return $tag->tags_id;
 }
@@ -57,9 +57,9 @@ sub add_tags_to_story
 
     my $terms = MediaWords::Tagger::NYTTopics::get_tags( join( "\n", $story->title, $story->description, $text ) );
 
-    $_nyt_tag_sets_id ||= $db->resultset('TagSets')->find_or_create( { name => 'NYTTopics' } )->tag_sets_id;
+    $_nyt_tag_sets_id ||= $db->resultset( 'TagSets' )->find_or_create( { name => 'NYTTopics' } )->tag_sets_id;
 
-    my @stms = $db->resultset('StoriesTagsMap')->search(
+    my @stms = $db->resultset( 'StoriesTagsMap' )->search(
         {
             'tags_id.tag_sets_id' => $_nyt_tag_sets_id,
             'me.stories_id'       => $story->stories_id
@@ -68,11 +68,11 @@ sub add_tags_to_story
     );
     map { $_->delete } @stms;
 
-    print "STORY: " . $story->stories_id . " " . $story->title . ": " . join( ', ', @{$terms} ) . "\n";
+    print "STORY: " . $story->stories_id . " " . $story->title . ": " . join( ', ', @{ $terms } ) . "\n";
 
-    for my $tag_name ( @{$terms} )
+    for my $tag_name ( @{ $terms } )
     {
-        $db->resultset('StoriesTagsMap')->create(
+        $db->resultset( 'StoriesTagsMap' )->create(
             {
                 tags_id    => get_tags_id( $db, $tag_name ),
                 stories_id => $story->stories_id
@@ -92,17 +92,17 @@ sub main
 
     my $db = MediaWords::DB::authenticate();
 
-    my $tagged_tag_set = $db->resultset('TagSets')->find_or_create( { name => 'tagged' } );
+    my $tagged_tag_set = $db->resultset( 'TagSets' )->find_or_create( { name => 'tagged' } );
     my $tagged_tag =
-      $db->resultset('Tags')->find_or_create( { tag => 'NYTTopics', tag_sets_id => $tagged_tag_set->tag_sets_id } );
-    my $nyt_tagset = $db->resultset('TagSets')->find_or_create( { name => 'NYTTopics' } );
+      $db->resultset( 'Tags' )->find_or_create( { tag => 'NYTTopics', tag_sets_id => $tagged_tag_set->tag_sets_id } );
+    my $nyt_tagset = $db->resultset( 'TagSets' )->find_or_create( { name => 'NYTTopics' } );
 
     my $last_stories_id = 0;
-    while (1)
+    while ( 1 )
     {
         print "last_stories_id: $last_stories_id\n";
 
-        my @stories = $db->resultset('Stories')->search(
+        my @stories = $db->resultset( 'Stories' )->search(
             { 'stories_id' => { '>' => $last_stories_id } },
             {
                 rows     => 1000,
@@ -114,7 +114,7 @@ sub main
             last;
         }
 
-        for my $story (@stories)
+        for my $story ( @stories )
         {
             if ( ( ( $story->stories_id + $process_number ) % $number_processes ) == 0 )
             {
@@ -126,7 +126,7 @@ sub main
                 if ( !@tagged )
                 {
                     add_tags_to_story( $db, $story );
-                    $db->resultset('StoriesTagsMap')->find_or_create(
+                    $db->resultset( 'StoriesTagsMap' )->find_or_create(
                         {
                             stories_id => $story->stories_id,
                             tags_id    => $tagged_tag->tags_id
