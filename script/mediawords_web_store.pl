@@ -28,11 +28,6 @@ sub main
 {
     my $requests;
     
-    if ( !$requests || !@{ $requests } )
-    {
-        return;
-    }
-    
     while ( my $line = <STDIN> )
     {
         chomp( $line );
@@ -47,6 +42,11 @@ sub main
         
     }
     
+    if ( !$requests || !@{ $requests } )
+    {
+        return;
+    }
+
     my $pm = new Parallel::ForkManager( NUM_PARALLEL );
     
     my $ua = LWP::UserAgent->new();
