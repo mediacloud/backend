@@ -38,7 +38,9 @@ sub store_test_data
         die( "Unable to open file $file: $!" );
     }
 
+    print FILE "#<<<\n";
     print FILE Dumper( $data );
+    print FILE "#>>>\n";
 
     close( FILE );
 }
