@@ -28,7 +28,7 @@ my $cache = CHI->new(
 		     driver     => 'FastMmap',
 		     expires_in => '1 week',
 		     expires_variance => '0.1',
-		     root_dir   => "$media_cloud_root_dir/data/cache123213",
+		     root_dir   => "$media_cloud_root_dir/cache/translate",
 		     cache_size => '3m'
 		    );
 
