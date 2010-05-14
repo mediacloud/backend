@@ -187,17 +187,18 @@ __END_TEST_CASE__
     }
   ];
 
-plan tests => scalar@{$test_cases} * 2;
+plan tests => scalar @{ $test_cases } * 2;
 
-foreach my $test_case ( @{$test_cases} )
+foreach my $test_case ( @{ $test_cases } )
 {
     is(
-        join( "", map { $_ . "\n" } @{ HTML::CruftText::clearCruftText( $test_case->{test_input} ) } ),
-        $test_case->{test_output},
-        $test_case->{test_name}
+        join( "", map { $_ . "\n" } @{ HTML::CruftText::clearCruftText( $test_case->{ test_input } ) } ),
+        $test_case->{ test_output },
+        $test_case->{ test_name }
     );
 
-    my $result = MediaWords::Crawler::Extractor::score_lines(HTML::CruftText::clearCruftText( $test_case->{test_input}), "__NO_TITLE__" );
+    my $result = MediaWords::Crawler::Extractor::score_lines( HTML::CruftText::clearCruftText( $test_case->{ test_input } ),
+        "__NO_TITLE__" );
 
-    ok($result, "title_not_found_test");
+    ok( $result, "title_not_found_test" );
 }

@@ -24,48 +24,49 @@ Readonly my $output_dir => 'expected_preprocessed_results';
 
 sub get_preprocessed_lines_from_downloads_id
 {
-    my ($downloads_id) = @_;
-    my $dbs = DBIx::Simple::MediaWords->connect(MediaWords::DB::connect_info);
+    my ( $downloads_id ) = @_;
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
     my $download = $dbs->query( "SELECT * from downloads where downloads_id = ?", $downloads_id )->hash;
 
     die unless $download;
 
-    return MediaWords::DBI::Downloads::fetch_preprocessed_content_lines($download);
+    return MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
 }
 
 TODO:
 {
 
-todo_skip "Not working yet", 10 if 1;
+    todo_skip "Not working yet", 10 if 1;
 
-opendir XML_PREPROCESSED_RESULTS, $output_dir;
+    opendir XML_PREPROCESSED_RESULTS, $output_dir;
 
-my @xml_files = grep { /\.xml/ } readdir XML_PREPROCESSED_RESULTS;
- #@xml_files = qw ( 1046134.xml);
+    my @xml_files = grep { /\.xml/ } readdir XML_PREPROCESSED_RESULTS;
 
-foreach my $xml_file ( sort @xml_files )
-{
-    my $parser = XML::LibXML->new();
-    my $doc = $parser->parse_file("$output_dir/$xml_file") or die;
+    #@xml_files = qw ( 1046134.xml);
 
-    #$doc->setEncoding('UTF-8');
+    foreach my $xml_file ( sort @xml_files )
+    {
+        my $parser = XML::LibXML->new();
+        my $doc = $parser->parse_file( "$output_dir/$xml_file" ) or die;
 
-    my $root = $doc->getDocumentElement;
+        #$doc->setEncoding('UTF-8');
 
-    my $downloads_id = ( $root->getElementsByTagName("downloads_id") )[0]->firstChild->nodeValue;
-    my $expected_preprocessed_text =
-      ( $root->getElementsByTagName('preprocessed_lines_base64_encoded') )[0]->firstChild->nodeValue;
+        my $root = $doc->getDocumentElement;
 
-    $expected_preprocessed_text = decode_base64($expected_preprocessed_text);
+        my $downloads_id = ( $root->getElementsByTagName( "downloads_id" ) )[ 0 ]->firstChild->nodeValue;
+        my $expected_preprocessed_text =
+          ( $root->getElementsByTagName( 'preprocessed_lines_base64_encoded' ) )[ 0 ]->firstChild->nodeValue;
 
-    my $actual_preprecessed_text_array = get_preprocessed_lines_from_downloads_id($downloads_id);
+        $expected_preprocessed_text = decode_base64( $expected_preprocessed_text );
 
-    my $actual_preprocessed_text = join( "", map { $_ . "\n" } @{$actual_preprecessed_text_array} );
+        my $actual_preprecessed_text_array = get_preprocessed_lines_from_downloads_id( $downloads_id );
 
-    #    $actual_preprocessed_text = encode('utf8', $actual_preprocessed_text);
+        my $actual_preprocessed_text = join( "", map { $_ . "\n" } @{ $actual_preprecessed_text_array } );
 
-    is( $actual_preprocessed_text, $expected_preprocessed_text, "download: $downloads_id" );
-}
+        #    $actual_preprocessed_text = encode('utf8', $actual_preprocessed_text);
+
+        is( $actual_preprocessed_text, $expected_preprocessed_text, "download: $downloads_id" );
+    }
 
 }
 

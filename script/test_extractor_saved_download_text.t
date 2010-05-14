@@ -5,6 +5,7 @@
 use strict;
 
 my $cwd;
+
 BEGIN
 {
     use FindBin;
@@ -29,71 +30,74 @@ print "$output_dir\n";
 
 sub get_value_of_node
 {
-   my ($root, $nodeName) = @_;
+    my ( $root, $nodeName ) = @_;
 
-   my $value =  ( $root->getElementsByTagName($nodeName) )[0]->firstChild->nodeValue;
+    my $value = ( $root->getElementsByTagName( $nodeName ) )[ 0 ]->firstChild->nodeValue;
 
-   return $value;
+    return $value;
 
 }
 
 sub get_value_of_base_64_node
 {
-   my ($root, $nodeName) = @_;
+    my ( $root, $nodeName ) = @_;
 
-   my $value =  get_value_of_node($root, $nodeName);
+    my $value = get_value_of_node( $root, $nodeName );
 
-   my $base_64_decoded_value = decode_base64($value);
+    my $base_64_decoded_value = decode_base64( $value );
 
-   my $ret = decode("utf8", $base_64_decoded_value);
+    my $ret = decode( "utf8", $base_64_decoded_value );
 
-   return $ret;
+    return $ret;
 }
 
 {
 
-opendir XML_PREPROCESSED_RESULTS, $output_dir;
+    opendir XML_PREPROCESSED_RESULTS, $output_dir;
 
-my @xml_files = grep { /\.xml/ } readdir XML_PREPROCESSED_RESULTS;
- #@xml_files = qw ( 1046134.xml);
+    my @xml_files = grep { /\.xml/ } readdir XML_PREPROCESSED_RESULTS;
 
-foreach my $xml_file ( sort @xml_files )
-{
-    my $parser = XML::LibXML->new();
-    my $doc = $parser->parse_file("$output_dir/$xml_file") or die;
+    #@xml_files = qw ( 1046134.xml);
 
-    #$doc->setEncoding('UTF-8');
+    foreach my $xml_file ( sort @xml_files )
+    {
+        my $parser = XML::LibXML->new();
+        my $doc = $parser->parse_file( "$output_dir/$xml_file" ) or die;
 
-    my $root = $doc->getDocumentElement;
+        #$doc->setEncoding('UTF-8');
 
-    my $download_content = get_value_of_base_64_node($root, 'download_content_base64');
+        my $root = $doc->getDocumentElement;
 
-    my $expected_preprocessed_text = get_value_of_base_64_node($root, 'preprocessed_lines_base64');
- 
-    my $actual_preprocessed_text_array = HTML::CruftText::clearCruftText($download_content);
+        my $download_content = get_value_of_base_64_node( $root, 'download_content_base64' );
 
-    my $actual_preprocessed_text = join( "", map { $_ . "\n" } @{$actual_preprocessed_text_array} );
+        my $expected_preprocessed_text = get_value_of_base_64_node( $root, 'preprocessed_lines_base64' );
 
-    is( $actual_preprocessed_text, $expected_preprocessed_text, "preprocessed text $xml_file" );
+        my $actual_preprocessed_text_array = HTML::CruftText::clearCruftText( $download_content );
 
-    my $story_title = get_value_of_base_64_node($root, 'story_title');
-    my $story_description = get_value_of_base_64_node($root, 'story_description');
+        my $actual_preprocessed_text = join( "", map { $_ . "\n" } @{ $actual_preprocessed_text_array } );
 
+        is( $actual_preprocessed_text, $expected_preprocessed_text, "preprocessed text $xml_file" );
 
-    my $extract_results = MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story($actual_preprocessed_text_array, $story_title, $story_description);
+        my $story_title       = get_value_of_base_64_node( $root, 'story_title' );
+        my $story_description = get_value_of_base_64_node( $root, 'story_description' );
 
-    my $expected_extracted_html = get_value_of_base_64_node($root, 'extracted_html_base64');
-    is($extract_results->{extracted_html}, $expected_extracted_html, "extracted html $xml_file" );
+        my $extract_results =
+          MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $actual_preprocessed_text_array,
+            $story_title, $story_description );
 
-    my $expected_extracted_text = get_value_of_base_64_node($root, 'extracted_text_base64');
-    is($extract_results->{extracted_text}, $expected_extracted_text, "extracted text $xml_file" );
+        my $expected_extracted_html = get_value_of_base_64_node( $root, 'extracted_html_base64' );
+        is( $extract_results->{ extracted_html }, $expected_extracted_html, "extracted html $xml_file" );
 
-    my $story_line_numbers_expected = get_value_of_node($root, 'story_line_numbers');
+        my $expected_extracted_text = get_value_of_base_64_node( $root, 'extracted_text_base64' );
+        is( $extract_results->{ extracted_text }, $expected_extracted_text, "extracted text $xml_file" );
 
-    my $story_line_numbers_actual  = join "," , map { $_->{line_number} } grep {$_->{is_story} } @{$extract_results->{scores}};
+        my $story_line_numbers_expected = get_value_of_node( $root, 'story_line_numbers' );
 
-    is($story_line_numbers_expected, $story_line_numbers_actual, "story line numbers");
-}
+        my $story_line_numbers_actual = join ",",
+          map { $_->{ line_number } } grep { $_->{ is_story } } @{ $extract_results->{ scores } };
+
+        is( $story_line_numbers_expected, $story_line_numbers_actual, "story line numbers" );
+    }
 }
 
 done_testing;

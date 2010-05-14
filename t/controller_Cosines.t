@@ -7,4 +7,3 @@ BEGIN { use_ok 'MediaWords::Controller::Cosines' }
 
 action_ok( '/cosines', 'Request should succeed' );
 
-

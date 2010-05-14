@@ -210,13 +210,13 @@ __END_TEST_CASE__
     }
   ];
 
-plan tests => scalar@{$test_cases} * 1;
+plan tests => scalar @{ $test_cases } * 1;
 
-foreach my $test_case ( @{$test_cases} )
+foreach my $test_case ( @{ $test_cases } )
 {
     is(
-        join( "", map { $_ . "\n" } @{ HTML::CruftText::clearCruftText( $test_case->{test_input} ) } ),
-        $test_case->{test_output},
-        $test_case->{test_name}
+        join( "", map { $_ . "\n" } @{ HTML::CruftText::clearCruftText( $test_case->{ test_input } ) } ),
+        $test_case->{ test_output },
+        $test_case->{ test_name }
     );
 }
