@@ -14,12 +14,13 @@ use Readonly;
 
 use Test::More tests => 14;
 
-use_ok('MediaWords::Util::StopWords');
+use_ok( 'MediaWords::Util::StopWords' );
 use MediaWords::Util::StopWords;
 use Perl6::Say;
 use Data::Dumper;
 use utf8;
 
+#<<<
 ok(MediaWords::Util::StopWords::get_tiny_stop_word_lookup, 'get_tiny_stop_word_lookup');
 
 #say Dumper (MediaWords::Util::StopWords::get_tiny_stop_word_lookup);
@@ -45,3 +46,5 @@ ok(MediaWords::Util::StopWords::get_long_stop_stem_lookup(), 'get_long_stop_stem
 
 #say Dumper([MediaWords::Util::StopWords::get_tiny_stop_word_lookup()]);
 #say Dumper([MediaWords::Util::StopWords::get_tiny_stop_stem_lookup()]);
+
+#>>>
