@@ -563,3 +563,8 @@ create table ssw_queue (
        media_id                     int             not null
 );
 
+create view story_extracted_texts
+       as select stories_id, 
+       array_to_string(array_agg(download_text), ' ') as extracted_text 
+       from (select * from downloads natural join download_texts order by downloads_id) 
+       	    as downloads group by stories_id;
