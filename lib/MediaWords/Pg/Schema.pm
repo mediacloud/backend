@@ -18,6 +18,7 @@ my $_functions = [
     # [ module name, function name, number of parameters, return_type ]
     [ 'MediaWords::Pg::Stopwords', 'is_stop_stem',             2, 'boolean' ],
     [ 'MediaWords::Pg::Cleanup',   'remove_duplicate_stories', 2, 'text' ],
+    [ 'MediaWords::Util::HTML',   'html_strip', 1, 'text' ],
 ];
 
 my $_spi_functions = [
