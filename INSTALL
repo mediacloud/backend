@@ -50,6 +50,10 @@ with perl and cpan.
 where <MEDIACLOUD_DIR> is the root directory for mediacloud.  This will install the many, many perl module dependencies.  Expect this to take a long time and install scores of modules.  The PERL_MM_USE_DEFAULT environment variable is set to indicate a noninteractive sesssion, however not all modules respect this setting so you may have to occasionally check
   the installation process and respond to any questions that come up.
 
+* SUGGESTED: Verify that the necessary modules are installed. Run the media cloudcoverage test verify that all required modules have been installed. Run:
+      prove -l  t/cover.t
+If there are errors determine which modules are missing and install them in cpan.
+
 * Run ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
   
 * Run script/mediawords_server.pl.  This should start up the web server.
