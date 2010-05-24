@@ -568,3 +568,5 @@ create view story_extracted_texts
        array_to_string(array_agg(download_text), ' ') as extracted_text 
        from (select * from downloads natural join download_texts order by downloads_id) 
        	    as downloads group by stories_id;
+
+CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
