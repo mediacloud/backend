@@ -45,6 +45,8 @@ sub main
 
     my $hashes = $res? $res->hashes : [];
 
+    print STDERR scalar(@{$hashes}) . " media\n";
+
     #the moderation_notes field doesn't show up in the CSV so just purge it...
     foreach my $hash (@$hashes)
     {
@@ -52,11 +54,14 @@ sub main
        $hash->{name} =~ s/\n//g;
     }
 
+
+    my $header = $res->columns;
+
     my $csv = Class::CSV->new(
-    fields         => [keys %{$hashes->[1]}],
+    fields         => $header,
   );
 
-    print STDERR scalar(@{$hashes}) . " media\n";
+    $csv->add_line($header);
 
     #print Dumper($hashes);
     foreach my $hash (@$hashes)
