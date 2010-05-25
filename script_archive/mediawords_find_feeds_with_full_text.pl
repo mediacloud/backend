@@ -12,6 +12,7 @@ BEGIN
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use Readonly;
+use Class::CSV;
 
 # create a media source from a feed url
 sub main
@@ -40,11 +41,19 @@ sub main
           "         $story_restrictions ) as media_extraction_text_similarity group by media_id order by media_id ) as foo"
       );
 
-    my $arrays = $res->arrays;
 
-    print "Output:\n";
-    print join "\n", @{ [ map { join ", ", @{ $_ } } @$arrays ] };
-    print "\n";
+    my $hashes = $res->hashes;
+
+    my $csv = Class::CSV->new(
+    fields         => [keys %{$hashes->[1]}],
+  );
+
+    foreach my $hash (@$hashes)
+    {
+       $csv->add_line($hash);
+    }
+
+    $csv->print;
 }
 
 main();
