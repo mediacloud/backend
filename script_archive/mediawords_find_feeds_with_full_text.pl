@@ -24,7 +24,7 @@ sub main
       "   avg(length(html_strip(title || description))) as avg_rss_length,  " .
       "   avg(length(html_strip(description))) as avg_rss_discription ";
 
-    Readonly my $story_restrictions => "publish_date > now() - interval '1 week' and " .
+    Readonly my $story_restrictions => "publish_date > now() - interval '1 day' and " .
       " media_id in (select media_id from media_feed_counts where feed_count <= 2)";
 
     Readonly my $story_extracted_text =>
@@ -53,7 +53,9 @@ sub main
        $csv->add_line($hash);
     }
 
+    print "Starting print\n";
     $csv->print;
+    print "Finished print\n";
 }
 
 main();
