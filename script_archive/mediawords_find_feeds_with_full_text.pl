@@ -49,6 +49,7 @@ sub main
     foreach my $hash (@$hashes)
     {
        undef $hash->{moderation_notes};
+       $hash->{name} =~ s/\n//g;
     }
 
     my $csv = Class::CSV->new(
