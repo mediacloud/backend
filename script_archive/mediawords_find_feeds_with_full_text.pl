@@ -23,7 +23,7 @@ sub main
     Readonly my $aggregate_stats => " max(similarity) as max_similarity, avg(similarity) as avg_similarity, " .
       "   min(similarity) as min_similarity,  avg(length(extracted_text)) as avg_extracted_length," .
       "   avg(length(html_strip(title || description))) as avg_rss_length,  " .
-      "   avg(length(html_strip(description))) as avg_rss_discription ";
+      "   avg(length(html_strip(description))) as avg_rss_description ";
 
     Readonly my $story_restrictions => "publish_date > now() - interval '2 weeks' and " .
       " media_id in (select media_id from media_feed_counts where feed_count <= 2)";
