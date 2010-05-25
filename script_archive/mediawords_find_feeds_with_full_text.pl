@@ -25,7 +25,7 @@ sub main
       "   avg(length(html_strip(title || description))) as avg_rss_length,  " .
       "   avg(length(html_strip(description))) as avg_rss_discription ";
 
-    Readonly my $story_restrictions => "publish_date > now() - interval '1 day' and " .
+    Readonly my $story_restrictions => "publish_date > now() - interval '1 week' and " .
       " media_id in (select media_id from media_feed_counts where feed_count <= 2)";
 
     Readonly my $story_extracted_text =>
@@ -45,21 +45,27 @@ sub main
 
     my $hashes = $res? $res->hashes : [];
 
+    #the moderation_notes field doesn't show up in the CSV so just purge it...
+    foreach my $hash (@$hashes)
+    {
+       undef $hash->{moderation_notes};
+    }
+
     my $csv = Class::CSV->new(
     fields         => [keys %{$hashes->[1]}],
   );
 
-    print scalar(@{$hashes}) . " media\n";
+    print STDERR scalar(@{$hashes}) . " media\n";
 
-    print Dumper($hashes);
+    #print Dumper($hashes);
     foreach my $hash (@$hashes)
     {
        $csv->add_line($hash);
     }
 
-    print "Starting print\n";
+    print STDERR "Starting print\n";
     $csv->print;
-    print "Finished print\n";
+    print STDERR "Finished print\n";
 }
 
 main();
