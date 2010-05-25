@@ -13,6 +13,7 @@ use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use Readonly;
 use Class::CSV;
+use Data::Dumper;
 
 # create a media source from a feed url
 sub main
@@ -42,12 +43,15 @@ sub main
       );
 
 
-    my $hashes = $res->hashes;
+    my $hashes = $res? $res->hashes : [];
 
     my $csv = Class::CSV->new(
     fields         => [keys %{$hashes->[1]}],
   );
 
+    print scalar(@{$hashes}) . " media\n";
+
+    print Dumper($hashes);
     foreach my $hash (@$hashes)
     {
        $csv->add_line($hash);
