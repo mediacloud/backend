@@ -21,10 +21,10 @@
   <th>Date Collected:</th>
   <td>[% story.collect_date %]</td>
 </tr>
-<!--<tr>-->
-<!--  <th>Description:</th>  -->
-  <td>[%# story.description | html %]</td>
-<!--</tr>-->
+<tr>
+  <th>Description:</th> 
+  <td>[% story.description | html_strip %]</td>
+</tr>
 
 <tr>
 
