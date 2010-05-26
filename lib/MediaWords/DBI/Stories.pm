@@ -74,6 +74,21 @@ sub get_text
 
 }
 
+# Like get_text but it doesn't include both the rss information and the extracted text. Including both could cause some sentences to appear twice and throw off our word counts.
+sub get_text_for_word_counts
+{
+    my ( $db, $story ) = @_;
+
+    my $download_texts = $db->query(
+        "select dt.download_text from downloads d, download_texts dt " .
+          "  where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id",
+        $story->{stories_id}
+    )->hashes;
+
+    return join( ". ", map { $_->{ download_text } } @{ $download_texts } );
+
+}
+
 # store any content returned by the tagging module in the downloads table
 sub _store_tags_content
 {

@@ -8,6 +8,7 @@ use Encode;
 use Perl6::Say;
 
 use Lingua::EN::Sentence::MediaWords;
+use MediaWords::DBI::Stories;
 use MediaWords::Util::Stemmer;
 use MediaWords::Util::StopWords;
 
@@ -30,21 +31,6 @@ sub _get_story
     {
         return $db->query( "select stories_id, publish_date, media_id from stories where stories_id = ?", $story )->hash;
     }
-}
-
-# get the text for the given story by concatenating all of the download_texts for the story
-sub _get_story_text
-{
-    my ( $db, $stories_id ) = @_;
-
-    my $download_texts = $db->query(
-        "select dt.download_text from downloads d, download_texts dt " .
-          "  where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id",
-        $stories_id
-    )->hashes;
-
-    return join( ". ", map { $_->{ download_text } } @{ $download_texts } );
-
 }
 
 # given a hash of word counts by sentence, insert the words into the db
@@ -211,7 +197,7 @@ sub update_story_sentence_words
     $no_delete || $db->query( "delete from story_sentence_words where stories_id = ?", $story->{ stories_id } );
     $no_delete || $db->query( "delete from story_sentences where stories_id = ?",      $story->{ stories_id } );
 
-    my $story_text = _get_story_text( $db, $story->{ stories_id } );
+    my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
     my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $story_text ) || return;
     my $stop_stems = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup();
