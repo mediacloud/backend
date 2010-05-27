@@ -2,7 +2,7 @@
 
 #Simple script to fill in the download_text_length field of downloads_texts.
 
-#Yes we could do this with a SQL query but we want the operation to be non automatic so that the table isn't locked.
+#Yes we could do this with a SQL query but we want the operation to be non atomic so that the table isn't locked.
 
 use strict;
 
