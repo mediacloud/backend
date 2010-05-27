@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 
-# call plperl function to update story vectors
-
 use strict;
 use warnings;
 
