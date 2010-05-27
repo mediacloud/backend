@@ -77,10 +77,13 @@ sub process_stories
 
     for my $story ( @{ $stories } )
     {
-        my $download = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hash;
+        my $downloads = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hashes;
 
-        print "extracting text ...\n";
-        MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+        foreach my $download ( @{ $downloads } )
+        {
+            print "extracting text ...\n";
+            MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+        }
 
         print "adding default tags ...\n";
         MediaWords::DBI::Stories::add_default_tags( $db, $story );
