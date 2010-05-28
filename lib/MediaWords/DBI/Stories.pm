@@ -37,7 +37,7 @@ sub _get_tags_id
 }
 
 # get the combined story title, story description, and download text of the text
-sub get_text_from_download_text
+sub _get_text_from_download_text
 {
     my ( $story, $download_texts ) = @_;
 
@@ -67,10 +67,11 @@ sub get_text
         push( @{ $download_texts }, "(downloads pending extraction)" );
     }
 
-    my ( $title, $description ) =
-      $db->query( "select title, description from stories where stories_id = ?", $story->{ stories_id } )->flat;
+    # DRL - Does this code do anything commenting out for now...
+    # my ( $title, $description ) =
+    #   $db->query( "select title, description from stories where stories_id = ?", $story->{ stories_id } )->flat;
 
-    return get_text_from_download_text( $story, $download_texts );
+    return _get_text_from_download_text( $story, $download_texts );
 
 }
 
@@ -225,6 +226,28 @@ sub add_default_tags
 
     return $module_tags;
 }
+
+# sub update_rss_full_text_field
+# {
+#     my ( $db, $story ) = @_;
+
+#     my $medium = $db->query( "select * from media where media_id = ? ", $story->{ media_id } )->hash;
+
+#     my $full_text_in_rss = 0;
+
+#     if (medium->{full_text_rss} )
+#     {
+#       $full_text_in_rss = 1;
+#     }
+
+#     if (defined($story->{ full_text_rss }) && (story->{ full_text_rss } != $full_text_in_rss ) )
+#     {
+#        $story->{full_text_rss} = $full_text_in_rss;
+#        $db->query( "update stories set full_text_rss = ? where stories_id = ?", $full_text_rss, $story->{ stories_id } );
+#     }
+
+#     return $story;
+# }
 
 # query the download and call fetch_content
 sub fetch_content
