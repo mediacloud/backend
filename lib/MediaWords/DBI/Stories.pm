@@ -83,7 +83,7 @@ sub get_text_for_word_counts
     my $download_texts = $db->query(
         "select dt.download_text from downloads d, download_texts dt " .
           "  where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id",
-        $story->{stories_id}
+        $story->{ stories_id }
     )->hashes;
 
     return join( ". ", map { $_->{ download_text } } @{ $download_texts } );
