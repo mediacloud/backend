@@ -28,11 +28,6 @@ sub basic_search : Local
     if ( defined( $tsquery ) )
     {
 
-#          @matching_downloads = $c->dbis->query(
-#  "select stories.title, downloads_id from download_texts, stories where to_tsvector('english', download_text) @@ plainto_tsquery('english', ?) and stories.stories_id=downloads.stories_id",
-#              $tsquery
-#          )->flat;
-
         my $ranked_matches = $c->dbis->query(
 "select downloads_id, ts_rank_cd(to_tsvector('english', download_text), plainto_tsquery('english', ?), 4 | 1 | 16 ) AS rank from download_texts where to_tsvector('english', download_text) @@ plainto_tsquery('english', ?) ORDER BY rank ASC",
             $tsquery, $tsquery
