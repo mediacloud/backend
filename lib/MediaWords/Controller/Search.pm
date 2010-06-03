@@ -8,6 +8,12 @@ use Locale::Country;
 use URI::Escape;
 use DBIx::Simple;
 
+#
+#  This module is obsolete 
+#  The download_texts table no longer supports ts indexes
+#  Also we are now using word vectors for search.
+#
+
 sub index : Path : Args(0)
 {
 
