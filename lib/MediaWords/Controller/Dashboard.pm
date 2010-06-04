@@ -520,6 +520,65 @@ sub get_medium_day_sentences
     }
 }
 
+sub get_medium_day_stories
+{
+    my ( $c, $media_id, $stem, $dashboard_topic, $date_string, $days, $num_sentences ) = @_;
+
+    my $stories = [];
+
+    # we should make a num_stories somewhere, but for now we'll just use num_sentences
+
+    if ( $dashboard_topic )
+    {
+        $stories = $c->dbis->query(
+            "select distinct ssw.stories_id, s.title, s.url, s.publish_date
+            from story_sentence_words ssw, story_sentence_words sswq, stories s, dashboard_topics dt
+            where ssw.media_id=? and ssw.stem=?
+              and date_trunc('day', ssw.publish_date) = ( ?::date + interval '$days days' )
+              and dt.dashboard_topics_id=?
+              and s.stories_id=ssw.stories_id
+              and sswq.stem=dt.query
+              and ssw.stories_id=sswq.stories_id
+              and ssw.sentence_number=sswq.sentence_number
+            order by s.publish_date asc
+            limit $num_sentences",
+            $media_id, $stem, $date_string, $dashboard_topic->{ dashboard_topics_id }
+        )->hashes;
+    }
+    else
+    {
+        $stories = $c->dbis->query(
+            "select distinct ssw.stories_id, s.title, s.url, s.publish_date
+            from story_sentence_words ssw, stories s 
+            where ssw.media_id=? and ssw.stem=?
+              and date_trunc('day', ssw.publish_date) = ( ?::date + interval '$days days' )
+              and s.stories_id=ssw.stories_id
+            order by s.publish_date asc
+            limit $num_sentences",
+            $media_id, $stem, $date_string
+        )->hashes;
+    }
+
+    for my $story ( @{ $stories } )
+    {
+        my $id        = $story->{ stories_id };
+        my $sentences = $c->dbis->query( "
+            select distinct ss.sentence
+            from story_sentences ss, story_sentence_words ssw
+            where ssw.stem=? and ss.stories_id=?
+              and ss.stories_id=ssw.stories_id
+              and ss.sentence_number=ssw.sentence_number
+            order by ss.sentence asc
+            limit $num_sentences
+            ", $stem, $id )->flat;
+        $story->{ sentences } = $sentences;
+
+        $story->{ publish_date } = time2str( "%a %b %e, %Y", str2time( $story->{ publish_date } ) );
+    }
+
+    return $stories;
+}
+
 # list the sentence matching the given term for the given medium for the given week
 sub sentences_medium : Local
 {
@@ -553,6 +612,8 @@ sub sentences_medium : Local
 
     # get the sentences in chunks of a day apiece so that we can quit early if we get MAX_MEDIUM_SENTENCES
     my $sentences = [];
+    my $stories   = [];
+
     for my $days ( 0 .. 6 )
     {
         my $day_sentences =
@@ -562,6 +623,28 @@ sub sentences_medium : Local
         push( @{ $sentences }, @{ $day_sentences } );
 
         if ( @{ $sentences } >= MAX_MEDIUM_SENTENCES )
+        {
+            last;
+        }
+
+        # get title for each story
+        for my $sentence ( @{ $sentences } )
+        {
+            my $id    = $sentence->{ stories_id };
+            my $title = $c->dbis->query( "select title from stories where stories_id=$id" )->flat->[ 0 ];
+            $sentence->{ title } = $title;
+        }
+    }
+
+    for my $days ( 0 .. 6 )
+    {
+        my $day_stories =
+          get_medium_day_stories( $c, $media_id, $stem, $dashboard_topic, $date_string, $days,
+            ( MAX_MEDIUM_SENTENCES - @{ $stories } ) );
+
+        push( @{ $stories }, @{ $day_stories } );
+
+        if ( @{ $stories } >= MAX_MEDIUM_SENTENCES )
         {
             last;
         }
@@ -578,6 +661,7 @@ sub sentences_medium : Local
     $c->stash->{ sentences }       = $sentences;
     $c->stash->{ params }          = $c->req->params;
     $c->stash->{ template }        = 'dashboard/sentences_medium.tt2';
+    $c->stash->{ stories }         = $stories;
 }
 
 # list the sentence counts for each medium in the media set
