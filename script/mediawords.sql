@@ -7,6 +7,7 @@ create table media (
     moderated           boolean         not null,
     feeds_added         boolean         not null,
     moderation_notes    text            null,       
+    full_text_rss       boolean         not null default 'f',
     CONSTRAINT media_name_not_empty CHECK (((name)::text <> ''::text))
 );
 
@@ -216,7 +217,8 @@ create table stories (
     title                       text            not null,
     description                 text            null,
     publish_date                timestamp       not null,
-    collect_date                timestamp       not null
+    collect_date                timestamp       not null,
+    full_text_rss               boolean         not null default 'f'
 );
 
 /*create index stories_media on stories (media_id, guid);*/

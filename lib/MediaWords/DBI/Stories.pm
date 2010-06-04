@@ -36,6 +36,15 @@ sub _get_tags_id
     return $tag->{ tags_id };
 }
 
+sub _get_full_text_from_rss
+{
+    my ( $db, $story ) = @_;
+    
+    my $ret = html_strip( $story->{ title } || '' ) . "\n" . html_strip( $story->{ description } || '' );
+
+    return $ret;
+}
+
 # get the combined story title, story description, and download text of the text
 sub _get_text_from_download_text
 {
@@ -51,6 +60,11 @@ sub _get_text_from_download_text
 sub get_text
 {
     my ( $db, $story ) = @_;
+
+    if (_has_full_text_rss($db, $story) )
+    {
+       return _get_full_text_from_rss($db, $story);
+    }
 
     my $download_texts = $db->query(
         "select download_text from download_texts dt, downloads d " .
@@ -79,6 +93,11 @@ sub get_text
 sub get_text_for_word_counts
 {
     my ( $db, $story ) = @_;
+
+    if (_has_full_text_rss($db, $story) )
+    {
+       return _get_full_text_from_rss($db, $story);
+    }
 
     my $download_texts = $db->query(
         "select dt.download_text from downloads d, download_texts dt " .
@@ -227,27 +246,34 @@ sub add_default_tags
     return $module_tags;
 }
 
-# sub update_rss_full_text_field
-# {
-#     my ( $db, $story ) = @_;
+ sub update_rss_full_text_field
+ {
+     my ( $db, $story ) = @_;
 
-#     my $medium = $db->query( "select * from media where media_id = ? ", $story->{ media_id } )->hash;
+     my $medium = $db->query( "select * from media where media_id = ? ", $story->{ media_id } )->hash;
 
-#     my $full_text_in_rss = 0;
+     my $full_text_in_rss = 0;
 
-#     if (medium->{full_text_rss} )
-#     {
-#       $full_text_in_rss = 1;
-#     }
+     if ($medium->{full_text_rss} )
+     {
+       $full_text_in_rss = 1;
+     }
 
-#     if (defined($story->{ full_text_rss }) && (story->{ full_text_rss } != $full_text_in_rss ) )
-#     {
-#        $story->{full_text_rss} = $full_text_in_rss;
-#        $db->query( "update stories set full_text_rss = ? where stories_id = ?", $full_text_rss, $story->{ stories_id } );
-#     }
+     if (defined($story->{ full_text_rss }) && ($story->{ full_text_rss } != $full_text_in_rss ) )
+     {
+        $story->{full_text_rss} = $full_text_in_rss;
+        $db->query( "update stories set full_text_rss = ? where stories_id = ?", $full_text_in_rss, $story->{ stories_id } );
+     }
 
-#     return $story;
-# }
+     return $story;
+ }
+
+sub _has_full_text_rss
+{
+     my ( $db, $story ) = @_;
+
+     return $story->{ full_text_rss };
+}
 
 # query the download and call fetch_content
 sub fetch_content

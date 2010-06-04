@@ -19,5 +19,10 @@ elements:
         - type: URL
           message: This is not a url
         
+  - type: Checkbox
+    name: full_text_rss
+    label: Full Text RSS
+    comment: Whether the media source has the full text in the RSS
+
   - type: Submit
     value: Save

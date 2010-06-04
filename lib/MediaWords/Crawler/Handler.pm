@@ -147,6 +147,7 @@ sub _add_stories_and_content_downloads
                 # say STDERR "create story: " . Dumper( $story );
 
                 $story = $dbs->create( "stories", $story );
+		MediaWords::DBI::Stories::update_rss_full_text_field($dbs, $story)
             };
 
             if ( $@ )
