@@ -1,0 +1,48 @@
+[% title = 'Dashboard Topics List' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<p>
+<a href="[% c.uri_for( '/dashboards/create_topic/' _ dashboards_id )%]">Create New Dashboard Topic</a>
+</p>
+
+</fieldset>
+
+<p />
+
+<table>
+
+<tr>
+<th>name</th>
+<th>query</th>
+<th>start date</th>
+<th>end date</th>
+<th>vectors added</th>
+</tr>
+
+[% FOREACH dashboard_topic IN dashboard_topics -%]
+
+<tr [% IF even %]id="even"[% END %]>
+
+<td>[% dashboard_topic.name | html %]</td>
+
+<td>[% dashboard_topic.query | html %]</td>
+
+<td>[% dashboard_topic.start_date | html %]</td>
+
+<td>[% dashboard_topic.end_date | html %]</td>
+
+<td>[% IF dashboard_topic.vectors_added %]yes[% ELSE %]no[% END %]</td>
+
+</tr>
+
+[%  SET even = !even %]
+[% END # FOREACH dashboard_topic -%]
+
+</table>
+
+<p>
+</p>
+
+[% INCLUDE include/footer.tt2 %]

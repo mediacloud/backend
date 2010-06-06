@@ -1,0 +1,6 @@
+[% title = 'Edit Tags' -%]
+[% INCLUDE include/header.tt2 %]
+
+[% form.render %]
+  
+[% INCLUDE include/footer.tt2 %]
