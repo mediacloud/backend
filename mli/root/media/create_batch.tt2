@@ -1,0 +1,32 @@
+[% title = 'Add Media' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<form action="[% c.uri_for('/media/create_do') %]" method="post">
+
+<p>
+Enter up to media source one per line.  The format is: <br/>
+Media_Source_URL tag_set:tag [tag_set:tag;...]
+</p>
+
+<textarea name="urls" rows="20" cols="80">
+</textarea>
+
+<p>
+Enter tags to apply to all sources.  The format is: <br/>
+tag_set:tag [tag_set:tag;...]
+</p>
+<input name="tags" type="text" size="80" />
+
+<p>
+<input type="submit" value="Add Media" />
+</p>
+
+</form> 
+
+</fieldset>
+  
+
+ 
+[% INCLUDE include/footer.tt2 %]

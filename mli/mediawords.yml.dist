@@ -1,0 +1,49 @@
+---
+name: MediaWords
+
+### database settings. at least one database connection must be defined
+database:
+    - label : "LABEL"
+      type  : "pg"
+      host  : "HOST"
+      db    : "DATABASE"
+      user  : "USERNAME"
+      pass  : "PASSWORD"
+
+### everything below is optional.  the system should work out of the box without 
+### touching any of these other than calais_key for tagging
+
+#session:
+    #expires: 3600
+    
+    ### directory where web app sessions are stored.  default to $homedir/tmp
+    #storage: "~/tmp/mediawords-session"
+
+#mediawords:
+    ### defaults to http://$hostname:$port/.
+    #base_url: "http://your.mediacloud.server/and/path"
+    
+    ### parent directory of the content/ directory with all downloaded content is stored
+    #data_dir: "<bindir>/../data"
+
+    ### script directory
+    #script_dir: "<bindir>/../script"
+
+    ### fetch content from another instance of MediaCloud?
+    #fetch_remote_content          : "yes"
+    #fetch_remote_content_user     : username
+    #fetch_remote_content_password : password
+    #fetch_remote_content_url      : "http://admin.mediacloud.org/admin/downloads/view/"
+
+    #### Defaults to Algorithm::Cluster uncomment to use Cluto
+    #clustering_engine: "cluto"
+    #cluto_binary: "/usr/local/cluto/bin/vcluster"
+
+    ### needed for calais tagging
+    #calais_key: "CALAISKEY"
+
+    ### needed for yahoo tagging
+    #yahoo_key: "YAHOOKEY"
+
+    ### default to just NYTTopics
+    #default_tag_module: "NYTTopics Calais"

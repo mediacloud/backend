@@ -1,0 +1,21 @@
+[% title = 'Edit Media Set Cluster Run' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<form action="[% c.uri_for( '/mediasets/edit_cluster_run_do/' ) _ dashboard_media_set.dashboard_media_sets_id %]" method="POST">
+
+<div class="text label">
+<label>Cluster Run</label>
+<select name="media_cluster_runs_id">
+[% FOREACH media_cluster_run IN media_cluster_runs %]
+<option value="[% media_cluster_run.media_cluster_runs_id %]">[% media_cluster_run.description | html %] 
+([% media_cluster_run.num_clusters %])</option>
+[% END #FOREACH media_cluster_run IN media_cluster_runs %]
+</div>
+
+<input type="submit" value="edit" />
+
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]
