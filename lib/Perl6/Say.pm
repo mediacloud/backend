@@ -3,6 +3,10 @@
 
 # EVENTUALLY WE WOULD LIKE TO DROP SUPPORT FOR PERL 5.8 BUT UNFORTUNATELY OUR PRODUCTION SERVER IS ON UBUNTU 8.04 AND STILL RUNS THAT VERSION
 
+{
+use strict;  #added to make our test suite happy.
+}
+
 # THE CODE BELOW WAS WRITTEN BY Damian Conway and is included here unchanged.
 
 package Perl6::Say;
