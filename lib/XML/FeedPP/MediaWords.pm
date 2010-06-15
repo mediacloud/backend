@@ -1,5 +1,13 @@
 package XML::FeedPP::MediaWords;
 
+##
+#  This class is a wrapper to work around bugs in XML::FeedPP
+#  XML::FeedPP does not provide a way to grab the <content> element from RSS feeds
+#  It will only provide the <description> element which often has a summary instead of the full text
+#
+#  We wanted to sub class XML::FeedPP but XML::FeedPP cannot be subclassed so we have to use AUTOMETHOD to fake subclassing it.
+#
+##
 use strict;
 use warnings;
 use Perl6::Say;
