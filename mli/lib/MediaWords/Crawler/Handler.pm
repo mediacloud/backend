@@ -29,6 +29,7 @@ use MediaWords::Crawler::BlogSpiderPostingHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::Config;
+use MediaWords::DBI::Stories;
 
 # CONSTANTS
 
