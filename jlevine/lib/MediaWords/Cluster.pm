@@ -13,6 +13,7 @@ use Switch 'Perl6';
 
 use MediaWords::Cluster::Cluto;
 use MediaWords::Util::Config;
+use MediaWords::Cluster::Simat;
 
 # number of nfeatures parameter for the clustering run
 use constant NUM_FEATURES => 50;
@@ -310,6 +311,26 @@ sub execute_media_cluster_run
     #say STDERR Dumper($stems);
 
     my ( $matrix, $row_labels, $col_labels ) = _get_stem_matrix( $db, $cluster_run, $stems );
+    
+    
+    ##################  JON'S SIMAT HACKS #########################
+
+    my $mat_file = MediaWords::Cluster::Cluto::get_sparse_matrix_file($matrix);
+    my $cosines_raw = {};
+    %{ $cosines_raw } = MediaWords::Cluster::Simat::get_sparse_cosine_matrix($mat_file);
+    
+    # Fix media IDs for Cosine matrix
+    my $cosines = {};
+    while (my ($row, $cols) = each %{ $cosines_raw }) {
+        while (my ($target, $weight) = each %{ $cols }) {
+            $cosines->{ $row_labels->[$row - 1] }->{ $row_labels->[$target - 1] } = $weight;
+        }
+    }
+    
+    # print STDERR "\n\n" . Dumper($cosines) . "\n\n";
+    # print STDERR "ROW LABELS: " . Dumper($row_labels) . "\n\n";
+    
+    ##################  END SIMAT HACKS #########################
 
     my $clustering_engine = _get_clustering_engine();
 
@@ -330,7 +351,7 @@ sub execute_media_cluster_run
         die "Invalid value for mediawords->clustering_engine $clustering_engine";
     }
 
-    return $clusters;
+    return ($clusters, $cosines);
 }
 
 # if there are any features available for the cluster, use those to create a description
@@ -362,7 +383,7 @@ sub execute_and_store_media_cluster_run
 
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'executing' } );
 
-    my $clusters = execute_media_cluster_run( $db, $cluster_run );
+    my ($clusters, $cosines) = execute_media_cluster_run( $db, $cluster_run );
 
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'completed' } );
 
@@ -380,6 +401,9 @@ sub execute_and_store_media_cluster_run
             }
         );
 
+        # keep track of where you are for the internal/external zscore arrays
+        my $media_id_cnt = 0;
+        
         for my $media_id ( @{ $cluster->{ media_ids } } )
         {
 
@@ -390,6 +414,23 @@ sub execute_and_store_media_cluster_run
                     media_id          => $media_id
                 }
             );
+            
+            
+            # put internal/external features in the database
+            $db->create(
+                'media_cluster_zscores',
+                {
+                    media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
+                    media_clusters_id     => $media_cluster->{ media_clusters_id },
+                    media_id              => $media_id,
+                    internal_zscore       => $cluster->{ internal_zscores }->[$media_id_cnt],
+                    internal_similarity   => $cluster->{ internal_similarity },
+                    external_zscore       => $cluster->{ external_zscores }->[$media_id_cnt],
+                    external_similarity   => $cluster->{ external_similarity }
+                }
+            );
+            
+            $media_id_cnt++;
         }
 
         for my $int_feature ( @{ $cluster->{ internal_features } } )
@@ -420,6 +461,29 @@ sub execute_and_store_media_cluster_run
             );
         }
     }
+    
+    ############### JON'S ATTEMPT TO STORE LINKS FROM COSINE MATRIX #####################
+    # This code is adapted from Text::SenseClusters::simat.pl
+    # (See MediaWords::Cluster::Simat.pm for more info)
+    
+    print STDERR "\n\nCOSINES:" . Dumper($cosines) . "\n\n";
+    
+    while (my ($source, $cols) = each %{ $cosines }) {
+        while (my ($target, $weight) = each %{ $cols }) {
+            if ($weight != 1) {
+                $db->create(
+                    'media_cluster_links',
+                    {
+                        media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },  
+                        source_media_id       => $source,
+                        target_media_id       => $target,
+                        weight                => $weight
+                    }
+                );
+            }     
+        }
+    }
+    ################################ END ATTEMPT ##############################
 
     return $clusters;
 }
