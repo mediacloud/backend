@@ -1,0 +1,16 @@
+div.inline {
+  position: relative;
+  display: inline-block;
+  width: 49%;
+  height: 400px;
+  vertical-align: top;
+}
+
+div.inline.left {
+  margin-right: 0.5%;
+}
+
+div.inline.right {
+  border: silver solid 1px;
+  padding: 0px;
+}
