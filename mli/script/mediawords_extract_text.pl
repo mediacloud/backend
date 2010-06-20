@@ -67,8 +67,9 @@ sub extract_text
                 #     print STDERR "[$process_num] $download->{downloads_id} $module: "
                 #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
                 # }
-
-                MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
+				
+				#assume the text is in Chinese, in future, I need to write a module to test the language of the text
+                MediaWords::StoryVectors::update_story_sentence_words_ZH( $db, $story );
             }
             else
             {

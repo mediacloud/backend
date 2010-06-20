@@ -91,4 +91,63 @@ sub translate
     return $ret;
 }
 
+sub _translate_ZH
+{
+    my $original_text = shift;
+
+    say STDERR "starting translate";
+
+    my $service = WebService::Google::Language->new(
+        'referer' => 'http://example.com/',
+        'src'     => 'ch',
+        'dest'    => 'en',
+    );
+
+    my $text = $original_text;
+
+    trim( $text );
+
+    return $original_text unless $text;
+
+    say STDERR "sending request for '$text'";
+
+    my $result = $service->translate( substr( $text, 0, 500 ) );
+
+    say STDERR "got result";
+
+    if ( $result->error )
+    {
+        say STDERR $result->message;
+        say STDERR 'error translating';
+        return $text;
+    }
+    else
+    {
+        say STDERR 'no error translating';
+        say STDERR $result->translation;
+        return $result->translation;
+    }
+}
+
+sub translate_ZH
+{
+    my $text = shift;
+
+    my $ret = $cache->get( $text );
+    if ( !defined( $ret ) )
+    {
+
+        #say STDERR "Translation for '$text' not in cache";
+        $ret = _translate( $text );
+        $cache->set( $text, $ret );
+    }
+    else
+    {
+
+        #say STDERR "Translation for '$text' in cache";
+    }
+
+    return $ret;
+}
+
 1;

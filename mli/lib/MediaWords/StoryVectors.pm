@@ -5,7 +5,9 @@ package MediaWords::StoryVectors;
 use strict;
 
 use Encode;
+use Encode::HanConvert;
 use Perl6::Say;
+use Lingua::ZH::WordSegmenter;
 
 use Lingua::EN::Sentence::MediaWords;
 use MediaWords::DBI::Stories;
@@ -14,6 +16,7 @@ use MediaWords::Util::StopWords;
 
 use Date::Format;
 use Date::Parse;
+use utf8;
 
 # minimum length of words in story_sentence_words
 use constant MIN_STEM_LENGTH => 3;
@@ -96,6 +99,15 @@ sub _tokenize
     }
 
     return $tokens;
+}
+
+#Chinese tokenizer, returns an array of Chinese words
+sub _tokenize_ZH
+{
+	my ( $s ) = @_;
+	my $segmenter = Lingua::ZH::WordSegmenter->new("dic");
+	my @tokens = split(/ /, $segmenter->seg($s, "utf8"));
+	return @tokens;
 }
 
 # if the length of the string is greater than the given length, cut to that length
@@ -231,6 +243,59 @@ sub update_story_sentence_words
 
     _insert_story_sentence_words( $db, $story, $sentence_word_counts );
 }
+
+
+#update the story sentence words if the word is in Chinese
+sub update_story_sentence_words_ZH
+{
+    my ( $db, $story_ref, $no_delete ) = @_;
+
+    my $story = _get_story( $db, $story_ref );
+
+    $no_delete || $db->query( "delete from story_sentence_words where stories_id = ?", $story->{ stories_id } );
+    $no_delete || $db->query( "delete from story_sentences where stories_id = ?",      $story->{ stories_id } );
+
+    my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
+
+	#convert traditional characters into simplified characters
+	$story_text =trad_to_simp ($story_text);
+	$story_text=encode("utf8", $story_text); 
+
+ 	my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $story_text ) || return;
+    my %stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
+	my $count=0;
+
+    my $sentence_word_counts;
+
+    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
+    {
+		my @words=_tokenize_ZH($sentences->[ $sentence_num ]);;
+
+        for ( my $word_num = 0 ; $word_num < $#words; $word_num++ )
+        {
+            my ($word)=(@words[$word_num ]);
+			if (( !%stop_words->{ $word } )){
+          	  $sentence_word_counts->{ $sentence_num }->{ $word }->{ word } ||= $word;
+          	  $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
+			}
+        }
+		_insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
+    }
+	 
+	_insert_story_sentence_words( $db, $story, $sentence_word_counts );
+	
+	q{#testing print
+	while ( my ($key, $value) = each(%$sentence_word_counts) ) {
+		 	print "level 1:  $key\n";
+			while ( my ($key, $value1) = each(%$value) ) {
+       				 print "*level 2:  $key\n";
+				while ( my ($key, $value2) = each(%$value1) ) {
+		   				 print "**level 3:  $key => $value2\n";
+	   			 }
+   			}
+	 }};
+}
+
 
 # fill the story_sentence_words table with all stories in ssw_queue
 sub fill_story_sentence_words

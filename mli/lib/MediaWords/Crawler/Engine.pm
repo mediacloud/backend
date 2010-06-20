@@ -5,7 +5,7 @@ package MediaWords::Crawler::Engine;
 # * get Requests from Provider
 # * provide Request to each waiting crawlers
 #
-# * with each crawler
+# * with each crawler  
 #   * get Request from engine
 #   * fetch Request with Fetcher
 #   * handle Request with Handler#
