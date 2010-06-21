@@ -22,6 +22,7 @@ with perl and cpan.
      sudo su -
      su - postgres
      createuser -s mediaclouduser --pwprompt 
+     createdb --owner mediaclouduser mediacloud
 
 * Copy mediawords.yml.dist to mediawords.yml.
 
