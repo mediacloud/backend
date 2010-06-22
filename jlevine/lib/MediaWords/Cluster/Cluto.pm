@@ -54,6 +54,7 @@ sub _get_sparse_matrix
 }
 
 # write the sparse matrix to a file in the cluto format and return the name of the file
+# This is now "public"; used in generating matrix for Simat.pm
 sub get_sparse_matrix_file
 {
     my ( $matrix ) = @_;

@@ -10,6 +10,11 @@ use MediaWords::Cluster;
 use MediaWords::Util::Tags;
 use Data::Dumper;
 
+# Set a threshold for link weight--links won't be displayed if they're less than this
+# This reduces the number of links substantially, making it easier for the client to render
+# It also improves the visualization by reducing a lot of noise
+use constant MIN_LINK_WEIGHT => 0.2;
+
 sub index : Path : Args(0)
 {
     return list( @_ );
@@ -70,17 +75,29 @@ sub view : Local
     my $media_clusters =
       $c->dbis->query( "select * from media_clusters where media_cluster_runs_id = ?", $cluster_runs_id )->hashes;
 
-   
-    my @nodes = [];           # create an array of node hashes
-    $nodes[0] = {};           # initialize the first node -- must be a hash ref!
-    # $nodes[0]->{ name }       = $run->{ description };
-    # $nodes[0]->{ node_id }    = 0;
-    # $nodes[0]->{ cluster_id } = 0;
-    # $nodes[0]->{ media_id }   = 0;
-    # $nodes[0]->{ links }      = [{}];
+    # $nodes should ultimately look like this: 
+    # $nodes = [
+    #     media_id1 => {
+    #         name                => "name",
+    #         cluster_id          => $cluster_id,
+    #         media_id            => $media_id,
+    #         internal_zscore     => $int_zscore,
+    #         internal_similarity => $int_sim,
+    #         external_zscore     => $ext_zscore,
+    #         external_similarity => $ext_sim,
+    #         links => [
+    #             {
+    #                 target_id => $target_1_id
+    #                 weight    => $link_1_weight
+    #             },
+    #             ...
+    #         ]
+    #     },
+    #     ...
+    # ]
     
-    
-    my @clusters = [];       # store away the info about clusters...
+    my $nodes = [];  
+    $nodes->[0] = {}; # initialize the first node -- must be a hash ref!
     
     for my $mc ( @{ $media_clusters } )
     {   
@@ -97,27 +114,18 @@ sub view : Local
         )->hashes;
         $mc->{ media } = $mc_media;
         
-        ######### DO NOT Make the cluster center a node ###############
-        # $nodes[$node_id_count] = {};
-        # $nodes[$node_id_count]->{ name }       = $mc->{ description } . " ($cluster_id)";
-        # $nodes[$node_id_count]->{ node_id }    = $node_id_count;
-        # $nodes[$node_id_count]->{ cluster_id } = $cluster_id;
-        # $nodes[$node_id_count]->{ media_id }   = 0;
-        # $nodes[$node_id_count]->{ links }      = [{}];
-        # $node_id_count++;
-        
-        # for each source, add its info to the JSON object
+        # for each source, add its info to the nodes array
         for my $source (@{ $mc_media }) {
             my $mid  = $source->{ media_id };
-            $nodes[$mid] = {};
-            $nodes[$mid]->{ name }       = $source->{ name };
-            $nodes[$mid]->{ cluster_id } = $cluster_id;
-            $nodes[$mid]->{ media_id }   = $mid;
-            $nodes[$mid]->{ links }      = [];
-            $nodes[$mid]->{ internal_zscore } = $source->{ internal_zscore };
-            $nodes[$mid]->{ internal_similarity } = $source->{ internal_similarity };
-            $nodes[$mid]->{ external_zscore } = $source->{ external_zscore };
-            $nodes[$mid]->{ external_similarity } = $source->{ external_similarity };
+            $nodes->[$mid] = {
+                name                => $source->{ name },
+                cluster_id          => $cluster_id,
+                media_id            => $mid,
+                internal_zscore     => $source->{ internal_zscore },
+                internal_similarity => $source->{ internal_similarity },
+                external_zscore     => $source->{ external_zscore },
+                external_similarity => $source->{ external_similarity },
+            };
         }
         
         $mc->{ internal_features } = $c->dbis->query(
@@ -136,103 +144,135 @@ sub view : Local
 
     $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );    
     
-    ############# Add links from cluster_links table ########################
+    $nodes = _add_links_to_nodes($c, $cluster_runs_id, $nodes); # could also use &_get_links_from_zscores here
+    
+    # print STDERR "\@nodes: " . Dumper(@nodes);
+
+    $c->stash->{ media_clusters } = $media_clusters;
+    $c->stash->{ run }            = $run;
+    $c->stash->{ template }       = 'clusters/view.tt2';
+    $c->stash->{ data }           = _get_json_object_from_nodes($nodes);
+}
+
+sub _my_escape {
+    use MediaWords::Util::HTML;
+    
+    my ($s) = @_;
+    
+    $s = MediaWords::Util::HTML::html_strip($s);
+    
+    $s =~ s/'/\\'/g;
+    
+    return $s;
+}
+
+sub _get_json_object_from_nodes {
+    my ($nodes) = @_;
+    
+    my $data = "{ nodes:[";   # prep JSON object as string
+    
+    # add nodes to data string
+    my $node_id_count = 0;   # intialize count of node_ids
+    for my $node (@$nodes) {
+        # Don't render orphan nodes--i.e. those that don't have any links > MIN_LINK_WEIGHT
+        if ( defined $node->{ links } && scalar @{ $node->{ links } } > 0 ) { 
+            my $node_name      = _my_escape( $node->{ name } ) or next;
+            my $group          = $node->{ cluster_id };   
+            $node->{ node_id } = $node_id_count++;
+            $data .= "{ nodeName:'$node_name', group:$group },\n";
+        }
+    }
+    
+    $data .= ' ], links:[';   # close nodes section, start links
+    
+    # add links to data string
+    for my $node (@$nodes) {
+        my $source_id = $node->{ node_id };
+        for my $link (@{ $node->{ links } }) {
+            if ( defined $nodes->[ $link->{ target_id } ]->{ links } ) { 
+                my $target = $nodes->[ $link->{ target_id } ]->{ node_id };
+                my $value = ($link->{ weight }) * 10 or next; # make node weight [0,10] not [0,1]
+                
+                # don't double-add links; only add those links where the target id is greater tha the source id
+                # maybe this should be handled in Cluster.pm when we store these links...
+                $data .= "{ source:$source_id, target:$target, value:$value },\n" if $source_id < $target;
+            }
+        }
+    }
+    
+    $data .= '] }';     # write end of data string
+    
+    # print STDERR "\$data: $data\n\n";
+    
+    return $data;
+}
+
+# Old way of computing links: based on internal/external z-scores/similarities from cluto
+sub _get_links_from_zscores {
+    my ($nodes) = @_;
+    
+    for my $node (@{ $nodes }) {
+    
+        my $node_id = $node->{ node_id };   # store away node id
+        
+        my $cluster_id = $node->{ cluster_id };
+        
+        ## use 2 ^ whatever to avoid negatives....
+        my $ext_zscore = 2 ** $node->{ external_zscore };        # store the node's external weight
+        my $ext_sim    = 2 ** $node->{ external_similarity };    # store the node's external similarity
+        my $ext_weight = $ext_zscore > 100 ? $ext_sim : $ext_sim + $ext_zscore;  # sanity check
+        
+        
+        my $int_zscore = 2 ** $node->{ internal_zscore };        # store the node's internal weight
+        my $int_sim    = 2 ** $node->{ internal_similarity };    # store the node's internal similarity
+    
+        for my $sibling (@{ $nodes }) {            # find connections to other nodes              
+            if ($sibling->{ media_id } > 0 && $sibling->{ node_id } != $node_id) { # only real ones!
+                
+                my $target_id = $sibling->{ node_id };
+                
+                if ( $sibling->{ cluster_id } == $cluster_id) { # find the sibling nodes
+                    my $target_int_weight = 2 ** $sibling->{ internal_zscore };
+                    my $int_weight        = $int_sim + $int_zscore + $target_int_weight;
+                    push(@{ $node->{ links } }, { target_id => $target_id, weight => ($int_weight) } );
+                }
+                else {
+                    my $target_ext_zscore = 2 ** $sibling->{ external_zscore };
+                    my $target_ext_sim    = 2 ** $node->{ external_similarity };    # store the node's external similarity
+                    my $target_ext_weight = $target_ext_zscore > 500 ? $target_ext_sim : $target_ext_sim + $target_ext_zscore;
+                    my $weight = ($ext_weight + $target_ext_weight)/2;
+                    if ($weight > 1.5 ) { 
+                        push(@{ $node->{ links } }, { target_id => $target_id, weight => $weight } );
+                    }     
+                }
+            }
+        }
+    }
+    
+    return $nodes;
+}
+
+# Query media_cluster_links and add links to each node
+sub _add_links_to_nodes {
+    my ($c, $cluster_runs_id, $nodes) = @_;
    
     my $links = $c->dbis->query(
         "select mcl.* from media_cluster_links mcl where mcl.media_cluster_runs_id = ?", $cluster_runs_id
     )->hashes;
     
-    for my $link (@{ $links }) {   
-        push( @{ $nodes[ $link->{ source_media_id } ]->{ links } }, {
-                target_id => $link->{ target_media_id },
-                weight    => $link->{ weight }
-            }
-        );
-    }
-    
-    print STDERR "\n\nLINKS: " . Dumper($links) . "\n\n";
-    
-    ################ OLD WAY: links based on Cluto Z-scores ############################
-    # for my $node (@nodes) {
-    # 
-    #     my $node_id = $node->{ node_id }; # store away node id
-    #     # if ($node_id == 0 ) { next; }     # skip to the next thing if using a center node
-    #     
-    #     my $cluster_id = $node->{ cluster_id };
-    #     
-    #     ## use 10 ^ whatever to avoid negatives....
-    #     my $ext_zscore = 2 ** $node->{ external_zscore };        # store the node's external weight
-    #     my $ext_sim    = 2 ** $node->{ external_similarity };    # store the node's external similarity
-    #     my $ext_weight = $ext_zscore > 100 ? $ext_sim : $ext_sim + $ext_zscore;  # sanity check
-    #     
-    #     
-    #     my $int_zscore = 100 ** $node->{ internal_zscore };        # store the node's internal weight
-    #     my $int_sim    = 100 ** $node->{ internal_similarity };    # store the node's internal similarity
-    # 
-    #     for my $sibling (@nodes) {            # find connections to other nodes              
-    #         if ($sibling->{ media_id } > 0 && $sibling->{ node_id } != $node_id) { # only real ones!
-    #             
-    #             my $target_id = $sibling->{ node_id };
-    #             
-    #             if ( $sibling->{ cluster_id } == $cluster_id) { # find the sibling nodes
-    #                 my $target_int_weight = 100 ** $sibling->{ internal_zscore };
-    #                 my $int_weight        = $int_sim + $int_zscore + $target_int_weight;
-    #                 push(@{ $node->{ links } }, { target_id => $target_id, weight => ($int_weight) } );
-    #             }
-    #             else {
-    #                 my $target_ext_zscore = 2 ** $sibling->{ external_zscore };
-    #                 my $target_ext_sim    = 2 ** $node->{ external_similarity };    # store the node's external similarity
-    #                 my $target_ext_weight = $target_ext_zscore > 500 ? $target_ext_sim : $target_ext_sim + $target_ext_zscore;
-    #                 my $weight = ($ext_weight + $target_ext_weight)/2;
-    #                 if ($weight > 1.5 ) { 
-    #                     push(@{ $node->{ links } }, { target_id => $target_id, weight => $weight } );
-    #                 }     
-    #             }
-    #         }
-    #     }
-    # }
-    
-    ################################ NEW WAY: Links based on SIMAT scores ##############################
-    
-    
-    print STDERR "\@nodes: " . Dumper(@nodes);
-    
-    # prep data string
-    my $data = "{ nodes:[";
-    
-    my $node_id_count = 0;   # intialize count of node_ids
-    
-    # print nodes:
-    for my $node (@nodes) {
-        my $node_name      = $node->{ name } or next;
-        my $group          = $node->{ cluster_id };   
-        $node->{ node_id } = $node_id_count++;
-        $data .= "{ nodeName:'$node_name', group:$group },\n";
-    }
-    
-    # close nodes section, start data
-    $data .= ' ], links:[';
-    
-    # add links to data string
-    for my $node (@nodes) {
-        my $source_id = $node->{ node_id };
-        for my $link (@{ $node->{ links } }) {
-            my $target = $nodes[ $link->{ target_id } ]->{ node_id };
-            my $value = ($link->{ weight }) * 10 or next;
-            $data .= "{ source:$source_id, target:$target, value:$value },\n";
+    for my $link (@{ $links }) {
+        if ( $link->{ weight } > MIN_LINK_WEIGHT ) {       
+            push( @{ $nodes->[ $link->{ source_media_id } ]->{ links } }, {
+                    target_id => $link->{ target_media_id },
+                    weight    => $link->{ weight }
+                }
+            );
         }
     }
     
-    # write end of data string
-    $data .= '] }';
+    # print STDERR "\n\nLINKS: " . Dumper($links) . "\n\n";
     
-    print STDERR "\$data: $data\n\n";
-    
-
-    $c->stash->{ media_clusters } = $media_clusters;
-    $c->stash->{ run }            = $run;
-    $c->stash->{ template }       = 'clusters/view.tt2';
-    $c->stash->{ data }           = $data;
+    return $nodes;
 }
 
 1;

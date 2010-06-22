@@ -18,6 +18,9 @@ use MediaWords::Cluster::Simat;
 # number of nfeatures parameter for the clustering run
 use constant NUM_FEATURES => 50;
 
+# Set the minimum frequency for words to appear in the sparse stem matrix
+use constant MIN_FREQUENCY => 0;
+
 # cached word vectors in the form of { media_id => [ $top_500_weekly_media_words_hashes ] }
 my $_cached_media_word_vectors;
 
@@ -72,7 +75,7 @@ sub _get_stem_lookup
 sub _get_medium_stem_vector
 {
     my ( $db, $medium, $cluster_run, $stems ) = @_;
-
+    
     my $words = $_cached_media_word_vectors->{ $medium->{ media_id } };
 
     my $all_stem_count = 0;
@@ -94,16 +97,18 @@ sub _get_medium_stem_vector
     for my $word ( @{ $words } )
     {
         my $p = $word->{ stem_count } / $all_stem_count;
-        $stem_vector->[ $stems->Indices( $word->{ stem } ) ] = $p;
-
-        if ( $medium->{ media_id } == 158 )
-        {
-            print STDERR "tpm: $word->{ stem } - $p\n";
-        }
-
-        if ( $word->{ stem } eq 'obama' )
-        {
-            print STDERR $medium->{ name } . " 'obama': " . $stems->Indices( $word->{ stem } ) . " - " . $p . "\n";
+        if ($p > MIN_FREQUENCY) {   # Only add words if they have a significant-enough frequency
+            $stem_vector->[ $stems->Indices( $word->{ stem } ) ] = $p;
+        
+            if ( $medium->{ media_id } == 158 )
+            {
+                print STDERR "tpm: $word->{ stem } - $p\n";
+            }
+        
+            if ( $word->{ stem } eq 'obama' )
+            {
+                print STDERR $medium->{ name } . " 'obama': " . $stems->Indices( $word->{ stem } ) . " - " . $p . "\n";
+            }
         }
     }
 
@@ -123,7 +128,7 @@ sub _get_medium_stem_vector
 sub _get_stem_matrix
 {
     my ( $db, $cluster_run, $stems ) = @_;
-
+    
     my $media = $db->query(
         "select distinct m.* from media m, media_sets_media_map msmm " .
           "  where m.media_id = msmm.media_id and msmm.media_sets_id = ? ",
@@ -289,6 +294,33 @@ sub _get_clustering_engine
     return $clustering_engine;
 }
 
+# Use Cluto.pm to get the spare matrix file; send it to Simat.pm to get a spare matrix
+# with cosines similarities between every two vectors
+sub _get_cosine_sim_matrix {
+    
+    my ($matrix, $row_labels) = @_;
+    
+    # print STDERR "\n\n matrix: " . Dumper($matrix) . "\n\n";
+
+    my $mat_file = MediaWords::Cluster::Cluto::get_sparse_matrix_file($matrix);
+    my $cosines_raw = {};
+    %{ $cosines_raw } = MediaWords::Cluster::Simat::get_sparse_cosine_matrix($mat_file);
+    
+    # Fix media IDs for Cosine matrix
+    my $cosines = {};
+    while (my ($row, $cols) = each %{ $cosines_raw }) {
+        while (my ($target, $weight) = each %{ $cols }) {
+            $cosines->{ $row_labels->[$row - 1] }->{ $row_labels->[$target - 1] } = $weight;
+        }
+    }
+    
+    # print STDERR "\n\nCOSINES:" . Dumper($cosines) . "\n\n";
+    # print STDERR "\n\nROW LABELS: " . Dumper($row_labels) . "\n\n";
+    
+    return $cosines;
+    
+}
+
 # PUBLIC FUNCTIONS
 
 # execute a media cluster run, which is a hash with the following fields:
@@ -312,25 +344,7 @@ sub execute_media_cluster_run
 
     my ( $matrix, $row_labels, $col_labels ) = _get_stem_matrix( $db, $cluster_run, $stems );
     
-    
-    ##################  JON'S SIMAT HACKS #########################
-
-    my $mat_file = MediaWords::Cluster::Cluto::get_sparse_matrix_file($matrix);
-    my $cosines_raw = {};
-    %{ $cosines_raw } = MediaWords::Cluster::Simat::get_sparse_cosine_matrix($mat_file);
-    
-    # Fix media IDs for Cosine matrix
-    my $cosines = {};
-    while (my ($row, $cols) = each %{ $cosines_raw }) {
-        while (my ($target, $weight) = each %{ $cols }) {
-            $cosines->{ $row_labels->[$row - 1] }->{ $row_labels->[$target - 1] } = $weight;
-        }
-    }
-    
-    # print STDERR "\n\n" . Dumper($cosines) . "\n\n";
-    # print STDERR "ROW LABELS: " . Dumper($row_labels) . "\n\n";
-    
-    ##################  END SIMAT HACKS #########################
+    my $cosines = _get_cosine_sim_matrix($matrix, $row_labels);
 
     my $clustering_engine = _get_clustering_engine();
 
@@ -401,7 +415,7 @@ sub execute_and_store_media_cluster_run
             }
         );
 
-        # keep track of where you are for the internal/external zscore arrays
+        # keep track of where you are in the internal/external zscore arrays
         my $media_id_cnt = 0;
         
         for my $media_id ( @{ $cluster->{ media_ids } } )
@@ -416,7 +430,7 @@ sub execute_and_store_media_cluster_run
             );
             
             
-            # put internal/external features in the database
+            # put internal/external zscores and similarities in the database
             $db->create(
                 'media_cluster_zscores',
                 {
@@ -462,15 +476,10 @@ sub execute_and_store_media_cluster_run
         }
     }
     
-    ############### JON'S ATTEMPT TO STORE LINKS FROM COSINE MATRIX #####################
-    # This code is adapted from Text::SenseClusters::simat.pl
-    # (See MediaWords::Cluster::Simat.pm for more info)
-    
-    print STDERR "\n\nCOSINES:" . Dumper($cosines) . "\n\n";
-    
+    # Store links from the cosine matrix
     while (my ($source, $cols) = each %{ $cosines }) {
         while (my ($target, $weight) = each %{ $cols }) {
-            if ($weight != 1) {
+            if ($weight != 1) { # Don't store self-links
                 $db->create(
                     'media_cluster_links',
                     {
@@ -483,7 +492,6 @@ sub execute_and_store_media_cluster_run
             }     
         }
     }
-    ################################ END ATTEMPT ##############################
 
     return $clusters;
 }

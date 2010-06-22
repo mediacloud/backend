@@ -89,25 +89,38 @@
             .width(w)
             .height(h)
             .fillStyle("white")
-            .event("mousedown", pv.Behavior.pan())
-            .event("mousewheel", pv.Behavior.zoom());
+            // .event("mousedown", pv.Behavior.pan())
+            // .event("mousewheel", pv.Behavior.zoom())
+            ;
 
-        var force = vis.add(pv.Layout.Force)
+        var force = vis.add(pv.Layout.Force)    
+            .iterations(200)
+            .bound(true)
+            // .dragConstant(10)
+            // .chargeMinDistance(0.5)
+            .chargeConstant(-100)
+            // .chargeTheta(0.1)
+            // .springConstant(0.01)
+            // .springDamping(0.5)
+            .springLength(15)
             .nodes(sources.nodes)
             .links(sources.links);
 
-        force.link.add(pv.Line);
+        force.link.add(pv.Line)
+            .lineWidth(0.1); // Don't specify this!!
 
         force.node.add(pv.Dot)
+            // .size(10)
             .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5))
             .fillStyle(function(d) d.fix ? "brown" : colors(d.group))
             .strokeStyle(function() this.fillStyle().darker())
-            .lineWidth(1)
+            .lineWidth(1) 
             .title(function(d) d.nodeName)
-            .event("mousedown", pv.Behavior.drag())
-            .event("drag", force);
+            // .event("mousedown", pv.Behavior.drag())
+            // .event("drag", force)
+            ;
 
-        vis.render();
+        vis.render(); 
       </script>
     </div>
   </body>

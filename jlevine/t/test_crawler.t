@@ -38,7 +38,7 @@ sub add_test_feed
         "insert into feeds (media_id, name, url) values (?, ?, ?) returning *",
         $test_medium->{ media_id },
         '_ Crawler Test',
-        "$url_to_crawl" . "gv/test.rss"
+        "$url_to_crawl" . "gv/test3.rss"
     )->hash;
 
     ok( $feed->{ feeds_id }, "test feed created" );
@@ -124,7 +124,7 @@ sub test_stories
 
     my $stories = get_expanded_stories( $db, $feed );
 
-    is( @{ $stories }, 15, "story count" );
+    is( @{ $stories }, 7, "story count" );
 
     my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
 
@@ -138,17 +138,24 @@ sub test_stories
         {
             for my $field ( qw(publish_date description guid extracted_text) )
             {
-                oldstyle_diff;
+                unified_diff;
 
-              TODO:
+                TODO:
                 {
                     my $fake_var;    #silence warnings
-                     #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
+                    #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
                     is( $story->{ $field }, $test_story->{ $field }, "story $field match" );
                 }
             }
 
+            # if ($story->{ content } ne $test_story->{ content }) {
+            #     print "Stories ID: " . $story->{stories_id} . "\n";
+            #     print "Story: " . $story->{ content } . "\n";
+            #     print "Test story: " . $test_story->{ content } . "\n";
+            # }
+            
             eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
+            
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
           TODO:
