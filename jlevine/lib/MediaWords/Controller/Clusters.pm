@@ -144,9 +144,10 @@ sub view : Local
 
     $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );    
     
-    $nodes = _add_links_to_nodes($c, $cluster_runs_id, $nodes); # could also use &_get_links_from_zscores here
+    $nodes = _add_links_to_nodes($c, $cluster_runs_id, $nodes);
+    # $nodes = _add_links_from_zscores($nodes); # Alternative method to add links
     
-    # print STDERR "\@nodes: " . Dumper(@nodes);
+    # print STDERR "\$nodes: " . Dumper($nodes);
 
     $c->stash->{ media_clusters } = $media_clusters;
     $c->stash->{ run }            = $run;
@@ -191,7 +192,7 @@ sub _get_json_object_from_nodes {
         for my $link (@{ $node->{ links } }) {
             if ( defined $nodes->[ $link->{ target_id } ]->{ links } ) { 
                 my $target = $nodes->[ $link->{ target_id } ]->{ node_id };
-                my $value = ($link->{ weight }) * 10 or next; # make node weight [0,10] not [0,1]
+                my $value = ($link->{ weight }) or next; 
                 
                 # don't double-add links; only add those links where the target id is greater tha the source id
                 # maybe this should be handled in Cluster.pm when we store these links...
@@ -208,45 +209,49 @@ sub _get_json_object_from_nodes {
 }
 
 # Old way of computing links: based on internal/external z-scores/similarities from cluto
-sub _get_links_from_zscores {
+sub _add_links_from_zscores {
     my ($nodes) = @_;
+    
+    use constant WEIGHT_SCALE => 2;
     
     for my $node (@{ $nodes }) {
     
-        my $node_id = $node->{ node_id };   # store away node id
-        
+        my $node_id = $node->{ media_id } or next;   # store away node id
         my $cluster_id = $node->{ cluster_id };
         
         ## use 2 ^ whatever to avoid negatives....
-        my $ext_zscore = 2 ** $node->{ external_zscore };        # store the node's external weight
-        my $ext_sim    = 2 ** $node->{ external_similarity };    # store the node's external similarity
-        my $ext_weight = $ext_zscore > 100 ? $ext_sim : $ext_sim + $ext_zscore;  # sanity check
+        my $ext_zscore = WEIGHT_SCALE ** $node->{ external_zscore };        # store the node's external weight
+        my $ext_sim    = WEIGHT_SCALE ** $node->{ external_similarity };    # store the node's external similarity
+        my $ext_weight = $ext_zscore > 100 ? $ext_sim : $ext_sim / 50 + $ext_zscore;  # sanity check
         
         
-        my $int_zscore = 2 ** $node->{ internal_zscore };        # store the node's internal weight
-        my $int_sim    = 2 ** $node->{ internal_similarity };    # store the node's internal similarity
+        my $int_zscore = WEIGHT_SCALE ** $node->{ internal_zscore };        # store the node's internal weight
+        my $int_sim    = WEIGHT_SCALE ** $node->{ internal_similarity };    # store the node's internal similarity
     
-        for my $sibling (@{ $nodes }) {            # find connections to other nodes              
-            if ($sibling->{ media_id } > 0 && $sibling->{ node_id } != $node_id) { # only real ones!
-                
-                my $target_id = $sibling->{ node_id };
-                
+        for my $sibling (@{ $nodes }) {            # find connections to other nodes        
+            my $target_id = $sibling->{ media_id } or next;
+                      
+            if ($target_id > 0 && $target_id != $node_id) { # only real ones!
+
                 if ( $sibling->{ cluster_id } == $cluster_id) { # find the sibling nodes
-                    my $target_int_weight = 2 ** $sibling->{ internal_zscore };
+                    my $target_int_weight = WEIGHT_SCALE ** $sibling->{ internal_zscore };
                     my $int_weight        = $int_sim + $int_zscore + $target_int_weight;
-                    push(@{ $node->{ links } }, { target_id => $target_id, weight => ($int_weight) } );
+                    push(@{ $node->{ links } }, { target_id => $target_id, weight => ($int_weight) } )
+                        if $int_weight > 3;
                 }
-                else {
-                    my $target_ext_zscore = 2 ** $sibling->{ external_zscore };
-                    my $target_ext_sim    = 2 ** $node->{ external_similarity };    # store the node's external similarity
-                    my $target_ext_weight = $target_ext_zscore > 500 ? $target_ext_sim : $target_ext_sim + $target_ext_zscore;
-                    my $weight = ($ext_weight + $target_ext_weight)/2;
-                    if ($weight > 1.5 ) { 
-                        push(@{ $node->{ links } }, { target_id => $target_id, weight => $weight } );
-                    }     
+                elsif (1) { # Don't draw links across clusters....
+                    my $target_ext_zscore = WEIGHT_SCALE ** $sibling->{ external_zscore };
+                    my $target_ext_sim    = WEIGHT_SCALE ** $node->{ external_similarity };    # store the node's external similarity
+                    my $target_ext_weight = $target_ext_zscore > 500 ?
+                            $target_ext_sim / 50 : $target_ext_sim + $target_ext_zscore;
+                    my $weight = ($ext_weight + $target_ext_weight);
+                    push(@{ $node->{ links } }, { target_id => $target_id, weight => $weight/2 } )
+                        if $weight > 10;
                 }
             }
         }
+        
+        # print STDERR "\n\n LINKS: " . Dumper($node->{ links }) . "\n\n";
     }
     
     return $nodes;
@@ -264,7 +269,7 @@ sub _add_links_to_nodes {
         if ( $link->{ weight } > MIN_LINK_WEIGHT ) {       
             push( @{ $nodes->[ $link->{ source_media_id } ]->{ links } }, {
                     target_id => $link->{ target_media_id },
-                    weight    => $link->{ weight }
+                    weight    => $link->{ weight } * 10 # make node weight [0,10] not [0,1]
                 }
             );
         }
