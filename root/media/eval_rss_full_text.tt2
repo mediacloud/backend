@@ -70,7 +70,7 @@ Description:<br/>
 [% END #foreach %]
 </table>
 
-<form action="/media/do_eval_rss_full_text/17" method="post">
+<form action="/media/do_eval_rss_full_text/[% medium.media_id %]" method="post">
 <div class="checkbox comment label">
 <label>Full Text RSS</label>
 <input name="full_text_rss" type="radio" value="1" 
