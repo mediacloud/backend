@@ -21,12 +21,11 @@ sub main
     my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
-    $dbh->query( "DROP TABLE if exists media_rss_full_text_detection_data_new" ) or die
-    $dbh->error;
+    $dbh->query( "DROP TABLE if exists media_rss_full_text_detection_data_new" ) or die $dbh->error;
 
     my $table_creation_query = <<"SQL";
      create table media_rss_full_text_detection_data_new as  
-        select * from media natural join 
+        select * from 
           (select media_id, max(similarity) as max_similarity, 
             avg(similarity) as avg_similarity, min(similarity) as min_similarity,
             avg(length(extracted_text)) as avg_extracted_length, avg(length(html_strip(title || description))) 
@@ -43,12 +42,13 @@ sub main
          group by media_id order by media_id ) as foo  ;
 SQL
 
-    $dbh->query( $table_creation_query);
+    $dbh->query( $table_creation_query );
 
     print "creating indices ...\n";
     my $now = time();
 
-    $dbh->query( "create index media_rss_full_text_detection_data_media_$now on media_rss_full_text_detection_data_new(media_id)" );
+    $dbh->query(
+        "create index media_rss_full_text_detection_data_media_$now on media_rss_full_text_detection_data_new(media_id)" );
 
     print "replacing table ...\n";
 
