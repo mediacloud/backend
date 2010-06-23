@@ -14,6 +14,7 @@ use Data::Dumper;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
+use Perl6::Say;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -720,6 +721,143 @@ sub merge : Local
         $c->stash->{ status_msg } = $status_msg;
         $c->stash->{ template }   = 'media/merge.tt2';
     }
+}
+
+sub _rate_full_text_rss_likely_hood
+{
+    ( my $medium ) = @_;
+
+    my $ret =
+      ( $medium->{ avg_similarity } || 0 ) * 10 - 5 *
+      (
+        abs( $medium->{ avg_extracted_length } - $medium->{ avg_rss_length } ) /
+          ( $medium->{ avg_extracted_length } != 0.0 ? $medium->{ avg_extracted_length } : 0.01 ) );
+
+    #say STDERR "_rate_full_text_rss_likely_hood returning '$ret'";
+
+    if ( $ret eq 'nan' )
+    {
+        say STDERR 5 *
+          ( abs( $medium->{ avg_extracted_length } - $medium->{ avg_rss_length } ) / $medium->{ avg_extracted_length } );
+        say STDERR ( $medium->{ avg_similarity } || 0 );
+        print STDERR Dumper( $medium );
+        print Dumper( $medium );
+	die "Error calculating full_text_rss_likely_hood for media id " . $medium->{media_id};
+    }
+    return $ret;
+}
+
+# display search form, and results of a query was submitted.
+sub do_find_likely_full_text_rss : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $media_ids = $c->request->parameters->{ full_text_rss };
+
+    $c->dbis->query( "UPDATE media set full_text_rss = true where media_id in (??) ", @$media_ids );
+
+    my $status_msg = 'UPDATED media_ids: ' . ( join ',', @{ $media_ids } );
+
+    #say STDERR $status_msg;
+
+    $c->response->redirect( $c->uri_for( '/media/find_likely_full_text_rss/', { status_msg => $status_msg } ) );
+}
+
+# display search form, and results of a query was submitted.
+sub find_likely_full_text_rss : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $form = HTML::FormFu->new(
+        {
+            load_config_file => $c->path_to() . '/root/forms/media_search.yml',
+            method           => 'get',
+            action           => ''
+        }
+    );
+
+    $form->process( $c->request );
+
+    my $p = $c->request->param( 'p' ) || 1;
+    my $q = $c->request->param( 'q' );
+    my $f = $c->request->param( 'f' );
+    my @m = $c->request->param( 'm' );
+
+    my ( $media, $pager );
+
+    {
+        $media =
+          $c->dbis->query( "select * from media_rss_full_text_detection_data natural join media where not full_text_rss" )
+          ->hashes;
+    }
+
+    $media = [ grep { $_->{ avg_similarity } ne 'NaN' } @{ $media } ];
+
+    $media = [ sort { _rate_full_text_rss_likely_hood( $a ) <=> _rate_full_text_rss_likely_hood( $b ) } @{ $media } ];
+
+    $media = [ reverse @{ $media } ];
+
+    for my $m ( @{ $media } )
+    {
+        ( $m->{ feed_count } ) = $c->dbis->query( "select count(*) from feeds where media_id = ?", $m->{ media_id } )->flat;
+    }
+
+    $c->stash->{ media } = $media;
+
+    $c->stash->{ pager_url } = $c->uri_for( '/media/search', { q => $q, m => \@m, f => $f } );
+
+    $c->stash->{ q } = $q;
+
+    $c->stash->{ template } = 'media/find_likely_full_text.tt2';
+}
+
+sub eval_rss_full_text : Local
+{
+    my ( $self, $c, $id ) = @_;
+
+    $id += 0;
+
+    my ( $medium ) =
+      $c->dbis->query( " select * from media_rss_full_text_detection_data natural join media where media_id = ? ", $id )
+      ->hashes->[ 0 ];
+
+    my $action = $c->uri_for( '/media/do_eval_rss_full_text/' ) . $id;
+
+    my $recent_stories = $c->dbis->query(
+					 "select stories.* from stories natural join downloads natural join download_texts " .
+					 " where media_id = ? order by publish_date desc limit 3",
+        $id
+    )->hashes;
+
+    foreach my $story ( @{ $recent_stories } )
+    {
+        $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $c->dbis, $story );
+    }
+
+   # say STDERR Dumper( $recent_stories );
+
+    $c->stash->{ stories } = $recent_stories;
+
+    $c->stash->{ medium } = $medium;
+
+    $c->stash->{ template } = 'media/eval_rss_full_text.tt2';
+    $c->stash->{ title }    = 'Eval Media RSS FULL TEXT';
+
+}
+
+sub do_eval_rss_full_text : Local
+{
+    my ( $self, $c, $id ) = @_;
+
+    my $full_text_state = $c->request->parameters->{ full_text_rss } || 0;
+
+    $c->dbis->query( "UPDATE media set full_text_rss = ? where media_id = ?", $full_text_state, $id );
+
+    my $status_msg = "UPDATED media: $id";
+
+    say STDERR $status_msg;
+
+    $c->response->redirect( $c->uri_for( '/media/eval_rss_full_text/' . $id, { status_msg => $status_msg } ) );
 }
 
 =head1 AUTHOR
