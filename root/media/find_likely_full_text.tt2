@@ -9,19 +9,11 @@
 <th>id</th>
 <th>name</th><th>url</th>
 
-<!--
-<th>tags</th>
--->
-
 <th>feeds</th>
 
 <th>full text?</th>
 <th>avg similarity</th>
-<th>full text stats</th>
-
-<!-- 
-<th>edit</th><th>delete</th><th>downloads</th>
--->
+<th></th>
 
 </tr> 
 
@@ -33,23 +25,10 @@
 <th>[% medium.media_id %]</th>
 <td>[% medium.name | html %]</td>
 <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
-<!-- 
-<td><div style="font-size: 80%;">[% medium.tag_names.join(', ') | html %]
-(<a href="[% c.uri_for('/media/edit_tags/') _ medium.media_id | url %]">edit</a>)</div></td>
-
--->
 
 <td>
 <a href="[% c.uri_for('/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
 </td>
-
-<!--
-
-<td><a href="[% c.uri_for('/media/edit/') _ medium.media_id | url %]">edit</a></td>
-<td><a href="[% c.uri_for('/media/delete/') _ medium.media_id | url %]">delete</a></td>
-<td><a href="[% c.uri_for('/downloads/list') | url %]?m=[% medium.media_id | uri %]">view dls</a></td>
-
--->
 
 <td> <input name="full_text_rss" type="checkbox"
 value="[% medium.media_id %]" 
@@ -63,7 +42,7 @@ value="[% medium.media_id %]"
 <td> 
 [% FILTER format('%02.2f');  %] [% medium.avg_similarity %] [% END %]
 </td>
-<td><a href="[% c.uri_for('/media/eval_rss_full_text/') _ medium.media_id | url %]">stats</a></td>
+<td><a href="[% c.uri_for('/media/eval_rss_full_text/') _ medium.media_id | url %]">eval<br/>source</a></td>
 
 </tr>
 
