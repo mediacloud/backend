@@ -29,7 +29,7 @@ use MediaWords::Util::Config;
 #     [3, 1]
 #   ];
 #   $c->set_sparse_matrix($nrows, $ncols, $rowval)
-sub _get_sparse_matrix
+sub get_sparse_matrix
 {
     my ( $matrix ) = @_;
 
@@ -59,7 +59,7 @@ sub get_sparse_matrix_file
 {
     my ( $matrix ) = @_;
 
-    my $sparse_matrix = _get_sparse_matrix( $matrix );
+    my $sparse_matrix = get_sparse_matrix( $matrix );
 
     my ( $fh, $file ) = File::Temp::tempfile();
 
@@ -350,7 +350,7 @@ sub get_clusters
 {
     my ( $matrix, $row_labels, $col_labels, $stems, $num_clusters, $num_features ) = @_;
 
-    #my $sparse_matrix = _get_sparse_matrix( $matrix );
+    #my $sparse_matrix = get_sparse_matrix( $matrix );
 
     my ( $summary, $cluster_vector ) = _run_cluto( @_ );
 

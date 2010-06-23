@@ -85,6 +85,7 @@ sub view : Local
     #         internal_similarity => $int_sim,
     #         external_zscore     => $ext_zscore,
     #         external_similarity => $ext_sim,
+    #         linked              => false
     #         links => [
     #             {
     #                 target_id => $target_1_id
@@ -92,6 +93,7 @@ sub view : Local
     #             },
     #             ...
     #         ]
+    #         node_id             => $node_id
     #     },
     #     ...
     # ]
@@ -125,6 +127,7 @@ sub view : Local
                 internal_similarity => $source->{ internal_similarity },
                 external_zscore     => $source->{ external_zscore },
                 external_similarity => $source->{ external_similarity },
+                linked              => 0
             };
         }
         
@@ -176,8 +179,8 @@ sub _get_json_object_from_nodes {
     my $node_id_count = 0;   # intialize count of node_ids
     for my $node (@$nodes) {
         # Don't render orphan nodes--i.e. those that don't have any links > MIN_LINK_WEIGHT
-        if ( defined $node->{ links } && scalar @{ $node->{ links } } > 0 ) { 
-            my $node_name      = _my_escape( $node->{ name } ) or next;
+        if ( $node->{ linked } ) {
+            my $node_name      = _my_escape( $node->{ name } );
             my $group          = $node->{ cluster_id };   
             $node->{ node_id } = $node_id_count++;
             $data .= "{ nodeName:'$node_name', group:$group },\n";
@@ -188,15 +191,12 @@ sub _get_json_object_from_nodes {
     
     # add links to data string
     for my $node (@$nodes) {
-        my $source_id = $node->{ node_id };
-        for my $link (@{ $node->{ links } }) {
-            if ( defined $nodes->[ $link->{ target_id } ]->{ links } ) { 
+        if ( defined $node->{ links } ) {
+            my $source_id = $node->{ node_id };
+            for my $link (@{ $node->{ links } }) {
                 my $target = $nodes->[ $link->{ target_id } ]->{ node_id };
-                my $value = ($link->{ weight }) or next; 
-                
-                # don't double-add links; only add those links where the target id is greater tha the source id
-                # maybe this should be handled in Cluster.pm when we store these links...
-                $data .= "{ source:$source_id, target:$target, value:$value },\n" if $source_id < $target;
+                my $value = ($link->{ weight }); 
+                $data .= "{ source:$source_id, target:$target, value:$value },\n"; # if $source_id < $target;
             }
         }
     }
@@ -224,7 +224,6 @@ sub _add_links_from_zscores {
         my $ext_sim    = WEIGHT_SCALE ** $node->{ external_similarity };    # store the node's external similarity
         my $ext_weight = $ext_zscore > 100 ? $ext_sim : $ext_sim / 50 + $ext_zscore;  # sanity check
         
-        
         my $int_zscore = WEIGHT_SCALE ** $node->{ internal_zscore };        # store the node's internal weight
         my $int_sim    = WEIGHT_SCALE ** $node->{ internal_similarity };    # store the node's internal similarity
     
@@ -236,17 +235,23 @@ sub _add_links_from_zscores {
                 if ( $sibling->{ cluster_id } == $cluster_id) { # find the sibling nodes
                     my $target_int_weight = WEIGHT_SCALE ** $sibling->{ internal_zscore };
                     my $int_weight        = $int_sim + $int_zscore + $target_int_weight;
-                    push(@{ $node->{ links } }, { target_id => $target_id, weight => ($int_weight) } )
-                        if $int_weight > 3;
+                    if ($int_weight > 4) {
+                        push(@{ $node->{ links } }, { target_id => $target_id, weight => ($int_weight) } );
+                        $node->{ linked } = 1;
+                        $sibling->{ linked } = 1;
+                    }
                 }
-                elsif (1) { # Don't draw links across clusters....
+                elsif (1) { # Draw links across clusters?
                     my $target_ext_zscore = WEIGHT_SCALE ** $sibling->{ external_zscore };
                     my $target_ext_sim    = WEIGHT_SCALE ** $node->{ external_similarity };    # store the node's external similarity
                     my $target_ext_weight = $target_ext_zscore > 500 ?
                             $target_ext_sim / 50 : $target_ext_sim + $target_ext_zscore;
                     my $weight = ($ext_weight + $target_ext_weight);
-                    push(@{ $node->{ links } }, { target_id => $target_id, weight => $weight/2 } )
-                        if $weight > 10;
+                    if ($weight > 12) {
+                          push(@{ $node->{ links } }, { target_id => $target_id, weight => $weight/2 } );
+                          $node->{ linked } = 1;
+                          $sibling->{ linked } = 1;
+                      }
                 }
             }
         }
@@ -262,16 +267,23 @@ sub _add_links_to_nodes {
     my ($c, $cluster_runs_id, $nodes) = @_;
    
     my $links = $c->dbis->query(
-        "select mcl.* from media_cluster_links mcl where mcl.media_cluster_runs_id = ?", $cluster_runs_id
+        "select mcl.source_media_id, mcl.target_media_id, mcl.weight
+           from media_cluster_links mcl
+          where mcl.media_cluster_runs_id = ?", $cluster_runs_id
     )->hashes;
     
+    my $linked_nodes = []; # a boolean array--true for every $mid with a node
+    
     for my $link (@{ $links }) {
-        if ( $link->{ weight } > MIN_LINK_WEIGHT ) {       
-            push( @{ $nodes->[ $link->{ source_media_id } ]->{ links } }, {
-                    target_id => $link->{ target_media_id },
-                    weight    => $link->{ weight } * 10 # make node weight [0,10] not [0,1]
+        my ($weight, $target, $source) = values %{ $link };
+        if ( $weight > MIN_LINK_WEIGHT ) {
+            push( @{ $nodes->[ $source ]->{ links } }, {
+                    target_id => $target,
+                    weight    => $weight * 10 # make node weight [0,10] not [0,1]
                 }
             );
+            $nodes->[ $source ]->{ linked } = 1;
+            $nodes->[ $target ]->{ linked } = 1;
         }
     }
     

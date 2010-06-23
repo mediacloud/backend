@@ -302,9 +302,8 @@ sub _get_cosine_sim_matrix {
     
     # print STDERR "\n\n matrix: " . Dumper($matrix) . "\n\n";
 
-    my $mat_file = MediaWords::Cluster::Cluto::get_sparse_matrix_file($matrix);
-    my $cosines_raw = {};
-    %{ $cosines_raw } = MediaWords::Cluster::Simat::get_sparse_cosine_matrix($mat_file);
+    my $sparse_mat = MediaWords::Cluster::Cluto::get_sparse_matrix($matrix);
+    my $cosines_raw = MediaWords::Cluster::Simat::get_sparse_cosine_matrix($sparse_mat);
     
     # Fix media IDs for Cosine matrix
     my $cosines = {};
@@ -479,17 +478,15 @@ sub execute_and_store_media_cluster_run
     # Store links from the cosine matrix
     while (my ($source, $cols) = each %{ $cosines }) {
         while (my ($target, $weight) = each %{ $cols }) {
-            if ($weight != 1) { # Don't store self-links
-                $db->create(
-                    'media_cluster_links',
-                    {
-                        media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },  
-                        source_media_id       => $source,
-                        target_media_id       => $target,
-                        weight                => $weight
-                    }
-                );
-            }     
+            $db->create(
+                'media_cluster_links',
+                {
+                    media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },  
+                    source_media_id       => $source,
+                    target_media_id       => $target,
+                    weight                => $weight
+                }
+            );     
         }
     }
 
