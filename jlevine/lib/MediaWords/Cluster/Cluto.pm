@@ -29,7 +29,7 @@ use MediaWords::Util::Config;
 #     [3, 1]
 #   ];
 #   $c->set_sparse_matrix($nrows, $ncols, $rowval)
-sub get_sparse_matrix
+sub _get_sparse_matrix
 {
     my ( $matrix ) = @_;
 
@@ -55,11 +55,11 @@ sub get_sparse_matrix
 
 # write the sparse matrix to a file in the cluto format and return the name of the file
 # This is now "public"; used in generating matrix for Simat.pm
-sub get_sparse_matrix_file
+sub _get_sparse_matrix_file
 {
     my ( $matrix ) = @_;
 
-    my $sparse_matrix = get_sparse_matrix( $matrix );
+    my $sparse_matrix = _get_sparse_matrix( $matrix );
 
     my ( $fh, $file ) = File::Temp::tempfile();
 
@@ -114,7 +114,7 @@ sub _run_cluto
     my $cluto_binary = MediaWords::Util::Config::get_config->{ mediawords }->{ cluto_binary }
       || die( "Unable to find mediawords->cluto_binary config setting" );
 
-    my $matrix_file = get_sparse_matrix_file( $matrix );
+    my $matrix_file = _get_sparse_matrix_file( $matrix );
 
     # my $clabel_file = _get_clabel_file( $col_labels );
 
@@ -350,7 +350,7 @@ sub get_clusters
 {
     my ( $matrix, $row_labels, $col_labels, $stems, $num_clusters, $num_features ) = @_;
 
-    #my $sparse_matrix = get_sparse_matrix( $matrix );
+    #my $sparse_matrix = _get_sparse_matrix( $matrix );
 
     my ( $summary, $cluster_vector ) = _run_cluto( @_ );
 

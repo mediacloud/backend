@@ -13,7 +13,8 @@ use Switch 'Perl6';
 
 use MediaWords::Cluster::Cluto;
 use MediaWords::Util::Config;
-use MediaWords::Cluster::Simat;
+
+use Math::SparseVector;
 
 # number of nfeatures parameter for the clustering run
 use constant NUM_FEATURES => 50;
@@ -157,6 +158,32 @@ sub _get_stem_matrix
     return ( $matrix, $row_labels, $col_labels );
 }
 
+# Turn the matrix into an array of Math::SparseVectors
+sub _get_sparse_matrix
+{
+    my ($matrix) = @_;
+
+    my $sparse_mat = [];
+    
+    for (my $i = 0; $i < scalar @{ $matrix }; $i++)
+    {
+        my $dense_row  = $matrix->[ $i ];
+        my $sparse_row = Math::SparseVector->new;
+         
+        for (my $j = 0; $j < scalar @{ $dense_row }; $j++)
+        {
+            my $val = $dense_row->[$j];
+            $sparse_row->set($j, $val) if $val > 0;
+        }
+        
+        $sparse_row->normalize unless $sparse_row->isnull;
+        
+        push @{ $sparse_mat }, $sparse_row;
+    }
+    
+    return $sparse_mat;
+}
+
 # execute the Algorithm::Cluster clustering run and return the results as a list of clusters
 # where each cluster is in the form:
 # { media_ids => [],
@@ -211,6 +238,13 @@ sub _get_clusters_cluto
 {
 
     return MediaWords::Cluster::Cluto::get_clusters( @_, NUM_FEATURES );
+}
+
+sub _get_clusters_kmeans
+{
+    my ($matrix, $k) = @_;
+    my $n = 20; # At some point, we should be asking the user how many times they want to run this
+    return MediaWords::Cluster::Kmeans::get_clusters( $matrix, $k, $n );
 }
 
 sub get_media_source_name
@@ -299,25 +333,33 @@ sub _get_clustering_engine
 sub _get_cosine_sim_matrix {
     
     my ($matrix, $row_labels) = @_;
-    
-    # print STDERR "\n\n matrix: " . Dumper($matrix) . "\n\n";
 
-    my $sparse_mat = MediaWords::Cluster::Cluto::get_sparse_matrix($matrix);
-    my $cosines_raw = MediaWords::Cluster::Simat::get_sparse_cosine_matrix($sparse_mat);
+    my $sparse_mat = _get_sparse_matrix($matrix);
+    
+    # print STDERR "\n\n sparse matrix: " . Dumper($sparse_mat) . "\n\n";
+    
+    # The old Simat.pm... in 6 lines
+    my $raw_cosines = {};
+    my $rows = scalar @{ $sparse_mat } - 1;
+    for my $i ( 0 .. $rows ) {   
+        for my $j ( $i + 1 .. $rows ) {
+            my $dp = $sparse_mat->[ $i ]->dot( $sparse_mat->[ $j ] );
+            $raw_cosines->{ $i }->{ $j } = $dp if $dp != 0;
+        }
+    }
     
     # Fix media IDs for Cosine matrix
     my $cosines = {};
-    while (my ($row, $cols) = each %{ $cosines_raw }) {
+    while (my ($row, $cols) = each %{ $raw_cosines }) {
         while (my ($target, $weight) = each %{ $cols }) {
-            $cosines->{ $row_labels->[$row - 1] }->{ $row_labels->[$target - 1] } = $weight;
+            $cosines->{ $row_labels->[ $row ] }->{ $row_labels->[ $target ] } = $weight;
         }
     }
     
     # print STDERR "\n\nCOSINES:" . Dumper($cosines) . "\n\n";
     # print STDERR "\n\nROW LABELS: " . Dumper($row_labels) . "\n\n";
     
-    return $cosines;
-    
+    return $cosines;  
 }
 
 # PUBLIC FUNCTIONS
@@ -358,6 +400,10 @@ sub execute_media_cluster_run
     elsif ( $clustering_engine eq 'cluto' )
     {
         $clusters = _get_clusters_cluto( $matrix, $row_labels, $col_labels, $stems, $cluster_run->{ num_clusters } );
+    }
+    elsif ( $clustering_engine eq 'kmeans' )
+    {
+        $clusters = _get_clusters_kmeans(  );
     }
     else
     {
