@@ -107,7 +107,7 @@ sub description
     my $content;
     $content = $self->get( 'content:encoded' );
 
-    return $description || $content;
+    return $content || $description;
 }
 
 1;
