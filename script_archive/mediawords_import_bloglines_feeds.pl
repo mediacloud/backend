@@ -90,7 +90,7 @@ sub create_media
 sub main
 {
     my $html;
-    for my $i ( 1 .. 10 )
+    for my $i ( 1 ... 4 )
     {
         print STDERR "fetching page $i\n";
         my $response =
