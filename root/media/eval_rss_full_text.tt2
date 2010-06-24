@@ -30,6 +30,10 @@
 [% INCLUDE include/pager.tt2 %] 
 </table>
 <br/>
+<a href="/media/eval_rss_full_text/[% next_media_id %]"><input type="button" value="Go To Next Source"></a>
+<br/>
+<br/>
+
 <table>
 <tr><td>media_id             </td><td> [% medium.media_id              | html_strip %]</td></tr>
 <tr><td>url                  </td><td> [% medium.url                   | html_strip %]</td></tr>
@@ -55,6 +59,7 @@
 <th>Extracted</th>
 </tr>
 [% FOREACH story IN stories %]
+<tr><td>Link: <a href="[% story.url | url %]">[% story.url | html %]</a></td> </tr>
 <tr>
 <td>
 Title:<br/>
@@ -69,25 +74,38 @@ Description:<br/>
 </tr>
 [% END #foreach %]
 </table>
+<br/>
 
 <form action="/media/do_eval_rss_full_text/[% medium.media_id %]" method="post">
 <div class="checkbox comment label">
-<label>Full Text RSS</label>
+<label>Yes</label>
 <input name="full_text_rss" type="radio" value="1" 
-[% IF medium.full_text_rss %]
+[% IF medium.full_text_rss.defined and medium.full_text_rss %]
 checked="checked"
 [% END %]
  />
-<label>Non Full Text RSS</label>
+<label>No</label>
 <input name="full_text_rss" type="radio" value="0"
-[% IF !medium.full_text_rss %]
+[% IF medium.full_text_rss.defined and !medium.full_text_rss %]
 checked="checked"
 [% END %]
  />
+<label>Unknown</label>
+<input name="full_text_rss" type="radio" value=""
+[% IF !medium.full_text_rss.defined %]
+checked="checked"
+[% END %]
+ />
+
 </div>
 <div class="submit">
 <input type="submit" value="Update" />
 </div>
 </form>
+
+<br/>
+<a href="/media/eval_rss_full_text/[% next_media_id %]"><input type="button" value="Go To Next Source"></a>
+<br/>
+<br/>
 
 [% INCLUDE include/footer.tt2 %]

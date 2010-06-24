@@ -9,6 +9,11 @@ use Regexp::Common qw /URI/;
 use YAML::Syck;
 use Text::Trim;
 use URI::Split;
+use List::MoreUtils qw(any all none notall true false firstidx first_index
+  lastidx last_index insert_after insert_after_string
+  apply after after_incl before before_incl indexes
+  firstval first_value lastval last_value each_array
+  each_arrayref pairwise natatime mesh zip uniq minmax);
 
 use Data::Dumper;
 use MediaWords::Util::Tags;
@@ -742,7 +747,7 @@ sub _rate_full_text_rss_likely_hood
         say STDERR ( $medium->{ avg_similarity } || 0 );
         print STDERR Dumper( $medium );
         print Dumper( $medium );
-	die "Error calculating full_text_rss_likely_hood for media id " . $medium->{media_id};
+        die "Error calculating full_text_rss_likely_hood for media id " . $medium->{ media_id };
     }
     return $ret;
 }
@@ -761,6 +766,23 @@ sub do_find_likely_full_text_rss : Local
     #say STDERR $status_msg;
 
     $c->response->redirect( $c->uri_for( '/media/find_likely_full_text_rss/', { status_msg => $status_msg } ) );
+}
+
+sub _get_likely_rss_full_text_media_list
+{
+    my ( $self, $c ) = @_;
+
+    my $media =
+      $c->dbis->query( "select * from media_rss_full_text_detection_data natural join media where full_text_rss is null" )
+      ->hashes;
+
+    $media = [ grep { $_->{ avg_similarity } ne 'NaN' } @{ $media } ];
+
+    $media = [ sort { _rate_full_text_rss_likely_hood( $a ) <=> _rate_full_text_rss_likely_hood( $b ) } @{ $media } ];
+
+    $media = [ reverse @{ $media } ];
+
+    return $media;
 }
 
 # display search form, and results of a query was submitted.
@@ -783,19 +805,7 @@ sub find_likely_full_text_rss : Local
     my $f = $c->request->param( 'f' );
     my @m = $c->request->param( 'm' );
 
-    my ( $media, $pager );
-
-    {
-        $media =
-          $c->dbis->query( "select * from media_rss_full_text_detection_data natural join media where not full_text_rss" )
-          ->hashes;
-    }
-
-    $media = [ grep { $_->{ avg_similarity } ne 'NaN' } @{ $media } ];
-
-    $media = [ sort { _rate_full_text_rss_likely_hood( $a ) <=> _rate_full_text_rss_likely_hood( $b ) } @{ $media } ];
-
-    $media = [ reverse @{ $media } ];
+    my $media = $self->_get_likely_rss_full_text_media_list( $c );
 
     for my $m ( @{ $media } )
     {
@@ -821,11 +831,13 @@ sub eval_rss_full_text : Local
       $c->dbis->query( " select * from media_rss_full_text_detection_data natural join media where media_id = ? ", $id )
       ->hashes->[ 0 ];
 
+    #say STDERR Dumper( $medium );
+
     my $action = $c->uri_for( '/media/do_eval_rss_full_text/' ) . $id;
 
     my $recent_stories = $c->dbis->query(
-					 "select stories.* from stories natural join downloads natural join download_texts " .
-					 " where media_id = ? order by publish_date desc limit 3",
+        "select stories.* from stories natural join downloads natural join download_texts " .
+          " where media_id = ? order by publish_date desc limit 3",
         $id
     )->hashes;
 
@@ -834,7 +846,27 @@ sub eval_rss_full_text : Local
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $c->dbis, $story );
     }
 
-   # say STDERR Dumper( $recent_stories );
+    #Find the source after this one when media are ranked as being likely to have full text rss.
+    my $media = $self->_get_likely_rss_full_text_media_list( $c );
+
+    my $medium_index = first_index { $_->{ media_id } == $id } @{ $media };
+
+    my $next_index;
+
+    if ( ( $medium_index < ( scalar( @{ $media } ) - 1 ) ) && ( $medium_index > -1 ) )
+    {
+        $next_index = $medium_index + 1;
+    }
+    else
+    {
+        $next_index = 0;
+    }
+
+    my $next_media_id = $media->[ $next_index ]->{ media_id };
+
+    # say STDERR Dumper( $recent_stories );
+
+    $c->stash->{ next_media_id } = $next_media_id;
 
     $c->stash->{ stories } = $recent_stories;
 
@@ -849,9 +881,20 @@ sub do_eval_rss_full_text : Local
 {
     my ( $self, $c, $id ) = @_;
 
-    my $full_text_state = $c->request->parameters->{ full_text_rss } || 0;
+    my $full_text_state = $c->request->parameters->{ full_text_rss };
 
-    $c->dbis->query( "UPDATE media set full_text_rss = ? where media_id = ?", $full_text_state, $id );
+    die "New RSS full text value undefined " if !defined( $full_text_state );
+
+    #say STDERR Dumper( $full_text_state );
+
+    if ( $full_text_state ne '' )
+    {
+        $c->dbis->query( "UPDATE media set full_text_rss = ? where media_id = ?", $full_text_state, $id );
+    }
+    else
+    {
+        $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $id );
+    }
 
     my $status_msg = "UPDATED media: $id";
 
