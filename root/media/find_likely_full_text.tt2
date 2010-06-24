@@ -30,12 +30,39 @@
 <a href="[% c.uri_for('/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
 </td>
 
-<td> <input name="full_text_rss" type="checkbox"
+<td> <input name="media_[% medium.media_id %]full_text_rss" type="checkbox"
 value="[% medium.media_id %]" 
 [% IF medium.full_text_rss == 1 %]
  checked='checked'/>
 [% ELSE %]
 />
+<br/>
+<div class="checkbox comment label">
+<input name="media_[% medium.media_id %]full_text_rss" type="radio" value="1"  id="media_[% medium.media_id %]_1"
+[% IF medium.full_text_rss.defined and medium.full_text_rss %]
+checked="checked"
+[% END %]
+ />
+<label for="media_[% medium.media_id %]_1">Yes</label>
+<br/>
+
+<input name="media_[% medium.media_id %]full_text_rss" type="radio" value="0" id="media_[% medium.media_id %]_0"
+[% IF medium.full_text_rss.defined and !medium.full_text_rss %]
+checked="checked"
+[% END %]
+ />
+<label for="media_[% medium.media_id %]_0">No</label>
+<br/>
+
+<input name="media_[% medium.media_id %]full_text_rss" type="radio" value="" id="media_[% medium.media_id %]_U"
+[% IF !medium.full_text_rss.defined %]
+checked="checked"
+[% END %]
+ />
+<label for="media_[% medium.media_id %]_U">Unknown</label>
+<br/>
+
+</div>
 [% END %]
 
  </td>
