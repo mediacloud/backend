@@ -852,6 +852,31 @@ sub find_likely_full_text_rss : Local
     $c->stash->{ template } = 'media/find_likely_full_text.tt2';
 }
 
+sub _get_next_media_id
+{
+    my ( $self, $c, $id ) = @_;
+
+    #Find the source after this one when media are ranked as being likely to have full text rss.
+    my $media = $self->_get_likely_rss_full_text_media_list( $c );
+
+    my $medium_index = first_index { $_->{ media_id } == $id } @{ $media };
+
+    my $next_index;
+
+    if ( ( $medium_index < ( scalar( @{ $media } ) - 1 ) ) && ( $medium_index > -1 ) )
+    {
+        $next_index = $medium_index + 1;
+    }
+    else
+    {
+        $next_index = 0;
+    }
+
+    my $next_media_id = $media->[ $next_index ]->{ media_id };
+
+    return $next_media_id;
+}
+
 sub eval_rss_full_text : Local
 {
     my ( $self, $c, $id ) = @_;
@@ -877,23 +902,7 @@ sub eval_rss_full_text : Local
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $c->dbis, $story );
     }
 
-    #Find the source after this one when media are ranked as being likely to have full text rss.
-    my $media = $self->_get_likely_rss_full_text_media_list( $c );
-
-    my $medium_index = first_index { $_->{ media_id } == $id } @{ $media };
-
-    my $next_index;
-
-    if ( ( $medium_index < ( scalar( @{ $media } ) - 1 ) ) && ( $medium_index > -1 ) )
-    {
-        $next_index = $medium_index + 1;
-    }
-    else
-    {
-        $next_index = 0;
-    }
-
-    my $next_media_id = $media->[ $next_index ]->{ media_id };
+    my $next_media_id = $self->_get_next_media_id($c, $id);
 
     # say STDERR Dumper( $recent_stories );
 
@@ -927,11 +936,13 @@ sub do_eval_rss_full_text : Local
         $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $id );
     }
 
-    my $status_msg = "UPDATED media: $id";
+    my $next_media_id = $self->_get_next_media_id($c, $id);
 
-    say STDERR $status_msg;
+    my $status_msg = "UPDATED media: $id - Here's the next source";
 
-    $c->response->redirect( $c->uri_for( '/media/eval_rss_full_text/' . $id, { status_msg => $status_msg } ) );
+    #say STDERR $status_msg;
+
+    $c->response->redirect( $c->uri_for( '/media/eval_rss_full_text/' . $next_media_id, { status_msg => $status_msg } ) );
 }
 
 =head1 AUTHOR
