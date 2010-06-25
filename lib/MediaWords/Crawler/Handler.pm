@@ -23,7 +23,7 @@ use Carp;
 use Perl6::Say;
 use List::Util qw (max maxstr);
 
-use Feed::Scrape;
+use Feed::Scrape::MediaWords;
 use MediaWords::Crawler::BlogSpiderBlogHomeHandler;
 use MediaWords::Crawler::BlogSpiderPostingHandler;
 use MediaWords::Crawler::Pager;
@@ -62,7 +62,7 @@ sub _add_stories_and_content_downloads
 {
     my ( $self, $download, $response ) = @_;
 
-    my $feed = Feed::Scrape->parse_feed( $response->decoded_content )
+    my $feed = Feed::Scrape::MediaWords->parse_feed( $response->decoded_content )
       || die( "Unable to parse feed for $download->{ url }" );
     my $items = [ $feed->get_item ];
 
@@ -135,6 +135,11 @@ sub _add_stories_and_content_downloads
             my $dbs = $self->engine->dbs;
 
             eval {
+	        #Work around a bug in XML::FeedPP - 
+                #  Item description() will sometimes return a hash instead of text. 
+	        # TODO fix XML::FeedPP 
+	        my $description = ref( $item->description ) ? ( '' ) : ( $item->description || '' );
+
                 $story = {
                     url          => $url,
                     guid         => $guid,
@@ -142,7 +147,7 @@ sub _add_stories_and_content_downloads
                     publish_date => $date->datetime,
                     collect_date => DateTime->now->datetime,
                     title        => $item->title() || '(no title)',
-                    description  => ref( $item->description ) ? ( '' ) : ( $item->description || '' ),
+                    description  => $description,
                 };
 
                 # say STDERR "create story: " . Dumper( $story );
