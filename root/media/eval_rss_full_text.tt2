@@ -5,10 +5,6 @@
 
 <tr><th>name</th><th>url</th>
 
-<!--
-<th>tags</th>
--->
-
 <th>feeds</th>
 <th>avg similarity</th>
 

@@ -20,6 +20,7 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
 use Perl6::Say;
+use Switch 'Perl6';
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -759,9 +760,39 @@ sub do_find_likely_full_text_rss : Local
 
     my $media_ids = $c->request->parameters->{ full_text_rss };
 
-    $c->dbis->query( "UPDATE media set full_text_rss = true where media_id in (??) ", @$media_ids );
+    my $post_params = $c->request->body_parameters();
 
-    my $status_msg = 'UPDATED media_ids: ' . ( join ',', @{ $media_ids } );
+    #say Dumper($post_params);
+
+    my @media_full_text_params = grep { $_ =~ /media_\d+_full_text_rss/ } sort keys %{ $post_params };
+
+    #say Dumper(@media_full_text_params);
+
+    foreach my $medium_full_text_param ( @media_full_text_params )
+    {
+        $medium_full_text_param =~ /media_(\d+)_full_text_rss/;
+
+        my $media_id = $1;
+        die "Invalid $media_id " unless $media_id =~ /\d+/;
+
+        my $full_text_value = $post_params->{ $medium_full_text_param };
+
+        given ( $full_text_value )
+        {
+            when 1 { $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?",  $media_id ); }
+            when 0 { $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id ); }
+
+            when '' { $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id ); }
+            default { die "Bad case in switch :'$full_text_value'"; }
+
+        }
+    }
+
+    #$c->dbis->query( "UPDATE media set full_text_rss = true where media_id in (??) ", @$media_ids );
+
+    my $status_msg = "updated";
+
+    #$status_msg = 'UPDATED media_ids: ' . ( join ',', @{ $media_ids } );
 
     #say STDERR $status_msg;
 
