@@ -11,6 +11,7 @@ use Algorithm::Cluster;
 use Tie::IxHash;
 use Switch 'Perl6';
 
+use MediaWords::Cluster::Kmeans;
 use MediaWords::Cluster::Cluto;
 use MediaWords::Util::Config;
 
@@ -242,9 +243,9 @@ sub _get_clusters_cluto
 
 sub _get_clusters_kmeans
 {
-    my ($matrix, $k) = @_;
+    my ($matrix, $row_labels, $k) = @_;
     my $n = 20; # At some point, we should be asking the user how many times they want to run this
-    return MediaWords::Cluster::Kmeans::get_clusters( $matrix, $k, $n );
+    return MediaWords::Cluster::Kmeans::get_clusters( _get_sparse_matrix($matrix), $row_labels, $k, $n );
 }
 
 sub get_media_source_name
@@ -340,7 +341,7 @@ sub _get_cosine_sim_matrix {
     
     # The old Simat.pm... in 6 lines
     my $raw_cosines = {};
-    my $rows = scalar @{ $sparse_mat } - 1;
+    my $rows = $#{ $sparse_mat };
     for my $i ( 0 .. $rows ) {   
         for my $j ( $i + 1 .. $rows ) {
             my $dp = $sparse_mat->[ $i ]->dot( $sparse_mat->[ $j ] );
@@ -403,7 +404,7 @@ sub execute_media_cluster_run
     }
     elsif ( $clustering_engine eq 'kmeans' )
     {
-        $clusters = _get_clusters_kmeans(  );
+        $clusters = _get_clusters_kmeans( $matrix, $row_labels, $cluster_run->{ num_clusters } );
     }
     else
     {
@@ -443,6 +444,8 @@ sub execute_and_store_media_cluster_run
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'executing' } );
 
     my ($clusters, $cosines) = execute_media_cluster_run( $db, $cluster_run );
+    
+    # print STDERR "\n\n Clusters: " . Dumper($clusters) . "\n\n";
 
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'completed' } );
 
@@ -482,10 +485,10 @@ sub execute_and_store_media_cluster_run
                     media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
                     media_clusters_id     => $media_cluster->{ media_clusters_id },
                     media_id              => $media_id,
-                    internal_zscore       => $cluster->{ internal_zscores }->[$media_id_cnt],
-                    internal_similarity   => $cluster->{ internal_similarity },
-                    external_zscore       => $cluster->{ external_zscores }->[$media_id_cnt],
-                    external_similarity   => $cluster->{ external_similarity }
+                    internal_zscore       => $cluster->{ internal_zscores }->[$media_id_cnt] || 0,
+                    internal_similarity   => $cluster->{ internal_similarity } || 0,
+                    external_zscore       => $cluster->{ external_zscores }->[$media_id_cnt] || 0,
+                    external_similarity   => $cluster->{ external_similarity } || 0
                 }
             );
             
