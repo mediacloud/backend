@@ -55,18 +55,18 @@ sub _assign_nodes
         for my $cluster ( @{ $clusters } )
         {
             my $dp = $node->{ vector }->dot( $cluster->{ centroid } );
-            if ($dp > $node->{ score })
+            if ($dp >= $node->{ score }) # make this greater than or equal to to ensure this gets updated
             {
                 $node->{ score }   = $dp;
                 $node->{ cluster } = $cluster->{ cluster_id };
             }
         }
         
-        $reassigned++ if (defined $old_cluster_id and $node->{ cluster } != $old_cluster_id);
+        $reassigned++ unless (defined $old_cluster_id and $node->{ cluster } == $old_cluster_id);
         
         # Push node onto the right cluster
         for my $cluster (@{ $clusters })
-        {
+        {   
             push @{ $cluster->{ nodes } }, $node if $node->{ cluster } == $cluster->{ cluster_id };
         }
     }
@@ -127,10 +127,11 @@ sub _k_recurse
     ($nodes, $clusters, my $reassigned) = _assign_nodes($nodes, $clusters);
     # _dump_clusters($clusters, $n);
     
+    print STDERR "K-means iteration $n: $reassigned reassigned.\n";
+    
     # Break if no reassignments, or we've looped enough times
     return $clusters unless ($n and $reassigned);
     
-    print STDERR "\nFinished k-recurse after $n iterations; $reassigned reassigned\n\n";
     return _k_recurse($nodes, _find_center($clusters), $n - 1);
 }
 
@@ -163,18 +164,16 @@ sub _make_nice_clusters
     my ($clusters, $col_labels, $stems) = @_;
     
     my $nice_clusters = [];
-    for my $i (0 .. $#{ $clusters })
+    for my $cluster (@{ $clusters })
     {
         # TODO: implement internal and external features, zscores, etc...
-        $nice_clusters->[$i] = {
+        my $nice_cluster = {
             media_ids         => [],
             internal_features => [],
             external_features => [],
             internal_zscores  => [],
             external_zscores  => []
         };
-        
-        my $cluster = $clusters->[$i];
         
         # Add "internal features"--just the word frequencies for the centroid
         my @features;
@@ -191,15 +190,16 @@ sub _make_nice_clusters
         }
     
         # Sort the internal features by weight
-        @{ $nice_clusters->[$i]->{ internal_features } } = sort { $b->{ weight } <=> $a->{ weight } } @features;
+        @{ $nice_cluster->{ internal_features } } = sort { $b->{ weight } <=> $a->{ weight } } @features;
         
         # Add the media IDs and their corresponding scores
         for my $node (@{ $cluster->{ nodes } })
         {
-            push @{ $nice_clusters->[$i]->{ media_ids } }, $node->{ media_id };
-            push @{ $nice_clusters->[$i]->{ internal_zscores } }, $node->{ score };
+            push @{ $nice_cluster->{ media_ids } }, $node->{ media_id };
+            push @{ $nice_cluster->{ internal_zscores } }, $node->{ score };
         }        
         
+        push @{ $nice_clusters }, $nice_cluster;
     }
     
     # print STDERR "\n\n Kmeans Klusters: " . Dumper($nice_clusters) . "\n\n";
@@ -223,7 +223,7 @@ sub get_clusters
             vector   => $matrix->[$i],
             media_id => $row_labels->[$i]
         };
-        push @{ $nodes }, $node;
+        push @{ $nodes }, $node if _sum_vector($node->{ vector }) > 0; # make sure we have data for this node
     }
     
     my $clusters = _k_recurse($nodes, _seed_clusters($matrix, $nodes, $k), $n);
