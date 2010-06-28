@@ -133,13 +133,13 @@ sub view : Local
         
         $mc->{ internal_features } = $c->dbis->query(
             "select * from media_cluster_words " . "  where media_clusters_id = ? and internal = 't' " .
-              "  order by weight desc",
+              "  order by weight desc limit 50",
             $mc->{ media_clusters_id }
         )->hashes;
         
         $mc->{ external_features } = $c->dbis->query(
             "select * from media_cluster_words " . "  where media_clusters_id = ? and internal = 'f' " .
-              "  order by weight desc",
+              "  order by weight desc limit 50",
             $mc->{ media_clusters_id }
         )->hashes;
         

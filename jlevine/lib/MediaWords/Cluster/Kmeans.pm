@@ -7,7 +7,8 @@ use Data::Dumper;
 use Math::SparseVector;
 use Math::Random;
 
-sub _sum_vector # adds all the entries in a sparse_vector... could be useful for debugging
+# adds all the entries in a sparse vector (useful for debugging)
+sub _sum_vector
 {
     my ($vec) = @_;
     my @indices = $vec->keys;
@@ -18,7 +19,8 @@ sub _sum_vector # adds all the entries in a sparse_vector... could be useful for
     return $total;
 }
 
-sub _dump_clusters # But don't include any actual vectors!
+# Dumps the clusters, but not their vectors
+sub _dump_clusters
 {
     my ($clusters, $iter) = @_;
     print STDERR "\n\n ITERATION $iter: \n" if $iter;
@@ -48,7 +50,7 @@ sub _assign_nodes
     for my $node ( @{ $nodes } )
     {   
         $node->{ score } = 0; # reset node's internal z-score
-        my $old_cluster_id = $node->{ cluster };
+        my $old_cluster_id = $node->{ cluster }; # will be undefined the first time through
         
         for my $cluster ( @{ $clusters } )
         {
@@ -61,14 +63,18 @@ sub _assign_nodes
         }
         
         $reassigned++ if (defined $old_cluster_id and $node->{ cluster } != $old_cluster_id);
-    
-        push @{ $clusters->[ $node->{ cluster } ]->{ nodes } }, $node;
+        
+        # Push node onto the right cluster
+        for my $cluster (@{ $clusters })
+        {
+            push @{ $cluster->{ nodes } }, $node if $node->{ cluster } == $cluster->{ cluster_id };
+        }
     }
     
     return ($nodes, $clusters, $reassigned);
 }
 
-# Returns a bunch of empty clusters, but with updated centers
+# Given a list of clusters, returns new empty clusters with updated centers
 sub _find_center
 {
     my ($old_clusters) = @_;
@@ -154,15 +160,12 @@ sub _seed_clusters
 #   external_zscores  => [] }
 sub _make_nice_clusters
 {
-    my ($clusters) = @_;
+    my ($clusters, $col_labels, $stems) = @_;
     
     my $nice_clusters = [];
     for my $i (0 .. $#{ $clusters })
     {
         # TODO: implement internal and external features, zscores, etc...
-        
-        # Get top features for the center of each cluster
-        
         $nice_clusters->[$i] = {
             media_ids         => [],
             internal_features => [],
@@ -170,15 +173,36 @@ sub _make_nice_clusters
             internal_zscores  => [],
             external_zscores  => []
         };
+        
         my $cluster = $clusters->[$i];
+        
+        # Add "internal features"--just the word frequencies for the centroid
+        my @features;
+        for my $key ($cluster->{ centroid }->keys)
+        {
+            my $stem = $col_labels->[$key];
+            my $feature = {
+                stem   => $stem,
+                term   => $stems->FETCH( $stem ),
+                weight => $cluster->{ centroid }->get($key)
+            };
+            
+            push @features, $feature;
+        }
+    
+        # Sort the internal features by weight
+        @{ $nice_clusters->[$i]->{ internal_features } } = sort { $b->{ weight } <=> $a->{ weight } } @features;
+        
+        # Add the media IDs and their corresponding scores
         for my $node (@{ $cluster->{ nodes } })
         {
             push @{ $nice_clusters->[$i]->{ media_ids } }, $node->{ media_id };
             push @{ $nice_clusters->[$i]->{ internal_zscores } }, $node->{ score };
-        }
+        }        
+        
     }
     
-    print STDERR "\n\n Kmeans Klusters: " . Dumper($nice_clusters) . "\n\n";
+    # print STDERR "\n\n Kmeans Klusters: " . Dumper($nice_clusters) . "\n\n";
     
     return $nice_clusters;
 }
@@ -188,7 +212,7 @@ sub get_clusters
     # $matrix => Sparse stem matrix from Cluster::_get_sparse_matrix
     # $k => number of clusters to generate
     # $n => number of times to run algorithm
-    my ( $matrix, $row_labels, $k, $n ) = @_;
+    my ( $matrix, $row_labels, $col_labels, $stems, $k, $n ) = @_;
     die "You can't have more clusters than sources!\n" if ($k >= $#{ $matrix });
     
     # refactor matrix into nodes
@@ -204,9 +228,7 @@ sub get_clusters
     
     my $clusters = _k_recurse($nodes, _seed_clusters($matrix, $nodes, $k), $n);
     
-    my $nice_clusters = _make_nice_clusters($clusters);
-    
-    return $nice_clusters;
+    return _make_nice_clusters($clusters, $col_labels, $stems);
 }
 
 1;

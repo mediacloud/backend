@@ -241,13 +241,6 @@ sub _get_clusters_cluto
     return MediaWords::Cluster::Cluto::get_clusters( @_, NUM_FEATURES );
 }
 
-sub _get_clusters_kmeans
-{
-    my ($matrix, $row_labels, $k) = @_;
-    my $n = 20; # At some point, we should be asking the user how many times they want to run this
-    return MediaWords::Cluster::Kmeans::get_clusters( _get_sparse_matrix($matrix), $row_labels, $k, $n );
-}
-
 sub get_media_source_name
 {
     my ( $db, $media_source ) = @_;
@@ -329,15 +322,12 @@ sub _get_clustering_engine
     return $clustering_engine;
 }
 
-# Use Cluto.pm to get the spare matrix file; send it to Simat.pm to get a spare matrix
-# with cosines similarities between every two vectors
-sub _get_cosine_sim_matrix {
-    
+# Returns a matrix of the cosine similarity between every two media sources
+sub _get_cosine_sim_matrix 
+{
     my ($matrix, $row_labels) = @_;
 
     my $sparse_mat = _get_sparse_matrix($matrix);
-    
-    # print STDERR "\n\n sparse matrix: " . Dumper($sparse_mat) . "\n\n";
     
     # The old Simat.pm... in 6 lines
     my $raw_cosines = {};
@@ -356,9 +346,6 @@ sub _get_cosine_sim_matrix {
             $cosines->{ $row_labels->[ $row ] }->{ $row_labels->[ $target ] } = $weight;
         }
     }
-    
-    # print STDERR "\n\nCOSINES:" . Dumper($cosines) . "\n\n";
-    # print STDERR "\n\nROW LABELS: " . Dumper($row_labels) . "\n\n";
     
     return $cosines;  
 }
@@ -404,7 +391,9 @@ sub execute_media_cluster_run
     }
     elsif ( $clustering_engine eq 'kmeans' )
     {
-        $clusters = _get_clusters_kmeans( $matrix, $row_labels, $cluster_run->{ num_clusters } );
+        my $n = 20; # How many times to run the algorithm... either make this a constant or have someone specify this
+        $clusters = MediaWords::Cluster::Kmeans::get_clusters(
+            _get_sparse_matrix($matrix), $row_labels, $col_labels, $stems, $cluster_run->{ num_clusters }, $n );
     }
     else
     {
