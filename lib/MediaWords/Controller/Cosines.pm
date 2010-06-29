@@ -10,6 +10,13 @@ use MediaWords::DBI::Stories;
 use Math::Round;
 use Lingua::StopWords qw{ getStopWords };
 
+##
+##  WARNING DEPRECATED CODE.
+##
+##  THIS CODE HAS BEEN UNMAINTAINED FOR SOMETIME AND IS LIKLEY TO BE REMOVED
+##  I'M KEEPING IT AROUND PURELY FOR REFERENCE PURPOSES
+##
+
 # globals for comparisons
 my @media_texts;
 my @word_vectors;
@@ -25,11 +32,13 @@ my @media_ids = qw{1 669 1106 1092 115 121 238 5 95 35 2 96 15 26 30 28 1097};
 # my original list qw{1 669 1106 1092 1094 115 121 238};
 my @media_titles = qw{New_York_Times Daily_Kos Fox_News ABC_news Bitch_Phd};
 
-sub index : Path : Args(0)
-{
-
-    return media_tag_counts( @_ );
-}
+#  COMMENTING OUT SO IT CANNOT BE INVOKED FROM THE WEB
+#
+# sub index : Path : Args(0)
+# {
+#
+#     return media_tag_counts( @_ );
+# }
 
 #################################################################################
 #
@@ -326,7 +335,10 @@ sub build_media_data
 }
 
 # return the top ten tags for the given medium
-sub media_tag_counts : Local
+##
+## Commenting out the ': Local' so this function cannot be invoked from the web.
+#sub media_tag_counts : Local
+sub media_tag_counts 
 {
 
     my ( $self, $c ) = @_;
