@@ -32,6 +32,7 @@ sub extract_text
     my $db = MediaWords::DB::connect_to_db;
 
     $db->dbh->{ AutoCommit } = 0;
+	my $segmenter = Lingua::ZH::WordSegmenter->new();
 
     while ( 1 )
     {
@@ -68,8 +69,7 @@ sub extract_text
                 #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
                 # }
 				
-				#assume the text is in Chinese, in future, I need to write a module to test the language of the text
-                MediaWords::StoryVectors::update_story_sentence_words_ZH( $db, $story );
+                MediaWords::StoryVectors::update_story_sentence_words( $db, $story, $segmenter );
             }
             else
             {

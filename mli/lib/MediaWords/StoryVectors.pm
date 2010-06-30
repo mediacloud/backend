@@ -3,13 +3,13 @@ package MediaWords::StoryVectors;
 # methods to generate the story_sentences and story_sentence_words and associated aggregated tables
 
 use strict;
-
 use Encode;
 use Encode::HanConvert;
 use Perl6::Say;
 use Lingua::ZH::WordSegmenter;
 
 use Lingua::EN::Sentence::MediaWords;
+use Lingua::ZH::MediaWords;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Stemmer;
 use MediaWords::Util::StopWords;
@@ -56,6 +56,8 @@ sub _insert_story_sentence_words
                 $story->{ publish_date },
                 $story->{ media_id }
             );
+
+#print $story->{ stories_id }.$hash->{ count }.$sentence_num.encode_utf8( $stem ).encode_utf8( lc( $hash->{ word } ) ).$story->{ publish_date }.$story->{ media_id };
         }
     }
 }
@@ -104,10 +106,17 @@ sub _tokenize
 #Chinese tokenizer, returns an array of Chinese words
 sub _tokenize_ZH
 {
-	my ( $s ) = @_;
-	my $segmenter = Lingua::ZH::WordSegmenter->new("dic");
-	my @tokens = split(/ /, $segmenter->seg($s, "utf8"));
-	return @tokens;
+    my $s         = shift;
+    my $segmenter = shift;
+
+    #print "\n 1:".$s;
+    $s = encode( "utf8", $s );
+
+    my $segs = $segmenter->seg( $s, "utf8" );
+
+    #print "\n 2:".$segs;
+    my @tokens = split( / /, $segs );
+    return @tokens;
 }
 
 # if the length of the string is greater than the given length, cut to that length
@@ -202,90 +211,83 @@ sub dedup_sentences
 # if you are very sure no story vectors exist for this story).
 sub update_story_sentence_words
 {
-    my ( $db, $story_ref, $no_delete ) = @_;
-
+    my ( $db, $story_ref, $segmenter, $no_delete ) = @_;
+    my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
 
     $no_delete || $db->query( "delete from story_sentence_words where stories_id = ?", $story->{ stories_id } );
     $no_delete || $db->query( "delete from story_sentences where stories_id = ?",      $story->{ stories_id } );
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
+    my $is_Chinese = Lingua::ZH::MediaWords::text_is_Chinese( $story_text );
 
-    my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $story_text ) || return;
-    my $stop_stems = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup();
-    my $stemmer    = MediaWords::Util::Stemmer->new;
-
-    $sentences = dedup_sentences( $db, $story_ref, $sentences );
-
-    my $sentence_word_counts;
-    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
+    #if the text is in Chinese
+    if ( $is_Chinese == 1 )
     {
-        my $words = _tokenize( [ $sentences->[ $sentence_num ] ] );
 
-        my $stems = $stemmer->stem( @{ $words } );
+        #convert traditional characters into simplified characters
+        $story_text = trad_to_simp( $story_text );
 
-        for ( my $word_num = 0 ; $word_num < @{ $words } ; $word_num++ )
+        my @sentences  = Lingua::ZH::MediaWords::get_sentences( $story_text );
+        my %stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
+        my $count      = 0;
+
+        for ( my $sentence_num = 0 ; $sentence_num < $#sentences ; $sentence_num++ )
         {
-            my ( $word, $stem ) = ( $words->[ $word_num ], $stems->[ $word_num ] );
+            my @words = _tokenize_ZH( $sentences[ $sentence_num ], $segmenter );
 
-            limit_string_length( $word, 256 );
-            limit_string_length( $stem, 256 );
-
-            if ( _valid_stem( $stem, $word, $stop_stems ) )
+            #print $sentences[$sentence_num]."\n\n----------\n";
+            #print join "\n\n", @words;
+            for ( my $word_num = 0 ; $word_num < $#words ; $word_num++ )
             {
-                $sentence_word_counts->{ $sentence_num }->{ $stem }->{ word } ||= $word;
-                $sentence_word_counts->{ $sentence_num }->{ $stem }->{ count }++;
+                my $word = ( $words[ $word_num ] );
+
+                if ( ( !%stop_words->{ $word } ) )
+                {
+                    $sentence_word_counts->{ $sentence_num }->{ $word }->{ word } ||= $word;
+                    $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
+                }
             }
+            _insert_story_sentence( $db, $story, $sentence_num, $sentences[ $sentence_num ] );
         }
 
-        _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
+    }
+
+    #if the text is in English
+    else
+    {
+        my $stop_stems = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup();
+        my $stemmer    = MediaWords::Util::Stemmer->new;
+        my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $story_text ) || return;
+        $sentences = dedup_sentences( $db, $story_ref, $sentences );
+
+        for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
+        {
+            my $words = _tokenize( [ $sentences->[ $sentence_num ] ] );
+            my $stems = $stemmer->stem( @{ $words } );
+
+            for ( my $word_num = 0 ; $word_num < @{ $words } ; $word_num++ )
+            {
+                my ( $word, $stem ) = ( $words->[ $word_num ], $stems->[ $word_num ] );
+
+                limit_string_length( $word, 256 );
+                limit_string_length( $stem, 256 );
+
+                if ( _valid_stem( $stem, $word, $stop_stems ) )
+                {
+                    $sentence_word_counts->{ $sentence_num }->{ $stem }->{ word } ||= $word;
+                    $sentence_word_counts->{ $sentence_num }->{ $stem }->{ count }++;
+                }
+            }
+
+            _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
+        }
     }
 
     _insert_story_sentence_words( $db, $story, $sentence_word_counts );
-}
 
-
-#update the story sentence words if the word is in Chinese
-sub update_story_sentence_words_ZH
-{
-    my ( $db, $story_ref, $no_delete ) = @_;
-
-    my $story = _get_story( $db, $story_ref );
-
-    $no_delete || $db->query( "delete from story_sentence_words where stories_id = ?", $story->{ stories_id } );
-    $no_delete || $db->query( "delete from story_sentences where stories_id = ?",      $story->{ stories_id } );
-
-    my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
-
-	#convert traditional characters into simplified characters
-	$story_text =trad_to_simp ($story_text);
-	$story_text=encode("utf8", $story_text); 
-
- 	my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $story_text ) || return;
-    my %stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
-	my $count=0;
-
-    my $sentence_word_counts;
-
-    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
-    {
-		my @words=_tokenize_ZH($sentences->[ $sentence_num ]);;
-
-        for ( my $word_num = 0 ; $word_num < $#words; $word_num++ )
-        {
-            my ($word)=(@words[$word_num ]);
-			if (( !%stop_words->{ $word } )){
-          	  $sentence_word_counts->{ $sentence_num }->{ $word }->{ word } ||= $word;
-          	  $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
-			}
-        }
-		_insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
-    }
-	 
-	_insert_story_sentence_words( $db, $story, $sentence_word_counts );
-	
-	q{#testing print
-	while ( my ($key, $value) = each(%$sentence_word_counts) ) {
+    #testing print
+    q{while ( my ($key, $value) = each(%$sentence_word_counts) ) {
 		 	print "level 1:  $key\n";
 			while ( my ($key, $value1) = each(%$value) ) {
        				 print "*level 2:  $key\n";
@@ -295,7 +297,6 @@ sub update_story_sentence_words_ZH
    			}
 	 }};
 }
-
 
 # fill the story_sentence_words table with all stories in ssw_queue
 sub fill_story_sentence_words
