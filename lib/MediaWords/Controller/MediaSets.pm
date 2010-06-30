@@ -2,6 +2,7 @@ package MediaWords::Controller::MediaSets;
 
 use strict;
 use warnings;
+use MediaWords::DBI::MediaSets;
 use parent 'Catalyst::Controller';
 
 # list all media_sets with a set_type of collection
@@ -42,22 +43,7 @@ sub create_medium_media_set
         return;
     }
 
-    $media_set = $c->dbis->create(
-        'media_sets',
-        {
-            set_type => 'medium',
-            name     => $medium->{ name },
-            media_id => $medium->{ media_id }
-        }
-    );
-
-    $c->dbis->create(
-        'media_sets_media_map',
-        {
-            media_sets_id => $media_set->{ media_sets_id },
-            media_id      => $medium->{ media_id }
-        }
-    );
+    MediaWords::DBI::MediaSets::create_for_medium( $c->dbis, $medium );
 }
 
 # create a cluster media_set for the given cluster.

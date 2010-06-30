@@ -15,6 +15,7 @@ use Test::Differences;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
+use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
@@ -40,6 +41,8 @@ sub add_test_feed
         '_ Crawler Test',
         "$url_to_crawl" . "gv/test.rss"
     )->hash;
+
+    MediaWords::DBI::MediaSets::create_for_medium($db, $test_medium);
 
     ok( $feed->{ feeds_id }, "test feed created" );
 
@@ -145,7 +148,7 @@ sub test_stories
                     my $fake_var;    #silence warnings
                      #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
                     is( $story->{ $field }, $test_story->{ $field }, "story $field match" );
-                }
+                 }
             }
 
             eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
@@ -164,6 +167,19 @@ sub test_stories
 
         delete( $test_story_hash->{ $story->{ title } } );
     }
+
+}
+
+sub test_aggregate_words
+{
+
+    my ( $db, $feed ) = @_;
+
+    my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
+
+    MediaWords::StoryVectors::update_aggregate_words( $db, $start_date );
+
+    ## TODO grab and story the actual top 500 words data.
 
 }
 
@@ -235,6 +251,8 @@ sub main
             }
 
             test_stories( $db, $feed );
+
+	    test_aggregate_words( $db , $feed );
 
             print "Killing server\n";
             kill_local_server( $url_to_crawl );
