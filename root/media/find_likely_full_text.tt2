@@ -1,7 +1,7 @@
 [% title = 'Mark likely full text sources' %]
 [% INCLUDE include/header.tt2 %]
 
-<form action="/media/do_find_likely_full_text_rss" method="post">
+<form action="[% c.uri_for('/media/do_find_likely_full_text_rss') %]" method="post">
 
 <table>
 
