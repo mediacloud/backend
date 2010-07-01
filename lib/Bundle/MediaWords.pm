@@ -13,6 +13,8 @@ Algorithm::Cluster
 
 Task::Catalyst
 
+Class::Std
+
 BerkeleyDB
 
 List::Uniq
