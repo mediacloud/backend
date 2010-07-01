@@ -46,14 +46,16 @@ sub run_daemon
         for my $dashboard_topic ( @{ $dashboard_topics } )
         {
             print STDERR "update_aggregate_vectors: dashboard_topic $dashboard_topic->{ dashboard_topics_id }\n";
+
+            $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
+                $dashboard_topic->{ dashboard_topics_id } );
+
             MediaWords::StoryVectors::update_aggregate_words(
                 $db,
                 $dashboard_topic->{ start_date },
                 $dashboard_topic->{ end_date },
                 0, $dashboard_topic->{ dashboard_topics_id }
             );
-            $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
-                $dashboard_topic->{ dashboard_topics_id } );
         }
 
         sleep( 60 );
