@@ -22,7 +22,7 @@ sub main
       || die DBIx::Simple::MediaWords->error;
 
     $dbs->query(
-'update media set full_text_rss = true where media_id in (select media_id from media_rss_full_text_detection_data where  avg_similarity >= 0.97 and avg_rss_length > 1000)  and full_text_rss is null'
+'update media set full_text_rss = true where media_id in (select media.media_id from media_rss_full_text_detection_data natural join media where  avg_similarity >= 0.97 and avg_rss_length > 1000 and full_text_rss is null)'
     );
 
 }
