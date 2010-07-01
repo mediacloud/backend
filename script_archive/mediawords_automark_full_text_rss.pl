@@ -32,7 +32,6 @@ sub main
 'update media set full_text_rss = true where media_id in (??)',
 		@media_ids_to_update) || die;
 
-    $dbs->commit;
 }
 
 main();
