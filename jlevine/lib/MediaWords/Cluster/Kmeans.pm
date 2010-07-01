@@ -4,20 +4,10 @@ package MediaWords::Cluster::Kmeans;
 
 use strict;
 use Data::Dumper;
-use Math::SparseVector;
 use Math::Random;
+use MediaWords::Util::Timing qw( start_time stop_time );
+use MediaWords::Util::SparseVector qw( vector_add vector_dot vector_div vector_norm vector_normalize );
 
-# adds all the entries in a sparse vector (useful for debugging)
-sub _sum_vector
-{
-    my ($vec) = @_;
-    my @indices = $vec->keys;
-    my $total;
-    for my $i (@indices) {
-        $total += $vec->get($i);
-    }
-    return $total;
-}
 
 # Dumps the clusters, but not their vectors
 sub _dump_clusters
@@ -28,7 +18,7 @@ sub _dump_clusters
     for my $cluster (@{ $clusters })
     {
         print STDERR "Cluster " . $cluster->{ cluster_id } . ": \n";
-        my $center = _sum_vector( $cluster->{ centroid } ) || 0;
+        my $center = vector_norm( $cluster->{ centroid } ) || 0;
         print STDERR "  centroid sum: $center\n";
         for my $node (@{ $cluster->{ nodes } })
         {
@@ -54,8 +44,8 @@ sub _assign_nodes
         
         for my $cluster ( @{ $clusters } )
         {
-            my $dp = $node->{ vector }->dot( $cluster->{ centroid } );
-            if ($dp >= $node->{ score }) # make this greater than or equal to to ensure this gets updated
+            my $dp = vector_dot( $node->{ vector }, $cluster->{ centroid } );
+            if ($dp >= $node->{ score }) # must be >= to ensure the score gets updated
             {
                 $node->{ score }   = $dp;
                 $node->{ cluster } = $cluster->{ cluster_id };
@@ -87,21 +77,21 @@ sub _find_center
         };
         
         # Find the "average vector"
-        my $avg_vector = Math::SparseVector->new;
+        my $avg_vector = {};
         for my $node (@{ $old_cluster->{ nodes } }) {
-            $avg_vector->add( $node->{ vector } );
+            $avg_vector = vector_add( $avg_vector, $node->{ vector } );
         }
         
         my $num_vecs = scalar @{ $old_cluster->{ nodes } };
         if ($num_vecs)
         {    
-            $avg_vector->div( $num_vecs );
+            $avg_vector = vector_div( $avg_vector, $num_vecs );
     
             # Make the new centroid the vector closest to the average
             my $max_score = 0;
             for my $node (@{ $old_cluster->{ nodes } })
             {
-                my $dp = $node->{ vector }->dot( $avg_vector );
+                my $dp = vector_dot( $node->{ vector }, $avg_vector );
                 if ($dp > $max_score)
                 {
                     $max_score = $dp;
@@ -109,7 +99,7 @@ sub _find_center
                 }
             }
         } else {
-            $new_cluster->{ centroid } = Math::SparseVector->new;
+            $new_cluster->{ centroid } = {};
         }
         
         push @{ $new_clusters }, $new_cluster;
@@ -176,21 +166,22 @@ sub _make_nice_clusters
         };
         
         # Add "internal features"--just the word frequencies for the centroid
-        my @features;
-        for my $key ($cluster->{ centroid }->keys)
+        my $features = [];
+        for my $key (keys %{ $cluster->{ centroid } })
         {
             my $stem = $col_labels->[$key];
             my $feature = {
                 stem   => $stem,
                 term   => $stems->FETCH( $stem ),
-                weight => $cluster->{ centroid }->get($key)
+                weight => $cluster->{ centroid }->{ $key }
             };
             
-            push @features, $feature;
+            push @{ $features }, $feature;
         }
     
         # Sort the internal features by weight
-        @{ $nice_cluster->{ internal_features } } = sort { $b->{ weight } <=> $a->{ weight } } @features;
+        my @all_sorted_features = sort { $b->{ weight } <=> $a->{ weight } } @{ $features };
+        @{ $nice_cluster->{ internal_features } } = @all_sorted_features[0..50];
         
         # Add the media IDs and their corresponding scores
         for my $node (@{ $cluster->{ nodes } })
@@ -207,6 +198,8 @@ sub _make_nice_clusters
     return $nice_clusters;
 }
 
+# Public function for the module
+# Returns the k-means clusters
 sub get_clusters
 {    
     # $matrix => Sparse stem matrix from Cluster::_get_sparse_matrix
@@ -223,10 +216,14 @@ sub get_clusters
             vector   => $matrix->[$i],
             media_id => $row_labels->[$i]
         };
-        push @{ $nodes }, $node if _sum_vector($node->{ vector }) > 0; # make sure we have data for this node
+        push @{ $nodes }, $node if vector_norm( $node->{ vector } ) > 0; # make sure we have data for this node
     }
     
+    # time cluster run
+    my $t0 = start_time( 'cluster run 1' );
     my $clusters = _k_recurse($nodes, _seed_clusters($matrix, $nodes, $k), $n);
+    stop_time( 'cluster run 1', $t0);
+    print STDERR "Cluster run 1 score: [TODO]\n\n";    
     
     return _make_nice_clusters($clusters, $col_labels, $stems);
 }

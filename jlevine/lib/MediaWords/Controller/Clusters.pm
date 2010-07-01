@@ -93,6 +93,7 @@ sub view : Local
     #             },
     #             ...
     #         ]
+    #         word_count          => $total_count
     #         node_id             => $node_id
     #     },
     #     ...
@@ -107,9 +108,9 @@ sub view : Local
         my $cluster_id = $mc->{ media_clusters_id };
         
         my $mc_media = $c->dbis->query(
-            "select m.*, mcz.* from media m, media_clusters_media_map mcmm, media_cluster_zscores mcz" .
-              "  where m.media_id = mcmm.media_id
-                   and m.media_id = mcz.media_id 
+            "select distinct m.*, mcz.* from media m, media_clusters_media_map mcmm, media_cluster_zscores mcz 
+                 where m.media_id = mcmm.media_id
+                   and m.media_id = mcz.media_id
                    and mcmm.media_clusters_id = mcz.media_clusters_id
                    and mcmm.media_clusters_id = ?",
             $mc->{ media_clusters_id }
@@ -127,6 +128,7 @@ sub view : Local
                 internal_similarity => $source->{ internal_similarity },
                 external_zscore     => $source->{ external_zscore },
                 external_similarity => $source->{ external_similarity },
+                word_count          => 0, #$source->{ total_count },
                 linked              => 0
             };
         }
@@ -158,7 +160,8 @@ sub view : Local
     $c->stash->{ data }           = _get_json_object_from_nodes($nodes);
 }
 
-sub _my_escape {
+sub _my_escape
+{
     use MediaWords::Util::HTML;
     
     my ($s) = @_;
@@ -170,7 +173,8 @@ sub _my_escape {
     return $s;
 }
 
-sub _get_json_object_from_nodes {
+sub _get_json_object_from_nodes
+{
     my ($nodes) = @_;
     
     my $data = "{ nodes:[";   # prep JSON object as string
@@ -181,9 +185,10 @@ sub _get_json_object_from_nodes {
         # Don't render orphan nodes--i.e. those that don't have any links > MIN_LINK_WEIGHT
         if ( $node->{ linked } ) {
             my $node_name      = _my_escape( $node->{ name } );
-            my $group          = $node->{ cluster_id };   
+            my $group          = $node->{ cluster_id };
+            my $size           = ($node->{ word_count }) ** (0.5) * 3;
             $node->{ node_id } = $node_id_count++;
-            $data .= "{ nodeName:'$node_name', group:$group },\n";
+            $data .= "{ nodeName:'$node_name', group:$group, size:$size },\n";
         }
     }
     
@@ -209,7 +214,8 @@ sub _get_json_object_from_nodes {
 }
 
 # Old way of computing links: based on internal/external z-scores/similarities from cluto
-sub _add_links_from_zscores {
+sub _add_links_from_zscores
+{
     my ($nodes) = @_;
     
     use constant WEIGHT_SCALE => 2;
@@ -263,11 +269,12 @@ sub _add_links_from_zscores {
 }
 
 # Query media_cluster_links and add links to each node
-sub _add_links_to_nodes {
+sub _add_links_to_nodes
+{
     my ($c, $cluster_runs_id, $nodes) = @_;
    
     my $links = $c->dbis->query(
-        "select mcl.source_media_id, mcl.target_media_id, mcl.weight
+        "select distinct mcl.source_media_id, mcl.target_media_id, mcl.weight
            from media_cluster_links mcl
           where mcl.media_cluster_runs_id = ?", $cluster_runs_id
     )->hashes;

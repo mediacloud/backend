@@ -37,10 +37,12 @@
     </table>
     <p><b>Cluster Run Results</b></p>
     <div class='inline left'>
+    [% cl_off = media_clusters.0.media_clusters_id %]
     [% FOREACH cluster IN media_clusters %]
       <fieldset>
         <p>
-          <b>[% cluster.description %]</b>
+          <span class="cluster_color" data-id="[% cluster.media_clusters_id - cl_off %]"></span>
+          <b>[% cluster.description %]</b> 
         </p>
         <p>
           Media
@@ -110,17 +112,30 @@
             .lineWidth(0.1); // Don't specify this!!
 
         force.node.add(pv.Dot)
-            // .size(10)
-            .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5))
+            // .size(0) //looks sweet!
+            .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5)) // default
+            // .size(function(d) d.size)
             .fillStyle(function(d) d.fix ? "brown" : colors(d.group))
+            // .fillStyle(function() this.active() ? "orange" : "steelblue")
             .strokeStyle(function() this.fillStyle().darker())
             .lineWidth(1) 
             .title(function(d) d.nodeName)
             // .event("mousedown", pv.Behavior.drag())
-            // .event("drag", force)
+            // .event("drag", force);
+            // .def("fillStyle", colors(this.parent.group)) 
+            // .event("mouseover", function() this.fillStyle("orange")) // override
+            // .event("mouseout", function() this.fillStyle(undefined)) // restore
             ;
 
         vis.render(); 
+      </script>
+      <script type="text/javascript+protovis">
+      // fix colors
+        $('span.cluster_color').each( function(index) {
+          var i = $(this).attr("data-id");
+          var color = pv.Colors.category20()(i).color;
+          $(this).css('background-color', color);
+        });
       </script>
     </div>
   </body>

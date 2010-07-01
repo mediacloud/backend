@@ -14,3 +14,11 @@ div.inline.right {
   border: silver solid 1px;
   padding: 0px;
 }
+
+span.cluster_color {
+  display: inline-block;
+  border: silver solid 1px;
+  width: 15px;
+  height: 15px;
+  background-color: black;
+}
