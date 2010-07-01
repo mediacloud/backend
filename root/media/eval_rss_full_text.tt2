@@ -26,7 +26,7 @@
 [% INCLUDE include/pager.tt2 %] 
 </table>
 <br/>
-<a href="/media/eval_rss_full_text/[% next_media_id %]"><input type="button" value="Skip To Next Source"></a>
+<a href="[% c.uri_for('/media/eval_rss_full_text/') _ next_media_id | url %]"><input type="button" value="Skip To Next Source"></a>
 <br/>
 <br/>
 
@@ -72,7 +72,7 @@ Description:<br/>
 </table>
 <br/>
 
-<form action="/media/do_eval_rss_full_text/[% medium.media_id %]" method="post">
+<form action="[% c.uri_for('/media/do_eval_rss_full_text/') _ medium.media_id | url %]" method="post">
 <div class="checkbox comment label">
 <label>Yes</label>
 <input name="full_text_rss" type="radio" value="1" 
@@ -100,7 +100,7 @@ checked="checked"
 </form>
 
 <br/>
-<a href="/media/eval_rss_full_text/[% next_media_id %]"><input type="button" value="Skip To Next Source"></a>
+<a href="[% c.uri_for('/media/eval_rss_full_text/') _ next_media_id | url %]"><input type="button" value="Skip To Next Source"></a>
 <br/>
 <br/>
 
