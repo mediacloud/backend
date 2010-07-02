@@ -58,11 +58,9 @@ sub main
 
     my $media_ids_to_update = get_media_ids_to_update_by_rss_length_and_similarity( $dbs );
 
-    say "initially updating " . scalar( @{ $media_ids_to_update } ) . " media ids";
+    say "initially updating " . scalar( @{ $media_ids_to_update } ) . " media ids:";
 
     say join ",", @{ $media_ids_to_update };
-
-    exit;
 
     if ( scalar( @{$media_ids_to_update} ) > 0 )
     {
