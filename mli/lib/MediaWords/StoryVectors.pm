@@ -242,7 +242,7 @@ sub update_story_sentence_words
             {
                 my $word = ( $words[ $word_num ] );
 
-                if ( ( !%stop_words->{ $word } ) )
+                if ( ( !$stop_words{ $word } ) )
                 {
                     $sentence_word_counts->{ $sentence_num }->{ $word }->{ word } ||= $word;
                     $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
