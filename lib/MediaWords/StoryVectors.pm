@@ -450,7 +450,7 @@ sub update_aggregate_words
     my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
 
     $start_date ||= '2008-06-01';
-    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time );
+    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
 
     my $days = 0;
     for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
