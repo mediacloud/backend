@@ -88,7 +88,7 @@ sub _insert_story_sentence
 sub _tokenize
 {
     my ( $s ) = @_;
-
+    
     my $tokens = [];
     while ( $s->[ 0 ] =~ m~(\w[\w']*)~g )
     {
@@ -462,7 +462,7 @@ sub update_aggregate_words
             _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
 
             # update weeklies either if we are at the end of a week
-            if ( !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ] )
+            if ( ( $date eq $end_date ) || !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ] )
             {
                 _update_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
                 _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
