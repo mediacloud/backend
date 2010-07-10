@@ -15,7 +15,7 @@ use MediaWords::Cluster::Kmeans;
 use MediaWords::Cluster::Cluto;
 use MediaWords::Util::Config;
 use MediaWords::Util::Timing qw( start_time stop_time );
-use MediaWords::Util::SparseVector qw( vector_add vector_dot vector_div vector_norm vector_normalize );
+use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_dot vector_div vector_norm vector_normalize vector_length );
 
 # number of nfeatures parameter for the clustering run
 use constant NUM_FEATURES => 50;
@@ -107,17 +107,22 @@ sub _get_sparse_vector_from_dense_vector
 {
     my ( $dense_vector ) = @_;
 
-    my $sparse_vector = {};
+    use PDL;
+    my $sparse_vector = vector_new (scalar @{ $dense_vector });
+    # my sparse_vector = {};
      
     for (my $j = 0; $j < scalar @{ $dense_vector }; $j++)
     {
         my $val = $dense_vector->[$j];
-        $sparse_vector->{ $j } = $val if $val > 0;
+        index( $sparse_vector, $j ) .= $val if $val > 0;
+        
+        # $sparse_vector->{ $j } = $val if $val > 0;
     }
     
-    my $normal_vector = {};
-    my $normal_vector = vector_normalize($sparse_vector) if defined $sparse_vector;
-
+    # my $normal_vector = {};
+    # my $normal_vector = vector_normalize($sparse_vector) if defined $sparse_vector;
+    my $normal_vector = vector_normalize $sparse_vector if defined $sparse_vector;
+    
     return $normal_vector;
 }
 

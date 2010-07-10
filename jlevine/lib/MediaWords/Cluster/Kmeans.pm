@@ -6,7 +6,7 @@ use strict;
 use Data::Dumper;
 use Math::Random;
 use MediaWords::Util::Timing qw( start_time stop_time );
-use MediaWords::Util::SparseVector qw( vector_add vector_dot vector_div vector_norm vector_normalize );
+use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_dot vector_div vector_norm vector_normalize vector_length vector_nnz vector_get);
 
 
 # Dumps the clusters, but not their vectors
@@ -19,7 +19,7 @@ sub _dump_clusters
     {
         print STDERR "Cluster " . $cluster->{ cluster_id } . ": \n";
         my $center = vector_norm( $cluster->{ centroid } ) || 0;
-        print STDERR "  centroid sum: $center\n";
+        print STDERR "  centroid norm: $center\n";
         for my $node (@{ $cluster->{ nodes } })
         {
             print STDERR "  node " . $node->{ media_id } . " = { \n";
@@ -77,7 +77,8 @@ sub _find_center
         };
         
         # Find the "average vector"
-        my $avg_vector = {};
+        my $length = vector_length $old_cluster->{ centroid };
+        my $avg_vector = vector_new($length);
         for my $node (@{ $old_cluster->{ nodes } }) {
             $avg_vector = vector_add( $avg_vector, $node->{ vector } );
         }
@@ -99,7 +100,9 @@ sub _find_center
                 }
             }
         } else {
-            $new_cluster->{ centroid } = {};
+            next unless defined $new_cluster->{ centroid };
+            my $length = vector_length $new_cluster->{ centroid };
+            $new_cluster->{ centroid } = vector_new($length);
         }
         
         push @{ $new_clusters }, $new_cluster;
@@ -167,13 +170,13 @@ sub _make_nice_clusters
         
         # Add "internal features"--just the word frequencies for the centroid
         my $features = [];
-        for my $key (keys %{ $cluster->{ centroid } })
+        for my $key (@{ vector_nnz $cluster->{ centroid } })
         {
             my $stem = $col_labels->[$key];
             my $feature = {
                 stem   => $stem,
                 term   => $stems->FETCH( $stem ),
-                weight => $cluster->{ centroid }->{ $key }
+                weight => vector_get( $cluster->{ centroid }, $key )
             };
             
             push @{ $features }, $feature;
