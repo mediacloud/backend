@@ -396,9 +396,13 @@ sub execute_media_cluster_run
         $cosines = _get_cosine_sim_matrix($sparse_matrix, $row_labels);
         stop_time( "cosine sim matrix", $t0 );
 
-        my $n = 20; # How many times to run the algorithm... either make this a constant or have someone specify this
+        # Choose many times to iterate during each cluster run, and how many cluster runs to do
+        # These could be user-specified... a speed/quality tradeoff.
+        my $num_iterations = 20; my $num_cluster_runs = 10;
+        
         $clusters = MediaWords::Cluster::Kmeans::get_clusters(
-            $sparse_matrix, $row_labels, $col_labels, $stems, $cluster_run->{ num_clusters }, $n );
+            $sparse_matrix, $row_labels, $col_labels, $stems,
+            $cluster_run->{ num_clusters }, $num_iterations, $num_cluster_runs );
     }
     else
     {        

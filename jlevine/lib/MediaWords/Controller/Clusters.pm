@@ -108,11 +108,12 @@ sub view : Local
         my $cluster_id = $mc->{ media_clusters_id };
         
         my $mc_media = $c->dbis->query(
-            "select distinct m.*, mcz.* from media m, media_clusters_media_map mcmm, media_cluster_zscores mcz 
-                 where m.media_id = mcmm.media_id
-                   and m.media_id = mcz.media_id
-                   and mcmm.media_clusters_id = mcz.media_clusters_id
-                   and mcmm.media_clusters_id = ?",
+            "select distinct m.*, mcz.*
+               from media m, media_clusters_media_map mcmm, media_cluster_zscores mcz 
+              where m.media_id = mcmm.media_id
+                and m.media_id = mcz.media_id
+                and mcmm.media_clusters_id = mcz.media_clusters_id
+                and mcmm.media_clusters_id = ?",
             $mc->{ media_clusters_id }
         )->hashes;
         $mc->{ media } = $mc_media;
@@ -128,7 +129,7 @@ sub view : Local
                 internal_similarity => $source->{ internal_similarity },
                 external_zscore     => $source->{ external_zscore },
                 external_similarity => $source->{ external_similarity },
-                word_count          => 0, #$source->{ total_count },
+                word_count          => 0, #source->{ total_count },
                 linked              => 0
             };
         }

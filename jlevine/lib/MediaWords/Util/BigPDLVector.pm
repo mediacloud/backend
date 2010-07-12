@@ -69,20 +69,15 @@ sub vector_length
 sub vector_nnz
 {
     my ( $v ) = @_;
-    my $piddle_list = which( $v )->list();
-    my $numeric_list = [];
-    for my $piddle ( $piddle_list )
-    {
-        push @{ $numeric_list }, $piddle;
-    }
-    return $numeric_list;
+    my @piddle_list = which( $v )->list();
+    return \@piddle_list;
 }
 
 # get a specified value from a vector
 sub vector_get
 {
     my ( $v, $pos ) = @_;
-    return index( $v, $pos );
+    return index( $v, $pos )->sclr();
 }
 
 

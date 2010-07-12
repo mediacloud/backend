@@ -114,31 +114,30 @@ sub _find_center
 sub _k_recurse
 {
     # Take in the node list, a bunch of empty clusters with centers, and the number of times left to recurse
-    my ($nodes, $clusters, $n) = @_;
+    my ($nodes, $clusters, $num_iterations) = @_;
     
     # Reassign clusters
     ($nodes, $clusters, my $reassigned) = _assign_nodes($nodes, $clusters);
-    # _dump_clusters($clusters, $n);
+    # _dump_clusters($clusters, $num_iterations);
     
-    print STDERR "K-means iteration $n: $reassigned reassigned.\n";
+    print STDERR "K-means iteration $num_iterations: $reassigned reassigned.\n";
     
     # Break if no reassignments, or we've looped enough times
-    return $clusters unless ($n and $reassigned);
+    return $clusters unless ($num_iterations and $reassigned);
     
-    return _k_recurse($nodes, _find_center($clusters), $n - 1);
+    return _k_recurse($nodes, _find_center($clusters), $num_iterations - 1);
 }
 
-# Pick nodes to seed clusters
-# Could be done randomly--or with k++?
-sub _seed_clusters
+# Pick random nodes to seed clusters
+sub _seed_clusters_random
 {
-    my ($matrix, $nodes, $k) = @_;
+    my ($nodes, $num_clusters) = @_;
     my $clusters = [];
     my $cluster_cnt = 0;
     
-    for my $rand ( Math::Random::random_uniform_integer($k, 0, $#{ $matrix }) ) {
+    for my $rand ( Math::Random::random_uniform_integer($num_clusters, 0, $#{ $nodes }) ) {
         push @{ $clusters }, {
-            centroid   => $matrix->[$rand],
+            centroid   => $nodes->[$rand]->{ vector },
             cluster_id => $cluster_cnt++
         };
     }
@@ -146,7 +145,86 @@ sub _seed_clusters
     return $clusters;
 }
 
-# Turn raw clusters into nice clusters, which should really look like (at least)
+# Use the K-Means++ algorithm to seed clusters: http://en.wikipedia.org/wiki/K-means%2B%2B
+sub _seed_clusters_kmeans_plus_plus
+{
+    my ($nodes, $num_clusters) = @_;
+    my $clusters = [];
+    my $cluster_cnt = 0;
+    
+    # TODO: Seed clusters!!
+    
+    return $clusters
+}
+
+# Turn the unweidly matrix data structure into the friendlier 'nodes' data structure, with media id labels!
+sub _refactor_matrix_into_nodes
+{
+    my ($matrix, $row_labels) = @_;
+    
+    my $nodes = [];
+    for my $i (0 .. $#{ $matrix })
+    {
+        my $node = {
+            vector   => $matrix->[$i],
+            media_id => $row_labels->[$i]
+        };
+        push @{ $nodes }, $node if vector_norm( $node->{ vector } ) > 0; # make sure we have data for this node
+    }
+    
+    return $nodes;
+}
+
+# Use the I2 'clustering criterion function' to come up with a score for the cluster run
+sub _eval_clusters
+{
+    my ( $clusters ) = @_;
+    my $total_score = 0;
+
+    for my $cluster (@{ $clusters })
+    {
+        my $cluster_score = 0;
+        my $nodes = $cluster->{ nodes };
+        
+        for my $i ( 0..$#{ $nodes } )
+        {
+            for my $j ( $i..$#{ $nodes} )
+            {
+                $cluster_score += vector_dot( $nodes->[$i]->{ vector }, $nodes->[$j]->{ vector } );
+            }
+        }
+         
+        $total_score += sqrt $cluster_score;
+    }
+    
+    return $total_score;
+}
+
+# Do a bunch of cluster runs and return the best one
+sub _get_best_cluster_run
+{
+    my ( $nodes, $num_clusters, $num_iterations, $num_cluster_runs ) = @_;
+    
+    my $best_clusters = {};
+    my $best_score = 0;
+    
+    for my $i (0..$num_cluster_runs)
+    {
+        my $t0 = start_time( "cluster run $i" ); # time cluster run
+        my $clusters = _k_recurse($nodes, _seed_clusters_random($nodes, $num_clusters), $num_iterations);
+        stop_time( "cluster run $i", $t0 );
+        
+        my $score = _eval_clusters($clusters);
+        print STDERR "Cluster run $i score: $score\n\n";
+        
+        $best_clusters = $clusters if $score >= $best_score;
+    }
+    
+    return $best_clusters;
+}
+
+
+# Turn raw clusters into nice clusters for writing to the database, which should really look like (at least)
 # { media_ids         => [],
 #   internal_features => [ { stem => stem, term => term , weight => weight } ],
 #   external_features => [ { stem => stem, term => term , weight => weight } ],
@@ -181,7 +259,7 @@ sub _make_nice_clusters
             
             push @{ $features }, $feature;
         }
-    
+        
         # Sort the internal features by weight
         my @all_sorted_features = sort { $b->{ weight } <=> $a->{ weight } } @{ $features };
         @{ $nice_cluster->{ internal_features } } = @all_sorted_features[0..50];
@@ -206,29 +284,16 @@ sub _make_nice_clusters
 sub get_clusters
 {    
     # $matrix => Sparse stem matrix from Cluster::_get_sparse_matrix
-    # $k => number of clusters to generate
-    # $n => number of times to run algorithm
-    my ( $matrix, $row_labels, $col_labels, $stems, $k, $n ) = @_;
-    die "You can't have more clusters than sources!\n" if ($k >= $#{ $matrix });
+    # $num_clusters => number of clusters to generate
+    # $num_iterations => number of times to run algorithm
+    my ( $matrix, $row_labels, $col_labels, $stems, $num_clusters, $num_iterations, $num_cluster_runs ) = @_;
+    die "You can't have more clusters than sources!\n" if ($num_clusters >= $#{ $matrix });
     
-    # refactor matrix into nodes
-    my $nodes = [];
-    for my $i (0 .. $#{ $matrix })
-    {
-        my $node = {
-            vector   => $matrix->[$i],
-            media_id => $row_labels->[$i]
-        };
-        push @{ $nodes }, $node if vector_norm( $node->{ vector } ) > 0; # make sure we have data for this node
-    }
+    my $nodes = _refactor_matrix_into_nodes($matrix, $row_labels);
+    my $best_clusters = _get_best_cluster_run($nodes, $num_clusters, $num_iterations, $num_cluster_runs);
+    my $nice_clusters = _make_nice_clusters($best_clusters, $col_labels, $stems);
     
-    # time cluster run
-    my $t0 = start_time( 'cluster run 1' );
-    my $clusters = _k_recurse($nodes, _seed_clusters($matrix, $nodes, $k), $n);
-    stop_time( 'cluster run 1', $t0);
-    print STDERR "Cluster run 1 score: [TODO]\n\n";    
-    
-    return _make_nice_clusters($clusters, $col_labels, $stems);
+    return $nice_clusters;
 }
 
 1;
