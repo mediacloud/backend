@@ -89,7 +89,14 @@ sub get_value_of_base_64_node
         is( $extract_results->{ extracted_html }, $expected_extracted_html, "extracted html $xml_file" );
 
         my $expected_extracted_text = get_value_of_base_64_node( $root, 'extracted_text_base64' );
-        is( $extract_results->{ extracted_text }, $expected_extracted_text, "extracted text $xml_file" );
+
+	my $expected_extract_text_spaces_compressed = $expected_extracted_text;
+	$expected_extract_text_spaces_compressed =~ s/\s+//g;
+
+	my $actual_extract_text_spaces_compressed = $extract_results->{ extracted_text };
+	$actual_extract_text_spaces_compressed =~ s/\s+//g;
+
+        is( $actual_extract_text_spaces_compressed, $expected_extract_text_spaces_compressed, "extracted text $xml_file" );
 
         my $story_line_numbers_expected = get_value_of_node( $root, 'story_line_numbers' );
 
