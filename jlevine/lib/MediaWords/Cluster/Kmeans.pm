@@ -3,6 +3,7 @@ package MediaWords::Cluster::Kmeans;
 # Jon's implementation of the k-means clustering algorithm
 
 use strict;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Data::Dumper;
 use Math::Random;
 use MediaWords::Util::Timing qw( start_time stop_time );
@@ -146,15 +147,61 @@ sub _seed_clusters_random
 }
 
 # Use the K-Means++ algorithm to seed clusters: http://en.wikipedia.org/wiki/K-means%2B%2B
-sub _seed_clusters_kmeans_plus_plus
+# 1) Pick a starting centroid at random
+# 2) Traverse over every node, and find the one least similar to current clusters
+# 3) Make that node the centroid of a new cluster
+# 4) Repeat 2-3 until you have 'k' clusters
+sub _seed_clusters_plus_plus
 {
     my ($nodes, $num_clusters) = @_;
     my $clusters = [];
     my $cluster_cnt = 0;
     
-    # TODO: Seed clusters!!
+    my $t0 = start_time( 'k-means++' );
     
-    return $clusters
+    # Pick one random starting centroid
+    my $first_center = Math::Random::random_uniform_integer(1, 0, $#{ $nodes });
+    push @{ $clusters }, {
+        centroid   => $nodes->[ $first_center ]->{ vector },
+        cluster_id => $cluster_cnt++
+    };
+    
+    # Add $num_clusters-1 centroids
+    while ( $cluster_cnt < $num_clusters )
+    {
+        my $new_centroid;
+        my $least_cluster_sim = 1;
+        
+        # Look at each node, and determine the distance D(x) to the closest cluster
+        for my $node ( @{ $nodes } )
+        {
+            my $max_cluster_sim = 0;
+            
+            for my $cluster ( @{ $clusters } )
+            {
+                my $cluster_sim = vector_dot( $node->{ vector }, $cluster->{ centroid } );
+                $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
+            }
+            
+            # Make this node the new centroid if it's the least similar to other nodes
+            if ( $max_cluster_sim < $least_cluster_sim )
+            {
+                $least_cluster_sim = $max_cluster_sim;
+                $new_centroid = $node->{ vector };
+            }
+        }
+        
+        # my $sum_scores = sum (map {$_ ** 2} @{ $cluster_scores });
+        
+        push @{ $clusters }, {
+            centroid   => $new_centroid,
+            cluster_id => $cluster_cnt++
+        };
+    }
+    
+    stop_time( 'k-means++', $t0 );
+
+    return $clusters;
 }
 
 # Turn the unweidly matrix data structure into the friendlier 'nodes' data structure, with media id labels!
@@ -176,7 +223,7 @@ sub _refactor_matrix_into_nodes
 }
 
 # Use the I2 'clustering criterion function' to come up with a score for the cluster run
-sub _eval_clusters
+sub _eval_clusters_i2
 {
     my ( $clusters ) = @_;
     my $total_score = 0;
@@ -200,6 +247,28 @@ sub _eval_clusters
     return $total_score;
 }
 
+# Print out some stats about the scores
+sub _eval_scores
+{
+    my ( $scores ) = @_;
+    
+    my $max_score = $scores->[0];
+    my $min_score = $scores->[0];
+    my $sum_scores = 0;
+    
+    for my $score ( @{ $scores } )
+    {
+        $max_score = $score if $score >= $max_score;
+        $min_score = $score if $score <= $min_score;
+        $sum_scores += $score;
+    }
+    
+    my $avg_score = $sum_scores / scalar @{ $scores };
+    
+    print STDERR "Max score: $max_score; min score: $min_score; average score: $avg_score\n\n";
+
+}
+
 # Do a bunch of cluster runs and return the best one
 sub _get_best_cluster_run
 {
@@ -207,6 +276,7 @@ sub _get_best_cluster_run
     
     my $best_clusters = {};
     my $best_score = 0;
+    my $score_list = [];
     
     for my $i (0..$num_cluster_runs)
     {
@@ -214,11 +284,14 @@ sub _get_best_cluster_run
         my $clusters = _k_recurse($nodes, _seed_clusters_random($nodes, $num_clusters), $num_iterations);
         stop_time( "cluster run $i", $t0 );
         
-        my $score = _eval_clusters($clusters);
+        my $score = _eval_clusters_i2($clusters);
+        push @{ $score_list }, $score;
         print STDERR "Cluster run $i score: $score\n\n";
         
         $best_clusters = $clusters if $score >= $best_score;
     }
+    
+    _eval_scores($score_list);
     
     return $best_clusters;
 }

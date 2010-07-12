@@ -115,7 +115,7 @@
             // .size(0) //looks sweet!
             .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5)) // default
             // .size(function(d) d.size)
-            .fillStyle(function(d) d.fix ? "brown" : colors(d.group))
+            .fillStyle(function(d) colors.range()[d.group - [% cl_off %]].color)
             // .fillStyle(function() this.active() ? "orange" : "steelblue")
             .strokeStyle(function() this.fillStyle().darker())
             .lineWidth(1) 
@@ -128,14 +128,17 @@
             ;
 
         vis.render(); 
+        
       </script>
       <script type="text/javascript+protovis">
       // fix colors
         $('span.cluster_color').each( function(index) {
           var i = $(this).attr("data-id");
-          var color = pv.Colors.category20()(i).color;
+          var color = pv.Colors.category20().range()[i].color;
           $(this).css('background-color', color);
         });
+        
+        $('div.inline.right').css('position', 'fixed');
       </script>
     </div>
   </body>

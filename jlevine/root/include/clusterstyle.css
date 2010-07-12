@@ -18,7 +18,7 @@ div.inline.right {
 span.cluster_color {
   display: inline-block;
   border: silver solid 1px;
-  width: 15px;
-  height: 15px;
+  width: 25px;
+  height: 25px;
   background-color: black;
 }

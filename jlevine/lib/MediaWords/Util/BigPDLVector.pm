@@ -100,12 +100,6 @@ sub incr { }
 # sparse vector contructor - creates an empty sparse vector
 sub new { }
 
-# sets value at given index
-sub set { }
-
-# returns value at given index
-sub get { }
-
 # Returns 1 if vector is null, otherwise 0
 sub isnull {  }
 
