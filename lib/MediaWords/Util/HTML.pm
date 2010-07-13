@@ -20,12 +20,15 @@ use Encode;
 sub html_strip
 {
 
+    # use HTML::Strip;
+
     # my $html_text = shift;
     # my $hs = HTML::Strip->new();
     # my $text = $hs->parse($html_text);
     # $hs->eof();
     #
     # return $text;
+
     return HTML::StripPP::strip( $_[ 0 ] ) || '';
 }
 
