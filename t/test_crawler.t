@@ -176,6 +176,11 @@ sub generate_aggregate_words
     my ( $db, $feed ) = @_;
 
     my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
+    my ( $end_date ) = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
+
+    my $dashboard = $db->create('dashboards', { name => 'test_dashboard', start_date => $start_date, end_date => $end_date } );
+    
+    my $dashboard_topic = $db->create('dashboard_topics', { dashboards_id => $dashboard->{dashboards_id}, name => 'obama_topic', query => 'obama', start_date => $start_date, end_date => $end_date } );
 
     MediaWords::StoryVectors::update_aggregate_words( $db, $start_date );
 }
