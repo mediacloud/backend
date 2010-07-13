@@ -30,6 +30,12 @@ use Class::Std;
         eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
 
         $feedPP{ $ident } = $fp;
+
+	if ( $@ )
+	{
+	    my $err_mesg = $@;
+	    die "XML::FeedPP->new failed: $err_mesg";
+	}
     }
 
     sub _wrapper_if_necessary
