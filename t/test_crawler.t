@@ -12,6 +12,7 @@ BEGIN
 
 use Test::More;
 use Test::Differences;
+use Test::Deep;
 
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
@@ -42,7 +43,7 @@ sub add_test_feed
         "$url_to_crawl" . "gv/test.rss"
     )->hash;
 
-    MediaWords::DBI::MediaSets::create_for_medium($db, $test_medium);
+    MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
     ok( $feed->{ feeds_id }, "test feed created" );
 
@@ -148,7 +149,7 @@ sub test_stories
                     my $fake_var;    #silence warnings
                      #eq_or_diff( $story->{ $field }, encode_utf8($test_story->{ $field }), "story $field match" , {context => 0});
                     is( $story->{ $field }, $test_story->{ $field }, "story $field match" );
-                 }
+                }
             }
 
             eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
@@ -170,17 +171,61 @@ sub test_stories
 
 }
 
-sub test_aggregate_words
+sub generate_aggregate_words
 {
-
     my ( $db, $feed ) = @_;
 
     my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
 
     MediaWords::StoryVectors::update_aggregate_words( $db, $start_date );
+}
 
-    ## TODO grab and story the actual top 500 words data.
+sub _process_top_500_weekly_words_for_testing
+{
+    my ( $hashes ) = @_;
 
+    foreach my $hash ( @{ $hashes } )
+    {
+        delete( $hash->{ top_500_weekly_words_id } );
+    }
+}
+
+sub dump_top_500_weekly_words
+{
+    my ( $db, $feed ) = @_;
+
+    my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
+    _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
+
+    MediaWords::Test::Data::store_test_data( 'top_500_weekly_words', $top_500_weekly_words );
+
+    return;
+}
+
+sub test_top_500_weekly_words
+{
+    my ( $db, $feed ) = @_;
+
+    my $top_500_weekly_words_actual =
+      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term' )->hashes;
+    _process_top_500_weekly_words_for_testing( $top_500_weekly_words_actual );
+
+    my $top_500_weekly_words_expected = MediaWords::Test::Data::fetch_test_data( 'top_500_weekly_words' );
+
+    is(
+        scalar( @{ $top_500_weekly_words_actual } ),
+        scalar( @{ $top_500_weekly_words_expected } ),
+        'Top 500 weekly words table row count'
+    );
+
+    my $i;
+
+    for ( $i = 0 ; $i < scalar( @{ $top_500_weekly_words_actual } ) ; $i++ )
+    {
+        my $actual_row   = $top_500_weekly_words_actual->[ $i ];
+        my $expected_row = $top_500_weekly_words_expected->[ $i ];
+        cmp_deeply( $actual_row, $expected_row, "top_500_weekly_words row $i comparison" );
+    }
 }
 
 # store the stories as test data to compare against in subsequent runs
@@ -252,7 +297,13 @@ sub main
 
             test_stories( $db, $feed );
 
-	    test_aggregate_words( $db , $feed );
+            generate_aggregate_words( $db, $feed );
+            if ( defined( $dump ) && ( $dump eq '-d' ) )
+            {
+                dump_top_500_weekly_words( $db, $feed );
+            }
+
+            test_top_500_weekly_words( $db, $feed );
 
             print "Killing server\n";
             kill_local_server( $url_to_crawl );
