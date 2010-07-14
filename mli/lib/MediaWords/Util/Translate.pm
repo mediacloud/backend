@@ -40,7 +40,7 @@ sub _translate
 
     my $service = WebService::Google::Language->new(
         'referer' => 'http://example.com/',
-        'src'     => 'ru',
+        'src'     => 'ch',
         'dest'    => 'en',
     );
 
