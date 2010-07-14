@@ -198,6 +198,7 @@ sub update_story_sentence_words
     {
         $db->query( "delete from story_sentence_words where stories_id = ?", $story->{ stories_id } );
 	$db->query( "delete from story_sentences where stories_id = ?",      $story->{ stories_id } );
+	$db->query( "delete from story_sentence_counts where first_stories_id = ?", $story->{ stories_id } );
     }
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
