@@ -115,16 +115,16 @@
             // .size(0) //looks sweet!
             .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5)) // default
             // .size(function(d) d.size)
-            .fillStyle(function(d) colors.range()[d.group - [% cl_off %]].color)
+            .fillStyle(function(d) this.active() ? "orange" : colors.range()[d.group - [% cl_off %]].color)
             // .fillStyle(function() this.active() ? "orange" : "steelblue")
             .strokeStyle(function() this.fillStyle().darker())
             .lineWidth(1) 
             .title(function(d) d.nodeName)
             // .event("mousedown", pv.Behavior.drag())
             // .event("drag", force);
-            // .def("fillStyle", colors(this.parent.group)) 
-            // .event("mouseover", function() this.fillStyle("orange")) // override
-            // .event("mouseout", function() this.fillStyle(undefined)) // restore
+            .def("active", false)
+            // .event("mouseover", function() this.active(true))
+            // .event("mouseout", function() this.active(false)) // override
             ;
 
         vis.render(); 

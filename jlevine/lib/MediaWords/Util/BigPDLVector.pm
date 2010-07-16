@@ -15,7 +15,7 @@ use PDL::Reduce;
 require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw( vector_new vector_add vector_dot vector_div vector_norm
-                  vector_normalize vector_length vector_nnz vector_get );
+                  vector_normalize vector_length vector_nnz vector_get vector_set vector_string );
 
 sub vector_new
 {
@@ -62,7 +62,9 @@ sub vector_normalize
 # returns the length of the vector
 sub vector_length
 {
-    return dims( $_[0] );
+    my ( $v ) = @_;
+    my @dims = dims $v ;
+    return $dims[0];
 }
 
 # returns an array containing the non-zero values of the vector
@@ -78,6 +80,28 @@ sub vector_get
 {
     my ( $v, $pos ) = @_;
     return index( $v, $pos )->sclr();
+}
+
+# Set a value $val at position $pos in vector $v
+sub vector_set
+{
+    my ( $v, $pos, $val ) = @_;
+    index( $v, $pos ) .= $val if $val > 0;
+    return $v;
+}
+
+sub vector_string
+{
+    my ( $v ) = @_;
+    my $string = '';
+    
+    for my $pos ( @{ vector_nnz $v } )
+    {
+        my $val = vector_get $v, $pos ;
+        $string .= "$pos: $val\n";
+    }
+    
+    return $string;
 }
 
 
@@ -97,13 +121,7 @@ sub incr { }
 ############### USELESS FUNCTIONS ####################
 # Nothing to do for any of these--do them your damn self!
 
-# sparse vector contructor - creates an empty sparse vector
-sub new { }
-
 # Returns 1 if vector is null, otherwise 0
 sub isnull {  }
-
-# returns indices of non-zero values in sorted order
-sub keys { }
 
 1;

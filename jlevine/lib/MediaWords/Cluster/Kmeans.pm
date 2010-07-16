@@ -7,8 +7,8 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Data::Dumper;
 use Math::Random;
 use MediaWords::Util::Timing qw( start_time stop_time );
-use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_dot vector_div vector_norm vector_normalize vector_length vector_nnz vector_get);
-
+use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_dot vector_div vector_norm
+                  vector_normalize vector_length vector_nnz vector_get vector_set );
 
 # Dumps the clusters, but not their vectors
 sub _dump_clusters
@@ -204,19 +204,100 @@ sub _seed_clusters_plus_plus
     return $clusters;
 }
 
+# Perhaps closer to the real k-means++ algorithm...
+# 1) Pick a random node as the first cluster
+# 2) Go over every node and pretend it's the centroid of a cluster
+# 3) Then sum up D(x) for every x in X
+#     ie. For every node, find the min distance to the nearest cluster, then sum those distances
+# 4) Choose the node that minimizes this sum--err what? Add that to the clusters?
+# 5) Repeat 2-4?
+sub _seed_clusters_plus_plus2
+{
+    my ($nodes, $num_clusters) = @_;
+    my $clusters = [];
+    my $cluster_cnt = 0;
+    
+    my $t0 = start_time( 'k-means++' );
+    
+    # Pick one random starting centroid
+    my $first_center = Math::Random::random_uniform_integer(1, 0, $#{ $nodes });
+    push @{ $clusters }, {
+        centroid   => $nodes->[ $first_center ]->{ vector },
+        cluster_id => $cluster_cnt++
+    };
+    
+    # Add $num_clusters-1 centroids
+    while ( $cluster_cnt < $num_clusters )
+    {
+        my $best_cluster = {
+              centroid   => undef,
+              cluster_id => $cluster_cnt++
+        };
+        
+        my $min_score;
+        
+        # Consider each node as a center
+        for my $node ( @{ $nodes })
+        {
+            my $new_clusters = [];
+            @{ $new_clusters } = @{ $clusters }; # deep copy...
+            $best_cluster->{ centroid } = $node->{ vector };
+            push @{ $new_clusters }, @{ $best_cluster };
+            
+            my $sum_scores = 0;
+            
+            # Now look at each node, and add the distance D(x) to the total
+            for my $inner_node ( @{ $nodes } )
+            {
+                my $max_cluster_sim = 0;
+
+                for my $cluster ( @{ $new_clusters } )
+                {
+                    my $cluster_sim = vector_dot( $inner_node->{ vector }, $cluster->{ centroid } );
+                    $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
+                }
+                
+                $sum_scores += $max_cluster_sim;
+            }
+            
+            unless (defined $min_score and $min_score < $sum_scores  )
+            {
+                $min_score = $sum_scores;
+                $best_cluster = pop @{ $new_clusters };
+            }
+        }
+        
+        push @{ $clusters }, $best_cluster;
+    }
+    
+    stop_time( 'k-means++', $t0 );
+
+    print STDERR Dumper($clusters);
+
+    return $clusters;
+}
+
+
 # Turn the unweidly matrix data structure into the friendlier 'nodes' data structure, with media id labels!
 sub _refactor_matrix_into_nodes
 {
-    my ($matrix, $row_labels) = @_;
+    my ( $matrix, $criterion_matrix, $row_labels ) = @_;
     
     my $nodes = [];
-    for my $i (0 .. $#{ $matrix })
+    for my $i ( 0 .. $#{ $matrix } )
     {
         my $node = {
-            vector   => $matrix->[$i],
-            media_id => $row_labels->[$i]
+            vector           => $matrix->[$i],
+            criterion_vector => $criterion_matrix->[$i],
+            media_id         => $row_labels->[$i]
         };
-        push @{ $nodes }, $node if vector_norm( $node->{ vector } ) > 0; # make sure we have data for this node
+        
+        my $media_id = $node->{ media_id };
+        my $vector_non_zeroes = scalar @{ vector_nnz $node->{ vector } };
+        my $vector_length = vector_length $node->{ vector };
+        print STDERR "Media ID $media_id has non-zeroes/length: $vector_non_zeroes / $vector_length\n";
+        
+        push @{ $nodes }, $node if $vector_non_zeroes > 0; # make sure we have data for this node
     }
     
     return $nodes;
@@ -227,10 +308,12 @@ sub _eval_clusters_i2
 {
     my ( $clusters ) = @_;
     my $total_score = 0;
+    my $total_criterion_score = 0;
 
     for my $cluster (@{ $clusters })
     {
         my $cluster_score = 0;
+        my $criterion_score = 0;
         my $nodes = $cluster->{ nodes };
         
         for my $i ( 0..$#{ $nodes } )
@@ -238,13 +321,15 @@ sub _eval_clusters_i2
             for my $j ( $i..$#{ $nodes} )
             {
                 $cluster_score += vector_dot( $nodes->[$i]->{ vector }, $nodes->[$j]->{ vector } );
+                $criterion_score += vector_dot( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
             }
         }
          
         $total_score += sqrt $cluster_score;
+        $total_criterion_score += sqrt $criterion_score;
     }
     
-    return $total_score;
+    return ( $total_score, $total_criterion_score );
 }
 
 # Print out some stats about the scores
@@ -265,7 +350,7 @@ sub _eval_scores
     
     my $avg_score = $sum_scores / scalar @{ $scores };
     
-    print STDERR "Max score: $max_score; min score: $min_score; average score: $avg_score\n\n";
+    print STDERR "Max score: $max_score; min score: $min_score; average score: $avg_score\n";
 
 }
 
@@ -277,6 +362,7 @@ sub _get_best_cluster_run
     my $best_clusters = {};
     my $best_score = 0;
     my $score_list = [];
+    my $criterion_score_list = [];
     
     for my $i (0..$num_cluster_runs)
     {
@@ -284,14 +370,22 @@ sub _get_best_cluster_run
         my $clusters = _k_recurse($nodes, _seed_clusters_random($nodes, $num_clusters), $num_iterations);
         stop_time( "cluster run $i", $t0 );
         
-        my $score = _eval_clusters_i2($clusters);
+        my ( $score, $criterion_score ) = _eval_clusters_i2($clusters);
         push @{ $score_list }, $score;
-        print STDERR "Cluster run $i score: $score\n\n";
+        push @{ $criterion_score_list }, $criterion_score;
+        print STDERR "Cluster run $i regular score: $score; criterion score: $criterion_score\n\n";
         
-        $best_clusters = $clusters if $score >= $best_score;
+        if ( $score > $best_score )
+        {
+            $best_score = $score;
+            $best_clusters = $clusters;
+        }
     }
     
+    print STDERR "(Regular scores) "; 
     _eval_scores($score_list);
+    print STDERR "(Criterion scores) ";
+    _eval_scores($criterion_score_list);
     
     return $best_clusters;
 }
@@ -356,17 +450,58 @@ sub _make_nice_clusters
 # Returns the k-means clusters
 sub get_clusters
 {    
-    # $matrix => Sparse stem matrix from Cluster::_get_sparse_matrix
-    # $num_clusters => number of clusters to generate
-    # $num_iterations => number of times to run algorithm
-    my ( $matrix, $row_labels, $col_labels, $stems, $num_clusters, $num_iterations, $num_cluster_runs ) = @_;
+    my ( $matrix, $criterion_matrix, $row_labels, $col_labels, $stems, $num_clusters, $num_iterations, $num_cluster_runs ) = @_;
     die "You can't have more clusters than sources!\n" if ($num_clusters >= $#{ $matrix });
     
-    my $nodes = _refactor_matrix_into_nodes($matrix, $row_labels);
+    my $nodes = _refactor_matrix_into_nodes($matrix, $criterion_matrix, $row_labels);
     my $best_clusters = _get_best_cluster_run($nodes, $num_clusters, $num_iterations, $num_cluster_runs);
     my $nice_clusters = _make_nice_clusters($best_clusters, $col_labels, $stems);
     
     return $nice_clusters;
+}
+
+# Given a new list of nodes and some clusters, get a new set of clusters with the same
+#   media_ids and all that but new (smaller) vectors
+#   You really only need to copy over $cluster->{ nodes }...
+sub _get_new_clusters_from_old
+{
+    my ( $new_nodes, $old_clusters ) = @_;
+    my $new_clusters = [];
+    
+    for my $old_cluster ( @{ $old_clusters } )
+    {
+        my $cluster_nodes = [];
+        
+        for my $medium ( @{ $old_cluster->{ media_ids } } )
+        {
+            for my $node ( @{ $new_nodes } )
+            {
+                push @{ $cluster_nodes }, $node if $medium == $node->{ media_id };
+            }
+        }
+        
+        push @{ $new_clusters }, {
+            centroid => $old_cluster->{ centroid },
+            nodes => $cluster_nodes
+        };
+    }
+    
+    return $new_clusters;
+}
+
+# Given a matrix, presumably with more non-zero columns than the last one,
+#   score it based on the clusters from another cluster run with a (presumably)
+#   different matrix. The point is to do a cluster run with 100-word vectors
+#   then see what those scores are like with 500-word vectors.
+sub get_score_from_old_run
+{
+    my ( $big_matrix, $row_labels, $old_clusters ) = @_;
+    
+    my $new_nodes = _refactor_matrix_into_nodes( $big_matrix, $row_labels );
+    my $new_clusters = _get_new_clusters_from_old( $new_nodes, $old_clusters );
+    my $score = _eval_clusters_i2 $new_clusters;
+    
+    return $score;
 }
 
 1;
