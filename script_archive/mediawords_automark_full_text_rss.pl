@@ -80,7 +80,7 @@ sub main
     );
 
     my @media_ids_to_update = $dbs->query(
-"select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' ) and full_text_rss is null "
+"select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' and url like '%liveinternet.ru%' ) and full_text_rss is null "
     )->flat;
 
     say "Updating " . scalar( @media_ids_to_update );
