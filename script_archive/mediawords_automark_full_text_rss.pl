@@ -26,7 +26,7 @@ sub get_media_ids_to_update_by_rss_length_and_similarity
 
     my @media_ids_to_update;
 
-    while ( $avg_rss_length <= 4000 )
+    while ( $avg_rss_length <= 10000 )
     {
 
         die unless $avg_similarity > 0;
