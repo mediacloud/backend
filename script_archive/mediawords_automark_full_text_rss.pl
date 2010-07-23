@@ -64,6 +64,16 @@ sub set_media_ids_to_full_text_rss
     return;
 }
 
+sub update_media_ids_from_query
+{
+    my ( $dbs, $query ) = @_;
+
+  my @media_ids_to_update = $dbs->query( $query )->flat;
+  
+  set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update,
+				    $query);
+}
+
 sub main
 {
 
@@ -94,25 +104,21 @@ sub main
         @media_ids_to_update
     );
 
-    @media_ids_to_update = $dbs->query(
-"select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' or url like '%liveinternet.ru%' or url like '%blogs.mail.ru%' ) and full_text_rss is null "
-    )->flat;
+    update_media_ids_from_query( $dbs,
+			     "select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' or url like '%liveinternet.ru%' or url like '%blogs.mail.ru%' ) and full_text_rss is null "
+    );
 
-    set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update, "select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' or url like '%liveinternet.ru%' or url like '%blogs.mail.ru%' ) and full_text_rss is null ");
-
-   @media_ids_to_update = $dbs->query(
+   update_media_ids_from_query( $dbs,
 "select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.99 and full_text_rss is null "
-    )->flat;
-  
-    set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update,
-				    "select media_id from media_rss_full_text_detection_data avg_similarity >= 0.99 and full_text_rss is null ");
+    );
 
-  @media_ids_to_update = $dbs->query(
+  update_media_ids_from_query( $dbs , 
 "select media_id from media_rss_full_text_detection_data natural join media where avg_rss_length >= 6000 and full_text_rss is null "
-    )->flat;
-  
-    set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update,
-				    "select media_id from media_rss_full_text_detection_data natural join media where avg_rss_length >= 6000 and full_text_rss is null ");
+    );
+
+  update_media_ids_from_query( $dbs , 
+"select media_id from media_rss_full_text_detection_data natural join media where avg_rss_discription >= 400 and avg_extracted_length = 0"
+    );
 
 }
 
