@@ -49,6 +49,21 @@ sub get_media_ids_to_update_by_rss_length_and_similarity
     return \@media_ids_to_update;
 }
 
+sub set_media_ids_to_full_text_rss
+{
+    my ( $dbs, $media_ids_to_update, $reason) = @_;
+
+    say "Updating " . scalar( @$media_ids_to_update ) . " media based on $reason";
+
+    if ( scalar( @$media_ids_to_update ) > 0 )
+    {
+	$dbs->query( "update media set full_text_rss = true where full_text_rss is null and media_id in (??)",
+		   @$media_ids_to_update );
+    };
+
+    return;
+}
+
 sub main
 {
 
@@ -83,13 +98,15 @@ sub main
 "select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' or url like '%liveinternet.ru%' or url like '%blogs.mail.ru%' ) and full_text_rss is null "
     )->flat;
 
-    say "Updating " . scalar( @media_ids_to_update );
+    set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update, "select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' or url like '%liveinternet.ru%' or url like '%blogs.mail.ru%' ) and full_text_rss is null ");
 
-    if ( scalar( @media_ids_to_update ) > 0 )
-    {
-        $dbs->query( "update media set full_text_rss = true where full_text_rss is null and media_id in (??)",
-            @media_ids_to_update );
-    }
+   @media_ids_to_update = $dbs->query(
+"select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.99 and full_text_rss is null "
+    )->flat;
+  
+    set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update,
+				    "select media_id from media_rss_full_text_detection_data avg_similarity >= 0.99 and full_text_rss is null ");
+
 }
 
 main();
