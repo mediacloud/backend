@@ -813,6 +813,11 @@ sub _get_likely_rss_full_text_media_list
 
     $media = [ reverse @{ $media } ];
 
+    foreach my $medium (@{$media})
+    {
+       $medium->{full_text_rss_likely_hood_rating} = _rate_full_text_rss_likely_hood($medium);
+    }
+
     return $media;
 }
 
