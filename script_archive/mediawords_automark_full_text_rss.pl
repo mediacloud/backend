@@ -107,6 +107,13 @@ sub main
     set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update,
 				    "select media_id from media_rss_full_text_detection_data avg_similarity >= 0.99 and full_text_rss is null ");
 
+  @media_ids_to_update = $dbs->query(
+"select media_id from media_rss_full_text_detection_data natural join media where avg_rss_length >= 6000 and full_text_rss is null "
+    )->flat;
+  
+    set_media_ids_to_full_text_rss( $dbs, \@media_ids_to_update,
+				    "select media_id from media_rss_full_text_detection_data natural join media where avg_rss_length >= 6000 and full_text_rss is null ");
+
 }
 
 main();
