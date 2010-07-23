@@ -815,7 +815,7 @@ sub _get_likely_rss_full_text_media_list
 
     foreach my $medium (@{$media})
     {
-       $medium->{full_text_rss_likely_hood_rating} = _rate_full_text_rss_likely_hood($medium);
+       $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood($medium);
     }
 
     return $media;
@@ -891,6 +891,8 @@ sub eval_rss_full_text : Local
     my ( $medium ) =
       $c->dbis->query( " select * from media_rss_full_text_detection_data natural join media where media_id = ? ", $id )
       ->hashes->[ 0 ];
+
+    $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood($medium);
 
     #say STDERR Dumper( $medium );
 
