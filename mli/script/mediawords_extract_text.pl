@@ -32,7 +32,7 @@ sub extract_text
     my $db = MediaWords::DB::connect_to_db;
 
     $db->dbh->{ AutoCommit } = 0;
-	my $segmenter = Lingua::ZH::WordSegmenter->new();
+    my $segmenter = Lingua::ZH::WordSegmenter->new();
 
     while ( 1 )
     {
@@ -68,7 +68,7 @@ sub extract_text
                 #     print STDERR "[$process_num] $download->{downloads_id} $module: "
                 #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
                 # }
-				
+
                 MediaWords::StoryVectors::update_story_sentence_words( $db, $story, $segmenter );
             }
             else

@@ -116,6 +116,12 @@ sub _tokenize_ZH
 
     #print "\n 2:".$segs;
     my @tokens = split( / /, $segs );
+    my $token;
+    foreach $token ( @tokens )
+    {
+        $token =~
+s/[\|．【】0123456789<>，“”！：；？—￥·...「 」 .《 》――,［］。‘’〉〈…　）＞＜？！＠＃＄％︿＆＊（）——＋～+=*&^%#@!~'"-?｛｝０１２３４５６７８９;:()\$-_\・、]+//g;
+    }
     return @tokens;
 }
 
@@ -229,7 +235,7 @@ sub update_story_sentence_words
         $story_text = trad_to_simp( $story_text );
 
         my @sentences  = Lingua::ZH::MediaWords::get_sentences( $story_text );
-        my %stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
+        my $stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
         my $count      = 0;
 
         for ( my $sentence_num = 0 ; $sentence_num < $#sentences ; $sentence_num++ )
@@ -242,7 +248,7 @@ sub update_story_sentence_words
             {
                 my $word = ( $words[ $word_num ] );
 
-                if ( ( !$stop_words{ $word } ) )
+                if ( ( !$$stop_words{ $word } ) )
                 {
                     $sentence_word_counts->{ $sentence_num }->{ $word }->{ word } ||= $word;
                     $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
@@ -301,7 +307,7 @@ sub update_story_sentence_words
 # fill the story_sentence_words table with all stories in ssw_queue
 sub fill_story_sentence_words
 {
-    my ( $db ) = @_;
+    my ( $db, $segmenter ) = @_;
 
     my $block_size = 1;
 
@@ -317,7 +323,7 @@ sub fill_story_sentence_words
         {
             say STDERR "story [ $story->{ stories_id } ] " . ++$count . " ...";
 
-            update_story_sentence_words( $db, $story, 0 );
+            update_story_sentence_words( $db, $story, $segmenter, 0 );
 
             $db->query( "delete from ssw_queue where stories_id = ?", $story->{ stories_id } );
         }

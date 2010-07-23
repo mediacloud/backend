@@ -39,9 +39,10 @@ sub main
         $db->commit;
     }
 
-    say STDERR "running fill_story_sentence_words ...";
+    say STDERR "running fill_story_sentence_words ...";	
+	my $segmenter = Lingua::ZH::WordSegmenter->new();
 
-    MediaWords::StoryVectors::fill_story_sentence_words( $db );
+    MediaWords::StoryVectors::fill_story_sentence_words( $db, $segmenter );
 
     say STDERR "running update_aggregate_words ...";
     MediaWords::StoryVectors::update_aggregate_words( $db, '2008-01-01' );
