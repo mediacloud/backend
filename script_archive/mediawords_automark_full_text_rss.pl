@@ -105,7 +105,7 @@ sub main
     );
 
     update_media_ids_from_query( $dbs,
-			     "select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' or url like '%liveinternet.ru%' or url like '%blogs.mail.ru%' ) and full_text_rss is null "
+			     "select media_id from media_rss_full_text_detection_data natural join media where avg_similarity >= 0.95 and min_similarity >= 0.80 and (url like '%blogspot%' or url like '%livejournal%' or url like '%liveinternet.ru%' or url like '%blogs.mail.ru%' or url like '%diary.ru%' ) and full_text_rss is null "
     );
 
    update_media_ids_from_query( $dbs,
@@ -117,7 +117,7 @@ sub main
     );
 
   update_media_ids_from_query( $dbs , 
-"select media_id from media_rss_full_text_detection_data natural join media where avg_rss_discription >= 400 and avg_extracted_length = 0"
+"select media_id from media_rss_full_text_detection_data natural join media where avg_rss_discription >= 400 and avg_extracted_length <= 0 and full_text_rss is null"
     );
 
 }
