@@ -1,4 +1,4 @@
-[% title = 'Mark likely full text sources' %]
+[% title = 'Evaluate RSS full text for ' _ medium.name %]
 [% INCLUDE include/header.tt2 %]
 
 <table>
@@ -45,6 +45,7 @@
 <tr><td>avg_rss_length       </td><td> [% medium.avg_rss_length        | html_strip %]</td></tr>
 <tr><td>avg_rss_discription  </td><td> [% medium.avg_rss_discription   | html_strip %]</td></tr>
 <tr><td>count                </td><td> [% medium.count                 | html_strip %]</td></tr>
+<tr><td>rss full text score  </td><td> [% medium.full_text_rss_likely_hood_rating | html_strip %]</td></tr>
 </table>
 <br/>
 
