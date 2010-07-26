@@ -27,11 +27,8 @@ sub run_daemon
     while ( 1 )
     {
         my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '28 hours' )" )->flat;
-        if ( !( $db->query( "select 1 from daily_words where publish_day = ?::date", $yesterday )->hash ) )
-        {
-            print STDERR "update_aggregate_vectors: yesterday\n";
-            MediaWords::StoryVectors::update_aggregate_words( $db, $yesterday, $yesterday );
-        }
+        my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )" )->flat;
+        MediaWords::StoryVectors::update_aggregate_words( $db, $one_month_ago, $yesterday );
 
      # this is almost as slow as just revectoring everthing, so I'm commenting out for now
      # my $media_sets = $db->query( "select * from media_sets where vectors_added = false" )->hashes;
