@@ -15,6 +15,7 @@ use Array::Compare;
 use HTML::CruftText;
 use Switch 'Perl6';
 use Carp qw (confess);
+use Lingua::ZH::MediaWords;
 
 # CONSTANTS
 
@@ -64,6 +65,9 @@ use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 
 # only apply similarity test to this many characters of the story text and desciption
 use constant MAX_SIMILARITY_LENGTH => 8192;
+
+# Chinese sentences have few characters than English so count Chinese characters more
+use constant CHINESE_CHARACTER_LENGTH_BONUS => 0;
 
 # additions -- add some mutiple of these absolute numbers to each line
 
@@ -177,7 +181,11 @@ sub get_html_density
         }
     }
 
-    return ( $html_length / length( $line ) );
+    my $chinese_character_count = 0 ;
+
+    #$chinese_character_count = Lingua::ZH::MediaWords::number_of_Chinese_characters( $line );
+
+    return ( $html_length / ( length( $line ) + ( $chinese_character_count * CHINESE_CHARACTER_LENGTH_BONUS ) ) );
 }
 
 # find various markers that can be used to discount line scores

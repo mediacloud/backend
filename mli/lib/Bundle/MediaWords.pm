@@ -222,6 +222,8 @@ XML::LibXML::XPathContext
 
 XML::TreePP
 
+Encode::HanConvert
+
 =head1 DESCRIPTION
 
 Bundle for modules required by MediaWords;

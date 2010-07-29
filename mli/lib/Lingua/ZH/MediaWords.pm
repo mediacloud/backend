@@ -123,4 +123,18 @@ sub text_is_Chinese
 
 }
 
+sub number_of_Chinese_characters
+{
+    my $string = shift;
+
+    my @chars = split ( //, $string );
+
+    my @chinese_chars = grep { _is_Chinese($_) } @chars;
+
+    my $number_of_chinese_chars = scalar(@chinese_chars);
+
+    return $number_of_chinese_chars;
+}
+
+
 1;
