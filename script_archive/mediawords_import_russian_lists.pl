@@ -103,16 +103,23 @@ sub get_liveinternet_ru_rankings
     $csv->print();
 }
 
-sub get_top100_rambler_rankings
+sub _create_class_csv_from_field_list
 {
-    my $ua = LWP::UserAgent->new;
-
-    my $fields = [ qw/ rank name link unique_visitors page_views / ];
+    ( my $fields ) = @_;
 
     my $csv = Class::CSV->new( fields => $fields, );
 
     # add header line.
     $csv->add_line( $fields );
+
+    return $csv;
+}
+
+sub get_top100_rambler_rankings
+{
+    my $ua = LWP::UserAgent->new;
+
+    my $csv = _create_class_csv_from_field_list( [ qw/ rank name link unique_visitors page_views / ] );
 
     my $foo;
 
@@ -156,7 +163,6 @@ sub get_top100_rambler_rankings
             $rank =~ s/.*? ?(\d+)\..*/\1/;
 
             #say "dumping 2dn child";
-
             #$children[1]->dump;
 
             my @a_elements = $children[ 1 ]->look_down( "_tag", "a", "class", "rt" );
