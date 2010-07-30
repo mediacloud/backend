@@ -120,6 +120,8 @@ sub _fetch_url_as_html_tree
     ( my $url ) = @_;
 
     print STDERR "fetching $url \n";
+
+    my $ua   = LWP::UserAgent->new;
     my $html = $ua->get( $url )->decoded_content;
 
     my $tree = HTML::TreeBuilder::XPath->new;    # empty tree
@@ -130,8 +132,6 @@ sub _fetch_url_as_html_tree
 
 sub get_top100_rambler_rankings
 {
-    my $ua = LWP::UserAgent->new;
-
     my $csv = _create_class_csv_from_field_list( [ qw/ rank name link unique_visitors page_views / ] );
 
     my $foo;
@@ -227,12 +227,107 @@ sub get_top100_rambler_rankings
     $csv->print();
 }
 
+sub get_top_mail_ru_rankings
+{
+    my $ua = LWP::UserAgent->new;
+
+    my $csv = _create_class_csv_from_field_list(
+        [ qw/ rank name link stat1_посетители stat2_хосты stat3_визиты stat4 / ] );
+
+    for my $i ( 1 .. 33 )
+    {
+        my $url = "http://top.mail.ru/Rating/MassMedia/month/Visitors/$i.html";
+
+        my $tree = _fetch_url_as_html_tree( $url );
+
+        my @p = $tree->findnodes( "//table[\@class='Rating bbGreen']/tr" );
+
+        shift @p;
+
+        foreach my $p ( @p )
+        {
+
+            #say "Here's the node dumped";
+            #say $p->dump;
+
+            my @children = $p->content_list();
+
+            unless ( scalar( @children ) == 7 )
+            {
+                if ( scalar( @children ) == 1 )
+                {
+                    my $child = $children[ 0 ];
+
+                    if ( $child->tag eq 'td' && $child->attr( 'class' ) eq 'new_direct' )
+                    {
+
+                        #say "skipping but not dying";
+                        next;
+                    }
+                }
+                say "skipping wrong count:" . scalar( @children );
+                say $p->dump;
+                die;
+                next;
+            }
+
+            unless ( all { $_->tag eq 'td' } @children )
+            {
+                say "skipping ";
+                say $p->dump;
+                next;
+            }
+
+            my $rank = $children[ 0 ]->as_text;
+            $rank =~ s/.*? ?(\d+)\..*/\1/;
+
+            #say "rank:$rank";
+
+            my $stat1 = $children[ 2 ]->as_text;
+            my $stat2 = $children[ 3 ]->as_text;
+            my $stat3 = $children[ 4 ]->as_text;
+            my $stat4 = $children[ 5 ]->as_text;
+
+            #say "stat1:$stat1,stat2:$stat2,stat3:$stat3,stat4:$stat4";
+
+            #say "dumping 2dn child";
+            #$children[1]->dump;
+
+            my @a_elements = $children[ 1 ]->look_down( "_tag", "a", "name", $rank );
+
+            die unless scalar( @a_elements ) == 1;
+
+            my $a_element = $a_elements[ 0 ];
+
+            #say $a_element->dump;
+
+            #say "Passes test continuing";
+
+            my $link = $a_element->attr( 'href' );
+            $link =~ s/.*&url=//;
+
+            my $name = $a_element->as_text;
+
+            #say "Link '$link'";
+            #say "Link_text  '$name'";
+
+            $csv->add_line(
+                { rank => $rank, name => $name, link => $link, stat1_посетители => $stat1, stat2_хосты => $stat2, stat3_визиты => $stat3, stat4 => $stat4 } );
+        }
+
+        # Now that we're done with it, we must destroy it.
+        $tree = $tree->delete;
+    }
+
+    $csv->print();
+}
+
 sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    get_top100_rambler_rankings;
+    get_top_mail_ru_rankings;
 }
 
 main();
