@@ -115,6 +115,19 @@ sub _create_class_csv_from_field_list
     return $csv;
 }
 
+sub _fetch_url_as_html_tree
+{
+    ( my $url ) = @_;
+
+    print STDERR "fetching $url \n";
+    my $html = $ua->get( $url )->decoded_content;
+
+    my $tree = HTML::TreeBuilder::XPath->new;    # empty tree
+    $tree->parse_content( $html );
+
+    return $tree;
+}
+
 sub get_top100_rambler_rankings
 {
     my $ua = LWP::UserAgent->new;
@@ -126,11 +139,8 @@ sub get_top100_rambler_rankings
     for my $i ( 1 .. 35 )
     {
         my $url = "http://top100.rambler.ru/navi/?theme=440&page=$i&view=full";
-        print STDERR "fetching $url \n";
-        my $html = $ua->get( $url )->decoded_content;
 
-        my $tree = HTML::TreeBuilder::XPath->new;    # empty tree
-        $tree->parse_content( $html );
+        my $tree = _fetch_url_as_html_tree( $url );
 
         my @p = $tree->findnodes( "//table[\@id='stat-top100']/tr" );
 
