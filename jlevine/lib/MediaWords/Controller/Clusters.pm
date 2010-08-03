@@ -112,8 +112,9 @@ sub view : Local
     
     MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id, $nodes );
     
-    my ( $protovis_json, $stats ) = ( "", {} );
-    # MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id, $nodes );
+    # my ( $protovis_json, $stats ) = ( "", {} );
+    my ( $protovis_json, $stats ) =  MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id, $nodes );
+
 
     $c->stash->{ media_clusters } = $media_clusters;
     $c->stash->{ run }            = $run;
