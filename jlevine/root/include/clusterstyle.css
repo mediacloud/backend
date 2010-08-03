@@ -10,9 +10,10 @@ div.inline.left {
   margin-right: 0.5%;
 }
 
-div.inline.right {
+div.inline.right, div#vis {
   border: silver solid 1px;
   padding: 0px;
+  margin-bottom: 1em;
 }
 
 span.cluster_color {
@@ -21,4 +22,9 @@ span.cluster_color {
   width: 25px;
   height: 25px;
   background-color: black;
+}
+
+table#stats
+{
+  margin-top: 1em;
 }

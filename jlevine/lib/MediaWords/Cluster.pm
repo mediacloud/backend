@@ -25,7 +25,7 @@ use constant NUM_FEATURES => 50;
 use constant MIN_FREQUENCY => 0;
 
 # number of words to use from each media_source
-use constant NUM_MEDIUM_WORDS => 500;
+use constant NUM_MEDIUM_WORDS => 100;
 
 # cached word vectors in the form of { media_id => [ $top_500_weekly_media_words_hashes ] }
 my $_cached_media_word_vectors;
@@ -402,7 +402,7 @@ sub execute_media_cluster_run
             
         # Choose many times to iterate during each cluster run, and how many cluster runs to do
         # These could be user-specified... a speed/quality tradeoff.
-        my $num_iterations = 20; my $num_cluster_runs = 50;
+        my $num_iterations = 20; my $num_cluster_runs = 20;
         
         $t0 = start_time( "k-means clustering" );
         $clusters = MediaWords::Cluster::Kmeans::get_clusters(

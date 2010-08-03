@@ -35,9 +35,82 @@
         </td>
       </tr>
     </table>
+    <table id="stats">
+      <tr>
+        <td><b>Stats:</b></td>
+        <td>Total nodes: [% stats.num_nodes_total %]</td>
+        <td>Rendered nodes: [% stats.num_nodes_rendered %]</td>
+        <td>Rendered links: [% stats.num_links %]</td>
+      </tr>
+    </table>
     <p><b>Cluster Run Results</b></p>
-    <div class='inline left'>
     [% cl_off = media_clusters.0.media_clusters_id %]
+    <div id='vis'>
+      <script type="text/javascript+protovis">
+        var sources = [% data %];
+      
+        var w = document.body.clientWidth * 0.99,
+            h = 500; // document.body.clientHeight  / 2,
+            colors = pv.Colors.category20();
+
+        var vis = new pv.Panel()
+            .width(w)
+            .height(h)
+            .fillStyle("white")
+            // .event("mousedown", pv.Behavior.pan())
+            // .event("mousewheel", pv.Behavior.zoom())
+            ;
+
+        var force = vis.add(pv.Layout.Force)    
+            .iterations(100)
+            .bound(true) // KEEP THIS
+            // .dragConstant(10)
+            // .chargeMinDistance(0.5)
+            .chargeConstant(-100) // KEEP THIS
+            // .chargeConstant(-10)
+            // .chargeConstant(-50)
+            // .chargeTheta(0.1)
+            // .springConstant(0.01)
+            // .springDamping(0.0)
+            .springLength(15) // KEEP THIS
+            // .springLength(30)
+            .nodes(sources.nodes)
+            .links(sources.links);
+
+        force.link.add(pv.Line)
+            .lineWidth(0.1); // Don't specify this!!
+
+        force.node.add(pv.Dot)
+            // .size(0) //looks sweet!
+            .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5) * 0.75) // default
+            // .size(function(d) d.size)
+            .fillStyle(function(d) this.active() ? "orange" : colors.range()[d.group - [% cl_off %]].color)
+            // .fillStyle(function() this.active() ? "orange" : "steelblue")
+            .strokeStyle(function() this.fillStyle().darker())
+            .lineWidth(1) 
+            .title(function(d) d.nodeName)
+            // .event("mousedown", pv.Behavior.drag())
+            // .event("drag", force);
+            .def("active", false)
+            // .event("mouseover", function() this.active(true))
+            // .event("mouseout", function() this.active(false)) // override
+            ;
+
+        vis.render(); 
+        
+      </script>
+      <script type="text/javascript+protovis">
+      // fix colors
+        $('span.cluster_color').each( function(index) {
+          var i = $(this).attr("data-id");
+          var color = pv.Colors.category20().range()[i].color;
+          $(this).css('background-color', color);
+        });
+        
+        // $('div.inline.right').css('position', 'fixed');
+      </script>
+    </div>
+    <div id='clusters'>
     [% FOREACH cluster IN media_clusters %]
       <fieldset>
         <p>
@@ -79,67 +152,6 @@
       <br />
     [% END #[% FOREACH cluster IN media_clusters %]
     </div>
-    <div class='inline right'>
-      <script type="text/javascript+protovis">
-        var sources = [% data %];
-      
-        var w = document.body.clientWidth  * 0.49,
-            h = 400; // document.body.clientHeight  / 2,
-            colors = pv.Colors.category20();
 
-        var vis = new pv.Panel()
-            .width(w)
-            .height(h)
-            .fillStyle("white")
-            // .event("mousedown", pv.Behavior.pan())
-            // .event("mousewheel", pv.Behavior.zoom())
-            ;
-
-        var force = vis.add(pv.Layout.Force)    
-            .iterations(200)
-            .bound(true)
-            // .dragConstant(10)
-            // .chargeMinDistance(0.5)
-            .chargeConstant(-100)
-            // .chargeTheta(0.1)
-            // .springConstant(0.01)
-            // .springDamping(0.5)
-            .springLength(15)
-            .nodes(sources.nodes)
-            .links(sources.links);
-
-        force.link.add(pv.Line)
-            .lineWidth(0.1); // Don't specify this!!
-
-        force.node.add(pv.Dot)
-            // .size(0) //looks sweet!
-            .size(function(d) (d.linkDegree + 4) * Math.pow(this.scale, -1.5)) // default
-            // .size(function(d) d.size)
-            .fillStyle(function(d) this.active() ? "orange" : colors.range()[d.group - [% cl_off %]].color)
-            // .fillStyle(function() this.active() ? "orange" : "steelblue")
-            .strokeStyle(function() this.fillStyle().darker())
-            .lineWidth(1) 
-            .title(function(d) d.nodeName)
-            // .event("mousedown", pv.Behavior.drag())
-            // .event("drag", force);
-            .def("active", false)
-            // .event("mouseover", function() this.active(true))
-            // .event("mouseout", function() this.active(false)) // override
-            ;
-
-        vis.render(); 
-        
-      </script>
-      <script type="text/javascript+protovis">
-      // fix colors
-        $('span.cluster_color').each( function(index) {
-          var i = $(this).attr("data-id");
-          var color = pv.Colors.category20().range()[i].color;
-          $(this).css('background-color', color);
-        });
-        
-        $('div.inline.right').css('position', 'fixed');
-      </script>
-    </div>
   </body>
 </html>
