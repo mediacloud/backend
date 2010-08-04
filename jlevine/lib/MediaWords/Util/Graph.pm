@@ -1,13 +1,67 @@
-package MediaWords::Util::GraphPrep;
+package MediaWords::Util::Graph;
+
+# The former controller code to get sources ready to be visualized.
+# Should be general enough to work with different server-side layouts
+#    (ie GraphVis, Graph::Layout::Aesthetic) and hopefully different client-side
+#    ones too (ie Protovis, Google Charts, Processing)
+
+# $nodes ultimately looks like this: 
+# $nodes = [
+#     media_id1 => {
+#         name                => "name",
+#         cluster_id          => $cluster_id,
+#         media_id            => $media_id,
+#         internal_zscore     => $int_zscore,
+#         internal_similarity => $int_sim,
+#         external_zscore     => $ext_zscore,
+#         external_similarity => $ext_sim,
+#         linked              => false
+#         links => [
+#             {
+#                 target_id => $target_1_id
+#                 weight    => $link_1_weight
+#             },
+#             ...
+#         ]
+#         word_count          => $total_count
+#         node_id             => $node_id
+#     },
+#     ...
+# ]
 
 use strict;
-use MediaWords::Util::HTML;
 use Math::Random;
 use Data::Dumper;
+use MediaWords::Util::HTML;
+use MediaWords::Util::GraphLayoutAesthetic;
+use MediaWords::Util::Protovis;
 
 use constant MIN_LINK_WEIGHT => 0.2;
 use constant MAX_NUM_LINKS => 10000;
 
+# Return a hash ref with the number of links and nodes
+sub update_stats
+{
+    my ( $nodes ) = @_;
+    my $num_nodes_total = 0;
+    my $num_nodes_rendered = 0;
+    my $num_links = 0;
+    
+    for my $node ( @{ $nodes } )
+    {
+        $num_nodes_total++ if defined $node->{ media_id };
+        $num_links += scalar @{ $node->{ links } } if defined $node->{ links };
+        $num_nodes_rendered++ if $node->{ linked };    
+    }
+    
+    my $stats = {
+        num_nodes_total     => $num_nodes_total,
+        num_nodes_rendered  => $num_nodes_rendered,
+        num_links           => $num_links
+    };
+    
+    return $stats;
+}
 
 # Systematically cut down links... just arbitarily get rid of a lot of them in the bottom half
 sub _trim_links
@@ -54,30 +108,6 @@ sub _limit_links_per_node
     }
     
     return $nodes;
-}
-
-# Return a hash ref with the number of links and nodes
-sub update_stats
-{
-    my ( $nodes ) = @_;
-    my $num_nodes_total = 0;
-    my $num_nodes_rendered = 0;
-    my $num_links = 0;
-    
-    for my $node ( @{ $nodes } )
-    {
-        $num_nodes_total++ if defined $node->{ media_id };
-        $num_links += scalar @{ $node->{ links } } if defined $node->{ links };
-        $num_nodes_rendered++ if $node->{ linked };    
-    }
-    
-    my $stats = {
-        num_nodes_total     => $num_nodes_total,
-        num_nodes_rendered  => $num_nodes_rendered,
-        num_links           => $num_links
-    };
-    
-    return $stats;
 }
 
 # Old way of computing links: based on internal/external z-scores/similarities from cluto
@@ -207,13 +237,30 @@ sub _initialize_nodes_from_media_list
     return $nodes;
 }
 
-sub get_nodes
+# Get nodes ready for graphing by whatever means necessary
+sub prepare_graph
 {
-    my ( $media_clusters, $c, $cluster_runs_id ) = @_;
+    my ( $media_clusters, $c, $cluster_runs_id, $method ) = @_;
     
     my $nodes = _initialize_nodes_from_media_list( $media_clusters );
-    
     $nodes = _add_links_to_nodes($c, $cluster_runs_id, $nodes);
+    # $nodes = _add_links_from_zscores($nodes); # Alternative method to add links
+    # $nodes = _limit_links_per_node($nodes, 0, 20);
+    
+    my $json_string = "";
+    
+    if ( $method eq 'protovis-force' )
+    {
+        $json_string = MediaWords::Util::Protovis::get_protovis_force_json_object($nodes);
+    }
+    elsif ( $method eq 'graph-layout-aesthetic' )
+    {
+        $json_string = MediaWords::Util::GraphLayoutAesthetic::get_graph( $nodes );
+    }
+    
+    my $stats = update_stats( $nodes );
+    
+    return ( $json_string, $stats );
 }
 
 1;

@@ -2,34 +2,15 @@ package MediaWords::Util::GraphLayoutAesthetic;
 
 use strict;
 use Data::Dumper;
+
 use Graph;
 use Graph::Layout::Aesthetic;
-use MediaWords::Util::GraphPrep;
 
-# Prints the coordinates of every point in the aglo
+# Prints the coordinates of every point in the graph
 sub _dump_graph
 {
-    my ( $aglo ) = @_;
-    
-    my $i = 0;
-    for my $coordinate ($aglo->all_coordinates)
-    {
-        print STDERR "Vertex ", $i++, ": ", Dumper($coordinate), "\n";
-    }
-}
-
-# Get info about the number of nodes and links rendered
-sub _get_stats_from_aglo
-{
-    my ( $aglo ) = @_;
-    
-    my $stats = {
-        num_nodes_total     => "unknown",
-        num_nodes_rendered  => scalar @{ $aglo->all_coordinates },
-        num_links           => scalar @{ $aglo->increasing_edges }
-    };
-    
-    return $stats;
+    my ( $graph ) = @_;
+    print STDERR Dumper( $graph );
 }
 
 sub _get_json_from_graph
@@ -40,22 +21,39 @@ sub _get_json_from_graph
     
     for my $vertex ($graph->vertices)
     {   
-        print STDERR Dumper($vertex);
         my $x = $graph->get_vertex_attribute($vertex, "x_coord");
         my $y = $graph->get_vertex_attribute($vertex, "y_coord");
         my $name = MediaWords::Util::HTML::javascript_escape( $graph->get_vertex_attribute($vertex, "name") );
         my $group = $graph->get_vertex_attribute($vertex, "group");
+        
         $json_string .= "{ nodeName: '$name', x: $x, y: $y, group: $group },\n" if $group;
     }
     
     $json_string .= ']';
     
-    print STDERR "$json_string\n\n";
-    
     return $json_string;
 }
 
-sub _set_up_graph
+# Run the actual force layout
+
+sub _run_force_layout_on_graph
+{
+    my ( $graph ) = @_;
+    
+    Graph::Layout::Aesthetic->gloss_graph( 
+        $graph,
+        pos_attribute => ["x_coord", "y_coord"],
+        forces => {
+            node_repulsion  => 1,
+            min_edge_length => 1
+        }
+    );
+    
+    return $graph;
+}
+
+# Prepare the graph by adding nodes and links to it
+sub _add_nodes_and_links_to_graph
 {
     my ( $nodes ) = @_;
     
@@ -89,29 +87,20 @@ sub _set_up_graph
         }
     }
     
-    Graph::Layout::Aesthetic->gloss_graph( 
-        $graph,
-        pos_attribute => ["x_coord", "y_coord"],
-        forces => {
-            node_repulsion  => 1,
-            min_edge_length => 1
-        }
-    );
-    
     return $graph;
 }
 
-sub get_node_positions
+# Prepare the graph; run the force layout; get the appropriate JSON string from it.
+sub get_graph
 {
-    my ( $nodes ) = MediaWords::Util::GraphPrep::get_nodes( @_ );
+    my ( $nodes ) = @_;
     
-    my $graph = _set_up_graph( $nodes );
+    my $graph = _add_nodes_and_links_to_graph( $nodes );
+    $graph = _run_force_layout_on_graph( $graph );
     
     my $json_string = _get_json_from_graph( $graph );
-    
-    my $stats = MediaWords::Util::GraphPrep::update_stats( $nodes );
-    
-    return ($json_string, $stats);
+
+    return $json_string;
 }
 
 1;

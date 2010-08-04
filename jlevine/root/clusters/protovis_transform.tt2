@@ -43,7 +43,7 @@
   //     .text(y.tickFormat);
 
   /* The dot plot. */
-  vis.add(pv.Panel)
+  var dots = vis.add(pv.Panel)
       .overflow("hidden")
       .data(data)
     .add(pv.Dot)
@@ -53,6 +53,8 @@
       .title(function(d) d.nodeName)
       .fillStyle(function(d) colors.range()[d.group - [% cl_off %]].color)
       .strokeStyle(function() this.fillStyle().darker())
+      .text("hey guys")
+      .event("mouseover", pv.Behavior.tipsy({ gravity: 'sw' }));
       ;
 
   /* Use an invisible panel to capture pan & zoom events. */

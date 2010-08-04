@@ -8,9 +8,9 @@ use parent 'Catalyst::Controller';
 
 use MediaWords::Cluster;
 use MediaWords::Util::Tags;
-use MediaWords::Util::Protovis;
-use MediaWords::Util::GraphLayoutAesthetic;
+use MediaWords::Util::Graph;
 use Data::Dumper;
+use MediaWords::Util::Timing qw( start_time stop_time );
 
 # Set a threshold for link weight--links won't be displayed if they're less than this
 # This reduces the number of links substantially, making it easier for the client to render
@@ -105,9 +105,14 @@ sub view : Local
     }
 
     $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );    
-
-    my ( $json_string, $stats ) =
-        MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
+    
+    my $t0 = start_time( "computing force layout" );
+    my $method = 'graph-layout-aesthetic';
+    my ( $json_string, $stats ) = MediaWords::Util::Graph::prepare_graph( $media_clusters, $c, $cluster_runs_id, $method );
+    stop_time( "computing force layout", $t0 );
+    
+    
+    # MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
     
     # my ( $json_string, $stats ) = MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id );
 

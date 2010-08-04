@@ -5,6 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <script type="text/javascript" src="/script/protovis-r3.2.js"></script>
     <script type="text/javascript" src="/script/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="/script/jquery.tipsy.js"></script>
+    <script type="text/javascript" src="/script/tipsy.js"></script>
+    
     <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script> -->
     
     <title>
@@ -31,6 +34,7 @@
     <link href="/include/style.css" rel="stylesheet" type="text/css" />
     <link href="/include/vertically-aligned.css" rel="stylesheet" type="text/css" />
     <link href="/include/clusterstyle.css" rel="stylesheet" type="text/css" />
+    <link href="/include/tipsy.css" rel="stylesheet" type="text/css" />
     
     
     <!--[if IE]>
