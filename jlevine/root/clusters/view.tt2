@@ -1,4 +1,5 @@
-[% title = 'Cluster Run: ' _ run.description %] [% INCLUDE include/header.tt2 %]
+[% title = 'Cluster Run: ' _ run.description %]
+[% INCLUDE include/header.tt2 %]
     <table>
       <tr>
         <th>
@@ -45,7 +46,8 @@
     </table>
     <p><b>Cluster Run Results</b></p>
     [% cl_off = media_clusters.0.media_clusters_id %]
-    [% INCLUDE clusters/protovis_force.tt2 %]
+    [% # INCLUDE clusters/protovis_force.tt2 %]
+    [% INCLUDE clusters/protovis_transform.tt2 %]
     <div id='clusters'>
     [% FOREACH cluster IN media_clusters %]
       <fieldset>
@@ -89,5 +91,12 @@
     [% END #[% FOREACH cluster IN media_clusters %]
     </div>
 
+    <script type="text/javascript+protovis">
+      $('span.cluster_color').each( function(index) {
+        var i = $(this).attr("data-id");
+        var color = pv.Colors.category20().range()[i].color;
+        $(this).css('background-color', color);
+      });
+    </script>
   </body>
 </html>

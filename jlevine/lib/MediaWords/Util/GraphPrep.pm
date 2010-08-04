@@ -1,6 +1,4 @@
-package MediaWords::Util::Protovis;
-
-# All of the controller code to get media sources ready for Protivis.
+package MediaWords::Util::GraphPrep;
 
 use strict;
 use MediaWords::Util::HTML;
@@ -10,29 +8,6 @@ use Data::Dumper;
 use constant MIN_LINK_WEIGHT => 0.2;
 use constant MAX_NUM_LINKS => 10000;
 
-# $nodes should ultimately look like this: 
-# $nodes = [
-#     media_id1 => {
-#         name                => "name",
-#         cluster_id          => $cluster_id,
-#         media_id            => $media_id,
-#         internal_zscore     => $int_zscore,
-#         internal_similarity => $int_sim,
-#         external_zscore     => $ext_zscore,
-#         external_similarity => $ext_sim,
-#         linked              => false
-#         links => [
-#             {
-#                 target_id => $target_1_id
-#                 weight    => $link_1_weight
-#             },
-#             ...
-#         ]
-#         word_count          => $total_count
-#         node_id             => $node_id
-#     },
-#     ...
-# ]
 
 # Systematically cut down links... just arbitarily get rid of a lot of them in the bottom half
 sub _trim_links
@@ -82,7 +57,7 @@ sub _limit_links_per_node
 }
 
 # Return a hash ref with the number of links and nodes
-sub _update_stats
+sub update_stats
 {
     my ( $nodes ) = @_;
     my $num_nodes_total = 0;
@@ -199,49 +174,6 @@ sub _add_links_to_nodes
     return $nodes;
 }
 
-# Turn the nodes object into a JSON object for Protovis' force layout
-sub _get_protovis_json_object
-{
-    my ( $nodes ) = @_;
-    
-    my $data = "{ nodes:[";  # start nodes section
-    my $node_id_count = 0;   # intialize count of node_ids
-    
-    for my $node ( @{ $nodes } )
-    {
-        # Don't render orphan nodes--i.e. those that don't have any links > MIN_LINK_WEIGHT
-        if ( $node->{ linked } )
-        {
-            my $node_name      = MediaWords::Util::HTML::javascript_escape( $node->{ name } );
-            my $group          = $node->{ cluster_id };
-            my $size           = ($node->{ word_count }) ** (0.5) * 3;
-            $node->{ node_id } = $node_id_count++;
-            $data .= "{ nodeName:'$node_name', group:$group, size:$size },\n";
-        }
-    }
-    
-    $data .= ' ], links:['; # close nodes section, start links section
-    
-    # add links to data string
-    for my $node (@$nodes)
-    {
-        if ( defined $node->{ links } )
-        {
-            my $source_id = $node->{ node_id };
-            for my $link ( @{ $node->{ links } } )
-            {
-                my $target = $nodes->[ $link->{ target_id } ]->{ node_id };
-                my $value = ( $link->{ weight } ); 
-                $data .= "{ source:$source_id, target:$target, value:$value },\n"; # if $source_id < $target;
-            }
-        }
-    }
-    
-    $data .= '] }'; # write end of data string
-    
-    return $data;
-}
-
 # add the basic info about every node
 sub _initialize_nodes_from_media_list
 {
@@ -275,22 +207,13 @@ sub _initialize_nodes_from_media_list
     return $nodes;
 }
 
-# Set up the 'nodes' data structure with links, and return the JSON object and stats
-sub prep_nodes_for_protovis
+sub get_nodes
 {
     my ( $media_clusters, $c, $cluster_runs_id ) = @_;
     
     my $nodes = _initialize_nodes_from_media_list( $media_clusters );
     
     $nodes = _add_links_to_nodes($c, $cluster_runs_id, $nodes);
-    # $nodes = _add_links_from_zscores($nodes); # Alternative method to add links
-    
-    # $nodes = _limit_links_per_node($nodes, 0, 20);
-    
-    my $protovis_json = _get_protovis_json_object($nodes);
-    my $stats = _update_stats($nodes);
-    
-    return ( $protovis_json, $stats );
 }
 
 1;

@@ -76,13 +76,9 @@ sub view : Local
     my $media_clusters =
       $c->dbis->query( "select * from media_clusters where media_cluster_runs_id = ?", $cluster_runs_id )->hashes;
     
-    # These need to be used outside of the for loop
-    my $nodes; 
-    my $mc_media;
-    
     for my $mc ( @{ $media_clusters } )
     {   
-        $mc_media = $c->dbis->query(
+        my $mc_media = $c->dbis->query(
             "select distinct m.*, mcz.*
                from media m, media_clusters_media_map mcmm, media_cluster_zscores mcz 
               where m.media_id = mcmm.media_id
@@ -109,17 +105,17 @@ sub view : Local
     }
 
     $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );    
+
+    my ( $json_string, $stats ) =
+        MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
     
-    MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id, $nodes );
-    
-    # my ( $protovis_json, $stats ) = ( "", {} );
-    my ( $protovis_json, $stats ) =  MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id, $nodes );
+    # my ( $json_string, $stats ) = MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id );
 
 
     $c->stash->{ media_clusters } = $media_clusters;
     $c->stash->{ run }            = $run;
     $c->stash->{ template }       = 'clusters/view.tt2';
-    $c->stash->{ data }           = $protovis_json;
+    $c->stash->{ data }           = $json_string;
     $c->stash->{ stats }          = $stats;
 }
 

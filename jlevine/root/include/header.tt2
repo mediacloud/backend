@@ -10,7 +10,8 @@
     <title>
       Media Words: [% title | html %]
     </title>
-    <style type="text/css" media="all">
+
+    <!-- <style type="text/css" media="all">
 /*<![CDATA[*/
     @import "[% c.uri_for('/include/style.css') %]";
     /*]]>*/
@@ -24,7 +25,13 @@
 /*<![CDATA[*/
     @import "[% c.uri_for('/include/clusterstyle.css') %]";
     /*]]>*/
-    </style>
+    </style> -->
+    
+    
+    <link href="/include/style.css" rel="stylesheet" type="text/css" />
+    <link href="/include/vertically-aligned.css" rel="stylesheet" type="text/css" />
+    <link href="/include/clusterstyle.css" rel="stylesheet" type="text/css" />
+    
     
     <!--[if IE]>
   <style type="text/css" media="all">
