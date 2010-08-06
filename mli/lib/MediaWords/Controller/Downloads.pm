@@ -50,7 +50,7 @@ sub list : Local
     }
     else
     {
-        $query .= " and d.download_time > now() - interval '1 day'";
+        $query .= " and d.download_time > now() - interval '10 day'";
     }
 
     if ( $error )

@@ -106,10 +106,14 @@ sub _tokenize
 #Chinese tokenizer, returns an array of Chinese words
 sub _tokenize_ZH
 {
-    my $s         = shift;
-    my $segmenter = shift;
+    my $s   = shift;
+    my %par = ();
+    $par{ "dic_encoding" } = "utf8";
+    $par{ "dic" }          = "lib/Lingua/ZH/dict.txt";
+    my $segmenter = Lingua::ZH::WordSegmenter->new( %par );
+    my $i;
 
-    #print "\n 1:".$s;
+    print "\n 1:" . $s;
     $s = encode( "utf8", $s );
 
     my $segs = $segmenter->seg( $s, "utf8" );
@@ -119,8 +123,21 @@ sub _tokenize_ZH
     my $token;
     foreach $token ( @tokens )
     {
-        $token =~
-s/[\|．【】0123456789<>，“”！：；？—￥·...「 」 .《 》――,［］。‘’〉〈…　）＞＜？！＠＃＄％︿＆＊（）——＋～+=*&^%#@!~'"-?｛｝０１２３４５６７８９;:()\$-_\・、]+//g;
+        $token =~ s/[\W\d_\s]+//g;
+    }
+
+    for ( $i = 0 ; $i < $#tokens ; $i++ )
+    {
+        if ( $tokens[ $i ] eq "" )
+        {
+            splice @tokens, $i, 1;
+            $i--;
+        }
+    }
+
+    foreach $token ( @tokens )
+    {
+        print $token. "\n";
     }
     return @tokens;
 }
@@ -217,7 +234,7 @@ sub dedup_sentences
 # if you are very sure no story vectors exist for this story).
 sub update_story_sentence_words
 {
-    my ( $db, $story_ref, $segmenter, $no_delete ) = @_;
+    my ( $db, $story_ref, $no_delete ) = @_;
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
 
@@ -240,7 +257,7 @@ sub update_story_sentence_words
 
         for ( my $sentence_num = 0 ; $sentence_num < $#sentences ; $sentence_num++ )
         {
-            my @words = _tokenize_ZH( $sentences[ $sentence_num ], $segmenter );
+            my @words = _tokenize_ZH( $sentences[ $sentence_num ] );
 
             #print $sentences[$sentence_num]."\n\n----------\n";
             #print join "\n\n", @words;
