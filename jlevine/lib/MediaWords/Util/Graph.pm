@@ -35,6 +35,7 @@ use Data::Dumper;
 use MediaWords::Util::HTML;
 use MediaWords::Util::GraphLayoutAesthetic;
 use MediaWords::Util::Protovis;
+use MediaWords::Util::GraphViz;
 
 use constant MIN_LINK_WEIGHT => 0.2;
 use constant MAX_NUM_LINKS => 10000;
@@ -224,12 +225,14 @@ sub _initialize_nodes_from_media_list
                 name                => $source->{ name },
                 cluster_id          => $cluster_id,
                 media_id            => $mid,
+                url                 => $source->{ url },
                 internal_zscore     => $source->{ internal_zscore },
                 internal_similarity => $source->{ internal_similarity },
                 external_zscore     => $source->{ external_zscore },
                 external_similarity => $source->{ external_similarity },
                 word_count          => 0, #source->{ total_count },
                 linked              => 0
+                
             };
         }
     }
@@ -255,7 +258,11 @@ sub prepare_graph
     }
     elsif ( $method eq 'graph-layout-aesthetic' )
     {
-        $json_string = MediaWords::Util::GraphLayoutAesthetic::get_graph( $nodes );
+        $json_string = MediaWords::Util::GraphLayoutAesthetic::get_graph( $nodes, $media_clusters );
+    }
+    elsif ( $method eq 'graphviz' )
+    {
+        $json_string = MediaWords::Util::GraphViz::get_graph( $nodes );
     }
     
     my $stats = update_stats( $nodes );

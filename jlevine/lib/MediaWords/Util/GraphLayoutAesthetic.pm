@@ -2,6 +2,7 @@ package MediaWords::Util::GraphLayoutAesthetic;
 
 use strict;
 use Data::Dumper;
+use List::Member;
 
 use Graph;
 use Graph::Layout::Aesthetic;
@@ -15,9 +16,58 @@ sub _dump_graph
 
 sub _get_json_from_graph
 {
+    my ( $graph, $nodes, $clusters ) = @_;
+    
+    my $json_string = "{    clusters: [";
+    
+    for my $cluster ( @$clusters )
+    {
+        my $id = $cluster->{ media_clusters_id };
+        my $name = $cluster->{ description };
+        $json_string .= "{ name: '$name', id: $id },\n" 
+    }
+    
+    $json_string .= "],\n     nodes: [";
+    
+    for my $vertex ($graph->vertices)
+    {   
+        my $x = $graph->get_vertex_attribute($vertex, "x_coord");
+        my $y = $graph->get_vertex_attribute($vertex, "y_coord");
+        my $name = MediaWords::Util::HTML::javascript_escape( $graph->get_vertex_attribute($vertex, "name") );
+        my $group = $graph->get_vertex_attribute($vertex, "group");
+        my $url = MediaWords::Util::HTML::javascript_escape( $graph->get_vertex_attribute($vertex, "url") );
+        
+        $json_string .= "{ nodeName: '$name', x: $x, y: $y, group: $group, url: '$url' },\n" if $group;
+    }
+    
+    $json_string .= "],\n    links: [";
+    
+    my $link_id = 0;
+    for my $edge ($graph->edges)
+    {
+        my $node_1 = $nodes->[ $edge->[0] ]->{ node_id };
+        my $node_2 = $nodes->[ $edge->[1] ]->{ node_id };
+        
+        $json_string .= "[ $node_1, $node_2 ],\n";
+    }
+    
+    $json_string .= '] }';
+    
+    print STDERR "$json_string\n";
+    
+    return $json_string;
+}
+
+sub _get_new_json_from_graph
+{
     my ( $graph ) = @_;
     
-    my $json_string = '[';
+    my $clusters = {};
+    
+    my $xMin = 0;
+    my $xMax = 0;
+    my $yMin = 0;
+    my $yMax = 0;
     
     for my $vertex ($graph->vertices)
     {   
@@ -26,10 +76,55 @@ sub _get_json_from_graph
         my $name = MediaWords::Util::HTML::javascript_escape( $graph->get_vertex_attribute($vertex, "name") );
         my $group = $graph->get_vertex_attribute($vertex, "group");
         
-        $json_string .= "{ nodeName: '$name', x: $x, y: $y, group: $group },\n" if $group;
+        $clusters->{ $group } ||= {};
+        
+        $clusters->{ $group }->{ $vertex } = {
+               name => $name,
+                  x => $x,
+                  y => $y,
+            cluster => $group
+        };
+        
+        $xMax = $x if ($x > $xMax);
+        $xMin = $x if ($x < $xMin);
+        $yMax = $y if ($y > $yMax);
+        $yMin = $y if ($y < $yMin);
+        
     }
     
-    $json_string .= ']';
+    my $json_string = "{
+        stats: {
+            xMax: $xMax,
+            xMin: $xMin,
+            yMax: $yMax,
+            yMin: $yMin
+        },
+        
+        clusters: {
+    ";
+    
+    while ( my ($cluster_id, $cluster) = each %{ $clusters } )
+    {
+        $json_string .=  "  $cluster_id: {\n";
+        
+        while ( my ($node_id, $node) = each %{ $cluster } )
+        {   
+            print STDERR Dumper($node) . "\n\n";
+            my $name  = $node->{ name };
+            my $x     = $node->{ x };
+            my $y     = $node->{ y };
+            my $group = $node->{ cluster };
+            
+            $json_string .= "       $node_id: { nodeName: '$name', x: $x, y: $y, group: $group },\n" if $group;
+        }
+        
+        $json_string .=  "},\n\n";
+    }
+    
+    $json_string .= '} }';
+    
+    print STDERR Dumper($clusters) . "\n\n";
+    print STDERR "$json_string\n\n";
     
     return $json_string;
 }
@@ -70,6 +165,7 @@ sub _add_nodes_and_links_to_graph
             $graph->add_vertex( $node->{ media_id } );
             $graph->set_vertex_attribute($node->{ media_id }, 'name', $node->{ name });
             $graph->set_vertex_attribute($node->{ media_id }, 'group', $node->{ cluster_id });
+            $graph->set_vertex_attribute($node->{ media_id }, 'url', $node->{ url });
         }
     }
     
@@ -93,12 +189,12 @@ sub _add_nodes_and_links_to_graph
 # Prepare the graph; run the force layout; get the appropriate JSON string from it.
 sub get_graph
 {
-    my ( $nodes ) = @_;
+    my ( $nodes, $media_clusters ) = @_;
     
     my $graph = _add_nodes_and_links_to_graph( $nodes );
     $graph = _run_force_layout_on_graph( $graph );
     
-    my $json_string = _get_json_from_graph( $graph );
+    my $json_string = _get_json_from_graph( $graph, $nodes, $media_clusters );
 
     return $json_string;
 }

@@ -1,14 +1,31 @@
 <div id='transform'>
   <script type="text/javascript+protovis">
-  // var data = pv.range(100).map(function(i) {
-  //     var r = .5 + .2 * Math.random(), a = Math.PI * i / 50;
-  //     return {x: r * Math.cos(a), y: r * Math.sin(a)};
-  //   });
   
   var data = [% data %];
+  var clusters = data.clusters;
+  var nodes = data.nodes;
+  var links = data.links;
+  
+  var info = {
+    display: false,
+    color: "black",
+    name: "Select a node to see its info",
+    url: "http://example.com/",
+    cluster: "cluster"
+  };
+
+  var render = function(d) {
+    info.name = d.nodeName;
+    info.url = d.url;
+    var cluster_id = d.group - [% cl_off %];
+    info.color = colors.range()[cluster_id].color;
+    info.cluster = clusters[cluster_id].name;
+    info.display = true;
+    vis.render();
+  }
 
   /* Sizing parameters and scales. */
-  var w = document.body.clientWidth * 0.9,
+  var w = 900,
       h = 500,
       ky = 12,
       kx = (w / h) * ky,
@@ -18,53 +35,102 @@
 
   /* The root panel. */
   var vis = new pv.Panel()
+      .overflow("hidden")
       .width(w)
       .height(h)
       .top(30)
       .left(40)
       .right(20)
       .bottom(20)
-      .strokeStyle("#aaa");
-
-  /* X-axis and ticks. */
-  // vis.add(pv.Rule)
-  //     .data(function() x.ticks())
-  //     .strokeStyle(function(d) d ? "#ccc" : "#999")
-  //     .left(x)
-  //   .anchor("bottom").add(pv.Label)
-  //     .text(x.tickFormat);
-  // 
-  // /* Y-axis and ticks. */
-  // vis.add(pv.Rule)
-  //     .data(function() y.ticks())
-  //     .strokeStyle(function(d) d ? "#ccc" : "#999")
-  //     .top(y)
-  //   .anchor("left").add(pv.Label)
-  //     .text(y.tickFormat);
-
+      .strokeStyle("#aaa")
+      .event("all")
+      .event("click", pv.Behavior.point())
+      ;
+  
+  // var lines =  vis.add(pv.Panel)
+  //     .data(links)
+  //   .add(pv.Line)
+  //     .data( function(d) d )
+  //     .left( function(node) x(nodes[node].x) )
+  //     .top(  function(node) y(nodes[node].y) ) 
+  //     .lineWidth(0.05)
+  //     .strokeStyle("gray")
+  // ;
+  
   /* The dot plot. */
   var dots = vis.add(pv.Panel)
       .overflow("hidden")
-      .data(data)
+      .data(nodes)  
     .add(pv.Dot)
       .left(function(d) x(d.x))
       .top(function(d) y(d.y))
       .radius(function() 5 / this.scale)
-      .title(function(d) d.nodeName)
-      .fillStyle(function(d) colors.range()[d.group - [% cl_off %]].color)
+      .fillStyle(function(d) colors.range()[d.group - [% cl_off %] ].color)
       .strokeStyle(function() this.fillStyle().darker())
-      .text("hey guys")
-      .event("mouseover", pv.Behavior.tipsy({ gravity: 'sw' }));
+      .cursor("pointer")
+      .event("point", function(d) render(d) )
+      .event("unpoint", function(d) info.display = false )
       ;
 
   /* Use an invisible panel to capture pan & zoom events. */
   vis.add(pv.Panel)
-      .events("all")
-      .event("mousedown", pv.Behavior.pan())
-      .event("mousewheel", pv.Behavior.zoom())
-      .event("pan", transform)
-      .event("zoom", transform);
+    .events("all")
+    .event("mousedown", pv.Behavior.pan())
+    .event("mousewheel", pv.Behavior.zoom())
+    .event("pan", transform)
+    .event("zoom", transform)
+    ;
 
+  // The legend
+  var legend = vis.add(pv.Panel)
+      .data(clusters)
+      .left(0)
+      .bottom(0)
+      .width(100)
+      .height(15 * (clusters.length + 1))
+      // .strokeStyle("#ddd")
+      
+    .add(pv.Dot)
+      .left(15)
+      .bottom(function(c) (c.id - [% cl_off %] + 1) * 15)  // (c.id - [% cl_off %] + 1) * 15)
+      .fillStyle(function(c) colors.range()[ c.id - [% cl_off %] ].color)
+      .strokeStyle(function() this.fillStyle().darker())
+      .anchor("right").add(pv.Label)
+        .text(function(c) c.name)
+      ;
+  
+  // Info about the current node
+  var current = vis.add(pv.Panel)
+      .visible(function() info.display )
+      .left(function() vis.mouse().x)
+      .top(function() vis.mouse().y)
+      .width(function() pv.max([info.url.length, info.name.length]) * 7 + 30)
+      .height(60)
+      .fillStyle("lightGray")
+      .event("all")
+      .event("click", function() window.open(info.url) )
+      .cursor("pointer")
+    .add(pv.Label)
+      .text(function() "Cluster: " + info.cluster)
+      .bottom(10)
+      .left(30)
+    .add(pv.Label)
+      .text(function() "URL: " + info.url)
+      .bottom(25)
+      .left(30)
+    .add(pv.Label)
+      .text(function() info.name)
+      .bottom(40)
+      .left(30)
+    .add(pv.Dot)
+      .left(15)
+      .bottom(32)
+      .radius(10)
+      .fillStyle(function() info.color)
+      .strokeStyle(function() this.fillStyle().darker())
+
+    ;
+  
   /** Update the x- and y-scale domains per the new transform. */
   function transform() {
     var t = this.transform().invert();
