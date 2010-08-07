@@ -38,6 +38,7 @@ sub _is_Chinese
     }
 }
 
+#to determine if a given character is a Latin letter
 sub _is_Latin
 {
     my $char = shift;
@@ -51,6 +52,7 @@ sub _is_Latin
     }
 }
 
+#get the number of Chinese characters in text
 sub number_of_Chinese_characters
 {
     my $string = shift;
@@ -64,6 +66,7 @@ sub number_of_Chinese_characters
     return $number_of_chinese_chars;
 }
 
+#get the number of Latin letters in text
 sub number_of_Latin_letters
 {
     my $string = shift;
@@ -82,7 +85,7 @@ sub number_of_Latin_letters
 sub text_is_Chinese
 {
     my $text = shift;
-    if ( 5 * number_of_Chinese_characters( $text ) > number_of_Latin_letters( $text ) )
+    if ( 3 * number_of_Chinese_characters( $text ) > number_of_Latin_letters( $text ) )
     {
         return 1;
     }

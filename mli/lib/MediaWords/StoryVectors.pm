@@ -113,7 +113,6 @@ sub _tokenize_ZH
     my $segmenter = Lingua::ZH::WordSegmenter->new( %par );
     my $i;
 
-    print "\n 1:" . $s;
     $s = encode( "utf8", $s );
 
     my $segs = $segmenter->seg( $s, "utf8" );
@@ -135,10 +134,10 @@ sub _tokenize_ZH
         }
     }
 
-    foreach $token ( @tokens )
-    {
-        print $token. "\n";
-    }
+    #foreach $token ( @tokens )
+    #{
+    #    print $token. "\n";
+   	#}
     return @tokens;
 }
 

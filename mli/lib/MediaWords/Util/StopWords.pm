@@ -6665,6 +6665,7 @@ sub get_long_stop_stem_lookup
     return $_long_stop_stems;
 }
 
+#These are a list of 1600 Chinese stopwords
 sub get_Chinese_stopwords
 {
     my $stopwords = {

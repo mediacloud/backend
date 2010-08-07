@@ -51,6 +51,7 @@ sub _translate
 
     #say STDERR "sending request for '$text'";
 	$text=substr( $text, 0, 500 );
+	#detect the language of source text
 	$service->detect ($text);
     my $result = $service->translate($text );
 
