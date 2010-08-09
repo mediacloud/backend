@@ -154,10 +154,15 @@ sub get_word_cloud
             }
         );
 
-        die "0 stem count for word:" . Dumper( $word ) if ( $word->{ stem_count } == 0 );
-        my $term = $word->{ term };
+        if ( $word->{ stem_count } == 0 )
+        {
+            warn "0 stem count for word:" . Dumper( $word );
+        }
+        else {
+            my $term = $word->{ term };
 
-        $cloud->add( $term, $url, $word->{ stem_count } * 100000 );
+            $cloud->add( $term, $url, $word->{ stem_count } * 100000 );
+        }
     }
 
     $c->keep_flash( ( 'translate' ) );
