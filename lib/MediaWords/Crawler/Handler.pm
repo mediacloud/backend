@@ -135,10 +135,11 @@ sub _add_stories_and_content_downloads
             my $dbs = $self->engine->dbs;
 
             eval {
-	        #Work around a bug in XML::FeedPP - 
-                #  Item description() will sometimes return a hash instead of text. 
-	        # TODO fix XML::FeedPP 
-	        my $description = ref( $item->description ) ? ( '' ) : ( $item->description || '' );
+
+                #Work around a bug in XML::FeedPP -
+                #  Item description() will sometimes return a hash instead of text.
+                # TODO fix XML::FeedPP
+                my $description = ref( $item->description ) ? ( '' ) : ( $item->description || '' );
 
                 $story = {
                     url          => $url,
@@ -153,7 +154,7 @@ sub _add_stories_and_content_downloads
                 # say STDERR "create story: " . Dumper( $story );
 
                 $story = $dbs->create( "stories", $story );
-		MediaWords::DBI::Stories::update_rss_full_text_field($dbs, $story)
+                MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
             };
 
             if ( $@ )
