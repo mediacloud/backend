@@ -88,7 +88,7 @@ sub _insert_story_sentence
 sub _tokenize
 {
     my ( $s ) = @_;
-    
+
     my $tokens = [];
     while ( $s->[ 0 ] =~ m~(\w[\w']*)~g )
     {
@@ -194,11 +194,11 @@ sub update_story_sentence_words
 
     my $story = _get_story( $db, $story_ref );
 
-    unless( $no_delete )
+    unless ( $no_delete )
     {
-        $db->query( "delete from story_sentence_words where stories_id = ?", $story->{ stories_id } );
-	$db->query( "delete from story_sentences where stories_id = ?",      $story->{ stories_id } );
-	$db->query( "delete from story_sentence_counts where first_stories_id = ?", $story->{ stories_id } );
+        $db->query( "delete from story_sentence_words where stories_id = ?",        $story->{ stories_id } );
+        $db->query( "delete from story_sentences where stories_id = ?",             $story->{ stories_id } );
+        $db->query( "delete from story_sentence_counts where first_stories_id = ?", $story->{ stories_id } );
     }
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
