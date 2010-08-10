@@ -39,8 +39,8 @@ sub main
         $db->commit;
     }
 
-    say STDERR "running fill_story_sentence_words ...";	
-	my $segmenter = Lingua::ZH::WordSegmenter->new();
+    say STDERR "running fill_story_sentence_words ...";
+    my $segmenter = Lingua::ZH::WordSegmenter->new();
 
     MediaWords::StoryVectors::fill_story_sentence_words( $db, $segmenter );
 

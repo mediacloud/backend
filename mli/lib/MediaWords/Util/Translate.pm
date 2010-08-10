@@ -50,21 +50,24 @@ sub _translate
     return $original_text unless $text;
 
     #say STDERR "sending request for '$text'";
-	$text=substr( $text, 0, 500 );
-	#detect the language of source text
-	$service->detect ($text);
-    my $result = $service->translate($text );
+    $text = substr( $text, 0, 500 );
+
+    #detect the language of source text
+    $service->detect( $text );
+    my $result = $service->translate( $text );
 
     #say STDERR "got result";
 
     if ( $result->error )
     {
+
         #say STDERR $result->message;
         #say STDERR 'error translating';
         return $text;
     }
     else
     {
+
         #say STDERR 'no error translating';
         #say STDERR $result->translation;
         return $result->translation;
@@ -74,7 +77,8 @@ sub _translate
 sub translate
 {
     my $text = shift;
-	#$cache->remove($text);
+
+    #$cache->remove($text);
     my $ret = $cache->get( $text );
     if ( !defined( $ret ) )
     {

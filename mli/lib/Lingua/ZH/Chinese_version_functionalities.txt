@@ -1,11 +1,14 @@
-Chinese version
-Functionalities
+Chinese version Functionalities
 
-1.Word Segmenter
-For the word segmenter, I have used the Lingua::ZH::WordSegmenter module. This class segment a Chinese sentences into words. I have modified the existing MediaWords::StoryVector module so that once the language of article is detected as Chinese, word segmenter will be used to get a list of Chinese words.
+  1. Word Segmenter For the word segmenter,
+  I have used the Lingua::ZH::WordSegmenter module . This class segment a Chinese sentences into words .
+  I have modified the existing MediaWords::StoryVector module so that once the language of article is detected as Chinese,
+  word segmenter will be used to get a list of Chinese words .
 
-2.Dictionary updating
-The word segmenter uses a dictionary stored in the folder lib/Lingua/ZH/. One problem about the CPAN WordSegmenter module is that all the possible Chinese words are refined by the dictionary. If some new words come into the language, the segmenter is not able to detect. For example, foreign politicians' name might be separated into single characters. To address this issue, I have written a method under the “script” folder, write_to_dict_ZH. This method allows users to add a list of new words into the existing dictionary. Future work could be down to automatically crawl a list of words on the websites, such as wikipedia, to add them into the dictionary. 
+  2. Dictionary updating The word segmenter uses a dictionary stored in the folder lib / Lingua / ZH / .
+  One problem about the CPAN WordSegmenter module is that all the possible Chinese words are refined by the dictionary .
+  If some new words come into the language, the segmenter is not able to detect . For example, foreign politicians
+' name might be separated into single characters. To address this issue, I have written a method under the “script” folder, write_to_dict_ZH. This method allows users to add a list of new words into the existing dictionary. Future work could be down to automatically crawl a list of words on the websites, such as wikipedia, to add them into the dictionary. 
 
 3.Language Detection
 In the module Lingua::ZH::MediaWords, there is a method to judge if a given text is Chinese. If more than 25% of the characters are Chinese characters, the text will be processed as Chinese. In this module, there are also methods to count Chinese characters and Latin letters.
