@@ -15,10 +15,12 @@ use HTML::Entities qw( decode_entities  );
 use Devel::Peek qw(Dump);
 use Encode;
 
-#provide a procedural interface to HTML::Strip
-# cpan the module should probably include this but it doesn't
+# provide a procedural interface to HTML::Strip
+# use HTML::StripPP instead of HTML::Strip b/c HTML::Strip mucks up the encoding
 sub html_strip
 {
+
+    # use HTML::Strip;
 
     # my $html_text = shift;
     # my $hs = HTML::Strip->new();
@@ -26,9 +28,11 @@ sub html_strip
     # $hs->eof();
     #
     # return $text;
+
     return HTML::StripPP::strip( $_[ 0 ] ) || '';
 }
 
+# old version of html_strip that tries to work around HTML::Strip encoding problem
 sub html_strip_encoding_fix
 {
     my $html_text = shift;

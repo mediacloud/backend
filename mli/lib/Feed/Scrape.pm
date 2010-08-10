@@ -10,9 +10,13 @@ use HTML::Entities;
 use List::Util;
 use Regexp::Common qw /URI/;
 use URI::URL;
-use XML::FeedPP;
+#use XML::FeedPP;
 
 use MediaWords::Util::Web;
+
+use Perl6::Say;
+use Data::Dumper;
+use XML::FeedPP::MediaWords;
 
 # max urls that get_valid_feeds_from_index_url will fetch
 use constant MAX_INDEX_URLS => 1000;
@@ -173,9 +177,13 @@ sub parse_feed
     $content =~ s/^<!--[^>]*-->\s*<\?/<\?/;
 
     my $feed;
-    eval { $feed = XML::FeedPP->new( $content, -type => 'string' ) };
+    eval { $feed = XML::FeedPP::MediaWords->new( { content => $content, type => 'string' } ) };
+
     if ( $@ )
     {
+        say STDERR "Parsed Feed failed";
+        #say dump( $feed );
+
         return undef;
     }
     else

@@ -7,11 +7,13 @@ __END__
 
 =head1 CONTENTS
 
-Perl6::Say
+#Perl6::Say #Temporarily removing dependency since this module is no longer on cpan
 
 Algorithm::Cluster
 
 Task::Catalyst
+
+Class::Std
 
 BerkeleyDB
 

@@ -29,7 +29,7 @@
 <li><a href="[% c.uri_for('/media/create_batch') %]">Add Media</a></li>
 <li><a href="[% c.uri_for('/media/moderate') %]">Moderate Media</a></li>
 <li><a href="[% c.uri_for('/downloads/list') %]">All Downloads</a></li>
-<li><a href="[% c.uri_for('/topics/list') %]">Topics</a></li>
+<!-- <li><a href="[% c.uri_for('/topics/list') %]">Topics</a></li> -->
 <li><a href="[% c.uri_for('/clusters/list') %]">Clusters</a></li>
 <li><a href="[% c.uri_for('/dashboards/list') %]">Dashboards</a></li>
 
