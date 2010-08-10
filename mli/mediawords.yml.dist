@@ -40,7 +40,7 @@ database:
     #cluto_binary: "/usr/local/cluto/bin/vcluster"
 
     ### needed for calais tagging
-    calais_key: "n6grq26kxajjh5yv4w6289cf"
+    #calais_key: "CALAISKEY"
 
     ### needed for yahoo tagging
     #yahoo_key: "YAHOOKEY"
