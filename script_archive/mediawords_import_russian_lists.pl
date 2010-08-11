@@ -3,6 +3,7 @@
 # import html from http://blogs.yandex.ru/top/ as media sources / feeds
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -322,12 +323,115 @@ sub get_top_mail_ru_rankings
     $csv->print();
 }
 
+sub get_mediaguide_ru_rankings_circulation
+{
+    my $sort = 1;
+
+    _get_mediaguide_ru_rankings_impl($sort);
+}
+
+sub get_mediaguide_ru_rankings_rating
+{
+    my $sort = 2;
+
+    _get_mediaguide_ru_rankings_impl($sort);
+}
+
+sub _get_mediaguide_ru_rankings_impl
+{
+    (my $sort) = @_;
+
+    my $ua = LWP::UserAgent->new;
+
+    my $csv = _create_class_csv_from_field_list(
+        [ qw/ name media_type Город Тема Тираж Рейтинг / ] );
+
+    for my $i ( 1 .. 50 )
+    {
+        my $url = "http://www.mediaguide.ru/?p=list&page=$i&sort=$sort";
+
+        my $tree = _fetch_url_as_html_tree( $url );
+
+        #my @p = $tree->findnodes( "/html/body/table/tbody/tr[3]/td[2]/table/tbody/tr/td/index/div/div/" );
+
+	my @p = $tree->findnodes( "//html/body/table/tr[3]/td[2]/table/tr/td/div/div" );
+
+	#say Dumper([@p]);
+        my $first = shift @p;
+ 
+	die unless $first->attr( 'style' ) eq 'float: left;' ;
+	
+	#say $first->dump;
+
+	my $div_index = 0;
+	while ($div_index <= $#p)
+        {
+	    my $div_searchResName = $p[$div_index];
+
+            #say "Here's the searchResName node dumped";
+            #say $div_searchResName->dump;
+
+	    #say $div_searchResName->as_text;
+
+	    my $name = $div_searchResName->as_text;;
+
+	    die $div_searchResName->attr( 'class' ) unless $div_searchResName->attr( 'class' ) =~ 'searchResName\d?';
+
+	    $div_index++;
+
+	    my $div_searchResBody = $p[$div_index];
+
+            #say "Here's the searchResBody node dumped";
+            #say $div_searchResBody->dump;
+
+	    die $div_searchResBody->attr( 'class' ) unless $div_searchResBody->attr( 'class' ) eq 'searchResBody';
+
+	    my $body_text = $div_searchResBody->as_text;
+
+	    $body_text =~ s/Тема: (.*)Тираж: /Тема: $1. Тираж: /;
+	    $body_text =~ s/Тираж: \./Тираж:  \./;
+	    $body_text =~ s/серт\. НТС\./серт\.НТС\./;
+
+	    #ay $body_text;
+	    my @rankings = (split '\. ', $body_text);
+
+	    foreach my $rank (@rankings)
+	    {
+	      $rank =~ s/(.+) $/$1  /;
+	    }
+
+	    my $media_type = shift @rankings;
+
+	    my $hash ={ map { split '\: ', $_ } @rankings };
+
+	    #say Dumper($hash);
+
+	    $hash->{name} = $name;
+
+	    $hash->{media_type} = $media_type;
+
+	    $csv->add_line ($hash);
+
+	    $div_index++;
+
+	    next;
+	  }
+
+	#exit;
+
+        # Now that we're done with it, we must destroy it.
+        $tree = $tree->delete;
+    }
+
+    $csv->print();
+}
+
 sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    get_top_mail_ru_rankings;
+    get_mediaguide_ru_rankings_rating();
 }
 
 main();
