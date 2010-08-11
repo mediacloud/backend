@@ -106,18 +106,11 @@ sub _tokenize
 #Chinese tokenizer, returns an array of Chinese words
 sub _tokenize_ZH
 {
-    my $s   = shift;
-    my %par = ();
-    $par{ "dic_encoding" } = "utf8";
-    $par{ "dic" }          = "lib/Lingua/ZH/dict.txt";
-    my $segmenter = Lingua::ZH::WordSegmenter->new( %par );
+    my $s         = shift;
+    my $segmenter = shift;
     my $i;
-
-    $s = encode( "utf8", $s );
-
+    my $s = encode( "utf8", $s );
     my $segs = $segmenter->seg( $s, "utf8" );
-
-    #print "\n 2:".$segs;
     my @tokens = split( / /, $segs );
     my $token;
     foreach $token ( @tokens )
@@ -250,6 +243,10 @@ sub update_story_sentence_words
     #if the text is in Chinese
     if ( $is_Chinese == 1 )
     {
+        my %par = ();
+        $par{ "dic_encoding" } = "utf8";
+        $par{ "dic" }          = "lib/Lingua/ZH/dict.txt";
+        my $segmenter = Lingua::ZH::WordSegmenter->new( %par );
 
         #convert traditional characters into simplified characters
         $story_text = trad_to_simp( $story_text );
@@ -260,7 +257,7 @@ sub update_story_sentence_words
 
         for ( my $sentence_num = 0 ; $sentence_num < $#sentences ; $sentence_num++ )
         {
-            my @words = _tokenize_ZH( $sentences[ $sentence_num ] );
+            my @words = _tokenize_ZH( $sentences[ $sentence_num ], $segmenter );
 
             #print $sentences[$sentence_num]."\n\n----------\n";
             #print join "\n\n", @words;
