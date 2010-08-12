@@ -31,6 +31,7 @@ use List::MoreUtils qw(any all none notall true false firstidx first_index
   firstval first_value lastval last_value each_array
   each_arrayref pairwise natatime mesh zip uniq minmax);
 use constant COLLECTION_TAG => 'russian_yandex_20100316';
+use Readonly;
 
 sub get_liveinternet_ru_rankings
 {
@@ -312,8 +313,10 @@ sub get_top_mail_ru_rankings
             #say "Link '$link'";
             #say "Link_text  '$name'";
 
+#<<<  stop perltidy from complaining about unicode
             $csv->add_line(
                 { rank => $rank, name => $name, link => $link, stat1_посетители => $stat1, stat2_хосты => $stat2, stat3_визиты => $stat3, stat4 => $stat4 } );
+#>>>
         }
 
         # Now that we're done with it, we must destroy it.
@@ -426,12 +429,92 @@ sub _get_mediaguide_ru_rankings_impl
     $csv->print();
 }
 
+
+sub get_webomer_ru_rankings
+{
+    my $ua = LWP::UserAgent->new;
+
+    Readonly my $csv_fields => [ 'url', 'name', 'охват', 'демография', 'ядро', 'доля поискового трафика' ];
+
+    my $csv = _create_class_csv_from_field_list( $csv_fields );
+
+    for my $i ( 1 .. 200 )
+    {
+        my $url = "http://webomer.ru/cgi-bin/wr.fcgi?action=stat&period=month&sitet=2l&country=1&page=$i&position=";
+
+	my $ua   = LWP::UserAgent->new;
+
+	print STDERR "fetching $url \n";
+
+	my $html = $ua->get( $url )->decoded_content;
+
+	my @lines = split /\n/, $html;
+
+	my @put_one_site_stat_lines = grep { /^put_one_site_stat/ } @lines;
+
+	foreach my $put_one_site_stat_line (@put_one_site_stat_lines )
+	{
+	   $put_one_site_stat_line =~ s/put_one_site_stat\((.*)\);/$1/;
+	}
+
+	foreach my $put_one_site_stat_line (@put_one_site_stat_lines )
+	{
+	    #say $put_one_site_stat_line;
+
+	    my @fields = split /,/, $put_one_site_stat_line;
+	    
+	    die unless scalar(@fields) == 11;
+
+	    foreach my $field (@fields)
+	    {
+	      $field =~ s/^'(.*)'$/$1/;
+	    }
+
+	    #say join ',', @fields;
+
+	    Readonly my %CORRESPONDING => (
+					   'id' => 0,
+					   'url'=> 1,
+					   'name' => 2,
+					   'охват' => 3,
+					   'blank1' => 4,
+					   'blank2' => 5,
+					   'демография' => 6,
+					   'демография_2' => 7,
+					   'ядро' => 8,
+					   'доля поискового трафика' => 9,
+					   'change' => 10,
+					  );
+	    my %site_data;
+	
+	    @site_data{ keys %CORRESPONDING } = @fields [ values  %CORRESPONDING ];
+
+	    if (! $site_data{ name } )
+	    {
+		 $site_data { name } = $site_data { url };
+	    }
+
+	    die if ( $site_data {blank_1 }  or  $site_data {blank_2 } );
+
+	    #say Dumper (\%site_data);
+	    #say Dumper([@put_one_site_stat_lines]);
+
+	    my %csv_line;
+	    @csv_line{@ {$csv_fields } } = @site_data{ @ {$csv_fields } };
+
+	    $csv->add_line(\%csv_line);
+	  }
+    }
+
+    $csv->print();
+}
+
 sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    get_mediaguide_ru_rankings_rating();
+    get_webomer_ru_rankings();
 }
 
 main();
