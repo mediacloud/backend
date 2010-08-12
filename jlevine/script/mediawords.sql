@@ -90,13 +90,14 @@ alter table media_cluster_runs add constraint media_cluster_runs_state check (st
 create table media_clusters (
 	media_clusters_id		    serial	primary key,
 	media_cluster_runs_id	  int	    not null references media_cluster_runs on delete cascade,
-	description             text    null
+	description             text    null,
+	centroid_id             int              references media (media_id) on delete cascade
 );
 
 create table media_clusters_media_map (
-  media_clusters_media_map_id   serial primary key,
-	media_clusters_id             int   not null references media_clusters on delete cascade,
-	media_id		                  int   not null references media on delete cascade
+  media_clusters_media_map_id   serial  primary key,
+	media_clusters_id             int     not null references media_clusters on delete cascade,
+	media_id		                  int     not null references media on delete cascade
 );
 
 create index media_clusters_media_map_cluster on media_clusters_media_map (media_clusters_id);

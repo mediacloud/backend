@@ -51,6 +51,7 @@ sub _cache_media_word_vectors
         "      and mw.publish_week between date_trunc( 'week', '$cluster_run->{ start_date }'::date) " .
         "      and date_trunc( 'week', '$cluster_run->{ end_date }'::date) + interval '6 days' " .
         "      and mw.dashboard_topics_id is null " .
+        "      and mw.stem !~ '[a-zA-Z]' " . # ONLY FOR RUSSIAN!!!
         # "      and not is_stop_stem( 'long', mw.stem ) " .
         "    group by medium_ms.media_id, mw.stem order by stem_count desc " .
         "  ) q " .
@@ -474,7 +475,7 @@ sub execute_and_store_media_cluster_run
     my $clustering_engine = _get_clustering_engine();
     
     # Time database writes
-    my $t0 = start_time( "writing cluster results to database..." );
+    my $t0 = start_time( "writing cluster results to database" );
     
     for my $cluster ( @{ $clusters } )
     {
@@ -484,7 +485,8 @@ sub execute_and_store_media_cluster_run
             'media_clusters',
             {
                 media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
-                description           => $description
+                description           => $description,
+                centroid_id           => $cluster->{ centroid_id }
             }
         );
 

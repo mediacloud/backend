@@ -98,6 +98,7 @@ sub _find_center
                 {
                     $max_score = $dp;
                     $new_cluster->{ centroid } = $node->{ vector };
+                    $new_cluster->{ centroid_id } = $node->{ media_id };
                 }
             }
         } else {
@@ -138,8 +139,9 @@ sub _seed_clusters_random
     
     for my $rand ( Math::Random::random_uniform_integer($num_clusters, 0, $#{ $nodes }) ) {
         push @{ $clusters }, {
-            centroid   => $nodes->[$rand]->{ vector },
-            cluster_id => $cluster_cnt++
+            centroid    => $nodes->[$rand]->{ vector },
+            centroid_id => $nodes->[$rand]->{ media_id },
+            cluster_id  => $cluster_cnt++
         };
     }
     
@@ -163,6 +165,7 @@ sub _seed_clusters_plus_plus
     my $first_center = Math::Random::random_uniform_integer(1, 0, $#{ $nodes });
     push @{ $clusters }, {
         centroid   => $nodes->[ $first_center ]->{ vector },
+        centroid_id   => $nodes->[ $first_center ]->{ media_id },
         cluster_id => $cluster_cnt++
     };
     
@@ -170,6 +173,7 @@ sub _seed_clusters_plus_plus
     while ( $cluster_cnt < $num_clusters )
     {
         my $new_centroid;
+        my $new_centroid_id;
         my $least_cluster_sim = 1;
         
         # Look at each node, and determine the distance D(x) to the closest cluster
@@ -188,14 +192,16 @@ sub _seed_clusters_plus_plus
             {
                 $least_cluster_sim = $max_cluster_sim;
                 $new_centroid = $node->{ vector };
+                $new_centroid_id = $node->{ media_id };
             }
         }
         
         # my $sum_scores = sum (map {$_ ** 2} @{ $cluster_scores });
         
         push @{ $clusters }, {
-            centroid   => $new_centroid,
-            cluster_id => $cluster_cnt++
+            centroid    => $new_centroid,
+            centroid_id => $new_centroid_id,
+            cluster_id  => $cluster_cnt++
         };
     }
     
@@ -222,8 +228,9 @@ sub _seed_clusters_plus_plus2
     # Pick one random starting centroid
     my $first_center = Math::Random::random_uniform_integer(1, 0, $#{ $nodes });
     push @{ $clusters }, {
-        centroid   => $nodes->[ $first_center ]->{ vector },
-        cluster_id => $cluster_cnt++
+        centroid    => $nodes->[ $first_center ]->{ vector },
+        centroid_id => $nodes->[ $first_center ]->{ media_id },
+        cluster_id  => $cluster_cnt++
     };
     
     # Add $num_clusters-1 centroids
@@ -231,6 +238,7 @@ sub _seed_clusters_plus_plus2
     {
         my $best_cluster = {
               centroid   => undef,
+              centroid_id => undef,
               cluster_id => $cluster_cnt++
         };
         
@@ -242,6 +250,7 @@ sub _seed_clusters_plus_plus2
             my $new_clusters = [];
             @{ $new_clusters } = @{ $clusters }; # deep copy...
             $best_cluster->{ centroid } = $node->{ vector };
+            $best_cluster->{ centroid_id } = $node->{ media_id };
             push @{ $new_clusters }, @{ $best_cluster };
             
             my $sum_scores = 0;
@@ -260,7 +269,7 @@ sub _seed_clusters_plus_plus2
                 $sum_scores += $max_cluster_sim;
             }
             
-            unless (defined $min_score and $min_score < $sum_scores  )
+            unless ( defined $min_score and $min_score < $sum_scores )
             {
                 $min_score = $sum_scores;
                 $best_cluster = pop @{ $new_clusters };
@@ -271,8 +280,6 @@ sub _seed_clusters_plus_plus2
     }
     
     stop_time( 'k-means++', $t0 );
-
-    print STDERR Dumper($clusters);
 
     return $clusters;
 }
@@ -308,12 +315,12 @@ sub _eval_clusters_i2
 {
     my ( $clusters ) = @_;
     my $total_score = 0;
-    my $total_criterion_score = 0;
+    # my $total_criterion_score = 0;
 
     for my $cluster (@{ $clusters })
     {
         my $cluster_score = 0;
-        my $criterion_score = 0;
+        # my $criterion_score = 0;
         my $nodes = $cluster->{ nodes };
         
         for my $i ( 0..$#{ $nodes } )
@@ -321,15 +328,62 @@ sub _eval_clusters_i2
             for my $j ( $i..$#{ $nodes} )
             {
                 $cluster_score += vector_dot( $nodes->[$i]->{ vector }, $nodes->[$j]->{ vector } );
-                $criterion_score += vector_dot( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
+                # $criterion_score += vector_dot( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
             }
         }
          
         $total_score += sqrt $cluster_score;
-        $total_criterion_score += sqrt $criterion_score;
+        # $total_criterion_score += sqrt $criterion_score;
     }
     
-    return ( $total_score, $total_criterion_score );
+    return ( $total_score ); #, $total_criterion_score );
+}
+
+# Use the I1 'clustering criterion function' to come up with a score for the cluster run
+sub _eval_clusters_normalized
+{
+    my ( $clusters ) = @_;
+    
+    my $total_score = 0;
+    my $num_clusters = scalar @{ $clusters };
+    
+    for my $cluster (@{ $clusters })
+    {
+        my $nodes = $cluster->{ nodes };
+        my $num_nodes = scalar @{ $nodes };
+        my $scale_factor = $num_nodes * ($num_nodes - 1);
+        
+        if ( $scale_factor )
+        {
+            # get internal sim score
+            my $centroid = $cluster->{ centroid };
+            my $internal_score = 0;
+            for my $i ( 0..$#{ $nodes } )
+            {
+                for my $j ( $i..$#{ $nodes} )
+                {
+                    my $dp = vector_dot( $nodes->[$i]->{ vector }, $nodes->[$j]->{ vector } );
+                    $internal_score += $dp / $scale_factor unless ( $dp == 1 );
+                }
+            }
+            
+            # get external sim score
+            my $external_score = 0;
+            for my $comp_cluster ( @{ $clusters } )
+            {
+                my $dp = vector_dot( $centroid, $comp_cluster->{ centroid } );
+                $external_score += $dp / ($num_clusters - 1) unless ( $dp == 1 );
+            }
+            
+            $total_score += ($internal_score / $external_score) / $num_clusters unless ($external_score == 0);
+
+            print STDERR "num nodes: $num_nodes; internal score: $internal_score; external_score: $external_score\n";
+        }
+    }
+    
+    print STDERR "total score: $total_score\n\n";
+    
+    return ( $total_score ); #, $total_criterion_score );
 }
 
 # Print out some stats about the scores
@@ -362,7 +416,8 @@ sub _get_best_cluster_run
     my $best_clusters = {};
     my $best_score = 0;
     my $score_list = [];
-    my $criterion_score_list = [];
+    # my $criterion_score_list = [];
+    my $score_list_normalized = [];
     
     for my $i (0..$num_cluster_runs)
     {
@@ -370,10 +425,12 @@ sub _get_best_cluster_run
         my $clusters = _k_recurse($nodes, _seed_clusters_random($nodes, $num_clusters), $num_iterations);
         stop_time( "cluster run $i", $t0 );
         
-        my ( $score, $criterion_score ) = _eval_clusters_i2($clusters);
+        my ( $score ) = _eval_clusters_i2($clusters);
+        my ( $score_normalized ) = _eval_clusters_normalized($clusters);
         push @{ $score_list }, $score;
-        push @{ $criterion_score_list }, $criterion_score;
-        print STDERR "Cluster run $i regular score: $score; criterion score: $criterion_score\n\n";
+        push @{ $score_list_normalized }, $score_normalized;
+        # push @{ $criterion_score_list }, $criterion_score;
+        print STDERR "Cluster run $i regular score: $score\n\n"; #  criterion score: $criterion_score\n\n";
         
         if ( $score > $best_score )
         {
@@ -384,8 +441,11 @@ sub _get_best_cluster_run
     
     print STDERR "(Regular scores) "; 
     _eval_scores($score_list);
-    print STDERR "(Criterion scores) ";
-    _eval_scores($criterion_score_list);
+    print STDERR "(normalized scores) "; 
+    _eval_scores($score_list_normalized);
+    
+    # print STDERR "(Criterion scores) ";
+    # _eval_scores($criterion_score_list);
     
     return $best_clusters;
 }
@@ -393,6 +453,7 @@ sub _get_best_cluster_run
 
 # Turn raw clusters into nice clusters for writing to the database, which should really look like (at least)
 # { media_ids         => [],
+#   centroid_id       => $centroid_id,
 #   internal_features => [ { stem => stem, term => term , weight => weight } ],
 #   external_features => [ { stem => stem, term => term , weight => weight } ],
 #   internal_zscores  => [], 
@@ -407,6 +468,7 @@ sub _make_nice_clusters
         # TODO: implement internal and external features, zscores, etc...
         my $nice_cluster = {
             media_ids         => [],
+            centroid_id       => $cluster->{ centroid_id },
             internal_features => [],
             external_features => [],
             internal_zscores  => [],
@@ -482,6 +544,7 @@ sub _get_new_clusters_from_old
         
         push @{ $new_clusters }, {
             centroid => $old_cluster->{ centroid },
+            centroid_id => $old_cluster->{ centroid_id },
             nodes => $cluster_nodes
         };
     }

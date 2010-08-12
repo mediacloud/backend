@@ -53,7 +53,7 @@
       <fieldset>
         <p>
           <span class="cluster_color" data-id="[% cluster.media_clusters_id - cl_off %]"></span>
-          <b>[% cluster.description %]</b> 
+          <b>[% cluster.description %] ([% cluster.media.size %])</b> 
         </p>
         <p>
           Media
