@@ -16,69 +16,76 @@ our @ISA = qw(Exporter);
 # If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
 # will save memory.
 
-our %EXPORT_TAGS = ( 'all' => [ qw(
-    
-) ] );
+our %EXPORT_TAGS = (
+    'all' => [
+        qw(
 
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+          )
+    ]
+);
+
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{ 'all' } } );
 
 our @EXPORT = qw(
-    
+
 );
 
 our $VERSION = '0.04';
 
 use overload
-    '++' => 'incr',
-    '+' => 'add',
-    'fallback' => undef;
+  '++'       => 'incr',
+  '+'        => 'add',
+  'fallback' => undef;
 
-# sparse vector contructor 
+# sparse vector contructor
 # creates an empty sparse vector
-sub new 
+sub new
 {
+
     # my $class = shift;
     my $self = {};
-    bless( $self, $_[0] );
+    bless( $self, $_[ 0 ] );
     return $self;
 }
 
 # sets value at given index
 sub set
 {
+
     # my ( $self, $key, $value ) = @_;
     # my $self = shift;
     # my $key = shift;
     # my $value = shift;
-        
-    if ( !defined $_[1] || !defined $_[2] )
+
+    if ( !defined $_[ 1 ] || !defined $_[ 2 ] )
     {
         print STDERR "Usage: vector->set(key,value)\n";
         exit;
     }
-    if ( $_[2] == 0 )
+    if ( $_[ 2 ] == 0 )
     {
         print STDERR "Can not store 0 in the Math::SparseVector.\n";
         exit;
     }
-    $_[0]->{ $_[1] } = $_[2];
+    $_[ 0 ]->{ $_[ 1 ] } = $_[ 2 ];
 }
 
 # returns value at given index
 sub get
 {
+
     # my ( $self, $key ) = @_;
     # my $self = shift;
     # my $key = shift;
-    
-    if ( !defined $_[1] )
+
+    if ( !defined $_[ 1 ] )
     {
         print STDERR "Usage: vector->get(key)\n";
         exit;
     }
-    if ( defined $_[0]->{ $_[1] } )
+    if ( defined $_[ 0 ]->{ $_[ 1 ] } )
     {
-        return $_[0]->{ $_[1] };
+        return $_[ 0 ]->{ $_[ 1 ] };
     }
     return 0;
 }
@@ -86,18 +93,20 @@ sub get
 # returns indices of non-zero values in sorted order
 sub keys
 {
+
     # my $self = shift;
-    my @indices = keys %{ $_[0] };
-    my @sorted = sort {$a <=> $b} @indices;
+    my @indices = keys %{ $_[ 0 ] };
+    my @sorted = sort { $a <=> $b } @indices;
     return @sorted;
 }
 
 # returns 1 if the vector is empty
 sub isnull
 {
+
     # my $self = shift;
-    my @indices = $_[0]->keys;
-    if ( scalar(@indices) == 0 )
+    my @indices = $_[ 0 ]->keys;
+    if ( scalar( @indices ) == 0 )
     {
         return 1;
     }
@@ -108,9 +117,9 @@ sub isnull
 sub print
 {
     my $self = shift;
-    foreach my $ind ($self->keys)
+    foreach my $ind ( $self->keys )
     {
-        print "$ind " . $self->get($ind) . " ";
+        print "$ind " . $self->get( $ind ) . " ";
     }
     print "\n";
 }
@@ -119,62 +128,64 @@ sub print
 sub stringify
 {
     my $self = shift;
-    my $str="";
-        foreach my $ind ($self->keys)
-        {
-                $str.= "$ind " . $self->get($ind) . " ";
-        }
+    my $str  = "";
+    foreach my $ind ( $self->keys )
+    {
+        $str .= "$ind " . $self->get( $ind ) . " ";
+    }
     chop $str;
     return $str;
 }
 
 # increments value at given index
-sub incr 
+sub incr
 {
     my $self = shift;
-    my $key = shift;
-    if(!defined $key)
+    my $key  = shift;
+    if ( !defined $key )
     {
         print STDERR "Usage: vector->incr(key)\n";
         exit;
     }
-    $self->{$key}++;
+    $self->{ $key }++;
 }
 
 # adds 2 sparse vectors
 sub add
 {
+
     # my ( $self, $v2 ) = @_;
     # my $self = shift;
     # my $v2 = shift;
-    
-    if ( !defined $_[1] )
+
+    if ( !defined $_[ 1 ] )
     {
         print STDERR "Usage: v1->add(v2)\n";
         exit;
     }
-    foreach my $key ( $_[1]->keys )
+    foreach my $key ( $_[ 1 ]->keys )
     {
-        if ( defined $_[0]->{$key} )
+        if ( defined $_[ 0 ]->{ $key } )
         {
-            $_[0]->{$key} += $_[1]->get($key);
+            $_[ 0 ]->{ $key } += $_[ 1 ]->get( $key );
         }
         else
         {
-            $_[0]->{$key} = $_[1]->get($key);
+            $_[ 0 ]->{ $key } = $_[ 1 ]->get( $key );
         }
     }
 }
 
-# returns the norm 
+# returns the norm
 sub norm
 {
+
     # my $self = shift;
     my $sum = 0;
-    foreach my $key ($_[0]->keys)
+    foreach my $key ( $_[ 0 ]->keys )
     {
-        my $value = $_[0]->{$key};
-        $sum += $value ** 2;
+        my $value = $_[ 0 ]->{ $key };
+        $sum += $value**2;
     }
     return sqrt $sum;
 }
@@ -182,21 +193,23 @@ sub norm
 # normalizes given sparse vector
 sub normalize
 {
+
     # my $self = shift;
-    my $vnorm = $_[0]->norm;
-    if($vnorm != 0)
+    my $vnorm = $_[ 0 ]->norm;
+    if ( $vnorm != 0 )
     {
-        $_[0]->div($vnorm);
+        $_[ 0 ]->div( $vnorm );
     }
 }
 
 sub dot
 {
+
     # my ( $self, $v2 ) = @_;
     # my $self = shift;
     # my $v2 = shift;
-    
-    if(!defined $_[1])
+
+    if ( !defined $_[ 1 ] )
     {
         print STDERR "Usage: v1->dot(v2)\n";
         exit;
@@ -205,22 +218,27 @@ sub dot
 
     # optimize to do lesser comparisons by looping on
     # the smaller vector
-    if (scalar($_[1]->keys) < scalar($_[0]->keys)) {
+    if ( scalar( $_[ 1 ]->keys ) < scalar( $_[ 0 ]->keys ) )
+    {
+
         # v2 is smaller
-        foreach my $key ($_[1]->keys)
+        foreach my $key ( $_[ 1 ]->keys )
         {
-            if(defined $_[0]->{$key})
+            if ( defined $_[ 0 ]->{ $key } )
             {
-                $dotprod += $_[1]->get($key) * $_[0]->{$key};
+                $dotprod += $_[ 1 ]->get( $key ) * $_[ 0 ]->{ $key };
             }
         }
-    } else {
+    }
+    else
+    {
+
         # self is smaller or equal to v2
-        foreach my $key ($_[0]->keys)
+        foreach my $key ( $_[ 0 ]->keys )
         {
-            if(defined $_[1]->{$key})
+            if ( defined $_[ 1 ]->{ $key } )
             {
-                $dotprod += $_[1]->get($key) * $_[0]->{$key};
+                $dotprod += $_[ 1 ]->get( $key ) * $_[ 0 ]->{ $key };
             }
         }
     }
@@ -231,21 +249,21 @@ sub dot
 # divides each vector entry by a given divisor
 sub div
 {
-    my $self = shift;
+    my $self    = shift;
     my $divisor = shift;
-    if(!defined $divisor)
+    if ( !defined $divisor )
     {
         print STDERR "Usage: v1->div(DIVISOR)\n";
         exit;
     }
-    if($divisor==0)
+    if ( $divisor == 0 )
     {
         print STDERR "Divisor 0 not allowed in Math::SparseVector::div().\n";
         exit;
     }
-    foreach my $key ($self->keys)
+    foreach my $key ( $self->keys )
     {
-        $self->{$key}/=$divisor;
+        $self->{ $key } /= $divisor;
     }
 }
 
@@ -255,15 +273,15 @@ sub binadd
     my $v1 = shift;
     my $v2 = shift;
 
-    if(!defined $v2)
+    if ( !defined $v2 )
     {
         print STDERR "Usage: v1->binadd(v2)\n";
         exit;
     }
 
-    foreach my $key ($v2->keys)
+    foreach my $key ( $v2->keys )
     {
-        $v1->{$key}=1;
+        $v1->{ $key } = 1;
     }
 }
 
@@ -271,8 +289,8 @@ sub binadd
 sub free
 {
     my $self = shift;
-    %{$self}=();
-    undef %{$self};
+    %{ $self } = ();
+    undef %{ $self };
 }
 
 1;

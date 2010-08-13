@@ -75,8 +75,7 @@ sub generate_line_chart_url
         @{ $params },
         'chd=s:' . join(
             ',',
-            map
-            {
+            map {
                 join( '', map { $enc->{ int( $_ * ( 60 / $max ) ) } } @{ $_ } )
               } @{ $term_date_counts }
         )

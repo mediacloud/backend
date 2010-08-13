@@ -15,18 +15,18 @@ use PDL::Reduce;
 require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw( vector_new vector_add vector_dot vector_div vector_norm
-                  vector_normalize vector_length vector_nnz vector_get vector_set vector_string );
+  vector_normalize vector_length vector_nnz vector_get vector_set vector_string );
 
 sub vector_new
 {
     my ( $length ) = @_;
-    return (zeroes $length);
+    return ( zeroes $length);
 }
 
 # adds 2 sparse vectors
 sub vector_add
 {
-    my ($v1, $v2) = @_;
+    my ( $v1, $v2 ) = @_;
     return $v1 + $v2;
 }
 
@@ -34,8 +34,8 @@ sub vector_add
 sub vector_dot
 {
     my ( $v1, $v2 ) = @_;
-    my $cos = inner( $v1, $v2 );  # inner product
-    return $cos->sclr();  # converts PDL object to Perl scalar
+    my $cos = inner( $v1, $v2 );    # inner product
+    return $cos->sclr();            # converts PDL object to Perl scalar
 }
 
 # divides each vector entry by a given divisor
@@ -49,14 +49,15 @@ sub vector_div
 sub vector_norm
 {
     my ( $v ) = @_;
+
     # TODO: A real norm operation...
-    return $v->reduce('+'); # lol, not even close...
+    return $v->reduce( '+' );    # lol, not even close...
 }
 
 # normalizes given sparse vector
 sub vector_normalize
 {
-    return norm( $_[0] );
+    return norm( $_[ 0 ] );
 }
 
 # returns the length of the vector
@@ -64,7 +65,7 @@ sub vector_length
 {
     my ( $v ) = @_;
     my @dims = dims $v ;
-    return $dims[0];
+    return $dims[ 0 ];
 }
 
 # returns an array containing the non-zero values of the vector
@@ -94,16 +95,15 @@ sub vector_string
 {
     my ( $v ) = @_;
     my $string = '';
-    
+
     for my $pos ( @{ vector_nnz $v } )
     {
-        my $val = vector_get $v, $pos ;
+        my $val = vector_get $v, $pos;
         $string .= "$pos: $val\n";
     }
-    
+
     return $string;
 }
-
 
 ############ POTENTIALLY USEFUL FUNCTIONS ###################
 # Maybe not....
@@ -117,11 +117,10 @@ sub stringify { }
 # increments value at given index
 sub incr { }
 
-
 ############### USELESS FUNCTIONS ####################
 # Nothing to do for any of these--do them your damn self!
 
 # Returns 1 if vector is null, otherwise 0
-sub isnull {  }
+sub isnull { }
 
 1;

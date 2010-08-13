@@ -89,18 +89,17 @@ sub html_strip_encoding_fix
     return $decoded_text;
 }
 
-
 # A custom string escape for JavaScript
 sub javascript_escape
 {
     use MediaWords::Util::HTML;
-    
-    my ($s) = @_;
-    
-    $s = MediaWords::Util::HTML::html_strip($s);
-    
+
+    my ( $s ) = @_;
+
+    $s = MediaWords::Util::HTML::html_strip( $s );
+
     $s =~ s/'/\\'/g;
-    
+
     return $s;
 }
 

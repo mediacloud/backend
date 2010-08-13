@@ -16,7 +16,7 @@ use MediaWords::Cluster::Cluto;
 use MediaWords::Util::Config;
 use MediaWords::Util::Timing qw( start_time stop_time );
 use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_dot vector_div vector_norm
-                  vector_normalize vector_length vector_nnz vector_get vector_set );
+  vector_normalize vector_length vector_nnz vector_get vector_set );
 
 # number of nfeatures parameter for the clustering run
 use constant NUM_FEATURES => 50;
@@ -41,22 +41,19 @@ sub _cache_media_word_vectors
 
     my $words = $db->query(
         "select * from ( " .
-        "  select medium_ms.media_id, mw.stem, min(mw.term) as term, sum(mw.stem_count) as stem_count, " .
-        "       rank() over (partition by medium_ms.media_id order by sum(mw.stem_count) desc ) as media_set_rank " .
-        "    from top_500_weekly_words mw, media_sets medium_ms, " .
-        "       media_sets collection_ms, media_sets_media_map msmm " .
-        "    where medium_ms.media_sets_id = mw.media_sets_id " .
-        "      and medium_ms.media_id = msmm.media_id and msmm.media_sets_id = collection_ms.media_sets_id " .
-        "      and collection_ms.media_sets_id = $cluster_run->{ media_sets_id } " .
-        "      and mw.publish_week between date_trunc( 'week', '$cluster_run->{ start_date }'::date) " .
-        "      and date_trunc( 'week', '$cluster_run->{ end_date }'::date) + interval '6 days' " .
-        "      and mw.dashboard_topics_id is null " .
-        "      and mw.stem !~ '[a-zA-Z]' " . # ONLY FOR RUSSIAN!!!
-        # "      and not is_stop_stem( 'long', mw.stem ) " .
-        "    group by medium_ms.media_id, mw.stem order by stem_count desc " .
-        "  ) q " .
-        " where media_set_rank <= " . NUM_MEDIUM_WORDS .
-        " order by media_id, media_set_rank"
+          "  select medium_ms.media_id, mw.stem, min(mw.term) as term, sum(mw.stem_count) as stem_count, " .
+          "       rank() over (partition by medium_ms.media_id order by sum(mw.stem_count) desc ) as media_set_rank " .
+          "    from top_500_weekly_words mw, media_sets medium_ms, " .
+          "       media_sets collection_ms, media_sets_media_map msmm " .
+          "    where medium_ms.media_sets_id = mw.media_sets_id " .
+          "      and medium_ms.media_id = msmm.media_id and msmm.media_sets_id = collection_ms.media_sets_id " .
+          "      and collection_ms.media_sets_id = $cluster_run->{ media_sets_id } " .
+          "      and mw.publish_week between date_trunc( 'week', '$cluster_run->{ start_date }'::date) " .
+          "      and date_trunc( 'week', '$cluster_run->{ end_date }'::date) + interval '6 days' " .
+          "      and mw.dashboard_topics_id is null " . "      and mw.stem !~ '[a-zA-Z]' " .    # ONLY FOR RUSSIAN!!!
+              # "      and not is_stop_stem( 'long', mw.stem ) " .
+          "    group by medium_ms.media_id, mw.stem order by stem_count desc " . "  ) q " . " where media_set_rank <= " .
+          NUM_MEDIUM_WORDS . " order by media_id, media_set_rank"
     )->hashes;
 
     for my $word ( @{ $words } )
@@ -84,7 +81,7 @@ sub _get_stem_lookup
 sub _get_medium_stem_vector
 {
     my ( $medium, $stems, $max_word_rank ) = @_;
-    
+
     my $words = $_cached_media_word_vectors->{ $medium->{ media_id } };
 
     my $all_stem_count = 0;
@@ -100,10 +97,10 @@ sub _get_medium_stem_vector
 
     for my $word ( @{ $words } )
     {
-        my $p = $word->{ stem_count } / $all_stem_count;
+        my $p         = $word->{ stem_count } / $all_stem_count;
         my $word_rank = $word->{ media_set_rank };
-        if ($p > MIN_FREQUENCY && $word_rank < $max_word_rank ) # Only add words if they are significant enough
-        {   
+        if ( $p > MIN_FREQUENCY && $word_rank < $max_word_rank )    # Only add words if they are significant enough
+        {
             $stem_vector->[ $stems->Indices( $word->{ stem } ) ] = $p;
         }
     }
@@ -116,16 +113,16 @@ sub _get_sparse_vector_from_dense_vector
     my ( $dense_vector ) = @_;
 
     use PDL;
-    my $sparse_vector = vector_new (scalar @{ $dense_vector });
-     
-    for my $j ( 0..$#{ $dense_vector } )
+    my $sparse_vector = vector_new( scalar @{ $dense_vector } );
+
+    for my $j ( 0 .. $#{ $dense_vector } )
     {
-        my $val = $dense_vector->[$j];
+        my $val = $dense_vector->[ $j ];
         $sparse_vector = vector_set( $sparse_vector, $j, $val );
     }
-    
+
     my $normal_vector = vector_normalize $sparse_vector if defined $sparse_vector;
-    
+
     return $normal_vector;
 }
 
@@ -143,7 +140,7 @@ sub _get_sparse_vector_from_dense_vector
 sub _get_stem_matrix
 {
     my ( $db, $cluster_run, $stems, $matrix_type, $max_word_rank ) = @_;
-    
+
     my $media = $db->query(
         "select distinct m.* from media m, media_sets_media_map msmm " .
           "  where m.media_id = msmm.media_id and msmm.media_sets_id = ? ",
@@ -155,7 +152,7 @@ sub _get_stem_matrix
     $matrix     = [];
     $row_labels = [];
     $col_labels = [];
-    
+
     my $i;
     print STDERR "Adding media sources... ";
     for my $medium ( @{ $media } )
@@ -165,14 +162,14 @@ sub _get_stem_matrix
         {
             if ( $matrix_type eq 'sparse' )
             {
-                $stem_vector = _get_sparse_vector_from_dense_vector($stem_vector);
+                $stem_vector = _get_sparse_vector_from_dense_vector( $stem_vector );
             }
             push( @{ $matrix },     $stem_vector );
             push( @{ $row_labels }, $medium->{ media_id } );
         }
     }
     print STDERR "\n";
-    
+
     @{ $col_labels } = $stems->Keys;
 
     return ( $matrix, $row_labels, $col_labels );
@@ -181,17 +178,17 @@ sub _get_stem_matrix
 # Turn the dense matrix into an array of MediaWords::Util::SparseVectors
 sub _get_sparse_matrix_from_dense_matrix
 {
-    my ($dense_matrix) = @_;
+    my ( $dense_matrix ) = @_;
 
     my $sparse_matrix = [];
-    
-    for my $i ( 0..$#{ $dense_matrix } )
+
+    for my $i ( 0 .. $#{ $dense_matrix } )
     {
         my $dense_row  = $dense_matrix->[ $i ];
         my $sparse_row = _get_sparse_vector_from_dense_vector( $dense_row );
         push @{ $sparse_matrix }, $sparse_row;
     }
-    
+
     return $sparse_matrix;
 }
 
@@ -331,13 +328,13 @@ sub _get_clustering_engine
 }
 
 # Returns a matrix of the cosine similarity between every two media sources
-sub _get_cosine_sim_matrix 
+sub _get_cosine_sim_matrix
 {
-    my ($sparse_matrix, $row_labels) = @_;
-    
+    my ( $sparse_matrix, $row_labels ) = @_;
+
     # The old Simat.pm... in 6 lines
     my $raw_cosines = {};
-    my $rows = $#{ $sparse_matrix };
+    my $rows        = $#{ $sparse_matrix };
     print STDERR "Adding cosines for row # ";
     for my $i ( 0 .. $rows )
     {
@@ -348,16 +345,18 @@ sub _get_cosine_sim_matrix
             $raw_cosines->{ $i }->{ $j } = $dp if $dp != 0;
         }
     }
-    
+
     # Fix media IDs for Cosine matrix
     my $cosines = {};
-    while (my ($row, $cols) = each %{ $raw_cosines }) {
-        while (my ($target, $weight) = each %{ $cols }) {
+    while ( my ( $row, $cols ) = each %{ $raw_cosines } )
+    {
+        while ( my ( $target, $weight ) = each %{ $cols } )
+        {
             $cosines->{ $row_labels->[ $row ] }->{ $row_labels->[ $target ] } = $weight;
         }
     }
-    
-    return $cosines;  
+
+    return $cosines;
 }
 
 # PUBLIC FUNCTIONS
@@ -373,68 +372,71 @@ sub _get_cosine_sim_matrix
 sub execute_media_cluster_run
 {
     my ( $db, $cluster_run ) = @_;
-    
+
     print STDERR "\n";
-    
+
     # Time cache media word vectors
     my $t0 = start_time( "caching media word vectors" );
     _cache_media_word_vectors( $db, $cluster_run );
     stop_time( "caching media word vectors", $t0 );
 
-    my $stems = _get_stem_lookup();
+    my $stems             = _get_stem_lookup();
     my $clustering_engine = _get_clustering_engine();
-    my ($clusters, $cosines);
-    
+    my ( $clusters, $cosines );
+
     if ( $clustering_engine eq 'kmeans' )
     {
+
         # Time sparse matrix
         $t0 = start_time( "getting sparse matrix" );
         my ( $sparse_matrix, $row_labels, $col_labels ) =
-            _get_stem_matrix( $db, $cluster_run, $stems, 'sparse', NUM_MEDIUM_WORDS );
+          _get_stem_matrix( $db, $cluster_run, $stems, 'sparse', NUM_MEDIUM_WORDS );
         my ( $criterion_matrix, $criterion_row_labels, $criterion_col_labels ) =
-            _get_stem_matrix( $db, $cluster_run, $stems, 'sparse', 100 );
+          _get_stem_matrix( $db, $cluster_run, $stems, 'sparse', 100 );
         stop_time( "getting sparse matrix", $t0 );
 
-    
         # Time cosine sim matrix
         $t0 = start_time( "cosine sim matrix" );
-        $cosines = _get_cosine_sim_matrix($sparse_matrix, $row_labels);
+        $cosines = _get_cosine_sim_matrix( $sparse_matrix, $row_labels );
         stop_time( "cosine sim matrix", $t0 );
-            
+
         # Choose many times to iterate during each cluster run, and how many cluster runs to do
         # These could be user-specified... a speed/quality tradeoff.
-        my $num_iterations = 20; my $num_cluster_runs = 20;
-        
+        my $num_iterations   = 20;
+        my $num_cluster_runs = 20;
+
         $t0 = start_time( "k-means clustering" );
-        $clusters = MediaWords::Cluster::Kmeans::get_clusters(
-            $sparse_matrix, $criterion_matrix, $row_labels, $col_labels, $stems,
-            $cluster_run->{ num_clusters }, $num_iterations, $num_cluster_runs );
+        $clusters =
+          MediaWords::Cluster::Kmeans::get_clusters( $sparse_matrix, $criterion_matrix, $row_labels, $col_labels, $stems,
+            $cluster_run->{ num_clusters },
+            $num_iterations, $num_cluster_runs );
         stop_time( "k-means clustering", $t0 );
     }
     else
-    {       
+    {
         my ( $dense_matrix, $row_labels, $col_labels ) =
-            _get_stem_matrix( $db, $cluster_run, $stems, 'dense', NUM_MEDIUM_WORDS );
-        my $sparse_matrix = _get_sparse_matrix_from_dense_matrix($dense_matrix);
-        $cosines = _get_cosine_sim_matrix($sparse_matrix, $row_labels);
-                    
+          _get_stem_matrix( $db, $cluster_run, $stems, 'dense', NUM_MEDIUM_WORDS );
+        my $sparse_matrix = _get_sparse_matrix_from_dense_matrix( $dense_matrix );
+        $cosines = _get_cosine_sim_matrix( $sparse_matrix, $row_labels );
+
         if ( $clustering_engine eq 'Algorithm::Cluster' )
         {
             $clusters = _get_clusters_ac( $dense_matrix, $row_labels, $col_labels, $stems, $cluster_run->{ num_clusters } );
         }
         elsif ( $clustering_engine eq 'cluto' )
         {
-            $clusters = _get_clusters_cluto( $dense_matrix, $row_labels, $col_labels, $stems, $cluster_run->{ num_clusters } );
+            $clusters =
+              _get_clusters_cluto( $dense_matrix, $row_labels, $col_labels, $stems, $cluster_run->{ num_clusters } );
         }
         else
         {
             die "Invalid value for mediawords->clustering_engine $clustering_engine";
         }
     }
-    
+
     #dump_matrix( $db, $matrix, $row_labels, $col_labels );
 
-    return ($clusters, $cosines);
+    return ( $clusters, $cosines );
 }
 
 # if there are any features available for the cluster, use those to create a description
@@ -466,21 +468,21 @@ sub execute_and_store_media_cluster_run
 
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'executing' } );
 
-    my ($clusters, $cosines) = execute_media_cluster_run( $db, $cluster_run );
-    
+    my ( $clusters, $cosines ) = execute_media_cluster_run( $db, $cluster_run );
+
     # print STDERR "\n\n Clusters: " . Dumper($clusters) . "\n\n";
 
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'completed' } );
 
     my $clustering_engine = _get_clustering_engine();
-    
+
     # Time database writes
     my $t0 = start_time( "writing cluster results to database" );
-    
+
     for my $cluster ( @{ $clusters } )
     {
         my $description = _get_description_from_features( $cluster ) || 'cluster';
-        
+
         my $media_cluster = $db->create(
             'media_clusters',
             {
@@ -492,7 +494,7 @@ sub execute_and_store_media_cluster_run
 
         # keep track of where you are in the internal/external zscore arrays
         my $media_id_cnt = 0;
-        
+
         for my $media_id ( @{ $cluster->{ media_ids } } )
         {
 
@@ -503,8 +505,7 @@ sub execute_and_store_media_cluster_run
                     media_id          => $media_id
                 }
             );
-            
-            
+
             # put internal/external zscores and similarities in the database
             $db->create(
                 'media_cluster_zscores',
@@ -512,16 +513,16 @@ sub execute_and_store_media_cluster_run
                     media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
                     media_clusters_id     => $media_cluster->{ media_clusters_id },
                     media_id              => $media_id,
-                    internal_zscore       => $cluster->{ internal_zscores }->[$media_id_cnt] || 0,
+                    internal_zscore       => $cluster->{ internal_zscores }->[ $media_id_cnt ] || 0,
                     internal_similarity   => $cluster->{ internal_similarity } || 0,
-                    external_zscore       => $cluster->{ external_zscores }->[$media_id_cnt] || 0,
+                    external_zscore       => $cluster->{ external_zscores }->[ $media_id_cnt ] || 0,
                     external_similarity   => $cluster->{ external_similarity } || 0
                 }
             );
-            
+
             $media_id_cnt++;
         }
-        
+
         for my $int_feature ( @{ $cluster->{ internal_features } } )
         {
             $db->create(
@@ -533,7 +534,7 @@ sub execute_and_store_media_cluster_run
                     stem              => $int_feature->{ stem },
                     term              => $int_feature->{ term }
                 }
-            ) if (defined $int_feature);
+            ) if ( defined $int_feature );
         }
 
         for my $ext_feature ( @{ $cluster->{ external_features } } )
@@ -550,31 +551,33 @@ sub execute_and_store_media_cluster_run
             );
         }
     }
-    
+
     # Store links from the cosine matrix
-    
+
     $db->begin_work;
     print STDERR "Writing links: source # ";
     my $cnt = 0;
-    while (my ($source, $cols) = each %{ $cosines }) {
+    while ( my ( $source, $cols ) = each %{ $cosines } )
+    {
         print STDERR $cnt++ . " ";
-        while (my ($target, $weight) = each %{ $cols }) {
+        while ( my ( $target, $weight ) = each %{ $cols } )
+        {
             $db->create(
                 'media_cluster_links',
                 {
-                    media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },  
+                    media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
                     source_media_id       => $source,
                     target_media_id       => $target,
                     weight                => $weight
                 }
-            );     
+            );
         }
     }
     print STDERR "\n";
     $db->commit;
-    
+
     stop_time( "writing cluster results to database...", $t0 );
-    
+
     return $clusters;
 }
 

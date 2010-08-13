@@ -9,27 +9,28 @@ use MediaWords::Util::HTML;
 sub get_protovis_force_json_object
 {
     my ( $nodes ) = @_;
-    
-    my $data = "{ nodes:[";  # start nodes section
-    my $node_id_count = 0;   # intialize count of node_ids
-    
+
+    my $data          = "{ nodes:[";    # start nodes section
+    my $node_id_count = 0;              # intialize count of node_ids
+
     for my $node ( @{ $nodes } )
     {
+
         # Don't render orphan nodes--i.e. those that don't have any links > MIN_LINK_WEIGHT
         if ( $node->{ linked } )
         {
-            my $node_name      = MediaWords::Util::HTML::javascript_escape( $node->{ name } );
-            my $group          = $node->{ cluster_id };
-            my $size           = ($node->{ word_count }) ** (0.5) * 3;
+            my $node_name = MediaWords::Util::HTML::javascript_escape( $node->{ name } );
+            my $group     = $node->{ cluster_id };
+            my $size      = ( $node->{ word_count } )**( 0.5 ) * 3;
             $node->{ node_id } = $node_id_count++;
             $data .= "{ nodeName:'$node_name', group:$group, size:$size },\n";
         }
     }
-    
-    $data .= ' ], links:['; # close nodes section, start links section
-    
+
+    $data .= ' ], links:[';    # close nodes section, start links section
+
     # add links to data string
-    for my $node (@$nodes)
+    for my $node ( @$nodes )
     {
         if ( defined $node->{ links } )
         {
@@ -37,14 +38,14 @@ sub get_protovis_force_json_object
             for my $link ( @{ $node->{ links } } )
             {
                 my $target = $nodes->[ $link->{ target_id } ]->{ node_id };
-                my $value = ( $link->{ weight } ); 
-                $data .= "{ source:$source_id, target:$target, value:$value },\n"; # if $source_id < $target;
+                my $value  = ( $link->{ weight } );
+                $data .= "{ source:$source_id, target:$target, value:$value },\n";    # if $source_id < $target;
             }
         }
     }
-    
-    $data .= '] }'; # write end of data string
-    
+
+    $data .= '] }';                                                                   # write end of data string
+
     return $data;
 }
 

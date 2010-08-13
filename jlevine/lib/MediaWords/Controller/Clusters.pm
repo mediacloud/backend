@@ -75,9 +75,9 @@ sub view : Local
 
     my $media_clusters =
       $c->dbis->query( "select * from media_clusters where media_cluster_runs_id = ?", $cluster_runs_id )->hashes;
-    
+
     for my $mc ( @{ $media_clusters } )
-    {   
+    {
         my $mc_media = $c->dbis->query(
             "select distinct m.*, mcz.*
                from media m, media_clusters_media_map mcmm, media_cluster_zscores mcz 
@@ -87,35 +87,33 @@ sub view : Local
                 and mcmm.media_clusters_id = ?",
             $mc->{ media_clusters_id }
         )->hashes;
-        
+
         $mc->{ media } = $mc_media;
-        
+
         $mc->{ internal_features } = $c->dbis->query(
             "select * from media_cluster_words " . "  where media_clusters_id = ? and internal = 't' " .
               "  order by weight desc limit 50",
             $mc->{ media_clusters_id }
         )->hashes;
-        
+
         $mc->{ external_features } = $c->dbis->query(
             "select * from media_cluster_words " . "  where media_clusters_id = ? and internal = 'f' " .
               "  order by weight desc limit 50",
             $mc->{ media_clusters_id }
         )->hashes;
-        
+
     }
 
-    $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );    
-    
-    my $t0 = start_time( "computing force layout" );
+    $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );
+
+    my $t0     = start_time( "computing force layout" );
     my $method = 'graph-layout-aesthetic';
     my ( $json_string, $stats ) = MediaWords::Util::Graph::prepare_graph( $media_clusters, $c, $cluster_runs_id, $method );
     stop_time( "computing force layout", $t0 );
-    
-    
-    # MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
-    
-    # my ( $json_string, $stats ) = MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id );
 
+    # MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
+
+# my ( $json_string, $stats ) = MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id );
 
     $c->stash->{ media_clusters } = $media_clusters;
     $c->stash->{ run }            = $run;
@@ -123,6 +121,5 @@ sub view : Local
     $c->stash->{ data }           = $json_string;
     $c->stash->{ stats }          = $stats;
 }
-
 
 1;
