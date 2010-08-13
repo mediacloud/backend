@@ -509,12 +509,74 @@ sub get_webomer_ru_rankings
     $csv->print();
 }
 
+sub get_blogs_yandex_ru_rankings_month
+{
+  return _get_blogs_yandex_ru_rankings_impl('month');
+}
+
+sub get_blogs_yandex_ru_rankings_week
+{
+  return _get_blogs_yandex_ru_rankings_impl('week');
+}
+
+sub get_blogs_yandex_ru_rankings_6months
+{
+  return _get_blogs_yandex_ru_rankings_impl('6months');
+}
+
+sub _get_blogs_yandex_ru_rankings_impl
+{
+
+    (my $period) = @_;
+
+    my $ua = LWP::UserAgent->new;
+
+    my $csv = _create_class_csv_from_field_list(
+        [ qw/ rank name мнений / ] );
+
+    for my $i ( 1 .. 50 )
+    {
+        my $url = "http://blogs.yandex.ru/rating/smi/?period=$period&page=$i";
+
+        my $tree = _fetch_url_as_html_tree( $url );
+
+	my @p = $tree->findnodes( "//tr[\@class='film']" );
+
+	#say Dumper([@p]);
+
+	foreach my $p (@p)
+	{
+	  my @children = $p->content_list();
+	
+	  die unless scalar(@children) == 3;
+
+	  my $rank = $children[0]->as_text;
+	  my $name = $children[1]->as_text;
+	  my $stat = $children[2]->as_text;
+
+	  #for some reason the first site has мнений in the td so just filter it out
+	  $stat =~ s/мнений//;
+
+	  trim($name);
+
+	  $csv->add_line ( { rank => $rank, name => $name, мнений => $stat } );
+	}
+
+        # Now that we're done with it, we must destroy it.
+        $tree = $tree->delete;
+    }
+
+    $csv->print();
+}
+
 sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    get_webomer_ru_rankings();
+    get_blogs_yandex_ru_rankings_6months();
+    #get_blogs_yandex_ru_rankings_month();
+    #get_blogs_yandex_ru_rankings_week();
 }
 
 main();
