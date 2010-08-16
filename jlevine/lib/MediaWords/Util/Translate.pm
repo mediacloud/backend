@@ -14,6 +14,7 @@ use WebService::Google::Language;
 use Perl6::Say;
 use Text::Trim;
 use CHI;
+use MediaWords::Util::Config;
 
 my $media_cloud_root_dir;
 
@@ -21,7 +22,7 @@ BEGIN
 {
     use FindBin;
     my $source_file_dir = "$FindBin::Bin";
-    $media_cloud_root_dir = "$source_file_dir/../../../";
+    $media_cloud_root_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ script_dir }. "/..";
 }
 
 my $cache = CHI->new(
