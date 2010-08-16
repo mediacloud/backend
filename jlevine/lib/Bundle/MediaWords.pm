@@ -19,6 +19,8 @@ BerkeleyDB
 
 List::Uniq
 
+List::Member
+
 Hash::Merge
 
 Catalyst::Devel
@@ -48,6 +50,8 @@ DBIx::Simple
 Graph
 
 Graph::Layout::Aesthetic
+
+GraphViz
 
 Text::Similarity::Overlaps
 
@@ -167,6 +171,8 @@ Fcntl
 File::Path
 
 File::Temp
+
+File::Util
 
 Getopt::Long
 
