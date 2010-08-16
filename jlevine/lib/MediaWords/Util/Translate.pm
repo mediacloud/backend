@@ -21,7 +21,7 @@ BEGIN
 {
     use FindBin;
     my $source_file_dir = "$FindBin::Bin";
-    $media_cloud_root_dir = "/mnt/hgfs/mediacloud";
+    $media_cloud_root_dir = "$source_file_dir/../../../";
 }
 
 my $cache = CHI->new(
