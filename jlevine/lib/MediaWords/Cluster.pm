@@ -50,8 +50,8 @@ sub _cache_media_word_vectors
           "      and collection_ms.media_sets_id = $cluster_run->{ media_sets_id } " .
           "      and mw.publish_week between date_trunc( 'week', '$cluster_run->{ start_date }'::date) " .
           "      and date_trunc( 'week', '$cluster_run->{ end_date }'::date) + interval '6 days' " .
-          "      and mw.dashboard_topics_id is null " . "      and mw.stem !~ '[a-zA-Z]' " .    # ONLY FOR RUSSIAN!!!
-              # "      and not is_stop_stem( 'long', mw.stem ) " .
+          "      and mw.dashboard_topics_id is null " .
+          # "      and not is_stop_stem( 'long', mw.stem ) " .
           "    group by medium_ms.media_id, mw.stem order by stem_count desc " . "  ) q " . " where media_set_rank <= " .
           NUM_MEDIUM_WORDS . " order by media_id, media_set_rank"
     )->hashes;

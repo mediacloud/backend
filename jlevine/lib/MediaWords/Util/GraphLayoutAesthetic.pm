@@ -72,79 +72,6 @@ sub _get_json_from_graph
 
     $json_string .= '] }';
 
-    print STDERR "$json_string\n";
-
-    return $json_string;
-}
-
-sub _get_new_json_from_graph
-{
-    my ( $graph ) = @_;
-
-    my $clusters = {};
-
-    my $xMin = 0;
-    my $xMax = 0;
-    my $yMin = 0;
-    my $yMax = 0;
-
-    for my $vertex ( $graph->vertices )
-    {
-        my $x = $graph->get_vertex_attribute( $vertex, "x_coord" );
-        my $y = $graph->get_vertex_attribute( $vertex, "y_coord" );
-        my $name = MediaWords::Util::HTML::javascript_escape( $graph->get_vertex_attribute( $vertex, "name" ) );
-        my $group = $graph->get_vertex_attribute( $vertex, "group" );
-
-        $clusters->{ $group } ||= {};
-
-        $clusters->{ $group }->{ $vertex } = {
-            name    => $name,
-            x       => $x,
-            y       => $y,
-            cluster => $group
-        };
-
-        $xMax = $x if ( $x > $xMax );
-        $xMin = $x if ( $x < $xMin );
-        $yMax = $y if ( $y > $yMax );
-        $yMin = $y if ( $y < $yMin );
-
-    }
-
-    my $json_string = "{
-        stats: {
-            xMax: $xMax,
-            xMin: $xMin,
-            yMax: $yMax,
-            yMin: $yMin
-        },
-        
-        clusters: {
-    ";
-
-    while ( my ( $cluster_id, $cluster ) = each %{ $clusters } )
-    {
-        $json_string .= "  $cluster_id: {\n";
-
-        while ( my ( $node_id, $node ) = each %{ $cluster } )
-        {
-            print STDERR Dumper( $node ) . "\n\n";
-            my $name  = $node->{ name };
-            my $x     = $node->{ x };
-            my $y     = $node->{ y };
-            my $group = $node->{ cluster };
-
-            $json_string .= "       $node_id: { nodeName: '$name', x: $x, y: $y, group: $group },\n" if $group;
-        }
-
-        $json_string .= "},\n\n";
-    }
-
-    $json_string .= '} }';
-
-    print STDERR Dumper( $clusters ) . "\n\n";
-    print STDERR "$json_string\n\n";
-
     return $json_string;
 }
 
@@ -156,7 +83,8 @@ sub _get_centroids_from_graph
 
     for my $cluster ( @{ $media_clusters } )
     {
-
+        # TODO: Refactor this into separate subroutine (requires that your clustering scheme calculates and your
+        #    database stores the cluster's centroid)
         # Cluster centroid approach
         #
         # my $centroid_id = $cluster->{ centroid_id };

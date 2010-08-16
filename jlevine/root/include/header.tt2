@@ -98,3 +98,4 @@
       [% END #[% FOREACH msg IN msg_list -%]
     </div>
     <p>[% END #[% IF error_msg || c.request.params.error_msg -%]</p>
+

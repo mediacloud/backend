@@ -25,7 +25,7 @@ my $_MARKER_PATTERNS = {
 };
 
 # blank everything within these elements
-my $_SCRUB_TAGS = [ qw/script style frame applet/ ];
+my $_SCRUB_TAGS = [ qw/script style frame applet textarea/ ];
 
 # METHODS
 
@@ -180,7 +180,7 @@ sub _fix_multiline_tags
 }
 
 #remove all text not within the <body> tag
-#Note: Some badly fromatted web pages will have multiple <body> tags or will not have an open tag.
+#Note: Some badly formated web pages will have multiple <body> tags or will not have an open tag.
 #We go the conservative thing of only deleting stuff before the first <body> tag and stuff after the last </body> tag.
 sub _remove_nonbody_text
 {
@@ -350,7 +350,7 @@ sub _get_string_after_comment_end_tags
     return substr( $$current_substring, $comment_end_pos );
 }
 
-# remove text wthin script, style, iframe, and applet tags and
+# remove text wthin script, style, iframe, applet, and textarea tags
 sub _remove_script_text
 {
     my ( $lines ) = @_;

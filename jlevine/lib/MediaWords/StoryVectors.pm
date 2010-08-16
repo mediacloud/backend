@@ -194,8 +194,12 @@ sub update_story_sentence_words
 
     my $story = _get_story( $db, $story_ref );
 
-    $no_delete || $db->query( "delete from story_sentence_words where stories_id = ?", $story->{ stories_id } );
-    $no_delete || $db->query( "delete from story_sentences where stories_id = ?",      $story->{ stories_id } );
+    unless ( $no_delete )
+    {
+        $db->query( "delete from story_sentence_words where stories_id = ?",        $story->{ stories_id } );
+        $db->query( "delete from story_sentences where stories_id = ?",             $story->{ stories_id } );
+        $db->query( "delete from story_sentence_counts where first_stories_id = ?", $story->{ stories_id } );
+    }
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
@@ -447,7 +451,7 @@ sub update_aggregate_words
     my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
 
     $start_date ||= '2008-06-01';
-    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time );
+    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
 
     my $days = 0;
     for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
@@ -459,7 +463,7 @@ sub update_aggregate_words
             _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
 
             # update weeklies either if we are at the end of a week
-            if ( !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ] )
+            if ( ( $date eq $end_date ) || !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ] )
             {
                 _update_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
                 _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );

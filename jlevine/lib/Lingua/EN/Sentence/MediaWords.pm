@@ -94,14 +94,21 @@ sub get_sentences
     return [] unless defined $text;
 
     # this prevents a regexp bug from hanging the program in remove_false_end_of_sentence (see comement in function)
-    $text =~ s/[^[:alnum:][:punct:]]+/ /g;
-
-    my $marked_text       = first_sentence_breaking( $text );
-    my $fixed_marked_text = remove_false_end_of_sentence( $marked_text );
-    $fixed_marked_text = split_unsplit_stuff( $fixed_marked_text );
-    my @sentences = split( /$EOS/, $fixed_marked_text );
-    my $cleaned_sentences = clean_sentences( \@sentences );
-    return $cleaned_sentences;
+	$text =~ s/[^[:alnum:][:punct:]]+/ /g;
+	
+	# the above regexp and html stripping often leave a space before the period at the end of a sentence
+	$text =~ s/ +\./\./g;
+	
+	# we see lots of cases of missing spaces after sentence ending periods
+	$text =~ s/([[:lower:]])\.([[:upper:]])/$1. $2/g;
+	
+	my $marked_text = first_sentence_breaking($text);    
+	my $fixed_marked_text = remove_false_end_of_sentence($marked_text);
+	$fixed_marked_text = split_unsplit_stuff($fixed_marked_text);
+	my @sentences = split(/$EOS/,$fixed_marked_text);
+	my $cleaned_sentences = clean_sentences(\@sentences);
+	
+	return $cleaned_sentences;
 }
 
 #------------------------------------------------------------------------------

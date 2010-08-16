@@ -7,11 +7,13 @@ __END__
 
 =head1 CONTENTS
 
-Perl6::Say
+#Perl6::Say #Temporarily removing dependency since this module is no longer on cpan
 
 Algorithm::Cluster
 
 Task::Catalyst
+
+Class::Std
 
 BerkeleyDB
 
@@ -43,6 +45,10 @@ Date::Parse
 
 DBIx::Simple
 
+Graph
+
+Graph::Layout::Aesthetic
+
 Text::Similarity::Overlaps
 
 Tie::Cache::LRU
@@ -71,6 +77,8 @@ Net::Calais
 
 Math::Round
 
+Math::Random
+
 Lingua::EN::Sentence
 
 Lingua::StopWords
@@ -93,6 +101,8 @@ Regexp::Optimizer
 IPC::Run3
 
 Dir::Self
+
+PDL
 
 Perl::Tidy
 
