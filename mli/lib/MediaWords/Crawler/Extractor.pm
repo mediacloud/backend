@@ -67,7 +67,7 @@ use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 use constant MAX_SIMILARITY_LENGTH => 8192;
 
 # Chinese sentences have few characters than English so count Chinese characters more
-use constant CHINESE_CHARACTER_LENGTH_BONUS => 2;
+use constant CHINESE_CHARACTER_LENGTH_BONUS => 0;
 
 # additions -- add some mutiple of these absolute numbers to each line
 

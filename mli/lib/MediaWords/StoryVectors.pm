@@ -272,7 +272,7 @@ sub update_story_sentence_words
                     $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
                 }
             }
-            _insert_story_sentence( $db, $story, $sentence_num, $$sentences[ $sentence_num ] );
+            _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
         }
 
     }
