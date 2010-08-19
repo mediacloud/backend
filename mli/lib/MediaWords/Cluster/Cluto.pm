@@ -129,6 +129,7 @@ sub _run_cluto
       "-clmethod=direct $matrix_file $num_clusters";
 
     print STDERR "$cmd\n";
+
     # print STDERR "$matrix_file\n";
     # print STDERR "$cluster_file\n";
 

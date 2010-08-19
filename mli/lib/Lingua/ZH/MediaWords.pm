@@ -20,7 +20,7 @@ sub get_sentences
     $text =~ s/\s/$EOS/gso;
     $text =~ s/$EOS+/$EOS/gso;
     my $sentences;
-	@$sentences = split( /$EOS/, $text );
+    @$sentences = split( /$EOS/, $text );
 
     return $sentences;
 }

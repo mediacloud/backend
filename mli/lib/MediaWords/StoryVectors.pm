@@ -251,8 +251,8 @@ sub update_story_sentence_words
         #convert traditional characters into simplified characters
         $story_text = trad_to_simp( $story_text );
 
-        my $sentences  = Lingua::ZH::MediaWords::get_sentences( $story_text );
-		$sentences = dedup_sentences( $db, $story_ref, $sentences );
+        my $sentences = Lingua::ZH::MediaWords::get_sentences( $story_text );
+        $sentences = dedup_sentences( $db, $story_ref, $sentences );
         my $stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
         my $count      = 0;
 
