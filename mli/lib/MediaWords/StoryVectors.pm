@@ -111,27 +111,29 @@ sub _tokenize_ZH
     my $i;
     $s = encode( "utf8", $s );
     my $segs = $segmenter->seg( $s, "utf8" );
-    my @tokens = split( / /, $segs );
+    my $tokens;
+    @$tokens = split( / /, $segs );
     my $token;
-    foreach $token ( @tokens )
+
+    foreach $token ( @$tokens )
     {
         $token =~ s/[\W\d_\s]+//g;
     }
 
-    for ( $i = 0 ; $i < $#tokens ; $i++ )
+    for ( $i = 0 ; $i < $#$tokens ; $i++ )
     {
-        if ( $tokens[ $i ] eq "" )
+        if ( $tokens->[ $i ] eq "" )
         {
-            splice @tokens, $i, 1;
+            splice @$tokens, $i, 1;
             $i--;
         }
     }
 
-    #foreach $token ( @tokens )
+    #foreach $token ( @$tokens )
     #{
     #    print $token. "\n";
     #}
-    return @tokens;
+    return $tokens;
 }
 
 # if the length of the string is greater than the given length, cut to that length
@@ -258,13 +260,13 @@ sub update_story_sentence_words
 
         for ( my $sentence_num = 0 ; $sentence_num < $#$sentences ; $sentence_num++ )
         {
-            my @words = _tokenize_ZH( $$sentences[ $sentence_num ], $segmenter );
+            my $words = _tokenize_ZH( $sentences->[ $sentence_num ], $segmenter );
 
             #print $sentences[$sentence_num]."\n\n----------\n";
             #print join "\n\n", @words;
-            for ( my $word_num = 0 ; $word_num < $#words ; $word_num++ )
+            for ( my $word_num = 0 ; $word_num < $#$words ; $word_num++ )
             {
-                my $word = ( $words[ $word_num ] );
+                my $word = ( $words->[ $word_num ] );
 
                 if ( ( !$$stop_words{ $word } ) )
                 {
