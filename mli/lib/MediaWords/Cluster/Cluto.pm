@@ -128,7 +128,7 @@ sub _run_cluto
       "$cluto_binary -colmodel=none -rowmodel=none -showfeatures -nfeatures $num_features -ntrials=10 -zscores " .
       "-clmethod=direct $matrix_file $num_clusters";
 
-    # print STDERR "$cmd\n";
+    print STDERR "$cmd\n";
     # print STDERR "$matrix_file\n";
     # print STDERR "$cluster_file\n";
 

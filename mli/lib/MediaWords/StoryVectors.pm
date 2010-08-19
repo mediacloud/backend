@@ -109,7 +109,7 @@ sub _tokenize_ZH
     my $s         = shift;
     my $segmenter = shift;
     my $i;
-    my $s = encode( "utf8", $s );
+    $s = encode( "utf8", $s );
     my $segs = $segmenter->seg( $s, "utf8" );
     my @tokens = split( / /, $segs );
     my $token;
@@ -251,13 +251,14 @@ sub update_story_sentence_words
         #convert traditional characters into simplified characters
         $story_text = trad_to_simp( $story_text );
 
-        my @sentences  = Lingua::ZH::MediaWords::get_sentences( $story_text );
+        my $sentences  = Lingua::ZH::MediaWords::get_sentences( $story_text );
+		$sentences = dedup_sentences( $db, $story_ref, $sentences );
         my $stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
         my $count      = 0;
 
-        for ( my $sentence_num = 0 ; $sentence_num < $#sentences ; $sentence_num++ )
+        for ( my $sentence_num = 0 ; $sentence_num < $#$sentences ; $sentence_num++ )
         {
-            my @words = _tokenize_ZH( $sentences[ $sentence_num ], $segmenter );
+            my @words = _tokenize_ZH( $$sentences[ $sentence_num ], $segmenter );
 
             #print $sentences[$sentence_num]."\n\n----------\n";
             #print join "\n\n", @words;
@@ -271,7 +272,7 @@ sub update_story_sentence_words
                     $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
                 }
             }
-            _insert_story_sentence( $db, $story, $sentence_num, $sentences[ $sentence_num ] );
+            _insert_story_sentence( $db, $story, $sentence_num, $$sentences[ $sentence_num ] );
         }
 
     }

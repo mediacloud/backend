@@ -19,9 +19,10 @@ sub get_sentences
     $text =~ s/(\s$P)/$1$EOS/gso;                    # breake also when single letter comes before punc.
     $text =~ s/\s/$EOS/gso;
     $text =~ s/$EOS+/$EOS/gso;
-    my @sentences = split( /$EOS/, $text );
+    my $sentences;
+	@$sentences = split( /$EOS/, $text );
 
-    return @sentences;
+    return $sentences;
 }
 
 #returns 1 if a character is Chinese, 0 otherwise
