@@ -34,21 +34,20 @@ sub _cache_media_word_vectors
 
     my $words = $db->query(
         "select * from ( " .
-        "  select medium_ms.media_id, mw.stem, min(mw.term) as term, sum(mw.stem_count) as stem_count, " .
-        "       rank() over (partition by medium_ms.media_id order by sum(mw.stem_count) desc ) as media_set_rank " .
-        "    from top_500_weekly_words mw, media_sets medium_ms, " .
-        "       media_sets collection_ms, media_sets_media_map msmm " .
-        "    where medium_ms.media_sets_id = mw.media_sets_id " .
-        "      and medium_ms.media_id = msmm.media_id and msmm.media_sets_id = collection_ms.media_sets_id " .
-        "      and collection_ms.media_sets_id = $cluster_run->{ media_sets_id } " .
-        "      and mw.publish_week between date_trunc( 'week', '$cluster_run->{ start_date }'::date) " .
-        "      and date_trunc( 'week', '$cluster_run->{ end_date }'::date) + interval '6 days' " .
-        "      and mw.dashboard_topics_id is null " .
-        # "      and not is_stop_stem( 'long', mw.stem ) " .
-        "    group by medium_ms.media_id, mw.stem order by stem_count desc " .
-        "  ) q " .
-        " where media_set_rank <= " . NUM_MEDIUM_WORDS .
-        " order by media_id, media_set_rank"
+          "  select medium_ms.media_id, mw.stem, min(mw.term) as term, sum(mw.stem_count) as stem_count, " .
+          "       rank() over (partition by medium_ms.media_id order by sum(mw.stem_count) desc ) as media_set_rank " .
+          "    from top_500_weekly_words mw, media_sets medium_ms, " .
+          "       media_sets collection_ms, media_sets_media_map msmm " .
+          "    where medium_ms.media_sets_id = mw.media_sets_id " .
+          "      and medium_ms.media_id = msmm.media_id and msmm.media_sets_id = collection_ms.media_sets_id " .
+          "      and collection_ms.media_sets_id = $cluster_run->{ media_sets_id } " .
+          "      and mw.publish_week between date_trunc( 'week', '$cluster_run->{ start_date }'::date) " .
+          "      and date_trunc( 'week', '$cluster_run->{ end_date }'::date) + interval '6 days' " .
+          "      and mw.dashboard_topics_id is null " .
+
+          # "      and not is_stop_stem( 'long', mw.stem ) " .
+          "    group by medium_ms.media_id, mw.stem order by stem_count desc " . "  ) q " . " where media_set_rank <= " .
+          NUM_MEDIUM_WORDS . " order by media_id, media_set_rank"
     )->hashes;
 
     for my $word ( @{ $words } )

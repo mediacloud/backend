@@ -35,7 +35,24 @@ sub _is_recently_updated
 
     my $medium;
 
-    my $response = LWP::UserAgent->new->request( HTTP::Request->new( GET => $feed_url ) );
+#    my $response = LWP::UserAgent->new()->request( HTTP::Request->new( GET => $feed_url ) );
+    my $response = LWP::UserAgent->new( agent => 'Firefox/3.0.11')->request( HTTP::Request->new( GET => $feed_url ) );
+
+    
+
+    if ( !$response->is_success )
+    {
+       my $retry_count = 0;
+
+       while ($retry_count <= 9 && !$response->is_success)
+       {
+	   print STDERR "Retrying fetch of '$feed_url' ($medium_url): " . $response->status_line . "\n";
+	  $response = LWP::UserAgent->new->request( HTTP::Request->new( GET => $feed_url ) );
+
+	  
+	  $retry_count++;
+       }
+    }
 
     if ( !$response->is_success )
     {
@@ -67,10 +84,10 @@ sub _is_recently_updated
     my $last_post_date = 0;
 
     my $days = 60;
+    my $seconds_per_day =  60 * 60 * 24;
+    my $age_in_seconds = $days * $seconds_per_day;
 
-    my $age_in_seconds = $days * 60 * 60 * 24;
-
-    my @recent_items = grep { _feed_item_age( $_ ) < ( 86400 * 90 ) } $feed->get_item;
+    my @recent_items = grep { _feed_item_age( $_ ) < ( $age_in_seconds ) } $feed->get_item;
 
     if ( scalar( @recent_items ) >= 2 )
     {
@@ -80,6 +97,46 @@ sub _is_recently_updated
     {
         return 0;
     }
+}
+
+sub derive_feed_url
+{
+    ( my $row ) = @_;
+
+    my $feed_url = $row->{ rss } || $row->{ feedurl };
+
+    return $feed_url if $feed_url;
+
+    #next if ! $feed_url;
+
+    my $source = $row->{ url } || $row->{ source };
+
+    my $host = $source;
+    $host =~ s/http:\/\/((.*\.)*)([^.\/]+\.((co\.uk)|([^.\/]+)))\/?.*/$3/;
+
+    my $link = $row->{ link };
+
+    if ( $host eq 'livejournal.com' )
+    {
+
+        #next unless $row->{source} eq "http://users.livejournal.com";
+
+        if ( $row->{ source } eq "http://users.livejournal.com" )
+        {
+            $feed_url = $link;
+            $feed_url =~ s/users\.livejournal\.com\/([^\/]*)\/.*/users\.livejournal\.com\/$1\/data\/atom/;
+        }
+        else
+        {
+            $feed_url = "$row->{source}/data/atom";
+        }
+
+        #next;
+        #next if  "$row->{source}/data/atom" eq $feed_url;
+        #say "$row->{source} $feed_url $row->{link}";
+    }
+
+    return $feed_url;
 }
 
 sub main
@@ -125,9 +182,14 @@ sub main
 
         my $feed_url = $row->{ rss } || $row->{ feedurl };
 
+        if ( !$feed_url )
+        {
+            $feed_url = derive_feed_url( $row );
+        }
+
         if ( _is_recently_updated( $media_url, $feed_url ) )
         {
-            print STDERR "Recent blog $row->{url} $row->{rss} \n";
+            print STDERR "Recent blog $media_url $feed_url \n";
 
             #print STDERR "BLOGS ADDED: " . ++$media_added . "\n";
             $csv->print( $out_fh, $colref );
@@ -139,15 +201,15 @@ sub main
         {
             $old_blogs++;
 
-            #print STDERR "Old blog $row->{url} $row->{rss} \n";
+            print STDERR "Old blog $media_url $feed_url \n";
         }
 
         $rows_processed++;
 
-        if ( $rows_processed > 10 )
-        {
-            last;
-        }
+        #if ( $rows_processed > 100 )
+        #{
+        #    last;
+        #}
     }
 
     say "Recent blogs $recent_blogs Old_blogs: $old_blogs";
