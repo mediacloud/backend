@@ -182,7 +182,7 @@ sub get_html_density
 
     my $chinese_character_count = 0;
 
-   	$chinese_character_count = Lingua::ZH::MediaWords::number_of_Chinese_characters( $line );
+    $chinese_character_count = Lingua::ZH::MediaWords::number_of_Chinese_characters( $line );
 
     return ( $html_length / ( length( $line ) + ( $chinese_character_count * CHINESE_CHARACTER_LENGTH_BONUS ) ) );
 }
