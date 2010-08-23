@@ -569,12 +569,183 @@ sub _get_blogs_yandex_ru_rankings_impl
     $csv->print();
 }
 
+sub _look_for_single_element
+{
+   (my $element, my @arguments)  = @_;
+
+   my @result_elements = $element->look_down(@arguments);
+
+   die 'expect 1 element got ' . scalar(@result_elements) . ' for ' . join( ',', @arguments) unless scalar(@result_elements) == 1;
+
+   my $ret = $result_elements[0];
+
+   return $ret;
+}
+
+sub get_blogs_yaca_yandex_ru_rankings
+{
+
+    (my $period) = @_;
+
+    my $ua = LWP::UserAgent->new;
+
+    my $csv = _create_class_csv_from_field_list(
+        [ qw/ rank name link Цитируемость region address phone info / ] );
+
+    #rank is very difficult to scrap so just fake it with a counter
+    my  $rank = 1;
+
+    for my $i ( 0 .. 100 )
+    {
+        my $url = "http://yaca.yandex.ru/yca/ungrp/cat/Media/$i.html";
+
+        my $tree = _fetch_url_as_html_tree( $url );
+
+	my @p = $tree->findnodes( '//table[@class="l-page"]/tr/td[@class="l-page__content"]/ol[@class="b-result b-result_numerated b-result_imaged"]/li[@class="b-result__item"]' );
+
+	
+	#say Dumper([@p]);
+
+	#exit;
+
+	foreach my $p (@p)
+	{   
+	  
+	  # say '---------------------------';
+	  # say '---------------------------';
+	  # say '---------------------------';
+	  # say '---------------------------';
+	  # say '---------------------------';
+	  # say '---------------------------';
+	  #say $p->as_text;
+	  #say $p->dump;
+
+	  my @children = $p->content_list();
+
+	  die unless scalar(@children) == 2;
+
+	  my $h3 = $children[0];
+
+	  die unless ($h3->tag eq 'h3')  && ($h3->attr('class') eq 'b-result__head');
+
+	  my $b_result__name = ($h3->content_list())[0];
+
+	  die unless $b_result__name->tag eq 'a';
+	  die unless $b_result__name->attr('class') eq 'b-result__name';
+
+	  my $name = $b_result__name->as_text;
+
+	  trim($name);
+
+	  my $link = $b_result__name->attr('href');
+
+	  # say "'$name' '$link'";
+
+	  # #say $children[1]->as_text;
+	  # #say '----------------';
+	  # say $children[1]->dump;
+
+	  my @result_infos = $children[1]->look_down( "_tag", "p", "class", 'b-result__info' );
+
+	  die unless (scalar(@result_infos) == 2) || (scalar(@result_infos) == 1 );
+
+	  my $info = $result_infos[0]->as_text;
+
+	  my $phone;
+	  my $address;
+
+	  if (scalar(@result_infos) == 2)
+	  {
+	    my @result_children = $result_infos[1]->content_list;
+
+	     die scalar(@result_children) ."\n" . $result_infos[1]->dump 
+	       unless scalar(@result_children) >= 1;
+ 
+	     die unless  scalar(@result_children) <= 3;
+
+
+	    #say $result_infos[1]->dump ;
+
+	    if (scalar(@result_children) == 3)
+	    { 
+	      die if (ref ($result_children[0]));
+
+	      $phone   = $result_children[0];
+	      shift @result_children;
+	    }
+
+	    die Dumper $result_children[0] unless (ref ($result_children[0]));
+
+	    $address = $result_children[0]->as_text;
+
+	     # say "phone: $phone";
+	     # say "address: $address";
+	  }
+
+
+	  #say $info;
+	  #say $result_infos[1]->as_text;
+	  # my @detailed_info =  $result_infos[1]->content_list;
+
+	  # foreach my $el (@detailed_info)
+	  # {
+	  #    if (ref $el)
+	  #      {
+	  # 	 say "as_text: " . $el->as_text;
+	  #      }
+	  #    else
+	  #      {
+	  # 	 say "Scalar '$el'";
+	  #      }
+	  # }
+
+	  # say $children[1]->dump;
+	  my $result_url_el =  _look_for_single_element($children[1], "_tag", "span", "class", 'b-result__url' );
+	  my $url = $result_url_el->as_text;
+
+	  die "'$url' <> '$link'"unless ("http://$url/" eq $link) or  ("http://$url" eq $link);
+
+	  my $result_quote_el = _look_for_single_element($children[1], "_tag", "span", "class", 'b-result__quote' );
+
+	  my $result_quote = $result_quote_el->as_text;
+
+	  # say "Result_quote: '$result_quote'";
+
+	  my $result_region = '';
+
+	  eval{
+	  my $result_region_el = _look_for_single_element($children[1], "_tag", "a", "class", 'b-result__region' );
+
+	  $result_region  = $result_region_el->as_text;
+
+	  # say "result_region: '$result_region'";
+		};
+
+	  die unless $result_quote =~ /Цитируемость\:\s/;
+	  my $Цитируемость= $result_quote;
+
+	  $Цитируемость =~ s/Цитируемость\:\s//;
+
+	  # say $Цитируемость;
+	  #rank name Цитируемость region address phone info 
+	  $csv->add_line ( { rank => $rank, link => $link, name => $name,  Цитируемость => $Цитируемость, region => $result_region, address => $address, phone => $phone, info => $info } );
+	  $rank++;
+	}
+
+        # Now that we're done with it, we must destroy it.
+        $tree = $tree->delete;
+    }
+
+    $csv->print();
+}
+
 sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    get_blogs_yandex_ru_rankings_6months();
+    get_blogs_yaca_yandex_ru_rankings();
+    #get_blogs_yandex_ru_rankings_6months();
     #get_blogs_yandex_ru_rankings_month();
     #get_blogs_yandex_ru_rankings_week();
 }

@@ -35,6 +35,9 @@ database:
     #fetch_remote_content_password : password
     #fetch_remote_content_url      : "http://admin.mediacloud.org/admin/downloads/view/"
 
+    ### Uncomment to enable experimental support for processing Chinese stories.
+    #enable_chinese_language_support : "yes"
+
     #### Defaults to Algorithm::Cluster uncomment to use Cluto
     #clustering_engine: "cluto"
     #cluto_binary: "/usr/local/cluto/bin/vcluster"
