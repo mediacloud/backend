@@ -36,11 +36,11 @@ sub _translate
 {
     my $original_text = shift;
 
-    say STDERR "starting translate";
+    #say STDERR "starting translate";
 
     my $service = WebService::Google::Language->new(
         'referer' => 'http://example.com/',
-        'src'     => 'ru',
+#        'src'     => 'ru',
         'dest'    => 'en',
     );
 
@@ -50,22 +50,28 @@ sub _translate
 
     return $original_text unless $text;
 
-    say STDERR "sending request for '$text'";
+    #say STDERR "sending request for '$text'";
+    $text = substr( $text, 0, 500 );
 
-    my $result = $service->translate( substr( $text, 0, 500 ) );
+    #detect the language of source text
+    #TODO is this detect() call necessary? - DRL 20 aug 2010
+    $service->detect( $text );
+    my $result = $service->translate( $text );
 
-    say STDERR "got result";
+    #say STDERR "got result";
 
     if ( $result->error )
     {
-        say STDERR $result->message;
-        say STDERR 'error translating';
+
+        #say STDERR $result->message;
+        #say STDERR 'error translating';
         return $text;
     }
     else
     {
-        say STDERR 'no error translating';
-        say STDERR $result->translation;
+
+        #say STDERR 'no error translating';
+        #say STDERR $result->translation;
         return $result->translation;
     }
 }
