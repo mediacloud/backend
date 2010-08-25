@@ -1,0 +1,11 @@
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=100&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=200&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=300&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=400&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=500&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=600&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=700&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=800&sa=N
+http://www.google.com/search?hl=en&tbo=1&q=site%3Alivejournal.com+intext%3Ajournal+inurl%3A%22profile%22+%22Russian+Federation%22+feeds&lr=lang_ru&aq=f&oq=&aqi=&num=100&start=900&sa=N
+
