@@ -1,0 +1,172 @@
+<div id='transform'>
+  <script type="text/javascript+protovis">
+  
+  var data = [% data %];
+  var clusters = data.clusters;
+  var nodes = data.nodes;
+  var links = data.links;
+  var stats = data.stats;
+  var index = 0;
+  data.nodes.map(function(node) { node.index = index++; });
+  
+  var info = {
+    index: 0,
+    display: false,
+    x: 0,
+    y: 0,
+    color: "black",
+    name: "Select a node to see its info",
+    url: "http://example.com/",
+    cluster: "cluster"
+  };
+  
+  var render = function(d) {
+    info.index = d.index;
+    info.name = d.nodeName;
+    info.url = d.url;
+    info.x = d.x;
+    info.y = d.y;
+    var cluster_id = d.group - [% cl_off %];
+    info.color = colors.range()[cluster_id].color;
+    info.cluster = clusters.filter(function(c) { return c.id == d.group })[0].name;
+    info.display = true;
+    
+    vis.render();
+  }
+
+  /* Sizing parameters and scales. */
+  var w = 900,
+      h = 500,
+      ky = 12,
+      kx = (w / h) * ky,
+      x = pv.Scale.linear(-kx, kx).range(0, w),
+      y = pv.Scale.linear(-ky, ky).range(0, h),
+      colors_array = ["rgb(31,119,180)", "rgb(174,199,232)", "rgb(255,127,14)", "rgb(255,187,120)", "rgb(44,160,44)", "rgb(152,223,138)", "rgb(214,39,40)", "rgb(255,152,150)", "rgb(148,103,189)", "rgb(197,176,213)", "rgb(140,86,75)", "rgb(196,156,148)", "rgb(227,119,194)", "rgb(247,182,210)", "rgb(127,127,127)", "rgb(199,199,199)", "rgb(188,189,34)", "rgb(219,219,141)", "rgb(23,190,207)", "rgb(158,218,229)", "rgb(132,196,206)", "rgb(255,167,121)", "rgb(204,90,206)", "rgb(111,17,201)", "rgb(111,62,93)"].map(function(c) { return pv.color(c); }),
+      colors = pv.Scale.ordinal().range(colors_array);
+      // colors = pv.Colors.category20();
+
+  /* The root panel. */
+  var vis = new pv.Panel()
+      .overflow("hidden")
+      .width(w)
+      .height(h)
+      .top(30)
+      .left(40)
+      .right(20)
+      .bottom(20)
+      .strokeStyle("#aaa")
+      // .events("all")
+      // .event("mousemove", pv.Behavior.point())
+      ;
+        
+  // var lines =  vis.add(pv.Panel)
+  //     .data(links)
+  //   .add(pv.Line)
+  //     .data( function(d) d )
+  //     .left( function(node) x(nodes[node].x) )
+  //     .top(  function(node) y(nodes[node].y) ) 
+  //     .lineWidth(0.05)
+  //     .strokeStyle("gray")
+  // ;
+
+  /* Use an invisible panel to capture pan & zoom events. */
+  vis.add(pv.Panel)
+    .events("all")
+    .event("mousedown", pv.Behavior.pan())
+    .event("mousewheel", pv.Behavior.zoom())
+    .event("pan", transform)
+    .event("zoom", transform)
+    ;
+  
+  /* The dot plot. */
+  var dots = vis.add(pv.Panel)
+      .overflow("hidden")
+      .data(nodes)
+    .add(pv.Dot)
+      .left(function(d) x(d.x))
+      .top(function(d) y(d.y))
+      .def("active", false)
+      .radius(function() this.active() ? 10 : 5 ) // this.scale)
+      .fillStyle(function(d) colors.range()[d.group - [% cl_off %] ].color)
+      .strokeStyle(function() this.fillStyle().darker())
+      .cursor("pointer")
+      .events("all")
+      .event("click", function(d) window.open(d.url) )
+      .event("mouseover", function(d) {
+        this.active(true);
+        render(d);
+        } )
+      .event("mouseout", function(d) {
+          this.active(false);
+          info.display = false;
+          vis.render(); 
+          // bigDots[d.index].visible(false);
+        } )
+      ;
+
+  // The legend
+  var legend = vis.add(pv.Panel)
+      .data(clusters)
+      .left(0)
+      .bottom(0)
+      .width(100)
+      .height(15 * (clusters.length + 1))
+      // .strokeStyle("#ddd")
+      
+    .add(pv.Dot)
+      .left(15)
+      .bottom(function(c) (c.id - [% cl_off %] + 1) * 15)
+      .fillStyle(function(c) colors.range()[ c.id - [% cl_off %] ].color)
+      .strokeStyle(function() this.fillStyle().darker())
+      .anchor("right").add(pv.Label)
+        .text(function(c) c.name)
+      ;
+  
+  // labels over every cluster
+  var labels = vis.add(pv.Panel)
+    .data(clusters)
+    .left(function(d) x(d.x) )
+    .top(function(d) y(d.y))
+    .add(pv.Label)
+      .text(function(d) d.name)
+      .font("bold 11px sans-serif")
+    ;
+    
+  
+  // Info about the current node
+  var current = vis.add(pv.Panel)
+      .visible(function() info.display )
+      .left(function() x(info.x) + 7)
+      .top(function() y(info.y) + 7)
+      .width(function() pv.max([info.url.length, info.name.length]) * 7)
+      .height(60)
+      .fillStyle("lightGray")
+      // .event("all")
+      // .event("click", function() window.open(info.url) )
+      // .cursor("pointer")
+    .add(pv.Label)
+      .text(function() "Cluster: " + info.cluster)
+      .bottom(10)
+      .left(10)
+    .add(pv.Label)
+      .text(function() "URL: " + info.url)
+      .bottom(25)
+      .left(10)
+    .add(pv.Label)
+      .text(function() info.name)
+      .bottom(40)
+      .left(10)
+    ;
+  
+  /** Update the x- and y-scale domains per the new transform. */
+  function transform() {
+    var t = this.transform().invert();
+    x.domain(t.x / w * 2 * kx - kx, (t.k + t.x / w) * 2 * kx - kx);
+    y.domain(t.y / h * 2 * ky - ky, (t.k + t.y / h) * 2 * ky - ky);
+    vis.render();
+  }
+
+  vis.render();
+
+  </script>
+</div>
