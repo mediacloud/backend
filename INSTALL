@@ -36,7 +36,7 @@ with perl and cpan.
   default_tag_modules setting to 'NYTTopics Calais',
 
 * IMPORTANT: On Ubuntu you must install the following packages inorder to build the perl modules: libxml2-dev, libdb-dev, libtest-www-mechanize-perl. Running the following command to install these packages:
-      sudo apt-get install libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev
+      sudo apt-get install libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev  libopengl-perl
 
 * OPTIONAL: On Ubuntu run the following command to try to install some of the perl module dependencies using the package manager.  Not all perl modules are in the repository so you will still need to follow the next step to install the remaining module depencies:
 

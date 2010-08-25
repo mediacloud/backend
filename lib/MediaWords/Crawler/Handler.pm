@@ -28,6 +28,7 @@ use MediaWords::Crawler::BlogSpiderBlogHomeHandler;
 use MediaWords::Crawler::BlogSpiderPostingHandler;
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Stories;
 

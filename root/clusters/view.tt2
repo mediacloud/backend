@@ -1,79 +1,102 @@
 [% title = 'Cluster Run: ' _ run.description %]
 [% INCLUDE include/header.tt2 %]
+    <table>
+      <tr>
+        <th>
+          start date
+        </th>
+        <th>
+          end date
+        </th>
+        <th>
+          clusters
+        </th>
+        <th>
+          tag
+        </th>
+        <th>
+          description
+        </th>
+      </tr>
+      <tr>
+        <td>
+          [% run.start_date.substr(0, 10) %]
+        </td>
+        <td>
+          [% run.end_date.substr(0, 10) %]
+        </td>
+        <td>
+          [% run.num_clusters %]
+        </td>
+        <td>
+          [% run.tag_name | html %]
+        </td>
+        <td>
+          [% run.description | html %]
+        </td>
+      </tr>
+    </table>
+    <table id="stats">
+      <tr>
+        <td><b>Stats:</b></td>
+        <td>Total nodes: [% stats.num_nodes_total %]</td>
+        <td>Rendered nodes: [% stats.num_nodes_rendered %]</td>
+        <td>Rendered links: [% stats.num_links %]</td>
+      </tr>
+    </table>
+    <p><b>Cluster Run Results</b></p>
+    [% cl_off = media_clusters.0.media_clusters_id %]
+    [% # INCLUDE clusters/protovis_force.tt2 %]
+    [% INCLUDE clusters/protovis_transform.tt2 %]
+    <div id='clusters'>
+    [% FOREACH cluster IN media_clusters %]
+      <fieldset>
+        <p>
+          <span class="cluster_color" data-id="[% cluster.media_clusters_id - cl_off %]"></span>
+          <b>[% cluster.description %] ([% cluster.media.size %])</b> 
+        </p>
+        <p>
+          Media
+        </p>
+        <p>
+          [% FOREACH medium IN cluster.media %]
+            [ <a href='[% c.uri_for('/feeds/list/') _ medium.media_id %]'>[% medium.name %]</a> <a href='[% medium.url %]'>&gt;</a> ]
+          [% END #[% FOREACH medium IN cluster.media %]
+        </p>
+        <!-- FIXME - dashboard requires a media_set for each cluster to work now
 
-<table>
+  [% params = { media_set_type => 'cluster',
+                media_sets_id => cluster.media_clusters_id,
+                media_set_name => cluster.description,
+                date => '2009-10-15' } %]
 
-<tr>
-<th>start date</th>
-<th>end date</th>
-<th>clusters</th>
-<th>tag</th>
-<th>description</th>
-</tr>
+  <p>              
+  <a href="[% c.uri_for( '/dashboard/view', params ) | url %]">View Cluster in Dashboard</a>
+  </p>
+  -->
+        <p>
+          External Features
+        </p>
+        <p>
+          [% FOREACH word IN cluster.external_features %] [ [% word.term %] ([% word.weight | format( '%.3f' ) %]) ] [% END #[%FOREACH word IN cluster.external_features %]
+        </p>
+        <p>
+          Internal Features
+        </p>
+        <p>
+          [% FOREACH word IN cluster.internal_features %] [ [% word.term %] ([% word.weight | format( '%.3f' ) %]) ] [% END #[%FOREACH word IN cluster.internal_features %]
+        </p>
+      </fieldset>
+      <br />
+    [% END #[% FOREACH cluster IN media_clusters %]
+    </div>
 
-<tr>
-
-<td>[% run.start_date.substr(0, 10) %]</td>
-
-<td>[% run.end_date.substr(0, 10) %]</td>
-
-<td>[% run.num_clusters %]</td>
-
-<td>[% run.tag_name | html %]</td>
-
-<td>[% run.description | html %]</td>
-
-</tr>
-
-</table>
-
-<p />
-
-<p><b>Cluster Run Results</b></p>
-
-[% FOREACH cluster IN media_clusters %]
-
-<fieldset>
-
-<p><b>[% cluster.description %]</b></p>
-
-<p>Media</p>
-<p>
-[% FOREACH medium IN cluster.media %]
-[ <a href='[% c.uri_for('/feeds/list/') _ medium.media_id %]'>[% medium.name %]</a> <a href='[% medium.url %]'>&gt;</a>]
-[% END #[% FOREACH medium IN cluster.media %]
-</p>
-
-<!-- FIXME - dashboard requires a media_set for each cluster to work now
-
-[% params = { media_set_type => 'cluster',
-              media_sets_id => cluster.media_clusters_id,
-              media_set_name => cluster.description,
-              date => '2009-10-15' } %]
-
-<p>              
-<a href="[% c.uri_for( '/dashboard/view', params ) | url %]">View Cluster in Dashboard</a>
-</p>
--->
-
-<p>External Features</p>
-
-<p>
-[% FOREACH word IN cluster.external_features %]
-[ [% word.term %] ([% word.weight | format( '%.3f' ) %]) ]
-[% END #[%FOREACH word IN cluster.external_features %]
-</p>
-
-<p>Internal Features</p>
-
-<p>
-[% FOREACH word IN cluster.internal_features %]
-[ [% word.term %] ([% word.weight | format( '%.3f' ) %]) ]
-[% END #[%FOREACH word IN cluster.internal_features %]
-</p>
-
-</fieldset>
-
-[% END #[% FOREACH cluster IN media_clusters %]
-
-</table>
+    <script type="text/javascript+protovis">
+      $('span.cluster_color').each( function(index) {
+        var i = $(this).attr("data-id");
+        var color = pv.Colors.category20().range()[i].color;
+        $(this).css('background-color', color);
+      });
+    </script>
+  </body>
+</html>

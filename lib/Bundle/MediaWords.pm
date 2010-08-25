@@ -19,6 +19,8 @@ BerkeleyDB
 
 List::Uniq
 
+List::Member
+
 Hash::Merge
 
 Catalyst::Devel
@@ -44,6 +46,12 @@ Catalyst::Test
 Date::Parse
 
 DBIx::Simple
+
+Graph
+
+Graph::Layout::Aesthetic
+
+GraphViz
 
 Text::Similarity::Overlaps
 
@@ -73,6 +81,8 @@ Net::Calais
 
 Math::Round
 
+Math::Random
+
 Lingua::EN::Sentence
 
 Lingua::StopWords
@@ -95,6 +105,8 @@ Regexp::Optimizer
 IPC::Run3
 
 Dir::Self
+
+PDL
 
 Perl::Tidy
 
@@ -159,6 +171,8 @@ Fcntl
 File::Path
 
 File::Temp
+
+File::Util
 
 Getopt::Long
 

@@ -90,7 +90,8 @@ alter table media_cluster_runs add constraint media_cluster_runs_state check (st
 create table media_clusters (
 	media_clusters_id		serial	primary key,
 	media_cluster_runs_id	int	    not null references media_cluster_runs on delete cascade,
-	description             text    null
+	description             text    null,
+	centroid_id             int              references media (media_id) on delete cascade
 );
 
 create table media_clusters_media_map (
@@ -112,6 +113,38 @@ create table media_cluster_words (
 );
 
 create index media_cluster_words_cluster on media_cluster_words (media_clusters_id);
+
+/****************************************************** 
+ * Jon's table for storing links between media sources
+ *  -> Used in Protovis' force visualization. 
+ ******************************************************/
+
+create table media_cluster_links (
+  media_cluster_links_id serial primary key, 
+	media_cluster_runs_id	 int	  not null     references media_cluster_runs on delete cascade,
+  source_media_id        int    not null     references media              on delete cascade,
+  target_media_id        int    not null     references media              on delete cascade,
+  weight                 float  not null
+);
+
+/****************************************************** 
+ * A table to store the internal/external zscores for
+ *   every source analyzed by Cluto
+ *   (the external/internal similarity scores for
+ *     clusters will be stored in media_clusters, if at all)
+ ******************************************************/
+
+create table media_cluster_zscores (
+  media_cluster_zscores_id  serial primary key,
+	media_cluster_runs_id	    int 	 not null     references media_cluster_runs on delete cascade,
+	media_clusters_id         int    not null     references media_clusters     on delete cascade,
+  media_id                  int    not null     references media              on delete cascade,
+  internal_zscore           float  not null, 
+  internal_similarity       float  not null,
+  external_zscore           float  not null,
+  external_similarity       float  not null     
+);
+
    
 /* 
 sets of media sources that should appear in the dashboard

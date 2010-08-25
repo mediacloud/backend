@@ -54,6 +54,7 @@ sub _get_sparse_matrix
 }
 
 # write the sparse matrix to a file in the cluto format and return the name of the file
+# This is now "public"; used in generating matrix for Simat.pm
 sub _get_sparse_matrix_file
 {
     my ( $matrix ) = @_;
@@ -201,6 +202,8 @@ sub _get_clusters_from_vector
 sub _add_cluster_stats_from_output
 {
     my ( $clusters, $cluto_output ) = @_;
+
+    print STDERR "\n\n" . $cluto_output . "\n\n";
 
     while ( $cluto_output =~ /\s+(\d+)\s+(\d+)\s+([0-9\+\-\.]+)\s+([0-9\+\-\.]+)\s+([0-9\+\-\.]+)\s+([0-9\+\-\.]+)/g )
     {
