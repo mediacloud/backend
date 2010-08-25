@@ -1,0 +1,51 @@
+[% title = 'Dashboards List' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<p>
+<a href="[% c.uri_for( '/dashboards/create' )%]">Create New Dashboard</a>
+</p>
+
+</fieldset>
+
+<p />
+
+<table>
+
+<tr>
+<th>name</th>
+<th>start_date</th>
+<th>end_date</th>
+<th>topics</th>
+<th>media sets</th>
+<th>view dashboard</th>
+</tr>
+
+[% FOREACH dashboard IN dashboards -%]
+
+<tr [% IF even %]id="even"[% END %]>
+
+<td>[% dashboard.name | html %]</td>
+
+<td>[% dashboard.start_date | html %]</td>
+
+<td>[% dashboard.end_date | html %]</td>
+
+<td><a href='[% c.uri_for( '/dashboards/list_topics/' _ dashboard.dashboards_id ) %]'>topics</a></td>
+
+<td><a href='[% c.uri_for( '/mediasets/list/' ) _ dashboard.dashboards_id %]'>media sets</a></td>
+
+<td><a href='[% c.uri_for( '/dashboard/list/' )  _ dashboard.dashboards_id %]'>view</a></td>
+
+</tr>
+
+[%  SET even = !even %]
+[% END # FOREACH dashboard -%]
+
+</table>
+
+<p>
+</p>
+
+[% INCLUDE include/footer.tt2 %]

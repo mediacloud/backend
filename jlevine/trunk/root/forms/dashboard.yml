@@ -1,0 +1,26 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: name
+    label: Name
+    comment: Title of dashboard
+    constraints:
+        - Required
+
+  - type: Text
+    name: start_date
+    label: Start Date
+    comment: (2008-09-01)
+    constraints:
+        - Required
+
+  - type: Text
+    name: end_date
+    label: End Date
+    comment: (2008-09-30)
+    constraints:
+        - Required
+
+  - type: Submit
+    value: Create

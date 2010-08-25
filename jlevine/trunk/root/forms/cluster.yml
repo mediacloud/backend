@@ -1,0 +1,42 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: description
+    label: Description
+    comment: Description of the cluster to be created.
+    constraints:
+        - Required
+
+  - type: Number
+    name: num_clusters
+    label: Number of Clusters
+    value: 10
+    comment: The number of clusters to create on given date range.
+    constraints:
+        - Required
+
+  - type: Number
+    name: media_sets_id
+    label: media_sets_id
+    size: 48
+    comment: media_sets_id for collection media_set to cluster
+    constraints:
+        - Required
+
+  - type: Text
+    name: start_date
+    label: Start Date
+    comment: (2008-09-01)
+    constraints:
+        - Required
+
+  - type: Text
+    name: end_date
+    label: End Date
+    comment: (2008-09-30)
+    constraints:
+        - Required
+
+  - type: Submit
+    value: Cluster!
