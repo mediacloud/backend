@@ -110,6 +110,7 @@ span.tagcloud24 { font-size: 36px;}
 <div align="center">
 [
 <a href="[% c.uri_for('/dashboard/list/') _ dashboard.dashboards_id %]">Dashboard Home</a>
+| <a href="[% c.uri_for('/dashboard/compare_media_set_terms/') _ dashboard.dashboards_id %]">Compare Media Set Terms</a>
 [% IF media_set %]
 | <a href="[% c.uri_for( '/dashboard/list/' _ dashboard.dashboards_id, { date => date, compare_media_sets_id => media_set.media_sets_id, dashboard_topics_id => dashboard_topic.dashboard_topics_id } ) %]">Compare [% media_set.name | html %]</a>
 [% END %]
