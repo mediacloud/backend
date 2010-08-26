@@ -792,21 +792,22 @@ sub compare_media_set_terms : Local
     my $collection_term_counts = $c->dbis->query(
             "select ms.name, ms.set_type, publish_day, stem_count, stem, term " . 
             "  from daily_words dw, media_sets ms, dashboard_media_sets dms " .
-            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = ? and dms.media_sets_id = ms.media_sets_id and " . 
-            "    dw.publish_day >= ?::date and dw.publish_day <= ?::date and " .
+            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " . 
+            "    dms.media_sets_id = ms.media_sets_id and " . 
+            "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
             "    dw.stem in ( $stems_in_list ) " .
-            "  order by ms.set_type, ms.name, publish_day, stem",
-            $dashboards_id, $start_date, $end_date )->hashes;
+            "  order by ms.set_type, ms.name, publish_day, stem"
+    )->hashes;
 
     my $media_term_counts = $c->dbis->query(
             "select ms.name, ms.set_type, publish_day, stem_count, stem, term " . 
             "  from daily_words dw, media_sets ms, dashboard_media_sets dms, media_sets_media_map msmm " .
-            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = ? and " . 
+            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " . 
             "    dms.media_sets_id = msmm.media_sets_id and msmm.media_id = ms.media_id and " . 
-            "    dw.publish_day >= ?::date and dw.publish_day <= ?::date and " .
+            "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
             "    dw.stem in ( $stems_in_list ) " .
-            "  order by ms.set_type, ms.name, publish_day, stem",
-            $dashboards_id, $start_date, $end_date )->hashes;
+            "  order by ms.set_type, ms.name, publish_day, stem"
+    )->hashes;
                         
     my $csv = Text::CSV_XS->new;
     my $output;
