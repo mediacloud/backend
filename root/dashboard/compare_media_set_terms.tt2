@@ -1,0 +1,10 @@
+[% title = 'Compare Media Set Terms' %]
+[% INCLUDE dashboard/header.tt2 %]
+
+<fieldset>
+
+[% form.render %]
+
+</fieldset>
+
+[% INCLUDE dashboard/footer.tt2 %]
