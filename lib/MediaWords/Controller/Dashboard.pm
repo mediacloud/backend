@@ -10,6 +10,7 @@ use URI::Escape;
 
 use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
+use MediaWords::Util::Stemmer;
 use MediaWords::Util::Translate;
 
 use Perl6::Say;
@@ -32,8 +33,6 @@ sub index : Path : Args(0)
 sub _get_dashboard
 {
     my ( $self, $c, $dashboards_id ) = @_;
-
-    print STDERR "dashboards_id: $dashboards_id\n";
 
     $dashboards_id || die( "no dashboards_id found" );
 
@@ -730,6 +729,101 @@ sub sentences : Local
     $c->stash->{ term }            = $term;
 
     $c->stash->{ template } = 'dashboard/sentences.tt2';
+}
+
+# given a list of terms, return a quoted, comma-separated list of stems
+sub get_stems_in_list
+{
+    my ( $self, $c, $term_list ) = @_;
+    
+    $term_list =~ s/[^A-za-z0-9_ ]//g;
+    
+    my $terms = [ split( ' ', $term_list ) ];
+    
+    my $stemmer = MediaWords::Util::Stemmer->new;
+
+    my $stems = $stemmer->stem( @{ $terms } );
+    
+    my $stems_in_list = join( ',',  map { "'$_'" } @{ $stems } );
+    
+    return $stems_in_list;
+}
+
+# accept a dashboard id, a set of terms, and a date range and return a csv of the frequency with which each term
+# appears for the media_set / date.  Include both the collection media_sets in aggregate and each individual media source
+sub compare_media_set_terms : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "dashboard not found: $dashboards_id" );
+
+    my $form = $c->create_form({
+            load_config_file => $c->path_to() . '/root/forms/compare_media_set_terms.yml',
+            method           => 'post',
+            action           => $c->uri_for( "/dashboard/compare_media_set_terms/$dashboards_id" ),
+    });
+
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid() )
+    {
+        $c->stash->{ dashboard } = $dashboard;
+        $c->stash->{ form }      = $form;
+        $c->stash->{ template }  = 'dashboard/compare_media_set_terms.tt2';
+        return;
+    }
+    
+    my $start_date = $c->req->param( 'start_date' ) || die( "no start_date" );
+    my $end_date = $c->req->param( 'end_date' ) || die( "no end_date" );
+    my $term_list = $c->req->param( 'term_list' ) || die( "no term_list" );
+    
+    if ( $start_date !~ /\d\d\d\d-\d\d-\d\d/ )
+    {
+        die( "start_date is not in YYYY-MM-DD format" );
+    }
+    
+    if ( $end_date !~ /\d\d\d\d-\d\d-\d\d/ )
+    {
+        die( "start_date is not in YYYY-MM-DD format" );
+    }
+    
+    my $stems_in_list = $self->get_stems_in_list( $c, $term_list );
+    
+    my $collection_term_counts = $c->dbis->query(
+            "select ms.name, ms.set_type, publish_day, stem_count, stem, term " . 
+            "  from daily_words dw, media_sets ms, dashboard_media_sets dms " .
+            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = ? and dms.media_sets_id = ms.media_sets_id and " . 
+            "    dw.publish_day >= ?::date and dw.publish_day <= ?::date and " .
+            "    dw.stem in ( $stems_in_list ) " .
+            "  order by ms.set_type, ms.name, publish_day, stem",
+            $dashboards_id, $start_date, $end_date )->hashes;
+
+    my $media_term_counts = $c->dbis->query(
+            "select ms.name, ms.set_type, publish_day, stem_count, stem, term " . 
+            "  from daily_words dw, media_sets ms, dashboard_media_sets dms, media_sets_media_map msmm " .
+            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = ? and " . 
+            "    dms.media_sets_id = msmm.media_sets_id and msmm.media_id = ms.media_id and " . 
+            "    dw.publish_day >= ?::date and dw.publish_day <= ?::date and " .
+            "    dw.stem in ( $stems_in_list ) " .
+            "  order by ms.set_type, ms.name, publish_day, stem",
+            $dashboards_id, $start_date, $end_date )->hashes;
+                        
+    my $csv = Text::CSV_XS->new;
+    my $output;
+    
+    $csv->combine( qw/media_set_name media_set_type publish_day stem_count stem term/ );
+    $output .= $csv->string . "\n";
+    
+    for my $term_count ( @{ $collection_term_counts }, @{ $media_term_counts } ) 
+    {
+        $csv->combine( map { $term_count->{ $_ } } qw/name set_type publish_day stem_count stem term/ );
+        
+        $output .= $csv->string . "\n";
+    }
+
+    $c->res->header('Content-Disposition', qq[attachment; filename="term_counts.csv"]);
+    $c->res->content_type( 'text/csv' );
+    $c->res->body( $output );
 }
 
 1;
