@@ -736,7 +736,7 @@ sub get_stems_in_list
 {
     my ( $self, $c, $term_list ) = @_;
     
-    $term_list =~ s/[^A-za-z0-9_ ]//g;
+    $term_list =~ s/[^\w ]//g;
     
     my $terms = [ split( ' ', $term_list ) ];
     
