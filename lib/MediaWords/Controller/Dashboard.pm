@@ -795,7 +795,7 @@ sub compare_media_set_terms : Local
             "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " . 
             "    dms.media_sets_id = ms.media_sets_id and " . 
             "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
-            "    dw.stem in ( $stems_in_list ) " .
+            "    dw.stem in ( $stems_in_list )and dw.dashboard_topics_id is null " .
             "  order by ms.set_type, ms.name, publish_day, stem"
     )->hashes;
 
@@ -805,7 +805,7 @@ sub compare_media_set_terms : Local
             "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " . 
             "    dms.media_sets_id = msmm.media_sets_id and msmm.media_id = ms.media_id and " . 
             "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
-            "    dw.stem in ( $stems_in_list ) " .
+            "    dw.stem in ( $stems_in_list ) and dw.dashboard_topics_id is null " .
             "  order by ms.set_type, ms.name, publish_day, stem"
     )->hashes;
                         
