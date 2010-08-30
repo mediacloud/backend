@@ -739,12 +739,144 @@ sub get_blogs_yaca_yandex_ru_rankings
     $csv->print();
 }
 
+sub get_news_yandex_ru_smi_rankings
+{
+
+    (my $period) = @_;
+
+    my $ua = LWP::UserAgent->new;
+
+    my $csv = _create_class_csv_from_field_list(
+        [ qw/ name messages articles interviews phone head_title head_person  address url media_url_text / ] );
+
+    for my $i ( 0 .. 0 )
+    {
+        my $url = "http://news.yandex.ru/smi/newstube";
+
+        my $tree = _fetch_url_as_html_tree( $url );
+
+	my @p = $tree->findnodes( '//dl[@class="news"]' );
+
+	die unless scalar(@p) == 1;
+
+	#say $p[0]->dump;
+
+	my $dt = $p[0];
+
+	my @children = $dt->content_list();
+
+	die unless scalar(@children) == 3;
+	
+	my $dt_head = $children[0];
+
+	die unless $dt_head->tag eq 'dt';
+
+	die unless $dt_head->attr('class') eq 'head';
+
+	#say "Dumping dt";
+	
+	#say $dt_head->dump;
+
+	my $dt_span = ($dt_head->content_list())[2];
+
+	die unless $dt_span->tag eq 'span';
+
+	my $media_name = $dt_span->as_text;
+
+	#say "$media_name";
+
+	#exit;
+
+	#say Dumper([@p]);
+
+	my $dd_info = $children[2];
+
+	die unless $dd_info->tag eq 'dd';
+
+	die unless $dd_info->attr('class') eq 'info';
+
+	#say $dd_info->dump;
+
+	my @li_s = $dd_info->look_down( "_tag", "li");
+
+	die unless scalar(@li_s) == 4;
+
+	my $a_url = ($li_s[0]->content_list())[0];
+
+	die unless $a_url->tag eq 'a';
+	die unless $a_url->attr('class') eq 'url';
+
+	my $media_url = $a_url->attr('href');
+	my $media_url_text = $a_url->as_text;
+
+	#say "media_url:'$media_url' media_url_text:'$media_url_text'";
+
+	my $li_head_person = $li_s[1];
+
+	my $li_head_person_text = $li_head_person->as_text;
+
+	say $li_head_person_text;
+
+	die unless $li_head_person_text =~ /.*: .*/;
+
+	$li_head_person_text =~ m/(.*): (.*)/;
+
+	my $head_title = $1;
+	my $head_person = $2;
+
+	my $li_address = $li_s[2];
+
+	my $li_address_text = $li_address->as_text;
+
+	die unless $li_address_text =~ /Адрес: .*/;
+
+	my $address = 	$li_address_text;
+	$address =~ s/Адрес: (.*)/$1/;
+
+	my $li_phone = $li_s[3];
+	my $li_phone_text = $li_phone->as_text;
+
+	die unless $li_phone_text =~ /Телефон: .*/;
+
+	my $phone = 	$li_phone_text;
+	$phone =~ s/Телефон: (.*)/$1/;
+	#say "phone:$phone,editor:$editor_name,address:$address";
+	#say "media_url:'$media_url' media_url_text:'$media_url_text'";
+	#exit;
+
+	my @dl_totals = $tree->findnodes( '//dl[@class="total"]' );
+
+	die unless scalar(@dl_totals) == 1;
+
+	#say $dl_totals[0]->dump;
+
+	my $dl_totals_text =  $dl_totals[0]->as_text;
+	die  $dl_totals_text unless $dl_totals_text =~ /Последние обновления:/;
+
+	die  $dl_totals_text unless $dl_totals_text =~ /Последние обновления:сообщений — (\d+) \(\+\d+\), статей — (\d+) \(\+\d+\), интервью — (\d+)/;
+
+	$dl_totals_text =~ /Последние обновления:сообщений — (\d+) \(\+\d+\), статей — (\d+) \(\+\d+\), интервью — (\d+)/;
+
+	#translations: сообщений messages, статей articles, интервью interviews
+	my $messages   = $1;
+	my $articles   = $2;
+	my $interviews = $3;
+
+	$csv->add_line( {name=>$media_name, messages=>$messages, articles=>$articles,interviews=>$interviews, phone=>$phone, head_title => $head_title, head_person=>$head_person,address=>$address, url=>$media_url, media_url_text=>$media_url_text });
+
+        # Now that we're done with it, we must destroy it.
+        $tree = $tree->delete;
+    }
+
+    $csv->print();
+}
+
 sub main
 {
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    get_blogs_yaca_yandex_ru_rankings();
+    get_news_yandex_ru_smi_rankings();
     #get_blogs_yandex_ru_rankings_6months();
     #get_blogs_yandex_ru_rankings_month();
     #get_blogs_yandex_ru_rankings_week();
