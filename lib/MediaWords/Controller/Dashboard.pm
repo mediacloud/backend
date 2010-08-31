@@ -166,7 +166,15 @@ sub get_word_cloud
 
     $c->keep_flash( ( 'translate' ) );
 
-    return $cloud->html;
+    my $html = $cloud->html;
+
+    #<span class="tagcloud24"><a onclick="this.style.color='red '; return false;" 
+    if ( $c->req->param( 'highlight_mode' ) )
+    {
+        $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
+    }
+
+    return $html;
 }
 
 # get start of week for the given date from postgres
@@ -410,6 +418,29 @@ sub compare : Local
     $c->stash->{ template } = 'dashboard/compare.tt2';
 }
 
+# die if the dashboard topic is not valid for the given date
+sub validate_dashboard_topic_date 
+{
+    my ( $self, $c, $dashboard_topic, $date ) = @_;
+    
+    if ( !$dashboard_topic )
+    {
+        return;
+    }
+    
+    $date .= " 00:00:00";
+    
+    if ( $date lt $dashboard_topic->{ start_date } )
+    {
+        die( "date '$date' is before topic start date $dashboard_topic->{ start_date }" );
+    }
+
+    if ( $date gt $dashboard_topic->{ end_date } )
+    {
+        die( "date '$date' is after topic end date $dashboard_topic->{ end_date }" );
+    }  
+}    
+
 # view the dashboard page for a media set
 sub view : Local
 {
@@ -431,6 +462,8 @@ sub view : Local
     my $media_set = $self->get_media_set_from_params( $c );
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+
+    $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
 
     my $words_query =
       ( "select * from top_500_weekly_words_normalized " . "  where media_sets_id = $media_set->{ media_sets_id } " .
