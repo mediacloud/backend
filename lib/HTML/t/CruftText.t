@@ -45,7 +45,7 @@ Real article text
 __END_TEST_CASE__
     },
     {
-        test_name  => 'clickprint1t',
+        test_name  => 'clickprint1',
         test_input => <<'__END_TEST_CASE__',
 <html>
 <header>
