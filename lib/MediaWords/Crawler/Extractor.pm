@@ -399,7 +399,6 @@ sub find_auto_excluded_lines
     my ( $lines ) = @_;
 
     my $markers        = find_markers( $lines );
-    my $clickprint_map = get_clickprint_map( $markers );
     my $sphereit_map   = get_sphereit_map( $markers );
 
     my $ret = [];
@@ -436,13 +435,6 @@ sub find_auto_excluded_lines
         elsif ( REQUIRE_WORD && ( decode_entities( $line ) !~ /\w{4}/i ) )
         {
             $explanation .= "require word";
-            $auto_exclude = 1;
-        }
-        elsif (REQUIRE_CLICKPRINT
-            && $clickprint_map
-            && !$clickprint_map->{ $i } )
-        {
-            $explanation .= "require clickprint";
             $auto_exclude = 1;
         }
         elsif ( REQUIRE_SPHEREIT && $sphereit_map && !$sphereit_map->{ $i } )
@@ -504,7 +496,7 @@ sub _heuristically_scored_lines_impl
     }
 
     my $markers        = find_markers( $lines );
-    my $clickprint_map = get_clickprint_map( $markers );
+    my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
     my $sphereit_map   = get_sphereit_map( $markers );
     print_time( "find_markers" );
 
@@ -626,7 +618,7 @@ sub _heuristically_scored_lines_impl
                 $discounted_html_density *= COPYRIGHT_DISCOUNT;
             }
 
-            if ( $clickprint_map && $clickprint_map->{ $i } )
+            if ( $has_clickprint )
             {
                 $explanation .= "clickprint discount: " . CLICKPRINT_DISCOUNT . "\n";
                 $discounted_html_density *= CLICKPRINT_DISCOUNT;
