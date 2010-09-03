@@ -3,6 +3,7 @@ package HTML::CruftText;
 # extract substantive new story text from html pages
 
 use strict;
+use warnings;
 
 use HTML::Entities;
 use Text::Similarity::Overlaps;
@@ -23,6 +24,8 @@ my $_MARKER_PATTERNS = {
     body                   => qr/<body/i,
     comment                => qr/(id|class)="[^"]*comment[^"]*"/i,
 };
+
+#TODO handle sphereit like we're now handling CLickprint.
 
 # blank everything within these elements
 my $_SCRUB_TAGS = [ qw/script style frame applet textarea/ ];
@@ -223,9 +226,16 @@ sub _remove_nonbody_text
     }
 }
 
-sub _remove_nonclickprint_text
+sub has_clickprint
 {
-    my ( $lines, $clickprintmap ) = @_;
+    my ( $lines ) = @_;
+
+    return defined( _clickprint_start_line( $lines ) );
+}
+
+sub _clickprint_start_line
+{
+    my ( $lines ) = @_;
 
     my $i = 0;
 
@@ -247,13 +257,29 @@ sub _remove_nonclickprint_text
     {
         return;
     }
+    else
+    {
+        return $i;
+
+    }
+}
+
+sub _remove_nonclickprint_text
+{
+    my ( $lines, $clickprintmap ) = @_;
+
+    my $clickprint_start_line = _clickprint_start_line( $lines );
+
+    return if !defined( $clickprint_start_line );
 
     # blank out all line before the first click_print
 
-    for ( my $j = 0 ; $j < $i ; $j++ )
+    for ( my $j = 0 ; $j < $clickprint_start_line ; $j++ )
     {
         $lines->[ $j ] = '';
     }
+
+    my $i = $clickprint_start_line;
 
     my $current_substring = \$lines->[ $i ];
     my $state             = "before_clickprint";
