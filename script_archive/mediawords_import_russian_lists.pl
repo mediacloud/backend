@@ -17,6 +17,7 @@ use LWP::UserAgent;
 use Text::Trim;
 use HTML::TreeBuilder;
 use HTML::TreeBuilder::XPath;
+use HTML::LinkExtractor;
 
 use DBIx::Simple::MediaWords;
 use Feed::Scrape;
@@ -739,6 +740,25 @@ sub get_blogs_yaca_yandex_ru_rankings
     $csv->print();
 }
 
+sub get_links_from_url
+{
+    (my $url) = @_;
+
+    my $ua   = LWP::UserAgent->new;
+    my $html = $ua->get( $url )->decoded_content;
+    my $lx = new HTML::LinkExtractor( undef, $url);
+
+    $lx->parse(\$html);
+
+    #we only care about links to web pages
+    #i.e. '<a href=..' we want to ignore other things such as <img & javascript links
+    my $links = [ grep { $_->{ tag } eq 'a' } @{ $lx->links } ];
+
+    $links = [ grep { $_->{ href }->scheme eq 'http' } @{ $links } ];
+
+    return map { $_->{ href } . '' } @$links;
+}
+
 sub get_news_yandex_ru_smi_rankings
 {
 
@@ -746,12 +766,67 @@ sub get_news_yandex_ru_smi_rankings
 
     my $ua = LWP::UserAgent->new;
 
-    my $csv = _create_class_csv_from_field_list(
-        [ qw/ name messages articles interviews phone head_title head_person  address url media_url_text / ] );
+    my $base_url = 'http://news.yandex.ru/smi/';
+    my $links = [ get_links_from_url( $base_url ) ];
 
-    for my $i ( 0 .. 0 )
+    my $links_smi =  [ grep { $_ =~ /http:\/\/news\.yandex\.ru\/smi/ } @{$links} ];
+
+    my $banned_links = { 'http://news.yandex.ru/smi/foreign.html' => 1,
+          'http://news.yandex.ru/smi/regional.html' => 1,
+          'http://news.yandex.ru/smi/specialized.html' => 1};
+
+    $links_smi = [grep {! defined($banned_links->{$_}) } @{$links_smi} ];
+
+    #say Dumper ($links_smi);
+
+    #exit;
+    my $tree = _fetch_url_as_html_tree( 'http://news.yandex.ru/smi/' );
+
+    my @tables = $tree->findnodes( '//table[@class="list-smi"]' );
+
+    die unless scalar(@tables) == 1;
+
+    my @tr_s =  $tables[0]->content_list;
+
+    my $csv = _create_class_csv_from_field_list(
+        [ qw/ name  url head_title head_person smi_url  phone address  category messages articles interviews videos  / ] );
+
+    foreach my $tr ( @tr_s)
     {
-        my $url = "http://news.yandex.ru/smi/newstube";
+        #say $tr->dump;
+	my $th = ($tr->content_list)[0];
+	die $th->dump unless $th->tag eq 'th';
+	
+	my $category = $th->as_text;
+
+	say STDERR $category;
+	
+	my @media_smi_links = $tr->look_down('_tag', 'a');
+
+	#say scalar(@media_smi_links);
+
+	$base_url =~ m/(http:\/\/[^\/]*)/;
+	my $base_domain = $1;
+	my $hrefs = [ map { $base_domain . $_->attr('href') } @media_smi_links ];
+
+	#say Dumper($hrefs);
+
+	foreach my $link (@$hrefs) 
+	{
+	    _get_news_yandex_ru_smi_site_rankings($link, $category, $csv);
+	}
+    }
+
+    $csv->print();
+
+  }
+
+sub _get_news_yandex_ru_smi_site_rankings
+{
+    my ($url, $category, $csv) = @_;
+
+    {
+        #my $url = "http://news.yandex.ru/smi/newstube";
 
         my $tree = _fetch_url_as_html_tree( $url );
 
@@ -815,7 +890,7 @@ sub get_news_yandex_ru_smi_rankings
 
 	my $li_head_person_text = $li_head_person->as_text;
 
-	say $li_head_person_text;
+	#say $li_head_person_text;
 
 	die unless $li_head_person_text =~ /.*: .*/;
 
@@ -851,24 +926,53 @@ sub get_news_yandex_ru_smi_rankings
 	#say $dl_totals[0]->dump;
 
 	my $dl_totals_text =  $dl_totals[0]->as_text;
+
+	#say $dl_totals_text;
+
 	die  $dl_totals_text unless $dl_totals_text =~ /Последние обновления:/;
 
-	die  $dl_totals_text unless $dl_totals_text =~ /Последние обновления:сообщений — (\d+) \(\+\d+\), статей — (\d+) \(\+\d+\), интервью — (\d+)/;
 
-	$dl_totals_text =~ /Последние обновления:сообщений — (\d+) \(\+\d+\), статей — (\d+) \(\+\d+\), интервью — (\d+)/;
+	my $info_categories_string = $dl_totals_text;
+        $info_categories_string =~ s/Последние обновления:(.*)/$1/;
+
+	my @info_categories = split /,\s/, $info_categories_string;
+	
+	#say Dumper([@info_categories]);
+	
+	my %russian_info_hash = map { $_ =~ m/\(?(.*) — (\d+).*\)?/; $1=>$2 } @info_categories;
+
+	die $dl_totals_text if (join '',keys %russian_info_hash) =~ /—/;
+
+	#say join ',', keys %russian_info_hash;
+	#say join ',', values %russian_info_hash;
+
+	#say join "\n", keys %russian_info_hash;
+
+	#say Dumper(%russian_info_hash);
+
+	#exit;
+
+	# die  $dl_totals_text unless $dl_totals_text =~ /Последние обновления:сообщений — (\d+) \(\+\d+\), статей — (\d+) \(\+\d+\), интервью — (\d+)/;
+
+	# $dl_totals_text =~ /Последние обновления:сообщений — (\d+) \(\+\d+\), статей — (\d+) \(\+\d+\), интервью — (\d+)/;
 
 	#translations: сообщений messages, статей articles, интервью interviews
-	my $messages   = $1;
-	my $articles   = $2;
-	my $interviews = $3;
+	#с видео video;
 
-	$csv->add_line( {name=>$media_name, messages=>$messages, articles=>$articles,interviews=>$interviews, phone=>$phone, head_title => $head_title, head_person=>$head_person,address=>$address, url=>$media_url, media_url_text=>$media_url_text });
+	my $translations = {
+			    'сообщений' => 'messages',
+			    'статей' =>    'articles', 
+			    'интервью' => 'interviews',
+			    'с видео' => 'videos'
+			   };
+
+	my %english_info_hash = map { $translations->{$_} => $russian_info_hash{$_} } keys %russian_info_hash;
+	$csv->add_line( {name=>$media_name, category => $category, %english_info_hash, phone=>$phone, head_title => $head_title, head_person=>$head_person,address=>$address, url=>$media_url, smi_url => $url });
 
         # Now that we're done with it, we must destroy it.
         $tree = $tree->delete;
     }
 
-    $csv->print();
 }
 
 sub main
