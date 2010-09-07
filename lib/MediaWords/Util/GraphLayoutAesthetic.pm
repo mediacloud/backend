@@ -83,6 +83,7 @@ sub _get_centroids_from_graph
 
     for my $cluster ( @{ $media_clusters } )
     {
+
         # TODO: Refactor this into separate subroutine (requires that your clustering scheme calculates and your
         #    database stores the cluster's centroid)
         # Cluster centroid approach

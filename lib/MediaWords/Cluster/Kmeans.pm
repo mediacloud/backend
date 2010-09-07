@@ -95,8 +95,8 @@ sub _find_center
                 my $dp = vector_dot( $node->{ vector }, $avg_vector );
                 if ( $dp > $max_score )
                 {
-                    $max_score                    = $dp;
-                    $new_cluster->{ centroid }    = $node->{ vector };
+                    $max_score                          = $dp;
+                    $new_cluster->{ centroid }          = $node->{ vector };
                     $new_cluster->{ centroid_media_id } = $node->{ media_id };
                 }
             }
@@ -144,9 +144,9 @@ sub _seed_clusters_random
     {
         push @{ $clusters },
           {
-            centroid    => $nodes->[ $rand ]->{ vector },
+            centroid          => $nodes->[ $rand ]->{ vector },
             centroid_media_id => $nodes->[ $rand ]->{ media_id },
-            cluster_id  => $cluster_cnt++
+            cluster_id        => $cluster_cnt++
           };
     }
 
@@ -170,9 +170,9 @@ sub _seed_clusters_plus_plus
     my $first_center = Math::Random::random_uniform_integer( 1, 0, $#{ $nodes } );
     push @{ $clusters },
       {
-        centroid    => $nodes->[ $first_center ]->{ vector },
+        centroid          => $nodes->[ $first_center ]->{ vector },
         centroid_media_id => $nodes->[ $first_center ]->{ media_id },
-        cluster_id  => $cluster_cnt++
+        cluster_id        => $cluster_cnt++
       };
 
     # Add $num_clusters-1 centroids
@@ -196,9 +196,9 @@ sub _seed_clusters_plus_plus
             # Make this node the new centroid if it's the least similar to other nodes
             if ( $max_cluster_sim < $least_cluster_sim )
             {
-                $least_cluster_sim = $max_cluster_sim;
-                $new_centroid      = $node->{ vector };
-                $new_centroid_media_id   = $node->{ media_id };
+                $least_cluster_sim     = $max_cluster_sim;
+                $new_centroid          = $node->{ vector };
+                $new_centroid_media_id = $node->{ media_id };
             }
         }
 
@@ -206,9 +206,9 @@ sub _seed_clusters_plus_plus
 
         push @{ $clusters },
           {
-            centroid    => $new_centroid,
+            centroid          => $new_centroid,
             centroid_media_id => $new_centroid_media_id,
-            cluster_id  => $cluster_cnt++
+            cluster_id        => $cluster_cnt++
           };
     }
 
@@ -236,18 +236,18 @@ sub _seed_clusters_plus_plus2
     my $first_center = Math::Random::random_uniform_integer( 1, 0, $#{ $nodes } );
     push @{ $clusters },
       {
-        centroid    => $nodes->[ $first_center ]->{ vector },
+        centroid          => $nodes->[ $first_center ]->{ vector },
         centroid_media_id => $nodes->[ $first_center ]->{ media_id },
-        cluster_id  => $cluster_cnt++
+        cluster_id        => $cluster_cnt++
       };
 
     # Add $num_clusters-1 centroids
     while ( $cluster_cnt < $num_clusters )
     {
         my $best_cluster = {
-            centroid    => undef,
+            centroid          => undef,
             centroid_media_id => undef,
-            cluster_id  => $cluster_cnt++
+            cluster_id        => $cluster_cnt++
         };
 
         my $min_score;
@@ -257,7 +257,7 @@ sub _seed_clusters_plus_plus2
         {
             my $new_clusters = [];
             @{ $new_clusters } = @{ $clusters };    # deep copy...
-            $best_cluster->{ centroid }    = $node->{ vector };
+            $best_cluster->{ centroid }          = $node->{ vector };
             $best_cluster->{ centroid_media_id } = $node->{ media_id };
             push @{ $new_clusters }, @{ $best_cluster };
 
@@ -482,7 +482,7 @@ sub _make_nice_clusters
         # TODO: implement internal and external features, zscores, etc...
         my $nice_cluster = {
             media_ids         => [],
-            centroid_media_id       => $cluster->{ centroid_media_id },
+            centroid_media_id => $cluster->{ centroid_media_id },
             internal_features => [],
             external_features => [],
             internal_zscores  => [],
@@ -559,9 +559,9 @@ sub _get_new_clusters_from_old
 
         push @{ $new_clusters },
           {
-            centroid    => $old_cluster->{ centroid },
+            centroid          => $old_cluster->{ centroid },
             centroid_media_id => $old_cluster->{ centroid_media_id },
-            nodes       => $cluster_nodes
+            nodes             => $cluster_nodes
           };
     }
 
