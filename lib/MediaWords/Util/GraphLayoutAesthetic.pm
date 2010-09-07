@@ -87,12 +87,12 @@ sub _get_centroids_from_graph
         #    database stores the cluster's centroid)
         # Cluster centroid approach
         #
-        # my $centroid_id = $cluster->{ centroid_id };
+        # my $centroid_media_id = $cluster->{ centroid_media_id };
         #
         # my $centroid = {
-        #     centroid_id => $centroid_id,
-        #     x => $graph->get_vertex_attribute($centroid_id, "x_coord"),
-        #     y => $graph->get_vertex_attribute($centroid_id, "y_coord"),
+        #     centroid_media_id => $centroid_media_id,
+        #     x => $graph->get_vertex_attribute($centroid_media_id, "x_coord"),
+        #     y => $graph->get_vertex_attribute($centroid_media_id, "y_coord"),
         #     id => $cluster->{ media_clusters_id },
         #     name => $cluster->{ description }
         # };

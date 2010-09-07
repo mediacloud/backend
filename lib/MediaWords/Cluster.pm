@@ -489,7 +489,7 @@ sub execute_and_store_media_cluster_run
             {
                 media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
                 description           => $description,
-                centroid_id           => $cluster->{ centroid_id }
+                centroid_media_id           => $cluster->{ centroid_media_id }
             }
         );
 

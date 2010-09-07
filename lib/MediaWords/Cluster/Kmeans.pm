@@ -97,7 +97,7 @@ sub _find_center
                 {
                     $max_score                    = $dp;
                     $new_cluster->{ centroid }    = $node->{ vector };
-                    $new_cluster->{ centroid_id } = $node->{ media_id };
+                    $new_cluster->{ centroid_media_id } = $node->{ media_id };
                 }
             }
         }
@@ -145,7 +145,7 @@ sub _seed_clusters_random
         push @{ $clusters },
           {
             centroid    => $nodes->[ $rand ]->{ vector },
-            centroid_id => $nodes->[ $rand ]->{ media_id },
+            centroid_media_id => $nodes->[ $rand ]->{ media_id },
             cluster_id  => $cluster_cnt++
           };
     }
@@ -171,7 +171,7 @@ sub _seed_clusters_plus_plus
     push @{ $clusters },
       {
         centroid    => $nodes->[ $first_center ]->{ vector },
-        centroid_id => $nodes->[ $first_center ]->{ media_id },
+        centroid_media_id => $nodes->[ $first_center ]->{ media_id },
         cluster_id  => $cluster_cnt++
       };
 
@@ -179,7 +179,7 @@ sub _seed_clusters_plus_plus
     while ( $cluster_cnt < $num_clusters )
     {
         my $new_centroid;
-        my $new_centroid_id;
+        my $new_centroid_media_id;
         my $least_cluster_sim = 1;
 
         # Look at each node, and determine the distance D(x) to the closest cluster
@@ -198,7 +198,7 @@ sub _seed_clusters_plus_plus
             {
                 $least_cluster_sim = $max_cluster_sim;
                 $new_centroid      = $node->{ vector };
-                $new_centroid_id   = $node->{ media_id };
+                $new_centroid_media_id   = $node->{ media_id };
             }
         }
 
@@ -207,7 +207,7 @@ sub _seed_clusters_plus_plus
         push @{ $clusters },
           {
             centroid    => $new_centroid,
-            centroid_id => $new_centroid_id,
+            centroid_media_id => $new_centroid_media_id,
             cluster_id  => $cluster_cnt++
           };
     }
@@ -237,7 +237,7 @@ sub _seed_clusters_plus_plus2
     push @{ $clusters },
       {
         centroid    => $nodes->[ $first_center ]->{ vector },
-        centroid_id => $nodes->[ $first_center ]->{ media_id },
+        centroid_media_id => $nodes->[ $first_center ]->{ media_id },
         cluster_id  => $cluster_cnt++
       };
 
@@ -246,7 +246,7 @@ sub _seed_clusters_plus_plus2
     {
         my $best_cluster = {
             centroid    => undef,
-            centroid_id => undef,
+            centroid_media_id => undef,
             cluster_id  => $cluster_cnt++
         };
 
@@ -258,7 +258,7 @@ sub _seed_clusters_plus_plus2
             my $new_clusters = [];
             @{ $new_clusters } = @{ $clusters };    # deep copy...
             $best_cluster->{ centroid }    = $node->{ vector };
-            $best_cluster->{ centroid_id } = $node->{ media_id };
+            $best_cluster->{ centroid_media_id } = $node->{ media_id };
             push @{ $new_clusters }, @{ $best_cluster };
 
             my $sum_scores = 0;
@@ -466,7 +466,7 @@ sub _get_best_cluster_run
 
 # Turn raw clusters into nice clusters for writing to the database, which should really look like (at least)
 # { media_ids         => [],
-#   centroid_id       => $centroid_id,
+#   centroid_media_id       => $centroid_media_id,
 #   internal_features => [ { stem => stem, term => term , weight => weight } ],
 #   external_features => [ { stem => stem, term => term , weight => weight } ],
 #   internal_zscores  => [],
@@ -482,7 +482,7 @@ sub _make_nice_clusters
         # TODO: implement internal and external features, zscores, etc...
         my $nice_cluster = {
             media_ids         => [],
-            centroid_id       => $cluster->{ centroid_id },
+            centroid_media_id       => $cluster->{ centroid_media_id },
             internal_features => [],
             external_features => [],
             internal_zscores  => [],
@@ -560,7 +560,7 @@ sub _get_new_clusters_from_old
         push @{ $new_clusters },
           {
             centroid    => $old_cluster->{ centroid },
-            centroid_id => $old_cluster->{ centroid_id },
+            centroid_media_id => $old_cluster->{ centroid_media_id },
             nodes       => $cluster_nodes
           };
     }

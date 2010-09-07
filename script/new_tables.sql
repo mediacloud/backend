@@ -1,4 +1,4 @@
-ALTER TABLE media_clusters add column centroid_id             int              references media (media_id) on delete cascade;
+ALTER TABLE media_clusters add column centroid_media_id             int              references media (media_id) on delete cascade;
 
 create table media_cluster_links (
   media_cluster_links_id serial primary key, 
