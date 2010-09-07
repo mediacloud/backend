@@ -91,6 +91,39 @@ Real article text after exclude
 __END_TEST_CASE__
     },
 
+#     {
+#         test_name  => 'clickprint2',
+#         test_input => <<'__END_TEST_CASE__',
+# <html>
+# <header>
+# </header> <!---->
+# <body>
+# Before click print<!--startclickprintinclude-->Real article text
+# <!--endclickprintinclude-->
+# Outside click print
+# <!--startclickprintinclude-->Real article text2<!--startclickprintexclude-->Excluded text<!--endclickprintexclude-->Real article text after exclude
+# <!--endclickprintinclude-->
+# </body>
+# <!-- end body -->
+# </html>
+# __END_TEST_CASE__
+#         ,
+#         test_output => <<'__END_TEST_CASE__',
+
+
+
+
+# <!--startclickprintinclude-->Real article text
+# <!--endclickprintinclude-->
+
+# <!--startclickprintinclude-->Real article text2<!--startclickprintexclude--><!--endclickprintexclude-->Real article text after exclude
+# <!--endclickprintinclude-->
+
+
+
+# __END_TEST_CASE__
+#     },
+
     {
         test_name => 'broken_comment',
 
