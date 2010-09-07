@@ -103,7 +103,7 @@ sub get_value_of_base_64_node
         my $story_line_numbers_actual = join ",",
           map { $_->{ line_number } } grep { $_->{ is_story } } @{ $extract_results->{ scores } };
 
-        is( $story_line_numbers_expected, $story_line_numbers_actual, "story line numbers" );
+        is( $story_line_numbers_actual, $story_line_numbers_expected, "story line numbers" );
     }
 }
 
