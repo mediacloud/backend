@@ -45,7 +45,7 @@ sub get_liveinternet_ru_rankings
     # add header line.
     $csv->add_line( $fields );
 
-    for my $i ( 1 .. 30 )
+    for my $i ( 1 .. 200 )
     {
         my $url = "http://www.liveinternet.ru/rating/ru/media//index.html?page=$i";
         print STDERR "fetching $url \n";
@@ -980,7 +980,8 @@ sub main
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    get_news_yandex_ru_smi_rankings();
+    #get_liveinternet_ru_rankings();
+    #get_news_yandex_ru_smi_rankings();
     #get_blogs_yandex_ru_rankings_6months();
     #get_blogs_yandex_ru_rankings_month();
     #get_blogs_yandex_ru_rankings_week();
