@@ -14,6 +14,14 @@ add_filter('the_content_rss', 'insert_mcviz_form');
 add_filter('the_content', 'insert_mcviz_results');
 add_filter('the_content_rss', 'insert_mcviz_results');
 
+/**
+ *
+ *
+ * @param unknown $viz_type
+ * @return unknown
+ */
+
+
 function check_viz_type($viz_type) {
     if ($_REQUEST[viz_type] == $viz_type) {
         return ' checked="checked" ';
@@ -23,6 +31,12 @@ function check_viz_type($viz_type) {
 }
 
 
+/**
+ *
+ *
+ * @param unknown $content
+ * @return unknown
+ */
 function insert_mcviz_form($content) {
 
     $replace_tag = "mcvizform";
@@ -77,7 +91,7 @@ function insert_mcviz_form($content) {
     // when we skip id's
     $viz_form .= "
 	for (i=0;i<=$max_media_id;i++) {
-    mediaList[i] = '';}";
+	mediaList[i] = '';}";
 
     $result = pg_query('select * from media where media.media_id not in (select media.media_id from media, tags, media_tags_map where media.media_id=media_tags_map.media_id and tags.tags_id=media_tags_map.tags_id and tags.tag = \'deleteme\') order by name asc') or $dberror .= 'Query failed: ' . pg_last_error();
     if ($dberror != '') { return output_db_error($dberror); }
@@ -119,6 +133,12 @@ function insert_mcviz_form($content) {
 }
 
 
+/**
+ *
+ *
+ * @param unknown $content
+ * @return unknown
+ */
 function insert_mcviz_results($content) {
 
     $replace_tag = "mcvizresults";
@@ -330,10 +350,17 @@ function insert_mcviz_results($content) {
 
         $chart .= "<div style='text-align: center;'>";
         foreach ($_REQUEST["media_id"] as $cur_media_id) {
-            if ($cur_media_id == '') { continue; }
+            if ($cur_media_id == '') {
+                continue;
+            }
+
             $query = "select chart_url, m.name as name from media_google_charts_map_url as u, media as m where u.media_id = m.media_id and u.media_id = $cur_media_id and chart_type_is_log is " . $_REQUEST["chart_is_log"] . " and tag_sets_id='" . $_REQUEST["tagset"] . "'";
             $result = pg_query($query) or $dberror .= 'Query failed: ' . pg_last_error();
-            if ($dberror != '') { return output_db_error($dberror); }
+
+            if ($dberror != '') {
+                return output_db_error($dberror);
+            }
+
             $line = pg_fetch_array($result, null, PGSQL_ASSOC);
             //print_r($line); echo "<br /><br />";
             $chart .= $line[name] . ":<br />";
@@ -356,6 +383,12 @@ function insert_mcviz_results($content) {
 }
 
 
+/**
+ *
+ *
+ * @param unknown $thedberror
+ * @return unknown
+ */
 function connect_to_db($thedberror) {
 
     $dbconn = pg_connect("host=clem dbname=mediacloudwordpresstmp user=mediacloudwordpress password=dkfSDFSD2124sss port=5432") or $thedberror = 'PostgreSQL error: Could not connect: ' . pg_last_error();
@@ -366,6 +399,12 @@ function connect_to_db($thedberror) {
 }
 
 
+/**
+ *
+ *
+ * @param unknown $dberror
+ * @return unknown
+ */
 function output_db_error($dberror) {
 
     return "<br /><div id='notice' style=\"width:50%; margin:20px; padding:5px\">The Media Cloud database is temporarily offline.  Charts will not work until it returns.  Our apologies.<!-- " . addslashes(strip_tags($dberror)) . " --></div><br clear='all' />" . $content;
@@ -373,6 +412,12 @@ function output_db_error($dberror) {
 }
 
 
+/**
+ *
+ *
+ * @param unknown $error
+ * @return unknown
+ */
 function output_error($error) {
 
     return "<br /><div id='notice' style=\"width:50%; margin:20px; padding:5px\">Error: " . addslashes(strip_tags($error)) . "<!-- " . addslashes(strip_tags($error)) . " --></div><br clear='all' />" . $content;
