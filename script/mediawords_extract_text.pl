@@ -23,6 +23,40 @@ use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
+use Perl6::Say;
+
+sub _process_download
+{
+
+    my ( $db, $download, $process_num ) = @_;
+
+    print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
+    my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+
+    my $remaining_download =
+      $db->query( "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
+        $download->{ stories_id } )->hash;
+    if ( !$remaining_download )
+    {
+        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+
+        # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
+        #
+        # print STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) \n";
+        # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
+        # {
+        #     print STDERR "[$process_num] $download->{downloads_id} $module: "
+        #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
+        # }
+
+        MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
+    }
+    else
+    {
+        print STDERR "[$process_num] pending more downloads ...\n";
+    }
+
+}
 
 # extract, story, and tag downloaded text for a $process_num / $num_processes slice of downloads
 sub extract_text
@@ -48,31 +82,14 @@ sub extract_text
         {
             $download_found = 1;
 
-            print STDERR
-              "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
-            my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+            eval {
+                _process_download( $db, $download, $process_num );
 
-            my $remaining_download = $db->query(
-                "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
-                $download->{ stories_id } )->hash;
-            if ( !$remaining_download )
+            };
+
+            if ( $@ )
             {
-                my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
-
-                # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
-                #
-                # print STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) \n";
-                # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
-                # {
-                #     print STDERR "[$process_num] $download->{downloads_id} $module: "
-                #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
-                # }
-
-                MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
-            }
-            else
-            {
-                print STDERR "[$process_num] pending more downloads ...\n";
+                say STDERR "[$process_num] extractor error processing download " . $download->{ downloads_id } . ": $@";
             }
         }
 
