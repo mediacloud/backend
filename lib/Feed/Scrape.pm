@@ -161,7 +161,18 @@ sub _fix_atom_content_element_encoding
     my $xml_string = shift @_;
 
     my $parser      = XML::LibXML->new;
-    my $doc         = $parser->parse_string( $xml_string );
+    my $doc;
+
+    eval {
+      $doc = $parser->parse_string( $xml_string );
+    };
+
+    if ($@)
+    {
+      say STDERR "Error parsing feed string";
+      return $xml_string;
+    }
+
     my $doc_element = $doc->documentElement() || die;
 
     my $xpc = XML::LibXML::XPathContext->new;
