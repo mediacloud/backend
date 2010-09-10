@@ -140,7 +140,7 @@ sub store_downloads
 
     my $download_results = [];
 
-    my $dbs = MediaWords::DB::connect_to_db( 'test' );
+    my $dbs = MediaWords::DB::connect_to_db;
 
     for my $download ( @downloads )
     {
@@ -174,7 +174,7 @@ sub create_download_element
 sub main
 {
 
-    my $dbs = MediaWords::DB::connect_to_db( 'test' );
+    my $dbs = MediaWords::DB::connect_to_db;
 
     my $file;
     my @download_ids;
