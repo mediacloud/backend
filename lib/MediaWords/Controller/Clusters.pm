@@ -28,6 +28,8 @@ sub list : Local
 {
     my ( $self, $c ) = @_;
 
+    say STDERR "Starting Clusters/list ";
+
     my $cluster_runs =
       $c->dbis->query( "select mcr.*, ms.name as media_set_name from media_cluster_runs mcr, media_sets ms " .
           "  where mcr.media_sets_id = ms.media_sets_id " . "  order by mcr.media_cluster_runs_id" )->hashes;
@@ -72,6 +74,8 @@ sub create : Local
 sub view : Local
 {
     my ( $self, $c, $cluster_runs_id ) = @_;
+
+    say STDERR "Starting Clusters/view ";
 
     my $run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) || die( "Unable to find run $cluster_runs_id" );
 
