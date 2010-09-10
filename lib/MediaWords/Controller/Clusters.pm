@@ -10,6 +10,8 @@ use MediaWords::Cluster;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Graph;
 use Data::Dumper;
+use Perl6::Say;
+
 use MediaWords::Util::Timing qw( start_time stop_time );
 
 # Set a threshold for link weight--links won't be displayed if they're less than this
@@ -73,6 +75,8 @@ sub view : Local
 
     my $run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) || die( "Unable to find run $cluster_runs_id" );
 
+    say STDERR "Clusters/view found cluster run";
+
     my $media_clusters =
       $c->dbis->query( "select * from media_clusters where media_cluster_runs_id = ?", $cluster_runs_id )->hashes;
 
@@ -106,10 +110,15 @@ sub view : Local
 
     $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );
 
+    say STDERR "computing force layout";
+
     my $t0     = start_time( "computing force layout" );
     my $method = 'graph-layout-aesthetic';
     my ( $json_string, $stats ) = MediaWords::Util::Graph::prepare_graph( $media_clusters, $c, $cluster_runs_id, $method );
     stop_time( "computing force layout", $t0 );
+
+    say STDERR "finished computing force layout";
+
 
     # MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
 
