@@ -111,9 +111,34 @@ span.tagcloud24 { font-size: 36px;}
 [
 <a href="[% c.uri_for('/dashboard/list/') _ dashboard.dashboards_id %]">Dashboard Home</a>
 | <a href="[% c.uri_for('/dashboard/compare_media_set_terms/') _ dashboard.dashboards_id %]">Compare Media Set Terms</a>
+| <a href="[% c.uri_for('/dashboard/report_bug/' ) _ dashboard.dashboards_id _ '?url=' %][% c.req.uri | uri %]">Report Bugginess</a>
 [% IF media_set %]
 | <a href="[% c.uri_for( '/dashboard/list/' _ dashboard.dashboards_id, { date => date, compare_media_sets_id => media_set.media_sets_id, dashboard_topics_id => dashboard_topic.dashboard_topics_id } ) %]">Compare [% media_set.name | html %]</a>
 [% END %]
 ]
 </div>
 
+[% IF status_msg || c.request.params.status_msg -%]
+[% SET msgs = status_msg || c.request.params.status_msg -%]
+[% SET msg_list = msgs.split("\n") -%]
+
+<div id="status">
+[% FOREACH msg IN msg_list -%]
+[% msg | html %] <br />
+[% END #[% FOREACH msg IN msg_list -%]
+</div>
+
+[% END #[% IF status_msg || c.request.params.status_msg -%]
+
+
+[% IF error_msg || c.request.params.error_msg -%]
+[% SET msgs = error_msg || c.request.params.error_msg -%]
+[% SET msg_list = msgs.split("\n") -%]
+
+<div id="error">
+[% FOREACH msg IN msg_list -%]
+[% msg | html %] <br />
+[% END #[% FOREACH msg IN msg_list -%]
+</div>
+
+[% END #[% IF error_msg || c.request.params.error_msg -%]

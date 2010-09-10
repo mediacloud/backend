@@ -10,6 +10,10 @@ database:
       user  : "USERNAME"
       pass  : "PASSWORD"
 
+mail:
+    - smtp_server : "SMTP_SERVER"
+      bug_email : "EMAIL_ADDRESS_TO_RECEIVE_BUG_REPORT_EMAILS"
+
 ### everything below is optional.  the system should work out of the box without 
 ### touching any of these other than calais_key for tagging
 

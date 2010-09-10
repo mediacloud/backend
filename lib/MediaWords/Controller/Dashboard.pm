@@ -6,10 +6,12 @@ use parent 'Catalyst::Controller';
 
 use HTML::TagCloud;
 use List::Util;
+use Net::SMTP;
 use URI::Escape;
 
 use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
+use MediaWords::Util::Config;
 use MediaWords::Util::Stemmer;
 use MediaWords::Util::Translate;
 
@@ -858,6 +860,46 @@ sub compare_media_set_terms : Local
     $c->res->header('Content-Disposition', qq[attachment; filename="term_counts.csv"]);
     $c->res->content_type( 'text/csv' );
     $c->res->body( $output );
+}
+
+# send an email reporting buggy behavior including the url of the reported page
+sub report_bug : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+    
+    my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "dashboard not found: $dashboards_id" );
+    my $url = $c->req->param( 'url' ) || die( 'no url' );
+    
+    if ( !$c->req->param( 'submit' ) )
+    {
+        $c->stash->{ dashboard } = $dashboard;
+        $c->stash->{ url } = $url;      
+        $c->stash->{ template } = 'dashboard/report_bug.tt2';
+        return;
+    }
+    
+    my $config = MediaWords::Util::Config::get_config;
+    print STDERR Dumper( $config );
+    my $smtp_server = $config->{ mail }->{ smtp_server } || die( 'no mail:smtp_server in mediawords.yml' );
+    my $bug_email = $config->{ mail }->{ bug_email } || die( 'no mail:bug_email in mediawords.yml' );
+    
+    my $email = $c->req->param( 'email' ) || $bug_email;
+    my $description = $c->req->param( 'description' );
+    
+    my $smtp = Net::SMTP->new( $smtp_server ) || die;
+
+    $smtp->mail( $email ) || die;
+    $smtp->to( $bug_email ) || die;
+
+    $smtp->data() || die;
+    $smtp->datasend("To: $bug_email\nFrom: $email\nSubject: Media Cloud Bug Report\n\n") || die;
+    $smtp->datasend("Url: $url\n\nDescription: $description\n\n") || die;
+    $smtp->dataend() || die;
+
+    $smtp->quit || die;
+
+    my $redirect = $c->uri_for( '/dashboard/list/' . $dashboard->{ dashboards_id }, { status_msg => 'Bug report filed.  Thanks!' } );
+    $c->res->redirect( $redirect );
 }
 
 1;
