@@ -87,7 +87,15 @@ sub _run_fetcher
                 }
 
                 my $response = $fetcher->fetch_download( $download );
-                $handler->handle_response( $download, $response );
+
+		eval {
+		  $handler->handle_response( $download, $response );
+		};
+
+		if ($@)
+		{
+		   die ("Error in handle_response() for downloads_id: '$downloads_id'");
+		}
 
                 print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
                   $download->{ url } . " complete\n";
