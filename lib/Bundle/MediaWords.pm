@@ -196,6 +196,8 @@ IO::Uncompress::Gunzip
 
 Lingua::Stem::En
 
+Lingua::ZH::WordSegmenter
+
 List::Compare
 
 List::MoreUtils
