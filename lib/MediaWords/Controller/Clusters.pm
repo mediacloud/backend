@@ -114,15 +114,25 @@ sub view : Local
 
     $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );
 
+    my ( $json_string, $stats );
+
+    eval {
+
     say STDERR "computing force layout";
 
     my $t0     = start_time( "computing force layout" );
     my $method = 'graph-layout-aesthetic';
-    my ( $json_string, $stats ) = MediaWords::Util::Graph::prepare_graph( $media_clusters, $c, $cluster_runs_id, $method );
+
+    ( $json_string, $stats ) = MediaWords::Util::Graph::prepare_graph( $media_clusters, $c, $cluster_runs_id, $method );
     stop_time( "computing force layout", $t0 );
-
     say STDERR "finished computing force layout";
+  };
 
+    if ($@)
+    {
+	say STDERR "Error preparing graph $@";
+	$c->stash->{ status_msg } = "Error preparing graph $@";
+    }
 
     # MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
 
