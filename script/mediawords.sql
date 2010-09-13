@@ -498,6 +498,7 @@ create table story_sentence_counts (
 );
 
 create index story_sentence_counts_md5 on story_sentence_counts( media_id, publish_week, sentence_md5 );
+create index story_sentence_counts_first_stories_id on story_sentence_counts( first_stories_id );
 
 create table story_sentence_words (
        stories_id                   int             not null, /* references stories on delete cascade, */
