@@ -242,7 +242,7 @@ sub _initialize_nodes_from_media_list
 }
 
 Readonly my $_cluster_data_prefix => 'cluster_test_1_';
-Readonly my $_dump_test_data      => 1;
+Readonly my $_dump_test_data      => 0;
 
 sub _dump_test_data
 {
@@ -293,6 +293,8 @@ sub do_get_graph
 sub prepare_graph
 {
     my ( $media_clusters, $c, $cluster_runs_id, $method ) = @_;
+
+    die "media_clusters cannot be empty" if scalar(@$media_clusters) == 0;
 
     my $nodes = _initialize_nodes_from_media_list( $media_clusters );
     $nodes = _add_links_to_nodes( $c, $cluster_runs_id, $nodes );
