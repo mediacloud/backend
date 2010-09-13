@@ -297,6 +297,7 @@ sub prepare_graph
     my ( $media_clusters, $c, $cluster_runs_id, $method ) = @_;
 
     die "media_clusters cannot be empty" if scalar(@$media_clusters) == 0;
+    die "Must be more than one media_cluster" if scalar(@$media_clusters) == 1;
 
     my $nodes = _initialize_nodes_from_media_list( $media_clusters );
     $nodes = _add_links_to_nodes( $c, $cluster_runs_id, $nodes );
