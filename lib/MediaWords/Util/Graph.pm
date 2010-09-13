@@ -36,6 +36,7 @@ use MediaWords::Util::HTML;
 use MediaWords::Util::GraphLayoutAesthetic;
 use MediaWords::Util::Protovis;
 use MediaWords::Util::GraphViz;
+use Readonly;
 
 use constant MIN_LINK_WEIGHT => 0.2;
 use constant MAX_NUM_LINKS   => 10000;
@@ -240,16 +241,33 @@ sub _initialize_nodes_from_media_list
     return $nodes;
 }
 
-# Get nodes ready for graphing by whatever means necessary
-sub prepare_graph
+Readonly my $_cluster_data_prefix => 'cluster_test_1_';
+Readonly my $_dump_test_data      => 1;
+
+sub _dump_test_data
 {
-    my ( $media_clusters, $c, $cluster_runs_id, $method ) = @_;
 
-    my $nodes = _initialize_nodes_from_media_list( $media_clusters );
-    $nodes = _add_links_to_nodes( $c, $cluster_runs_id, $nodes );
+    my ( $nodes, $media_clusters ) = @_;
 
-    # $nodes = _add_links_from_zscores($nodes); # Alternative method to add links
-    # $nodes = _limit_links_per_node($nodes, 0, 20);
+    BEGIN
+    {
+        use FindBin;
+        use lib "$FindBin::Bin/../t/";
+        use MediaWords::Test::Data;
+    }
+
+    MediaWords::Test::Data::store_test_data( "$_cluster_data_prefix" . "nodes",          $nodes );
+    MediaWords::Test::Data::store_test_data( "$_cluster_data_prefix" . "media_clusters", $media_clusters );
+}
+
+sub do_get_graph
+{
+    my ( $nodes, $media_clusters, $method ) = @_;
+
+    if ( $_dump_test_data )
+    {
+        _dump_test_data( $nodes, $media_clusters );
+    }
 
     my $json_string = "";
 
@@ -269,6 +287,20 @@ sub prepare_graph
     my $stats = update_stats( $nodes );
 
     return ( $json_string, $stats );
+}
+
+# Get nodes ready for graphing by whatever means necessary
+sub prepare_graph
+{
+    my ( $media_clusters, $c, $cluster_runs_id, $method ) = @_;
+
+    my $nodes = _initialize_nodes_from_media_list( $media_clusters );
+    $nodes = _add_links_to_nodes( $c, $cluster_runs_id, $nodes );
+
+    # $nodes = _add_links_from_zscores($nodes); # Alternative method to add links
+    # $nodes = _limit_links_per_node($nodes, 0, 20);
+
+    return do_get_graph( $nodes, $media_clusters, $method );
 }
 
 1;
