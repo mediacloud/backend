@@ -269,6 +269,8 @@ sub do_get_graph
         _dump_test_data( $nodes, $media_clusters );
     }
 
+    die "There must be more than one node " if scalar(@$nodes) <= 1;
+
     my $json_string = "";
 
     if ( $method eq 'protovis-force' )
