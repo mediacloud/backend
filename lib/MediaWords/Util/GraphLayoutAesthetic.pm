@@ -3,6 +3,7 @@ package MediaWords::Util::GraphLayoutAesthetic;
 use strict;
 use Data::Dumper;
 use List::Member;
+use Perl6::Say;
 
 use Graph;
 use Graph::Layout::Aesthetic;
@@ -208,13 +209,19 @@ sub get_graph
 {
     my ( $nodes, $media_clusters ) = @_;
 
+    say STDERR "starting GraphLayoutAesthetic::get_graph";
     my $graph = _add_nodes_and_links_to_graph( $nodes );
+
+    say STDERR "GraphLayoutAesthetic::get_graph running force layout on graph";
     $graph = _run_force_layout_on_graph( $graph );
 
+    say STDERR "GraphLayoutAesthetic::get_graph running get_centroids_from_graph";
     my $centroids = _get_centroids_from_graph( $graph, $media_clusters, $nodes );
 
+    say STDERR "GraphLayoutAesthetic::get_graph running _get_json_from_graph";
     my $json_string = _get_json_from_graph( $graph, $nodes, $centroids );
 
+    say STDERR "finishing GraphLayoutAesthetic::get_graph";
     return $json_string;
 }
 
