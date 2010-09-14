@@ -23,6 +23,8 @@ use MediaWords::DB;
 use XML::LibXML;
 use Encode;
 use MIME::Base64;
+use Carp qw (confess);
+
 
 Readonly my $output_dir => "$cwd/download_content_test_data";
 
@@ -31,6 +33,9 @@ print "$output_dir\n";
 sub get_value_of_node
 {
     my ( $root, $nodeName ) = @_;
+
+    die if !( $root->getElementsByTagName( $nodeName ) )[ 0 ];
+    confess if !( $root->getElementsByTagName( $nodeName ) )[ 0 ]->firstChild;
 
     my $value = ( $root->getElementsByTagName( $nodeName ) )[ 0 ]->firstChild->nodeValue;
 
@@ -42,6 +47,7 @@ sub get_value_of_base_64_node
 {
     my ( $root, $nodeName ) = @_;
 
+    eval {
     my $value = get_value_of_node( $root, $nodeName );
 
     my $base_64_decoded_value = decode_base64( $value );
@@ -49,6 +55,9 @@ sub get_value_of_base_64_node
     my $ret = decode( "utf8", $base_64_decoded_value );
 
     return $ret;
+    };
+
+    confess $@ if ($@);
 }
 
 {
@@ -80,6 +89,8 @@ sub get_value_of_base_64_node
 
         my $story_title       = get_value_of_base_64_node( $root, 'story_title' );
         my $story_description = get_value_of_base_64_node( $root, 'story_description' );
+
+	MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$download_content, $story_title, $story_description);
 
         my $extract_results =
           MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $actual_preprocessed_text_array,
