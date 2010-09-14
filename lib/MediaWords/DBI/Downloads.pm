@@ -180,6 +180,18 @@ sub extract_download
     return extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
 }
 
+sub _do_extraction_from_content_ref
+{
+   my ($content_ref, $title, $description) = @_;
+
+   my @lines = split( /[\n\r]+/, $$content_ref );
+
+    my $lines = MediaWords::Crawler::Extractor::preprocess( \@lines );
+
+
+   return extract_preprocessed_lines_for_story( $lines, $title, $description);
+}
+
 sub extract_preprocessed_lines_for_story
 {
     my ( $lines, $story_title, $story_description ) = @_;
