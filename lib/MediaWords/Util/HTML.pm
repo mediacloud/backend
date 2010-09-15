@@ -33,9 +33,22 @@ sub html_strip
     # TODO HACK to prevent StripPP from segfaulting.
     # This appears to be necessary on Perl 5.8 but not on 5.10.
     #
+
     if (length ($_[ 0 ] ) > 14000)
     {
-	return (HTML::StripPP::strip( substr ($_[ 0 ], 0, 14000) ) . HTML::StripPP::strip( substr ($_[ 0 ], 14000) ) ) || '';
+	my $segment_length = 14000;
+
+	my $str_pos = 0;
+
+	my $ret;
+
+	while ( $str_pos < length($_[ 0 ] ) )
+	{
+	    $ret .= HTML::StripPP::strip( substr ($_[ 0 ], $str_pos, $segment_length) );
+	    $str_pos += $segment_length;
+	}
+
+	return $ret;
     }
 
     return HTML::StripPP::strip( $_[ 0 ] ) || '';
