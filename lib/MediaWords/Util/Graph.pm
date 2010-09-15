@@ -249,12 +249,22 @@ sub _dump_test_data
 
     my ( $nodes, $media_clusters ) = @_;
 
+    my $base_dir;
+    my $relative_path;
+
     BEGIN
     {
-        use FindBin;
-        use lib "$FindBin::Bin/../t/";
-        use MediaWords::Test::Data;
+        use File::Basename ();
+        use Cwd            ();
+
+        $relative_path = '../../../';    # Path to base of project relative to the current file
+        $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
+
     }
+
+    use lib "${base_dir}/t";
+
+    use MediaWords::Test::Data;
 
     MediaWords::Test::Data::store_test_data( "$_cluster_data_prefix" . "nodes",          $nodes );
     MediaWords::Test::Data::store_test_data( "$_cluster_data_prefix" . "media_clusters", $media_clusters );
@@ -269,7 +279,7 @@ sub do_get_graph
         _dump_test_data( $nodes, $media_clusters );
     }
 
-    die "There must be more than one node " if scalar(@$nodes) <= 1;
+    die "There must be more than one node " if scalar( @$nodes ) <= 1;
 
     my $json_string = "";
 
@@ -296,8 +306,8 @@ sub prepare_graph
 {
     my ( $media_clusters, $c, $cluster_runs_id, $method ) = @_;
 
-    die "media_clusters cannot be empty" if scalar(@$media_clusters) == 0;
-    die "Must be more than one media_cluster" if scalar(@$media_clusters) == 1;
+    die "media_clusters cannot be empty"      if scalar( @$media_clusters ) == 0;
+    die "Must be more than one media_cluster" if scalar( @$media_clusters ) == 1;
 
     my $nodes = _initialize_nodes_from_media_list( $media_clusters );
     $nodes = _add_links_to_nodes( $c, $cluster_runs_id, $nodes );
