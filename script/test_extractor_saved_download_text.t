@@ -46,8 +46,6 @@ sub get_value_of_node
 sub get_value_of_base_64_node
 {
     my ( $root, $nodeName ) = @_;
-
-    eval {
     my $value = get_value_of_node( $root, $nodeName );
 
     my $base_64_decoded_value = decode_base64( $value );
@@ -55,9 +53,6 @@ sub get_value_of_base_64_node
     my $ret = decode( "utf8", $base_64_decoded_value );
 
     return $ret;
-    };
-
-    confess $@ if ($@);
 }
 
 {
