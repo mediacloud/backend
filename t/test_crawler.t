@@ -25,6 +25,7 @@ use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
 use Perl6::Say;
+use Data::Sorting qw( :basics :arrays :extras );
 
 # add a test media source and feed to the database
 sub add_test_feed
@@ -70,6 +71,20 @@ sub run_crawler
     print "crawler exiting ...\n";
 }
 
+sub extract_downloads
+{
+    # my ( $db ) = @_;
+
+    # print "extracting downloads ...\n";
+ 
+    # my $downloads = $db->query( "select * from downloads" )->hashes;
+
+    # for my $download ( @{ $downloads } )
+    # {     
+    #      MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, 1 );
+    # }   
+}
+
 # run extractor, tagger, and vector on all stories
 sub process_stories
 {
@@ -81,13 +96,13 @@ sub process_stories
 
     for my $story ( @{ $stories } )
     {
-        my $downloads = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hashes;
+         my $downloads = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hashes;
 
-        foreach my $download ( @{ $downloads } )
-        {
-            print "extracting text ...\n";
-            MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
-        }
+         foreach my $download ( @{ $downloads } )
+         {
+             print "extracting text ...\n";
+             MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+         }
 
         print "adding default tags ...\n";
         MediaWords::DBI::Stories::add_default_tags( $db, $story );
@@ -207,6 +222,19 @@ sub dump_top_500_weekly_words
     return;
 }
 
+sub sort_top_500_weekly_words
+{
+    my ($array) = @_;
+
+    #ensure that the order is deterministic
+    #first sort on the important fields then sort on everything just to be sure...
+    my @keys = qw (publish_week, stem, term, topics_id) ;
+
+    my @hash_fields = sort keys %{$array->[0]};
+
+    return [ sorted_array  ( @$array, @keys, @hash_fields) ];
+}
+
 sub test_top_500_weekly_words
 {
     my ( $db, $feed ) = @_;
@@ -222,6 +250,9 @@ sub test_top_500_weekly_words
         scalar( @{ $top_500_weekly_words_expected } ),
         'Top 500 weekly words table row count'
     );
+
+    $top_500_weekly_words_actual = sort_top_500_weekly_words($top_500_weekly_words_actual);
+    $top_500_weekly_words_expected = sort_top_500_weekly_words($top_500_weekly_words_expected);
 
     my $i;
 
@@ -292,6 +323,8 @@ sub main
             my $feed = add_test_feed( $db, $url_to_crawl );
 
             run_crawler();
+
+	    extract_downloads( $db );
 
             process_stories( $db );
 
