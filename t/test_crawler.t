@@ -73,16 +73,16 @@ sub run_crawler
 
 sub extract_downloads
 {
-    # my ( $db ) = @_;
+    my ( $db ) = @_;
 
-    # print "extracting downloads ...\n";
- 
-    # my $downloads = $db->query( "select * from downloads" )->hashes;
+    print "extracting downloads ...\n";
 
-    # for my $download ( @{ $downloads } )
-    # {     
-    #      MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, 1 );
-    # }   
+    my $downloads = $db->query( "select * from downloads" )->hashes;
+
+    for my $download ( @{ $downloads } )
+    {
+        MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, 1 );
+    }
 }
 
 # run extractor, tagger, and vector on all stories
@@ -96,19 +96,8 @@ sub process_stories
 
     for my $story ( @{ $stories } )
     {
-         my $downloads = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hashes;
-
-         foreach my $download ( @{ $downloads } )
-         {
-             print "extracting text ...\n";
-             MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
-         }
-
         print "adding default tags ...\n";
         MediaWords::DBI::Stories::add_default_tags( $db, $story );
-
-        print "update story_sentence_words ...\n";
-        MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
     }
 
     print "processing stories done.\n";
@@ -191,11 +180,21 @@ sub generate_aggregate_words
     my ( $db, $feed ) = @_;
 
     my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
-    my ( $end_date ) = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
+    my ( $end_date )   = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
 
-    my $dashboard = $db->create('dashboards', { name => 'test_dashboard', start_date => $start_date, end_date => $end_date } );
-    
-    my $dashboard_topic = $db->create('dashboard_topics', { dashboards_id => $dashboard->{dashboards_id}, name => 'obama_topic', query => 'obama', start_date => $start_date, end_date => $end_date } );
+    my $dashboard =
+      $db->create( 'dashboards', { name => 'test_dashboard', start_date => $start_date, end_date => $end_date } );
+
+    my $dashboard_topic = $db->create(
+        'dashboard_topics',
+        {
+            dashboards_id => $dashboard->{ dashboards_id },
+            name          => 'obama_topic',
+            query         => 'obama',
+            start_date    => $start_date,
+            end_date      => $end_date
+        }
+    );
 
     MediaWords::StoryVectors::update_aggregate_words( $db, $start_date );
 }
@@ -224,15 +223,15 @@ sub dump_top_500_weekly_words
 
 sub sort_top_500_weekly_words
 {
-    my ($array) = @_;
+    my ( $array ) = @_;
 
     #ensure that the order is deterministic
     #first sort on the important fields then sort on everything just to be sure...
-    my @keys = qw (publish_week, stem, term, topics_id) ;
+    my @keys = qw (publish_week, stem, term, topics_id);
 
-    my @hash_fields = sort keys %{$array->[0]};
+    my @hash_fields = sort keys %{ $array->[ 0 ] };
 
-    return [ sorted_array  ( @$array, @keys, @hash_fields) ];
+    return [ sorted_array( @$array, @keys, @hash_fields ) ];
 }
 
 sub test_top_500_weekly_words
@@ -251,8 +250,8 @@ sub test_top_500_weekly_words
         'Top 500 weekly words table row count'
     );
 
-    $top_500_weekly_words_actual = sort_top_500_weekly_words($top_500_weekly_words_actual);
-    $top_500_weekly_words_expected = sort_top_500_weekly_words($top_500_weekly_words_expected);
+    $top_500_weekly_words_actual   = sort_top_500_weekly_words( $top_500_weekly_words_actual );
+    $top_500_weekly_words_expected = sort_top_500_weekly_words( $top_500_weekly_words_expected );
 
     my $i;
 
@@ -324,7 +323,7 @@ sub main
 
             run_crawler();
 
-	    extract_downloads( $db );
+            extract_downloads( $db );
 
             process_stories( $db );
 
