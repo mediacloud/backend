@@ -182,14 +182,13 @@ sub extract_download
 
 sub _do_extraction_from_content_ref
 {
-   my ($content_ref, $title, $description) = @_;
+    my ( $content_ref, $title, $description ) = @_;
 
-   my @lines = split( /[\n\r]+/, $$content_ref );
+    my @lines = split( /[\n\r]+/, $$content_ref );
 
     my $lines = MediaWords::Crawler::Extractor::preprocess( \@lines );
 
-
-   return extract_preprocessed_lines_for_story( $lines, $title, $description);
+    return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
 
 sub extract_preprocessed_lines_for_story
@@ -293,6 +292,39 @@ sub get_media_id
     defined( $media_id ) || die "Could not get media id for feeds_id '$feeds_id " . $db->error;
 
     return $media_id;
+}
+
+sub process_download_for_extractor
+{
+
+    my ( $db, $download, $process_num ) = @_;
+
+    print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
+    my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
+
+    my $remaining_download =
+      $db->query( "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
+        $download->{ stories_id } )->hash;
+    if ( !$remaining_download )
+    {
+        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+
+        # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
+        #
+        # print STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) \n";
+        # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
+        # {
+        #     print STDERR "[$process_num] $download->{downloads_id} $module: "
+        #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
+        # }
+
+        MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
+    }
+    else
+    {
+        print STDERR "[$process_num] pending more downloads ...\n";
+    }
+
 }
 
 1;
