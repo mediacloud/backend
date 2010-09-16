@@ -254,9 +254,21 @@ sub update_story_sentence_words
     #if the text is in Chinese
     if ( $is_Chinese )
     {
+
+        my $base_dir;
+
+        BEGIN
+        {
+            use File::Basename ();
+            use Cwd            ();
+
+            my $relative_path = '../..';    # Path to base of project relative to the current file
+            $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
+
+        }
         my %par = ();
         $par{ "dic_encoding" } = "utf8";
-        $par{ "dic" }          = "lib/Lingua/ZH/dict.txt";
+        $par{ "dic" }          = "$base_dir/lib/Lingua/ZH/dict.txt";
         my $segmenter = Lingua::ZH::WordSegmenter->new( %par );
 
         #convert traditional characters into simplified characters
