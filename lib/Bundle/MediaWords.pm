@@ -45,6 +45,8 @@ Catalyst::Test
 
 Date::Parse
 
+Data::Sorting
+
 DBIx::Simple
 
 Graph
