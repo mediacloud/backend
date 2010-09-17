@@ -246,7 +246,7 @@ sub update_story_sentence_words
 
     my $is_Chinese = 0;
 
-    if ( $enable_chinese_support == 'yes' && Lingua::ZH::MediaWords::text_is_Chinese( $story_text ) )
+    if ( $enable_chinese_support eq 'yes' && Lingua::ZH::MediaWords::text_is_Chinese( $story_text ) )
     {
         $is_Chinese = 1;
     }
