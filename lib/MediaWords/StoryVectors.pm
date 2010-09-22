@@ -547,13 +547,17 @@ sub _update_weekly_words
         "delete from weekly_words where publish_week = date_trunc( 'week', '${ sql_date }'::date ) $update_clauses " );
 
     $db->query( "insert into weekly_words (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
-"  select media_sets_id, max(term), stem, sum(stem_count), date_trunc('week', min(publish_day)), dashboard_topics_id "
-          . "    from daily_words "
-          . "    where publish_day between date_trunc('week', '${sql_date}'::date) "
-          . "        and date_trunc( 'week', '${sql_date}'::date )  + interval '6 days' "
-          . "        $update_clauses "
-          . "    group by media_sets_id, stem, dashboard_topics_id "
-          . "    having sum(stem_count) > 1" );
+          "  select media_sets_id, term, stem, sum_stem_counts, publish_week, dashboard_topics_id from      " .
+          "   (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+          "     sum(stem_count_sum) over w as sum_stem_counts  from " .
+          "(  select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
+          "date_trunc('week', min(publish_day)) as publish_week, dashboard_topics_id from daily_words " .
+          "    where publish_day between date_trunc('week', '${sql_date}'::date) " .
+          "        and date_trunc( 'week', '${sql_date}'::date )  + interval '6 days' $update_clauses " .
+          "    group by media_sets_id, stem, term, dashboard_topics_id ) as foo" .
+          " WINDOW w  as (partition by media_sets_id, stem, publish_week,  dashboard_topics_id  ) " .
+          "	               )  q                                                         " .
+          "              where term_rank = 1 and sum_stem_counts > 1 " );
 
     return 1;
 }
