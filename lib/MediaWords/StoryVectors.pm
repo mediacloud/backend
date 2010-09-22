@@ -468,11 +468,19 @@ sub _update_daily_words
     if ( !$dashboard_topics_id )
     {
         $db->query( "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
-              "  select media_sets_id, max(term), stem, sum(stem_count), date_trunc('day', min(publish_date)), null " .
-              "    from story_sentence_words ssw, media_sets_media_map msmm " .
-              "    where date_trunc( 'day', ssw.publish_date ) = '${sql_date}'::date and " .
-              "      ssw.media_id = msmm.media_id and $media_set_clause " . "    group by msmm.media_sets_id, ssw.stem " .
-              "    having sum(ssw.stem_count) > 1" );
+              "          select media_sets_id, term, stem, sum_stem_counts, publish_day, null from " .
+              "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+              "                sum(stem_count_sum) over w as sum_stem_counts  from " .
+              "                    ( select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
+              "                      date_trunc('day', min(publish_date)) as publish_day, null " .
+              "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
+              "                      where  date_trunc( 'day', ssw.publish_date ) = '${sql_date}'::date and " .
+              "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
+              "                      group by msmm.media_sets_id, ssw.stem, ssw.term " .
+              "                        ) as foo  " .
+              "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) " .
+              "	               )  q                                                         " .
+              "              where term_rank = 1 and sum_stem_counts > 1 " );
     }
 
     my $dashboard_topics = $db->query(
@@ -482,20 +490,33 @@ sub _update_daily_words
     for my $dashboard_topic ( @{ $dashboard_topics } )
     {
 
+        # my $query =
+        #   "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
+        #   "  select msmm.media_sets_id, max(ssw.term), ssw.stem, sum(ssw.stem_count), " .
+        #   "      date_trunc('day', min(ssw.publish_date)), ? " .
+        #   "    from story_sentence_words ssw, media_sets_media_map msmm, " . "      story_sentence_words sswq " .
+        #   "    where sswq.stories_id = ssw.stories_id and sswq.sentence_number = ssw.sentence_number and " .
+        #   "      sswq.stem = ? and sswq.media_id = msmm.media_id and " .
+        #   "      date_trunc( 'day', sswq.publish_date ) = ?::date and $media_set_clause " .
+        #   "    group by msmm.media_sets_id, ssw.stem " . "    having sum(ssw.stem_count) > 1"
+
+        #   ;
+
+        my $query_2 =
+          "    insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
+"select media_sets_id, max(ssw.term), ssw.stem, sum(ssw.stem_count),  date_trunc('day', min(ssw.publish_date)), ?  from " .
+           "     story_sentence_words ssw,                                                          " .
+          "                   ( select media_sets_id, stories_id, sentence_number from story_sentence_words sswq, media_sets_media_map msmm " .
+           " where                                                           " .
+          " sswq.media_id = msmm.media_id and sswq.stem = ? and date_trunc( 'day', sswq.publish_date ) = ? and " .
+          " $media_set_clause  group by msmm.media_sets_id, stories_id, sentence_number " .
+          " ) as ssw_sentences_for_query  " .
+          " where ssw.stories_id=ssw_sentences_for_query.stories_id and ssw.sentence_number=ssw_sentences_for_query.sentence_number " .
+          " group by media_sets_id, ssw.stem having sum(ssw.stem_count) > 1 ";
+
         # doing these one by one is the only way I could get the postgres planner to create
         # a sane plan
-        $db->query(
-            "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
-              "  select msmm.media_sets_id, max(ssw.term), ssw.stem, sum(ssw.stem_count), " .
-              "      date_trunc('day', min(ssw.publish_date)), ? " .
-              "    from story_sentence_words ssw, media_sets_media_map msmm, " . "      story_sentence_words sswq " .
-              "    where sswq.stories_id = ssw.stories_id and sswq.sentence_number = ssw.sentence_number and " .
-              "      sswq.stem = ? and sswq.media_id = msmm.media_id and " .
-              "      date_trunc( 'day', sswq.publish_date ) = ?::date and $media_set_clause " .
-              "    group by msmm.media_sets_id, ssw.stem " . "    having sum(ssw.stem_count) > 1",
-            $dashboard_topic->{ dashboard_topics_id },
-            $dashboard_topic->{ query }, $sql_date
-        );
+        $db->query( $query_2, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date );
     }
 
     $db->query( "insert into total_daily_words (media_sets_id, publish_day, total_count, dashboard_topics_id) " .
