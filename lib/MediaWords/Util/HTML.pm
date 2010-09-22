@@ -14,6 +14,7 @@ use HTML::StripPP;
 use HTML::Entities qw( decode_entities  );
 use Devel::Peek qw(Dump);
 use Encode;
+use List::Util qw(min);
 
 # provide a procedural interface to HTML::Strip
 # use HTML::StripPP instead of HTML::Strip b/c HTML::Strip mucks up the encoding
@@ -36,7 +37,7 @@ sub html_strip
 
     if (length ($_[ 0 ] ) > 14000)
     {
-	my $segment_length = 14000;
+	my $max_segment_length = 14000;
 
 	my $str_pos = 0;
 
@@ -44,6 +45,20 @@ sub html_strip
 
 	while ( $str_pos < length($_[ 0 ] ) )
 	{
+
+	    my $new_line_pos = index ($_[0], $str_pos + 5000, "\n");
+
+	    my $segment_length = $new_line_pos - $str_pos;
+
+	    if ($new_line_pos == -1)
+	      {
+		$segment_length = $max_segment_length;
+	      }
+
+	    $segment_length = min($segment_length, $max_segment_length);
+
+	    #say STDERR "segment_length $segment_length";
+
 	    $ret .= HTML::StripPP::strip( substr ($_[ 0 ], $str_pos, $segment_length) );
 	    $str_pos += $segment_length;
 	}
