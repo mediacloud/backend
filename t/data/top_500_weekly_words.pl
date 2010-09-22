@@ -6,7 +6,7 @@ $VAR1 = [
     'stem' => 'a330',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'a330s'
+    'term' => 'a330'
   },
   {
     'publish_week' => '2009-06-01 00:00:00',
@@ -54,7 +54,7 @@ $VAR1 = [
     'stem' => "a\x{e9}reo",
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => "a\x{e9}reos"
+    'term' => "a\x{e9}reo"
   },
   {
     'publish_week' => '2009-06-01 00:00:00',
@@ -318,7 +318,7 @@ $VAR1 = [
     'stem' => 'brazilian',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'brazilians'
+    'term' => 'brazilian'
   },
   {
     'publish_week' => '2009-06-01 00:00:00',
@@ -1270,7 +1270,7 @@ $VAR1 = [
     'stem' => 'skeptic',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'skeptics'
+    'term' => 'skepticism'
   },
   {
     'publish_week' => '2009-06-01 00:00:00',
@@ -1654,7 +1654,7 @@ $VAR1 = [
     'stem' => 'african',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'africans'
+    'term' => 'african'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -1726,7 +1726,7 @@ $VAR1 = [
     'stem' => 'american',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'americans'
+    'term' => 'american'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -1749,7 +1749,7 @@ $VAR1 = [
     'stem_count' => 2,
     'stem' => 'amongst',
     'media_sets_id' => 1,
-    'dashboard_topics_id' => undef,
+    'dashboard_topics_id' => 1,
     'term' => 'amongst'
   },
   {
@@ -1757,7 +1757,7 @@ $VAR1 = [
     'stem_count' => 2,
     'stem' => 'amongst',
     'media_sets_id' => 1,
-    'dashboard_topics_id' => 1,
+    'dashboard_topics_id' => undef,
     'term' => 'amongst'
   },
   {
@@ -1782,7 +1782,7 @@ $VAR1 = [
     'stem' => 'arab',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'arabs'
+    'term' => 'arabic'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -1870,7 +1870,7 @@ $VAR1 = [
     'stem' => 'ban',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'banning'
+    'term' => 'banned'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -1974,7 +1974,7 @@ $VAR1 = [
     'stem' => 'blogger',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'blogger'
+    'term' => 'bloggers'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -2022,7 +2022,7 @@ $VAR1 = [
     'stem' => 'brahmin',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'brahmins'
+    'term' => 'brahmin'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -2278,7 +2278,7 @@ $VAR1 = [
     'stem' => 'cosmopolitan',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'cosmopolitanism'
+    'term' => 'cosmopolitan'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -2318,7 +2318,7 @@ $VAR1 = [
     'stem' => 'dalit',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'dalits'
+    'term' => 'dalit'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -2550,7 +2550,7 @@ $VAR1 = [
     'stem' => 'emot',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'emotionally'
+    'term' => 'emotional'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -2662,7 +2662,7 @@ $VAR1 = [
     'stem' => 'famili',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'family'
+    'term' => 'families'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -2670,7 +2670,7 @@ $VAR1 = [
     'stem' => 'filter',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'filtering'
+    'term' => 'filter'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -2982,7 +2982,7 @@ $VAR1 = [
     'stem' => 'homosexu',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'homosexuals'
+    'term' => 'homosexuality'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -3046,7 +3046,7 @@ $VAR1 = [
     'stem' => 'indian',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'indians'
+    'term' => 'indian'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -3134,7 +3134,7 @@ $VAR1 = [
     'stem' => 'iranian',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'iranians'
+    'term' => 'iranian'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -3214,7 +3214,7 @@ $VAR1 = [
     'stem' => 'kenyan',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'kenyans'
+    'term' => 'kenyan'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -3334,7 +3334,7 @@ $VAR1 = [
     'stem' => 'lesbian',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'lesbians'
+    'term' => 'lesbian'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -3454,7 +3454,7 @@ $VAR1 = [
     'stem' => 'matrimoni',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'matrimonials'
+    'term' => 'matrimonial'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -3950,7 +3950,7 @@ $VAR1 = [
     'stem' => 'petit',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'petits'
+    'term' => 'petit'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -3990,7 +3990,7 @@ $VAR1 = [
     'stem' => 'pig',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'pigs'
+    'term' => 'pig'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -4070,7 +4070,7 @@ $VAR1 = [
     'stem' => 'procreat',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'procreative'
+    'term' => 'procreation'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -4102,7 +4102,7 @@ $VAR1 = [
     'stem' => 'protesta',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'protestas'
+    'term' => 'protesta'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -4166,7 +4166,7 @@ $VAR1 = [
     'stem' => 'rajput',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'rajputs'
+    'term' => 'rajput'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
@@ -4662,7 +4662,7 @@ $VAR1 = [
     'stem' => 'vigil',
     'media_sets_id' => 1,
     'dashboard_topics_id' => undef,
-    'term' => 'vigilants'
+    'term' => 'vigil'
   },
   {
     'publish_week' => '2009-06-08 00:00:00',
