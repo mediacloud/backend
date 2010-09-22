@@ -227,7 +227,7 @@ sub sort_top_500_weekly_words
 
     #ensure that the order is deterministic
     #first sort on the important fields then sort on everything just to be sure...
-    my @keys = qw (publish_week, stem, term, topics_id);
+    my @keys = qw (publish_week stem dashboard_topics_id term );
 
     my @hash_fields = sort keys %{ $array->[ 0 ] };
 
@@ -259,7 +259,18 @@ sub test_top_500_weekly_words
     {
         my $actual_row   = $top_500_weekly_words_actual->[ $i ];
         my $expected_row = $top_500_weekly_words_expected->[ $i ];
+
+	#undef($actual_row->{term});
+	#undef($expected_row->{term});
         cmp_deeply( $actual_row, $expected_row, "top_500_weekly_words row $i comparison" );
+	my @keys = sort (keys %{$expected_row});
+
+	@keys = grep {defined($expected_row->{$_}) } @keys;
+
+	my $actual_row_string = join ',', (@{$actual_row}{@keys});
+	my $expected_row_string = join ',', (@{$expected_row}{@keys});
+
+	is ($actual_row_string, $expected_row_string, "top_500_weekly_words row $i string comparison:" . join ",", @keys);
     }
 }
 
