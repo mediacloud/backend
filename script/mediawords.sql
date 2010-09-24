@@ -551,6 +551,7 @@ create table top_500_weekly_words (
 );
 
 create index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
+create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) where dashboard_topics_id is null;
     
 create table total_top_500_weekly_words (
        total_top_500_words_id       serial          primary key,
