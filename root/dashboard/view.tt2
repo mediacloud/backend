@@ -60,6 +60,11 @@
 
 <p>
 
+Internal Features
+
+<br />
+<br />
+
 [% FOREACH word IN cluster.internal_features %]
 
 [% params = { media_clusters_id => cluster.media_clusters_id,
@@ -70,6 +75,11 @@
 <a href='[% c.uri_for('/dashboard/sentences/' _ dashboard.dashboards_id, params ) %]'>[% word.term | html %]</a>
 
 [% END #[%FOREACH word IN cluster.internal_features %]
+
+<br />
+<br />
+
+External Features
 
 <br />
 <br />
