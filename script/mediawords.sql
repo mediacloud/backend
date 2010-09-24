@@ -585,6 +585,9 @@ create table total_daily_words (
        total_count                  int             not null
 );
 
+create index total_daily_words_media_sets_id on total_daily_words (media_sets_id);
+create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
+
 create view daily_words_with_totals 
     as select d.*, t.total_count from daily_words d, total_daily_words t
       where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and
