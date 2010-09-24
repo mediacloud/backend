@@ -220,8 +220,9 @@ create table dashboard_media_sets (
     media_cluster_runs_id       int             null references media_cluster_runs
 );
 
-create unique index dashbaord_media_sets_media_set on dashboard_media_sets( media_sets_id );
-create index dashbaord_media_sets_dashboard on dashboard_media_sets( dashboards_id );
+create unique index dashboard_media_sets_media_set on dashboard_media_sets( media_sets_id );
+CREATE UNIQUE INDEX dashboard_media_sets_media_set_dashboard on dashboard_media_sets(media_sets_id, dashboards_id);
+create index dashboard_media_sets_dashboard on dashboard_media_sets( dashboards_id );
 
 /*
 a topic is a query used to generate dashboard results for a subset of matching stories.  for instance,
