@@ -93,6 +93,7 @@ create table media_clusters (
 	description             text    null,
 	centroid_media_id             int              references media (media_id) on delete cascade
 );
+CREATE INDEX media_clusters_runs_id on media_clusters(media_cluster_runs_id);
 
 create table media_clusters_media_map (
         media_clusters_media_map_id     serial primary key,
