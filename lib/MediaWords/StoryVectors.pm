@@ -489,20 +489,7 @@ sub _update_daily_words
 
     for my $dashboard_topic ( @{ $dashboard_topics } )
     {
-
-        # my $query =
-        #   "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
-        #   "  select msmm.media_sets_id, max(ssw.term), ssw.stem, sum(ssw.stem_count), " .
-        #   "      date_trunc('day', min(ssw.publish_date)), ? " .
-        #   "    from story_sentence_words ssw, media_sets_media_map msmm, " . "      story_sentence_words sswq " .
-        #   "    where sswq.stories_id = ssw.stories_id and sswq.sentence_number = ssw.sentence_number and " .
-        #   "      sswq.stem = ? and sswq.media_id = msmm.media_id and " .
-        #   "      date_trunc( 'day', sswq.publish_date ) = ?::date and $media_set_clause " .
-        #   "    group by msmm.media_sets_id, ssw.stem " . "    having sum(ssw.stem_count) > 1"
-
-        #   ;
-
-        my $query_2 =
+         my $query_2 =
           "    insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
           "          select media_sets_id, term, stem, sum_stem_counts, publish_day, dashboard_topics_id from " .
           "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
