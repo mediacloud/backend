@@ -122,6 +122,31 @@ sub generate_line_chart_url
 
     return $url;
 }
+use Time::HiRes;
+
+my $_start_time;
+my $_last_time;
+
+#todo copies print_time live in multiple places so that each one can have its own $_start_time and $_last_time 
+#todo we should merge them together.
+sub print_time
+{
+    my ( $s ) = @_;
+
+    return;
+
+    my $t = Time::HiRes::gettimeofday();
+    $_start_time ||= $t;
+    $_last_time  ||= $t;
+
+    my $elapsed     = $t - $_start_time;
+    my $incremental = $t - $_last_time;
+
+    printf( STDERR "time $s: %f elapsed %f incremental\n", $elapsed, $incremental );
+
+    $_last_time = $t;
+}
+
 
 # get a google chart url for up to 10 of the given words for the current media set
 #
@@ -140,6 +165,8 @@ sub get_daily_term_chart_url
         push( @{ $dates }, _add_one_day( $dates->[ $#{ $dates } ] ) );
     }
 
+    print_time ("starting get_daily_term_chart_url ");
+
     die "no words " unless scalar( @{ $words } ) > 0;
 
     if ( @{ $words } > 10 )
@@ -155,14 +182,24 @@ sub get_daily_term_chart_url
 
     # query everything at once and then go back to make sense of it because it is a couple of orders
     # of magnitude faster to do just one query than lots of little queries
-    my $counts = $db->query(
+    my $query =
         "select publish_day, stem, " .
           "    ( least( 0.10, sum(stem_count)::float / sum(total_count)::float ) * count(*) * 100000 ) " .
           "      as stem_count " . "  from daily_words_with_totals " . "  where publish_day in ( $date_list ) " .
           "    and media_sets_id = ? " . "    and stem in ( $stem_list ) " . "    and $dashboard_topic_clause " .
-          "  group by stem, publish_day " . "  order by stem, publish_day",
+          "  group by stem, publish_day " . "  order by stem, publish_day";
+
+    print_time ("get_daily_term_chart_url -- about to execute query");
+
+    #print STDERR "query:\n$query\n";
+    #print STDERR "media_sets_id: " . $media_set->{ media_sets_id } . "\n";    
+
+    my $counts = $db->query(
+			    $query,
         $media_set->{ media_sets_id }
     )->hashes;
+
+    print_time ("get_daily_term_chart_url -- finished executing query");
 
     my $stem_date_lookup;
     for my $count ( @{ $counts } )
@@ -184,7 +221,11 @@ sub get_daily_term_chart_url
         push( @{ $term_date_counts }, $counts );
     }
 
+    print_time ("get_daily_term_chart_url -- got term counts");
+
     my $url = generate_line_chart_url( $dates, $terms, $term_date_counts );
+
+    print_time ("get_daily_term_chart_url -- generate_line_chart_url");
 
     return $url;
 }
