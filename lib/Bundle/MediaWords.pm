@@ -220,6 +220,8 @@ Readonly
 
 Regexp::Common
 
+Smart::Comments
+
 Test::Differences
 
 Test::More
