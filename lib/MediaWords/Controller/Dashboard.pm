@@ -199,6 +199,8 @@ sub get_media_set_clusters
     my $type = $media_set->{ set_type };
 
     my $clusters;
+
+    print_time("Starting get_media_set_clusters");
     if ( $type eq 'medium' )
     {
 
@@ -211,18 +213,27 @@ sub get_media_set_clusters
             $media_set->{ media_id },
             $dashboard->{ dashboards_id }
         )->hashes;
+
+	print_time("get_media_set_clusters querying on medium");
+
     }
     elsif ( $type eq 'collection' )
     {
 
         # for a collection, get all of the clusters in the clustering run associated with the collection media_set
-        $clusters = $c->dbis->query(
-            "select mc.* from media_clusters mc, dashboard_media_sets dms " .
+      my $query = "select mc.* from media_clusters mc, dashboard_media_sets dms " .
               "  where dms.media_sets_id = ? and dms.media_cluster_runs_id = mc.media_cluster_runs_id and " .
-              "    dms.dashboards_id = ?",
+              "    dms.dashboards_id = ?";
+
+        #print STDERR "query:\n$query\n";
+        #print STDERR "media_sets_id: " . $media_set->{media_sets_id } . "\n";
+        #print STDERR "dashboards_id: " . $dashboard->{dashboards_id }  . "\n";
+
+        $clusters = $c->dbis->query( $query,
             $media_set->{ media_sets_id },
             $dashboard->{ dashboards_id }
         )->hashes;
+	print_time("get_media_set_clusters querying on collection");
     }
     elsif ( $type eq 'cluster' )
     {
@@ -233,6 +244,7 @@ sub get_media_set_clusters
               "  where a.media_cluster_runs_id = b.media_cluster_runs_id " . "    and b.media_clusters_id = ?",
             $media_set->{ media_clusters_id }
         )->hashes;
+	print_time("get_media_set_clusters querying on collection");
     }
     else
     {
@@ -264,6 +276,8 @@ sub get_media_set_clusters
         $mc->{ media_set } =
           $c->dbis->query( "select * from media_sets where media_clusters_id = ?", $mc->{ media_clusters_id } )->hash;
     }
+
+    print_time("get_media_set_clusters returning clusters");
 
     return $clusters;
 }
@@ -443,12 +457,42 @@ sub validate_dashboard_topic_date
     }  
 }    
 
+use Time::HiRes;
+
+my $_start_time;
+my $_last_time;
+
+sub print_time
+{
+    my ( $s ) = @_;
+
+    return;
+
+    my $t = Time::HiRes::gettimeofday();
+    $_start_time ||= $t;
+    $_last_time  ||= $t;
+
+    my $elapsed     = $t - $_start_time;
+    my $incremental = $t - $_last_time;
+
+    printf( STDERR "time $s: %f elapsed %f incremental\n", $elapsed, $incremental );
+
+    $_last_time = $t;
+}
+
 # view the dashboard page for a media set
 sub view : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    undef($_start_time);
+    undef($_last_time);
+    
+    print_time("starting view");
+
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+
+    print_time("got dashboard");
 
     my $translate = $self->_set_translate_state( $c );
 
@@ -459,13 +503,22 @@ sub view : Local
 
     my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' ) || 0;
     my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
+
+    print_time("got dashboard_topic");
+
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+
+    print_time("got dashboard_topic_clause");
 
     my $media_set = $self->get_media_set_from_params( $c );
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
+    print_time("got start_of_week");
+
     $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
+
+    print_time("validated dashboard_topic_date");
 
     my $words_query =
       ( "select * from top_500_weekly_words_normalized " . "  where media_sets_id = $media_set->{ media_sets_id } " .
@@ -475,6 +528,8 @@ sub view : Local
     #say STDERR "SQL query: '$words_query'";
 
     my $words = $c->dbis->query( $words_query )->hashes;
+
+    print_time("got words");
 
     if ( scalar( @{ $words } ) == 0 )
     {
@@ -494,10 +549,16 @@ sub view : Local
 
     my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
 
+    print_time("got word cloud");
+
     my $term_chart_url =
       MediaWords::Util::Chart::get_daily_term_chart_url( $c->dbis, $media_set, $date, 7, $words, $dashboard_topic_clause );
 
+    print_time("got term_chart_url");
+
     my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
+
+    print_time("get clusters");
 
     $c->stash->{ dashboard }             = $dashboard;
     $c->stash->{ dashboard_topic }       = $dashboard_topic;
