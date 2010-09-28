@@ -46,7 +46,7 @@ sub _insert_story_sentence_words
         while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
         {
             $db->query(
-'insert into story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_date, media_id) '
+'insert into story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) '
                   . '  values ( ?,?,?,?,?,?,? )',
                 $story->{ stories_id },
                 $hash->{ count },
@@ -472,9 +472,9 @@ sub _update_daily_words
               "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
               "                sum(stem_count_sum) over w as sum_stem_counts  from " .
               "                    ( select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
-              "                      date_trunc('day', min(publish_date)) as publish_day, null " .
+              "                      min(publish_day) as publish_day, null " .
               "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
-              "                      where  date_trunc( 'day', ssw.publish_date ) = '${sql_date}'::date and " .
+              "                      where ssw.publish_day = '${sql_date}'::date and " .
               "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
               "                      group by msmm.media_sets_id, ssw.stem, ssw.term " .
               "                        ) as foo  " .
@@ -494,11 +494,11 @@ sub _update_daily_words
           "          select media_sets_id, term, stem, sum_stem_counts, publish_day, dashboard_topics_id from " .
           "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
           "                sum(stem_count_sum) over w as sum_stem_counts  from " .
-" ( select media_sets_id, ssw.term, ssw.stem, sum(ssw.stem_count) stem_count_sum,  date_trunc('day', min(ssw.publish_date)) as publish_day, ?::integer as dashboard_topics_id  from "
+" ( select media_sets_id, ssw.term, ssw.stem, sum(ssw.stem_count) stem_count_sum,  min(ssw.publish_day) as publish_day, ?::integer as dashboard_topics_id  from "
           . "     story_sentence_words ssw,                                                          "
           . "                   ( select media_sets_id, stories_id, sentence_number from story_sentence_words sswq, media_sets_media_map msmm "
           . " where                                                           "
-          . " sswq.media_id = msmm.media_id and sswq.stem = ? and date_trunc( 'day', sswq.publish_date ) = ? and "
+          . " sswq.media_id = msmm.media_id and sswq.stem = ? and sswq.publish_day = ? and "
           . " $media_set_clause  group by msmm.media_sets_id, stories_id, sentence_number "
           . " ) as ssw_sentences_for_query  "
           . " where ssw.stories_id=ssw_sentences_for_query.stories_id and ssw.sentence_number=ssw_sentences_for_query.sentence_number "
