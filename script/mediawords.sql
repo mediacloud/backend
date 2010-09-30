@@ -509,12 +509,12 @@ create table story_sentence_words (
        stem_count                   int             not null,
        sentence_number              int             not null,
        media_id                     int             not null, /* references media on delete cascade, */
-       publish_date                 timestamp       not null
+       publish_day                  date            not null
 );
 
 create index story_sentence_words_story on story_sentence_words (stories_id, sentence_number);
-create index story_sentence_words_dsm on story_sentence_words (date_trunc('day', publish_date), stem, media_id);
-create index story_sentence_words_day on story_sentence_words(date_trunc('day', publish_date));
+create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
+create index story_sentence_words_day on story_sentence_words(publish_day);
 
 create table daily_words (
        daily_words_id               serial          primary key,
