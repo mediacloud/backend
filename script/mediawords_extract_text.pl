@@ -57,6 +57,7 @@ sub extract_text
             if ( $@ )
             {
                 say STDERR "[$process_num] extractor error processing download " . $download->{ downloads_id } . ": $@";
+		$db->rollback;
             }
         }
 
