@@ -523,7 +523,7 @@ create table daily_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       publish_day                  timestamp       not null
+       publish_day                  date            not null
 );
 
 create index daily_words_media on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
