@@ -601,7 +601,7 @@ sub get_medium_day_sentences
 "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, dashboard_topics dt "
               . "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number "
               . "    and s.stories_id = ssw.stories_id and ssw.media_id = ? and ssw.stem = ? "
-              . "    and date_trunc('day', ssw.publish_date) = ( ?::date + interval '$days days' ) "
+              . "    and ssw.publish_day = ( ?::date + interval '$days days' ) "
               . "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number "
               . "    and sswq.stem = dt.query and dt.dashboard_topics_id = ? "
               . "  order by ss.publish_date, ss.stories_id, ss.sentence asc "
@@ -614,7 +614,7 @@ sub get_medium_day_sentences
               "  from story_sentences ss, story_sentence_words ssw, stories s " .
               "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
               "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
-              "    and date_trunc('day', ssw.publish_date) = ( ?::date + interval '$days days' ) " .
+              "    and ssw.publish_day = ( ?::date + interval '$days days' ) " .
               "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $num_sentences",
             $media_id, $stem, $date_string )->hashes;
     }
@@ -634,7 +634,7 @@ sub get_medium_day_stories
             "select distinct ssw.stories_id, s.title, s.url, s.publish_date
             from story_sentence_words ssw, story_sentence_words sswq, stories s, dashboard_topics dt
             where ssw.media_id=? and ssw.stem=?
-              and date_trunc('day', ssw.publish_date) = ( ?::date + interval '$days days' )
+              and ssw.publish_day = ( ?::date + interval '$days days' )
               and dt.dashboard_topics_id=?
               and s.stories_id=ssw.stories_id
               and sswq.stem=dt.query
@@ -651,7 +651,7 @@ sub get_medium_day_stories
             "select distinct ssw.stories_id, s.title, s.url, s.publish_date
             from story_sentence_words ssw, stories s 
             where ssw.media_id=? and ssw.stem=?
-              and date_trunc('day', ssw.publish_date) = ( ?::date + interval '$days days' )
+              and ssw.publish_day = ( ?::date + interval '$days days' )
               and s.stories_id=ssw.stories_id
             order by s.publish_date asc
             limit $num_sentences",
