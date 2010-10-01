@@ -315,7 +315,7 @@ create index downloads_extracted on downloads(extracted, state, type)
     where extracted = 'f' and state = 'success' and type = 'content';
 CREATE INDEX downloads_stories_to_be_extracted on downloads (stories_id) where extracted = false AND state = 'success' AND type = 'content';        
 
-CREATE INDEX download_extracted_stories on downloads (stories_id) where type='content' and state='success';
+CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='content' and state='success';
 CREATE INDEX downloads_spider_urls on downloads(url) where type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list';
 CREATE INDEX spider_download_errors_to_clear on downloads(state,type,error_message) where state='error' and type in ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list') and (error_message like '50%' or error_message= 'Download timed out by Fetcher::_timeout_stale_downloads') ;
 CREATE INDEX downloads_state_queued on downloads(state) where state='queued' or state='fetching';
