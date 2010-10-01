@@ -536,7 +536,7 @@ create table weekly_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       publish_week                 timestamp       not null
+       publish_week                 date            not null
 );
 
 create index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
