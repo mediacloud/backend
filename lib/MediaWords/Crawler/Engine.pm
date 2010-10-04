@@ -92,7 +92,7 @@ sub _run_fetcher
 
                 if ( $@ )
                 {
-                    die( "Error in handle_response() for downloads_id: '$downloads_id'" );
+                    die( "Error in handle_response() for downloads_id '$downloads_id': $@" );
                 }
 
                 print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
