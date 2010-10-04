@@ -88,14 +88,12 @@ sub _run_fetcher
 
                 my $response = $fetcher->fetch_download( $download );
 
-		eval {
-		  $handler->handle_response( $download, $response );
-		};
+                eval { $handler->handle_response( $download, $response ); };
 
-		if ($@)
-		{
-		   die ("Error in handle_response() for downloads_id: '$downloads_id'");
-		}
+                if ( $@ )
+                {
+                    die( "Error in handle_response() for downloads_id: '$downloads_id'" );
+                }
 
                 print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
                   $download->{ url } . " complete\n";
@@ -152,7 +150,13 @@ sub spawn_fetchers
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
             $self->reconnect_db;
-            $self->_run_fetcher();
+
+            eval { $self->_run_fetcher(); };
+
+            if ( $@ )
+            {
+                die "Error in _run_fetcher for fetcher $i: $@";
+            }
         }
     }
 }
