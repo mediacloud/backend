@@ -63,8 +63,10 @@ sub _add_stories_and_content_downloads
 {
     my ( $self, $download, $response ) = @_;
 
-    my $feed = Feed::Scrape::MediaWords->parse_feed( $response->decoded_content )
-      || die( "Unable to parse feed for $download->{ url }" );
+    my $feed = Feed::Scrape::MediaWords->parse_feed( $response->decoded_content );
+
+    die( "Unable to parse feed for $download->{ url }" ) unless $feed;
+
     my $items = [ $feed->get_item ];
 
     my $num_new_stories = 0;
