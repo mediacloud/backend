@@ -45,6 +45,11 @@ sub _insert_story_sentence_words
     {
         while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
         {
+
+	  #print STDERR $story->{ stories_id }.$hash->{ count }.$sentence_num.encode_utf8( $stem ).encode_utf8( lc( $hash->{ word } ) ).$story->{ publish_date }.$story->{ media_id };
+	  #print STDERR "\n";
+
+	  eval {
             $db->query(
 'insert into story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) '
                   . '  values ( ?,?,?,?,?,?,? )',
@@ -57,8 +62,13 @@ sub _insert_story_sentence_words
                 $story->{ media_id }
             );
 
-#print $story->{ stories_id }.$hash->{ count }.$sentence_num.encode_utf8( $stem ).encode_utf8( lc( $hash->{ word } ) ).$story->{ publish_date }.$story->{ media_id };
-        }
+	  };
+	    if ($@)
+	    {
+	       print STDERR "Error inserting into story_sentence_words\n";
+	       die $@;
+	    }
+         }
     }
 }
 
