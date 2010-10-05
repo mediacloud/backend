@@ -2,8 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="media_cloud_rough.css"/>
+
 <title>Media Cloud</title>
-<link rel="stylesheet" href="media_cloud_rough.css"/>
+
 <script type="text/javascript" language="JavaScript"><!--
 var visible = false; //we start off with the second data set invisible
 var wordcloud = true; //We start off showing the word cloud
