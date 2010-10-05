@@ -2,12 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<link rel="stylesheet" href="[% c.uri_for('/include/AutoComplete.css') %]" media="screen" type="text/css">
+
 <link rel="stylesheet" type="text/css" href="/include/media_cloud_rough.css"/>
 
 <title>Media Cloud</title>
 
 <script type="text/javascript" language="JavaScript"><!--
-var visible = false; //we start off with the second data set invisible
+var visible = true; //we start off with the second data set invisible
 var wordcloud = true; //We start off showing the word cloud
 
 function DisplayDIV(d) {  
@@ -58,6 +61,22 @@ function swapDIV(s) {
     <td align="left" bgcolor="#000000"><font color="#FFFFFF"><a href="link" class="navigation">Home</a> | <a href="link" class="navigation">About</a> | <a href="link" class="navigation">News</a> | <a href="link"  class="navigation">Data Sources</a>| <a href="link"  class="navigation">Weekly Reports</a></font></td>
   </tr>
   <tr>
+
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/AutoComplete.js') %]"></script>
+
+<script>
+    window.onload = function ()
+    {
+        data = [
+[% FOREACH medium IN media %]
+        "[% medium.name | trim | html %]",
+[% END %]
+        ];    
+        AutoComplete_Create('media1a2', data, 10);
+        AutoComplete_Create('media1a4', data, 10);
+    }
+</script>
+
     <td><form action="" method="get">
       <div id="mediacontainer1">
         <div id="mediaheader1">Media Data Set #1</div>
@@ -79,9 +98,10 @@ function swapDIV(s) {
           <strong>Set of Media Sources</strong>
           <label for="select"></label>
           <select name="select" id="select">
-            <option>Value 1</option>
-            <option>Value 2</option>
-            <option>Value 3</option>
+<option value="">(none)</option>
+[% FOREACH set IN collection_media_sets %]
+<option value="[% set.media_sets_id %]">[% set.name | html %]</option>
+[% END #[% FOREACH set IN collection_media_sets %]
           </select>
           <br />
           <span class="smaller">A fast explanation here</span>
@@ -98,7 +118,7 @@ function swapDIV(s) {
 <span class="smaller">A fast explanation</span>
         </div>
       </div>
-      <div id="mediacontainer2" style="display:none;">
+      <div id="mediacontainer2">
         <div id="mediaheader2">Media Data Set #2</div>
         <div id="mediaTime1"><strong>Time range</strong><br />
           <input type="text" name="media1t2" id="media1t2" />
@@ -117,9 +137,10 @@ function swapDIV(s) {
           <strong>Set of Media Sources</strong>
           <label for="select2"></label>
           <select name="select3" id="select2">
-            <option>Value 1</option>
-            <option>Value 2</option>
-            <option>Value 3</option>
+             <option value="">(none)</option>
+             [% FOREACH set IN collection_media_sets %]
+             <option value="[% set.media_sets_id %]">[% set.name | html %]</option>
+             [% END #[% FOREACH set IN collection_media_sets %]
           </select>
           <br />
           <span class="smaller">A fast explanation here</span></div>
