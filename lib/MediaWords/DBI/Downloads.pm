@@ -302,6 +302,8 @@ sub process_download_for_extractor
     print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
 
+    #print STDERR "Got download_text\n";
+
     my $remaining_download =
       $db->query( "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
         $download->{ stories_id } )->hash;
