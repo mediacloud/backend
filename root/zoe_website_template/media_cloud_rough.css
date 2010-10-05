@@ -1,0 +1,135 @@
+@charset "utf-8";
+/* CSS Document */
+
+body {
+	
+	background: #666;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+}
+
+
+
+#mediacontainer1, #mediacontainer2 {  
+ background-repeat: repeat-y; 
+ width: 100%;  
+ margin:0 auto;
+ float: left; 
+ background: url(images/example-2.gif) top left repeat-y; 
+ border-style:solid;
+ border-width: 0px;
+ border-bottom-width: 1px;
+}
+
+#mediaheader1, #mediaheader2 {
+	padding: 1px;
+	width: 100%;
+	float: right;
+	background-color: #999;
+	color: #FFF;
+	font-weight:bold;
+}
+
+#mediaTime1,  
+#mediaArea1,
+#mediaSource1, 
+#mediaSubset1
+ {
+  padding: 10px; 
+  float: left;
+  width: 190px
+ }
+ 
+#compare {
+	float: right;
+	width: 200px;
+	text-align:center;
+	padding: 0px;
+	padding-top: 7px;
+	padding-bottom: 7px;
+	margin: 0 0 0 0;
+	background-color:#CCC;
+	border-style:solid;
+	border-top-width: 0px;
+ 	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-right-width: 1px;
+	font-weight:bold;
+	border-color:#000;
+	color:#63C;
+}
+
+#submit {
+	float: right;
+	width: 200px;
+	text-align:right;
+	padding-right: 5px;
+	padding-top: 5px;
+	background-color:#fff;
+}
+
+ 
+#wordcloud,
+#coveragemap  
+ { padding: 2px; 
+  float: right;
+  width: 100px;
+  border-style:solid;
+  border-width:1px;
+  position: relative; bottom: 20px;
+  text-align:center;
+ }
+ 
+#WCcontentarea, #CMcontentarea {
+	padding: 2px; 
+	border-style:solid;
+	border-width:1px;
+	width: 99%;
+	border-color: #000000;
+}
+
+.contentSelected {	
+	color: #ffffff;
+	background-color: black;
+	border-color: #000000;
+}
+
+.contentUnselected {	
+
+	color: #000000;
+	background-color: white;
+	border-color: #000000;
+}
+
+#news,
+#popular,
+#report {
+	border-style:dotted;
+	border-width: 0px;
+	border-bottom-width: 1px;
+	margin-bottom: 5px; 
+	padding-bottom: 5px;
+}
+
+#leftcolumn {
+	border-style:dotted;
+	border-width: 1px;
+	padding: 7px;
+		
+}
+
+.Header {
+	font-family: "Lucida Console", Monaco, monospace;
+	font-size: 36px;
+	font-weight: bold;
+	text-transform: capitalize;
+	color: #FFF;
+}
+
+.smaller {
+	font-size: 10px;
+}
+
+a.navigation:link {color:#FC9; font-weight:bold; text-decoration:none}      /* unvisited link */
+a.navigation:hover {color:#F36; font-weight:bold; text-decoration:none }  /* mouse over link */
+
