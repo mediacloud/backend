@@ -1,11 +1,50 @@
-n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-<link rel="stylesheet" href="[% c.uri_for('/include/AutoComplete.css') %]" media="screen" type="text/css">
+<link rel="stylesheet" href="[% c.uri_for('/include/AutoComplete.css') %]" media="screen" type="text/css"/>
 
 <link rel="stylesheet" type="text/css" href="/include/media_cloud_rough.css"/>
+
+<style type="text/css">
+
+xA:link {color: #000000; }
+xA:visited {color: #000000; }
+xA:active {color: #000000; }
+
+#htmltagcloud {
+  text-align:  center; 
+  line-height: 1; 
+}
+a { color: #32588F; text-decoration: none;}
+span.tagcloud0 { font-size: 12px;}
+span.tagcloud1 { font-size: 13px;}
+span.tagcloud2 { font-size: 14px;}
+span.tagcloud3 { font-size: 15px;}
+span.tagcloud4 { font-size: 16px;}
+span.tagcloud5 { font-size: 17px;}
+span.tagcloud6 { font-size: 18px;}
+span.tagcloud7 { font-size: 19px;}
+span.tagcloud8 { font-size: 20px;}
+span.tagcloud9 { font-size: 21px;}
+span.tagcloud10 { font-size: 22px;}
+span.tagcloud11 { font-size: 23px;}
+span.tagcloud12 { font-size: 24px;}
+span.tagcloud13 { font-size: 25px;}
+span.tagcloud14 { font-size: 26px;}
+span.tagcloud15 { font-size: 27px;}
+span.tagcloud16 { font-size: 28px;}
+span.tagcloud17 { font-size: 29px;}
+span.tagcloud18 { font-size: 30px;}
+span.tagcloud19 { font-size: 31px;}
+span.tagcloud20 { font-size: 32px;}
+span.tagcloud21 { font-size: 33px;}
+span.tagcloud22 { font-size: 34px;}
+span.tagcloud23 { font-size: 35px;}
+span.tagcloud24 { font-size: 36px;}
+
+</style>
 
 <title>Media Cloud</title>
 
@@ -13,18 +52,10 @@ n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.o
 </head>
 
 <body bgcolor="#edf2d5" leftmargin="0" topmargin="0" rightmargin="0" bottommargin="0"  marginwidth="0" marginheight="0">
-<table width="900" border="0" align="center" cellpadding="10" cellspacing="0" bordercolor="#CC66CC" bgcolor="#FFFFFF">
-  <tr>
-    <td bgcolor="#000000"><span class="Header">Media Cloud</span></td>
-  </tr>
-  <tr>
-    <td align="left" bgcolor="#000000"><font color="#FFFFFF"><a href="link" class="navigation">Home</a> | <a href="link" class="navigation">About</a> | <a href="link" class="navigation">News</a> | <a href="link"  class="navigation">Data Sources</a>| <a href="link"  class="navigation">Weekly Reports</a></font></td>
-  </tr>
-  <tr>
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/AutoComplete.js') %]"></script>
 
-<script>
+<script language="javascript" type="text/javascript">
     window.onload = function ()
     {
         data = [
@@ -37,27 +68,51 @@ n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.o
     }
 </script>
 
-    <td><form action="" method="get">
+<table width="900" border="0" align="center" cellpadding="10" cellspacing="0" bordercolor="#CC66CC" bgcolor="#FFFFFF">
+  <tr>
+    <td bgcolor="#000000"><span class="Header">Media Cloud</span></td>
+  </tr>
+  <tr>
+    <td align="left" bgcolor="#000000"><font color="#FFFFFF"><a href="link" class="navigation">Home</a> | <a href="link" class="navigation">About</a> | <a href="link" class="navigation">News</a> | <a href="link"  class="navigation">Data Sources</a>| <a href="link"  class="navigation">Weekly Reports</a></font></td>
+  </tr>
+  <tr>
+
+
+    <td>
+      <form action="[% c.uri_for('/dashboard/template_test/') _ dashboard.dashboards_id %]" method="get">
+      <input type="hidden" name="show_results" value="true" />
       <div id="mediacontainer1">
         <div id="mediaheader1">Media Data Set #1</div>
         <div id="mediaTime1"> <strong>Time range</strong><br />
-          <input type="text" name="media1t" id="media1t" />
+	  <select name="date" >
+	  [% FOREACH date IN dashboard_dates %]
+	  <option value="[% date %]">[% date %]</a>
+	  [% END #FOREACH date IN dashboard_dates %]
+	</select>
+ <!--           <input type="text" name="media1t" id="media1t" /> -->
+
           <br /> 
           <span class="smaller">A fast explanation here</span>
-<br />
+	  <br />
         </div>
         <div id="mediaArea1"> <strong>Area of coverage</strong><br />
-          <input type="text" name="media1a" id="media1a" />
+	  <select name="dashboard_topics_id">
+	    <option value="">All</option>
+	    [% FOREACH topic IN dashboard_topics %]
+	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
+	    [% END #[% FOREACH topic IN dashboard_topics %]
+	  </select>
+        <!--  <input type="text" name="media1a" id="media1a" /> -->
           <br />
           <span class="smaller">A fast explanation here</span>
         </div>
         <div id="mediaSource1"> <strong>Media Source</strong><br />
           <input type="text" name="media1a2" id="media1a2" />
           <br />
-          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%">
+          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
           <strong>Set of Media Sources</strong>
           <label for="select"></label>
-          <select name="select" id="select">
+          <select name="media_sets_id" id="select">
 <option value="">(none)</option>
 [% FOREACH set IN collection_media_sets %]
 <option value="[% set.media_sets_id %]">[% set.name | html %]</option>
@@ -81,11 +136,21 @@ n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.o
       <div id="mediacontainer2">
         <div id="mediaheader2">Media Data Set #2</div>
         <div id="mediaTime1"><strong>Time range</strong><br />
-          <input type="text" name="media1t2" id="media1t2" />
+	  <select name="date" >
+	  [% FOREACH date IN dashboard_dates %]
+	  <option value="[% date %]">[% date %]</a>
+	  [% END #FOREACH date IN dashboard_dates %]
+	</select>
           <br />
           <span class="smaller">A fast explanation here</span></div>
         <div id="mediaArea1"><strong>Area of coverage</strong><br />
-          <input type="text" name="media1a3" id="media1a3" />
+	  <select name="dashboard_topics_id">
+	    <option value="">All</option>
+	    [% FOREACH topic IN dashboard_topics %]
+	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
+	    [% END #[% FOREACH topic IN dashboard_topics %]
+	  </select>
+      <!--    <input type="text" name="media1a3" id="media1a3" /> -->
           <br />
           <span class="smaller">A fast explanation here</span></div>
         <div id="mediaSource1"><strong>Media Source</strong>
@@ -93,7 +158,7 @@ n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.o
           
           <span class="smaller">A fast explanation here</span><br />
           
-          <hr noshade="noshade" size="1" width="99%" color="#999999">
+          <hr noshade="noshade" size="1" width="99%" color="#999999"/>
           <strong>Set of Media Sources</strong>
           <label for="select2"></label>
           <select name="select3" id="select2">
@@ -117,21 +182,19 @@ n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.o
       </div>
       <span onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
       <div id="compare">Compare This Data Source</div>
-      <div id="submit"><input name="Submit" type="button" value="Submit" />
-      </div>
       </span>
-      
-      
+      <div class="submit"><input name="Submit" type="submit" value="go" />
+      </div>
       </form>
     
     </td>
   </tr>
   <tr>
-    <td><hr noshade="noshade" size="1" width="100%" color="#999999"></td></tr>
+    <td><hr noshade="noshade" size="1" width="100%" color="#999999"/></td></tr>
   <tr>
     <td><!--This is where the content starts!-->
       
-      <table width="100%" border="0" cellpadding="5" cellspacing="0" bordercolor=green>
+      <table width="100%" border="0" cellpadding="5" cellspacing="0" bordercolor="green">
         <tr>
           <td width="25%" align="left" valign="top"><div id="leftcolumn"> <strong>Popular Queries</strong><br />
               <div id="popular"> This is where a list of popular queries can be dropped in!<br />
@@ -171,12 +234,18 @@ n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.o
             <br/>
             <div id="coveragemap" class="contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
             <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
-            <div id="WCcontentarea">This is a Word Cloud! Thats' what goes here.<br/>
+            <div id="WCcontentarea">
+[% IF word_cloud %]
+[%- word_cloud -%]
+[% ELSE %]
+This is a Word Cloud! Thats' what goes here.<br/>
               .<br/>
               .<br/>
               .<br/>
               .<br/>
-              Still a Word Cloud!</div>
+              Still a Word Cloud!
+[% END %]
+</div>
             <div id="CMcontentarea" style="display:none;">This is a Coverage Map! Thats' what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag! </div></td>
         </tr>
       </table>
