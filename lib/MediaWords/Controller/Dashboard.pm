@@ -113,6 +113,117 @@ sub list : Local
     $c->stash->{ template } = 'dashboard/list.tt2';
 }
 
+sub template_test : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+
+    my $media = $c->dbis->query(
+        "select distinct m.* from media m, media_sets_media_map msmm, dashboard_media_sets dms " .
+          "  where m.media_id = msmm.media_id and dms.media_sets_id = msmm.media_sets_id and dms.dashboards_id = ?" .
+          "  order by m.name",
+        $dashboard->{ dashboards_id }
+    )->hashes;
+
+    my $collection_media_sets = $c->dbis->query(
+        "select ms.* from media_sets ms, dashboard_media_sets dms " .
+          "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
+          "  order by ms.media_sets_id",
+        $dashboard->{ dashboards_id }
+    )->hashes;
+
+    my $dashboard_topics =
+      $c->dbis->query( "select * from dashboard_topics where dashboards_id = ?", $dashboard->{ dashboards_id } )->hashes;
+
+    MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
+
+    my $dashboard_topic;
+    if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
+    {
+        $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+    }
+
+    my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
+ 
+    my $show_results = $c->req->param( 'show_results' ) || 0;
+
+    if ( $show_results )
+    {
+      my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+
+      print_time("got dashboard_topic_clause");
+
+      my $media_set = $self->get_media_set_from_params( $c );
+
+      my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+
+      print_time("got start_of_week");
+
+      $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
+
+      print_time("validated dashboard_topic_date");
+
+      my $words_query =
+	( "select * from top_500_weekly_words_normalized " . "  where media_sets_id = $media_set->{ media_sets_id } " .
+          "    and not is_stop_stem( 'long', stem ) " . "    and publish_week = date_trunc('week', '$date'::date) " .
+          "    and $dashboard_topic_clause " . "  order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
+      
+      #say STDERR "SQL query: '$words_query'";
+
+      my $words = $c->dbis->query( $words_query )->hashes;
+
+      print_time("got words");
+
+      if ( scalar( @{ $words } ) == 0 )
+	{
+	  my $error_message =
+	    "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
+	  
+	  $c->{ stash }->{ error_message } = $error_message;
+	  return $self->list( $c, $dashboards_id );
+	}
+       #if ( $c->flash->{ translate } )
+      #{
+      #    $words = $self->_translate_word_list( $c, $words );
+      #}
+      
+      #$c->keep_flash( ( 'translate' ) );
+      
+      my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+
+      print_time("got word cloud");
+      
+      print_time("got term_chart_url");
+      
+      my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
+      
+       print_time("get clusters");
+
+       $c->stash->{show_results}            = 1;
+       
+       $c->stash->{ clusters }              = $clusters;
+       $c->stash->{ date }                  = $date;
+
+       $c->stash->{ media_set }             = $media_set;
+       $c->stash->{ word_cloud }            = $word_cloud;
+       $c->stash->{ clusters }              = $clusters;
+       $c->stash->{ date }                  = $date;
+       $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
+    }
+    
+
+    $c->stash->{ dashboard }             = $dashboard;
+    $c->stash->{ dashboard_topic }       = $dashboard_topic;
+    $c->stash->{ media }                 = $media;
+    $c->stash->{ collection_media_sets } = $collection_media_sets;
+    $c->stash->{ dashboard_topics }      = $dashboard_topics;
+    $c->stash->{ dashboard_dates }       = $dashboard_dates;
+    $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
+
+    $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
+}
+
 sub _translate_word_list
 {
     my ( $self, $c, $words ) = @_;
