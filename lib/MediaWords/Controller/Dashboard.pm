@@ -113,6 +113,62 @@ sub list : Local
     $c->stash->{ template } = 'dashboard/list.tt2';
 }
 
+sub _get_words
+{
+   my ($self, $c, $dashboard_topic ) = @_;
+
+   my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+
+   print_time( "got dashboard_topic_clause" );
+
+   my $media_set = $self->get_media_set_from_params( $c );
+
+   my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+
+   print_time( "got start_of_week" );
+
+   $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
+
+   print_time( "validated dashboard_topic_date" );
+
+   my $words_query =
+     ( "select * from top_500_weekly_words_normalized where media_sets_id = $media_set->{ media_sets_id } " .
+       "    and not is_stop_stem( 'long', stem )   and publish_week = date_trunc('week', '$date'::date) " .
+       "    and $dashboard_topic_clause   order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
+
+   #say STDERR "SQL query: '$words_query'";
+
+   my $words = $c->dbis->query( $words_query )->hashes;
+
+   return $words;
+}
+
+sub get_word_list : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $dashboard_topic;
+    if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
+    {
+        $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+    }
+
+    my $words = $self->_get_words($c, $dashboard_topic);
+
+    my $fields = [ qw ( stem term stem_count media_sets_id publish_week dashboard_topics_id ) ];
+
+    my $csv = Class::CSV->new( fields => $fields );
+
+    $csv->add_line($fields);
+
+    foreach my $word (@$words)
+    {
+       $csv->add_line($word);
+    }
+
+    say $csv->string;
+}
+
 sub template_test : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -150,33 +206,18 @@ sub template_test : Local
 
     if ( $show_results )
     {
-        my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
-        print_time( "got dashboard_topic_clause" );
+        my $words = $self->_get_words($c, $dashboard_topic );
 
-        my $media_set = $self->get_media_set_from_params( $c );
+	print_time( "got words" );
 
-        my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+	my $media_set = $self->get_media_set_from_params( $c );
 
-        print_time( "got start_of_week" );
-
-        $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
-
-        print_time( "validated dashboard_topic_date" );
-
-        my $words_query =
-          ( "select * from top_500_weekly_words_normalized " . "  where media_sets_id = $media_set->{ media_sets_id } " .
-              "    and not is_stop_stem( 'long', stem ) " . "    and publish_week = date_trunc('week', '$date'::date) " .
-              "    and $dashboard_topic_clause " . "  order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
-
-        #say STDERR "SQL query: '$words_query'";
-
-        my $words = $c->dbis->query( $words_query )->hashes;
-
-        print_time( "got words" );
+	my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
         if ( scalar( @{ $words } ) == 0 )
         {
+	    my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
             my $error_message =
               "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
