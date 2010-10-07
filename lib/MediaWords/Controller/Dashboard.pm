@@ -166,7 +166,12 @@ sub get_word_list : Local
        $csv->add_line($word);
     }
 
-    say $csv->string;
+    my $csv_string = $csv->string;
+
+    $c->response->header("Content-Disposition" => "attachment;filename=word_list.csv");
+    $c->response->content_type( 'text/csv' );
+    $c->response->content_length( length( $csv_string ) );
+    $c->response->body( $csv_string);
 }
 
 sub template_test : Local
