@@ -145,73 +145,73 @@ sub template_test : Local
     }
 
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
- 
+
     my $show_results = $c->req->param( 'show_results' ) || 0;
 
     if ( $show_results )
     {
-      my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+        my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
-      print_time("got dashboard_topic_clause");
+        print_time( "got dashboard_topic_clause" );
 
-      my $media_set = $self->get_media_set_from_params( $c );
+        my $media_set = $self->get_media_set_from_params( $c );
 
-      my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+        my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
-      print_time("got start_of_week");
+        print_time( "got start_of_week" );
 
-      $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
+        $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
 
-      print_time("validated dashboard_topic_date");
+        print_time( "validated dashboard_topic_date" );
 
-      my $words_query =
-	( "select * from top_500_weekly_words_normalized " . "  where media_sets_id = $media_set->{ media_sets_id } " .
-          "    and not is_stop_stem( 'long', stem ) " . "    and publish_week = date_trunc('week', '$date'::date) " .
-          "    and $dashboard_topic_clause " . "  order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
-      
-      #say STDERR "SQL query: '$words_query'";
+        my $words_query =
+          ( "select * from top_500_weekly_words_normalized " . "  where media_sets_id = $media_set->{ media_sets_id } " .
+              "    and not is_stop_stem( 'long', stem ) " . "    and publish_week = date_trunc('week', '$date'::date) " .
+              "    and $dashboard_topic_clause " . "  order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
 
-      my $words = $c->dbis->query( $words_query )->hashes;
+        #say STDERR "SQL query: '$words_query'";
 
-      print_time("got words");
+        my $words = $c->dbis->query( $words_query )->hashes;
 
-      if ( scalar( @{ $words } ) == 0 )
-	{
-	  my $error_message =
-	    "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
-	  
-	  $c->{ stash }->{ error_message } = $error_message;
-	  return $self->list( $c, $dashboards_id );
-	}
-       #if ( $c->flash->{ translate } )
-      #{
-      #    $words = $self->_translate_word_list( $c, $words );
-      #}
-      
-      #$c->keep_flash( ( 'translate' ) );
-      
-      my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+        print_time( "got words" );
 
-      print_time("got word cloud");
-      
-      print_time("got term_chart_url");
-      
-      my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
-      
-       print_time("get clusters");
+        if ( scalar( @{ $words } ) == 0 )
+        {
+            my $error_message =
+              "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
-       $c->stash->{show_results}            = 1;
-       
-       $c->stash->{ clusters }              = $clusters;
-       $c->stash->{ date }                  = $date;
+            $c->{ stash }->{ error_message } = $error_message;
+            return $self->list( $c, $dashboards_id );
+        }
 
-       $c->stash->{ media_set }             = $media_set;
-       $c->stash->{ word_cloud }            = $word_cloud;
-       $c->stash->{ clusters }              = $clusters;
-       $c->stash->{ date }                  = $date;
-       $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
+        #if ( $c->flash->{ translate } )
+        #{
+        #    $words = $self->_translate_word_list( $c, $words );
+        #}
+
+        #$c->keep_flash( ( 'translate' ) );
+
+        my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+
+        print_time( "got word cloud" );
+
+        print_time( "got term_chart_url" );
+
+        my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
+
+        print_time( "get clusters" );
+
+        $c->stash->{ show_results } = 1;
+
+        $c->stash->{ clusters } = $clusters;
+        $c->stash->{ date }     = $date;
+
+        $c->stash->{ media_set }             = $media_set;
+        $c->stash->{ word_cloud }            = $word_cloud;
+        $c->stash->{ clusters }              = $clusters;
+        $c->stash->{ date }                  = $date;
+        $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
     }
-    
 
     $c->stash->{ dashboard }             = $dashboard;
     $c->stash->{ dashboard_topic }       = $dashboard_topic;
@@ -270,7 +270,8 @@ sub get_word_cloud
         {
             warn "0 stem count for word:" . Dumper( $word );
         }
-        else {
+        else
+        {
             my $term = $word->{ term };
 
             $cloud->add( $term, $url, $word->{ stem_count } * 100000 );
@@ -281,7 +282,7 @@ sub get_word_cloud
 
     my $html = $cloud->html;
 
-    #<span class="tagcloud24"><a onclick="this.style.color='red '; return false;" 
+    #<span class="tagcloud24"><a onclick="this.style.color='red '; return false;"
     if ( $c->req->param( 'highlight_mode' ) )
     {
         $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
@@ -311,7 +312,7 @@ sub get_media_set_clusters
 
     my $clusters;
 
-    print_time("Starting get_media_set_clusters");
+    print_time( "Starting get_media_set_clusters" );
     if ( $type eq 'medium' )
     {
 
@@ -325,26 +326,24 @@ sub get_media_set_clusters
             $dashboard->{ dashboards_id }
         )->hashes;
 
-	print_time("get_media_set_clusters querying on medium");
+        print_time( "get_media_set_clusters querying on medium" );
 
     }
     elsif ( $type eq 'collection' )
     {
 
         # for a collection, get all of the clusters in the clustering run associated with the collection media_set
-      my $query = "select mc.* from media_clusters mc, dashboard_media_sets dms " .
-              "  where dms.media_sets_id = ? and dms.media_cluster_runs_id = mc.media_cluster_runs_id and " .
-              "    dms.dashboards_id = ?";
+        my $query =
+          "select mc.* from media_clusters mc, dashboard_media_sets dms " .
+          "  where dms.media_sets_id = ? and dms.media_cluster_runs_id = mc.media_cluster_runs_id and " .
+          "    dms.dashboards_id = ?";
 
         #print STDERR "query:\n$query\n";
         #print STDERR "media_sets_id: " . $media_set->{media_sets_id } . "\n";
         #print STDERR "dashboards_id: " . $dashboard->{dashboards_id }  . "\n";
 
-        $clusters = $c->dbis->query( $query,
-            $media_set->{ media_sets_id },
-            $dashboard->{ dashboards_id }
-        )->hashes;
-	print_time("get_media_set_clusters querying on collection");
+        $clusters = $c->dbis->query( $query, $media_set->{ media_sets_id }, $dashboard->{ dashboards_id } )->hashes;
+        print_time( "get_media_set_clusters querying on collection" );
     }
     elsif ( $type eq 'cluster' )
     {
@@ -355,7 +354,7 @@ sub get_media_set_clusters
               "  where a.media_cluster_runs_id = b.media_cluster_runs_id " . "    and b.media_clusters_id = ?",
             $media_set->{ media_clusters_id }
         )->hashes;
-	print_time("get_media_set_clusters querying on collection");
+        print_time( "get_media_set_clusters querying on collection" );
     }
     else
     {
@@ -388,7 +387,7 @@ sub get_media_set_clusters
           $c->dbis->query( "select * from media_sets where media_clusters_id = ?", $mc->{ media_clusters_id } )->hash;
     }
 
-    print_time("get_media_set_clusters returning clusters");
+    print_time( "get_media_set_clusters returning clusters" );
 
     return $clusters;
 }
@@ -546,17 +545,17 @@ sub compare : Local
 }
 
 # die if the dashboard topic is not valid for the given date
-sub validate_dashboard_topic_date 
+sub validate_dashboard_topic_date
 {
     my ( $self, $c, $dashboard_topic, $date ) = @_;
-    
+
     if ( !$dashboard_topic )
     {
         return;
     }
-    
+
     $date .= " 00:00:00";
-    
+
     if ( $date lt $dashboard_topic->{ start_date } )
     {
         die( "date '$date' is before topic start date $dashboard_topic->{ start_date }" );
@@ -565,8 +564,8 @@ sub validate_dashboard_topic_date
     if ( $date gt $dashboard_topic->{ end_date } )
     {
         die( "date '$date' is after topic end date $dashboard_topic->{ end_date }" );
-    }  
-}    
+    }
+}
 
 use Time::HiRes;
 
@@ -596,14 +595,14 @@ sub view : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    undef($_start_time);
-    undef($_last_time);
-    
-    print_time("starting view");
+    undef( $_start_time );
+    undef( $_last_time );
+
+    print_time( "starting view" );
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    print_time("got dashboard");
+    print_time( "got dashboard" );
 
     my $translate = $self->_set_translate_state( $c );
 
@@ -615,21 +614,21 @@ sub view : Local
     my $dashboard_topics_id = $c->req->param( 'dashboard_topics_id' ) || 0;
     my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
 
-    print_time("got dashboard_topic");
+    print_time( "got dashboard_topic" );
 
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
-    print_time("got dashboard_topic_clause");
+    print_time( "got dashboard_topic_clause" );
 
     my $media_set = $self->get_media_set_from_params( $c );
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
-    print_time("got start_of_week");
+    print_time( "got start_of_week" );
 
     $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
 
-    print_time("validated dashboard_topic_date");
+    print_time( "validated dashboard_topic_date" );
 
     my $words_query =
       ( "select * from top_500_weekly_words_normalized " . "  where media_sets_id = $media_set->{ media_sets_id } " .
@@ -640,7 +639,7 @@ sub view : Local
 
     my $words = $c->dbis->query( $words_query )->hashes;
 
-    print_time("got words");
+    print_time( "got words" );
 
     if ( scalar( @{ $words } ) == 0 )
     {
@@ -660,16 +659,16 @@ sub view : Local
 
     my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
 
-    print_time("got word cloud");
+    print_time( "got word cloud" );
 
     my $term_chart_url =
       MediaWords::Util::Chart::get_daily_term_chart_url( $c->dbis, $media_set, $date, 7, $words, $dashboard_topic_clause );
 
-    print_time("got term_chart_url");
+    print_time( "got term_chart_url" );
 
     my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
 
-    print_time("get clusters");
+    print_time( "get clusters" );
 
     $c->stash->{ dashboard }             = $dashboard;
     $c->stash->{ dashboard_topic }       = $dashboard_topic;
@@ -942,17 +941,17 @@ sub sentences : Local
 sub get_stems_in_list
 {
     my ( $self, $c, $term_list ) = @_;
-    
+
     $term_list =~ s/[^\w ]//g;
-    
+
     my $terms = [ split( ' ', $term_list ) ];
-    
+
     my $stemmer = MediaWords::Util::Stemmer->new;
 
     my $stems = $stemmer->stem( @{ $terms } );
-    
-    my $stems_in_list = join( ',',  map { "'$_'" } @{ $stems } );
-    
+
+    my $stems_in_list = join( ',', map { "'$_'" } @{ $stems } );
+
     return $stems_in_list;
 }
 
@@ -964,11 +963,13 @@ sub compare_media_set_terms : Local
 
     my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "dashboard not found: $dashboards_id" );
 
-    my $form = $c->create_form({
+    my $form = $c->create_form(
+        {
             load_config_file => $c->path_to() . '/root/forms/compare_media_set_terms.yml',
             method           => 'post',
             action           => $c->uri_for( "/dashboard/compare_media_set_terms/$dashboards_id" ),
-    });
+        }
+    );
 
     $form->process( $c->request );
 
@@ -979,57 +980,55 @@ sub compare_media_set_terms : Local
         $c->stash->{ template }  = 'dashboard/compare_media_set_terms.tt2';
         return;
     }
-    
+
     my $start_date = $c->req->param( 'start_date' ) || die( "no start_date" );
-    my $end_date = $c->req->param( 'end_date' ) || die( "no end_date" );
-    my $term_list = $c->req->param( 'term_list' ) || die( "no term_list" );
-    
+    my $end_date   = $c->req->param( 'end_date' )   || die( "no end_date" );
+    my $term_list  = $c->req->param( 'term_list' )  || die( "no term_list" );
+
     if ( $start_date !~ /\d\d\d\d-\d\d-\d\d/ )
     {
         die( "start_date is not in YYYY-MM-DD format" );
     }
-    
+
     if ( $end_date !~ /\d\d\d\d-\d\d-\d\d/ )
     {
         die( "start_date is not in YYYY-MM-DD format" );
     }
-    
-    my $stems_in_list = $self->get_stems_in_list( $c, $term_list );
-    
-    my $collection_term_counts = $c->dbis->query(
-            "select ms.name, ms.set_type, publish_day, stem_count, stem, term " . 
-            "  from daily_words dw, media_sets ms, dashboard_media_sets dms " .
-            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " . 
-            "    dms.media_sets_id = ms.media_sets_id and " . 
-            "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
-            "    dw.stem in ( $stems_in_list )and dw.dashboard_topics_id is null " .
-            "  order by ms.set_type, ms.name, publish_day, stem"
-    )->hashes;
 
-    my $media_term_counts = $c->dbis->query(
-            "select ms.name, ms.set_type, publish_day, stem_count, stem, term " . 
-            "  from daily_words dw, media_sets ms, dashboard_media_sets dms, media_sets_media_map msmm " .
-            "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " . 
-            "    dms.media_sets_id = msmm.media_sets_id and msmm.media_id = ms.media_id and " . 
-            "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
-            "    dw.stem in ( $stems_in_list ) and dw.dashboard_topics_id is null " .
-            "  order by ms.set_type, ms.name, publish_day, stem"
-    )->hashes;
-                        
+    my $stems_in_list = $self->get_stems_in_list( $c, $term_list );
+
+    my $collection_term_counts =
+      $c->dbis->query( "select ms.name, ms.set_type, publish_day, stem_count, stem, term " .
+          "  from daily_words dw, media_sets ms, dashboard_media_sets dms " .
+          "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " .
+          "    dms.media_sets_id = ms.media_sets_id and " .
+          "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
+          "    dw.stem in ( $stems_in_list )and dw.dashboard_topics_id is null " .
+          "  order by ms.set_type, ms.name, publish_day, stem" )->hashes;
+
+    my $media_term_counts =
+      $c->dbis->query( "select ms.name, ms.set_type, publish_day, stem_count, stem, term " .
+          "  from daily_words dw, media_sets ms, dashboard_media_sets dms, media_sets_media_map msmm " .
+          "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " .
+          "    dms.media_sets_id = msmm.media_sets_id and msmm.media_id = ms.media_id and " .
+          "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
+          "    dw.stem in ( $stems_in_list ) and dw.dashboard_topics_id is null " .
+          "  order by ms.set_type, ms.name, publish_day, stem" )->hashes;
+
     my $csv = Text::CSV_XS->new;
     my $output;
-    
+
     $csv->combine( qw/media_set_name media_set_type publish_day stem_count stem term/ );
     $output .= $csv->string . "\n";
-    
-    for my $term_count ( @{ $collection_term_counts }, @{ $media_term_counts } ) 
+
+    for my $term_count ( @{ $collection_term_counts }, @{ $media_term_counts } )
     {
         $csv->combine( map { $term_count->{ $_ } } qw/name set_type publish_day stem_count stem term/ );
-        
+
         $output .= $csv->string . "\n";
     }
 
-    $c->res->header('Content-Disposition', qq[attachment; filename="term_counts.csv"]);
+    $c->res->header( 'Content-Disposition', qq[attachment; filename="term_counts.csv"] );
     $c->res->content_type( 'text/csv' );
     $c->res->body( $output );
 }
@@ -1038,39 +1037,40 @@ sub compare_media_set_terms : Local
 sub report_bug : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
-    
+
     my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "dashboard not found: $dashboards_id" );
     my $url = $c->req->param( 'url' ) || die( 'no url' );
-    
+
     if ( !$c->req->param( 'submit' ) )
     {
         $c->stash->{ dashboard } = $dashboard;
-        $c->stash->{ url } = $url;      
-        $c->stash->{ template } = 'dashboard/report_bug.tt2';
+        $c->stash->{ url }       = $url;
+        $c->stash->{ template }  = 'dashboard/report_bug.tt2';
         return;
     }
-    
+
     my $config = MediaWords::Util::Config::get_config;
     print STDERR Dumper( $config );
     my $smtp_server = $config->{ mail }->{ smtp_server } || die( 'no mail:smtp_server in mediawords.yml' );
-    my $bug_email = $config->{ mail }->{ bug_email } || die( 'no mail:bug_email in mediawords.yml' );
-    
+    my $bug_email   = $config->{ mail }->{ bug_email }   || die( 'no mail:bug_email in mediawords.yml' );
+
     my $email = $c->req->param( 'email' ) || $bug_email;
     my $description = $c->req->param( 'description' );
-    
+
     my $smtp = Net::SMTP->new( $smtp_server ) || die;
 
-    $smtp->mail( $email ) || die;
+    $smtp->mail( $email )   || die;
     $smtp->to( $bug_email ) || die;
 
-    $smtp->data() || die;
-    $smtp->datasend("To: $bug_email\nFrom: $email\nSubject: Media Cloud Bug Report\n\n") || die;
-    $smtp->datasend("Url: $url\n\nDescription: $description\n\n") || die;
-    $smtp->dataend() || die;
+    $smtp->data()                                                                          || die;
+    $smtp->datasend( "To: $bug_email\nFrom: $email\nSubject: Media Cloud Bug Report\n\n" ) || die;
+    $smtp->datasend( "Url: $url\n\nDescription: $description\n\n" )                        || die;
+    $smtp->dataend()                                                                       || die;
 
     $smtp->quit || die;
 
-    my $redirect = $c->uri_for( '/dashboard/list/' . $dashboard->{ dashboards_id }, { status_msg => 'Bug report filed.  Thanks!' } );
+    my $redirect =
+      $c->uri_for( '/dashboard/list/' . $dashboard->{ dashboards_id }, { status_msg => 'Bug report filed.  Thanks!' } );
     $c->res->redirect( $redirect );
 }
 
