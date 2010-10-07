@@ -35,8 +35,9 @@ sub run_daemon
         for my $media_set ( @{ $media_sets } )
         {
             my ( $start_date, $end_date ) = $db->query( 
-                "select min(start_date), max(end_date) from dashboard_media_sets " . 
-                "  where media_sets_id = ?", $media_set->{ media_sets_id } )->flat;
+                "select min(d.start_date), max(d.end_date) from dashboard_media_sets dms, dashboards d " . 
+                "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = ?", 
+                $media_set->{ media_sets_id } )->flat;
             print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
             MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 0, undef, $media_set->{ media_sets_id } );
             $db->query( "update media_sets set vectors_added = true where media_sets_id = ?", $media_set->{ media_sets_id } );
