@@ -227,7 +227,8 @@ span.tagcloud24 { font-size: 36px;}
               </tr>
               <tr>
                 <td align="right" valign="top"><strong>Download Data:</strong></td>
-                <td align="left" valign="top"> [<a href="link">CSV</a>] [<a href="link">XML</a>]</td>
+                <td align="left" valign="top"> 
+		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]">CSV</a>] [<a href="link">XML</a>]</td>
               </tr>
             </table>
             <br/>
