@@ -242,6 +242,8 @@ URI::URL
 
 XML::LibXML::XPathContext
 
+XML::Simple
+
 XML::TreePP
 
 Encode::HanConvert
