@@ -65,6 +65,7 @@ span.tagcloud24 { font-size: 36px;}
         ];    
         AutoComplete_Create('media1a2', data, 10);
         AutoComplete_Create('media1a4', data, 10);
+        DisplayDIV('mediacontainer2');
     }
 </script>
 
