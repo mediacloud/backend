@@ -183,9 +183,9 @@ span.tagcloud24 { font-size: 36px;}
       </div>
       <span onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
       <div id="compare">Compare This Data Source</div>
-      </span>
-      <div class="submit"><input name="Submit" type="submit" value="go" />
+      <div id="submit"><input name="Submit" type="submit" value="submit" />
       </div>
+      </span>
       </form>
     
     </td>
