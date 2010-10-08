@@ -155,23 +155,48 @@ sub get_word_list : Local
 
     my $words = $self->_get_words($c, $dashboard_topic);
 
-    my $fields = [ qw ( stem term stem_count media_sets_id publish_week dashboard_topics_id ) ];
+    my $output_format = $c->req->param( 'format' );
 
-    my $csv = Class::CSV->new( fields => $fields );
+    my $response_body;
 
-    $csv->add_line($fields);
-
-    foreach my $word (@$words)
+    if ($output_format eq 'xml')
     {
-       $csv->add_line($word);
+
+      use XML::Simple qw(:strict);
+
+      my $word_hashes = [ ( map { { word => $_ }  } @{$words} ) ];
+
+      my $xml = XMLout( { words => $word_hashes}, KeyAttr => [ qw (words word ) ], 
+			RootName => 'word_date', 
+			XMLDecl => 1,NoAttr => 1  );
+
+      $response_body = $xml;
+
+      $c->response->header("Content-Disposition" => "attachment;filename=word_list.xml");
+      $c->response->content_type( 'text/xml' );
+    }
+    else
+    {
+        my $fields = [ qw ( stem term stem_count media_sets_id publish_week dashboard_topics_id ) ];
+
+	my $csv = Class::CSV->new( fields => $fields );
+
+	$csv->add_line($fields);
+
+	foreach my $word (@$words)
+	{
+	    $csv->add_line($word);
+	}
+
+	my $csv_string = $csv->string;
+	$response_body = $csv_string;
+	$c->response->header("Content-Disposition" => "attachment;filename=word_list.csv");
+	$c->response->content_type( 'text/csv' );
     }
 
-    my $csv_string = $csv->string;
-
-    $c->response->header("Content-Disposition" => "attachment;filename=word_list.csv");
-    $c->response->content_type( 'text/csv' );
-    $c->response->content_length( length( $csv_string ) );
-    $c->response->body( $csv_string);
+    $c->response->content_length( length( $response_body ) );
+    $c->response->body( $response_body);
+    return;
 }
 
 sub template_test : Local

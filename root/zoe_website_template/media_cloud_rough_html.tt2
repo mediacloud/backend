@@ -206,7 +206,7 @@ span.tagcloud24 { font-size: 36px;}
               <div id="report"><a href="link">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
               </div>
               <strong>Media Cloud</strong><br />
-              <div id="news"><a href="link">This is a link</a> tothe news page, Or About us, </div>
+              <div id="news"><a href="link">This is a link</a> to the news page, Or About us, </div>
             </div></td>
           <td align="left" valign="top"><table width="275" border="0" cellspacing="0" cellpadding="2">
               <tr>
@@ -228,7 +228,7 @@ span.tagcloud24 { font-size: 36px;}
               <tr>
                 <td align="right" valign="top"><strong>Download Data:</strong></td>
                 <td align="left" valign="top"> 
-		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]">CSV</a>] [<a href="link">XML</a>]</td>
+		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&format=csv">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&format=xml">XML</a>]</td>
               </tr>
             </table>
             <br/>
@@ -247,7 +247,7 @@ This is a Word Cloud! Thats' what goes here.<br/>
               Still a Word Cloud!
 [% END %]
 </div>
-            <div id="CMcontentarea" style="display:none;">This is a Coverage Map! Thats' what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag! </div></td>
+            <div id="CMcontentarea" style="display:none;">This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag! </div></td>
         </tr>
       </table>
       
