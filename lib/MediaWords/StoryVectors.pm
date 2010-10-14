@@ -600,7 +600,7 @@ sub _update_daily_country_counts
             #next unless $country_data_base_value eq 'unit state';
             #say STDERR $country;
 
-            say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'\n";
+            say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'";
             my $query =
               "insert into daily_country_count (media_sets_id, publish_day, country, country_count) " .
 "select media_sets_id, publish_day, ?, count(*) from (select ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day from story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, media_sets_media_map msmm, story_sentences ss where ss.stories_id=ssw.stories_id and ss.sentence_number=ssw.sentence_number and ssw.media_id = msmm.media_id and  $media_set_clause  and msmm.media_sets_id = 1 and ssw.publish_day = '${sql_date}'::date and ssw.stem =?  and ssw2.stem = ? and ssw3.stem = ? and ssw2.stories_id=ssw.stories_id and ssw2.sentence_number=ssw.sentence_number and ssw3.stories_id=ssw.stories_id and ssw3.sentence_number=ssw.sentence_number group by ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day) as foo group by media_sets_id, publish_day";
