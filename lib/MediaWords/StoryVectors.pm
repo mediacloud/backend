@@ -7,12 +7,14 @@ use Encode;
 use Encode::HanConvert;
 use Perl6::Say;
 use Lingua::ZH::WordSegmenter;
+use Data::Dumper;
 
 use Lingua::EN::Sentence::MediaWords;
 use Lingua::ZH::MediaWords;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Stemmer;
 use MediaWords::Util::StopWords;
+use MediaWords::Util::Countries;
 
 use Date::Format;
 use Date::Parse;
@@ -46,29 +48,29 @@ sub _insert_story_sentence_words
         while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
         {
 
-	  #print STDERR $story->{ stories_id }.$hash->{ count }.$sentence_num.encode_utf8( $stem ).encode_utf8( lc( $hash->{ word } ) ).$story->{ publish_date }.$story->{ media_id };
-	  #print STDERR "\n";
+#print STDERR $story->{ stories_id }.$hash->{ count }.$sentence_num.encode_utf8( $stem ).encode_utf8( lc( $hash->{ word } ) ).$story->{ publish_date }.$story->{ media_id };
+#print STDERR "\n";
 
-	  eval {
-            $db->query(
+            eval {
+                $db->query(
 'insert into story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) '
-                  . '  values ( ?,?,?,?,?,?,? )',
-                $story->{ stories_id },
-                $hash->{ count },
-                $sentence_num,
-                encode_utf8( $stem ),
-                encode_utf8( lc( $hash->{ word } ) ),
-                $story->{ publish_date },
-                $story->{ media_id }
-            );
+                      . '  values ( ?,?,?,?,?,?,? )',
+                    $story->{ stories_id },
+                    $hash->{ count },
+                    $sentence_num,
+                    encode_utf8( $stem ),
+                    encode_utf8( lc( $hash->{ word } ) ),
+                    $story->{ publish_date },
+                    $story->{ media_id }
+                );
 
-	  };
-	    if ($@)
-	    {
-	       print STDERR "Error inserting into story_sentence_words\n";
-	       die $@;
-	    }
-         }
+            };
+            if ( $@ )
+            {
+                print STDERR "Error inserting into story_sentence_words\n";
+                die $@;
+            }
+        }
     }
 }
 
@@ -499,7 +501,126 @@ sub _update_daily_words
 
     for my $dashboard_topic ( @{ $dashboard_topics } )
     {
-         my $query_2 =
+        my $query_2 =
+          "    insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
+          "          select media_sets_id, term, stem, sum_stem_counts, publish_day, dashboard_topics_id from " .
+          "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+          "                sum(stem_count_sum) over w as sum_stem_counts  from " .
+" ( select media_sets_id, ssw.term, ssw.stem, sum(ssw.stem_count) stem_count_sum,  min(ssw.publish_day) as publish_day, ?::integer as dashboard_topics_id  from "
+          . "     story_sentence_words ssw,                                                          "
+          . "                   ( select media_sets_id, stories_id, sentence_number from story_sentence_words sswq, media_sets_media_map msmm "
+          . " where                                                           "
+          . " sswq.media_id = msmm.media_id and sswq.stem = ? and sswq.publish_day = ? and "
+          . " $media_set_clause  group by msmm.media_sets_id, stories_id, sentence_number "
+          . " ) as ssw_sentences_for_query  "
+          . " where ssw.stories_id=ssw_sentences_for_query.stories_id and ssw.sentence_number=ssw_sentences_for_query.sentence_number "
+          . " group by media_sets_id, ssw.stem, term "
+          . "                        ) as foo  "
+          . "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) "
+          . "	               )  q                                                         "
+          . "              where term_rank = 1 and sum_stem_counts > 1 ";
+
+        # doing these one by one is the only way I could get the postgres planner to create
+        # a sane plan
+        $db->query( $query_2, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date );
+    }
+
+    $db->query( "insert into total_daily_words (media_sets_id, publish_day, total_count, dashboard_topics_id) " .
+          " select media_sets_id, publish_day, sum(stem_count), dashboard_topics_id " . " from daily_words " .
+          " where publish_day = '${sql_date}'::date $update_clauses " .
+          " group by media_sets_id, publish_day, dashboard_topics_id " );
+
+    return 1;
+}
+
+# update the given table for the given date and interval
+sub _update_daily_country_counts
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: _update_daily_country_counts $sql_date";
+
+    my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
+    my $media_set_clause       = _get_media_set_clause( $media_sets_id );
+    my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    say STDERR
+      "delete from daily_country_count where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses";
+
+    $db->query(
+        "delete from daily_country_count where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
+
+    if ( !$dashboard_topics_id )
+    {
+
+        #my @all_countries = map { lc } Locale::Country::all_country_names;
+        my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
+
+        #say STDERR Dumper($all_countries);
+        #exit;
+
+        for my $country ( @$all_countries )
+        {
+
+            #say STDERR $country;
+
+            my $stemmer = MediaWords::Util::Stemmer->new;
+
+            my @country_split = split ' ', $country;
+
+            #next unless scalar(@country_split) > 2;
+            #say $country;
+
+            #say Dumper (@country_split);
+            #say Dumper ([$stemmer->stem( @country_split )]);
+
+            #$DB::single = 2;
+            my ( $country_term1, $country_term2, $country_term3 ) = @{ $stemmer->stem( @country_split ) };
+
+            #say STDERR Dumper([($country_term1, $country_term2)]);
+
+            #exit;
+            if ( !defined( $country_term2 ) )
+            {
+                $country_term2 = $country_term1;
+            }
+
+            if ( !defined( $country_term3 ) )
+            {
+                $country_term3 = $country_term1;
+            }
+
+            my $country_data_base_value =
+              ( $country_term1 eq $country_term2 ) ? $country_term1 : "$country_term1 $country_term2";
+            if ( $country_term3 ne $country_term1 )
+            {
+                $country_data_base_value .= " $country_term3";
+            }
+
+            #next unless $country_data_base_value eq 'unit state';
+            #say STDERR $country;
+
+            say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'\n";
+            my $query =
+              "insert into daily_country_count (media_sets_id, publish_day, country, country_count) " .
+"select media_sets_id, publish_day, ?, count(*) from (select ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day from story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, media_sets_media_map msmm, story_sentences ss where ss.stories_id=ssw.stories_id and ss.sentence_number=ssw.sentence_number and ssw.media_id = msmm.media_id and  $media_set_clause  and msmm.media_sets_id = 1 and ssw.publish_day = '${sql_date}'::date and ssw.stem =?  and ssw2.stem = ? and ssw3.stem = ? and ssw2.stories_id=ssw.stories_id and ssw2.sentence_number=ssw.sentence_number and ssw3.stories_id=ssw.stories_id and ssw3.sentence_number=ssw.sentence_number group by ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day) as foo group by media_sets_id, publish_day";
+
+            #say STDERR $query;
+            #say STDERR Dumper ([($country_data_base_value, $country_term1, $country_term2, $country_term3)] );
+
+            $db->query( $query, $country_data_base_value, $country_term1, $country_term2, $country_term3 );
+        }
+    }
+
+    return;
+
+    my $dashboard_topics = $db->query(
+        "select * from dashboard_topics " . "  where $dashboard_topic_clause and ?::date between start_date and end_date",
+        $sql_date )->hashes;
+
+    for my $dashboard_topic ( @{ $dashboard_topics } )
+    {
+        my $query_2 =
           "    insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
           "          select media_sets_id, term, stem, sum_stem_counts, publish_day, dashboard_topics_id from " .
           "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
@@ -607,6 +728,8 @@ sub update_aggregate_words
                 _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             }
         }
+
+        _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
 
         $db->commit();
 
