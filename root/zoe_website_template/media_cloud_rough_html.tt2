@@ -181,8 +181,8 @@ span.tagcloud24 { font-size: 36px;}
           <br />
           <span class="smaller">A fast explanation</span></div>
       </div>
-      <span onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
-      <div id="compare">Compare This Data Source</div>
+      <span style="cursor:pointer;">
+      <div  onclick="DisplayDIV('mediacontainer2')" id="compare">Compare This Data Source</div>
       <div id="submit"><input name="Submit" type="submit" value="submit" />
       </div>
       </span>
