@@ -602,8 +602,18 @@ sub _update_daily_country_counts
 
             say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'";
             my $query =
-              "insert into daily_country_count (media_sets_id, publish_day, country, country_count) " .
-"select media_sets_id, publish_day, ?, count(*) from (select ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day from story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, media_sets_media_map msmm, story_sentences ss where ss.stories_id=ssw.stories_id and ss.sentence_number=ssw.sentence_number and ssw.media_id = msmm.media_id and  $media_set_clause  and ssw.publish_day = '${sql_date}'::date and ssw.stem =?  and ssw2.stem = ? and ssw3.stem = ? and ssw2.stories_id=ssw.stories_id and ssw2.sentence_number=ssw.sentence_number and ssw3.stories_id=ssw.stories_id and ssw3.sentence_number=ssw.sentence_number group by ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day) as foo group by media_sets_id, publish_day";
+              "INSERT INTO   daily_country_count ( media_sets_id, publish_day, country, country_count ) " .
+              "SELECT media_sets_id, publish_day, ?, COUNT(*) FROM                                      " .
+              "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day" .
+              "FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, " .
+              " media_sets_media_map msmm,  story_sentences ss " .
+              "   WHERE    ss.stories_id =ssw.stories_id AND ss.sentence_number=ssw.sentence_number AND " .
+              "    ssw.media_id = msmm.media_id AND $media_set_clause AND ssw.publish_day = '${sql_date}'::DATE " .
+              "    AND ssw.stem =? AND ssw2.stem = ? AND ssw3.stem = ? AND ssw2.stories_id =ssw.stories_id AND " .
+              " ssw2.sentence_number=ssw.sentence_number AND ssw3.stories_id =ssw.stories_id AND " .
+              "ssw3.sentence_number=ssw.sentence_number " .
+              "         GROUP BY ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day " .
+              "        ) AS foo                    " . "GROUP BY media_sets_id, publish_day";
 
             #say STDERR $query;
             #say STDERR Dumper ([($country_data_base_value, $country_term1, $country_term2, $country_term3)] );
