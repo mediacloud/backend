@@ -506,19 +506,19 @@ sub _update_daily_words
           "          select media_sets_id, term, stem, sum_stem_counts, publish_day, dashboard_topics_id from " .
           "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
           "                sum(stem_count_sum) over w as sum_stem_counts  from " .
-" ( select media_sets_id, ssw.term, ssw.stem, sum(ssw.stem_count) stem_count_sum,  min(ssw.publish_day) as publish_day, ?::integer as dashboard_topics_id  from "
-          . "     story_sentence_words ssw,                                                          "
-          . "                   ( select media_sets_id, stories_id, sentence_number from story_sentence_words sswq, media_sets_media_map msmm "
-          . " where                                                           "
-          . " sswq.media_id = msmm.media_id and sswq.stem = ? and sswq.publish_day = ? and "
-          . " $media_set_clause  group by msmm.media_sets_id, stories_id, sentence_number "
-          . " ) as ssw_sentences_for_query  "
-          . " where ssw.stories_id=ssw_sentences_for_query.stories_id and ssw.sentence_number=ssw_sentences_for_query.sentence_number "
-          . " group by media_sets_id, ssw.stem, term "
-          . "                        ) as foo  "
-          . "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) "
-          . "	               )  q                                                         "
-          . "              where term_rank = 1 and sum_stem_counts > 1 ";
+          " ( select media_sets_id, ssw.term, ssw.stem, sum(ssw.stem_count) stem_count_sum,    " .
+          "  min(ssw.publish_day) as publish_day, ?::integer as dashboard_topics_id  from " .
+          "     story_sentence_words ssw,                                                          " .
+          "( select media_sets_id, stories_id, sentence_number from story_sentence_words sswq, media_sets_media_map msmm " .
+          " where                                                           " .
+          " sswq.media_id = msmm.media_id and sswq.stem = ? and sswq.publish_day = ? and " .
+          " $media_set_clause  group by msmm.media_sets_id, stories_id, sentence_number " .
+          " ) as ssw_sentences_for_query  " . " where ssw.stories_id=ssw_sentences_for_query.stories_id and " .
+          " ssw.sentence_number=ssw_sentences_for_query.sentence_number " . " group by media_sets_id, ssw.stem, term " .
+          "                        ) as foo  " .
+          "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) " .
+          "	               )  q                                                         " .
+          "             where term_rank = 1 and sum_stem_counts > 1 ";
 
         # doing these one by one is the only way I could get the postgres planner to create
         # a sane plan
@@ -550,14 +550,13 @@ sub _update_daily_country_counts
     $db->query(
         "delete from daily_country_count where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
-      #my @all_countries = map { lc } Locale::Country::all_country_names;
-        my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
+    #my @all_countries = map { lc } Locale::Country::all_country_names;
+    my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
 
-     
     if ( !$dashboard_topics_id )
     {
 
-     #say STDERR Dumper($all_countries);
+        #say STDERR Dumper($all_countries);
         #exit;
 
         for my $country ( @$all_countries )
@@ -604,7 +603,7 @@ sub _update_daily_country_counts
             say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'";
             my $query =
               "INSERT INTO   daily_country_count ( media_sets_id, publish_day, country, country_count ) " .
-              "SELECT media_sets_id, publish_day, ?, COUNT(*) FROM                                      " .
+              "SELECT media_sets_id, publish_day, ?, COUNT(*) FROM              " .
               "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day " .
               " FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, " .
               " media_sets_media_map msmm,  story_sentences ss " .
@@ -666,31 +665,37 @@ sub _update_daily_country_counts
             {
                 $country_data_base_value .= " $country_term3";
             }
-        my $query_2 =
-          "INSERT INTO   daily_country_count ( media_sets_id, publish_day, country, country_count, dashboard_topics_id ) " .
-          "SELECT media_sets_id, publish_day, ?, COUNT(*), ?::integer as dashboard_topics_id  FROM      " .
-          "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day " .
-          " FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, " .
-          " media_sets_media_map msmm,  story_sentences ss, " .
-          " story_sentence_words sswt  " .
-          "   WHERE    ss.stories_id =ssw.stories_id AND ss.sentence_number=ssw.sentence_number AND " .
-          "sswt.stories_id=ssw.stories_id AND     " .
-          " sswt.sentence_number=ssw.sentence_number AND sswt.stem =? AND " .
-          "    ssw.media_id = msmm.media_id AND $media_set_clause AND ssw.publish_day = '${sql_date}'::DATE " .
-          "    AND ssw.stem =? AND ssw2.stem = ? AND ssw3.stem = ? AND ssw2.stories_id =ssw.stories_id AND " .
-          " ssw2.sentence_number=ssw.sentence_number AND ssw3.stories_id =ssw.stories_id AND " .
-          "ssw3.sentence_number=ssw.sentence_number " .
-          "         GROUP BY ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day " .
-          "        ) AS foo                  GROUP BY media_sets_id, publish_day";
+            my $query_2 =
+"INSERT INTO   daily_country_count ( media_sets_id, publish_day, country, country_count, dashboard_topics_id ) "
+              . "SELECT media_sets_id, publish_day, ?, COUNT(*), ?::integer as dashboard_topics_id  FROM      "
+              . "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day "
+              . " FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, "
+              . " media_sets_media_map msmm,  story_sentences ss, "
+              . " story_sentence_words sswt  "
+              . "   WHERE    ss.stories_id =ssw.stories_id AND ss.sentence_number=ssw.sentence_number AND "
+              . "sswt.stories_id=ssw.stories_id AND     "
+              . " sswt.sentence_number=ssw.sentence_number AND sswt.stem =? AND "
+              . "    ssw.media_id = msmm.media_id AND $media_set_clause AND ssw.publish_day = '${sql_date}'::DATE "
+              . "    AND ssw.stem =? AND ssw2.stem = ? AND ssw3.stem = ? AND ssw2.stories_id =ssw.stories_id AND "
+              . " ssw2.sentence_number=ssw.sentence_number AND ssw3.stories_id =ssw.stories_id AND "
+              . "ssw3.sentence_number=ssw.sentence_number "
+              . "         GROUP BY ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day "
+              . "        ) AS foo                  GROUP BY media_sets_id, publish_day";
 
-        # doing these one by one is the only way I could get the postgres planner to create
-        # a sane plan
+            # doing these one by one is the only way I could get the postgres planner to create
+            # a sane plan
 
-	say STDERR "Query:\n" . "$query_2";
-	say STDERR " $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
+            say STDERR "Query:\n" . "$query_2";
+            say STDERR
+" $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
 
-        $db->query( $query_2, $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $country_term1, $country_term2, $country_term3 );
-	  }
+            $db->query(
+                $query_2, $country_data_base_value,
+                $dashboard_topic->{ dashboard_topics_id },
+                $dashboard_topic->{ query },
+                $country_term1, $country_term2, $country_term3
+            );
+        }
 
     }
 
