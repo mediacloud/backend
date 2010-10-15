@@ -685,9 +685,10 @@ sub _update_daily_country_counts
             # doing these one by one is the only way I could get the postgres planner to create
             # a sane plan
 
-            say STDERR "Query:\n" . "$query_2";
-            say STDERR
-" $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
+            #say STDERR "Query:\n" . "$query_2";
+            #say STDERR " $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
+
+	    say STDERR "_update_daily_country_counts  $sql_date  '$dashboard_topic->{ query }' '$country_data_base_value'";
 
             $db->query(
                 $query_2, $country_data_base_value,
