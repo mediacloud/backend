@@ -131,7 +131,7 @@ my $_country_name_remapping = {
     # 'italy',
     # 'jamaica',
     # 'japan',
-    # 'jersey',
+    'jersey' => -1, #the island of Jersy would be confused with the state
     # 'jordan',
     # 'kazakhstan',
     # 'kenya',
