@@ -8,12 +8,14 @@ use HTML::TagCloud;
 use List::Util;
 use Net::SMTP;
 use URI::Escape;
+use List::Util qw (max min reduce sum);
 
 use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Stemmer;
 use MediaWords::Util::Translate;
+use MediaWords::Util::Countries;
 
 use Perl6::Say;
 use Data::Dumper;
@@ -115,32 +117,81 @@ sub list : Local
 
 sub _get_words
 {
-   my ($self, $c, $dashboard_topic ) = @_;
+    my ( $self, $c, $dashboard_topic ) = @_;
 
-   my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
-   print_time( "got dashboard_topic_clause" );
+    print_time( "got dashboard_topic_clause" );
 
-   my $media_set = $self->get_media_set_from_params( $c );
+    my $media_set = $self->get_media_set_from_params( $c );
 
-   my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+    my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
-   print_time( "got start_of_week" );
+    print_time( "got start_of_week" );
 
-   $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
+    $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
 
-   print_time( "validated dashboard_topic_date" );
+    print_time( "validated dashboard_topic_date" );
 
-   my $words_query =
-     ( "select * from top_500_weekly_words_normalized where media_sets_id = $media_set->{ media_sets_id } " .
-       "    and not is_stop_stem( 'long', stem )   and publish_week = date_trunc('week', '$date'::date) " .
-       "    and $dashboard_topic_clause   order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
+    my $words_query =
+      ( "select * from top_500_weekly_words_normalized where media_sets_id = $media_set->{ media_sets_id } " .
+          "    and not is_stop_stem( 'long', stem )   and publish_week = date_trunc('week', '$date'::date) " .
+          "    and $dashboard_topic_clause   order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
 
-   #say STDERR "SQL query: '$words_query'";
+    #say STDERR "SQL query: '$words_query'";
 
-   my $words = $c->dbis->query( $words_query )->hashes;
+    my $words = $c->dbis->query( $words_query )->hashes;
 
-   return $words;
+    return $words;
+}
+
+sub _get_country_counts
+{
+    my ( $self, $c, $dashboard_topic ) = @_;
+
+    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+
+    print_time( "got dashboard_topic_clause" );
+
+    my $media_set = $self->get_media_set_from_params( $c );
+
+    my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+
+    print_time( "got start_of_week" );
+
+    $self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
+
+    print_time( "validated dashboard_topic_date" );
+
+    my $country_count_query =
+      "SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count FROM daily_country_counts " .
+      "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause and " . 
+      " publish_day >= date_trunc('week', '$date'::date) AND publish_day <= (date_trunc('week', '$date'::date) + interval '1 week') " .
+      "GROUP BY media_sets_id, dashboard_topics_id, country order by country;";
+
+    say STDERR "SQL query: '$country_count_query'";
+
+    print_time( "starting country_count_query");
+
+    my $country_counts = $c->dbis->query( $country_count_query )->hashes;
+
+    print_time( "finished country_count_query");
+
+    my $ret = {};
+
+    foreach my $country_count (@$country_counts)
+    {
+       my $country_code = 
+	 MediaWords::Util::Countries::get_country_code_for_stemmed_country_name($country_count->{country});
+
+       die unless defined $country_code;
+
+       die Dumper($country_count) unless defined $country_count->{country_count};
+       $ret->{$country_code} = $country_count->{country_count};
+    }
+
+    #say STDERR Dumper( $country_counts );
+    return $ret;
 }
 
 sub get_word_list : Local
@@ -153,50 +204,108 @@ sub get_word_list : Local
         $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
     }
 
-    my $words = $self->_get_words($c, $dashboard_topic);
+    my $words = $self->_get_words( $c, $dashboard_topic );
 
     my $output_format = $c->req->param( 'format' );
 
     my $response_body;
 
-    if ($output_format eq 'xml')
+    if ( $output_format eq 'xml' )
     {
 
-      use XML::Simple qw(:strict);
+        use XML::Simple qw(:strict);
 
-      my $word_hashes = [ ( map { { word => $_ }  } @{$words} ) ];
+        my $word_hashes = [ ( map { { word => $_ } } @{ $words } ) ];
 
-      my $xml = XMLout( { words => $word_hashes}, KeyAttr => [ qw (words word ) ], 
-			RootName => 'word_date', 
-			XMLDecl => 1,NoAttr => 1  );
+        my $xml = XMLout(
+            { words => $word_hashes },
+            KeyAttr  => [ qw (words word ) ],
+            RootName => 'word_date',
+            XMLDecl  => 1,
+            NoAttr   => 1
+        );
 
-      $response_body = $xml;
+        $response_body = $xml;
 
-      $c->response->header("Content-Disposition" => "attachment;filename=word_list.xml");
-      $c->response->content_type( 'text/xml' );
+        $c->response->header( "Content-Disposition" => "attachment;filename=word_list.xml" );
+        $c->response->content_type( 'text/xml' );
     }
     else
     {
         my $fields = [ qw ( stem term stem_count media_sets_id publish_week dashboard_topics_id ) ];
 
-	my $csv = Class::CSV->new( fields => $fields );
+        my $csv = Class::CSV->new( fields => $fields );
 
-	$csv->add_line($fields);
+        $csv->add_line( $fields );
 
-	foreach my $word (@$words)
-	{
-	    $csv->add_line($word);
-	}
+        foreach my $word ( @$words )
+        {
+            $csv->add_line( $word );
+        }
 
-	my $csv_string = $csv->string;
-	$response_body = $csv_string;
-	$c->response->header("Content-Disposition" => "attachment;filename=word_list.csv");
-	$c->response->content_type( 'text/csv' );
+        my $csv_string = $csv->string;
+        $response_body = $csv_string;
+        $c->response->header( "Content-Disposition" => "attachment;filename=word_list.csv" );
+        $c->response->content_type( 'text/csv' );
     }
 
     $c->response->content_length( length( $response_body ) );
-    $c->response->body( $response_body);
+    $c->response->body( $response_body );
     return;
+}
+
+# get the url of a chart image for the given tag counts
+sub _get_tag_count_map_url
+{
+    my ( $country_code_count, $title ) = @_;
+
+    if ( !defined( $country_code_count ) || !scalar( %{ $country_code_count } ) )
+    {
+        return;
+    }
+
+    my $max_tag_count = max( values %{ $country_code_count } );
+
+    #prevent divide by zero error
+    if ( $max_tag_count == 0 )
+    {
+        $max_tag_count = 1;
+    }
+
+    my $data =
+      join( ',', map { int( ( $country_code_count->{ $_ } / $max_tag_count ) * 100 ) } sort keys %{ $country_code_count } );
+
+    say STDERR "date: $data";
+
+    my $countrycodes = join( '', sort keys %{ $country_code_count } );
+
+    say STDERR "country_codes: $countrycodes";
+
+    my $esc_title = uri_escape( $title );
+
+    my $url_object = URI->new( 'HTTP://chart.apis.google.com/chart' );
+
+    $url_object->query_form(
+        cht  => 't',
+        chtm => 'world',
+        chs  => '370x190',
+        chd  => "t:$data",
+        chtt => $title,
+        chco => 'ffffff,edf0d4,13390a',
+        chld => $countrycodes,
+        chf  => 'bg,s,EAF7FE'
+    );
+
+    #print Dumper($tag_counts);
+    #print Dumper($country_code_count);
+
+    return $url_object->canonical;
+}
+
+sub _get_coverage_char_url
+{
+   # my;
+
 }
 
 sub template_test : Local
@@ -237,17 +346,16 @@ sub template_test : Local
     if ( $show_results )
     {
 
-        my $words = $self->_get_words($c, $dashboard_topic );
+        my $words = $self->_get_words( $c, $dashboard_topic );
+        print_time( "got words" );
 
-	print_time( "got words" );
+        my $media_set = $self->get_media_set_from_params( $c );
 
-	my $media_set = $self->get_media_set_from_params( $c );
-
-	my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+        my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
         if ( scalar( @{ $words } ) == 0 )
         {
-	    my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+            my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
             my $error_message =
               "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
@@ -266,16 +374,21 @@ sub template_test : Local
 
         print_time( "got word cloud" );
 
-        print_time( "got term_chart_url" );
-
         my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
 
         print_time( "get clusters" );
+
+	my $country_counts = $self->_get_country_counts( $c, $dashboard_topic );
+	my $coverage_map_chart_url = _get_tag_count_map_url($country_counts, 'coverage map');
+
+	say STDERR "coverage map chart url: $coverage_map_chart_url";
 
         $c->stash->{ show_results } = 1;
 
         $c->stash->{ clusters } = $clusters;
         $c->stash->{ date }     = $date;
+
+	$c->stash->{coverage_map_chart_url}  = $coverage_map_chart_url;
 
         $c->stash->{ media_set }             = $media_set;
         $c->stash->{ word_cloud }            = $word_cloud;

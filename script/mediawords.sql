@@ -612,3 +612,14 @@ create view story_extracted_texts
        	    as downloads group by stories_id;
 
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
+
+CREATE TABLE daily_country_counts (
+    media_sets_id integer  not null references media on delete cascade,
+    publish_day date not null,
+    country character varying not null,
+    country_count bigint not null,
+    dashboard_topics_id integer references dashboard_topics on delete cascade
+);
+
+CREATE INDEX daily_country_counts_day_media_dashboard ON daily_country_counts USING btree (publish_day, media_sets_id, dashboard_topics_id);
+

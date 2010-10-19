@@ -248,7 +248,14 @@ This is a Word Cloud! Thats' what goes here.<br/>
               Still a Word Cloud!
 [% END %]
 </div>
-            <div id="CMcontentarea" style="display:none;">This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag! </div></td>
+            <div id="CMcontentarea" style="display:none;">
+
+[% IF coverage_map_chart_url %]
+<img src="[%- coverage_map_chart_url -%]" />
+[% ELSE %]
+This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
+[% END %]
+ </div></td>
         </tr>
       </table>
       

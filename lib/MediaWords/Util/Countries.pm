@@ -131,11 +131,11 @@ my $_country_name_remapping = {
     # 'italy',
     # 'jamaica',
     # 'japan',
-    'jersey' => -1, #the island of Jersy would be confused with the state
-    # 'jordan',
-    # 'kazakhstan',
-    # 'kenya',
-    # 'kiribati',
+    'jersey'                                  => -1,              #the island of Jersy would be confused with the state
+                                                                  # 'jordan',
+                                                                  # 'kazakhstan',
+                                                                  # 'kenya',
+                                                                  # 'kiribati',
     'korea, democratic people\'s republic of' => 'north korea',
     'korea, republic of'                      => 'south korea',
 
@@ -284,7 +284,7 @@ my $_country_name_remapping = {
     # 'zimbabwe',
 };
 
-sub get_countries_for_counts
+sub _get_non_remapped_names_for_non_banned_countries
 {
     my $all_countries = [ sort map { lc } Locale::Country::all_country_names ];
 
@@ -293,13 +293,115 @@ sub get_countries_for_counts
       [ grep { ( !defined( $_country_name_remapping->{ $_ } ) ) || $_country_name_remapping->{ $_ } ne '-1' }
           @$all_countries ];
 
-    $all_countries =
-      [ map { defined( $_country_name_remapping->{ $_ } ) ? $_country_name_remapping->{ $_ } : $_ } @$all_countries ];
+}
 
-    $all_countries = [ map { $_ =~ s/\,.*//g; $_ } @$all_countries ];
+sub _remap_name_if_necessary
+{
+    my ( $country_name ) = @_;
+
+    if ( defined( $_country_name_remapping->{ $country_name } ) )
+    {
+        return $_country_name_remapping->{ $country_name };
+    }
+    else
+    {
+        return $country_name;
+    }
+}
+
+sub _get_updated_country_name
+{
+    my ( $country_name ) = @_;
+
+    $country_name = _remap_name_if_necessary( $country_name );
+
+    $country_name =~ s/\,.*//g;
+
+    return $country_name;
+}
+
+sub get_countries_for_counts
+{
+    my $all_countries = _get_non_remapped_names_for_non_banned_countries();
+
+    $all_countries = [ map { _get_updated_country_name( $_ ) } @$all_countries ];
 
     $all_countries = [ sort @$all_countries ];
     return $all_countries;
+}
+
+my $_country_code_for_stemmed_country_name;
+
+sub get_stemmed_country_terms
+{
+    my ( $country ) = @_;
+
+    my $stemmer = MediaWords::Util::Stemmer->new;
+
+    my @country_split = split ' ', $country;
+
+    die if scalar( @country_split ) > 3;
+
+    #say $country;
+
+    #say Dumper (@country_split);
+    #say Dumper ([$stemmer->stem( @country_split )]);
+
+    #$DB::single = 2;
+    my ( $country_term1, $country_term2, $country_term3 ) = @{ $stemmer->stem( @country_split ) };
+
+    #say STDERR Dumper([($country_term1, $country_term2)]);
+
+    #exit;
+    if ( !defined( $country_term2 ) )
+    {
+        $country_term2 = $country_term1;
+    }
+
+    if ( !defined( $country_term3 ) )
+    {
+        $country_term3 = $country_term1;
+    }
+
+    return ( $country_term1, $country_term2, $country_term3 );
+}
+
+sub get_country_data_base_value
+{
+    my ( $country ) = @_;
+
+    my ( $country_term1, $country_term2, $country_term3 ) = get_stemmed_country_terms( $country );
+    my $country_data_base_value = ( $country_term1 eq $country_term2 ) ? $country_term1 : "$country_term1 $country_term2";
+
+    if ( $country_term3 ne $country_term1 )
+    {
+        $country_data_base_value .= " $country_term3";
+    }
+
+    return $country_data_base_value;
+}
+
+sub get_country_code_for_stemmed_country_name
+{
+    my ( $stemmed_country_name ) = @_;
+
+    if ( !defined( $_country_code_for_stemmed_country_name ) )
+    {
+        my $non_remapped_names = _get_non_remapped_names_for_non_banned_countries();
+        $_country_code_for_stemmed_country_name =
+          { map { get_country_data_base_value( _get_updated_country_name( $_ ) ) => Locale::Country::country2code( $_ ) }
+              @$non_remapped_names };
+
+        #say STDERR Dumper($_country_code_for_stemmed_country_name);
+    }
+
+    my $ret = $_country_code_for_stemmed_country_name->{ $stemmed_country_name };
+
+    $ret = uc( $ret );
+
+    die "Country code for $stemmed_country_name not found in " . Dumper( $_country_code_for_stemmed_country_name )
+      unless $ret;
+    return $ret;
 }
 
 1;

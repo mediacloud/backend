@@ -545,10 +545,10 @@ sub _update_daily_country_counts
     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
     say STDERR
-      "delete from daily_country_count where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses";
+      "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses";
 
     $db->query(
-        "delete from daily_country_count where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
+        "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
     #my @all_countries = map { lc } Locale::Country::all_country_names;
     my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
@@ -563,46 +563,14 @@ sub _update_daily_country_counts
         {
 
             #say STDERR $country;
+            my ( $country_term1, $country_term2, $country_term3 ) =
+              MediaWords::Util::Countries::get_stemmed_country_terms( $country );
 
-            my $stemmer = MediaWords::Util::Stemmer->new;
-
-            my @country_split = split ' ', $country;
-
-            #next unless scalar(@country_split) > 2;
-            #say $country;
-
-            #say Dumper (@country_split);
-            #say Dumper ([$stemmer->stem( @country_split )]);
-
-            #$DB::single = 2;
-            my ( $country_term1, $country_term2, $country_term3 ) = @{ $stemmer->stem( @country_split ) };
-
-            #say STDERR Dumper([($country_term1, $country_term2)]);
-
-            #exit;
-            if ( !defined( $country_term2 ) )
-            {
-                $country_term2 = $country_term1;
-            }
-
-            if ( !defined( $country_term3 ) )
-            {
-                $country_term3 = $country_term1;
-            }
-
-            my $country_data_base_value =
-              ( $country_term1 eq $country_term2 ) ? $country_term1 : "$country_term1 $country_term2";
-            if ( $country_term3 ne $country_term1 )
-            {
-                $country_data_base_value .= " $country_term3";
-            }
-
-            #next unless $country_data_base_value eq 'unit state';
-            #say STDERR $country;
+            my $country_data_base_value = MediaWords::Util::Countries::get_country_data_base_value( $country );
 
             say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'";
             my $query =
-              "INSERT INTO   daily_country_count ( media_sets_id, publish_day, country, country_count ) " .
+              "INSERT INTO   daily_country_counts ( media_sets_id, publish_day, country, country_count ) " .
               "SELECT media_sets_id, publish_day, ?, COUNT(*) FROM              " .
               "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day " .
               " FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, " .
@@ -666,7 +634,7 @@ sub _update_daily_country_counts
                 $country_data_base_value .= " $country_term3";
             }
             my $query_2 =
-"INSERT INTO   daily_country_count ( media_sets_id, publish_day, country, country_count, dashboard_topics_id ) "
+"INSERT INTO   daily_country_counts ( media_sets_id, publish_day, country, country_count, dashboard_topics_id ) "
               . "SELECT media_sets_id, publish_day, ?, COUNT(*), ?::integer as dashboard_topics_id  FROM      "
               . "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day "
               . " FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, "
@@ -685,10 +653,10 @@ sub _update_daily_country_counts
             # doing these one by one is the only way I could get the postgres planner to create
             # a sane plan
 
-            #say STDERR "Query:\n" . "$query_2";
-            #say STDERR " $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
+#say STDERR "Query:\n" . "$query_2";
+#say STDERR " $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
 
-	    say STDERR "_update_daily_country_counts  $sql_date  '$dashboard_topic->{ query }' '$country_data_base_value'";
+            say STDERR "_update_daily_country_counts  $sql_date  '$dashboard_topic->{ query }' '$country_data_base_value'";
 
             $db->query(
                 $query_2, $country_data_base_value,
