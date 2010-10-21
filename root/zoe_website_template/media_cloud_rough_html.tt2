@@ -46,12 +46,26 @@ span.tagcloud24 { font-size: 36px;}
 
 </style>
 
+<style type="text/css">
+body {
+padding-top : 0; 
+padding-right : 0; 
+padding-bottom : 0; 
+padding-left : 0; 
+border-top-width : 0; 
+border-right-width : 0; 
+border-bottom-width : 0; 
+border-left-width : 0; 
+margin : 0; 
+}</style>
+
 <title>Media Cloud</title>
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
 </head>
 
-<body bgcolor="#edf2d5" leftmargin="0" topmargin="0" rightmargin="0" bottommargin="0"  marginwidth="0" marginheight="0">
+
+<body>
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/AutoComplete.js') %]"></script>
 
@@ -69,7 +83,7 @@ span.tagcloud24 { font-size: 36px;}
     }
 </script>
 
-<table width="900" border="0" align="center" cellpadding="10" cellspacing="0" bordercolor="#CC66CC" bgcolor="#FFFFFF">
+<table width="900" border="0 #CC66CC" align="center" cellpadding="10" cellspacing="0" bgcolor="#FFFFFF">
   <tr>
     <td bgcolor="#000000"><span class="Header">Media Cloud</span></td>
   </tr>
@@ -82,12 +96,13 @@ span.tagcloud24 { font-size: 36px;}
     <td>
       <form action="[% c.uri_for('/dashboard/template_test/') _ dashboard.dashboards_id %]" method="get">
       <input type="hidden" name="show_results" value="true" />
+      <input type="hidden" id="compare_media_sets" name="compare_media_sets" value="true" />
       <div id="mediacontainer1">
         <div id="mediaheader1">Media Data Set #1</div>
         <div id="mediaTime1"> <strong>Time range</strong><br />
 	  <select name="date" >
 	  [% FOREACH date IN dashboard_dates %]
-	  <option value="[% date %]">[% date %]</a>
+	  <option value="[% date %]">[% date %]</option>
 	  [% END #FOREACH date IN dashboard_dates %]
 	</select>
  <!--           <input type="text" name="media1t" id="media1t" /> -->
@@ -124,8 +139,8 @@ span.tagcloud24 { font-size: 36px;}
 
         </div>
         <div id="mediaSubset1"> <strong>Available set within this set</strong><br />
-          <label for="select2"></label>
-          <select name="select2" id="select2">
+          <label for="subset_select1"></label>
+          <select name="subset_select1" id="subset_select1">
             <option>All Sub-sets</option>
             <option>Subset1</option>
             <option>Subset2</option>
@@ -136,15 +151,15 @@ span.tagcloud24 { font-size: 36px;}
       </div>
       <div id="mediacontainer2">
         <div id="mediaheader2">Media Data Set #2</div>
-        <div id="mediaTime1"><strong>Time range</strong><br />
+        <div id="mediaTime2"><strong>Time range</strong><br />
 	  <select name="date" >
 	  [% FOREACH date IN dashboard_dates %]
-	  <option value="[% date %]">[% date %]</a>
+	  <option value="[% date %]">[% date %]</option>
 	  [% END #FOREACH date IN dashboard_dates %]
 	</select>
           <br />
           <span class="smaller">A fast explanation here</span></div>
-        <div id="mediaArea1"><strong>Area of coverage</strong><br />
+        <div id="mediaArea2"><strong>Area of coverage</strong><br />
 	  <select name="dashboard_topics_id">
 	    <option value="">All</option>
 	    [% FOREACH topic IN dashboard_topics %]
@@ -154,15 +169,15 @@ span.tagcloud24 { font-size: 36px;}
       <!--    <input type="text" name="media1a3" id="media1a3" /> -->
           <br />
           <span class="smaller">A fast explanation here</span></div>
-        <div id="mediaSource1"><strong>Media Source</strong>
+        <div id="mediaSource2"><strong>Media Source</strong>
           <input type="text" name="media1a4" id="media1a4" /><br/>
           
           <span class="smaller">A fast explanation here</span><br />
           
-          <hr noshade="noshade" size="1" width="99%" color="#999999"/>
+          <hr noshade="noshade" size="1" width="99%"  style="color:#999999"/>
           <strong>Set of Media Sources</strong>
-          <label for="select2"></label>
-          <select name="select3" id="select2">
+          <label for="subset_select2"></label>
+          <select name="subset_select2" id="subset_select2">
              <option value="">(none)</option>
              [% FOREACH set IN collection_media_sets %]
              <option value="[% set.media_sets_id %]">[% set.name | html %]</option>
@@ -170,7 +185,7 @@ span.tagcloud24 { font-size: 36px;}
           </select>
           <br />
           <span class="smaller">A fast explanation here</span></div>
-        <div id="mediaSubset1"><strong>Available set within this set</strong><br />
+        <div id="mediaSubset2"><strong>Available set within this set</strong><br />
           <label for="select3"></label>
           <select name="select4" id="select3">
             <option>All Sub-sets</option>
@@ -181,21 +196,21 @@ span.tagcloud24 { font-size: 36px;}
           <br />
           <span class="smaller">A fast explanation</span></div>
       </div>
-      <span style="cursor:pointer;">
+      <div style="cursor:pointer;">
       <div  onclick="DisplayDIV('mediacontainer2')" id="compare">Compare This Data Source</div>
       <div id="submit"><input name="Submit" type="submit" value="submit" />
       </div>
-      </span>
+      </div>
       </form>
     
     </td>
   </tr>
   <tr>
-    <td><hr noshade="noshade" size="1" width="100%" color="#999999"/></td></tr>
+    <td><hr noshade="noshade" size="1" width="100%" style="color:#999999" /></td></tr>
   <tr>
     <td><!--This is where the content starts!-->
       
-      <table width="100%" border="0" cellpadding="5" cellspacing="0" bordercolor="green">
+      <table width="100%" border="0 green" cellpadding="5" cellspacing="0" >
         <tr>
           <td width="25%" align="left" valign="top"><div id="leftcolumn"> <strong>Popular Queries</strong><br />
               <div id="popular"> This is where a list of popular queries can be dropped in!<br />
@@ -229,7 +244,7 @@ span.tagcloud24 { font-size: 36px;}
               <tr>
                 <td align="right" valign="top"><strong>Download Data:</strong></td>
                 <td align="left" valign="top"> 
-		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&format=csv">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&format=xml">XML</a>]</td>
+		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&amp;format=csv">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&amp;format=xml">XML</a>]</td>
               </tr>
             </table>
             <br/>

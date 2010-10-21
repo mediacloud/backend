@@ -6,12 +6,14 @@ function DisplayDIV(d) {
 		document.getElementById(d).style.display = "block";
 		document.getElementById('compare').textContent = "Use single Data Source"; 
 		visible = true;
+		document.getElementById("compare_media_sets").setAttribute("value", "true");
 	}
 	else {  //if we're allready viewing both data sets
 	    document.getElementById(d).style.display = "none";
 		document.getElementById('compare').textContent = "Compare this Data Source";
 		visible = false;
 		//this is where you want to set all of Data Set #2's information to NULL again, just in case they filled anything in
+		document.getElementById("compare_media_sets").setAttribute("value", "false");
 	}
 }//end function
 function swapDIV(s) {

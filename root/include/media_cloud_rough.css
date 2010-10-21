@@ -31,9 +31,13 @@ body {
 }
 
 #mediaTime1,  
+#mediaTime2,  
 #mediaArea1,
+#mediaArea2,
 #mediaSource1, 
-#mediaSubset1
+#mediaSource2, 
+#mediaSubset1,
+#mediaSubset2
  {
   padding: 10px; 
   float: left;
