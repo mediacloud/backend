@@ -458,7 +458,18 @@ sub get_word_cloud
         {
             my $term = $word->{ term };
 
-            $cloud->add( $term, $url, $word->{ stem_count } * 100000 );
+	    use URI::Escape;
+
+	    my $escaped_url = $url;
+
+	    #Work around a bug in HTML::TagCloud -- TagCloud should escape URLs but doesn't
+	    #TODO this is a hack -- find a library method to do HTML escaping
+	    $escaped_url =~ s/&/&amp;/g;
+
+	    #say STDERR "url: $url";
+	    #say STDERR "escapedurl: $escaped_url";
+
+            $cloud->add( $term, $escaped_url, $word->{ stem_count } * 100000 );
         }
     }
 
