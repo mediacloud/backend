@@ -244,7 +244,7 @@ margin : 0;
               <tr>
                 <td align="right" valign="top"><strong>Download Data:</strong></td>
                 <td align="left" valign="top"> 
-		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&amp;format=csv">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) %]&amp;format=xml">XML</a>]</td>
+		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv' | html %]">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=xml' | html %]">XML</a>]</td>
               </tr>
             </table>
             <br/>
@@ -266,7 +266,7 @@ This is a Word Cloud! Thats' what goes here.<br/>
             <div id="CMcontentarea" style="display:none;">
 
 [% IF coverage_map_chart_url %]
-<img src="[%- coverage_map_chart_url -%]" />
+<img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" />
 [% ELSE %]
 This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
 [% END %]
