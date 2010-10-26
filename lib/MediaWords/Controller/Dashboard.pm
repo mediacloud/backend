@@ -352,42 +352,51 @@ sub template_test : Local
     {
         my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
 
+        my $word_cloud;
+
         die "Compare functionality not yet implemented" if $compare_media_sets;
+        if ( !$compare_media_sets ) {
 
-        if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
-        {
-            $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
-        }
+            if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
+            {
+                $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+            }
 
-        my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
-
-        my $words = $self->_get_words( $c, $dashboard_topic, $date, 1 );
-        print_time( "got words" );
-
-        my $media_set = $self->get_media_set_from_params( $c, 1 );
-
-        if ( scalar( @{ $words } ) == 0 )
-        {
             my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
-            my $error_message =
-              "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
-            $c->{ stash }->{ error_message } = $error_message;
-            return $self->list( $c, $dashboards_id );
+            my $words = $self->_get_words( $c, $dashboard_topic, $date, 1 );
+            print_time( "got words" );
+
+            my $media_set = $self->get_media_set_from_params( $c, 1 );
+
+            if ( scalar( @{ $words } ) == 0 )
+            {
+                my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+                my $error_message =
+                  "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
+
+                $c->{ stash }->{ error_message } = $error_message;
+                return $self->list( $c, $dashboards_id );
+            }
+
+            my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+
+            print_time( "got word cloud" );
+
+            my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
+
+            print_time( "get clusters" );
+
+            my $country_counts = $self->_get_country_counts( $c, $dashboard_topic, $date, 1 );
+            my $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
+
+            say STDERR "coverage map chart url: $coverage_map_chart_url";
+
         }
-
-        my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
-
-        print_time( "got word cloud" );
-
-        my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
-
-        print_time( "get clusters" );
-
-        my $country_counts = $self->_get_country_counts( $c, $dashboard_topic, $date, 1 );
-        my $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
-
-        say STDERR "coverage map chart url: $coverage_map_chart_url";
+	else
+	{
+	    die "Not yet implemented";
+	}
 
         $c->stash->{ show_results } = 1;
 
