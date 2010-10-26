@@ -77,8 +77,8 @@ margin : 0;
         "[% medium.name | trim | html %]",
 [% END %]
         ];    
-        AutoComplete_Create('media1a2', data, 10);
-        AutoComplete_Create('media1a4', data, 10);
+        AutoComplete_Create('medium_name1', data, 10);
+        AutoComplete_Create('medium_name2', data, 10);
         DisplayDIV('mediacontainer2');
     }
 </script>
@@ -100,7 +100,7 @@ margin : 0;
       <div id="mediacontainer1">
         <div id="mediaheader1">Media Data Set #1</div>
         <div id="mediaTime1"> <strong>Time range</strong><br />
-	  <select name="date" >
+	  <select name="date1" >
 	  [% FOREACH date IN dashboard_dates %]
 	  <option value="[% date %]">[% date %]</option>
 	  [% END #FOREACH date IN dashboard_dates %]
@@ -118,17 +118,16 @@ margin : 0;
 	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
 	    [% END #[% FOREACH topic IN dashboard_topics %]
 	  </select>
-        <!--  <input type="text" name="media1a" id="media1a" /> -->
           <br />
           <span class="smaller">A fast explanation here</span>
         </div>
         <div id="mediaSource1"> <strong>Media Source</strong><br />
-          <input type="text" name="media1a2" id="media1a2" />
+          <input type="text" name="medium_name1" id="medium_name1" />
           <br />
           <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
           <strong>Set of Media Sources</strong>
           <label for="select"></label>
-          <select name="media_sets_id" id="select">
+          <select name="media_sets_id1" id="select">
 <option value="">(none)</option>
 [% FOREACH set IN collection_media_sets %]
 <option value="[% set.media_sets_id %]">[% set.name | html %]</option>
@@ -152,7 +151,7 @@ margin : 0;
       <div id="mediacontainer2">
         <div id="mediaheader2">Media Data Set #2</div>
         <div id="mediaTime2"><strong>Time range</strong><br />
-	  <select name="date" >
+	  <select name="date2" >
 	  [% FOREACH date IN dashboard_dates %]
 	  <option value="[% date %]">[% date %]</option>
 	  [% END #FOREACH date IN dashboard_dates %]
@@ -160,7 +159,7 @@ margin : 0;
           <br />
           <span class="smaller">A fast explanation here</span></div>
         <div id="mediaArea2"><strong>Area of coverage</strong><br />
-	  <select name="dashboard_topics_id">
+	  <select name="dashboard_topics_id_2">
 	    <option value="">All</option>
 	    [% FOREACH topic IN dashboard_topics %]
 	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
@@ -170,7 +169,7 @@ margin : 0;
           <br />
           <span class="smaller">A fast explanation here</span></div>
         <div id="mediaSource2"><strong>Media Source</strong>
-          <input type="text" name="media1a4" id="media1a4" /><br/>
+          <input type="text" name="medium_name2" id="medium_name2" /><br/>
           
           <span class="smaller">A fast explanation here</span><br />
           

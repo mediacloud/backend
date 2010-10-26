@@ -117,15 +117,15 @@ sub list : Local
 
 sub _get_words
 {
-    my ( $self, $c, $dashboard_topic ) = @_;
+    my ( $self, $c, $dashboard_topic, $date, $media_set_num ) = @_;
 
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
     print_time( "got dashboard_topic_clause" );
 
-    my $media_set = $self->get_media_set_from_params( $c );
+    my $media_set = $self->get_media_set_from_params( $c, $media_set_num );
 
-    my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+    $date = $self->get_start_of_week( $c, $date );
 
     print_time( "got start_of_week" );
 
@@ -147,15 +147,17 @@ sub _get_words
 
 sub _get_country_counts
 {
-    my ( $self, $c, $dashboard_topic ) = @_;
+    my ( $self, $c, $dashboard_topic, $date, $media_set_num ) = @_;
+
+    $date || die( 'no date' );
 
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
     print_time( "got dashboard_topic_clause" );
 
-    my $media_set = $self->get_media_set_from_params( $c );
+    my $media_set = $self->get_media_set_from_params( $c, $media_set_num );
 
-    my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+    my $date = $self->get_start_of_week( $c, $date );
 
     print_time( "got start_of_week" );
 
@@ -164,30 +166,30 @@ sub _get_country_counts
     print_time( "validated dashboard_topic_date" );
 
     my $country_count_query =
-      "SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count FROM daily_country_counts " .
-      "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause and " . 
-      " publish_day >= date_trunc('week', '$date'::date) AND publish_day <= (date_trunc('week', '$date'::date) + interval '1 week') " .
-      "GROUP BY media_sets_id, dashboard_topics_id, country order by country;";
+      "SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count FROM daily_country_counts "
+      . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause and "
+      . " publish_day >= date_trunc('week', '$date'::date) AND publish_day <= (date_trunc('week', '$date'::date) + interval '1 week') "
+      . "GROUP BY media_sets_id, dashboard_topics_id, country order by country;";
 
     say STDERR "SQL query: '$country_count_query'";
 
-    print_time( "starting country_count_query");
+    print_time( "starting country_count_query" );
 
     my $country_counts = $c->dbis->query( $country_count_query )->hashes;
 
-    print_time( "finished country_count_query");
+    print_time( "finished country_count_query" );
 
     my $ret = {};
 
-    foreach my $country_count (@$country_counts)
+    foreach my $country_count ( @$country_counts )
     {
-       my $country_code = 
-	 MediaWords::Util::Countries::get_country_code_for_stemmed_country_name($country_count->{country});
+        my $country_code =
+          MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country } );
 
-       die unless defined $country_code;
+        die unless defined $country_code;
 
-       die Dumper($country_count) unless defined $country_count->{country_count};
-       $ret->{$country_code} = $country_count->{country_count};
+        die Dumper( $country_count ) unless defined $country_count->{ country_count };
+        $ret->{ $country_code } = $country_count->{ country_count };
     }
 
     #say STDERR Dumper( $country_counts );
@@ -204,7 +206,7 @@ sub get_word_list : Local
         $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
     }
 
-    my $words = $self->_get_words( $c, $dashboard_topic );
+    my $words = $self->_get_words( $c, $dashboard_topic, $c->req->param( 'date' ) );
 
     my $output_format = $c->req->param( 'format' );
 
@@ -304,8 +306,15 @@ sub _get_tag_count_map_url
 
 sub _get_coverage_char_url
 {
-   # my;
 
+    # my;
+
+}
+
+sub _get_word_info
+{
+
+    #my ( $self, $c, $dashboard_topics_id_param_name, $date_param, $
 }
 
 sub template_test : Local
@@ -334,10 +343,6 @@ sub template_test : Local
     MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
 
     my $dashboard_topic;
-    if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
-    {
-        $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
-    }
 
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
 
@@ -345,30 +350,31 @@ sub template_test : Local
 
     if ( $show_results )
     {
+        my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
 
-        my $words = $self->_get_words( $c, $dashboard_topic );
+        die "Compare functionality not yet implemented" if $compare_media_sets;
+
+        if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
+        {
+            $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+        }
+
+        my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+
+        my $words = $self->_get_words( $c, $dashboard_topic, $date, 1 );
         print_time( "got words" );
 
-        my $media_set = $self->get_media_set_from_params( $c );
-
-        my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+        my $media_set = $self->get_media_set_from_params( $c, 1 );
 
         if ( scalar( @{ $words } ) == 0 )
         {
-            my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
+            my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
             my $error_message =
               "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
             $c->{ stash }->{ error_message } = $error_message;
             return $self->list( $c, $dashboards_id );
         }
-
-        #if ( $c->flash->{ translate } )
-        #{
-        #    $words = $self->_translate_word_list( $c, $words );
-        #}
-
-        #$c->keep_flash( ( 'translate' ) );
 
         my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
 
@@ -378,17 +384,17 @@ sub template_test : Local
 
         print_time( "get clusters" );
 
-	my $country_counts = $self->_get_country_counts( $c, $dashboard_topic );
-	my $coverage_map_chart_url = _get_tag_count_map_url($country_counts, 'coverage map');
+        my $country_counts = $self->_get_country_counts( $c, $dashboard_topic, $date, 1 );
+        my $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
 
-	say STDERR "coverage map chart url: $coverage_map_chart_url";
+        say STDERR "coverage map chart url: $coverage_map_chart_url";
 
         $c->stash->{ show_results } = 1;
 
         $c->stash->{ clusters } = $clusters;
         $c->stash->{ date }     = $date;
 
-	$c->stash->{coverage_map_chart_url}  = $coverage_map_chart_url;
+        $c->stash->{ coverage_map_chart_url } = $coverage_map_chart_url;
 
         $c->stash->{ media_set }             = $media_set;
         $c->stash->{ word_cloud }            = $word_cloud;
@@ -397,8 +403,9 @@ sub template_test : Local
         $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
     }
 
-    $c->stash->{ dashboard }             = $dashboard;
-    $c->stash->{ dashboard_topic }       = $dashboard_topic;
+    $c->stash->{ dashboard } = $dashboard;
+
+    #$c->stash->{ dashboard_topic }       = $dashboard_topic;
     $c->stash->{ media }                 = $media;
     $c->stash->{ collection_media_sets } = $collection_media_sets;
     $c->stash->{ dashboard_topics }      = $dashboard_topics;
@@ -458,16 +465,16 @@ sub get_word_cloud
         {
             my $term = $word->{ term };
 
-	    use URI::Escape;
+            use URI::Escape;
 
-	    my $escaped_url = $url;
+            my $escaped_url = $url;
 
-	    #Work around a bug in HTML::TagCloud -- TagCloud should escape URLs but doesn't
-	    #TODO this is a hack -- find a library method to do HTML escaping
-	    $escaped_url =~ s/&/&amp;/g;
+            #Work around a bug in HTML::TagCloud -- TagCloud should escape URLs but doesn't
+            #TODO this is a hack -- find a library method to do HTML escaping
+            $escaped_url =~ s/&/&amp;/g;
 
-	    #say STDERR "url: $url";
-	    #say STDERR "escapedurl: $escaped_url";
+            #say STDERR "url: $url";
+            #say STDERR "escapedurl: $escaped_url";
 
             $cloud->add( $term, $escaped_url, $word->{ stem_count } * 100000 );
         }
@@ -591,28 +598,31 @@ sub get_media_set_clusters
 # media_sets_id, media_id, medium_name, media_clusters_id
 sub get_media_set_from_params
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $media_set_num ) = @_;
+
+    #TODO refactor when we got 5.8 support
+    $media_set_num = defined( $media_set_num ) ? $media_set_num : '';
 
     my $media_set;
 
-    if ( my $media_sets_id = $c->req->param( 'media_sets_id' ) )
+    if ( my $media_sets_id = $c->req->param( 'media_sets_id' . $media_set_num ) )
     {
         return $c->dbis->find_by_id( 'media_sets', $media_sets_id )
           || die( "no media_set for media_sets_id '$media_sets_id'" );
     }
-    elsif ( my $media_id = $c->req->param( 'media_id' ) )
+    elsif ( my $media_id = $c->req->param( 'media_id' . $media_set_num ) )
     {
         return $c->dbis->query( "select * from media_sets where media_id = ?", $media_id )->hash
           || die( "no media_set for media_id '$media_id'" );
     }
-    elsif ( my $medium_name = $c->req->param( 'medium_name' ) )
+    elsif ( my $medium_name = $c->req->param( 'medium_name' . $media_set_num ) )
     {
         return $c->dbis->query(
             "select ms.* from media_sets ms, media m " . "  where ms.media_id = m.media_id and m.name = ?", $medium_name )
           ->hash
           || die( "no media_set for medium_name '$medium_name'" );
     }
-    elsif ( my $media_clusters_id = $c->req->param( 'media_clusters_id' ) )
+    elsif ( my $media_clusters_id = $c->req->param( 'media_clusters_id' . $media_set_num ) )
     {
         return $c->dbis->query( "select * from media_sets where media_clusters_id = ?", $media_clusters_id )->hash
           || die( "no media_set for media_clusters_id '$media_clusters_id'" );
