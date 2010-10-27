@@ -39,7 +39,7 @@
         <span class='date'>[% story.publish_date %] (expand/collapse)</span><br />
       <ul id='sentences'>
         [% FOREACH sentence IN story.sentences %]
-        <li>[% sentence %]</li>
+        <li>[% sentence | html %]</li>
         [% END %]
       </ul>
     </li>
