@@ -739,6 +739,7 @@ sub update_aggregate_words
         if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
         {
             _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+	    _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
 
             # update weeklies either if we are at the end of a week
             if ( ( $date eq $end_date ) || !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ] )
@@ -747,8 +748,6 @@ sub update_aggregate_words
                 _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             }
         }
-
-        _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
 
         $db->commit();
 
