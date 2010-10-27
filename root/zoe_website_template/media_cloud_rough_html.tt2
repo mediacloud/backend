@@ -112,7 +112,7 @@ margin : 0;
 	  <br />
         </div>
         <div id="mediaArea1"> <strong>Area of coverage</strong><br />
-	  <select name="dashboard_topics_id">
+	  <select name="dashboard_topics_id1">
 	    <option value="">All</option>
 	    [% FOREACH topic IN dashboard_topics %]
 	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
@@ -159,7 +159,7 @@ margin : 0;
           <br />
           <span class="smaller">A fast explanation here</span></div>
         <div id="mediaArea2"><strong>Area of coverage</strong><br />
-	  <select name="dashboard_topics_id_2">
+	  <select name="dashboard_topics_id2">
 	    <option value="">All</option>
 	    [% FOREACH topic IN dashboard_topics %]
 	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>

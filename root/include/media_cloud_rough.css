@@ -83,7 +83,19 @@ body {
   position: relative; bottom: 20px;
   text-align:center;
  }
- 
+
+.word_cloud_list2 {
+    color: red;
+} 
+
+.word_cloud_list1 {
+    color: blue;
+} 
+
+.word_cloud_both_lists {
+    color: purple;
+} 
+
 #WCcontentarea, #CMcontentarea {
 	padding: 2px; 
 	border-style:solid;

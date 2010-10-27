@@ -9,6 +9,7 @@ use List::Util;
 use Net::SMTP;
 use URI::Escape;
 use List::Util qw (max min reduce sum);
+use List::MoreUtils qw/:all/;
 
 use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
@@ -21,6 +22,7 @@ use Perl6::Say;
 use Data::Dumper;
 use Date::Format;
 use Date::Parse;
+use Switch 'Perl6';
 
 # max number of sentences to list in sentence_medium
 use constant MAX_MEDIUM_SENTENCES => 100;
@@ -304,17 +306,22 @@ sub _get_tag_count_map_url
     return $url_object->canonical;
 }
 
-sub _get_coverage_char_url
+sub _get_words_for_media_set
 {
 
-    # my;
+    my ( $self, $c, $media_set_num ) = @_;
 
-}
+    my $dashboard_topic;
+    if ( my $id = $c->req->param( 'dashboard_topics_id' . $media_set_num ) )
+    {
+        $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+    }
 
-sub _get_word_info
-{
+    my $date = $self->get_start_of_week( $c, $c->req->param( 'date' . $media_set_num ) );
 
-    #my ( $self, $c, $dashboard_topics_id_param_name, $date_param, $
+    my $words = $self->_get_words( $c, $dashboard_topic, $date, 1 );
+
+    return $words;
 }
 
 sub template_test : Local
@@ -342,8 +349,6 @@ sub template_test : Local
 
     MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
 
-    my $dashboard_topic;
-
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
 
     my $show_results = $c->req->param( 'show_results' ) || 0;
@@ -353,9 +358,11 @@ sub template_test : Local
         my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
 
         my $word_cloud;
+        my $coverage_map_chart_url;
 
-        die "Compare functionality not yet implemented" if $compare_media_sets;
-        if ( !$compare_media_sets ) {
+        if ( !$compare_media_sets )
+        {
+            my $dashboard_topic;
 
             if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
             {
@@ -364,7 +371,7 @@ sub template_test : Local
 
             my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
 
-            my $words = $self->_get_words( $c, $dashboard_topic, $date, 1 );
+            my $words = $self->_get_words_for_media_set( $c, 1 );
             print_time( "got words" );
 
             my $media_set = $self->get_media_set_from_params( $c, 1 );
@@ -379,7 +386,7 @@ sub template_test : Local
                 return $self->list( $c, $dashboards_id );
             }
 
-            my $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+            $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
 
             print_time( "got word cloud" );
 
@@ -388,27 +395,30 @@ sub template_test : Local
             print_time( "get clusters" );
 
             my $country_counts = $self->_get_country_counts( $c, $dashboard_topic, $date, 1 );
-            my $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
+            $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
 
             say STDERR "coverage map chart url: $coverage_map_chart_url";
 
         }
-	else
-	{
-	    die "Not yet implemented";
-	}
+        else
+        {
+            my $words_1 = $self->_get_words_for_media_set( $c, 1 );
+            my $words_2 = $self->_get_words_for_media_set( $c, 2 );
+
+            $word_cloud = $self->_get_multi_set_word_cloud( $c, $words_1, $words_2 );
+
+            #die "Not yet implemented";
+        }
 
         $c->stash->{ show_results } = 1;
 
-        $c->stash->{ clusters } = $clusters;
-        $c->stash->{ date }     = $date;
+        #$c->stash->{ clusters } = $clusters;
+        #$c->stash->{ date }     = $date;
 
         $c->stash->{ coverage_map_chart_url } = $coverage_map_chart_url;
 
-        $c->stash->{ media_set }             = $media_set;
+        #$c->stash->{ media_set }             = $media_set;
         $c->stash->{ word_cloud }            = $word_cloud;
-        $c->stash->{ clusters }              = $clusters;
-        $c->stash->{ date }                  = $date;
         $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
     }
 
@@ -494,6 +504,123 @@ sub get_word_cloud
     my $html = $cloud->html;
 
     #<span class="tagcloud24"><a onclick="this.style.color='red '; return false;"
+    if ( $c->req->param( 'highlight_mode' ) )
+    {
+        $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
+    }
+
+    return $html;
+}
+
+sub _get_set_for_word
+{
+    my ( $words_1_hash, $words_2_hash, $word ) = @_;
+
+    if ( defined( $words_1_hash->{ $word } ) && defined( $words_2_hash->{ $word } ) )
+    {
+        return "both";
+    }
+    elsif ( defined( $words_1_hash->{ $word } ) )
+    {
+        return "list_1";
+    }
+    else
+    {
+        die "Neither list contains word '$word'" unless defined( $words_2_hash->{ $word } );
+        return "list_2";
+    }
+}
+
+sub _get_merged_word_count
+{
+    my ( $words_1_hash, $words_2_hash, $word ) = @_;
+
+    my $set = _get_set_for_word( $words_1_hash, $words_2_hash, $word );
+
+    my $ret;
+
+    given ( $set )
+    {
+
+        when 'list_1' { $ret = $words_1_hash->{ $word }; }
+        when 'list_2' { $ret = $words_2_hash->{ $word }; }
+        when 'both'
+        {
+            my $temp_hash_ref = $words_1_hash->{ $word };
+
+            #copy hash
+            # TODO why is this bad?
+            my %temp = %$temp_hash_ref;
+            %temp->{ stem_count } += $words_2_hash->{ $word }->{ stem_count };
+            $ret = \%temp;
+        }
+        default
+        {
+            die "Invalid case '$set'";
+
+        }
+    }
+
+    #TODO copy $ret
+    return $ret;
+}
+
+sub _get_multi_set_word_cloud
+{
+    my ( $self, $c, $words_1, $words_2 ) = @_;
+
+    my $cloud = HTML::TagCloud->new;
+
+    #my $dashboard_topics_id = $dashboard_topic ? $dashboard_topic->{ dashboard_topics_id } : undef;
+
+    my $merged_word_lists;
+
+    my $words_1_hash = { map { $_->{ stem } => $_ } @{ $words_1 } };
+    my $words_2_hash = { map { $_->{ stem } => $_ } @{ $words_2 } };
+
+    my @words_1_words = keys %$words_1_hash;
+    my @words_2_words = keys %$words_2_hash;
+
+    my @all_words = uniq( @words_1_words, @words_2_words );
+
+    for my $word ( @all_words )
+    {
+
+        my $word_record = _get_merged_word_count( $words_1_hash, $words_2_hash, $word );
+        my $url = _get_set_for_word( $words_1_hash, $words_2_hash, $word );
+
+        if ( $word_record->{ stem_count } == 0 )
+        {
+            warn "0 stem count for word:" . Dumper( $word_record );
+        }
+        else
+        {
+            my $term = $word_record->{ term };
+
+            use URI::Escape;
+
+            my $escaped_url = $url;
+
+            #Work around a bug in HTML::TagCloud -- TagCloud should escape URLs but doesn't
+            #TODO this is a hack -- find a library method to do HTML escaping
+            $escaped_url =~ s/&/&amp;/g;
+
+            #say STDERR "url: $url";
+            #say STDERR "escapedurl: $escaped_url";
+
+            $cloud->add( $term, $escaped_url, $word_record->{ stem_count } * 100000 );
+        }
+    }
+
+    $c->keep_flash( ( 'translate' ) );
+
+    my $html = $cloud->html;
+
+    #<span class="tagcloud24"><a onclick="this.style.color='red '; return false;"
+    $html =~ s/<a href="list_2">/<a href="list_2" class="word_cloud_list2">/g;
+    $html =~ s/<a href="list_1">/<a href="list_1" class="word_cloud_list1">/g;
+    $html =~ s/<a href="both">/<a href="both" class="word_cloud_both_lists">/g;
+
     if ( $c->req->param( 'highlight_mode' ) )
     {
         $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
@@ -638,7 +765,8 @@ sub get_media_set_from_params
     }
     else
     {
-        die( "no media_set id" );
+        say STDERR Dumper( $c->req );
+        die( "no media_set id for '$media_set_num'" );
     }
 }
 
@@ -1175,7 +1303,8 @@ sub compare_media_set_terms : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "dashboard not found: $dashboards_id" );
+    my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id )
+      || die( "dashboard not found: $dashboards_id" );
 
     my $form = $c->create_form(
         {
@@ -1252,7 +1381,8 @@ sub report_bug : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "dashboard not found: $dashboards_id" );
+    my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id )
+      || die( "dashboard not found: $dashboards_id" );
     my $url = $c->req->param( 'url' ) || die( 'no url' );
 
     if ( !$c->req->param( 'submit' ) )
