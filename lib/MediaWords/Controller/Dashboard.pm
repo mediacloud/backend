@@ -140,7 +140,7 @@ sub _get_words
           "    and not is_stop_stem( 'long', stem )   and publish_week = date_trunc('week', '$date'::date) " .
           "    and $dashboard_topic_clause   order by stem_count desc limit " . NUM_WORD_CLOUD_WORDS );
 
-    #say STDERR "SQL query: '$words_query'";
+    say STDERR "SQL query: '$words_query'";
 
     my $words = $c->dbis->query( $words_query )->hashes;
 
@@ -598,6 +598,8 @@ sub _get_multi_set_word_cloud
     my $words_1_hash = { map { $_->{ stem } => $_ } @{ $words_1 } };
     my $words_2_hash = { map { $_->{ stem } => $_ } @{ $words_2 } };
 
+    die "Word list object should be different" if $words_1 == $words_2;
+
     my @words_1_words = keys %$words_1_hash;
     my @words_2_words = keys %$words_2_hash;
 
@@ -653,8 +655,8 @@ sub _get_multi_set_word_cloud
 
     $html .= "\n<!-- " . Dumper($word_type_counts) . "\n";
 
-    $html .= "Words 1 " . Dumper([@words_1_words] ) . "\n";
-    $html .= "Words 2 " . Dumper([@words_2_words] ) . "\n";
+    $html .= "Words 1 " . Dumper([sort @words_1_words] ) . "\n";
+    $html .= "Words 2 " . Dumper([sort @words_2_words] ) . "\n";
     $html .= ' --> ';
 
     return $html;
