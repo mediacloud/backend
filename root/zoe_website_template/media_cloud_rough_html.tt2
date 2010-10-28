@@ -176,7 +176,7 @@ margin : 0;
           <hr noshade="noshade" size="1" width="99%"  style="color:#999999"/>
           <strong>Set of Media Sources</strong>
           <label for="subset_select2"></label>
-          <select name="subset_select2" id="subset_select2">
+          <select name="media_sets_id2" id="subset_select2">
              <option value="">(none)</option>
              [% FOREACH set IN collection_media_sets %]
              <option value="[% set.media_sets_id %]">[% set.name | html %]</option>
