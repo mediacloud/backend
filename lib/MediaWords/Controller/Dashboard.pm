@@ -404,6 +404,26 @@ sub template_test : Local
         {
             my $words_1 = $self->_get_words_for_media_set( $c, 1 );
             my $words_2 = $self->_get_words_for_media_set( $c, 2 );
+	    
+	    if ( scalar( @{ $words_1 } ) == 0 )
+            {
+                my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+                my $error_message =
+                  "No words found within the week starting on $date \n" . "for media sets 1";
+
+                $c->{ stash }->{ error_message } = $error_message;
+                return $self->list( $c, $dashboards_id );
+            }
+
+	    if ( scalar( @{ $words_2 } ) == 0 )
+            {
+                my $date = $self->get_start_of_week( $c, $c->req->param( 'date2' ) );
+                my $error_message =
+                  "No words found within the week starting on $date \n" . "for media sets 2";
+
+                $c->{ stash }->{ error_message } = $error_message;
+                return $self->list( $c, $dashboards_id );
+            }
 
             $word_cloud = $self->_get_multi_set_word_cloud( $c, $words_1, $words_2 );
 
