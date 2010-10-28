@@ -319,7 +319,7 @@ sub _get_words_for_media_set
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' . $media_set_num ) );
 
-    my $words = $self->_get_words( $c, $dashboard_topic, $date, 1 );
+    my $words = $self->_get_words( $c, $dashboard_topic, $date, $media_set_num );
 
     return $words;
 }
