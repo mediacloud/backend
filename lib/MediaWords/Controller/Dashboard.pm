@@ -603,11 +603,16 @@ sub _get_multi_set_word_cloud
 
     my @all_words = uniq( @words_1_words, @words_2_words );
 
+    my $word_type_counts = {};
+
     for my $word ( @all_words )
     {
 
         my $word_record = _get_merged_word_count( $words_1_hash, $words_2_hash, $word );
         my $url = _get_set_for_word( $words_1_hash, $words_2_hash, $word );
+
+	$word_type_counts->{$url} ||= 0;
+	$word_type_counts->{$url} += 1;
 
         if ( $word_record->{ stem_count } == 0 )
         {
@@ -645,6 +650,8 @@ sub _get_multi_set_word_cloud
     {
         $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
     }
+
+    $html .= "\n<!-- " . Dumper($word_type_counts) . ' --> ';
 
     return $html;
 }
