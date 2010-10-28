@@ -651,7 +651,11 @@ sub _get_multi_set_word_cloud
         $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
     }
 
-    $html .= "\n<!-- " . Dumper($word_type_counts) . ' --> ';
+    $html .= "\n<!-- " . Dumper($word_type_counts) . "\n";
+
+    $html .= "Words 1 " . Dumper([@words_1_words] ) . "\n";
+    $html .= "Words 2 " . Dumper([@words_2_words] ) . "\n";
+    $html .= ' --> ';
 
     return $html;
 }
