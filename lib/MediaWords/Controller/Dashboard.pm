@@ -570,7 +570,7 @@ sub _get_merged_word_count
 
             #copy hash
             # TODO why is this bad?
-            my %temp = %$temp_hash_ref;
+            my %temp = (%$temp_hash_ref);
             %temp->{ stem_count } += $words_2_hash->{ $word }->{ stem_count };
             $ret = \%temp;
         }
