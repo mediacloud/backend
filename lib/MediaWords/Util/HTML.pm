@@ -35,35 +35,59 @@ sub html_strip
     # This appears to be necessary on Perl 5.8 but not on 5.10.
     #
 
-    if (length ($_[ 0 ] ) > 14000)
+    if ( ( length( $_[ 0 ] ) > 14000 ) )
     {
-	my $max_segment_length = 14000;
+        my $max_segment_length = 14000;
 
-	my $str_pos = 0;
+        my $str_pos = 0;
 
-	my $ret;
+        my $ret;
 
-	while ( $str_pos < length($_[ 0 ] ) )
-	{
+        while ( $str_pos < length( $_[ 0 ] ) )
+        {
 
-	    my $new_line_pos = index ($_[0], $str_pos + 5000, "\n");
+            #perldoc: index STR,SUBSTR,POSITION
 
-	    my $segment_length = $new_line_pos - $str_pos;
+            my $new_line_pos = index( $_[ 0 ], "\n", $str_pos + 5000 );
 
-	    if ($new_line_pos == -1)
-	      {
-		$segment_length = $max_segment_length;
-	      }
+            my $new_line_segment_length;
 
-	    $segment_length = min($segment_length, $max_segment_length);
+            if ( $new_line_pos == -1 )
+            {
+                $new_line_segment_length = $max_segment_length;
+            }
+            else
+            {
+                $new_line_segment_length = $new_line_pos - $str_pos;
+            }
 
-	    #say STDERR "segment_length $segment_length";
+            my $segment_length = min( $new_line_segment_length, $max_segment_length );
 
-	    $ret .= HTML::StripPP::strip( substr ($_[ 0 ], $str_pos, $segment_length) );
-	    $str_pos += $segment_length;
-	}
+            my $token_end_pos = index( $_[ 0 ], ">", $str_pos + 5000 ) + 1;
 
-	return $ret;
+            my $token_boundary_segment_length;
+
+            if ( $token_end_pos == 0 )
+            {
+                $token_boundary_segment_length = $max_segment_length;
+            }
+            else
+            {
+                $token_boundary_segment_length = $token_end_pos - $str_pos;
+            }
+
+            $segment_length = min( $segment_length, $token_boundary_segment_length );
+
+            #say STDERR "segment_length $segment_length";
+            #$DB::signal = 2;
+
+            #say STDERR "segment \n" .  substr ($_[ 0 ], $str_pos, $segment_length);
+
+            $ret .= HTML::StripPP::strip( substr( $_[ 0 ], $str_pos, $segment_length ) );
+            $str_pos += $segment_length;
+        }
+
+        return $ret;
     }
 
     return HTML::StripPP::strip( $_[ 0 ] ) || '';
