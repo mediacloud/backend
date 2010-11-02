@@ -4,16 +4,16 @@ var wordcloud = true; //We start off showing the word cloud
 function DisplayDIV(d) {  
 	if (visible == false) { //if we're only viewing one data set right now
 		document.getElementById(d).style.display = "block";
-		document.getElementById('compare').textContent = "Use single Data Source"; 
+		 $('#compare').html("Use single Data Source");
 		visible = true;
-		document.getElementById("compare_media_sets").setAttribute("value", "true");
+		$('#compare_media_sets').val("true");
 	}
 	else {  //if we're allready viewing both data sets
 	    document.getElementById(d).style.display = "none";
-		document.getElementById('compare').textContent = "Compare this Data Source";
+	    $('#compare').html("Compare this Data Source");
 		visible = false;
 		//this is where you want to set all of Data Set #2's information to NULL again, just in case they filled anything in
-		document.getElementById("compare_media_sets").setAttribute("value", "false");
+		$('#compare_media_sets').val("false");
 	}
 }//end function
 function swapDIV(s) {
@@ -22,16 +22,16 @@ function swapDIV(s) {
 		document.getElementById('CMcontentarea').style.display = "block";
 		document.getElementById('WCcontentarea').style.display = "none";
 		//fix the styles of the tabs
-		document.getElementById("coveragemap").setAttribute("class", "contentSelected");
-		document.getElementById("wordcloud").setAttribute("class", "contentUnselected");
+		$('#coveragemap').toggleClass('contentSelected contentUnselected');
+		$('#wordcloud').toggleClass('contentSelected contentUnselected');
 	}
 	else {  //we want to view the word cloud
 		//turn on the appropriate content area
 	    document.getElementById('WCcontentarea').style.display = "block";
 		document.getElementById('CMcontentarea').style.display = "none";
 		//fix the styles of the tabs
-		document.getElementById("wordcloud").setAttribute("class", "contentSelected");
-		document.getElementById("coveragemap").setAttribute("class", "contentUnselected");
+		$('#coveragemap').toggleClass('contentSelected contentUnselected');
+		$('#wordcloud').toggleClass('contentSelected contentUnselected');
 	}	
 }//end function
 

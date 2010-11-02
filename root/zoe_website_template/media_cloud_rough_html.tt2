@@ -60,7 +60,7 @@ margin : 0;
 }</style>
 
 <title>Media Cloud</title>
-
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
 </head>
 
