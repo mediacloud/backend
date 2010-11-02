@@ -17,11 +17,9 @@
 <p><b>Topic: [% dashboard_topic.name | html %]</b></p>
 
 [% END #IF dashboard_topic %]
-
-
-<link rel="stylesheet" href="[% c.uri_for('/include/AutoComplete.css') %]" media="screen" type="text/css">
-
-<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/AutoComplete.js') %]"></script>
+<link href="[% c.uri_for('/include/smoothness/jquery-ui-1.8.5.custom.css') %]" rel="stylesheet" type="text/css"/>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
 
 <script>
     window.onload = function ()
@@ -31,7 +29,7 @@
         "[% medium.name | trim | html %]",
 [% END %]
         ];    
-        AutoComplete_Create('medium', data, 10);
+        $('#medium').autocomplete({ source: data } );
     }
 </script>
 

@@ -3,8 +3,6 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-<link rel="stylesheet" href="[% c.uri_for('/include/AutoComplete.css') %]" media="screen" type="text/css"/>
-
 <link rel="stylesheet" type="text/css" href="/include/media_cloud_rough.css"/>
 
 <style type="text/css">
@@ -60,27 +58,26 @@ margin : 0;
 }</style>
 
 <title>Media Cloud</title>
+<link href="[% c.uri_for('/include/smoothness/jquery-ui-1.8.5.custom.css') %]" rel="stylesheet" type="text/css"/>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
 </head>
 
 
 <body>
-
-<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/AutoComplete.js') %]"></script>
-
 <script language="javascript" type="text/javascript">
-    window.onload = function ()
+   $(document).ready(function() 
     {
         data = [
 [% FOREACH medium IN media %]
         "[% medium.name | trim | html %]",
 [% END %]
-        ];    
-        AutoComplete_Create('medium_name1', data, 10);
-        AutoComplete_Create('medium_name2', data, 10);
+        ];
+        $('#medium_name1').autocomplete({ source: data } );
+        $('#medium_name2').autocomplete({ source: data } );
         DisplayDIV('mediacontainer2');
-    }
+    });
 </script>
 
 <table width="900" border="0 #CC66CC" align="center" cellpadding="10" cellspacing="0" bgcolor="#FFFFFF">
