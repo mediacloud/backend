@@ -63,6 +63,7 @@ margin : 0;
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
 <link rel="stylesheet" href="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.css" type="text/css" />
 <script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.js"></script>
+<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/validate/jquery.validate.js"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
 </head>
 
@@ -77,8 +78,24 @@ margin : 0;
 [% END %]
         ];
         //TODO migrate this to the JQuery UI api
-        $('#medium_name1').autocomplete(data, { minChars: 0, mustMatch: true  } );
-        $('#medium_name2').autocomplete(data, { minChars: 0, mustMatch: true  } );
+        //Write a custom event to ensure that the entered source name is valid
+        $('#medium_name1').autocomplete(data, { minChars: 0, autoFill: true  } );
+        $('#medium_name2').autocomplete(data, { minChars: 0, autoFill: true  } );
+        $('#media_query_form').validate({
+           rules: {
+              media_sets_id1: {
+              required: function(element) {
+                 return $('#medium_name1').val() == '';
+                    }
+             },
+              media_sets_id2: {
+                  required: function(element) {
+                   return $('#compare_media_sets').val()=='true' && $('#medium_name2').val() == '';
+                   }
+              }
+          }                               
+   });
+        
         DisplayDIV('mediacontainer2');
     });
 </script>
@@ -94,7 +111,7 @@ margin : 0;
 
 
     <td>
-      <form action="[% c.uri_for('/dashboard/template_test/') _ dashboard.dashboards_id %]" method="get">
+      <form id="media_query_form" action="[% c.uri_for('/dashboard/template_test/') _ dashboard.dashboards_id %]" method="get">
       <input type="hidden" name="show_results" value="true" />
       <input type="hidden" id="compare_media_sets" name="compare_media_sets" value="true" />
       <div id="mediacontainer1">
