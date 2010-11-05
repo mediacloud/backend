@@ -212,6 +212,11 @@ margin : 0;
           <br />
           <span class="smaller">A fast explanation</span></div>
       </div>
+      <div>
+	[% IF error_message %]
+	<p><b>Error:</b>  [% error_message | html_strip %]</p>
+	[% END %]
+      </div>
       <div style="cursor:pointer;">
       <div  onclick="DisplayDIV('mediacontainer2')" id="compare">Compare This Data Source</div>
       <div id="submit"><input name="Submit" type="submit" value="submit" />
@@ -283,6 +288,25 @@ This is a Word Cloud! Thats' what goes here.<br/>
 
 [% IF coverage_map_chart_url %]
 <img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" />
+[% ELSIF coverage_map_chart_url_1 && coverage_map_chart_url_2 %]
+<table>
+<tr>
+<td>
+Set 1 coverage
+</td>
+<td>
+Set 2 coverage
+</td>
+</tr>
+<tr>
+<td>
+<img src="[%- coverage_map_chart_url_1 | html -%]" alt="Coverage Map" />
+</td>
+<td>
+<img src="[%- coverage_map_chart_url_2 | html -%]" alt="Coverage Map" />
+</td>
+</tr>
+</table>
 [% ELSE %]
 This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
 [% END %]

@@ -354,7 +354,7 @@ sub template_test : Local
     my $show_results = $c->req->param( 'show_results' ) || 0;
 
     if ( $show_results )
-    {
+    {{
         my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
 
         my $word_cloud;
@@ -383,7 +383,8 @@ sub template_test : Local
                   "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
                 $c->{ stash }->{ error_message } = $error_message;
-                return $self->list( $c, $dashboards_id );
+		$c->req->param( 'show_results', 'false');
+		last;
             }
 
             $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
@@ -412,7 +413,7 @@ sub template_test : Local
                   "No words found within the week starting on $date \n" . "for media sets 1";
 
                 $c->{ stash }->{ error_message } = $error_message;
-                return $self->list( $c, $dashboards_id );
+		last;
             }
 
 	    if ( scalar( @{ $words_2 } ) == 0 )
@@ -422,10 +423,19 @@ sub template_test : Local
                   "No words found within the week starting on $date \n" . "for media sets 2";
 
                 $c->{ stash }->{ error_message } = $error_message;
-                return $self->list( $c, $dashboards_id );
+                last;
             }
+	    my $date1 = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+	    my $country_counts_1 = $self->_get_country_counts( $c, undef , $date1, 1 );
+	    my $date2 = $self->get_start_of_week( $c, $c->req->param( 'date2' ) );
+	    my $country_counts_2 = $self->_get_country_counts( $c, undef, $date2, 2 );
 
+	    my $coverage_map_chart_url_1 = _get_tag_count_map_url( $country_counts_1, 'coverage map' );
+	    my $coverage_map_chart_url_2 = _get_tag_count_map_url( $country_counts_2, 'coverage map' );
             $word_cloud = $self->_get_multi_set_word_cloud( $c, $words_1, $words_2 );
+
+	    $c->stash->{ coverage_map_chart_url_1 } = $coverage_map_chart_url_1;
+	    $c->stash->{ coverage_map_chart_url_2 } = $coverage_map_chart_url_2;
 
             #die "Not yet implemented";
         }
@@ -440,7 +450,7 @@ sub template_test : Local
         #$c->stash->{ media_set }             = $media_set;
         $c->stash->{ word_cloud }            = $word_cloud;
         $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
-    }
+    }}
 
     $c->stash->{ dashboard } = $dashboard;
 
