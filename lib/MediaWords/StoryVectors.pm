@@ -704,7 +704,17 @@ sub _aggregate_data_exists_for_date
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
-    my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+    my $update_clauses;
+    # specifically look for null dashboard_topics_id so that the aggregator doesn't
+    # skip a daily run because a new topic has been added with data for just that topic
+    # for the day
+    if ( !$dashboard_topics_id )
+    {
+        $update_clauses = "dashboard_topics_id is null";
+    }
+    else {
+        $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+    }
 
     return $db->query( "select 1 as c from daily_words " .
           "  where publish_day = date_trunc( 'day', date '$sql_date' ) $update_clauses limit 1" )->hash;
