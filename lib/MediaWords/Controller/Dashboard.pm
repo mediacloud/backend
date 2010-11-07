@@ -364,7 +364,7 @@ sub template_test : Local
         {
             my $dashboard_topic;
 
-            if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
+            if ( my $id = $c->req->param( 'dashboard_topics_id1' ) )
             {
                 $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
             }
@@ -383,7 +383,6 @@ sub template_test : Local
                   "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
                 $c->{ stash }->{ error_message } = $error_message;
-		$c->req->param( 'show_results', 'false');
 		last;
             }
 
