@@ -149,9 +149,18 @@ sub _get_words
 
 sub _get_country_counts
 {
-    my ( $self, $c, $dashboard_topic, $date, $media_set_num ) = @_;
+    my ( $self, $c, $date, $media_set_num ) = @_;
 
     $date || die( 'no date' );
+
+    my $dashboard_topic;
+
+    $media_set_num ||= '';
+
+    if ( my $id = $c->req->param( 'dashboard_topics_id$media_set_num' ) )
+    {
+	$dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+    }
 
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
@@ -394,7 +403,7 @@ sub template_test : Local
 
             print_time( "get clusters" );
 
-            my $country_counts = $self->_get_country_counts( $c, $dashboard_topic, $date, 1 );
+            my $country_counts = $self->_get_country_counts( $c, $date, 1 );
             $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
 
             say STDERR "coverage map chart url: $coverage_map_chart_url";
@@ -425,9 +434,9 @@ sub template_test : Local
                 last;
             }
 	    my $date1 = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
-	    my $country_counts_1 = $self->_get_country_counts( $c, undef , $date1, 1 );
+	    my $country_counts_1 = $self->_get_country_counts( $c, $date1, 1 );
 	    my $date2 = $self->get_start_of_week( $c, $c->req->param( 'date2' ) );
-	    my $country_counts_2 = $self->_get_country_counts( $c, undef, $date2, 2 );
+	    my $country_counts_2 = $self->_get_country_counts( $c, $date2, 2 );
 
 	    my $coverage_map_chart_url_1 = _get_tag_count_map_url( $country_counts_1, 'coverage map' );
 	    my $coverage_map_chart_url_2 = _get_tag_count_map_url( $country_counts_2, 'coverage map' );
