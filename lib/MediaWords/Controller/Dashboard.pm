@@ -157,7 +157,7 @@ sub _get_country_counts
 
     $media_set_num ||= '';
 
-    if ( my $id = $c->req->param( 'dashboard_topics_id$media_set_num' ) )
+    if ( my $id = $c->req->param( "dashboard_topics_id$media_set_num" ) )
     {
 	$dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
     }
