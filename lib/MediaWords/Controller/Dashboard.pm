@@ -159,7 +159,7 @@ sub _get_country_counts
 
     if ( my $id = $c->req->param( "dashboard_topics_id$media_set_num" ) )
     {
-	$dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+        $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
     }
 
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
@@ -363,102 +363,103 @@ sub template_test : Local
     my $show_results = $c->req->param( 'show_results' ) || 0;
 
     if ( $show_results )
-    {{
-        my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
-
-        my $word_cloud;
-        my $coverage_map_chart_url;
-
-        if ( !$compare_media_sets )
+    {
         {
-            my $dashboard_topic;
+            my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
 
-            if ( my $id = $c->req->param( 'dashboard_topics_id1' ) )
+            my $word_cloud;
+            my $coverage_map_chart_url;
+
+            if ( !$compare_media_sets )
             {
-                $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
-            }
+                my $dashboard_topic;
 
-            my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+                if ( my $id = $c->req->param( 'dashboard_topics_id1' ) )
+                {
+                    $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+                }
 
-            my $words = $self->_get_words_for_media_set( $c, 1 );
-            print_time( "got words" );
-
-            my $media_set = $self->get_media_set_from_params( $c, 1 );
-
-            if ( scalar( @{ $words } ) == 0 )
-            {
                 my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
-                my $error_message =
-                  "No words found within the week starting on $date \n" . "for media_sets_id $media_set->{ media_sets_id}";
 
-                $c->{ stash }->{ error_message } = $error_message;
-		last;
+                my $words = $self->_get_words_for_media_set( $c, 1 );
+                print_time( "got words" );
+
+                my $media_set = $self->get_media_set_from_params( $c, 1 );
+
+                if ( scalar( @{ $words } ) == 0 )
+                {
+                    my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+                    my $error_message =
+                      "No words found within the week starting on $date \n" .
+                      "for media_sets_id $media_set->{ media_sets_id}";
+
+                    $c->{ stash }->{ error_message } = $error_message;
+                    last;
+                }
+
+                $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+
+                print_time( "got word cloud" );
+
+                my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
+
+                print_time( "get clusters" );
+
+                my $country_counts = $self->_get_country_counts( $c, $date, 1 );
+                $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
+
+                say STDERR "coverage map chart url: $coverage_map_chart_url";
+
             }
-
-            $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
-
-            print_time( "got word cloud" );
-
-            my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
-
-            print_time( "get clusters" );
-
-            my $country_counts = $self->_get_country_counts( $c, $date, 1 );
-            $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
-
-            say STDERR "coverage map chart url: $coverage_map_chart_url";
-
-        }
-        else
-        {
-            my $words_1 = $self->_get_words_for_media_set( $c, 1 );
-            my $words_2 = $self->_get_words_for_media_set( $c, 2 );
-	    
-	    if ( scalar( @{ $words_1 } ) == 0 )
+            else
             {
-                my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
-                my $error_message =
-                  "No words found within the week starting on $date \n" . "for media sets 1";
+                my $words_1 = $self->_get_words_for_media_set( $c, 1 );
+                my $words_2 = $self->_get_words_for_media_set( $c, 2 );
 
-                $c->{ stash }->{ error_message } = $error_message;
-		last;
+                if ( scalar( @{ $words_1 } ) == 0 )
+                {
+                    my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+                    my $error_message = "No words found within the week starting on $date \n" . "for media sets 1";
+
+                    $c->{ stash }->{ error_message } = $error_message;
+                    last;
+                }
+
+                if ( scalar( @{ $words_2 } ) == 0 )
+                {
+                    my $date = $self->get_start_of_week( $c, $c->req->param( 'date2' ) );
+                    my $error_message = "No words found within the week starting on $date \n" . "for media sets 2";
+
+                    $c->{ stash }->{ error_message } = $error_message;
+                    last;
+                }
+                my $date1 = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+                my $country_counts_1 = $self->_get_country_counts( $c, $date1, 1 );
+                my $date2 = $self->get_start_of_week( $c, $c->req->param( 'date2' ) );
+                my $country_counts_2 = $self->_get_country_counts( $c, $date2, 2 );
+
+                my $coverage_map_chart_url_1 = _get_tag_count_map_url( $country_counts_1, 'coverage map' );
+                my $coverage_map_chart_url_2 = _get_tag_count_map_url( $country_counts_2, 'coverage map' );
+                $word_cloud = $self->_get_multi_set_word_cloud( $c, $words_1, $words_2 );
+
+                $c->stash->{ coverage_map_chart_url_1 } = $coverage_map_chart_url_1;
+                $c->stash->{ coverage_map_chart_url_2 } = $coverage_map_chart_url_2;
+
+                #die "Not yet implemented";
             }
 
-	    if ( scalar( @{ $words_2 } ) == 0 )
-            {
-                my $date = $self->get_start_of_week( $c, $c->req->param( 'date2' ) );
-                my $error_message =
-                  "No words found within the week starting on $date \n" . "for media sets 2";
+            $c->stash->{ show_results } = 1;
 
-                $c->{ stash }->{ error_message } = $error_message;
-                last;
-            }
-	    my $date1 = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
-	    my $country_counts_1 = $self->_get_country_counts( $c, $date1, 1 );
-	    my $date2 = $self->get_start_of_week( $c, $c->req->param( 'date2' ) );
-	    my $country_counts_2 = $self->_get_country_counts( $c, $date2, 2 );
+            #$c->stash->{ clusters } = $clusters;
+            #$c->stash->{ date }     = $date;
 
-	    my $coverage_map_chart_url_1 = _get_tag_count_map_url( $country_counts_1, 'coverage map' );
-	    my $coverage_map_chart_url_2 = _get_tag_count_map_url( $country_counts_2, 'coverage map' );
-            $word_cloud = $self->_get_multi_set_word_cloud( $c, $words_1, $words_2 );
+            $c->stash->{ coverage_map_chart_url } = $coverage_map_chart_url;
 
-	    $c->stash->{ coverage_map_chart_url_1 } = $coverage_map_chart_url_1;
-	    $c->stash->{ coverage_map_chart_url_2 } = $coverage_map_chart_url_2;
-
-            #die "Not yet implemented";
+            #$c->stash->{ media_set }             = $media_set;
+            $c->stash->{ word_cloud }            = $word_cloud;
+            $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
         }
-
-        $c->stash->{ show_results } = 1;
-
-        #$c->stash->{ clusters } = $clusters;
-        #$c->stash->{ date }     = $date;
-
-        $c->stash->{ coverage_map_chart_url } = $coverage_map_chart_url;
-
-        #$c->stash->{ media_set }             = $media_set;
-        $c->stash->{ word_cloud }            = $word_cloud;
-        $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
-    }}
+    }
 
     $c->stash->{ dashboard } = $dashboard;
 
@@ -588,7 +589,7 @@ sub _get_merged_word_count
 
             #copy hash
             # TODO why is this bad?
-            my %temp = (%$temp_hash_ref);
+            my %temp = ( %$temp_hash_ref );
             %temp->{ stem_count } += $words_2_hash->{ $word }->{ stem_count };
             $ret = \%temp;
         }
@@ -631,8 +632,8 @@ sub _get_multi_set_word_cloud
         my $word_record = _get_merged_word_count( $words_1_hash, $words_2_hash, $word );
         my $url = _get_set_for_word( $words_1_hash, $words_2_hash, $word );
 
-	$word_type_counts->{$url} ||= 0;
-	$word_type_counts->{$url} += 1;
+        $word_type_counts->{ $url } ||= 0;
+        $word_type_counts->{ $url } += 1;
 
         if ( $word_record->{ stem_count } == 0 )
         {
@@ -671,10 +672,10 @@ sub _get_multi_set_word_cloud
         $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
     }
 
-    $html .= "\n<!-- " . Dumper($word_type_counts) . "\n";
+    $html .= "\n<!-- " . Dumper( $word_type_counts ) . "\n";
 
-    $html .= "Words 1 " . Dumper([sort @words_1_words] ) . "\n";
-    $html .= "Words 2 " . Dumper([sort @words_2_words] ) . "\n";
+    $html .= "Words 1 " . Dumper( [ sort @words_1_words ] ) . "\n";
+    $html .= "Words 2 " . Dumper( [ sort @words_2_words ] ) . "\n";
     $html .= ' --> ';
 
     return $html;
