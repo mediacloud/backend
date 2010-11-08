@@ -354,7 +354,7 @@ sub template_test : Local
     )->hashes;
 
     my $dashboard_topics =
-      $c->dbis->query( "select * from dashboard_topics where dashboards_id = ?", $dashboard->{ dashboards_id } )->hashes;
+      $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc", $dashboard->{ dashboards_id } )->hashes;
 
     MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
 
