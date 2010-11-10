@@ -72,7 +72,7 @@ margin : 0;
 <script language="javascript" type="text/javascript">
    $(document).ready(function() 
     {
-        data = [
+        var data = [
 [% FOREACH medium IN media %]
         "[% medium.name | trim | html %]",
 [% END %]
@@ -95,10 +95,11 @@ margin : 0;
               }
           }                               
    });
-        
         DisplayDIV('mediacontainer2');
     });
 </script>
+
+[% # form.render() %]
 
 <table width="900" border="0 #CC66CC" align="center" cellpadding="10" cellspacing="0" bgcolor="#FFFFFF">
   <tr>
@@ -113,36 +114,46 @@ margin : 0;
     <td>
       <form id="media_query_form" action="[% c.uri_for('/dashboard/template_test/') _ dashboard.dashboards_id %]" method="get">
       <input type="hidden" name="show_results" value="true" />
-      <input type="hidden" id="compare_media_sets" name="compare_media_sets" value="true" />
+      [% form.get_field( 'compare_media_sets')  %]
+      <!-- <input type="hidden" id="compare_media_sets" name="compare_media_sets" value="true" /> -->
       <div id="mediacontainer1">
         <div id="mediaheader1">Media Data Set #1</div>
         <div id="mediaTime1"> <strong>Time range</strong><br />
+	  [% form.get_field( 'date1')  %]
+
+<!--
 	  <select name="date1" >
 	  [% FOREACH date IN dashboard_dates %]
 	  <option value="[% date %]">[% date %]</option>
 	  [% END #FOREACH date IN dashboard_dates %]
 	</select>
- <!--           <input type="text" name="media1t" id="media1t" /> -->
+-->
+
+ <!--           <input type="text" name="media1t" id="media1t" />
 
           <br /> 
+ -->
           <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>
         <div id="mediaArea1"> <strong>Area of coverage</strong><br />
-	  <select name="dashboard_topics_id1">
+	  [% form.get_field( 'dashboard_topics_id1')  %]
+<!--	  <select name="dashboard_topics_id1">
 	    <option value="">All</option>
 	    [% FOREACH topic IN dashboard_topics %]
 	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
 	    [% END #[% FOREACH topic IN dashboard_topics %]
-	  </select>
-          <br />
+	  </select> -->
           <span class="smaller">A fast explanation here</span>
         </div>
         <div id="mediaSource1"> <strong>Media Source</strong><br />
-          <input type="text" name="medium_name1" id="medium_name1" />
-          <br />
+	  [% form.get_field( 'medium_name1')  %]
+          <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
           <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
           <strong>Set of Media Sources</strong>
+
+	  [% form.get_field( 'media_sets_id1')  %]
+<!--
           <label for="select"></label>
           <select name="media_sets_id1" id="select">
 <option value="">(none)</option>
@@ -150,7 +161,7 @@ margin : 0;
 <option value="[% set.media_sets_id %]">[% set.name | html %]</option>
 [% END #[% FOREACH set IN collection_media_sets %]
           </select>
-          <br />
+-->
           <span class="smaller">A fast explanation here</span>
 
         </div>
@@ -161,56 +172,65 @@ margin : 0;
             <option>Subset1</option>
             <option>Subset2</option>
             <option>Subset 3</option>
-          </select><br />
+          </select>
 <span class="smaller">A fast explanation</span>
         </div>
       </div>
       <div id="mediacontainer2">
-        <div id="mediaheader2">Media Data Set #2</div>
-        <div id="mediaTime2"><strong>Time range</strong><br />
+        <div id="mediaheader2">Media Data Set #1</div>
+        <div id="mediaTime2"> <strong>Time range</strong><br />
+	  [% form.get_field( 'date2')  %]
+<!--
 	  <select name="date2" >
 	  [% FOREACH date IN dashboard_dates %]
 	  <option value="[% date %]">[% date %]</option>
 	  [% END #FOREACH date IN dashboard_dates %]
 	</select>
-          <br />
-          <span class="smaller">A fast explanation here</span></div>
-        <div id="mediaArea2"><strong>Area of coverage</strong><br />
-	  <select name="dashboard_topics_id2">
+-->
+ <!--           <input type="text" name="media2t" id="media2t" /> -->
+
+          <span class="smaller">A fast explanation here</span>
+	  <br />
+        </div>
+        <div id="mediaArea2"> <strong>Area of coverage</strong><br />
+	  [% form.get_field( 'dashboard_topics_id2')  %]
+<!--	  <select name="dashboard_topics_id2">
 	    <option value="">All</option>
 	    [% FOREACH topic IN dashboard_topics %]
 	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
 	    [% END #[% FOREACH topic IN dashboard_topics %]
-	  </select>
-      <!--    <input type="text" name="media1a3" id="media1a3" /> -->
-          <br />
-          <span class="smaller">A fast explanation here</span></div>
-        <div id="mediaSource2"><strong>Media Source</strong>
-          <input type="text" name="medium_name2" id="medium_name2" /><br/>
-          
-          <span class="smaller">A fast explanation here</span><br />
-          
-          <hr noshade="noshade" size="1" width="99%"  style="color:#999999"/>
+	  </select> -->
+          <span class="smaller">A fast explanation here</span>
+        </div>
+        <div id="mediaSource2"> <strong>Media Source</strong><br />
+	  [% form.get_field( 'medium_name2')  %]
+          <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
+          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
           <strong>Set of Media Sources</strong>
-          <label for="subset_select2"></label>
-          <select name="media_sets_id2" id="subset_select2">
-             <option value="">(none)</option>
-             [% FOREACH set IN collection_media_sets %]
-             <option value="[% set.media_sets_id %]">[% set.name | html %]</option>
-             [% END #[% FOREACH set IN collection_media_sets %]
+
+	  [% form.get_field( 'media_sets_id2')  %]
+<!--
+          <label for="select"></label>
+          <select name="media_sets_id2" id="select">
+<option value="">(none)</option>
+[% FOREACH set IN collection_media_sets %]
+<option value="[% set.media_sets_id %]">[% set.name | html %]</option>
+[% END #[% FOREACH set IN collection_media_sets %]
           </select>
-          <br />
-          <span class="smaller">A fast explanation here</span></div>
-        <div id="mediaSubset2"><strong>Available set within this set</strong><br />
-          <label for="select3"></label>
-          <select name="select4" id="select3">
+-->
+           <span class="smaller">A fast explanation here</span>
+
+        </div>
+        <div id="mediaSubset2"> <strong>Available set within this set</strong><br />
+          <label for="subset_select2"></label>
+          <select name="subset_select2" id="subset_select2">
             <option>All Sub-sets</option>
             <option>Subset1</option>
             <option>Subset2</option>
             <option>Subset 3</option>
-          </select>
-          <br />
-          <span class="smaller">A fast explanation</span></div>
+          </select><br />
+<span class="smaller">A fast explanation</span>
+        </div>
       </div>
       <div>
 	[% IF error_message %]

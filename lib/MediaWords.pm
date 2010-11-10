@@ -4,12 +4,14 @@ use strict;
 use warnings;
 
 use Catalyst::Runtime '5.70';
+use v5.8;
 
 #use Catalyst::Runtime;
 
 use DBIx::Simple::MediaWords;
 use MediaWords::Util::Config;
 use URI;
+use Bundle::MediaWords;
 
 # Set flags and add plugins for the application
 #

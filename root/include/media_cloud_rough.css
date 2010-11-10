@@ -149,3 +149,4 @@ body {
 a.navigation:link {color:#FC9; font-weight:bold; text-decoration:none}      /* unvisited link */
 a.navigation:hover {color:#F36; font-weight:bold; text-decoration:none }  /* mouse over link */
 
+.select { margin: 0px; }

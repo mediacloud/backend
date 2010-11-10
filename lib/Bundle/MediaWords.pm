@@ -23,7 +23,11 @@ List::Member
 
 Hash::Merge
 
+Catalyst
+
 Catalyst::Devel
+
+Catalyst::Action::RenderView
 
 Catalyst::Plugin::Unicode
 

@@ -1,5 +1,14 @@
-var visible = true; 
-var wordcloud = true; //We start off showing the word cloud
+$(document).ready(function() 
+    {
+
+ wordcloud = true; //We start off showing the word cloud
+ visible = $('#compare_media_sets').val();
+
+ if (visible == "true")
+     visible = false;
+ else
+     visible = true;
+    } );
 
 function DisplayDIV(d) {  
 	if (visible == false) { //if we're only viewing one data set right now
