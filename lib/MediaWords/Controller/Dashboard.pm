@@ -213,13 +213,19 @@ sub get_word_list : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $dashboard_topic;
-    if ( my $id = $c->req->param( 'dashboard_topics_id' ) )
-    {
-        $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
-    }
+    my $words_1 = $self->_get_words_for_media_set( $c, 1 );
 
-    my $words = $self->_get_words( $c, $dashboard_topic, $c->req->param( 'date' ) );
+    my $words;
+    my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
+    if ($compare_media_sets)
+    {
+       my $words_2 = $self->_get_words_for_media_set( $c, 2 );
+       $words = [(@$words_1,@$words_2)];
+    }
+    else
+    {
+	 $words = $words_1;
+    }
 
     my $output_format = $c->req->param( 'format' );
 
