@@ -25,6 +25,7 @@ use Data::Dumper;
 use Date::Format;
 use Date::Parse;
 use Switch 'Perl6';
+use Locale::Country;
 
 # max number of sentences to list in sentence_medium
 use constant MAX_MEDIUM_SENTENCES => 100;
@@ -217,14 +218,14 @@ sub get_word_list : Local
 
     my $words;
     my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
-    if ($compare_media_sets)
+    if ( $compare_media_sets )
     {
-       my $words_2 = $self->_get_words_for_media_set( $c, 2 );
-       $words = [(@$words_1,@$words_2)];
+        my $words_2 = $self->_get_words_for_media_set( $c, 2 );
+        $words = [ ( @$words_1, @$words_2 ) ];
     }
     else
     {
-	 $words = $words_1;
+        $words = $words_1;
     }
 
     my $output_format = $c->req->param( 'format' );
@@ -309,7 +310,7 @@ sub _get_tag_count_map_url
     $url_object->query_form(
         cht  => 't',
         chtm => 'world',
-        chs  => '370x190',
+        chs  => '440x220',
         chd  => "t:$data",
         chtt => $title,
         chco => 'ffffff,edf0d4,13390a',
@@ -494,6 +495,24 @@ sub template_test : Local : FormConfig
                 print_time( "get clusters" );
 
                 my $country_counts = $self->_get_country_counts( $c, $date, 1 );
+
+                #say STDERR "Country Counts";
+                #say STDERR Dumper( $country_counts );
+                #say STDERR Dumper( [ ( keys %{ $country_counts } ) ] );
+
+                my $country_code_3_counts = { map { uc(country_code2code( $_, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 )) => $country_counts->{ $_ } } ( sort keys %{ $country_counts } ) };
+
+                #say STDERR "Country Counts";
+                #say STDERR Dumper( $country_code_3_counts );
+                #say STDERR "dying";
+
+	my $country_count_csv_array = [map { join ',', @$_ } ( map { [$_, $country_code_3_counts->{$_} ] } sort keys %{  $country_code_3_counts } ) ];
+
+	#	my $country_count_csv_string = join "\n", (map { join ',', @$_ } ( map { [$_, $country_code_3_counts->{$_} ] } sort keys %{  $country_code_3_counts } ) );
+		#$country_count_csv_string = "country_code,value\n" . $country_count_csv_string;
+
+                $c->{ stash }->{ country_count_csv_array } = $country_count_csv_array;
+
                 $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
 
                 say STDERR "coverage map chart url: $coverage_map_chart_url";
