@@ -63,6 +63,8 @@ margin : 0;
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
 <link rel="stylesheet" href="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.css" type="text/css" />
 <script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.js"></script>
+ <script type="text/javascript"  src="[% c.uri_for('/include/jquery.openheatmap.js') %]"></script> 
+<!-- <script type="text/javascript" src="http://static.openheatmap.com/scripts/jquery.openheatmap.js"></script> -->
 <script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/validate/jquery.validate.js"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
 </head>
@@ -96,7 +98,37 @@ margin : 0;
           }                               
    });
         DisplayDIV('mediacontainer2');
+
+        $('#openheatmap_container').insertOpenHeatMap({
+              width: 500,
+              height: 400,
+      source: '[% c.uri_for('/include/openheatmap.swf') %]',
+        });
     });
+
+
+function onMapCreated()
+{
+    var map = $.getOpenHeatMap();
+
+    map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
+    //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
+    //var csv_string = "country_code,value\nUSA,40\nCAN,30\nIND,30";
+     var csv_string = 
+             "country_code,value\n"
+        [% FOREACH country_count_csv_row IN country_count_csv_array %]
+         + "[% country_count_csv_row %]\n" 
+        [% END %]
+      ;
+    //alert(csv_string);
+
+    map.loadValuesFromCSVString(csv_string);
+   //map.loadValuesFromFile('[% c.uri_for('/include/hello_data.csv') %]');
+    
+    map.setSetting('show_map_tiles', true);
+   map.setSetting('information_alpha', 0.8);
+   map.setColorGradient(['#ffffff','#ff0000']);
+}
 </script>
 
 [% # form.render() %]
@@ -307,7 +339,8 @@ This is a Word Cloud! Thats' what goes here.<br/>
             <div id="CMcontentarea" style="display:none;">
 
 [% IF coverage_map_chart_url %]
-<img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" />
+<div id="openheatmap_container"></div>
+<!-- <img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" /> -->
 [% ELSIF coverage_map_chart_url_1 && coverage_map_chart_url_2 %]
 <table>
 <tr>
