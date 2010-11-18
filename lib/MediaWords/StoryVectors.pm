@@ -550,17 +550,13 @@ sub _update_daily_country_counts
     $db->query(
         "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
-    my $result =
-      $db->query( " SELECT count(*) FROM story_sentence_words ssw where publish_day = '${sql_date}'::DATE limit 1" );
-    die unless $result;
-    my $word_count_for_date = join '', $result->flat();
-
-    if ( $word_count_for_date == 0 )
-    {
-
-        say STDERR "skipping country counts for date '$sql_date' for which there is no content";
-        return 1;
-    }
+    # it should be very rare for there to be no data on a given date that's being aggregated
+    # my ( $daily_words_exist ) = $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
+    # if ( !$daily_words_exist )
+    # {
+    #     say STDERR "skipping country counts for date '$sql_date' for which there is no content";
+    #     return 1;
+    # }
 
     #my @all_countries = map { lc } Locale::Country::all_country_names;
     my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
