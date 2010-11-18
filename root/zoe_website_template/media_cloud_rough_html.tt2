@@ -147,35 +147,15 @@ function onMapCreated()
       <form id="media_query_form" action="[% c.uri_for('/dashboard/template_test/') _ dashboard.dashboards_id %]" method="get">
       <input type="hidden" name="show_results" value="true" />
       [% form.get_field( 'compare_media_sets')  %]
-      <!-- <input type="hidden" id="compare_media_sets" name="compare_media_sets" value="true" /> -->
       <div id="mediacontainer1">
         <div id="mediaheader1">Media Data Set #1</div>
         <div id="mediaTime1"> <strong>Time range</strong><br />
 	  [% form.get_field( 'date1')  %]
-
-<!--
-	  <select name="date1" >
-	  [% FOREACH date IN dashboard_dates %]
-	  <option value="[% date %]">[% date %]</option>
-	  [% END #FOREACH date IN dashboard_dates %]
-	</select>
--->
-
- <!--           <input type="text" name="media1t" id="media1t" />
-
-          <br /> 
- -->
           <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>
         <div id="mediaArea1"> <strong>Area of coverage</strong><br />
 	  [% form.get_field( 'dashboard_topics_id1')  %]
-<!--	  <select name="dashboard_topics_id1">
-	    <option value="">All</option>
-	    [% FOREACH topic IN dashboard_topics %]
-	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
-	    [% END #[% FOREACH topic IN dashboard_topics %]
-	  </select> -->
           <span class="smaller">A fast explanation here</span>
         </div>
         <div id="mediaSource1"> <strong>Media Source</strong><br />
@@ -185,15 +165,6 @@ function onMapCreated()
           <strong>Set of Media Sources</strong>
 
 	  [% form.get_field( 'media_sets_id1')  %]
-<!--
-          <label for="select"></label>
-          <select name="media_sets_id1" id="select">
-<option value="">(none)</option>
-[% FOREACH set IN collection_media_sets %]
-<option value="[% set.media_sets_id %]">[% set.name | html %]</option>
-[% END #[% FOREACH set IN collection_media_sets %]
-          </select>
--->
           <span class="smaller">A fast explanation here</span>
 
         </div>
@@ -212,44 +183,19 @@ function onMapCreated()
         <div id="mediaheader2">Media Data Set #1</div>
         <div id="mediaTime2"> <strong>Time range</strong><br />
 	  [% form.get_field( 'date2')  %]
-<!--
-	  <select name="date2" >
-	  [% FOREACH date IN dashboard_dates %]
-	  <option value="[% date %]">[% date %]</option>
-	  [% END #FOREACH date IN dashboard_dates %]
-	</select>
--->
- <!--           <input type="text" name="media2t" id="media2t" /> -->
-
           <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>
         <div id="mediaArea2"> <strong>Area of coverage</strong><br />
 	  [% form.get_field( 'dashboard_topics_id2')  %]
-<!--	  <select name="dashboard_topics_id2">
-	    <option value="">All</option>
-	    [% FOREACH topic IN dashboard_topics %]
-	    <option value="[% topic.dashboard_topics_id %]">[% topic.name | html %]</option>
-	    [% END #[% FOREACH topic IN dashboard_topics %]
-	  </select> -->
           <span class="smaller">A fast explanation here</span>
         </div>
         <div id="mediaSource2"> <strong>Media Source</strong><br />
 	  [% form.get_field( 'medium_name2')  %]
-          <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
           <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
           <strong>Set of Media Sources</strong>
 
 	  [% form.get_field( 'media_sets_id2')  %]
-<!--
-          <label for="select"></label>
-          <select name="media_sets_id2" id="select">
-<option value="">(none)</option>
-[% FOREACH set IN collection_media_sets %]
-<option value="[% set.media_sets_id %]">[% set.name | html %]</option>
-[% END #[% FOREACH set IN collection_media_sets %]
-          </select>
--->
            <span class="smaller">A fast explanation here</span>
 
         </div>
