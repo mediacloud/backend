@@ -1,5 +1,6 @@
 auto_fieldset: 1
 
+method: get
 
 elements:
   - type: Hidden
