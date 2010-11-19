@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<link rel="stylesheet" type="text/css" href="/include/media_cloud_rough.css"/>
+
+<style type="text/css">
+
+xA:link {color: #000000; }
+xA:visited {color: #000000; }
+xA:active {color: #000000; }
+
+#htmltagcloud {
+  text-align:  center; 
+  line-height: 1; 
+}
+a { color: #32588F; text-decoration: none;}
+span.tagcloud0 { font-size: 12px;}
+span.tagcloud1 { font-size: 13px;}
+span.tagcloud2 { font-size: 14px;}
+span.tagcloud3 { font-size: 15px;}
+span.tagcloud4 { font-size: 16px;}
+span.tagcloud5 { font-size: 17px;}
+span.tagcloud6 { font-size: 18px;}
+span.tagcloud7 { font-size: 19px;}
+span.tagcloud8 { font-size: 20px;}
+span.tagcloud9 { font-size: 21px;}
+span.tagcloud10 { font-size: 22px;}
+span.tagcloud11 { font-size: 23px;}
+span.tagcloud12 { font-size: 24px;}
+span.tagcloud13 { font-size: 25px;}
+span.tagcloud14 { font-size: 26px;}
+span.tagcloud15 { font-size: 27px;}
+span.tagcloud16 { font-size: 28px;}
+span.tagcloud17 { font-size: 29px;}
+span.tagcloud18 { font-size: 30px;}
+span.tagcloud19 { font-size: 31px;}
+span.tagcloud20 { font-size: 32px;}
+span.tagcloud21 { font-size: 33px;}
+span.tagcloud22 { font-size: 34px;}
+span.tagcloud23 { font-size: 35px;}
+span.tagcloud24 { font-size: 36px;}
+
+</style>
+
+<style type="text/css">
+body {
+padding-top : 0; 
+padding-right : 0; 
+padding-bottom : 0; 
+padding-left : 0; 
+border-top-width : 0; 
+border-right-width : 0; 
+border-bottom-width : 0; 
+border-left-width : 0; 
+margin : 0; 
+}</style>
+
+<title>Media Cloud</title>
+<link href="[% c.uri_for('/include/smoothness/jquery-ui-1.8.5.custom.css') %]" rel="stylesheet" type="text/css"/>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
+<link rel="stylesheet" href="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.css" type="text/css" />
+<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.js"></script>
+ <script type="text/javascript"  src="[% c.uri_for('/include/jquery.openheatmap.js') %]"></script> 
+<!-- <script type="text/javascript" src="http://static.openheatmap.com/scripts/jquery.openheatmap.js"></script> -->
+<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/validate/jquery.validate.js"></script>
+<!-- <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script> -->
+</head>
+
+
+<body>
+<script language="javascript" type="text/javascript">
+   $(document).ready(function() 
+    {
+        var data = [
+[% FOREACH medium IN media %]
+        "[% medium.name | trim | html %]",
+[% END %]
+        ];
+        //TODO migrate this to the JQuery UI api
+        //Write a custom event to ensure that the entered source name is valid
+        $('#medium_name1').autocomplete(data, { minChars: 0, autoFill: true  } );
+        $('#medium_name2').autocomplete(data, { minChars: 0, autoFill: true  } );
+        $('#media_query_form').validate({
+           rules: {
+              media_sets_id1: {
+              required: function(element) {
+                 return $('#medium_name1').val() == '';
+                    }
+             },
+              media_sets_id2: {
+                  required: function(element) {
+                   return $('#compare_media_sets').val()=='true' && $('#medium_name2').val() == '';
+                   }
+              }
+          }                               
+   });
+        //DisplayDIV('mediacontainer2');
+
+        $('#openheatmap_container').insertOpenHeatMap({
+              width: 500,
+              height: 400,
+      source: '[% c.uri_for('/include/openheatmap.swf') %]',
+        });
+
+   //swapDIV('CMcontentarea');
+    });
+
+
+function onMapCreated()
+{
+    var map = $.getOpenHeatMap();
+
+    map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
+    //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
+    //var csv_string = "country_code,value\nUSA,40\nCAN,30\nIND,30";
+     var csv_string = 
+             "country_code,value\n"
+        [% FOREACH country_count_csv_row IN country_count_csv_array %]
+         + "[% country_count_csv_row %]\n" 
+        [% END %]
+      ;
+    //alert(csv_string);
+
+    map.loadValuesFromCSVString(csv_string);
+   //map.loadValuesFromFile('[% c.uri_for('/include/hello_data.csv') %]');
+    
+    map.setSetting('show_map_tiles', true);
+   map.setSetting('information_alpha', 0.8);
+   map.setColorGradient(['#ffffff','#ff0000']);
+}
+</script>
+
+[% # form.render() %]
+
+<table width="900" border="0 #CC66CC" align="center" cellpadding="10" cellspacing="0" bgcolor="#FFFFFF">
+  <tr>
+    <td bgcolor="#000000"><span class="Header">Media Cloud</span></td>
+  </tr>
+  <tr>
+    <td align="left" bgcolor="#000000"><font color="#FFFFFF"><a href="link" class="navigation">Home</a> | <a href="link" class="navigation">About</a> | <a href="link" class="navigation">News</a> | <a href="link"  class="navigation">Data Sources</a>| <a href="link"  class="navigation">Weekly Reports</a></font></td>
+  </tr>
+  <tr>
+
+
+    <td>
+  [% form.start %]
+      <input type="hidden" name="show_results" value="true" />
+      [% form.get_field( 'compare_media_sets')  %]
+      <div id="mediacontainer1">
+        <div id="mediaheader1">Media Data Set #1</div>
+        <div id="mediaTime1"> <strong>Time range</strong><br />
+	  [% form.get_field( 'date1')  %]
+          <span class="smaller">A fast explanation here</span>
+	  <br />
+        </div>
+        <div id="mediaArea1"> <strong>Area of coverage</strong><br />
+	  [% form.get_field( 'dashboard_topics_id1')  %]
+          <span class="smaller">A fast explanation here</span>
+        </div>
+        <div id="mediaSource1"> <strong>Media Source</strong><br />
+	  [% form.get_field( 'medium_name1')  %]
+          <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
+          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
+          <strong>Set of Media Sources</strong>
+
+	  [% form.get_field( 'media_sets_id1')  %]
+          <span class="smaller">A fast explanation here</span>
+
+        </div>
+        <div id="mediaSubset1"> <strong>Available set within this set</strong><br />
+          <label for="subset_select1"></label>
+          <select name="subset_select1" id="subset_select1">
+            <option>All Sub-sets</option>
+            <option>Subset1</option>
+            <option>Subset2</option>
+            <option>Subset 3</option>
+          </select>
+<span class="smaller">A fast explanation</span>
+        </div>
+      </div>
+<!--
+      <div id="mediacontainer2">
+        <div id="mediaheader2">Media Data Set #1</div>
+        <div id="mediaTime2"> <strong>Time range</strong><br />
+	  [% form.get_field( 'date2')  %]
+          <span class="smaller">A fast explanation here</span>
+	  <br />
+        </div>
+        <div id="mediaArea2"> <strong>Area of coverage</strong><br />
+	  [% form.get_field( 'dashboard_topics_id2')  %]
+          <span class="smaller">A fast explanation here</span>
+        </div>
+        <div id="mediaSource2"> <strong>Media Source</strong><br />
+	  [% form.get_field( 'medium_name2')  %]
+          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
+          <strong>Set of Media Sources</strong>
+
+	  [% form.get_field( 'media_sets_id2')  %]
+           <span class="smaller">A fast explanation here</span>
+
+        </div>
+        <div id="mediaSubset2"> <strong>Available set within this set</strong><br />
+          <label for="subset_select2"></label>
+          <select name="subset_select2" id="subset_select2">
+            <option>All Sub-sets</option>
+            <option>Subset1</option>
+            <option>Subset2</option>
+            <option>Subset 3</option>
+          </select><br />
+<span class="smaller">A fast explanation</span>
+        </div>
+      </div>
+      -->
+      <div>
+	[% IF error_message %]
+	<p><b>Error:</b>  [% error_message | html_strip %]</p>
+	[% END %]
+      </div>
+      <div style="cursor:pointer;">
+      <div id="submit"><input name="Submit" type="submit" value="submit" />
+      </div>
+      </div>
+      [% form.end() %]
+    </td>
+  </tr>
+  <tr>
+    <td><hr noshade="noshade" size="1" width="100%" style="color:#999999" /></td></tr>
+  <tr>
+    <td><!--This is where the content starts!-->
+Foo
+<div id="openheatmap_container"></div>
+            <br/>
+            <br/>
+            <div id="coveragemap" class="contentSelected"><span style="cursor:pointer;">Coverage Map</span></div>
+            <div id="CMcontentarea" style="display:none;">
+[% IF coverage_map_chart_url %]
+<!-- <img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" /> -->
+[% ELSIF coverage_map_chart_url_1 && coverage_map_chart_url_2 %]
+<table>
+<tr>
+<td>
+Set 1 coverage
+</td>
+<td>
+Set 2 coverage
+</td>
+</tr>
+<tr>
+<td>
+<img src="[%- coverage_map_chart_url_1 | html -%]" alt="Coverage Map" />
+</td>
+<td>
+<img src="[%- coverage_map_chart_url_2 | html -%]" alt="Coverage Map" />
+</td>
+</tr>
+</table>
+[% ELSE %]
+This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
+[% END %]
+ </div></td>
+        </tr>
+      </table>
+      
+      <!--This is where the content ends!--></td>
+  </tr>
+  <tr>
+    <td align="center">All materials Copyright Media Cloud 2010</td>
+  </tr>
+</table>
+</body>
+</html>
