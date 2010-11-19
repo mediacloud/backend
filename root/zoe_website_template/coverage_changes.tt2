@@ -230,8 +230,10 @@ function onMapCreated()
     <td><hr noshade="noshade" size="1" width="100%" style="color:#999999" /></td></tr>
   <tr>
     <td><!--This is where the content starts!-->
-Foo
+
+[% IF form.submitted() %]
 <div id="openheatmap_container"></div>
+[% END %] 
             <br/>
             <br/>
             <div id="coveragemap" class="contentSelected"><span style="cursor:pointer;">Coverage Map</span></div>
