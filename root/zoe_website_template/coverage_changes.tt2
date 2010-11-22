@@ -102,6 +102,7 @@ margin : 0;
         $('#openheatmap_container').insertOpenHeatMap({
               width: 500,
               height: 400,
+             // prefer: 'canvas',
       source: '[% c.uri_for('/include/openheatmap.swf') %]',
         });
 
@@ -125,7 +126,10 @@ function onMapCreated()
     //alert(csv_string);
 
    // map.loadValuesFromCSVString(csv_string);
-   map.loadValuesFromFile('[% c.uri_for('/dashboard/get_country_counts_all_dates/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv'  %]');
+
+   var csv_url = '[% c.uri_for('/dashboard/get_country_counts_all_dates/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv'  %]';
+
+   map.loadValuesFromFile( csv_url);
     
     map.setSetting('show_map_tiles', true);
    map.setSetting('information_alpha', 0.8);
