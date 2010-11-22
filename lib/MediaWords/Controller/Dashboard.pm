@@ -302,16 +302,40 @@ sub get_country_counts_all_dates : Local
 
     #print_time( "validated dashboard_topic_date" );
 
-    my $country_count_query =
-"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
+    my $start_date =  $c->req->param( "date1" );
+    my $end_date =  $c->req->param( "date2" );
+
+    my $date_query_part = '';
+
+    my $country_counts;
+
+    if ($start_date && $end_date)
+    {
+      my $country_count_query =
+	"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
+      . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  " .
+	" AND  publish_day >= ? AND publish_day <= ?                                        " .
+        "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
+
+      #say STDERR "SQL query: '$country_count_query'";
+
+      print_time( "starting country_count_query" );
+
+      $country_counts = $c->dbis->query( $country_count_query, $start_date, $end_date )->hashes;       ;
+    }
+    else
+    {
+      my $country_count_query =
+	"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
       . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
       . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
 
-    #say STDERR "SQL query: '$country_count_query'";
+      #say STDERR "SQL query: '$country_count_query'";
 
-    print_time( "starting country_count_query" );
+      print_time( "starting country_count_query" );
 
-    my $country_counts = $c->dbis->query( $country_count_query )->hashes;
+      $country_counts = $c->dbis->query( $country_count_query )->hashes;
+    }
 
     print_time( "finished country_count_query" );
 

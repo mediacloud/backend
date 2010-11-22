@@ -133,7 +133,12 @@ function onMapCreated()
    //alert("got data " + data);
    map.loadValuesFromCSVString(data);
    map.setSetting('show_map_tiles', true);
-   map.setSetting('information_alpha', 0.8);
+   map.setSetting('information_alpha', 1);
+   //map.setSetting('ocean_color', 13689087);
+//map.setSetting('ocean_color', '#ff0000');
+ map.setSetting('world_lat_height', -170.102258);
+ map.setSetting('world_lon_width', 360);
+
    //map.setColorGradient(['#ffffff','#ff0000']);
    } );
 }
@@ -157,11 +162,17 @@ function onMapCreated()
       [% form.get_field( 'compare_media_sets')  %]
       <div id="mediacontainer1">
         <div id="mediaheader1">Media Data Set #1</div>
-        <div id="mediaTime1"> <strong>Time range</strong><br />
+        <div id="mediaTime1"> <strong>Start Date</strong><br />
 	  [% form.get_field( 'date1')  %]
           <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>
+        <div id="mediaTime2"> <strong>End Date</strong><br />
+	  [% form.get_field( 'date2')  %]
+          <span class="smaller">A fast explanation here</span>
+	  <br />
+        </div>
+	<br />
         <div id="mediaArea1"> <strong>Area of coverage</strong><br />
 	  [% form.get_field( 'dashboard_topics_id1')  %]
           <span class="smaller">A fast explanation here</span>
@@ -176,50 +187,8 @@ function onMapCreated()
           <span class="smaller">A fast explanation here</span>
 
         </div>
-        <div id="mediaSubset1"> <strong>Available set within this set</strong><br />
-          <label for="subset_select1"></label>
-          <select name="subset_select1" id="subset_select1">
-            <option>All Sub-sets</option>
-            <option>Subset1</option>
-            <option>Subset2</option>
-            <option>Subset 3</option>
-          </select>
-<span class="smaller">A fast explanation</span>
-        </div>
       </div>
-<!--
-      <div id="mediacontainer2">
-        <div id="mediaheader2">Media Data Set #1</div>
-        <div id="mediaTime2"> <strong>Time range</strong><br />
-	  [% form.get_field( 'date2')  %]
-          <span class="smaller">A fast explanation here</span>
-	  <br />
-        </div>
-        <div id="mediaArea2"> <strong>Area of coverage</strong><br />
-	  [% form.get_field( 'dashboard_topics_id2')  %]
-          <span class="smaller">A fast explanation here</span>
-        </div>
-        <div id="mediaSource2"> <strong>Media Source</strong><br />
-	  [% form.get_field( 'medium_name2')  %]
-          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
-          <strong>Set of Media Sources</strong>
 
-	  [% form.get_field( 'media_sets_id2')  %]
-           <span class="smaller">A fast explanation here</span>
-
-        </div>
-        <div id="mediaSubset2"> <strong>Available set within this set</strong><br />
-          <label for="subset_select2"></label>
-          <select name="subset_select2" id="subset_select2">
-            <option>All Sub-sets</option>
-            <option>Subset1</option>
-            <option>Subset2</option>
-            <option>Subset 3</option>
-          </select><br />
-<span class="smaller">A fast explanation</span>
-        </div>
-      </div>
-      -->
       <div>
 	[% IF error_message %]
 	<p><b>Error:</b>  [% error_message | html_strip %]</p>
