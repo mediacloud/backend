@@ -307,7 +307,7 @@ sub get_country_counts_all_dates : Local
       . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
       . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
 
-    say STDERR "SQL query: '$country_count_query'";
+    #say STDERR "SQL query: '$country_count_query'";
 
     print_time( "starting country_count_query" );
 
@@ -336,12 +336,14 @@ sub get_country_counts_all_dates : Local
 
     $csv->add_line( $fields );
 
+    say STDERR scalar(@$country_counts);
+
     foreach my $country_count ( @$country_counts )
     {
-        say STDERR Dumper( $country_count );
-        say STDERR Dumper( [ @$fields ] );
+        #say STDERR Dumper( $country_count );
+        #say STDERR Dumper( [ @$fields ] );
         my %temp = %$country_count;
-        say STDERR Dumper [ @temp{ @$fields } ];
+        #say STDERR Dumper [ @temp{ @$fields } ];
         $csv->add_line( [ @temp{ @$fields } ] );
     }
 
