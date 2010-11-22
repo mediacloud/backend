@@ -122,11 +122,11 @@ sub main
     
     #print Dumper( $media_set_vectors );
     
-    print "," . join( ",", map { $_->{ name } } @{ $media_set_vectors } ) . "\n";
+    print "," . join( ",", map { '"'. $_->{ name } .'"' } @{ $media_set_vectors } ) . "\n";
     
     for my $msv ( @{ $media_set_vectors } )
     {
-        print "$msv->{ name }," . join( ",", @{ $msv->{ cos } } ) . "\n";
+        print '"' . $msv->{ name }. '",' . join( ",", @{ $msv->{ cos } } ) . "\n";
     }
 
 }
