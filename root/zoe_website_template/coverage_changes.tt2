@@ -124,12 +124,12 @@ function onMapCreated()
       ;
     //alert(csv_string);
 
-    map.loadValuesFromCSVString(csv_string);
-   //map.loadValuesFromFile('[% c.uri_for('/include/hello_data.csv') %]');
+   // map.loadValuesFromCSVString(csv_string);
+   map.loadValuesFromFile('[% c.uri_for('/dashboard/get_country_counts_all_dates/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv'  %]');
     
     map.setSetting('show_map_tiles', true);
    map.setSetting('information_alpha', 0.8);
-   map.setColorGradient(['#ffffff','#ff0000']);
+   //map.setColorGradient(['#ffffff','#ff0000']);
 }
 </script>
 

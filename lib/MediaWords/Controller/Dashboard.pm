@@ -276,6 +276,109 @@ sub get_word_list : Local
     return;
 }
 
+sub get_country_counts_all_dates : Local
+{
+
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $dashboard_topic;
+
+    my $media_set_num = 1;
+
+    if ( my $id = $c->req->param( "dashboard_topics_id$media_set_num" ) )
+    {
+        $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+    }
+
+    my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+
+    print_time( "got dashboard_topic_clause" );
+
+    my $media_set = $self->get_media_set_from_params( $c, $media_set_num );
+
+    print_time( "got start_of_week" );
+
+    #$self->validate_dashboard_topic_date( $c, $dashboard_topic, $date );
+
+    #print_time( "validated dashboard_topic_date" );
+
+    my $country_count_query =
+"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
+      . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
+      . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
+
+    say STDERR "SQL query: '$country_count_query'";
+
+    print_time( "starting country_count_query" );
+
+    my $country_counts = $c->dbis->query( $country_count_query )->hashes;
+
+    print_time( "finished country_count_query" );
+
+    my $ret = {};
+
+    foreach my $country_count ( @$country_counts )
+    {
+        my $country_code_2 =
+          MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country } );
+        die unless defined $country_code_2;
+
+        my $country_code_3 = uc( country_code2code( $country_code_2, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 ) );
+
+        $country_count->{ country_code } = $country_code_3;
+        $country_count->{ time }         = $country_count->{ publish_day };
+        $country_count->{ value }        = $country_count->{ country_count };
+    }
+
+    my $fields = [ qw ( country_code value time ) ];
+
+    my $csv = Class::CSV->new( fields => $fields );
+
+    $csv->add_line( $fields );
+
+    foreach my $country_count ( @$country_counts )
+    {
+        say STDERR Dumper( $country_count );
+        say STDERR Dumper( [ @$fields ] );
+        my %temp = %$country_count;
+        say STDERR Dumper [ @temp{ @$fields } ];
+        $csv->add_line( [ @temp{ @$fields } ] );
+    }
+
+    my $csv_string    = $csv->string;
+    my $response_body = $csv_string;
+    $c->response->header( "Content-Disposition" => "attachment;filename=word_list.csv" );
+    $c->response->content_type( 'text/csv' );
+
+    $c->response->content_length( length( $response_body ) );
+    $c->response->body( $response_body );
+
+    #say STDERR Dumper( $country_counts );
+    return;
+}
+
+sub get_country_data : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $date1 = $c->req->param( 'date1' );
+    my $country_counts = $self->_get_country_counts( $c, $date1, 1 );
+
+    my $country_count_csv_array = _country_counts_to_csv_array( $country_counts );
+
+    my $csv_string = join "\n", @$country_count_csv_array;
+
+    $csv_string = "country_code,value\n" . $csv_string;
+    my $response_body = $csv_string;
+    $c->response->header( "Content-Disposition" => "attachment;filename=word_list.csv" );
+    $c->response->content_type( 'text/csv' );
+
+    $c->response->content_length( length( $response_body ) );
+    $c->response->body( $response_body );
+
+    return;
+}
+
 # get the url of a chart image for the given tag counts
 sub _get_tag_count_map_url
 {
@@ -359,6 +462,24 @@ sub _has_invalid_dashboard_date
     }
 
     return;
+}
+
+sub _country_counts_to_csv_array
+{
+    my ( $country_counts ) = @_;
+
+    my $country_code_3_counts =
+      { map { uc( country_code2code( $_, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 ) ) => $country_counts->{ $_ } }
+          ( sort keys %{ $country_counts } ) };
+
+    #say STDERR "Country Counts";
+    #say STDERR Dumper( $country_code_3_counts );
+    #say STDERR "dying";
+
+    my $country_count_csv_array =
+      [ map { join ',', @$_ } ( map { [ $_, $country_code_3_counts->{ $_ } ] } sort keys %{ $country_code_3_counts } ) ];
+
+    return $country_count_csv_array;
 }
 
 sub template_test : Local : FormConfig
@@ -495,24 +616,7 @@ sub template_test : Local : FormConfig
                 print_time( "get clusters" );
 
                 my $country_counts = $self->_get_country_counts( $c, $date, 1 );
-
-                #say STDERR "Country Counts";
-                #say STDERR Dumper( $country_counts );
-                #say STDERR Dumper( [ ( keys %{ $country_counts } ) ] );
-
-                my $country_code_3_counts = {
-                    map {
-                        uc( country_code2code( $_, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 ) ) => $country_counts->{ $_ }
-                      } ( sort keys %{ $country_counts } )
-                };
-
-                #say STDERR "Country Counts";
-                #say STDERR Dumper( $country_code_3_counts );
-                #say STDERR "dying";
-
-                my $country_count_csv_array =
-                  [ map { join ',', @$_ }
-                      ( map { [ $_, $country_code_3_counts->{ $_ } ] } sort keys %{ $country_code_3_counts } ) ];
+                my $country_count_csv_array = _country_counts_to_csv_array( $country_counts );
 
 #	my $country_count_csv_string = join "\n", (map { join ',', @$_ } ( map { [$_, $country_code_3_counts->{$_} ] } sort keys %{  $country_code_3_counts } ) );
 #$country_count_csv_string = "country_code,value\n" . $country_count_csv_string;
