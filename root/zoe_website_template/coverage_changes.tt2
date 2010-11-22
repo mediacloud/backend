@@ -128,12 +128,14 @@ function onMapCreated()
    // map.loadValuesFromCSVString(csv_string);
 
    var csv_url = '[% c.uri_for('/dashboard/get_country_counts_all_dates/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv'  %]';
-
-   map.loadValuesFromFile( csv_url);
-    
-    map.setSetting('show_map_tiles', true);
+//   map.loadValuesFromFile( csv_url);
+   $.get(csv_url, function(data) {
+   //alert("got data " + data);
+   map.loadValuesFromCSVString(data);
+   map.setSetting('show_map_tiles', true);
    map.setSetting('information_alpha', 0.8);
    //map.setColorGradient(['#ffffff','#ff0000']);
+   } );
 }
 </script>
 
