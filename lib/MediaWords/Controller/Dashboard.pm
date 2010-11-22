@@ -317,6 +317,8 @@ sub get_country_counts_all_dates : Local
 
     my $ret = {};
 
+    say STDERR "total country count rows: " . scalar(@$country_counts);
+
     foreach my $country_count ( @$country_counts )
     {
         my $country_code_2 =
@@ -336,7 +338,7 @@ sub get_country_counts_all_dates : Local
 
     $csv->add_line( $fields );
 
-    say STDERR scalar(@$country_counts);
+    say STDERR "updated country count rows";
 
     foreach my $country_count ( @$country_counts )
     {
@@ -346,6 +348,8 @@ sub get_country_counts_all_dates : Local
         #say STDERR Dumper [ @temp{ @$fields } ];
         $csv->add_line( [ @temp{ @$fields } ] );
     }
+
+    say STDERR "added country count rows to csv";
 
     my $csv_string    = $csv->string;
     my $response_body = $csv_string;
