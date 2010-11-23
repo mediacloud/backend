@@ -719,6 +719,10 @@ sub _aggregate_data_exists_for_date
     if ( !$dashboard_topics_id )
     {
         $update_clauses = "and dashboard_topics_id is null";
+        if ( $media_sets_id )
+        {
+            $update_clauses .= " and media_sets_id = $media_sets_id";
+        }
     }
     else {
         $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
