@@ -26,6 +26,7 @@ use Date::Format;
 use Date::Parse;
 use Switch 'Perl6';
 use Locale::Country;
+use Date::Calc qw(:all);
 
 # max number of sentences to list in sentence_medium
 use constant MAX_MEDIUM_SENTENCES => 100;
@@ -210,6 +211,13 @@ sub _get_country_counts
     return $ret;
 }
 
+sub view_test : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    $c->stash->{ template } = 'zoe_website_template/view.tt2';
+}
+
 sub get_word_list : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -302,46 +310,46 @@ sub get_country_counts_all_dates : Local
 
     #print_time( "validated dashboard_topic_date" );
 
-    my $start_date =  $c->req->param( "date1" );
-    my $end_date =  $c->req->param( "date2" );
+    my $start_date = $c->req->param( "date1" );
+    my $end_date   = $c->req->param( "date2" );
 
     my $date_query_part = '';
 
     my $country_counts;
 
-    if ($start_date && $end_date)
+    if ( $start_date && $end_date )
     {
-      my $country_count_query =
-	"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
-      . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  " .
-	" AND  publish_day >= ? AND publish_day <= ?                                        " .
-        "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
+        my $country_count_query =
+"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
+          . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
+          . " AND  publish_day >= ? AND publish_day <= ?                                        "
+          . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
 
-      #say STDERR "SQL query: '$country_count_query'";
+        #say STDERR "SQL query: '$country_count_query'";
 
-      print_time( "starting country_count_query" );
+        print_time( "starting country_count_query" );
 
-      $country_counts = $c->dbis->query( $country_count_query, $start_date, $end_date )->hashes;       ;
+        $country_counts = $c->dbis->query( $country_count_query, $start_date, $end_date )->hashes;
     }
     else
     {
-      my $country_count_query =
-	"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
-      . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
-      . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
+        my $country_count_query =
+"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
+          . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
+          . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
 
-      #say STDERR "SQL query: '$country_count_query'";
+        #say STDERR "SQL query: '$country_count_query'";
 
-      print_time( "starting country_count_query" );
+        print_time( "starting country_count_query" );
 
-      $country_counts = $c->dbis->query( $country_count_query )->hashes;
+        $country_counts = $c->dbis->query( $country_count_query )->hashes;
     }
 
     print_time( "finished country_count_query" );
 
     my $ret = {};
 
-    say STDERR "total country count rows: " . scalar(@$country_counts);
+    say STDERR "total country count rows: " . scalar( @$country_counts );
 
     foreach my $country_count ( @$country_counts )
     {
@@ -356,19 +364,86 @@ sub get_country_counts_all_dates : Local
         $country_count->{ value }        = $country_count->{ country_count };
     }
 
+    say STDERR "updated country count rows";
+
+    my $data_level = $c->req->param( "data_level" );
+
     my $fields = [ qw ( country_code value time ) ];
 
     my $csv = Class::CSV->new( fields => $fields );
 
     $csv->add_line( $fields );
 
-    say STDERR "updated country count rows";
-
+    my $count_hash = {};
     foreach my $country_count ( @$country_counts )
     {
+        my $count_date = $country_count->{ time };
+
+        #say STDERR "$count_date";
+        my $country_code = $country_count->{ country_code };
+        my ( $year, $month, $day ) = split '-', $count_date;
+
+        #say STDERR Dumper([( $year,$month,$day)]);
+
+        my ( $week_of_year, ) = Week_of_Year( $year, $month, $day );
+
+        #say STDERR "week_of_year is $week_of_year";
+
+        #say STDERR Dumper([Monday_of_Week($week_of_year, $year)]);
+
+        my $monday_of_week = Date_to_Text( Monday_of_Week( $week_of_year, $year ) );
+        say STDERR "$count_date truncated to $monday_of_week";
+
+        if ( defined( $count_hash->{ $monday_of_week }->{ $country_code } ) )
+        {
+            $count_hash->{ $monday_of_week }->{ $country_code }->{ value } += $country_count->{ value };
+        }
+        else
+        {
+            $count_hash->{ $monday_of_week }->{ $country_code } = $country_count;
+        }
+        $count_hash->{ $monday_of_week }->{ $country_code }->{ time } = $monday_of_week;
+
+    }
+
+    # scale the data
+    foreach my $count_time ( keys %$count_hash )
+    {
+
+        my $count_hash_for_date = $count_hash->{ $count_time };
+
+        say STDERR ( Dumper( $count_hash_for_date ) );
+
+        my $count_hash_array = [ values %$count_hash_for_date ];
+
+        say STDERR ( Dumper( $count_hash_array ) );
+
+        my $max_count = max( map { $_->{ value } } @$count_hash_array );
+        foreach my $count_hash ( @$count_hash_array )
+        {
+            $count_hash->{ value } = $count_hash->{ value } / $max_count * 100;
+        }
+    }
+
+    say STDERR "Dumping count_hash";
+    say STDERR Dumper( $count_hash );
+
+    say STDERR "country_counts_days";
+    my $country_counts_days = [ values %{ $count_hash } ];
+    say STDERR Dumper( $country_counts_days );
+
+    my $country_counts_merged = [ map { values %{ $_ } } ( values %{ $count_hash } ) ];
+
+    # say STDERR Dumper([$country_counts_merged]);
+
+    foreach my $country_count ( @$country_counts_merged )
+    {
+
+        #say STDERR "country count";
         #say STDERR Dumper( $country_count );
         #say STDERR Dumper( [ @$fields ] );
         my %temp = %$country_count;
+
         #say STDERR Dumper [ @temp{ @$fields } ];
         $csv->add_line( [ @temp{ @$fields } ] );
     }

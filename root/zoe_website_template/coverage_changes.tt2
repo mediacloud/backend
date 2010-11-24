@@ -127,7 +127,7 @@ function onMapCreated()
    //alert("got data " + data);
    map.loadValuesFromCSVString(data);
    map.setSetting('show_map_tiles', true);
-   map.setSetting('information_alpha', 1);
+   map.setSetting('information_alpha', 0.8);
    //map.setSetting('ocean_color', 13689087);
 //map.setSetting('ocean_color', '#ff0000');
  map.setSetting('world_lat_height', -170.102258);
@@ -170,6 +170,11 @@ function onMapCreated()
         </div>
         <div id="mediaTime2"> <strong>End Date</strong><br />
 	  [% form.get_field( 'date2')  %]
+          <span class="smaller">A fast explanation here</span>
+	  <br />
+        </div>
+        <div id="data_level"> <strong>Data Level</strong><br />
+	  [% form.get_field( 'data_level')  %]
           <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>

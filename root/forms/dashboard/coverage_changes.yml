@@ -33,6 +33,13 @@ elements:
     label: Time Range
 
   - type: Select
+    name: data_level
+    label: data_level
+    options:
+      - [ 'week', 'week']
+#      - [ 'day', 'day']
+
+  - type: Select
     name: date2
     label: Time Range
 
