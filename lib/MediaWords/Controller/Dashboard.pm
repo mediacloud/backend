@@ -391,19 +391,29 @@ sub get_country_counts_all_dates : Local
 
         #say STDERR Dumper([Monday_of_Week($week_of_year, $year)]);
 
-        my $monday_of_week = sprintf("%d-%02d-%02d", ( Monday_of_Week( $week_of_year, $year ) ) );
-        say STDERR "$count_date truncated to $monday_of_week";
-        #say STDERR Dumper( [ str2time( $monday_of_week ) ] );
+	my $new_time;
 
-        if ( defined( $count_hash->{ $monday_of_week }->{ $country_code } ) )
+	if ($data_level eq 'week')
+	{
+	  my $monday_of_week = sprintf("%d-%02d-%02d", ( Monday_of_Week( $week_of_year, $year ) ) );
+	  say STDERR "$count_date truncated to $monday_of_week";
+	  #say STDERR Dumper( [ str2time( $monday_of_week ) ] );
+	  $new_time = $monday_of_week;
+        }
+	else
+	{
+	  $new_time = sprintf("%d-%02d-%02d", $year, $month, $day);
+	}
+
+        if ( defined( $count_hash->{ $new_time }->{ $country_code } ) )
         {
-            $count_hash->{ $monday_of_week }->{ $country_code }->{ value } += $country_count->{ value };
+            $count_hash->{ $new_time }->{ $country_code }->{ value } += $country_count->{ value };
         }
         else
         {
-            $count_hash->{ $monday_of_week }->{ $country_code } = $country_count;
+            $count_hash->{ $new_time }->{ $country_code } = $country_count;
         }
-        $count_hash->{ $monday_of_week }->{ $country_code }->{ time } = $monday_of_week;
+        $count_hash->{ $new_time }->{ $country_code }->{ time } = $new_time;
 
     }
 

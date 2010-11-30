@@ -37,7 +37,7 @@ elements:
     label: data_level
     options:
       - [ 'week', 'week']
-#      - [ 'day', 'day']
+      - [ 'day', 'day']
 
   - type: Select
     name: date2
