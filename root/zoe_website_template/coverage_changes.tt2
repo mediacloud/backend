@@ -154,7 +154,7 @@ function onMapCreated()
 function onDataLoaded()
 {
    //alert('data loaded');
-   $('#coveragemap_status_message').html("Rendering Map...");
+   $('#coveragemap_status').html("Rendering Map...");
 }
 
 function onError(err)
