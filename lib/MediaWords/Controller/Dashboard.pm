@@ -432,7 +432,7 @@ sub get_country_counts_all_dates : Local
     my $country_counts_days = [ values %{ $count_hash } ];
     say STDERR Dumper( $country_counts_days );
 
-    my $country_counts_merged = [ map { values %{ $_ } } ( values %{ $count_hash } ) ];
+    my $country_counts_merged = [ sort { $a->{publish_day} cmp $b->{publish_day} } map { values %{ $_ } } ( values %{ $count_hash } ) ];
 
     # say STDERR Dumper([$country_counts_merged]);
 
