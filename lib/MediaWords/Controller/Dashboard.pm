@@ -391,7 +391,7 @@ sub get_country_counts_all_dates : Local
 
         #say STDERR Dumper([Monday_of_Week($week_of_year, $year)]);
 
-        my $monday_of_week = join '-', ( Monday_of_Week( $week_of_year, $year ) );
+        my $monday_of_week = sprintf("%d-%02d-%02d", ( Monday_of_Week( $week_of_year, $year ) ) );
         say STDERR "$count_date truncated to $monday_of_week";
         #say STDERR Dumper( [ str2time( $monday_of_week ) ] );
 
