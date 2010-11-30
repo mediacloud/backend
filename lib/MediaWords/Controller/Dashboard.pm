@@ -393,7 +393,7 @@ sub get_country_counts_all_dates : Local
 
         my $monday_of_week = Date_to_Text( Monday_of_Week( $week_of_year, $year ) );
         say STDERR "$count_date truncated to $monday_of_week";
-        //say STDERR Dumper( [ str2time( $monday_of_week ) ] );
+        #say STDERR Dumper( [ str2time( $monday_of_week ) ] );
 
         if ( defined( $count_hash->{ $monday_of_week }->{ $country_code } ) )
         {
