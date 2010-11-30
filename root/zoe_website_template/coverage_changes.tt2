@@ -115,6 +115,7 @@ function onMapCreated()
     var map = $.getOpenHeatMap();
 
     map.bind('valuesload', 'onDataLoaded');
+    map.bind('error', 'onError');
     //map.bind('waysload', 'onDataLoaded');
     map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
     //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
@@ -146,14 +147,19 @@ function onMapCreated()
  //  map.setSetting("credit_size",15);
  //  map.setSetting("credit_color","0x000000");
  //  map.setSetting("credit_background_color","#ffffff");
-
+   onDataLoaded();
    } );
 }
 
 function onDataLoaded()
 {
    //alert('data loaded');
-   $('#coveragemap_status').html("Data Loaded");
+   $('#coveragemap_status_message').html("Rendering Map...");
+}
+
+function onError(err)
+{
+   alert(err);
 }
 
 </script>
@@ -227,7 +233,7 @@ function onDataLoaded()
 
 [% IF form.submitted() %]
 <div id="openheatmap_container"><b>Loading map please wait</b> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/>></div>
-<div id="coveragemap_status"><b>Loading data please wait</b> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
+<div id="coveragemap_status"><div id="coveragemap_status_message"><b>Loading data please wait</b></div> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
 [% END %] 
             <br/>
             <br/>
