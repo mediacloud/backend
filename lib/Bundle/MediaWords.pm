@@ -164,6 +164,8 @@ Config::Any
 
 Data::Dumper
 
+Data::Dump
+
 Data::Page
 
 DateTime
@@ -179,6 +181,8 @@ File::Path
 File::Temp
 
 File::Util
+
+File::Slurp
 
 Getopt::Long
 
@@ -208,6 +212,8 @@ List::Compare
 
 List::MoreUtils
 
+List::Member
+
 Locale::Country
 
 LWP::Simple
@@ -217,6 +223,8 @@ LWP::UserAgent
 MIME::Base64
 
 Moose
+
+Path::Class
 
 Pod::Usage
 
