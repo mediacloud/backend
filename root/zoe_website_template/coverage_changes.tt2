@@ -155,6 +155,7 @@ function onDataLoaded()
 {
    //alert('data loaded');
    $('#coveragemap_status').html("Rendering Map...");
+   $('#coverage_key').show('slow');
 }
 
 function onError(err)
@@ -232,8 +233,13 @@ function onError(err)
     <td><!--This is where the content starts!-->
 
 [% IF form.submitted() %]
-<div id="openheatmap_container"><b>Loading map please wait</b> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/>></div>
-<div id="coveragemap_status"><div id="coveragemap_status_message"><b>Loading data please wait</b></div> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
+<div id="openheatmap_container"><b>Loading map please wait</b> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
+<div id="coveragemap_status"><br/><br/><br/>
+<div id="coveragemap_status_message"><b>Loading data please wait</b></div> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
+
+<div style="display: none;" id="coverage_key">Coverage <span style="background-color: rgb(210, 210, 247); color: rgb(255, 255, 255);">&nbsp;Least&nbsp;</span>&nbsp;&nbsp;<span style="background-color: rgb(144, 140, 247); color: rgb(255, 255, 255);"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </span>&nbsp; <span style="background-color: rgb(17, 0, 255); color: rgb(255, 255, 255);">&nbsp;&nbsp;Most&nbsp;&nbsp;</span>
+&nbsp;&nbsp;|&nbsp;&nbsp;<span style="background-color: #30302f; color: rgb(255,255,255);">&nbsp;&nbsp;None&nbsp;&nbsp;</span>
+</div>
 [% END %] 
             <br/>
             <br/>
