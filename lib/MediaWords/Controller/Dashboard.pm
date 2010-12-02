@@ -172,7 +172,7 @@ sub _get_country_counts
 
     my $media_set = $self->get_media_set_from_params( $c, $media_set_num );
 
-    my $date = $self->get_start_of_week( $c, $date );
+    $date = $self->get_start_of_week( $c, $date );
 
     print_time( "got start_of_week" );
 
