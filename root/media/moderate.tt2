@@ -27,8 +27,13 @@
 <fieldset>
 
 <p>
+[% IF media_sets_id %]
+<a href="[% c.uri_for('/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]?approve=1">Approve this media source</a><br />
+<a href="[% c.uri_for('/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]">Skip this media source</a><br />
+[% ELSE %]
 <a href="[% c.uri_for('/media/moderate/') _ medium.media_id %]?approve=1">Approve this media source</a><br />
 <a href="[% c.uri_for('/media/moderate/') _ medium.media_id %]">Skip this media source</a><br />
+[% END %]
 </p>
 
 [% IF merge_media %]

@@ -464,7 +464,7 @@ sub get_potential_merge_media
 # go to the next media source in the moderation queue
 sub moderate : Local
 {
-    my ( $self, $c, $prev_media_id ) = @_;
+    my ( $self, $c, $prev_media_id, $media_sets_id ) = @_;
 
     $prev_media_id ||= 0;
     if ( $prev_media_id && $c->request->param( 'approve' ) )
@@ -472,8 +472,20 @@ sub moderate : Local
         $c->dbis->query( "update media set moderated = 't' where media_id = ?", $prev_media_id );
     }
 
-    my $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " . "  order by media_id",
-        $prev_media_id )->hashes;
+    my $media;
+
+    say STDERR "Media sets id $media_sets_id";
+
+    if (defined($media_sets_id))
+    {
+         $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id in (select media_id from media_sets_media_map where media_sets_id = ?) and media_id > ? " . "  order by media_id",
+				   $media_sets_id, $prev_media_id )->hashes;
+    }
+    else
+    {
+         $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " . "  order by media_id",
+				   $prev_media_id )->hashes;
+    }
 
     my ( $medium, $tag_names, $feeds, $merge_media );
 
@@ -492,6 +504,7 @@ sub moderate : Local
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
 
+    $c->stash->{ media_sets_id }= $media_sets_id;
     $c->stash->{ medium }      = $medium;
     $c->stash->{ tag_names }   = $tag_names;
     $c->stash->{ feeds }       = $feeds;
