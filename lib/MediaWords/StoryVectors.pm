@@ -189,6 +189,7 @@ sub count_duplicate_sentences
         );
         $sentence_count = $dup_sentence->{ sentence_count } + 1;
     }
+    
     $db->query(
         "insert into story_sentence_counts( sentence_md5, media_id, publish_week, " .
           "    first_stories_id, first_sentence_number, sentence_count ) " .
@@ -200,8 +201,6 @@ sub count_duplicate_sentences
         $sentence_number,
         $sentence_count
     );
-        return 0;
-    }
 }
 
 # given a story and a list of sentences, return all of the stories that are not duplicates as defined by
