@@ -160,11 +160,10 @@ sub limit_string_length
     }
 }
 
-# return the number of sentences of this sentence within the same media source and calendar week.
+# return the number of duplicates of this sentence within the same media source and calendar week.
 # also adds the sentence to the story_sentence_counts table and/or increments the count in that table
 # for the sentence.  Note that this is not a perfect count -- we don't try to lock this b/c it's not
-# worth the performance hit, so multiple initial entries for a given sentence might be created (even
-# though the order by on the select will minimize this effect).
+# worth the performance hit.
 sub count_duplicate_sentences
 {
     my ( $db, $sentence, $sentence_number, $story ) = @_;
@@ -201,6 +200,8 @@ sub count_duplicate_sentences
         $sentence_number,
         $sentence_count
     );
+    
+    return $sentence_count - 1;
 }
 
 # given a story and a list of sentences, return all of the stories that are not duplicates as defined by
