@@ -435,7 +435,7 @@ sub search_paged_media
     $q = "'%$q%'";
 
     return $c->dbis->query_paged_hashes(
-"select distinct m.media_id as media_id, m.name as name, m.url as url from media m left join ( media_tags_map mtm join (tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) ) on ( mtm.tags_id = t.tags_id) ) on (m.media_id = mtm.media_id) where (m.name like $q or m.url like $q or lower(ts.name||':'||t.tag) like $q) order by m.name",
+"select distinct m.media_id as media_id, m.name as name, m.url as url from media m left join ( media_tags_map mtm join (tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) ) on ( mtm.tags_id = t.tags_id) ) on (m.media_id = mtm.media_id) where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q) order by m.name",
         $page, $rows_per_page
     );
 }
