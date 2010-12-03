@@ -156,7 +156,7 @@ sub limit_string_length
 
     if ( length( $_[ 0 ] ) > $_[ 1 ] )
     {
-        substr( $_[ 0 ], $_[ 1 ] ) = '';
+        ( $_[ 0 ], $_[ 1 ] ) = '';
     }
 }
 
@@ -181,25 +181,25 @@ sub count_duplicate_sentences
     # for perfect data, we should do an update here, but that causes locking problems
     # so instead we delete and then insert with a sentence_count + 1, which will sometimes
     # undercount, but we don't need a perfect count anyway
+    my $sentence_count = 1;
     if ( $dup_sentence )
     {
         $db->query( "delete from story_sentence_counts where story_sentence_counts_id = ?",
             $dup_sentence->{ story_sentence_counts_id }
         );
+        $sentence_count = $dup_sentence->{ sentence_count } + 1;
     }
-    else
-    {
-        $db->query(
-            "insert into story_sentence_counts( sentence_md5, media_id, publish_week, " .
-              "    first_stories_id, first_sentence_number, sentence_count ) " .
-              "  values ( md5( ? ), ?, date_trunc( 'week', ?::date ), ?, ?, ? )",
-            $sentence,
-            $story->{ media_id },
-            $story->{ publish_date },
-            $story->{ stories_id },
-            $sentence_number,
-            $dup_sentence->{ sentence_count } + 1
-        );
+    $db->query(
+        "insert into story_sentence_counts( sentence_md5, media_id, publish_week, " .
+          "    first_stories_id, first_sentence_number, sentence_count ) " .
+          "  values ( md5( ? ), ?, date_trunc( 'week', ?::date ), ?, ?, ? )",
+        $sentence,
+        $story->{ media_id },
+        $story->{ publish_date },
+        $story->{ stories_id },
+        $sentence_number,
+        $sentence_count
+    );
         return 0;
     }
 }
