@@ -178,25 +178,27 @@ sub count_duplicate_sentences
         $story->{ publish_date }
     )->hash;
 
+    # for perfect data, we should do an update here, but that causes locking problems
+    # so instead we delete and then insert with a sentence_count + 1, which will sometimes
+    # undercount, but we don't need a perfect count anyway
     if ( $dup_sentence )
     {
-        $db->query(
-            "update story_sentence_counts set sentence_count = sentence_count + 1 " . "  where story_sentence_counts_id = ?",
+        $db->query( "delete from story_sentence_counts where story_sentence_counts_id = ?",
             $dup_sentence->{ story_sentence_counts_id }
         );
-        return $dup_sentence->{ sentence_count };
     }
     else
     {
         $db->query(
             "insert into story_sentence_counts( sentence_md5, media_id, publish_week, " .
               "    first_stories_id, first_sentence_number, sentence_count ) " .
-              "  values ( md5( ? ), ?, date_trunc( 'week', ?::date ), ?, ?, 1 )",
+              "  values ( md5( ? ), ?, date_trunc( 'week', ?::date ), ?, ?, ? )",
             $sentence,
             $story->{ media_id },
             $story->{ publish_date },
             $story->{ stories_id },
-            $sentence_number
+            $sentence_number,
+            $dup_sentence->{ sentence_count } + 1
         );
         return 0;
     }
@@ -474,25 +476,27 @@ sub _update_daily_words
     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
     $db->query( "delete from daily_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
-    $db->query(
-        "delete from total_daily_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
+    $db->query( "delete from total_daily_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
     if ( !$dashboard_topics_id )
     {
-        $db->query( "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
-              "          select media_sets_id, term, stem, sum_stem_counts, publish_day, null from " .
-              "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
-              "                sum(stem_count_sum) over w as sum_stem_counts  from " .
-              "                    ( select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
-              "                      min(publish_day) as publish_day, null " .
-              "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
-              "                      where ssw.publish_day = '${sql_date}'::date and " .
-              "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
-              "                      group by msmm.media_sets_id, ssw.stem, ssw.term " .
-              "                        ) as foo  " .
-              "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) " .
-              "	               )  q                                                         " .
-              "              where term_rank = 1 and sum_stem_counts > 1 " );
+        $db->query( 
+            "  insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
+            "    select media_sets_id, term, stem, sum_stem_counts, publish_day, null " . 
+            "      from " .
+            "        ( select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+            "              sum(stem_count_sum) over w as sum_stem_counts  " . 
+            "            from " .
+            "              ( select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
+            "                    min(publish_day) as publish_day, null " .
+            "                  from story_sentence_words ssw, media_sets_media_map msmm  " .
+            "                  where ssw.publish_day = '${sql_date}'::date and " .
+            "                    ssw.media_id = msmm.media_id and  $media_set_clause " .
+            "                  group by msmm.media_sets_id, ssw.stem, ssw.term " .
+            "              ) as foo  " .
+            "            WINDOW w  as (partition by media_sets_id, stem, publish_day ) " .
+            "	     )  q                                                         " .
+            "      where term_rank = 1 and sum_stem_counts > 1 " );
     }
 
     my $dashboard_topics = $db->query(
@@ -502,23 +506,28 @@ sub _update_daily_words
     for my $dashboard_topic ( @{ $dashboard_topics } )
     {
         my $query_2 =
-          "    insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
-          "          select media_sets_id, term, stem, sum_stem_counts, publish_day, dashboard_topics_id from " .
-          "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
-          "                sum(stem_count_sum) over w as sum_stem_counts  from " .
-          " ( select media_sets_id, ssw.term, ssw.stem, sum(ssw.stem_count) stem_count_sum,    " .
-          "  min(ssw.publish_day) as publish_day, ?::integer as dashboard_topics_id  from " .
-          "     story_sentence_words ssw,                                                          " .
-          "( select media_sets_id, stories_id, sentence_number from story_sentence_words sswq, media_sets_media_map msmm " .
-          " where                                                           " .
-          " sswq.media_id = msmm.media_id and sswq.stem = ? and sswq.publish_day = ? and " .
-          " $media_set_clause  group by msmm.media_sets_id, stories_id, sentence_number " .
-          " ) as ssw_sentences_for_query  " . " where ssw.stories_id=ssw_sentences_for_query.stories_id and " .
-          " ssw.sentence_number=ssw_sentences_for_query.sentence_number " . " group by media_sets_id, ssw.stem, term " .
-          "                        ) as foo  " .
-          "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) " .
-          "	               )  q                                                         " .
-          "             where term_rank = 1 and sum_stem_counts > 1 ";
+          "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
+          "  select media_sets_id, term, stem, sum_stem_counts, publish_day, dashboard_topics_id " . 
+          "    from " .
+          "      ( select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+          "          sum(stem_count_sum) over w as sum_stem_counts  " .
+          "        from " .
+          "          ( select media_sets_id, ssw.term, ssw.stem, sum(ssw.stem_count) stem_count_sum,    " .
+          "                min(ssw.publish_day) as publish_day, ?::integer as dashboard_topics_id  " . 
+          "              from story_sentence_words ssw, " .
+          "                ( select media_sets_id, stories_id, sentence_number " . 
+          "                    from story_sentence_words sswq, media_sets_media_map msmm " .
+          "                    where sswq.media_id = msmm.media_id and sswq.stem = ? and sswq.publish_day = ? and " .
+          "                      $media_set_clause  " . 
+          "                    group by msmm.media_sets_id, stories_id, sentence_number " .
+          "                ) as ssw_sentences_for_query  " . 
+          "              where ssw.stories_id=ssw_sentences_for_query.stories_id and " .
+          "                ssw.sentence_number=ssw_sentences_for_query.sentence_number " . 
+          "              group by media_sets_id, ssw.stem, term " .
+          "            ) as foo  " .
+          "        WINDOW w as (partition by media_sets_id, stem, publish_day ) " .
+          "	     )  q                                                         " .
+          "    where term_rank = 1 and sum_stem_counts > 1 ";
 
         # doing these one by one is the only way I could get the postgres planner to create
         # a sane plan
