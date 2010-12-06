@@ -135,6 +135,7 @@ function onMapCreated()
 //map.setSetting('ocean_color', '#ff0000');
  map.setSetting('world_lat_height', -170.102258);
  map.setSetting('world_lon_width', 360);
+ map.setWayDefault('color', 16053492);
  //map.setSetting('gradient_with_alpha', ["#ffd2d2f7","#ff908cf7","#ff1100ff"]);
  map.setColorGradient(["#ffd2d2f7","#ff908cf7","#ff1100ff"]);
    //"title_background_color":"#ffffff","title_background_alpha":1,"time_range_start":"2010-05-31","time_range_end":"2010-11-16","force_outlines":false,"show_map_tiles":false,"map_server_root":"http:\/\/a.tile.openstreetmap.org\/","inlay_border_color":"#000000","ocean_color":"#ffffff","information_alpha":1,"show_zoom":true,"allow_pan":true,"point_drawing_shape":"blob","circle_line_color":0,"circle_line_alpha":1,"circle_line_thickness":1,"is_point_blob_radius_in_pixels":false},"way":{"line_thickness":0,"line_color":0,"line_alpha":0,"color":15790320}
@@ -238,7 +239,8 @@ function onError(err)
 <div id="coveragemap_status_message"><b>Loading data please wait</b></div> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
 
 <div style="display: none;" id="coverage_key">Coverage <span style="background-color: rgb(210, 210, 247); color: rgb(255, 255, 255);">&nbsp;Least&nbsp;</span>&nbsp;&nbsp;<span style="background-color: rgb(144, 140, 247); color: rgb(255, 255, 255);"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </span>&nbsp; <span style="background-color: rgb(17, 0, 255); color: rgb(255, 255, 255);">&nbsp;&nbsp;Most&nbsp;&nbsp;</span>
-&nbsp;&nbsp;|&nbsp;&nbsp;<span style="background-color: #30302f; color: rgb(255,255,255);">&nbsp;&nbsp;None&nbsp;&nbsp;</span>
+[% # F4F4F4 = 16053492 %] 
+&nbsp;&nbsp;|&nbsp;&nbsp;<span style="background-color: #F4F4F4; color: rgb(0,0,0); border-style: solid; border-color: black">&nbsp;&nbsp;None&nbsp;&nbsp;</span>
 </div>
 [% END %] 
             <br/>
