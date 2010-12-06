@@ -8,6 +8,7 @@ use MediaWords::Util::HTML;
 use MediaWords::Tagger;
 use MediaWords::Util::Config;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
+use MediaWords::DBI::Downloads;
 use List::Compare;
 
 my $_tags_id_cache = {};
@@ -253,10 +254,10 @@ sub update_rss_full_text_field
     }
 
     #This is a temporary hack to work around a bug in XML::FeedPP
-    # Item description() will sometimes return a hash instead of text. In Handler.pm we replaced the hash ref with '' 
-    if ( length ($story->{description} ) == 0 )
+    # Item description() will sometimes return a hash instead of text. In Handler.pm we replaced the hash ref with ''
+    if ( length( $story->{ description } ) == 0 )
     {
-       $full_text_in_rss = 0;
+        $full_text_in_rss = 0;
     }
 
     if ( defined( $story->{ full_text_rss } ) && ( $story->{ full_text_rss } != $full_text_in_rss ) )
@@ -311,6 +312,28 @@ sub get_extracted_text
     )->hashes;
 
     return join( ". ", map { $_->{ download_text } } @{ $download_texts } );
+}
+
+sub get_first_download_for_story
+{
+    my ( $db, $story ) = @_;
+
+    my $download =
+      $db->query( "select * from downloads where stories_id = ? order by downloads_id asc limit 1", $story->{ stories_id } )
+      ->hash;
+
+    return $download;
+}
+
+sub get_initial_download_content
+{
+    my ( $db, $story ) = @_;
+
+    my $download = get_first_download_for_story( $db, $story );
+
+    my $content = MediaWords::DBI::Downloads::fetch_content( $download );
+
+    return $content;
 }
 
 1;
