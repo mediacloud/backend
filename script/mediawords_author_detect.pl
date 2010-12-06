@@ -26,6 +26,45 @@ use Perl6::Say;
 use HTML::TreeBuilder;
 use HTML::TreeBuilder::XPath;
 
+sub _get_author_from_content
+{
+    ( my $content ) = @_;
+
+    if ( ref $content )
+    {
+        $content = $$content;
+    }
+
+    #say "dl content:${$content}";
+
+    my $tree = HTML::TreeBuilder::XPath->new;    # empty tree
+    $tree->parse_content( $content );
+
+    my @nodes = $tree->findnodes( '//meta[@name="byl"]' );
+
+    my $node = pop @nodes;
+
+    if ( $node )
+    {
+        my $content_attr = $node->attr( 'content' );
+        return $content_attr;
+    }
+    else
+    {
+
+        @nodes = $tree->findnodes( '//address[@class="byline author vcard"]' );
+
+        $node = pop @nodes;
+
+        if ( !$node )
+        {
+            return;
+        }
+
+        return $node->as_text;
+    }
+}
+
 sub main
 {
 
@@ -45,42 +84,17 @@ sub main
 
     my $content = MediaWords::DBI::Stories::get_initial_download_content( $db, $story );
 
-    #say "dl content:${$content}";
+    my $author = _get_author_from_content( $content );
 
-    my $tree = HTML::TreeBuilder::XPath->new;    # empty tree
-    $tree->parse_content( $$content );
-
-    my @nodes = $tree->findnodes( '//meta[@name="byl"]' );
-
-    my $node = pop @nodes;
-
-    if ( !$node )
+    if ( !$author )
     {
-
-        @nodes = $tree->findnodes( '//address[@class="byline author vcard"]' );
-
-        $node = pop @nodes;
-
-        if ( !$node )
-        {
-            say "couldn't find byline for $story_id";
-            exit;
-        }
-
-        say $node->as_text;
+        say "couldn't find byline for $story_id";
         exit;
-
     }
-
-    #say $node;
-
-    #say Dumper([$node]);
-
-    #say $node->dump;
-
-    my $content_attr = $node->attr( 'content' );
-
-    say $content_attr;
+    else
+    {
+        say "$author";
+    }
 }
 
 main();
