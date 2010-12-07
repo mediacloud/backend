@@ -17,6 +17,7 @@ use XML::LibXML;
 use Getopt::Long;
 use Readonly;
 use Carp;
+use MediaWords::DBI::Authors;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use Data::Dumper;
@@ -84,7 +85,7 @@ sub main
 
     my $content = MediaWords::DBI::Stories::get_initial_download_content( $db, $story );
 
-    my $author = _get_author_from_content( $content );
+    my $author =  MediaWords::DBI::Authors::get_author_from_content( $content );
 
     if ( !$author )
     {
