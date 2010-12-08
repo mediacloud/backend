@@ -18,13 +18,13 @@ use MediaWords::DBI::Downloads;
 
 sub _find_first_node
 {
-   ( my $tree, my $xpath ) = @_;
+    ( my $tree, my $xpath ) = @_;
 
-   my @nodes = $tree->findnodes( $xpath );
+    my @nodes = $tree->findnodes( $xpath );
 
-   my $node = pop @nodes;
+    my $node = pop @nodes;
 
-   return $node;
+    return $node;
 }
 
 sub get_author_from_content
@@ -41,25 +41,25 @@ sub get_author_from_content
     my $tree = HTML::TreeBuilder::XPath->new;    # empty tree
     $tree->parse_content( $content );
 
-    my $node = _find_first_node($tree,  '//meta[@name="byl"]');
+    my $node = _find_first_node( $tree, '//meta[@name="byl"]' );
 
     if ( $node )
     {
         my $content_attr = $node->attr( 'content' );
         return $content_attr;
     }
-    else if( $node = _find_first_node($tree,  '//meta[@name="CLMST"]') )
+    elsif ( $node = _find_first_node( $tree, '//meta[@name="CLMST"]' ) )
     {
-       my  $content_attr = $node->attr( 'content' );
-       return $content_attr;
+        my $content_attr = $node->attr( 'content' );
+        return $content_attr;
     }
-    else if ( $node = _find_first_node($tree, '//address[@class="byline author vcard"]' ) )
+    elsif ( $node = _find_first_node( $tree, '//address[@class="byline author vcard"]' ) )
     {
         return $node->as_text;
     }
     else
     {
-       say STDERR "author not found";
+        say STDERR "author not found";
     }
 }
 
