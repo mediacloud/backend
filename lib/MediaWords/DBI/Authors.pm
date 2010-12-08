@@ -16,6 +16,17 @@ use HTML::TreeBuilder::XPath;
 
 use MediaWords::DBI::Downloads;
 
+sub _find_first_node
+{
+   ( my $tree, my $xpath ) = @_;
+
+   my @nodes = $tree->findnodes( $xpath );
+
+   my $node = pop @nodes;
+
+   return $node;
+}
+
 sub get_author_from_content
 {
     ( my $content ) = @_;
@@ -30,9 +41,7 @@ sub get_author_from_content
     my $tree = HTML::TreeBuilder::XPath->new;    # empty tree
     $tree->parse_content( $content );
 
-    my @nodes = $tree->findnodes( '//meta[@name="byl"]' );
-
-    my $node = pop @nodes;
+    my $node = _find_first_node($tree,  '//meta[@name="byl"]');
 
     if ( $node )
     {
@@ -41,10 +50,7 @@ sub get_author_from_content
     }
     else
     {
-
-        @nodes = $tree->findnodes( '//address[@class="byline author vcard"]' );
-
-        $node = pop @nodes;
+	$node = _find_first_node($tree, '//address[@class="byline author vcard"]' );
 
         if ( !$node )
         {
