@@ -90,6 +90,7 @@ sub main
     if ( !$author )
     {
         say "couldn't find byline for $story_id";
+	say "story content:\n" . Dumper($content);
         exit;
     }
     else
