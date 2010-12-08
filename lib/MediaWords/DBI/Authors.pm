@@ -48,16 +48,18 @@ sub get_author_from_content
         my $content_attr = $node->attr( 'content' );
         return $content_attr;
     }
+    else if( $node = _find_first_node($tree,  '//meta[@name="CLMST"]') )
+    {
+       my  $content_attr = $node->attr( 'content' );
+       return $content_attr;
+    }
+    else if ( $node = _find_first_node($tree, '//address[@class="byline author vcard"]' ) )
+    {
+        return $node->as_text;
+    }
     else
     {
-	$node = _find_first_node($tree, '//address[@class="byline author vcard"]' );
-
-        if ( !$node )
-        {
-            return;
-        }
-
-        return $node->as_text;
+       say STDERR "author not found";
     }
 }
 
