@@ -623,3 +623,24 @@ CREATE TABLE daily_country_counts (
 
 CREATE INDEX daily_country_counts_day_media_dashboard ON daily_country_counts USING btree (publish_day, media_sets_id, dashboard_topics_id);
 
+CREATE TABLE authors (
+    authors_id serial          PRIMARY KEY,
+    author_name character varying UNIQUE NOT NULL
+);
+
+CREATE TABLE authors_stories_map (
+    authors_stories_map_id  serial            primary key,
+    authors_id int                not null references authors on delete cascade,
+    stories_id int                not null references stories on delete cascade
+);
+
+CREATE INDEX authors_stories_map_authors_id on authors_stories_map(authors_id);
+CREATE INDEX authors_stories_map_stories_id on authors_stories_map(stories_id);
+
+CREATE TYPE authors_stories_queue_type AS ENUM ('queued', 'pending', 'success', 'failed');
+
+CREATE TABLE authors_stories_queue (
+    authors_stories_queue_id  serial            primary key,
+    stories_id int                not null references stories on delete cascade,
+    state      authors_stories_queue_type not null
+);
