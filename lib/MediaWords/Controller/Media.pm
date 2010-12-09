@@ -469,7 +469,7 @@ sub moderate : Local
     $prev_media_id ||= 0;
     if ( $prev_media_id && $c->request->param( 'approve' ) )
     {
-        $c->dbis->query( "update media set moderated = 't' where media_id = ?", $prev_media_id );
+        $c->dbis->query( "update media set moderated = 't', feeds_added = 't' where media_id = ?", $prev_media_id );
     }
 
     my $media;
