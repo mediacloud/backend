@@ -73,9 +73,7 @@ sub strip
     )               # end if (3)
     >               # tag closed
    }{ }gsxi;          # STRIP THIS TAG
-
-    ##TODO only replace the strip tags with a space if they aren't surrounded by white space already
-    ##E.g. 'foo<bar/>baz' should strip to 'foo baz' but foo <bar/> baz shouldn't strip to 'foo  baz' e.g. there shouldn't be an additional space.
+   
    return $_ ? HTML::Entities::decode_entities($_) : "";
 }
 
