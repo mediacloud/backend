@@ -57,8 +57,6 @@ Graph
 
 Graph::Layout::Aesthetic
 
-GraphViz
-
 Text::Similarity::Overlaps
 
 Tie::Cache::LRU
