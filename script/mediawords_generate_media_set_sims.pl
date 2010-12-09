@@ -18,6 +18,34 @@ use List::Util;
 use MediaWords::DB;
 use PDL;
 
+# given a list of either media set ids or patterns, return all matching
+# media sets
+sub get_media_sets_from_ids 
+{
+    my ( $db, $media_set_ids ) = @_;
+    
+    my $media_sets = [];
+    
+    for my $media_set_id ( @{ $media_set_ids } ) 
+    {
+        if ( $media_set_id =~ /^[0-9]+$/ )
+        {
+            my $media_set = $db->find_by_id( "media_sets", $media_set_id ) || die ( "invalid media set $media_set_id" );
+            push( @{ $media_sets }, $media_set );
+        }
+        else {
+            my $pattern_media_sets = $db->query( "select * from media_sets where name like '$media_set_id'" )->hashes;
+            if ( !@{ $pattern_media_sets} )
+            {
+                die( "Unable to find media set matching: '$media_set_id'" );
+            }
+            
+            push( @{ $media_sets }, @{ $pattern_media_sets } );
+        }
+    }
+}
+
+
 # get word vectors for the top 500 words for each media set
 sub get_media_set_vectors
 {
@@ -26,11 +54,12 @@ sub get_media_set_vectors
     my $word_hash;
     my $media_set_vectors;
     
-    for my $media_set_id ( @{ $media_set_ids } )
+    my $media_sets = get_media_sets_from_ids( $db, $media_set_ids );
+    
+    for my $media_set ( @{ $media_sets } )
     {
-        my $media_set = $db->find_by_id( "media_sets", $media_set_id ) || die ( "invalid media set $media_set_id" );
         print STDERR "querying vectors for $media_set->{ name }\n";
-
+        
         my $dashboard_topic_clause;
         if ( $dashboard_topics_id eq 'null' ) 
         {
@@ -47,7 +76,7 @@ sub get_media_set_vectors
             "  where ms.media_sets_id = w.media_sets_id and ms.media_sets_id = ? and " .
             "    w.publish_week = date_trunc( 'week', ?::date ) and " .
             "    w.media_sets_id = tw.media_sets_id and $dashboard_topic_clause",
-            $media_set_id, $date )->hashes;
+            $media_set->{ media_sets_id }, $date )->hashes;
         
         $media_set->{ vector } = [ 0 ];
         
