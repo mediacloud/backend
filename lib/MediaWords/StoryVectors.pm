@@ -163,7 +163,8 @@ sub limit_string_length
 # return the number of sentences of this sentence within the same media source and calendar week.
 # also adds the sentence to the story_sentence_counts table and/or increments the count in that table
 # for the sentence.  
-# NOTE: you must wrap a 'lock story_sentence_counts in exclusive mode' around all calls to this within the
+#
+# NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
 # same transaction to avoid deadlocks
 sub count_duplicate_sentences
 {
@@ -210,7 +211,7 @@ sub dedup_sentences
 
     if ( !$db->dbh->{ AutoCommit } )
     {    
-        $db->query( "lock story_sentence_counts in exclusive mode" );
+        $db->query( "lock story_sentence_counts in row exclusive mode" );
     }
 
     my $deduped_sentences = [];
