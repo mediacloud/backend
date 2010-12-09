@@ -16,6 +16,46 @@ BEGIN
 use MediaWords::DB;
 use MediaWords::StoryVectors;
 
+# get the min start_date and max end_date for the dashboards associated with the given
+# media set
+sub get_media_set_date_range
+{
+    my ( $db, $media_set ) = @_;
+    
+    my ( $start_date, $end_date );
+    if ( $media_set->{ set_type } eq 'collection' )
+    {
+        ( $start_date, $end_date ) = $db->query( 
+            "select min(d.start_date), max(d.end_date) from dashboard_media_sets dms, dashboards d " . 
+            "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = ?", 
+            $media_set->{ media_sets_id } )->flat;
+    } 
+    elsif ( $media_set->{ set_type } eq 'medium' ) {
+        ( $start_date, $end_date ) = $db->query(
+            "select min(d.start_date), max(d.end_date) " . 
+            "  from dashboard_media_sets dms, dashboards d, media_sets_media_map msmm, media_sets ms " . 
+            "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = msmm.media_sets_id and " .
+            "  msmm.media_id = ms.media_id and ms.media_sets_id = ?", 
+            $media_set->{ media_sets_id } )->flat;
+    }
+    elsif ( $media_set->{ set_type } eq 'cluster' ) {
+        ( $start_date, $end_date ) = $db->query(
+            "select min(d.start_date), max(d.end_date) " . 
+            "  from dashboard_media_sets dms, dashboards d, media_clusters mc, media_sets ms " .
+            "  where ms.media_sets_id = ? and ms.media_clusters_id = mc.media_clusters_id and " .
+            "    mc.media_cluster_runs_id = dms.media_cluster_runs_id and " . 
+            "    dms.dashboards_id = d.dashboards_id",
+            $media_set->{ media_sets_id } )->flat;        
+    }
+    else {
+        die( "unknown set_type '$media_set->{ set_type }'" );
+    }
+    
+    ( $start_date, $end_date ) = map { substr( $_, 0, 10 ) } ( $start_date, $end_date );
+    
+    return ( $start_date, $end_date );
+}
+
 # start a daemon that checks periodically for new vectors to update by finding one of:
 # * a media_set with vectors_added == false
 # * a dashboard with vectors_added == false
@@ -28,19 +68,22 @@ sub run_daemon
     {
         my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '36 hours' )" )->flat;
         my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )" )->flat;
+        ( $yesterday, $one_month_ago ) = map { substr( $_, 0, 10 ) } ( $yesterday, $one_month_ago );
+
         MediaWords::StoryVectors::update_aggregate_words( $db, $one_month_ago, $yesterday );
 
         # this is almost as slow as just revectoring everthing, so I'm commenting out for now
         my $media_sets = $db->query( "select ms.* from media_sets ms where ms.vectors_added = false" )->hashes;
         for my $media_set ( @{ $media_sets } )
         {
-            my ( $start_date, $end_date ) = $db->query( 
-                "select min(d.start_date), max(d.end_date) from dashboard_media_sets dms, dashboards d " . 
-                "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = ?", 
-                $media_set->{ media_sets_id } )->flat;
-            print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
-            MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 0, undef, $media_set->{ media_sets_id } );
-            $db->query( "update media_sets set vectors_added = true where media_sets_id = ?", $media_set->{ media_sets_id } );
+            my ( $start_date, $end_date ) = get_media_set_date_range( $media_set );
+            if ( $start_date && $end_date )
+            {
+                print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
+                MediaWords::StoryVectors::update_aggregate_words( 
+                    $db, $start_date, $end_date, 0, undef, $media_set->{ media_sets_id } ); 
+                $db->query( "update media_sets set vectors_added = true where media_sets_id = ?", $media_set->{ media_sets_id } );
+            }
         }
 
         my $dashboard_topics = $db->query( "select * from dashboard_topics where vectors_added = false" )->hashes;
