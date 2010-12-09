@@ -506,8 +506,8 @@ create table story_sentence_words (
        stories_id                   int             not null, /* references stories on delete cascade, */
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
-       stem_count                   int             not null,
-       sentence_number              int             not null,
+       stem_count                   smallint        not null,
+       sentence_number              smallint        not null,
        media_id                     int             not null, /* references media on delete cascade, */
        publish_day                  date            not null
 );
