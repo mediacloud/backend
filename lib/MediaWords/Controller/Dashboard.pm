@@ -70,7 +70,7 @@ sub _get_dashboard_dates
     while ( ( $date le $end_date ) && ( $date le $now ) )
     {
         push( @{ $dates }, $date );
-        $date = Date::Format::time2str( '%Y-%m-%d', Date::Parse::str2time( $date ) + ( 86400 * 7 ) + 100 );
+        $date = Date::Format::time2str( '%Y-%m-%d', Date::Parse::str2time( $date ) + ( 86400 * 7 ) + 43200 );
     }
 
     return $dates;
@@ -2008,7 +2008,6 @@ sub report_bug : Local
     }
 
     my $config = MediaWords::Util::Config::get_config;
-    print STDERR Dumper( $config );
     my $smtp_server = $config->{ mail }->{ smtp_server } || die( 'no mail:smtp_server in mediawords.yml' );
     my $bug_email   = $config->{ mail }->{ bug_email }   || die( 'no mail:bug_email in mediawords.yml' );
 
