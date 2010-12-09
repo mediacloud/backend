@@ -11,6 +11,7 @@ use IO::Uncompress::Gunzip;
 use IO::Compress::Gzip;
 use LWP::UserAgent;
 
+use Archive::Tar::Indexed;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
@@ -19,7 +20,7 @@ use Perl6::Say;
 use Data::Dumper;
 
 # return a ref to the content associated with the given download, or under if there is none
-sub fetch_content_local
+sub fetch_content_local_file
 {
     my ( $download ) = @_;
 
@@ -29,7 +30,7 @@ sub fetch_content_local
         return undef;
     }
 
-    #note redefine delimitor from '/' to '~'
+    # note redefine delimitor from '/' to '~'
     $path =~ s~^.*/(content/.*.gz)$~$1~;
 
     my $config = MediaWords::Util::Config::get_config;
@@ -72,6 +73,48 @@ sub fetch_content_local
     }
 
     return \$content;
+}
+
+# return a ref to the content associated with the given download, or under if there is none
+sub fetch_content_local
+{
+    my ( $download ) = @_;
+
+    my $path = $download->{ path };
+    if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
+    {
+        return undef;
+    }
+
+    if ( $download->{ path } !~ /^tar:/ )
+    {
+        return fetch_content_local_file( $download );
+    }
+
+    if ( !( $download->{ path } =~ /tar:(\d+):(\d+):([^:]*):(.*)/ ) )
+    {
+        warn( "Unable to parse download path: $download->{ path }" );
+        return undef;
+    }
+    
+    my ( $starting_block, $num_blocks, $tar_file, $download_file ) = ( $1, $2, $3, $4 );
+    
+    my $config = MediaWords::Util::Config::get_config;
+    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
+    my $tar_path = "$data_dir/content/$tar_file";
+
+    my $content_ref = Archive::Tar::Indexed::read_file( $tar_path, $download_file, $starting_block, $num_blocks );
+
+    my $content;
+    if ( !( IO::Uncompress::Gunzip::gunzip $content_ref => \$content ) )
+    {
+        warn( "Unable to gunzip content: $IO::Uncompress::Gunzip::GunzipError" );
+        return undef;
+    }
+    
+    my $decoded_content = decode( 'utf-8', $content );
+    
+    return \$decoded_content;
 }
 
 # fetch the content from the production server via http
@@ -180,6 +223,28 @@ sub extract_download
     return extract_preprocessed_lines_for_story( $lines, $story->{ title }, $story->{ description } );
 }
 
+# if the given line looks like a tagline for another story and is missing an ending period, add a period
+# 
+sub add_period_to_tagline
+{
+    my ( $lines, $scores, $i ) = @_;
+    
+    if ( ( $i < 1 ) || ( $i >= ( @{ $lines } - 1 ) ) )
+    {
+        return;
+    }
+    
+    if ( $scores->[ $i - 1 ]->{ is_story } || $scores->[ $i + 1 ]->{ is_story } )
+    {
+        return;
+    }
+    
+    if ( $lines->[ $i ] =~ m~[^\.]\s*</[a-z]+>$~i )
+    {
+        $lines->[ $i ] .= '.';
+    }
+}
+
 sub _do_extraction_from_content_ref
 {
     my ( $content_ref, $title, $description ) = @_;
@@ -201,8 +266,9 @@ sub extract_preprocessed_lines_for_story
     for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
     {
         if ( $scores->[ $i ]->{ is_story } )
-        {
-            $extracted_html .= ' ' . $lines->[ $i ];
+        {        
+            #add_period_to_tagline( $lines, $scores, $i );
+            $extracted_html .= ' ' . $lines->[ $i ];            
         }
     }
 
@@ -227,55 +293,73 @@ sub get_parent
     return $db->query( "select * from downloads where downloads_id = ?", $download->{ parent } )->hash;
 }
 
+# get the relative path (to be used within the tarball) to store the given download
+# the path for a download is:
+# <media_id>/<year>/<month>/<day>/<hour>/<minute>[/<parent download_id>]/<download_id
+sub _get_download_path 
+{
+    my ( $db, $download ) = @_;
+
+    my $feed = $db->query( "select * from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
+
+    my @date = ( $download->{ download_time } =~ /(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/ );
+
+    my @path = ( 
+        sprintf( "%06d", $feed->{ media_id } ),
+        sprintf( "%06d", $feed->{ feeds_id } ),
+        @date
+    );
+
+    for ( my $p = get_parent( $db, $download ) ; $p ; $p = get_parent( $db, $p ) )
+    {
+        push( @path, $p->{ downloads_id } );
+    }
+    
+    push( @path, $download->{ downloads_id } . '.gz' ) ;
+
+    return join( '/', @path );
+}
+
+# get the name of the tar file for the download
+sub _get_tar_file
+{
+    my ( $db, $download ) = @_;
+    
+    my $date = $download->{ download_time };
+    $date =~ s/(\d\d\d\d)-(\d\d)-(\d\d).*/$1$2$3/;
+    return "mediacloud-content-$date.tar";
+}
+
 # store the download content in the file system
 sub store_content
 {
     my ( $db, $download, $content_ref ) = @_;
 
-    my $feed = $db->query( "select * from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
-
-    my $t = DateTime->now;
+    my $download_path = _get_download_path( $db, $download );
 
     my $config = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
 
-    my @path = (
-        'content',
-        sprintf( "%06d", $feed->{ media_id } ),
-        sprintf( "%04d", $t->year ),
-        sprintf( "%02d", $t->month ),
-        sprintf( "%02d", $t->day ),
-        sprintf( "%02d", $t->hour ),
-        sprintf( "%02d", $t->minute )
-    );
-    for ( my $p = get_parent( $db, $download ) ; $p ; $p = get_parent( $db, $p ) )
-    {
-        push( @path, $p->{ downloads_id } );
-    }
-
-    my $rel_path = join( '/', @path );
-    my $abs_path = "$data_dir/$rel_path";
-
-    mkpath( $abs_path );
-
-    my $rel_file = "$rel_path/" . $download->{ downloads_id } . ".gz";
-    my $abs_file = "$data_dir/$rel_file";
-
+    my $tar_file = _get_tar_file( $db, $download );
+    my $tar_path = "$data_dir/content/$tar_file";
+        
     my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
 
-    # print STDERR "file path '$abs_file'\n";
+    my $gzipped_content;
 
-    if ( !( IO::Compress::Gzip::gzip \$encoded_content => $abs_file ) )
+    if ( !( IO::Compress::Gzip::gzip \$encoded_content => \$gzipped_content ) )
     {
         my $error = "Unable to gzip and store content: $IO::Compress::Gzip::GzipError";
         $db->query( "update downloads set state = ?, error_message = ? where downloads_id = ?",
             'error', $error, $download->{ downloads_id } );
     }
-    else
-    {
-        $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
-            'success', $rel_file, $download->{ downloads_id } );
-    }
+
+    my ( $starting_block, $num_blocks ) = Archive::Tar::Indexed::append_file( $tar_path, \$gzipped_content, $download_path );
+    
+    my $tar_id = "tar:$starting_block:$num_blocks:$tar_file:$download_path";
+
+    $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
+        'success', $tar_id, $download->{ downloads_id } );
 }
 
 # convenience method to get the media_id for the download
