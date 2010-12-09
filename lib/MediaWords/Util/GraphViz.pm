@@ -2,7 +2,7 @@ package MediaWords::Util::GraphViz;
 
 use strict;
 use Data::Dumper;
-use GraphViz;
+#use GraphViz;
 use File::Util;
 
 sub _get_json_from_graph

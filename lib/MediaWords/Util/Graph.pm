@@ -35,7 +35,9 @@ use Data::Dumper;
 use MediaWords::Util::HTML;
 use MediaWords::Util::GraphLayoutAesthetic;
 use MediaWords::Util::Protovis;
-use MediaWords::Util::GraphViz;
+
+#use MediaWords::Util::GraphViz;
+
 use Readonly;
 
 use constant MIN_LINK_WEIGHT => 0.2;
