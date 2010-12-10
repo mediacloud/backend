@@ -162,7 +162,7 @@ sub limit_string_length
 
 # return the number of sentences of this sentence within the same media source and calendar week.
 # also adds the sentence to the story_sentence_counts table and/or increments the count in that table
-# for the sentence.  
+# for the sentence.
 #
 # NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
 # same transaction to avoid deadlocks
@@ -210,7 +210,7 @@ sub dedup_sentences
     my ( $db, $story, $sentences ) = @_;
 
     if ( !$db->dbh->{ AutoCommit } )
-    {    
+    {
         $db->query( "lock story_sentence_counts in row exclusive mode" );
     }
 
@@ -231,7 +231,7 @@ sub dedup_sentences
     }
 
     $db->commit;
-    
+
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {
 
@@ -470,6 +470,41 @@ sub _update_top_500_weekly_words
           "    group by media_sets_id, publish_week, dashboard_topics_id" );
 }
 
+# update the top_500_weekly_author_words table with the 500 most common stop worded stems for each media_sets_id each week
+sub _update_top_500_weekly_author_words
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: top_500_weekly_author_words $sql_date";
+
+    my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    $db->query(
+"delete from top_500_weekly_author_words where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
+    );
+    $db->query(
+"delete from total_top_500_weekly_author_words where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
+    );
+
+    # Note in postgresql [:alpha:] doesn't include international characters.
+    # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
+    $db->query(
+        "insert into top_500_weekly_author_words (media_sets_id, term, stem, stem_count, publish_week, authors_id) " .
+          "  select media_sets_id, regexp_replace( term, E'''s?\\\\Z', '' ), " .
+          "      stem, stem_count, publish_week, authors_id " . "    from ( " .
+          "      select media_sets_id, term, stem, stem_count, publish_week, authors_id, " .
+          "          rank() over ( partition by media_sets_id, authors_id order by stem_count desc ) as stem_rank  " .
+          "      from weekly_author_words " .
+          "      where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
+          "        and not is_stop_stem( 'long', stem ) and stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]' ) q " .
+          "    where stem_rank < 500 " . "    order by stem_rank asc " );
+
+    $db->query( "insert into total_top_500_weekly_author_words (media_sets_id, publish_week, total_count, authors_id) " .
+          "  select media_sets_id, publish_week, sum( stem_count ), authors_id from top_500_weekly_author_words " .
+          "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
+          "    group by media_sets_id, publish_week, authors_id" );
+}
+
 # update the given table for the given date and interval
 sub _update_daily_words
 {
@@ -552,10 +587,11 @@ sub _update_daily_author_words
     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
-    $db->query( "delete from daily_author_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
+    $db->query(
+        "delete from daily_author_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
     my $query = <<"END_SQL";
-INSERT INTO daily_author_words( authors_id     , media_sets_id  , term, stem, sum_stem_counts, publish_day)
+INSERT INTO daily_author_words( authors_id     , media_sets_id  , term, stem, stem_count, publish_day)
 SELECT authors_id     , media_sets_id  , term, stem, sum_stem_counts, publish_day
 FROM   (SELECT  *                                                                   ,
                 rank() over (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
@@ -573,7 +609,7 @@ WHERE  term_rank       = 1
 AND    sum_stem_counts > 1
 END_SQL
 
-   $db->query($query);
+    $db->query( $query );
 
     say STDERR "Completed query $query";
     return 1;
@@ -587,12 +623,13 @@ sub _update_daily_country_counts
     say STDERR "aggregate: _update_daily_country_counts $sql_date";
 
     #it should be very rare for there to be no data on a given date that's being aggregated
-     my ( $daily_words_exist ) = $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
-     if ( !$daily_words_exist )
-     {
-         say STDERR "skipping country counts for date '$sql_date' for which there is no content";
-         return 1;
-     }
+    my ( $daily_words_exist ) =
+      $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
+    if ( !$daily_words_exist )
+    {
+        say STDERR "skipping country counts for date '$sql_date' for which there is no content";
+        return 1;
+    }
 
     my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
@@ -604,13 +641,13 @@ sub _update_daily_country_counts
     $db->query(
         "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
-    # it should be very rare for there to be no data on a given date that's being aggregated
-    # my ( $daily_words_exist ) = $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
-    # if ( !$daily_words_exist )
-    # {
-    #     say STDERR "skipping country counts for date '$sql_date' for which there is no content";
-    #     return 1;
-    # }
+# it should be very rare for there to be no data on a given date that's being aggregated
+# my ( $daily_words_exist ) = $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
+# if ( !$daily_words_exist )
+# {
+#     say STDERR "skipping country counts for date '$sql_date' for which there is no content";
+#     return 1;
+# }
 
     #my @all_countries = map { lc } Locale::Country::all_country_names;
     my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
@@ -761,12 +798,48 @@ sub _update_weekly_words
     return 1;
 }
 
+# update the given table for the given date and interval
+sub _update_weekly_author_words
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: weekly_author_words $sql_date";
+
+    #TODO get rid of dashboards_id from this query
+    my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    $db->query(
+        "delete from weekly_author_words where publish_week = date_trunc( 'week', '${ sql_date }'::date ) $update_clauses "
+    );
+
+    my $query =
+      "insert into weekly_author_words (authors_id, media_sets_id, term, stem, stem_count, publish_week) " .
+      "  select authors_id, media_sets_id, term, stem, sum_stem_counts, publish_week from      " .
+      "   (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+      "     sum(stem_count_sum) over w as sum_stem_counts  from " .
+      "(  select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
+      "date_trunc('week', min(publish_day)) as publish_week, authors_id from daily_author_words " .
+      "    where publish_day between date_trunc('week', '${sql_date}'::date) " .
+      "        and date_trunc( 'week', '${sql_date}'::date )  + interval '6 days' $update_clauses " .
+      "    group by media_sets_id, stem, term, authors_id ) as foo" .
+      " WINDOW w  as (partition by media_sets_id, stem, publish_week, authors_id  ) " .
+      "	               )  q                                                         " .
+      "              where term_rank = 1 and sum_stem_counts > 1 ";
+
+    say STDERR "running  weekly_author_words query:$query";
+
+    $db->query( $query );
+
+    return 1;
+}
+
 # return true if the date exists in the daily_words table
 sub _aggregate_data_exists_for_date
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
     my $update_clauses;
+
     # specifically look for null dashboard_topics_id so that the aggregator doesn't
     # skip a daily run because a new topic has been added with data for just that topic
     # for the day
@@ -778,7 +851,8 @@ sub _aggregate_data_exists_for_date
             $update_clauses .= " and media_sets_id = $media_sets_id";
         }
     }
-    else {
+    else
+    {
         $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
     }
 
@@ -807,7 +881,7 @@ sub update_aggregate_words
     $start_date ||= '2008-06-01';
     $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
 
-    my $days = 0;
+    my $days          = 0;
     my $update_weekly = 0;
 
     for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
@@ -821,16 +895,19 @@ sub update_aggregate_words
             $update_weekly = 1;
         }
 
-        # update weeklies either if there was a daily update for the week and if we are at the end of the date range 
+        #_update_daily_author_words($db, $date, $dashboard_topics_id, $media_sets_id);
+
+        # update weeklies either if there was a daily update for the week and if we are at the end of the date range
         # or the end of a week
         if ( $update_weekly && ( ( $date eq $end_date ) || !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ] ) )
         {
             _update_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+
+            #_update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            #_update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             $update_weekly = 0;
         }
-
-	#_update_daily_author_words($db, $date, $dashboard_topics_id, $media_sets_id);
 
         $db->commit();
 

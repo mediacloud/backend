@@ -651,10 +651,46 @@ CREATE TABLE daily_author_words (
     media_sets_id integer not null references media_sets,
     term character varying(256) not null,
     stem character varying(256) not null,
-    sum_stem_counts int not null,
+    stem_count int not null,
     publish_day date not null
 );
 
 create index daily_author_words_media on daily_author_words(publish_day, authors_id, media_sets_id, stem);
-create index daily_author_words_count on daily_author_words(publish_day, authors_id, media_sets_id, sum_stem_counts);
+create index daily_author_words_count on daily_author_words(publish_day, authors_id, media_sets_id, stem_count);
 
+create table weekly_author_words (
+       weekly_author_words_id       serial          primary key,
+       media_sets_id                int             not null references media_sets,
+       authors_id                   int             not null references authors ,
+       term                         varchar(256)    not null,
+       stem                         varchar(256)    not null,
+       stem_count                   int             not null,
+       publish_week                 date            not null
+);
+
+create index weekly_author_words_media on weekly_author_words(publish_week, authors_id, media_sets_id, stem);
+create index weekly_author_words_count on weekly_author_words(publish_week, authors_id, media_sets_id, stem_count);
+
+create table top_500_weekly_author_words (
+       top_500_weekly_words_id      serial          primary key,
+       media_sets_id                int             not null, /* references media_sets on delete cascade, */
+       authors_id                   int             null, /* references dashboard_topics */
+       term                         varchar(256)    not null,
+       stem                         varchar(256)    not null,
+       stem_count                   int             not null,
+       publish_week                 timestamp       not null
+);
+
+create index top_500_weekly_author_words_media on top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
+    
+create table total_top_500_weekly_author_words (
+       total_top_500_words_id       serial          primary key,
+       media_sets_id                int             not null, /* references media_sets on delete cascade, */
+       authors_id                   int             null, /* references dashboard_topics */
+       publish_week                 timestamp       not null,
+       total_count                  int             not null
+       
+);
+
+create index total_top_500_weekly_author_words_media 
+    on total_top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
