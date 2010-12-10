@@ -542,11 +542,57 @@ sub _update_daily_words
 }
 
 # update the given table for the given date and interval
+sub _update_daily_author_words
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: update_daily_author_words $sql_date";
+
+    my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
+    my $media_set_clause       = _get_media_set_clause( $media_sets_id );
+    my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    $db->query( "delete from daily_author_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
+
+    my $query = <<"END_SQL";
+INSERT INTO daily_author_words( authors_id     , media_sets_id  , term, stem, sum_stem_counts, publish_day)
+SELECT authors_id     , media_sets_id  , term, stem, sum_stem_counts, publish_day
+FROM   (SELECT  *                                                                   ,
+                rank() over (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
+                SUM(stem_count_sum) over w                              AS sum_stem_counts
+       FROM     ( SELECT  authors_id, media_sets_id, term, stem, SUM(stem_count)  AS stem_count_sum,
+                         MIN(publish_day) AS publish_day, NULL
+                FROM     story_sentence_words ssw, media_sets_media_map msmm, authors_stories_map
+                WHERE    ssw.publish_day = '${sql_date}'::DATE AND  ssw.stories_id  =authors_stories_map.stories_id
+                AND      ssw.media_id    = msmm.media_id
+                GROUP BY msmm.media_sets_id, ssw.stem, ssw.term, authors_id
+                ) AS foo WINDOW w AS (partition BY media_sets_id, stem, publish_day )
+       )
+       query
+WHERE  term_rank       = 1
+AND    sum_stem_counts > 1
+END_SQL
+
+   $db->query($query);
+
+    say STDERR "Completed query $query";
+    return 1;
+}
+
+# update the given table for the given date and interval
 sub _update_daily_country_counts
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
     say STDERR "aggregate: _update_daily_country_counts $sql_date";
+
+    #it should be very rare for there to be no data on a given date that's being aggregated
+     my ( $daily_words_exist ) = $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
+     if ( !$daily_words_exist )
+     {
+         say STDERR "skipping country counts for date '$sql_date' for which there is no content";
+         return 1;
+     }
 
     my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
@@ -783,6 +829,8 @@ sub update_aggregate_words
             _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             $update_weekly = 0;
         }
+
+	#_update_daily_author_words($db, $date, $dashboard_topics_id, $media_sets_id);
 
         $db->commit();
 
