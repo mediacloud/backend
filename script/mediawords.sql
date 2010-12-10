@@ -644,3 +644,17 @@ CREATE TABLE authors_stories_queue (
     stories_id int                not null references stories on delete cascade,
     state      authors_stories_queue_type not null
 );
+
+CREATE TABLE daily_author_words (
+    daily_author_words_id serial primary key,
+    authors_id integer not null references authors,
+    media_sets_id integer not null references media_sets,
+    term character varying(256) not null,
+    stem character varying(256) not null,
+    sum_stem_counts int not null,
+    publish_day date not null
+);
+
+create index daily_author_words_media on daily_author_words(publish_day, authors_id, media_sets_id, stem);
+create index daily_author_words_count on daily_author_words(publish_day, authors_id, media_sets_id, sum_stem_counts);
+
