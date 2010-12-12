@@ -47,7 +47,7 @@ sub append_file
         
     if ( !open( FILE, "> $temp_dir/$file_name" ) )
     {
-        File::Path::remove_tree( $temp_dir );
+        File::Path::rmtree( $temp_dir );
         die( "Unable to open file '$temp_dir/$file_name': $!" );
     }
     
@@ -69,7 +69,7 @@ sub append_file
     flock( TAR_LOCK, LOCK_UN );
     close( TAR_LOCK );
 
-    File::Path::remove_tree( $temp_dir );
+    File::Path::rmtree( $temp_dir );
 
     if ( !$tar_output )
     {
