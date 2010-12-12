@@ -391,19 +391,20 @@ sub get_country_counts_all_dates : Local
 
         #say STDERR Dumper([Monday_of_Week($week_of_year, $year)]);
 
-	my $new_time;
+        my $new_time;
 
-	if ($data_level eq 'week')
-	{
-	  my $monday_of_week = sprintf("%d-%02d-%02d", ( Monday_of_Week( $week_of_year, $year ) ) );
-	  say STDERR "$count_date truncated to $monday_of_week";
-	  #say STDERR Dumper( [ str2time( $monday_of_week ) ] );
-	  $new_time = $monday_of_week;
+        if ( $data_level eq 'week' )
+        {
+            my $monday_of_week = sprintf( "%d-%02d-%02d", ( Monday_of_Week( $week_of_year, $year ) ) );
+            say STDERR "$count_date truncated to $monday_of_week";
+
+            #say STDERR Dumper( [ str2time( $monday_of_week ) ] );
+            $new_time = $monday_of_week;
         }
-	else
-	{
-	  $new_time = sprintf("%d-%02d-%02d", $year, $month, $day);
-	}
+        else
+        {
+            $new_time = sprintf( "%d-%02d-%02d", $year, $month, $day );
+        }
 
         if ( defined( $count_hash->{ $new_time }->{ $country_code } ) )
         {
@@ -443,9 +444,10 @@ sub get_country_counts_all_dates : Local
     my $country_counts_days = [ values %{ $count_hash } ];
     say STDERR Dumper( $country_counts_days );
 
-    my $country_counts_merged =
-      [ sort { str2time( $a->{ time } ) cmp str2time( $b->{ publish_day } ) }
-          map { values %{ $_ } } ( values %{ $count_hash } ) ];
+    my $country_counts_merged = [
+        sort { str2time( $a->{ time } ) cmp str2time( $b->{ publish_day } ) }
+        map { values %{ $_ } } ( values %{ $count_hash } )
+    ];
 
     # say STDERR Dumper([$country_counts_merged]);
 
@@ -1021,6 +1023,197 @@ sub coverage_changes : Local : FormConfig
     $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
 
     $c->stash->{ template } = 'zoe_website_template/coverage_changes.tt2';
+}
+
+sub author_query : Local : FormConfig
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+
+    my $media = $c->dbis->query(
+        "select distinct m.* from media m, media_sets_media_map msmm, dashboard_media_sets dms " .
+          "  where m.media_id = msmm.media_id and dms.media_sets_id = msmm.media_sets_id and dms.dashboards_id = ?" .
+          "  order by m.name",
+        $dashboard->{ dashboards_id }
+    )->hashes;
+
+    my $collection_media_sets = $c->dbis->query(
+        "select ms.* from media_sets ms, dashboard_media_sets dms " .
+          "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
+          "  order by ms.media_sets_id",
+        $dashboard->{ dashboards_id }
+    )->hashes;
+
+    my $dashboard_topics = $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc",
+        $dashboard->{ dashboards_id } )->hashes;
+
+    MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
+
+    my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
+
+    my $show_results = $c->req->param( 'show_results' ) || 0;
+
+    my $form = $c->stash->{ form };
+
+    #my $form_elem_date1 = $form->get_field({name => 'date1' });
+
+    #say STDERR (Dumper($form_elem_date1));
+
+    my $date1_param = $form->param_value( 'date1' );
+
+    my $authors_id_param = $form->param_value( 'authors_id1' );
+    say STDERR "$date1_param";
+
+    say STDERR ( Dumper( $form->params ) );
+
+    #die "date1 $date1_param";
+
+    #exit;
+
+    #purge label from the form --
+    say STDERR "start element attribute dump";
+
+    foreach my $element ( @{ $form->get_all_elements() } )
+    {
+        say STDERR "field name :" . $element->name;
+        say STDERR $element->is_field;
+        eval {
+            $element->label( '' );
+            say STDERR "label" . $element->label;
+        };
+        say STDERR Dumper( [ $element->attributes ] );
+    }
+
+    say STDERR "end element attribute dump";
+
+    my $date_options = [ map { [ $_, $_ ] } @$dashboard_dates ];
+    my $date1_elem = $form->get_field( { name => 'date1' } );
+    $date1_elem->options( $date_options );
+    my $date2_elem = $form->get_field( { name => 'date2' } );
+    $date2_elem->options( $date_options );
+
+    my $dashboard_topics_id1 = $form->get_field( { name => 'dashboard_topics_id1' } );
+    my $dashboard_topics_id2 = $form->get_field( { name => 'dashboard_topics_id2' } );
+    my $dashboard_topics_options =
+      [ ( { label => 'All' } ), map { { label => $_->{ name }, value => $_->{ dashboard_topics_id } } } @$dashboard_topics ];
+    $dashboard_topics_id1->options( $dashboard_topics_options );
+    $dashboard_topics_id2->options( $dashboard_topics_options );
+
+    my $media_sets_id_options = [
+        ( { label => '(none)' } ),
+        map { { label => $_->{ name }, value => $_->{ media_sets_id } } } @$collection_media_sets
+    ];
+
+    $form->get_field( { name => 'media_sets_id1' } )->options( $media_sets_id_options );
+    $form->get_field( { name => 'media_sets_id2' } )->options( $media_sets_id_options );
+
+    if ( $show_results )
+    {
+        {
+            my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
+
+            my $word_cloud;
+            my $coverage_map_chart_url;
+
+            if ( !$compare_media_sets )
+            {
+                my $dashboard_topic;
+
+                my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+
+                if ( my $id = $c->req->param( 'dashboard_topics_id1' ) )
+                {
+                    $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $id );
+
+                }
+
+                if ( $self->_has_invalid_dashboard_date( $c, 1 ) )
+                {
+                    my $error_message = "Media Set 1 " . $self->_has_invalid_dashboard_date( $c, 1 );
+
+                    $c->{ stash }->{ error_message } = $error_message;
+                    last;
+                }
+
+                my $words = $self->_get_words_for_media_set( $c, 1 );
+                print_time( "got words" );
+
+                my $media_set = $self->get_media_set_from_params( $c, 1 );
+
+                if ( scalar( @{ $words } ) == 0 )
+                {
+                    my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
+                    my $error_message =
+                      "No words found within the week starting on $date \n" .
+                      "for media_sets_id $media_set->{ media_sets_id}";
+
+                    $c->{ stash }->{ error_message } = $error_message;
+                    last;
+                }
+
+                $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+
+                print_time( "got word cloud" );
+
+                my $clusters = $self->get_media_set_clusters( $c, $media_set, $dashboard );
+
+                print_time( "get clusters" );
+
+                my $country_counts = $self->_get_country_counts( $c, $date, 1 );
+
+                #say STDERR "Country Counts";
+                #say STDERR Dumper( $country_counts );
+                #say STDERR Dumper( [ ( keys %{ $country_counts } ) ] );
+
+                my $country_code_3_counts = {
+                    map {
+                        uc( country_code2code( $_, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 ) ) => $country_counts->{ $_ }
+                      } ( sort keys %{ $country_counts } )
+                };
+
+                #say STDERR "Country Counts";
+                #say STDERR Dumper( $country_code_3_counts );
+                #say STDERR "dying";
+
+                my $country_count_csv_array =
+                  [ map { join ',', @$_ }
+                      ( map { [ $_, $country_code_3_counts->{ $_ } ] } sort keys %{ $country_code_3_counts } ) ];
+
+#	my $country_count_csv_string = join "\n", (map { join ',', @$_ } ( map { [$_, $country_code_3_counts->{$_} ] } sort keys %{  $country_code_3_counts } ) );
+#$country_count_csv_string = "country_code,value\n" . $country_count_csv_string;
+
+                $c->{ stash }->{ country_count_csv_array } = $country_count_csv_array;
+
+                $coverage_map_chart_url = _get_tag_count_map_url( $country_counts, 'coverage map' );
+
+                say STDERR "coverage map chart url: $coverage_map_chart_url";
+
+            }
+
+            $c->stash->{ show_results } = 1;
+
+            #$c->stash->{ clusters } = $clusters;
+            #$c->stash->{ date }     = $date;
+
+            $c->stash->{ coverage_map_chart_url } = $coverage_map_chart_url;
+
+            #$c->stash->{ media_set }             = $media_set;
+            $c->stash->{ word_cloud }            = $word_cloud;
+            $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
+        }
+    }
+
+    $c->stash->{ dashboard } = $dashboard;
+
+    #$c->stash->{ dashboard_topic }       = $dashboard_topic;
+    $c->stash->{ media }                 = $media;
+    $c->stash->{ collection_media_sets } = $collection_media_sets;
+    $c->stash->{ dashboard_topics }      = $dashboard_topics;
+    $c->stash->{ dashboard_dates }       = $dashboard_dates;
+    $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
+
+    $c->stash->{ template } = 'zoe_website_template/author_query.tt2';
 }
 
 sub _translate_word_list
@@ -2007,9 +2200,9 @@ sub report_bug : Local
         return;
     }
 
-    my $config = MediaWords::Util::Config::get_config;
+    my $config      = MediaWords::Util::Config::get_config;
     my $smtp_server = $config->{ mail }->{ smtp_server } || die( 'no mail:smtp_server in mediawords.yml' );
-    my $bug_email   = $config->{ mail }->{ bug_email }   || die( 'no mail:bug_email in mediawords.yml' );
+    my $bug_email   = $config->{ mail }->{ bug_email } || die( 'no mail:bug_email in mediawords.yml' );
 
     my $email = $c->req->param( 'email' ) || $bug_email;
     my $description = $c->req->param( 'description' );
