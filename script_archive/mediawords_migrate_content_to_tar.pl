@@ -55,7 +55,7 @@ sub undo_migration
 
     for my $file ( @{ $files } )
     {
-        if ( !( $file =~ m~content/(.*/(\d+)\.gz)$~ ) )
+        if ( !( $file =~ m~(content/.*/(\d+)\.gz)$~ ) )
         {
             die( "Unable to parse file '$file'" );
         }
