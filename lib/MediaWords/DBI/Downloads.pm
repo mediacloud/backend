@@ -19,6 +19,8 @@ use MediaWords::Util::HTML;
 use Perl6::Say;
 use Data::Dumper;
 
+use constant INLINE_CONTENT_LENGTH => 256;
+
 # return a ref to the content associated with the given download, or under if there is none
 sub fetch_content_local_file
 {
@@ -86,7 +88,12 @@ sub fetch_content_local
         return undef;
     }
 
-    if ( $download->{ path } !~ /^tar:/ )
+    if ( $download->{ path } =~ /^content:(.*)/ ) 
+    {
+        my $content = $1;
+        return \$content;
+    }
+    elsif ( $download->{ path } !~ /^tar:/ )
     {
         return fetch_content_local_file( $download );
     }
@@ -327,13 +334,22 @@ sub _get_tar_file
     
     my $date = $download->{ download_time };
     $date =~ s/(\d\d\d\d)-(\d\d)-(\d\d).*/$1$2$3/;
-    return "mediacloud-content-$date.tar";
+    my $file = "mediacloud-content-$date.tar";
+    
+    return $file;
 }
 
 # store the download content in the file system
 sub store_content
 {
     my ( $db, $download, $content_ref ) = @_;
+
+    if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
+    {
+        $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
+            'success', 'content:' . $$content_ref, $download->{ downloads_id } );
+        return;
+    }
 
     my $download_path = _get_download_path( $db, $download );
 
