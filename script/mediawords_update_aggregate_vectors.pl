@@ -76,7 +76,7 @@ sub run_daemon
         my $media_sets = $db->query( "select ms.* from media_sets ms where ms.vectors_added = false" )->hashes;
         for my $media_set ( @{ $media_sets } )
         {
-            my ( $start_date, $end_date ) = get_media_set_date_range( $media_set );
+            my ( $start_date, $end_date ) = get_media_set_date_range( $db, $media_set );
             if ( $start_date && $end_date )
             {
                 print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
