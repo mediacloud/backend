@@ -192,7 +192,7 @@ sub _add_stories_and_content_downloads
                         sequence      => 1,
                         state         => 'pending',
                         priority      => $download->{ priority },
-                        download_time => 'now()',
+                        download_time => DateTime->now->datetime,
                         extracted     => 'f'
                     }
                 );
@@ -304,7 +304,7 @@ sub _add_spider_posting_downloads
                 sequence      => 1,
                 state         => 'pending',
                 priority      => 0,
-                download_time => 'now()',
+                download_time => DateTime->now->datetime,
                 extracted     => 'f'
             }
         );
@@ -373,7 +373,7 @@ sub _call_pager
                 sequence      => $download->{ sequence } + 1,
                 state         => 'pending',
                 priority      => $download->{ priority } + 1,
-                download_time => 'now()',
+                download_time => DateTime->now->datetime,
                 extracted     => 'f'
             }
         );

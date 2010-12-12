@@ -1,9 +1,12 @@
 package MediaWords::Crawler::Fetcher;
 
 use strict;
+
+use DateTime;
+use LWP::UserAgent;
+
 use MediaWords::DB;
 use DBIx::Simple::MediaWords;
-use LWP::UserAgent;
 
 sub new
 {
@@ -21,7 +24,7 @@ sub do_fetch
 {
     my ( $download, $dbs ) = @_;
 
-    $download->{ download_time } = 'now()';
+    $download->{ download_time } = DateTime->now->datetime;
     $download->{ state }         = 'fetching';
 
     $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
