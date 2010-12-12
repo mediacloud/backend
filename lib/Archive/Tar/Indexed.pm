@@ -5,7 +5,7 @@ package Archive::Tar::Indexed;
 use strict;
 
 use File::Path;
-use File::Temp;
+use File::Temp ();
 use Fcntl ':flock';
 use POSIX;
 
@@ -43,7 +43,7 @@ sub append_file
     my $file_path = $file_name;
     $file_path =~ s~([^/]+)$~~;
 
-    File::Path::make_path( "$temp_dir/$file_path" );
+    File::Path::mkpath( "$temp_dir/$file_path" );
         
     if ( !open( FILE, "> $temp_dir/$file_name" ) )
     {
@@ -57,7 +57,7 @@ sub append_file
     
     if ( !open( TAR_LOCK, ">> $tar_file" ) )
     {
-        File::Path::remove_tree( $temp_dir );
+        File::Path::rmtree( $temp_dir );
         die( "Unable to open tar file '$tar_file': $!" );
     }
     
