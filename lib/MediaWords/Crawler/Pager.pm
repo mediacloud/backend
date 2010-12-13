@@ -95,44 +95,39 @@ sub get_next_page_url
     #print "content: $_[2]\n";
 
     my $url;
-    my $length = 32;
 
     my $content_length = length( $$content_ref );
-    for ( my $i = 0 ; $i < $content_length ; $i++ )
+    while ( $$content_ref =~ /<a\s/isog )
     {
-        if ( substr( $$content_ref, $i, 3 ) =~ /<a\s/is )
+        my $pos = $-[0];
+        my $len;
+
+        if ( substr( $$content_ref, $pos ) !~ m~</a[^\w]~iso )
         {
-            my $i_start = $i;
+            $len = $content_length - $pos;
+        }
+        else {
+            $len = $-[0];
+        }
 
-            while (( ++$i < $content_length )
-                && ( substr( $$content_ref, $i, 4 ) !~ /<\/a[^\w]/is ) )
-            {
+        if ( !( substr( $$content_ref, $pos, $len ) =~ m~<a[^>]+href=["']([^"']*)["'][^>]*>(.*)~iso ) )
+        {
+            next;
+        }
 
-                # do nothing
-            }
+        my $raw_url = $1;
+        my $text    = $2;
+        
+        my $full_url = lc( url( decode_entities( $raw_url ) )->abs( $base_url )->as_string() );
 
-            my $link = substr( $$content_ref, $i_start, $i - $i_start );
-
-            if ( !( $link =~ m~<a[^>]+href=["']([^"']*)["'][^>]*>(.*)~isg ) )
-            {
-                next;
-            }
-
-            my $raw_url = $1;
-            my $text    = $2;
-
-            my $full_url = lc( url( decode_entities( $raw_url ) )->abs( $base_url )->as_string() );
-
-            if ( _link_is_next_page( $raw_url, $full_url, $text, $base_url ) && !$validate_sub->( $full_url ) )
-            {
-                $url = $full_url;
-
-                #print "found next page: $url [$text]\n";
-            }
-
+        if ( _link_is_next_page( $raw_url, $full_url, $text, $base_url ) && !$validate_sub->( $full_url ) )
+        {
+            $url = $full_url;
+        
+            #print "found next page: $url [$text]\n";
         }
     }
-
+    
     if ( $url )
     {
         return url( decode_entities( $url ) )->abs( $base_url )->as_string();
