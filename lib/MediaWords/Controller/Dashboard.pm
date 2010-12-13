@@ -602,7 +602,7 @@ sub _country_counts_to_csv_array
     return $country_count_csv_array;
 }
 
-sub template_test : Local : FormConfig
+sub _process_and_stash_dashboard_data
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
@@ -629,7 +629,19 @@ sub template_test : Local : FormConfig
 
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
 
-    my $show_results = $c->req->param( 'show_results' ) || 0;
+    $c->stash->{ dashboard } = $dashboard;
+
+    #$c->stash->{ dashboard_topic }       = $dashboard_topic;
+    $c->stash->{ media }                 = $media;
+    $c->stash->{ collection_media_sets } = $collection_media_sets;
+    $c->stash->{ dashboard_topics }      = $dashboard_topics;
+    $c->stash->{ dashboard_dates }       = $dashboard_dates;
+    $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
+}
+
+sub _update_form
+{
+    my ( $self, $c ) = @_;
 
     my $form = $c->stash->{ form };
 
@@ -662,6 +674,8 @@ sub template_test : Local : FormConfig
 
     say STDERR "end element attribute dump";
 
+    my $dashboard_dates = $c->stash->{ dashboard_dates };
+
     my $date_options = [ map { [ $_, $_ ] } @$dashboard_dates ];
     my $date1_elem = $form->get_field( { name => 'date1' } );
     $date1_elem->options( $date_options );
@@ -670,10 +684,15 @@ sub template_test : Local : FormConfig
 
     my $dashboard_topics_id1 = $form->get_field( { name => 'dashboard_topics_id1' } );
     my $dashboard_topics_id2 = $form->get_field( { name => 'dashboard_topics_id2' } );
+
+    my $dashboard_topics = $c->stash->{ dashboard_topics };
+
     my $dashboard_topics_options =
       [ ( { label => 'All' } ), map { { label => $_->{ name }, value => $_->{ dashboard_topics_id } } } @$dashboard_topics ];
     $dashboard_topics_id1->options( $dashboard_topics_options );
     $dashboard_topics_id2->options( $dashboard_topics_options );
+
+    my $collection_media_sets = $c->stash->{ collection_media_sets };
 
     my $media_sets_id_options = [
         ( { label => '(none)' } ),
@@ -682,6 +701,19 @@ sub template_test : Local : FormConfig
 
     $form->get_field( { name => 'media_sets_id1' } )->options( $media_sets_id_options );
     $form->get_field( { name => 'media_sets_id2' } )->options( $media_sets_id_options );
+}
+
+sub template_test : Local : FormConfig
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
+
+    $self->_update_form( $c );
+
+    my $show_results = $c->req->param( 'show_results' ) || 0;
+
+    my $form = $c->stash->{ form };
 
     if ( $show_results )
     {
@@ -727,6 +759,7 @@ sub template_test : Local : FormConfig
                     last;
                 }
 
+                my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
                 $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
 
                 print_time( "got word cloud" );
@@ -823,16 +856,6 @@ sub template_test : Local : FormConfig
             $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
         }
     }
-
-    $c->stash->{ dashboard } = $dashboard;
-
-    #$c->stash->{ dashboard_topic }       = $dashboard_topic;
-    $c->stash->{ media }                 = $media;
-    $c->stash->{ collection_media_sets } = $collection_media_sets;
-    $c->stash->{ dashboard_topics }      = $dashboard_topics;
-    $c->stash->{ dashboard_dates }       = $dashboard_dates;
-    $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
-
     $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
 }
 
@@ -840,82 +863,12 @@ sub coverage_changes : Local : FormConfig
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-
-    my $media = $c->dbis->query(
-        "select distinct m.* from media m, media_sets_media_map msmm, dashboard_media_sets dms " .
-          "  where m.media_id = msmm.media_id and dms.media_sets_id = msmm.media_sets_id and dms.dashboards_id = ?" .
-          "  order by m.name",
-        $dashboard->{ dashboards_id }
-    )->hashes;
-
-    my $collection_media_sets = $c->dbis->query(
-        "select ms.* from media_sets ms, dashboard_media_sets dms " .
-          "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
-          "  order by ms.media_sets_id",
-        $dashboard->{ dashboards_id }
-    )->hashes;
-
-    my $dashboard_topics = $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc",
-        $dashboard->{ dashboards_id } )->hashes;
-
-    MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
-
-    my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
-
+    $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
     my $show_results = $c->req->param( 'show_results' ) || 0;
 
     my $form = $c->stash->{ form };
 
-    #my $form_elem_date1 = $form->get_field({name => 'date1' });
-
-    #say STDERR (Dumper($form_elem_date1));
-
-    my $date1_param = $form->param_value( 'date1' );
-    say STDERR "$date1_param";
-
-    say STDERR ( Dumper( $form->params ) );
-
-    #die "date1 $date1_param";
-
-    #exit;
-
-    #purge label from the form --
-    say STDERR "start element attribute dump";
-
-    foreach my $element ( @{ $form->get_all_elements() } )
-    {
-        say STDERR "field name :" . $element->name;
-        say STDERR $element->is_field;
-        eval {
-            $element->label( '' );
-            say STDERR "label" . $element->label;
-        };
-        say STDERR Dumper( [ $element->attributes ] );
-    }
-
-    say STDERR "end element attribute dump";
-
-    my $date_options = [ map { [ $_, $_ ] } @$dashboard_dates ];
-    my $date1_elem = $form->get_field( { name => 'date1' } );
-    $date1_elem->options( $date_options );
-    my $date2_elem = $form->get_field( { name => 'date2' } );
-    $date2_elem->options( $date_options );
-
-    my $dashboard_topics_id1 = $form->get_field( { name => 'dashboard_topics_id1' } );
-    my $dashboard_topics_id2 = $form->get_field( { name => 'dashboard_topics_id2' } );
-    my $dashboard_topics_options =
-      [ ( { label => 'All' } ), map { { label => $_->{ name }, value => $_->{ dashboard_topics_id } } } @$dashboard_topics ];
-    $dashboard_topics_id1->options( $dashboard_topics_options );
-    $dashboard_topics_id2->options( $dashboard_topics_options );
-
-    my $media_sets_id_options = [
-        ( { label => '(none)' } ),
-        map { { label => $_->{ name }, value => $_->{ media_sets_id } } } @$collection_media_sets
-    ];
-
-    $form->get_field( { name => 'media_sets_id1' } )->options( $media_sets_id_options );
-    $form->get_field( { name => 'media_sets_id2' } )->options( $media_sets_id_options );
+    $self->_update_form( $c );
 
     if ( $show_results )
     {
@@ -960,6 +913,8 @@ sub coverage_changes : Local : FormConfig
                     $c->{ stash }->{ error_message } = $error_message;
                     last;
                 }
+
+                my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
                 $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
 
@@ -1012,16 +967,6 @@ sub coverage_changes : Local : FormConfig
             $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
         }
     }
-
-    $c->stash->{ dashboard } = $dashboard;
-
-    #$c->stash->{ dashboard_topic }       = $dashboard_topic;
-    $c->stash->{ media }                 = $media;
-    $c->stash->{ collection_media_sets } = $collection_media_sets;
-    $c->stash->{ dashboard_topics }      = $dashboard_topics;
-    $c->stash->{ dashboard_dates }       = $dashboard_dates;
-    $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
-
     $c->stash->{ template } = 'zoe_website_template/coverage_changes.tt2';
 }
 
@@ -1029,84 +974,12 @@ sub author_query : Local : FormConfig
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-
-    my $media = $c->dbis->query(
-        "select distinct m.* from media m, media_sets_media_map msmm, dashboard_media_sets dms " .
-          "  where m.media_id = msmm.media_id and dms.media_sets_id = msmm.media_sets_id and dms.dashboards_id = ?" .
-          "  order by m.name",
-        $dashboard->{ dashboards_id }
-    )->hashes;
-
-    my $collection_media_sets = $c->dbis->query(
-        "select ms.* from media_sets ms, dashboard_media_sets dms " .
-          "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
-          "  order by ms.media_sets_id",
-        $dashboard->{ dashboards_id }
-    )->hashes;
-
-    my $dashboard_topics = $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc",
-        $dashboard->{ dashboards_id } )->hashes;
-
-    MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
-
-    my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
-
+    $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
     my $show_results = $c->req->param( 'show_results' ) || 0;
 
     my $form = $c->stash->{ form };
 
-    #my $form_elem_date1 = $form->get_field({name => 'date1' });
-
-    #say STDERR (Dumper($form_elem_date1));
-
-    my $date1_param = $form->param_value( 'date1' );
-
-    my $authors_id_param = $form->param_value( 'authors_id1' );
-    say STDERR "$date1_param";
-
-    say STDERR ( Dumper( $form->params ) );
-
-    #die "date1 $date1_param";
-
-    #exit;
-
-    #purge label from the form --
-    say STDERR "start element attribute dump";
-
-    foreach my $element ( @{ $form->get_all_elements() } )
-    {
-        say STDERR "field name :" . $element->name;
-        say STDERR $element->is_field;
-        eval {
-            $element->label( '' );
-            say STDERR "label" . $element->label;
-        };
-        say STDERR Dumper( [ $element->attributes ] );
-    }
-
-    say STDERR "end element attribute dump";
-
-    my $date_options = [ map { [ $_, $_ ] } @$dashboard_dates ];
-    my $date1_elem = $form->get_field( { name => 'date1' } );
-    $date1_elem->options( $date_options );
-    my $date2_elem = $form->get_field( { name => 'date2' } );
-    $date2_elem->options( $date_options );
-
-    my $dashboard_topics_id1 = $form->get_field( { name => 'dashboard_topics_id1' } );
-    my $dashboard_topics_id2 = $form->get_field( { name => 'dashboard_topics_id2' } );
-    my $dashboard_topics_options =
-      [ ( { label => 'All' } ), map { { label => $_->{ name }, value => $_->{ dashboard_topics_id } } } @$dashboard_topics ];
-    $dashboard_topics_id1->options( $dashboard_topics_options );
-    $dashboard_topics_id2->options( $dashboard_topics_options );
-
-    my $media_sets_id_options = [
-        ( { label => '(none)' } ),
-        map { { label => $_->{ name }, value => $_->{ media_sets_id } } } @$collection_media_sets
-    ];
-
-    $form->get_field( { name => 'media_sets_id1' } )->options( $media_sets_id_options );
-    $form->get_field( { name => 'media_sets_id2' } )->options( $media_sets_id_options );
+    $self->_update_form( $c );
 
     if ( $show_results )
     {
@@ -1151,6 +1024,8 @@ sub author_query : Local : FormConfig
                     $c->{ stash }->{ error_message } = $error_message;
                     last;
                 }
+
+                my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
                 $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
 
@@ -1203,15 +1078,6 @@ sub author_query : Local : FormConfig
             $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
         }
     }
-
-    $c->stash->{ dashboard } = $dashboard;
-
-    #$c->stash->{ dashboard_topic }       = $dashboard_topic;
-    $c->stash->{ media }                 = $media;
-    $c->stash->{ collection_media_sets } = $collection_media_sets;
-    $c->stash->{ dashboard_topics }      = $dashboard_topics;
-    $c->stash->{ dashboard_dates }       = $dashboard_dates;
-    $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
 
     $c->stash->{ template } = 'zoe_website_template/author_query.tt2';
 }
