@@ -337,7 +337,7 @@ sub _restrict_content_type
 # call get_page_urls from the pager module for the download's feed
 sub _call_pager
 {
-    my ( $self, $download, $response ) = @_;
+    my ( $self, $dbs, $download, $response ) = @_;
 
     if ( $download->{ sequence } > MAX_PAGES )
     {
@@ -345,7 +345,7 @@ sub _call_pager
         return;
     }
 
-    my $dbs = $self->engine->dbs;
+    # my $dbs = $self->engine->dbs;
 
     if ( $dbs->query( "SELECT * from downloads where parent = ? ", $download->{ downloads_id } )->hash )
     {
@@ -384,9 +384,9 @@ sub _call_pager
 # for any additional content
 sub _process_content
 {
-    my ( $self, $download, $response ) = @_;
+    my ( $self, $dbs, $download, $response ) = @_;
 
-    $self->_call_pager( $download, $response );
+    $self->_call_pager( $dbs, $download, $response );
 
     #MediaWords::Crawler::Parser->get_and_append_story_text
     #($self->engine->db, $download->feeds_id->parser_module,
@@ -461,7 +461,7 @@ sub handle_response
         case 'content'
         {
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-            $self->_process_content( $download, $response );
+            $self->_process_content( $dbs, $download, $response );
         }
         case 'spider_blog_home'
         {
