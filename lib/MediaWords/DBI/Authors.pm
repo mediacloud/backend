@@ -60,6 +60,7 @@ sub get_author_from_content
     else
     {
         say STDERR "author not found";
+	return;
     }
 }
 
