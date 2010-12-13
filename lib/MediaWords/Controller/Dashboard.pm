@@ -151,6 +151,35 @@ sub _get_words
     return $words;
 }
 
+sub _get_author_words
+{
+    my ( $self, $c, $dashboard_topic, $date, $media_set_num, $authors_id ) = @_;
+
+    #my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
+
+    print_time( "got dashboard_topic_clause" );
+
+    my $media_set = $self->get_media_set_from_params( $c, $media_set_num );
+
+    $date = $self->get_start_of_week( $c, $date );
+
+    print_time( "got start_of_week" );
+
+    print_time( "validated dashboard_topic_date" );
+
+    my $words_query =
+      ( "select * from top_500_weekly_author_words where media_sets_id = $media_set->{ media_sets_id } " .
+"    and not is_stop_stem( 'long', stem ) and authors_id=$authors_id and publish_week = date_trunc('week', '$date'::date) "
+          . "    order by stem_count desc limit "
+          . NUM_WORD_CLOUD_WORDS );
+
+    say STDERR "SQL query: '$words_query'";
+
+    my $words = $c->dbis->query( $words_query )->hashes;
+
+    return $words;
+}
+
 sub _get_country_counts
 {
     my ( $self, $c, $date, $media_set_num ) = @_;
@@ -550,7 +579,7 @@ sub _get_tag_count_map_url
 sub _get_words_for_media_set
 {
 
-    my ( $self, $c, $media_set_num ) = @_;
+    my ( $self, $c, $media_set_num, $authors_id ) = @_;
 
     my $dashboard_topic;
     if ( my $id = $c->req->param( 'dashboard_topics_id' . $media_set_num ) )
@@ -560,7 +589,16 @@ sub _get_words_for_media_set
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' . $media_set_num ) );
 
-    my $words = $self->_get_words( $c, $dashboard_topic, $date, $media_set_num );
+    my $words;
+
+    if ( !$authors_id )
+    {
+        $words = $self->_get_words( $c, $dashboard_topic, $date, $media_set_num );
+    }
+    else
+    {
+        $words = $self->_get_author_words( $c, $dashboard_topic, $date, $media_set_num, $authors_id );
+    }
 
     return $words;
 }
@@ -1001,15 +1039,17 @@ sub author_query : Local : FormConfig
 
                 }
 
-                if ( $self->_has_invalid_dashboard_date( $c, 1 ) )
-                {
-                    my $error_message = "Media Set 1 " . $self->_has_invalid_dashboard_date( $c, 1 );
+                # if ( $self->_has_invalid_dashboard_date( $c, 1 ) )
+                # {
+                #     my $error_message = "Media Set 1 " . $self->_has_invalid_dashboard_date( $c, 1 );
 
-                    $c->{ stash }->{ error_message } = $error_message;
-                    last;
-                }
+                #     $c->{ stash }->{ error_message } = $error_message;
+                #     last;
+                # }
 
-                my $words = $self->_get_words_for_media_set( $c, 1 );
+                my $authors_id1 = $c->req->param( 'authors_id1' );
+
+                my $words = $self->_get_words_for_media_set( $c, 1, $authors_id1 );
                 print_time( "got words" );
 
                 my $media_set = $self->get_media_set_from_params( $c, 1 );
