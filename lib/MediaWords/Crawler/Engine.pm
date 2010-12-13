@@ -18,6 +18,7 @@ use Fcntl;
 use IO::Select;
 use IO::Socket;
 use Data::Dumper;
+use Time::HiRes;
 
 use MediaWords::Crawler::Fetcher;
 use MediaWords::Crawler::Handler;
@@ -67,9 +68,10 @@ sub _run_fetcher
 
             # tell the parent provider we're ready for another download
             # and then read the download id from the socket
-            $self->socket->print( $self->fetcher_number() . "\n" );
-            my $downloads_id;
+            $self->socket->printflush( $self->fetcher_number() . "\n" );
+            my $downloads_id = 0;
             $downloads_id = $self->socket->getline();
+
             if ( defined( $downloads_id ) )
             {
                 chomp( $downloads_id );
@@ -77,18 +79,21 @@ sub _run_fetcher
 
             if ( $downloads_id && ( $downloads_id ne 'none' ) )
             {
-
                 # print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id'\n";
-
                 $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
                 if ( !$download )
                 {
                     die( "fetcher " . $self->fetcher_number . ": Unable to find download_id: $downloads_id" );
                 }
 
+                my $start_fetch_time = [ Time::HiRes::gettimeofday ];
                 my $response = $fetcher->fetch_download( $download );
+                my $end_fetch_time = [ Time::HiRes::gettimeofday ];
 
                 eval { $handler->handle_response( $download, $response ); };
+
+                my $fetch_time = Time::HiRes::tv_interval( $start_fetch_time,  $end_fetch_time );
+                my $handle_time = Time::HiRes::tv_interval( $end_fetch_time );
 
                 if ( $@ )
                 {
@@ -96,11 +101,13 @@ sub _run_fetcher
                 }
 
                 print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
-                  $download->{ url } . " complete\n";
+                    $download->{ url } . " complete [ $fetch_time / $handle_time ]\n";
             }
             else
             {
-                sleep( 10 );
+                # $downloads_id = ( !defined( $downloads_id ) ) ? 'undef' : $downloads_id;
+                # print STDERR "fetcher undefined downloads_id\n";
+                sleep( 3 );
             }
         };
 
@@ -212,19 +219,17 @@ sub crawl
 
             if ( my $queued_download = shift( @{ $queued_downloads } ) )
             {
-
-                #print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
-                $s->print( $queued_download->{ downloads_id } . "\n" );
+                # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
+                $s->printflush( $queued_download->{ downloads_id } . "\n" );
             }
             else
             {
-
                 #print STDERR "sending fetcher $fetcher_number none\n";
-                $s->print( "none\n" );
+                $s->printflush( "none\n" );
                 last;
             }
 
-            #print "fetcher $fetcher_number request assigned\n";
+            # print "fetcher $fetcher_number request assigned\n";
         }
 
         $self->dbs->commit;
