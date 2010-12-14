@@ -678,7 +678,7 @@ create table top_500_weekly_author_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       publish_week                 timestamp       not null
+       publish_week                 date            not null
 );
 
 create index top_500_weekly_author_words_media on top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
@@ -687,7 +687,7 @@ create table total_top_500_weekly_author_words (
        total_top_500_words_id       serial          primary key,
        media_sets_id                int             not null, /* references media_sets on delete cascade, */
        authors_id                   int             null, /* references dashboard_topics */
-       publish_week                 timestamp       not null,
+       publish_week                 date            not null,
        total_count                  int             not null
        
 );
