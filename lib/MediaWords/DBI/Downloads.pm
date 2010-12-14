@@ -309,8 +309,8 @@ sub _get_download_path
 
     my $feed = $db->query( "select * from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
 
-    my @date = ( $download->{ download_time } =~ /(\d\d\d\d)-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/ );
-
+    my @date = ( $download->{ download_time } =~ /(\d\d\d\d)-(\d\d)-(\d\d).(\d\d):(\d\d):(\d\d)/ );
+    
     my @path = ( 
         sprintf( "%06d", $feed->{ media_id } ),
         sprintf( "%06d", $feed->{ feeds_id } ),
