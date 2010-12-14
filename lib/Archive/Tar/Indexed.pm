@@ -6,7 +6,7 @@ use strict;
 
 use File::Path;
 use File::Temp ();
-use Fcntl ':flock';
+use Fcntl qw/:flock :seek/;
 use POSIX;
 
 # read the given file from the given tar file at the given starting block with the given number of blocks
@@ -24,6 +24,69 @@ sub read_file
     }
     
     return \$content;
+}
+
+# get the file for a given archive that contains the last position written to the archive.
+# if the directory that contains the file does not exist, create it.
+sub _get_pos_file
+{
+    my ( $tar_file ) = @_;
+    
+    my $pos_file = File::Spec->tmpdir . "/$tar_file";
+    
+    my $pos_dir = $pos_file;
+    
+    $pos_dir =~ s~/[^/]*$~~;
+    
+    File::Path::mkpath( $pos_dir );
+    
+    return $pos_file;
+}
+
+# if there's no position file, find the starting block to
+# append to (the block after the last block of the last file).
+#
+# this is necessary because tar sticks a variable number of null
+# blocks at the end of every tar archive, and we need to put the new
+# archive right after the last valid block.  We find the last valid block
+# seeking to the end of the file, reading the block, testing whether it
+# is a null block, moving back one block if it is not, and so on
+# until we find a non-null block.
+sub _find_starting_block
+{
+    my ( $tar_file ) = @_;
+    
+    if ( ! -f $tar_file ) 
+    {
+        return 0;
+    }
+    
+    my $tar_size = ( stat( $tar_file ) )[7];
+    
+    if ( !open( TAR, $tar_file ) )
+    {
+        die( "unable to open tar file: $!" );
+    }
+    
+    my $pos = $tar_size;
+    while ( $pos > 0 )
+    {
+        seek( TAR, $pos - 512, SEEK_SET );
+        my $block;
+        if ( !read( TAR, $block, 512 ) )
+        {
+            die( "Unable to read from tar file: $!" );
+        }
+        if ( $block =~ /[^\0]/o )
+        {
+            last;
+        }
+        else {
+            $pos -= 512;
+        }
+    }
+    
+    return POSIX::ceil( $pos / 512 );
 }
 
 # append the given file contents to the given tar file under the given path.
@@ -54,35 +117,54 @@ sub append_file
     print FILE ${ $file_contents_ref };
     
     close( FILE );
+
+    my $pos_file = _get_pos_file( $tar_file );
     
-    if ( !open( TAR_LOCK, ">> $tar_file" ) )
+    if ( !open( POS_FILE, ( -f $pos_file ) ? "+<" : "+>", $pos_file ) )
     {
         File::Path::rmtree( $temp_dir );
-        die( "Unable to open tar file '$tar_file': $!" );
+        die( "Unable to open pos file '$pos_file': $!" );
     }
     
-    flock( TAR_LOCK, LOCK_EX );
+    flock( POS_FILE, LOCK_EX );
     
-    my $tar_cmd = "tar -r -R -v -C '$temp_dir' -f '$tar_file' '$file_name'";    
-    my $tar_output = `$tar_cmd`;    
+    my $starting_block = <POS_FILE>;
+    if ( !$starting_block )
+    {
+        $starting_block = _find_starting_block( $tar_file );
+    }
+    
+    my $tar_file_mode = ( -f $tar_file ) ? "+<" : "+>";
+        
+    if ( !open( TAR_FILE, ( -f $tar_file ) ? "+<" : "+>", $tar_file ) )
+    {
+        File::Path::rmtree( $temp_dir );
+        die( "Unable to open ta file '$tar_file': $!" );
+    }
+    
+    if ( !seek( TAR_FILE, $starting_block * 512, SEEK_SET ) )
+    {
+        die( "Unable to seek tar file: $!" );
+    }
+    
+    my $tar_cmd = "tar -c -C '$temp_dir' -f - '$file_name'";    
+    my $tar_output = `$tar_cmd`;
+    
+    print TAR_FILE $tar_output;
 
-    flock( TAR_LOCK, LOCK_UN );
-    close( TAR_LOCK );
+    close( TAR_FILE );
+    
+    my $num_blocks = POSIX::ceil( length( ${ $file_contents_ref } ) / 512 ) + 1;
+    my $ending_block = $starting_block + $num_blocks;
+    
+    seek( POS_FILE, 0, SEEK_SET );
+    
+    print POS_FILE $ending_block;
+
+    flock( POS_FILE, LOCK_UN );
+    close( POS_FILE );
 
     File::Path::rmtree( $temp_dir );
-
-    if ( !$tar_output )
-    {
-        die( "Unable to run tar command '$tar_cmd'.  Are you using gnu tar?" );
-    }
-
-    if ( !( $tar_output =~ /^block ([0-9]*):/ ) )
-    {
-        die( "Unable to parse output from tar: '$tar_output'" );
-    }
-
-    my $starting_block = $1;
-    my $num_blocks = POSIX::ceil( length( ${ $file_contents_ref } ) / 512 ) + 1;
     
     return( $starting_block, $num_blocks );
 }
