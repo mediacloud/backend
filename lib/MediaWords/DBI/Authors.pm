@@ -27,7 +27,7 @@ sub _find_first_node
     return $node;
 }
 
-sub get_author_from_content
+sub _get_by_line_from_content
 {
     ( my $content ) = @_;
 
@@ -60,8 +60,27 @@ sub get_author_from_content
     else
     {
         say STDERR "author not found";
-	return;
+        return;
     }
+}
+
+sub get_author_from_content
+{
+    ( my $content ) = @_;
+
+    my $by_line = _get_by_line_from_content( $content );
+
+    my $author;
+
+    if ( $by_line )
+    {
+        $author = $by_line;
+
+        $author =~ s/^By //i;
+        $author = lc( $author );
+    }
+
+    return $author;
 }
 
 sub create_from_download
