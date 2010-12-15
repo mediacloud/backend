@@ -380,6 +380,40 @@ sub _call_pager
     }
 }
 
+sub _queue_author_extraction
+{
+    my ( $self, $download, $response ) = @_;
+
+    if ( $download->{ sequence } > 1 )
+    {
+
+        #Only extractor author from the first page
+        return;
+    }
+
+    my $dbs = $self->engine->dbs;
+
+    my $download_media_source = MediaWords::DBI::Downloads::get_medium( $dbs, $download );
+
+    if ( $download_media_source->{ extract_author } )
+    {
+
+        die Dumper( $download ) unless $download->{ state } eq 'success';
+
+        $dbs->create(
+            'authors_stories_queue',
+            {
+                stories_id => $download->{ stories_id },
+                state      => 'queued',
+            }
+        );
+    }
+
+    say STDERR "queued story extraction";
+
+    return;
+}
+
 # call the content module to parse the text from the html and add pending downloads
 # for any additional content
 sub _process_content
@@ -387,6 +421,8 @@ sub _process_content
     my ( $self, $dbs, $download, $response ) = @_;
 
     $self->_call_pager( $dbs, $download, $response );
+
+    $self->_queue_author_extraction( $download );
 
     #MediaWords::Crawler::Parser->get_and_append_story_text
     #($self->engine->db, $download->feeds_id->parser_module,
