@@ -221,9 +221,7 @@ function onError(err)
         </div>
         <div id="mediaArea1"> <strong>Author Name</strong><br />
 	  [% form.get_field( 'author_name1')  %]
-	  <div>
 	  [% form.get_field( 'authors_id1')  %]
-	  </div>
         </div>
         <div id="mediaSource1"> <strong>Media Source</strong><br />
 	  [% form.get_field( 'medium_name1')  %]
