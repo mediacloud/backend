@@ -346,8 +346,13 @@ sub store_content
 
     if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
     {
+        my $state = 'success';
+	my $path  = 'content:' . $$content_ref;
         $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
-            'success', 'content:' . $$content_ref, $download->{ downloads_id } );
+            $state, $path, $download->{ downloads_id } );
+
+	$download->{ state } = $state;
+	$download->{ path }  = $path;
         return;
     }
 
@@ -376,6 +381,9 @@ sub store_content
 
     $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
         'success', $tar_id, $download->{ downloads_id } );
+
+    $download->{ state } = 'success';
+    $download->{ path  } = $tar_id;    
 }
 
 # convenience method to get the media_id for the download
@@ -392,6 +400,18 @@ sub get_media_id
     defined( $media_id ) || die "Could not get media id for feeds_id '$feeds_id " . $db->error;
 
     return $media_id;
+}
+
+# convenience method to get the media source for the given download
+sub get_medium
+{
+   my ( $db, $download ) = @_;
+
+   my $media_id = get_media_id( $db, $download );
+
+   my $medium = $db->find_by_id( 'media', $media_id );
+
+   return $medium;
 }
 
 sub process_download_for_extractor
