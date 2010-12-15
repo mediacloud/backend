@@ -61,8 +61,10 @@ margin : 0;
 <link href="[% c.uri_for('/include/smoothness/jquery-ui-1.8.5.custom.css') %]" rel="stylesheet" type="text/css"/>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
+<!--
 <link rel="stylesheet" href="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.css" type="text/css" />
 <script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.js"></script>
+-->
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.openheatmap.js') %]"></script> 
 <!-- <script type="text/javascript" src="http://static.openheatmap.com/scripts/jquery.openheatmap.js"></script> -->
 <script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/validate/jquery.validate.js"></script>
@@ -83,6 +85,24 @@ margin : 0;
         //Write a custom event to ensure that the entered source name is valid
         $('#medium_name1').autocomplete(data, { minChars: 0, autoFill: true  } );
         $('#medium_name2').autocomplete(data, { minChars: 0, autoFill: true  } );
+
+       $('#authors_id1').hide();
+        $('#author_name1').autocomplete( { source : "[% c.uri_for('/dashboard/json_author_search') %]" ,
+   
+   change: function(event, ui) {  
+
+      if (ui.item) {
+      //alert('autocompleted ' + ui.item.label + ' ' + ui.item.authors_id);
+      $('#authors_id1').val(ui.item.authors_id);
+   }
+   else
+   {
+      $('#authors_id1').val('');
+      $(this).val('');
+      //alert('no item');
+   }
+   }
+});
         $('#media_query_form').validate({
            rules: {
               media_sets_id1: {
@@ -199,9 +219,11 @@ function onError(err)
 	  [% form.get_field( 'dashboard_topics_id1')  %]
           <span class="smaller">A fast explanation here</span>
         </div>
-        <div id="mediaArea1"> <strong>Author ID</strong><br />
+        <div id="mediaArea1"> <strong>Author Name</strong><br />
+	  [% form.get_field( 'author_name1')  %]
+	  <div>
 	  [% form.get_field( 'authors_id1')  %]
-          <span class="smaller">add an autocomplete later...</span>
+	  </div>
         </div>
         <div id="mediaSource1"> <strong>Media Source</strong><br />
 	  [% form.get_field( 'medium_name1')  %]

@@ -27,6 +27,7 @@ use Date::Parse;
 use Switch 'Perl6';
 use Locale::Country;
 use Date::Calc qw(:all);
+use JSON;
 
 # max number of sentences to list in sentence_medium
 use constant MAX_MEDIUM_SENTENCES => 100;
@@ -1006,6 +1007,24 @@ sub coverage_changes : Local : FormConfig
         }
     }
     $c->stash->{ template } = 'zoe_website_template/coverage_changes.tt2';
+}
+
+sub json_author_search : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $term = $c->req->param( 'term' ) || 0;
+
+    $term = '%' . $term . '%';
+
+    my $terms =
+      $c->dbis->query( "select authors_id, author_name as label from authors where author_name ilike ? ", $term )->hashes;
+
+    #print encode_json($terms);
+
+    $c->res->body( encode_json( $terms ) );
+
+    return;
 }
 
 sub author_query : Local : FormConfig

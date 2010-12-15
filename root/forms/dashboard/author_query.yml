@@ -43,9 +43,14 @@ elements:
     name: date2
     label: Time Range
 
-  - type: Text
+  - type: Hidden
     name: authors_id1
     id: authors_id1
+    label: author
+
+  - type: Text
+    name: author_name1
+    id: author_name1
     label: author
 
   - type: Text
