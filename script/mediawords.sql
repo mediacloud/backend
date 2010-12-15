@@ -8,6 +8,7 @@ create table media (
     feeds_added         boolean         not null,
     moderation_notes    text            null,       
     full_text_rss       boolean         ,
+    extract_author      boolean         default(false),
     CONSTRAINT media_name_not_empty CHECK (((name)::text <> ''::text))
 );
 
