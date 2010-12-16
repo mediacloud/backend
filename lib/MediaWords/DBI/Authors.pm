@@ -79,6 +79,11 @@ sub _get_by_line_from_content
         my $content_attr = $node->attr( 'content' );
         return $content_attr;
     }
+    elsif ( $node = _find_first_node( $tree, '//h3[@property="foaf:name"]' ) )
+    {
+        return $node->as_text;
+    }
+
     else
     {
         say STDERR "author not found";
