@@ -123,6 +123,14 @@ sub _get_by_line_from_content
     {
         return $node->as_text;
     }
+    elsif ( $node = _find_first_node( $tree, '//a[@id="emailWriter"]' ) )
+    {
+        return $node->as_text;
+    }
+    elsif ( $node = _find_first_node( $tree, '//div[@class="byline"]/span[@class="name"]' ) )
+    {
+        return $node->as_text;
+    }
     else
     {
         say STDERR "author not found";
