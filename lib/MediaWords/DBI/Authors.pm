@@ -57,6 +57,10 @@ sub _get_by_line_from_content
     {
         return $node->as_text;
     }
+    elsif ( $node = _find_first_node( $tree, '//p[@class="byline author vcard"]' ) )
+    {
+        return $node->as_text;
+    }
     elsif ( $node = _find_first_node( $tree, '//p[@class="author vcard"]' ) )
     {
         return $node->as_text;
@@ -103,6 +107,10 @@ sub _get_by_line_from_content
         return $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//h3[@property="foaf:name"]' ) )
+    {
+        return $node->as_text;
+    }
+    elsif ( $node = _find_first_node( $tree, '//p[@class="byline"]' ) )
     {
         return $node->as_text;
     }
