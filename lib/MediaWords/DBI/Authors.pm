@@ -114,7 +114,10 @@ sub _get_by_line_from_content
     {
         return $node->as_text;
     }
-
+    elsif ( $node = _find_first_node( $tree, '//span[@id="byline"]' ) )
+    {
+        return $node->as_text;
+    }
     else
     {
         say STDERR "author not found";
