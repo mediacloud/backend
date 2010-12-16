@@ -83,6 +83,10 @@ sub _get_by_line_from_content
     {
         return $node->as_text;
     }
+    elsif ( $node = _find_first_node( $tree, '//a[@class="contributor"]' ) )
+    {
+        return $node->as_text;
+    }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="DCSext.author"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
