@@ -62,6 +62,11 @@ sub _get_by_line_from_content
         my $content_attr = $node->attr( 'content' );
         return $content_attr;
     }
+    elsif ( $node = _find_first_node( $tree, '//meta[@name="author"]' ) )
+    {
+        my $content_attr = $node->attr( 'content' );
+        return $content_attr;
+    }
     elsif ( $node = _find_first_node( $tree, '//span[@class="byline-name"]' ) )
     {
         return $node->as_text;
