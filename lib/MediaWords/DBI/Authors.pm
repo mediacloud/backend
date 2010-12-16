@@ -57,6 +57,10 @@ sub _get_by_line_from_content
     {
         return $node->as_text;
     }
+    elsif ( $node = _find_first_node( $tree, '//p[@class="author vcard"]' ) )
+    {
+        return $node->as_text;
+    }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="AUTHOR"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
