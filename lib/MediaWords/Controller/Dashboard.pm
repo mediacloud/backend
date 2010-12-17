@@ -1068,6 +1068,8 @@ sub author_query : Local : FormConfig
 
                 my $authors_id1 = $c->req->param( 'authors_id1' );
 
+		die "authors_id1 param is missing" unless $authors_id1;
+
                 my $words = $self->_get_words_for_media_set( $c, 1, $authors_id1 );
                 print_time( "got words" );
 
