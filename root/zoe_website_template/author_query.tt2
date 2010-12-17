@@ -90,7 +90,20 @@ margin : 0;
         $('#author_name1').autocomplete( { source : "[% c.uri_for('/dashboard/json_author_search') %]" ,
    
    change: function(event, ui) {  
-
+      //alert('change event');
+      if (ui.item) {
+      //alert('autocompleted ' + ui.item.label + ' ' + ui.item.authors_id);
+      $('#authors_id1').val(ui.item.authors_id);
+   }
+   else
+   {
+      $('#authors_id1').val('');
+      $(this).val('');
+      //alert('no item');
+   }
+   },
+  select: function(event, ui) {  
+      //alert('select event');
       if (ui.item) {
       //alert('autocompleted ' + ui.item.label + ' ' + ui.item.authors_id);
       $('#authors_id1').val(ui.item.authors_id);
