@@ -1141,7 +1141,7 @@ sub author_query : Local : FormConfig
     }
     elsif ($form->has_errors() )
     {
-      $c->stash->{error_message} = "Form has errors";
+      $c->stash->{error_message} = "Form has errors: \n " . Dumper([$form->get_errors());
     }
 
     $c->stash->{ template } = 'zoe_website_template/author_query.tt2';
