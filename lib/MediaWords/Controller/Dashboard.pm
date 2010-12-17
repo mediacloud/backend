@@ -1038,7 +1038,7 @@ sub author_query : Local : FormConfig
 
     $self->_update_form( $c );
 
-    if ( $form->submitted_and_valid() )
+    if ( $form->submitted() )
     {
         {
             my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
