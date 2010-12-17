@@ -209,6 +209,7 @@ function onError(err)
           <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>
+<!--
         <div id="data_level"> <strong>Data Level</strong><br />
 	  [% form.get_field( 'data_level')  %]
           <span class="smaller">A fast explanation here</span>
@@ -219,6 +220,7 @@ function onError(err)
 	  [% form.get_field( 'dashboard_topics_id1')  %]
           <span class="smaller">A fast explanation here</span>
         </div>
+-->
         <div id="mediaArea1"> <strong>Author Name</strong><br />
 	  [% form.get_field( 'author_name1')  %]
 	  [% form.get_field( 'authors_id1')  %]
