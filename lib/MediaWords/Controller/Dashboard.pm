@@ -1038,7 +1038,7 @@ sub author_query : Local : FormConfig
 
     $self->_update_form( $c );
 
-    if ( $show_results )
+    if ( $form->submitted_and_valid() )
     {
         {
             my $compare_media_sets = $c->req->param( 'compare_media_sets' ) eq 'true';
@@ -1138,6 +1138,10 @@ sub author_query : Local : FormConfig
             $c->stash->{ word_cloud }            = $word_cloud;
             $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
         }
+    }
+    elsif ($form->has_errors() )
+    {
+      $c->stash->{error_message} = "Form has errors";
     }
 
     $c->stash->{ template } = 'zoe_website_template/author_query.tt2';
