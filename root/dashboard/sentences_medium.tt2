@@ -10,6 +10,10 @@
 [% title = 'Sentences in ' _ medium_name _ ' Including "' _ term _ '" (' _ translated_term _ ') for the Week of ' _ date %]
 [% END %]
 
+[% IF authors_id %]
+[% title = title _ ' authors id: ' _ authors_id %]
+[% END %]
+
 [% INCLUDE dashboard/header.tt2 %]
 [% IF ! c.flash.translate %]
 [% params.translate = 1%]
