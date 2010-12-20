@@ -1068,7 +1068,7 @@ sub author_query : Local : FormConfig
 
                 my $authors_id1 = $c->req->param( 'authors_id1' );
 
-		die "authors_id1 param is missing" unless $authors_id1;
+                die "authors_id1 param is missing" unless $authors_id1;
 
                 my $words = $self->_get_words_for_media_set( $c, 1, $authors_id1 );
                 print_time( "got words" );
@@ -1088,7 +1088,8 @@ sub author_query : Local : FormConfig
 
                 my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-                $word_cloud = $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic );
+                $word_cloud =
+                  $self->get_word_cloud( $c, $dashboard, $words, $media_set, $date, $dashboard_topic, $authors_id1 );
 
                 print_time( "got word cloud" );
 
@@ -1139,9 +1140,9 @@ sub author_query : Local : FormConfig
             $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
         }
     }
-    elsif ($form->has_errors() )
+    elsif ( $form->has_errors() )
     {
-      $c->stash->{error_message} = "Form has errors: \n " . Dumper([$form->get_errors()]);
+        $c->stash->{ error_message } = "Form has errors: \n " . Dumper( [ $form->get_errors() ] );
     }
 
     $c->stash->{ template } = 'zoe_website_template/author_query.tt2';
@@ -1170,9 +1171,11 @@ sub _translate_word_list
 # the given term
 sub get_word_cloud
 {
-    my ( $self, $c, $dashboard, $words, $media_set, $date, $dashboard_topic ) = @_;
+    my ( $self, $c, $dashboard, $words, $media_set, $date, $dashboard_topic, $authors_id ) = @_;
 
     my $cloud = HTML::TagCloud->new;
+
+    $authors_id ||= '';
 
     my $dashboard_topics_id = $dashboard_topic ? $dashboard_topic->{ dashboard_topics_id } : undef;
 
@@ -1185,7 +1188,8 @@ sub get_word_cloud
                 date                => $date,
                 stem                => $word->{ stem },
                 term                => $word->{ term },
-                dashboard_topics_id => $dashboard_topics_id
+                dashboard_topics_id => $dashboard_topics_id,
+                authors_id          => $authors_id,
             }
         );
 
@@ -1880,6 +1884,8 @@ sub sentences_medium : Local
     my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
     my $term     = $c->req->param( 'term' )     || die( 'no term' );
 
+    my $authors_id = $c->req->param( 'authors_id' ) || 0;
+
     my $translate = $self->_set_translate_state( $c );
 
     my $date_string = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
@@ -1890,15 +1896,34 @@ sub sentences_medium : Local
     my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
-    ( $medium->{ stem_percentage } ) = $c->dbis->query(
-        "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float )  as stem_percentage " .
-          "  from daily_words d, total_daily_words t, media_sets ms " .
-          "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and " .
-          "    d.$dashboard_topic_clause and t.$dashboard_topic_clause and " .
-          "    d.media_sets_id = ms.media_sets_id and ms.media_id = ? and " .
-"    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
-          . "    d.stem = ? ",
-        $media_id, $date_string, $date_string, $stem )->flat;
+    my $stem_percentage;
+
+    if ( !$authors_id )
+    {
+        ( $stem_percentage ) = $c->dbis->query(
+            "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float )  as stem_percentage "
+              . "  from daily_words d, total_daily_words t, media_sets ms "
+              . "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and "
+              . "    d.$dashboard_topic_clause and t.$dashboard_topic_clause and "
+              . "    d.media_sets_id = ms.media_sets_id and ms.media_id = ? and "
+              . "    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
+              . "    d.stem = ? ",
+            $media_id, $date_string, $date_string, $stem )->flat;
+    }
+    else
+    {
+        ( $stem_percentage ) = $c->dbis->query(
+            "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float )  as stem_percentage "
+              . "  from daily_author_words d, total_daily_author_words t, media_sets ms "
+              . "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and "
+              . "    d.authors_id = t.authors_id   and d.authors_id = ? and                                         "
+              . "    d.media_sets_id = ms.media_sets_id and ms.media_id = ? and "
+              . "    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
+              . "    d.stem = ? ",
+            $authors_id, $media_id, $date_string, $date_string, $stem )->flat;
+    }
+
+    $medium->{ stem_percentage } = $stem_percentage;
 
     # get the sentences in chunks of a day apiece so that we can quit early if we get MAX_MEDIUM_SENTENCES
     my $sentences = [];
@@ -1952,6 +1977,7 @@ sub sentences_medium : Local
     $c->stash->{ params }          = $c->req->params;
     $c->stash->{ template }        = 'dashboard/sentences_medium.tt2';
     $c->stash->{ stories }         = $stories;
+    $c->stash->{ authors_id }      = $authors_id;
 }
 
 # list the sentence counts for each medium in the media set
@@ -1969,6 +1995,8 @@ sub sentences : Local
     my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $dashboard_topics_id );
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
+    my $authors_id = $c->req->param( 'authors_id' ) || 0;
+
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
     my $media_set = $self->get_media_set_from_params( $c );
@@ -1983,28 +2011,55 @@ sub sentences : Local
                     date                => $date,
                     term                => $term,
                     stem                => $stem,
-                    dashboard_topics_id => $dashboard_topics_id
+                    dashboard_topics_id => $dashboard_topics_id,
+                    authors_id          => $authors_id,
                 }
             )
         );
         return;
     }
 
-    my $media = $c->dbis->query(
-        "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float ) as stem_percentage, " .
-          "    m.media_id, m.name " . "  from daily_words d, total_daily_words t, media m, " .
-          "    media_sets_media_map msmm, media_sets medium_ms " .
-          "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and " .
-          "    d.$dashboard_topic_clause and t.$dashboard_topic_clause and " .
-          "    d.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and " .
-          "    msmm.media_sets_id = ? and m.media_id = medium_ms.media_id and " .
-"    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
-          . "    d.stem = ? "
-          . "  group by m.media_id, m.name "
-          . "  order by stem_percentage desc ",
-        $media_set->{ media_sets_id },
-        $date, $date, $stem
-    )->hashes;
+    my $media;
+    if ( !$authors_id )
+    {
+        $media = $c->dbis->query(
+            "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float ) as stem_percentage, "
+              . "    m.media_id, m.name "
+              . "  from daily_words d, total_daily_words t, media m, "
+              . "    media_sets_media_map msmm, media_sets medium_ms "
+              . "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and "
+              . "    d.$dashboard_topic_clause and t.$dashboard_topic_clause and "
+              . "    d.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and "
+              . "    msmm.media_sets_id = ? and m.media_id = medium_ms.media_id and "
+              . "    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
+              . "    d.stem = ? "
+              . "  group by m.media_id, m.name "
+              . "  order by stem_percentage desc ",
+            $media_set->{ media_sets_id },
+            $date, $date, $stem
+        )->hashes;
+
+    }
+    else
+    {
+        $media = $c->dbis->query(
+            "select ( sum(d.stem_count)::float / sum(t.total_count)::float ) * ( count(*) / 7::float ) as stem_percentage, "
+              . "    m.media_id, m.name "
+              . "  from daily_author_words d, total_daily_author_words t, media m, "
+              . "    media_sets_media_map msmm, media_sets medium_ms "
+              . "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and "
+              . " d.authors_id = t.authors_id and d.publish_day = t.publish_day and      "
+              . "    d.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and "
+              . "    msmm.media_sets_id = ? and m.media_id = medium_ms.media_id and "
+              . "    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
+              . "    d.stem = ? "
+              . "  group by m.media_id, m.name "
+              . "  order by stem_percentage desc ",
+            $media_set->{ media_sets_id },
+            $date, $date, $stem
+        )->hashes;
+
+    }
 
     $c->stash->{ dashboard }       = $dashboard;
     $c->stash->{ dashboard_topic } = $dashboard_topic;
@@ -2013,6 +2068,7 @@ sub sentences : Local
     $c->stash->{ date }            = $date;
     $c->stash->{ stem }            = $stem;
     $c->stash->{ term }            = $term;
+    $c->stash->{ authors_id }      = $authors_id;
 
     $c->stash->{ template } = 'dashboard/sentences.tt2';
 }
