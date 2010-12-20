@@ -43,119 +43,124 @@ sub _get_by_line_from_content
 
     my $node = _find_first_node( $tree, '//meta[@name="byl"]' );
 
+    my $ret;
+
     if ( $node )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="CLMST"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//address[@class="byline author vcard"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//p[@class="byline author vcard"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//p[@class="author vcard"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="byline"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="AUTHOR"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="author"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//span[@class="byline-name"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//span[@class="author"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//a[@class="author"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//a[@class="contributor"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="DCSext.author"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="Search.Author" and @property="og:author"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//meta[@name="Search.Byline"]' ) )
     {
         my $content_attr = $node->attr( 'content' );
-        return $content_attr;
+        $ret = $content_attr;
     }
     elsif ( $node = _find_first_node( $tree, '//h3[@property="foaf:name"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//h3[@class="byline"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//p[@class="byline"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//span[@id="byline"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//a[@id="emailWriter"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//div[@class="byline"]/span[@class="name"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//div[@id="byline"]/a' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//div[@class="byLine" and @id="byLineTag"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//a[@class="personality"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
     elsif ( $node = _find_first_node( $tree, '//div[@id="byline"]' ) )
     {
-        return $node->as_text;
+        $ret = $node->as_text;
     }
      else
     {
         say STDERR "author not found";
-        return;
     }
+
+    $tree->delete;
+
+    return $ret;
 }
 
 sub get_author_from_content
