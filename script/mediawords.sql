@@ -659,6 +659,17 @@ CREATE TABLE daily_author_words (
 create index daily_author_words_media on daily_author_words(publish_day, authors_id, media_sets_id, stem);
 create index daily_author_words_count on daily_author_words(publish_day, authors_id, media_sets_id, stem_count);
 
+create table total_daily_author_words (
+       total_daily_author_words_id  serial          primary key,
+       authors_id                   int             not null references authors on delete cascade,
+       media_sets_id                int             not null references media_sets on delete cascade, 
+       publish_day                  timestamp       not null,
+       total_count                  int             not null
+);
+
+create index total_daily_author_words_authors_id_media_sets_id on total_daily_author_words (authors_id, media_sets_id);
+create index total_daily_author_words_authors_id_media_sets_id_publish_day on total_daily_author_words (authors_id, media_sets_id,publish_day);
+
 create table weekly_author_words (
        weekly_author_words_id       serial          primary key,
        media_sets_id                int             not null references media_sets,

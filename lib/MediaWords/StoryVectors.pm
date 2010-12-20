@@ -590,6 +590,10 @@ sub _update_daily_author_words
     $db->query(
         "delete from daily_author_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
+    $db->query(
+        "delete from total_daily_author_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses"
+    );
+
     my $query = <<"END_SQL";
 INSERT INTO daily_author_words( authors_id     , media_sets_id  , term, stem, stem_count, publish_day)
 SELECT authors_id     , media_sets_id  , term, stem, sum_stem_counts, publish_day
@@ -612,6 +616,12 @@ END_SQL
     $db->query( $query );
 
     say STDERR "Completed query $query";
+
+    $db->query( "insert into total_daily_author_words (authors_id, media_sets_id, publish_day, total_count) " .
+          " select authors_id, media_sets_id, publish_day, sum(stem_count)    " . " from daily_author_words " .
+          " where publish_day = '${sql_date}'::date $update_clauses " .
+          " group by authors_id, media_sets_id, publish_day " );
+
     return 1;
 }
 
