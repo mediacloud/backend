@@ -52,6 +52,17 @@ sub _get_dashboard
     return $dashboard;
 }
 
+sub _get_author_name
+{
+    my ( $self, $c, $authors_id ) = @_;
+
+    return if !$authors_id;
+
+    my $author = $c->dbis->find_by_id( 'authors', $authors_id );
+
+    return $author->{ author_name };
+}
+
 # get list of dates that the dashboard covers
 sub _get_dashboard_dates
 {
@@ -1885,6 +1896,7 @@ sub sentences_medium : Local
     my $term     = $c->req->param( 'term' )     || die( 'no term' );
 
     my $authors_id = $c->req->param( 'authors_id' ) || 0;
+    my $author_name = $self->_get_author_name( $c, $authors_id );
 
     my $translate = $self->_set_translate_state( $c );
 
@@ -1978,6 +1990,7 @@ sub sentences_medium : Local
     $c->stash->{ template }        = 'dashboard/sentences_medium.tt2';
     $c->stash->{ stories }         = $stories;
     $c->stash->{ authors_id }      = $authors_id;
+    $c->stash->{ author_name }     = $author_name;
 }
 
 # list the sentence counts for each medium in the media set
@@ -1996,6 +2009,7 @@ sub sentences : Local
     my $dashboard_topic_clause = $self->get_dashboard_topic_clause( $dashboard_topic );
 
     my $authors_id = $c->req->param( 'authors_id' ) || 0;
+    my $author_name = $self->_get_author_name( $c, $authors_id );
 
     my $date = $self->get_start_of_week( $c, $c->req->param( 'date' ) );
 
@@ -2069,6 +2083,7 @@ sub sentences : Local
     $c->stash->{ stem }            = $stem;
     $c->stash->{ term }            = $term;
     $c->stash->{ authors_id }      = $authors_id;
+    $c->stash->{ author_name }     = $author_name;
 
     $c->stash->{ template } = 'dashboard/sentences.tt2';
 }

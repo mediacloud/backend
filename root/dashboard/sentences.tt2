@@ -1,7 +1,7 @@
 [% term_string = term | translate_if_necessary %]
 [% title = 'Sentences in ' _ media_set.name _ ' Including "' _ term_string _ '" for the Week of ' _ date %]
-[% IF authors_id %]
-[% title = title _ ' authors id: ' _ authors_id %]
+[% IF author_name %]
+[% title = title _ ' -- By ' _ author_name %]
 [% END %]
 [% INCLUDE dashboard/header.tt2 %]
 

@@ -11,7 +11,7 @@
 [% END %]
 
 [% IF authors_id %]
-[% title = title _ ' authors id: ' _ authors_id %]
+[% title = title _ ' -- By ' _ author_name %]
 [% END %]
 
 [% INCLUDE dashboard/header.tt2 %]
