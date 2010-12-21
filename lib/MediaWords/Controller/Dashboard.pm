@@ -1026,10 +1026,14 @@ sub json_author_search : Local
 
     my $term = $c->req->param( 'term' ) || 0;
 
-    $term = '%' . $term . '%';
+    $term = $term . '%';
 
     my $terms =
-      $c->dbis->query( "select authors_id, author_name as label from authors where author_name ilike ? ", $term )->hashes;
+      $c->dbis->query( "select authors_id, author_name as label from authors where author_name like lower(?) OR " .
+          "  lower(split_part(author_name, ' ', 1)) like lower(?)   OR       " .
+          "  lower(split_part(author_name, ' ', 2)) like lower(?)   OR       " .
+          "  lower(split_part(author_name, ' ', 3)) like lower(?)    LIMIT 100     ",
+        $term, $term, $term, $term )->hashes;
 
     #print encode_json($terms);
 
