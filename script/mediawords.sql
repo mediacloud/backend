@@ -628,6 +628,10 @@ CREATE TABLE authors (
     authors_id serial          PRIMARY KEY,
     author_name character varying UNIQUE NOT NULL
 );
+create index authors_name_varchar_pattern on authors(lower(author_name) varchar_pattern_ops);
+create index authors_name_varchar_pattern_1 on authors(lower(split_part(author_name, ' ', 1)) varchar_pattern_ops);
+create index authors_name_varchar_pattern_2 on authors(lower(split_part(author_name, ' ', 2)) varchar_pattern_ops);
+create index authors_name_varchar_pattern_3 on authors(lower(split_part(author_name, ' ', 3)) varchar_pattern_ops);
 
 CREATE TABLE authors_stories_map (
     authors_stories_map_id  serial            primary key,
