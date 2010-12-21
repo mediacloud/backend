@@ -177,6 +177,11 @@ sub get_author_from_content
 
         $author =~ s/^By //i;
         $author = lc( $author );
+	$author =~ s/^posted by\:? //;
+	$author =~ s/^\s*//;
+	$author =~ s/\s*$//;
+	$author =~ s/\s+/ /;
+	$author =~ s/posted by\:? //;
     }
 
     return $author;
