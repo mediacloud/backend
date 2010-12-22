@@ -51,35 +51,6 @@
   </ul>
 </fieldset>
  
-<!-- Old view of sentences:
-
-<fieldset>
- 
-[% FOREACH sentence IN sentences %]
-<p>
-  
-  <b>Story: <a href="[% sentence.url %]">[% sentence.title %]</a></b> <br />
-  
-[% IF c.flash.translate %]
-<b>Original Sentence:</b>
-[% END %]
-
-[% sentence.sentence | html %] <a href="[% sentence.url %]">&gt;</a>
-
-[% IF c.flash.translate %]
-<br/>
-<b>Translated Sentence:</b>
-[% sentence.sentence | translate | html_strip %] <a href="[% sentence.url %]">&gt;</a>
-[% END %]
-
-</p>
-
-
-[% END #[% FOREACH sentence IN sentences %]
-
-
-</fieldset> -->
-
 <script type='text/javacsript'>
   
 </script>
