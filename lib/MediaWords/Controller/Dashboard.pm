@@ -1802,7 +1802,7 @@ sub _set_translate_state
 # if the dashboard_topics_id is set in the user session, restrict to the topic query
 sub get_medium_day_sentences
 {
-    my ( $c, $media_id, $stem, $dashboard_topic, $date_string, $days, $num_sentences ) = @_;
+    my ( $c, $media_id, $stem, $dashboard_topic, $authors_id, $date_string, $days, $num_sentences ) = @_;
 
     if ( $dashboard_topic )
     {
@@ -1819,13 +1819,29 @@ sub get_medium_day_sentences
     }
     else
     {
-        return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
-              "  from story_sentences ss, story_sentence_words ssw, stories s " .
-              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
-              "    and ssw.publish_day = ( ?::date + interval '$days days' ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $num_sentences",
-            $media_id, $stem, $date_string )->hashes;
+
+        if ( !$authors_id )
+        {
+            return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
+                  "  from story_sentences ss, story_sentence_words ssw, stories s " .
+                  "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+                  "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
+                  "    and ssw.publish_day = ( ?::date + interval '$days days' ) " .
+                  "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $num_sentences",
+                $media_id, $stem, $date_string )->hashes;
+        }
+        else
+        {
+            return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
+                  "  from story_sentences ss, story_sentence_words ssw, stories s, authors_stories_map asm " .
+                  "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+                  "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
+"    and ssw.publish_day = ( ?::date + interval '$days days' ) and s.stories_id=a.stories_id and a.authors_id = ?"
+                  . "  order by ss.publish_date, ss.stories_id, ss.sentence asc "
+                  . "  limit $num_sentences",
+                $media_id, $stem, $date_string, $authors_id )->hashes;
+
+        }
     }
 }
 
@@ -1948,7 +1964,7 @@ sub sentences_medium : Local
     for my $days ( 0 .. 6 )
     {
         my $day_sentences =
-          get_medium_day_sentences( $c, $media_id, $stem, $dashboard_topic, $date_string, $days,
+          get_medium_day_sentences( $c, $media_id, $stem, $dashboard_topic, $authors_id, $date_string, $days,
             ( MAX_MEDIUM_SENTENCES - @{ $sentences } ) );
 
         push( @{ $sentences }, @{ $day_sentences } );
