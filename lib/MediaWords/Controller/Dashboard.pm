@@ -2082,7 +2082,7 @@ sub sentences : Local
               . "  from daily_author_words d, total_daily_author_words t, media m, "
               . "    media_sets_media_map msmm, media_sets medium_ms "
               . "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and "
-              . " d.authors_id = t.authors_id and d.publish_day = t.publish_day and      "
+              . " d.authors_id = t.authors_id and d.publish_day = t.publish_day and  d.authors_id=t.authors_id and    "
               . "    d.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and "
               . "    msmm.media_sets_id = ? and m.media_id = medium_ms.media_id and "
               . "    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
