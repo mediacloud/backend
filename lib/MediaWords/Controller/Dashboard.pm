@@ -1870,7 +1870,7 @@ sub _get_medium_day_stories
             $media_id, $stem, $date_string, $dashboard_topic->{ dashboard_topics_id }
         )->hashes;
     }
-    elsif(!$authors_id)
+    elsif ( !$authors_id )
     {
         $stories = $c->dbis->query(
             "select distinct ssw.stories_id, s.title, s.url, s.publish_date
@@ -1972,7 +1972,7 @@ sub sentences_medium : Local
 
     # get the sentences in chunks of a day apiece so that we can quit early if we get MAX_MEDIUM_SENTENCES
     #my $sentences = [];
-    my $stories   = [];
+    my $stories = [];
 
     # for my $days ( 0 .. 6 )
     # {
@@ -2018,7 +2018,6 @@ sub sentences_medium : Local
     $c->stash->{ translated_term } = MediaWords::Util::Translate::translate( $term );
     $c->stash->{ medium }          = $medium;
     $c->stash->{ date }            = $date_string;
-    #$c->stash->{ sentences }       = $sentences;
     $c->stash->{ params }          = $c->req->params;
     $c->stash->{ template }        = 'dashboard/sentences_medium.tt2';
     $c->stash->{ stories }         = $stories;
