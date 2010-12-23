@@ -1798,56 +1798,56 @@ sub _set_translate_state
     return $translate;
 }
 
-# get the sentences that include the given word for the given medium on the given day.
-# if the dashboard_topics_id is set in the user session, restrict to the topic query
-sub get_medium_day_sentences
+# # get the sentences that include the given word for the given medium on the given day.
+# # if the dashboard_topics_id is set in the user session, restrict to the topic query
+# sub get_medium_day_sentences
+# {
+#     my ( $c, $media_id, $stem, $dashboard_topic, $authors_id, $date_string, $days, $num_sentences ) = @_;
+#
+#     if ( $dashboard_topic )
+#     {
+#         return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
+# "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, dashboard_topics dt "
+#               . "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number "
+#               . "    and s.stories_id = ssw.stories_id and ssw.media_id = ? and ssw.stem = ? "
+#               . "    and ssw.publish_day = ( ?::date + interval '$days days' ) "
+#               . "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number "
+#               . "    and sswq.stem = dt.query and dt.dashboard_topics_id = ? "
+#               . "  order by ss.publish_date, ss.stories_id, ss.sentence asc "
+#               . "  limit $num_sentences",
+#             $media_id, $stem, $date_string, $dashboard_topic->{ dashboard_topics_id } )->hashes;
+#     }
+#     else
+#     {
+
+#         if ( !$authors_id )
+#         {
+#             return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
+#                   "  from story_sentences ss, story_sentence_words ssw, stories s " .
+#                   "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+#                   "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
+#                   "    and ssw.publish_day = ( ?::date + interval '$days days' ) " .
+#                   "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $num_sentences",
+#                 $media_id, $stem, $date_string )->hashes;
+#         }
+#         else
+#         {
+#             return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
+#                   "  from story_sentences ss, story_sentence_words ssw, stories s, authors_stories_map asm " .
+#                   "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+#                   "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
+# "    and ssw.publish_day = ( ?::date + interval '$days days' ) and s.stories_id=asm.stories_id and asm.authors_id = ?"
+#                   . "  order by ss.publish_date, ss.stories_id, ss.sentence asc "
+#                   . "  limit $num_sentences",
+#                 $media_id, $stem, $date_string, $authors_id )->hashes;
+
+#         }
+#     }
+# }
+
+sub _get_medium_day_stories
 {
     my ( $c, $media_id, $stem, $dashboard_topic, $authors_id, $date_string, $days, $num_sentences ) = @_;
-
-    if ( $dashboard_topic )
-    {
-        return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
-"  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, dashboard_topics dt "
-              . "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number "
-              . "    and s.stories_id = ssw.stories_id and ssw.media_id = ? and ssw.stem = ? "
-              . "    and ssw.publish_day = ( ?::date + interval '$days days' ) "
-              . "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number "
-              . "    and sswq.stem = dt.query and dt.dashboard_topics_id = ? "
-              . "  order by ss.publish_date, ss.stories_id, ss.sentence asc "
-              . "  limit $num_sentences",
-            $media_id, $stem, $date_string, $dashboard_topic->{ dashboard_topics_id } )->hashes;
-    }
-    else
-    {
-
-        if ( !$authors_id )
-        {
-            return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
-                  "  from story_sentences ss, story_sentence_words ssw, stories s " .
-                  "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                  "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
-                  "    and ssw.publish_day = ( ?::date + interval '$days days' ) " .
-                  "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $num_sentences",
-                $media_id, $stem, $date_string )->hashes;
-        }
-        else
-        {
-            return $c->dbis->query( "select distinct ss.publish_date, ss.stories_id, ss.sentence, s.url " .
-                  "  from story_sentences ss, story_sentence_words ssw, stories s, authors_stories_map asm " .
-                  "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                  "    and s.stories_id = ssw.stories_id " . "    and ssw.media_id = ? " . "    and ssw.stem = ? " .
-"    and ssw.publish_day = ( ?::date + interval '$days days' ) and s.stories_id=asm.stories_id and asm.authors_id = ?"
-                  . "  order by ss.publish_date, ss.stories_id, ss.sentence asc "
-                  . "  limit $num_sentences",
-                $media_id, $stem, $date_string, $authors_id )->hashes;
-
-        }
-    }
-}
-
-sub get_medium_day_stories
-{
-    my ( $c, $media_id, $stem, $dashboard_topic, $date_string, $days, $num_sentences ) = @_;
 
     my $stories = [];
 
@@ -1870,7 +1870,7 @@ sub get_medium_day_stories
             $media_id, $stem, $date_string, $dashboard_topic->{ dashboard_topics_id }
         )->hashes;
     }
-    else
+    elsif(!$authors_id)
     {
         $stories = $c->dbis->query(
             "select distinct ssw.stories_id, s.title, s.url, s.publish_date
@@ -1881,6 +1881,19 @@ sub get_medium_day_stories
             order by s.publish_date asc
             limit $num_sentences",
             $media_id, $stem, $date_string
+        )->hashes;
+    }
+    else
+    {
+        $stories = $c->dbis->query(
+            "select distinct ssw.stories_id, s.title, s.url, s.publish_date
+            from story_sentence_words ssw, stories s, authors_stories_map asm
+            where ssw.media_id=? and ssw.stem=?
+              and ssw.publish_day = ( ?::date + interval '$days days' )
+              and s.stories_id=ssw.stories_id and asm.stories_id=s.stories_id and asm.authors_id=?
+            order by s.publish_date asc
+            limit $num_sentences",
+            $media_id, $stem, $date_string, $authors_id
         )->hashes;
     }
 
@@ -1958,35 +1971,35 @@ sub sentences_medium : Local
     $medium->{ stem_percentage } = $stem_percentage;
 
     # get the sentences in chunks of a day apiece so that we can quit early if we get MAX_MEDIUM_SENTENCES
-    my $sentences = [];
+    #my $sentences = [];
     my $stories   = [];
 
-    for my $days ( 0 .. 6 )
-    {
-        my $day_sentences =
-          get_medium_day_sentences( $c, $media_id, $stem, $dashboard_topic, $authors_id, $date_string, $days,
-            ( MAX_MEDIUM_SENTENCES - @{ $sentences } ) );
+    # for my $days ( 0 .. 6 )
+    # {
+    #     my $day_sentences =
+    #       get_medium_day_sentences( $c, $media_id, $stem, $dashboard_topic, $authors_id, $date_string, $days,
+    #         ( MAX_MEDIUM_SENTENCES - @{ $sentences } ) );
 
-        push( @{ $sentences }, @{ $day_sentences } );
+    #     push( @{ $sentences }, @{ $day_sentences } );
 
-        if ( @{ $sentences } >= MAX_MEDIUM_SENTENCES )
-        {
-            last;
-        }
+    #     if ( @{ $sentences } >= MAX_MEDIUM_SENTENCES )
+    #     {
+    #         last;
+    #     }
 
-        # get title for each story
-        for my $sentence ( @{ $sentences } )
-        {
-            my $id    = $sentence->{ stories_id };
-            my $title = $c->dbis->query( "select title from stories where stories_id=$id" )->flat->[ 0 ];
-            $sentence->{ title } = $title;
-        }
-    }
+    #     # get title for each story
+    #     for my $sentence ( @{ $sentences } )
+    #     {
+    #         my $id    = $sentence->{ stories_id };
+    #         my $title = $c->dbis->query( "select title from stories where stories_id=$id" )->flat->[ 0 ];
+    #         $sentence->{ title } = $title;
+    #     }
+    # }
 
     for my $days ( 0 .. 6 )
     {
         my $day_stories =
-          get_medium_day_stories( $c, $media_id, $stem, $dashboard_topic, $date_string, $days,
+          _get_medium_day_stories( $c, $media_id, $stem, $dashboard_topic, $authors_id, $date_string, $days,
             ( MAX_MEDIUM_SENTENCES - @{ $stories } ) );
 
         push( @{ $stories }, @{ $day_stories } );
@@ -2005,7 +2018,7 @@ sub sentences_medium : Local
     $c->stash->{ translated_term } = MediaWords::Util::Translate::translate( $term );
     $c->stash->{ medium }          = $medium;
     $c->stash->{ date }            = $date_string;
-    $c->stash->{ sentences }       = $sentences;
+    #$c->stash->{ sentences }       = $sentences;
     $c->stash->{ params }          = $c->req->params;
     $c->stash->{ template }        = 'dashboard/sentences_medium.tt2';
     $c->stash->{ stories }         = $stories;
@@ -2082,14 +2095,14 @@ sub sentences : Local
               . "  from daily_author_words d, total_daily_author_words t, media m, "
               . "    media_sets_media_map msmm, media_sets medium_ms "
               . "  where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and "
-              . " d.authors_id = t.authors_id and d.publish_day = t.publish_day and  d.authors_id=t.authors_id and    "
+              . " d.authors_id = t.authors_id and d.publish_day = t.publish_day and  d.authors_id=t.authors_id and   d.authors_id = ?  and"
               . "    d.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and "
               . "    msmm.media_sets_id = ? and m.media_id = medium_ms.media_id and "
               . "    t.publish_day between date_trunc('week', ?::date) and ( date_trunc('week', ?::date) + interval '6 days' ) and "
               . "    d.stem = ? "
               . "  group by m.media_id, m.name "
               . "  order by stem_percentage desc ",
-            $media_set->{ media_sets_id },
+            $authors_id, $media_set->{ media_sets_id },
             $date, $date, $stem
         )->hashes;
 
