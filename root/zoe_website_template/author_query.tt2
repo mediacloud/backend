@@ -87,35 +87,10 @@ margin : 0;
         $('#medium_name2').autocomplete(data, { minChars: 0, autoFill: true  } );
 
        $('#authors_id1').hide();
-        $('#author_name1').autocomplete( { source : "[% c.uri_for('/dashboard/json_author_search') %]" ,
-   
-   change: function(event, ui) {  
-      //alert('change event');
-      if (ui.item) {
-      //alert('autocompleted ' + ui.item.label + ' ' + ui.item.authors_id);
-      $('#authors_id1').val(ui.item.authors_id);
-   }
-   else
-   {
-      $('#authors_id1').val('');
-      $(this).val('');
-      //alert('no item');
-   }
-   },
-  select: function(event, ui) {  
-      //alert('select event');
-      if (ui.item) {
-      //alert('autocompleted ' + ui.item.label + ' ' + ui.item.authors_id);
-      $('#authors_id1').val(ui.item.authors_id);
-   }
-   else
-   {
-      $('#authors_id1').val('');
-      $(this).val('');
-      //alert('no item');
-   }
-   }
-});
+        $('#author_name1').autocomplete(
+   [% INCLUDE 'zoe_website_template/author_jquery_ui_autocomplete_options.tt2' %]
+   );
+
         $('#media_query_form').validate({
            rules: {
               media_sets_id1: {
