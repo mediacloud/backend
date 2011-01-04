@@ -210,8 +210,8 @@ sub dedup_sentences
     my ( $db, $story, $sentences ) = @_;
 
     if ( !$db->dbh->{ AutoCommit } )
-    {
-        $db->query( "lock story_sentence_counts in row exclusive mode" );
+    {    
+        $db->query( "lock table story_sentence_counts in row exclusive mode" );
     }
 
     my $deduped_sentences = [];
