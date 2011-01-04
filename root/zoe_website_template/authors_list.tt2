@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<link rel="stylesheet" type="text/css" href="/include/media_cloud_rough.css"/>
+
+<style type="text/css">
+
+xA:link {color: #000000; }
+xA:visited {color: #000000; }
+xA:active {color: #000000; }
+
+#htmltagcloud {
+  text-align:  center; 
+  line-height: 1; 
+}
+a { color: #32588F; text-decoration: none;}
+span.tagcloud0 { font-size: 12px;}
+span.tagcloud1 { font-size: 13px;}
+span.tagcloud2 { font-size: 14px;}
+span.tagcloud3 { font-size: 15px;}
+span.tagcloud4 { font-size: 16px;}
+span.tagcloud5 { font-size: 17px;}
+span.tagcloud6 { font-size: 18px;}
+span.tagcloud7 { font-size: 19px;}
+span.tagcloud8 { font-size: 20px;}
+span.tagcloud9 { font-size: 21px;}
+span.tagcloud10 { font-size: 22px;}
+span.tagcloud11 { font-size: 23px;}
+span.tagcloud12 { font-size: 24px;}
+span.tagcloud13 { font-size: 25px;}
+span.tagcloud14 { font-size: 26px;}
+span.tagcloud15 { font-size: 27px;}
+span.tagcloud16 { font-size: 28px;}
+span.tagcloud17 { font-size: 29px;}
+span.tagcloud18 { font-size: 30px;}
+span.tagcloud19 { font-size: 31px;}
+span.tagcloud20 { font-size: 32px;}
+span.tagcloud21 { font-size: 33px;}
+span.tagcloud22 { font-size: 34px;}
+span.tagcloud23 { font-size: 35px;}
+span.tagcloud24 { font-size: 36px;}
+
+</style>
+
+<style type="text/css">
+body {
+padding-top : 0; 
+padding-right : 0; 
+padding-bottom : 0; 
+padding-left : 0; 
+border-top-width : 0; 
+border-right-width : 0; 
+border-bottom-width : 0; 
+border-left-width : 0; 
+margin : 0; 
+}</style>
+
+<title>Media Cloud</title>
+<link href="[% c.uri_for('/include/smoothness/jquery-ui-1.8.5.custom.css') %]" rel="stylesheet" type="text/css"/>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
+<!--
+<link rel="stylesheet" href="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.css" type="text/css" />
+<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/autocomplete/jquery.autocomplete.js"></script>
+-->
+ <script type="text/javascript"  src="[% c.uri_for('/include/jquery.openheatmap.js') %]"></script> 
+<!-- <script type="text/javascript" src="http://static.openheatmap.com/scripts/jquery.openheatmap.js"></script> -->
+<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/validate/jquery.validate.js"></script>
+<!-- <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script> -->
+</head>
+
+
+<body>
+<script language="javascript" type="text/javascript">
+   $(document).ready(function() 
+    {
+       $('#authors_id1').hide();
+        $('#author_name1').autocomplete(
+   [% INCLUDE 'zoe_website_template/author_jquery_ui_autocomplete_options.tt2' %]
+   );
+
+        $('#media_query_form').validate({
+           rules: {
+              media_sets_id1: {
+              required: function(element) {
+                 return $('#medium_name1').val() == '';
+                    }
+             },
+              media_sets_id2: {
+                  required: function(element) {
+                   return $('#compare_media_sets').val()=='true' && $('#medium_name2').val() == '';
+                   }
+              }
+          }                               
+   });
+
+        $('#openheatmap_container').insertOpenHeatMap({
+              width: 500,
+              height: 400,
+             // prefer: 'canvas',
+      source: '[% c.uri_for('/include/openheatmap.swf') %]',
+        });
+
+   //swapDIV('CMcontentarea');
+    });
+
+function onError(err)
+{
+   alert(err);
+}
+
+</script>
+
+[% # form.render() %]
+
+[% INCLUDE 'zoe_website_template/header.tt2' %]
+
+  <tr>
+
+    <td>
+  [% form.start %]
+      <input type="hidden" name="show_results" value="true" />
+      <div id="mediacontainer1">
+        <div id="mediaheader1">Media Data Set #1</div>
+        <div id="mediaTime1"> <strong>Date</strong><br />
+        <div id="mediaArea1"> <strong>Author Name</strong><br />
+	  [% form.get_field( 'author_name1')  %]
+	  [% form.get_field( 'authors_id1')  %]
+        </div>
+      </div>
+
+      <div>
+	[% IF error_message %]
+	<p><b>Error:</b>  [% error_message | html_strip %]</p>
+	[% END %]
+      </div>
+      <div style="cursor:pointer;">
+      <div id="submit"><input name="Submit" type="submit" value="submit" />
+      </div>
+      </div>
+      [% form.end() %]
+    </td>
+  </tr>
+  <tr>
+    <td><hr noshade="noshade" size="1" width="100%" style="color:#999999" /></td></tr>
+  <tr>
+    <td><!--This is where the content starts!-->
+
+[% INCLUDE 'zoe_website_template/side_bar.tt2' %]     
+
+            <br/>
+<h2> [% author_name %] </h2>
+            <br/>
+[% IF author_dates_and_media_sets %]
+<ul>
+[% FOREACH date_and_media_set IN author_dates_and_media_sets %]
+[% author_query_params.authors_id1 = date_and_media_set.authors_id %]
+[% author_query_params.date1 = date_and_media_set.publish_week %]
+[% author_query_params.media_sets_id1 = date_and_media_set.media_sets_id %]
+[% author_query_params.author_name1 = author_name %]
+[%IF date_and_media_set.set_type != 'collection' %]
+[% author_query_params.medium_name1 = date_and_media_set.name %]
+[% END %]
+<li><a href="[% c.uri_for('/dashboard/author_query',dashboard.dashboards_id,author_query_params) %]">
+[% date_and_media_set.publish_week %] -  [% date_and_media_set.name %] </a></li>
+[% END %]
+[% END %]
+
+ </div></td>
+        </tr>
+      </table>
+
+      <!--This is where the content ends!--></td>
+  </tr>
+  <tr>
+    <td align="center">All materials Copyright Media Cloud 2010</td>
+  </tr>
+</table>
+</body>
+</html>

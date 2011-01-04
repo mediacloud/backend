@@ -1163,6 +1163,56 @@ sub author_query : Local : FormConfig
     $c->stash->{ template } = 'zoe_website_template/author_query.tt2';
 }
 
+sub authors_list : Local : FormConfig
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
+    my $show_results = $c->req->param( 'show_results' ) || 0;
+
+    my $form = $c->stash->{ form };
+
+    foreach my $element ( @{ $form->get_all_elements() } )
+    {
+        say STDERR "field name :" . $element->name;
+        say STDERR $element->is_field;
+        eval {
+            $element->label( '' );
+            say STDERR "label" . $element->label;
+        };
+        say STDERR Dumper( [ $element->attributes ] );
+    }
+
+    #$self->_update_form( $c );
+
+    if ( $form->submitted() )
+    {
+        my $authors_id1 = $c->req->param( 'authors_id1' );
+
+        die "authors_id1 param is missing" unless $authors_id1;
+
+        my $author_name =
+          pop @{ $c->dbis->query( " SELECT author_name from authors where authors_id = ? ", $authors_id1 )->flat };
+
+        $c->stash->{ author_name } = $author_name;
+
+        my $author_dates_and_media_sets = $c->dbis->query(
+            " SELECT * from media_sets natural join                                        ( " .
+              " SELECT publish_week, media_sets_id, authors_id from top_500_weekly_author_words " .
+              "  where authors_id = ?                                                       " .
+              "   GROUP BY publish_week, media_sets_id, authors_id ) as foo  ORDER BY publish_week, media_sets_id",
+            $authors_id1
+        )->hashes;
+        $c->stash->{ author_dates_and_media_sets } = $author_dates_and_media_sets;
+    }
+    elsif ( $form->has_errors() )
+    {
+        $c->stash->{ error_message } = "Form has errors: \n " . Dumper( [ $form->get_errors() ] );
+    }
+
+    $c->stash->{ template } = 'zoe_website_template/authors_list.tt2';
+}
+
 sub _translate_word_list
 {
     my ( $self, $c, $words ) = @_;
