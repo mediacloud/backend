@@ -587,6 +587,8 @@ sub _update_daily_author_words
     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
+    $update_clauses = '';
+
     $db->query(
         "delete from daily_author_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
 
