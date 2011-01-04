@@ -1,0 +1,38 @@
+      
+      <table width="100%" border="0 green" cellpadding="5" cellspacing="0" >
+        <tr>
+          <td width="25%" align="left" valign="top"><div id="leftcolumn"> <strong>Popular Queries</strong><br />
+              <div id="popular"> This is where a list of popular queries can be dropped in!<br />
+                <a href="link">Item 1</a><br />
+                <a href="link">Item </a>2<br />
+                <a href="link">Item 3</a><br />
+              </div>
+              <strong>This week's report</strong><br />
+              <div id="report"><a href="link">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
+              </div>
+              <strong>Media Cloud</strong><br />
+              <div id="news"><a href="link">This is a link</a> to the news page, Or About us, </div>
+            </div></td>
+          <td align="left" valign="top"><table width="275" border="0" cellspacing="0" cellpadding="2">
+              <tr>
+                <td width="100" align="right" valign="top"><strong>Media Source(s):</strong></td>
+                <td align="left" valign="top">Top 25 Newspapers</td>
+              </tr>
+              <tr>
+                <td align="right" valign="top"><strong>Media Sub-sets: </strong></td>
+                <td align="left" valign="top">None</td>
+              </tr>
+              <tr>
+                <td align="right" valign="top"><strong>Time range</strong>: </td>
+                <td align="left" valign="top">This week</td>
+              </tr>
+              <tr>
+                <td align="right" valign="top"><strong>Area of Coverage:</strong></td>
+                <td align="left" valign="top">All</td>
+              </tr>
+              <tr>
+                <td align="right" valign="top"><strong>Download Data:</strong></td>
+                <td align="left" valign="top"> 
+		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv' | html %]">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=xml' | html %]">XML</a>]</td>
+              </tr>
+            </table>

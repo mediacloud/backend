@@ -133,13 +133,7 @@ function onMapCreated()
 
 [% # form.render() %]
 
-<table width="900" border="0 #CC66CC" align="center" cellpadding="10" cellspacing="0" bgcolor="#FFFFFF">
-  <tr>
-    <td bgcolor="#000000"><span class="Header">Media Cloud</span></td>
-  </tr>
-  <tr>
-    <td align="left" bgcolor="#000000"><font color="#FFFFFF"><a href="link" class="navigation">Home</a> | <a href="link" class="navigation">About</a> | <a href="link" class="navigation">News</a> | <a href="link"  class="navigation">Data Sources</a>| <a href="link"  class="navigation">Weekly Reports</a></font></td>
-  </tr>
+[% INCLUDE 'zoe_website_template/header.tt2' %]
   <tr>
 
 
@@ -228,44 +222,7 @@ function onMapCreated()
     <td><hr noshade="noshade" size="1" width="100%" style="color:#999999" /></td></tr>
   <tr>
     <td><!--This is where the content starts!-->
-      
-      <table width="100%" border="0 green" cellpadding="5" cellspacing="0" >
-        <tr>
-          <td width="25%" align="left" valign="top"><div id="leftcolumn"> <strong>Popular Queries</strong><br />
-              <div id="popular"> This is where a list of popular queries can be dropped in!<br />
-                <a href="link">Item 1</a><br />
-                <a href="link">Item </a>2<br />
-                <a href="link">Item 3</a><br />
-              </div>
-              <strong>This week's report</strong><br />
-              <div id="report"><a href="link">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
-              </div>
-              <strong>Media Cloud</strong><br />
-              <div id="news"><a href="link">This is a link</a> to the news page, Or About us, </div>
-            </div></td>
-          <td align="left" valign="top"><table width="275" border="0" cellspacing="0" cellpadding="2">
-              <tr>
-                <td width="100" align="right" valign="top"><strong>Media Source(s):</strong></td>
-                <td align="left" valign="top">Top 25 Newspapers</td>
-              </tr>
-              <tr>
-                <td align="right" valign="top"><strong>Media Sub-sets: </strong></td>
-                <td align="left" valign="top">None</td>
-              </tr>
-              <tr>
-                <td align="right" valign="top"><strong>Time range</strong>: </td>
-                <td align="left" valign="top">This week</td>
-              </tr>
-              <tr>
-                <td align="right" valign="top"><strong>Area of Coverage:</strong></td>
-                <td align="left" valign="top">All</td>
-              </tr>
-              <tr>
-                <td align="right" valign="top"><strong>Download Data:</strong></td>
-                <td align="left" valign="top"> 
-		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv' | html %]">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=xml' | html %]">XML</a>]</td>
-              </tr>
-            </table>
+[% INCLUDE 'zoe_website_template/side_bar.tt2' %]
             <br/>
             <br/>
             <div id="coveragemap" class="contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
