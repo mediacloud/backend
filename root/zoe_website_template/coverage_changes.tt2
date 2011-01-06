@@ -9,10 +9,10 @@
         "[% medium.name | trim | html %]",
 [% END %]
         ];
-        //TODO migrate this to the JQuery UI api
-        //Write a custom event to ensure that the entered source name is valid
-        $('#medium_name1').autocomplete(data, { minChars: 0, autoFill: true  } );
-        $('#medium_name2').autocomplete(data, { minChars: 0, autoFill: true  } );
+ 
+        $('#medium_name1').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+        $('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+
         $('#media_query_form').validate({
            rules: {
               media_sets_id1: {
