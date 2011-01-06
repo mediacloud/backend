@@ -1,0 +1,14 @@
+         { source: data,
+              change: function(event, ui) {  
+                  if (!ui.item)
+                  {
+                      $(this).val('');
+                  }
+              },
+              select: function(event, ui) {
+                  if (!ui.item)
+                  {
+                      $(this).val('');
+                  }  
+              } 
+	  }
