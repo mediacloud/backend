@@ -60,9 +60,7 @@ margin : 0;
 <title>Media Cloud</title>
 <link href="[% c.uri_for('/include/smoothness/jquery-ui-1.8.5.custom.css') %]" rel="stylesheet" type="text/css"/>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
-<!-- <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script> -->
-<link rel="stylesheet" href="[% c.uri_for('/include/jquery.autocomplete.css') %]" type="text/css" />
- <script type="text/javascript"  src="[% c.uri_for('/include/jquery.autocomplete.js') %]"></script> 
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.openheatmap.js') %]"></script> 
 <!-- <script type="text/javascript" src="http://static.openheatmap.com/scripts/jquery.openheatmap.js"></script> -->
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.validate.js') %]"></script> 
@@ -82,8 +80,8 @@ margin : 0;
         ];
         //TODO migrate this to the JQuery UI api
         //Write a custom event to ensure that the entered source name is valid
-        $('#medium_name1').autocomplete(data, { minChars: 0, autoFill: true  } );
-        $('#medium_name2').autocomplete(data, { minChars: 0, autoFill: true  } );
+        $('#medium_name1').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+        $('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
         $('#media_query_form').validate({
            rules: {
               media_sets_id1: {
