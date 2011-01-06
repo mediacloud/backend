@@ -175,7 +175,7 @@ function onMapCreated()
         </div>
       </div>
       <div id="mediacontainer2">
-        <div id="mediaheader2">Media Data Set #1</div>
+        <div id="mediaheader2">Media Data Set #2</div>
         <div id="mediaTime2"> <strong>Time range</strong><br />
 	  [% form.get_field( 'date2')  %]
           <span class="smaller">A fast explanation here</span>
