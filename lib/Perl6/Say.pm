@@ -25,7 +25,7 @@ sub say {
     my $res = print {$handle} @_, "\n";
     return $res if $res;
     $warning =~ s/[ ]at[ ].*//xms;
-    croak $warning;
+    warn $warning;
 }
 
 # Handle direct calls...
