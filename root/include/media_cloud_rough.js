@@ -16,6 +16,8 @@ function DisplayDIV(d) {
 		 $('#compare').html("Use single Data Source");
 		visible = true;
 		$('#compare_media_sets').val("true");
+		$('#date2').val($('#date1').val());
+		$('#dashboard_topics_id2').val($('#dashboard_topics_id1').val());
 	}
 	else {  //if we're allready viewing both data sets
 	    document.getElementById(d).style.display = "none";

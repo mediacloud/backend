@@ -13,11 +13,12 @@ elements:
 
   - type: Select
     name: dashboard_topics_id1
-    id: dashboard_topics_id1ssfdsdf
+    id: dashboard_topics_id1
     label: topic 1
 
   - type: Select
     name: dashboard_topics_id2
+    id: dashboard_topics_id2
     label: topic 2
 
   - type: Select
@@ -31,6 +32,7 @@ elements:
   - type: Select
     name: date1
     label: Time Range
+    id: date1
 
   - type: Select
     name: data_level
@@ -42,6 +44,7 @@ elements:
   - type: Select
     name: date2
     label: Time Range
+    id: date2
 
   - type: Text
     name: medium_name1
