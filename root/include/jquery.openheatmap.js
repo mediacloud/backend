@@ -750,7 +750,8 @@ function OpenHeatMap(canvas, width, height)
             circle_line_alpha: 1.0,
             circle_line_thickness: 1.0,
             max_fps: 2.0,
-            circle_minimum_radius: 2.0
+            circle_minimum_radius: 2.0,
+            default_pin_image: '/static/images/map_pin.png'
         };
 
         this._lastSetWayIds = {};
@@ -791,6 +792,8 @@ function OpenHeatMap(canvas, width, height)
         this._tooltipColumnIndex = -1;
         
         this._lastAnimationFrameTime = 0;
+        
+        this._externalImages = {};
     };
 
     this.getXYFromLatLon = function(latLon, latLonToXYMatrix) {
@@ -3087,13 +3090,25 @@ function OpenHeatMap(canvas, width, height)
 
     this.createURLForTile = function(latIndex, lonIndex, zoomIndex)
     {
+        var zoomTileCount = (1<<zoomIndex);
+       
+        var trueLonIndex;
+        if (lonIndex<0)
+            trueLonIndex = (zoomTileCount-((-lonIndex)%zoomTileCount));
+        else if (lonIndex>=zoomTileCount)
+            trueLonIndex = (lonIndex%zoomTileCount);
+        else
+            trueLonIndex = lonIndex;
+       
         var result = this._settings.map_server_root;
         result += zoomIndex;
         result += '/';
-        result += lonIndex;
+        result += trueLonIndex;
         result += '/';
         result += latIndex;
         result += '.png';
+        result += '#';
+        result += lonIndex;
 
         return result;	
     };
@@ -3164,12 +3179,8 @@ function OpenHeatMap(canvas, width, height)
         var tileHeightInDegrees = (this._settings.map_tile_height/zoomPixelsPerDegreeLatitude);
 
         var latIndex = ((this.latitudeToMercatorLatitude(lat)-mercatorLatitudeOrigin)/tileHeightInDegrees);
-        latIndex = Math.max(latIndex, 0);
-        latIndex = Math.min(latIndex, (zoomTileCount-1));
         
         var lonIndex = ((lon-this._settings.map_tile_origin_lon)/tileWidthInDegrees);
-        lonIndex = Math.max(lonIndex, 0);
-        lonIndex = Math.min(lonIndex, (zoomTileCount-1));
         
         var result = {
             latIndex: latIndex,
@@ -3876,6 +3887,8 @@ function OpenHeatMap(canvas, width, height)
             result = this.drawPointBlobBitmap(width, height, viewingArea, latLonToXYMatrix, xYToLatLonMatrix);
         else if (pointDrawingShape=='circle')
             result = this.drawPointCircleBitmap(width, height, viewingArea, latLonToXYMatrix, xYToLatLonMatrix);
+        else if (pointDrawingShape=='sprite')
+            result = this.drawPointSpriteBitmap(width, height, viewingArea, latLonToXYMatrix, xYToLatLonMatrix);
         else
             logError('Unknown type in setting point_drawing_shape: "'+pointDrawingShape+'"');
 
@@ -4008,6 +4021,114 @@ function OpenHeatMap(canvas, width, height)
         return result;
     };
 
+    this.drawPointSpriteBitmap = function(width, height, viewingArea, latLonToXYMatrix, xYToLatLonMatrix) {
+        var pixelsPerDegreeLatitude = latLonToXYMatrix.d;
+        var blobRadius = Math.abs(64/pixelsPerDegreeLatitude);
+        var twoBlobRadius = (2*blobRadius);
+        var pointBlobValue = this._settings.point_blob_value;
+        var radiusInPixels = Math.abs(blobRadius*pixelsPerDegreeLatitude);
+        
+        if (this._settings.is_gradient_value_range_set)
+        {
+            var minValue = this._settings.gradient_value_min;
+            var maxValue = this._settings.gradient_value_max;	
+        }
+        else
+        {
+            minValue = this._smallestValue;
+            maxValue = this._largestValue;
+        }
+        if (Math.abs(maxValue-minValue)<0.00001)	
+            minValue = (maxValue-1.0);
+        var valueScale = (1/(maxValue-minValue));	
+        
+        var currentValues = this.getCurrentValues();
+        
+        var hasValues = (this._valueColumnIndex!==-1);
+
+        var foundPoints = [];	
+        for (var index = 0; index<currentValues.length; index+=1)
+        {
+            values = currentValues[index];
+            var lat = values[this._latitudeColumnIndex];
+            var lon = values[this._longitudeColumnIndex];
+            var pointValue;
+            if (hasValues)
+                pointValue = values[this._valueColumnIndex];
+            else
+                pointValue = pointBlobValue;
+            
+            var boundingBox = new Rectangle(lon-blobRadius, lat-blobRadius, twoBlobRadius, twoBlobRadius);
+
+            if (!viewingArea.intersects(boundingBox))
+                continue;
+        
+            if (isNaN(lat)||isNaN(lon)||isNaN(pointValue))
+                continue;
+        
+            foundPoints.push({
+                    "lat": lat,
+                    "lon": lon,
+                    "value": pointValue
+            });
+        }
+            
+        foundPoints.sort(function (a, b) { return b.lat-a.lat; });	
+
+        var defaultImage = this.getExternalImage(this._settings.default_pin_image);
+        
+        var defaultImageWidth = defaultImage.width;
+        var defaultImageHeight = defaultImage.height;
+        
+        var defaultHalfWidth = (defaultImageWidth/2.0);
+        var defaultHalfHeight = (defaultImageHeight/2.0);
+        
+        var intermediate = this.createCanvas(width, height);
+        var context = this.beginDrawing(intermediate);
+
+        for (var index = 0; index<foundPoints.length; index += 1)
+        {
+            var point = foundPoints[index];
+            
+            var center = this.getXYFromLatLon(point, latLonToXYMatrix);
+            pointValue = point.value;
+                        
+            var leftX = (center.x-defaultHalfWidth);
+            var topY = (center.y-defaultHalfHeight);
+
+            if (defaultImage == null)
+                continue;
+            
+            context.drawImage(defaultImage, leftX, topY, defaultImageWidth, defaultImageHeight);
+        }		
+
+        this.endDrawing(context);
+
+        var result = this.createCanvas(width, height);
+        context = this.beginDrawing(result);
+
+        context.drawImage(intermediate.get(0), 0, 0, width, height);
+
+        this.endDrawing(context);
+
+        this._pointBlobStillRendering = false;
+
+        return result;
+    };
+
+    this.getExternalImage = function(url)
+    {
+        if (typeof this._externalImages[url] === 'undefined')
+        {
+            this._externalImages[url] = new UIImage(url, 0, 0);
+        }
+
+        if (this._externalImages[url]._isLoaded == false)
+            return null;
+
+        return this._externalImages[url]._image;
+    };
+    
     this.beginDrawing = function(canvas) {
         if (!canvas)
             canvas = this._canvas;
