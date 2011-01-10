@@ -1,0 +1,20 @@
+
+   map.setSetting('show_map_tiles', true);
+   map.setSetting('information_alpha', 0.8);
+   //map.setSetting('ocean_color', 13689087);
+//map.setSetting('ocean_color', '#ff0000');
+ map.setSetting('world_lat_height', -170.102258);
+ map.setSetting('world_lon_width', 360);
+ map.setWayDefault('color', 16053492);
+ //map.setSetting('gradient_with_alpha', ["#ffd2d2f7","#ff908cf7","#ff1100ff"]);
+ map.setColorGradient(["#ffd2d2f7","#ff908cf7","#ff1100ff"]);
+   //"title_background_color":"#ffffff","title_background_alpha":1,"time_range_start":"2010-05-31","time_range_end":"2010-11-16","force_outlines":false,"show_map_tiles":false,"map_server_root":"http:\/\/a.tile.openstreetmap.org\/","inlay_border_color":"#000000","ocean_color":"#ffffff","information_alpha":1,"show_zoom":true,"allow_pan":true,"point_drawing_shape":"blob","circle_line_color":0,"circle_line_alpha":1,"circle_line_thickness":1,"is_point_blob_radius_in_pixels":false},"way":{"line_thickness":0,"line_color":0,"line_alpha":0,"color":15790320}
+
+   map.setSetting("title_background_color" , "#ffffff" );
+   map.setSetting("title_background_alpha", 1);
+   map.setSetting("force_outlines", false);
+   map.setSetting("ocean_color", "#ffffff");
+  // map.setSetting("credit_text","Word_list");
+ //  map.setSetting("credit_size",15);
+ //  map.setSetting("credit_color","0x000000");
+ //  map.setSetting("credit_background_color","#ffffff");
