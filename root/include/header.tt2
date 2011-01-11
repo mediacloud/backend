@@ -36,6 +36,7 @@
     <link href="/include/clusterstyle.css" rel="stylesheet" type="text/css" />
     <link href="/include/tipsy.css" rel="stylesheet" type="text/css" />
     
+    [% INCLUDE include/word_cloud.css %]
     
     <!--[if IE]>
   <style type="text/css" media="all">
@@ -62,10 +63,7 @@
           <a href="[% c.uri_for('/downloads/list') %]">All Downloads</a>
         </li>
         <li>
-          <a href="[% c.uri_for('/topics/list') %]">Topics</a>
-        </li>
-        <li>
-          <a href="[% c.uri_for('/clusters/list') %]">Clusters</a>
+          <a href="[% c.uri_for('/queries/list') %]">Queries</a>
         </li>
         <li>
           <a href="[% c.uri_for('/dashboards/list') %]">Dashboards</a>
