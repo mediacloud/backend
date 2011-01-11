@@ -36,7 +36,7 @@
 
 <td><a href='[% c.uri_for( '/mediasets/list/' ) _ dashboard.dashboards_id %]'>media sets</a></td>
 
-<td><a href='[% c.uri_for( '/dashboard/list/' )  _ dashboard.dashboards_id %]'>view</a></td>
+<td><a href='[% c.uri_for( '/dashboard/view/' )  _ dashboard.dashboards_id %]'>view</a></td>
 
 </tr>
 
