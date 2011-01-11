@@ -1,0 +1,11 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: term
+    label: term
+    constraints:
+        - Required
+
+  - type: Submit
+    value: Go

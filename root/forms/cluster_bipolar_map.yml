@@ -1,0 +1,59 @@
+auto_fieldset:
+
+elements:
+  - type: Hr
+
+  - type: Text
+    name: start_date_1
+    label: Start Date for First Pole
+    comment: (2008-09-01)
+    constraints:
+        - Required
+
+  - type: Text
+    name: end_date_1
+    label: End Date for First Pole
+    comment: (2008-09-30)
+    constraints:
+        - Required
+    
+  - type: Checkboxgroup
+    name: media_sets_ids_1
+    label: Media Sets for First Pole
+    constraints:
+        - Required
+
+  - type: Checkboxgroup
+    name: dashboard_topics_ids_1
+    label: Dashboard Topics for First Pole
+
+  - type: Hr
+      
+  - type: Text
+    name: start_date_2
+    label: Start Date for Second Pole
+    comment: (2008-09-01)
+    constraints:
+        - Required
+
+  - type: Text
+    name: end_date_2
+    label: End Date for Second Pole
+    comment: (2008-09-30)
+    constraints:
+        - Required
+
+  - type: Checkboxgroup
+    name: media_sets_ids_2
+    label: Media Sets for Second Pole
+    constraints:
+        - Required
+
+  - type: Checkboxgroup
+    name: dashboard_topics_ids_2
+    label: Dashboard Topics for Second Pole
+
+  - type: Hr
+
+  - type: Submit
+    value: Create
