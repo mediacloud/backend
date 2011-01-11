@@ -4,11 +4,6 @@ method: get
 
 elements:
   - type: Hidden
-    name: compare_media_sets
-    id: compare_media_sets
-    default: false
-
-  - type: Hidden
     name: show_results
 
   - type: Select
@@ -17,22 +12,13 @@ elements:
     label: topic 1
 
   - type: Select
-    name: dashboard_topics_id2
-    id: dashboard_topics_id2
-    label: topic 2
-
-  - type: Select
     name: media_sets_id1
-    options:
-
-  - type: Select
-    name: media_sets_id2
     options:
 
   - type: Select
     name: date1
     label: Time Range
-    id: date1
+    id: start_date1
 
   - type: Select
     name: data_level
@@ -44,31 +30,12 @@ elements:
   - type: Select
     name: date2
     label: Time Range
-    id: date2
+    id: end_date1
 
   - type: Text
     name: medium_name1
     id: medium_name1
     label: Medium Name
-
-  - type: Text
-    name: medium_name2
-    id: medium_name2
-    label: Medium Name
-
-  - type: Text
-    name: name
-    label: Name
-    comment: Title of topic
-    constraints:
-        - Required
-
-  - type: Text
-    name: compare_media_sets
-    label: Start Date
-    comment: (2008-09-01)
-    constraints:
-        - Required
 
 
   - type: Submit
