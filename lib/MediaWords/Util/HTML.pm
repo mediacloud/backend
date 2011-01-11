@@ -35,6 +35,11 @@ sub html_strip
     # This appears to be necessary on Perl 5.8 but not on 5.10.
     #
 
+    if ( !$_[0] )
+    {
+        return undef;
+    }
+
     if ( ( length( $_[ 0 ] ) > 14000 ) )
     {
         my $max_segment_length = 14000;
@@ -152,20 +157,6 @@ sub html_strip_encoding_fix
     #utf8::decode(utf8::encode($decoded_text));
     #say STDERR Dump($decoded_text);
     return $decoded_text;
-}
-
-# A custom string escape for JavaScript
-sub javascript_escape
-{
-    use MediaWords::Util::HTML;
-
-    my ( $s ) = @_;
-
-    $s = MediaWords::Util::HTML::html_strip( $s );
-
-    $s =~ s/'/\\'/g;
-
-    return $s;
 }
 
 1;
