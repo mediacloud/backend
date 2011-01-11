@@ -76,6 +76,19 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
+
+create table queries (
+    queries_id              serial              primary key,
+    start_date              date                not null,
+    end_date                date                not null,
+    generate_page           boolean             not null,
+    creation_date           timestamp           not null default now(),
+    description             text                null
+);
+
+create index queries_creation_date on queries (creation_date);
+create unique index queries_hash on queries ( md5( description ) );
+
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
 	queries_id              int             not null references queries,
@@ -84,6 +97,43 @@ create table media_cluster_runs (
 );
 
 alter table media_cluster_runs add constraint media_cluster_runs_state check (state in ('pending', 'executing', 'completed'));
+
+create table media_clusters (
+	media_clusters_id		serial	primary key,
+	media_cluster_runs_id	int	    not null references media_cluster_runs on delete cascade,
+	description             text    null,
+	centroid_media_id       int     null references media on delete cascade
+);
+CREATE INDEX media_clusters_runs_id on media_clusters(media_cluster_runs_id);
+   
+/* 
+sets of media sources that should appear in the dashboard
+
+the contents of the row depend on the set_type, which can be one of:
+medium -- a single medium (media_id)
+collection -- all media associated with the given tag (tags_id)
+cluster -- all media within the given clusters (clusters_id)
+
+see the check constraint for the definition of which set_type has which rows set
+*/
+create table media_sets (
+    media_sets_id               serial      primary key,
+    name                        text        not null,
+    set_type                    text        not null,
+    media_id                    int         references media on delete cascade,
+    tags_id                     int         references tags on delete cascade,
+    media_clusters_id           int         references media_clusters on delete cascade,
+    creation_date               timestamp   default now(),
+    vectors_added               boolean     default false
+);
+    
+create table queries_media_sets_map (
+    queries_id              int                 not null references queries on delete cascade,
+    media_sets_id           int                 not null references media_sets on delete cascade
+);
+
+create index queries_media_sets_map_query on queries_media_sets_map ( queries_id );
+create index queries_media_sets_map_media_set on queries_media_sets_map ( media_sets_id );
 
 create table media_cluster_maps (
     media_cluster_maps_id       serial          primary key,
@@ -108,14 +158,6 @@ create table media_cluster_map_poles (
 );
 
 create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
-
-create table media_clusters (
-	media_clusters_id		serial	primary key,
-	media_cluster_runs_id	int	    not null references media_cluster_runs on delete cascade,
-	description             text    null,
-	centroid_media_id       int     null references media on delete cascade
-);
-CREATE INDEX media_clusters_runs_id on media_clusters(media_cluster_runs_id);
 
 create table media_clusters_media_map (
     media_clusters_media_map_id     serial primary key,
@@ -168,29 +210,7 @@ create table media_cluster_zscores (
   external_similarity       float  not null     
 );
 
-   
-/* 
-sets of media sources that should appear in the dashboard
-
-the contents of the row depend on the set_type, which can be one of:
-medium -- a single medium (media_id)
-collection -- all media associated with the given tag (tags_id)
-cluster -- all media within the given clusters (clusters_id)
-
-see the check constraint for the definition of which set_type has which rows set
-*/
-create table media_sets (
-    media_sets_id               serial      primary key,
-    name                        text        not null,
-    set_type                    text        not null,
-    media_id                    int         references media on delete cascade,
-    tags_id                     int         references tags on delete cascade,
-    media_clusters_id           int         references media_clusters on delete cascade,
-    creation_date               timestamp   default now(),
-    vectors_added               boolean     default false
-);
-  
-alter table media_cluster_runs add constraint media_cluster_runs_media_set_fk foreign key ( media_sets_id ) references media_sets;
+-- alter table media_cluster_runs add constraint media_cluster_runs_media_set_fk foreign key ( media_sets_id ) references media_sets;
   
 alter table media_sets add constraint dashboard_media_sets_type
 check ( ( ( set_type = 'medium' ) and ( media_id is not null ) )
@@ -670,27 +690,7 @@ CREATE TABLE authors_stories_queue (
     stories_id int                not null references stories on delete cascade,
     state      authors_stories_queue_type not null
 );
-
-create table queries (
-    queries_id              serial              primary key,
-    start_date              date                not null,
-    end_date                date                not null,
-    generate_page           boolean             not null,
-    creation_date           timestamp           not null default now(),
-    description             text                null
-);
-
-create index queries_creation_date on queries (creation_date);
-create unique index queries_hash on queries ( md5( description ) );
-    
-create table queries_media_sets_map (
-    queries_id              int                 not null references queries on delete cascade,
-    media_sets_id           int                 not null references media_sets on delete cascade
-);
-
-create index queries_media_sets_map_query on queries_media_sets_map ( queries_id );
-create index queries_media_sets_map_media_set on queries_media_sets_map ( media_sets_id );
-    
+   
 create table queries_dashboard_topics_map (
     queries_id              int                 not null references queries on delete cascade,
     dashboard_topics_id     int                 not null references dashboard_topics on delete cascade
