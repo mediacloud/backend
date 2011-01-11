@@ -33,6 +33,7 @@
               <tr>
                 <td align="right" valign="top"><strong>Download Data:</strong></td>
                 <td align="left" valign="top"> 
-		  [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv' | html %]">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/',dashboard.dashboards_id,c.req.parameters ) _ '&format=xml' | html %]">XML</a>]</td>
+[<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'csv' }) %]">CSV</a>] 
+[<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'xml' }) %]">XML</a>] 
               </tr>
             </table>
