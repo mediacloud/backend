@@ -632,7 +632,7 @@ sub _update_daily_country_counts
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
-    say STDERR "aggregate: _update_daily_country_counts $sql_date";
+    # say STDERR "aggregate: _update_daily_country_counts $sql_date";
 
     #it should be very rare for there to be no data on a given date that's being aggregated
     my ( $daily_words_exist ) =
@@ -647,8 +647,8 @@ sub _update_daily_country_counts
     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
-    say STDERR
-      "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses";
+    # say STDERR
+    #   "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses";
 
     $db->query(
         "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
@@ -679,7 +679,7 @@ sub _update_daily_country_counts
 
             my $country_data_base_value = MediaWords::Util::Countries::get_country_data_base_value( $country );
 
-            say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'";
+            # say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'";
             my $query =
               "INSERT INTO   daily_country_counts ( media_sets_id, publish_day, country, country_count ) " .
               "SELECT media_sets_id, publish_day, ?, COUNT(*) FROM              " .
@@ -767,7 +767,7 @@ sub _update_daily_country_counts
 #say STDERR "Query:\n" . "$query_2";
 #say STDERR " $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
 
-            say STDERR "_update_daily_country_counts  $sql_date  '$dashboard_topic->{ query }' '$country_data_base_value'";
+            # say STDERR "_update_daily_country_counts  $sql_date  '$dashboard_topic->{ query }' '$country_data_base_value'";
 
             $db->query(
                 $query_2, $country_data_base_value,
