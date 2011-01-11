@@ -16,7 +16,7 @@ sub list : Local
     $dashboards_id || die( "no dashboards_id in path" );
 
     my $media_sets = $c->dbis->query(
-        "select ms.*, mcr.media_cluster_runs_id, mcr.description as cluster_run_name, dms.dashboard_media_sets_id " .
+        "select ms.*, mcr.media_cluster_runs_id, mcr.queries_id as cluster_run_name, dms.dashboard_media_sets_id " .
           "  from media_sets ms left join dashboard_media_sets dms on ( ms.media_sets_id = dms.media_sets_id ) " .
           "    left join media_cluster_runs mcr on ( dms.media_cluster_runs_id = mcr.media_cluster_runs_id ) " .
           "  where ms.set_type = 'collection' and dms.dashboards_id = ? " . "  order by media_sets_id",
