@@ -36,7 +36,11 @@ sub extract_text
 
     while ( 1 )
     {
-        print STDERR "[$process_num] find new downloads ...\n";
+        my ( $num_downloads ) = $db->query(
+            "SELECT count(*) from downloads d " . 
+            "  where d.extracted='f' and d.type='content' and d.state='success' " )->flat;
+
+        print STDERR "[$process_num] find new downloads ($num_downloads remaining) ...\n";
 
         my $downloads = $db->query(
             "SELECT d.* from downloads d " . "  where d.extracted='f' and d.type='content' and d.state='success' " .
