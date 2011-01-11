@@ -1,5 +1,7 @@
 [% term_string = term | translate_if_necessary %]
-[% title = 'Sentences in ' _ media_set.name _ ' Including "' _ term_string _ '" for the Week of ' _ date %]
+
+[% title = 'Sentences including "' _ term _ '" ' _ queries_description %]
+
 [% IF author_name %]
 [% title = title _ ' -- By ' _ author_name %]
 [% END %]
@@ -12,7 +14,7 @@
 <ul>
 [% FOREACH medium IN media %]
 
-[% params = { media_id => medium.media_id, term => term, stem => stem, date => date, dashboard_topics_id => dashboard_topic.dashboard_topics_id, authors_id => authors_id, } %]
+[% params = { media_id => medium.media_id, term => term, stem => stem, stem_percentage => medium.stem_percentage, queries_ids => medium.queries_ids, authors_id => authors_id } %]
 [% medium_name = medium.name | translate_if_necessary %]
     
 <li><a href="[% c.uri_for('/dashboard/sentences_medium/' _ dashboard.dashboards_id, params ) %]">[% medium.name | html %]</a> 

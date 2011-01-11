@@ -4,10 +4,10 @@
 [% medium_name = medium.name %]
 [% END %]
 
-[% IF (term == translated_term) %]
-[% title = 'Sentences in ' _ medium_name _ ' Including "' _ term _ '" for the Week of ' _ date %]
+[% IF !translated_term || (term == translated_term) %]
+[% title = 'Sentences including "' _ term _ '" in ' _ medium_name _ " and " _ queries_description %]
 [% ELSE %]
-[% title = 'Sentences in ' _ medium_name _ ' Including "' _ term _ '" (' _ translated_term _ ') for the Week of ' _ date %]
+[% title = 'Sentences including "' _ term _ '" ("' _ translated_term _ '") in ' _ medium_name _ " and " _ queries_description %]
 [% END %]
 
 [% IF authors_id %]
@@ -23,10 +23,12 @@
 <p> <a href="[% c.uri_for( '/dashboard/sentences_medium/' _ dashboard.dashboards_id, params ) %]">Hide translated sentences</a> </p>
 [% END %]
  
+<!--
 <div class="container">
   Turn <a href="#" onclick="$('li').highlight('[% term %]');">on</a> /
        <a href="#" onclick="$('li').unhighlight();">off</a> text highlighting.
 </div>
+-->
 
 <fieldset>
   <p><b>Word Frequency - [% medium.stem_percentage * 100 | format( "%.3f%%" ) %]</b></p>
@@ -39,20 +41,15 @@
   <ul id='stories' class='filetree'>
     [% FOREACH story IN stories %]
     <li class='collapsable'>
-      <b><a href='[% story.url %]'> [% story.title %][% story.media_id %]</a></b>
+      <b><a href='[% story.url %]'> [% story.title %]</a></b>
         <span class='date'>[% story.publish_date %] (expand/collapse)</span><br />
       <ul id='sentences'>
         [% FOREACH sentence IN story.sentences %]
-        <li>[% sentence | html %]</li>
+        <li>[% sentence.sentence | html %]</li>
         [% END %]
       </ul>
     </li>
     [% END %]
   </ul>
 </fieldset>
- 
-<script type='text/javacsript'>
-  
-</script>
-
 [% INCLUDE dashboard/footer.tt2 %]
