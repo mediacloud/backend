@@ -9,14 +9,14 @@ my $tar_file = File::Temp::tmpnam;
 
 my $files = [];
 
-print "writing tar file ...\n";
+print STDERR "writing tar file ...\n";
 
 eval {
     
     for my $i ( 0 .. 100 )
     {
         my $name = "file_$i.txt";
-        my $content = ( $i % 10 ) x ( ( $i + 1 )  * 6789 );
+        my $content = ( $i % $$ ) x ( ( $i + 1 )  * $$ );
 
         my ( $starting_block, $num_blocks ) = Archive::Tar::Indexed::append_file( $tar_file, \$content, $name );
 
