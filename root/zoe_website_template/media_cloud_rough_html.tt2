@@ -64,7 +64,7 @@ function onMapCreated()
 
 
     <td>
-      <form id="media_query_form" action="[% c.uri_for('/dashboard/template_test/') _ dashboard.dashboards_id %]" method="get">
+      <form id="media_query_form" action="[% c.uri_for('/dashboard/view/') _ dashboard.dashboards_id %]" method="get">
       <input type="hidden" name="show_results" value="true" />
       [% form.get_field( 'compare_media_sets')  %]
       <div id="mediacontainer1">
@@ -157,14 +157,25 @@ function onMapCreated()
 [% IF word_cloud %]
 [%- word_cloud -%]
 [% ELSE %]
-This is a Word Cloud! Thats' what goes here.<br/>
-              .<br/>
-              .<br/>
-              .<br/>
-              .<br/>
-              Still a Word Cloud!
+(no data found for word cloud)
+[% END %]
+
+</div>
+<div>
+<span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
+Words [% queries.0.description | html%]
+[% IF queries.1 %]
+<br />
+<span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
+Words [% queries.1.description | html %]
+<br />
+<span style="display:inline-block; width: 10px; height: 10px; background: purple; "></span>
+Words in both queries
 [% END %]
 </div>
+<p>
+    <b>Similarity Score: [% queries.0.similarities.1 | format( "%.3f" ) %]</b>
+</p>
             <div id="CMcontentarea" style="display:none;">
 
 [% IF coverage_map_chart_url %]
@@ -197,9 +208,6 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
       </table>
       
       <!--This is where the content ends!--></td>
-  </tr>
-  <tr>
-    <td align="center">All materials Copyright Media Cloud 2010</td>
   </tr>
 </table>
 </body>
