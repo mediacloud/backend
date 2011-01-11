@@ -7,12 +7,15 @@ use warnings;
 use parent 'Catalyst::Controller';
 
 use MediaWords::Cluster;
+use MediaWords::Cluster::Map;
+use MediaWords::DBI::Queries;
 use MediaWords::Util::Tags;
-use MediaWords::Util::Graph;
+use MediaWords::Util::Timing qw( start_time stop_time );
+use MediaWords::Util::WordCloud;
+
 use Data::Dumper;
 use Perl6::Say;
-
-use MediaWords::Util::Timing qw( start_time stop_time );
+use POSIX;
 
 # Set a threshold for link weight--links won't be displayed if they're less than this
 # This reduces the number of links substantially, making it easier for the client to render
@@ -39,35 +42,51 @@ sub list : Local
     $c->stash->{ template } = 'clusters/list.tt2';
 }
 
-# create a new cluster run, including both creating the media_cluster_runs entry and doing the cluster run
+# create a new cluster run based on the given query, including both creating the media_cluster_runs entry and doing the cluster run
 sub create : Local
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $queries_id ) = @_;
+
+    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
+    
 
     my $form = $c->create_form(
         {
             load_config_file => $c->path_to() . '/root/forms/cluster.yml',
             method           => 'post',
-            action           => $c->uri_for( '/clusters/create' ),
+            action           => $c->uri_for( "/clusters/create/$queries_id" ),
         }
     );
-
+    
     $form->process( $c->request );
 
     if ( !$form->submitted_and_valid() )
     {
+        # gross rule of thumb for optimal number of clusters in kmeans
+        my $num_media = MediaWords::DBI::Queries::get_number_of_media_sources( $c->dbis, $query );
+        $form->get_field( { name => 'num_clusters' } )->default( POSIX::ceil( sqrt( $num_media / 2 ) ) );
+        
         $c->stash->{ form }     = $form;
         $c->stash->{ template } = 'clusters/create.tt2';
         return;
     }
 
-    my $cluster_run =
-      $c->dbis->create_from_request( 'media_cluster_runs', $c->request,
-        [ qw/start_date end_date media_sets_id description num_clusters/ ] );
+    my $cluster_run = $c->dbis->create( 'media_cluster_runs', { 
+        queries_id => $query->{ queries_id },
+        num_clusters => $c->req->param( 'num_clusters' ) } );
 
-    MediaWords::Cluster::execute_and_store_media_cluster_run( $c->dbis, $cluster_run );
+    my $clustering_engine = MediaWords::Cluster->new( $c->dbis, $cluster_run );
+
+    $clustering_engine->execute_and_store_media_cluster_run();
 
     $c->response->redirect( $c->uri_for( '/clusters/view/' . $cluster_run->{ media_cluster_runs_id } ) );
+}
+
+sub _get_media_query
+{
+    my ( $db, $query, $media ) = @_;
+    
+    return MediaWords::DBI::Queries::find_or_create_media_sub_query( $db, $query, [ map { $_->{ media_id } } @{ $media } ] );
 }
 
 # view the results of a cluster run
@@ -75,74 +94,126 @@ sub view : Local
 {
     my ( $self, $c, $cluster_runs_id ) = @_;
 
-    say STDERR "Starting Clusters/view ";
+    my $cluster_run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) || die( "Unable to find run $cluster_runs_id" );
 
-    my $run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) || die( "Unable to find run $cluster_runs_id" );
+    my $cluster_run_query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $cluster_run->{ queries_id } );
 
-    say STDERR "Clusters/view found cluster run";
-
-    my $media_clusters =
-      $c->dbis->query( "select * from media_clusters where media_cluster_runs_id = ?", $cluster_runs_id )->hashes;
+    my $media_clusters = $c->dbis->query( 
+        "select * from media_clusters where media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " .
+        "  order by media_clusters_id" )->hashes;
 
     for my $mc ( @{ $media_clusters } )
     {
-        my $mc_media = $c->dbis->query(
-            "select distinct m.*, mcz.*
-               from media m, media_clusters_media_map mcmm, media_cluster_zscores mcz 
-              where m.media_id = mcmm.media_id
-                and m.media_id = mcz.media_id
-                and mcmm.media_clusters_id = mcz.media_clusters_id
-                and mcmm.media_clusters_id = ?",
-            $mc->{ media_clusters_id }
-        )->hashes;
+        $mc->{ media } = $c->dbis->query(
+            "select distinct m.* from media m, media_clusters_media_map mcmm " .
+            "  where m.media_id = mcmm.media_id and mcmm.media_clusters_id = $mc->{ media_clusters_id }" )->hashes;
 
-        $mc->{ media } = $mc_media;
-
-        $mc->{ internal_features } = $c->dbis->query(
-            "select * from media_cluster_words " . "  where media_clusters_id = ? and internal = 't' " .
-              "  order by weight desc limit 50",
-            $mc->{ media_clusters_id }
-        )->hashes;
-
-        $mc->{ external_features } = $c->dbis->query(
-            "select * from media_cluster_words " . "  where media_clusters_id = ? and internal = 'f' " .
-              "  order by weight desc limit 50",
-            $mc->{ media_clusters_id }
-        )->hashes;
-
+        my $cluster_words = $c->dbis->query(
+            "select *, weight as stem_count from media_cluster_words " . 
+            "  where media_clusters_id = $mc->{ media_clusters_id } and internal = 't' " .
+            "  order by weight desc" )->hashes;
+        
+        $mc->{ query } = _get_media_query( $c->dbis, $cluster_run_query, $mc->{ media } );
+        map { $_->{ query } = _get_media_query( $c->dbis, $cluster_run_query, [ $_ ] ) }@{ $mc->{ media } };
+        
+        my $base_url = "/queries/sentences/$mc->{ query }->{ queries_id }";
+        $mc->{ word_cloud } = MediaWords::Util::WordCloud::get_word_cloud( $c, $base_url, $cluster_words, $mc->{ query } );
     }
 
-    $run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $run->{ tags_id } );
+    $cluster_run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $cluster_run->{ tags_id } );
 
-    my ( $json_string, $stats );
-
-    eval {
-
-    say STDERR "computing force layout";
-
-    my $t0     = start_time( "computing force layout" );
-    my $method = 'graph-layout-aesthetic';
-
-    ( $json_string, $stats ) = MediaWords::Util::Graph::prepare_graph( $media_clusters, $c, $cluster_runs_id, $method );
-    stop_time( "computing force layout", $t0 );
-    say STDERR "finished computing force layout";
-  };
-
-    if ($@)
+    my $cluster_map;
+    if ( my $cluster_maps_id = $c->req->param( 'media_cluster_maps_id' ) )
     {
-	say STDERR "Error preparing graph $@";
-	$c->stash->{ status_msg } = "Error preparing graph $@";
+        $cluster_map = $c->dbis->find_by_id( 'media_cluster_maps', $cluster_maps_id );
     }
+    
+    my $cluster_maps = $c->dbis->query( 
+        "select * from media_cluster_maps where media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " . 
+        "  order by media_cluster_maps_id" )->hashes;
 
-    # MediaWords::Util::GraphLayoutAesthetic::get_node_positions( $media_clusters, $c, $cluster_runs_id );
+    $c->stash->{ clusters }         = $media_clusters;
+    $c->stash->{ cluster_run }      = $cluster_run;
+    $c->stash->{ query }            = $cluster_run_query;
+    $c->stash->{ cluster_maps }     = $cluster_maps;
+    $c->stash->{ cluster_map }      = $cluster_map;
 
-# my ( $json_string, $stats ) = MediaWords::Util::Protovis::prep_nodes_for_protovis( $media_clusters, $c, $cluster_runs_id );
+    $c->stash->{ template }         = 'clusters/view.tt2';
 
-    $c->stash->{ media_clusters } = $media_clusters;
-    $c->stash->{ run }            = $run;
-    $c->stash->{ template }       = 'clusters/view.tt2';
-    $c->stash->{ data }           = $json_string;
-    $c->stash->{ stats }          = $stats;
 }
+
+# create the form for processing a unipolar cluster map
+sub create_polar_map : Local
+{
+    my ( $self, $c, $cluster_runs_id ) = @_;
+    
+    my $cluster_run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) 
+        || die ( "Unable to find cluster run '$cluster_runs_id'" );
+    
+    $cluster_run->{ query } = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $cluster_run->{ queries_id } );
+
+    my $bipolar = $c->req->param( 'bipolar' );
+
+    my $form_config = $bipolar ? 'cluster_bipolar_map.yml' : 'cluster_unipolar_map.yml';
+
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/' . $form_config,
+            method           => 'post',
+            action           => $c->uri_for( "/clusters/create_polar_map/$cluster_runs_id" ),
+        }
+    );
+    
+    my $media_set_options = MediaWords::DBI::Queries::get_media_set_options( $c->dbis );
+    my $dashboard_topic_options = MediaWords::DBI::Queries::get_dashboard_topic_options( $c->dbis );
+    
+    $form->get_fields( { name => 'media_sets_ids_1' } )->[ 0 ]->options( $media_set_options );
+    $form->get_fields( { name => 'dashboard_topics_ids_1' } )->[ 0 ]->options( $dashboard_topic_options );
+        
+    if ( $bipolar )
+    {
+        $form->get_fields( { name => 'media_sets_ids_2' } )->[ 0 ]->options( $media_set_options );
+        $form->get_fields( { name => 'dashboard_topics_ids_2' } )->[ 0 ]->options( $dashboard_topic_options );
+    }
+        
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid() )
+    {
+        $c->stash->{ cluster_run }  = $cluster_run;
+        $c->stash->{ form }         = $form;
+        $c->stash->{ template }     = 'clusters/create_polar_map.tt2';
+        return;
+    }
+    
+    my $queries = [ MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, '_1' ) ];
+    if ( $c->req->param( 'start_date_2' ) )
+    {
+        push( @{ $queries }, MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, '_2' ) );
+    }
+        
+    my $cluster_map = MediaWords::Cluster::Map::generate_cluster_map( $c->dbis, $cluster_run, 'polar', $queries );
+    
+    $c->response->redirect( 
+        $c->uri_for( '/clusters/view/' . $cluster_run->{ media_cluster_runs_id },
+            { media_cluster_maps_id =>  $cluster_map->{ media_cluster_maps_id } } ) );
+    
+}
+
+# create a new cluster map for the given cluster run
+sub create_cluster_map : Local
+{
+    my ( $self, $c, $cluster_runs_id ) = @_;
+
+    my $cluster_run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) 
+        || die ( "Unable to find cluster run '$cluster_runs_id'" );
+    
+    my $cluster_map = MediaWords::Cluster::Map::generate_cluster_map( $c->dbis, $cluster_run, 'cluster' );
+    
+    $c->response->redirect( 
+        $c->uri_for( '/clusters/view/' . $cluster_run->{ media_cluster_runs_id },
+            { media_cluster_maps_id =>  $cluster_map->{ media_cluster_maps_id } } ) );
+}
+
 
 1;
