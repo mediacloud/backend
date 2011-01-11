@@ -118,31 +118,9 @@ function onError(err)
           <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>
-<!--
-        <div id="data_level"> <strong>Data Level</strong><br />
-	  [% form.get_field( 'data_level')  %]
-          <span class="smaller">A fast explanation here</span>
-	  <br />
-        </div>
-	<br />
-        <div id="mediaArea1"> <strong>Area of coverage</strong><br />
-	  [% form.get_field( 'dashboard_topics_id1')  %]
-          <span class="smaller">A fast explanation here</span>
-        </div>
--->
         <div id="mediaArea1"> <strong>Author Name</strong><br />
 	  [% form.get_field( 'author_name1')  %]
 	  [% form.get_field( 'authors_id1')  %]
-        </div>
-        <div id="mediaSource1"> <strong>Media Source</strong><br />
-	  [% form.get_field( 'medium_name1')  %]
-          <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
-          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
-          <strong>Set of Media Sources</strong>
-
-	  [% form.get_field( 'media_sets_id1')  %]
-          <span class="smaller">A fast explanation here</span>
-
         </div>
       </div>
 
@@ -167,7 +145,6 @@ function onError(err)
 
             <br/>
             <br/>
-            <div id="coveragemap" class="contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
             <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
             <div id="WCcontentarea">
 [% IF word_cloud %]
