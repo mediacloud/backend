@@ -1,0 +1,66 @@
+[% IF c.flash.translate %]
+[% medium_name = medium.name | translate_if_necessary %]
+[% ELSE %]
+[% medium_name = medium.name %]
+[% END %]
+
+[% IF !term %]
+[% title = 'Sentences ' _ queries_description %]
+[% ELSIF !translated_term || (term == translated_term) %]
+[% title = 'Sentences including "' _ term _ '" ' _ queries_description %]
+[% ELSE %]
+[% title = 'Sentences including "' _ term _ '" ("' _ translated_term _ '")  ' _ queries_description %]
+[% END %]
+
+[% INCLUDE include/header.tt2 %]
+
+<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script>
+<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/treeview/jquery.treeview.js"></script>
+
+<script>
+  $(document).ready(function(){
+    $("#stories").treeview({
+      animated: "fast", collapsed: false, control: "#controller"
+    });
+    $("stories").treeview.collapse;
+  });
+</script>
+
+[% IF ! c.flash.translate %]
+[% params.translate = 1%]
+<p> <a href="[% c.uri_for( '/queries/sentences/' _ query.queries_id, params ) %]">Show translated sentences</a> </p>
+[% ELSE %]
+[% params.translate = 0 %]
+<p> <a href="[% c.uri_for( '/queries/sentences/' _ query.queries_id, params ) %]">Hide translated sentences</a> </p>
+[% END %]
+ 
+<!--
+<div class="container">
+  Turn <a href="#" onclick="$('li').highlight('[% term %]');">on</a> /
+       <a href="#" onclick="$('li').unhighlight();">off</a> text highlighting.
+</div>
+-->
+
+<fieldset>
+  <div id="controller" class="container">
+    <a title="Collapse entire tree" href="#">Collapse All</a> | 
+    <a title="Expand entire tree" href="#">Expand All</a>
+  </div>
+  
+  <ul id='stories' class='filetree'>
+    [% FOREACH story IN stories %]
+    <li class='collapsable'>
+      <b>[% story.medium.name %]</b> : <a href='[% story.url %]'>[% story.title %]</a>
+        <span class='date'>[% story.publish_date %]</span><br />
+      <ul id='sentences'>
+        [% FOREACH sentence IN story.sentences %]
+        <li>[% sentence.sentence | html %]</li>
+        [% END %]
+      </ul>
+    </li>
+    [% END %]
+  </ul>
+</fieldset>
+
+
+[% INCLUDE include/footer.tt2 %]

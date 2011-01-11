@@ -1,0 +1,14 @@
+[% title = 'View Terms ' _ terms_string _ ' ' _ query.description %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+<img src="[% term_chart_url %]" />
+
+<p>
+<a href="[% c.uri_for( '/queries/terms/' _ query.queries_id, { 'csv' => 1, 'terms' => terms_string } ) %]">
+download csv of term counts
+</a>
+</p>
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]

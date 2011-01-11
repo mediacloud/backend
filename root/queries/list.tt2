@@ -1,0 +1,48 @@
+[% title = 'Queries List' %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<p>
+<a href="[% c.uri_for( '/queries/create' )%]">Create New Query</a>
+</p>
+
+</fieldset>
+
+<p />
+
+<table>
+
+<tr>
+<th>start date</th>
+<th>end date</th>
+<th>media sets</th>
+<th>dashboard topics</th>
+<th>view query</th>
+</tr>
+
+[% FOREACH query IN queries -%]
+
+<tr [% IF even %]id="even"[% END %]>
+
+<td>[% query.start_date | html %]</td>
+
+<td>[% query.end_date | html %]</td>
+
+<td>[% query.media_sets_names.join('; ') %]</td>
+
+<td>[% query.dashboard_topics_names.join('; ') %]</td>
+
+<td><a href='[% c.uri_for( '/queries/view/' )  _ query.queries_id %]'>view</a></td>
+
+</tr>
+
+[%  SET even = !even %]
+[% END # FOREACH query -%]
+
+</table>
+
+<p>
+</p>
+
+[% INCLUDE include/footer.tt2 %]

@@ -1,0 +1,111 @@
+[% title = 'View Query: words ' _ query.description %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<table>
+
+<tr>
+<th>start date</th>
+<th>end date</th>
+<th>media sets</th>
+<th>dashboard topics</th>
+</tr>
+
+<tr>
+
+<td>[% query.start_date | html %]</td>
+
+<td>[% query.end_date | html %]</td>
+
+<td>[% query.media_sets_names.join('; ') %]</td>
+
+<td>[% query.dashboard_topics_names.join('; ') %]</td>
+
+</tr>
+
+</table>
+
+<p>
+<a href="[% c.uri_for( '/queries/view_media/' _ query.queries_id ) %]">view all media in query</a>
+</p>
+
+</fieldset>
+
+<p/>
+
+<p><b>Word Cloud</b></p>
+
+<fieldset>
+
+[% word_cloud %]
+
+</fieldset>
+
+<p />
+
+<p><b>Term Frequency</b></p>
+
+<fieldset>
+
+[% IF query.dashboard_topics.size > 0 %]
+
+<img src="[% topic_chart_url %]" />
+
+[% END #IF query.dashboard_topics %]
+
+<p><b>generate term frequency chart for a list of terms</b></p>
+
+[% terms_form.render %]
+
+</fieldset>
+
+<p />
+
+<p><b>View Sentences</b></p>
+
+<fieldset>
+
+<p><a href="[% c.uri_for( '/queries/sentences/' _ query.queries_id ) %]">view all sentences within this query</a><p>
+
+<p>or</p>
+
+<p><b>view sentences within this query mentioning a specific term</b></p>
+
+[% sentences_form.render %]
+
+</fieldset>
+
+<p><b>Clustering Runs</b></p>
+
+<p><a href="[% c.uri_for( '/clusters/create/' _ query.queries_id ) %]">generate new cluster run</a></p>
+
+[% IF cluster_runs %]
+
+<table>
+
+<tr>
+<th>number of clusters</th>
+<th>state</th>
+<th>view cluster run</th>
+</tr>
+
+[% FOREACH cluster_run IN cluster_runs %]
+
+<tr>
+
+<td>[% cluster_run.num_clusters %]</td>
+<td>[% cluster_run.state | html %]</td>
+<td><a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id ) %]">view</a></td>
+
+</tr>
+
+[% END #FOREACH cluster_run IN cluster_runs %]
+
+</table>
+
+[% END #IF cluster_runs %]
+
+<p />
+
+[% INCLUDE include/footer.tt2 %]
