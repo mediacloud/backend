@@ -7,8 +7,14 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Data::Dumper;
 use Math::Random;
 use MediaWords::Util::Timing qw( start_time stop_time );
-use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_dot vector_div vector_norm
+use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_cos_sim vector_div vector_norm
   vector_normalize vector_length vector_nnz vector_get vector_set );
+
+# number of times to iterate within each cluster run
+use constant NUM_ITERATIONS => 20;
+
+# number of times to generate a clustering solution
+use constant NUM_CLUSTER_RUNS => 20;
 
 # Dumps the clusters, but not their vectors
 sub _dump_clusters
@@ -45,7 +51,7 @@ sub _assign_nodes
 
         for my $cluster ( @{ $clusters } )
         {
-            my $dp = vector_dot( $node->{ vector }, $cluster->{ centroid } );
+            my $dp = vector_cos_sim( $node->{ vector }, $cluster->{ centroid } );
             if ( $dp >= $node->{ score } )          # must be >= to ensure the score gets updated
             {
                 $node->{ score }   = $dp;
@@ -92,7 +98,7 @@ sub _find_center
             my $max_score = 0;
             for my $node ( @{ $old_cluster->{ nodes } } )
             {
-                my $dp = vector_dot( $node->{ vector }, $avg_vector );
+                my $dp = vector_cos_sim( $node->{ vector }, $avg_vector );
                 if ( $dp > $max_score )
                 {
                     $max_score                          = $dp;
@@ -116,7 +122,6 @@ sub _find_center
 
 sub _k_recurse
 {
-
     # Take in the node list, a bunch of empty clusters with centers, and the number of times left to recurse
     my ( $nodes, $clusters, $num_iterations ) = @_;
 
@@ -189,7 +194,7 @@ sub _seed_clusters_plus_plus
 
             for my $cluster ( @{ $clusters } )
             {
-                my $cluster_sim = vector_dot( $node->{ vector }, $cluster->{ centroid } );
+                my $cluster_sim = vector_cos_sim( $node->{ vector }, $cluster->{ centroid } );
                 $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
             }
 
@@ -270,7 +275,7 @@ sub _seed_clusters_plus_plus2
 
                 for my $cluster ( @{ $new_clusters } )
                 {
-                    my $cluster_sim = vector_dot( $inner_node->{ vector }, $cluster->{ centroid } );
+                    my $cluster_sim = vector_cos_sim( $inner_node->{ vector }, $cluster->{ centroid } );
                     $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
                 }
 
@@ -295,8 +300,12 @@ sub _seed_clusters_plus_plus2
 # Turn the unweidly matrix data structure into the friendlier 'nodes' data structure, with media id labels!
 sub _refactor_matrix_into_nodes
 {
-    my ( $matrix, $criterion_matrix, $row_labels ) = @_;
-
+    my ( $clustering_engine ) = @_;
+    
+    my $matrix = $clustering_engine->sparse_matrix;
+    my $criterion_matrix = $clustering_engine->sparse_matrix;
+    my $row_labels = $clustering_engine->row_labels;
+    
     my $nodes = [];
     for my $i ( 0 .. $#{ $matrix } )
     {
@@ -336,9 +345,9 @@ sub _eval_clusters_i2
         {
             for my $j ( $i .. $#{ $nodes } )
             {
-                $cluster_score += vector_dot( $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector } );
+                $cluster_score += vector_cos_sim( $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector } );
 
-                # $criterion_score += vector_dot( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
+                # $criterion_score += vector_cos_sim( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
             }
         }
 
@@ -358,9 +367,11 @@ sub _eval_clusters_normalized
     my $total_score  = 0;
     my $num_clusters = scalar @{ $clusters };
 
+    return 0 if ( $num_clusters == 1 );
+
     for my $cluster ( @{ $clusters } )
     {
-        my $nodes        = $cluster->{ nodes };
+        my $nodes        = $cluster->{ nodes } || next;
         my $num_nodes    = scalar @{ $nodes };
         my $scale_factor = $num_nodes * ( $num_nodes - 1 );
 
@@ -374,7 +385,7 @@ sub _eval_clusters_normalized
             {
                 for my $j ( $i .. $#{ $nodes } )
                 {
-                    my $dp = vector_dot( $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector } );
+                    my $dp = vector_cos_sim( $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector } );
                     $internal_score += $dp / $scale_factor unless ( $dp == 1 );
                 }
             }
@@ -383,7 +394,7 @@ sub _eval_clusters_normalized
             my $external_score = 0;
             for my $comp_cluster ( @{ $clusters } )
             {
-                my $dp = vector_dot( $centroid, $comp_cluster->{ centroid } );
+                my $dp = vector_cos_sim( $centroid, $comp_cluster->{ centroid } );
                 $external_score += $dp / ( $num_clusters - 1 ) unless ( $dp == 1 );
             }
 
@@ -423,7 +434,9 @@ sub _eval_scores
 # Do a bunch of cluster runs and return the best one
 sub _get_best_cluster_run
 {
-    my ( $nodes, $num_clusters, $num_iterations, $num_cluster_runs ) = @_;
+    my( $clustering_engine, $nodes, $num_iterations, $num_cluster_runs ) = @_;
+
+    my $num_clusters = $clustering_engine->cluster_run->{ num_clusters };
 
     my $best_clusters = {};
     my $best_score    = 0;
@@ -473,7 +486,9 @@ sub _get_best_cluster_run
 #   external_zscores  => [] }
 sub _make_nice_clusters
 {
-    my ( $clusters, $col_labels, $stems ) = @_;
+    my ( $clustering_engine, $clusters ) = @_;
+
+    my $col_labels = $clustering_engine->col_labels;
 
     my $nice_clusters = [];
     for my $cluster ( @{ $clusters } )
@@ -489,23 +504,23 @@ sub _make_nice_clusters
             external_zscores  => []
         };
 
-        # Add "internal features"--just the word frequencies for the centroid
-        my $features = [];
-        for my $key ( @{ vector_nnz $cluster->{ centroid } } )
-        {
-            my $stem    = $col_labels->[ $key ];
-            my $feature = {
-                stem   => $stem,
-                term   => $stems->FETCH( $stem ),
-                weight => vector_get( $cluster->{ centroid }, $key )
-            };
-
-            push @{ $features }, $feature;
-        }
-
-        # Sort the internal features by weight
-        my @all_sorted_features = sort { $b->{ weight } <=> $a->{ weight } } @{ $features };
-        @{ $nice_cluster->{ internal_features } } = @all_sorted_features[ 0 .. 50 ];
+        # # Add "internal features"--just the word frequencies for the centroid
+        # my $features = [];
+        # for my $key ( @{ vector_nnz $cluster->{ centroid } } )
+        # {
+        #     my $stem    = $col_labels->[ $key ];
+        #     my $feature = {
+        #         stem   => $stem,
+        #         term   => $clustering_engine->stem_vector->FETCH( $stem ),
+        #         weight => vector_get( $cluster->{ centroid }, $key )
+        #     };
+        # 
+        #     push @{ $features }, $feature;
+        # }
+        # 
+        # # Sort the internal features by weight
+        # my @all_sorted_features = sort { $b->{ weight } <=> $a->{ weight } } @{ $features };
+        # @{ $nice_cluster->{ internal_features } } = @all_sorted_features[ 0 .. 50 ];
 
         # Add the media IDs and their corresponding scores
         for my $node ( @{ $cluster->{ nodes } } )
@@ -522,17 +537,28 @@ sub _make_nice_clusters
     return $nice_clusters;
 }
 
-# Public function for the module
-# Returns the k-means clusters
+# given the sparse_matrix and row_labels generated by the clustering engine, 
+# execute the kmeans clustering implementation.
+# return the list of clusters.
 sub get_clusters
 {
-    my ( $matrix, $criterion_matrix, $row_labels, $col_labels, $stems, $num_clusters, $num_iterations, $num_cluster_runs ) =
-      @_;
-    die "You can't have more clusters than sources!\n" if ( $num_clusters >= $#{ $matrix } );
+    my ( $clustering_engine ) = @_;
+    
+    if ( $clustering_engine->cluster_run->{ num_clusters } > @{ $clustering_engine->sparse_matrix } )
+    {
+        die "You can't have more clusters than sources";
+    }
 
-    my $nodes = _refactor_matrix_into_nodes( $matrix, $criterion_matrix, $row_labels );
-    my $best_clusters = _get_best_cluster_run( $nodes, $num_clusters, $num_iterations, $num_cluster_runs );
-    my $nice_clusters = _make_nice_clusters( $best_clusters, $col_labels, $stems );
+    my $num_clusters = $clustering_engine->cluster_run->{ num_clusters };
+    my $num_cluster_runs = NUM_CLUSTER_RUNS;
+    if ( $num_clusters < 200 )
+    {
+        $num_cluster_runs *= int( log( 400 ) - log( $num_clusters) );
+    }
+
+    my $nodes = _refactor_matrix_into_nodes( $clustering_engine );
+    my $best_clusters = _get_best_cluster_run( $clustering_engine, $nodes, NUM_ITERATIONS, $num_cluster_runs );
+    my $nice_clusters = _make_nice_clusters( $clustering_engine, $best_clusters );
 
     return $nice_clusters;
 }

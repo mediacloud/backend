@@ -346,9 +346,12 @@ sub _add_cluster_features_from_output_labelled
 #   external_features =>  [ { stem => stem, term => term , weight => weight } ] }
 #
 # uses the cluto command line to run the clustering and parses out the resulting cluster file and summary results
-sub get_clusters
+sub _get_clusters
 {
-    my ( $matrix, $row_labels, $col_labels, $stems, $num_clusters, $num_features ) = @_;
+    my ( $cluster, $matrix, $row_labels, $col_labels ) = @_;
+    
+    my $stems = $cluster->{ stem_vector };
+    my $num_clusters = $cluster->{ cluster_run }->{ num_clusters };
 
     #my $sparse_matrix = _get_sparse_matrix( $matrix );
 
