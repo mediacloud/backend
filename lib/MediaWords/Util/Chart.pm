@@ -2,6 +2,8 @@ package MediaWords::Util::Chart;
 
 use strict;
 
+use Data::Dumper;
+use Time::HiRes;
 use Time::Local;
 use URI::Escape;
 
@@ -9,6 +11,9 @@ use URI::Escape;
 
 # cache google encoding lookup table
 my $_google_chart_simple_encoding_lookup;
+
+my $_start_time;
+my $_last_time;
 
 # INTERNAL FUNCTIONS
 
@@ -48,7 +53,7 @@ sub _add_one_day
 #
 # where dates is a list of dates: [ '2008-08-01', '2008-08-08', '2008-08-15' ]
 # terms is a list of terms: [ 'obama', 'mccain' ]
-# and term_date_counts is a matric of data by term / date: [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
+# and term_date_counts is a matrix of data by term / date: [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
 sub generate_line_chart_url
 {
     my ( $dates, $terms, $term_date_counts ) = @_;
@@ -56,7 +61,7 @@ sub generate_line_chart_url
     my $params = [];
 
     # data scaling
-    my $max = 1;
+    my $max = 0.00001;
     for my $counts ( @{ $term_date_counts } )
     {
         for my $count ( @{ $counts } )
@@ -118,14 +123,59 @@ sub generate_line_chart_url
 
     my $url = 'http://chart.apis.google.com/chart?' . join( '&', @{ $params } );
 
-    #print STDERR "google chart url: $url\n";
-
     return $url;
 }
-use Time::HiRes;
 
-my $_start_time;
-my $_last_time;
+# call generate_line_chart_url above but with easier to generate params in the form of:
+# [ date => <date>, term => <term>, count => <count> ]
+sub generate_line_chart_url_from_dates
+{
+    my ( $date_term_counts, $start_date, $end_date ) = @_;
+    
+    die ( 'no dates' ) if ( !@{ $date_term_counts } );
+    
+    my $date_hash;
+    my $term_hash;
+    for my $d ( @{ $date_term_counts } )
+    {
+        my $date = substr( $d->[ 0 ], 0, 10 );
+        $date_hash->{ $date }->{ $d->[ 1 ] } = $d->[ 2 ];
+        $term_hash->{ $d->[ 1 ] } += $d->[ 2 ];
+    }
+    
+    my $dates = [ sort { $a cmp $b } keys %{ $date_hash } ];
+     
+    # make sure we have an entry for each day from start_date through end_date 
+    unshift( @{ $dates }, $start_date ) if ( $start_date lt $dates->[ 0 ] );         
+    for ( my $i = 0; $dates->[ $i ] lt $end_date ; $i++ )
+    {
+        my $tomorrow = _add_one_day( $dates->[ $i ] );
+
+        if ( $i >= $#{ $dates } ) 
+        {
+            splice( @{ $dates }, $i, 1, $dates->[ $i ], $tomorrow );
+        }
+        elsif ( $tomorrow lt $dates->[ $i + 1 ] )
+        {
+            splice( @{ $dates }, $i, 1, $dates->[ $i ], $tomorrow );
+        }
+    }
+    
+    my $terms = [ sort { $term_hash->{ $b } <=> $term_hash->{ $a } } keys %{ $term_hash } ];
+    
+    my $counts;
+    for my $term ( @{ $terms } )
+    {
+        my $term_counts;
+        for my $date ( @{ $dates } )
+        {
+            push( @{ $term_counts}, $date_hash->{ $date }->{ $term } || 0 );
+        }
+        push( @{ $counts }, $term_counts );
+    }
+    
+    return generate_line_chart_url( $dates, $terms, $counts );
+}
 
 #todo copies print_time live in multiple places so that each one can have its own $_start_time and $_last_time 
 #todo we should merge them together.
