@@ -14,7 +14,7 @@ use PDL::Reduce;
 # Export some of these methods....
 require Exporter;
 our @ISA    = qw(Exporter);
-our @EXPORT = qw( vector_new vector_add vector_dot vector_div vector_norm
+our @EXPORT = qw( vector_new vector_add vector_dot vector_magnitude vector_cos_sim vector_div vector_norm
   vector_normalize vector_length vector_nnz vector_get vector_set vector_string );
 
 sub vector_new
@@ -36,6 +36,21 @@ sub vector_dot
     my ( $v1, $v2 ) = @_;
     my $cos = inner( $v1, $v2 );    # inner product
     return $cos->sclr();            # converts PDL object to Perl scalar
+}
+
+sub vector_magnitude
+{
+    my ( $v ) = @_;
+    
+    return sqrt( sum( $v ** 2 ) );
+}
+
+# return the cos similarity of the two vectors
+sub vector_cos_sim
+{
+    my ( $v1, $v2 ) = @_;
+    
+    return vector_dot( $v1, $v2 ) / ( vector_magnitude( $v1 ) * vector_magnitude( $v2 ) );
 }
 
 # divides each vector entry by a given divisor
@@ -87,7 +102,7 @@ sub vector_get
 sub vector_set
 {
     my ( $v, $pos, $val ) = @_;
-    index( $v, $pos ) .= $val if $val > 0;
+    index( $v, $pos ) .= $val if ( defined( $val) && $val > 0 );
     return $v;
 }
 
