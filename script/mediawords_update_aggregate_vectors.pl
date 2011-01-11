@@ -66,7 +66,7 @@ sub run_daemon
 
     while ( 1 )
     {
-        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '36 hours' )" )->flat;
+        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '12 hours' )" )->flat;
         my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )" )->flat;
         ( $yesterday, $one_month_ago ) = map { substr( $_, 0, 10 ) } ( $yesterday, $one_month_ago );
 
@@ -91,15 +91,18 @@ sub run_daemon
         {
             print STDERR "update_aggregate_vectors: dashboard_topic $dashboard_topic->{ dashboard_topics_id }\n";
 
+            my ( $start_date, $end_date ) = map { substr( $_, 0, 10 ) } 
+                ( $dashboard_topic->{ start_date } , $dashboard_topic->{ end_date } );
+            if ( $end_date gt $yesterday ) 
+            {
+                $end_date = $yesterday;
+            }
+            
             $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
                 $dashboard_topic->{ dashboard_topics_id } );
 
             MediaWords::StoryVectors::update_aggregate_words(
-                $db,
-                $dashboard_topic->{ start_date },
-                $dashboard_topic->{ end_date },
-                0, $dashboard_topic->{ dashboard_topics_id }
-            );
+                $db, $start_date, $end_date, 0, $dashboard_topic->{ dashboard_topics_id } );
         }
 
         sleep( 60 );
@@ -108,9 +111,9 @@ sub run_daemon
 
 sub main
 {
-    my $top_500_only = ( "$ARGV[0]" eq '-5' ) && shift( @ARGV );
-    my $daemon       = ( "$ARGV[0]" eq '-d' ) && shift( @ARGV );
-    my $force        = ( "$ARGV[0]" eq '-f' ) && shift( @ARGV );
+    my $top_500_only = @ARGV && ( $ARGV[0] eq '-5' ) && shift( @ARGV );
+    my $daemon       = @ARGV && ( $ARGV[0] eq '-d' ) && shift( @ARGV );
+    my $force        = @ARGV && ( $ARGV[0] eq '-f' ) && shift( @ARGV );
 
     my ( $start_date, $end_date ) = @ARGV;
 
