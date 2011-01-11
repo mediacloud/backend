@@ -78,28 +78,49 @@ create index media_tags_map_tag on media_tags_map (tags_id);
 
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
-	start_date				timestamp       not null,
-	end_date				date		    not null,
+	queries_id              int             not null references queries,
 	num_clusters			int			    not null,
-	media_sets_id		    int			    not null,
-	state                   varchar(32)     not null default 'pending',   
-	description				text			null
+	state                   varchar(32)     not null default 'pending'
 );
 
 alter table media_cluster_runs add constraint media_cluster_runs_state check (state in ('pending', 'executing', 'completed'));
+
+create table media_cluster_maps (
+    media_cluster_maps_id       serial          primary key,
+    map_type                    varchar(32)     not null default 'cluster',
+    json                        text            not null,
+    nodes_total                 int             not null,
+    nodes_rendered              int             not null,
+    links_rendered              int             not null,
+    media_cluster_runs_id       int             not null references media_cluster_runs on delete cascade
+);
+    
+alter table media_cluster_maps add constraint media_cluster_maps_type check( map_type in ('cluster', 'polar' ));
+
+create index media_cluster_maps_run on media_cluster_maps( media_cluster_runs_id );
+
+create table media_cluster_map_poles (
+    media_cluster_map_poles_id      serial      primary key,
+    name                            text        not null,
+    media_cluster_maps_id           int         not null references media_cluster_maps on delete cascade,
+    pole_number                     int         not null,
+    queries_id                      int         not null references queries on delete cascade
+);
+
+create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
 
 create table media_clusters (
 	media_clusters_id		serial	primary key,
 	media_cluster_runs_id	int	    not null references media_cluster_runs on delete cascade,
 	description             text    null,
-	centroid_media_id             int              references media (media_id) on delete cascade
+	centroid_media_id       int     null references media on delete cascade
 );
 CREATE INDEX media_clusters_runs_id on media_clusters(media_cluster_runs_id);
 
 create table media_clusters_media_map (
-        media_clusters_media_map_id     serial primary key,
-	media_clusters_id       int   not null references media_clusters on delete cascade,
-	media_id		        int   not null references media on delete cascade
+    media_clusters_media_map_id     serial primary key,
+	media_clusters_id               int   not null references media_clusters on delete cascade,
+	media_id		                int   not null references media on delete cascade
 );
 
 create index media_clusters_media_map_cluster on media_clusters_media_map (media_clusters_id);
@@ -122,11 +143,11 @@ create index media_cluster_words_cluster on media_cluster_words (media_clusters_
  ******************************************************/
 
 create table media_cluster_links (
-  media_cluster_links_id serial primary key, 
-	media_cluster_runs_id	 int	  not null     references media_cluster_runs on delete cascade,
-  source_media_id        int    not null     references media              on delete cascade,
-  target_media_id        int    not null     references media              on delete cascade,
-  weight                 float  not null
+  media_cluster_links_id    serial  primary key,
+  media_cluster_runs_id	    int	    not null     references media_cluster_runs on delete cascade,
+  source_media_id           int     not null     references media              on delete cascade,
+  target_media_id           int     not null     references media              on delete cascade,
+  weight                    float   not null
 );
 
 /****************************************************** 
@@ -615,7 +636,7 @@ create view story_extracted_texts
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
 CREATE TABLE daily_country_counts (
-    media_sets_id integer  not null references media on delete cascade,
+    media_sets_id integer  not null references media_sets on delete cascade,
     publish_day date not null,
     country character varying not null,
     country_count bigint not null,
@@ -649,6 +670,34 @@ CREATE TABLE authors_stories_queue (
     stories_id int                not null references stories on delete cascade,
     state      authors_stories_queue_type not null
 );
+
+create table queries (
+    queries_id              serial              primary key,
+    start_date              date                not null,
+    end_date                date                not null,
+    generate_page           boolean             not null,
+    creation_date           timestamp           not null default now(),
+    description             text                null
+);
+
+create index queries_creation_date on queries (creation_date);
+create unique index queries_hash on queries ( md5( description ) );
+    
+create table queries_media_sets_map (
+    queries_id              int                 not null references queries on delete cascade,
+    media_sets_id           int                 not null references media_sets on delete cascade
+);
+
+create index queries_media_sets_map_query on queries_media_sets_map ( queries_id );
+create index queries_media_sets_map_media_set on queries_media_sets_map ( media_sets_id );
+    
+create table queries_dashboard_topics_map (
+    queries_id              int                 not null references queries on delete cascade,
+    dashboard_topics_id     int                 not null references dashboard_topics on delete cascade
+);
+
+create index queries_dashboard_topics_map_query on queries_dashboard_topics_map ( queries_id );
+create index queries_dashboard_topics_map_dashboard_topic on queries_dashboard_topics_map ( dashboard_topics_id );
 
 CREATE TABLE daily_author_words (
     daily_author_words_id serial primary key,
