@@ -77,9 +77,9 @@ span.tagcloud24 { font-size: 36px;}
 <![endif]-->
 
 <link rel="stylesheet" href="/dashboard/treeview.css" type="text/css" />
-<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
 <script src='/dashboard/jquery.highlight.js'></script>
-<script type="text/javascript" src="http://dev.jquery.com/view/trunk/plugins/treeview/jquery.treeview.js"></script>
+<script type="text/javascript"  src="[% c.uri_for('/include/jquery.treeview.js') %]"></script> 
 
 [% IF term %]
 
