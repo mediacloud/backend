@@ -668,17 +668,7 @@ sub coverage_changes : Local : FormConfig
 
     if ( $c->req->param( 'show_results' ) )
     {
-        my $query = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, 1 );
-
-        my $country_counts = $self->_get_country_counts( $c, $query );
-        my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
-
-        $c->stash->{ country_count_csv_array } = $country_count_csv_array;
-
-        my $coverage_map_chart_url = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
-
         $c->stash->{ show_results } = 1;
-        $c->stash->{ coverage_map_chart_url } = $coverage_map_chart_url;
         $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
     }
     $c->stash->{ template } = 'zoe_website_template/coverage_changes.tt2';
