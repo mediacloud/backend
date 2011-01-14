@@ -152,30 +152,6 @@ function onError(err)
             <br/>
             <div id="coveragemap" class="contentSelected"><span style="cursor:pointer;">Coverage Map</span></div>
             <div id="CMcontentarea" style="display:none;">
-[% IF coverage_map_chart_url %]
-<!-- <img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" /> -->
-[% ELSIF coverage_map_chart_url_1 && coverage_map_chart_url_2 %]
-<table>
-<tr>
-<td>
-Set 1 coverage
-</td>
-<td>
-Set 2 coverage
-</td>
-</tr>
-<tr>
-<td>
-<img src="[%- coverage_map_chart_url_1 | html -%]" alt="Coverage Map" />
-</td>
-<td>
-<img src="[%- coverage_map_chart_url_2 | html -%]" alt="Coverage Map" />
-</td>
-</tr>
-</table>
-[% ELSE %]
-This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
-[% END %]
  </div></td>
         </tr>
       </table>
