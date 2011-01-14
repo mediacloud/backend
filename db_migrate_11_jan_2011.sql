@@ -2,7 +2,7 @@ create table queries (
     queries_id              serial              primary key,
     start_date              date                not null,
     end_date                date                not null,
-    generate_page           boolean             not null,
+    generate_page           boolean             not null default false,
     creation_date           timestamp           not null default now(),
     description             text                null
 );
