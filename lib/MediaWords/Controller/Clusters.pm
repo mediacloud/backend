@@ -26,22 +26,6 @@ sub index : Path : Args(0)
     return list( @_ );
 }
 
-# list existing cluster runs
-sub list : Local
-{
-    my ( $self, $c ) = @_;
-
-    say STDERR "Starting Clusters/list ";
-
-    my $cluster_runs =
-      $c->dbis->query( "select mcr.*, ms.name as media_set_name from media_cluster_runs mcr, media_sets ms " .
-          "  where mcr.media_sets_id = ms.media_sets_id " . "  order by mcr.media_cluster_runs_id" )->hashes;
-
-    $c->stash->{ cluster_runs } = $cluster_runs;
-
-    $c->stash->{ template } = 'clusters/list.tt2';
-}
-
 # create a new cluster run based on the given query, including both creating the media_cluster_runs entry and doing the cluster run
 sub create : Local
 {
