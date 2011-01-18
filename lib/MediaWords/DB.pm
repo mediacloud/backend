@@ -24,8 +24,15 @@ my $_connect_settings;
 sub _create_connect_info_from_settings
 {
     my ( $settings ) = @_;
+    my $data_source = 'dbi:Pg:dbname=' . $settings->{ db } . ';host=' . $settings->{ host };
+
+    if ( defined( $settings->{ port } ) )
+    {
+        $data_source .= ';port=' . $settings->{ port };
+    }
+
     return (
-        'dbi:Pg:dbname=' . $settings->{ db } . ';host=' . $settings->{ host },
+        $data_source,
         $settings->{ user },
         $settings->{ pass },
         {
