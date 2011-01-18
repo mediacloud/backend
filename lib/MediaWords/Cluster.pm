@@ -155,7 +155,7 @@ sub _get_medium_stem_vector
     my $medium_stem_vector = [];
     map { $medium_stem_vector->[ $_ ] = 0 } ( 0 .. ( $stems->Length - 1 ) );
 
-    if ( !@{ $words } )
+    if ( !$words || !@{ $words } )
     {
         return undef;
     }
