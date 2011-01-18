@@ -26,6 +26,7 @@ ALTER TABLE media_cluster_runs add  column state                   varchar(32)  
 create table media_cluster_maps (
       media_cluster_maps_id       serial          primary key,
       map_type                    varchar(32)     not null default 'cluster',
+      name                        text            not null,
       json                        text            not null,
       nodes_total                 int             not null,
       nodes_rendered              int             not null,
