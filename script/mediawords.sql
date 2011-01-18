@@ -81,7 +81,7 @@ create table queries (
     queries_id              serial              primary key,
     start_date              date                not null,
     end_date                date                not null,
-    generate_page           boolean             not null,
+    generate_page           boolean             not null default false,
     creation_date           timestamp           not null default now(),
     description             text                null
 );
@@ -138,6 +138,7 @@ create index queries_media_sets_map_media_set on queries_media_sets_map ( media_
 create table media_cluster_maps (
     media_cluster_maps_id       serial          primary key,
     map_type                    varchar(32)     not null default 'cluster',
+    name                        text            not null,
     json                        text            not null,
     nodes_total                 int             not null,
     nodes_rendered              int             not null,
