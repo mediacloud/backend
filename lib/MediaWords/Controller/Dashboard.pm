@@ -509,6 +509,15 @@ sub _update_form
 
     my $form = $c->stash->{ form };
 
+    #purge labels from the form
+ 	 
+    foreach my $element ( @{ $form->get_all_elements() } )	 
+    {	 
+        eval {	 
+            $element->label( '' );	 
+        };	 
+    }
+
     my $date1_param = $form->param_value( 'date1' );
 
     my $dashboard_dates = $c->stash->{ dashboard_dates };
