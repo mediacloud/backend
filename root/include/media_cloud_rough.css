@@ -19,6 +19,8 @@ body {
  border-style:solid;
  border-width: 0px;
  border-bottom-width: 1px;
+ border-right-width: 1px;
+  border-left-width: 1px;
 }
 
 #mediaheader1, #mediaheader2 {
@@ -41,10 +43,12 @@ body {
  {
   padding: 10px; 
   float: left;
-  width: 190px
+  width: 160px
  }
  
-#compare {
+#mediaSource1 {width: 320px}
+ 
+#compare, #submit {
 	float: right;
 	width: 200px;
 	text-align:center;
@@ -63,37 +67,55 @@ body {
 	color:#63C;
 }
 
-#submit {
-	float: right;
-	width: 200px;
-	text-align:right;
-	padding-right: 5px;
-	padding-top: 5px;
-	background-color:#fff;
-}
-
  
 #wordcloud,
 #coveragemap  
- { padding: 2px; 
+ { padding: 1px;
   float: right;
-  width: 100px;
+  width: 80px;
   border-style:solid;
   border-width:1px;
-  position: relative; bottom: 20px;
+  position: relative; 
+  bottom: 4px;
   text-align:center;
+  z-index:1;
+ }
+ 
+ 
+ #textSources,
+#Subsets  
+ { padding: 2px; 
+  font-weight: bold;
+  float: left;
+  width: 150px;
+  border-style:solid;
+  border-width:1px;
+  position: relative; 
+  bottom: -10px;
+  left: 10px;
+  text-align:center;
+  z-index:1;
  }
  
 #WCcontentarea, #CMcontentarea {
-	padding: 2px; 
+	padding: 4px; 
 	border-style:solid;
 	border-width:1px;
 	width: 99%;
 	border-color: #000000;
 }
+ 
+#TSarea, #ASarea {
+	padding: 5px; 
+	border-style:solid;
+	border-width:1px;
+	width: 99%;
+	border-color: #999;
+	float:left;
+}
 
 .contentSelected {	
-	color: #ffffff;
+	color: #fff;
 	background-color: black;
 	border-color: #000000;
 }
@@ -101,9 +123,24 @@ body {
 .contentUnselected {	
 
 	color: #000000;
-	background-color: white;
+	background-color: #CCC;
 	border-color: #000000;
 }
+
+.secondarySelected {	
+	color: #999;
+	background-color: #ffffff;
+	border-color: #999999;
+	border-bottom-color: #ffffff; 
+}
+
+.secondaryUnselected {	
+
+	color: #fff;
+	background-color: #999999;
+	border-color: #999999;
+}
+
 
 #news,
 #popular,
@@ -136,5 +173,14 @@ body {
 
 a.navigation:link {color:#FC9; font-weight:bold; text-decoration:none}      /* unvisited link */
 a.navigation:hover {color:#F36; font-weight:bold; text-decoration:none }  /* mouse over link */
+
+#leftContainer {
+	width: 300px;
+	float:left;
+}
+
+#rightContainer {
+	padding: 10px;
+}
 
 .select { margin: 0px; }
