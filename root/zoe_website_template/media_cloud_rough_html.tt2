@@ -25,6 +25,11 @@
               }
           }                               
    });
+
+        $('#submit').html('<a href="#">Submit</a>').
+	  click(function() { $('#media_query_form').submit(); } ) ;
+
+        $('#mediaSource1 select').width('80');
         DisplayDIV('mediacontainer2');
 
         $('#openheatmap_container').insertOpenHeatMap({
@@ -78,15 +83,22 @@ function onMapCreated()
 	  [% form.get_field( 'dashboard_topics_id1')  %]
           <span class="smaller">A fast explanation here</span>
         </div>
-        <div id="mediaSource1"> <strong>Media Source</strong><br />
+        <div id="mediaSource1">
+          <table width="320" border="0" cellspacing="0" cellpadding="5">
+            <tr>
+              <td valign="top">
+ <strong>Media Source</strong><br />
 	  [% form.get_field( 'medium_name1')  %]
           <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
-          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
-          <strong>Set of Media Sources</strong>
-
+          <span class="smaller">A fast explanation here</span></td>
+              <td valign="top"><strong>OR</strong></td>
+              <td valign="top"><strong>Set of Media Sources</strong>
+          <div style="width:80px; font-size:10px;">
 	  [% form.get_field( 'media_sets_id1')  %]
-          <span class="smaller">A fast explanation here</span>
-
+	  </div>
+          <span class="smaller">A fast explanation here</span></td>
+             </tr>
+        </table>
         </div>
         <div id="mediaSubset1"> <strong>Available set within this set</strong><br />
           <label for="subset_select1"></label>
@@ -135,10 +147,9 @@ function onMapCreated()
 	<p><b>Error:</b>  [% error_message | html_strip %]</p>
 	[% END %]
       </div>
-      <div style="cursor:pointer;">
-      <div  onclick="DisplayDIV('mediacontainer2')" id="compare">Compare This Data Source</div>
+      <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
+      <div id="compare">Compare This Data Source</div></div>
       <div id="submit"><input name="Submit" type="submit" value="submit" />
-      </div>
       </div>
       </form>
     
