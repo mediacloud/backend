@@ -16,7 +16,7 @@ xA:active {color: #000000; }
   text-align:  center; 
   line-height: 1; 
 }
-a { color: #32588F; text-decoration: none;}
+
 span.tagcloud0 { font-size: 12px;}
 span.tagcloud1 { font-size: 13px;}
 span.tagcloud2 { font-size: 14px;}
