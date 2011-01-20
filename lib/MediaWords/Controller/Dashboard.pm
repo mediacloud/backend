@@ -514,7 +514,7 @@ sub _update_form
     foreach my $element ( @{ $form->get_all_elements() } )	 
     {	 
         eval {	 
-            $element->label( '' );	 
+            $element->label( undef );	 
         };	 
     }
 
