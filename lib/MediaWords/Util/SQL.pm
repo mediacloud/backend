@@ -26,7 +26,7 @@ sub increment_day
 {
     my ( $date, $days ) = @_;
     
-    $days = $days if ( !defined( $days ) );
+    $days = 1 if ( !defined( $days ) );
     
     my $year = substr( $date, 0, 4 );
     my $month = substr( $date, 5, 2 );
