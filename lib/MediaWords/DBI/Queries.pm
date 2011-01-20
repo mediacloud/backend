@@ -76,7 +76,7 @@ sub _create_query
 
     $db->query( 
         "insert into queries ( start_date, end_date, description ) " .
-        "  values( date_trunc( 'week', ?::date ), date_trunc( 'week', ?::date ) + interval '6 days', ? )",
+        "  values( date_trunc( 'week', ?::date ), date_trunc( 'week', ?::date ), ? )",
         $query_params->{ start_date }, $query_params->{ end_date }, $query_params->{ description } );
         
     my $queries_id = $db->last_insert_id( undef, undef, 'queries', undef );
@@ -336,53 +336,6 @@ sub get_media_matching_stems
     return [ sort { $b->{ stem_percentage } <=> $a->{ stem_percentage } } @{ $media } ];
 }
 
-# get all story_sentences that match the given stem and media within the given query dashboard topic and date.
-sub get_medium_stem_sentences
-{
-    my ( $db, $stem, $medium, $queries ) = @_;
-
-    my $sentences_hash;
-    
-    my $quoted_stem = $db->dbh->quote( $stem );
-
-    for my $query ( @{ $queries } )
-    {
-        my $query_sentences;
-        if ( @{ $query->{ dashboard_topics_ids } } )
-        {
-            my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
-
-            $query_sentences = $db->query( 
-                "select distinct ss.* " .
-                "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
-                "    dashboard_topics dt " .
-                "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                "    and s.stories_id = ssw.stories_id and ssw.media_id = $medium->{ media_id } " . 
-                "    and ssw.stem = $quoted_stem " .
-                "    and ssw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
-                "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
-                "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-                "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
-                "  limit " . MAX_QUERY_SENTENCES )->hashes;
-        }
-        else {
-            $query_sentences = $db->query( 
-                  "select distinct ss.* " .
-                  "  from story_sentences ss, story_sentence_words ssw, stories s " .
-                  "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                  "    and s.stories_id = ssw.stories_id and ssw.media_id = $medium->{ media_id } " . 
-                  "    and ssw.stem = $quoted_stem " .
-                  "    and ssw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
-                  "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
-                  "  limit " . MAX_QUERY_SENTENCES )->hashes;
-        }
-        
-        map { $sentences_hash->{ $_->{ story_sentences_id } } = $_ } @{ $query_sentences };
-    }
-    
-    return [ values( %{ $sentences_hash } ) ];
-}
-
 # given a list of sentences, return a list of stories from those sentences 
 # sorted by publish_date and with each story the list of matching sentences 
 # within the { sentences } field of each story
@@ -410,6 +363,103 @@ sub _get_stories_from_sentences
     return $stories;
 }
 
+# run the given function on each query for each day each query covers
+# until a total of max_results results are returned sorted by publish_date
+#
+# the function should be in the form sub foo { my ( $db, $query, $day, $max_results, @remaining_args ) } 
+# where @remaining_args passed through all args to _get_daily_results after the first four.
+#
+# the function should return records sorted by a publish_date field (which also must be present in 
+# each record).  each record must also have an { id } field that can be used to dedup
+# the results between queries for each day.
+sub _get_daily_results
+{
+    my ( $db, $queries, $function, $max_results ) = @_;
+    
+    my @function_args = @_;
+    splice( @function_args, 0, 4 );
+    
+    # need to break out which queries are associated with which days
+    # so that we can run $function->() in the order of days covered
+    # by the union of all queries
+    my $query_dates;
+    for my $query ( @{ $queries } )
+    {
+        my $d = $query->{ start_date };
+        my $end_date = MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 );
+        while ( $d le $end_date )
+        {
+            push( @{ $query_dates->{ $d } }, $query );
+            $d = MediaWords::Util::SQL::increment_day( $d );
+        }
+    }
+    
+    my @results = ();
+    for my $d ( sort keys( %{ $query_dates } ) )
+    {
+        my $max_day_results = $max_results - @results;
+        
+        my $id_hash;
+        for my $q ( @{ $query_dates->{ $d } } )
+        {
+            my $query_day_results = $function->( $db, $q, $d, $max_day_results, @function_args );
+            map { $id_hash->{ $_->{ id } } = $_ } @{ $query_day_results }; 
+        }
+        
+        push( @results, values( %{ $id_hash } ) );
+        @results = sort { $a->{ publish_date } cmp $b->{ publish_date } } @results;
+        
+        if ( @results >= $max_results  )
+        {
+            splice( @results, $max_results );
+            return \@results;
+        }
+    }
+    
+    return \@results;
+}            
+
+# get all story_sentences that match the given stem and media within the given query dashboard topic and date.
+sub _get_medium_stem_sentences_day
+{
+    my ( $db, $query, $day, $max_sentences, $stem, $medium ) = @_;
+
+    my $quoted_stem = $db->dbh->quote( $stem );
+    my $query_sentences;
+    if ( @{ $query->{ dashboard_topics_ids } } )
+    {
+        my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
+
+        $query_sentences = $db->query( 
+            "select distinct ss.* " .
+            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
+            "    dashboard_topics dt " .
+            "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+            "    and s.stories_id = ssw.stories_id and ssw.media_id = $medium->{ media_id } " . 
+            "    and ssw.stem = $quoted_stem " .
+            "    and ssw.publish_day = '$day'::date " .
+            "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
+            "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
+            "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
+            "  limit $max_sentences" )->hashes;
+    }
+    else {
+        $query_sentences = $db->query( 
+              "select distinct ss.* " .
+              "  from story_sentences ss, story_sentence_words ssw, stories s " .
+              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+              "    and s.stories_id = ssw.stories_id and ssw.media_id = $medium->{ media_id } " . 
+              "    and ssw.stem = $quoted_stem " .
+              "    and ssw.publish_day = '$day'::date " .
+              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
+              "  limit $max_sentences" )->hashes;
+    }
+
+    map { $_->{ id } = $_->{ story_sentences_id } } @{ $query_sentences };
+    
+    return $query_sentences;
+}
+
 # get all stories and sentences that match the given stem and media within the given query dashboard topic and date.
 # return a list of stories sorted by publish date and with each story the list of matching 
 # sentences within the { sentences } field of each story
@@ -417,58 +467,53 @@ sub get_medium_stem_stories_with_sentences
 {
     my ( $db, $stem, $medium, $queries ) = @_;
     
-    my $sentences = get_medium_stem_sentences( $db, $stem, $medium, $queries );
+    my $sentences = _get_daily_results( $db, $queries, \&_get_medium_stem_sentences_day, MAX_QUERY_SENTENCES, $stem, $medium );
     
     return _get_stories_from_sentences( $db, $sentences );
 }
 
 # get all story_sentences within the given queries, up to MAX_QUERY_SENTENCES for each query
-sub get_stem_sentences
+sub _get_stem_sentences_day
 {
-    my ( $db, $stem, $queries ) = @_;
+    my ( $db, $query, $day, $max_sentences, $stem ) = @_;
 
-    my $sentences_hash;
-    
     my $quoted_stem = $db->dbh->quote( $stem );
 
-    for my $query ( @{ $queries } )
-    {
-        my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
-        
-        my $query_sentences;
-        if ( @{ $query->{ dashboard_topics_ids } } )
-        {
-            my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
-
-            $query_sentences = $db->query( 
-                "select distinct ss.* " .
-                "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
-                "    dashboard_topics dt, media_sets_media_map msmm " .
-                "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
-                "    and ssw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
-                "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
-                "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-                "    and msmm.media_sets_id in ( $media_sets_ids_list ) " . 
-                "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
-                "  limit " . MAX_QUERY_SENTENCES )->hashes;
-        }
-        else {
-            $query_sentences = $db->query( 
-                  "select distinct ss.* " .
-                  "  from story_sentences ss, story_sentence_words ssw, stories s, media_sets_media_map msmm " .
-                  "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                  "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
-                  "    and ssw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
-                  "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-                  "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
-                  "  limit " . MAX_QUERY_SENTENCES )->hashes;
-        }
-        
-        map { $sentences_hash->{ $_->{ story_sentences_id } } = $_ } @{ $query_sentences };
-    }
+    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
     
-    return [ values( %{ $sentences_hash } ) ];
+    my $query_sentences;
+    if ( @{ $query->{ dashboard_topics_ids } } )
+    {
+        my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
+
+        $query_sentences = $db->query( 
+            "select distinct ss.* " .
+            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
+            "    dashboard_topics dt, media_sets_media_map msmm " .
+            "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+            "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
+            "    and ssw.publish_day = '$day'::date " .
+            "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
+            "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
+            "    and msmm.media_sets_id in ( $media_sets_ids_list ) " . 
+            "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
+            "  limit $max_sentences" )->hashes;
+    }
+    else {
+        $query_sentences = $db->query( 
+              "select distinct ss.* " .
+              "  from story_sentences ss, story_sentence_words ssw, stories s, media_sets_media_map msmm " .
+              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+              "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
+              "    and ssw.publish_day = '$day'::date " .
+              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
+              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
+              "  limit $max_sentences" )->hashes;
+    }
+
+    map { $_->{ id } = $_->{ story_sentences_id } } @{ $query_sentences };
+
+    return $query_sentences;
 }
 
 # get all stories and sentences that match the given stem within the given queries.
@@ -478,56 +523,59 @@ sub get_stem_stories_with_sentences
 {
     my ( $db, $stem, $queries ) = @_;
     
-    my $sentences = get_stem_sentences( $db, $stem, $queries );
+    my $sentences = _get_daily_results( $db, $queries, \&_get_stem_sentences_day, MAX_QUERY_SENTENCES, $stem );
 
     return _get_stories_from_sentences( $db, $sentences );
 }
 
-# get all story_sentences within the given queries
+# get all story_sentences within the given query for the given day up to max_sentences
+sub _get_sentences_day
+{
+    my ( $db, $query, $day, $max_sentences ) = @_;
+
+    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
+    
+    my $query_sentences;
+    if ( @{ $query->{ dashboard_topics_ids } } )
+    {
+        my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
+
+        $query_sentences = $db->query( 
+            "select distinct ss.* " .
+            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
+            "    dashboard_topics dt, media_sets_media_map msmm " .
+            "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+            "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id " .
+            "    and ssw.publish_day = '$day'::date " .
+            "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
+            "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
+            "    and msmm.media_sets_id in ( $media_sets_ids_list ) " . 
+            "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
+            "  limit $max_sentences" )->hashes;
+    }
+    else {
+        $query_sentences = $db->query( 
+              "select distinct ss.* " .
+              "  from story_sentences ss, story_sentence_words ssw, stories s, media_sets_media_map msmm " .
+              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
+              "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id " .
+              "    and ssw.publish_day = '$day'::date " .
+              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
+              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
+              "  limit $max_sentences" )->hashes;
+    }
+    
+    map { $_->{ id } = $_->{ story_sentences_id } } @{ $query_sentences };
+      
+    return $query_sentences;  
+}
+
+# get all story_sentences matching any of the given queries up to a max of MAX_QUERY_SENTENCES
 sub get_sentences
 {
     my ( $db, $queries ) = @_;
-
-    my $sentences_hash;
     
-    for my $query ( @{ $queries } )
-    {
-        my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
-        
-        my $query_sentences;
-        if ( @{ $query->{ dashboard_topics_ids } } )
-        {
-            my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
-
-            $query_sentences = $db->query( 
-                "select distinct ss.* " .
-                "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
-                "    dashboard_topics dt, media_sets_media_map msmm " .
-                "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id " .
-                "    and ssw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
-                "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
-                "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-                "    and msmm.media_sets_id in ( $media_sets_ids_list ) " . 
-                "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
-                "  limit " . MAX_QUERY_SENTENCES )->hashes;
-        }
-        else {
-            $query_sentences = $db->query( 
-                  "select distinct ss.* " .
-                  "  from story_sentences ss, story_sentence_words ssw, stories s, media_sets_media_map msmm " .
-                  "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-                  "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id " .
-                  "    and ssw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
-                  "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-                  "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
-                  "  limit " . MAX_QUERY_SENTENCES )->hashes;
-        }
-        
-        map { $sentences_hash->{ $_->{ story_sentences_id } } = $_ } @{ $query_sentences };
-    }
-    
-    return [ values( %{ $sentences_hash } ) ];
+    return _get_daily_results( $db, $queries, \&_get_sentences_day, MAX_QUERY_SENTENCES );
 }
 
 # get all stories and sentences within the given queries.
