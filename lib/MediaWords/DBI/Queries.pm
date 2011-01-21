@@ -262,7 +262,6 @@ sub get_top_500_weekly_words
         "  where w.media_sets_id in ( $media_sets_ids_list )  and " . 
         "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and " .
         "    w.publish_week between '$query->{ start_date }'::date and '$query->{ end_date }' and " .
-        "    not is_stop_stem( 'long', w. stem ) and " . 
         "    $dashboard_topics_clause and coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
         "  group by w.stem order by sum( w.stem_count::float / tw.total_count::float )::float desc " . 
         "  limit 500",
