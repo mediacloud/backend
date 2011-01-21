@@ -122,7 +122,7 @@ create table media_sets (
     set_type                    text        not null,
     media_id                    int         references media on delete cascade,
     tags_id                     int         references tags on delete cascade,
-    media_clusters_id           int         references media_clusters on delete cascade,
+    media_clusters_id           int         references media_clusters,
     creation_date               timestamp   default now(),
     vectors_added               boolean     default false
 );
@@ -260,8 +260,8 @@ media_sets / topics
 create table dashboard_media_sets (
     dashboard_media_sets_id     serial          primary key,
     dashboards_id               int             not null references dashboards on delete cascade,
-    media_sets_id               int             not null references media_sets,
-    media_cluster_runs_id       int             null references media_cluster_runs
+    media_sets_id               int             not null references media_sets on delete cascade,
+    media_cluster_runs_id       int             null references media_cluster_runs on delete set null
 );
 
 create unique index dashboard_media_sets_media_set on dashboard_media_sets( media_sets_id );
@@ -531,6 +531,7 @@ create table story_sentences (
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
+create index story_sentences_publish_day on story_sentences( date_trunc( 'day', publish_date ), media_id );
     
 create table story_sentence_counts (
        story_sentence_counts_id     bigserial       primary key,
@@ -702,8 +703,8 @@ create index queries_dashboard_topics_map_dashboard_topic on queries_dashboard_t
 
 CREATE TABLE daily_author_words (
     daily_author_words_id serial primary key,
-    authors_id integer not null references authors,
-    media_sets_id integer not null references media_sets,
+    authors_id integer not null references authors on delete cascade,
+    media_sets_id integer not null references media_sets on delete cascade,
     term character varying(256) not null,
     stem character varying(256) not null,
     stem_count int not null,
@@ -726,8 +727,8 @@ create index total_daily_author_words_authors_id_media_sets_id_publish_day on to
 
 create table weekly_author_words (
        weekly_author_words_id       serial          primary key,
-       media_sets_id                int             not null references media_sets,
-       authors_id                   int             not null references authors ,
+       media_sets_id                int             not null references media_sets on delete cascade,
+       authors_id                   int             not null references authors on delete cascade,
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
@@ -739,8 +740,8 @@ create index weekly_author_words_count on weekly_author_words(publish_week, auth
 
 create table top_500_weekly_author_words (
        top_500_weekly_words_id      serial          primary key,
-       media_sets_id                int             not null, /* references media_sets on delete cascade, */
-       authors_id                   int             null, /* references dashboard_topics */
+       media_sets_id                int             not null references media_sets on delete cascade,
+       authors_id                   int             not null references authors on delete cascade,
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
@@ -751,8 +752,8 @@ create index top_500_weekly_author_words_media on top_500_weekly_author_words(pu
     
 create table total_top_500_weekly_author_words (
        total_top_500_words_id       serial          primary key,
-       media_sets_id                int             not null, /* references media_sets on delete cascade, */
-       authors_id                   int             null, /* references dashboard_topics */
+       media_sets_id                int             not null references media_sets on delete cascade,
+       authors_id                   int             not null references authors on delete cascade,
        publish_week                 date            not null,
        total_count                  int             not null
        
