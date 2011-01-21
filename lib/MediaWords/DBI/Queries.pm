@@ -233,6 +233,68 @@ sub get_dashboard_topics_clause
     return $dashboard_topic_clause;
 }
 
+sub get_dashboard_topic_names
+{
+    my ( $db, $query ) = @_;
+
+    my $ret;
+
+    say STDERR Dumper( $query );
+    $query->{ dashboard_topics_ids } ||= [];
+
+    if ( !$query->{ dashboard_topics_ids } || !@{ $query->{ dashboard_topics_ids } } ) 
+    {
+        $ret = "all";
+    }
+    else
+    {
+        my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids  } );
+        my $topic_names  = $db->query("select name from dashboard_topics                                        " . 
+				   " where dashboard_topics_id in ( $dashboard_topics_ids_list )        " )->flat;
+
+	$ret = join ", ", @{$topic_names};
+    }
+    
+    return $ret;
+}
+
+sub get_media_set_names
+{
+    my ( $db, $query ) = @_;
+
+    if ( !( $query->{ media_sets_ids} && @{ $query->{ media_sets_ids } } && $query->{ start_date } ) )
+    {
+        die( "media_sets_id and start_date are required" );
+    }
+
+    my $media_sets_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
+
+    my $media_set_names =  $db->query( 
+        "select name from media_sets where media_sets_id in ( $media_sets_ids_list ) "
+        )->flat;
+
+    return $media_set_names;
+}
+
+sub get_time_range
+{
+    my ( $db, $query ) = @_;
+
+    if ( !( $query->{ start_date } ) )
+    {
+        die( "start_date is required" );
+    }
+
+    my $ret = $query->{ start_date };
+
+    if ( defined( $query->{ end_date } ) && ( $query->{ start_date } ne $query->{ end_date } ) )
+    {
+       $ret .= ' - ' . $query->{ end_date };
+    }
+
+    return $ret;
+}
+
 # Gets the top 500 weekly words matching the given query.
 # If no dashboard_topics_id is specified, the query requires a null dashboard_topics_id.
 # start_date and end_date are rounded down to the beginning of the week.
