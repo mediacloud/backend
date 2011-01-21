@@ -46,7 +46,7 @@ body {
   width: 160px
  }
  
-#mediaSource1 {width: 320px}
+#mediaSource1, #mediaSource2 {width: 320px}
  
 #compare, #submit {
 	float: right;
