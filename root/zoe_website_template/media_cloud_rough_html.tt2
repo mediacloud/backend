@@ -30,6 +30,7 @@
 	  click(function() { $('#media_query_form').submit(); } ) ;
 
         $('#mediaSource1 select').width('80');
+        $('#mediaSource2 select').width('80');
         DisplayDIV('mediacontainer2');
 
         $('#openheatmap_container').insertOpenHeatMap({
@@ -72,76 +73,10 @@ function onMapCreated()
       <form id="media_query_form" action="[% c.uri_for('/dashboard/view/') _ dashboard.dashboards_id %]" method="get">
       <input type="hidden" name="show_results" value="true" />
       [% form.get_field( 'compare_media_sets')  %]
-      <div id="mediacontainer1">
-        <div id="mediaheader1">Media Data Set #1</div>
-        <div id="mediaTime1"> <strong>Time range</strong><br />
-	  [% form.get_field( 'date1')  %]
-          <span class="smaller">A fast explanation here</span>
-	  <br />
-        </div>
-        <div id="mediaArea1"> <strong>Area of coverage</strong><br />
-	  [% form.get_field( 'dashboard_topics_id1')  %]
-          <span class="smaller">A fast explanation here</span>
-        </div>
-        <div id="mediaSource1">
-          <table width="320" border="0" cellspacing="0" cellpadding="5">
-            <tr>
-              <td valign="top">
- <strong>Media Source</strong><br />
-	  [% form.get_field( 'medium_name1')  %]
-          <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
-          <span class="smaller">A fast explanation here</span></td>
-              <td valign="top"><strong>OR</strong></td>
-              <td valign="top"><strong>Set of Media Sources</strong>
-          <div style="width:80px; font-size:10px;">
-	  [% form.get_field( 'media_sets_id1')  %]
-	  </div>
-          <span class="smaller">A fast explanation here</span></td>
-             </tr>
-        </table>
-        </div>
-        <div id="mediaSubset1"> <strong>Available set within this set</strong><br />
-          <label for="subset_select1"></label>
-          <select name="subset_select1" id="subset_select1">
-            <option>All Sub-sets</option>
-            <option>Subset1</option>
-            <option>Subset2</option>
-            <option>Subset 3</option>
-          </select>
-<span class="smaller">A fast explanation</span>
-        </div>
-      </div>
-      <div id="mediacontainer2">
-        <div id="mediaheader2">Media Data Set #2</div>
-        <div id="mediaTime2"> <strong>Time range</strong><br />
-	  [% form.get_field( 'date2')  %]
-          <span class="smaller">A fast explanation here</span>
-	  <br />
-        </div>
-        <div id="mediaArea2"> <strong>Area of coverage</strong><br />
-	  [% form.get_field( 'dashboard_topics_id2')  %]
-          <span class="smaller">A fast explanation here</span>
-        </div>
-        <div id="mediaSource2"> <strong>Media Source</strong><br />
-	  [% form.get_field( 'medium_name2')  %]
-          <span class="smaller">A fast explanation here</span><hr noshade="noshade" size="1" width="99%"/>
-          <strong>Set of Media Sources</strong>
-
-	  [% form.get_field( 'media_sets_id2')  %]
-           <span class="smaller">A fast explanation here</span>
-
-        </div>
-        <div id="mediaSubset2"> <strong>Available set within this set</strong><br />
-          <label for="subset_select2"></label>
-          <select name="subset_select2" id="subset_select2">
-            <option>All Sub-sets</option>
-            <option>Subset1</option>
-            <option>Subset2</option>
-            <option>Subset 3</option>
-          </select><br />
-<span class="smaller">A fast explanation</span>
-        </div>
-      </div>
+      [% media_container_current_number = 1 %]
+      [% INCLUDE 'zoe_website_template/media_container.tt2' %]
+      [% media_container_current_number = 2 %]
+      [% INCLUDE 'zoe_website_template/media_container.tt2' %]
       <div>
 	[% IF error_message %]
 	<p><b>Error:</b>  [% error_message | html_strip %]</p>
