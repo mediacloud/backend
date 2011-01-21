@@ -10,7 +10,7 @@ use Data::Dumper;
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
 
-# max number of sentences return in get_medium_stem_sentences
+# max number of sentences to return in various get_*_stories_with_sentences functions
 use constant MAX_QUERY_SENTENCES => 500;
 
 # get a text description for the query based on the media sets, dashboard topics, and dates.
@@ -359,6 +359,12 @@ sub _get_stories_from_sentences
     map { $stories_hash->{ $_->{ stories_id } } = $_ } @{ $stories };
     
     map { push( @{ $stories_hash->{ $_->{ stories_id } }->{ sentences } }, $_ ) } @{ $sentences };
+
+    for my $story ( @{ $stories } )
+    {
+        my @sorted_sentences = sort { $a->{ sentence_number } <=> $b->{ sentence_number } } @{ $story->{ sentences } };
+        $story->{ sentences } = \@sorted_sentences;
+    }
     
     return $stories;
 }
@@ -432,10 +438,10 @@ sub _get_medium_stem_sentences_day
 
         $query_sentences = $db->query( 
             "select distinct ss.* " .
-            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
+            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, " . 
             "    dashboard_topics dt " .
             "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-            "    and s.stories_id = ssw.stories_id and ssw.media_id = $medium->{ media_id } " . 
+            "    and ssw.media_id = $medium->{ media_id } " . 
             "    and ssw.stem = $quoted_stem " .
             "    and ssw.publish_day = '$day'::date " .
             "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
@@ -446,9 +452,9 @@ sub _get_medium_stem_sentences_day
     else {
         $query_sentences = $db->query( 
               "select distinct ss.* " .
-              "  from story_sentences ss, story_sentence_words ssw, stories s " .
+              "  from story_sentences ss, story_sentence_words ssw " .
               "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and s.stories_id = ssw.stories_id and ssw.media_id = $medium->{ media_id } " . 
+              "    and ssw.media_id = $medium->{ media_id } " . 
               "    and ssw.stem = $quoted_stem " .
               "    and ssw.publish_day = '$day'::date " .
               "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
@@ -488,10 +494,10 @@ sub _get_stem_sentences_day
 
         $query_sentences = $db->query( 
             "select distinct ss.* " .
-            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
+            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, " . 
             "    dashboard_topics dt, media_sets_media_map msmm " .
             "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-            "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
+            "    and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
             "    and ssw.publish_day = '$day'::date " .
             "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
             "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
@@ -502,9 +508,9 @@ sub _get_stem_sentences_day
     else {
         $query_sentences = $db->query( 
               "select distinct ss.* " .
-              "  from story_sentences ss, story_sentence_words ssw, stories s, media_sets_media_map msmm " .
+              "  from story_sentences ss, story_sentence_words ssw, media_sets_media_map msmm " .
               "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
+              "    and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
               "    and ssw.publish_day = '$day'::date " .
               "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
               "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
@@ -542,26 +548,22 @@ sub _get_sentences_day
 
         $query_sentences = $db->query( 
             "select distinct ss.* " .
-            "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, stories s, " . 
-            "    dashboard_topics dt, media_sets_media_map msmm " .
-            "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-            "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id " .
-            "    and ssw.publish_day = '$day'::date " .
-            "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
-            "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-            "    and msmm.media_sets_id in ( $media_sets_ids_list ) " . 
-            "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
+            "  from story_sentences ss, story_sentence_words ssw, dashboard_topics dt, media_sets_media_map msmm " .
+            " where ssw.publish_day = '$day'::date " . 
+            "  and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
+            "  and ssw.stories_id = ss.stories_id and ssw.sentence_number = ss.sentence_number " .
+            "  and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
+            "  and msmm.media_sets_id in ( $media_sets_ids_list ) " .
+            "  order by ss.publish_date, ss.stories_id, ss.sentence_number asc " .
             "  limit $max_sentences" )->hashes;
     }
     else {
         $query_sentences = $db->query( 
-              "select distinct ss.* " .
-              "  from story_sentences ss, story_sentence_words ssw, stories s, media_sets_media_map msmm " .
-              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and s.stories_id = ssw.stories_id and ssw.media_id = msmm.media_id " .
-              "    and ssw.publish_day = '$day'::date " .
+              "select distinct ss.* from story_sentences ss, media_sets_media_map msmm " .
+              "  where ss.media_id = msmm.media_id " .
+              "    and date_trunc( 'day', ss.publish_date )  = '$day'::date " .
               "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
+              "  order by ss.publish_date, ss.stories_id, ss.sentence_number asc " . 
               "  limit $max_sentences" )->hashes;
     }
     
