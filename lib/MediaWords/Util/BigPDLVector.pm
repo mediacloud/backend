@@ -85,11 +85,11 @@ sub vector_cos_sim_cached
 {
     my ( $v1, $v2, $k1, $k2 ) = @_;
     
-    my $s = $_cached_cos_sims->{ $v1 }->{ $v2 } || $_cached_cos_sims->{ $v2 }->{ $v1 };
+    my $s = $_cached_cos_sims->{ $k1 }->{ $k2 } || $_cached_cos_sims->{ $k2 }->{ $k1 };
     if ( !defined( $s ) )
     {
         $s = vector_dot( $v1, $v2 ) / ( vector_magnitude_cached( $v1, $k1 ) * vector_magnitude_cached( $v2, $k2 ) );
-        $_cached_cos_sims->{ $v1 }->{ $v2 } = $s;
+        $_cached_cos_sims->{ $k1 }->{ $k2 } = $s;
     }
     
     return $s;
