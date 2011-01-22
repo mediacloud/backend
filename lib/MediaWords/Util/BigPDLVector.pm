@@ -15,7 +15,19 @@ use PDL::Reduce;
 require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw( vector_new vector_add vector_dot vector_magnitude vector_cos_sim vector_div vector_norm
-  vector_normalize vector_length vector_nnz vector_get vector_set vector_string );
+  vector_normalize vector_length vector_nnz vector_get vector_set vector_string reset_cos_sim_cache vector_cos_sim_cached);
+
+# hash of cached cos sims
+my $_cached_cos_sims;
+
+# hash of vector magnitudes
+my $_cached_vector_magnitudes;
+
+sub reset_cos_sim_cache
+{
+    $_cached_cos_sims = {};
+    $_cached_vector_magnitudes = {};
+}
 
 sub vector_new
 {
@@ -45,12 +57,42 @@ sub vector_magnitude
     return sqrt( sum( $v ** 2 ) );
 }
 
+sub vector_magnitude_cached
+{
+    my ( $v, $k ) = @_;
+    
+    my $m = $_cached_vector_magnitudes->{ $k };
+    if ( !defined( $m ) )
+    {
+        $m = vector_magnitude( $v );
+        $_cached_vector_magnitudes->{ $k } = $m;
+    }
+    
+    return $m;
+}
+
 # return the cos similarity of the two vectors
 sub vector_cos_sim
 {
     my ( $v1, $v2 ) = @_;
     
-    return vector_dot( $v1, $v2 ) / ( vector_magnitude( $v1 ) * vector_magnitude( $v2 ) );
+    return vector_dot( norm( $v1 ), norm( $v2 ) );
+}
+
+# return the cos similarity of the two vectors.
+# use cached results using $k1 and $k2 as keys to set / get the cache
+sub vector_cos_sim_cached
+{
+    my ( $v1, $v2, $k1, $k2 ) = @_;
+    
+    my $s = $_cached_cos_sims->{ $v1 }->{ $v2 } || $_cached_cos_sims->{ $v2 }->{ $v1 };
+    if ( !defined( $s ) )
+    {
+        $s = vector_dot( $v1, $v2 ) / ( vector_magnitude_cached( $v1, $k1 ) * vector_magnitude_cached( $v2, $k2 ) );
+        $_cached_cos_sims->{ $v1 }->{ $v2 } = $s;
+    }
+    
+    return $s;
 }
 
 # divides each vector entry by a given divisor
