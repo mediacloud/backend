@@ -7,8 +7,8 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Data::Dumper;
 use Math::Random;
 use MediaWords::Util::Timing qw( start_time stop_time );
-use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_cos_sim vector_div vector_norm
-  vector_normalize vector_length vector_nnz vector_get vector_set );
+use MediaWords::Util::BigPDLVector qw( vector_new vector_add vector_cos_sim vector_dot vector_div vector_norm
+  vector_normalize vector_length vector_nnz vector_get vector_set vector_cos_sim_cached reset_cos_sim_cache );
 
 # number of times to iterate within each cluster run
 use constant NUM_ITERATIONS => 20;
@@ -51,7 +51,8 @@ sub _assign_nodes
 
         for my $cluster ( @{ $clusters } )
         {
-            my $dp = vector_cos_sim( $node->{ vector }, $cluster->{ centroid } );
+            my $dp = vector_cos_sim_cached( 
+                $node->{ vector }, $cluster->{ centroid }, $node->{ media_id }, $cluster->{ centroid_media_id } );
             if ( $dp >= $node->{ score } )          # must be >= to ensure the score gets updated
             {
                 $node->{ score }   = $dp;
@@ -194,7 +195,8 @@ sub _seed_clusters_plus_plus
 
             for my $cluster ( @{ $clusters } )
             {
-                my $cluster_sim = vector_cos_sim( $node->{ vector }, $cluster->{ centroid } );
+                my $cluster_sim = vector_cos_sim_cached( 
+                    $node->{ vector }, $cluster->{ centroid }, $node->{ media_id }, $cluster->{ centroid_media_id } );
                 $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
             }
 
@@ -275,7 +277,9 @@ sub _seed_clusters_plus_plus2
 
                 for my $cluster ( @{ $new_clusters } )
                 {
-                    my $cluster_sim = vector_cos_sim( $inner_node->{ vector }, $cluster->{ centroid } );
+                    my $cluster_sim = vector_cos_sim_cached( 
+                        $inner_node->{ vector }, $cluster->{ centroid }, 
+                        $inner_node->{ media_id }, $cluster->{ centroid_media_id } );
                     $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
                 }
 
@@ -340,12 +344,14 @@ sub _eval_clusters_i2
 
         # my $criterion_score = 0;
         my $nodes = $cluster->{ nodes };
-
+        
         for my $i ( 0 .. $#{ $nodes } )
         {
             for my $j ( $i .. $#{ $nodes } )
             {
-                $cluster_score += vector_cos_sim( $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector } );
+                $cluster_score += vector_cos_sim_cached( 
+                    $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector },
+                    $nodes->[ $i ]->{ media_id }, $nodes->[ $j ]->{ media_id } );
 
                 # $criterion_score += vector_cos_sim( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
             }
@@ -385,7 +391,9 @@ sub _eval_clusters_normalized
             {
                 for my $j ( $i .. $#{ $nodes } )
                 {
-                    my $dp = vector_cos_sim( $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector } );
+                    my $dp = vector_cos_sim_cached( 
+                        $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector },
+                        $nodes->[ $i ]->{ media_id }, $nodes->[ $j ]->{ media_id } );
                     $internal_score += $dp / $scale_factor unless ( $dp == 1 );
                 }
             }
@@ -394,7 +402,9 @@ sub _eval_clusters_normalized
             my $external_score = 0;
             for my $comp_cluster ( @{ $clusters } )
             {
-                my $dp = vector_cos_sim( $centroid, $comp_cluster->{ centroid } );
+                my $dp = vector_cos_sim_cached( 
+                    $cluster->{ centroid }, $comp_cluster->{ centroid },
+                    $cluster->{ centroid_media_id } , $comp_cluster->{ centroid_media_id } );
                 $external_score += $dp / ( $num_clusters - 1 ) unless ( $dp == 1 );
             }
 
@@ -549,11 +559,12 @@ sub get_clusters
         die "You can't have more clusters than sources";
     }
 
-    my $num_clusters = $clustering_engine->cluster_run->{ num_clusters };
     my $num_cluster_runs = NUM_CLUSTER_RUNS;
-    if ( $num_clusters < 200 )
+    my $num_nodes = @{ $clustering_engine->sparse_matrix };
+    
+    if ( $num_nodes < 200 )
     {
-        $num_cluster_runs *= int( log( 400 ) - log( $num_clusters) );
+        $num_cluster_runs *= int( log( 400 ) - log( $num_nodes) );
     }
 
     my $nodes = _refactor_matrix_into_nodes( $clustering_engine );

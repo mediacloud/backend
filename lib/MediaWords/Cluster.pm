@@ -38,7 +38,7 @@ use Tie::IxHash;
 use MediaWords::Cluster::Kmeans;
 use MediaWords::Util::Config;
 use MediaWords::Util::Timing qw( start_time stop_time );
-use MediaWords::Util::BigPDLVector qw( vector_new vector_dot vector_normalize vector_set );
+use MediaWords::Util::BigPDLVector qw( vector_new vector_dot vector_normalize vector_set reset_cos_sim_cache );
 
 # number of nfeatures parameter for the clustering run
 use constant NUM_FEATURES => 100;
@@ -384,7 +384,8 @@ sub new
 
     $cluster_run->{ query } = MediaWords::DBI::Queries::find_query_by_id( $db, $cluster_run->{ queries_id } );
     $self->cluster_run( $cluster_run );
-    
+
+    reset_cos_sim_cache();
 
     my $t0 = start_time( "caching media word vectors" );
     $self->media_word_vectors( $self->_get_media_word_vectors() );

@@ -36,7 +36,7 @@ use MediaWords::Cluster::Map::GraphLayoutAesthetic;
 use MediaWords::Cluster::Map::GraphViz;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
-use MediaWords::Util::BigPDLVector qw( vector_new vector_cos_sim vector_normalize vector_set );
+use MediaWords::Util::BigPDLVector qw( vector_new vector_cos_sim vector_normalize vector_set vector_cos_sim_cached );
 
 use constant MIN_LINK_WEIGHT => 0.2;
 use constant MAX_NUM_LINKS   => 10000;
@@ -244,6 +244,7 @@ sub _get_cosine_sim_list
     my ( $clustering_engine ) = @_;
 
     my $sparse_matrix = $clustering_engine->sparse_matrix;
+    my $row_labels = $clustering_engine->row_labels;
 
     my $max_row = $#{ $sparse_matrix };
     my $sim_list = [];
@@ -255,7 +256,8 @@ sub _get_cosine_sim_list
     {
         for my $j ( $i + 1 .. $max_row )
         {
-            my $dp = vector_cos_sim( $sparse_matrix->[ $i ], $sparse_matrix->[ $j ] );
+            my $dp = vector_cos_sim_cached( 
+                $sparse_matrix->[ $i ], $sparse_matrix->[ $j ], $row_labels->[ $i ], $row_labels->[ $j ] );
 
             my $sim = [ $i , $j , $dp ];
             $sim_list = _add_to_sim_list( $sim_list, $sim, $max_links, MIN_LINK_WEIGHT );
