@@ -602,6 +602,24 @@ sub _show_dashboard_results_single_query
     
 }
 
+sub _concat_or_replace
+{
+   my ( $old_string, $new_string, $join_text) = @_;
+
+   if (! defined($old_string) )
+   {
+      return $new_string;
+   }
+   elsif ($old_string eq $new_string)
+   {
+      return $old_string;
+   }
+   else
+   {
+      return $old_string . $join_text . $new_string;
+   }
+}
+
 # generate main dashboard page for a comparison of two queries
 sub _show_dashboard_results_compare_queries
 {
@@ -613,23 +631,26 @@ sub _show_dashboard_results_compare_queries
     {
         $queries->[ $i ] = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, $i+1 );
         
-        $words->[ $i ] = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $queries->[ $i ] );
+	my $query = $queries->[ $i ];
+
+        $words->[ $i ] = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
         
         if ( !@{ $words->[ $i ] } )
         {
-            $c->stash->{ error_message } = "No words found $queries->[ $i ]->{ description }";
+            $c->stash->{ error_message } = "No words found $query->{ description }";
             return;
         }
         
-        my $country_counts = $self->_get_country_counts( $c, $queries->[ $i ], $i+1 );
+        my $country_counts = $self->_get_country_counts( $c, $query, $i+1 );
         my $coverage_map_chart_url = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
         
         $c->stash->{ "coverage_map_chart_url_" . $i+1 } = $coverage_map_chart_url;        
-	my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis,  $queries->[ $i ] );
+	my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis,  $query );
 
-	$c->stash->{ media_set_names } = join ", " , @{ $media_set_names };
-	$c->stash->{ time_range } = MediaWords::DBI::Queries::get_time_range( $c->dbis,  $queries->[ $i ] );
-	$c->stash->{ areas_of_coverage } = MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis,  $queries->[ $i ] );
+	my $media_set_names_text = join ", " , @{ $media_set_names };
+	$c->stash->{ media_set_names } = _concat_or_replace($c->stash->{ media_set_names }, $media_set_names_text, ' and ');
+	$c->stash->{ time_range } = _concat_or_replace($c->stash->{ time_range }, MediaWords::DBI::Queries::get_time_range( $c->dbis,  $query ), ' and ');
+	$c->stash->{ areas_of_coverage } = _concat_or_replace($c->stash->{ areas_of_coverage } ,MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis,  $query ), ' and ');
    }
     
     my $word_cloud = MediaWords::Util::WordCloud::get_multi_set_word_cloud( $c, $dashboard, $words, $queries );
