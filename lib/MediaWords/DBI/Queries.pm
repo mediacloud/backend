@@ -171,14 +171,18 @@ sub find_or_create_query_by_request
     _set_alternate_param( $req, "start_date$param_suffix", "date$param_suffix" );
     _set_alternate_param( $req, "end_date$param_suffix", "start_date$param_suffix" );
     _set_alternate_param( $req, "media_sets_ids$param_suffix", "media_sets_id$param_suffix" );
+    _set_alternate_param( $req, "dashboard_topics_ids$param_suffix", "dashboard_topics_id$param_suffix" );
     
     map { return undef if ( !defined( $req->param( $_ . $param_suffix ) ) ) } qw(start_date media_sets_ids);
+    
+    my $dashboard_topics_ids = $req->param( 'dashboard_topics_ids' . $param_suffix );
+    $dashboard_topics_ids = $dashboard_topics_ids ? [ $dashboard_topics_ids ] : [];
     
     my $query = find_or_create_query_by_params( $db, { 
         start_date => $req->param( 'start_date' . $param_suffix ), 
         end_date => $req->param( 'end_date' . $param_suffix ),
         media_sets_ids => [ $req->param( 'media_sets_ids' . $param_suffix ) ], 
-        dashboard_topics_ids => [ $req->param( 'dashboard_topics_ids' . $param_suffix ) ] } );
+        dashboard_topics_ids => $dashboard_topics_ids } );
         
     return $query;   
 }
