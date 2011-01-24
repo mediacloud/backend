@@ -48,19 +48,19 @@ sub _get_stats
     
     my $nodes_total    = 0;
     my $nodes_rendered = 0;
-    my $links_rendered = 0;
+    my $links_total    = 0;
 
     for my $node ( @{ $nodes } )
     {
         $nodes_total++ if defined $node->{ name };
-        $links_rendered += scalar @{ $node->{ links } } if defined $node->{ links };
+        $links_total += scalar @{ $node->{ links } } if defined $node->{ links };
         $nodes_rendered++ if $node->{ linked };
     }
 
     my $stats = {
         nodes_total     => $nodes_total,
         nodes_rendered  => $nodes_rendered,
-        links_rendered   => $links_rendered
+        links_total     => $links_total
     };
 
     return $stats;
@@ -538,11 +538,11 @@ sub generate_cluster_map
     
     my $nodes = _get_nodes( $clustering_engine, $sim_list, $media_clusters, $queries );
     
-    _plot_nodes( $nodes, $media_clusters, $media_sets, 'graphviz' );
+    my $num_links_rendered = _plot_nodes( $nodes, $media_clusters, $media_sets, 'graphviz' );
     
     my $json_string = _get_protovis_json( $nodes, $media_clusters, $media_sets );
     
-    my $stats = _get_stats( $nodes, $media_clusters );
+    my $stats = _get_stats( $nodes );
     
     my $map_name = _get_map_name( $db, $cluster_run, $map_type, $queries );
             
@@ -553,7 +553,8 @@ sub generate_cluster_map
         json => $json_string,
         nodes_total => $stats->{ nodes_total },
         nodes_rendered => $stats->{ nodes_rendered },
-        links_rendered => $stats->{ links_rendered } } );
+        #links_total => $stats->{ links_total },
+        links_rendered => $num_links_rendered } );
         
     return $cluster_map;    
 }
