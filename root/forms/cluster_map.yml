@@ -1,7 +1,7 @@
 auto_fieldset:
 
 elements:
-  - type: Number
+  - type: Integer
     name: max_links
     label: Max Links
     comment: The maximum number of similarity scores to include as links in the layout
