@@ -52,6 +52,10 @@ elements:
   - type: Checkboxgroup
     name: dashboard_topics_ids_2
     label: Dashboard Topics for Second Pole
+    
+  - type: Hidden
+    name: bipolar
+    value: 1
 
   - type: Hr
 
