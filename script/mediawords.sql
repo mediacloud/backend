@@ -137,6 +137,7 @@ create index queries_media_sets_map_media_set on queries_media_sets_map ( media_
 
 create table media_cluster_maps (
     media_cluster_maps_id       serial          primary key,
+    method                      varchar(256)    not null,
     map_type                    varchar(32)     not null default 'cluster',
     name                        text            not null,
     json                        text            not null,
