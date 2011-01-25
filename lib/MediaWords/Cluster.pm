@@ -312,7 +312,7 @@ sub _add_descriptions_from_features
     my $word_ranks;
     for my $c ( 0 .. $#{ $clusters }  )
     {
-        my $words = [ sort { $b->{ weight } cmp $a->{ weight } } @{ $clusters->[ $c ]->{ internal_features } } ];
+        my $words = [ sort { $b->{ weight } <=> $a->{ weight } } @{ $clusters->[ $c ]->{ internal_features } } ];
         for my $w ( 0 .. $#{ $words } )
         {
             $word_ranks->{ $words->[ $w ]->{ stem } }->[ $c ] = $w;
