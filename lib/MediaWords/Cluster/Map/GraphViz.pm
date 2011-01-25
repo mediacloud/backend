@@ -7,16 +7,17 @@ use Perl6::Say;
 
 use GraphViz;
 
-use constant LAYOUT => 'neato';
-
 # add nodes to graphviz graph object.
 # add only the biggest N log(N) links at most to the graph where N = number of nodes;
 # otherwise, the map gets squished together into a tight ball
 sub _add_nodes_and_links_to_graph
 {
-    my ( $nodes ) = @_;
+    my ( $method, $nodes ) = @_;
 
-    my $graph = GraphViz->new( layout => LAYOUT, height => 20, width => 20 );
+    ( $method =~ /^graphviz-(.*)/ ) || die( "can't parse layout from graphviz method: $method" );
+    my ( $layout ) = ( $1 );
+
+    my $graph = GraphViz->new( layout => "/usr/bin/$layout", height => 20, width => 20 );
     my $links = [];
 
     for my $i ( 0 .. $#{ $nodes } )
@@ -29,25 +30,13 @@ sub _add_nodes_and_links_to_graph
         }
     }
 
-    my $num_links = @{ $links };
-    my $max_links = int( $num_links * log( $num_links ) );
-    
-    print STDERR "total links: $num_links\nmax links: $max_links\n";
-        
-    if ( $num_links > $max_links )
-    {
-        $links = [ sort { $b->[ 2 ] <=> $a->[ 2 ] } @{ $links } ];
-        splice( @{ $links }, $max_links );
-        $num_links = $max_links;
-    }
-
     for my $link ( @{ $links } )
     {
         # graphviz doesn't pay attention to weights, but it does to lengths
         $graph->add_edge( $link->[ 0 ], => $link->[ 1 ], len => ( 1 - $link->[ 2 ] ) + 0.1 );
     }
     
-    return ( $graph, $num_links );
+    return $graph;
 }
 
 # run the force layout and parse the text results from GraphViz.
@@ -79,16 +68,14 @@ sub _run_force_layout
     }
 }
 
-# Prepare the graph; run the force layout; get the appropriate JSON string from it.
-sub get_graph
+# run graphviz on the nodes and add the {x} and {y} fields to each node
+sub plot_nodes
 {
-    my ( $nodes, $media_clusters, $media_sets ) = @_;
+    my ( $method, $nodes ) = @_;
     
-    my ( $graph, $num_links_rendered ) = _add_nodes_and_links_to_graph( $nodes );
+    my $graph = _add_nodes_and_links_to_graph( $method, $nodes );
 
     _run_force_layout( $graph, $nodes );
-    
-    return $num_links_rendered;
 }
 
 1;

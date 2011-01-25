@@ -1,0 +1,18 @@
+[% title = 'Create Cluster Map for ' _ cluster_run.num_clusters _ ' Cluster Run of Query: ' _ cluster_run.query.description %]
+[% INCLUDE include/header.tt2 %]
+
+<fieldset>
+
+<p>
+A default cluster map lays out the media sources using the similarity of their text and according to some mapping method.  
+The default mapping method is graph-layout-aesthetic, which uses a force based system to group the media sources
+with the most significant links to one another.  The various graphviz-* methods will provide alternative layouts to play
+with.  You can also select the max number of links, which will change the map and which defaults 
+to N * log( N ) where N = the number of media sources.
+</p>
+
+[% form.render %]
+
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]

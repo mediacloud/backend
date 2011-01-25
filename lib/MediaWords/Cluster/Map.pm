@@ -21,7 +21,7 @@ package MediaWords::Cluster::Map;
 #             },
 #             ...
 #         ]
-#         node_id             => $node_id
+#         nodes_id             => $node_id
 #     },
 #     ...
 # ]
@@ -60,7 +60,7 @@ sub _get_stats
     my $stats = {
         nodes_total     => $nodes_total,
         nodes_rendered  => $nodes_rendered,
-        links_total     => $links_total
+        links_rendered  => $links_total
     };
 
     return $stats;
@@ -172,18 +172,17 @@ sub _get_nodes
 # assigns an 'x' and 'y' field to each node record.
 sub _plot_nodes
 {
-    my ( $nodes, $media_clusters, $media_sets, $method ) = @_;
+    my ( $method, $nodes ) = @_;
 
     die "There must be more than one node " if scalar( @$nodes ) <= 1;
 
     if ( $method eq 'graph-layout-aesthetic' )
     {
-        # MediaWords::Cluster::Map::GraphLayoutAesthetic::get_graph( $nodes, $media_clusters );
-        die( 'graph-layout-aesthetic is broken' );
+        MediaWords::Cluster::Map::GraphLayoutAesthetic::plot_nodes( $method, $nodes );
     }
-    elsif ( $method eq 'graphviz' )
+    elsif ( $method =~ /^graphviz/ )
     {
-        MediaWords::Cluster::Map::GraphViz::get_graph( $nodes, $media_clusters, $media_sets );
+        MediaWords::Cluster::Map::GraphViz::plot_nodes( $method, $nodes );
     }
     else
     {
@@ -235,21 +234,20 @@ sub _add_to_sim_list
     return $list;
 }
 
-# returns a list of similarities in the following form sorted by lowest weight first:
+# generates a list of similarities in the following form sorted by highest weight first:
 # [ matrix_row_1, matrix_row_2, weight ]
 #
 # return only the top MAX_NUM_LINKS similarity scores greater than MIN_LINK_WEIGHT
 sub _get_cosine_sim_list
 {
-    my ( $clustering_engine ) = @_;
+    my ( $clustering_engine, $max_links ) = @_;
 
     my $sparse_matrix = $clustering_engine->sparse_matrix;
     my $row_labels = $clustering_engine->row_labels;
 
     my $max_row = $#{ $sparse_matrix };
     my $sim_list = [];
-    
-    my $max_links = int ( $max_row  * log( $max_row ) );
+
     $max_links = ( $max_links > MAX_NUM_LINKS ) ? MAX_NUM_LINKS : $max_links;
     
     for my $i ( 0 .. $max_row )
@@ -519,7 +517,7 @@ sub _get_protovis_json
 # a 'json_string' field that can be passed to protovis for javascript rendering
 sub generate_cluster_map
 {
-    my ( $db, $cluster_run, $map_type, $queries ) = @_;
+    my ( $db, $cluster_run, $map_type, $queries, $max_links, $method ) = @_;
     
     my $clustering_engine = MediaWords::Cluster->new( $db, $cluster_run );
     
@@ -533,12 +531,12 @@ sub generate_cluster_map
         $sim_list = _get_pole_cosine_sim_list( $clustering_engine, $queries );
     }
     else {
-        $sim_list = _get_cosine_sim_list( $clustering_engine );
+        $sim_list = _get_cosine_sim_list( $clustering_engine, $max_links );
     }   
     
     my $nodes = _get_nodes( $clustering_engine, $sim_list, $media_clusters, $queries );
     
-    my $num_links_rendered = _plot_nodes( $nodes, $media_clusters, $media_sets, 'graphviz' );
+    _plot_nodes( $method, $nodes );
     
     my $json_string = _get_protovis_json( $nodes, $media_clusters, $media_sets );
     
@@ -549,12 +547,12 @@ sub generate_cluster_map
     my $cluster_map = $db->create( 'media_cluster_maps', { 
         media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
         name => $map_name,
+        method => $method, 
         map_type => $map_type,
         json => $json_string,
         nodes_total => $stats->{ nodes_total },
         nodes_rendered => $stats->{ nodes_rendered },
-        #links_total => $stats->{ links_total },
-        links_rendered => $num_links_rendered } );
+        links_rendered => $stats->{ links_rendered } } );
         
     return $cluster_map;    
 }

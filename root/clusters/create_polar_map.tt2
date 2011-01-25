@@ -14,7 +14,11 @@ click the link below to add a second set of fields.
 
 [% form.render %]
 
+[% IF bipolar == 1 %]
+<a href="[% c.uri_for( '/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id, { bipolar => 0 } ) %]">remove second pole</a>
+[% ELSE %]
 <a href="[% c.uri_for( '/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id, { bipolar => 1 } ) %]">add a second pole</a>
+[% END %]
 
 </fieldset>
 

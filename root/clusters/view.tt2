@@ -6,8 +6,8 @@
 <fieldset>
 
 <p>generate a cluster map: 
-<a href="[% c.uri_for( '/clusters/create_cluster_map/' _ cluster_run.media_cluster_runs_id ) %]">default cluster map</a> |
-<a href="[% c.uri_for( '/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id ) %]">polar cluster map</a>
+<a href="[% c.uri_for( '/clusters/create_cluster_map/' _ cluster_run.media_cluster_runs_id ) %]">cluster map</a> |
+<a href="[% c.uri_for( '/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id ) %]">polar map</a>
 </p>
 
 [% IF cluster_maps %]
@@ -17,6 +17,7 @@
 <tr>
 <th>Name</th>
 <th>Map Type</th>
+<th>Method</th>
 <th>Nodes Total</th>
 <th>Nodes Rendered</th>
 <th>Links Rendered</th>
@@ -27,6 +28,7 @@
 <tr>
 <td>[% cm.name | html %]</td>
 <td>[% cm.map_type %]</td>
+<td>[% cm.method %]</td>
 <td>[% cm.nodes_total %]</td>
 <td>[% cm.nodes_rendered %]</td>
 <td>[% cm.links_rendered %]</td>

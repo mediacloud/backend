@@ -166,6 +166,7 @@ sub create_polar_map : Local
     {
         $c->stash->{ cluster_run }  = $cluster_run;
         $c->stash->{ form }         = $form;
+        $c->stash->{ bipolar }      = $bipolar;
         $c->stash->{ template }     = 'clusters/create_polar_map.tt2';
         return;
     }
@@ -176,7 +177,7 @@ sub create_polar_map : Local
         push( @{ $queries }, MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, '_2' ) );
     }
         
-    my $cluster_map = MediaWords::Cluster::Map::generate_cluster_map( $c->dbis, $cluster_run, 'polar', $queries );
+    my $cluster_map = MediaWords::Cluster::Map::generate_cluster_map( $c->dbis, $cluster_run, 'polar', $queries, 0, 'graphviz-neato' );
     
     $c->response->redirect( 
         $c->uri_for( '/clusters/view/' . $cluster_run->{ media_cluster_runs_id },
@@ -191,8 +192,28 @@ sub create_cluster_map : Local
 
     my $cluster_run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) 
         || die ( "Unable to find cluster run '$cluster_runs_id'" );
+        
+    my $form = $c->create_form( { load_config_file => $c->path_to . '/root/forms/cluster_map.yml' } );
+    $form->process( $c->request );
+    if ( !$form->submitted_and_valid )
+    {
+        $cluster_run->{ query } = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $cluster_run->{ queries_id } );
+        my $num_media = MediaWords::DBI::Queries::get_number_of_media_sources( $c->dbis, $cluster_run->{ query } );
+        my $max_links = int( $num_media * log( $num_media ) );
+        
+        $form->get_fields( { name => 'max_links' } )->[ 0 ]->value( $max_links );
+        
+        $c->stash->{ cluster_run } = $cluster_run;
+        $c->stash->{ max_links } = $max_links;
+        $c->stash->{ form } = $form;
+        $c->stash->{ template } = 'clusters/create_cluster_map.tt2';
+        return;
+    }
     
-    my $cluster_map = MediaWords::Cluster::Map::generate_cluster_map( $c->dbis, $cluster_run, 'cluster' );
+    my $max_links = $c->req->param( 'max_links' );
+    my $method = $c->req->param( 'method' );
+    
+    my $cluster_map = MediaWords::Cluster::Map::generate_cluster_map( $c->dbis, $cluster_run, 'cluster', undef, $max_links, $method );
     
     $c->response->redirect( 
         $c->uri_for( '/clusters/view/' . $cluster_run->{ media_cluster_runs_id },

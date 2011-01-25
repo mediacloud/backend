@@ -136,23 +136,25 @@ sub _get_centroids_from_graph
 # Run the actual force layout
 sub _run_force_layout_on_graph
 {
-    my ( $graph ) = @_;
-
-    print STDERR "Glossing graph\n";
+    my ( $graph, $nodes ) = @_;
 
     Graph::Layout::Aesthetic->gloss_graph(
         $graph,
         pos_attribute => [ "x_coord", "y_coord" ],
         forces        => {
             node_repulsion  => 1,
-            centripetal => 1,
             min_edge_length => 1
         }
     );
+    
+    for my $vertex ( $graph->vertices )
+    {
+        my $nodes_id = $graph->get_vertex_attribute( $vertex, "nodes_id" );
 
-    print STDERR "Done glossing graph\n";
-
-    return $graph;
+        $nodes->[ $nodes_id ]->{ x } = $graph->get_vertex_attribute( $vertex, "x_coord" );
+        $nodes->[ $nodes_id ]->{ y } = $graph->get_vertex_attribute( $vertex, "y_coord" );
+        print STDERR "plot node $nodes_id: $nodes->[ $nodes_id ]->{ x }, $nodes->[ $nodes_id ]->{ y }\n";
+    }
 }
 
 # Prepare the graph by adding nodes and links to it
@@ -162,63 +164,25 @@ sub _add_nodes_and_links_to_graph
 
     my $graph = Graph::Undirected->new;
 
-    for my $i ( 0 .. $#{ $nodes } )
+    for my $node ( @{ $nodes } )
     {
-        if ( my $node = $nodes->[ $i ] ) 
-        {
-            $graph->add_vertex( $i );
-                
-            $graph->set_vertex_attribute( $i, 'media_id',  $node->{ media_id } );
-            $graph->set_vertex_attribute( $i, 'name',  $node->{ name } );
-            $graph->set_vertex_attribute( $i, 'group', $node->{ cluster_id } );
-            $graph->set_vertex_attribute( $i, 'url',   $node->{ url } );
-        }
-    }
+        $graph->add_vertex( $node->{ nodes_id } );
+        $graph->set_vertex_attribute( $node->{ nodes_id }, 'nodes_id', $node->{ nodes_id } );
 
-    for my $j ( 0 .. $#{ $nodes } )
-    {
-        my $node = $nodes->[ $j ];
-
-        if ( defined $node->{ links } )
-        {
-            for my $link ( @{ $node->{ links } } )
-            {
-                $graph->add_weighted_edge( $j, $link->{ target_id }, $link->{ weight } );
-            }
-        }
+        map { $graph->add_weighted_edge( $node->{ nodes_id }, $_->{ target_id }, 1 ) } @{ $node->{ links } };
     }
     
     return $graph;
 }
 
-# Prepare the graph; run the force layout; get the appropriate JSON string from it.
-sub get_graph
+# run Graph::Layout::Aesthetic on the nodes and add the {x} and {y} fields to each node
+sub plot_nodes
 {
-    my ( $nodes, $media_clusters ) = @_;
+    my ( $method, $nodes ) = @_;
 
-    my $json_string;
-    
-    eval {
-        say STDERR "starting GraphLayoutAesthetic::get_graph";
-        my $graph = _add_nodes_and_links_to_graph( $nodes );
+    my $graph = _add_nodes_and_links_to_graph( $nodes );
 
-        say STDERR "GraphLayoutAesthetic::get_graph running force layout on graph";
-        $graph = _run_force_layout_on_graph( $graph );
-
-        say STDERR "GraphLayoutAesthetic::get_graph running get_centroids_from_graph";
-        my $centroids = _get_centroids_from_graph( $graph, $media_clusters, $nodes );
-
-        say STDERR "GraphLayoutAesthetic::get_graph running _get_json_from_graph";
-        $json_string = _get_json_from_graph( $graph, $nodes, $centroids );
-
-        say STDERR "finishing GraphLayoutAesthetic::get_graph";
-    };
-    if ( $@ ) 
-    {
-        die( "error generating graph: '$@'" );
-    }
-
-    return $json_string;
+    $graph = _run_force_layout_on_graph( $graph, $nodes );
 }
 
 1;
