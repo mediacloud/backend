@@ -166,10 +166,12 @@ sub _add_nodes_and_links_to_graph
 
     for my $node ( @{ $nodes } )
     {
-        $graph->add_vertex( $node->{ nodes_id } );
-        $graph->set_vertex_attribute( $node->{ nodes_id }, 'nodes_id', $node->{ nodes_id } );
-
-        map { $graph->add_weighted_edge( $node->{ nodes_id }, $_->{ target_id }, 1 ) } @{ $node->{ links } };
+        if ( defined( $node->{ nodes_id } ) )
+        {
+            $graph->add_vertex( $node->{ nodes_id } );
+            $graph->set_vertex_attribute( $node->{ nodes_id }, 'nodes_id', $node->{ nodes_id } );
+            map { $graph->add_weighted_edge( $node->{ nodes_id }, $_->{ target_id }, 1 ) } @{ $node->{ links } };
+        }
     }
     
     return $graph;
