@@ -117,28 +117,22 @@ sub _get_country_counts
     return $ret;
 }
 
+# get an xml or csv list of the top 500 words for the given set of queries
 sub get_word_list : Local
 {
-    my ( $self, $c, $dashboards_id ) = @_;
-
-    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+    my ( $self, $c ) = @_;
 
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
 
-    my $query_words;
-    for my $i ( 0, 1 )
+    my $words = [];
+    for my $queries_id ( @{ $queries_ids } )
     {
-        if ( my $queries_id = $queries_ids->[ $i ] )
-        {
-            my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
-            $query_words->[ $i ] = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
-
-            map { $_->{ queries_id } = $queries_id } @{ $query_words->[ $i ] };
-        }
+        my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
+        my $query_words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
+        
+        map { $_->{ query_id } = $queries_id; $_->{ query_description } = $query->{ description }  } @{ $query_words };
+        push( @{ $words }, @{ $query_words } );
     }
-
-    my $words = $query_words->[ 0 ];
-    push( @{ $words }, @{ $query_words->[ 1 ] } ) if ( $query_words->[ 1 ] );
 
     my $output_format = $c->req->param( 'format' );
 
@@ -160,7 +154,7 @@ sub get_word_list : Local
     }
     else
     {
-        my $fields = [ qw ( stem term stem_count media_sets_id publish_week dashboard_topics_id queries_id ) ];
+        my $fields = [ qw ( stem term stem_count query_id query_description ) ];
 
         my $csv = Class::CSV->new( fields => $fields );
 
@@ -650,7 +644,8 @@ sub _show_dashboard_results_compare_queries
         );
     }
 
-    my $word_cloud = MediaWords::Util::WordCloud::get_multi_set_word_cloud( $c, $dashboard, $words, $queries );
+    my $word_cloud = MediaWords::Util::WordCloud::get_multi_set_word_cloud( 
+        $c, "/dashboard/sentences/$dashboard->{ dashboards_id }", $words, $queries );
 
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, $queries );
 
