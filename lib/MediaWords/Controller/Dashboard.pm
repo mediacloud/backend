@@ -73,9 +73,9 @@ sub _get_dashboard_dates
 {
     my ( $self, $c, $dashboard ) = @_;
 
-    my ( $today ) = $c->dbis->query( "select now()::date" )->flat;
+    my ( $yesterday ) = $c->dbis->query( "select now()::date - interval '1 day'" )->flat;
     
-    my $end_date = ( $dashboard->{ end_date } ge $today ) ? $today : $dashboard->{ end_date };
+    my $end_date = ( $dashboard->{ end_date } ge $yesterday ) ? $yesterday : $dashboard->{ end_date };
 
     my $date_exists_query = 
         "select 1 from total_top_500_weekly_words t, dashboard_media_sets dms " . 
