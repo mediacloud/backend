@@ -1,5 +1,3 @@
-<style type="text/css">
-
 xA:link {color: #000000; }
 xA:visited {color: #000000; }
 xA:active {color: #000000; }
@@ -38,5 +36,16 @@ span.tagcloud24 { font-size: 36px;}
 #query_label_1 { color: #0000FF; font-size: 14pt; font-weight: bold }
 #query_label_2 { color: #FF0000; font-size: 14pt; font-weight: bold }
 
-</style>
+#htmltagcloud a.word_cloud_list2 {
+    color: red;
+} 
+
+#htmltagcloud a.word_cloud_list1 {
+    color: blue;
+} 
+
+#htmltagcloud a.word_cloud_both_lists {
+    color: purple;
+} 
+
 
