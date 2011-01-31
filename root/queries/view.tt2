@@ -27,7 +27,7 @@
 </table>
 
 <p>
-<a href="[% c.uri_for( '/queries/view_media/' _ query.queries_id ) %]">view all media in query</a>
+<a href="[% c.uri_for( '/queries/view_media/' _ query.queries_id ) %]">view individual media sources</a>
 </p>
 
 </fieldset>
@@ -38,7 +38,19 @@
 
 <fieldset>
 
+<fieldset>
 [% word_cloud %]
+</fieldset>
+
+<p>
+<a href="[% c.uri_for( '/dashboard/get_word_list',{ format => 'csv', queries_ids => query.queries_id } ) %]">download csv</a> |
+<a href="[% c.uri_for( '/dashboard/get_word_list',{ format => 'xml', queries_ids => query.queries_id } ) %]">download xml</a> |
+<a href="[% c.uri_for( '/queries/compare',{ queries_id => query.queries_id } ) %]">compare to another query</a>
+</p>
+
+<p>
+This is a word cloud of all the words within this query ([% query.description %]).  Click on one of the download links to get a list of the 500 most common words within the query.  Click on the compare link to generate a comparative word cloud with another query.
+</p>
 
 </fieldset>
 
@@ -52,11 +64,25 @@
 
 <img src="[% topic_chart_url %]" />
 
+<p>
+
+[% FOREACH term IN max_topic_term_ratios %]
+[ [% term.term | html %] - [% term.max_term_ratio * 100 | format( '%.02f' ) %]% ]
+[% END %]
+</p>
+
+<p>
+This is a chart of the relative frequency of the terms included in the topic for the dates included in the topic for each media set.  The unit being measured is the number of words in sentences including one or more of the topic words divided by the total number of words included in all sentences in the query media sources.  The text underneath the chart shows the percentage of mentions of the top 250 most mentioned words in the media sources for the date range (not restricted to the topic) for the most popular word overall to each topic word.
+</p>
 [% END #IF query.dashboard_topics %]
 
 <p><b>generate term frequency chart for a list of terms</b></p>
 
 [% terms_form.render %]
+
+<p>
+Use this form to generate a line chart of the frequency of any set of terms within this query.  For instance, enter 'health, tax, economy' to get a chart of the frequency of those terms within the query.
+</p>
 
 </fieldset>
 
@@ -66,7 +92,7 @@
 
 <fieldset>
 
-<p><a href="[% c.uri_for( '/queries/sentences/' _ query.queries_id ) %]">view all sentences within this query</a><p>
+<p><a href="[% c.uri_for( '/queries/sentences/', { queries_ids => query.queries_id } ) %]">view all sentences within this query</a><p>
 
 <p>or</p>
 
@@ -74,9 +100,15 @@
 
 [% sentences_form.render %]
 
+<p>
+Use this to get a list of either all sentences within this query or all sentences including a specific term within this query.  Note that the tool will only return a max of [% max_sentences %] sentences, so the 'view all sentences' link is not very helpful for queries with lots of stories.
+</p>
+
 </fieldset>
 
 <p><b>Clustering Runs</b></p>
+
+<fieldset>
 
 <p><a href="[% c.uri_for( '/clusters/create/' _ query.queries_id ) %]">generate new cluster run</a></p>
 
@@ -105,6 +137,13 @@
 </table>
 
 [% END #IF cluster_runs %]
+
+
+<p>
+The clustering tool allows you to cluster the media sources within this query according to the content within the query.  For example, you can generate a set of clusters for the Top 25 Mainstream Media according to all content within a date range (if the query includes just a date range and the MSM media set) or according to all content within sentences mentioning one of a set of topics within a date range (if the query includes a set of topics as well).  The number of clusters has to be set manually.  For each clustering run, you will also have the ability to create a map laying out the media sources from the 'view' page for the given clustering run.
+</p>
+
+</fieldset>
 
 <p />
 
