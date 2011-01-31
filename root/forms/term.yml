@@ -6,6 +6,9 @@ elements:
     label: term
     constraints:
         - Required
+        
+  - type: Hidden
+    name: queries_ids
 
   - type: Submit
     value: Go
