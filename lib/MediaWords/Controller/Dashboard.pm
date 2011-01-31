@@ -73,22 +73,10 @@ sub _get_dashboard_dates
 {
     my ( $self, $c, $dashboard ) = @_;
 
-    my ( $now, $date, $end_date ) = $c->dbis->query(
-        "select date_trunc( 'week', now() ), date_trunc( 'week', start_date ), date_trunc( 'week', end_date ) " .
-          "  from dashboards where dashboards_id = ?",
-        $dashboard->{ dashboards_id }
-    )->flat;
-
-    $now      = substr( $now,      0, 10 );
-    $date     = substr( $date,     0, 10 );
-    $end_date = substr( $end_date, 0, 10 );
-
-    my $dates;
-    while ( ( $date le $end_date ) && ( $date le $now ) )
-    {
-        push( @{ $dates }, $date );
-        $date = Date::Format::time2str( '%Y-%m-%d', Date::Parse::str2time( $date ) + ( 86400 * 7 ) + 43200 );
-    }
+    my $dates = $c->dbis->query("select date(t5ww.publish_week) from dashboards d, dashboard_media_sets dms,  top_500_weekly_words t5ww " .
+				"where dms.media_sets_id = t5ww.media_sets_id and d.start_date <= t5ww.publish_week and d.end_date  >= t5ww.publish_week and dms.dashboards_id=? group by t5ww.publish_week order by publish_week;", 
+			      $dashboard->{ dashboards_id }
+			       )->flat();
 
     return $dates;
 }
