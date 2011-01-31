@@ -5,10 +5,20 @@
 <img src="[% term_chart_url %]" />
 
 <p>
+[% FOREACH term IN max_term_ratios %]
+[ [% term.term | html %] - [% term.max_term_ratio * 100 | format( '%.02f' ) %]% ]
+[% END %]
+</p>
+<p>
 <a href="[% c.uri_for( '/queries/terms/' _ query.queries_id, { 'csv' => 1, 'terms' => terms_string } ) %]">
 download csv of term counts
 </a>
 </p>
+
+<p>
+This is a chart of the relative frequency of the given terms within the query.  The unit is the percentage of daily word mentions -- the number of mentions of each given term divided by the total number of mentions of all non-stopword words for each day within the given query.  The chart is normalized against the highest percentage of daily word mentions for a given term within the query dates (so at least one term should reach the top of the chart for at least one day).  The text underneath the chart shows the percentage of mentions of the top 250 most mentioned non-stopword words in the query.  If no topics are specified, these numbers are for all content within the media sets and dates of the query.  If topics are specified, these numbers are just for words in the same sentences of one of the topic words within the media sets and dates of the query.  A csv of the daily term counts is also available.
+</p>
+
 </fieldset>
 
 [% INCLUDE include/footer.tt2 %]
