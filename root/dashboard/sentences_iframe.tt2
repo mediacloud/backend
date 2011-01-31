@@ -1,0 +1,88 @@
+<html>
+<head>
+[% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
+
+</head>
+
+<body>
+<script language="javascript" type="text/javascript">
+
+   $(document).ready(function() 
+    {
+      $('#media_source_percent_table td').click( function() {
+           var $this = $(this);
+           var id = $this.attr('id');
+           $('#source_sentence_content div').hide();
+           $('#media_source_percent_table td').css('backgroundColor', '#ffffff');
+           var source_num = id.replace(/Select$/, '').replace(/^Source/, '');
+           var target_id = 'Source' + source_num;
+
+           //alert(source_num + '--' + target_id);
+
+           var source_content =  $('#' + target_id);
+           source_content.show();
+           //alert(source_content.html());
+           $this.css('backgroundColor', '#E4E4E4');
+
+           $('#stories' + source_num).treeview({
+              animated: "slow", 
+              collapsed: true
+              /* control: "#toggle_tree_" + source_num */
+           });
+      });
+
+      //alert('foo');
+      $('#Source1Select').click();
+
+   }); 
+</script>
+           <div id = "TSarea"><BR>
+              <em>Top 25 Mainstream Media Sources &gt; Term: '[% term %]'</em><br />
+              <br />
+              
+              <table width="880" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="right" valign="top">
+                  
+                  <table id="media_source_percent_table" width="100%" border="0" cellspacing="0" cellpadding="5">
+[% i = 1 %]
+[% FOREACH medium IN media %]
+                    <tr>
+                      <td align="right" valign="top" id = "Source[% i %]Select"><span style="cursor:pointer">[% medium.name | html %]: [% medium.stem_percentage * 100 | format( "%.3f%%" ) %]</span></td>
+                    </tr>
+[% i = i + 1 %]
+[% END %]
+  </table> 
+                                     </td>
+                  <td width="70%" id="source_sentence_content"
+ align="right" valign="top" bgcolor="#E4E4E4">
+[% i = 1 %]
+[% FOREACH medium IN media %]
+                  <div id = "Source[% i %]"><strong>[% medium.name | html %]</strong><br />
+<br />
+  
+  <ul id='stories[% i %]' class='filetree'>
+    [% FOREACH story IN medium.stories %]
+    <li class='collapsable'>
+      <b>[% story.title | html %]</a></b>
+        <span class='date'>[% story.publish_date %] <span id="toggle_tree_[% i %]">(expand/collapse)</span></span>[<a href="[% story.url %]">View Article</a>]<br /> <br />
+      <ul id='sentences'>
+        [% FOREACH sentence IN story.sentences %]
+        <li>[% sentence.sentence | html %]</li>
+        [% END %]
+      </ul>
+    </li>
+    [% END %]
+  </ul>
+<br />
+</div>
+[% i = i + 1 %]
+[% END %]
+                  </td>
+                </tr>
+            
+              </table>
+
+            </div>
+</body>
+</html>
