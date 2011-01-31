@@ -8,8 +8,8 @@ A polar cluster map maps the similarity of each media source within a query to t
 This might be used, for example, to map the similarity of each U.S. political blog to a query representing 
 the output of the White House. Or it might be used to map the similarity of each Russian newspaper between
 nationalist and opposition blogs respectively.  For a unipolar map, enter the fields below.  For a bipolar map,
-click the link below to add a second set of fields.
-
+click the link below to add a second set of fields.  The bipolar map layouts do not work very well yet, but 
+feel free to experiment.
 </p>
 
 [% form.render %]

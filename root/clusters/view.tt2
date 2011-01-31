@@ -56,9 +56,25 @@
     
 [% END #IF cluster_map %]
 
+<p>
+A cluster map is a visual representation of the similarity of the media sources within the given query.  The mapping method determines the location of the media source within the map.  The cluster membership determines the color of each dot on the map.  To generate a new map, click on either 'cluster map' or 'polar map' above.  A cluster map will map the media sources according to their similarity to one another.  A polar map will map the media sources according to their similarity to a single other query.
+</p>
+
 </fieldset>
 
     <p><b>Cluster Members</b></p>
+    
+<fieldset>
+<p>
+The following boxes list all of the clusters for the given query for the given cluster run.  The clusters are generated according to words within the query for each media source (either all words within the media sets for the given dates for queries with no topics or all words within the media sets in the same sentence as one of the topic words for the given dates for queries with topics).  The clustering engine uses a simple <a href="https://secure.wikimedia.org/wikipedia/en/wiki/K-means_clustering">kmeans</a> implementation based on the <a href="https://secure.wikimedia.org/wikipedia/en/wiki/Cosine_similarity">cosine similarity</a> of the list of the top 100 non-stopword query words of each media source.  This approach returns a different, randomized solution each time, so we run clustering about 20 times and keep the clustering run with the highest sum of total similarity for each cluster.
+</p>
+<p>
+The word cloud within each box is the word cloud for that particular cluster within the query.  The title of the cluster is the most popular word within the cluster that is rank lower than that word for all clusters (so if three clusters all have 'obama' as the most popular word, none of them can use 'obama' as the cluster title).  Each cluster can be viewed as a query by clicking on the title of the cluster.  The media sources within each cluster are listed after the title.  Click on the media source name to view the current query for just the given media source.  Click on the &gt; after each media source to go to the url of the media source itself.  Click on any word within the cluster word cloud to see the sentences including that word within the given cluster and query.
+</p>
+</fieldset>
+
+<p />
+    
     <div id='clusters'>
     [% FOREACH cluster IN clusters %]
       <fieldset>
