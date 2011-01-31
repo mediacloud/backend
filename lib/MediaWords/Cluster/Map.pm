@@ -136,7 +136,6 @@ sub _get_nodes
     my ( $clustering_engine, $sim_list, $media_clusters, $queries ) = @_;
 
     die "media_clusters cannot be empty"      if scalar( @$media_clusters ) == 0;
-    die "Must be more than one media_cluster" if scalar( @$media_clusters ) == 1;
 
     my $row_labels = $clustering_engine->row_labels;
     my $max_medium_row = $#{ $row_labels };
