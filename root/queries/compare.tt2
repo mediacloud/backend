@@ -1,0 +1,31 @@
+[% title = 'Compare Queries: words ' _ query_a.description _ ' vs. words ' _ query_b.description %]
+[% INCLUDE include/header.tt2 %]
+
+<link href="[% c.uri_for( '/include/word_cloud.css' ) %]" rel="stylesheet" type="text/css" />
+
+<fieldset>
+
+<p>
+<a href="[% c.uri_for( '/dashboard/get_word_list',{ format => 'csv', queries_ids => [ query_a.queries_id, query_b.queries_id ] } ) %]">download csv</a> |
+<a href="[% c.uri_for( '/dashboard/get_word_list',{ format => 'xml', queries_ids => [ query_a.queries_id, query_b.queries_id ] } ) %]">download xml</a>
+
+<fieldset>
+[% word_cloud %]
+</fieldset>
+
+<div>
+<span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
+Words [% query_a.description | html%]
+<br />
+<span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
+Words [% query_b.description | html %]
+<br />
+<span style="display:inline-block; width: 10px; height: 10px; background: purple; "></span>
+Words in both queries
+</div>
+
+<div>
+<b>Similarity Score: [% query_a.similarities.1 | format( "%.3f" ) %]</b>
+</div>
+
+</fieldset>
