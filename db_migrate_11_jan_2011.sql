@@ -10,6 +10,18 @@ create table queries (
 create index queries_creation_date on queries (creation_date);
 create unique index queries_hash on queries ( md5( description ) );
 
+delete from daily_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from total_daily_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from weekly_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from top_500_weekly_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from total_top_500_weekly_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+
+delete from daily_author_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from total_daily_author_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from weekly_author_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from top_500_weekly_author_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+delete from total_top_500_weekly_author_words where media_sets_id in ( select media_sets_id from media_sets where media_clusters_id is not null );
+
 delete from media_cluster_runs;
 
 ALTER TABLE media_cluster_runs drop column start_date;
@@ -47,6 +59,8 @@ create table media_cluster_map_poles (
 );
  	  	 
 create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
+
+delete from daily_country_counts where media_sets_id not in ( select media_sets_id from media_sets );
 
 ALTER TABLE daily_country_counts DROP CONSTRAINT daily_country_counts_media_sets_id_fkey;
 ALTER TABLE daily_country_counts ADD CONSTRAINT daily_country_counts_media_sets_id_fkey FOREIGN KEY (media_sets_id) references media_sets;
