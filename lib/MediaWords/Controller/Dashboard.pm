@@ -73,13 +73,17 @@ sub _get_dashboard_dates
 {
     my ( $self, $c, $dashboard ) = @_;
 
+    my ( $today ) = $c->dbis->query( "select now()::date" )->flat;
+    
+    my $end_date = ( $dashboard->{ end_date } ge $today ) ? $today : $dashboard->{ end_date };
+
     my $date_exists_query = 
         "select 1 from total_top_500_weekly_words t, dashboard_media_sets dms " . 
         "  where t.publish_week = ? and dms.dashboards_id = $dashboard->{ dashboards_id } " . 
         "    and dms.media_sets_id = t.media_sets_id limit 1";
 
     my $start_date;
-    for ( my $d = $dashboard->{ start_date }; $d le $dashboard->{ end_date }; $d =  MediaWords::Util::SQL::increment_day( $d, 1 ) )
+    for ( my $d = $dashboard->{ start_date }; $d le $end_date; $d =  MediaWords::Util::SQL::increment_day( $d, 1 ) )
     {
         if ( $c->dbis->query( $date_exists_query, $d )->hash )
         {
@@ -91,7 +95,7 @@ sub _get_dashboard_dates
     return [] if ( !$start_date );
     
     my $all_dates;
-    for ( my $d = $start_date; $d le $dashboard->{ end_date }; $d =  MediaWords::Util::SQL::increment_day( $d, 7 ) )
+    for ( my $d = $start_date; $d le $end_date; $d =  MediaWords::Util::SQL::increment_day( $d, 7 ) )
     {
         push( @{ $all_dates }, $d );
     }
