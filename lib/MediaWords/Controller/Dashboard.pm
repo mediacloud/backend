@@ -39,9 +39,9 @@ my $_last_time;
 sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
-    
+
     my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards limit 1 order by dashboards_id" )->flat;
-    
+
     return $self->view( $c, $dashboards_id );
 }
 
@@ -73,10 +73,11 @@ sub _get_dashboard_dates
 {
     my ( $self, $c, $dashboard ) = @_;
 
-    my $dates = $c->dbis->query("select date(t5ww.publish_week) from dashboards d, dashboard_media_sets dms,  top_500_weekly_words t5ww " .
-				"where dms.media_sets_id = t5ww.media_sets_id and d.start_date <= t5ww.publish_week and d.end_date  >= t5ww.publish_week and dms.dashboards_id=? group by t5ww.publish_week order by publish_week;", 
-			      $dashboard->{ dashboards_id }
-			       )->flat();
+    my $dates = $c->dbis->query(
+        "select date(t5ww.publish_week) from dashboards d, dashboard_media_sets dms,  top_500_weekly_words t5ww " .
+"where dms.media_sets_id = t5ww.media_sets_id and d.start_date <= t5ww.publish_week and d.end_date  >= t5ww.publish_week and dms.dashboards_id=? group by t5ww.publish_week order by publish_week;",
+        $dashboard->{ dashboards_id }
+    )->flat();
 
     return $dates;
 }
@@ -91,10 +92,9 @@ sub _get_author_words
 
     return $c->dbis->query(
         "select stem, min(term) as term, sum( stem_count ) as stem_count from top_500_weekly_author_words " .
-        "  where not is_stop_stem( 'long', stem ) and authors_id = $authors_id " . 
-        "    and publish_week = date_trunc('week', '$date'::date) " .
-        "  group by stem " . 
-        "  order by stem_count desc limit " . MediaWords::Util::WordCloud::NUM_WORD_CLOUD_WORDS )->hashes;
+          "  where not is_stop_stem( 'long', stem ) and authors_id = $authors_id " .
+          "    and publish_week = date_trunc('week', '$date'::date) " . "  group by stem " .
+          "  order by stem_count desc limit " . MediaWords::Util::WordCloud::NUM_WORD_CLOUD_WORDS )->hashes;
 }
 
 sub _get_country_counts
@@ -122,34 +122,36 @@ sub get_word_list : Local
     my ( $self, $c, $dashboards_id ) = @_;
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    
+
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
-    
+
     my $query_words;
     for my $i ( 0, 1 )
     {
         if ( my $queries_id = $queries_ids->[ $i ] )
-        { 
+        {
             my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
             $query_words->[ $i ] = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
-            
+
             map { $_->{ queries_id } = $queries_id } @{ $query_words->[ $i ] };
-        }           
+        }
     }
-    
-    my $words = $query_words->[ 0 ];    
+
+    my $words = $query_words->[ 0 ];
     push( @{ $words }, @{ $query_words->[ 1 ] } ) if ( $query_words->[ 1 ] );
-    
+
     my $output_format = $c->req->param( 'format' );
 
     my $response_body;
     if ( $output_format eq 'xml' )
     {
-        my $xml = XMLout( { word => $words },
+        my $xml = XMLout(
+            { word => $words },
             RootName => 'word_list',
-            KeyAttr => [],
+            KeyAttr  => [],
             XMLDecl  => 1,
-            NoAttr   => 1 );
+            NoAttr   => 1
+        );
 
         $response_body = $xml;
 
@@ -176,7 +178,7 @@ sub get_word_list : Local
 
     $c->response->content_length( length( $response_body ) );
     $c->response->body( $response_body );
-    
+
     return;
 }
 
@@ -498,12 +500,10 @@ sub _update_form
     my $form = $c->stash->{ form };
 
     #purge labels from the form
- 	 
-    foreach my $element ( @{ $form->get_all_elements() } )	 
-    {	 
-        eval {	 
-            $element->label( undef );	 
-        };	 
+
+    foreach my $element ( @{ $form->get_all_elements() } )
+    {
+        eval { $element->label( undef ); };
     }
 
     my $date1_param = $form->param_value( 'date1' );
@@ -513,7 +513,7 @@ sub _update_form
     my $date_options = [ map { [ $_, $_ ] } @$dashboard_dates ];
     my $date1_elem = $form->get_field( { name => 'date1' } );
     $date1_elem->options( $date_options );
-    
+
     if ( my $date2_elem = $form->get_field( { name => 'date2' } ) )
     {
         $date2_elem->options( $date_options );
@@ -537,7 +537,7 @@ sub _update_form
     ];
 
     $form->get_field( { name => 'media_sets_id1' } )->options( $media_sets_id_options );
-    if ( my $f =  $form->get_field( { name => 'media_sets_id2' } )  )
+    if ( my $f = $form->get_field( { name => 'media_sets_id2' } ) )
     {
         $f->options( $media_sets_id_options );
     }
@@ -547,21 +547,21 @@ sub _update_form
 sub _get_word_cloud
 {
     my ( $self, $c, $dashboard, $words, $query ) = @_;
-    
+
     my $base_url = "/dashboard/sentences/$dashboard->{ dashboards_id }";
-    
+
     my $word_cloud = MediaWords::Util::WordCloud::get_word_cloud( $c, $base_url, $words, $query );
-    
-    return $word_cloud;    
+
+    return $word_cloud;
 }
 
 # generate main dashboard page for a single query
 sub _show_dashboard_results_single_query
 {
     my ( $self, $c, $dashboard ) = @_;
-    
+
     my $query = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, '1' );
-    
+
     my $words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
 
     if ( @{ $words } == 0 )
@@ -569,43 +569,43 @@ sub _show_dashboard_results_single_query
         $c->stash->{ error_message } = "No words found $query->{ description }";
         return;
     }
-    
+
     my $word_cloud = $self->_get_word_cloud( $c, $dashboard, $words, $query );
 
-    my $country_counts = $self->_get_country_counts( $c, $query, 1 );
+    my $country_counts          = $self->_get_country_counts( $c, $query, 1 );
     my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
-    my $coverage_map_chart_url = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
+    my $coverage_map_chart_url  = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
 
     my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
-    $c->stash->{ media_set_names } = join ", " , @{ $media_set_names };
+    $c->stash->{ media_set_names } = join ", ", @{ $media_set_names };
     $c->stash->{ time_range } = MediaWords::DBI::Queries::get_time_range( $c->dbis, $query );
     $c->stash->{ areas_of_coverage } = MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis, $query );
 
     $c->stash->{ country_count_csv_array } = $country_count_csv_array;
-    $c->stash->{ coverage_map_chart_url } = $coverage_map_chart_url;
-    $c->stash->{ word_cloud } = $word_cloud;
-    $c->stash->{ queries } = [ $query ];
-    $c->stash->{ queries_ids } = [ $query->{ queries_ids } ];
-    
+    $c->stash->{ coverage_map_chart_url }  = $coverage_map_chart_url;
+    $c->stash->{ word_cloud }              = $word_cloud;
+    $c->stash->{ queries }                 = [ $query ];
+    $c->stash->{ queries_ids }             = [ $query->{ queries_ids } ];
+
 }
 
 sub _concat_or_replace
 {
-   my ( $old_string, $new_string, $join_text) = @_;
+    my ( $old_string, $new_string, $join_text ) = @_;
 
-   if (! defined($old_string) )
-   {
-      return $new_string;
-   }
-   elsif ($old_string eq $new_string)
-   {
-      return $old_string;
-   }
-   else
-   {
-      return $old_string . $join_text . $new_string;
-   }
+    if ( !defined( $old_string ) )
+    {
+        return $new_string;
+    }
+    elsif ( $old_string eq $new_string )
+    {
+        return $old_string;
+    }
+    else
+    {
+        return $old_string . $join_text . $new_string;
+    }
 }
 
 # generate main dashboard page for a comparison of two queries
@@ -617,55 +617,65 @@ sub _show_dashboard_results_compare_queries
 
     for my $i ( 0, 1 )
     {
-        $queries->[ $i ] = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, $i+1 );
-        
-	my $query = $queries->[ $i ];
+        $queries->[ $i ] = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, $i + 1 );
+
+        my $query = $queries->[ $i ];
 
         $words->[ $i ] = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
-        
+
         if ( !@{ $words->[ $i ] } )
         {
             $c->stash->{ error_message } = "No words found $query->{ description }";
             return;
         }
-        
-        my $country_counts = $self->_get_country_counts( $c, $query, $i+1 );
-        my $coverage_map_chart_url = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
-        
-        $c->stash->{ "coverage_map_chart_url_" . $i+1 } = $coverage_map_chart_url;        
-	my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis,  $query );
 
-	my $media_set_names_text = join ", " , @{ $media_set_names };
-	$c->stash->{ media_set_names } = _concat_or_replace($c->stash->{ media_set_names }, $media_set_names_text, ' and ');
-	$c->stash->{ time_range } = _concat_or_replace($c->stash->{ time_range }, MediaWords::DBI::Queries::get_time_range( $c->dbis,  $query ), ' and ');
-	$c->stash->{ areas_of_coverage } = _concat_or_replace($c->stash->{ areas_of_coverage } ,MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis,  $query ), ' and ');
-   }
-    
+        my $country_counts = $self->_get_country_counts( $c, $query, $i + 1 );
+        my $coverage_map_chart_url = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
+
+        $c->stash->{ "coverage_map_chart_url_" . $i + 1 } = $coverage_map_chart_url;
+        my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
+
+        my $media_set_names_text = join ", ", @{ $media_set_names };
+        $c->stash->{ media_set_names } =
+          _concat_or_replace( $c->stash->{ media_set_names }, $media_set_names_text, ' and ' );
+        $c->stash->{ time_range } = _concat_or_replace(
+            $c->stash->{ time_range },
+            MediaWords::DBI::Queries::get_time_range( $c->dbis, $query ),
+            ' and '
+        );
+        $c->stash->{ areas_of_coverage } = _concat_or_replace(
+            $c->stash->{ areas_of_coverage },
+            MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis, $query ),
+            ' and '
+        );
+    }
+
     my $word_cloud = MediaWords::Util::WordCloud::get_multi_set_word_cloud( $c, $dashboard, $words, $queries );
-    
+
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, $queries );
-    
-    $c->stash->{ word_cloud } = $word_cloud;
-    $c->stash->{ queries } = $queries;
+
+    $c->stash->{ word_cloud }  = $word_cloud;
+    $c->stash->{ queries }     = $queries;
     $c->stash->{ queries_ids } = [ map { $_->{ queries_id } } @{ $queries } ];
-}   
+}
 
 # generate main dashboard page
 sub _show_dashboard_results
 {
     my ( $self, $c, $dashboards_id ) = @_;
-    
+
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    
+
     my $compare_media_sets = $c->req->param( 'compare_media_sets' ) || 'false';
 
     $c->stash->{ show_results } = 1;
 
     if ( $compare_media_sets eq 'true' )
     {
-        $self->_show_dashboard_results_compare_queries( $c, $dashboard);
+        $self->_show_dashboard_results_compare_queries( $c, $dashboard );
     }
-    else {
+    else
+    {
         $self->_show_dashboard_results_single_query( $c, $dashboard );
     }
 }
@@ -697,7 +707,7 @@ sub coverage_changes : Local : FormConfig
 
     if ( $c->req->param( 'show_results' ) )
     {
-        $c->stash->{ show_results } = 1;
+        $c->stash->{ show_results }          = 1;
         $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
     }
     $c->stash->{ template } = 'zoe_website_template/coverage_changes.tt2';
@@ -732,7 +742,7 @@ sub author_query : Local : FormConfig
     my $form = $c->stash->{ form };
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    
+
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
     $form->get_field( { name => 'date1' } )->options( [ map { [ $_, $_ ] } @$dashboard_dates ] );
 
@@ -744,8 +754,7 @@ sub author_query : Local : FormConfig
     {
         my $date = $self->get_start_of_week( $c, $c->req->param( 'date1' ) );
 
-        my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', 
-            $c->req->param( 'dashboard_topics_id1' ) );
+        my $dashboard_topic = $c->dbis->find_by_id( 'dashboard_topics', $c->req->param( 'dashboard_topics_id1' ) );
 
         my $authors_id1 = $c->req->param( 'authors_id1' ) || die "no authors_id1";
 
@@ -753,13 +762,14 @@ sub author_query : Local : FormConfig
 
         if ( scalar( @{ $words } ) == 0 )
         {
-            $c->stash->{ error_message } = "No words found for this author and date";  
+            $c->stash->{ error_message } = "No words found for this author and date";
         }
-        else {
+        else
+        {
             my $word_cloud = $self->_get_word_cloud( $c, $dashboard, $words, { authors_id => $authors_id1 } );
 
             $c->stash->{ show_results } = 1;
-            $c->stash->{ word_cloud } = $word_cloud;
+            $c->stash->{ word_cloud }   = $word_cloud;
         }
     }
     elsif ( $form->has_errors() )
@@ -767,11 +777,10 @@ sub author_query : Local : FormConfig
         $c->stash->{ error_message } = "Form has errors: \n " . Dumper( [ $form->get_errors() ] );
     }
 
-    $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ dashboard }       = $dashboard;
     $c->stash->{ dashboard_dates } = $dashboard_dates;
-    $c->stash->{ template } = 'zoe_website_template/author_query.tt2';
+    $c->stash->{ template }        = 'zoe_website_template/author_query.tt2';
 }
-
 
 sub _translate_word_list
 {
@@ -929,41 +938,41 @@ sub _set_translate_state
 }
 
 # list the sentences matching the given stem for the given author
-sub sentences_author : Local 
+sub sentences_author : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
-    
+
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    
+
     my $authors_id = $c->req->param( 'authors_id' ) || die( 'no authors_id' );
-    my $stem = $c->req->param( 'stem' ) || die( 'no stem' );
-    my $term = $c->req->param( 'term' ) || die( 'no term' );
+    my $stem       = $c->req->param( 'stem' )       || die( 'no stem' );
+    my $term       = $c->req->param( 'term' )       || die( 'no term' );
 
     $authors_id += 0;
     my $author = $c->dbis->find_by_id( 'authors', $authors_id ) || die( "can't find author $authors_id" );
 
     my $quoted_stem = $c->dbis->dbh->quote( $stem );
 
-    my $sentences = $c->dbis->query(
-          "select distinct ss.* " .
+    my $sentences =
+      $c->dbis->query( "select distinct ss.* " .
           "  from story_sentences ss, story_sentence_words ssw, stories s, authors_stories_map asm " .
           "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-          "    and s.stories_id = ssw.stories_id and ssw.stories_id = asm.stories_id " . 
+          "    and s.stories_id = ssw.stories_id and ssw.stories_id = asm.stories_id " .
           "    and asm.authors_id = $authors_id and ssw.stem = $quoted_stem " .
-          "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . 
-          "  limit 500" )->hashes;
-          
+          "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit 500" )->hashes;
+
     my $stories_ids_hash;
     map { $stories_ids_hash->{ $_->{ stories_id } } = 1 } @{ $sentences };
-    my $stories_ids_list =  MediaWords::Util::SQL::get_ids_in_list( [ keys( %{ $stories_ids_hash } ) ] );
+    my $stories_ids_list = MediaWords::Util::SQL::get_ids_in_list( [ keys( %{ $stories_ids_hash } ) ] );
 
-    my $stories = $c->dbis->query( "select * from stories where stories_id in ( $stories_ids_list ) order by publish_date" )->hashes;
+    my $stories =
+      $c->dbis->query( "select * from stories where stories_id in ( $stories_ids_list ) order by publish_date" )->hashes;
 
     my $stories_hash;
     map { $stories_hash->{ $_->{ stories_id } } = $_ } @{ $stories };
     map { push( @{ $stories_hash->{ $_->{ stories_id } }->{ sentences } }, $_ ) } @{ $sentences };
-    
-    my $page_description = 
+
+    #my $page_description =
 
     $c->stash->{ dashboard }       = $dashboard;
     $c->stash->{ term }            = $term;
@@ -981,20 +990,20 @@ sub sentences_medium : Local
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    my $media_id    = $c->req->param( 'media_id' )    || die( 'no media_id' );
-    my $stem        = $c->req->param( 'stem' )        || die( 'no stem' );
-    my $term        = $c->req->param( 'term' )        || die( 'no term' );
- 
+    my $media_id = $c->req->param( 'media_id' ) || die( 'no media_id' );
+    my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
+    my $term     = $c->req->param( 'term' )     || die( 'no term' );
+
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
-    
-    $queries_ids = ( !$queries_ids || ref( $queries_ids ) ) ? $queries_ids : [ $queries_ids ] ;  
+
+    $queries_ids = ( !$queries_ids || ref( $queries_ids ) ) ? $queries_ids : [ $queries_ids ];
 
     my $translate = $self->_set_translate_state( $c );
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
     $medium->{ stem_percentage } = $c->req->param( 'stem_percentage' );
-    
+
     my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];
 
     my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
@@ -1003,14 +1012,14 @@ sub sentences_medium : Local
 
     $c->keep_flash( ( 'translate' ) );
 
-    $c->stash->{ dashboard }       = $dashboard;
-    $c->stash->{ term }            = $term;
-    $c->stash->{ translated_term } = MediaWords::Util::Translate::translate( $term );
-    $c->stash->{ medium }          = $medium;
-    $c->stash->{ params }          = $c->req->params;
-    $c->stash->{ template }        = 'dashboard/sentences_medium.tt2';
-    $c->stash->{ stories }         = $stories;
-    $c->stash->{ queries_description} = $queries_description;
+    $c->stash->{ dashboard }           = $dashboard;
+    $c->stash->{ term }                = $term;
+    $c->stash->{ translated_term }     = MediaWords::Util::Translate::translate( $term );
+    $c->stash->{ medium }              = $medium;
+    $c->stash->{ params }              = $c->req->params;
+    $c->stash->{ template }            = 'dashboard/sentences_medium.tt2';
+    $c->stash->{ stories }             = $stories;
+    $c->stash->{ queries_description } = $queries_description;
 }
 
 # list the sentence counts for each medium in the query for the given stem
@@ -1018,15 +1027,15 @@ sub sentences : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    if ( $c->req->param( 'authors_id' ) ) 
+    if ( $c->req->param( 'authors_id' ) )
     {
         return $self->sentences_author( $c, $dashboards_id );
     }
 
     my $iframe = 0;
-    if ($c->req->param( 'iframe') )
+    if ( $c->req->param( 'iframe' ) )
     {
-       $iframe = 1;
+        $iframe = 1;
     }
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
@@ -1040,26 +1049,27 @@ sub sentences : Local
 
     if ( $iframe )
     {
-       foreach my $medium ( @$media )
-       {
-	   my $medium_stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
-	   $medium->{ stories } = $medium_stories;
-       }
+        foreach my $medium ( @$media )
+        {
+            my $medium_stories =
+              MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
+            $medium->{ stories } = $medium_stories;
+        }
     }
 
-    $c->stash->{ dashboard }          = $dashboard;
-    $c->stash->{ stem }               = $stem;
-    $c->stash->{ term }               = $term;
-    $c->stash->{ queries_description} = $queries_description;
-    $c->stash->{ media }              = $media;
+    $c->stash->{ dashboard }           = $dashboard;
+    $c->stash->{ stem }                = $stem;
+    $c->stash->{ term }                = $term;
+    $c->stash->{ queries_description } = $queries_description;
+    $c->stash->{ media }               = $media;
 
     if ( $iframe )
     {
-       $c->stash->{ template } = 'dashboard/sentences_iframe.tt2';
+        $c->stash->{ template } = 'dashboard/sentences_iframe.tt2';
     }
     else
     {
-       $c->stash->{ template } = 'dashboard/sentences.tt2';
+        $c->stash->{ template } = 'dashboard/sentences.tt2';
     }
 }
 
