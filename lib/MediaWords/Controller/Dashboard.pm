@@ -1035,6 +1035,12 @@ sub sentences : Local
         return $self->sentences_author( $c, $dashboards_id );
     }
 
+    my $iframe = 0;
+    if ($c->req->param( 'iframe') )
+    {
+       $iframe = 1;
+    }
+
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
     my $stem = $c->req->param( 'stem' ) || die( 'no stem' );
@@ -1043,14 +1049,30 @@ sub sentences : Local
     my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } $c->req->param( 'queries_ids' ) ];
     my $queries_description = join( " or ", map { $_->{ description } } @{ $queries } );
     my $media = MediaWords::DBI::Queries::get_media_matching_stems( $c->dbis, $stem, $queries );
-    
+
+    if ( $iframe )
+    {
+       foreach my $medium ( @$media )
+       {
+	   my $medium_stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
+	   $medium->{ stories } = $medium_stories;
+       }
+    }
+
     $c->stash->{ dashboard }          = $dashboard;
     $c->stash->{ stem }               = $stem;
     $c->stash->{ term }               = $term;
     $c->stash->{ queries_description} = $queries_description;
     $c->stash->{ media }              = $media;
 
-    $c->stash->{ template } = 'dashboard/sentences.tt2';
+    if ( $iframe )
+    {
+       $c->stash->{ template } = 'dashboard/sentences_iframe.tt2';
+    }
+    else
+    {
+       $c->stash->{ template } = 'dashboard/sentences.tt2';
+    }
 }
 
 # given a list of terms, return a quoted, comma-separated list of stems
