@@ -321,9 +321,13 @@ sub get_top_500_weekly_words
     
     $query->{ end_date } ||= $query->{ start_date };
 
+    # we have to divide stem_count by the number of media_sets to get the correct ratio b/c
+    # the query below sum()s the stem for all media_sets
+    my $stem_count_factor = @{ $query->{ media_sets_ids } };
+
     my $words = $db->query( 
         "select w.stem, min( w.term ) as term, " . 
-        "    sum( w.stem_count::float / tw.total_count::float )::float as stem_count " .
+        "    sum( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float as stem_count " .
         "  from top_500_weekly_words w, total_top_500_weekly_words tw " .
         "  where w.media_sets_id in ( $media_sets_ids_list )  and " . 
         "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and " .
@@ -710,11 +714,8 @@ sub get_term_counts
         "  group by dw.publish_day, dw.stem " . 
         "  order by dw.publish_day, dw.stem " )->arrays ];
     
-    my $term_lookup;
-    for ( my $i = 0; $i < @{ $stems }; $i++ )
-    {
-        $term_lookup->{ $stems->[ $i ] } = $terms->[ $i ];
-    }
+    my $term_lookup = {};
+    map { $term_lookup->{ $stems->[ $_ ] } = $terms->[ $_ ] } ( 0 .. $#{ $stems } );
     
     for my $d ( @{ $date_term_counts } )
     {
@@ -722,6 +723,49 @@ sub get_term_counts
     }
         
     return $date_term_counts;
+}
+
+# For each term, get the ratio of total mentions of that term to total mentions
+# of the most common term within the time period.  Returns a list of hashes in the form:
+# { stem => $s, term => $t, stem_count => $sc, max_term_ratio => $m }.
+# The list will be sorted in descending order of the stem_count of each term, and
+# an entry for the the most common term will be inserted as the first member of the list.
+sub get_max_term_ratios
+{
+    my ( $db, $query, $terms, $ignore_topics ) = @_;
+    
+    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
+    
+    my $dashboard_topics_clause = $ignore_topics ? "w.dashboard_topics_id is null" : get_dashboard_topics_clause( $query, 'w' );
+    
+    my $stems = MediaWords::Util::Stemmer->new->stem( @{ $terms } );
+    my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
+    
+    my $max_term_count = $db->query( 
+        "select stem, min( term ) as term, sum( stem_count ) as stem_count, 1 as max_term_ratio " .
+        "  from top_500_weekly_words w " .
+        "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
+        "  group by stem order by sum(stem_count) desc limit 1" )->hash;
+    
+    my $term_counts = $db->query(
+        "select stem, sum( stem_count ) as stem_count from weekly_words w " .
+        "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
+        "    and stem in ( $stems_list ) " .
+        "  group by stem order by stem_count desc" )->hashes;
+    
+    my $term_lookup = {};
+    map { $term_lookup->{ $stems->[ $_ ] } = $terms->[ $_ ] } ( 0 .. $#{ $stems } );
+    
+    for my $i ( 0 .. $#{ $term_counts } )
+    {
+        my $term_count = $term_counts->[ $i ];
+        $term_count->{ term } = $term_lookup->{ $term_count->{ stem } };;
+        $term_count->{ max_term_ratio } = $term_count->{ stem_count } / $max_term_count->{ stem_count };
+    }
+    
+    unshift( @{ $term_counts }, $max_term_count ) unless ( $term_counts->[ 0 ]->{ stem } eq $max_term_count->{ stem } );
+    
+    return $term_counts;        
 }
 
 # find or create the query representing the given list of media sources based on another query
