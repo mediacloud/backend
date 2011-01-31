@@ -31,12 +31,11 @@
     </style> -->
     
     
-    <link href="/include/style.css" rel="stylesheet" type="text/css" />
-    <link href="/include/vertically-aligned.css" rel="stylesheet" type="text/css" />
-    <link href="/include/clusterstyle.css" rel="stylesheet" type="text/css" />
-    <link href="/include/tipsy.css" rel="stylesheet" type="text/css" />
-    
-    [% INCLUDE include/word_cloud.css %]
+    <link href="[% c.uri_for('/include/style.css') %]" rel="stylesheet" type="text/css" />
+    <link href="[% c.uri_for('/include/vertically-aligned.css') %]" rel="stylesheet" type="text/css" />
+    <link href="[% c.uri_for('/include/clusterstyle.css') %]" rel="stylesheet" type="text/css" />
+    <link href="[% c.uri_for('/include/tipsy.css') %]" rel="stylesheet" type="text/css" />
+    <link href="[% c.uri_for( '/include/word_cloud.css' ) %]" rel="stylesheet" type="text/css" />
     
     <!--[if IE]>
   <style type="text/css" media="all">
@@ -68,7 +67,8 @@
         <li>
           <a href="[% c.uri_for('/dashboards/list') %]">Dashboards</a>
         </li>
-        <li style="list-style: none">[% IF submenu_items -%]
+        [% IF submenu_items -%]
+        <li style="list-style: none">
         </li>
         <li>|
         </li>
@@ -77,9 +77,10 @@
         <li>
           <a href="[% c.uri_for(item.0) _ '?' _ item.1 %]">[% item.2 %]</a>
         </li>
-        <li style="list-style: none">[% END #[% FOREACH i IN submenu_items -%] [% END #[% IF menu_items -%]
+        <li style="list-style: none">[% END #[% FOREACH i IN submenu_items -%]
         </li>
-      </ul>
+        [% END #[% IF menu_items -%]
+       </ul>
     </div>
     <p>
       [% IF status_msg || c.request.params.status_msg -%] [% SET msgs = status_msg || c.request.params.status_msg -%] [% SET msg_list = msgs.split("\n") -%]
