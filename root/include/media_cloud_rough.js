@@ -1,3 +1,8 @@
+//declare global variables.
+var wordcloud;
+var first_display_div_call;
+var visible;
+
 $(document).ready(function() 
     {
 
