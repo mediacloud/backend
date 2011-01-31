@@ -5,4 +5,39 @@
 [% form.render %]
 </fieldset>
 
+<p />
+
+<fieldset>
+<p>
+A query is a combination of:
+</p>
+
+<ul>
+<li>a date range,
+<li>a set of media sets or individual sources, and</li>
+<li>a set of topics</li>
+</ul>
+
+<p>
+The contents of a given query include all of the content within the given date range within any of the set of media sets or sources and including any of the topics.  Every query must have at least a start date and one media set.  Before creating a new query, the system will look for any query with the same definition and direct you to that query if it already exists.
+</p>
+
+<p>
+This form currently only allows the selection of media sets.  If you want to create a query for a specific media source, create one for a media set that includes the media source you want, and then use the 'view individual media sources' link on the 'view' page for the created query to see the query for the individual media sources.  So if you want to view a query for just the New York Times, create a query for U.S. Top 25 Mainstream Media, click on the 'view individual media sources' link on the page for the created query, and then click on 'New York Times' on that page for a fully functional query page for the New York Times.
+</p>
+
+<p>
+If no start date is given, the system sets the end date to be the start date.  All dates are rounded to the week, so the system will round the start date back to last start of week and will round the end date up to the next end of week.  So a query with a start date of 2010-12-01 and not end date will include all content within the week including 2010-12-01.
+</p>
+
+<p>
+If no topic is given, all content within the given dates and media sources is included.  
+</p>
+
+<p>
+For example, a query with a start_date of 2010-12-01 and an end date of 2010-12-31, with media sets of the Top 25 U.S. Mainstream Media and U.S. Popular Blogs, and no topic will include the content of all stories from 2010-11-29 through 2011-01-02 within any media source included in either the msm or blogs set.  The same query with topics of Economy and Taxes will include all words from those stories that appear in the same sentence as the stem of either 'economy' or 'taxes'.
+</p>
+
+</fieldset>
+
 [% INCLUDE include/footer.tt2 %]
