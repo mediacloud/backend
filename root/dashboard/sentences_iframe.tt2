@@ -9,6 +9,12 @@
 
    $(document).ready(function() 
     {
+      //$('#source_sentence_content ul.filetree').treeview({
+      //        animated: "slow", 
+      //        collapsed: true
+      //        /* control: "#toggle_tree_" + source_num */
+      //     });
+
       $('#media_source_percent_table td').click( function() {
            var $this = $(this);
            var id = $this.attr('id');
@@ -24,11 +30,16 @@
            //alert(source_content.html());
            $this.css('backgroundColor', '#E4E4E4');
 
-           $('#stories' + source_num).treeview({
-              animated: "slow", 
-              collapsed: true
-              /* control: "#toggle_tree_" + source_num */
+           if ( ! $('#stories' + source_num).data('has_treeview') )
+           { 
+              $('#stories' + source_num).data('has_treeview', true);
+              $('#stories' + source_num).treeview({
+               animated: "slow", 
+               collapsed: false
+               /* control: "#toggle_tree_" + source_num */
            });
+          }
+
       });
 
       //alert('foo');
@@ -69,6 +80,7 @@
       <ul id='sentences'>
         [% FOREACH sentence IN story.sentences %]
         <li>[% sentence.sentence | html %]</li>
+	<br/>
         [% END %]
       </ul>
     </li>
