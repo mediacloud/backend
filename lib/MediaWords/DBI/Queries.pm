@@ -299,6 +299,52 @@ sub get_time_range
     return $ret;
 }
 
+
+# use get_weekly_date_clause or get_daily_date_clause instead
+# of using this directly (get_daily_date_clause adds 6 days to
+# the end date of the query).
+# get clause restricting dates all dates within the query's dates.
+# for some reason, postgres is really slow using ranges for dates,
+# so we enumerate all of the dates instead.
+# $i is the number of days to increment each date by (7 for weekly dates) and
+# $date_field is the sql field to use for the in clause (eg. 'publish_week')
+
+sub get_date_clause 
+{
+    my ( $start_date, $end_date, $i, $date_field ) = @_;
+    
+    my $dates = [];
+    for ( my $d = $start_date; $d le $end_date; $d = MediaWords::Util::SQL::increment_day( $d, $i ) )
+    {
+        push( @{ $dates }, $d );
+    }
+    
+    return "${ date_field } in ( " . join( ',', map { "'$_'" }  @{ $dates } ) . " )";
+}
+
+# get clause restricting dates all weekly dates within the query's dates.
+# uses an in list of dates to work around slow postgres handling of
+# date ranges.
+sub get_weekly_date_clause
+{
+    my ( $query, $prefix ) = @_;
+    
+    return get_date_clause( $query->{ start_date }, $query->{ end_date }, 7, "${ prefix }.publish_week" );
+}
+
+# get clause restricting dates all daily dates within the query's dates.
+# uses an in list of dates to work around slow postgres handling of
+# date ranges.  adds 6 days to the query end date to capture all days
+# within the last week.
+sub get_daily_date_clause
+{
+    my ( $query, $prefix ) = @_;
+    
+    my $end_date = MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 );
+    
+    return get_date_clause( $query->{ start_date }, $end_date, 1, "${ prefix }.publish_day" );
+}
+
 # Gets the top 500 weekly words matching the given query.
 # If no dashboard_topics_id is specified, the query requires a null dashboard_topics_id.
 # start_date and end_date are rounded down to the beginning of the week.
@@ -315,12 +361,10 @@ sub get_top_500_weekly_words
         die( "media_sets_id and start_date are required" );
     }
     
-    my $media_sets_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
-    
+    my $media_sets_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );    
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
+    my $date_clause = get_weekly_date_clause( $query, 'w' );
     
-    $query->{ end_date } ||= $query->{ start_date };
-
     # we have to divide stem_count by the number of media_sets to get the correct ratio b/c
     # the query below sum()s the stem for all media_sets
     my $stem_count_factor = @{ $query->{ media_sets_ids } };
@@ -330,8 +374,7 @@ sub get_top_500_weekly_words
         "    sum( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float as stem_count " .
         "  from top_500_weekly_words w, total_top_500_weekly_words tw " .
         "  where w.media_sets_id in ( $media_sets_ids_list )  and " . 
-        "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and " .
-        "    w.publish_week between '$query->{ start_date }'::date and '$query->{ end_date }' and " .
+        "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and $date_clause and " .
         "    $dashboard_topics_clause and coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
         "  group by w.stem order by sum( w.stem_count::float / tw.total_count::float )::float desc " . 
         "  limit 500",
@@ -347,7 +390,7 @@ sub _get_media_matching_stems_single_query
     
     my $media_sets_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
-
+    my $date_clause = get_daily_date_clause( $query, 'tw' );
     my $quoted_stem = $db->dbh->quote( $stem );
 
     my $media = $db->query(
@@ -359,7 +402,7 @@ sub _get_media_matching_stems_single_query
         "    coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) and " .
         "    w.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and " .
         "    msmm.media_sets_id in ( $media_sets_ids_list ) and m.media_id = medium_ms.media_id and " .
-        "    tw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
+        "    $date_clause " .
         "  group by m.media_id, m.name " .
         "  order by stem_percentage desc " )->hashes;
     
@@ -696,8 +739,8 @@ sub get_term_counts
     my ( $db, $query, $terms ) = @_;
     
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
-    
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'dw' );
+    my $date_clause = get_daily_date_clause( $query, 'dw' );
     
     my $stems = MediaWords::Util::Stemmer->new->stem( @{ $terms } );
     my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
@@ -708,7 +751,7 @@ sub get_term_counts
         "  where dw.media_sets_id in ( $media_sets_ids_list ) and dw.media_sets_id = tw.media_sets_id " . 
         "    and $dashboard_topics_clause " . 
         "    and coalesce( tw.dashboard_topics_id, 0 ) = coalesce( dw.dashboard_topics_id, 0 ) " .
-        "    and dw.publish_day between '$query->{ start_date }'::date and '$query->{ end_date }'::date + interval '6 days' " .
+        "    and $date_clause " .
         "    and dw.publish_day = tw.publish_day " . 
         "    and dw.stem in ( $stems_list ) " .
         "  group by dw.publish_day, dw.stem " . 
@@ -734,9 +777,9 @@ sub get_max_term_ratios
 {
     my ( $db, $query, $terms, $ignore_topics ) = @_;
     
-    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
-    
+    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );    
     my $dashboard_topics_clause = $ignore_topics ? "w.dashboard_topics_id is null" : get_dashboard_topics_clause( $query, 'w' );
+    my $date_clause = get_weekly_date_clause( $query, 'w' );
     
     my $stems = MediaWords::Util::Stemmer->new->stem( @{ $terms } );
     my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
@@ -744,15 +787,13 @@ sub get_max_term_ratios
     my $max_term_count = $db->query( 
         "select stem, min( term ) as term, sum( stem_count ) as stem_count, 1 as max_term_ratio " .
         "  from top_500_weekly_words w " .
-        "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
-        "    and w.publish_week between '$query->{ start_date }'::date and '$query->{ end_date }'::date ".
+        "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause and $date_clause " .
         "  group by stem order by sum(stem_count) desc limit 1" )->hash;
     
     my $term_counts = $db->query(
         "select stem, sum( stem_count ) as stem_count from weekly_words w " .
         "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
-        "    and stem in ( $stems_list ) " .
-        "    and w.publish_week between '$query->{ start_date }'::date and '$query->{ end_date }'::date ".
+        "    and stem in ( $stems_list ) and $date_clause " .
         "  group by stem order by stem_count desc" )->hashes;
     
     my $term_lookup = {};
@@ -914,18 +955,16 @@ sub get_country_counts
 {
     my ( $db, $query ) = @_;
 
-    my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'dcc' );
-    
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
+    my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'dcc' );
+    my $date_clause = get_daily_date_clause( $query, 'dcc' );
 
     return $db->query(
       "SELECT dcc.country, sum( dcc.country_count::float / tdw.total_count::float )::float as country_count "
       . "FROM daily_country_counts dcc, total_daily_words tdw "
       . "WHERE  dcc.media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause "
       . " and dcc.media_sets_id = tdw.media_sets_id and dcc.publish_day = tdw.publish_day "
-      . " and coalesce( dcc.dashboard_topics_id, 0 ) = coalesce( tdw.dashboard_topics_id, 0 ) "
-      . " and dcc.publish_day between date_trunc('week', '$query->{ start_date }'::date) " 
-      . "   and date_trunc('week', '$query->{ end_date }'::date) + interval '6 days' "
+      . " and coalesce( dcc.dashboard_topics_id, 0 ) = coalesce( tdw.dashboard_topics_id, 0 ) and $date_clause "
       . "GROUP BY dcc.country order by dcc.country" )->hashes;
 }
 
