@@ -159,12 +159,38 @@ sub _set_alternate_param
     $req->param( $p1, $req->param( $p2 ) ) if ( !defined( $req->param( $p1 ) ) );
 }
 
+# given a request with either a media_id or a set of media_sets_ids, 
+# return a list of media_sets_ids.  If a media_id or medium_name is included
+# return just the media set associated with that media source, otherwise
+# return the media sets from the media_sets_ids param.
+sub _get_media_sets_ids_from_request
+{
+    my ( $db, $req, $param_suffix ) = @_;
+    
+    if ( my $media_id = $req->param( 'media_id' . $param_suffix ) )
+    {
+        my ( $media_set_id ) = $db->query( "select media_sets_id from media_sets where media_id = $media_id" )->flat;
+        return [ $media_set_id ];
+    }
+    elsif ( my $medium_name = $req->param( 'medium_name' . $param_suffix ) ) 
+    {
+        my $quoted_name = $db->dbh->quote( $medium_name );
+        my ( $media_set_id ) = $db->query( 
+            "select media_sets_id from media_sets ms, media m " .
+            "  where m.media_id = ms.media_id and m.name = $quoted_name" )->flat;
+        return [ $media_set_id ];
+    }
+    else {
+        return [ $req->param( 'media_sets_ids' . $param_suffix ) ];
+    }
+}
+
 # call find_or_create_query_by_params with params from the catalyst request object.
 # if the $param_suffix param is passed, append that suffix to each of the request
 # param names.  With a param_suffic of '_1', 
-#   ( start_date, end_date, media_sets_ids, dashboard_topics_ids )
+#   ( start_date, end_date, media_id, media_sets_ids, dashboard_topics_ids )
 # becomes
-#   ( start_date_1, end_date_1, media_sets_ids_1, dashboard_topics_ids_1 )
+#   ( start_date_1, end_date_1, media_id1, media_sets_ids_1, dashboard_topics_ids_1 )
 sub find_or_create_query_by_request
 {
     my ( $db, $req, $param_suffix ) = @_;
@@ -176,15 +202,18 @@ sub find_or_create_query_by_request
     _set_alternate_param( $req, "media_sets_ids$param_suffix", "media_sets_id$param_suffix" );
     _set_alternate_param( $req, "dashboard_topics_ids$param_suffix", "dashboard_topics_id$param_suffix" );
     
-    map { return undef if ( !defined( $req->param( $_ . $param_suffix ) ) ) } qw(start_date media_sets_ids);
-    
+    my $media_sets_ids = _get_media_sets_ids_from_request( $db, $req, $param_suffix );
+    my $start_date = $req->param( 'start_date' . $param_suffix );
+        
+    die( "No start_date or media set" ) if ( !$start_date || !@{ $media_sets_ids } );
+        
     my $dashboard_topics_ids = [ $req->param( 'dashboard_topics_ids' . $param_suffix ) ];
-    #$dashboard_topics_ids = $dashboard_topics_ids ? [ $dashboard_topics_ids ] : [];
+    $dashboard_topics_ids = [] if ( ( @{ $dashboard_topics_ids } == 1 ) && !$dashboard_topics_ids->[ 0 ] );
     
     my $query = find_or_create_query_by_params( $db, { 
         start_date => $req->param( 'start_date' . $param_suffix ), 
         end_date => $req->param( 'end_date' . $param_suffix ),
-        media_sets_ids => [ $req->param( 'media_sets_ids' . $param_suffix ) ], 
+        media_sets_ids => $media_sets_ids, 
         dashboard_topics_ids => $dashboard_topics_ids } );
         
     return $query;   
@@ -359,7 +388,7 @@ sub get_top_500_weekly_words
 {
     my ( $db, $query ) = @_;
     
-    if ( !( $query->{ media_sets_ids} && @{ $query->{ media_sets_ids } } && $query->{ start_date } ) )
+    if ( !( $query->{ media_sets_ids } && @{ $query->{ media_sets_ids } } && $query->{ start_date } ) )
     {
         die( "media_sets_id and start_date are required" );
     }
