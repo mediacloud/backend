@@ -18,6 +18,7 @@ elements:
   - type: Select
     name: media_sets_ids
     label: Media Sets
+    comment: ctl-click (win) or cmd-click (mac) to select multiple
     attributes:
         multiple: 1
     constraints:
@@ -26,6 +27,7 @@ elements:
   - type: Select
     name: dashboard_topics_ids
     label: Dashboard Topics
+    comment: ctl-click (win) or cmd-click (mac) to select multiple
     attributes:
         multiple: 1
 
