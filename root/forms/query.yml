@@ -14,6 +14,11 @@ elements:
     comment: (2008-09-30)
     constraints:
         - Required
+
+  - type: Select
+    name: media_id
+    label: Media Source
+    comment: select either a single media source OR one or more media sets    
         
   - type: Select
     name: media_sets_ids
@@ -21,8 +26,6 @@ elements:
     comment: ctl-click (win) or cmd-click (mac) to select multiple
     attributes:
         multiple: 1
-    constraints:
-        - Required
 
   - type: Select
     name: dashboard_topics_ids
