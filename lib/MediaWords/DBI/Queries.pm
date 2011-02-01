@@ -745,12 +745,14 @@ sub get_max_term_ratios
         "select stem, min( term ) as term, sum( stem_count ) as stem_count, 1 as max_term_ratio " .
         "  from top_500_weekly_words w " .
         "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
+        "    and w.publish_week between '$query->{ start_date }'::date and '$query->{ end_date }'::date ".
         "  group by stem order by sum(stem_count) desc limit 1" )->hash;
     
     my $term_counts = $db->query(
         "select stem, sum( stem_count ) as stem_count from weekly_words w " .
         "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
         "    and stem in ( $stems_list ) " .
+        "    and w.publish_week between '$query->{ start_date }'::date and '$query->{ end_date }'::date ".
         "  group by stem order by stem_count desc" )->hashes;
     
     my $term_lookup = {};
