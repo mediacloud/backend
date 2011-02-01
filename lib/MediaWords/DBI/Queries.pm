@@ -72,7 +72,10 @@ sub _create_query
     _add_mapped_table_fields( $db, $query_params );
     
     $query_params->{ description } = _get_description( $query_params );
-    $query_params->{ end_date } ||= $query_params->{ start_date };
+    if ( !$query_params->{ end_date } || ( $query_params->{ end_date } lt $query_params->{ start_date } ) )
+    {
+        $query_params->{ start_date } = $query_params->{ end_date };
+    }
 
     $db->query( 
         "insert into queries ( start_date, end_date, description ) " .
@@ -175,8 +178,8 @@ sub find_or_create_query_by_request
     
     map { return undef if ( !defined( $req->param( $_ . $param_suffix ) ) ) } qw(start_date media_sets_ids);
     
-    my $dashboard_topics_ids = $req->param( 'dashboard_topics_ids' . $param_suffix );
-    $dashboard_topics_ids = $dashboard_topics_ids ? [ $dashboard_topics_ids ] : [];
+    my $dashboard_topics_ids = [ $req->param( 'dashboard_topics_ids' . $param_suffix ) ];
+    #$dashboard_topics_ids = $dashboard_topics_ids ? [ $dashboard_topics_ids ] : [];
     
     my $query = find_or_create_query_by_params( $db, { 
         start_date => $req->param( 'start_date' . $param_suffix ), 
