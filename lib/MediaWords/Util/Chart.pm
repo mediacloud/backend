@@ -36,14 +36,9 @@ sub _get_google_chart_simple_encoding_lookup
 # take a date in the form '2008-09-01' and add one day
 sub _add_one_day
 {
-    my ( $d ) = @_;
-
-    my ( $year, $month, $day ) = split( '-', $d );
-
-    my @t = localtime( timelocal( 0, 0, 0, $day, $month - 1, $year - 1900 ) + 86400 );
-
-    return sprintf( '%04d-%02d-%02d', $t[ 5 ] + 1900, $t[ 4 ] + 1, $t[ 3 ] );
+	MediaWords::Util::SQL::increment_day( $_[0], 1 );
 }
+
 
 # PUBLIC FUNCTIONS
 
@@ -147,20 +142,18 @@ sub generate_line_chart_url_from_dates
      
     # make sure we have an entry for each day from start_date through end_date 
     unshift( @{ $dates }, $start_date ) if ( $start_date lt $dates->[ 0 ] );         
+	push( @{ $dates }, $end_date ) if ( $end_date gt $dates->[ $#{ $dates } ] );
+    
     for ( my $i = 0; $dates->[ $i ] lt $end_date ; $i++ )
     {
         my $tomorrow = _add_one_day( $dates->[ $i ] );
 
-        if ( $i >= $#{ $dates } ) 
+        if ( $tomorrow lt $dates->[ $i + 1 ] )
         {
-            splice( @{ $dates }, $i, 1, $dates->[ $i ], $tomorrow );
-        }
-        elsif ( $tomorrow lt $dates->[ $i + 1 ] )
-        {
-            splice( @{ $dates }, $i, 1, $dates->[ $i ], $tomorrow );
+            splice( @{ $dates }, $i + 1, 0, $tomorrow );
         }
     }
-    
+
     my $terms = [ sort { $term_hash->{ $b } <=> $term_hash->{ $a } } keys %{ $term_hash } ];
     
     my $counts;
