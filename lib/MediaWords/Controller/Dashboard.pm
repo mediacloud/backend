@@ -553,7 +553,6 @@ sub _update_form
     my $collection_media_sets = $c->stash->{ collection_media_sets };
 
     my $media_sets_id_options = [
-        ( { label => '(none)' } ),
         map { { label => $_->{ name }, value => $_->{ media_sets_id } } } @$collection_media_sets
     ];
 
