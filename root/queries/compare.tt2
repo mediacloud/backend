@@ -28,4 +28,11 @@ Words in both queries
 <b>Similarity Score: [% query_a.similarities.1 | format( "%.3f" ) %]</b>
 </div>
 
+<p>
+Words in red or blue above are words within the top 75 words for the respective query that are ranked at least 25 spots lower than in the other query.  Words in purple are ranked within 25 spots in both of the above queries.  So the word 'elephant' would be blue if it were the 15th most popular word in the first query but only the 50th most popular word in the second query.  If 'elephant' were the 15th most popular word in the first query and the 35th most popular word in the second query, it would be colored purple.
+</p>
+<p>
+Words are sized according to the number of mentions divided by the number of queries it is found in.  So a word that is found in both queries is sized according to the mentions in both queries divided by two, but a word that is found in only one query is sized according to the number of mentions in the one query with no division.
+</p>
+
 </fieldset>
