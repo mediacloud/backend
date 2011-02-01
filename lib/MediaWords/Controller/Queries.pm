@@ -52,9 +52,15 @@ sub get_query_form
     my $dashboard_topic_options = [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $dashboard_topics } ];
     $form->get_field( 'dashboard_topics_ids' )->options( $dashboard_topic_options );
     
+    my $media = $c->dbis->query( 
+        "select distinct( m.* ) from media m, media_sets_media_map msmm " . 
+        "  where m.media_id = msmm.media_id order by m.name" )->hashes;
+    my $media_options = [ [ 0, '(none)' ], map { [ $_->{ media_id }, $_->{ name } ] } @{ $media } ];
+    $form->get_field( 'media_id' )->options( $media_options );
+    
     if ( $query )
     {
-        map { $form->get_field( $_ )->default( $query->{ $_ } ) } ( qw/start_date end_date media_sets_ids dashboard_topics_ids/ );
+        map { $form->get_field( $_ )->default( $query->{ $_ } ) } ( qw/start_date end_date media_id media_sets_ids dashboard_topics_ids/ );
     }
     
     return $form;
@@ -75,8 +81,10 @@ sub create : Local
         $c->stash->{ template } = 'queries/create.tt2';
         return;
     }
-
+    
     my $query = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req );
+    
+    die ( 'Unable to create query' ) if ( !$query );
           
     $c->dbis->query( "update queries set generate_page = 't' where queries_id = ?", $query->{ queries_id } );
 
