@@ -495,7 +495,7 @@ sub _process_and_stash_dashboard_data
     my $collection_media_sets = $c->dbis->query(
         "select ms.* from media_sets ms, dashboard_media_sets dms " .
           "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
-          "  order by ms.media_sets_id",
+          "  order by ms.name",
         $dashboard->{ dashboards_id }
     )->hashes;
 
