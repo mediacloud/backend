@@ -94,8 +94,8 @@ sub _get_topic_chart_url
     }
     
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
-    
     my $dashboard_topics_ids_list = join( ',', @{ $query->{ dashboard_topics_ids } } );
+    my $date_clause = MediaWords::DBI::Queries::get_daily_date_clause( $query, 'topic_words' ); 
     
     my $date_term_counts = [ $c->dbis->query(
         "select topic_words.publish_day, min( dt.query ) || ' - ' || min( ms.name ) as term, " . 
@@ -105,8 +105,7 @@ sub _get_topic_chart_url
         "    and topic_words.dashboard_topics_id in ( $dashboard_topics_ids_list ) " . 
         "    and topic_words.publish_day = all_words.publish_day and topic_words.media_sets_id = all_words.media_sets_id " . 
         "    and all_words.dashboard_topics_id is null and dt.dashboard_topics_id = topic_words.dashboard_topics_id " .
-        "    and topic_words.publish_day between date_trunc( 'week', '$query->{ start_date }'::date ) " . 
-        "    and date_trunc( 'week', '$query->{ end_date }'::date)  + interval '6 days' " .
+        "    and $date_clause ".
         "    and ms.media_sets_id = topic_words.media_sets_id " .
         "  group by topic_words.publish_day, dt.dashboard_topics_id, ms.media_sets_id " )->arrays ];
         
