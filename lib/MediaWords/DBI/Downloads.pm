@@ -115,8 +115,7 @@ sub fetch_content_local
     my $content;
     if ( !( IO::Uncompress::Gunzip::gunzip $content_ref => \$content ) )
     {
-        warn( "Unable to gunzip content: $IO::Uncompress::Gunzip::GunzipError" );
-        return undef;
+        warn( "Error gunzipping content for download $download->{ downloads_id }: $IO::Uncompress::Gunzip::GunzipError" );
     }
     
     my $decoded_content = decode( 'utf-8', $content );
