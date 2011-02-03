@@ -26,9 +26,8 @@ sub read_file
     return \$content;
 }
 
-# get the file for a given archive that contains the last position written to the archive.
-# if the directory that contains the file does not exist, create it.
-sub _get_pos_file
+# get the lock file for a given archive. if the directory that contains the file does not exist, create it.
+sub _get_lock_file
 {
     my ( $tar_file ) = @_;
     
@@ -118,33 +117,23 @@ sub append_file
     
     close( FILE );
 
-    my $pos_file = _get_pos_file( $tar_file );
+    my $lock_file = _get_lock_file( $tar_file );
     
-    if ( !open( POS_FILE, ( -f $pos_file ) ? "+<" : "+>", $pos_file ) )
+    if ( !open( LOCK_FILE, '>', $lock_file ) )
     {
         File::Path::rmtree( $temp_dir );
-        die( "Unable to open pos file '$pos_file': $!" );
+        die( "Unable to open lock file '$lock_file': $!" );
     }
     
-    flock( POS_FILE, LOCK_EX );
+    flock( LOCK_FILE, LOCK_EX );
     
-    my $starting_block = <POS_FILE>;
-    if ( !$starting_block )
-    {
-        $starting_block = _find_starting_block( $tar_file );
-    }
+    my @pre_tar_stats = stat( $tar_file );
     
-    my $tar_file_mode = ( -f $tar_file ) ? "+<" : "+>";
-        
-    if ( !open( TAR_FILE, ( -f $tar_file ) ? "+<" : "+>", $tar_file ) )
+    my $tar_file_mode = ( -f $tar_file ) ? '+<' : '+>';
+    if ( !open( TAR_FILE, '>>', $tar_file ) )
     {
         File::Path::rmtree( $temp_dir );
         die( "Unable to open ta file '$tar_file': $!" );
-    }
-    
-    if ( !seek( TAR_FILE, $starting_block * 512, SEEK_SET ) )
-    {
-        die( "Unable to seek tar file: $!" );
     }
     
     my $tar_cmd = "tar -c -C '$temp_dir' -f - '$file_name'";    
@@ -154,17 +143,16 @@ sub append_file
 
     close( TAR_FILE );
     
-    my $num_blocks = POSIX::ceil( length( ${ $file_contents_ref } ) / 512 ) + 1;
-    my $ending_block = $starting_block + $num_blocks;
+    my @post_tar_stats = stat( $tar_file );
     
-    seek( POS_FILE, 0, SEEK_SET );
-    
-    print POS_FILE $ending_block;
-
     flock( POS_FILE, LOCK_UN );
     close( POS_FILE );
 
     File::Path::rmtree( $temp_dir );
+    
+    my $tar_file_len = $post_tar_stats[7] - $pre_tar_stats[7];
+    my $num_blocks = $tar_file_len / 512;
+    my $starting_block = $pre_tar_stats[7] / 512;
     
     return( $starting_block, $num_blocks );
 }
