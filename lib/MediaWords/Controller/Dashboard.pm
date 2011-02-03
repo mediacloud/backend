@@ -74,16 +74,16 @@ sub _get_dashboard_dates
     my ( $self, $c, $dashboard ) = @_;
 
     my ( $yesterday ) = $c->dbis->query( "select now()::date - interval '1 day'" )->flat;
-    
+
     my $end_date = ( $dashboard->{ end_date } ge $yesterday ) ? $yesterday : $dashboard->{ end_date };
 
-    my $date_exists_query = 
-        "select 1 from total_top_500_weekly_words t, dashboard_media_sets dms " . 
-        "  where t.publish_week = ? and dms.dashboards_id = $dashboard->{ dashboards_id } " . 
-        "    and dms.media_sets_id = t.media_sets_id limit 1";
+    my $date_exists_query =
+      "select 1 from total_top_500_weekly_words t, dashboard_media_sets dms " .
+      "  where t.publish_week = ? and dms.dashboards_id = $dashboard->{ dashboards_id } " .
+      "    and dms.media_sets_id = t.media_sets_id limit 1";
 
     my $start_date;
-    for ( my $d = $dashboard->{ start_date }; $d le $end_date; $d =  MediaWords::Util::SQL::increment_day( $d, 1 ) )
+    for ( my $d = $dashboard->{ start_date } ; $d le $end_date ; $d = MediaWords::Util::SQL::increment_day( $d, 1 ) )
     {
         if ( $c->dbis->query( $date_exists_query, $d )->hash )
         {
@@ -91,11 +91,11 @@ sub _get_dashboard_dates
             last;
         }
     }
-    
+
     return [] if ( !$start_date );
-    
+
     my $all_dates;
-    for ( my $d = $start_date; $d le $end_date; $d =  MediaWords::Util::SQL::increment_day( $d, 7 ) )
+    for ( my $d = $start_date ; $d le $end_date ; $d = MediaWords::Util::SQL::increment_day( $d, 7 ) )
     {
         push( @{ $all_dates }, $d );
     }
@@ -105,7 +105,7 @@ sub _get_dashboard_dates
     {
         push( @{ $valid_dates }, $d ) if ( $c->dbis->query( $date_exists_query, $d )->hash );
     }
-    
+
     return $valid_dates;
 }
 
@@ -156,8 +156,8 @@ sub get_word_list : Local
     {
         my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
         my $query_words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
-        
-        map { $_->{ query_id } = $queries_id; $_->{ query_description } = $query->{ description }  } @{ $query_words };
+
+        map { $_->{ query_id } = $queries_id; $_->{ query_description } = $query->{ description } } @{ $query_words };
         push( @{ $words }, @{ $query_words } );
     }
 
@@ -671,8 +671,9 @@ sub _show_dashboard_results_compare_queries
         );
     }
 
-    my $word_cloud = MediaWords::Util::WordCloud::get_multi_set_word_cloud( 
-        $c, "/dashboard/sentences/$dashboard->{ dashboards_id }", $words, $queries );
+    my $word_cloud =
+      MediaWords::Util::WordCloud::get_multi_set_word_cloud( $c, "/dashboard/sentences/$dashboard->{ dashboards_id }",
+        $words, $queries );
 
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, $queries );
 
@@ -1044,6 +1045,30 @@ sub sentences_medium : Local
     $c->stash->{ queries_description } = $queries_description;
 }
 
+sub sentences_medium_json : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+
+    my $media_id = $c->req->param( 'media_id' ) || die( 'no media_id' );
+    my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
+
+    my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
+
+    $queries_ids = ( !$queries_ids || ref( $queries_ids ) ) ? $queries_ids : [ $queries_ids ];
+
+    my $medium = $c->dbis->find_by_id( 'media', $media_id );
+
+    $medium->{ stem_percentage } = $c->req->param( 'stem_percentage' );
+
+    my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];
+
+    my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
+
+    return $c->res->body( encode_json( $stories ) );
+}
+
 # list the sentence counts for each medium in the query for the given stem
 sub sentences : Local
 {
@@ -1071,18 +1096,20 @@ sub sentences : Local
 
     if ( $iframe )
     {
-        foreach my $medium ( @$media )
-        {
-            my $medium_stories =
-              MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
-            $medium->{ stories } = $medium_stories;
-        }
+
+        # foreach my $medium ( @$media )
+        # {
+        #     my $medium_stories =
+        #       MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
+        #     $medium->{ stories } = $medium_stories;
+        # }
     }
 
     $c->stash->{ dashboard }           = $dashboard;
     $c->stash->{ stem }                = $stem;
     $c->stash->{ term }                = $term;
     $c->stash->{ queries_description } = $queries_description;
+    $c->stash->{ queries_ids }         = $c->req->param( 'queries_ids' );
     $c->stash->{ media }               = $media;
 
     if ( $iframe )

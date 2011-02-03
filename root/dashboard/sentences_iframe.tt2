@@ -30,7 +30,40 @@
            //alert(source_content.html());
            $this.css('backgroundColor', '#E4E4E4');
 
-           if ( ! $('#stories' + source_num).data('has_treeview') )
+           var json_url  = $('#json_stories_url_' + source_num).attr('href');
+
+           $('#source_sentences_' + source_num).children().remove();
+           $('#source_sentences_' + source_num).html('loading...').show();
+
+           $.getJSON(json_url, function(data) {
+              $('#source_sentences_' + source_num).html('loaded...').show();
+              var stories_ul = $("<ul class='filetree'/>");
+             $.each(data, function(index, story) {
+                     //alert(value.title);
+                     var story_li = $("<li class='collapsable'>");
+                     story_li.append($("<b></b>").html(story.title)).
+                     append($("<span class='date'>").html(story.publish_date)).
+                     append($("<a>View Article</a>").attr('href', story.url)).
+                     append($("</br>"));
+                     var sentences_ul = $("<ul/>");
+                     $.each(story.sentences, function(index, sentence_object) {
+                         sentences_ul.append($("<li/>").html(sentence_object.sentence)).append($("<br/>"));
+                     }) ;
+
+                     story_li.append(sentences_ul);
+                     stories_ul.append(story_li);
+                   } );
+              stories_ul.treeview({
+               animated: "slow", 
+               collapsed: false
+               /* control: "#toggle_tree_" + source_num */
+           }); 
+              $('#source_sentences_' + source_num).html('');
+              $('#source_sentences_' + source_num).append(stories_ul);
+           }); 
+//<span class='date'>[% story.publish_date %] <span id="toggle_tree_[% i %]">(expand/collapse)</span></span>[<a href="[% story.url %]">View Article</a>]<br /> <br />
+           
+           if ( 0 && ! $('#stories' + source_num).data('has_treeview') )
            { 
               $('#stories' + source_num).data('has_treeview', true);
               $('#stories' + source_num).treeview({
@@ -71,11 +104,13 @@
 [% FOREACH medium IN media %]
                   <div id = "Source[% i %]"><strong>[% medium.name | html %]</strong><br />
 <br />
-  
+    <a id="json_stories_url_[% i %]" 
+       href="[% c.uri_for('/dashboard/sentences_medium_json',dashboard.dashboards_id, { media_id => medium.media_id, stem => stem, queries_ids => queries_ids}) %]" ></a>
+ <div id="source_sentences_[% i %]">foo
   <ul id='stories[% i %]' class='filetree'>
     [% FOREACH story IN medium.stories %]
     <li class='collapsable'>
-      <b>[% story.title | html %]</a></b>
+      <b>[% story.title | html %]</b>
         <span class='date'>[% story.publish_date %] <span id="toggle_tree_[% i %]">(expand/collapse)</span></span>[<a href="[% story.url %]">View Article</a>]<br /> <br />
       <ul id='sentences'>
         [% FOREACH sentence IN story.sentences %]
@@ -86,6 +121,7 @@
     </li>
     [% END %]
   </ul>
+ </div>
 <br />
 </div>
 [% i = i + 1 %]
