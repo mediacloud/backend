@@ -1,6 +1,7 @@
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
+<!--
    $(document).ready(function() 
     {
         var data = [
@@ -80,6 +81,7 @@ function onMapCreated()
  
 [% INCLUDE 'zoe_website_template/open_heat_map_settings.tt2' %]
 }
+-->
 </script>
 
 [% # form.render() %]
@@ -172,12 +174,12 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
         </tr>
       </table>
             
-            <BR><BR>
+            <br/><br/>
          
             <div id = "textSources" class = "secondarySelected"><span onclick="swapSecondaryDIV('TSarea')" style="cursor:pointer;">Text Sources</span></div>
             <div id = "Subsets" class = "secondaryUnselected"><span onclick="swapSecondaryDIV('ASarea')" style="cursor:pointer;">Available Subsets</span></div>
-            <BR><BR>
-            <div id = "TSarea"><BR>
+            <br/><br/>
+            <div id = "TSarea"><br/>
 <div style="width: 900px;" id="iframe_place_holder"/>
 <iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="sentence_frame" name="sentence_frame" scrolling="no" frameborder="0"></iframe>
 </div>
@@ -207,11 +209,11 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
       <a href="link">obama</a> <a href="link">american family tax</a> <a href="link">sans</a> <a href="link">economy</a> <a href="link">loving</a> <a href="link">free</a> <a href="link">students</a><br />
       <br />
       <a href="link"><em>More about this Media Subse</em></a>t &gt;</div>
-      <div id = "Subset2" style="display:none;"><strong>I am a content area for Subset #Two</strong><BR>
-        <BR>
+      <div id = "Subset2" style="display:none;"><strong>I am a content area for Subset #Two</strong><br/>
+        <br/>
         "Media #2: Although Afghanistan has been eclipsed recently by the contentious, cliffhanger health care debate, Obama's daunting challenge has not gone away." [View Article]</div>
-      <div id = "Subset3" style="display:none;"><strong>I am a content area for Subset #Three</strong><BR>
-        <BR>
+      <div id = "Subset3" style="display:none;"><strong>I am a content area for Subset #Three</strong><br/>
+        <br/>
         Some more Media Sources!</div></td>
   </tr>
 </table>
