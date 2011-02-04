@@ -39,6 +39,7 @@ sub get_word_cloud
             queries_ids => $query->{ queries_id }, authors_id => $query->{ authors_id }, 
             stem => $word->{ stem }, term => $word->{ term } } );
 
+	$url =~ s/&/&amp;/g;
         if ( $word->{ stem_count } == 0 )
         {
             warn "0 stem count for word:" . Dumper( $word );
