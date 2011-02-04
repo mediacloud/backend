@@ -158,9 +158,5 @@ function onError(err)
       
       <!--This is where the content ends!--></td>
   </tr>
-  <tr>
-    <td align="center">All materials Copyright Media Cloud 2010</td>
-  </tr>
-</table>
-</body>
-</html>
+[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
+
