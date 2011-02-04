@@ -220,7 +220,10 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
  </td>   
          
         </tr>
-      </table>      
       <!--This is where the content ends!-->
+  <tr>
+    <td align="center">All materials Copyright Media Cloud 2010</td>
+  </tr>
+      </table>      
 </body>
 </html>
