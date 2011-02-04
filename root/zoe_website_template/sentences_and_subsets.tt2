@@ -1,0 +1,44 @@
+            
+            <br/><br/>
+         
+            <div id = "textSources" class = "secondarySelected"><span onclick="swapSecondaryDIV('TSarea')" style="cursor:pointer;">Text Sources</span></div>
+            <div id = "Subsets" class = "secondaryUnselected"><span onclick="swapSecondaryDIV('ASarea')" style="cursor:pointer;">Available Subsets</span></div>
+            <br/><br/>
+            <div id = "TSarea"><br/>
+<div style="width: 900px;" id="iframe_place_holder"/>
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="sentence_frame" name="sentence_frame" scrolling="no" frameborder="0"></iframe>
+</div>
+            <div id = "ASarea" style="display:none;">
+<table width="900" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td align="right" valign="top"><table width="100%" border="0" cellspacing="0" cellpadding="5">
+      <tr>
+        <td align="right" valign="top" id = "Subset1Select" style="background: #E4E4E4;"><span onclick="DisplayTextDIV('Subset1')" style="cursor:pointer">Subset #1</span></td>
+      </tr>
+      <tr>
+        <td align="right" id = "Subset2Select"><span onclick="DisplayTextDIV('Subset2')" style="cursor:pointer">Subset #2</span></td>
+      </tr>
+      <tr>
+        <td align="right" id = "Subset3Select"><span onclick="DisplayTextDIV('Subset3')" style="cursor:pointer">Subset #3</span></td>
+      </tr>
+    </table></td>
+    <td width="70%" align="right" valign="top" bgcolor="#E4E4E4"><div id = "Subset1"><strong>Filter results by Media Subset:</strong><br />
+        <a href="link">Left-Leaning Sources only</a><br />
+        <br />
+        <strong>Filter results by Media Outlet within this Media Subset</strong>:<br />
+      [ <a href="link">Examiner.com</a> ] [ <a href="link">Forbes</a> ] [<a href="link"> San Francisco Chronicle</a> ] [ <a href="link">The Daily News New York</a> ] [<a href="link"> The New<br />
+      York Post</a> ] [<a href="link"> Los Angeles Times</a> ] [ <a href="link">New York Times</a> ]<br />
+      <br />
+      <strong>Filter resultsby Terms specific to this subset</strong>:<br />
+      <a href="link">obama</a> <a href="link">american family tax</a> <a href="link">sans</a> <a href="link">economy</a> <a href="link">loving</a> <a href="link">free</a> <a href="link">students</a><br />
+      <br />
+      <a href="link"><em>More about this Media Subse</em></a>t &gt;</div>
+      <div id = "Subset2" style="display:none;"><strong>I am a content area for Subset #Two</strong><br/>
+        <br/>
+        "Media #2: Although Afghanistan has been eclipsed recently by the contentious, cliffhanger health care debate, Obama's daunting challenge has not gone away." [View Article]</div>
+      <div id = "Subset3" style="display:none;"><strong>I am a content area for Subset #Three</strong><br/>
+        <br/>
+        Some more Media Sources!</div></td>
+  </tr>
+</table>
+ </div>
