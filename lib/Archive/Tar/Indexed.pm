@@ -145,8 +145,8 @@ sub append_file
     
     my @post_tar_stats = stat( $tar_file );
     
-    flock( POS_FILE, LOCK_UN );
-    close( POS_FILE );
+    flock( LOCK_FILE, LOCK_UN );
+    close( LOCK_FILE );
 
     File::Path::rmtree( $temp_dir );
     
