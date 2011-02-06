@@ -20,7 +20,7 @@ sub read_file
         
     if ( $content eq '' )
     {
-        die( "Unable to retrieve content from tar with '$tar_cmd'" );
+        warn( "Unable to retrieve content from tar with '$tar_cmd'" );
     }
     
     return \$content;
