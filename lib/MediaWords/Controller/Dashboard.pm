@@ -9,6 +9,7 @@ use parent 'Catalyst::Controller::HTML::FormFu';
 use HTML::TagCloud;
 use List::Util;
 use Net::SMTP;
+use Number::Format qw(:subs);
 use URI::Escape;
 use List::Util qw (max min reduce sum);
 use List::MoreUtils qw/:all/;
@@ -197,6 +198,26 @@ sub get_word_list : Local
         $c->response->content_type( 'text/csv' );
     }
 
+    $c->response->content_length( length( $response_body ) );
+    $c->response->body( $response_body );
+
+    return;
+}
+
+# get an xml or csv list of the top 500 words for the given set of queries
+sub country_counts_csv : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $queries_id = $c->req->param( 'queries_id' );
+
+    my $query                   = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
+    my $country_counts          = $self->_get_country_counts( $c, $query );
+    my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
+
+    my $response_body = join "\n", @{$country_count_csv_array};
+    $c->response->header( "Content-Disposition" => "attachment;filename=country_list.csv" );
+    $c->response->content_type( 'text/csv' );
     $c->response->content_length( length( $response_body ) );
     $c->response->body( $response_body );
 
@@ -452,7 +473,7 @@ sub _country_counts_to_csv_array
           ( sort keys %{ $country_counts } ) };
 
     my $country_count_csv_array =
-      [ map { join ',', @$_ } ( map { [ $_, $country_code_3_counts->{ $_ } ] } sort keys %{ $country_code_3_counts } ) ];
+      [ map { join ',', @$_ } ( map { [ $_, sprintf ("%10.9f", round($country_code_3_counts->{ $_ }, 8 ) ) ] } sort keys %{ $country_code_3_counts } ) ];
 
     return $country_count_csv_array;
 }
