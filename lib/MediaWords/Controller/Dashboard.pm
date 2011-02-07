@@ -395,28 +395,6 @@ sub get_country_counts_all_dates : Local
     return;
 }
 
-sub get_country_data : Local
-{
-    my ( $self, $c, $dashboards_id ) = @_;
-
-    my $date1 = $c->req->param( 'date1' );
-    my $country_counts = $self->_get_country_counts( $c, $date1, 1 );
-
-    my $country_count_csv_array = _country_counts_to_csv_array( $country_counts );
-
-    my $csv_string = join "\n", @$country_count_csv_array;
-
-    $csv_string = "country_code,value\n" . $csv_string;
-    my $response_body = $csv_string;
-    $c->response->header( "Content-Disposition" => "attachment;filename=word_list.csv" );
-    $c->response->content_type( 'text/csv' );
-
-    $c->response->content_length( length( $response_body ) );
-    $c->response->body( $response_body );
-
-    return;
-}
-
 # get the url of a chart image for the given tag counts
 sub _get_tag_count_map_url
 {
