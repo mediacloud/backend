@@ -2,6 +2,7 @@
 
 <body>
 <script language="javascript" type="text/javascript">
+<!--
    $(document).ready(function() 
     {
         var data = [
@@ -31,20 +32,12 @@
 
 	$('#coverage_map_frame').iframeAutoHeight();
 
-        $('#openheatmap_container').insertOpenHeatMap({
-              width: 500,
-              height: 400,
-             // prefer: 'canvas',
-      source: '[% c.uri_for('/include/openheatmap.swf') %]',
-        });
-
    //swapDIV('CMcontentarea');
     });
 
 [% csv_url_string = c.uri_for('/dashboard/get_country_counts_all_dates/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv' %]
 
-[% INCLUDE 'zoe_website_template/heat_map_js.tt2' %]
-
+-->
 </script>
 
 [% # form.render() %]
@@ -106,8 +99,9 @@
     <td><!--This is where the content starts!-->
 
 [% IF form.submitted() %]
-
-<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %] ></iframe>
+<div>
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %]" ></iframe>
+</div>
 [% END %] 
             <br/>
             <br/>
@@ -117,7 +111,6 @@
         </tr>
       </table>
       
-      <!--This is where the content ends!--></td>
-  </tr>
+      <!--This is where the content ends!-->
 [% INCLUDE 'zoe_website_template/html_footer.tt2' %]
 
