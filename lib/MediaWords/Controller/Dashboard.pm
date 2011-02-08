@@ -215,7 +215,7 @@ sub country_counts_csv : Local
     my $country_counts          = $self->_get_country_counts( $c, $query );
     my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
 
-    my $response_body = join "\n", @{$country_count_csv_array};
+    my $response_body = join "\n", ('country_code,value', @{$country_count_csv_array} );
     $c->response->header( "Content-Disposition" => "attachment;filename=country_list.csv" );
     $c->response->content_type( 'text/csv' );
     $c->response->content_length( length( $response_body ) );
