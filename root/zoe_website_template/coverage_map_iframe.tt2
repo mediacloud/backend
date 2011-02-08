@@ -1,0 +1,37 @@
+<html>
+<head>
+[% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
+
+</head>
+
+<body>
+<script language="javascript" type="text/javascript">
+
+   $(document).ready(function() 
+    {
+
+        $('#openheatmap_container').insertOpenHeatMap({
+              width: 500,
+              height: 400,
+             // prefer: 'canvas',
+      source: '[% c.uri_for('/include/openheatmap.swf') %]',
+        });
+
+   //swapDIV('CMcontentarea');
+    });
+
+[% csv_url_string = csv_url %]
+
+[% INCLUDE 'zoe_website_template/heat_map_js.tt2' %]
+
+</script>
+<div id="openheatmap_container"><b>Loading map please wait</b> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
+<div id="coveragemap_status"><br/><br/><br/>
+<div id="coveragemap_status_message"><b>Loading data please wait</b></div> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
+<br/>
+<div style="display: none;" id="coverage_key">Coverage <span style="background-color: rgb(210, 210, 247); color: rgb(0, 0, 0); border-style: solid; border-color: black">&nbsp;Least&nbsp;</span>&nbsp;&nbsp;<span style="background-color: rgb(144, 140, 247); color: rgb(0, 0, 0); border-style: solid; border-color: black"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </span>&nbsp; <span style="background-color: rgb(17, 0, 255); color: rgb(0, 0, 0); border-style: solid; border-color: black">&nbsp;&nbsp;Most&nbsp;&nbsp;</span>
+[% # F4F4F4 = 16053492 %] 
+&nbsp;&nbsp;|&nbsp;&nbsp;<span style="background-color: #F4F4F4; color: rgb(0,0,0); border-style: solid; border-color: black">&nbsp;&nbsp;None&nbsp;&nbsp;</span>
+</div>
+</body>
+</html>
