@@ -606,7 +606,7 @@ sub _show_dashboard_results_single_query
     $c->stash->{ coverage_map_chart_url }  = $coverage_map_chart_url;
     $c->stash->{ word_cloud }              = $word_cloud;
     $c->stash->{ queries }                 = [ $query ];
-    $c->stash->{ queries_ids }             = [ $query->{ queries_ids } ];
+    $c->stash->{ queries_ids }             = [ $query->{ queries_id } ];
 
 }
 
