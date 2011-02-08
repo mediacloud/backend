@@ -29,6 +29,8 @@
    });
         //DisplayDIV('mediacontainer2');
 
+	$('#coverage_map_frame').iframeAutoHeight();
+
         $('#openheatmap_container').insertOpenHeatMap({
               width: 500,
               height: 400,
@@ -104,14 +106,8 @@
     <td><!--This is where the content starts!-->
 
 [% IF form.submitted() %]
-<div id="openheatmap_container"><b>Loading map please wait</b> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
-<div id="coveragemap_status"><br/><br/><br/>
-<div id="coveragemap_status_message"><b>Loading data please wait</b></div> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
-<br/>
-<div style="display: none;" id="coverage_key">Coverage <span style="background-color: rgb(210, 210, 247); color: rgb(0, 0, 0); border-style: solid; border-color: black">&nbsp;Least&nbsp;</span>&nbsp;&nbsp;<span style="background-color: rgb(144, 140, 247); color: rgb(0, 0, 0); border-style: solid; border-color: black"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </span>&nbsp; <span style="background-color: rgb(17, 0, 255); color: rgb(0, 0, 0); border-style: solid; border-color: black">&nbsp;&nbsp;Most&nbsp;&nbsp;</span>
-[% # F4F4F4 = 16053492 %] 
-&nbsp;&nbsp;|&nbsp;&nbsp;<span style="background-color: #F4F4F4; color: rgb(0,0,0); border-style: solid; border-color: black">&nbsp;&nbsp;None&nbsp;&nbsp;</span>
-</div>
+
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %] ></iframe>
 [% END %] 
             <br/>
             <br/>
