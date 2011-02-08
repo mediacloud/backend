@@ -1062,6 +1062,16 @@ sub sentences_medium_json : Local
     return $c->res->body( encode_json( $stories ) );
 }
 
+sub coverage_map_iframe : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $csv_url = $c->req->param( 'url' );
+
+    $c->stash->{ csv_url }      = $csv_url;
+    $c->stash->{ template } = 'zoe_website_template/coverage_map_iframe.tt2';
+}
+
 # list the sentence counts for each medium in the query for the given stem
 sub sentences : Local
 {
