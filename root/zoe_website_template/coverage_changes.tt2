@@ -49,13 +49,9 @@ function onMapCreated()
     //map.bind('waysload', 'onDataLoaded');
     map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
     //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
-    //var csv_string = "country_code,value\nUSA,40\nCAN,30\nIND,30";
-    //alert(csv_string);
-
-   // map.loadValuesFromCSVString(csv_string);
 
    var csv_url = '[% c.uri_for('/dashboard/get_country_counts_all_dates/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv'  %]';
-//   map.loadValuesFromFile( csv_url);
+
    $.get(csv_url, function(data) {
    //alert("got data " + data);
    map.loadValuesFromCSVString(data);
