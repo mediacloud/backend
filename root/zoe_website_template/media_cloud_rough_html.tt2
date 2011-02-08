@@ -60,41 +60,9 @@
         });
     });
 
+[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries_ids } ) %]
 
-function onMapCreated()
-{
-    var map = $.getOpenHeatMap();
-
-    map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
-    //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
-
-   var csv_url = "[% c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries_ids } )%]";
-   //alert(csv_url);
-
-   $.get(csv_url, function(data) {
-   //alert("got data " + data);
-   map.loadValuesFromCSVString(data);
-
-   [% INCLUDE 'zoe_website_template/open_heat_map_settings.tt2' %]
-
-    onDataLoaded();
-
-   } );
-}
-
-function onDataLoaded()
-{
-   //alert('data loaded');
-   //$('#coveragemap_status').html("Rendering Map...");
-   //$('#coverage_key').show('slow');
-}
-
-function onError(err)
-{
-   alert(err);
-}
-
-
+[% INCLUDE 'zoe_website_template/heat_map_js.tt2' %]
 -->
 </script>
 

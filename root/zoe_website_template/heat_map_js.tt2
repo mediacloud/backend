@@ -1,0 +1,35 @@
+function onMapCreated()
+{
+    var map = $.getOpenHeatMap();
+
+    map.bind('valuesload', 'onDataLoaded');
+    map.bind('error', 'onError');
+    //map.bind('waysload', 'onDataLoaded');
+    map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
+    //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
+
+   var csv_url = '[% csv_url_string %]';
+
+   $.get(csv_url, function(data) {
+   //alert("got data " + data);
+   map.loadValuesFromCSVString(data);
+
+[% INCLUDE 'zoe_website_template/open_heat_map_settings.tt2' %]
+
+   onDataLoaded();
+   } );
+}
+
+function onDataLoaded()
+{
+   //alert('data loaded');
+   if ($('#coveragemap_status') ) {
+      $('#coveragemap_status').html("Rendering Map...");
+      $('#coverage_key').show('slow');
+   }
+}
+
+function onError(err)
+{
+   alert(err);
+}
