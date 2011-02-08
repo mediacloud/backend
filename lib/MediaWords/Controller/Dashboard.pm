@@ -592,18 +592,12 @@ sub _show_dashboard_results_single_query
 
     my $word_cloud = $self->_get_word_cloud( $c, $dashboard, $words, $query );
 
-    my $country_counts          = $self->_get_country_counts( $c, $query, 1 );
-    my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
-    my $coverage_map_chart_url  = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
-
     my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
     $c->stash->{ media_set_names } = join ", ", @{ $media_set_names };
     $c->stash->{ time_range } = MediaWords::DBI::Queries::get_time_range( $c->dbis, $query );
     $c->stash->{ areas_of_coverage } = MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis, $query );
 
-    $c->stash->{ country_count_csv_array } = $country_count_csv_array;
-    $c->stash->{ coverage_map_chart_url }  = $coverage_map_chart_url;
     $c->stash->{ word_cloud }              = $word_cloud;
     $c->stash->{ queries }                 = [ $query ];
     $c->stash->{ queries_ids }             = [ $query->{ queries_id } ];
@@ -652,7 +646,7 @@ sub _show_dashboard_results_compare_queries
         my $country_counts = $self->_get_country_counts( $c, $query, $i + 1 );
         my $coverage_map_chart_url = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
 
-        $c->stash->{ "coverage_map_chart_url_" . $i + 1 } = $coverage_map_chart_url;
+        $c->stash->{ "coverage_map_chart_url_" . ($i + 1) } = $coverage_map_chart_url;
         my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
         my $media_set_names_text = join ", ", @{ $media_set_names };

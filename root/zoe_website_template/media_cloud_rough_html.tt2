@@ -159,10 +159,7 @@ Words in both queries
 </p>
             <div id="CMcontentarea" style="display:none;">
 
-[% IF coverage_map_chart_url %]
-<div id="openheatmap_container"></div>
-<!-- <img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" /> -->
-[% ELSIF coverage_map_chart_url_1 && coverage_map_chart_url_2 %]
+[% IF coverage_map_chart_url_1 && coverage_map_chart_url_2 %]
 <table>
 <tr>
 <td>
@@ -181,6 +178,10 @@ Set 2 coverage
 </td>
 </tr>
 </table>
+[% ELSIF word_cloud %]
+<div id="openheatmap_container"></div>
+<!-- <img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" /> -->
+
 [% ELSE %]
 This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
 [% END %]
