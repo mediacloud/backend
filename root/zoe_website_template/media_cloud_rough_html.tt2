@@ -67,20 +67,34 @@ function onMapCreated()
 
     map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
     //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
-    //var csv_string = "country_code,value\nUSA,40\nCAN,30\nIND,30";
-     var csv_string = 
-             "country_code,value\n"
-        [% FOREACH country_count_csv_row IN country_count_csv_array %]
-         + "[% country_count_csv_row %]\n" 
-        [% END %]
-      ;
-    //alert(csv_string);
 
-    map.loadValuesFromCSVString(csv_string);
-   //map.loadValuesFromFile('[% c.uri_for('/include/hello_data.csv') %]');
- 
-[% INCLUDE 'zoe_website_template/open_heat_map_settings.tt2' %]
+   var csv_url = "[% c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries_ids } )%]";
+   //alert(csv_url);
+
+   $.get(csv_url, function(data) {
+   //alert("got data " + data);
+   map.loadValuesFromCSVString(data);
+
+   [% INCLUDE 'zoe_website_template/open_heat_map_settings.tt2' %]
+
+    onDataLoaded();
+
+   } );
 }
+
+function onDataLoaded()
+{
+   //alert('data loaded');
+   //$('#coveragemap_status').html("Rendering Map...");
+   //$('#coverage_key').show('slow');
+}
+
+function onError(err)
+{
+   alert(err);
+}
+
+
 -->
 </script>
 
