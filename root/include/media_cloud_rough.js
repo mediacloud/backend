@@ -47,6 +47,8 @@ function swapDIV(s) {
 		//fix the styles of the tabs
 		$('#coveragemap').toggleClass('contentSelected contentUnselected');
 		$('#wordcloud').toggleClass('contentSelected contentUnselected');
+		$('#coverage_map_frame').load();
+		$('#coverage_map_frame').iframeAutoHeight();
 	}
 	else {  //we want to view the word cloud
 		//turn on the appropriate content area
