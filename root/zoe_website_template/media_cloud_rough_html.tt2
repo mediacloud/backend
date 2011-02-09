@@ -52,8 +52,8 @@
 
 	});  
 
-	$('#coverage_map_frame').iframeAutoHeight();
-	$('#coverage_map_frame').load();
+	$('#CMcontentarea iframe').iframeAutoHeight();
+	$('#CMcontentarea iframe').load();
 
         [% END %]
 
@@ -136,10 +136,12 @@ Set 2 coverage
 <tr>
 <td>
 
-<img src="[%- coverage_map_chart_url_1 | html -%]" alt="Coverage Map" />
+[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.0.queries_id } ) %]
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string, 'width' => 300, 'height' => 240 } ) %]" ></iframe>
 </td>
 <td>
-<img src="[%- coverage_map_chart_url_2 | html -%]" alt="Coverage Map" />
+[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.1.queries_id } ) %]
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string, 'width' => 300, 'height' => 240 } ) %]" ></iframe>
 </td>
 </tr>
 </table>

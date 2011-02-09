@@ -643,10 +643,6 @@ sub _show_dashboard_results_compare_queries
             return;
         }
 
-        my $country_counts = $self->_get_country_counts( $c, $query, $i + 1 );
-        my $coverage_map_chart_url = $self->_get_tag_count_map_url( $country_counts, 'coverage map' );
-
-        $c->stash->{ "coverage_map_chart_url_" . ($i + 1) } = $coverage_map_chart_url;
         my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
         my $media_set_names_text = join ", ", @{ $media_set_names };
@@ -1067,6 +1063,20 @@ sub coverage_map_iframe : Local
     my ( $self, $c ) = @_;
 
     my $csv_url = $c->req->param( 'url' );
+    my $height  = $c->req->param( 'height' );
+    my $width   = $c->req->param( 'width' );
+
+    my $csv_url = $c->req->param( 'url' );
+
+    if ( $height )
+    {
+       $c->stash->{ height }      = $height;
+    }
+
+    if ( $width )
+    {
+       $c->stash->{ width }      = $width;
+    }
 
     $c->stash->{ csv_url }      = $csv_url;
     $c->stash->{ template } = 'zoe_website_template/coverage_map_iframe.tt2';
