@@ -5,6 +5,7 @@
 
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/include/media_cloud_rough.css' ) %]"/>
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/include/word_cloud.css' ) %]"/>
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( '/include/final_tweaks.css' ) %]"/>
 
 <style type="text/css">
 body {
