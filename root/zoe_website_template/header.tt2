@@ -1,8 +1,17 @@
 
 <table width="902" border="0" cellpadding="0" cellspacing="0" align = "center">
-  <tr>
-    <td bgcolor="#000000"><span class="Header">Media Cloud</span></td>
-  </tr>
-  <tr>
-    <td align="left" bgcolor="#000000"><font color="#FFFFFF"><a href="link" class="navigation">Home</a> | <a href="link" class="navigation">About</a> | <a href="link" class="navigation">News</a> | <a href="link"  class="navigation">Data Sources</a>| <a href="link"  class="navigation">Weekly Reports</a></font></td>
-  </tr>
+  <TR>
+    <TD bgcolor="#000000"><img src="/include/images/spacer.gif" width="1" height="1" /></td>
+    <td bgcolor="#FFFFFF"><img src="/include/images/spacer.gif" width="10" height="1" /></td>
+    <td><table width="900" border="0" align = "center" cellpadding="5" cellspacing="0" bordercolor="#CC66CC" bgcolor="#FFFFFF">
+        <tr>
+          <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td width="350"><img src="/include/images/header.jpg" /></td>
+                <td align="right" valign="bottom"><a href="link" class = "navigation">Home </a> | <a href="link" class="navigation">About</a> | <a href="link" class="navigation">News</a> | <a href="link"  class="navigation">Data Sources</a>| <a href="link"  class="navigation">Weekly Reports</a></td>
+              </tr>
+            </table></td>
+        </tr>
+        <tr>
+          <td align="left"><div id = "dotcontainerWide"></div></td>
+        </tr>
