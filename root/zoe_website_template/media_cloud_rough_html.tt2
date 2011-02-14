@@ -121,7 +121,7 @@
 <br/><br/>
 [% END %]
 
-<div id = "dotcontainer">
+<div class = "dotcontainer">
 [% IF ! primary %]
 <br/><br/><br/>
 [% END %]
@@ -146,7 +146,7 @@
             <!--This is where the content ends!--></td>
         </tr>
         <tr>
-          <td align="center"><div id = "dotcontainer"></div>
+          <td align="center"><div class = "dotcontainer"></div>
             <br/>
 [% END %]
 [% IF !primary %]

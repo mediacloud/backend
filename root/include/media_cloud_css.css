@@ -13,7 +13,7 @@ a {color:#f17e0d;}
 a:hover {color:#c7680b; text-decoration:none }  /* mouse over link */
 
 
-#dotcontainer, #dotcontainerWide{
+div.dotcontainer, #dotcontainerWide{
  width: 100%;
  height: 2px;  
  margin:0 auto;
