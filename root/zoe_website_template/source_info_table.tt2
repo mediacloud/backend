@@ -1,0 +1,24 @@
+<div id = tabledata>
+                    <table width="100%" border="0" cellspacing="3" cellpadding="0">
+                      <tr>
+                <td align="right" valign="top"><strong> Media Source(s):</strong></td>
+                <td align="left" valign="top">[% media_set_names %]</td>
+               </tr>
+              <tr>
+                <td align="right"><strong>Time range</strong>:</td>
+                <td align="left" valign="top">[% time_range %]</td>
+	      </tr>
+                      <tr>
+                        <td align="right">Media Sub-sets:</td>
+                        <td align="left" valign="top">None </td>
+                      </tr>
+		      <tr>
+		        <td align="right"><strong>Area of Coverage:</strong></td>
+                        <td align="left" valign="top"><em>[% areas_of_coverage %]</em></td>
+		      </tr>
+		<tr>
+                <td align="right">Download Data</td>
+                <td align="left" valign="top">[<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'csv' }) | url_encode %]" class="query">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'xml' }) | url_encode %]" class="query">XML</a>]</td>
+              </tr>
+            </table>
+</div>
