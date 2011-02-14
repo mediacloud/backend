@@ -35,6 +35,7 @@
             <option>Subset2</option>
             <option>Subset 3</option>
           </select>
+	  <br />
 <span class="smaller">A fast explanation</span>
         </div>
       </div>
