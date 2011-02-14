@@ -92,6 +92,7 @@
   </tr>
   <tr>
     <td>
+[% primary = 0 %]
  [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
 </td>
 </tr>
