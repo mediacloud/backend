@@ -1,0 +1,74 @@
+<!--This cell is where we'll put the front page content-->
+            
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#dff0ff">
+              <tr>
+
+<!--
+            <br/>
+            <br/>
+            <div id="coveragemap" class="contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
+            <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
+-->
+<td align="left" valign="top">
+            <div id="WCcontentarea">
+[% IF word_cloud %]
+[%- word_cloud -%]
+[% ELSE %]
+(no data found for word cloud)
+[% END %]
+<div>
+<span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
+Words [% queries.0.description | html%]
+[% IF queries.1 %]
+<br />
+<span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
+Words [% queries.1.description | html %]
+<br />
+<span style="display:inline-block; width: 10px; height: 10px; background: purple; "></span>
+Words in both queries
+[% END %]
+</div>
+<p>
+    <b>Similarity Score: [% queries.0.similarities.1 | format( "%.3f" ) %]</b>
+</p>
+</div>
+            <div id="CMcontentarea" style="display:none;">
+
+[% IF queries.1 %]
+<table>
+<tr>
+<td>
+Set 1 coverage
+</td>
+<td>
+Set 2 coverage
+</td>
+</tr>
+<tr>
+<td>
+
+[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.0.queries_id } ) %]
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string, 'width' => 300, 'height' => 240 } ) %]" ></iframe>
+</td>
+<td>
+[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.1.queries_id } ) %]
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string, 'width' => 300, 'height' => 240 } ) %]" ></iframe>
+</td>
+</tr>
+</table>
+[% ELSIF word_cloud %]
+[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries_ids } ) %]
+<a href="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %]"></a>
+<div>
+<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %]" ></iframe>
+</div>
+[% ELSE %]
+This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
+[% END %]
+ </div></td>
+                <td width="10" align="right" valign="top">&nbsp;</td>
+                <td width="200" align="left" valign="top" bgcolor="#5fa9ee">
+[% INCLUDE 'zoe_website_template/source_info_table.tt2' %]
+</td>
+        </tr>
+      </table>
