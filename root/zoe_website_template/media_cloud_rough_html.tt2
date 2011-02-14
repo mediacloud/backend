@@ -129,13 +129,13 @@
 [% IF primary %]
             <br/>
             <div id = "bottomContainer">
-              <div id = popular> <strong>About Media Cloud</strong><br />
+              <div id = "popular"> <strong>About Media Cloud</strong><br />
                 Informatim about media Cloud and how cool it is! Maybe there's a link to the news page here too!<a href="link"></a><br />
               </div>
-              <div id = report><strong>This week's report</strong><br />
+              <div id = "report"><strong>This week's report</strong><br />
                 <a href="link">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
               </div>
-              <div id = news><strong>News</strong><br />
+              <div id = "news"><strong>News</strong><br />
                 Have there been recent updates and changes?  I bet there are some!
                   <br />
                 <br />
