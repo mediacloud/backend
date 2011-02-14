@@ -21,7 +21,7 @@ $(document).ready(function()
 function DisplayDIV(d) {  
 	if (visible == false) { //if we're only viewing one data set right now
 		document.getElementById(d).style.display = "block";
-n		 $('#compare').html("Use single Data Source <img src='/include/images/uparrow.gif'>");
+		$('#compare').html("Use single Data Source <img src='/include/images/uparrow.gif'>");
 		visible = true;
 		$('#compare_media_sets').val("true");
 		//Hack to prevent us from overwritting the query values for the second source.
