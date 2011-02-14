@@ -1,3 +1,4 @@
+[% primary = 1 %]
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
@@ -65,6 +66,14 @@
 [% # form.render() %]
 
 [% INCLUDE 'zoe_website_template/header.tt2' %]
+
+[% IF primary %]
+<tr>
+<td>
+ [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
+</td>
+</tr>
+[% END %]
   <tr>
 
 
@@ -90,12 +99,14 @@
     
     </td>
   </tr>
+[% IF ! primary %]
   <tr>
     <td>
-[% primary = 0 %]
  [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
 </td>
 </tr>
+[% END %]
+[% IF ! primary %]
 <tr>
  <td align="left">
 
@@ -103,7 +114,46 @@
  </td>   
          
         </tr>
-<TR><TD><div id = "dotcontainer"><BR><BR><BR></div><BR><BR></td></tr>
+[% END %]
+
+<TR><TD>
+[% IF primary %]
+<br/><br/>
+[% END %]
+
+<div id = "dotcontainer">
+[% IF ! primary %]
+<BR><BR><BR>
+[% END %]
+</div>
+[% IF primary %]
+            <BR>
+            <div id = "bottomContainer">
+              <div id = popular> <strong>About Media Cloud</strong><br />
+                Informatim about media Cloud and how cool it is! Maybe there's a link to the news page here too!<a href="link"></a><br />
+              </div>
+              <div id = report><strong>This week's report</strong><br />
+                <a href="link">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
+              </div>
+              <div id = news><strong>News</strong><br />
+                Have there been recent updates and changes?  I bet there are some!
+                  <br />
+                <br />
+                  At the very least, here's the most recent headline!!!  And link to the blog!
+              </div>
+            </div>
+            
+            <!--This is where the content ends!--></td>
+        </tr>
+        <tr>
+          <td align="center"><div id = "dotcontainer"></div>
+            <BR>
+[% END %]
+[% IF !primary %]
+
+<BR><BR>
+[% END %]
+</td></tr>
       </table></td>
     <td bgcolor="#FFFFFF"><img src="/include/images/spacer.gif" width="10" height="1" /></td>
     <td bgcolor="#000000"><img src="/include/images/spacer.gif" width="1" height="1" /></td>
