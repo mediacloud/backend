@@ -27,7 +27,7 @@
           }                               
    });
 
-        $('#submit').html('<a href="#">Submit</a>').
+        $('#submit').
 	  click(function() { $('#media_query_form').submit(); } ) ;
 
         $('#mediaSource1 select').width('80');
@@ -81,31 +81,34 @@
 	<p><b>Error:</b>  [% error_message | html_strip %]</p>
 	[% END %]
       </div>
-      <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
-      <div id="compare">Compare This Data Source</div></div>
-      <div id="submit"><input name="Submit" type="submit" value="submit" />
-      </div>
+      <div id = "submissioncontainer"> <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
+             <div id="compare">Compare This Data Source <img src="/include/images/downarrow.gif" width="15" height="15" /></div>
+      </div><div onclick="SUBMIT THIS INFORMATION TO THE NEXT PAGE')" style="cursor:pointer;">
+                <div id ="submit">Submit <img src="/include/images/rightarrow.gif" width="15" height="15" /></div>
+                </div> </div>
       </form>
     
     </td>
   </tr>
   <tr>
-    <td><hr noshade="noshade" size="1" width="100%" style="color:#999999" /></td></tr>
-  <tr>
-    <td><!--This is where the content starts!-->
-[% INCLUDE 'zoe_website_template/side_bar.tt2' %]
+    <td><!--This cell is where we'll put the front page content-->
+            
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#dff0ff">
+              <tr>
+
+<!--
             <br/>
             <br/>
             <div id="coveragemap" class="contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
             <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
+-->
+<td align="left" valign="top">
             <div id="WCcontentarea">
 [% IF word_cloud %]
 [%- word_cloud -%]
 [% ELSE %]
 (no data found for word cloud)
 [% END %]
-
-</div>
 <div>
 <span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
 Words [% queries.0.description | html%]
@@ -121,6 +124,7 @@ Words in both queries
 <p>
     <b>Similarity Score: [% queries.0.similarities.1 | format( "%.3f" ) %]</b>
 </p>
+</div>
             <div id="CMcontentarea" style="display:none;">
 
 [% IF queries.1 %]
@@ -155,11 +159,24 @@ Set 2 coverage
 This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
 [% END %]
  </div></td>
+                <td width="10" align="right" valign="top">&nbsp;</td>
+                <td width="200" align="left" valign="top" bgcolor="#5fa9ee">
+[% INCLUDE 'zoe_website_template/source_info_table.tt2' %]
+</td>
         </tr>
-      </table>
+      </table></td>
+</tr>
+<tr>
+ <td align="left">
 
  [% INCLUDE 'zoe_website_template/sentences_and_subsets.tt2' %]
  </td>   
          
         </tr>
+<TR><TD><div id = "dotcontainer"><BR><BR><BR></div><BR><BR></td></tr>
+      </table></td>
+    <td bgcolor="#FFFFFF"><img src="/include/images/spacer.gif" width="10" height="1" /></td>
+    <td bgcolor="#000000"><img src="/include/images/spacer.gif" width="1" height="1" /></td>
+  </tr>
+
 [% INCLUDE 'zoe_website_template/html_footer.tt2' %]
