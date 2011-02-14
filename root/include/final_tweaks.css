@@ -1,1 +1,16 @@
 .select { margin: 0px; }
+
+body {
+bgcolor : #999999;
+background= 'images/backstripes.gif';
+padding-top : 0; 
+padding-right : 0; 
+padding-bottom : 0; 
+padding-left : 0; 
+border-top-width : 0; 
+border-right-width : 0; 
+border-bottom-width : 0px; 
+border-left-width : 0; 
+margin : 0; 
+}
+
