@@ -20,7 +20,7 @@
                 <td width="110" align="right" valign="top"><strong>Time range</strong>:</td>
                 <td align="left" valign="top"><em>[% time_range %]</em></td>
                 <td width="100" align="right" valign="top"><strong>Download Data:</strong></td>
-                <td align="left" valign="top">[<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'csv' }) | url %]">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'xml' }) | url %]">XML</a>]</td>
+                <td align="left" valign="top">[<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'csv' }) | url_encode %]">CSV</a>] [<a href="[% c.uri_for('/dashboard/get_word_list/' _ dashboard.dashboards_id, { 'queries_ids' => queries_ids, 'format' => 'xml' }) | url_encode %]">XML</a>]</td>
               </tr>
               <tr>
                 <td align="right" valign="top"><strong>Media Sub-sets: </strong></td>
