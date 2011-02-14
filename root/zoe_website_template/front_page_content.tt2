@@ -78,11 +78,11 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
                   <hr noshade="noshade" size ="1" width = "100%" color="#dff0ff" />
                   <div id = "queries"><strong>Popular Queries:</strong>
                     <ul class = "querylist">
-                      <LI><a href = "query.html" class = "query">Query 1 that's of a long length</a><br />
-                      <LI><a href = "query.html" class = "query">Query 2 that's a little shorter</a><br />
-                      <LI><a href = "query.html" class = "query">Query 3 that's a little longer again</a><br />
-                      <LI><a href = "query.html" class = "query">Query 4 is short</a><br />
-                      <LI><a href = "query.html" class = "query">Query 5</a><br />
+                      <li><a href = "query.html" class = "query">Query 1 that's of a long length</a><br />
+                      <li><a href = "query.html" class = "query">Query 2 that's a little shorter</a><br />
+                      <li><a href = "query.html" class = "query">Query 3 that's a little longer again</a><br />
+                      <li><a href = "query.html" class = "query">Query 4 is short</a><br />
+                      <li><a href = "query.html" class = "query">Query 5</a><br />
                     </ul>
                     <br/>
                     <div id = "wordcloud" class = "contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
