@@ -84,7 +84,7 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
                       <LI><a href = query.html class = query>Query 4 is short</a><br />
                       <LI><a href = query.html class = query>Query 5</a><br />
                     </ul>
-                    <BR>
+                    <br/>
                     <div id = "wordcloud" class = "contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
                     <div id = "coveragemap" class = "contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
                   </div>

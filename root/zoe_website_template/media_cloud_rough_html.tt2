@@ -123,11 +123,11 @@
 
 <div id = "dotcontainer">
 [% IF ! primary %]
-<BR><BR><BR>
+<br/><br/><br/>
 [% END %]
 </div>
 [% IF primary %]
-            <BR>
+            <br/>
             <div id = "bottomContainer">
               <div id = popular> <strong>About Media Cloud</strong><br />
                 Informatim about media Cloud and how cool it is! Maybe there's a link to the news page here too!<a href="link"></a><br />
@@ -147,11 +147,11 @@
         </tr>
         <tr>
           <td align="center"><div id = "dotcontainer"></div>
-            <BR>
+            <br/>
 [% END %]
 [% IF !primary %]
 
-<BR><BR>
+<br/><br/>
 [% END %]
 </td></tr>
       </table></td>
