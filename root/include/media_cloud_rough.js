@@ -21,7 +21,7 @@ $(document).ready(function()
 function DisplayDIV(d) {  
 	if (visible == false) { //if we're only viewing one data set right now
 		document.getElementById(d).style.display = "block";
-		 $('#compare').html("Use single Data Source");
+n		 $('#compare').html("Use single Data Source <img src='/include/images/uparrow.gif'>");
 		visible = true;
 		$('#compare_media_sets').val("true");
 		//Hack to prevent us from overwritting the query values for the second source.
@@ -32,7 +32,7 @@ function DisplayDIV(d) {
 	}
 	else {  //if we're allready viewing both data sets
 	    document.getElementById(d).style.display = "none";
-	    $('#compare').html("Compare this Data Source");
+	    $('#compare').html("Compare This Data Source <img src='/include/images/downarrow.gif'>");
 		visible = false;
 		//this is where you want to set all of Data Set #2's information to NULL again, just in case they filled anything in
 		$('#compare_media_sets').val("false");
@@ -47,8 +47,10 @@ function swapDIV(s) {
 		//fix the styles of the tabs
 		$('#coveragemap').toggleClass('contentSelected contentUnselected');
 		$('#wordcloud').toggleClass('contentSelected contentUnselected');
-		$('#coverage_map_frame').load();
-		$('#coverage_map_frame').iframeAutoHeight();
+	$('#CMcontentarea iframe').iframeAutoHeight();
+	$('#CMcontentarea iframe').load();
+	//		$('#coverage_map_frame').load();
+	//	$('#coverage_map_frame').iframeAutoHeight();
 	}
 	else {  //we want to view the word cloud
 		//turn on the appropriate content area
@@ -61,6 +63,3 @@ function swapDIV(s) {
 }//end function
 
 	
-
-//function HideDIV(d) { document.getElementById(d).style.display = "none"; ColorDIV(d + 'Select', '#edf2d5');}
-//function ColorDIV(d, e) { document.getElementById(d).style.backgroundColor=e; }
