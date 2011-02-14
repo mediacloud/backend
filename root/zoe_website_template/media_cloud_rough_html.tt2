@@ -116,7 +116,7 @@
         </tr>
 [% END %]
 
-<TR><TD>
+<tr><td>
 [% IF primary %]
 <br/><br/>
 [% END %]
