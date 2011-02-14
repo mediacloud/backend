@@ -69,7 +69,7 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
 [% IF !primary %]
                 <td width="10" align="right" valign="top">&nbsp;</td>
 [% ELSE %]
-                <td width="25" align="right" valign="top"><img src="/include/images/curve.gif" width="18" height="97" /></td>
+                <td width="25" align="right" valign="top"><img alt="" src="/include/images/curve.gif" width="18" height="97" /></td>
 [% END %]
                 <td width="200" align="left" valign="top" bgcolor="#5fa9ee">
 [% INCLUDE 'zoe_website_template/source_info_table.tt2' %]

@@ -91,9 +91,9 @@
 	[% END %]
       </div>
       <div id = "submissioncontainer"> <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
-             <div id="compare">Compare This Data Source <img src="/include/images/downarrow.gif" width="15" height="15" /></div>
+             <div id="compare">Compare This Data Source <img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
       </div><div onclick="SUBMIT THIS INFORMATION TO THE NEXT PAGE')" style="cursor:pointer;">
-                <div id ="submit">Submit <img src="/include/images/rightarrow.gif" width="15" height="15" /></div>
+                <div id ="submit">Submit <img alt="" src="/include/images/rightarrow.gif" width="15" height="15" /></div>
                 </div> </div>
       </form>
     
@@ -155,8 +155,8 @@
 [% END %]
 </td></tr>
       </table></td>
-    <td bgcolor="#FFFFFF"><img src="/include/images/spacer.gif" width="10" height="1" /></td>
-    <td bgcolor="#000000"><img src="/include/images/spacer.gif" width="1" height="1" /></td>
+    <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
+    <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
   </tr>
 
 [% INCLUDE 'zoe_website_template/html_footer.tt2' %]
