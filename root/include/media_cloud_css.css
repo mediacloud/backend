@@ -56,7 +56,11 @@ div.dotcontainer, #dotcontainerWide{
 #mediaTime1,  
 #mediaArea1,
 #mediaSource1, 
-#mediaSubset1
+#mediaSubset1,
+#mediaTime2,  
+#mediaArea2,
+#mediaSource2, 
+#mediaSubset2
  {
   padding: 10px; 
   float: left;
@@ -64,7 +68,9 @@ div.dotcontainer, #dotcontainerWide{
   color: #4092de;
  }
  
-#mediaSource1 {width: 320px}
+#mediaSource1, #mediaSource2 {width: 320px;  	padding: 0px;
+	padding-top: 5px;
+	padding-bottom: 5px; }
  
 #compare, #submit {
 	float: right;
