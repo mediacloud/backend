@@ -87,8 +87,10 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
                     </ul>
 [% END %]
                     <br/>
+		    <div id = "content_toggle">
                     <div id = "wordcloud" class = "contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
                     <div id = "coveragemap" class = "contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
+		    </div>
                   </div>
 </td>
         </tr>
