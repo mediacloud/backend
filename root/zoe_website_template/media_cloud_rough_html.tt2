@@ -80,7 +80,6 @@
 	   return $this.text() == '[% word_cloud_term %]' + "";
 	});
 
-	alert(word_cloud_link);
 	word_cloud_link.click();
 	[% ELSE %]
 
