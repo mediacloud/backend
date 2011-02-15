@@ -1,4 +1,9 @@
+[% IF word_cloud_term %]
+[% primary = 0 %]
+[% ELSE %]
 [% primary = 1 %]
+[% END %]
+
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
@@ -38,8 +43,19 @@
 	[% IF word_cloud %]
 	$('#sentence_frame').iframeAutoHeight();
 	$('#htmltagcloud a').click(function(e) {
-	var $this = $(this);
 	e.preventDefault();
+	[% IF primary %]
+	var $this = $(this);
+	var current_url = window.location.href;
+	var new_url = current_url + "&term=" + $this.text();
+	var loc = $(location);
+	loc.attr('href', new_url);
+	//alert('redirecting to ' + new_url );
+	window.location.href = new_url;
+	//alert('redirecting');
+	[% ELSE %]
+
+	var $this = $(this);
 	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
 	//alert(query_string);
 	
@@ -50,8 +66,25 @@
 
 	$('#sentence_frame').attr('src', iframe_url ).load();
 	$('#sentence_frame').load();
-
+	
+	[% END %]
 	});  
+
+	//alert(' [%word_cloud_term %] ');
+        [% IF word_cloud_term %]
+
+	var word_cloud_link = $('#htmltagcloud span a').filter( function (index) {
+	    var $this = $(this);
+	   //alert($this.text());
+	   
+	   return $this.text() == '[% word_cloud_term %]' + "";
+	});
+
+	alert(word_cloud_link);
+	word_cloud_link.click();
+	[% ELSE %]
+
+        [% END %]
 
 	$('#CMcontentarea iframe').iframeAutoHeight();
 	$('#CMcontentarea iframe').load();
