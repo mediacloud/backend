@@ -35,16 +35,16 @@ Words in both queries
             <div id="CMcontentarea" style="display:none;">
 
 [% IF queries.1 %]
-<table>
+<table style = "width: 100%; height: 100%">
 <tr>
 <td>
-Set 1 coverage
+Set 1 Coverage
 </td>
 <td>
-Set 2 coverage
+Set 2 Coverage
 </td>
 </tr>
-<tr>
+<tr style = "align: top;">
 <td>
 
 [% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.0.queries_id } ) %]
@@ -74,9 +74,10 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
                 <td width="200" align="left" valign="top" bgcolor="#5fa9ee">
 [% INCLUDE 'zoe_website_template/source_info_table.tt2' %]
 
-[% IF primary %]
                   <hr noshade="noshade" size ="1" width = "100%" color="#dff0ff" />
-                  <div id = "queries"><strong>Popular Queries:</strong>
+                  <div id = "queries">
+[% IF primary %]
+		       <strong>Popular Queries:</strong>
                     <ul class = "querylist">
                       <li><a href = "query.html" class = "query">Query 1 that's of a long length</a><br /></li>
                       <li><a href = "query.html" class = "query">Query 2 that's a little shorter</a><br /></li>
@@ -84,11 +85,11 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
                       <li><a href = "query.html" class = "query">Query 4 is short</a><br /></li>
                       <li><a href = "query.html" class = "query">Query 5</a><br /></li>
                     </ul>
+[% END %]
                     <br/>
                     <div id = "wordcloud" class = "contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
                     <div id = "coveragemap" class = "contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
                   </div>
-[% END %]
 </td>
         </tr>
       </table>
