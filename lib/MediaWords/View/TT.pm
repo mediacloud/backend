@@ -34,6 +34,27 @@ sub new
         }
     );
 
+
+    $self->{ template }->context->define_filter(
+        url_encode => sub {
+
+            #$Data::Dumper::Purity = 1;
+            #$Data::Dumper::Useperl = 1;
+            my $nr = shift;
+            say STDERR "encoding: '$nr'"  if (length($nr) > 0 );
+
+	    $nr =~ s/&/&amp;/g;
+            say STDERR "returning: '$nr'"  if (length($nr) > 0 );
+
+	    return $nr;
+            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
+            #$nr = html_strip( $nr );
+            ##say STDERR Dumper($nr)  if (length($nr) > 0 );
+            #say STDERR "Striped '$nr'"  if (length($nr) > 0 );
+            #$nr;
+        }
+    );
+
     $self->{ template }->context->define_filter(
         translate => sub {
             my $nr = shift;
