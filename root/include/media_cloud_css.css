@@ -21,6 +21,11 @@ div.dotcontainer, #dotcontainerWide{
  background: url(images/dots.gif) top left repeat; 
 }
 
+#content_toggle
+{
+     text-align: bottom;
+}
+
 #dotcontainerWide {
 	height: 18px; 
 }
