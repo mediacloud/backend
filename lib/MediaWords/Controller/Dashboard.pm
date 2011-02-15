@@ -505,6 +505,9 @@ sub _process_and_stash_dashboard_data
 
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
 
+    my $term = $c->req->param( 'term' );
+
+    $c->stash->{ word_cloud_term }       = $term;
     $c->stash->{ dashboard }             = $dashboard;
     $c->stash->{ media }                 = $media;
     $c->stash->{ collection_media_sets } = $collection_media_sets;
