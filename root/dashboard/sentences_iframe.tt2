@@ -33,21 +33,21 @@
            var json_url  = $('#json_stories_url_' + source_num).attr('href');
 
            $('#source_sentences_' + source_num).children().remove();
-           $('#source_sentences_' + source_num).html('loading...').show();
+           $('#source_sentences_' + source_num).text('loading...').show();
 
            $.getJSON(json_url, function(data) {
-              $('#source_sentences_' + source_num).html('loaded...').show();
+              $('#source_sentences_' + source_num).text('loaded...').show();
               var stories_ul = $("<ul class='filetree'/>");
              $.each(data, function(index, story) {
                      //alert(value.title);
                      var story_li = $("<li class='collapsable'>");
-                     story_li.append($("<b></b>").html(story.title)).
-                     append($("<span class='date'>").html(story.publish_date)).
+                     story_li.append($("<b></b>").text(story.title)).
+                     append($("<span class='date'>").text(story.publish_date)).
                      append($("<a>View Article</a>").attr('href', story.url)).
                      append($("</br>"));
                      var sentences_ul = $("<ul/>");
                      $.each(story.sentences, function(index, sentence_object) {
-                         sentences_ul.append($("<li/>").html(sentence_object.sentence)).append($("<br/>"));
+                         sentences_ul.append($("<li/>").text(sentence_object.sentence)).append($("<br/>"));
                      }) ;
 
                      story_li.append(sentences_ul);
@@ -81,7 +81,7 @@
    }); 
 </script>
            <div id = "TSarea"><BR>
-              <em>Top 25 Mainstream Media Sources &gt; Term: '[% term %]'</em><br />
+              <em>Top 25 Mainstream Media Sources &gt; Term: '[% term | html %]'</em><br />
               <br />
               
               <table width="880" border="0" cellspacing="0" cellpadding="0">
@@ -92,7 +92,7 @@
 [% i = 1 %]
 [% FOREACH medium IN media %]
                     <tr>
-                      <td align="right" valign="top" id = "Source[% i %]Select"><span style="cursor:pointer">[% medium.name | html %]: [% medium.stem_percentage * 100 | format( "%.3f%%" ) %]</span></td>
+                      <td align="right" valign="top" id = "Source[% i %]Select"><span style="cursor:pointer">[% medium.name | html %]: [% medium.stem_percentage * 100 | format( "%.3f%%" ) | html %]</span></td>
                     </tr>
 [% i = i + 1 %]
 [% END %]
