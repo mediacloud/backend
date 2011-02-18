@@ -792,7 +792,7 @@ sub _get_week_dates_list
     my $dates = [ $start_date ];
     for my $i ( 1 .. 6 )
     {
-        push( @{ $dates }, MediaWords::Util::SQL::increment_day( $start_date, $i );
+        push( @{ $dates }, MediaWords::Util::SQL::increment_day( $start_date, $i ) );
     }
     
     return join( ',', map { "'$_'::date" } @{ $dates } );
