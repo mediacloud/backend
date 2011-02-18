@@ -14,10 +14,8 @@ BEGIN
 
 use MediaWords::DB;
 use DBIx::Simple::MediaWords;
-use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 use TableCreationUtils;
 use Readonly;
-use Term::Prompt;
 
 my $_stories_id_start       = 0;
 my $_stories_id_window_size = 1000;
@@ -90,8 +88,7 @@ sub main
 
 {
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
-      || die DBIx::Simple::MediaWords->error;
+    my $dbh =  MediaWords::DB::connect_to_db;
 
     my $max_stories_id = get_max_stories_id( $dbh );
 
