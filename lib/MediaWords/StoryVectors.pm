@@ -12,6 +12,7 @@ use Data::Dumper;
 use Lingua::EN::Sentence::MediaWords;
 use Lingua::ZH::MediaWords;
 use MediaWords::DBI::Stories;
+use MediaWords::Util::SQL;
 use MediaWords::Util::Stemmer;
 use MediaWords::Util::StopWords;
 use MediaWords::Util::Countries;
@@ -782,6 +783,21 @@ sub _update_daily_country_counts
     return 1;
 }
 
+# get quoted, comma separate list of the dates in the week starting with
+# the given date
+sub _get_week_dates_list 
+{
+    my ( $start_date ) = @_;
+    
+    my $dates = [ $start_date ];
+    for my $i ( 1 .. 6 )
+    {
+        push( @{ $dates }, MediaWords::Util::SQL::increment_day( $start_date, $i );
+    }
+    
+    return join( ',', map { "'$_'::date" } @{ $dates } );
+}
+
 # update the given table for the given date and interval
 sub _update_weekly_words
 {
@@ -790,6 +806,10 @@ sub _update_weekly_words
     say STDERR "aggregate: weekly_words $sql_date";
 
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+    
+    # use an in list of dates instead of sql between b/c postgres is really slow using
+    # between for dates
+    my $week_dates = _get_week_dates_list( $sql_date );
 
     $db->query(
         "delete from weekly_words where publish_week = date_trunc( 'week', '${ sql_date }'::date ) $update_clauses " );
@@ -800,8 +820,7 @@ sub _update_weekly_words
           "     sum(stem_count_sum) over w as sum_stem_counts  from " .
           "(  select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
           "date_trunc('week', min(publish_day)) as publish_week, dashboard_topics_id from daily_words " .
-          "    where publish_day between date_trunc('week', '${sql_date}'::date) " .
-          "        and date_trunc( 'week', '${sql_date}'::date )  + interval '6 days' $update_clauses " .
+          "    where publish_day in ( $week_dates ) $update_clauses " .
           "    group by media_sets_id, stem, term, dashboard_topics_id ) as foo" .
           " WINDOW w  as (partition by media_sets_id, stem, publish_week,  dashboard_topics_id  ) " .
           "	               )  q                                                         " .
