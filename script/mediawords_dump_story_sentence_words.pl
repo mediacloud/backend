@@ -54,10 +54,11 @@ sub isNonnegativeInteger
     return int( $val ) eq $val;
 }
 
-sub main
+sub dump_story_words
 {
 
-    my $dbh = MediaWords::DB::connect_to_db;
+    my ($dbh) = @_;
+
 
     my $max_stories_id = get_max_stories_id( $dbh );
 
@@ -76,6 +77,12 @@ sub main
     }
 
     $dbh->disconnect;
+}
+
+sub main
+{
+    my $dbh = MediaWords::DB::connect_to_db;
+    dump_story_words( $dbh );
 }
 
 main();
