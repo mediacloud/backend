@@ -79,10 +79,20 @@ sub dump_story_words
     $dbh->disconnect;
 }
 
+sub dump_stories
+{
+   my ($dbh) = @_;
+
+    open my $output_file, ">", "/tmp/stories.csv";
+
+   $dbh->query_csv_dump ( $output_file, " select stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss from stories ", [], 1);
+}
+
 sub main
 {
     my $dbh = MediaWords::DB::connect_to_db;
-    dump_story_words( $dbh );
+    dump_stories( $dbh );
+    #dump_story_words( $dbh );
 }
 
 main();
