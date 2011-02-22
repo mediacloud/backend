@@ -20,6 +20,8 @@ use Readonly;
 my $_stories_id_start       = 0;
 my $_stories_id_window_size = 1000;
 my $_stories_id_stop        = $_stories_id_start + $_stories_id_window_size;
+
+
 my $_cached_max_stories_id  = 0;
 
 sub get_max_stories_id
@@ -52,38 +54,6 @@ sub isNonnegativeInteger
     return int( $val ) eq $val;
 }
 
-sub create_foreign_key_query_string
-{
-    my ( $altered_table, $referenced_table, $referenced_column ) = @_;
-
-    my $query =
-      " ALTER TABLE ONLY $altered_table " . ' ADD CONSTRAINT ' . $altered_table . '_fkey_' . $referenced_column .
-      ' FOREIGN KEY (' . $referenced_column . ')' . ' REFERENCES ' . " $referenced_table($referenced_column) " .
-      ' ON DELETE CASCADE ';
-
-    return $query;
-}
-
-sub create_foreign_key
-{
-    my ( $altered_table, $referenced_table, $referenced_column ) = @_;
-
-    my $foreign_key_query = create_foreign_key_query_string( $altered_table, $referenced_table, $referenced_column );
-
-    execute_query( $foreign_key_query );
-}
-
-# sub add_sub_table_indexes
-# {
-#     for ( my $media_id = 0 ; $media_id < scalar( @_existing_media_sub_tables ) ; $media_id++ )
-#     {
-#         if ( defined $_existing_media_sub_tables[ $media_id ] )
-#         {
-#             MediaWords::DBI::StoriesTagsMapMediaSubtables::create_indexes_for_sub_table( $media_id );
-#         }
-#     }
-# }
-
 sub main
 {
 
@@ -93,7 +63,7 @@ sub main
 
     open my $output_file, ">", "/tmp/story_words.csv";
 
-    my $select_query =
+    Readonly my $select_query =>
 "select stories_id, media_id, publish_day, stem, term, sum(stem_count)  as count from story_sentence_words where stories_id >= ? and stories_id < ? group by stories_id, media_id, publish_day, stem, term";
 
     $dbh->query_csv_dump( $output_file, " $select_query  limit 0 ", [ 0, 0 ], 1 );
@@ -102,7 +72,6 @@ sub main
     {
         $dbh->query_csv_dump( $output_file, " $select_query ", [ $_stories_id_start, $_stories_id_stop ], 0 );
 
-        #   $dbh->query( 'INSERT INTO  story_words_temp ' . $select_query , $_stories_id_start, $_stories_id_stop );
         scroll_stories_id_window();
     }
 
