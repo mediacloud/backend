@@ -84,26 +84,6 @@ sub create_foreign_key
 #     }
 # }
 
-sub query_csv_dump
-{
-    my ( $db, $output_file, $query, $params, $with_header ) = @_;
-
-    my $copy_statement = "COPY ($query) TO STDOUT WITH CSV ";
-
-    if ( $with_header )
-    {
-        $copy_statement .= " HEADER";
-    }
-
-    my $line;
-    $db->dbh->do( $copy_statement, {}, @$params );
-    while ( $db->dbh->pg_getcopydata( $line ) >= 0 )
-    {
-        print $output_file $line;
-    }
-
-}
-
 sub main
 {
 
@@ -116,11 +96,11 @@ sub main
     my $select_query =
 "select stories_id, media_id, publish_day, stem, term, sum(stem_count)  as count from story_sentence_words where stories_id >= ? and stories_id < ? group by stories_id, media_id, publish_day, stem, term";
 
-    query_csv_dump( $dbh, $output_file, " $select_query  limit 0 ", [ 0, 0 ], 1 );
+    $dbh->query_csv_dump( $output_file, " $select_query  limit 0 ", [ 0, 0 ], 1 );
 
     while ( $_stories_id_start <= $max_stories_id )
     {
-        query_csv_dump( $dbh, $output_file, " $select_query ", [ $_stories_id_start, $_stories_id_stop ], 0 );
+        $dbh->query_csv_dump( $output_file, " $select_query ", [ $_stories_id_start, $_stories_id_stop ], 0 );
 
         #   $dbh->query( 'INSERT INTO  story_words_temp ' . $select_query , $_stories_id_start, $_stories_id_stop );
         scroll_stories_id_window();

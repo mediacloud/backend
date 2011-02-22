@@ -249,4 +249,24 @@ sub transaction
     }
 }
 
+sub query_csv_dump
+{
+    my ( $self, $output_file, $query, $params, $with_header ) = @_;
+
+    my $copy_statement = "COPY ($query) TO STDOUT WITH CSV ";
+
+    if ( $with_header )
+    {
+        $copy_statement .= " HEADER";
+    }
+
+    my $line;
+    $self->dbh->do( $copy_statement, {}, @$params );
+    while ( $self->dbh->pg_getcopydata( $line ) >= 0 )
+    {
+        print $output_file $line;
+    }
+
+}
+
 1;
