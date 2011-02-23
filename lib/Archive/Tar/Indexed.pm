@@ -48,7 +48,7 @@ sub _get_lock_file
 # this is necessary because tar sticks a variable number of null
 # blocks at the end of every tar archive, and we need to put the new
 # archive right after the last valid block.  We find the last valid block
-# seeking to the end of the file, reading the block, testing whether it
+# seeking to the end of the file (or the given position), reading the block, testing whether it
 # is a null block, moving back one block if it is not, and so on
 # until we find a non-null block.
 sub _find_starting_block
@@ -87,6 +87,52 @@ sub _find_starting_block
     
     return POSIX::ceil( $pos / 512 );
 }
+
+
+# return the name of the file at the given block_position in the archive.
+# starting at pos, get the number of blocks in the current archive by 
+# counting up to the first null bock and then to the first non-null block.
+# this is helpful for restoring an archive that has been corrupted somehow.
+sub get_file_stats
+{
+    my ( $archive_file, $starting_block_pos ) = @_;
+    
+    my $total_blocks = ( stat( $archive_file ) )[ 7 ] / 512;
+    
+    return () if ( $starting_block_pos >= $total_blocks );
+    
+    my $block_pos = $starting_block_pos;
+
+    open( ARCHIVE, $archive_file ) || die( "unable to open archive file '$archive_file': $!" );
+
+    # find next null block
+    while ( $block_pos < $total_blocks )
+    {
+        my $buffer;
+        seek( ARCHIVE, $block_pos * 512, SEEK_SET ) || die( "Unable to seek to block $block_pos in file $archive_file: $!" );
+        read( ARCHIVE, $buffer, 512 ) || die( "Unable to read block $block_pos in file $archive_file: $!" );
+        
+        if ( $buffer =~ /^([0-9]+\/)+[0-9]+.gz/ )
+        {        
+            my $tar_cmd = "dd if='$archive_file' bs=512 skip=$block_pos count=1 2> /dev/null | tar -t -f - 2> /dev/null";
+            my $tar_list = `$tar_cmd`;
+
+            my ( $file_path ) = split( "\n", $tar_list );
+
+            if ( $file_path )
+            {
+                close( ARCHIVE );
+                return ( $file_path, $block_pos );
+            }
+        }
+        
+        $block_pos++;
+    }
+    
+    close( ARCHIVE );
+    return ();
+}
+
 
 # append the given file contents to the given tar file under the given path.
 # returns the starting block and number of blocks for the file, to be passed
