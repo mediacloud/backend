@@ -136,7 +136,7 @@ sub main
 
     my $zip = Archive::Zip->new();
 
-    my $dir_member = $zip->addDirectory( '$dir' );
+    my $dir_member = $zip->addTree( "$temp_dir" );
 
     # Save the Zip file
     unless ( $zip->writeToFileNamed( "/$data_dir/$dump_name" . ".zip" ) == AZ_OK )
