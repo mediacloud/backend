@@ -8,7 +8,9 @@ function onMapCreated()
     map.loadWaysFromFile('http://static.openheatmap.com/world_countries.osm');
     //map.loadWaysFromFile('[% c.uri_for('/include/world_countries.osm') %]');
 
-   var csv_url = '[% csv_url_string %]';
+   //TODO find a cleaner JS escaping solution
+   //alert(decodeURI('[%  csv_url_string | url %]'));
+   var csv_url = decodeURI('[%  csv_url_string | url %]');
 
    $.get(csv_url, function(data) {
    //alert("got data " + data);
