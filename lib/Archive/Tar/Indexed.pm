@@ -159,7 +159,10 @@ sub append_file
         die( "Unable to open file '$temp_dir/$file_name': $!" );
     }
     
-    print FILE ${ $file_contents_ref };
+    if ( ! ( print FILE ${ $file_contents_ref } ) )
+    {
+        die( "Unable to write to file '$temp_dir/$file_name': $!" );
+    }
     
     close( FILE );
 
@@ -185,7 +188,10 @@ sub append_file
     my $tar_cmd = "tar -c -C '$temp_dir' -f - '$file_name'";    
     my $tar_output = `$tar_cmd`;
     
-    print TAR_FILE $tar_output;
+    if ( !( print TAR_FILE $tar_output ) )
+    {
+        die( "Unable to write to file '$tar_file': $!" );
+    }
 
     close( TAR_FILE );
     
