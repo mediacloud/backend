@@ -1073,12 +1073,12 @@ sub coverage_map_iframe : Local
 
     if ( $height )
     {
-       $c->stash->{ height }      = $height;
+       $c->stash->{ height }      = int($height);
     }
 
     if ( $width )
     {
-       $c->stash->{ width }      = $width;
+       $c->stash->{ width }      = int($width);
     }
 
     $c->stash->{ csv_url }      = $csv_url;
