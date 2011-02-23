@@ -11,8 +11,8 @@
     {
 
         $('#openheatmap_container').insertOpenHeatMap({
-              width: [% width || 500 %],
-              height: [% height || 400 %],
+              width: [% (width + 0) || 500 %],
+              height: [% (height + 0) || 400 %],
              // prefer: 'canvas',
       source: '[% c.uri_for('/include/openheatmap.swf') %]',
         });
