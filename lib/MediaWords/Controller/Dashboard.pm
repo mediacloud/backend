@@ -211,11 +211,11 @@ sub country_counts_csv : Local
 
     my $queries_id = $c->req->param( 'queries_id' );
 
-    my $query                   = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
-    my $country_counts          = $self->_get_country_counts( $c, $query );
+    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
+    my $country_counts = $self->_get_country_counts( $c, $query );
     my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
 
-    my $response_body = join "\n", ('country_code,value', @{$country_count_csv_array} );
+    my $response_body = join "\n", ( 'country_code,value', @{ $country_count_csv_array } );
     $c->response->header( "Content-Disposition" => "attachment;filename=country_list.csv" );
     $c->response->content_type( 'text/csv' );
     $c->response->content_length( length( $response_body ) );
@@ -472,8 +472,12 @@ sub _country_counts_to_csv_array
       { map { uc( country_code2code( $_, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 ) ) => $country_counts->{ $_ } }
           ( sort keys %{ $country_counts } ) };
 
-    my $country_count_csv_array =
-      [ map { join ',', @$_ } ( map { [ $_, sprintf ("%10.9f", round($country_code_3_counts->{ $_ }, 8 ) ) ] } sort keys %{ $country_code_3_counts } ) ];
+    my $country_count_csv_array = [
+        map { join ',', @$_ } (
+            map { [ $_, sprintf( "%10.9f", round( $country_code_3_counts->{ $_ }, 8 ) ) ] }
+              sort keys %{ $country_code_3_counts }
+        )
+    ];
 
     return $country_count_csv_array;
 }
@@ -601,9 +605,9 @@ sub _show_dashboard_results_single_query
     $c->stash->{ time_range } = MediaWords::DBI::Queries::get_time_range( $c->dbis, $query );
     $c->stash->{ areas_of_coverage } = MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis, $query );
 
-    $c->stash->{ word_cloud }              = $word_cloud;
-    $c->stash->{ queries }                 = [ $query ];
-    $c->stash->{ queries_ids }             = [ $query->{ queries_id } ];
+    $c->stash->{ word_cloud }  = $word_cloud;
+    $c->stash->{ queries }     = [ $query ];
+    $c->stash->{ queries_ids } = [ $query->{ queries_id } ];
 
 }
 
@@ -1061,6 +1065,38 @@ sub sentences_medium_json : Local
     return $c->res->body( encode_json( $stories ) );
 }
 
+sub page_count_increment : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $url                 = $c->req->body_params->{ url };
+    my $query_description_0 = $c->req->body_params->{ query_0_description };
+    my $query_description_1 = $c->req->body_params->{ query_1_description };
+
+    say STDERR Dumper( $c->req->body_params );
+
+    say STDERR "query_0  $query_description_0 query_1  $query_description_1";
+
+    my $popular_query = = $c->dbis->select( $table, '*', { url => $url } )->hash;
+
+    if ( !$popular_query )
+    {
+        $popular_query = $c->dbis->find_or_create(
+            'popular_queries',
+            {
+                url                 => $url,
+                query_0_description => $query_description_0,
+                query_1_description => $query_description_1
+            }
+        );
+    }
+
+    $popular_query->{ count }++;
+
+    $c->dbis->update_by_id( 'popular_queries', $popular_query->{ popular_queries_id }, $popular_query );
+    return $c->res->body( ' ' );
+}
+
 sub coverage_map_iframe : Local
 {
     my ( $self, $c ) = @_;
@@ -1073,15 +1109,15 @@ sub coverage_map_iframe : Local
 
     if ( $height )
     {
-       $c->stash->{ height }      = int($height);
+        $c->stash->{ height } = int( $height );
     }
 
     if ( $width )
     {
-       $c->stash->{ width }      = int($width);
+        $c->stash->{ width } = int( $width );
     }
 
-    $c->stash->{ csv_url }      = $csv_url;
+    $c->stash->{ csv_url }  = $csv_url;
     $c->stash->{ template } = 'zoe_website_template/coverage_map_iframe.tt2';
 }
 
