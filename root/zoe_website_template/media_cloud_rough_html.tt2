@@ -40,6 +40,30 @@
         $('#mediaSource2 select').width('80');
         DisplayDIV('mediacontainer2');
 
+	var popular_queries_list = $('#popular_queries_list');
+
+	if ( popular_queries_list )
+	{
+	    //alert('starting json');
+	    $.getJSON( '[% c.uri_for('/dashboard/json_popular_queries/') %]', function(data)
+	    {
+	       popular_queries_list.children().remove();
+	      $.each(data, function(indx, query)
+              {
+	         //alert('query ' + indx);
+
+		 var text = query.query_0_description;
+
+		 if (query.query_1_description)
+		 {
+		    text += ' and ' + query.query_1_description;
+		 }
+
+	         $('<a/>').attr('href', query.url).text(text).appendTo($('<li/>').appendTo(popular_queries_list));
+	      } );
+	    } );
+	}
+
 	[% IF word_cloud %]
 	$('#sentence_frame').iframeAutoHeight();
 	$('#htmltagcloud a').click(function(e) {
