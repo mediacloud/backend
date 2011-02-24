@@ -1088,27 +1088,20 @@ sub page_count_increment : Local
     my $query_description_0 = $c->req->param( 'query_0_description' );
     my $query_description_1 = $c->req->param( 'query_1_description' );
 
-    say STDERR Dumper( $c->req->body_params );
-
-    say STDERR "query_0  $query_description_0 query_1  $query_description_1";
+    #say STDERR Dumper( $c->req->body_params );
+    #say STDERR "query_0  $query_description_0 query_1  $query_description_1";
 
     my $popular_query = $c->dbis->query( 'SELECT * from popular_queries where url = ?', $url )->hash;
 
     if ( !$popular_query )
     {
-        $popular_query = $c->dbis->find_or_create(
-            'popular_queries',
-            {
-                url                 => $url,
-                query_0_description => $query_description_0,
-                query_1_description => $query_description_1
-            }
-        );
+        $popular_query = $c->dbis->query("INSERT INTO popular_queries ( url, query_0_description, query_1_description) VALUES ( ?, ?, ?) RETURNING *" , $url, $query_description_0, $query_description_1)->hash;
+
     }
 
     $popular_query->{ count }++;
 
-    die Dumper($popular_query) if $popular_query->{popular_queries_id };
+    die Dumper($popular_query) if ! $popular_query->{popular_queries_id };
 
     $c->dbis->update_by_id( 'popular_queries', $popular_query->{ popular_queries_id }, $popular_query );
     return $c->res->body( ' ' );
