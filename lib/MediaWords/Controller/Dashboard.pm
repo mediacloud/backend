@@ -41,9 +41,11 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards limit 1 order by dashboards_id" )->flat;
-
-    return $self->view( $c, $dashboards_id );
+    my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
+    
+    my $redirect =
+      $c->uri_for( '/dashboard/view/' . $dashboards_id );
+    $c->res->redirect( $redirect );
 }
 
 # get the dashboard from the dashboards_id or die if dashboards_id is not set or is not a valid id
