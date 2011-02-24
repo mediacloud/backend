@@ -1092,7 +1092,7 @@ sub page_count_increment : Local
 
     say STDERR "query_0  $query_description_0 query_1  $query_description_1";
 
-    my $popular_query = $c->dbis->select( 'popular_queries', '*', { url => $url } )->hash;
+    my $popular_query = $c->dbis->query( 'SELECT * from popular_queries where url = ?', $url )->hash;
 
     if ( !$popular_query )
     {
