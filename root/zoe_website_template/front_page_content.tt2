@@ -102,3 +102,21 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
 </td>
         </tr>
       </table>
+
+[% IF queries.0 %]
+<div style='display: none;'>
+<div id='query_0_description'>[% queries.0.description | html %]</div>
+<div id='query_1_description'>[% queries.1.description | html %]</div>
+</div>
+<script>
+	var current_url = location.href;
+	var query_0_description = $('#query_0_description').text();
+	var query_1_description = $('#query_1_description').text();
+        $.post('[% c.uri_for('/dashboard/page_count_increment/') %]',
+	    { 'url' : current_url,
+	      'query_0_description': query_0_description,
+	      'query_1_description': query_1_description
+	      }
+	      );
+</script>
+[% END %]
