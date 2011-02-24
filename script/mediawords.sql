@@ -762,3 +762,14 @@ create table total_top_500_weekly_author_words (
 
 create index total_top_500_weekly_author_words_media 
     on total_top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
+
+CREATE TABLE popular_queries (
+    popular_queries_id integer NOT NULL,
+    url character varying(1024) NOT NULL,
+    query_0_description character varying(1024) NOT NULL,
+    query_1_description character varying(1024),
+    count integer DEFAULT 0
+);
+
+CREATE UNIQUE INDEX popular_queries_url ON popular_queries(url);
+
