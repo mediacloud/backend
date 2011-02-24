@@ -732,6 +732,17 @@ sub coverage_changes : Local : FormConfig
     $c->stash->{ template } = 'zoe_website_template/coverage_changes.tt2';
 }
 
+sub json_popular_queries : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $popular_queries = $c->dbis->query( "select * from popular_queries order by count desc limit 5 " )->hashes;
+
+    $c->res->body( encode_json( $popular_queries ) );
+
+    return;
+}
+
 sub json_author_search : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -1077,7 +1088,7 @@ sub page_count_increment : Local
 
     say STDERR "query_0  $query_description_0 query_1  $query_description_1";
 
-    my $popular_query = = $c->dbis->select( $table, '*', { url => $url } )->hash;
+    my $popular_query = $c->dbis->select( 'popular_queries', '*', { url => $url } )->hash;
 
     if ( !$popular_query )
     {
