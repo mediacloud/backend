@@ -1080,9 +1080,13 @@ sub page_count_increment : Local
 {
     my ( $self, $c ) = @_;
 
-    my $url                 = $c->req->body_params->{ url };
-    my $query_description_0 = $c->req->body_params->{ query_0_description };
-    my $query_description_1 = $c->req->body_params->{ query_1_description };
+    # my $url                 = $c->req->body_params->{ url };
+    # my $query_description_0 = $c->req->body_params->{ query_0_description };
+    # my $query_description_1 = $c->req->body_params->{ query_1_description };
+
+    my $url                 = $c->req->param( 'url' );
+    my $query_description_0 = $c->req->param( 'query_0_description' );
+    my $query_description_1 = $c->req->param( 'query_1_description' );
 
     say STDERR Dumper( $c->req->body_params );
 
@@ -1103,6 +1107,8 @@ sub page_count_increment : Local
     }
 
     $popular_query->{ count }++;
+
+    die Dumper($popular_query) if $popular_query->{popular_queries_id };
 
     $c->dbis->update_by_id( 'popular_queries', $popular_query->{ popular_queries_id }, $popular_query );
     return $c->res->body( ' ' );
