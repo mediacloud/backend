@@ -88,8 +88,11 @@
 
 	var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string + "&iframe=1";
 
+	var sentence_loading_message = $('<div/>').text('Loading sentences, please wait...'); 
+	$('#iframe_place_holder').append(sentence_loading_message);
+
 	$('#sentence_frame').attr('src', iframe_url ).load();
-	$('#sentence_frame').load();
+	$('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); });
 	
 	[% END %]
 	});  
