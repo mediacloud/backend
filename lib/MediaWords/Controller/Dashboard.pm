@@ -42,9 +42,22 @@ sub index : Path : Args(0)
     my ( $self, $c ) = @_;
 
     my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
-    
+
+    my $config      = MediaWords::Util::Config::get_config;
+
+    my $media_sets_id = $config->{mediawords}->{default_media_set} || 1;
+
+    my $date =  $c->dbis->query(" SELECT max(publish_week) FROM top_500_weekly_words where media_sets_id = ? " , $media_sets_id)->flat();
+
+    my $params = {
+		   media_sets_id1 => $media_sets_id,
+		   date1      => $date,
+		   show_results => 'true',
+		   compare_media_sets => 'false',
+		 };
+
     my $redirect =
-      $c->uri_for( '/dashboard/view/' . $dashboards_id );
+      $c->uri_for( '/dashboard/view/' . $dashboards_id , $params);
     $c->res->redirect( $redirect );
 }
 
