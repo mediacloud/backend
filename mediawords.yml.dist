@@ -33,6 +33,9 @@ mail:
     ### script directory
     #script_dir: "<bindir>/../script"
 
+    ## media_sets_id of the media set to display on the Dashboard home page
+    ##default_media_set: 1
+
     ### fetch content from another instance of MediaCloud?
     #fetch_remote_content          : "yes"
     #fetch_remote_content_user     : username
