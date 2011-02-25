@@ -65,7 +65,10 @@
 	}
 
 	[% IF word_cloud %]
-	$('#sentence_frame').iframeAutoHeight();
+	//$('#sentence_frame').iframeAutoHeight();
+  
+        $('#sentence_frame').iframeResize( { autoUpdate: true });
+
 	$('#htmltagcloud a').click(function(e) {
 	e.preventDefault();
 	[% IF primary %]
@@ -92,7 +95,9 @@
 	$('#iframe_place_holder').append(sentence_loading_message);
 
 	$('#sentence_frame').attr('src', iframe_url ).load();
-	$('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); });
+	$('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); 
+	//$('#sentence_frame').iframeAutoHeight();
+ 	 });
 	
 	[% END %]
 	});  
