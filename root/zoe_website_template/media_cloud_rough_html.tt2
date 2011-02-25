@@ -67,7 +67,7 @@
 	[% IF word_cloud %]
 	//$('#sentence_frame').iframeAutoHeight();
   
-        $('#sentence_frame').iframeResize( { autoUpdate: true });
+        //$('#sentence_frame').iframeResize( { autoUpdate: true });
 
 	$('#htmltagcloud a').click(function(e) {
 	e.preventDefault();
@@ -96,7 +96,7 @@
 
 	$('#sentence_frame').attr('src', iframe_url ).load();
 	$('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); 
-	//$('#sentence_frame').iframeAutoHeight();
+	$('#sentence_frame').iframeAutoHeight();
  	 });
 	
 	[% END %]
