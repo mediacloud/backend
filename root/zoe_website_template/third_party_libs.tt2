@@ -7,6 +7,7 @@
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.url.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.iframe-auto-height.plugin.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/treeview/jquery.treeview.js') %]"></script> 
+ <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery-frame-resizer.js') %]"></script> 
  <link rel="stylesheet" href="[% c.uri_for('/include/libs/treeview/jquery.treeview.css') %]" /> 
 <!--
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jsTree/jquery.jstree.js') %]"></script> 
