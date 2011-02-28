@@ -73,7 +73,7 @@ sub run_daemon
         MediaWords::StoryVectors::update_aggregate_words( $db, $one_month_ago, $yesterday );
 
         # this is almost as slow as just revectoring everthing, so I'm commenting out for now
-        my $media_sets = $db->query( "select ms.* from media_sets ms where ms.vectors_added = false" )->hashes;
+        my $media_sets = $db->query( "select ms.* from media_sets ms where ms.vectors_added = false order by ms.media_sets_id" )->hashes;
         for my $media_set ( @{ $media_sets } )
         {
             my ( $start_date, $end_date ) = get_media_set_date_range( $db, $media_set );
@@ -86,7 +86,7 @@ sub run_daemon
             }
         }
 
-        my $dashboard_topics = $db->query( "select * from dashboard_topics where vectors_added = false" )->hashes;
+        my $dashboard_topics = $db->query( "select * from dashboard_topics where vectors_added = false order by dashboard_topics_id" )->hashes;
         for my $dashboard_topic ( @{ $dashboard_topics } )
         {
             print STDERR "update_aggregate_vectors: dashboard_topic $dashboard_topic->{ dashboard_topics_id }\n";
@@ -98,11 +98,11 @@ sub run_daemon
                 $end_date = $yesterday;
             }
             
-            $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
-                $dashboard_topic->{ dashboard_topics_id } );
-
             MediaWords::StoryVectors::update_aggregate_words(
                 $db, $start_date, $end_date, 0, $dashboard_topic->{ dashboard_topics_id } );
+
+            $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
+                $dashboard_topic->{ dashboard_topics_id } );
         }
 
         sleep( 60 );
