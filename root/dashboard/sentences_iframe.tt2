@@ -34,8 +34,11 @@
 
            $('#source_sentences_' + source_num).children().remove();
            $('#source_sentences_' + source_num).text('loading...').show();
+           
+           //alert(json_url);
 
            $.getJSON(json_url, function(data) {
+              //alert('dfdf');
               $('#source_sentences_' + source_num).text('loaded...').show();
               var stories_ul = $("<ul class='filetree'/>");
              $.each(data, function(index, story) {
@@ -57,10 +60,11 @@
                animated: "slow", 
                collapsed: false
                /* control: "#toggle_tree_" + source_num */
-           }); 
+              }); 
               $('#source_sentences_' + source_num).html('');
               $('#source_sentences_' + source_num).append(stories_ul);
-           }); 
+            });  //end getJSON
+ 
 //<span class='date'>[% story.publish_date %] <span id="toggle_tree_[% i %]">(expand/collapse)</span></span>[<a href="[% story.url %]">View Article</a>]<br /> <br />
            
            if ( 0 && ! $('#stories' + source_num).data('has_treeview') )
