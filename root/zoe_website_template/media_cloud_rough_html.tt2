@@ -69,7 +69,11 @@ function look_up_news() {
           }                               
    });
 
+	[% IF primary %]
+
         look_up_news();
+
+	[% END %]
 
         $('#submit').
 	  click(function() { $('#media_query_form').submit(); } ) ;
@@ -132,11 +136,13 @@ function look_up_news() {
 	var sentence_loading_message = $('<div/>').text('Loading sentences, please wait...'); 
 	$('#iframe_place_holder').append(sentence_loading_message);
 
+	$('#sentence_frame').iframeAutoHeight();
 	$('#sentence_frame').attr('src', iframe_url ).load();
 	$('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); 
-	$('#sentence_frame').iframeAutoHeight();
  	 });
-	
+
+	// var foo = $('#sentence_frame').contents().find('#media_source_percent_table td');
+	// foo.click(function() { alert('click override'); } );  	
 	[% END %]
 	});  
 
