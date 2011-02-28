@@ -1,9 +1,9 @@
 <link href="[% c.uri_for('/include/smoothness/jquery-ui-1.8.5.custom.css') %]" rel="stylesheet" type="text/css"/>
-<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.5.1.js') %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-ui-1.8.5.custom.min.js') %]"></script>
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.openheatmap.js') %]"></script> 
 <!-- <script type="text/javascript" src="http://static.openheatmap.com/scripts/jquery.openheatmap.js"></script> -->
- <script type="text/javascript"  src="[% c.uri_for('/include/jquery.validate.js') %]"></script> 
+ <script type="text/javascript"  src="[% c.uri_for('/include/jquery.validate.js') %]"></script>  
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.url.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.iframe-auto-height.plugin.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/treeview/jquery.treeview.js') %]"></script> 
