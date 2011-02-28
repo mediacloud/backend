@@ -37,6 +37,7 @@
            
            //alert(json_url);
 
+           var jqxhr = 
            $.getJSON(json_url, function(data) {
               //alert('dfdf');
               $('#source_sentences_' + source_num).text('loaded...').show();
@@ -63,10 +64,11 @@
               }); 
               $('#source_sentences_' + source_num).html('');
               $('#source_sentences_' + source_num).append(stories_ul);
-            });  //end getJSON
- 
-//<span class='date'>[% story.publish_date %] <span id="toggle_tree_[% i %]">(expand/collapse)</span></span>[<a href="[% story.url %]">View Article</a>]<br /> <br />
-           
+            }).error(function(jqXHR, textStatus, errorThrown) {
+                $('#source_sentences_' + source_num).text('Error loading sentences: ' + textStatus + '...') 
+                 }
+            );  //end getJSON
+
            if ( 0 && ! $('#stories' + source_num).data('has_treeview') )
            { 
               $('#stories' + source_num).data('has_treeview', true);
@@ -77,7 +79,7 @@
            });
           }
 
-      });
+      })
 
       //alert('foo');
       $('#Source1Select').click();
