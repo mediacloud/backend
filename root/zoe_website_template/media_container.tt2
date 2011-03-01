@@ -3,12 +3,12 @@
         <div id="mediaheader[% media_container_current_number %]">Media Data Set #[% media_container_current_number %]</div>
         <div id="mediaTime[% media_container_current_number %]"> <strong>Time range</strong><br />
 	  [% form.get_field( 'date' _ media_container_current_number )  %]
-          <span class="smaller">A fast explanation here</span>
+          <span class="smaller">Week of media coverage</span>
 	  <br />
         </div>
         <div id="mediaArea[% media_container_current_number %]"> <strong>Area of coverage</strong><br />
 	  [% form.get_field( 'dashboard_topics_id' _ media_container_current_number )  %]
-          <span class="smaller">A fast explanation here</span>
+          <span class="smaller">News topic</span>
         </div>
         <div id="mediaSource[% media_container_current_number %]">
           <table width="320" border="0" cellspacing="0" cellpadding="5">
@@ -17,16 +17,17 @@
  <strong>Media Source</strong><br />
 	  [% form.get_field( 'medium_name' _ media_container_current_number )  %]
           <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
-          <span class="smaller">A fast explanation here</span></td>
+          <span class="smaller">Start typing to select an individual source</span></td>
               <td valign="top"><strong>OR</strong></td>
               <td valign="top"><strong>Set of Media Sources</strong>
           <div style="width:80px; font-size:10px;">
 	  [% form.get_field( 'media_sets_id' _ media_container_current_number )  %]
 	  </div>
-          <span class="smaller">A fast explanation here</span></td>
+          <span class="smaller">Set containing many sources</span></td>
              </tr>
         </table>
         </div>
+<!--
         <div id="mediaSubset[% media_container_current_number %]"> <strong>Available set within this set</strong><br />
           <label for="subset_select[% media_container_current_number %]"></label>
           <select name="subset_select[% media_container_current_number %]" id="subset_select[% media_container_current_number %]">
@@ -38,4 +39,5 @@
 	  <br />
 <span class="smaller">A fast explanation</span>
         </div>
+-->
       </div>
