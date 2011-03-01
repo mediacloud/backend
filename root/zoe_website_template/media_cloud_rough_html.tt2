@@ -111,12 +111,39 @@ function look_up_news() {
   
         //$('#sentence_frame').iframeResize( { autoUpdate: true });
 
-	$('#htmltagcloud a').click(function(e) {
+	$('#htmltagcloud a').each(function(idx, word_link)
+	{
+	var $this = $(this);
+
+	if ($this.data('url_altered'))	
+	{
+	  return true;
+	}
+
+	var new_query = $.query.set('term', $this.text() ).toString();
+
+	//alert(new_query);
+
+	
+	
+	$this.data('url_altered', true);
+
+	var current_url = window.location.href;
+
+	var query_url = current_url + "&term=" + $this.text();
+
+	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
+
+	var new_url = window.location.protocol + '//' + window.location.host + window.location.pathname + new_query;
+
+	$this.attr('href', new_url);
+	
+	$this.click(function(e) {
 	e.preventDefault();
 	[% IF primary %]
 	var $this = $(this);
-	var current_url = window.location.href;
-	var new_url = current_url + "&term=" + $this.text();
+	//var current_url = window.location.href;
+	//var new_url = current_url + "&term=" + $this.text();
 	var loc = $(location);
 	loc.attr('href', new_url);
 	//alert('redirecting to ' + new_url );
@@ -124,8 +151,8 @@ function look_up_news() {
 	//alert('redirecting');
 	[% ELSE %]
 
-	var $this = $(this);
-	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
+	//var $this = $(this);
+	//var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
 	//alert(query_string);
 	
 	$('#iframe_place_holder table').remove();
@@ -144,6 +171,9 @@ function look_up_news() {
 	// var foo = $('#sentence_frame').contents().find('#media_source_percent_table td');
 	// foo.click(function() { alert('click override'); } );  	
 	[% END %]
+	});
+	  
+	  $this.attr('href', new_url);
 	});  
 
 	//alert(' [%word_cloud_term %] ');
