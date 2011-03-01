@@ -731,6 +731,43 @@ sub view : Local : FormConfig
     $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
 }
 
+# generate main dashboard page
+sub news : Local 
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    # $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
+
+    # $self->_update_form( $c );
+
+    # if ( $c->req->param( 'show_results' ) )
+    # {
+    #     $self->_show_dashboard_results( $c, $dashboards_id );
+    # }
+
+    $c->stash->{ template } = 'zoe_website_template/news.tt2';
+}
+
+
+# generate main dashboard page
+sub about : Local 
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    # $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
+
+    # $self->_update_form( $c );
+
+    # if ( $c->req->param( 'show_results' ) )
+    # {
+    #     $self->_show_dashboard_results( $c, $dashboards_id );
+    # }
+
+    $c->stash->{ template } = 'zoe_website_template/about.tt2';
+}
+
+
+
 sub coverage_changes : Local : FormConfig
 {
     my ( $self, $c, $dashboards_id ) = @_;

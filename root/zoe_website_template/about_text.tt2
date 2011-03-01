@@ -1,0 +1,36 @@
+<p>Print newspapers are declaring bankruptcy nationwide.  High-profile blogs are proliferating.  Media companies are exploring new production techniques and business models in a landscape that is increasingly dominated by the Internet.  In the midst of this upheaval, it is difficult to know what is actually happening to the shape of our news.  Beyond one-off anecdotes or painstaking manual content analysis, there are few ways to examine the emerging news ecosystem.</p>
+
+<p>The idea for Media Cloud emerged through a series discussions between faculty and friends of the Berkman Center.  The conversations would follow a predictable pattern: one person would ask a provocative question about what was happening in the media landscape, someone else would suggest interesting follow-on inquiries, and everyone would realize that a good answer would require heavy number crunching.  Nobody had the time to develop a huge infrastructure and download <strong>all</strong> the news just to answer a single question.  However, there were eventually enough of these questions that we decided to build a tool for everyone to use.<br />
+Some of the early driving questions included:</p>
+<ul>
+<li> Do bloggers introduce storylines into mainstream media or the other way around?</li>
+<li> What parts of the world are being covered or ignored by different media sources?</li>
+<li> Where do stories begin?</li>
+
+<li> How are competing terms for the same event used in different publications?</li>
+<li> Can we characterize the overall mix of coverage for a given source?</li>
+<li> How do patterns differ between local and national news coverage?</li>
+<li> Can we track news cycles for specific issues?</li>
+<li> Do online comments shape the news?</li>
+</ul>
+<p>
+<!--
+<a href="http://www.mediacloud.org/visualizations/?tagset=13&amp;chart_is_log=true&amp;viz_type=top10&amp;pivotterm=pakistan&amp;media_source[1]=FOX+News&amp;media_source[2]=CNN&amp;media_source[3]=Talking+Points+Memo&amp;media_id[1]=1092&amp;media_id[2]=1095&amp;media_id[3]=113&amp;submit=Submit+Query"><img src="http://www.mediacloud.org/files/2009/03/cnn-fox-top10.png" alt="" align="right" /></a><br /> -->
+
+Media Cloud offers a way to quantitatively examine all of these challenging questions.</p>
+<p>The system is currently tracking many national news sources, and we continue to build our catalog.  This includes the full text of all stories and automated content analysis data.  A robust, production-quality system will also be able to simultaneously track thousands of international and local news sources, providing fine-grained data about how they are evolving.</p>
+<p>Traditional media content analysis involves time-consuming manual coding.  This covers only a small subset of content, and it categorically rules out certain types of analysis.  Such methods typically cannot support new research questions without re-coding the content.  The Media Cloud approach is fundamentally different in nature and scope.  The system automatically codes a high volume of articles in a generalized fashion that informs a diversity of research questions.  New stories are automatically added, and the archive is maintained indefinitely.</p>
+<p>Key objectives of Media Cloud include:</p>
+<ul>
+<li> Developing an open database of the topics of all stories from thousands of sources</li>
+<li> Building lightweight, interactive tools that allow casual users to easily ask the database questions</li>
+<li> Publishing open APIs that give other researchers full access to the database</li>
+
+<li> Publishing the code for the system under a free software license</li>
+<li> Publishing our own research using the database, including studies on media signatures, meme propagation, and geographic attention profiles</li>
+</ul>
+<p>While the researchers behind Media Cloud are using the tools developed to address a set of research questions, the real power of the system is as a platform for open, collaborative research by scholars around the world.</p>
+<p><img src="http://www.mediacloud.org/files/2009/03/mc-flow-2b.png" alt="" align="left" />The Media Cloud system does the heavy lifting in the “cloud” and provides the results as a web service.  This includes downloading and processing terabytes of news content.  It currently exists as a working proof-of-concept, built and maintained by the Berkman Center.  The service can generate visual or textual results based on user queries.  For example, it can chart the terms that appear most frequently in the New York times compared to leading blogs, or it can generate a world map showing which countries generate the most media attention from any source.</p>
+<p>For each story from a given news source, the system automatically assigns relevant terms to that article.  These terms, and the stories they describe, are then explored in relation to the rest of the interconnected network of media sources.  Sources may cluster together around specific topics, or diverge.</p>
+<p>In its most ambitious incarnation, Media Cloud might ultimately identify new memes as they emerge in the media ecosystem. By combining massive data collection with novel clustering techniques, we may be able to identify thousands of instances of new ideas emerging from one corner the media ecosystem and spreading to other parts – or failing to spread.</p>
+<p>Media Cloud will eventually allow researchers to more clearly see the relationships between media, and pierce through the cloud of data overload.</p>

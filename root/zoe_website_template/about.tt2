@@ -1,0 +1,29 @@
+[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+<body>
+<script language="javascript" type="text/javascript">
+<!--
+
+   $(document).ready(function() 
+    {
+
+        look_up_news();
+    });
+
+-->
+</script>
+
+[% # form.render() %]
+
+[% INCLUDE 'zoe_website_template/header.tt2' %]
+<tr>
+<td>
+[% INCLUDE 'zoe_website_template/about_text.tt2' %]
+</td>
+</tr>
+
+      </table></td>
+    <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
+    <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
+  </tr>
+
+[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
