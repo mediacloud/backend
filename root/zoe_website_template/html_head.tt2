@@ -14,5 +14,6 @@
 [% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
 
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
+<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/news_look_up.js') %]"></script>
 </head>
 

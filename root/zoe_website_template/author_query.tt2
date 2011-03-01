@@ -34,6 +34,26 @@
    });
         //DisplayDIV('mediacontainer2');
 
+	[% IF word_cloud %]
+	$('#sentence_frame').iframeAutoHeight();
+	$('#htmltagcloud a').click(function(e) {
+	var $this = $(this);
+	e.preventDefault();
+	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
+	//alert(query_string);
+	
+	$('#iframe_place_holder table').remove();
+	//$('#iframe_place_holder').not('#sentence_frame').remove();
+
+	var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string + "&iframe=1";
+
+	$('#sentence_frame').attr('src', iframe_url ).load();
+	$('#sentence_frame').load();
+
+	});  
+
+        [% END %]
+
         $('#openheatmap_container').insertOpenHeatMap({
               width: 500,
               height: 400,
@@ -188,7 +208,7 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
  </div></td>
         </tr>
       </table>
-
+[% INCLUDE 'zoe_website_template/sentences_and_subsets.tt2' %]
       <!--This is where the content ends!--></td>
   </tr>
 [% INCLUDE 'zoe_website_template/html_footer.tt2' %]
