@@ -120,7 +120,7 @@ sub main
     my $config   = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_dir };
 
-    my $temp_dir = tempdir( DIR => $data_dir );
+    my $temp_dir = tempdir( DIR => $data_dir, CLEANUP => 1  );
 
     my $current_date = _current_date();
 
