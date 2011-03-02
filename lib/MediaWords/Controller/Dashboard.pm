@@ -670,16 +670,16 @@ sub _show_dashboard_results_compare_queries
 
         my $media_set_names_text = join ", ", @{ $media_set_names };
         $c->stash->{ media_set_names } =
-          _concat_or_replace( $c->stash->{ media_set_names }, $media_set_names_text, ' and ' );
+          _concat_or_replace( $c->stash->{ media_set_names }, $media_set_names_text, ' vs. ' );
         $c->stash->{ time_range } = _concat_or_replace(
             $c->stash->{ time_range },
             MediaWords::DBI::Queries::get_time_range( $c->dbis, $query ),
-            ' and '
+            ' vs. '
         );
         $c->stash->{ areas_of_coverage } = _concat_or_replace(
             $c->stash->{ areas_of_coverage },
             MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis, $query ),
-            ' and '
+            ' vs. '
         );
     }
 
