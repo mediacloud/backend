@@ -103,10 +103,22 @@ sub _get_topic_chart_url
     
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_ids_list = join( ',', @{ $query->{ dashboard_topics_ids } } );
-    my $date_clause = MediaWords::DBI::Queries::get_daily_date_clause( $query, 'topic_words' ); 
+    my $date_clause = MediaWords::DBI::Queries::get_daily_date_clause( $query, 'topic_words' );
     
+    # do media set / topic combinations of there are less than 5 combinations of media set / topic
+    my $num_term_combinations =  @{ $query->{ media_sets } } * @{ $query->{ dashboard_topics } };
+    my ( $media_set_group, $media_set_legend );
+    if ( $num_term_combinations  < 5 )
+    {
+        $media_set_group = ', ms.media_sets_id';
+        $media_set_legend = " || ' - ' || min( ms.name )";
+    } 
+    else {
+        $media_set_group = $media_set_legend = '';
+    }
+            
     my $date_term_counts = [ $c->dbis->query(
-        "select topic_words.publish_day, min( dt.query ) || ' - ' || min( ms.name ) as term, " . 
+        "select topic_words.publish_day, min( dt.query ) $media_set_legend as term, " . 
         "    sum( topic_words.total_count::float / all_words.total_count::float )::float as term_count " .
         "  from total_daily_words topic_words, total_daily_words all_words, dashboard_topics dt, media_sets ms " .
         "  where topic_words.media_sets_id in ( $media_sets_ids_list ) " . 
@@ -115,7 +127,7 @@ sub _get_topic_chart_url
         "    and all_words.dashboard_topics_id is null and dt.dashboard_topics_id = topic_words.dashboard_topics_id " .
         "    and $date_clause ".
         "    and ms.media_sets_id = topic_words.media_sets_id " .
-        "  group by topic_words.publish_day, dt.dashboard_topics_id, ms.media_sets_id " )->arrays ];
+        "  group by topic_words.publish_day, dt.dashboard_topics_id $media_set_group" )->arrays ];
         
     return MediaWords::Util::Chart::generate_line_chart_url_from_dates( $date_term_counts, $query->{ start_date }, $query->{ end_date } );
 }
@@ -147,7 +159,7 @@ sub view : Local
         action           => $c->uri_for( '/queries/terms/' . $query->{ queries_id } ) } );
         
     
-    my ( $topic_chart_url, $max_topic_term_ratios ) = @_;
+    my ( $topic_chart_url, $max_topic_term_ratios );
     if ( @{ $query->{ dashboard_topics } } )
     {
         $topic_chart_url = $self->_get_topic_chart_url( $c, $query );
