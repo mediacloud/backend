@@ -40,6 +40,10 @@
 
 	[% END %]
 
+	[% IF queries.0 %]
+	page_count_increment();
+	[% END %]
+
         $('#submit').
 	  click(function() { $('#media_query_form').submit(); } ) ;
 
@@ -57,18 +61,80 @@
 	       popular_queries_list.children().remove();
 	      $.each(data, function(indx, query)
               {
-	         //alert('query ' + indx);
 
-		 var text = query.query_0_description;
-
-		 if (query.query_1_description)
+		 function split_description(description)
 		 {
-		    text += ' and ' + query.query_1_description;
+			 var m_info = description.match(/in (.*?) (mentioning (.*) )?during the week starting (.*)/);
+
+			 if (! m_info )	
+			 	return  {};
+
+			 var media_source = m_info[1];
+			 var topic        = m_info[3];
+			 var week         = m_info[4];
+		         //alert(m_info[1] + ' -- ' + m_info[2] + ' -- ' + m_info[3] + ' -- ' + m_info[4]  );
+			 
+			 return { 
+			 	media_source: media_source,
+			 	topic:        topic,
+				week:         week
+				};
 		 }
 
-		 text = text.replace(/^in /, '');
-		 text = text.replace(/ and in /, ' and ');
+	         //alert('query ' + indx);
 
+		 var parsed_query_0 = split_description(query.query_0_description);
+		 var parsed_query_1 = split_description(query.query_1_description || '');
+
+		 var source_str = parsed_query_0['media_source'];
+
+		 if (parsed_query_1['media_source'] && (parsed_query_1['media_source'] != source_str))
+		 {
+		    source_str += ' vs. ' + parsed_query_1['media_source'];
+		 }
+
+		 var topic_str;
+
+		 if (	parsed_query_0['topic'] && query.query_1_description && !parsed_query_1['topic'] )
+		 {
+		    parsed_query_1['topic'] = 'All';
+		 }
+
+		 if (	parsed_query_1['topic'] && !parsed_query_0['topic'] )
+		 {
+		    parsed_query_0['topic'] = 'All';
+		 }
+
+		 if ( 	query.query_1_description && (parsed_query_0['topic'] != parsed_query_1['topic']) )
+		 {
+		    topic_str = parsed_query_0['topic'] + ' vs. ' + parsed_query_1['topic'];
+		 }
+		 else
+		 {
+		    topic_str = parsed_query_0['topic'];
+		 }
+
+		 var week_str;
+
+ 		 if ( 	parsed_query_1['week'] && (parsed_query_0['week'] != parsed_query_1['week'] ) )
+		 {
+		    week_str = parsed_query_0['week'] + ' vs. ' + parsed_query_1['week'];
+		 }
+		 else
+		 {
+		    week_str = parsed_query_0['week'];
+		 }
+
+		 var text = source_str + ' - ';
+
+		 if (topic_str)
+		 {
+		   //alert('Topic:' + topic_str);
+		   text +=  topic_str + ' - ';
+		 }
+		 
+		 text += week_str;
+	
 	         $('<a/>').attr('href', query.url).text(text).appendTo($('<li/>').appendTo(popular_queries_list));
 	      } );
 	    } );
