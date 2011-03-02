@@ -29,7 +29,7 @@
 <div id="coveragemap_status"><br/><br/><br/>
 <div id="coveragemap_status_message"><b>Loading data please wait</b></div> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>
 <br/>
-<div style="display: none;" id="coverage_key">Coverage<br/><br/>
+<div style="display: none;" id="coverage_key">
  <span style="background-color: rgb(210, 210, 247); color: rgb(0, 0, 0); border-style: solid; border-color: black">&nbsp;Least&nbsp;</span>&nbsp;&nbsp;<span style="background-color: rgb(144, 140, 247); color: rgb(0, 0, 0); border-style: solid; border-color: black"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </span>&nbsp; <span style="background-color: rgb(17, 0, 255); color: rgb(0, 0, 0); border-style: solid; border-color: black">&nbsp;&nbsp;Most&nbsp;&nbsp;</span>
 [% # F4F4F4 = 16053492 %] 
 &nbsp;&nbsp;|&nbsp;&nbsp;<span style="background-color: #F4F4F4; color: rgb(0,0,0); border-style: solid; border-color: black">&nbsp;&nbsp;None&nbsp;&nbsp;</span>
