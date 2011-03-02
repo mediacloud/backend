@@ -13,18 +13,18 @@
             <div id="WCcontentarea">
 [% IF word_cloud %]
 [%- word_cloud -%]
+[% IF queries.1 %]
 <br/>
 <hr noshade="noshade" size ="1" width = "100%" color="#5fa9ee" />
 <br/>
+[% END %]
 [% ELSE %]
 (no data found for word cloud)
 [% END %]
 <div>
-[% IF word_cloud %]
+[% IF queries.1 %]
 <span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
 Words [% queries.0.description | html%]
-[% END %]
-[% IF queries.1 %]
 <br />
 <span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
 Words [% queries.1.description | html %]
