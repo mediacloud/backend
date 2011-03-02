@@ -4,7 +4,7 @@
             <!--Sart tertiary content area-->
           
             <div id = "textSources" class = "secondarySelected"><span onclick="swapSecondaryDIV('TSarea')" style="cursor:pointer;">Text Sources</span></div>
-            <div id = "Subsets" class = "secondaryUnselected"><span onclick="swapSecondaryDIV('ASarea')" style="cursor:pointer;">Available Subsets</span></div>
+<!--             <div id = "Subsets" class = "secondaryUnselected"><span onclick="swapSecondaryDIV('ASarea')" style="cursor:pointer;">Available Subsets</span></div> -->
             <br/><br/>
             <div id = "TSarea"><br/>
 <div style="width: 900px;" id="iframe_place_holder"/>
