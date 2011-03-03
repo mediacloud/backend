@@ -770,7 +770,7 @@ CREATE TABLE popular_queries (
     queries_id_0 integer,
     queries_id_1 integer,
     dashboard_action character varying(1024),
-    url_params character varying(1024)
+    url_params character varying(1024),
     count integer DEFAULT 0
 );
 
