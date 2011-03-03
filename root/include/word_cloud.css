@@ -48,4 +48,6 @@ span.tagcloud24 { font-size: 36px;}
     color: purple;
 } 
 
-
+#htmltagcloud a:hover {
+    text-decoration: underline;
+}
