@@ -109,16 +109,30 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
 <div style='display: none;'>
 <div id='query_0_description'>[% queries.0.description | html %]</div>
 <div id='query_1_description'>[% queries.1.description | html %]</div>
+<div id='queries_id_0'>[% queries.0.queries_id | html %]</div>
+<div id='queries_id_1'>[% queries.1.queries_id | html %]</div>
 </div>
 <script>
-	var current_url = location.href;
+function page_count_increment() 
+{
+	var current_url_action = location.pathname;
+	current_url_action = current_url_action.replace(/^.*?\/dashboard\/view\//, '/view/' );
+	var url_params  = location.search;
 	var query_0_description = $('#query_0_description').text();
 	var query_1_description = $('#query_1_description').text();
+	var queries_id_0        = $('#queries_id_0').text();
+	var queries_id_1        = $('#queries_id_1').text();
+	//alert('starting post');
         $.post('[% c.uri_for('/dashboard/page_count_increment/') %]',
-	    { 'url' : current_url,
+	    { 'action' : current_url_action,
+	      'url_params': url_params,
 	      'query_0_description': query_0_description,
-	      'query_1_description': query_1_description
-	      }
+	      'query_1_description': query_1_description,
+	      'queries_id_0': queries_id_0,
+	      'queries_id_1': queries_id_1
+	    }
 	      );
+};
+
 </script>
 [% END %]

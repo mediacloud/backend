@@ -829,6 +829,11 @@ sub json_popular_queries : Local
 
     my $popular_queries = $c->dbis->query( "select * from popular_queries order by count desc limit 5 " )->hashes;
 
+    foreach my $popular_query (@$popular_queries)
+    {
+       $popular_query->{ url } = $c->uri_for( '/dashboard' . $popular_query->{ dashboard_action } ) . $popular_query->{ url_params };
+    }
+
     $c->res->body( encode_json( $popular_queries ) );
 
     return;
@@ -1175,18 +1180,28 @@ sub page_count_increment : Local
     # my $query_description_0 = $c->req->body_params->{ query_0_description };
     # my $query_description_1 = $c->req->body_params->{ query_1_description };
 
-    my $url                 = $c->req->param( 'url' );
+    my $dashboard_action    = $c->req->param( 'action' );
+    my $url_params          = $c->req->param( 'url_params' );
     my $query_description_0 = $c->req->param( 'query_0_description' );
     my $query_description_1 = $c->req->param( 'query_1_description' );
+
+    my $queries_id_0        = $c->req->param( 'queries_id_0' );
+    my $queries_id_1        = $c->req->param( 'queries_id_1' );
+
+    if (!$queries_id_1) 
+    {
+        undef($queries_id_1);
+    }
 
     #say STDERR Dumper( $c->req->body_params );
     #say STDERR "query_0  $query_description_0 query_1  $query_description_1";
 
-    my $popular_query = $c->dbis->query( 'SELECT * from popular_queries where url = ?', $url )->hash;
+    my $popular_query = $c->dbis->query( 'SELECT * from popular_queries where dashboard_action = ? and url_params = ?',
+					 $dashboard_action, $url_params )->hash;
 
     if ( !$popular_query )
     {
-        $popular_query = $c->dbis->query("INSERT INTO popular_queries ( url, query_0_description, query_1_description) VALUES ( ?, ?, ?) RETURNING *" , $url, $query_description_0, $query_description_1)->hash;
+        $popular_query = $c->dbis->query("INSERT INTO popular_queries ( dashboard_action, url_params, query_0_description, query_1_description, queries_id_0, queries_id_1) VALUES ( ?, ?, ?, ?, ?, ?) RETURNING *" , $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1)->hash;
 
     }
 
