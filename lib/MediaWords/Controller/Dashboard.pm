@@ -44,21 +44,31 @@ sub index : Path : Args(0)
 
     my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
 
-    my $config      = MediaWords::Util::Config::get_config;
+    $self->_redirect_to_default_page( $c, $dashboards_id );
+}
 
-    my $media_sets_id = $config->{mediawords}->{default_media_set} || 1;
+sub _redirect_to_default_page
+{
+    my ( $self, $c, $dashboards_id ) = @_;
 
-    my $date =  $c->dbis->query(" SELECT max(publish_week) FROM top_500_weekly_words where media_sets_id = ? " , $media_sets_id)->flat();
+    my $config = MediaWords::Util::Config::get_config;
+
+    #TODO pick a different media_sets_id if this one isn't in the dashboard
+    my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
+
+    my $date =
+      $c->dbis->query( " SELECT max(publish_week) FROM top_500_weekly_words where media_sets_id = ? ", $media_sets_id )
+      ->flat();
 
     my $params = {
-		   media_sets_id1 => $media_sets_id,
-		   date1      => $date,
-		   show_results => 'true',
-		   compare_media_sets => 'false',
-		 };
+        media_sets_id1     => $media_sets_id,
+        date1              => $date,
+        show_results       => 'true',
+        compare_media_sets => 'false',
+    };
 
-    my $redirect =
-      $c->uri_for( '/dashboard/view/' . $dashboards_id , $params);
+    my $redirect = $c->uri_for( '/dashboard/view/' . $dashboards_id, $params );
+
     $c->res->redirect( $redirect );
 }
 
@@ -720,6 +730,13 @@ sub view : Local : FormConfig
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    if ( scalar( keys %{ $c->req->parameters() } ) == 0 )
+    {
+        $self->_redirect_to_default_page( $c, $dashboards_id );
+
+        return;
+    }
+
     $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
 
     $self->_update_form( $c );
@@ -733,7 +750,7 @@ sub view : Local : FormConfig
 }
 
 # generate main dashboard page
-sub news : Local 
+sub news : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
@@ -749,9 +766,8 @@ sub news : Local
     $c->stash->{ template } = 'zoe_website_template/news.tt2';
 }
 
-
 # generate main dashboard page
-sub about : Local 
+sub about : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
@@ -767,12 +783,11 @@ sub about : Local
     $c->stash->{ template } = 'zoe_website_template/about.tt2';
 }
 
-
 # base dir
-my $_base_dir = __DIR__ . '/../../..';
+my $_base_dir    = __DIR__ . '/../../..';
 my $web_root_dir = "$_base_dir/root";
 
-sub data_dumps : Local 
+sub data_dumps : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
@@ -787,24 +802,28 @@ sub data_dumps : Local
 
     my $dump_dir = "$web_root_dir/include/data_dumps";
 
-    opendir(DIR, $dump_dir) || die;
-    my @files = readdir(DIR);
-    closedir(DIR);
+    opendir( DIR, $dump_dir ) || die;
+    my @files = readdir( DIR );
+    closedir( DIR );
 
     my $data_dump_files = [ grep { /^media_word_story_dump_.*zip/ } @files ];
 
-    foreach my $file (@files) {
-     # print STDERR "FILE: $file\n";
+    foreach my $file ( @files )
+    {
+
+        # print STDERR "FILE: $file\n";
     }
 
-    my $data_dumps = [map { my $file_date = $_; $file_date =~ s/media_word_story_dump_(.*)\.zip/\1/;  [ $_, $file_date ] } @$data_dump_files];
+    my $data_dumps =
+      [ map { my $file_date = $_; $file_date =~ s/media_word_story_dump_(.*)\.zip/\1/; [ $_, $file_date ] }
+          @$data_dump_files ];
 
     #say STDERR Dumper($data_dump_files);
     #say STDERR Dumper($data_dumps);
 
-    $c->stash->{ dump_dir } = "$web_root_dir/include/data_dumps"; 
+    $c->stash->{ dump_dir }   = "$web_root_dir/include/data_dumps";
     $c->stash->{ data_dumps } = $data_dumps;
-    $c->stash->{ template } = 'zoe_website_template/data_dumps.tt2';
+    $c->stash->{ template }   = 'zoe_website_template/data_dumps.tt2';
 }
 
 sub coverage_changes : Local : FormConfig
@@ -829,9 +848,10 @@ sub json_popular_queries : Local
 
     my $popular_queries = $c->dbis->query( "select * from popular_queries order by count desc limit 5 " )->hashes;
 
-    foreach my $popular_query (@$popular_queries)
+    foreach my $popular_query ( @$popular_queries )
     {
-       $popular_query->{ url } = $c->uri_for( '/dashboard' . $popular_query->{ dashboard_action } ) . $popular_query->{ url_params };
+        $popular_query->{ url } =
+          $c->uri_for( '/dashboard' . $popular_query->{ dashboard_action } ) . $popular_query->{ url_params };
     }
 
     $c->res->body( encode_json( $popular_queries ) );
@@ -1185,29 +1205,31 @@ sub page_count_increment : Local
     my $query_description_0 = $c->req->param( 'query_0_description' );
     my $query_description_1 = $c->req->param( 'query_1_description' );
 
-    my $queries_id_0        = $c->req->param( 'queries_id_0' );
-    my $queries_id_1        = $c->req->param( 'queries_id_1' );
+    my $queries_id_0 = $c->req->param( 'queries_id_0' );
+    my $queries_id_1 = $c->req->param( 'queries_id_1' );
 
-    if (!$queries_id_1) 
+    if ( !$queries_id_1 )
     {
-        undef($queries_id_1);
+        undef( $queries_id_1 );
     }
 
     #say STDERR Dumper( $c->req->body_params );
     #say STDERR "query_0  $query_description_0 query_1  $query_description_1";
 
     my $popular_query = $c->dbis->query( 'SELECT * from popular_queries where dashboard_action = ? and url_params = ?',
-					 $dashboard_action, $url_params )->hash;
+        $dashboard_action, $url_params )->hash;
 
     if ( !$popular_query )
     {
-        $popular_query = $c->dbis->query("INSERT INTO popular_queries ( dashboard_action, url_params, query_0_description, query_1_description, queries_id_0, queries_id_1) VALUES ( ?, ?, ?, ?, ?, ?) RETURNING *" , $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1)->hash;
+        $popular_query = $c->dbis->query(
+"INSERT INTO popular_queries ( dashboard_action, url_params, query_0_description, query_1_description, queries_id_0, queries_id_1) VALUES ( ?, ?, ?, ?, ?, ?) RETURNING *",
+            $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1 )->hash;
 
     }
 
     $popular_query->{ count }++;
 
-    die Dumper($popular_query) if ! $popular_query->{popular_queries_id };
+    die Dumper( $popular_query ) if !$popular_query->{ popular_queries_id };
 
     $c->dbis->update_by_id( 'popular_queries', $popular_query->{ popular_queries_id }, $popular_query );
     return $c->res->body( ' ' );
