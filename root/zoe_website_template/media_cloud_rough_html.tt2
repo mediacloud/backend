@@ -185,6 +185,10 @@
 	//alert('redirecting');
 	[% ELSE %]
 
+	//alert('start scroll');
+	$.scrollTo($('#textSources'), 1000 );
+	//alert('finish scroll');
+
 	//var $this = $(this);
 	//var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
 	//alert(query_string);
@@ -200,6 +204,7 @@
 	$('#sentence_frame').iframeAutoHeight();
 	$('#sentence_frame').attr('src', iframe_url ).load();
 	$('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); 
+	$.scrollTo($('#textSources'), 1000);
  	 });
 
 	// var foo = $('#sentence_frame').contents().find('#media_source_percent_table td');
