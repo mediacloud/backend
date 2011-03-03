@@ -18,3 +18,8 @@ margin : 0;
 #queries a{
 	color: inherit;
 }
+
+a.navigation:visited
+{
+    color:#999; font-weight:bold; text-decoration:none;
+} 
