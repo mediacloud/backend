@@ -207,4 +207,64 @@ sub get_multi_set_word_cloud
     return $html;
 }
 
+# return true if the lists contain the integers
+sub _list_equals 
+{
+    my ( $a, $b ) = @_;
+    
+    return 0 if ( ( @{ $a } && !@{ $b } ) || ( !@{ $a } && @{ $b } ) || !( @{ $a } == @{ $b } ) );
+    
+    $a = [ sort( @{ $a } ) ];
+    $b = [ sort( @{ $b } ) ];
+    
+    map { return 0 if ( $a->[ $_ ] != $b->[ $_ ] ) } ( 0 .. $#{ $a } );
+
+    return 1;
+}
+    
+
+# Add a { label } field to each query describing the query in relation to
+# the other query.  If the queries differ across only one of date, media_set, or topic,
+# use only the differing field.  Otherwise use the whole description for each query.
+sub add_query_labels
+{
+    my ( $db, $q1, $q2 ) = @_;
+    
+    my $same_dates = ( $q1->{ start_date } eq $q2->{ start_date } ) && ( $q1->{ end_date } eq $q2->{ end_date } );
+    my $same_media_sets = _list_equals( $q1->{ media_sets_ids }, $q2->{ media_sets_ids } );
+    my $same_dashboard_topics = _list_equals( $q1->{ dashboard_topics_ids }, $q2->{ dashboard_topics_ids } );
+    
+    if ( !$same_dates && $same_media_sets && $same_dashboard_topics )
+    {
+        for my $q ( $q1, $q2 )
+        {
+            $q->{ label } = 'week starting $q->{ start_date }';
+            $q->{ label } .= ' through week starting $q->{ end_date }' if ( $q->{ start_date } ne $q->{ end_date } );
+        }
+    }
+    elsif ( $same_dates && !$same_media_sets && $same_dashboard_topics )
+    {
+        for my $q ( $q1, $q2 )
+        {
+            $q->{ label }  = join( " or ", map { $_->{ name } } @{ $q->{ media_sets } } );
+        }
+    }
+    elsif ( $same_dates && $same_media_sets && !$same_dashboard_topics )
+    {
+        for my $q ( $q1, $q2 )
+        {
+            if ( !@{ $q->{ dashboard_topics } } )
+            {
+                $q->{ label } = 'All Stories';
+            }
+            else {
+                $q->{ label }  = join( " or ", map { $_->{ name } } @{ $q->{ dashboard_topics } } );
+            }
+        }
+    }
+    else {
+        map { $_->{ label } = $_->{ description } } ( $q1, $q2 );
+    }
+}
+
 1;

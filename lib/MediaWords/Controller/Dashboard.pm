@@ -697,6 +697,8 @@ sub _show_dashboard_results_compare_queries
       MediaWords::Util::WordCloud::get_multi_set_word_cloud( $c, "/dashboard/sentences/$dashboard->{ dashboards_id }",
         $words, $queries );
 
+    MediaWords::Util::WordCloud::add_query_labels( $c->dbis, $queries->[ 0 ], $queries->[ 1 ] );
+
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, $queries );
 
     $c->stash->{ word_cloud }  = $word_cloud;

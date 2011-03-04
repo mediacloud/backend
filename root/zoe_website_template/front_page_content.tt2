@@ -18,18 +18,16 @@
 <br/>
 [% END %]
 [% ELSE %]
-(no data found for word cloud)
+(no data found for this query)
 [% END %]
 <div>
 [% IF queries.1 %]
 <span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
-Words [% queries.0.description | html%]
-<br />
+[% queries.0.label | html%]
 <span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
-Words [% queries.1.description | html %]
-<br />
+[% queries.1.label | html %]
 <span style="display:inline-block; width: 10px; height: 10px; background: purple; "></span>
-Words in both queries
+Both
 [% END %]
 </div>
 <p>

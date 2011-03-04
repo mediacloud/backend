@@ -300,7 +300,8 @@ sub compare : Local
     
     my $word_cloud = MediaWords::Util::WordCloud::get_multi_set_word_cloud( 
         $c, '/queries/sentences', [ $words_a, $words_b ], [ $query_a, $query_b ] );
-    
+
+    MediaWords::Util::WordCloud::add_query_labels( $c->dbis, $query_a, $query_b );
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, [ $query_a, $query_b ] );
     
     $c->stash->{ word_cloud } = $word_cloud;

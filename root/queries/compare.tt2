@@ -15,13 +15,11 @@
 
 <div>
 <span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
-Words [% query_a.description | html%]
-<br />
+[% query_a.label | html%]
 <span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
-Words [% query_b.description | html %]
-<br />
+[% query_b.label | html %]
 <span style="display:inline-block; width: 10px; height: 10px; background: purple; "></span>
-Words in both queries
+Both
 </div>
 
 <div>
