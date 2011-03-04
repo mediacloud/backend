@@ -72,6 +72,19 @@
               }); 
               $('#source_sentences_' + source_num).html('');
               $('#source_sentences_' + source_num).append(stories_ul);
+             // alert('clicking...');
+
+              if (window.parent.document) {
+              var cright = $("#sentence_frame", window.parent.document);
+      
+              cright.each(function() {
+                var newHeight = this.contentWindow.document.body.offsetHeight;
+                //$('#click_me').text('New height: ' + newHeight);
+                this.style.height = newHeight + 'px';
+                });
+
+               }
+
             }).error(function(jqXHR, textStatus, errorThrown) {
                 $('#source_sentences_' + source_num).text('Error loading sentences: ' + textStatus + '...') 
                  }
