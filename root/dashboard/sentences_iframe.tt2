@@ -2,6 +2,14 @@
 <head>
 [% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
 
+<style>
+.view_article
+{
+    color: #32588F;
+    text-decoration: none;
+    font-weight: bold; 
+}
+</style>
 </head>
 
 <body>
@@ -45,9 +53,9 @@
              $.each(data, function(index, story) {
                      //alert(value.title);
                      var story_li = $("<li class='collapsable'>");
-                     story_li.append($("<b></b>").text(story.title)).
+                     story_li.append($("<b></b>").text(story.title)).append(' ').
                      append($("<span class='date'>").text(story.publish_date)).append(' ').
-                     append($(" <a>View Article</a>").attr({ 'href': story.url, target: '_blank' } )).
+                     append($(" <a class='view_article'>view article</a>").attr({ 'href': story.url, target: '_blank' } )).
                      append($("</br>"));
                      var sentences_ul = $("<ul/>");
                      $.each(story.sentences, function(index, sentence_object) {
