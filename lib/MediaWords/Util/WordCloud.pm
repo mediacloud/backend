@@ -238,8 +238,11 @@ sub add_query_labels
     {
         for my $q ( $q1, $q2 )
         {
-            $q->{ label } = 'week starting $q->{ start_date }';
-            $q->{ label } .= ' through week starting $q->{ end_date }' if ( $q->{ start_date } ne $q->{ end_date } );
+            $q->{ label } = 'week starting ' . $q->{ start_date };
+	    if ( $q->{ start_date } ne $q->{ end_date } ) 
+	    {
+	       $q->{ label } .= ' through week starting ' . $q->{ end_date };
+	    }
         }
     }
     elsif ( $same_dates && !$same_media_sets && $same_dashboard_topics )
