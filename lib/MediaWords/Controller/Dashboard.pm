@@ -64,7 +64,7 @@ sub _redirect_to_default_page
 
     my $date = ( $max_date ge $yesterday ) ? $yesterday : $max_date;
 
-    say STDERR "max_date $max_date yesterday $yesterday";
+    #say STDERR "max_date $max_date yesterday $yesterday";
 
     my $params = {
         media_sets_id1     => $media_sets_id,
