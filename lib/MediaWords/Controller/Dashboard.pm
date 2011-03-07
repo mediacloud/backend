@@ -11,7 +11,7 @@ use List::Util;
 use Net::SMTP;
 use Number::Format qw(:subs);
 use URI::Escape;
-use List::Util qw (max min reduce sum);
+use List::Util qw (max min minstr reduce sum);
 use List::MoreUtils qw/:all/;
 
 use MediaWords::Controller::Visualize;
@@ -69,7 +69,7 @@ sub _redirect_to_default_page
 
     my $yesterday = $self->_yesterday_date_string( $c );
 
-    my $date = ( $max_date ge $yesterday ) ? $yesterday : $max_date;
+    my $date = min_str( $max_date, $yesterday );
 
     say STDERR "max_date $max_date yesterday $yesterday";
 
@@ -115,7 +115,7 @@ sub _get_dashboard_dates
 
     my $yesterday = $self->_yesterday_date_string( $c );
 
-    my $end_date = ( $dashboard->{ end_date } ge $yesterday ) ? $yesterday : $dashboard->{ end_date };
+    my $end_date = minstr( $dashboard->{ end_date }, $yesterday );
 
     my $date_exists_query =
       "select 1 from total_top_500_weekly_words t, dashboard_media_sets dms " .
