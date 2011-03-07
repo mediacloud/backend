@@ -67,12 +67,8 @@ sub _redirect_to_default_page
       $c->dbis->query( " SELECT max(publish_week)::date FROM total_top_500_weekly_words where media_sets_id = ? ",
         $media_sets_id )->flat();
 
-    my $yesterday = $self->_yesterday_date_string( $c );
-
-    #my $date = minstr( $max_date, $yesterday );
-
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    my $date = maxstr( @{$self->_get_dashboard_dates( $c, $dashboard)} );
+    my $date = maxstr( grep { $_ le $max_date} @{$self->_get_dashboard_dates( $c, $dashboard)} );
 
     #say STDERR "max_date $max_date yesterday $yesterday";
 
