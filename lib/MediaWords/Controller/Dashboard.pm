@@ -56,9 +56,15 @@ sub _redirect_to_default_page
     #TODO pick a different media_sets_id if this one isn't in the dashboard
     my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
 
-    my $date =
-      $c->dbis->query( " SELECT max(publish_week)::date FROM total_top_500_weekly_words where media_sets_id = ? ", $media_sets_id )
-      ->flat();
+    my $max_date =
+      ($c->dbis->query( " SELECT max(publish_week)::date FROM total_top_500_weekly_words where media_sets_id = ? ", $media_sets_id )
+      ->flat())[0];
+
+    my ( $yesterday ) = $c->dbis->query( "select now()::date - interval '1 day'" )->flat;
+
+    my $date = ( $max_date ge $yesterday ) ? $yesterday : $max_date;
+
+    say STDERR "max_date $max_date yesterday $yesterday";
 
     my $params = {
         media_sets_id1     => $media_sets_id,
