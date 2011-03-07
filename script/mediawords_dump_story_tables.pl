@@ -19,11 +19,17 @@ use Readonly;
 use File::Temp qw/ tempfile tempdir /;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
+use Carp;
+use Dir::Self;
+
 my $_stories_id_start       = 0;
 my $_stories_id_window_size = 1000;
 my $_stories_id_stop        = $_stories_id_start + $_stories_id_window_size;
 
 my $_cached_max_stories_id = 0;
+
+# base dir
+my $_base_dir = __DIR__ . '/..';
 
 sub get_max_stories_id
 {
@@ -118,7 +124,12 @@ sub main
 {
 
     my $config   = MediaWords::Util::Config::get_config;
-    my $data_dir = $config->{ mediawords }->{ data_dir };
+
+    #my $data_dir = $config->{ mediawords }->{ data_dir };
+
+    my $data_dir = $_base_dir . "/root/include/data_dumps";
+
+    mkdir ($data_dir);
 
     my $temp_dir = tempdir( DIR => $data_dir, CLEANUP => 1  );
 
