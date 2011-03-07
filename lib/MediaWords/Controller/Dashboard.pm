@@ -57,7 +57,7 @@ sub _redirect_to_default_page
     my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
 
     my $date =
-      $c->dbis->query( " SELECT max(publish_week)::date FROM top_500_weekly_words where media_sets_id = ? ", $media_sets_id )
+      $c->dbis->query( " SELECT max(publish_week)::date FROM total_top_500_weekly_words where media_sets_id = ? ", $media_sets_id )
       ->flat();
 
     my $params = {
