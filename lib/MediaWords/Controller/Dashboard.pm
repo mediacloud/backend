@@ -11,7 +11,7 @@ use List::Util;
 use Net::SMTP;
 use Number::Format qw(:subs);
 use URI::Escape;
-use List::Util qw (max min minstr reduce sum);
+use List::Util qw (max min maxstr minstr reduce sum);
 use List::MoreUtils qw/:all/;
 
 use MediaWords::Controller::Visualize;
@@ -69,9 +69,12 @@ sub _redirect_to_default_page
 
     my $yesterday = $self->_yesterday_date_string( $c );
 
-    my $date = minstr( $max_date, $yesterday );
+    #my $date = minstr( $max_date, $yesterday );
 
-    say STDERR "max_date $max_date yesterday $yesterday";
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+    my $date = maxstr( @{$self->_get_dashboard_dates( $c, $dashboard)} );
+
+    #say STDERR "max_date $max_date yesterday $yesterday";
 
     my $params = {
         media_sets_id1     => $media_sets_id,
