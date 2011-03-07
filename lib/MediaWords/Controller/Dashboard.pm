@@ -47,6 +47,13 @@ sub index : Path : Args(0)
     $self->_redirect_to_default_page( $c, $dashboards_id );
 }
 
+sub _yesterday_date_string
+{
+    my ( $self, $c ) = @_;
+    my ( $yesterday ) = $c->dbis->query( "select (now()::date - interval '1 day')::date" )->flat;
+    return $yesterday;
+}
+
 sub _redirect_to_default_page
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -56,15 +63,15 @@ sub _redirect_to_default_page
     #TODO pick a different media_sets_id if this one isn't in the dashboard
     my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
 
-    my $max_date =
-      ($c->dbis->query( " SELECT max(publish_week)::date FROM total_top_500_weekly_words where media_sets_id = ? ", $media_sets_id )
-      ->flat())[0];
+    my ( $max_date ) =
+      $c->dbis->query( " SELECT max(publish_week)::date FROM total_top_500_weekly_words where media_sets_id = ? ",
+        $media_sets_id )->flat();
 
-    my ( $yesterday ) = $c->dbis->query( "select now()::date - interval '1 day'" )->flat;
+    my $yesterday = $self->_yesterday_date_string( $c );
 
     my $date = ( $max_date ge $yesterday ) ? $yesterday : $max_date;
 
-    #say STDERR "max_date $max_date yesterday $yesterday";
+    say STDERR "max_date $max_date yesterday $yesterday";
 
     my $params = {
         media_sets_id1     => $media_sets_id,
@@ -106,7 +113,7 @@ sub _get_dashboard_dates
 {
     my ( $self, $c, $dashboard ) = @_;
 
-    my ( $yesterday ) = $c->dbis->query( "select now()::date - interval '1 day'" )->flat;
+    my $yesterday = $self->_yesterday_date_string( $c );
 
     my $end_date = ( $dashboard->{ end_date } ge $yesterday ) ? $yesterday : $dashboard->{ end_date };
 
