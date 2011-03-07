@@ -69,7 +69,7 @@ sub _redirect_to_default_page
 
     my $yesterday = $self->_yesterday_date_string( $c );
 
-    my $date = min_str( $max_date, $yesterday );
+    my $date = minstr( $max_date, $yesterday );
 
     say STDERR "max_date $max_date yesterday $yesterday";
 
