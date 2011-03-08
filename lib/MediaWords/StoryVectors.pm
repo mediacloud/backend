@@ -633,153 +633,43 @@ sub _update_daily_country_counts
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
-    # say STDERR "aggregate: _update_daily_country_counts $sql_date";
+    return 1 if ( $dashboard_topics_id );
 
-    #it should be very rare for there to be no data on a given date that's being aggregated
-    my ( $daily_words_exist ) =
-      $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
-    if ( !$daily_words_exist )
-    {
-        say STDERR "skipping country counts for date '$sql_date' for which there is no content";
-        return 1;
-    }
+    my $media_set_clause = _get_media_set_clause( $media_sets_id );
 
-    my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
-    my $media_set_clause       = _get_media_set_clause( $media_sets_id );
-    my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+    $db->query( "delete from daily_country_counts where publish_day = '${ sql_date }'::date and $media_set_clause" );
 
-    # say STDERR
-    #   "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses";
-
-    $db->query(
-        "delete from daily_country_counts where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
-
-# it should be very rare for there to be no data on a given date that's being aggregated
-# my ( $daily_words_exist ) = $db->query( "select 1 from daily_words where publish_day = '${sql_date}'::date limit 1" )->flat;
-# if ( !$daily_words_exist )
-# {
-#     say STDERR "skipping country counts for date '$sql_date' for which there is no content";
-#     return 1;
-# }
-
-    #my @all_countries = map { lc } Locale::Country::all_country_names;
     my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
 
-    if ( !$dashboard_topics_id )
+    my $stemmed_country_terms = [ map { MediaWords::Util::Countries::get_stemmed_country_terms( $_ ) } @{ $all_countries } ];
+
+    my $single_terms_list = join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
+
+    $db->query( 
+        "insert into daily_country_counts( media_sets_id, publish_day, country, country_count ) " .
+        "  select media_sets_id, publish_day, stem, stem_count from daily_words " . 
+        "    where publish_day = '$sql_date'::date and dashboard_topics_id is null and $media_set_clause" .
+        "      and stem in ( $single_terms_list )" );
+    
+    my $double_country_terms = [ grep { @{ $_ }  == 2 } @{ $stemmed_country_terms } ];
+
+    for my $country ( @{ $double_country_terms } )
     {
+        my $country_name = join( " ", @{ $country } );
+        my ( $term_a, $term_b ) = map { $db->dbh->quote( $_ ) } @{ $country };
 
-        #say STDERR Dumper($all_countries);
-        #exit;
-
-        for my $country ( @$all_countries )
-        {
-
-            #say STDERR $country;
-            my ( $country_term1, $country_term2, $country_term3 ) =
-              MediaWords::Util::Countries::get_stemmed_country_terms( $country );
-
-            my $country_data_base_value = MediaWords::Util::Countries::get_country_data_base_value( $country );
-
-            # say STDERR "_update_daily_country_counts  $sql_date '$country_data_base_value'";
-            my $query =
-              "INSERT INTO   daily_country_counts ( media_sets_id, publish_day, country, country_count ) " .
-              "SELECT media_sets_id, publish_day, ?, COUNT(*) FROM              " .
-              "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day " .
-              " FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, " .
-              " media_sets_media_map msmm,  story_sentences ss " .
-              "   WHERE    ss.stories_id =ssw.stories_id AND ss.sentence_number=ssw.sentence_number AND " .
-              "    ssw.media_id = msmm.media_id AND $media_set_clause AND ssw.publish_day = '${sql_date}'::DATE " .
-              "    AND ssw.stem =? AND ssw2.stem = ? AND ssw3.stem = ? AND ssw2.stories_id =ssw.stories_id AND " .
-              " ssw2.sentence_number=ssw.sentence_number AND ssw3.stories_id =ssw.stories_id AND " .
-              "ssw3.sentence_number=ssw.sentence_number " .
-              "         GROUP BY ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day " .
-              "        ) AS foo                    " . "GROUP BY media_sets_id, publish_day";
-
-            #say STDERR $query;
-            #say STDERR Dumper ([($country_data_base_value, $country_term1, $country_term2, $country_term3)] );
-
-            $db->query( $query, $country_data_base_value, $country_term1, $country_term2, $country_term3 );
-        }
+        $db->query( 
+          "insert into daily_country_counts ( media_sets_id, publish_day, country, country_count ) " .
+          "  select msmm.media_sets_id, ssw.publish_day, ?, count(*) " .
+          "    from story_sentence_words ssw, media_sets_media_map msmm " .
+          "    where ssw.media_id = msmm.media_id and ssw.publish_day = '$sql_date'::date " .
+          "      and stem = $term_a and exists " .
+          "        ( select 1 from story_sentence_words sswb where ssw.publish_day = sswb.publish_day " . 
+          "              and ssw.media_id = sswb.media_id and sswb.stem = $term_b " .
+          "              and ssw.stories_id = sswb.stories_id and ssw.sentence_number = sswb.sentence_number ) " .
+          "   group by msmm.media_sets_id, ssw.publish_day", $country_name );
     }
-
-    my $dashboard_topics = $db->query(
-        "select * from dashboard_topics " . "  where $dashboard_topic_clause and ?::date between start_date and end_date",
-        $sql_date )->hashes;
-
-    for my $dashboard_topic ( @{ $dashboard_topics } )
-    {
-        for my $country ( @$all_countries )
-        {
-
-            #say STDERR $country;
-
-            my $stemmer = MediaWords::Util::Stemmer->new;
-
-            my @country_split = split ' ', $country;
-
-            #next unless scalar(@country_split) > 2;
-            #say $country;
-
-            #say Dumper (@country_split);
-            #say Dumper ([$stemmer->stem( @country_split )]);
-
-            #$DB::single = 2;
-            my ( $country_term1, $country_term2, $country_term3 ) = @{ $stemmer->stem( @country_split ) };
-
-            #say STDERR Dumper([($country_term1, $country_term2)]);
-
-            #exit;
-            if ( !defined( $country_term2 ) )
-            {
-                $country_term2 = $country_term1;
-            }
-
-            if ( !defined( $country_term3 ) )
-            {
-                $country_term3 = $country_term1;
-            }
-
-            my $country_data_base_value =
-              ( $country_term1 eq $country_term2 ) ? $country_term1 : "$country_term1 $country_term2";
-            if ( $country_term3 ne $country_term1 )
-            {
-                $country_data_base_value .= " $country_term3";
-            }
-            my $query_2 =
-"INSERT INTO   daily_country_counts ( media_sets_id, publish_day, country, country_count, dashboard_topics_id ) "
-              . "SELECT media_sets_id, publish_day, ?, COUNT(*), ?::integer as dashboard_topics_id  FROM      "
-              . "(SELECT  ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day "
-              . " FROM story_sentence_words ssw, story_sentence_words ssw2, story_sentence_words ssw3, "
-              . " media_sets_media_map msmm,  story_sentences ss, "
-              . " story_sentence_words sswt  "
-              . "   WHERE    ss.stories_id =ssw.stories_id AND ss.sentence_number=ssw.sentence_number AND "
-              . "sswt.stories_id=ssw.stories_id AND     "
-              . " sswt.sentence_number=ssw.sentence_number AND sswt.stem =? AND "
-              . "    ssw.media_id = msmm.media_id AND $media_set_clause AND ssw.publish_day = '${sql_date}'::DATE "
-              . "    AND ssw.stem =? AND ssw2.stem = ? AND ssw3.stem = ? AND ssw2.stories_id =ssw.stories_id AND "
-              . " ssw2.sentence_number=ssw.sentence_number AND ssw3.stories_id =ssw.stories_id AND "
-              . "ssw3.sentence_number=ssw.sentence_number "
-              . "         GROUP BY ssw.stories_id, ssw.sentence_number, msmm.media_sets_id, ssw.publish_day "
-              . "        ) AS foo                  GROUP BY media_sets_id, publish_day";
-
-            # doing these one by one is the only way I could get the postgres planner to create
-            # a sane plan
-
-#say STDERR "Query:\n" . "$query_2";
-#say STDERR " $country_data_base_value, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date, $country_term1, $country_term2, $country_term3";
-
-            # say STDERR "_update_daily_country_counts  $sql_date  '$dashboard_topic->{ query }' '$country_data_base_value'";
-
-            $db->query(
-                $query_2, $country_data_base_value,
-                $dashboard_topic->{ dashboard_topics_id },
-                $dashboard_topic->{ query },
-                $country_term1, $country_term2, $country_term3
-            );
-        }
-
-    }
-
+    
     return 1;
 }
 
