@@ -23,11 +23,11 @@
 <div>
 [% IF queries.1 %]
 <span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
-[% queries.0.label | html%]
+[ [% queries.0.label | html%] ]
 <span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
-[% queries.1.label | html %]
+[ [% queries.1.label | html %] ]
 <span style="display:inline-block; width: 10px; height: 10px; background: purple; "></span>
-Both
+[ Both ]
 [% END %]
 </div>
 <p>
