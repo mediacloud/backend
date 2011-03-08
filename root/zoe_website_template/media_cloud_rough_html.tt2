@@ -49,6 +49,24 @@
 
         $('#mediaSource1 select').width('80');
         $('#mediaSource2 select').width('80');
+
+	function resize_media_container(mediacontainer, mediaTime, mediaArea, mediaSource, mediaSourceSelect)
+	{
+  	    var mediacontainer_width = mediacontainer.width();
+	   
+	   //alert(mediacontainer_width);
+	   var total_selector_widths = mediaTime.width() + mediaArea.width() + mediaSource.width();
+
+	   var width_increase = (mediacontainer_width - total_selector_widths - 40 )/3;
+	   mediaTime.width( mediaTime.width() + width_increase);
+	   mediaArea.width( mediaArea.width() + width_increase);
+	   mediaSource.width( mediaSource.width() + width_increase);
+	   mediaSourceSelect.width('100');
+	}
+
+	resize_media_container($('#mediacontainer1'), $('#mediaTime1'), $('#mediaArea1'), $('#mediaSource1'), $('#mediaSource1 select') );
+	resize_media_container($('#mediacontainer2'), $('#mediaTime2'), $('#mediaArea2'), $('#mediaSource2'), $('#mediaSource2 select') );
+
         DisplayDIV('mediacontainer2');
 
 	var popular_queries_list = $('#popular_queries_list');
