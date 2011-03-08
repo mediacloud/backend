@@ -19,10 +19,10 @@ use Readonly;
 use File::Temp qw/ tempfile tempdir /;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use File::Copy;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 
 use Carp;
 use Dir::Self;
-
 my $_stories_id_window_size = 1000;
 
 # base dir
@@ -41,13 +41,14 @@ sub get_max_stories_id
 
 sub scroll_stories_id_window
 {
-    my ($_stories_id_start, $_stories_id_stop) = @_;
+    my ( $_stories_id_start, $_stories_id_stop, $max_stories_id ) = @_;
 
+    $_stories_id_start = $_stories_id_stop + 1;
+    $_stories_id_stop  = $_stories_id_start + $_stories_id_window_size - 1;
 
- $_stories_id_start = $_stories_id_stop;
-    $_stories_id_stop  = $_stories_id_start + $_stories_id_window_size;
+    $_stories_id_stop = min( $_stories_id_stop, $max_stories_id );
 
-    return ($_stories_id_start, $_stories_id_stop);
+    return ( $_stories_id_start, $_stories_id_stop );
 }
 
 sub isNonnegativeInteger
@@ -60,9 +61,20 @@ sub isNonnegativeInteger
 sub dump_story_words
 {
 
-    my ( $dbh, $dir ) = @_;
+    my ( $dbh, $dir, $first_dumped_id, $last_dumped_id ) = @_;
 
-    my $max_stories_id = get_max_stories_id( $dbh );
+    my $_stories_id_start;
+
+    if ( !defined( $first_dumped_id ) )
+    {
+        $first_dumped_id = 0;
+    }
+
+    if ( !defined( $last_dumped_id ) )
+    {
+        my $max_stories_id = get_max_stories_id( $dbh );
+        $last_dumped_id = $max_stories_id;
+    }
 
     my $file_name = "$dir/story_words.csv";
     open my $output_file, ">", $file_name
@@ -73,19 +85,20 @@ sub dump_story_words
 
     $dbh->query_csv_dump( $output_file, " $select_query  limit 0 ", [ 0, 0 ], 1 );
 
-    my $_stories_id_start       = 0;
-    my $_stories_id_window_size = 1000;
-    my $_stories_id_stop        = $_stories_id_start + $_stories_id_window_size;
+    my $_stories_id_start = $first_dumped_id;
+    my $_stories_id_stop  = $_stories_id_start + $_stories_id_window_size;
 
-    while ( $_stories_id_start <= $max_stories_id )
+    while ( $_stories_id_start <= $last_dumped_id )
     {
         $dbh->query_csv_dump( $output_file, " $select_query ", [ $_stories_id_start, $_stories_id_stop ], 0 );
 
-	($_stories_id_start, $_stories_id_stop) = scroll_stories_id_window($_stories_id_start, $_stories_id_stop);
-   print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " . $max_stories_id .
-      ")  -- " .
-      localtime() . "\n";
+        last if ( $_stories_id_stop ) == $last_dumped_id;
 
+        ( $_stories_id_start, $_stories_id_stop ) =
+          scroll_stories_id_window( $_stories_id_start, $_stories_id_stop, $last_dumped_id );
+        print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_dumped_id: " . $last_dumped_id .
+          ")  -- " .
+          localtime() . "\n";
 
     }
 
