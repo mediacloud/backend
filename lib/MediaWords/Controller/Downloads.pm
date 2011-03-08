@@ -98,9 +98,11 @@ sub view : Local
         $content_ref = \"no content available for this download";
     }
 
-    $c->response->content_type( 'text/plain' );
-    $c->response->content_length( length( $$content_ref ) );
-    $c->response->body( $$content_ref );
+    my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
+ 
+    $c->response->content_type( 'text/plain; charset=utf8' );    
+    $c->response->content_length( length( $encoded_content ) );
+    $c->response->body( $encoded_content );
 }
 
 sub view_extracted : Local
