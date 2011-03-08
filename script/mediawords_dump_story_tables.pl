@@ -23,11 +23,7 @@ use File::Copy;
 use Carp;
 use Dir::Self;
 
-my $_stories_id_start       = 0;
 my $_stories_id_window_size = 1000;
-my $_stories_id_stop        = $_stories_id_start + $_stories_id_window_size;
-
-my $_cached_max_stories_id = 0;
 
 # base dir
 my $_base_dir = __DIR__ . '/..';
@@ -40,19 +36,18 @@ sub get_max_stories_id
 
     my $max_stories_id = $max_stories_id_row->hash()->{ max_id };
 
-    $_cached_max_stories_id = $max_stories_id;
-
     return $max_stories_id;
 }
 
 sub scroll_stories_id_window
 {
-    $_stories_id_start = $_stories_id_stop;
+    my ($_stories_id_start, $_stories_id_stop) = @_;
+
+
+ $_stories_id_start = $_stories_id_stop;
     $_stories_id_stop  = $_stories_id_start + $_stories_id_window_size;
 
-    print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " . $_cached_max_stories_id .
-      ")  -- " .
-      localtime() . "\n";
+    return ($_stories_id_start, $_stories_id_stop);
 }
 
 sub isNonnegativeInteger
@@ -78,11 +73,20 @@ sub dump_story_words
 
     $dbh->query_csv_dump( $output_file, " $select_query  limit 0 ", [ 0, 0 ], 1 );
 
+    my $_stories_id_start       = 0;
+    my $_stories_id_window_size = 1000;
+    my $_stories_id_stop        = $_stories_id_start + $_stories_id_window_size;
+
     while ( $_stories_id_start <= $max_stories_id )
     {
         $dbh->query_csv_dump( $output_file, " $select_query ", [ $_stories_id_start, $_stories_id_stop ], 0 );
 
-        scroll_stories_id_window();
+	($_stories_id_start, $_stories_id_stop) = scroll_stories_id_window($_stories_id_start, $_stories_id_stop);
+   print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " . $max_stories_id .
+      ")  -- " .
+      localtime() . "\n";
+
+
     }
 
     $dbh->disconnect;
