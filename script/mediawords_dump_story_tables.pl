@@ -18,6 +18,7 @@ use TableCreationUtils;
 use Readonly;
 use File::Temp qw/ tempfile tempdir /;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+use File::Copy;
 
 use Carp;
 use Dir::Self;
@@ -135,7 +136,7 @@ sub main
 
     my $current_date = _current_date();
 
-    my $dump_name = '/media_word_story_dump_' . "$current_date";
+    my $dump_name = 'media_word_story_dump_' . "$current_date";
     my $dir       = $temp_dir . "/$dump_name";
 
     mkdir( $dir ) or die "$@";
@@ -150,11 +151,12 @@ sub main
     my $dir_member = $zip->addTree( "$temp_dir" );
 
     # Save the Zip file
-    unless ( $zip->writeToFileNamed( "/$data_dir/$dump_name" . ".zip" ) == AZ_OK )
+    unless ( $zip->writeToFileNamed( "/$data_dir/tmp_$dump_name" . ".zip" ) == AZ_OK )
     {
         die 'write error';
     }
 
+    move( "/$data_dir/tmp_$dump_name" . ".zip" ,  "/$data_dir/$dump_name" . ".zip" ) || die "Error renaming file $@";
 }
 
 main();
