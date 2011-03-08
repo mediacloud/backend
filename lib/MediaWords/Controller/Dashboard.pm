@@ -829,7 +829,7 @@ sub data_dumps : Local
     }
 
     my $data_dumps =
-      [ map { my $file_date = $_; $file_date =~ s/media_word_story_dump_(.*)\.zip/\1/; [ $_, $file_date ] }
+      [ map { my $file_date = $_; $file_date =~ s/media_word_story_dump_(.*)\.zip/$1/; [ $_, $file_date ] }
           @$data_dump_files ];
 
     #say STDERR Dumper($data_dump_files);
@@ -1256,8 +1256,6 @@ sub coverage_map_iframe : Local
     my $csv_url = $c->req->param( 'url' );
     my $height  = $c->req->param( 'height' );
     my $width   = $c->req->param( 'width' );
-
-    my $csv_url = $c->req->param( 'url' );
 
     if ( $height )
     {
