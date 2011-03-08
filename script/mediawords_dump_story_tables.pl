@@ -124,15 +124,15 @@ sub _current_date
 sub main
 {
 
-    my $config   = MediaWords::Util::Config::get_config;
+    my $config = MediaWords::Util::Config::get_config;
 
     #my $data_dir = $config->{ mediawords }->{ data_dir };
 
     my $data_dir = $_base_dir . "/root/include/data_dumps";
 
-    mkdir ($data_dir);
+    mkdir( $data_dir );
 
-    my $temp_dir = tempdir( DIR => $data_dir, CLEANUP => 1  );
+    my $temp_dir = tempdir( DIR => $data_dir, CLEANUP => 1 );
 
     my $current_date = _current_date();
 
@@ -156,7 +156,7 @@ sub main
         die 'write error';
     }
 
-    move( "/$data_dir/tmp_$dump_name" . ".zip" ,  "/$data_dir/$dump_name" . ".zip" ) || die "Error renaming file $@";
+    move( "/$data_dir/tmp_$dump_name" . ".zip", "/$data_dir/$dump_name" . ".zip" ) || die "Error renaming file $@";
 }
 
 main();
