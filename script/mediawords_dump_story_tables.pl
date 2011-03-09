@@ -22,6 +22,7 @@ use File::Copy;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use MediaWords::Controller::Dashboard;
 
+use Getopt::Long;
 use Date::Parse;
 use Data::Dumper;
 use Carp;
@@ -166,10 +167,25 @@ sub _get_last_story_id_from_file_name
     return $stories_id;
 }
 
-my $full = 1;
-
 sub main
 {
+
+    my $incremental;
+    my $full;
+
+    my $usage = "mediawprds_dump_story_tables.pl --incremental| --full";
+    GetOptions(
+        'incremental' => \$incremental,
+        'full'        => \$full,
+    ) or die "$usage\n";
+
+    die $usage unless $incremental || $full;
+    die $usage if $incremental && $full;
+
+    if ( $incremental )
+    {
+        $full = 0;
+    }
 
     my $config = MediaWords::Util::Config::get_config;
 
