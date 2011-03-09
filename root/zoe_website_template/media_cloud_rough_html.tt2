@@ -175,14 +175,11 @@
 	var new_query = $.query.set('term', $this.text() ).toString();
 
 	//alert(new_query);
-
-	
 	
 	$this.data('url_altered', true);
 
-	var current_url = window.location.href;
-
-	var query_url = current_url + "&term=" + $this.text();
+	//var current_url = window.location.href;
+	//var query_url = current_url + "&term=" + $this.text();
 
 	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
 
@@ -194,8 +191,6 @@
 	e.preventDefault();
 	[% IF primary %]
 	var $this = $(this);
-	//var current_url = window.location.href;
-	//var new_url = current_url + "&term=" + $this.text();
 	var loc = $(location);
 	loc.attr('href', new_url);
 	//alert('redirecting to ' + new_url );
