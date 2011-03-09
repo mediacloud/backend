@@ -19,7 +19,10 @@ use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
 use MediaWords::Util::Stemmer;
+eval {
 use MediaWords::Util::Translate;
+};
+
 use MediaWords::Util::WordCloud;
 
 use Perl6::Say;
@@ -814,19 +817,7 @@ sub data_dumps : Local
     #     $self->_show_dashboard_results( $c, $dashboards_id );
     # }
 
-    my $dump_dir = "$web_root_dir/include/data_dumps";
-
-    opendir( DIR, $dump_dir ) || die;
-    my @files = readdir( DIR );
-    closedir( DIR );
-
-    my $data_dump_files = [ grep { /^media_word_story_dump_.*zip/ } @files ];
-
-    foreach my $file ( @files )
-    {
-
-        # print STDERR "FILE: $file\n";
-    }
+    my $data_dump_files = get_data_dump_file_list();
 
     my $data_dumps =
       [ map { my $file_date = $_; $file_date =~ s/media_word_story_dump_(.*)\.zip/$1/; [ $_, $file_date ] }
@@ -838,6 +829,19 @@ sub data_dumps : Local
     $c->stash->{ dump_dir }   = "$web_root_dir/include/data_dumps";
     $c->stash->{ data_dumps } = $data_dumps;
     $c->stash->{ template }   = 'zoe_website_template/data_dumps.tt2';
+}
+
+sub get_data_dump_file_list
+{
+    my $dump_dir = "$web_root_dir/include/data_dumps";
+
+    opendir( DIR, $dump_dir ) || die;
+    my @files = readdir( DIR );
+    closedir( DIR );
+
+    my $data_dump_files = [ grep { /^media_word_story_((full)|(incremental))_dump_.*zip/ } @files ];
+
+    return $data_dump_files;
 }
 
 sub coverage_changes : Local : FormConfig
