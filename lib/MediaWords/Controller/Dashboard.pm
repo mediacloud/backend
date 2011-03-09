@@ -19,9 +19,8 @@ use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
 use MediaWords::Util::Stemmer;
-eval {
-use MediaWords::Util::Translate;
-};
+
+#use MediaWords::Util::Translate;
 
 use MediaWords::Util::WordCloud;
 
@@ -950,6 +949,8 @@ sub _translate_word_list
 {
     my ( $self, $c, $words ) = @_;
 
+    use MediaWords::Util::Translate;
+
     my $ret = [];
 
     for my $word ( @{ $words } )
@@ -1105,6 +1106,8 @@ sub _set_translate_state
 sub sentences_author : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
+
+    use MediaWords::Util::Translate;
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
