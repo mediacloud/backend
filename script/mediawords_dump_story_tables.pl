@@ -183,8 +183,19 @@ sub main
 
     my $current_date = _current_date();
 
-    my $dump_name = 'media_word_story_dump_' . "$current_date";
-    my $dir       = $temp_dir . "/$dump_name";
+    my $dump_name;
+
+    if ( $full )
+    {
+        $dump_name = 'media_word_story_full_dump_';
+    }
+    else
+    {
+        $dump_name = 'media_word_story_incremental_dump_';
+    }
+    $dump_name .= $current_date;
+
+    my $dir = $temp_dir . "/$dump_name";
 
     mkdir( $dir ) or die "$@";
 
@@ -207,6 +218,8 @@ sub main
                   @$existing_dump_files
             ]
         );
+
+        #exit;
         my $previous_max = max( map { _get_last_story_id_from_file_name( $_ ); } @$existing_dump_files );
 
         $stories_id_start = $previous_max + 1;
@@ -235,6 +248,7 @@ sub main
     my $dir_member = $zip->addTree( "$temp_dir" );
 
     # Save the Zip file
+
     my $dump_zip_file_name = $dump_name . '_' . $dumped_stories->[ 0 ] . '_' . $dumped_stories->[ 1 ];
 
     my $tmp_zip_file_path = "/$data_dir/tmp_$dump_zip_file_name" . ".zip";
