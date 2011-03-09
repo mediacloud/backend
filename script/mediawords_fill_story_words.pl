@@ -33,6 +33,9 @@ sub main
     {
         say STDERR "dropping and refilling ssw_queue table ...";
 
+	$db->query("TRUNCATE story_sentence_counts");
+	$db->query("TRUNCATE story_sentence_words,story_sentences");
+
         $db->query( "drop table if exists ssw_queue" );
         $db->query( "create table ssw_queue as select stories_id, publish_date, media_id from stories order by stories_id" );
         $db->query( "create index ssw_queue_story on ssw_queue (stories_id)" );
