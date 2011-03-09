@@ -20,7 +20,10 @@ use File::Temp qw/ tempfile tempdir /;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use File::Copy;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use MediaWords::Controller::Dashboard;
 
+use Date::Parse;
+use Data::Dumper;
 use Carp;
 use Dir::Self;
 my $_stories_id_window_size = 1000;
@@ -32,7 +35,7 @@ sub get_max_stories_id
 {
     my ( $dbh ) = @_;
 
-    my $max_stories_id_row = $dbh->query( "select max(stories_id) as max_id from stories" );
+    my $max_stories_id_row = $dbh->query( "select max(stories_id) as max_id from story_sentence_words" );
 
     my $max_stories_id = $max_stories_id_row->hash()->{ max_id };
 
@@ -63,8 +66,6 @@ sub dump_story_words
 
     my ( $dbh, $dir, $first_dumped_id, $last_dumped_id ) = @_;
 
-    my $_stories_id_start;
-
     if ( !defined( $first_dumped_id ) )
     {
         $first_dumped_id = 0;
@@ -76,12 +77,13 @@ sub dump_story_words
         $last_dumped_id = $max_stories_id;
     }
 
-    my $file_name = "$dir/story_words.csv";
+    my $file_name = "$dir/story_words_" . $first_dumped_id . "_$last_dumped_id" . ".csv";
     open my $output_file, ">", $file_name
       or die "Can't open $file_name $@";
 
-    Readonly my $select_query =>
-"select stories_id, media_id, publish_day, stem, term, sum(stem_count)  as count from story_sentence_words where stories_id >= ? and stories_id < ? group by stories_id, media_id, publish_day, stem, term";
+    Readonly my $select_query => "select stories_id, media_id, publish_day, stem, term, sum(stem_count)  as count from  " .
+"   story_sentence_words where stories_id >= ? and stories_id <= ? group by stories_id, media_id, publish_day, stem, term"
+      . "   order by stories_id, term                  ";
 
     $dbh->query_csv_dump( $output_file, " $select_query  limit 0 ", [ 0, 0 ], 1 );
 
@@ -92,7 +94,7 @@ sub dump_story_words
     {
         $dbh->query_csv_dump( $output_file, " $select_query ", [ $_stories_id_start, $_stories_id_stop ], 0 );
 
-        last if ( $_stories_id_stop ) == $last_dumped_id;
+        last if ( $_stories_id_stop ) >= $last_dumped_id;
 
         ( $_stories_id_start, $_stories_id_stop ) =
           scroll_stories_id_window( $_stories_id_start, $_stories_id_stop, $last_dumped_id );
@@ -103,19 +105,25 @@ sub dump_story_words
     }
 
     $dbh->disconnect;
+
+    return [ $first_dumped_id, $last_dumped_id ];
 }
 
 sub dump_stories
 {
-    my ( $dbh, $dir ) = @_;
+    my ( $dbh, $dir, $first_dumped_id, $last_dumped_id ) = @_;
 
-    my $file_name = "$dir/stories.csv";
+    my $file_name = "$dir/stories_" . $first_dumped_id . "_$last_dumped_id" . ".csv";
     open my $output_file, ">", "$dir/stories.csv"
       or die "Can't open $file_name: $@";
 
-    $dbh->query_csv_dump( $output_file,
-        " select stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss from stories ",
-        [], 1 );
+    $dbh->query_csv_dump(
+        $output_file,
+        " select stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss from stories " .
+          "   where stories_id >= ? and stories_id <= ? order by stories_id",
+        [ $first_dumped_id, $last_dumped_id ],
+        1
+    );
 }
 
 sub dump_media
@@ -126,7 +134,7 @@ sub dump_media
     open my $output_file, ">", "$file_name"
       or die "Can't open $file_name: $@";
 
-    $dbh->query_csv_dump( $output_file, " select * from media ", [], 1 );
+    $dbh->query_csv_dump( $output_file, " select * from media order by media_id", [], 1 );
 }
 
 sub _current_date
@@ -137,6 +145,28 @@ sub _current_date
 
     return $ret;
 }
+
+sub _get_time_from_file_name
+{
+    my ( $file_name ) = @_;
+
+    $file_name =~ /media_.*dump_(.*)_\d+_(\d+)\.zip/;
+    my $date = $1;
+    $date =~ s/_/ /g;
+    return str2time( $date );
+}
+
+sub _get_last_story_id_from_file_name
+{
+    my ( $file_name ) = @_;
+
+    $file_name =~ /media_.*dump_(.*)_\d+_(\d+)\.zip/;
+    my $stories_id = $2;
+
+    return $stories_id;
+}
+
+my $full = 1;
 
 sub main
 {
@@ -159,21 +189,61 @@ sub main
     mkdir( $dir ) or die "$@";
 
     my $dbh = MediaWords::DB::connect_to_db;
+
+    my $stories_id_start;
+
+    if ( $full )
+    {
+        $stories_id_start = 0;
+    }
+    else
+    {
+
+        my $existing_dump_files = MediaWords::Controller::Dashboard::get_data_dump_file_list();
+        say STDERR Dumper( $existing_dump_files );
+        say STDERR Dumper(
+            [
+                map { $_ . ' -- ' . _get_time_from_file_name( $_ ) . ' ' . _get_last_story_id_from_file_name( $_ ); }
+                  @$existing_dump_files
+            ]
+        );
+        my $previous_max = max( map { _get_last_story_id_from_file_name( $_ ); } @$existing_dump_files );
+
+        $stories_id_start = $previous_max + 1;
+    }
+
+    my $last_dumped_id = get_max_stories_id( $dbh );
+
     dump_media( $dbh, $dir );
-    dump_stories( $dbh, $dir );
-    dump_story_words( $dbh, $dir );
+    dump_stories( $dbh, $dir, $stories_id_start, $last_dumped_id );
+
+    my $existing_dump_files = MediaWords::Controller::Dashboard::get_data_dump_file_list();
+    say STDERR Dumper( $existing_dump_files );
+    say STDERR Dumper(
+        [
+            map { $_ . ' -- ' . _get_time_from_file_name( $_ ) . ' ' . _get_last_story_id_from_file_name( $_ ); }
+              @$existing_dump_files
+        ]
+    );
+
+    #exit;
+
+    my $dumped_stories = dump_story_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
 
     my $zip = Archive::Zip->new();
 
     my $dir_member = $zip->addTree( "$temp_dir" );
 
     # Save the Zip file
-    unless ( $zip->writeToFileNamed( "/$data_dir/tmp_$dump_name" . ".zip" ) == AZ_OK )
+    my $dump_zip_file_name = $dump_name . '_' . $dumped_stories->[ 0 ] . '_' . $dumped_stories->[ 1 ];
+
+    my $tmp_zip_file_path = "/$data_dir/tmp_$dump_zip_file_name" . ".zip";
+    unless ( $zip->writeToFileNamed( $tmp_zip_file_path ) == AZ_OK )
     {
         die 'write error';
     }
 
-    move( "/$data_dir/tmp_$dump_name" . ".zip", "/$data_dir/$dump_name" . ".zip" ) || die "Error renaming file $@";
+    move( $tmp_zip_file_path, "/$data_dir/$dump_zip_file_name" . ".zip" ) || die "Error renaming file $@";
 }
 
 main();
