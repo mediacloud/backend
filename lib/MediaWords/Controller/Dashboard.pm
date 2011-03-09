@@ -949,7 +949,8 @@ sub _translate_word_list
 {
     my ( $self, $c, $words ) = @_;
 
-    use MediaWords::Util::Translate;
+    require MediaWords::Util::Translate;
+    import  MediaWords::Util::Translate;
 
     my $ret = [];
 
@@ -1107,7 +1108,9 @@ sub sentences_author : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    use MediaWords::Util::Translate;
+
+    require MediaWords::Util::Translate;
+    import  MediaWords::Util::Translate;
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
