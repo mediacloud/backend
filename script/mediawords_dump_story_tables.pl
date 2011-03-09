@@ -115,7 +115,7 @@ sub dump_stories
     my ( $dbh, $dir, $first_dumped_id, $last_dumped_id ) = @_;
 
     my $file_name = "$dir/stories_" . $first_dumped_id . "_$last_dumped_id" . ".csv";
-    open my $output_file, ">", "$dir/stories.csv"
+    open my $output_file, ">", "$file_name"
       or die "Can't open $file_name: $@";
 
     $dbh->query_csv_dump(
