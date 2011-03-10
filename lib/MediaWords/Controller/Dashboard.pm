@@ -35,6 +35,8 @@ use JSON;
 use Time::HiRes;
 use XML::Simple qw(:strict);
 use Dir::Self;
+use Readonly;
+use File::stat;
 
 # statics for state between print_time() calls
 my $_start_time;
@@ -799,10 +801,6 @@ sub about : Local
     $c->stash->{ template } = 'zoe_website_template/about.tt2';
 }
 
-# base dir
-my $_base_dir    = __DIR__ . '/../../..';
-my $web_root_dir = "$_base_dir/root";
-
 sub data_dumps : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -822,6 +820,8 @@ sub data_dumps : Local
       [ map { my $file_date = $_; $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/; [ $_, $file_date ] }
           @$data_dump_files ];
 
+
+
     my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
     my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
 
@@ -838,9 +838,13 @@ sub data_dumps : Local
     $c->stash->{ template } = 'zoe_website_template/data_dumps.tt2';
 }
 
+# base dir
+my $_base_dir    = __DIR__ . '/../../..';
+my $web_root_dir = "$_base_dir/root";
+Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
+
 sub get_data_dump_file_list
 {
-    my $dump_dir = "$web_root_dir/include/data_dumps";
 
     opendir( DIR, $dump_dir ) || die;
     my @files = readdir( DIR );
@@ -849,6 +853,15 @@ sub get_data_dump_file_list
     my $data_dump_files = [ grep { /^media_word_story_((full)|(incremental))_dump_.*zip/ } @files ];
 
     return $data_dump_files;
+}
+
+sub _dump_file_size
+{
+   my ( $dump_file_name ) = @_;
+
+   my $filesize = stat ("$dump_dir/$dump_file_name")->size;
+
+   return $filesize;
 }
 
 sub coverage_changes : Local : FormConfig
