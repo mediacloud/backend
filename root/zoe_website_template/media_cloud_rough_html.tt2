@@ -255,7 +255,11 @@
         [% END %]
 
 	$('#CMcontentarea iframe').iframeAutoHeight();
-	$('#CMcontentarea iframe').load();
+	$('#CMcontentarea iframe').load(function() {
+	    //Set the iframe to have whatever color it would have inherited from the parent.
+           var parent_bg_color = $('#CMcontentarea iframe').css('background-color');
+	   $('#CMcontentarea iframe').contents().find('body').css('background-color', parent_bg_color);
+	});
 
         [% END %]
 
