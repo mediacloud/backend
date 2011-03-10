@@ -216,7 +216,7 @@ sub find_or_create_query_by_request
     my $media_sets_ids = _get_media_sets_ids_from_request( $db, $req, $param_suffix );
     my $start_date = $req->param( 'start_date' . $param_suffix );
 
-    die( "No start_date or media set" ) if ( !$start_date || ( scalar( @{ $media_sets_ids } ) = 0 ) );
+    die( "No start_date or media set" ) if ( !$start_date || ( scalar( @{ $media_sets_ids } ) == 0 ) );
 
     my $dashboard_topics_ids = [ $req->param( 'dashboard_topics_ids' . $param_suffix ) ];
     $dashboard_topics_ids = [] if ( ( @{ $dashboard_topics_ids } == 1 ) && !$dashboard_topics_ids->[ 0 ] );
