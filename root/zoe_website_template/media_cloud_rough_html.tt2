@@ -6,17 +6,23 @@
 
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
+<ul id="hidden_media_list">
+[% FOREACH medium IN media %]
+   <li>[% medium.name | html %]</li>
+[% END %]
+</ul>
 <script language="javascript" type="text/javascript">
 <!--
 
    $(document).ready(function() 
     {
-        var data = [
-[% FOREACH medium IN media %]
-        "[% medium.name | trim | html %]",
-[% END %]
-        ];
- 
+        var data = 
+        $('#hidden_media_list li').map(function() {
+	var $this = $(this);
+	return $this.text(); }).get();
+
+	$('#hidden_media_list li').hide();
+
         $('#medium_name1').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
         $('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
         $('#media_query_form').validate({
@@ -163,6 +169,8 @@
   
         //$('#sentence_frame').iframeResize( { autoUpdate: true });
 
+	var flag = true;
+
 	$('#htmltagcloud a').each(function(idx, word_link)
 	{
 	var $this = $(this);
@@ -184,6 +192,14 @@
 	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
 
 	var new_url = window.location.protocol + '//' + window.location.host + window.location.pathname + new_query;
+
+	if (flag)
+	{
+		//alert(new_query);
+		//alert(new_url);
+		//alert($.query.get('medium_name1'));
+		flag = false;
+	}
 
 	$this.attr('href', new_url);
 	
