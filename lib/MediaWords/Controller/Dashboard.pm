@@ -807,43 +807,6 @@ my $web_root_dir = "$_base_dir/root";
 Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
 
 
-sub data_dumps : Local
-{
-    my ( $self, $c, $dashboards_id ) = @_;
-
-    # $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
-
-    # $self->_update_form( $c );
-
-    # if ( $c->req->param( 'show_results' ) )
-    # {
-    #     $self->_show_dashboard_results( $c, $dashboards_id );
-    # }
-
-    my $data_dump_files = get_data_dump_file_list();
-
-    my $data_dumps =
-      [ map { my $file_date = $_; $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/; [ $_, $file_date ] }
-          @$data_dump_files ];
-
-
-
-    my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
-    my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
-
-    say STDERR Dumper($data_dump_files);
-    say STDERR Dumper($data_dumps);
-
-    $c->stash->{ dump_dir } = "$web_root_dir/include/data_dumps";
-
-    $c->stash->{ data_dumps } = $data_dumps;
-
-    $c->stash->{ full_data_dumps }        = $full_data_dumps;
-    $c->stash->{ incremental_data_dumps } = $incremental_data_dumps;
-
-    $c->stash->{ template } = 'zoe_website_template/data_dumps.tt2';
-}
-
 sub get_data_dump_file_list
 {
 
@@ -863,6 +826,41 @@ sub _dump_file_size
    my $filesize = stat ("$dump_dir/$dump_file_name")->size;
 
    return $filesize;
+}
+
+sub data_dumps : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    # $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
+
+    # $self->_update_form( $c );
+
+    # if ( $c->req->param( 'show_results' ) )
+    # {
+    #     $self->_show_dashboard_results( $c, $dashboards_id );
+    # }
+
+    my $data_dump_files = get_data_dump_file_list();
+
+    my $data_dumps =
+      [ map { my $file_date = $_; $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/; [ $_, $file_date ] }
+          @$data_dump_files ];
+
+    my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
+    my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
+
+    say STDERR Dumper($data_dump_files);
+    say STDERR Dumper($data_dumps);
+
+    $c->stash->{ dump_dir } = "$web_root_dir/include/data_dumps";
+
+    $c->stash->{ data_dumps } = $data_dumps;
+
+    $c->stash->{ full_data_dumps }        = $full_data_dumps;
+    $c->stash->{ incremental_data_dumps } = $incremental_data_dumps;
+
+    $c->stash->{ template } = 'zoe_website_template/data_dumps.tt2';
 }
 
 sub coverage_changes : Local : FormConfig
