@@ -122,6 +122,7 @@ sub _add_mapped_table_fields
         }
         else
         {
+            print STDERR Dumper( $query );
             my $ids_list = join( ',', @{ $query->{ $ids_field } } );
             $query->{ $table } =
               [ $db->query( "select * from $table where ${table}_id in ( $ids_list ) order by ${table}_id" )->hashes ];
@@ -207,10 +208,17 @@ sub find_or_create_query_by_request
     my ( $db, $req, $param_suffix ) = @_;
 
     $param_suffix ||= '';
+    
+    _set_alternate_param( $req, "queries_id$param_suffix", "q$param_suffix" );
 
-    _set_alternate_param( $req, "start_date$param_suffix",           "date$param_suffix" );
-    _set_alternate_param( $req, "end_date$param_suffix",             "start_date$param_suffix" );
-    _set_alternate_param( $req, "media_sets_ids$param_suffix",       "media_sets_id$param_suffix" );
+    if ( my $queries_id = $req->param( "queries_id$param_suffix" ) )
+    {
+        return find_query_by_id( $db, $queries_id ) || die( "Unable to find query id '$queries_id' " );
+    }
+    
+    _set_alternate_param( $req, "start_date$param_suffix", "date$param_suffix" );
+    _set_alternate_param( $req, "end_date$param_suffix", "start_date$param_suffix" );
+    _set_alternate_param( $req, "media_sets_ids$param_suffix", "media_sets_id$param_suffix" );
     _set_alternate_param( $req, "dashboard_topics_ids$param_suffix", "dashboard_topics_id$param_suffix" );
 
     my $media_sets_ids = _get_media_sets_ids_from_request( $db, $req, $param_suffix );
