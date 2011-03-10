@@ -79,8 +79,6 @@ sub _redirect_to_default_page
     my $params = {
         media_sets_id1     => $media_sets_id,
         date1              => $date,
-        show_results       => 'true',
-        compare_media_sets => 'false',
     };
 
     my $redirect = $c->uri_for( '/dashboard/view/' . $dashboards_id, $params );
@@ -562,14 +560,43 @@ sub _process_and_stash_dashboard_data
     $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
 }
 
-sub _update_form
+# set the default values for the query form according to the stashed queries
+sub _set_query_form_defaults
+{
+    my ( $self, $c, $form ) = @_;
+    
+    if ( my $queries = $c->stash->{ queries } )
+    {
+        for ( my $i = 0; $i < @{ $queries }; $i++ )
+        {
+            print STDERR "QUERY: $i\n";
+            my $q = $queries->[ $i ];
+            $form->get_field( 'date' . ( $i + 1 ) )->default( $q->{ start_date } );
+            $form->get_field( 'dashboard_topics_id' . ( $i + 1 ) )->default( $q->{ dashboard_topics_ids } );
+            my $media_set = $q->{ media_sets }->[ 0 ];
+            if ( $media_set->{ set_type } eq 'medium' )
+            {
+                $form->get_field( 'medium_name' . ( $i + 1 ) )->default( $media_set->{ name } );
+            }
+            else {
+                $form->get_field( 'media_sets_id' . ( $i + 1 ) )->default( $media_set->{ media_sets_id } );
+            }
+        }
+    }
+}
+
+# create the query form, set the options of the various elements from the stash values,
+# and set the default values according to the stashed queries
+sub _update_query_form
 {
     my ( $self, $c ) = @_;
 
-    my $form = $c->stash->{ form };
+    my $form = $self->form;
+    $form->load_config_file( $c->path_to . '/root/forms/dashboard/view.yml' );
+    $form->process;
+    $c->stash->{ form } = $form;
 
     #purge labels from the form
-
     foreach my $element ( @{ $form->get_all_elements() } )
     {
         eval { $element->label( undef ); };
@@ -582,7 +609,7 @@ sub _update_form
     my $date_options = [ map { [ $_, $_ ] } @$dashboard_dates ];
     my $date1_elem = $form->get_field( { name => 'date1' } );
     $date1_elem->options( $date_options );
-
+    
     if ( my $date2_elem = $form->get_field( { name => 'date2' } ) )
     {
         $date2_elem->options( $date_options );
@@ -610,6 +637,8 @@ sub _update_form
     {
         $f->options( $media_sets_id_options );
     }
+    
+    $self->_set_query_form_defaults( $c, $form );    
 }
 
 # use MediaWords::Util::WordCloud to generate a word cloud with the dashboard sentences base url
@@ -624,13 +653,32 @@ sub _get_word_cloud
     return $word_cloud;
 }
 
+# redirect the current page to a url that replaces the form parameters with a single queries_id param
+sub _redirect_to_query_url
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+    
+    my $params = {};
+    
+    my $query_1 = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, 1 );
+    $params->{ q1 } = $query_1->{ queries_id };
+    
+    if ( $c->req->param( 'medium_name2' ) || $c->req->param( 'media_sets_id2' ) )
+    {
+        my $query_2 = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, 2 );
+        $params->{ q2 } = $query_2->{ queries_id };
+    }
+    
+    $c->res->redirect( $c->uri_for( '/dashboard/view/' . $dashboards_id, $params ) );
+}
+
 # generate main dashboard page for a single query
 sub _show_dashboard_results_single_query
 {
     my ( $self, $c, $dashboard ) = @_;
 
-    my $query = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, '1' );
-
+    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $c->req->param( 'q1' ) );
+    
     my $words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
 
     if ( @{ $words } == 0 )
@@ -680,7 +728,7 @@ sub _show_dashboard_results_compare_queries
 
     for my $i ( 0, 1 )
     {
-        $queries->[ $i ] = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, $i + 1 );
+        $queries->[ $i ] = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $c->req->param( 'q' . ( $i + 1 ) ) );
 
         my $query = $queries->[ $i ];
 
@@ -729,11 +777,7 @@ sub _show_dashboard_results
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    my $compare_media_sets = $c->req->param( 'compare_media_sets' ) || 'false';
-
-    $c->stash->{ show_results } = 1;
-
-    if ( $compare_media_sets eq 'true' )
+    if ( $c->req->param( 'q2' ) )
     {
         $self->_show_dashboard_results_compare_queries( $c, $dashboard );
     }
@@ -744,7 +788,7 @@ sub _show_dashboard_results
 }
 
 # generate main dashboard page
-sub view : Local : FormConfig
+sub view : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
@@ -754,15 +798,18 @@ sub view : Local : FormConfig
 
         return;
     }
+    
+    if ( !$c->req->param( 'q1' ) ) 
+    {
+        $self->_redirect_to_query_url( $c, $dashboards_id );
+        return;
+    }
 
     $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
 
-    $self->_update_form( $c );
+    $self->_show_dashboard_results( $c, $dashboards_id );
 
-    if ( $c->req->param( 'show_results' ) )
-    {
-        $self->_show_dashboard_results( $c, $dashboards_id );
-    }
+    $self->_update_query_form( $c );
 
     $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
 }
@@ -772,15 +819,6 @@ sub news : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    # $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
-
-    # $self->_update_form( $c );
-
-    # if ( $c->req->param( 'show_results' ) )
-    # {
-    #     $self->_show_dashboard_results( $c, $dashboards_id );
-    # }
-
     $c->stash->{ template } = 'zoe_website_template/news.tt2';
 }
 
@@ -788,15 +826,6 @@ sub news : Local
 sub about : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
-
-    # $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
-
-    # $self->_update_form( $c );
-
-    # if ( $c->req->param( 'show_results' ) )
-    # {
-    #     $self->_show_dashboard_results( $c, $dashboards_id );
-    # }
 
     $c->stash->{ template } = 'zoe_website_template/about.tt2';
 }
@@ -900,15 +929,6 @@ sub data_dumps : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    # $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
-
-    # $self->_update_form( $c );
-
-    # if ( $c->req->param( 'show_results' ) )
-    # {
-    #     $self->_show_dashboard_results( $c, $dashboards_id );
-    # }
-
     my $data_dump_files = get_data_dump_file_list();
 
     my $data_dumps = [
@@ -941,8 +961,8 @@ sub coverage_changes : Local : FormConfig
     my ( $self, $c, $dashboards_id ) = @_;
 
     $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
-    my $form = $c->stash->{ form };
-    $self->_update_form( $c );
+
+    $self->_update_query_form( $c );
 
     if ( $c->req->param( 'show_results' ) )
     {
@@ -1003,8 +1023,6 @@ sub author_query : Local : FormConfig
     $form->get_field( { name => 'date1' } )->options( [ map { [ $_, $_ ] } @$dashboard_dates ] );
 
     my $show_results = $c->req->param( 'show_results' ) || 0;
-
-    # $self->_update_form( $c );
 
     if ( $form->submitted() )
     {
