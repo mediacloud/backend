@@ -856,7 +856,7 @@ sub _bytes_to_human_readable
 
     $gb = int( ( $gb + 0.05 ) * 10 ) / 10;
 
-    return $gb;
+    return "$gb GB";
 }
 
 sub _get_dump_file_info
