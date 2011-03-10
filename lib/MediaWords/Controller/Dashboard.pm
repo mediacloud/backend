@@ -70,7 +70,7 @@ sub _redirect_to_default_page
         $media_sets_id )->flat();
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    my $date = maxstr( grep { $_ le $max_date} @{$self->_get_dashboard_dates( $c, $dashboard)} );
+    my $date = maxstr( grep { $_ le $max_date } @{ $self->_get_dashboard_dates( $c, $dashboard ) } );
 
     #say STDERR "max_date $max_date yesterday $yesterday";
 
@@ -822,12 +822,20 @@ sub data_dumps : Local
       [ map { my $file_date = $_; $file_date =~ s/media_word_story_dump_(.*)\.zip/$1/; [ $_, $file_date ] }
           @$data_dump_files ];
 
+    my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
+    my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
+
     #say STDERR Dumper($data_dump_files);
     #say STDERR Dumper($data_dumps);
 
-    $c->stash->{ dump_dir }   = "$web_root_dir/include/data_dumps";
+    $c->stash->{ dump_dir } = "$web_root_dir/include/data_dumps";
+
     $c->stash->{ data_dumps } = $data_dumps;
-    $c->stash->{ template }   = 'zoe_website_template/data_dumps.tt2';
+
+    $c->stash->{ full_data_dumps }        = $full_data_dumps;
+    $c->stash->{ incremental_data_dumps } = $incremental_data_dumps;
+
+    $c->stash->{ template } = 'zoe_website_template/data_dumps.tt2';
 }
 
 sub get_data_dump_file_list
@@ -950,7 +958,7 @@ sub _translate_word_list
     my ( $self, $c, $words ) = @_;
 
     require MediaWords::Util::Translate;
-    import  MediaWords::Util::Translate;
+    import MediaWords::Util::Translate;
 
     my $ret = [];
 
@@ -1108,9 +1116,8 @@ sub sentences_author : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-
     require MediaWords::Util::Translate;
-    import  MediaWords::Util::Translate;
+    import MediaWords::Util::Translate;
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
