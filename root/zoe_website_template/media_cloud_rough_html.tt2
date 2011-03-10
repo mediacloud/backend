@@ -6,7 +6,7 @@
 
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
-<ul id="hidden_media_list">
+<ul style="display: none" id="hidden_media_list">
 [% FOREACH medium IN media %]
    <li>[% medium.name | html %]</li>
 [% END %]
