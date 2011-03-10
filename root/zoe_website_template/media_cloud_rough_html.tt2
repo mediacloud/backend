@@ -6,11 +6,6 @@
 
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
-<ul style="display: none" id="hidden_media_list">
-[% FOREACH medium IN media %]
-   <li>[% medium.name | html %]</li>
-[% END %]
-</ul>
 <script language="javascript" type="text/javascript">
 <!--
 
@@ -366,5 +361,10 @@
     <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
     <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
   </tr>
+<ul style="display: none" id="hidden_media_list">
+[% FOREACH medium IN media %]
+   <li>[% medium.name | html %]</li>
+[% END %]
+</ul>
 
 [% INCLUDE 'zoe_website_template/html_footer.tt2' %]
