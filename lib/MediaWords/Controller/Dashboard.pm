@@ -806,7 +806,6 @@ my $_base_dir    = __DIR__ . '/../../..';
 my $web_root_dir = "$_base_dir/root";
 Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
 
-
 sub get_data_dump_file_list
 {
 
@@ -821,11 +820,80 @@ sub get_data_dump_file_list
 
 sub _dump_file_size
 {
-   my ( $dump_file_name ) = @_;
+    my ( $dump_file_name ) = @_;
 
-   my $filesize = stat ("$dump_dir/$dump_file_name")->size;
+    my $filesize = stat( "$dump_dir/$dump_file_name" )->size;
 
-   return $filesize;
+    return $filesize;
+}
+
+sub _bytes_to_human_readable
+{
+    my ( $bytes ) = @_;
+
+    my $kb = $bytes / 1024.0;
+
+    if ( $kb < 1 )
+    {
+        return "$bytes B";
+    }
+
+    my $mb = $kb / 1024.0;
+
+    if ( $mb < 1 )
+    {
+        $kb = int( ( $kb + 0.05 ) * 10 ) / 10;
+        return "$kb KB";
+    }
+
+    my $gb = $mb / 1024.0;
+
+    if ( $gb < 1 )
+    {
+        $mb = int( ( $mb + 0.05 ) * 10 ) / 10;
+        return "$mb MB";
+    }
+
+    $gb = int( ( $gb + 0.05 ) * 10 ) / 10;
+
+    return $gb;
+}
+
+sub _get_dump_file_info
+{
+    my ( $dump_file_name ) = @_;
+
+    my $ret = {};
+
+    $ret->{ size_bytes } = _dump_file_size( $dump_file_name );
+
+    $ret->{ size_human } = _bytes_to_human_readable( $ret->{ size_bytes } );
+
+    $dump_file_name =~ s/media_word_story_.*dump_(.*)\.zip/$1/;
+    my $unique_name_info = $1;
+
+    $unique_name_info =~ /(...)_(...)_(.\d)_(\d\d:\d\d:\d\d)_(\d\d\d\d)_(\d+)_(\d+)/;
+
+    my $wday          = $1;
+    my $month         = $2;
+    my $mday          = $3;
+    my $time          = $4;
+    my $year          = $5;
+    my $stories_start = $6;
+    my $stories_end   = $7;
+
+    $mday =~ s/_//;
+
+    $ret->{ wday }  = $wday;
+    $ret->{ month } = $month;
+    $ret->{ mday }  = $mday;
+    $ret->{ time }  = $time;
+    $ret->{ year }  = $year;
+
+    $ret->{ stories_start } = $stories_start;
+    $ret->{ stories_end }   = $stories_end;
+
+    return $ret;
 }
 
 sub data_dumps : Local
@@ -843,15 +911,20 @@ sub data_dumps : Local
 
     my $data_dump_files = get_data_dump_file_list();
 
-    my $data_dumps =
-      [ map { my $file_date = $_; $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/; [ $_, $file_date ] }
-          @$data_dump_files ];
+    my $data_dumps = [
+        map
+        {
+            my $file_date = $_;
+            $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/;
+            [ $_, $file_date, _get_dump_file_info( $_ ) ]
+          } @$data_dump_files
+    ];
 
     my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
     my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
 
-    say STDERR Dumper($data_dump_files);
-    say STDERR Dumper($data_dumps);
+    say STDERR Dumper( $data_dump_files );
+    say STDERR Dumper( $data_dumps );
 
     $c->stash->{ dump_dir } = "$web_root_dir/include/data_dumps";
 
