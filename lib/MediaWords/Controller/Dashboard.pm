@@ -819,14 +819,14 @@ sub data_dumps : Local
     my $data_dump_files = get_data_dump_file_list();
 
     my $data_dumps =
-      [ map { my $file_date = $_; $file_date =~ s/media_word_story_dump_(.*)\.zip/$1/; [ $_, $file_date ] }
+      [ map { my $file_date = $_; $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/; [ $_, $file_date ] }
           @$data_dump_files ];
 
     my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
     my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
 
-    #say STDERR Dumper($data_dump_files);
-    #say STDERR Dumper($data_dumps);
+    say STDERR Dumper($data_dump_files);
+    say STDERR Dumper($data_dumps);
 
     $c->stash->{ dump_dir } = "$web_root_dir/include/data_dumps";
 
