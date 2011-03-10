@@ -17,16 +17,20 @@
 [% INCLUDE 'zoe_website_template/header.tt2' %]
 <tr>
 <td>
-<h1>Data Dumps</h1>
+<h1>Full Data Dumps</h1>
 <ul>
-<!-- 
-<li><a href='[% c.uri_for('/include/data_dumps/' _ 'dfdf') %]' >sdfsdf[% data_dump.1 %]</a>
-</li>
--->
-[% FOREACH data_dump IN data_dumps %]
+[% FOREACH data_dump IN full_data_dumps %]
 <li><a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >[% data_dump.1 %]</a>
 </li>
 [% END %]
+</ul>
+<h1>Incremental Data Dumps</h1>
+<ul>
+[% FOREACH data_dump IN incremental_data_dumps %]
+<li><a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >[% data_dump.1 %]</a>
+</li>
+[% END %]
+</ul>
 </td>
 </tr>
 
