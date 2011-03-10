@@ -20,6 +20,15 @@
 
         $('#medium_name1').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
         $('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+	
+	$('#mediaSource1 select[name="media_sets_id1"]').change(function() {  
+	   $('#medium_name1').val('');
+	} );
+
+	$('#mediaSource2 select[name="media_sets_id2"]').change(function() {  
+	   $('#medium_name2').val('');
+	} );
+
         $('#media_query_form').validate({
            rules: {
               media_sets_id1: {
