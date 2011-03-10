@@ -20,14 +20,16 @@
 <h1>Full Data Dumps</h1>
 <ul>
 [% FOREACH data_dump IN full_data_dumps %]
-<li><a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >[% data_dump.1 %]</a>
+<li>[% data_dump.2.wday %] [% data_dump.2.month %] [% data_dump.2.mday %], [% data_dump.2.year %] - [% data_dump.2.time %]  (Stories [% data_dump.2.stories_start %] through [% data_dump.2.stories_end %])
+<a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >Download ([% data_dump.2.size_human %])</a>
 </li>
 [% END %]
 </ul>
 <h1>Incremental Data Dumps</h1>
 <ul>
 [% FOREACH data_dump IN incremental_data_dumps %]
-<li><a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >[% data_dump.1 %]</a>
+<li>[% data_dump.2.wday %] [% data_dump.2.month %] [% data_dump.2.mday %], [% data_dump.2.year %] - [% data_dump.2.time %]  (Stories [% data_dump.2.stories_start %] through [% data_dump.2.stories_end %])
+<a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >Download ([% data_dump.2.size_human %])</a>
 </li>
 [% END %]
 </ul>
