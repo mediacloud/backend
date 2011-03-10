@@ -1,5 +1,5 @@
 <!--This cell is where we'll put the front page content-->
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#dff0ff">
+            <table width="100%" id="query_results_content_table" border="0" cellspacing="0" cellpadding="0">
               <tr>
 
 <!--
@@ -42,10 +42,10 @@
 <table style = "width: 100%; height: 100%">
 <tr>
 <td>
-Set 1 Coverage
+<b>&nbsp; &nbsp;&nbsp;[% queries.0.label | html%]</b>
 </td>
 <td>
-Set 2 Coverage
+ <b>&nbsp; &nbsp; &nbsp;[% queries.1.label | html%] </b>
 </td>
 </tr>
 <tr style = "align: top;">
