@@ -22,4 +22,12 @@ margin : 0;
 a.navigation:visited
 {
     color:#999; font-weight:bold; text-decoration:none;
-} 
+}
+
+#query_results_content_table {
+    background-color: #DFF0FF
+}
+
+#CMcontentarea {
+    background-color: #DFF0FF
+}
