@@ -122,7 +122,6 @@ sub _add_mapped_table_fields
         }
         else
         {
-            print STDERR Dumper( $query );
             my $ids_list = join( ',', @{ $query->{ $ids_field } } );
             $query->{ $table } =
               [ $db->query( "select * from $table where ${table}_id in ( $ids_list ) order by ${table}_id" )->hashes ];

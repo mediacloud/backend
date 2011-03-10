@@ -58,6 +58,9 @@ sub _yesterday_date_string
     return $yesterday;
 }
 
+# redirect to the default view page, which is the page for the default media set
+# as determined by mediaowrds:defualt_media_set in mediawords.yml) and the second
+# to last week (which should be the last full week)
 sub _redirect_to_default_page
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -68,7 +71,9 @@ sub _redirect_to_default_page
     my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
 
     my ( $max_date ) =
-      $c->dbis->query( " SELECT max(publish_week)::date FROM total_top_500_weekly_words where media_sets_id = ? ",
+      $c->dbis->query( 
+          " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " . 
+          "   group by publish_week::date order by publish_week::date desc limit 1 offset 1",
         $media_sets_id )->flat();
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
@@ -76,12 +81,10 @@ sub _redirect_to_default_page
 
     #say STDERR "max_date $max_date yesterday $yesterday";
 
-    my $params = {
-        media_sets_id1     => $media_sets_id,
-        date1              => $date,
-    };
+    my $query = MediaWords::DBI::Queries::find_or_create_query_by_params(
+        $c->dbis, { media_sets_ids => [ $media_sets_id ], start_date => $date } );
 
-    my $redirect = $c->uri_for( '/dashboard/view/' . $dashboards_id, $params );
+    my $redirect = $c->uri_for( '/dashboard/view/' . $dashboards_id, { q1 => $query->{ queries_id } } );
 
     $c->res->redirect( $redirect );
 }
