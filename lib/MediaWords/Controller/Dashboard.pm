@@ -801,6 +801,12 @@ sub about : Local
     $c->stash->{ template } = 'zoe_website_template/about.tt2';
 }
 
+# base dir
+my $_base_dir    = __DIR__ . '/../../..';
+my $web_root_dir = "$_base_dir/root";
+Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
+
+
 sub data_dumps : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -837,11 +843,6 @@ sub data_dumps : Local
 
     $c->stash->{ template } = 'zoe_website_template/data_dumps.tt2';
 }
-
-# base dir
-my $_base_dir    = __DIR__ . '/../../..';
-my $web_root_dir = "$_base_dir/root";
-Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
 
 sub get_data_dump_file_list
 {
