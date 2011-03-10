@@ -70,16 +70,22 @@ sub _redirect_to_default_page
     #TODO pick a different media_sets_id if this one isn't in the dashboard
     my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
 
-    my ( $max_date ) =
-      $c->dbis->query( 
-          " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " . 
-          "   group by publish_week::date order by publish_week::date desc limit 1 offset 1",
+    my ( $max_date ) = $c->dbis->query( 
+        " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " . 
+        "   group by publish_week::date order by publish_week::date desc limit 1 offset 1",
         $media_sets_id )->flat();
 
-    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    my $date = maxstr( grep { $_ le $max_date } @{ $self->_get_dashboard_dates( $c, $dashboard ) } );
+    if ( !$max_date )
+    {
+        ( $max_date ) = $c->dbis->query( 
+            " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " . 
+            "   group by publish_week::date order by publish_week::date desc limit 1",
+            $media_sets_id )->flat();
+    }
 
-    #say STDERR "max_date $max_date yesterday $yesterday";
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+    my $date = maxstr( grep { $_ le $max_date } @{ $self->_get_dashboard_dates( $c, $dashboard ) } ) ||
+        die( "no valid date found" );
 
     my $query = MediaWords::DBI::Queries::find_or_create_query_by_params(
         $c->dbis, { media_sets_ids => [ $media_sets_id ], start_date => $date } );
@@ -572,7 +578,6 @@ sub _set_query_form_defaults
     {
         for ( my $i = 0; $i < @{ $queries }; $i++ )
         {
-            print STDERR "QUERY: $i\n";
             my $q = $queries->[ $i ];
             $form->get_field( 'date' . ( $i + 1 ) )->default( $q->{ start_date } );
             $form->get_field( 'dashboard_topics_id' . ( $i + 1 ) )->default( $q->{ dashboard_topics_ids } );
