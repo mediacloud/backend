@@ -195,15 +195,9 @@
 
 	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
 
-	var new_url = window.location.protocol + '//' + window.location.host + window.location.pathname + new_query;
+	$this.data( 'original_query_string', query_string);
 
-	if (flag)
-	{
-		//alert(new_query);
-		//alert(new_url);
-		//alert($.query.get('medium_name1'));
-		flag = false;
-	}
+	var new_url = window.location.protocol + '//' + window.location.host + window.location.pathname + new_query;
 
 	$this.attr('href', new_url);
 	
@@ -218,15 +212,20 @@
 	//alert('redirecting');
 	[% ELSE %]
 
-	function show_sentences_for_word_cloud_item()
+	function show_sentences_for_word_cloud_item(word_cloud_item)
 	{
 	     //alert('start scroll');
+	     
 	     $.scrollTo($('#textSources'), 1000 );
 	     //alert('finish scroll');
+	     //alert(query_string);
+	     //alert(query_string2);
+
+	     var query_string2 = word_cloud_item.data('original_query_string');
 
 	     $('#iframe_place_holder table').remove();
 
-	     var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string + "&iframe=1";
+	     var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string2 + "&iframe=1";
 
 	     var sentence_loading_message = $('<div/>').text('Loading sentences, please wait...'); 
 	     $('#iframe_place_holder').append(sentence_loading_message);
@@ -241,7 +240,7 @@
 	      // foo.click(function() { alert('click override'); } );  	
 	}
 
-	 show_sentences_for_word_cloud_item();
+	 show_sentences_for_word_cloud_item($this);
 	
 	[% END %]
 	});
