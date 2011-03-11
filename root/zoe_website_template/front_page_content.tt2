@@ -9,11 +9,12 @@
             <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
 -->
 <td align="left" valign="top">
-<div class="smaller" align="right"><i>Click on a word to see sentences.</i>
-<a href="[% c.uri_for( '/dashboard/help#word_cloud' ) %]">What does this word cloud mean?</a></div>
-
             <div id="WCcontentarea">
-              <div>
+<div class="smaller" align="right"><i>Click on a word to see sentences.</i>
+<a href="[% c.uri_for( '/dashboard/help#word_cloud' ) %]">What does this word cloud mean?</a>
+<br/>
+<br/>
+</div>
 [% IF word_cloud %]
 [%- word_cloud -%]
 [% ELSE %]
