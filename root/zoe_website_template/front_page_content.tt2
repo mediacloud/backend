@@ -9,32 +9,29 @@
             <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
 -->
 <td align="left" valign="top">
+<div class="smaller" align="right"><i>Click on a word to see sentences.</i>
+<a href="[% c.uri_for( '/dashboard/help#word_cloud' ) %]">What does this word cloud mean?</a></div>
+
             <div id="WCcontentarea">
+              <div>
 [% IF word_cloud %]
 [%- word_cloud -%]
-<br/>
-<hr noshade="noshade" size ="1" width = "100%" color="#5fa9ee" />
-<br/>
-[% IF queries.1 %]
-[% END %]
 [% ELSE %]
-(no data found for this query)
+( no words found [% queries.0.description %]
+[% IF queries.1 %] or [% queries.1.description %] [% END %] )
 [% END %]
 <div>
 [% IF queries.1 %]
+<hr noshade="noshade" size ="1" width = "100%" color="#5fa9ee" />
 <span style="display:inline-block; width: 10px; height: 10px; background: blue; "></span>
 [ [% queries.0.label | html%] ]
 <span style="display:inline-block; width: 10px; height: 10px; background: red; "></span>
 [ [% queries.1.label | html %] ]
 <span style="display:inline-block; width: 10px; height: 10px; background: purple; "></span>
-[ Both ]
+[ both ]
+[ similarity: [% queries.0.similarities.1 | format( "%.3f" ) %] ]
 [% END %]
 </div>
-<p>
-[% IF queries.1 %]
-    <b>Similarity Score: [% queries.0.similarities.1 | format( "%.3f" ) %]</b>
-[% END %]
-</p>
 </div>
             <div id="CMcontentarea" style="display:none;">
 

@@ -299,11 +299,6 @@
       [% INCLUDE 'zoe_website_template/media_container.tt2' %]
       [% media_container_current_number = 2 %]
       [% INCLUDE 'zoe_website_template/media_container.tt2' %]
-      <div>
-	[% IF error_message %]
-	<p><b>Error:</b>  [% error_message | html_strip %]</p>
-	[% END %]
-      </div>
       <div id = "submissioncontainer"> <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
              <div id="compare">Compare Query<img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
       </div><div onclick="SUBMIT THIS INFORMATION TO THE NEXT PAGE')" style="cursor:pointer;">
