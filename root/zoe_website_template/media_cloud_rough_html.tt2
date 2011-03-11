@@ -232,18 +232,12 @@
 	
 	$this.click(function(e) {
 	e.preventDefault();
-	[% IF primary || 1 %]
 	var $this = $(this);
 	var loc = $(location);
 	loc.attr('href', new_url);
 	//alert('redirecting to ' + new_url );
 	window.location.href = new_url;
 	//alert('redirecting');
-	[% ELSE %]
-
-	 show_sentences_for_word_cloud_item($this);
-	
-	[% END %]
 	});
 	  
 	  $this.attr('href', new_url);
