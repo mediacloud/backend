@@ -77,7 +77,7 @@ sub _create_query
     $query_params->{ description } = _get_description( $query_params );
     if ( !$query_params->{ end_date } || ( $query_params->{ end_date } lt $query_params->{ start_date } ) )
     {
-        $query_params->{ start_date } = $query_params->{ end_date };
+        $query_params->{ end_date } = $query_params->{ start_date };
     }
 
     $db->query(
