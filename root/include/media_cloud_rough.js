@@ -35,6 +35,8 @@ function DisplayDIV(d) {
 	    $('#compare').html("Compare Query <img src='/include/images/downarrow.gif'>");
 		visible = false;
 		//this is where you want to set all of Data Set #2's information to NULL again, just in case they filled anything in
+		$('#mediaSource2 select[name="media_sets_id2"]').val('');
+		$('#medium_name2').val();
 		$('#compare_media_sets').val("false");
 	}
 	first_display_div_call = false;
