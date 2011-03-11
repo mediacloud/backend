@@ -294,7 +294,7 @@
     <td>
       <form id="media_query_form" action="[% c.uri_for('/dashboard/view/') _ dashboard.dashboards_id %]" method="get">
       <input type="hidden" name="show_results" value="true" />
-      [% form.get_field( 'compare_media_sets')  %]
+      [% # form.get_field( 'compare_media_sets')  %]
       [% media_container_current_number = 1 %]
       [% INCLUDE 'zoe_website_template/media_container.tt2' %]
       [% media_container_current_number = 2 %]
@@ -385,5 +385,14 @@
    <li>[% medium.name | html %]</li>
 [% END %]
 </ul>
-
+[%  # We no longer need compare_media_setss as a parameter but the js is set up to query it's value we're adding it in a hidden form for the JS to use. %]
+<form method="get">
+      <input  id="compare_media_sets"
+[% IF queries.1 %]
+      value="true" 
+[% ELSE %]
+      value="false" 
+[% END %] 
+type="hidden"/>
+</form>
 [% INCLUDE 'zoe_website_template/html_footer.tt2' %]
