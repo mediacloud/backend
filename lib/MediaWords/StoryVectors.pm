@@ -476,6 +476,8 @@ sub _update_top_500_weekly_author_words
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
+    return if ( $dashboard_topics_id || $media_sets_id ); 
+
     say STDERR "aggregate: top_500_weekly_author_words $sql_date";
 
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
@@ -539,9 +541,7 @@ sub _update_daily_words
               "              where term_rank = 1 and sum_stem_counts > 1 " );
     }
 
-    my $dashboard_topics = $db->query(
-        "select * from dashboard_topics " . "  where $dashboard_topic_clause and ?::date between start_date and end_date",
-        $sql_date )->hashes;
+    my $dashboard_topics = $db->query( "select * from dashboard_topics where 1=1 $update_clauses" )->hashes;
 
     for my $dashboard_topic ( @{ $dashboard_topics } )
     {
@@ -581,6 +581,8 @@ sub _update_daily_words
 sub _update_daily_author_words
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    return if ( $dashboard_topics_id || $media_sets_id );
 
     say STDERR "aggregate: update_daily_author_words $sql_date";
 
@@ -723,6 +725,8 @@ sub _update_weekly_words
 sub _update_weekly_author_words
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    return if ( $dashboard_topics_id || $media_sets_id );
 
     say STDERR "aggregate: weekly_author_words $sql_date";
 
