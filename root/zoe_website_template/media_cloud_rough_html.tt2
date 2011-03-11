@@ -305,7 +305,7 @@
 	[% END %]
       </div>
       <div id = "submissioncontainer"> <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
-             <div id="compare">Compare This Data Source <img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
+             <div id="compare">Compare Query<img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
       </div><div onclick="SUBMIT THIS INFORMATION TO THE NEXT PAGE')" style="cursor:pointer;">
                 <div id ="submit">Submit <img alt="" src="/include/images/rightarrow.gif" width="15" height="15" /></div>
                 </div> </div>
@@ -344,7 +344,13 @@
             <br/>
             <div id = "bottomContainer">
               <div id = "popular"> <strong>About Media Cloud</strong><br />
-                Informatim about media Cloud and how cool it is! Maybe there's a link to the news page here too!<a href="link"></a><br />
+              Media Cloud is an open source, open data platform that allows
+              researchers to answer quantitative questions about the content
+              of online media. Using Media Cloud, researchers, journalism
+              critics and interested citizens can examine what media sources cover
+              which stories, what language different media outlets use in
+              conjunction with different stories, and how stories spread
+              from one media outlet to another.
               </div>
               <div id = "report"><strong>This week's report</strong><br />
                 <a href="link">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />

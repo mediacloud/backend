@@ -1,14 +1,14 @@
 
       <div id="mediacontainer[% media_container_current_number %]">
-        <div id="mediaheader[% media_container_current_number %]">Media Data Set #[% media_container_current_number %]</div>
-        <div id="mediaTime[% media_container_current_number %]"> <strong>Time range</strong><br />
+        <div id="mediaheader[% media_container_current_number %]">Query #[% media_container_current_number %]</div>
+        <div id="mediaTime[% media_container_current_number %]"> <strong>Week</strong><br />
 	  [% form.get_field( 'date' _ media_container_current_number )  %]
-          <span class="smaller">Week of media coverage</span>
+          <!-- <span class="smaller">Week of media coverage</span> -->
 	  <br />
         </div>
-        <div id="mediaArea[% media_container_current_number %]"> <strong>Area of coverage</strong><br />
+        <div id="mediaArea[% media_container_current_number %]"> <strong>Topic</strong><br />
 	  [% form.get_field( 'dashboard_topics_id' _ media_container_current_number )  %]
-          <span class="smaller">News topic</span>
+          <span class="smaller"><a href="[% c.uri_for( '/dashboard/help#topic' ) %]">What is a topic?</a></span>
         </div>
         <div id="mediaSource[% media_container_current_number %]">
           <table width="320" border="0" cellspacing="0" cellpadding="5">
@@ -17,13 +17,13 @@
  <strong>Media Source</strong><br />
 	  [% form.get_field( 'medium_name' _ media_container_current_number )  %]
           <!-- <input type="text" name="medium_name2" id="medium_name2" /> -->
-          <span class="smaller">Start typing to select an individual source</span></td>
+          <span class="smaller"><a href="[% c.uri_for( '/dashboard/media' ) %]">List media sources</a></span></td>
               <td valign="top"><strong>OR</strong></td>
-              <td valign="top"><strong>Set of Media Sources</strong>
+              <td valign="top"><strong>Media Set</strong>
           <div style="width:80px; font-size:10px;">
 	  [% form.get_field( 'media_sets_id' _ media_container_current_number )  %]
 	  </div>
-          <span class="smaller">Set containing many sources</span></td>
+          <span class="smaller"><a href="[% c.uri_for( '/dashboard/media' ) %]">Describe media sets</a></span></td>
              </tr>
         </table>
         </div>

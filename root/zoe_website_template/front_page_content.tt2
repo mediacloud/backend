@@ -12,10 +12,10 @@
             <div id="WCcontentarea">
 [% IF word_cloud %]
 [%- word_cloud -%]
-[% IF queries.1 %]
 <br/>
 <hr noshade="noshade" size ="1" width = "100%" color="#5fa9ee" />
 <br/>
+[% IF queries.1 %]
 [% END %]
 [% ELSE %]
 (no data found for this query)
@@ -95,7 +95,11 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
                     <br/>
 		    <div id = "content_toggle">
                     <div id = "wordcloud" class = "contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
+
+[% IF ( ( queries.0.dashboard_topics.size < 1 ) && ( ( !queries.1 ) || ( queries.1.dashboard_topics.size < 1 ) ) ) %]
                     <div id = "coveragemap" class = "contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
+[% END %]
+
 		    </div>
                   </div>
 </td>

@@ -21,7 +21,7 @@ $(document).ready(function()
 function DisplayDIV(d) {  
 	if (visible == false) { //if we're only viewing one data set right now
 		document.getElementById(d).style.display = "block";
-		$('#compare').html("Use single Data Source <img src='/include/images/uparrow.gif'>");
+		$('#compare').html("Use Single Query <img src='/include/images/uparrow.gif'>");
 		visible = true;
 		$('#compare_media_sets').val("true");
 		//Hack to prevent us from overwritting the query values for the second source.
@@ -32,7 +32,7 @@ function DisplayDIV(d) {
 	}
 	else {  //if we're allready viewing both data sets
 	    document.getElementById(d).style.display = "none";
-	    $('#compare').html("Compare This Data Source <img src='/include/images/downarrow.gif'>");
+	    $('#compare').html("Compare Query <img src='/include/images/downarrow.gif'>");
 		visible = false;
 		//this is where you want to set all of Data Set #2's information to NULL again, just in case they filled anything in
 		$('#compare_media_sets').val("false");

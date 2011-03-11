@@ -1,11 +1,11 @@
 <div id = "tabledata">
                     <table width="100%" border="0" cellspacing="3" cellpadding="0">
                       <tr>
-                <td align="right" valign="top"><strong> Media Source(s):</strong></td>
+                <td align="right" valign="top"><strong>Media:</strong></td>
                 <td align="left" valign="top">[% media_set_names %]</td>
                </tr>
               <tr>
-                <td align="right"><strong>Time range</strong>:</td>
+                <td align="right"><strong>Week</strong>:</td>
                 <td align="left" valign="top">[% time_range %]</td>
 	      </tr>
                     <!--
@@ -15,7 +15,7 @@
                       </tr>
 		   -->
 		      <tr>
-		        <td align="right"><strong>Area of Coverage:</strong></td>
+		        <td align="right"><strong>Topic:</strong></td>
                         <td align="left" valign="top"><em>[% areas_of_coverage %]</em></td>
 		      </tr>
 		<tr>
