@@ -531,6 +531,8 @@ sub _country_counts_to_csv_array
     return $country_count_csv_array;
 }
 
+# query the dashboard form data (media sets, media, and topics) and put it in 
+# the stash for later inclusion in the formfu fields
 sub _process_and_stash_dashboard_data
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -629,7 +631,7 @@ sub _update_query_form
     my $dashboard_topics = $c->stash->{ dashboard_topics };
 
     my $dashboard_topics_options =
-      [ ( { label => 'All' } ), map { { label => $_->{ name }, value => $_->{ dashboard_topics_id } } } @$dashboard_topics ];
+      [ ( { label => 'all' } ), map { { label => lc( $_->{ name } ), value => $_->{ dashboard_topics_id } } } @$dashboard_topics ];
     $dashboard_topics_id1->options( $dashboard_topics_options );
     $dashboard_topics_id2->options( $dashboard_topics_options ) if ( $dashboard_topics_id2 );
 
@@ -687,25 +689,20 @@ sub _show_dashboard_results_single_query
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $c->req->param( 'q1' ) );
     
-    my $words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
-
-    if ( @{ $words } == 0 )
-    {
-        $c->stash->{ error_message } = "No words found $query->{ description }";
-        return;
-    }
-
-    my $word_cloud = $self->_get_word_cloud( $c, $dashboard, $words, $query );
-
     my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
     $c->stash->{ media_set_names } = join ", ", @{ $media_set_names };
     $c->stash->{ time_range } = MediaWords::DBI::Queries::get_time_range( $c->dbis, $query );
     $c->stash->{ areas_of_coverage } = MediaWords::DBI::Queries::get_dashboard_topic_names( $c->dbis, $query );
 
-    $c->stash->{ word_cloud }  = $word_cloud;
     $c->stash->{ queries }     = [ $query ];
     $c->stash->{ queries_ids } = [ $query->{ queries_id } ];
+
+    my $words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
+
+    my $word_cloud = $self->_get_word_cloud( $c, $dashboard, $words, $query );
+
+    $c->stash->{ word_cloud }  = $word_cloud;
 
 }
 
@@ -741,12 +738,6 @@ sub _show_dashboard_results_compare_queries
         my $query = $queries->[ $i ];
 
         $words->[ $i ] = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
-
-        if ( !@{ $words->[ $i ] } )
-        {
-            $c->stash->{ error_message } = "No words found $query->{ description }";
-            return;
-        }
 
         my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
