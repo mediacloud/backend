@@ -218,6 +218,8 @@
 	//alert('redirecting');
 	[% ELSE %]
 
+	function show_sentences_for_word_cloud_item()
+	{
 	//alert('start scroll');
 	$.scrollTo($('#textSources'), 1000 );
 	//alert('finish scroll');
@@ -242,6 +244,10 @@
 
 	// var foo = $('#sentence_frame').contents().find('#media_source_percent_table td');
 	// foo.click(function() { alert('click override'); } );  	
+	}
+
+	 show_sentences_for_word_cloud_item();
+	
 	[% END %]
 	});
 	  
