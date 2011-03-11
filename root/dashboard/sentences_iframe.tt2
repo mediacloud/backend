@@ -107,8 +107,8 @@
 
    }); 
 </script>
-           <div id = "TSarea"><BR>
-              <em>Top 25 Mainstream Media Sources &gt; Term: '[% term | html %]'</em><br />
+           <div id = "TSarea">
+              <em>Sentences [% queries_description %] &gt; Term: '[% term | html %]'</em><br />
               <br />
               
               <table width="880" border="0" cellspacing="0" cellpadding="0">
