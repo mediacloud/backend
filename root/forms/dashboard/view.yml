@@ -3,11 +3,6 @@ auto_fieldset: 1
 
 elements:
   - type: Hidden
-    name: compare_media_sets
-    id: compare_media_sets
-    default: false
-
-  - type: Hidden
     name: show_results
 
   - type: Select
