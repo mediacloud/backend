@@ -9,6 +9,35 @@
 <script language="javascript" type="text/javascript">
 <!--
 
+
+	function show_sentences_for_word_cloud_item(word_cloud_item)
+	{
+	     //alert('start scroll');
+	     
+	     $.scrollTo($('#textSources') );
+	     //alert('finish scroll');
+	     //alert(query_string);
+	     //alert(query_string2);
+
+	     var query_string2 = word_cloud_item.data('original_query_string');
+
+	     $('#iframe_place_holder table').remove();
+
+	     var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string2 + "&iframe=1";
+
+	     var sentence_loading_message = $('<div/>').text('Loading sentences, please wait...'); 
+	     $('#iframe_place_holder').append(sentence_loading_message);
+
+	     $('#sentence_frame').iframeAutoHeight();
+             $('#sentence_frame').attr('src', iframe_url ).load();
+	     $('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); 
+	                                 $.scrollTo($('#textSources'), 1000);
+ 	                              });
+
+	      // var foo = $('#sentence_frame').contents().find('#media_source_percent_table td');
+	      // foo.click(function() { alert('click override'); } );  	
+	}
+
    $(document).ready(function() 
     {
         var data = 
@@ -203,7 +232,7 @@
 	
 	$this.click(function(e) {
 	e.preventDefault();
-	[% IF primary %]
+	[% IF primary || 1 %]
 	var $this = $(this);
 	var loc = $(location);
 	loc.attr('href', new_url);
@@ -211,34 +240,6 @@
 	window.location.href = new_url;
 	//alert('redirecting');
 	[% ELSE %]
-
-	function show_sentences_for_word_cloud_item(word_cloud_item)
-	{
-	     //alert('start scroll');
-	     
-	     $.scrollTo($('#textSources'), 1000 );
-	     //alert('finish scroll');
-	     //alert(query_string);
-	     //alert(query_string2);
-
-	     var query_string2 = word_cloud_item.data('original_query_string');
-
-	     $('#iframe_place_holder table').remove();
-
-	     var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string2 + "&iframe=1";
-
-	     var sentence_loading_message = $('<div/>').text('Loading sentences, please wait...'); 
-	     $('#iframe_place_holder').append(sentence_loading_message);
-
-	     $('#sentence_frame').iframeAutoHeight();
-             $('#sentence_frame').attr('src', iframe_url ).load();
-	     $('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); 
-	                                 $.scrollTo($('#textSources'), 1000);
- 	                              });
-
-	      // var foo = $('#sentence_frame').contents().find('#media_source_percent_table td');
-	      // foo.click(function() { alert('click override'); } );  	
-	}
 
 	 show_sentences_for_word_cloud_item($this);
 	
@@ -258,7 +259,7 @@
 	   return $this.text() == '[% word_cloud_term %]' + "";
 	});
 
-	word_cloud_link.click();
+	show_sentences_for_word_cloud_item(word_cloud_link);
 	[% ELSE %]
 
         [% END %]
