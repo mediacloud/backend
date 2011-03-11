@@ -80,6 +80,8 @@ sub _create_query
         $query_params->{ end_date } = $query_params->{ start_date };
     }
 
+    $db->begin_work();
+
     $db->query(
         "insert into queries ( start_date, end_date, description ) " .
           "  values( date_trunc( 'week', ?::date ), date_trunc( 'week', ?::date ), ? )",
@@ -97,6 +99,8 @@ sub _create_query
             $db->query( "insert into queries_${table}_map ( queries_id, ${table}_id ) values ( ?, ? ) ", $queries_id, $id );
         }
     }
+
+    $db->commit;
 
     return find_query_by_id( $db, $queries_id );
 }
