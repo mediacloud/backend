@@ -19,9 +19,13 @@ margin : 0;
 	color: inherit;
 }
 
-a.navigation:visited
+a.navigation
 {
     color:#999; font-weight:bold; text-decoration:none;
+}
+a.navigation:hover
+{
+    color:#333; font-weight:bold; text-decoration:none;
 }
 
 #query_results_content_table {
