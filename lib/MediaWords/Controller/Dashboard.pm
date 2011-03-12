@@ -813,20 +813,31 @@ sub view : Local
     $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
 }
 
-# generate main dashboard page
+# static news page
 sub news : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
     $c->stash->{ template } = 'zoe_website_template/news.tt2';
 }
 
-# generate main dashboard page
+# static about page
 sub about : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
     $c->stash->{ template } = 'zoe_website_template/about.tt2';
+}
+
+# static faq page
+sub faq : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
+    $c->stash->{ template } = 'zoe_website_template/faq.tt2';
 }
 
 # base dir
@@ -1579,6 +1590,50 @@ sub report_bug : Local
     my $redirect =
       $c->uri_for( '/dashboard/list/' . $dashboard->{ dashboards_id }, { status_msg => 'Bug report filed.  Thanks!' } );
     $c->res->redirect( $redirect );
+}
+
+# list and describe all media sets in the current dashboard
+sub media_sets : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+    
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+    
+    my $media_sets = $c->dbis->query( 
+        "select ms.* from media_sets ms, dashboard_media_sets dms " . 
+        "  where ms.media_sets_id = dms.media_sets_id " . 
+        "    and dashboards_id = $dashboard->{ dashboards_id } " .
+        "    and ms.set_type = 'collection' " .
+        "  order by ms.name " )->hashes;
+        
+    $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ media_sets } = $media_sets;
+    $c->stash->{ template } = 'zoe_website_template/media_sets.tt2';
+}
+
+sub media : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+    
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+    
+    my $media_sets_id = $c->req->param( 'media_sets_id' ) || die( 'no media_sets_id' );
+    my $media_set = $c->dbis->query(
+        "select ms.* from media_sets ms, dashboard_media_sets dms " . 
+        "  where ms.media_sets_id = dms.media_sets_id " . 
+        "    and dashboards_id = $dashboard->{ dashboards_id } " .
+        "    and ms.set_type = 'collection' " .
+        "    and ms.media_sets_id = ?", $media_sets_id )->hash || die( 'media_set $media_sets_id not found' );
+    
+    my $media = $c->dbis->query( 
+        "select * from media m, media_sets_media_map msmm " .
+        "  where m.media_id = msmm.media_id and msmm.media_sets_id = $media_set->{ media_sets_id } ".
+        "  order by name " )->hashes;
+        
+    $c->stash->{ dashboard } = $dashboard;
+    $c->stash->{ media_set } = $media_set;
+    $c->stash->{ media } = $media;
+    $c->stash->{ template } = 'zoe_website_template/media.tt2';
 }
 
 1;
