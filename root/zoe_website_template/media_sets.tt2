@@ -1,0 +1,28 @@
+[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+<body>
+
+[% INCLUDE 'zoe_website_template/header.tt2' %]
+
+<tr>
+<td>
+
+<p>
+Media Cloud collects news stories from media sources, where each media source is a distinct organization, whether a mainstream media organization like the New York Times or blog like Power Line.  Each media source may include a single feed or up to several hundred feeds.  For each media source, the content from all of its feeds are included as the content of the media source.
+</p>
+<p>
+The media sources are collected into media the media sets below for analysis. A media set is a collection of media sources grouped for analytical purposes, for instance as mainstream media or blogs.  Below is a list of the media sets available on the current Media Cloud dashboard.
+</p>
+
+
+[% FOREACH media_set IN media_sets %]
+<p>
+
+<b>[% media_set.name | html %]</b> - <a href="[% c.uri_for( '/dashboard/media/' _ dashboard.dashboards_id, { media_sets_id => media_set.media_sets_id } ) %]">list media sources</a> - [% media_set.description | html %]
+
+</p>
+[% END %]
+
+</td>
+</tr>
+
+[% INCLUDE 'zoe_website_template/html_footer.tt2' %]

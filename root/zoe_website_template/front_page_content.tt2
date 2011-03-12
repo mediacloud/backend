@@ -11,7 +11,7 @@
 <td align="left" valign="top">
             <div id="WCcontentarea">
 <div class="smaller" align="right"><i>Click on a word to see sentences.</i>
-<a href="[% c.uri_for( '/dashboard/help#word_cloud' ) %]">What does this word cloud mean?</a>
+<a href="[% c.uri_for( '/dashboard/faq/' _ dashboard.dashboards_id _ '#word_cloud' ) %]">What does this word cloud mean?</a>
 <br/>
 <br/>
 </div>

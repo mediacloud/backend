@@ -1,0 +1,20 @@
+[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+<body>
+
+[% INCLUDE 'zoe_website_template/header.tt2' %]
+
+<tr>
+<td>
+
+<b>Media Sources in [% media_set.name | html %]:
+
+<ul>
+[% FOREACH medium IN media %]
+<li><a href="[% medium.url | html %]">[% medium.name | html %]</a></li>
+[% END %]
+</ul>
+
+</td>
+</tr>
+
+[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
