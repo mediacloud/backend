@@ -8,6 +8,13 @@ elements:
     constraints:
         - Required
 
+  - type: TextArea
+    label: Description
+    name: description
+    comment: short description of media set
+    constraints:
+        - Required
+
   - type: Text
     name: tag_name
     label: Collection Tag
