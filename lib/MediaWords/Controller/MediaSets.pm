@@ -96,9 +96,10 @@ sub create_cluster_media_set
 # media_set_media_map entries for the media_sets and for its medium and cluster media set children
 sub create_collection_media_set
 {
-    my ( $self, $c, $name, $tags_id ) = @_;
+    my ( $self, $c, $name, $tags_id, $description ) = @_;
 
-    my $media_set = $c->dbis->create( 'media_sets', { name => $name, set_type => 'collection', tags_id => $tags_id } );
+    my $media_set = $c->dbis->create( 'media_sets', 
+        { name => $name, description => $description, set_type => 'collection', tags_id => $tags_id } );
     my $media = $c->dbis->query(
         "select m.* from media m, media_tags_map mtm " . "  where m.media_id = mtm.media_id and mtm.tags_id = ?", $tags_id )
       ->hashes;
@@ -159,17 +160,18 @@ sub create : Local
     }
 
     my $name                  = $c->req->param( 'name' );
+    my $description           = $c->req->param( 'description' );
     my $media_cluster_runs_id = $c->req->param( 'media_cluster_runs_id' );
 
     $c->dbis->begin_work;
 
-    my $media_set = $self->create_collection_media_set( $c, $name, $tag->{ tags_id }, $media_cluster_runs_id );
+    my $media_set = $self->create_collection_media_set( $c, $name, $tag->{ tags_id }, $description );
     $c->dbis->create( 'dashboard_media_sets',
         { dashboards_id => $dashboards_id, media_sets_id => $media_set->{ media_sets_id } } );
 
     $c->dbis->commit;
 
-    $c->response->redirect( $c->uri_for( "/mediasets/list/$dashboards_id", { status_msg => 'Media Set created.' } ) );
+    $c->response->redirect( $c->uri_for( "/mediasets/list/$dashboards_id", { status_msg => 'media set created.' } ) );
 }
 
 # edit the media_cluster_run selection for the dashboad_media_set
