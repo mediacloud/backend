@@ -119,6 +119,7 @@ see the check constraint for the definition of which set_type has which rows set
 create table media_sets (
     media_sets_id               serial      primary key,
     name                        text        not null,
+    description                 text        null,
     set_type                    text        not null,
     media_id                    int         references media on delete cascade,
     tags_id                     int         references tags on delete cascade,
