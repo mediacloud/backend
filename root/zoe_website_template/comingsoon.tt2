@@ -9,7 +9,7 @@
  We are testing a new mediacloud site for launch soon.
 </p>
 <p>
-<a href="http://mediacloud.org/dashboard/">Click here</a> if you have
+<a href="[% c.uri_for( '/dashboard/') %]">Click here</a> if you have
  been given access to the beta site.  <a
  href="mailto:mediacloud@cyber.law.harvard.edu">Mail</a> us if you
  would like to request access to the beta site.
