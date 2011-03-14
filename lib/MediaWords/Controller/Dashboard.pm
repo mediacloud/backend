@@ -1,4 +1,4 @@
-#package MediaWords::Controller::Dashboard;
+package MediaWords::Controller::Dashboard;
 
 use strict;
 use warnings;
