@@ -1,4 +1,4 @@
-package MediaWords::Controller::Dashboard;
+#package MediaWords::Controller::Dashboard;
 
 use strict;
 use warnings;
@@ -70,25 +70,28 @@ sub _redirect_to_default_page
     #TODO pick a different media_sets_id if this one isn't in the dashboard
     my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
 
-    my ( $max_date ) = $c->dbis->query( 
-        " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " . 
-        "   group by publish_week::date order by publish_week::date desc limit 1 offset 1",
-        $media_sets_id )->flat();
+    my ( $max_date ) = $c->dbis->query(
+        " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " .
+          "   group by publish_week::date order by publish_week::date desc limit 1 offset 1",
+        $media_sets_id
+    )->flat();
 
     if ( !$max_date )
     {
-        ( $max_date ) = $c->dbis->query( 
-            " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " . 
-            "   group by publish_week::date order by publish_week::date desc limit 1",
-            $media_sets_id )->flat();
+        ( $max_date ) = $c->dbis->query(
+            " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " .
+              "   group by publish_week::date order by publish_week::date desc limit 1",
+            $media_sets_id
+        )->flat();
     }
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    my $date = maxstr( grep { $_ le $max_date } @{ $self->_get_dashboard_dates( $c, $dashboard ) } ) ||
-        die( "no valid date found" );
+    my $date = maxstr( grep { $_ le $max_date } @{ $self->_get_dashboard_dates( $c, $dashboard ) } )
+      || die( "no valid date found" );
 
-    my $query = MediaWords::DBI::Queries::find_or_create_query_by_params(
-        $c->dbis, { media_sets_ids => [ $media_sets_id ], start_date => $date } );
+    my $query =
+      MediaWords::DBI::Queries::find_or_create_query_by_params( $c->dbis,
+        { media_sets_ids => [ $media_sets_id ], start_date => $date } );
 
     my $redirect = $c->uri_for( '/dashboard/view/' . $dashboards_id, { q1 => $query->{ queries_id } } );
 
@@ -531,7 +534,7 @@ sub _country_counts_to_csv_array
     return $country_count_csv_array;
 }
 
-# query the dashboard form data (media sets, media, and topics) and put it in 
+# query the dashboard form data (media sets, media, and topics) and put it in
 # the stash for later inclusion in the formfu fields
 sub _process_and_stash_dashboard_data
 {
@@ -575,20 +578,21 @@ sub _process_and_stash_dashboard_data
 sub _set_query_form_defaults
 {
     my ( $self, $c, $form ) = @_;
-    
+
     if ( my $queries = $c->stash->{ queries } )
     {
-        for ( my $i = 0; $i < @{ $queries }; $i++ )
+        for ( my $i = 0 ; $i < @{ $queries } ; $i++ )
         {
             my $q = $queries->[ $i ];
-            $form->get_field( 'date' . ( $i + 1 ) )->default( $q->{ start_date } );
+            $form->get_field( 'date' .                ( $i + 1 ) )->default( $q->{ start_date } );
             $form->get_field( 'dashboard_topics_id' . ( $i + 1 ) )->default( $q->{ dashboard_topics_ids } );
             my $media_set = $q->{ media_sets }->[ 0 ];
             if ( $media_set->{ set_type } eq 'medium' )
             {
                 $form->get_field( 'medium_name' . ( $i + 1 ) )->default( $media_set->{ name } );
             }
-            else {
+            else
+            {
                 $form->get_field( 'media_sets_id' . ( $i + 1 ) )->default( $media_set->{ media_sets_id } );
             }
         }
@@ -619,7 +623,7 @@ sub _update_query_form
     my $date_options = [ map { [ $_, $_ ] } @$dashboard_dates ];
     my $date1_elem = $form->get_field( { name => 'date1' } );
     $date1_elem->options( $date_options );
-    
+
     if ( my $date2_elem = $form->get_field( { name => 'date2' } ) )
     {
         $date2_elem->options( $date_options );
@@ -630,8 +634,10 @@ sub _update_query_form
 
     my $dashboard_topics = $c->stash->{ dashboard_topics };
 
-    my $dashboard_topics_options =
-      [ ( { label => 'all' } ), map { { label => lc( $_->{ name } ), value => $_->{ dashboard_topics_id } } } @$dashboard_topics ];
+    my $dashboard_topics_options = [
+        ( { label => 'all' } ),
+        map { { label => lc( $_->{ name } ), value => $_->{ dashboard_topics_id } } } @$dashboard_topics
+    ];
     $dashboard_topics_id1->options( $dashboard_topics_options );
     $dashboard_topics_id2->options( $dashboard_topics_options ) if ( $dashboard_topics_id2 );
 
@@ -647,8 +653,8 @@ sub _update_query_form
     {
         $f->options( $media_sets_id_options );
     }
-    
-    $self->_set_query_form_defaults( $c, $form );    
+
+    $self->_set_query_form_defaults( $c, $form );
 }
 
 # use MediaWords::Util::WordCloud to generate a word cloud with the dashboard sentences base url
@@ -667,18 +673,18 @@ sub _get_word_cloud
 sub _redirect_to_query_url
 {
     my ( $self, $c, $dashboards_id ) = @_;
-    
+
     my $params = {};
-    
+
     my $query_1 = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, 1 );
     $params->{ q1 } = $query_1->{ queries_id };
-    
+
     if ( $c->req->param( 'medium_name2' ) || $c->req->param( 'media_sets_id2' ) )
     {
         my $query_2 = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req, 2 );
         $params->{ q2 } = $query_2->{ queries_id };
     }
-    
+
     $c->res->redirect( $c->uri_for( '/dashboard/view/' . $dashboards_id, $params ) );
 }
 
@@ -688,7 +694,7 @@ sub _show_dashboard_results_single_query
     my ( $self, $c, $dashboard ) = @_;
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $c->req->param( 'q1' ) );
-    
+
     my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
     $c->stash->{ media_set_names } = join ", ", @{ $media_set_names };
@@ -702,7 +708,7 @@ sub _show_dashboard_results_single_query
 
     my $word_cloud = $self->_get_word_cloud( $c, $dashboard, $words, $query );
 
-    $c->stash->{ word_cloud }  = $word_cloud;
+    $c->stash->{ word_cloud } = $word_cloud;
 
 }
 
@@ -797,8 +803,8 @@ sub view : Local
 
         return;
     }
-    
-    if ( !$c->req->param( 'q1' ) ) 
+
+    if ( !$c->req->param( 'q1' ) )
     {
         $self->_redirect_to_query_url( $c, $dashboards_id );
         return;
@@ -942,8 +948,7 @@ sub data_dumps : Local
     my $data_dump_files = get_data_dump_file_list();
 
     my $data_dumps = [
-        map
-        {
+        map {
             my $file_date = $_;
             $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/;
             [ $_, $file_date, _get_dump_file_info( $_ ) ]
@@ -990,9 +995,17 @@ sub json_popular_queries : Local
 
     foreach my $popular_query ( @$popular_queries )
     {
-        $popular_query->{ url } =
-          $c->uri_for( '/dashboard' . $popular_query->{ dashboard_action } ) . $popular_query->{ url_params };
+        my $query_params = { q1 => $popular_query->{ queries_id_0 } };
+
+        if ( defined( $popular_query->{ queries_id_1 } ) )
+        {
+            $query_params->{ q2 } = $popular_query->{ queries_id_1 };
+        }
+
+        $popular_query->{ url } = $c->uri_for( '/dashboard' . $popular_query->{ dashboard_action }, $query_params ) . '';
     }
+
+    #say STDERR Dumper( $popular_queries);
 
     $c->res->body( encode_json( $popular_queries ) );
 
@@ -1360,8 +1373,18 @@ sub page_count_increment : Local
     #say STDERR Dumper( $c->req->body_params );
     #say STDERR "query_0  $query_description_0 query_1  $query_description_1";
 
-    my $popular_query = $c->dbis->query( 'SELECT * from popular_queries where dashboard_action = ? and url_params = ?',
-        $dashboard_action, $url_params )->hash;
+    my $popular_query;
+
+    if ( $queries_id_1 )
+    {
+        $popular_query = $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? and queries_id_1 = ?',
+            $queries_id_0, $queries_id_1 )->hash;
+
+    }
+    else
+    {
+        $popular_query = $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? ', $queries_id_0 )->hash;
+    }
 
     if ( !$popular_query )
     {
@@ -1596,44 +1619,43 @@ sub report_bug : Local
 sub media_sets : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
-    
+
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    
-    my $media_sets = $c->dbis->query( 
-        "select ms.* from media_sets ms, dashboard_media_sets dms " . 
-        "  where ms.media_sets_id = dms.media_sets_id " . 
-        "    and dashboards_id = $dashboard->{ dashboards_id } " .
-        "    and ms.set_type = 'collection' " .
-        "  order by ms.name " )->hashes;
-        
-    $c->stash->{ dashboard } = $dashboard;
+
+    my $media_sets = $c->dbis->query(
+        "select ms.* from media_sets ms, dashboard_media_sets dms " . "  where ms.media_sets_id = dms.media_sets_id " .
+          "    and dashboards_id = $dashboard->{ dashboards_id } " . "    and ms.set_type = 'collection' " .
+          "  order by ms.name " )->hashes;
+
+    $c->stash->{ dashboard }  = $dashboard;
     $c->stash->{ media_sets } = $media_sets;
-    $c->stash->{ template } = 'zoe_website_template/media_sets.tt2';
+    $c->stash->{ template }   = 'zoe_website_template/media_sets.tt2';
 }
 
 sub media : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
-    
+
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    
+
     my $media_sets_id = $c->req->param( 'media_sets_id' ) || die( 'no media_sets_id' );
     my $media_set = $c->dbis->query(
-        "select ms.* from media_sets ms, dashboard_media_sets dms " . 
-        "  where ms.media_sets_id = dms.media_sets_id " . 
-        "    and dashboards_id = $dashboard->{ dashboards_id } " .
-        "    and ms.set_type = 'collection' " .
-        "    and ms.media_sets_id = ?", $media_sets_id )->hash || die( 'media_set $media_sets_id not found' );
-    
-    my $media = $c->dbis->query( 
-        "select * from media m, media_sets_media_map msmm " .
-        "  where m.media_id = msmm.media_id and msmm.media_sets_id = $media_set->{ media_sets_id } ".
-        "  order by name " )->hashes;
-        
+        "select ms.* from media_sets ms, dashboard_media_sets dms " . "  where ms.media_sets_id = dms.media_sets_id " .
+          "    and dashboards_id = $dashboard->{ dashboards_id } " . "    and ms.set_type = 'collection' " .
+          "    and ms.media_sets_id = ?",
+        $media_sets_id
+      )->hash
+      || die( 'media_set $media_sets_id not found' );
+
+    my $media =
+      $c->dbis->query( "select * from media m, media_sets_media_map msmm " .
+          "  where m.media_id = msmm.media_id and msmm.media_sets_id = $media_set->{ media_sets_id } " .
+          "  order by name " )->hashes;
+
     $c->stash->{ dashboard } = $dashboard;
     $c->stash->{ media_set } = $media_set;
-    $c->stash->{ media } = $media;
-    $c->stash->{ template } = 'zoe_website_template/media.tt2';
+    $c->stash->{ media }     = $media;
+    $c->stash->{ template }  = 'zoe_website_template/media.tt2';
 }
 
 1;
