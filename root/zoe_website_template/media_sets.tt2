@@ -7,7 +7,7 @@
 <td>
 
 <p>
-Media Cloud collects news stories from media sources, Each media source is a distinct organization such as a mainstream media organization like the <a href="http://nytimes.com">New York Times</a> or a blog like <a href="http://www.powerlineblog.com">Power Line</a>.  Each media source may include a single feed or up to several hundred feeds.  For each media source, the content from all of its feeds are included as the content of the media source.
+Media Cloud collects news stories from media sources. Each media source is a distinct organization such as a mainstream media organization like the <a href="http://nytimes.com">New York Times</a> or a blog like <a href="http://www.powerlineblog.com">Power Line</a>.  Each media source may include a single feed or up to several hundred feeds.  For each media source, the content from all of its feeds are included as the content of the media source.
 </p>
 <p>
 The media sources are collected into media sets. A media set is a collection of media sources grouped together for analytical purposes, for instance as mainstream media or blogs.  Below is a list of the media sets available on the current Media Cloud dashboard.
