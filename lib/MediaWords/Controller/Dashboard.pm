@@ -1383,7 +1383,7 @@ sub page_count_increment : Local
     }
     else
     {
-        $popular_query = $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? ', $queries_id_0 )->hash;
+        $popular_query = $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? and queries_id_1 is null', $queries_id_0 )->hash;
     }
 
     if ( !$popular_query )
