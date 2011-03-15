@@ -101,10 +101,14 @@
 	   mediaArea.width( mediaArea.width() + width_increase );
 
 	   mediaSource.width( mediaSource.width() + width_increase );
-	   mediaSource.find('table').width( mediaSource.width());
 
-	   alert('Reseting width');
-	   var max_source_select_width = mediaSource.width() -  ( mediaSource.find('table td').eq(0).outerWidth() +   mediaSource.find('table td').eq(1).outerWidth() ) - 10; 
+	   var source_table =  mediaSource.find('table');
+
+	   
+	   source_table.width( mediaSource.width());
+
+	   //alert('Reseting width');
+	   var max_source_select_width = mediaSource.width() -  ( source_table.find('td').eq(0).outerWidth() +   source_table.find('td').eq(1).outerWidth() ) - 10; 
 	   mediaSourceSelect.width(max_source_select_width);
 	}
 
