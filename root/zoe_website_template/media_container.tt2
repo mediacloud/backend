@@ -20,9 +20,7 @@
           <span class="smaller"><a href="[% c.uri_for( '/dashboard/media_sets/' _ dashboard.dashboards_id ) %]">List media sources</a></span></td>
               <td valign="top"><strong>OR</strong></td>
               <td valign="top"><strong>Media Set</strong>
-          <div style="width:80px; font-size:10px;">
 	  [% form.get_field( 'media_sets_id' _ media_container_current_number )  %]
-	  </div>
           <span class="smaller"><a href="[% c.uri_for( '/dashboard/media_sets/' _ dashboard.dashboards_id ) %]">Describe media sets</a></span></td>
              </tr>
         </table>
