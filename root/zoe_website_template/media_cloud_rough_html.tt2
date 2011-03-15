@@ -96,11 +96,11 @@
 	   //alert(mediacontainer_width);
 	   var total_selector_widths = mediaTime.width() + mediaArea.width() + mediaSource.width();
 
-	   var width_increase = (mediacontainer_width - total_selector_widths - 40 )/3;
-	   mediaTime.width( mediaTime.width() + width_increase);
-	   mediaArea.width( mediaArea.width() + width_increase);
-	   mediaSource.width( mediaSource.width() + width_increase);
-	   mediaSourceSelect.width('100');
+	   var width_increase = (mediacontainer_width - total_selector_widths - 40 )/2;
+	   mediaTime.width( mediaTime.width() );
+	   mediaArea.width( mediaArea.width() + width_increase );
+	   mediaSource.width( mediaSource.width() + width_increase );
+	   //mediaSourceSelect.width('150');
 	}
 
 	resize_media_container($('#mediacontainer1'), $('#mediaTime1'), $('#mediaArea1'), $('#mediaSource1'), $('#mediaSource1 select') );
