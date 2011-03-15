@@ -86,9 +86,6 @@
         $('#submit').
 	  click(function() { $('#media_query_form').submit(); } ) ;
 
-        //$('#mediaSource1 select').width('80');
-        //$('#mediaSource2 select').width('80');
-
 	function resize_media_container(mediacontainer, mediaTime, mediaArea, mediaSource, mediaSourceSelect)
 	{
   	    var mediacontainer_width = mediacontainer.width();
