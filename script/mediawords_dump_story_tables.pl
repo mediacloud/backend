@@ -43,6 +43,18 @@ sub get_max_stories_id
     return $max_stories_id;
 }
 
+
+sub get_min_stories_id
+{
+    my ( $dbh ) = @_;
+
+    my $min_stories_id_row = $dbh->query( "select min(stories_id) as min_id from story_sentence_words" );
+
+    my $min_stories_id = $min_stories_id_row->hash()->{ min_id };
+
+    return $min_stories_id;
+}
+
 sub scroll_stories_id_window
 {
     my ( $_stories_id_start, $_stories_id_stop, $max_stories_id ) = @_;
@@ -221,7 +233,7 @@ sub main
 
     if ( $full )
     {
-        $stories_id_start = 0;
+	$stories_id_start = get_min_stories_id( $dbh );
     }
     else
     {
