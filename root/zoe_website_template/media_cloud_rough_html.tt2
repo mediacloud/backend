@@ -103,6 +103,7 @@
 	   mediaSource.width( mediaSource.width() + width_increase );
 	   mediaSource.find('table').width( mediaSource.width());
 
+	   alert('Reseting width');
 	   var max_source_select_width = mediaSource.width() -  ( mediaSource.find('table td').eq(0).width() +   mediaSource.find('table td').eq(1).width() ) - 10; 
 	   mediaSourceSelect.width(max_source_select_width);
 	}
