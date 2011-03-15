@@ -132,7 +132,7 @@ sub dump_stories
 
     $dbh->query_csv_dump(
         $output_file,
-        " select stories_id, media_id, url, guid, title, publish_date, collect_date, full_text_rss from stories " .
+        " select stories_id, media_id, url, guid, title, publish_date, collect_date from stories " .
           "   where stories_id >= ? and stories_id <= ? order by stories_id",
         [ $first_dumped_id, $last_dumped_id ],
         1
@@ -148,6 +148,20 @@ sub dump_media
       or die "Can't open $file_name: $@";
 
     $dbh->query_csv_dump( $output_file, " select * from media order by media_id", [], 1 );
+}
+
+sub dump_media_sets
+{
+    my ( $dbh, $dir ) = @_;
+
+    my $file_name = "$dir/media_sets.csv";
+    open my $output_file, ">", "$file_name"
+      or die "Can't open $file_name: $@";
+
+    $dbh->query_csv_dump( $output_file, "select ms.media_sets_id, ms.name, msmm.media_id
+  from media_sets ms, media_sets_media_map msmm
+  where ms.media_sets_id = msmm.media_sets_id
+    and ms.set_type = 'collection'  order by media_sets_id, media_id", [], 1 );
 }
 
 sub _current_date
@@ -256,6 +270,7 @@ sub main
     my $last_dumped_id = get_max_stories_id( $dbh );
 
     dump_media( $dbh, $dir );
+    dump_media_sets( $dbh, $dir );
     dump_stories( $dbh, $dir, $stories_id_start, $last_dumped_id );
 
     my $existing_dump_files = MediaWords::Controller::Dashboard::get_data_dump_file_list();
