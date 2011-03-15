@@ -86,8 +86,8 @@
         $('#submit').
 	  click(function() { $('#media_query_form').submit(); } ) ;
 
-        $('#mediaSource1 select').width('80');
-        $('#mediaSource2 select').width('80');
+        //$('#mediaSource1 select').width('80');
+        //$('#mediaSource2 select').width('80');
 
 	function resize_media_container(mediacontainer, mediaTime, mediaArea, mediaSource, mediaSourceSelect)
 	{
@@ -99,7 +99,9 @@
 	   var width_increase = (mediacontainer_width - total_selector_widths - 40 )/2;
 	   mediaTime.width( mediaTime.width() );
 	   mediaArea.width( mediaArea.width() + width_increase );
+
 	   mediaSource.width( mediaSource.width() + width_increase );
+	   mediaSource.find('table').width( mediaSource.width());
 	   //mediaSourceSelect.width('150');
 	}
 
