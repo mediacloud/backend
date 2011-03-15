@@ -102,7 +102,9 @@
 
 	   mediaSource.width( mediaSource.width() + width_increase );
 	   mediaSource.find('table').width( mediaSource.width());
-	   //mediaSourceSelect.width('150');
+
+	   var max_source_select_width = mediaSource.width() -  ( mediaSource.find('table td').eq(0).width() +   mediaSource.find('table td').eq(1).width() ) - 10; 
+	   mediaSourceSelect.width(max_source_select_width);
 	}
 
 	resize_media_container($('#mediacontainer1'), $('#mediaTime1'), $('#mediaArea1'), $('#mediaSource1'), $('#mediaSource1 select') );
