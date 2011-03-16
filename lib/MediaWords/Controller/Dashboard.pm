@@ -838,6 +838,10 @@ sub news : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    if ( !defined( $dashboards_id ) )
+    {
+        $dashboards_id = $self->_default_dashboards_id( $c );
+    }
     $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
     $c->stash->{ template } = 'zoe_website_template/news.tt2';
 }
@@ -847,6 +851,10 @@ sub about : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    if ( !defined( $dashboards_id ) )
+    {
+        $dashboards_id = $self->_default_dashboards_id( $c );
+    }
     $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
     $c->stash->{ template } = 'zoe_website_template/about.tt2';
 }
@@ -856,6 +864,10 @@ sub faq : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    if ( !defined( $dashboards_id ) )
+    {
+        $dashboards_id = $self->_default_dashboards_id( $c );
+    }
     $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
     $c->stash->{ template } = 'zoe_website_template/faq.tt2';
 }
