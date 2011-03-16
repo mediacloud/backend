@@ -941,6 +941,15 @@ sub _get_dump_file_info
     return $ret;
 }
 
+sub _unix_time_for_file
+{
+    my ( $arr ) = @_;
+
+    my $file_info = $arr->[ 2 ];
+
+    my $utime = str2time( "$file_info->{ mday } $file_info->{ month } $file_info->{ ret }  $file_info->{ time } " );
+}
+
 sub data_dumps : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
@@ -954,6 +963,8 @@ sub data_dumps : Local
             [ $_, $file_date, _get_dump_file_info( $_ ) ]
           } @$data_dump_files
     ];
+
+    $data_dumps = [ sort { _unix_time_for_file( $a ) <=> _unix_time_for_file( $b ) } @{ $data_dumps } ];
 
     my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
     my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
@@ -1383,7 +1394,9 @@ sub page_count_increment : Local
     }
     else
     {
-        $popular_query = $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? and queries_id_1 is null', $queries_id_0 )->hash;
+        $popular_query =
+          $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? and queries_id_1 is null', $queries_id_0 )
+          ->hash;
     }
 
     if ( !$popular_query )
