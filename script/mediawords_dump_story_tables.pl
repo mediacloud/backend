@@ -147,7 +147,7 @@ sub dump_media
     open my $output_file, ">", "$file_name"
       or die "Can't open $file_name: $@";
 
-    $dbh->query_csv_dump( $output_file, " select * from media order by media_id", [], 1 );
+    $dbh->query_csv_dump( $output_file, " select media_id, url, name from media order by media_id", [], 1 );
 }
 
 sub dump_media_sets
