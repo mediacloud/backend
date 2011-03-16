@@ -808,6 +808,11 @@ sub view : Local
 
     if ( scalar( keys %{ $c->req->parameters() } ) == 0 )
     {
+        if ( !defined( $dashboards_id ) )
+        {
+            $dashboards_id = $self->_default_dashboards_id( $c );
+        }
+
         $self->_redirect_to_default_page( $c, $dashboards_id );
 
         return;
