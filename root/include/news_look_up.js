@@ -9,7 +9,7 @@ function yql_lookup(query, cb_function) {
 
 function look_up_news() {
 
-    var feed_url = 'http://www.mediacloud.org/feed/';
+    var feed_url = 'http://mediacloud.org/blog/feed/';
 
     //alert(google_url);
     yql_lookup("select * from rss where url = '" + feed_url + "'", function (response) {
