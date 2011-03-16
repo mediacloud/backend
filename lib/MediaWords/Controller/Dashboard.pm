@@ -46,9 +46,18 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
+    my $dashboards_id = $self->_default_dashboards_id( $c );
 
     $self->_redirect_to_default_page( $c, $dashboards_id );
+}
+
+sub _default_dashboards_id
+{
+    my ( $self, $c ) = @_;
+
+    my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
+
+    return $dashboards_id;
 }
 
 sub _yesterday_date_string
