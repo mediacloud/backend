@@ -980,6 +980,13 @@ sub data_dumps : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    if ( !defined( $dashboards_id ) )
+    {
+        $dashboards_id = $self->_default_dashboards_id( $c );
+    }
+
+    $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
+
     my $data_dump_files = get_data_dump_file_list();
 
     my $data_dumps = [
