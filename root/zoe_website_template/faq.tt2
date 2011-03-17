@@ -41,6 +41,10 @@ A topic is a way of not just tracking generic content within a given media set o
 Each word in a word cloud links to the list of sentences including that word within the given week and media set or media source.  So clicking on 'obama' for the word cloud representing the week of 2010-08-01 in Popular Blogs will show a list of all sentences including the word 'obama' in that week and media set.  For topic word clouds, only sentences that include both the topic word and the clicked word will be displayed.
 </p>
 
+<p>
+For each media source, we show a percentage indicating the clicked word's frequency. This percentage is calculated by comparing the number of times the clicked word occurs within the media source in the given week with the total number of words within that media source for the given week. For topic word clouds, the percentage is determined by the occurances of the clicked word within sentences in the media source for the given week that contain the topic word in comparison to the total number of words within these sentences. For words that appear in both queries (
+words in purple in the word cloud), we average the percentages from the two queries.</p>
+
 <a name="similarity"></a>
 <p><i>What is the similarity score?</i></p>
 
