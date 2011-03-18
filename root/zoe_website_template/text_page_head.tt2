@@ -1,0 +1,19 @@
+[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+<body>
+<script language="javascript" type="text/javascript">
+<!--
+
+   $(document).ready(function() 
+    {
+
+        look_up_news();
+    });
+
+-->
+</script>
+
+[% # form.render() %]
+
+[% INCLUDE 'zoe_website_template/header.tt2' %]
+<tr>
+<td>
