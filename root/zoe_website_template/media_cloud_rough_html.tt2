@@ -121,7 +121,9 @@
 
 	if ( popular_queries_list )
 	{
-	    //alert('starting json');
+	     popular_queries_list.children().remove();
+	     popular_queries_list.append($('<p>Loading...</p>'));
+	     //alert('starting json');
 	    $.getJSON( '[% c.uri_for('/dashboard/json_popular_queries/') %]', function(data)
 	    {
 	       popular_queries_list.children().remove();
