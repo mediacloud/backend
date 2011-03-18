@@ -82,11 +82,11 @@ This is a Coverage Map! That's what goes here.  Anything having to do with a Cov
 		       <strong>Popular Queries:</strong>
                     <ul class = "querylist">
                    <div id = "popular_queries_list">
-                      <li><a href = "query.html" class = "query">Query 1 that's of a long length</a><br /></li>
-                      <li><a href = "query.html" class = "query">Query 2 that's a little shorter</a><br /></li>
-                      <li><a href = "query.html" class = "query">Query 3 that's a little longer again</a><br /></li>
-                      <li><a href = "query.html" class = "query">Query 4 is short</a><br /></li>
-                      <li><a href = "query.html" class = "query">Query 5</a><br /></li>
+		     <!--
+		        The list is filled in dynamically w/ js. 
+			This is just to show the format of the lis items.
+                      <li><a href = "query.html" class = "query">Query 1</a><br /></li>
+		      -->
 		    </div>
                     </ul>
 [% END %]
