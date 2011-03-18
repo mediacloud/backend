@@ -15,6 +15,7 @@
                 <a href="[% c.uri_for('/dashboard/data_dumps/' _ dashboard.dashboards_id ) %]"  class="navigation">Data</a> | 
                 <a href="[% c.uri_for('/dashboard/about/' _ dashboard.dashboards_id ) %]"  class="navigation">About</a> |
                 <a href="[% c.uri_for('/dashboard/faq/' _ dashboard.dashboards_id ) %]"  class="navigation">FAQ</a>
+                </td>
               </tr>
             </table></td>
         </tr>
