@@ -9,12 +9,12 @@
               <tr>
                 <td width="350"><img alt="" src="/include/images/header.jpg" /></td>
                 <td align="right" valign="bottom">
-                <a href="[% c.uri_for('/dashboard/view/' _ dashboard.dashboards_id ) %]" class="navigation">Home</a> | 
-                <a href="http://www.mediacloud.org/blog" class="navigation">Reports</a> | 
-                <a href="[% c.uri_for('/dashboard/media_sets/' _ dashboard.dashboards_id ) %]" class="navigation">Media</a> | 
-                <a href="[% c.uri_for('/dashboard/data_dumps/' _ dashboard.dashboards_id ) %]"  class="navigation">Data</a> | 
-                <a href="[% c.uri_for('/dashboard/about/' _ dashboard.dashboards_id ) %]"  class="navigation">About</a> |
-                <a href="[% c.uri_for('/dashboard/faq/' _ dashboard.dashboards_id ) %]"  class="navigation">FAQ</a>
+                  <a href="[% c.uri_for('/dashboard/view/' _ dashboard.dashboards_id ) %]" class="navigation">Home</a> | 
+                  <a href="http://www.mediacloud.org/blog" class="navigation">Reports</a> | 
+                  <a href="[% c.uri_for('/dashboard/media_sets/' _ dashboard.dashboards_id ) %]" class="navigation">Media</a> | 
+                  <a href="[% c.uri_for('/dashboard/data_dumps/' _ dashboard.dashboards_id ) %]"  class="navigation">Data</a> | 
+                  <a href="[% c.uri_for('/dashboard/about/' _ dashboard.dashboards_id ) %]"  class="navigation">About</a> |
+                  <a href="[% c.uri_for('/dashboard/faq/' _ dashboard.dashboards_id ) %]"  class="navigation">FAQ</a>
                 </td>
               </tr>
             </table></td>
