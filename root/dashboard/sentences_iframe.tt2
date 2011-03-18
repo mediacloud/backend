@@ -58,6 +58,9 @@
                      append($(" <a class='view_article'>view article</a>").attr({ 'href': story.url, target: '_blank' } )).
                      append($("</br>"));
                      var sentences_ul = $("<ul/>");
+                     sentences_ul.css('background-color', '#f8f8f8');
+                     sentences_ul.css('padding-right', '30px');
+
                      $.each(story.sentences, function(index, sentence_object) {
                          sentences_ul.append($("<li/>").text(sentence_object.sentence)).append($("<br/>"));
                      }) ;
