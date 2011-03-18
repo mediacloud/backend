@@ -1,10 +1,4 @@
-[% INCLUDE 'zoe_website_template/html_head.tt2' %]
-<body>
-
-[% INCLUDE 'zoe_website_template/header.tt2' %]
-
-<tr>
-<td>
+[% INCLUDE 'zoe_website_template/text_page_head.tt2' %]
 
 <p>
 Media Cloud collects news stories from media sources. Each media source is a distinct organization such as a mainstream media organization like the <a href="http://nytimes.com">New York Times</a> or a blog like <a href="http://www.powerlineblog.com">Power Line</a>.  Each media source may include a single feed or up to several hundred feeds.  For each media source, the content from all of its feeds are included as the content of the media source.
@@ -22,7 +16,4 @@ The media sources are collected into media sets. A media set is a collection of 
 </p>
 [% END %]
 
-</td>
-</tr>
-
-[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
+[% INCLUDE 'zoe_website_template/text_page_foot.tt2' %]
