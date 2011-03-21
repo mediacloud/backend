@@ -27,7 +27,7 @@
            var $this = $(this);
            var id = $this.attr('id');
            $('#source_sentence_content div').hide();
-           $('#media_source_percent_table td').css('backgroundColor', '#ffffff');
+           $('#media_source_percent_table td').css('backgroundColor', '');
            var source_num = id.replace(/Select$/, '').replace(/^Source/, '');
            var target_id = 'Source' + source_num;
 
@@ -62,7 +62,7 @@
                      var sentences_div = $("<div/>");
 
                      sentences_ul.append(sentences_div);
-                     sentences_div.css('background-color', '#f8f8f8');
+                     sentences_div.css('background-color', '#F5F4F4');
                      sentences_ul.css('padding-right', '15px');
                      sentences_div.css('padding-right', '20px');
 
