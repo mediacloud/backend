@@ -224,6 +224,7 @@ my $_country_name_remapping = {
     # 'saudi arabia',
     # 'senegal',
     # 'serbia',
+    'serbia and montenegro' => 'serbia montenegro',
     # 'seychelles',
     # 'sierra leone',
     # 'singapore',
