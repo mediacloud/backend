@@ -14,7 +14,7 @@
               width: [% (width + 0) || 500 %],
               height: [% (height + 0) || 400 %],
              // prefer: 'canvas',
-      source: '[% c.uri_for('/include/openheatmap.swf') %]',
+      source: '[% c.uri_for('/include/openheatmap.swf') %]'
         });
 
    //swapDIV('CMcontentarea');
