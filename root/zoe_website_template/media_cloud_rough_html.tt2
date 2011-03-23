@@ -40,6 +40,8 @@
 
    $(document).ready(function() 
     {
+        $('#hidden_media_list').hide();
+
         var data = 
         $('#hidden_media_list li').map(function() {
 	var $this = $(this);
@@ -381,7 +383,7 @@
     <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
     <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
   </tr>
-<ul style="display: none" id="hidden_media_list">
+<ul style="visibility: hidden; display: none" id="hidden_media_list">
 [% FOREACH medium IN media %]
    <li>[% medium.name | html %]</li>
 [% END %]
