@@ -369,8 +369,8 @@ sub get_country_code_for_stemmed_country_name
 
     $ret = uc( $ret );
 
-    die "Country code for $stemmed_country_name not found in " . Dumper( $_country_code_for_stemmed_country_name )
-      unless $ret;
+    #die "Country code for $stemmed_country_name not found in " . Dumper( $_country_code_for_stemmed_country_name )
+    #  unless $ret;
     return $ret;
 }
 
