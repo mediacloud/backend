@@ -33,6 +33,7 @@ use XML::Simple qw(:strict);
 use Dir::Self;
 use Readonly;
 use File::stat;
+use MediaWords::Controller::Dashboard;
 
 sub index : Path : Args(0)
 {
@@ -46,7 +47,11 @@ sub message : Local
 {
     my ( $self, $c ) = @_;
 
-    $c->stash->{ template } = 'zoe_website_template/comingsoon.tt2';
+    my $dashboards_id = MediaWords::Controller::Dashboard::get_default_dashboards_id( $c->dbis );
+    my $default_dashboard = MediaWords::Controller::Dashboard::get_dashboard( $c->dbis, $dashboards_id );
+
+    $c->stash->{ dashboard } = $default_dashboard;
+    $c->stash->{ template }  = 'zoe_website_template/comingsoon.tt2';
 }
 
 1;
