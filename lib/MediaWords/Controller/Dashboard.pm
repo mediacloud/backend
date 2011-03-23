@@ -51,13 +51,21 @@ sub index : Path : Args(0)
     $self->_redirect_to_default_page( $c, $dashboards_id );
 }
 
+sub get_default_dashboards_id
+{
+    my ( $dbis ) = @_;
+
+    my ( $dashboards_id ) = $dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
+
+    say STDERR Dumper( $dashboards_id );
+    return $dashboards_id;
+}
+
 sub _default_dashboards_id
 {
     my ( $self, $c ) = @_;
 
-    my ( $dashboards_id ) = $c->dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
-
-    return $dashboards_id;
+    return get_default_dashboards_id( $c->dbis );
 }
 
 sub _yesterday_date_string
@@ -112,9 +120,16 @@ sub _get_dashboard
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    return get_dashboard( $c->dbis, $dashboards_id );
+}
+
+sub get_dashboard
+{
+    my ( $dbis, $dashboards_id ) = @_;
+
     $dashboards_id || die( "no dashboards_id found" );
 
-    my $dashboard = $c->dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "no dashboard '$dashboards_id'" );
+    my $dashboard = $dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "no dashboard '$dashboards_id'" );
 
     return $dashboard;
 }
