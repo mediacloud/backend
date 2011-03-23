@@ -55,7 +55,7 @@
                      var story_li = $("<li class='collapsable'>");
                      story_li.append($("<b></b>").text(story.title)).append(' ').
                      append($("<span class='date'>").text(story.publish_date)).append(' ').
-                     append($(" <a class='view_article'>view article</a>").attr({ 'href': story.url, target: '_blank' } )).
+                     append($(" <a class='view_article'>view&nbsp;article</a>").attr({ 'href': story.url, target: '_blank' } )).
                      append($("</br>"));
                      var sentences_ul = $("<ul/>");
 
