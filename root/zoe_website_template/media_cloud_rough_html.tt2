@@ -93,9 +93,9 @@
   	    var mediacontainer_width = mediacontainer.width();
 	   
 	   //alert(mediacontainer_width);
-	   var total_selector_widths = mediaTime.width() + mediaArea.width() + mediaSource.width();
+	   var total_selector_widths = mediaTime.outerWidth() + mediaArea.outerWidth() + mediaSource.outerWidth();
 
-	   var width_increase = (mediacontainer_width - total_selector_widths - 40 )/2;
+	   var width_increase = (mediacontainer_width - total_selector_widths - 20  )/2;
 	   mediaTime.width( mediaTime.width() );
 	   mediaArea.width( mediaArea.width() + width_increase );
 
