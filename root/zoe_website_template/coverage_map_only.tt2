@@ -8,7 +8,6 @@
 <body>
 <script language="javascript" type="text/javascript">
 //<![CDATA[
-<!--
 
 	function show_sentences_for_word_cloud_item(word_cloud_item)
 	{
@@ -209,7 +208,6 @@
 
 	//$('#CMcontentarea iframe').load();
     });
--->
 //]]>
 </script>
 
