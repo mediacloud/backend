@@ -845,7 +845,14 @@ sub view : Local
 
     $self->_update_query_form( $c );
 
-    $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
+    if ( $c->req->param( 'cmaponly') ) 
+    {
+       $c->stash->{ template } = 'zoe_website_template/coverage_map_only.tt2';
+    }
+    else
+    {
+       $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
+    }
 }
 
 # static news page
