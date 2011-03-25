@@ -46,7 +46,7 @@
 
 		if ($.browser.msie)
 		{
-		    newHeight = iframe.contentWindow.document.body.offsetHeight + options.heightOffset;
+		    newHeight = iframe.contentWindow.document.body.scrollHeight + options.heightOffset;
 		}
 
                 iframe.style.height = newHeight + 'px';
