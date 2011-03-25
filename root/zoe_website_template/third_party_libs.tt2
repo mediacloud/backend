@@ -5,7 +5,7 @@
 <!-- <script type="text/javascript" src="http://static.openheatmap.com/scripts/jquery.openheatmap.js"></script> -->
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.validate.js') %]"></script>  
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.url.js') %]"></script> 
- <script type="text/javascript"  src="[% c.uri_for('/include/jquery.iframe-auto-height.plugin.js') %]"></script> 
+ <script type="text/javascript"  src="[% c.uri_for('/include/jquery.iframe-auto-height.plugin_msie_workaround.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/treeview/jquery.treeview.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.iframe.resizer.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.query-2.1.7.js') %]"></script> 
