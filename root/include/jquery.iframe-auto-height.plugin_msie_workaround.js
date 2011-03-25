@@ -46,7 +46,6 @@
 
 		if ($.browser.msie)
 		{
-		    alert('msie');
 		    newHeight = iframe.contentWindow.document.body.offsetHeight + options.heightOffset;
 		}
 
