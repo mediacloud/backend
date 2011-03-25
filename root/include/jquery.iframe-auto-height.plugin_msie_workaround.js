@@ -44,6 +44,8 @@
 
 		var newHeight = iframe.contentWindow.document.body.offsetHeight + options.heightOffset;
 
+		//DRL added 25 March 2011 to work around IE bug
+		//See http://www.lost-in-code.com/programming/jquery-auto-iframe-height/#comment-593
 		if ($.browser.msie)
 		{
 		    newHeight = iframe.contentWindow.document.body.scrollHeight + options.heightOffset;
