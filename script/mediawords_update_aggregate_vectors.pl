@@ -99,7 +99,7 @@ sub run_daemon
             }
             
             MediaWords::StoryVectors::update_aggregate_words(
-                $db, $start_date, $end_date, 0, $dashboard_topic->{ dashboard_topics_id } );
+                $db, $start_date, $end_date, 1, $dashboard_topic->{ dashboard_topics_id } );
 
             $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
                 $dashboard_topic->{ dashboard_topics_id } );
