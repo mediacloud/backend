@@ -356,7 +356,7 @@
               from one media outlet to another.
               </div>
               <div id = "report"><strong>This week's report</strong><br />
-                <a href="link">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
+                <a href="http://www.mediacloud.org/blog">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
               </div>
               <div id = "news"><strong>News</strong><br />
 	        <div id = "news_items">
