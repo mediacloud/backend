@@ -22,3 +22,7 @@ Media Cloud offers a way to quantitatively examine all of these challenging ques
 
 <p><img src="http://www.mediacloud.org/files/2009/03/mc-flow-2b.png" alt="" align="left" />Technically, Media Cloud performs five basic functions -- media definition, crawling, text extraction, word vectoring, and analysis.  First, we define the set of media sources we want to collect and discover the feeds for each media source (which in the case of many newspapers includes hundreds of feeds).  Second, we crawl each of those feeds several times each day to discover any new stories published by each feed and then download the html of each new story.  Third, we extract just the substantive content of each story from each html page, leaving behind the ads, navigation, and other cruft.  Fourth, we break that substantive text down into a set word counts so that we can count, down to the level of individual sentences, which words which media sources are using to talk about which topics.  And finally, we have a set of tools for analyzing those word counts, including the Media Dashboard tool that acts as the front page for http://mediacloud.org.  We make available all of the code for the system under an open source license and publish as much of the underlying data as legally possible.
 </p>
+
+<p>
+Media Cloud is made possible by the generous support of the <a href="http://www.macfound.org">John D. and Catherine T. MacArthur Foundation</a> and the <a href="http://www.fordfoundation.org">Ford Foundation</a>.
+</p>
