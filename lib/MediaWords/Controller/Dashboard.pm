@@ -1517,17 +1517,6 @@ sub sentences : Local
     my $queries_description = join( " or ", map { $_->{ description } } @{ $queries } );
     my $media = MediaWords::DBI::Queries::get_media_matching_stems( $c->dbis, $stem, $queries );
 
-    if ( $iframe )
-    {
-
-        # foreach my $medium ( @$media )
-        # {
-        #     my $medium_stories =
-        #       MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
-        #     $medium->{ stories } = $medium_stories;
-        # }
-    }
-
     $c->stash->{ dashboard }           = $dashboard;
     $c->stash->{ stem }                = $stem;
     $c->stash->{ term }                = $term;
