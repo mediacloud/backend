@@ -1524,14 +1524,9 @@ sub sentences : Local
     $c->stash->{ queries_ids }         = $c->req->param( 'queries_ids' );
     $c->stash->{ media }               = $media;
 
-    if ( $iframe )
-    {
-        $c->stash->{ template } = 'dashboard/sentences_iframe.tt2';
-    }
-    else
-    {
-        $c->stash->{ template } = 'dashboard/sentences.tt2';
-    }
+    #$c->stash->{ template } = 'dashboard/sentences.tt2';
+    $c->stash->{ template } = 'dashboard/sentences_iframe.tt2';
+
 }
 
 # given a list of terms, return a quoted, comma-separated list of stems
