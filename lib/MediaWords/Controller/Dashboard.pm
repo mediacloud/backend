@@ -1521,7 +1521,7 @@ sub sentences : Local
     $c->stash->{ stem }                = $stem;
     $c->stash->{ term }                = $term;
     $c->stash->{ queries_description } = $queries_description;
-    $c->stash->{ queries_ids }         = $c->req->param( 'queries_ids' );
+    $c->stash->{ queries_ids }         = [ $c->req->param( 'queries_ids' ) ];
     $c->stash->{ media }               = $media;
 
     #$c->stash->{ template } = 'dashboard/sentences.tt2';
