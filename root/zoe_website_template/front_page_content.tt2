@@ -39,11 +39,11 @@
 [% IF queries.1 %]
 <table style = "width: 100%; height: 100%">
 <tr>
-<td>
-<b>&nbsp; &nbsp;&nbsp;[% queries.0.label | html%]</b>
+<td class="coverage_map_header">
+<b>&nbsp;[% queries.0.label | html%]</b>
 </td>
-<td>
- <b>&nbsp; &nbsp; &nbsp;[% queries.1.label | html%] </b>
+<td class="coverage_map_header">
+ <b>&nbsp;[% queries.1.label | html%] </b>
 </td>
 </tr>
 <tr style = "align: top;">
