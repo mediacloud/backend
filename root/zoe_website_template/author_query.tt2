@@ -1,3 +1,8 @@
+[% IF word_cloud_term %]
+[% primary = 0 %]
+[% ELSE %]
+[% primary = 1 %]
+[% END %]
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
@@ -125,6 +130,14 @@ function onError(err)
 
 [% INCLUDE 'zoe_website_template/header.tt2' %]
 
+[% IF primary %]
+<tr>
+<td>
+ [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
+</td>
+</tr>
+[% END %]
+
   <tr>
 
     <td>
@@ -156,59 +169,88 @@ function onError(err)
       [% form.end() %]
     </td>
   </tr>
-  <tr>
-    <td><hr noshade="noshade" size="1" width="100%" style="color:#999999" /></td></tr>
-  <tr>
-    <td><!--This is where the content starts!-->
 
-[% INCLUDE 'zoe_website_template/side_bar.tt2' %]     
+[% IF ! primary %]
+  <tr>
+    <td>
+ [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
+</td>
+</tr>
+[% END %]
+[% IF ! primary %]
+<tr>
+ <td align="left">
 
-            <br/>
-            <br/>
-            <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
-            <div id="WCcontentarea">
-[% IF word_cloud %]
-[%- word_cloud -%]
-[% ELSE %]
-This is a Word Cloud! Thats' what goes here.<br/>
-              .<br/>
-              .<br/>
-              .<br/>
-              .<br/>
-              Still a Word Cloud!
+ [% INCLUDE 'zoe_website_template/sentences_and_subsets.tt2' %]
+ </td>   
+         
+        </tr>
+[% END %]
+
+<tr><td>
+[% IF primary %]
+<br/><br/>
+[% END %]
+
+<div class = "dotcontainer">
+[% IF ! primary %]
+<br/><br/><br/>
 [% END %]
 </div>
-            <div id="CMcontentarea" style="display:none;">
-
-[% IF coverage_map_chart_url %]
-<div id="openheatmap_container"></div>
-<!-- <img src="[%- coverage_map_chart_url | html -%]" alt="Coverage Map" /> -->
-[% ELSIF coverage_map_chart_url_1 && coverage_map_chart_url_2 %]
-<table>
-<tr>
-<td>
-Set 1 coverage
-</td>
-<td>
-Set 2 coverage
-</td>
-</tr>
-<tr>
-<td>
-<img src="[%- coverage_map_chart_url_1 | html -%]" alt="Coverage Map" />
-</td>
-<td>
-<img src="[%- coverage_map_chart_url_2 | html -%]" alt="Coverage Map" />
-</td>
-</tr>
-</table>
-[% ELSE %]
-This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
-[% END %]
- </div></td>
+[% IF primary %]
+            <br/>
+            <div id = "bottomContainer">
+              <div id = "popular"> <strong>About Media Cloud</strong><br />
+              Media Cloud is an open source, open data platform that allows
+              researchers to answer quantitative questions about the content
+              of online media. Using Media Cloud, researchers, journalism
+              critics and interested citizens can examine what media sources cover
+              which stories, what language different media outlets use in
+              conjunction with different stories, and how stories spread
+              from one media outlet to another.
+              </div>
+              <div id = "report"><strong>This week's report</strong><br />
+                <a href="http://www.mediacloud.org/blog">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
+              </div>
+              <div id = "news"><strong>News</strong><br />
+	        <div id = "news_items">
+                Have there been recent updates and changes?  I bet there are some!
+                  <br />
+                <br />
+                  At the very least, here's the most recent headline!!!  And link to the blog!
+		</div>
+              </div>
+            </div>
+            
+            <!--This is where the content ends!--></td>
         </tr>
-      </table>
-[% INCLUDE 'zoe_website_template/sentences_and_subsets.tt2' %]
-      <!--This is where the content ends!--></td>
+        <tr>
+          <td align="center"><div class = "dotcontainer"></div>
+            <br/>
+[% END %]
+[% IF !primary %]
+
+<br/><br/>
+[% END %]
+</td></tr>
+      </table></td>
+    <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
+    <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
   </tr>
+<ul style="visibility: hidden; display: none" id="hidden_media_list">
+[% FOREACH medium IN media %]
+   <li>[% medium.name | html %]</li>
+[% END %]
+</ul>
+[%  # We no longer need compare_media_setss as a parameter but the js is set up to query it's value we're adding it in a hidden form for the JS to use. %]
+<form method="get">
+      <input  id="compare_media_sets"
+[% IF queries.1 %]
+      value="true" 
+[% ELSE %]
+      value="false" 
+[% END %] 
+type="hidden"/>
+</form>
 [% INCLUDE 'zoe_website_template/html_footer.tt2' %]
+
