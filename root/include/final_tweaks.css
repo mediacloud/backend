@@ -31,3 +31,7 @@ a.navigation:hover
 #query_results_content_table {
     background-color: #DFF0FF
 }
+
+.coverage_map_header{
+    padding-left: 12px;
+ }
