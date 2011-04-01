@@ -520,7 +520,7 @@ sub _get_stories_from_sentences
     my $stories_ids_list = MediaWords::Util::SQL::get_ids_in_list( [ keys( %{ $stories_ids_hash } ) ] );
 
     my $stories =
-      $db->query( "select * from stories where stories_id in ( $stories_ids_list ) " . "  order by publish_date" )->hashes;
+      $db->query( "select * from stories where stories_id in ( $stories_ids_list ) " . "  order by publish_date, stories_id" )->hashes;
 
     my $stories_hash;
     map { $stories_hash->{ $_->{ stories_id } } = $_ } @{ $stories };
