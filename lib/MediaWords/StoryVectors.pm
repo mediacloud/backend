@@ -801,6 +801,8 @@ sub _date_is_sunday
     return !( localtime( Date::Parse::str2time( $date ) ) )[ 6 ];
 }
 
+my $_update_author_words = 0;
+
 # update daily_words, weekly_words, and top_500_weekly_words tables for all included dates
 # for which daily_words data does not already exist
 #
@@ -827,7 +829,9 @@ sub update_aggregate_words
             $update_weekly = 1;
         }
 
-        _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+	if ($_update_author_words) {
+	  _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+	}
 
         # update weeklies either if there was a daily update for the week and if we are at the end of the date range
         # or the end of a week
@@ -836,15 +840,20 @@ sub update_aggregate_words
             _update_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
 
+	
+	    if ($_update_author_words) {
             _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+	  }
             $update_weekly = 0;
         }
 
         if ( ( ( $date eq $end_date ) || _date_is_sunday( $date ) ) )
         {
+	  if ( $_update_author_words) {
             _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+	  }
         }
         $db->commit();
 
