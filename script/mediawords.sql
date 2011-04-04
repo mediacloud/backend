@@ -725,7 +725,7 @@ create table total_daily_author_words (
 );
 
 create index total_daily_author_words_authors_id_media_sets_id on total_daily_author_words (authors_id, media_sets_id);
-create index total_daily_author_words_authors_id_media_sets_id_publish_day on total_daily_author_words (authors_id, media_sets_id,publish_day);
+create unique index total_daily_author_words_authors_id_media_sets_id_publish_day on total_daily_author_words (authors_id, media_sets_id,publish_day);
 
 create table weekly_author_words (
        weekly_author_words_id       serial          primary key,
@@ -751,6 +751,7 @@ create table top_500_weekly_author_words (
 );
 
 create index top_500_weekly_author_words_media on top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
+create index top_500_weekly_author_words_authors on top_500_weekly_author_words(authors_id, publish_week, media_sets_id);
     
 create table total_top_500_weekly_author_words (
        total_top_500_words_id       serial          primary key,
@@ -761,19 +762,22 @@ create table total_top_500_weekly_author_words (
        
 );
 
-create index total_top_500_weekly_author_words_media 
+create UNIQUE index total_top_500_weekly_author_words_media 
     on total_top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
+create UNIQUE index total_top_500_weekly_author_words_authors 
+    on total_top_500_weekly_author_words(authors_id, publish_week, media_sets_id);
 
 CREATE TABLE popular_queries (
     popular_queries_id  serial          primary key,
+    queries_id_0 integer NOT NULL,
+    queries_id_1 integer,
     query_0_description character varying(1024) NOT NULL,
     query_1_description character varying(1024),
-    queries_id_0 integer,
-    queries_id_1 integer,
     dashboard_action character varying(1024),
     url_params character varying(1024),
     count integer DEFAULT 0
 );
 
 CREATE UNIQUE INDEX popular_queries_da_up ON popular_queries(dashboard_action, url_params);
+CREATE UNIQUE INDEX popular_queries_query_ids ON popular_queries( queries_id_0,  queries_id_1);
 
