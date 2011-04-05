@@ -235,13 +235,15 @@
 	//var current_url = window.location.href;
 	//var query_url = current_url + "&term=" + $this.text();
 
-	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
+	var data_query_url = $this.find('span');
+
+	var query_string = jQuery.url.setUrl(data_query_url.attr('data-query-url')).attr('query');
 
 	$this.data( 'original_query_string', query_string);
 
 	var new_url = window.location.protocol + '//' + window.location.host + window.location.pathname + new_query;
 
-	$this.attr('href', new_url);
+	//$this.attr('href', new_url);
 	
 	$this.click(function(e) {
 	e.preventDefault();
