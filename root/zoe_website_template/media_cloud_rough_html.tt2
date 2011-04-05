@@ -240,22 +240,6 @@
 	var query_string = jQuery.url.setUrl(data_query_url.attr('data-query-url')).attr('query');
 
 	$this.data( 'original_query_string', query_string);
-
-	//var new_url = window.location.protocol + '//' + window.location.host + window.location.pathname + new_query;
-
-	//$this.attr('href', new_url);
-	
-	//$this.click(function(e) {
-	//e.preventDefault();
-	//var $this = $(this);
-	//var loc = $(location);
-	//loc.attr('href', new_url);
-	//alert('redirecting to ' + new_url );
-	//window.location.href = new_url;
-	//alert('redirecting');
-	//});
-	  
-	//  $this.attr('href', new_url);
 	});  
 
 	//alert(' [%word_cloud_term %] ');
