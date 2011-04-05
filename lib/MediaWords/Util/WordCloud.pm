@@ -27,27 +27,33 @@ sub get_word_cloud
 
     if ( @{ $words } > NUM_WORD_CLOUD_WORDS )
     {
-        $words = [ @{ $words }[ 0 .. (NUM_WORD_CLOUD_WORDS - 1) ] ];
+        $words = [ @{ $words }[ 0 .. ( NUM_WORD_CLOUD_WORDS - 1 ) ] ];
     }
 
     my $cloud = HTML::TagCloud->new;
 
     for my $word ( @{ $words } )
     {
-       	my $params = $c->req->parameters;
+        my $params = $c->req->parameters;
 
-	$params->{term} = $word->{ term };
+        $params->{ term } = $word->{ term };
 
-	my $url = $c->uri_for($c->action , @{$c->req->arguments}, $params);
+        my $url = $c->uri_for( $c->action, @{ $c->req->arguments }, $params );
 
-	$url =~ s/&/&amp;/g;
+        $url =~ s/&/&amp;/g;
 
-	$url = _get_uri_for_word_cloud_word($c, $word);
-	my $query_url = $c->uri_for( $base_url, { 
-            queries_ids => $query->{ queries_id }, authors_id => $query->{ authors_id }, 
-            stem => $word->{ stem }, term => $word->{ term } } );
+        $url = _get_uri_for_word_cloud_word( $c, $word );
+        my $query_url = $c->uri_for(
+            $base_url,
+            {
+                queries_ids => $query->{ queries_id },
+                authors_id  => $query->{ authors_id },
+                stem        => $word->{ stem },
+                term        => $word->{ term }
+            }
+        );
 
-	$query_url =~ s/&/&amp;/g;
+        $query_url =~ s/&/&amp;/g;
 
         if ( $word->{ stem_count } == 0 )
         {
@@ -55,7 +61,8 @@ sub get_word_cloud
         }
         else
         {
-            $cloud->add( "<span data-query-url='$query_url'>" . $word->{ term } . '</span>', $url, $word->{ stem_count } * 100000 );
+            $cloud->add( "<span data-query-url='$query_url'>" . $word->{ term } . '</span>',
+                $url, $word->{ stem_count } * 100000 );
         }
     }
 
@@ -63,43 +70,41 @@ sub get_word_cloud
 
     my $html = $cloud->html;
 
-    #<span class="tagcloud24"><a onclick="this.style.color='red '; return false;"
-    if ( $c->req->param( 'highlight_mode' ) )
-    {
-        $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
-    }
-
     return $html;
 }
 
 sub _get_uri_for_word_cloud_word
 {
-        my ($c, $word) = @_;
-       	my $params = $c->req->parameters;
+    my ( $c, $word ) = @_;
+    my $params = $c->req->parameters;
 
-	$params->{term} = $word->{ term };
+    $params->{ term } = $word->{ term };
 
-	my $url = $c->uri_for($c->action , @{$c->req->arguments}, $params);
+    my $url = $c->uri_for( $c->action, @{ $c->req->arguments }, $params );
 
-	$url =~ s/&/&amp;/g;
-	return  $url;
+    $url =~ s/&/&amp;/g;
+    return $url;
 }
 
 sub _get_set_for_word
 {
     my ( $words_1_hash, $words_2_hash, $word ) = @_;
 
-    my $rank_1 = defined( $words_1_hash->{ $word }->{ rank } ) ? $words_1_hash->{ $word }->{ rank } : NUM_WORD_CLOUD_WORDS + 1;
-    my $rank_2 = defined( $words_2_hash->{ $word }->{ rank } ) ? $words_2_hash->{ $word }->{ rank } : NUM_WORD_CLOUD_WORDS + 1;
+    my $rank_1 =
+      defined( $words_1_hash->{ $word }->{ rank } ) ? $words_1_hash->{ $word }->{ rank } : NUM_WORD_CLOUD_WORDS + 1;
+    my $rank_2 =
+      defined( $words_2_hash->{ $word }->{ rank } ) ? $words_2_hash->{ $word }->{ rank } : NUM_WORD_CLOUD_WORDS + 1;
 
     if ( abs( $rank_1 - $rank_2 ) < WORD_RANK_SIGNIFICANT_DIFFERENCE )
     {
         return "both";
     }
-    elsif ( $rank_1 < $rank_2 ) {
+    elsif ( $rank_1 < $rank_2 )
+    {
         return "list_1";
-    } 
-    else {
+    }
+    else
+    {
         return "list_2";
     }
 }
@@ -107,7 +112,7 @@ sub _get_set_for_word
 # sub _get_set_for_word
 # {
 #     my ( $words_1_hash, $words_2_hash, $word ) = @_;
-# 
+#
 #     if ( defined( $words_1_hash->{ $word } ) && defined( $words_2_hash->{ $word } ) )
 #     {
 #         return "both";
@@ -160,12 +165,12 @@ sub _get_merged_word_count
     return $ret;
 }
 
-# return true if the rank of the word in either hash is less than 
+# return true if the rank of the word in either hash is less than
 # the specified rank
 sub word_rank_less_than
 {
     my ( $word, $words_1_hash, $words_2_hash, $max_rank ) = @_;
-    
+
     return 1 if ( $words_1_hash->{ $word } && ( $words_1_hash->{ $word }->{ rank } < $max_rank ) );
 
     return 1 if ( $words_2_hash->{ $word } && ( $words_2_hash->{ $word }->{ rank } < $max_rank ) );
@@ -174,7 +179,7 @@ sub word_rank_less_than
 }
 
 # get a word cloud for two different lists of words and queries, coloring
-# words that appear in one blue, the other red, and both purple 
+# words that appear in one blue, the other red, and both purple
 sub get_multi_set_word_cloud
 {
     my ( $c, $base_url, $words, $queries ) = @_;
@@ -189,7 +194,7 @@ sub get_multi_set_word_cloud
 
     my $words_1_hash = { map { $_->{ stem } => $_ } @{ $words->[ 0 ] } };
     my $words_2_hash = { map { $_->{ stem } => $_ } @{ $words->[ 1 ] } };
-    
+
     my $all_words_hash = { %{ $words_1_hash }, %{ $words_2_hash } };
     my @all_words = keys( %{ $all_words_hash } );
 
@@ -198,69 +203,69 @@ sub get_multi_set_word_cloud
     for my $word ( @all_words )
     {
         next if ( !word_rank_less_than( $word, $words_1_hash, $words_2_hash, $max_words ) );
-        
+
         my $word_record = _get_merged_word_count( $words_1_hash, $words_2_hash, $word );
         my $set = _get_set_for_word( $words_1_hash, $words_2_hash, $word );
-        
+
         say STDERR "WORD: " . Dumper( $word, $words_1_hash->{ $word }, $words_2_hash->{ $word } );
         say STDERR "SET: $set\n";
 
         my $queries_ids = [ map { $_->{ queries_id } } @{ $queries } ];
 
-	my $url = _get_uri_for_word_cloud_word($c, $word_record);
+        my $url = _get_uri_for_word_cloud_word( $c, $word_record );
 
-	#say STDERR $url;
+        #say STDERR $url;
 
-        my $query_url = $c->uri_for( $base_url, 
+        my $query_url =
+          $c->uri_for( $base_url,
             { queries_ids => $queries_ids, stem => $word_record->{ stem }, term => $word_record->{ term }, set => $set } );
-	
-	$query_url =~ s/&/&amp;/g;
 
-	my $word_cloud_list_class;
+        $query_url =~ s/&/&amp;/g;
 
-	given( $set )
-	{
+        my $word_cloud_list_class;
 
-        when 'list_1' { $word_cloud_list_class = "word_cloud_list1"; }
-        when 'list_2' { $word_cloud_list_class = "word_cloud_list2"; }
-        when 'both' { $word_cloud_list_class = "word_cloud_both_lists"; }
-        default
+        given ( $set )
         {
-            die "Invalid case '$set'";
 
+            when 'list_1' { $word_cloud_list_class = "word_cloud_list1"; }
+            when 'list_2' { $word_cloud_list_class = "word_cloud_list2"; }
+            when 'both'   { $word_cloud_list_class = "word_cloud_both_lists"; }
+            default
+            {
+                die "Invalid case '$set'";
+
+            }
         }
-      }
 
-        $cloud->add( "<span data-word='$word_record->{term}' class='$word_cloud_list_class' data-query-url='$query_url'>" . $word_record->{ term } . '</span>', $url, $word_record->{ stem_count } * 100000 );
+        $cloud->add(
+            "<span data-word='$word_record->{term}' class='$word_cloud_list_class' data-query-url='$query_url'>" .
+              $word_record->{ term } . '</span>',
+            $url,
+            $word_record->{ stem_count } * 100000
+        );
     }
-    
+
     $c->keep_flash( ( 'translate' ) );
 
     my $html = $cloud->html;
-
-    if ( $c->req->param( 'highlight_mode' ) )
-    {
-        $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
-    }
 
     return $html;
 }
 
 # return true if the lists contain the integers
-sub _list_equals 
+sub _list_equals
 {
     my ( $a, $b ) = @_;
-    
+
     return 0 if ( ( @{ $a } && !@{ $b } ) || ( !@{ $a } && @{ $b } ) || !( @{ $a } == @{ $b } ) );
-    
+
     $a = [ sort( @{ $a } ) ];
     $b = [ sort( @{ $b } ) ];
-    
+
     map { return 0 if ( $a->[ $_ ] != $b->[ $_ ] ) } ( 0 .. $#{ $a } );
 
     return 1;
 }
-    
 
 # Add a { label } field to each query describing the query in relation to
 # the other query.  If the queries differ across only one of date, media_set, or topic,
@@ -268,27 +273,27 @@ sub _list_equals
 sub add_query_labels
 {
     my ( $db, $q1, $q2 ) = @_;
-    
+
     my $same_dates = ( $q1->{ start_date } eq $q2->{ start_date } ) && ( $q1->{ end_date } eq $q2->{ end_date } );
-    my $same_media_sets = _list_equals( $q1->{ media_sets_ids }, $q2->{ media_sets_ids } );
+    my $same_media_sets       = _list_equals( $q1->{ media_sets_ids },       $q2->{ media_sets_ids } );
     my $same_dashboard_topics = _list_equals( $q1->{ dashboard_topics_ids }, $q2->{ dashboard_topics_ids } );
-    
+
     if ( !$same_dates && $same_media_sets && $same_dashboard_topics )
     {
         for my $q ( $q1, $q2 )
         {
             $q->{ label } = 'week starting ' . $q->{ start_date };
-	    if ( $q->{ start_date } ne $q->{ end_date } ) 
-	    {
-	       $q->{ label } .= ' through week starting ' . $q->{ end_date };
-	    }
+            if ( $q->{ start_date } ne $q->{ end_date } )
+            {
+                $q->{ label } .= ' through week starting ' . $q->{ end_date };
+            }
         }
     }
     elsif ( $same_dates && !$same_media_sets && $same_dashboard_topics )
     {
         for my $q ( $q1, $q2 )
         {
-            $q->{ label }  = join( " or ", map { $_->{ name } } @{ $q->{ media_sets } } );
+            $q->{ label } = join( " or ", map { $_->{ name } } @{ $q->{ media_sets } } );
         }
     }
     elsif ( $same_dates && $same_media_sets && !$same_dashboard_topics )
@@ -299,12 +304,14 @@ sub add_query_labels
             {
                 $q->{ label } = 'All Stories';
             }
-            else {
-                $q->{ label }  = join( " or ", map { $_->{ name } } @{ $q->{ dashboard_topics } } );
+            else
+            {
+                $q->{ label } = join( " or ", map { $_->{ name } } @{ $q->{ dashboard_topics } } );
             }
         }
     }
-    else {
+    else
+    {
         map { $_->{ label } = $_->{ description } } ( $q1, $q2 );
     }
 }
