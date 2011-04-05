@@ -11,7 +11,7 @@ use MediaWords::Cluster::Map;
 use MediaWords::DBI::Queries;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Timing qw( start_time stop_time );
-use MediaWords::Util::WordCloud;
+use MediaWords::Util::WordCloud_Legacy;
 
 use Data::Dumper;
 use Perl6::Say;
@@ -101,7 +101,7 @@ sub view : Local
         map { $_->{ query } = _get_media_query( $c->dbis, $cluster_run_query, [ $_ ] ) }@{ $mc->{ media } };
         
         my $base_url = "/queries/sentences/$mc->{ query }->{ queries_id }";
-        $mc->{ word_cloud } = MediaWords::Util::WordCloud::get_word_cloud( $c, $base_url, $cluster_words, $mc->{ query } );
+        $mc->{ word_cloud } = MediaWords::Util::WordCloud_Legacy::get_word_cloud( $c, $base_url, $cluster_words, $mc->{ query } );
     }
 
     $cluster_run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $cluster_run->{ tags_id } );
