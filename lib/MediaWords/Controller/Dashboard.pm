@@ -686,7 +686,7 @@ sub _get_word_cloud
 {
     my ( $self, $c, $dashboard, $words, $query ) = @_;
 
-    my $base_url = "/dashboard/sentences/$dashboard->{ dashboards_id }";
+    my $base_url = "";
 
     my $word_cloud = MediaWords::Util::WordCloud::get_word_cloud( $c, $base_url, $words, $query );
 
