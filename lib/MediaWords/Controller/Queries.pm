@@ -128,7 +128,7 @@ sub _get_topic_chart_url
         "    and $date_clause ".
         "    and ms.media_sets_id = topic_words.media_sets_id " .
         "  group by topic_words.publish_day, dt.dashboard_topics_id $media_set_group" )->arrays ];
-        
+
     return MediaWords::Util::Chart::generate_line_chart_url_from_dates( $date_term_counts, $query->{ start_date }, $query->{ end_date } );
 }
 
@@ -145,7 +145,7 @@ sub view : Local
     
     my $dashboard = $c->dbis->query( "select * from dashboards where dashboards_id = 1" )->hash;
         
-    my $word_cloud = MediaWords::Util::WordCloud::get_word_cloud( $c, '/queries/sentences', $words, $query );  
+    my $word_cloud = MediaWords::Util::WordCloud_Legacy::get_word_cloud( $c, '/queries/sentences', $words, $query );  
     
     my $sentences_form = $c->create_form( {
         load_config_file => $c->path_to() . '/root/forms/term.yml',
@@ -298,10 +298,10 @@ sub compare : Local
     my $words_a = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query_a );
     my $words_b = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query_b );
     
-    my $word_cloud = MediaWords::Util::WordCloud::get_multi_set_word_cloud( 
+    my $word_cloud = MediaWords::Util::WordCloud_Legacy::get_multi_set_word_cloud( 
         $c, '/queries/sentences', [ $words_a, $words_b ], [ $query_a, $query_b ] );
 
-    MediaWords::Util::WordCloud::add_query_labels( $c->dbis, $query_a, $query_b );
+    MediaWords::Util::WordCloud_Legacy::add_query_labels( $c->dbis, $query_a, $query_b );
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, [ $query_a, $query_b ] );
     
     $c->stash->{ word_cloud } = $word_cloud;
