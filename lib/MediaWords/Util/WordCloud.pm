@@ -34,19 +34,28 @@ sub get_word_cloud
 
     for my $word ( @{ $words } )
     {
+       	my $params = $c->req->parameters;
 
-        my $url = $c->uri_for( $base_url, { 
+	$params->{term} = $word->{ term };
+
+	my $url = $c->uri_for($c->action , @{$c->req->arguments}, $params);
+
+	$url =~ s/&/&amp;/g;
+
+	$url = _get_uri_for_word_cloud_word($c, $word);
+	my $query_url = $c->uri_for( $base_url, { 
             queries_ids => $query->{ queries_id }, authors_id => $query->{ authors_id }, 
             stem => $word->{ stem }, term => $word->{ term } } );
 
-	$url =~ s/&/&amp;/g;
+	$query_url =~ s/&/&amp;/g;
+
         if ( $word->{ stem_count } == 0 )
         {
             warn "0 stem count for word:" . Dumper( $word );
         }
         else
         {
-            $cloud->add( $word->{ term }, $url, $word->{ stem_count } * 100000 );
+            $cloud->add( "<span data-query-url='$query_url'>" . $word->{ term } . '</span>', $url, $word->{ stem_count } * 100000 );
         }
     }
 
@@ -61,6 +70,19 @@ sub get_word_cloud
     }
 
     return $html;
+}
+
+sub _get_uri_for_word_cloud_word
+{
+        my ($c, $word) = @_;
+       	my $params = $c->req->parameters;
+
+	$params->{term} = $word->{ term };
+
+	my $url = $c->uri_for($c->action , @{$c->req->arguments}, $params);
+
+	$url =~ s/&/&amp;/g;
+	return  $url;
 }
 
 sub _get_set_for_word
@@ -184,20 +206,37 @@ sub get_multi_set_word_cloud
         say STDERR "SET: $set\n";
 
         my $queries_ids = [ map { $_->{ queries_id } } @{ $queries } ];
-        my $url = $c->uri_for( $base_url, 
+
+	my $url = _get_uri_for_word_cloud_word($c, $word_record);
+
+	#say STDERR $url;
+
+        my $query_url = $c->uri_for( $base_url, 
             { queries_ids => $queries_ids, stem => $word_record->{ stem }, term => $word_record->{ term }, set => $set } );
-            
-        $cloud->add( $word_record->{ term }, $url, $word_record->{ stem_count } * 100000 );
+	
+	$query_url =~ s/&/&amp;/g;
+
+	my $word_cloud_list_class;
+
+	given( $set )
+	{
+
+        when 'list_1' { $word_cloud_list_class = "word_cloud_list1"; }
+        when 'list_2' { $word_cloud_list_class = "word_cloud_list2"; }
+        when 'both' { $word_cloud_list_class = "word_cloud_both_lists"; }
+        default
+        {
+            die "Invalid case '$set'";
+
+        }
+      }
+
+        $cloud->add( "<span data-word='$word_record->{term}' class='$word_cloud_list_class' data-query-url='$query_url'>" . $word_record->{ term } . '</span>', $url, $word_record->{ stem_count } * 100000 );
     }
     
     $c->keep_flash( ( 'translate' ) );
 
     my $html = $cloud->html;
-
-    #<span class="tagcloud24"><a onclick="this.style.color='red '; return false;"
-    $html =~ s/<a href="([^"]*set=list_2[^"]*)">/<a href="$1" class="word_cloud_list2">/g;
-    $html =~ s/<a href="([^"]*set=list_1[^"]*)">/<a href="$1" class="word_cloud_list1">/g;
-    $html =~ s/<a href="([^"]*set=both[^"]*)">/<a href="$1" class="word_cloud_both_lists">/g;
 
     if ( $c->req->param( 'highlight_mode' ) )
     {
