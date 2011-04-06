@@ -265,35 +265,32 @@
 
 	var wc_embed_info = $('<span id="wc_embed_info">').append(embed_info_toggle).append('<span id="wc_embed_info_text"/>');
 
-	embed_info_toggle.click(function(){ 
-	 var $this = $(this); 
-	 var current_url = window.location.href;
-	 var iframe_url = current_url + "&wconly=1";
+	embed_info_toggle.click(function () {
+	    var $this = $(this);
+	    var current_url = window.location.href;
+	    var iframe_url = current_url + "&wconly=1";
 
-	 var message = "  Paste this html to embed in a website:  ";
+	    var message = "  Paste this html to embed in a website:  ";
 
-	 var html = '<iframe src="' + iframe_url + '"' + 'cellspacing="0" border="0" name="word_cloud" scrolling="no" frameborder="0" ' + ' width=665 height=480 style="border-style: none; width: 665px;"/>';
+	    var html = '<iframe src="' + iframe_url + '"' + 'cellspacing="0" border="0" name="word_cloud" scrolling="no" frameborder="0" ' + ' width=665 height=480 style="border-style: none; width: 665px;"/>';
 
-	 $('#wc_embed_info_text').children().remove();
+	    $('#wc_embed_info_text').children().remove();
 
-	  $('#wc_embed_info_text').text(message);
-	  $('#wc_embed_info_text').append($('<input type="text"/>').val(html));
+	    $('#wc_embed_info_text').text(message);
+	    $('#wc_embed_info_text').append($('<input type="text"/>').val(html));
 
-	  embed_info_toggle.data('open',  ! embed_info_toggle.data('open') );
+	    embed_info_toggle.data('open', !embed_info_toggle.data('open'));
 
-	  if (embed_info_toggle.data('open') )
-	  {
-	     $('#wc_embed_info_text').show();
-	     embed_info_toggle.text('<<');
-	  }
-	  else
- 	  {
-	     $('#wc_embed_info_text').hide();
-	     embed_info_toggle.text('Embed >>');
-	  }
+	    if (embed_info_toggle.data('open')) {
+		$('#wc_embed_info_text').show();
+		embed_info_toggle.text('<<');
+	    } else {
+		$('#wc_embed_info_text').hide();
+		embed_info_toggle.text('Embed >>');
+	    }
 	});
 
-	 wc_embed_info.appendTo($('#WCcontentarea'));
+	wc_embed_info.appendTo($('#WCcontentarea'));
 
 	$('#CMcontentarea iframe').iframeAutoHeight();
 	$('#CMcontentarea iframe').load(function() {
