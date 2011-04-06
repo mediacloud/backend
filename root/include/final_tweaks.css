@@ -35,3 +35,7 @@ a.navigation:hover
 .coverage_map_header{
     padding-left: 12px;
  }
+
+#embed_toggle {
+color: #4092de;
+}
