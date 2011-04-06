@@ -81,13 +81,6 @@
 
 	[% END %]
 
-	[% IF queries.0 %]
-	page_count_increment();
-	[% END %]
-
-        $('#submit').
-	  click(function() { $('#media_query_form').submit(); } ) ;
-
 	function resize_media_container(mediacontainer, mediaTime, mediaArea, mediaSource, mediaSourceSelect)
 	{
   	    var mediacontainer_width = mediacontainer.width();
@@ -113,12 +106,6 @@
 	   var max_source_select_width = mediaSource.width() -  ( source_table_tds.eq(0).outerWidth() +   source_table_tds.eq(1).outerWidth() ) - 10; 
 	   mediaSourceSelect.width(max_source_select_width);
 	}
-
-	resize_media_container($('#mediacontainer1'), $('#mediaTime1'), $('#mediaArea1'), $('#mediaSource1'), $('#mediaSource1 select') );
-	resize_media_container($('#mediacontainer2'), $('#mediaTime2'), $('#mediaArea2'), $('#mediaSource2'), $('#mediaSource2 select') );
-
-        DisplayDIV('mediacontainer2');
-
 	var popular_queries_list = $('#popular_queries_list');
 
 	if ( popular_queries_list )
@@ -211,9 +198,6 @@
 	}
 
 	[% IF word_cloud %]
-	//$('#sentence_frame').iframeAutoHeight();
-  
-        //$('#sentence_frame').iframeResize( { autoUpdate: true });
 
 	var flag = true;
 
@@ -256,13 +240,6 @@
 	[% ELSE %]
 
         [% END %]
-
-	$('#CMcontentarea iframe').iframeAutoHeight();
-	$('#CMcontentarea iframe').load(function() {
-	    //Set the iframe to have whatever color it would have inherited from the parent.
-           var parent_bg_color = $('#CMcontentarea iframe').css('background-color');
-	   $('#CMcontentarea iframe').contents().find('body').css('background-color', parent_bg_color);
-	});
 
         [% END %]
 
