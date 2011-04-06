@@ -17,6 +17,8 @@
 
 	var flag = true;
 
+	$('#htmltagcloud a').attr('target','_blank');
+
 	$('#htmltagcloud a').each(function(idx, word_link)
 	{
 	var $this = $(this);
