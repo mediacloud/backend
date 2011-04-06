@@ -291,19 +291,9 @@
 	     $('#wc_embed_info_text').hide();
 	     embed_info_toggle.text('Embed >>');
 	  }
-
-	// $('#wc_embed_message').text(message);
-	// $('#wc_embed_message').append($('<input type="text"/>').val(html));
-
-			// alert(message);
 	});
 
-	
 	 wc_embed_info.appendTo($('#WCcontentarea'));
-
-	//.appendTo($('#WCcontentarea'));
-
-	//$('<div id="wc_embed_message">').appendTo($('#WCcontentarea'));
 
 	$('#CMcontentarea iframe').iframeAutoHeight();
 	$('#CMcontentarea iframe').load(function() {
