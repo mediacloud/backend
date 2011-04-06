@@ -849,6 +849,10 @@ sub view : Local
     {
        $c->stash->{ template } = 'zoe_website_template/coverage_map_only.tt2';
     }
+    elsif ( $c->req->param( 'wconly') ) 
+    {
+       $c->stash->{ template } = 'zoe_website_template/word_cloud_only.tt2';
+    }
     else
     {
        $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
