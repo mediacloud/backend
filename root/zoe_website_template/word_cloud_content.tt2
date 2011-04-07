@@ -1,6 +1,6 @@
 <div id="WCcontentarea">
 <div class="smaller" align="right"><i>Click on a word to see sentences.</i>
-<a href="[% c.uri_for( '/dashboard/faq/' _ dashboard.dashboards_id _ '#word_cloud' ) %]" target="_blank">What does this word cloud mean?</a>
+<a href="[% c.uri_for( '/dashboard/faq/' _ dashboard.dashboards_id _ '#word_cloud' ) %]" target="mc_help">What does this word cloud mean?</a>
 <br/>
 <br/>
 </div>
