@@ -8,6 +8,7 @@
  <script type="text/javascript"  src="[% c.uri_for('/include/jquery.iframe-auto-height.plugin_msie_workaround.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/treeview/jquery.treeview.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.iframe.resizer.js') %]"></script> 
+ <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.ba-bbq.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.query-2.1.7.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/scrollTo/jquery.scrollTo.js') %]"></script> 
  <link rel="stylesheet" href="[% c.uri_for('/include/libs/treeview/jquery.treeview.css') %]" /> 
