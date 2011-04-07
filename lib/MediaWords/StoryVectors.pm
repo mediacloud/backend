@@ -541,7 +541,7 @@ sub _update_daily_words
               "              where term_rank = 1 and sum_stem_counts > 1 " );
     }
 
-    my $dashboard_topics = $db->query( "select * from dashboard_topics where 1=1 $dashboard_topic_clause" )->hashes;
+    my $dashboard_topics = $db->query( "select * from dashboard_topics where 1=1 and $dashboard_topic_clause" )->hashes;
 
     for my $dashboard_topic ( @{ $dashboard_topics } )
     {
