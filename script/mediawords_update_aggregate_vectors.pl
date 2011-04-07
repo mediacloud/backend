@@ -66,8 +66,8 @@ sub run_daemon
 
     while ( 1 )
     {
-        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '12 hours' )" )->flat;
-        my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )" )->flat;
+        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '12 hours' )::date" )->flat;
+        my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )::date" )->flat;
         ( $yesterday, $one_month_ago ) = map { substr( $_, 0, 10 ) } ( $yesterday, $one_month_ago );
 
         MediaWords::StoryVectors::update_aggregate_words( $db, $one_month_ago, $yesterday );
