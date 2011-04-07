@@ -23,6 +23,16 @@
 	{
 	var $this = $(this);
 
+	var url = $this.attr('href');
+
+	var params = $.deparam.querystring(url);
+
+	delete params['wconly'];
+
+	var new_url = $.param.querystring(url, params, 2);
+
+	$this.attr('href', new_url);
+
 	if ($this.data('url_altered'))	
 	{
 	  return true;
