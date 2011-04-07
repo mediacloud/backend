@@ -95,7 +95,7 @@ sub main
     }
     else
     {
-        say "$author";
+        say "found author: '$author'";
     }
 }
 
