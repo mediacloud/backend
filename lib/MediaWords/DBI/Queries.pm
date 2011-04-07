@@ -11,7 +11,7 @@ use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
 
 # max number of sentences to return in various get_*_stories_with_sentences functions
-use constant MAX_QUERY_SENTENCES => 500;
+use constant MAX_QUERY_SENTENCES => 1000;
 
 # get a text description for the query based on the media sets, dashboard topics, and dates.
 # this is internal b/c it is set by find_query_by_id and so accessible as $query->{ description }
@@ -427,6 +427,13 @@ sub get_top_500_weekly_words
     # the query below sum()s the stem for all media_sets
     my $stem_count_factor = @{ $query->{ media_sets_ids } };
 
+    print STDERR "select w.stem, min( w.term ) as term, " .
+      "    sum( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float as stem_count " .
+      "  from top_500_weekly_words w, total_top_500_weekly_words tw " .
+      "  where w.media_sets_id in ( $media_sets_ids_list )  and " .
+      "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and $date_clause and " .
+      "    $dashboard_topics_clause and coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
+      "  group by w.stem order by sum( w.stem_count::float / tw.total_count::float )::float desc " . "  limit 500\n";
     my $words = $db->query(
         "select w.stem, min( w.term ) as term, " .
           "    sum( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float as stem_count " .
@@ -807,7 +814,7 @@ sub get_term_counts
     {
         $d->[ 1 ] = $term_lookup->{ $d->[ 1 ] };
     }
-
+    print STDERR Dumper( $date_term_counts );
     return $date_term_counts;
 }
 
