@@ -79,6 +79,11 @@ sub run_daemon
             my ( $start_date, $end_date ) = get_media_set_date_range( $db, $media_set );
             if ( $start_date && $end_date )
             {
+                if ( $end_date gt $yesterday ) 
+                {
+                    $end_date = $yesterday;
+                }
+            
                 print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
                 MediaWords::StoryVectors::update_aggregate_words( 
                     $db, $start_date, $end_date, 0, undef, $media_set->{ media_sets_id } ); 
@@ -93,11 +98,11 @@ sub run_daemon
 
             my ( $start_date, $end_date ) = map { substr( $_, 0, 10 ) } 
                 ( $dashboard_topic->{ start_date } , $dashboard_topic->{ end_date } );
-            if ( $end_date gt $yesterday ) 
-            {
-                $end_date = $yesterday;
-            }
-            
+                if ( $end_date gt $yesterday ) 
+                {
+                    $end_date = $yesterday;
+                }
+
             MediaWords::StoryVectors::update_aggregate_words(
                 $db, $start_date, $end_date, 1, $dashboard_topic->{ dashboard_topics_id } );
 
