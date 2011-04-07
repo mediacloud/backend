@@ -103,8 +103,11 @@ sub _redirect_to_default_page
     }
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    my $date = maxstr( grep { $_ le $max_date } @{ $self->_get_dashboard_dates( $c, $dashboard ) } )
-      || die( "no valid date found" );
+    my $dashboard_dates =  $self->_get_dashboard_dates( $c, $dashboard );
+    
+    my $date = maxstr( grep { $_ le $max_date } @{ $dashboard_dates } );
+    $date = $dashboard_dates->[ $#{ $dashboard_dates } ] if ( !$date && $dashboard_dates );
+    die( "no valid date found" ) if ( !$date );
 
     my $query =
       MediaWords::DBI::Queries::find_or_create_query_by_params( $c->dbis,
