@@ -129,7 +129,8 @@ sub _get_topic_chart_url
         "    and ms.media_sets_id = topic_words.media_sets_id " .
         "  group by topic_words.publish_day, dt.dashboard_topics_id $media_set_group" )->arrays ];
 
-    return MediaWords::Util::Chart::generate_line_chart_url_from_dates( $date_term_counts, $query->{ start_date }, $query->{ end_date } );
+	my $end_date = MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 );
+    return MediaWords::Util::Chart::generate_line_chart_url_from_dates( $date_term_counts, $query->{ start_date }, $end_date );
 }
 
 # view a single query
@@ -158,7 +159,6 @@ sub view : Local
         method           => 'get',
         action           => $c->uri_for( '/queries/terms/' . $query->{ queries_id } ) } );
         
-    
     my ( $topic_chart_url, $max_topic_term_ratios );
     if ( @{ $query->{ dashboard_topics } } )
     {
@@ -167,6 +167,7 @@ sub view : Local
         $max_topic_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, $topic_terms, 1 );
     }
     
+	say STDERR "load template";
     $c->stash->{ query } = $query;
     $c->stash->{ word_cloud } = $word_cloud;
     $c->stash->{ cluster_runs } = $cluster_runs;
