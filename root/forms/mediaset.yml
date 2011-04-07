@@ -8,7 +8,7 @@ elements:
     constraints:
         - Required
 
-  - type: TextArea
+  - type: Text
     label: Description
     name: description
     comment: short description of media set
