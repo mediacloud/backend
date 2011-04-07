@@ -81,8 +81,18 @@
                 <td><a href="[% c.uri_for('/dashboard/view') %]"><img style="border-width: 0" alt="Media Cloud" src="/include/images/header.jpg" /></a></td>
 	   </tr>
    <tr>
-          <td align="left"><div id = "dotcontainerWide"></div></td>
+          <td align="left" style="padding-left: 0; padding-right: 0;"><div id = "dotcontainerWide"></div></td>
         </tr>
+<tr><td id="mediaheader1">
+<div id="mediaheader1">Words [% queries.0.description %]
+
+[% IF queries.1 %]
+ and  [% queries.1.description %]
+[% END %]
+</div>
+</td>
+</tr>
+
               <tr  style="background-color: #DFF0FF; background: #DFF0FF; width: 665px; height: 333px">
 <td align="left" valign="top" style=" width: 665px; height: 333px">
 [% INCLUDE 'zoe_website_template/word_cloud_content.tt2' %]
