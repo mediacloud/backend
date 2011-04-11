@@ -1,0 +1,216 @@
+=pod
+
+=head1 NAME
+
+Locale::Country - standard codes for country identification
+
+=head1 SYNOPSIS
+
+   use Locale::Country;
+
+   $country = code2country('jp' [,CODESET]);        # $country gets 'Japan'
+   $code    = country2code('Norway' [,CODESET]);    # $code gets 'no'
+
+   @codes   = all_country_codes( [CODESET]);
+   @names   = all_country_names();
+
+   # semi-private routines
+   Locale::Country::alias_code('uk' => 'gb');
+   Locale::Country::rename_country('gb' => 'Great Britain');
+
+=head1 DESCRIPTION
+
+The C<Locale::Country> module provides access to several code sets
+that can be used for identifying countries, such as those defined in
+ISO 3166-1.
+
+Most of the routines take an optional additional argument which
+specifies the code set to use. If not specified, the default ISO
+3166-1 two-letter codes will be used.
+
+=head1 SUPPORTED CODE SETS
+
+There are several different code sets you can use for identifying
+countries. The ones currently supported are:
+
+=over 4
+
+=item B<alpha-2>
+
+This is the set of two-letter (lowercase) codes from ISO 3166-1, such
+as 'tv' for Tuvalu.
+
+This code set is identified with the symbol C<LOCALE_CODE_ALPHA_2>.
+
+This is the default code set.
+
+=item B<alpha-3>
+
+This is the set of three-letter (lowercase) codes from ISO 3166-1,
+such as 'brb' for Barbados. These codes are actually defined and
+maintained by the U.N. Statistics division.
+
+This code set is identified with the symbol C<LOCALE_CODE_ALPHA_3>.
+
+=item B<numeric>
+
+This is the set of three-digit numeric codes from ISO 3166-1, such as
+064 for Bhutan. These codes are actually defined and maintained by the
+U.N. Statistics division.
+
+If a 2-digit code is entered, it is converted to 3 digits by prepending
+a 0.
+
+This code set is identified with the symbol C<LOCALE_CODE_NUMERIC>.
+
+=item B<fips-10>
+
+The FIPS 10 data are two-letter (uppercase) codes assigned by the
+National Geospatial-Intelligence Agency.
+
+This code set is identified with the symbol C<LOCALE_CODE_FIPS>.
+
+=item B<dom>
+
+The IANA is responsible for assigning two-letter (uppercase) top-level
+domain names to each country.
+
+This code set is identified with the symbol C<LOCALE_CODE_DOM>.
+
+=back
+
+=head1 ROUTINES
+
+=over 4
+
+=item B<code2country ( CODE [,CODESET] )>
+
+=item B<country2code ( NAME [,CODESET] )>
+
+=item B<country_code2code ( CODE ,CODESET ,CODESET2 )>
+
+=item B<all_country_codes ( [CODESET] )>
+
+=item B<all_country_names ( [CODESET] )>
+
+=item B<Locale::Country::rename_country  ( CODE ,NEW_NAME [,CODESET] )>
+
+=item B<Locale::Country::add_country  ( CODE ,NAME [,CODESET] )>
+
+=item B<Locale::Country::delete_country  ( CODE [,CODESET] )>
+
+=item B<Locale::Country::add_country_alias  ( NAME ,NEW_NAME )>
+
+=item B<Locale::Country::delete_country_alias  ( NAME )>
+
+=item B<Locale::Country::rename_country_code  ( CODE ,NEW_CODE [,CODESET] )>
+
+=item B<Locale::Country::add_country_code_alias  ( CODE ,NEW_CODE [,CODESET] )>
+
+=item B<Locale::Country::delete_country_code_alias  ( CODE [,CODESET] )>
+
+These routines are all documented in the Locale::Codes man page.
+
+=item B<alias_code ( ALIAS, CODE [,CODESET] )>
+
+Version 2.07 included 2 functions for modifying the internal data:
+rename_country and alias_code. Both of these could be used only to
+modify the internal data for country codes.
+
+As of 3.10, the internal data for all types of codes can be modified.
+
+The alias_code function is preserved for backwards compatibility, but
+the following two are identical:
+
+   alias_code(ALIAS,CODE [,CODESET]);
+   rename_country_code(CODE,ALIAS [,CODESET]);
+
+and the latter should be used for consistency.
+
+The alias_code function is deprecated (though there is no currently no
+plan to remove it).
+
+B<Note:> this function was previously called _alias_code, but the
+leading underscore has been dropped. The old name was supported for
+all 2.X releases, but has been dropped as of 3.00.
+
+=back
+
+=head1 SEE ALSO
+
+=over 4
+
+=item B<Locale::Codes>
+
+=item B<Locale::Constants>
+
+The Locale-Codes distribution.
+
+=item B<Locale::SubCountry>
+
+ISO codes for country sub-divisions (states, counties, provinces,
+etc), as defined in ISO 3166-2.  This module is not part of the
+Locale-Codes distribution, but is available from CPAN in
+CPAN/modules/by-module/Locale/
+
+=item B<http://www.iso.org/iso/country_codes>
+
+Official home page for the ISO 3166 maintenance agency.
+
+Unfortunately, they do not make the actual ISO available for free,
+so I cannot check the alpha-3 and numerical codes here.
+
+=item B<http://www.iso.org/iso/list-en1-semic-3.txt>
+
+The source of ISO 3166-1 two-letter codes used by this
+module.
+
+=item B<http://unstats.un.org/unsd/methods/m49/m49alpha.htm>
+
+The source of the official ISO 3166-1 three-letter codes and
+three-digit codes.
+
+For some reason, this table is incomplete! Several countries are
+missing from it, and I cannot find them anywhere on the UN site.  I
+get as much of the data from here as I can.
+
+=item B<http://earth-info.nga.mil/gns/html/digraphs.htm>
+
+The official list of the FIPS 10 codes.
+
+=item B<http://www.iana.org/domains/>
+
+Official source of the top-level domain names.
+
+=item B<https://www.cia.gov/library/publications/the-world-factbook/appendix/print_appendix-d.html>
+
+Although not the official source of any of the data, the World
+Factbook maintained by the CIA is a great source of the data,
+especially since I can't get the official data from the ISO. Since
+it's maintained by the CIA, and since it's updated every two weeks, I
+use this as the source for some missing data.
+
+=item B<http://www.statoids.com/wab.html>
+
+Another unofficial source of data. Currently, it is not used to get
+data, but the notes and explanatory material were very useful for
+understanding discrepancies between the sources.
+
+=back
+
+=head1 AUTHOR
+
+See Locale::Codes for full author history.
+
+Currently maintained by Sullivan Beck (sbeck@cpan.org).
+
+=head1 COPYRIGHT
+
+   Copyright (c) 1997-2001 Canon Research Centre Europe (CRE).
+   Copyright (c) 2001-2010 Neil Bowers
+   Copyright (c) 2010-2011 Sullivan Beck
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+=cut
