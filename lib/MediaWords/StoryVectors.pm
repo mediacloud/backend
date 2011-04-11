@@ -886,4 +886,39 @@ sub update_aggregate_author_words
 
     $db->commit;
 }
+
+
+# update daily_words, weekly_words, and top_500_weekly_words tables for all included dates
+# for which daily_words data does not already exist
+#
+# if dashbaord_topics_id or media_sets_id are specified, only update for the given
+# dashboard_topic or media_set
+sub update_country_counts
+{
+    my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    $start_date ||= '2008-06-01';
+    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
+
+    my $days          = 0;
+    my $update_weekly = 0;
+
+    for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
+    {
+        say STDERR "update_aggregate_country_counts: $date ($start_date - $end_date) $days";
+
+        if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
+        {
+            _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
+            $update_weekly = 1;
+        }
+
+        $db->commit();
+
+        $days++;
+    }
+
+    $db->commit;
+}
+
 1;
