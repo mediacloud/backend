@@ -7,6 +7,8 @@ use warnings;
 use Perl6::Say;
 use Data::Dumper;
 use MediaWords::Pg;
+use MediaWords::Util::Stemmer;
+
 use Locale::Country;
 my $_country_name_remapping = {
 
@@ -38,6 +40,7 @@ my $_country_name_remapping = {
     # 'bermuda',
     # 'bhutan',
     'bolivia, plurinational state of' => 'bolivia',
+    'bonaire, saint eustatius and saba' => -1,
     'bosnia and herzegovina' => 'bosnia',
 
     # 'botswana',
@@ -70,6 +73,7 @@ my $_country_name_remapping = {
     # 'costa rica',
     # 'cote d\'ivoire',
     # 'croatia',
+    # 'curacao',
     # 'cuba',
     # 'cyprus',
     # 'czech republic',
@@ -213,7 +217,7 @@ my $_country_name_remapping = {
     'saint helena, ascension and tristan da cunha' => -1,
     'saint kitts and nevis'                        => -1,
     'saint lucia' => -1,
-    'saint martin' => -1,
+    'saint martin (french part)' => -1,
     'saint pierre and miquelon'        => -1,
     'saint vincent and the grenadines' => -1,
 
@@ -224,9 +228,11 @@ my $_country_name_remapping = {
     # 'saudi arabia',
     # 'senegal',
     # 'serbia',
-    'serbia and montenegro' => 'serbia montenegro',
+# we should be able to delete the next line    
+      'serbia and montenegro' => 'serbia montenegro',
     # 'seychelles',
     # 'sierra leone',
+    'sint maarten (dutch part)' => -1,
     # 'singapore',
     # 'slovakia',
     # 'slovenia',
@@ -344,7 +350,7 @@ sub get_stemmed_country_terms
     return $stemmer->stem( @country_split );
 }
 
-sub get_country_data_base_value
+sub _get_country_data_base_value
 {
     my ( $country ) = @_;
 
@@ -359,7 +365,7 @@ sub get_country_code_for_stemmed_country_name
     {
         my $non_remapped_names = _get_non_remapped_names_for_non_banned_countries();
         $_country_code_for_stemmed_country_name =
-          { map { get_country_data_base_value( _get_updated_country_name( $_ ) ) => Locale::Country::country2code( $_ ) }
+          { map { _get_country_data_base_value( _get_updated_country_name( $_ ) ) => Locale::Country::country2code( $_ ) }
               @$non_remapped_names };
 
         #say STDERR Dumper($_country_code_for_stemmed_country_name);
