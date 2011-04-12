@@ -23,6 +23,7 @@ use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
+use MediaWords::Util::MC_Fork;
 use Perl6::Say;
 
 # extract, story, and tag downloaded text for a $process_num / $num_processes slice of downloads
@@ -91,7 +92,7 @@ sub main
 
     for ( my $i = 0 ; $i < $num_processes ; $i++ )
     {
-        if ( !fork )
+        if ( !mc_fork )
         {
             while ( 1 )
             {
