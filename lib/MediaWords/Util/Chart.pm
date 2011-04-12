@@ -166,7 +166,20 @@ sub generate_line_chart_url_from_dates
         }
         push( @{ $counts }, $term_counts );
     }
+
+    say STDERR ',' . join ',', @$dates;
     
+    my $i =0;
+    for my $term ( @{ $terms } )
+    {
+       print  STDERR "$term,";
+       my $term_counts = $counts->[$i];
+       my $str = join ',', @{$term_counts};
+       say STDERR $str;
+       $i++;
+    }
+    #say STDERR Dumper([$dates, $terms, $counts ]);
+
     return generate_line_chart_url( $dates, $terms, $counts );
 }
 
