@@ -23,6 +23,7 @@ use Time::HiRes;
 use MediaWords::Crawler::Fetcher;
 use MediaWords::Crawler::Handler;
 use MediaWords::Crawler::Provider;
+use MediaWords::Util::MC_Fork;
 
 sub new
 {
@@ -143,7 +144,7 @@ sub spawn_fetchers
         die "Could not create socket for fetcher $i" unless $parent_socket && $child_socket;
 
         print STDERR "spawn fetcher $i ...\n";
-        my $pid = fork();
+        my $pid = mc_fork();
 
         if ( $pid )
         {
