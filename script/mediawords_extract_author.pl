@@ -25,6 +25,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use Perl6::Say;
 use MediaWords::DBI::Authors;
+use MediaWords::Util::MC_Fork;
 use Data::Dumper;
 
 sub extract_author
@@ -124,7 +125,7 @@ sub main
 
     for ( my $i = 0 ; $i < $num_processes ; $i++ )
     {
-        if ( !fork )
+        if ( !mc_fork )
         {
             while ( 1 )
             {
