@@ -103,8 +103,8 @@ sub _redirect_to_default_page
     }
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-    my $dashboard_dates =  $self->_get_dashboard_dates( $c, $dashboard );
-    
+    my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
+
     my $date = maxstr( grep { $_ le $max_date } @{ $dashboard_dates } );
     $date = $dashboard_dates->[ $#{ $dashboard_dates } ] if ( !$date && $dashboard_dates );
     die( "no valid date found" ) if ( !$date );
@@ -848,17 +848,17 @@ sub view : Local
 
     $self->_update_query_form( $c );
 
-    if ( $c->req->param( 'cmaponly') ) 
+    if ( $c->req->param( 'cmaponly' ) )
     {
-       $c->stash->{ template } = 'zoe_website_template/coverage_map_only.tt2';
+        $c->stash->{ template } = 'zoe_website_template/coverage_map_only.tt2';
     }
-    elsif ( $c->req->param( 'wconly') ) 
+    elsif ( $c->req->param( 'wconly' ) )
     {
-       $c->stash->{ template } = 'zoe_website_template/word_cloud_only.tt2';
+        $c->stash->{ template } = 'zoe_website_template/word_cloud_only.tt2';
     }
     else
     {
-       $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
+        $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
     }
 }
 
@@ -1116,6 +1116,13 @@ sub author_query : Local : FormConfig
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
+
+    my ( $min_author_words_date ) = $c->dbis->query( 'select min(publish_week) from top_500_weekly_author_words;' )->flat();
+    my ( $max_author_words_date ) = $c->dbis->query( 'select max(publish_week) from top_500_weekly_author_words;' )->flat();
+
+    $dashboard_dates = [ grep { $_ >= $min_author_words_date } @$dashboard_dates ];
+    $dashboard_dates = [ grep { $_ <= $max_author_words_date } @$dashboard_dates ];
+
     $form->get_field( { name => 'date1' } )->options( [ map { [ $_, $_ ] } @$dashboard_dates ] );
 
     my $show_results = $c->req->param( 'show_results' ) || 0;
