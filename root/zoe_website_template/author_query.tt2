@@ -6,6 +6,25 @@
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
+
+   function update_dates_for_author() 
+   {
+       var authors_id = $('#authors_id1').val();
+
+       $.getJSON('[% c.uri_for('/dashboard/author_publish_weeks_json') %]' + '/?authors_id=' + authors_id, 
+              function(data, textStatus, jqXHR) {
+	              $('select[name="date1"] option').attr('disabled', 'disabled').attr('selected', '');
+	      	      $.each( data, function(index, item) {
+		          $('select[name="date1"] option').filter(function (index) {
+			      return $(this).val()  == item;
+			  }).attr('disabled', '');
+		      });
+
+		      $('select[name="date1"] option:enabled:first').attr('selected', 'selected');
+		      	   
+       		  });
+   }
+
    $(document).ready(function() 
     {
         var data = [
@@ -67,6 +86,8 @@
         });
 
    //swapDIV('CMcontentarea');
+
+        update_dates_for_author();
     });
 
 
