@@ -626,6 +626,19 @@ sub _set_query_form_defaults
     }
 }
 
+sub _purge_form_labels
+{
+    my ( $form ) = @_;
+
+    #purge labels from the form
+    foreach my $element ( @{ $form->get_all_elements() } )
+    {
+        eval { $element->label( undef ); };
+    }
+
+    return;
+}
+
 # create the query form, set the options of the various elements from the stash values,
 # and set the default values according to the stashed queries
 sub _update_query_form
@@ -637,11 +650,7 @@ sub _update_query_form
     $form->process;
     $c->stash->{ form } = $form;
 
-    #purge labels from the form
-    foreach my $element ( @{ $form->get_all_elements() } )
-    {
-        eval { $element->label( undef ); };
-    }
+    _purge_form_labels( $form );
 
     my $date1_param = $form->param_value( 'date1' );
 
@@ -1132,6 +1141,8 @@ sub author_query : Local : FormConfig
     my ( $self, $c, $dashboards_id ) = @_;
 
     my $form = $c->stash->{ form };
+
+    _purge_form_labels( $form );
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
