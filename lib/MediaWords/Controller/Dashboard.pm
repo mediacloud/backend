@@ -1107,6 +1107,26 @@ sub author_search_json : Local
     return;
 }
 
+sub author_publish_weeks_json : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $authors_id = $c->req->param( 'authors_id' ) || 0;
+
+    my $publish_weeks = [
+        $c->dbis->query(
+            "select DISTINCT (publish_week) from top_500_weekly_author_words where authors_id = ? order by publish_week",
+            $authors_id )->flat
+    ];
+
+    #say STDERR Dumper( $publish_weeks );
+    #say STDERR encode_json( $publish_weeks );
+
+    $c->res->body( encode_json( $publish_weeks ) );
+
+    return;
+}
+
 sub author_query : Local : FormConfig
 {
     my ( $self, $c, $dashboards_id ) = @_;
