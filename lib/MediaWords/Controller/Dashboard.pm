@@ -1120,8 +1120,8 @@ sub author_query : Local : FormConfig
     my ( $min_author_words_date ) = $c->dbis->query( 'select min(publish_week) from top_500_weekly_author_words;' )->flat();
     my ( $max_author_words_date ) = $c->dbis->query( 'select max(publish_week) from top_500_weekly_author_words;' )->flat();
 
-    $dashboard_dates = [ grep { $_ >= $min_author_words_date } @$dashboard_dates ];
-    $dashboard_dates = [ grep { $_ <= $max_author_words_date } @$dashboard_dates ];
+    $dashboard_dates = [ grep { $_ ge $min_author_words_date } @$dashboard_dates ];
+    $dashboard_dates = [ grep { $_ le $max_author_words_date } @$dashboard_dates ];
 
     $form->get_field( { name => 'date1' } )->options( [ map { [ $_, $_ ] } @$dashboard_dates ] );
 
