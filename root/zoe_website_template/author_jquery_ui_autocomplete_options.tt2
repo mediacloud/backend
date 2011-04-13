@@ -1,4 +1,4 @@
- { source : "[% c.uri_for('/dashboard/json_author_search') %]" ,
+ { source : "[% c.uri_for('/dashboard/author_search_json') %]" ,
    
    change: function(event, ui) {  
       //alert('change event');
