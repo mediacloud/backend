@@ -166,10 +166,9 @@ function onError(err)
       <input type="hidden" name="show_results" value="true" />
       [% form.get_field( 'compare_media_sets')  %]
       <div id="mediacontainer1">
-        <div id="mediaheader1">Media Data Set #1</div>
-        <div id="mediaTime1"> <strong>Date</strong><br />
+        <div id="mediaheader1">Query #1</div>
+        <div id="mediaTime1"> <strong>Week</strong><br />
 	  [% form.get_field( 'date1')  %]
-          <span class="smaller">A fast explanation here</span>
 	  <br />
         </div>
         <div id="mediaArea1"> <strong>Author Name</strong><br />
