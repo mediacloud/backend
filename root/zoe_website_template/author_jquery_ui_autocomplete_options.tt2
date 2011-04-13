@@ -5,6 +5,7 @@
       if (ui.item) {
       //alert('autocompleted ' + ui.item.label + ' ' + ui.item.authors_id);
       $('#authors_id1').val(ui.item.authors_id);
+      update_dates_for_author();
    }
    else
    {
@@ -18,6 +19,7 @@
       if (ui.item) {
       //alert('autocompleted ' + ui.item.label + ' ' + ui.item.authors_id);
       $('#authors_id1').val(ui.item.authors_id);
+      update_dates_for_author();
    }
    else
    {
