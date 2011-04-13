@@ -1085,7 +1085,7 @@ sub json_popular_queries : Local
     return;
 }
 
-sub json_author_search : Local
+sub author_search_json : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
