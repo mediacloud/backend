@@ -31,11 +31,11 @@ use Class::Std;
 
         $feedPP{ $ident } = $fp;
 
-	if ( $@ )
-	{
-	    my $err_mesg = $@;
-	    die "XML::FeedPP->new failed: $err_mesg";
-	}
+        if ( $@ )
+        {
+            my $err_mesg = $@;
+            die "XML::FeedPP->new failed: $err_mesg";
+        }
     }
 
     sub _wrapper_if_necessary
@@ -114,6 +114,25 @@ sub description
     $content = $self->get( 'content:encoded' );
 
     return $content || $description;
+}
+
+sub guid
+{
+    my $self = shift;
+
+    my $guid = $self->SUPER::guid( @_ );
+
+    if ( $guid && ref $guid )
+    {
+
+        #WORK AROUND FOR NASTY in XML::Feed
+        if ( ( ref $guid ) eq 'HASH' )
+        {
+            undef( $guid );
+        }
+    }
+
+    return $guid;
 }
 
 1;
