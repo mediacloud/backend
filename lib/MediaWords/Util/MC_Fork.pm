@@ -23,6 +23,7 @@ sub mc_fork
     }
     else
     {
+        undef( $SIG{ TERM } );
         $child_pids = [];
     }
 
