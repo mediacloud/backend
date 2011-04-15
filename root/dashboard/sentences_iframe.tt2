@@ -23,6 +23,10 @@
       //        /* control: "#toggle_tree_" + source_num */
       //     });
 
+        function htmlDecode(val) {  
+             return $('<div/>').html(val).text();
+        }
+ 
       $('#media_source_percent_table td').click( function() {
            var $this = $(this);
            var id = $this.attr('id');
@@ -53,7 +57,7 @@
              $.each(data, function(index, story) {
                      //alert(value.title);
                      var story_li = $("<li class='collapsable'>");
-                     story_li.append($("<b></b>").text(story.title)).append(' ').
+                     story_li.append($("<b></b>").text(htmlDecode(story.title))).append(' ').
                      append($("<span class='date'>").text(story.publish_date)).append(' ').
                      append($(" <a class='view_article'>view&nbsp;article</a>").attr({ 'href': story.url, target: '_blank' } )).
                      append($("</br>"));
