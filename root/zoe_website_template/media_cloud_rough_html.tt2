@@ -43,8 +43,6 @@
         $('#hidden_media_list').hide();
 
 	$.getJSON('[% c.uri_for('/dashboard/dashboard_media_source_names_json/') _ dashboard.dashboards_id %]', function(data, textStatus, jqXHR) {
-		$('#hidden_media_list li').hide();
-
         	$('#medium_name1').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
 		$('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
 	});
@@ -402,9 +400,6 @@
     <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
   </tr>
 <ul style="visibility: hidden; display: none" id="hidden_media_list">
-[% FOREACH medium IN media %]
-   <li>[% medium.name | html %]</li>
-[% END %]
 </ul>
 [%  # We no longer need compare_media_setss as a parameter but the js is set up to query it's value we're adding it in a hidden form for the JS to use. %]
 <form method="get">
