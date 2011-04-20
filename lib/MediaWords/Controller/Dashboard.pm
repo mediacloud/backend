@@ -1486,8 +1486,6 @@ sub sentences_medium_json : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-
     my $media_id = $c->req->param( 'media_id' ) || die( 'no media_id' );
     my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
 
