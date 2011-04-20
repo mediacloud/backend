@@ -569,13 +569,6 @@ sub _process_and_stash_dashboard_data
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    my $media = $c->dbis->query(
-        "select distinct m.* from media m, media_sets_media_map msmm, dashboard_media_sets dms " .
-          "  where m.media_id = msmm.media_id and dms.media_sets_id = msmm.media_sets_id and dms.dashboards_id = ?" .
-          "  order by m.name",
-        $dashboard->{ dashboards_id }
-    )->hashes;
-
     my $collection_media_sets = $c->dbis->query(
         "select ms.* from media_sets ms, dashboard_media_sets dms " .
           "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
@@ -594,7 +587,6 @@ sub _process_and_stash_dashboard_data
 
     $c->stash->{ word_cloud_term }       = $term;
     $c->stash->{ dashboard }             = $dashboard;
-    $c->stash->{ media }                 = $media;
     $c->stash->{ collection_media_sets } = $collection_media_sets;
     $c->stash->{ dashboard_topics }      = $dashboard_topics;
     $c->stash->{ dashboard_dates }       = $dashboard_dates;
@@ -1112,6 +1104,24 @@ sub author_search_json : Local
     #print encode_json($terms);
 
     $c->res->body( encode_json( $terms ) );
+
+    return;
+}
+
+sub dashboard_media_source_names_json : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $media = $c->dbis->query(
+        "select distinct m.* from media m, media_sets_media_map msmm, dashboard_media_sets dms " .
+          "  where m.media_id = msmm.media_id and dms.media_sets_id = msmm.media_sets_id and dms.dashboards_id = ?" .
+          "  order by m.name",
+        $dashboards_id
+    )->hashes;
+
+    my $media_source_names = [ map { $_->{ name } } @$media ];
+
+    $c->res->body( encode_json( $media_source_names ) );
 
     return;
 }
