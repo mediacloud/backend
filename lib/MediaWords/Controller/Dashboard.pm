@@ -572,7 +572,7 @@ my $cache = CHI->new(
     data_store     => $_data_store,
 );
 
-sub _get_dashboard_consistence_data
+sub _get_dashboard_consistent_data
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
@@ -616,7 +616,7 @@ sub _process_and_stash_dashboard_data
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $consistent_data = $self->_get_dashboard_consistence_data( $c, $dashboards_id );
+    my $consistent_data = $self->_get_dashboard_consistent_data( $c, $dashboards_id );
 
     my $term = $c->req->param( 'term' );
 
