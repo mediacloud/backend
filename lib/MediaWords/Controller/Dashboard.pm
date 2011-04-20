@@ -561,36 +561,72 @@ sub _country_counts_to_csv_array
     return $country_count_csv_array;
 }
 
+my $_data_store = {};
+my $cache = CHI->new(
+    driver           => 'FastMmap',
+    expires_in       => '1 day',
+    expires_variance => '0.1',
+
+    #root_dir         => "$media_cloud_root_dir/cache/translate",
+    cache_size => '1m',
+    data_store     => $_data_store,
+);
+
+sub _get_dashboard_consistence_data
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $ret = {};
+
+    $ret = $cache->get( $dashboards_id );
+
+    if ( !defined( $ret ) )
+    {
+
+        my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+
+        my $collection_media_sets = $c->dbis->query(
+            "select ms.* from media_sets ms, dashboard_media_sets dms " .
+              "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
+              "  order by ms.name",
+            $dashboard->{ dashboards_id }
+        )->hashes;
+
+        my $dashboard_topics = $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc",
+            $dashboard->{ dashboards_id } )->hashes;
+
+        MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
+
+        my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
+
+        $ret->{ dashboard }             = $dashboard;
+        $ret->{ collection_media_sets } = $collection_media_sets;
+        $ret->{ dashboard_topics }      = $dashboard_topics;
+        $ret->{ dashboard_dates }       = $dashboard_dates;
+
+        $cache->set( $dashboards_id, $ret );
+    }
+
+    return $ret;
+}
+
 # query the dashboard form data (media sets, media, and topics) and put it in
 # the stash for later inclusion in the formfu fields
 sub _process_and_stash_dashboard_data
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
-
-    my $collection_media_sets = $c->dbis->query(
-        "select ms.* from media_sets ms, dashboard_media_sets dms " .
-          "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
-          "  order by ms.name",
-        $dashboard->{ dashboards_id }
-    )->hashes;
-
-    my $dashboard_topics = $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc",
-        $dashboard->{ dashboards_id } )->hashes;
-
-    MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
-
-    my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
+    my $consistent_data = $self->_get_dashboard_consistence_data( $c, $dashboards_id );
 
     my $term = $c->req->param( 'term' );
 
     $c->stash->{ word_cloud_term }       = $term;
-    $c->stash->{ dashboard }             = $dashboard;
-    $c->stash->{ collection_media_sets } = $collection_media_sets;
-    $c->stash->{ dashboard_topics }      = $dashboard_topics;
-    $c->stash->{ dashboard_dates }       = $dashboard_dates;
     $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
+
+    $c->stash->{ dashboard }             = $consistent_data->{ dashboard };
+    $c->stash->{ collection_media_sets } = $consistent_data->{ collection_media_sets };
+    $c->stash->{ dashboard_topics }      = $consistent_data->{ dashboard_topics };
+    $c->stash->{ dashboard_dates }       = $consistent_data->{ dashboard_dates };
 }
 
 # set the default values for the query form according to the stashed queries
