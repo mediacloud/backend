@@ -126,13 +126,35 @@ sub _get_dashboard
     return get_dashboard( $c->dbis, $dashboards_id );
 }
 
+my $_dashboard_data_store = {};
+my $_dashboard_cache      = CHI->new(
+    driver           => 'Memory',
+    expires_in       => '1 hour',
+    expires_variance => '0.1',
+
+    #root_dir         => "$media_cloud_root_dir/cache/translate",
+    cache_size => '1m',
+    data_store => $_dashboard_data_store,
+    global     => 0,
+);
+
 sub get_dashboard
 {
     my ( $dbis, $dashboards_id ) = @_;
 
     $dashboards_id || die( "no dashboards_id found" );
 
-    my $dashboard = $dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "no dashboard '$dashboards_id'" );
+    my $dashboard;
+
+    $dashboard = $_dashboard_cache->get( $dashboards_id );
+
+    if ( !defined( $dashboard ) )
+    {
+        $dashboard = $dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "no dashboard '$dashboards_id'" );
+        $_dashboard_cache->set( $dashboards_id, $dashboard );
+    }
+
+    #say STDERR "get_dashboard: Returning" . Dumper ($dashboard);
 
     return $dashboard;
 }
@@ -562,14 +584,15 @@ sub _country_counts_to_csv_array
 }
 
 my $_data_store = {};
-my $cache = CHI->new(
-    driver           => 'FastMmap',
+my $cache       = CHI->new(
+    driver           => 'Memory',
     expires_in       => '1 day',
     expires_variance => '0.1',
 
     #root_dir         => "$media_cloud_root_dir/cache/translate",
     cache_size => '1m',
-    data_store     => $_data_store,
+    data_store => $_data_store,
+    global     => 0,
 );
 
 sub _get_dashboard_consistent_data
