@@ -167,6 +167,13 @@ sub generate_line_chart_url_from_dates
         push( @{ $counts }, $term_counts );
     }
 
+    return generate_line_chart_url( $dates, $terms, $counts );
+}
+
+sub _dump_terms
+{
+    my ($terms, $counts, $dates) = @_;
+
     say STDERR ',' . join ',', @$dates;
     
     my $i =0;
@@ -179,8 +186,6 @@ sub generate_line_chart_url_from_dates
        $i++;
     }
     #say STDERR Dumper([$dates, $terms, $counts ]);
-
-    return generate_line_chart_url( $dates, $terms, $counts );
 }
 
 #todo copies print_time live in multiple places so that each one can have its own $_start_time and $_last_time 
