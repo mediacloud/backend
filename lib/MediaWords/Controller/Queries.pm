@@ -294,6 +294,9 @@ sub compare : Local
         return;
     }
 
+    my $req = $c->req;
+
+    undef($req->parameters->{queries_id});
     my $query_b = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req );
     
     my $words_a = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query_a );
@@ -303,8 +306,16 @@ sub compare : Local
         $c, '/queries/sentences', [ $words_a, $words_b ], [ $query_a, $query_b ] );
 
     MediaWords::Util::WordCloud_Legacy::add_query_labels( $c->dbis, $query_a, $query_b );
+
+    eval {
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, [ $query_a, $query_b ] );
-    
+    };
+
+    if ($@)
+    {
+       say STDERR "Error in add_cos_similarities $@";
+    }
+
     $c->stash->{ word_cloud } = $word_cloud;
     $c->stash->{ query_a } = $query_a;
     $c->stash->{ query_b } = $query_b;
