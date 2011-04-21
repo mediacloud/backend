@@ -618,7 +618,7 @@ sub _get_medium_stem_sentences_day
               "    and ssw.publish_day = '$day'::date " .
               "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
               "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $max_sentences" )->hashes;
+              "  order by ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence asc " . "  limit $max_sentences" )->hashes;
     }
     else
     {
@@ -626,7 +626,7 @@ sub _get_medium_stem_sentences_day
           $db->query( "select distinct ss.* " . "  from story_sentences ss, story_sentence_words ssw " .
               "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
               "    and ssw.media_id = $medium->{ media_id } " . "    and ssw.stem = $quoted_stem " .
-              "    and ssw.publish_day = '$day'::date " . "  order by ss.publish_date, ss.stories_id, ss.sentence asc " .
+              "    and ssw.publish_day = '$day'::date " . "  order by ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence asc " .
               "  limit $max_sentences" )->hashes;
     }
 
