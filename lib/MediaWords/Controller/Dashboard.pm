@@ -164,6 +164,36 @@ sub get_dashboard
     return $dashboard;
 }
 
+my $_query_data_store = {};
+my $_query_cache      = CHI->new(
+    driver           => 'Memory',
+    expires_in       => '1 hour',
+    expires_variance => '0.1',
+
+    #root_dir         => "$media_cloud_root_dir/cache/translate",
+    cache_size => '1m',
+    datastore  => $_query_data_store,
+    global     => 0,
+);
+
+sub get_query_by_id
+{
+    my ( $dbis, $c, $queries_id ) = @_;
+
+    my $ret = $_query_cache->get( $queries_id );
+
+    if ( !defined( $ret ) )
+    {
+        $ret = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
+
+        die "Invalid query $queries_id " unless $ret->{ queries_id };
+
+        $_query_cache->set( $queries_id, $ret );
+    }
+
+    return $ret;
+}
+
 sub _get_author_name
 {
     my ( $self, $c, $authors_id ) = @_;
@@ -261,7 +291,7 @@ sub get_word_list : Local
     my $words = [];
     for my $queries_id ( @{ $queries_ids } )
     {
-        my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
+        my $query = $self->get_query_by_id( $c, $queries_id );
         my $query_words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
 
         map { $_->{ query_id } = $queries_id; $_->{ query_description } = $query->{ description } } @{ $query_words };
@@ -317,7 +347,7 @@ sub country_counts_csv : Local
 
     my $queries_id = $c->req->param( 'queries_id' );
 
-    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
+    my $query = $self->get_query_by_id( $c, $queries_id );
     my $country_counts = $self->_get_country_counts( $c, $query );
     my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
 
@@ -796,7 +826,7 @@ sub _show_dashboard_results_single_query
 {
     my ( $self, $c, $dashboard ) = @_;
 
-    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $c->req->param( 'q1' ) );
+    my $query = $self->get_query_by_id( $c, $c->req->param( 'q1' ) );
 
     my $media_set_names = MediaWords::DBI::Queries::get_media_set_names( $c->dbis, $query );
 
@@ -842,7 +872,7 @@ sub _show_dashboard_results_compare_queries
 
     for my $i ( 0, 1 )
     {
-        $queries->[ $i ] = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $c->req->param( 'q' . ( $i + 1 ) ) );
+        $queries->[ $i ] = $self->get_query_by_id( $c, $c->req->param( 'q' . ( $i + 1 ) ) );
 
         my $query = $queries->[ $i ];
 
@@ -1503,7 +1533,7 @@ sub sentences_medium : Local
 
     $medium->{ stem_percentage } = $c->req->param( 'stem_percentage' );
 
-    my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];
+    my $queries = [ map { $self->get_query_by_id( $c, $_ ) } @{ $queries_ids } ];
 
     my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
 
@@ -1536,7 +1566,7 @@ sub sentences_medium_json : Local
 
     $medium->{ stem_percentage } = $c->req->param( 'stem_percentage' );
 
-    my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];
+    my $queries = [ map { $self->get_query_by_id( $c, $_ ) } @{ $queries_ids } ];
 
     my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
 
@@ -1641,7 +1671,7 @@ sub sentences : Local
     my $stem = $c->req->param( 'stem' ) || die( 'no stem' );
     my $term = $c->req->param( 'term' ) || die( 'no term' );
 
-    my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } $c->req->param( 'queries_ids' ) ];
+    my $queries = [ map { $self->get_query_by_id( $c, $_ ) } $c->req->param( 'queries_ids' ) ];
     my $queries_description = join( " or ", map { $_->{ description } } @{ $queries } );
     my $media = MediaWords::DBI::Queries::get_media_matching_stems( $c->dbis, $stem, $queries );
 
