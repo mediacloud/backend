@@ -134,7 +134,7 @@ my $_dashboard_cache      = CHI->new(
 
     #root_dir         => "$media_cloud_root_dir/cache/translate",
     cache_size => '1m',
-    data_store => $_dashboard_data_store,
+    datastore  => $_dashboard_data_store,
     global     => 0,
 );
 
@@ -151,10 +151,15 @@ sub get_dashboard
     if ( !defined( $dashboard ) )
     {
         $dashboard = $dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "no dashboard '$dashboards_id'" );
+
+        die "Invalid dashboard " unless $dashboard->{ dashboards_id };
+        say STDERR "get_dashboard: storing " . Dumper( $dashboard );
         $_dashboard_cache->set( $dashboards_id, $dashboard );
     }
 
-    #say STDERR "get_dashboard: Returning" . Dumper ($dashboard);
+    die "Invalid dashboard " unless $dashboard->{ dashboards_id };
+
+    say STDERR "get_dashboard: Returning" . Dumper( $dashboard );
 
     return $dashboard;
 }
@@ -583,17 +588,23 @@ sub _country_counts_to_csv_array
     return $country_count_csv_array;
 }
 
-my $_data_store = {};
-my $cache       = CHI->new(
-    driver           => 'Memory',
-    expires_in       => '1 day',
-    expires_variance => '0.1',
+my $_consistent_data_cache;
 
-    #root_dir         => "$media_cloud_root_dir/cache/translate",
-    cache_size => '1m',
-    data_store => $_data_store,
-    global     => 0,
-);
+BEGIN
+{
+
+    my $_data_store = {};
+
+    $_consistent_data_cache = CHI->new(
+        driver           => 'Memory',
+        expires_in       => '1 day',
+        expires_variance => '0.1',
+
+        cache_size => '1m',
+        datastore  => $_data_store,
+    );
+
+}
 
 sub _get_dashboard_consistent_data
 {
@@ -601,7 +612,7 @@ sub _get_dashboard_consistent_data
 
     my $ret = {};
 
-    $ret = $cache->get( $dashboards_id );
+    $ret = $_consistent_data_cache->get( $dashboards_id );
 
     if ( !defined( $ret ) )
     {
@@ -627,9 +638,14 @@ sub _get_dashboard_consistent_data
         $ret->{ dashboard_topics }      = $dashboard_topics;
         $ret->{ dashboard_dates }       = $dashboard_dates;
 
-        $cache->set( $dashboards_id, $ret );
+        say STDERR "_get_dashboard_consistent_data - Storing: " . Dumper( $ret );
+
+        #don't store invalid data in the cache
+        die "Error getting dashboard_dates " unless ( scalar( @{ $dashboard_dates } ) > 0 );
+        $_consistent_data_cache->set( $dashboards_id, $ret );
     }
 
+    say STDERR "_get_dashboard_consistent_data - returning: '" . Dumper( $ret ) . "'";
     return $ret;
 }
 
