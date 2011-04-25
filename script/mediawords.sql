@@ -775,9 +775,10 @@ CREATE TABLE popular_queries (
     query_1_description character varying(1024),
     dashboard_action character varying(1024),
     url_params character varying(1024),
-    count integer DEFAULT 0
+    count integer DEFAULT 0,
+    dashboards_id integer references dashboards NOT NULL
 );
 
 CREATE UNIQUE INDEX popular_queries_da_up ON popular_queries(dashboard_action, url_params);
 CREATE UNIQUE INDEX popular_queries_query_ids ON popular_queries( queries_id_0,  queries_id_1);
-
+CREATE INDEX popular_queries_dashboards_id_count on popular_queries(dashboards_id, count);
