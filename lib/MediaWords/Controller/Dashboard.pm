@@ -36,6 +36,7 @@ use Time::HiRes;
 use XML::Simple qw(:strict);
 use Dir::Self;
 use Readonly;
+use CHI;
 use File::stat;
 
 # statics for state between print_time() calls
