@@ -313,6 +313,7 @@ sub compare : Local
 
     if ($@)
     {
+       die "Error in add_cos_similarities $@";
        say STDERR "Error in add_cos_similarities $@";
     }
 
