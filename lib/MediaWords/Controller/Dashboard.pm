@@ -1137,6 +1137,11 @@ sub data_dumps : Local
     my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
     my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
 
+    if ( scalar( @{ $incremental_data_dumps } ) > 30 )
+    {
+        $incremental_data_dumps = [ @{ $incremental_data_dumps }[ -1 .. -30 ] ];
+    }
+
     say STDERR Dumper( $data_dump_files );
     say STDERR Dumper( $data_dumps );
 
@@ -1170,7 +1175,9 @@ sub json_popular_queries : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $popular_queries = $c->dbis->query( "select * from popular_queries where dashboards_id= ? order by dashboards_id, count desc limit 5 ", $dashboards_id )->hashes;
+    my $popular_queries =
+      $c->dbis->query( "select * from popular_queries where dashboards_id= ? order by dashboards_id, count desc limit 5 ",
+        $dashboards_id )->hashes;
 
     foreach my $popular_query ( @$popular_queries )
     {
@@ -1618,7 +1625,8 @@ sub page_count_increment : Local
     {
         $popular_query = $c->dbis->query(
 "INSERT INTO popular_queries ( dashboard_action, url_params, query_0_description, query_1_description, queries_id_0, queries_id_1, dashboards_id) VALUES ( ?, ?, ?, ?, ?, ?, ?) RETURNING *",
-            $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1, $dashboards_id )->hash;
+            $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1,
+            $dashboards_id )->hash;
 
     }
 
