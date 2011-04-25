@@ -457,7 +457,7 @@ sub _get_media_matching_stems_single_query
     my $date_clause             = get_daily_date_clause( $query, 'tw' );
     my $quoted_stem             = $db->dbh->quote( $stem );
 
-    my $media = $db->query(
+    my $query =
         "select ( sum(w.stem_count)::float / sum(tw.total_count)::float ) as stem_percentage, " . "    m.media_id, m.name " .
           "  from daily_words w, total_daily_words tw, media m, media_sets_media_map msmm, media_sets medium_ms " .
           "  where w.media_sets_id = tw.media_sets_id and w.publish_day = tw.publish_day and " .
@@ -465,7 +465,12 @@ sub _get_media_matching_stems_single_query
           "    coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) and " .
           "    w.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and " .
           "    msmm.media_sets_id in ( $media_sets_ids_list ) and m.media_id = medium_ms.media_id and " .
-          "    $date_clause " . "  group by m.media_id, m.name " . "  order by stem_percentage desc " )->hashes;
+          "    $date_clause " . "  group by m.media_id, m.name " . "  order by stem_percentage desc ";
+
+    say STDERR "_get_media_matching_stems_single_query running query: $query";
+    
+
+    my $media = $db->query( $query )->hashes;
 
     return $media;
 }
