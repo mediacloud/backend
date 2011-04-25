@@ -1586,6 +1586,8 @@ sub page_count_increment : Local
     my $query_description_0 = $c->req->param( 'query_0_description' );
     my $query_description_1 = $c->req->param( 'query_1_description' );
 
+    my $dashboards_id = $c->req->param( 'dashboards_id' );
+
     my $queries_id_0 = $c->req->param( 'queries_id_0' );
     my $queries_id_1 = $c->req->param( 'queries_id_1' );
 
@@ -1615,8 +1617,8 @@ sub page_count_increment : Local
     if ( !$popular_query )
     {
         $popular_query = $c->dbis->query(
-"INSERT INTO popular_queries ( dashboard_action, url_params, query_0_description, query_1_description, queries_id_0, queries_id_1) VALUES ( ?, ?, ?, ?, ?, ?) RETURNING *",
-            $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1 )->hash;
+"INSERT INTO popular_queries ( dashboard_action, url_params, query_0_description, query_1_description, queries_id_0, queries_id_1, dashboards_id) VALUES ( ?, ?, ?, ?, ?, ?, ?) RETURNING *",
+            $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1, $dashboards_id )->hash;
 
     }
 
