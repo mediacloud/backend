@@ -161,7 +161,7 @@ sub dump_media_sets
     $dbh->query_csv_dump( $output_file, "select ms.media_sets_id, ms.name, msmm.media_id
   from media_sets ms, media_sets_media_map msmm
   where ms.media_sets_id = msmm.media_sets_id
-    and ms.set_type = 'collection'  order by media_sets_id, media_id", [], 1 );
+    and ms.set_type = 'collection'  and ms.include_in_dump order by media_sets_id, media_id", [], 1 );
 }
 
 sub _current_date
