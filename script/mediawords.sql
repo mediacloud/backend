@@ -125,7 +125,8 @@ create table media_sets (
     tags_id                     int         references tags on delete cascade,
     media_clusters_id           int         references media_clusters,
     creation_date               timestamp   default now(),
-    vectors_added               boolean     default false
+    vectors_added               boolean     default false,
+    include_in_dump             boolean     default true
 );
     
 create table queries_media_sets_map (
