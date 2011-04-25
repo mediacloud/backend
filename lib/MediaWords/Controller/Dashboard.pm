@@ -1168,9 +1168,9 @@ sub coverage_changes : Local : FormConfig
 
 sub json_popular_queries : Local
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $dashboards_id ) = @_;
 
-    my $popular_queries = $c->dbis->query( "select * from popular_queries order by count desc limit 5 " )->hashes;
+    my $popular_queries = $c->dbis->query( "select * from popular_queries where dashboards_id= ? order by dashboards_id, count desc limit 5 ", $dashboards_id )->hashes;
 
     foreach my $popular_query ( @$popular_queries )
     {
