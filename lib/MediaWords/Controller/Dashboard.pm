@@ -1139,7 +1139,8 @@ sub data_dumps : Local
 
     if ( scalar( @{ $incremental_data_dumps } ) > 30 )
     {
-        $incremental_data_dumps = [ @{ $incremental_data_dumps }[ -1 .. -30 ] ];
+        #$incremental_data_dumps = [ reverse @{ $incremental_data_dumps } ];
+        $incremental_data_dumps = [ ( (@{ $incremental_data_dumps })[ -30..-1]) ];	
     }
 
     say STDERR Dumper( $data_dump_files );
