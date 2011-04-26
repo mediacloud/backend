@@ -73,7 +73,7 @@
 	[% IF primary %]
 
         look_up_news();
-
+	latest_report_look_up();
 	[% END %]
 
 	[% IF queries.0 %]
@@ -372,7 +372,7 @@
               from one media outlet to another.
               </div>
               <div id = "report"><strong>This week's report</strong><br />
-                <a href="http://www.mediacloud.org/blog">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
+                <div id="weekly_report_link"><a href="http://www.mediacloud.org/blog">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS</div><br />
               </div>
               <div id = "news"><strong>News</strong><br />
 	        <div id = "news_items">
