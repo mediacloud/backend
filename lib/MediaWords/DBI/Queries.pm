@@ -467,8 +467,10 @@ sub _get_media_matching_stems_single_query
           "    msmm.media_sets_id in ( $media_sets_ids_list ) and m.media_id = medium_ms.media_id and " .
           "    $date_clause " . "  group by m.media_id, m.name " . "  order by stem_percentage desc ";
 
-    say STDERR "_get_media_matching_stems_single_query running query: $sql_query";
-    
+    eval {
+      #wrap in eval to work around FCGI::Stream bug.
+      say STDERR "_get_media_matching_stems_single_query running query: $sql_query";
+    }
 
     my $media = $db->query( $sql_query )->hashes;
 
