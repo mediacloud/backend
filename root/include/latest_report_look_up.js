@@ -20,10 +20,26 @@ function latest_report_look_up() {
             var title = element.title;
             var link = element.link;
 
+	    var description = element.description;
+
+	    var temp = $('<span/>').html(description);
+
+	    var description_text = temp.text();
+
+	    description_text = description_text.replace('Continue reading →', '');
+
+	    
+
 	    link = link.replace('https://blogs.law.harvard.edu/mediacloud2/', 'http://www.mediacloud.org/blog/');
             news_items.append($('<a/>', {
                 'href': link
-            }).text(title)).append('<br/>');
+		    }).text(title));
+
+	    news_items.append(':');
+
+            news_items.append('<br/>');
+	    news_items.append($(' :<span id="weekly_report_description"/>')
+			  .text(description_text).append('<br/>'));
         });
 
     });
