@@ -24,6 +24,7 @@
 <th>cluster run</th>
 <th>creation date</th>
 <th>vectors added</th>
+<th>dumps include</th>
 </tr>
 
 [% FOREACH set IN media_sets -%]
@@ -40,6 +41,7 @@
 <td>[% set.creation_date.substr(0, 10) %]</td>
 
 <td>[% IF set.vectors_added %]yes[% ELSE %]no[% END %]</td>
+<td>[% IF set.include_in_dump %]yes[% ELSE %]no[% END %]</td>
 
 </tr>
 
