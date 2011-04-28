@@ -1,0 +1,80 @@
+[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+<body>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+ <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.gvChart-1.0.1.js') %]"></script> 
+<script language="javascript" type="text/javascript">
+<!--
+
+    // gvChartInit();	
+google.load("visualization", "1", {packages:["corechart"]});
+
+   $(document).ready(function() 
+    {
+$.ajax({
+  url: '[% c.uri_for('/monitor/crawler_google_data_table') %]', 
+  dataType: 'json',
+  timeout: 30000,
+  success: function (data_perl)
+		    {
+
+
+			var data =  new google.visualization.DataTable(data_perl, 0.6 );
+
+			var chart_placement =  document.getElementById('line_chart');
+			var chart = new google.visualization.LineChart( chart_placement );
+
+			
+			chart.draw(data, {width: 900, height: 540, title: 'daily downloads'} );
+	
+		    },
+});
+
+    });
+
+-->
+</script>
+
+[% # form.render() %]
+
+[% INCLUDE 'zoe_website_template/header.tt2' %]
+
+<tr>
+<td>
+<div id="line_chart" />
+
+<!--
+
+<p>
+FOO BAR
+</p>
+<table id="crawler_data">
+<caption>Foo</caption>
+<thead>
+<tr>
+<th></th>
+[% FOREACH download_day_count = download_day_counts %]
+<th>[% download_day_count.day | html %]</th>
+[% END %]
+</tr>
+</thead>
+<tbody>
+<tr>
+<th>
+crawled
+</th>
+[%  FOREACH download_day_count = download_day_counts %]
+<td>[% download_day_count.count | html %]</td>
+[% END %]
+</tr>
+</tbody>
+</table>
+-->
+</td>
+</tr>
+
+      </table></td>
+    <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
+    <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
+  </tr>
+
+[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
