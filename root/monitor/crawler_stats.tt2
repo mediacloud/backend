@@ -5,30 +5,63 @@
 <script language="javascript" type="text/javascript">
 <!--
 
-    // gvChartInit();	
-google.load("visualization", "1", {packages:["corechart"]});
-
-   $(document).ready(function() 
+    function update_chart()
     {
-$.ajax({
+	dataString = $("#form").serialize();
+
+
+	$.ajax({
   url: '[% c.uri_for('/monitor/crawler_google_data_table') %]', 
-  dataType: 'json',
+	    //dataType: 'json',
   timeout: 30000,
+	    data: dataString, 
   success: function (data_perl)
 		    {
 
 
+			//var data_json = eval (data_perl);
 			var data =  new google.visualization.DataTable(data_perl, 0.6 );
 
 			var chart_placement =  document.getElementById('line_chart');
-			var chart = new google.visualization.LineChart( chart_placement );
-
+			var chart = new google.visualization.AnnotatedTimeLine( chart_placement );
 			
-			chart.draw(data, {width: 900, height: 540, title: 'daily downloads'} );
+			var json = data.toJSON();
+
+			//alert(json);
+			chart.draw(data, {displayAnnotations: true});
+
+			//alert(data.toJSON() );
+
 	
 		    },
+	    error: function (jqXHR, textStatus, errorThrownsuccess)
+		    {
+			alert( textStatus );
+		    }
 });
+	return false;
+    }
 
+    // gvChartInit();	
+    //google.load("visualization", "1", {packages:["corechart"]});
+    google.load('visualization', '1', {'packages':['annotatedtimeline']});
+
+   $(document).ready(function() 
+    {
+	//alert('chart');
+
+
+			$('#shown_start_date').datepicker( { altField: '#start_date', 
+				    altFormat:  $.datepicker.ISO_8601
+				    }
+				    );
+
+			$('#shown_end_date').datepicker( { altField: '#end_date', 
+				    altFormat: $.datepicker.ISO_8601
+				    }
+				    );
+
+			$('#form').submit(update_chart);
     });
 
 -->
@@ -40,8 +73,22 @@ $.ajax({
 
 <tr>
 <td>
-<div id="line_chart" />
-
+<table>
+<tr>
+<td>
+<div style='width: 700px; height: 240px' id="line_chart" />
+</td>
+</tr>
+<tr>
+<td>
+<div>
+<p>
+       [% form.render() %]
+</p>
+</div>
+</td>
+</tr>
+</table>
 <!--
 
 <p>
