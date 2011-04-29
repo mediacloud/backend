@@ -164,6 +164,8 @@ Data::Dumper
 
 Data::Dump
 
+Data::Google::Visualization::DataTable
+
 Data::Page
 
 DateTime
