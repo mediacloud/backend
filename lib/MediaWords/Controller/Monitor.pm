@@ -109,13 +109,6 @@ sub view : Local : FormConfig
 
     say STDERR "Monitor view";
 
-    my $download_day_counts = $c->dbis->query(
-"select date_trunc('day', download_time) as day, count(*) from downloads where download_time > now() - interval '10 weeks' group by date_trunc('day', download_time);"
-    )->hashes();
-
-    say STDERR Dumper( $download_day_counts );
-
-    $c->stash->{ download_day_counts } = $download_day_counts;
     $c->stash->{ template }            = 'monitor/crawler_stats.tt2';
 }
 
