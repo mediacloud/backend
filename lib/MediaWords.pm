@@ -3,7 +3,7 @@ package MediaWords;
 use strict;
 use warnings;
 
-use Catalyst::Runtime '5.70';
+use Catalyst::Runtime '5.80';
 use v5.8;
 
 #use Catalyst::Runtime;
