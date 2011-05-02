@@ -6,6 +6,7 @@ package Catalyst::Plugin::ConfigDefaults;
 # (Session, for instance)
 
 use strict;
+use MRO::Compat;
 
 sub setup
 {
@@ -13,7 +14,7 @@ sub setup
 
     MediaWords::Util::Config::set_config( $c->config );
 
-    $c->NEXT::setup( @_ );
+    $c->maybe::next::method();
 }
 
 1;
