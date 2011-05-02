@@ -32,7 +32,7 @@ sub default : Private
     my ( $self, $c ) = @_;
 
     # Hello World
-    $c->response->redirect( $c->uri_for( '/media/list' ) );
+    $c->response->redirect( $c->uri_for( '/dashboard/view' ) );
 }
 
 =head2 end
