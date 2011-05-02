@@ -13,7 +13,7 @@
 	$.ajax({
   url: '[% c.uri_for('/monitor/crawler_google_data_table') %]', 
 	    //dataType: 'json',
-  timeout: 30000,
+  #timeout: 30000,
 	    data: dataString, 
   success: function (data_perl)
 		    {
