@@ -70,7 +70,7 @@ sub crawler_google_data_table : Local : FormConfig
 
     my $download_day_counts = $c->dbis->query(
 #"select date_trunc('day', download_time) as day, count(*) from downloads where download_time >now() - interval '10 weeks' group by date_trunc('day', download_time);"
-"select date_trunc('day', download_time) as day, count(*) from downloads where download_time >= ? and  download_time <= ? group by date_trunc('day', download_time);", $start_date, $end_date
+"select date_trunc('day', download_time) as day, count(*) from downloads where download_time >= ? and  download_time <= ?::Date + interval '1 day' group by date_trunc('day', download_time);", $start_date, $end_date
     )->hashes();
 
     foreach my $download_day_count (@$download_day_counts)
