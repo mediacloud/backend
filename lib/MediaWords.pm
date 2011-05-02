@@ -22,7 +22,6 @@ use Bundle::MediaWords;
 #                 directory
 
 use Catalyst qw/
-  -Debug
   ConfigLoader
   ConfigDefaults
   Static::Simple
