@@ -3,6 +3,7 @@ package MediaWords::Controller::Root;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
+use Data::Dumper;
 
 #
 # Sets the actions in this controller to be registered with no prefix
@@ -42,6 +43,24 @@ Attempt to render a view, if needed.
 
 sub end : ActionClass('RenderView')
 {
+    my ( $self, $c ) = @_;
+
+    if ( scalar @{ $c->error } )
+    {
+        $c->stash->{ errors } = $c->error;
+
+        print STDERR "Handling error:\n";
+        print STDERR Dumper( $c->error );
+
+        if ( !$c->debug() )
+        {
+            $c->error( 0 );
+
+            $c->stash->{ template } = 'zoe_website_template/error_page.tt2';
+
+        }
+    }
+
 }
 
 =head1 AUTHOR

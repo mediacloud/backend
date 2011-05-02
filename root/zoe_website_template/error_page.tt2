@@ -1,0 +1,39 @@
+[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+<body>
+<script language="javascript" type="text/javascript">
+<!--
+
+   $(document).ready(function() 
+    {
+
+        look_up_news();
+    });
+
+-->
+</script>
+
+[% # form.render() %]
+
+[% INCLUDE 'zoe_website_template/header.tt2' %]
+<tr>
+<td>
+<h1>
+The system has generated an error.
+</h1>
+[% # FOREACH error in errors %]
+<p>
+[% error | html %]
+</p> 
+[% # END %]
+<p>
+If you think this page should have worked, please <a href="mailto:mediacloud@cyber.law.harvard.edu">let us know</a>.
+</p>
+</td>
+</tr>
+
+      </table></td>
+    <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
+    <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
+  </tr>
+
+[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
