@@ -89,33 +89,7 @@
 </td>
 </tr>
 </table>
-<!--
 
-<p>
-FOO BAR
-</p>
-<table id="crawler_data">
-<caption>Foo</caption>
-<thead>
-<tr>
-<th></th>
-[% FOREACH download_day_count = download_day_counts %]
-<th>[% download_day_count.day | html %]</th>
-[% END %]
-</tr>
-</thead>
-<tbody>
-<tr>
-<th>
-crawled
-</th>
-[%  FOREACH download_day_count = download_day_counts %]
-<td>[% download_day_count.count | html %]</td>
-[% END %]
-</tr>
-</tbody>
-</table>
--->
 </td>
 </tr>
 
