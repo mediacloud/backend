@@ -47,10 +47,10 @@ sub end : ActionClass('RenderView')
 
     if ( scalar @{ $c->error } )
     {
-        $c->stash->{ errors } = $c->error;
+        $c->stash->{ errors } = [ map { $_ }  @{ $c->error } ];
 
         print STDERR "Handling error:\n";
-        print STDERR Dumper( $c->error );
+        print STDERR Dumper(  $c->stash->{ errors } );
 
         if ( !$c->debug() )
         {
