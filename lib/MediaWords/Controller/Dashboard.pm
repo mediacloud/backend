@@ -1666,6 +1666,16 @@ sub sentences : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $site_overload_mode = $config->{ mediawords }->{ site_overload_mode } || 'no';
+
+    if ( $site_overload_mode eq 'yes' )
+    {
+        $c->stash->{ template } = 'dashboard/sentences_iframe_overload_mode.tt2';
+        return;
+    }
+
     if ( $c->req->param( 'authors_id' ) )
     {
         return $self->sentences_author( $c, $dashboards_id );
