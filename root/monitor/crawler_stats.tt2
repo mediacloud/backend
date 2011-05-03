@@ -9,6 +9,7 @@
     {
 	dataString = $("#form").serialize();
 
+	$('#line_chart').text('Loading...');
 
 	$.ajax({
   url: '[% c.uri_for('/monitor/crawler_google_data_table') %]', 
