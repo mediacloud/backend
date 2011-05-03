@@ -6,6 +6,7 @@ function latest_report_look_up() {
     var feed_url = 'https://blogs.law.harvard.edu/mediacloud2/tag/weekly_report/feed/';
 
     //alert(google_url);
+    $('#weekly_report_link').html('<p>Loading...</p>');
     yql_lookup("select * from rss where url = '" + feed_url + "'", function (response) {
 
         var results = response.query.results;
