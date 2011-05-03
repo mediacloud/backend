@@ -54,14 +54,16 @@
 			$('#shown_start_date').datepicker( { altField: '#start_date', 
 				    altFormat:  $.datepicker.ISO_8601
 				    }
-				    );
+				    ).datepicker('setDate', '-2d');
 
 			$('#shown_end_date').datepicker( { altField: '#end_date', 
 				    altFormat: $.datepicker.ISO_8601
 				    }
-				    );
+				    ).datepicker('setDate', '0');
 
 			$('#form').submit(update_chart);
+
+			update_chart();
     });
 
 -->
