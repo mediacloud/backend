@@ -372,14 +372,10 @@
               from one media outlet to another.
               </div>
               <div id = "report"><strong>This week's report</strong><br />
-                <div id="weekly_report_link"><a href="http://www.mediacloud.org/blog">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS</div><br />
+                <div id="weekly_report_link"></div><br />
               </div>
               <div id = "news"><strong>News</strong><br />
 	        <div id = "news_items">
-                Have there been recent updates and changes?  I bet there are some!
-                  <br />
-                <br />
-                  At the very least, here's the most recent headline!!!  And link to the blog!
 		</div>
               </div>
             </div>
