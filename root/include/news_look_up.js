@@ -15,6 +15,7 @@ function look_up_news() {
     var feed_url = 'https://blogs.law.harvard.edu/mediacloud2/feed/';
 
     //alert(google_url);
+    $('#news_items').html('<p>Loading...</p>');
     yql_lookup("select * from rss where url = '" + feed_url + "'", function (response) {
 
         var results = response.query.results;
