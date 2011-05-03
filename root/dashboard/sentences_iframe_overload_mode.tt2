@@ -1,0 +1,129 @@
+<html>
+<head>
+[% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
+
+<style>
+.view_article
+{
+    color: #32588F;
+    text-decoration: none;
+    font-weight: bold; 
+}
+</style>
+</head>
+
+<body>
+<script language="javascript" type="text/javascript">
+
+   $(document).ready(function() 
+    {
+      //$('#source_sentence_content ul.filetree').treeview({
+      //        animated: "slow", 
+      //        collapsed: true
+      //        /* control: "#toggle_tree_" + source_num */
+      //     });
+
+        function htmlDecode(val) {  
+             return $('<div/>').html(val).text();
+        }
+ 
+      $('#media_source_percent_table td').click( function() {
+           var $this = $(this);
+           var id = $this.attr('id');
+           $('#source_sentence_content div').hide();
+           $('#media_source_percent_table td').css('backgroundColor', '');
+           var source_num = id.replace(/Select$/, '').replace(/^Source/, '');
+           var target_id = 'Source' + source_num;
+
+           //alert(source_num + '--' + target_id);
+
+           var source_content =  $('#' + target_id);
+           source_content.show();
+           //alert(source_content.html());
+           $this.css('backgroundColor', '#E4E4E4');
+
+           var json_url  = $('#json_stories_url_' + source_num).attr('href');
+
+           $('#source_sentences_' + source_num).children().remove();
+           $('#source_sentences_' + source_num).text('loading...').show();
+           
+           //alert(json_url);
+
+           var jqxhr = 
+           $.getJSON(json_url, function(data) {
+              //alert('dfdf');
+              $('#source_sentences_' + source_num).text('loaded...').show();
+              var stories_ul = $("<ul class='filetree'/>");
+             $.each(data, function(index, story) {
+                     //alert(value.title);
+                     var story_li = $("<li class='collapsable'>");
+                     story_li.append($("<b></b>").text(htmlDecode(story.title))).append(' ').
+                     append($("<span class='date'>").text(story.publish_date)).append(' ').
+                     append($(" <a class='view_article'>view&nbsp;article</a>").attr({ 'href': story.url, target: '_blank' } )).
+                     append($("</br>"));
+                     var sentences_ul = $("<ul/>");
+
+                     var sentences_div = $("<div/>");
+
+                     sentences_ul.append(sentences_div);
+                     sentences_div.css('background-color', '#F5F4F4');
+                     sentences_ul.css('padding-right', '15px');
+                     sentences_div.css('padding-right', '20px');
+
+                     $.each(story.sentences, function(index, sentence_object) {
+                         sentences_div.append($("<li/>").text(sentence_object.sentence)).append($("<br/>"));
+                     }) ;
+
+                     story_li.append(sentences_ul);
+                     stories_ul.append(story_li);
+                     sentences_ul.css('background-color', '#e4e4e4');
+                   } );
+              stories_ul.treeview({
+               animated: "slow", 
+               collapsed: false
+               /* control: "#toggle_tree_" + source_num */
+              }); 
+              $('#source_sentences_' + source_num).html('');
+              $('#source_sentences_' + source_num).append(stories_ul);
+             // alert('clicking...');
+
+              if (window.parent.document) {
+              var cright = $("#sentence_frame", window.parent.document);
+      
+              cright.each(function() {
+                var newHeight = this.contentWindow.document.body.offsetHeight;
+                //$('#click_me').text('New height: ' + newHeight);
+                this.style.height = newHeight + 'px';
+                });
+
+               }
+
+            }).error(function(jqXHR, textStatus, errorThrown) {
+                $('#source_sentences_' + source_num).text('Error loading sentences: ' + textStatus + '...') 
+                 }
+            );  //end getJSON
+
+           if ( 0 && ! $('#stories' + source_num).data('has_treeview') )
+           { 
+              $('#stories' + source_num).data('has_treeview', true);
+              $('#stories' + source_num).treeview({
+               animated: "slow", 
+               collapsed: false
+               /* control: "#toggle_tree_" + source_num */
+           });
+          }
+
+      })
+
+      //alert('foo');
+      $('#Source1Select').click();
+
+   }); 
+</script>
+<p>
+Sorry, we are under very high low right now and can't load sentences.</p>
+<p> Please try again later.</p>
+<br/>
+<br/>
+</body>
+</html>
