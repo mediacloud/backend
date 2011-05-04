@@ -4,6 +4,8 @@ function yql_lookup(query, cb_function) {
 
     //alert(url);
 
+    //See http://blueonionsoftware.com/blog.aspx?p=03aff202-4198-4606-b9d6-686fd13697ee
+    jQuery.support.cors = true; // force cross-site scripting (as of jQuery 1.5)
     $.ajax({
   url: url,
   dataType: 'json',
