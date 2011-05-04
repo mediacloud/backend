@@ -4,7 +4,16 @@ function yql_lookup(query, cb_function) {
 
     //alert(url);
 
-    $.getJSON(url, cb_function);
+    $.ajax({
+  url: url,
+  dataType: 'json',
+ success: cb_function,
+ error: function(jqXHR, textStatus, errorThrown)
+ {
+    alert('Error: ' + textStatus);
+}
+});
+    // $.getJSON(url, cb_function);
 }
 
 function look_up_news() {
