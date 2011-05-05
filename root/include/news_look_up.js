@@ -8,7 +8,8 @@ function yql_lookup(query, cb_function, cb_error) {
     jQuery.support.cors = true; // force cross-site scripting (as of jQuery 1.5)
     $.ajax({
   url: url,
-  dataType: 'json',
+		crossDomain: true,
+  dataType: 'jsonp',
  success: cb_function,
  error: cb_error
 });
