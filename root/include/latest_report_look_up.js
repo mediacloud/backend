@@ -47,7 +47,7 @@ function latest_report_look_up() {
 
 	function(jqXHR, textStatus, errorThrown)
 	{
-	var news_items = $('#news_items');
+	var news_items = $('#weekly_report_link');
 
         //console.log(results);
         news_items.children().remove();
