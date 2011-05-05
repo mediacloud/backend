@@ -41,7 +41,18 @@ function latest_report_look_up() {
             news_items.append('<br/>');
 	    news_items.append($(' :<span id="weekly_report_description"/>')
 			  .text(description_text).append('<br/>'));
-        });
+	    });
 
-    });
+    },
+
+	function(jqXHR, textStatus, errorThrown)
+	{
+	var news_items = $('#news_items');
+
+        //console.log(results);
+        news_items.children().remove();
+        news_items.html('');
+        news_items.html(textStatus);
+	
+	});
 }
