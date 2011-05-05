@@ -1,5 +1,5 @@
 
-function yql_lookup(query, cb_function) {
+function yql_lookup(query, cb_function, cb_error) {
     var url = 'http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent(query) + '&format=json&diagnostics=true';
 
     //alert(url);
@@ -10,10 +10,7 @@ function yql_lookup(query, cb_function) {
   url: url,
   dataType: 'json',
  success: cb_function,
- error: function(jqXHR, textStatus, errorThrown)
- {
-    alert('Error: ' + textStatus);
-}
+ error: cb_error
 });
     // $.getJSON(url, cb_function);
 }
@@ -47,5 +44,16 @@ function look_up_news() {
             }).text(title)).append('<br/>');
         });
 
-    });
+	}, 
+	function(jqXHR, textStatus, errorThrown)
+	{
+	var news_items = $('#news_items');
+
+        //console.log(results);
+        news_items.children().remove();
+        news_items.html('');
+        news_items.html(textStatus);
+	
+	}
+);
 }
