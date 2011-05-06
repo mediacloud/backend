@@ -50,8 +50,16 @@ sub message : Local
     my $dashboards_id = MediaWords::Controller::Dashboard::get_default_dashboards_id( $c->dbis );
     my $default_dashboard = MediaWords::Controller::Dashboard::get_dashboard( $c->dbis, $dashboards_id );
 
-    $c->stash->{ dashboard } = $default_dashboard;
-    $c->stash->{ template }  = 'zoe_website_template/comingsoon.tt2';
+
+    my $redirect = $c->uri_for( '/dashboard/view/' );
+
+    $c->res->redirect( $redirect );
+
+    if (0)
+    {
+      $c->stash->{ dashboard } = $default_dashboard;
+      $c->stash->{ template }  = 'zoe_website_template/comingsoon.tt2';
+    }
 }
 
 1;
