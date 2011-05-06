@@ -267,7 +267,7 @@
 
 	    var message = "  Paste this html to embed in a website:  ";
 
-	    var html = '<iframe src="' + iframe_url + '"' + 'cellspacing="0" border="0" name="word_cloud" scrolling="no" frameborder="0" ' + ' width=665 height=480 style="border-style: none; width: 665px;"/>';
+	    var html = '<iframe src="' + iframe_url + '"' + 'cellspacing="0" border="0" name="word_cloud" scrolling="no" frameborder="0" ' + ' width=665 height=480 style="border-style: none; width: 665px;"></iframe>';
 
 	    $('#wc_embed_info_text').children().remove();
 
