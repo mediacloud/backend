@@ -2,44 +2,17 @@
 <body>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.gvChart-1.0.1.js') %]"></script> 
+ <script type="text/javascript"  src="[% c.uri_for('/include/annotatedTimeLineChart.js') %]"></script> 
 <script language="javascript" type="text/javascript">
 <!--
 
     function update_chart()
     {
 	dataString = $("#form").serialize();
+	var chart_element = $('#line_chart');
 
-	$('#line_chart').text('Loading...');
+	annotatedTimeLineChart( chart_element, '[% c.uri_for('/monitor/crawler_google_data_table') %]', dataString );
 
-	$.ajax({
-  url: '[% c.uri_for('/monitor/crawler_google_data_table') %]', 
-	    //dataType: 'json',
-		    //timeout: 30000,
-	    data: dataString, 
-  success: function (data_perl)
-		    {
-
-
-			//var data_json = eval (data_perl);
-			var data =  new google.visualization.DataTable(data_perl, 0.6 );
-
-			var chart_placement =  document.getElementById('line_chart');
-			var chart = new google.visualization.AnnotatedTimeLine( chart_placement );
-			
-			var json = data.toJSON();
-
-			//alert(json);
-			chart.draw(data, {displayAnnotations: true});
-
-			//alert(data.toJSON() );
-
-	
-		    },
-	    error: function (jqXHR, textStatus, errorThrownsuccess)
-		    {
-			alert( textStatus );
-		    }
-});
 	return false;
     }
 
