@@ -1,6 +1,22 @@
 [% title = 'Create Query' %]
 [% INCLUDE include/header.tt2 %]
 
+<script>
+  $(document).ready(function() 
+    {
+		$('#start_date').datepicker( {
+				    dateFormat:  $.datepicker.ISO_8601
+				    }
+				    );
+		$('#end_date').datepicker( {
+				    dateFormat:  $.datepicker.ISO_8601
+				    }
+				    );
+
+    });
+
+
+</script>
 <fieldset>
 [% form.render %]
 </fieldset>
