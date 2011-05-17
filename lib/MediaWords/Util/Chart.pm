@@ -159,7 +159,6 @@ sub generate_google_data_table_from_dates
         $term_number++;
     }
 
-
     # data scaling
     my $max = 0.00001;
     for my $counts ( @{ $term_date_counts } )
@@ -174,12 +173,12 @@ sub generate_google_data_table_from_dates
     }
 
     my $i = 0;
-    foreach my $date( @$dates )
+    foreach my $date ( @$dates )
     {
         my $parsed_date = DateTime::Format::Pg->parse_datetime( $date );
 
-        $datatable->add_rows( [ $parsed_date, ( map { $_->[ $i ] *(60/$max) } @$term_date_counts ) ] );
-	$i++;
+        $datatable->add_rows( [ $parsed_date, ( map { $_->[ $i ] * ( 60 / $max ) } @$term_date_counts ) ] );
+        $i++;
     }
 
     print STDERR $datatable->output_json();
@@ -196,7 +195,7 @@ sub _process_dates_for_line_chart
     my $date_hash;
     my $term_hash;
 
-    print STDERR Dumper( $date_term_counts);
+    print STDERR Dumper( $date_term_counts );
     for my $d ( @{ $date_term_counts } )
     {
         my $date = substr( $d->[ 0 ], 0, 10 );
