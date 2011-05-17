@@ -100,6 +100,17 @@ sub _get_topic_chart_url
         return undef;
     }
 
+    my $date_term_counts = $self->_get_topic_chart_url_date_term_counts( $c, $query );
+
+    my $end_date = MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 );
+    return MediaWords::Util::Chart::generate_line_chart_url_from_dates( $date_term_counts, $query->{ start_date },
+        $end_date );
+}
+
+sub _get_topic_chart_url_date_term_counts
+{
+    my ( $self, $c, $query ) = @_;
+
     my $media_sets_ids_list       = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_ids_list = join( ',', @{ $query->{ dashboard_topics_ids } } );
     my $date_clause = MediaWords::DBI::Queries::get_daily_date_clause( $query, 'topic_words' );
@@ -132,9 +143,7 @@ sub _get_topic_chart_url
           )->arrays
     ];
 
-    my $end_date = MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 );
-    return MediaWords::Util::Chart::generate_line_chart_url_from_dates( $date_term_counts, $query->{ start_date },
-        $end_date );
+    return $date_term_counts;
 }
 
 # view a single query
@@ -169,6 +178,33 @@ sub view : Local
             action           => $c->uri_for( '/queries/terms/' . $query->{ queries_id } )
         }
     );
+
+    if ( $c->req->param( 'google_table' ) )
+    {
+        if ( !@{ $query->{ dashboard_topics } } )
+        {
+            return undef;
+        }
+
+        my $date_term_counts = $self->_get_topic_chart_url_date_term_counts( $c, $query );
+
+        my $end_date = MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 );
+
+        my $datatable = MediaWords::Util::Chart::generate_google_data_table_from_dates(
+            $date_term_counts,
+            $query->{ start_date },
+            MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 )
+        );
+
+        my $json_output = $datatable->output_json(
+
+            #columns => ['date','number','string' ],
+            pretty => 1,
+        );
+
+        $c->res->body( $json_output );
+        return;
+    }
 
     my ( $topic_chart_url, $max_topic_term_ratios );
     if ( @{ $query->{ dashboard_topics } } )

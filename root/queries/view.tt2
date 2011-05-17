@@ -1,5 +1,22 @@
 [% title = 'View Query: words ' _ query.description %]
 [% INCLUDE include/header.tt2 %]
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript"  src="[% c.uri_for('/include/annotatedTimeLineChart.js') %]"></script> 
+
+<script>
+$(document).ready(function() 
+    {
+
+[% IF query.dashboard_topics.size > 0 %]
+	var an_time =  $('#annotated_time_line');
+
+      	annotatedTimeLineChart( an_time, '[% c.uri_for( '/queries/view/' _ query.queries_id, { 'google_table' => 1 } ) %]' );
+
+[% END %]
+}
+);
+
+</script>
 
 <fieldset>
 
@@ -63,6 +80,8 @@ This is a word cloud of all the words within this query ([% query.description %]
 [% IF query.dashboard_topics.size > 0 %]
 
 <img src="[% topic_chart_url %]" />
+<div style='width: 700px; height: 350px' id='annotated_time_line' >
+</div>
 
 <p>
 
