@@ -1,6 +1,10 @@
 
+ google.load('visualization', '1', {'packages':['annotatedtimeline']});
+
+
+
+
 function annotatedTimeLineChart(chart_element, url, dataString) {
-    var chart_element = $('#line_chart');
 
     chart_element.text('Loading...');
 
