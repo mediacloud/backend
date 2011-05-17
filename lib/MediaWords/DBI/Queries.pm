@@ -821,7 +821,8 @@ sub get_term_counts
     {
         $d->[ 1 ] = $term_lookup->{ $d->[ 1 ] };
     }
-    print STDERR Dumper( $date_term_counts );
+
+    #print STDERR Dumper( $date_term_counts );
     return $date_term_counts;
 }
 
