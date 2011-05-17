@@ -1,14 +1,28 @@
 [% title = 'View Terms ' _ terms_string _ ' ' _ query.description %]
 [% INCLUDE include/header.tt2 %]
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript"  src="[% c.uri_for('/include/annotatedTimeLineChart.js') %]"></script> 
 
+<script>
+$(document).ready(function() 
+    {
+	var an_time =  $('#annotated_time_line');
+
+      	annotatedTimeLineChart( an_time, '[% c.uri_for( '/queries/terms/' _ query.queries_id, { 'google_table' => 1, 'terms' => terms_string } ) %]' );
+}
+);
+</script>
 <fieldset>
 <img src="[% term_chart_url %]" />
-
+<a id ="terms_data_table_url" href="[% c.uri_for( '/queries/terms/' _ query.queries_id, { 'google_table' => 1, 'terms' => terms_string } ) %]"/>
 <p>
 [% FOREACH term IN max_term_ratios %]
 [ [% term.term | html %] - [% term.max_term_ratio * 100 | format( '%.02f' ) %]% ]
 [% END %]
 </p>
+<div style='width: 700px; height: 350px' id='annotated_time_line' >
+</div>
+
 <p>
 <a href="[% c.uri_for( '/queries/terms/' _ query.queries_id, { 'csv' => 1, 'terms' => terms_string } ) %]">
 download csv of term counts
