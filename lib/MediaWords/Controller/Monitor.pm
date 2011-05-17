@@ -84,7 +84,8 @@ sub crawler_google_data_table : Local : FormConfig
         { id => 'day',   label => 'Date',  type => 'date' },
         { id => 'count', label => 'Count', type => 'number' },
     );
-    say STDERR Dumper( $download_day_counts );
+    
+    #say STDERR Dumper( $download_day_counts );
 
     $datatable->add_rows( @{ $download_day_counts } );
 
