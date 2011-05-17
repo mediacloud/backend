@@ -6,6 +6,7 @@ use Data::Dumper;
 use Time::HiRes;
 use Time::Local;
 use URI::Escape;
+use Data::Google::Visualization::DataTable::MediaWords;
 
 # STATICS
 
@@ -133,6 +134,59 @@ sub generate_line_chart_url_from_dates
     return generate_line_chart_url( $date_info->{ dates }, $date_info->{ terms }, $date_info->{ counts } );
 }
 
+# call generate_line_chart_url above but with easier to generate params in the form of:
+# [ date => <date>, term => <term>, count => <count> ]
+sub generate_google_data_table_from_dates
+{
+    my ( $date_term_counts, $start_date, $end_date ) = @_;
+
+    die( 'no dates' ) if ( !@{ $date_term_counts } );
+
+    my $date_info = _process_dates_for_line_chart( $date_term_counts, $start_date, $end_date );
+
+    my ( $dates, $terms, $term_date_counts ) = ( $date_info->{ dates }, $date_info->{ terms }, $date_info->{ counts } );
+
+    print STDERR Dumper( $term_date_counts );
+
+    my $datatable = Data::Google::Visualization::DataTable::MediaWords->new();
+
+    $datatable->add_columns( { id => 'date', label => 'Date', type => 'date' } );
+
+    my $term_number = 0;
+    foreach my $term ( @$terms )
+    {
+        $datatable->add_columns( { id => "term_$term_number", label => "$term", type => 'number' } );
+        $term_number++;
+    }
+
+
+    # data scaling
+    my $max = 0.00001;
+    for my $counts ( @{ $term_date_counts } )
+    {
+        for my $count ( @{ $counts } )
+        {
+            if ( !$max || ( $count > $max ) )
+            {
+                $max = $count;
+            }
+        }
+    }
+
+    my $i = 0;
+    foreach my $date( @$dates )
+    {
+        my $parsed_date = DateTime::Format::Pg->parse_datetime( $date );
+
+        $datatable->add_rows( [ $parsed_date, ( map { $_->[ $i ] *(60/$max) } @$term_date_counts ) ] );
+	$i++;
+    }
+
+    print STDERR $datatable->output_json();
+
+    return $datatable;
+}
+
 sub _process_dates_for_line_chart
 {
     my ( $date_term_counts, $start_date, $end_date ) = @_;
@@ -141,6 +195,8 @@ sub _process_dates_for_line_chart
 
     my $date_hash;
     my $term_hash;
+
+    print STDERR Dumper( $date_term_counts);
     for my $d ( @{ $date_term_counts } )
     {
         my $date = substr( $d->[ 0 ], 0, 10 );
