@@ -23,6 +23,11 @@ mail:
     ### directory where web app sessions are stored.  default to $homedir/tmp
     #storage: "~/tmp/mediawords-session"
 
+## Uncomment and fill in to use Google Analytics
+#google_analytics:
+#      account: "<ACOUNT>"
+#      domainname: "<DOMAIN>"	
+
 #mediawords:
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
