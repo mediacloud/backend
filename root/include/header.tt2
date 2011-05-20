@@ -43,6 +43,8 @@
     @import "[% c.uri_for('/include/vertically-aligned-ie.css') %]";
   </style>
 <![endif]-->
+
+[% INCLUDE 'include/google_analytics.tt2' %]
   </head>
   <body>
     <h1>

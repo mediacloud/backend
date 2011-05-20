@@ -16,4 +16,6 @@
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/media_cloud_rough.js') %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/news_look_up.js') %]"></script>
 <script language="javascript" type="text/javascript" src="[% c.uri_for('/include/latest_report_look_up.js') %]"></script>
+
+[% INCLUDE 'include/google_analytics.tt2' %]
 </head>
