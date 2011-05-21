@@ -655,7 +655,7 @@ sub get_medium_stem_stories_with_sentences
     return _get_stories_from_sentences( $db, $sentences );
 }
 
-# get all story_sentences within the given queries, up to MAX_QUERY_SENTENCES for each query
+# get all story_sentences within the given queries, dup to MAX_QUERY_SENTENCES for each query
 sub _get_stem_sentences_day
 {
     my ( $db, $query, $day, $max_sentences, $stem ) = @_;
@@ -1027,6 +1027,71 @@ sub get_country_counts
           " and dcc.media_sets_id = tdw.media_sets_id and dcc.publish_day = tdw.publish_day " .
           " and coalesce( dcc.dashboard_topics_id, 0 ) = coalesce( tdw.dashboard_topics_id, 0 ) and $date_clause " .
           "GROUP BY dcc.country order by dcc.country" )->hashes;
+}
+
+# get a list of all stories matching the query with download texts
+sub get_stories_with_text
+{
+    my ( $db, $query ) = @_;
+    
+    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
+    my $date_clause = get_daily_date_clause( $query, 'ssw' );
+
+    my $stories = [];
+    if ( @{ $query->{ dashboard_topics_ids } } )
+    {
+        my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
+
+        $stories =
+          $db->query( 
+              "select distinct s.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, " . 
+              "    ms.name as media_set_name, dtx.download_text as story_text, d.downloads_id " .
+              "  from story_sentence_words ssw, stories s, media m, media_sets_media_map msmm, media_sets ms, " .
+              "    dashboard_topics dt, downloads d, download_texts dtx  " .
+              "  where $date_clause and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
+              "    and ssw.stories_id = s.stories_id and s.media_id = m.media_id " .
+              "    and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
+              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
+              "    and ms.media_sets_id = msmm.media_sets_id " .
+              "    and s.stories_id = d.stories_id and d.downloads_id = dtx.downloads_id " .
+              "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 10000" )->hashes;
+    }
+    else
+    {
+        $stories =
+          $db->query( 
+              "select distinct s.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, " . 
+              "    ms.name as media_set_name, dt.download_text as story_text, d.downloads_id " .
+              "  from story_sentence_words ssw, stories s, media m, media_sets_media_map msmm, media_sets ms,  " .
+              "    downloads d, download_texts dt " .
+              "  where $date_clause and ssw.media_id = msmm.media_id " .
+              "    and ssw.stories_id = s.stories_id and s.media_id = m.media_id " .
+              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
+              "    and ms.media_sets_id = msmm.media_sets_id " .
+              "    and s.stories_id = d.stories_id and d.downloads_id = dt.downloads_id " .
+              "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 10000" )->hashes;
+    }
+
+    @{ $stories } || return [];
+    
+    map { delete( $_->{ story_text } ) } @{ $stories };
+
+    my $concatenated_stories = [ $stories->[ 0 ] ];
+    my $prev_story = shift( @{ $stories } );
+    
+    for my $story ( @{ $stories } )
+    {        
+        if ( ( $story->{ stories_id } == $prev_story->{ stories_id } ) && ( $story->{ media_set_name } == $prev_story->{ media_set_name } ) )
+        {
+            $prev_story->{ story_text } .= "\n" . $story->{ story_text };
+        }
+        else {
+            $prev_story = $story;
+            push( @{ $concatenated_stories }, $story );
+        }
+    }
+
+    return $concatenated_stories;
 }
 
 1;

@@ -396,4 +396,17 @@ sub compare : Local
     $c->stash->{ template }   = 'queries/compare.tt2';
 }
 
+# download csv of all stories belonging to the query, including extracted text
+sub stories : Local
+{
+    my ( $self, $c, $queries_id ) = @_;
+    
+    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id )
+        || die( "Unable to find query $queries_id" );
+        
+    my $stories = MediaWords::DBI::Queries::get_stories_with_text( $c->dbis, $query );
+    
+    MediaWords::Util::CSV::send_hashes_as_csv_page( $c, $stories, "stories.csv" );
+}
+
 1;

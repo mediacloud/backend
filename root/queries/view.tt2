@@ -44,8 +44,12 @@ $(document).ready(function()
 </table>
 
 <p>
-<a href="[% c.uri_for( '/queries/view_media/' _ query.queries_id ) %]">view individual media sources</a>
+<a href="[% c.uri_for( '/queries/view_media/' _ query.queries_id ) %]">view individual media sources</a> |
+<a href="[% c.uri_for( '/queries/stories/' _ query.queries_id ) %]">download matching stories with text (max 10000) </a>
+
 </p>
+
+
 
 </fieldset>
 
