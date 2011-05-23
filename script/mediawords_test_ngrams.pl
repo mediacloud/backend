@@ -69,7 +69,10 @@ SQL
     $db->query( "CREATE INDEX ngram_test_ngrams_stories_id on  ngram_test_ngrams(stories_id) " );
     $db->query( "CREATE INDEX ngram_test_ngrams_ngram on  ngram_test_ngrams(ngram) " );
 
-    my $stories_ids = $db->query( 'SELECT stories.stories_id from stories order by RANDOM() limit 10' )->flat();
+    my $target_story_count = 1000;
+
+    my $stories_ids =
+      $db->query( 'SELECT stories.stories_id from stories order by RANDOM() limit ?', $target_story_count )->flat();
 
     #say Dumper($stories_ids);
 
@@ -77,6 +80,11 @@ SQL
 
     foreach my $stories_id ( @$stories_ids )
     {
+        if ( $stories_processed % 50 == 0 )
+        {
+            say "$stories_processed stories have been processed out of $target_story_count";
+        }
+
         $db->query(
             "INSERT INTO ngram_test_story_sentences                                  " .
               " (select * from story_sentences where stories_id = ? ) ",
@@ -115,6 +123,9 @@ SQL
             }
         }
 
+        $stories_processed++;
+
+       
         #exit;
     }
 }
