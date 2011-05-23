@@ -1042,34 +1042,40 @@ sub get_stories_with_text
     {
         my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
 
+        # I think download_texts in the distinct is slowing this down.  try a subquery for the distinct stories_id and
+        # joining everything else to that
         $stories =
           $db->query( 
-              "select distinct s.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, " . 
-              "    ms.name as media_set_name, dtx.download_text as story_text, d.downloads_id " .
-              "  from story_sentence_words ssw, stories s, media m, media_sets_media_map msmm, media_sets ms, " .
-              "    dashboard_topics dt, downloads d, download_texts dtx  " .
-              "  where $date_clause and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
-              "    and ssw.stories_id = s.stories_id and s.media_id = m.media_id " .
-              "    and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "    and ms.media_sets_id = msmm.media_sets_id " .
-              "    and s.stories_id = d.stories_id and d.downloads_id = dtx.downloads_id " .
-              "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 10000" )->hashes;
+              "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, ms.name as media_set_name, " .
+              "    d.downloads_id, dt.download_text as story_text " .
+              "  from stories s, media m, media_sets ms, downloads d, download_texts dt, " .
+              "( select distinct ssw.stories_id, msmm.media_sets_id " .
+              "    from story_sentence_words ssw,  media m, media_sets_media_map msmm, media_sets ms, dashboard_topics dt  " .
+              "    where $date_clause and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
+              "      and ssw.media_id = msmm.media_id " .
+              "      and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
+              "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
+              "  ) q " .
+              "  where q.stories_id = d.stories_id and d.downloads_id = dt.downloads_id " .
+              "    and q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id " .
+              "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 100000" )->hashes;
     }
     else
     {
         $stories =
           $db->query( 
-              "select distinct s.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, " . 
-              "    ms.name as media_set_name, dt.download_text as story_text, d.downloads_id " .
-              "  from story_sentence_words ssw, stories s, media m, media_sets_media_map msmm, media_sets ms,  " .
-              "    downloads d, download_texts dt " .
-              "  where $date_clause and ssw.media_id = msmm.media_id " .
-              "    and ssw.stories_id = s.stories_id and s.media_id = m.media_id " .
-              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "    and ms.media_sets_id = msmm.media_sets_id " .
-              "    and s.stories_id = d.stories_id and d.downloads_id = dt.downloads_id " .
-              "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 10000" )->hashes;
+              "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, ms.name as media_set_name, " .
+              "    d.downloads_id, dt.download_text as story_text " .
+              "  from stories s, media m, media_sets ms, downloads d, download_texts dt, " .
+              "( select distinct ssw.stories_id, msmm.media_sets_id " .
+              "    from story_sentence_words ssw,  media m, media_sets_media_map msmm, media_sets ms  " .
+              "    where $date_clause and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
+              "      and ssw.media_id = msmm.media_id " .
+              "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
+              "  ) q " .
+              "  where q.stories_id = d.stories_id and d.downloads_id = dt.downloads_id " .
+              "    and q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id " .
+              "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 100000" )->hashes;
     }
 
     @{ $stories } || return [];
