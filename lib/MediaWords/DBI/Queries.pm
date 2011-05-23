@@ -1040,7 +1040,7 @@ sub get_stories_with_text
     my $stories = [];
     if ( @{ $query->{ dashboard_topics_ids } } )
     {
-        my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
+        my $topics = join( ',', map { $db->{ dbh }->quote( $_->{ query } ) } @{ $query->{ dashboard_topics } } );
 
         # I think download_texts in the distinct is slowing this down.  try a subquery for the distinct stories_id and
         # joining everything else to that
@@ -1050,10 +1050,10 @@ sub get_stories_with_text
               "    d.downloads_id, dt.download_text as story_text " .
               "  from stories s, media m, media_sets ms, downloads d, download_texts dt, " .
               "( select distinct ssw.stories_id, msmm.media_sets_id " .
-              "    from story_sentence_words ssw,  media m, media_sets_media_map msmm, media_sets ms, dashboard_topics dt  " .
-              "    where $date_clause and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
+              "    from story_sentence_words ssw, media m, media_sets_media_map msmm, media_sets ms  " .
+              "    where $date_clause and ssw.media_id = msmm.media_id " .
               "      and ssw.media_id = msmm.media_id " .
-              "      and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
+              "      and ssw.stem in ( $topics ) " .
               "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
               "  ) q " .
               "  where q.stories_id = d.stories_id and d.downloads_id = dt.downloads_id " .
