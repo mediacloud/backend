@@ -1050,7 +1050,7 @@ sub get_stories_with_text
               "    d.downloads_id, dt.download_text as story_text " .
               "  from stories s, media m, media_sets ms, downloads d, download_texts dt, " .
               "( select distinct ssw.stories_id, msmm.media_sets_id " .
-              "    from story_sentence_words ssw, media m, media_sets_media_map msmm, media_sets ms  " .
+              "    from story_sentence_words ssw, media_sets_media_map msmm, media_sets ms  " .
               "    where $date_clause and ssw.media_id = msmm.media_id " .
               "      and ssw.media_id = msmm.media_id " .
               "      and ssw.stem in ( $topics ) " .
@@ -1066,7 +1066,7 @@ sub get_stories_with_text
           $db->query( 
               "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, ms.name as media_set_name, " .
               "    d.downloads_id, dt.download_text as story_text " .
-              "  from stories s, media m, media_sets ms, downloads d, download_texts dt, " .
+              "  from stories s, media_sets ms, downloads d, download_texts dt, " .
               "( select distinct ssw.stories_id, msmm.media_sets_id " .
               "    from story_sentence_words ssw,  media m, media_sets_media_map msmm, media_sets ms  " .
               "    where $date_clause and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
