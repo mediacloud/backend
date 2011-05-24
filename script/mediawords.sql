@@ -783,3 +783,12 @@ CREATE TABLE popular_queries (
 CREATE UNIQUE INDEX popular_queries_da_up ON popular_queries(dashboard_action, url_params);
 CREATE UNIQUE INDEX popular_queries_query_ids ON popular_queries( queries_id_0,  queries_id_1);
 CREATE INDEX popular_queries_dashboards_id_count on popular_queries(dashboards_id, count);
+
+CREATE VIEW stories_collected_in_past_day as select * from stories where collect_date > now() - interval '1 day';
+
+CREATE VIEW downloads_to_be_extracted as select * from downloads where extracted = 'f' and state = 'success' and type = 'content';
+
+CREATE VIEW downloads_in_past_day as select * from downloads where download_time > now() - interval '1 day';
+CREATE VIEW downloads_with_error_in_past_day as select * from downloads_in_past_day where state = 'error';
+
+CREATE VIEW daily_stats as select * from (SELECT count(*) as daily_downloads from downloads_in_past_day) as dd, (select count(*) as daily_stories from stories_collected_in_past_day) ds , (select count(*) as downloads_to_be_extracted from downloads_to_be_extracted) dex, (select count(*) as download_errors from downloads_with_error_in_past_day ) er;
