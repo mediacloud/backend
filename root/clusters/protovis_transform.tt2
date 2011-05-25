@@ -147,15 +147,16 @@
       ;
 
   // labels over every cluster
-  var labels = vis.add(pv.Panel)
-    .data(clusters)
-    .left(function(d) x(d.x) )
-    .top(function(d) y(d.y))
-    .add(pv.Label)
-      .text(function(d) d.name)
-      .font("bold 11px sans-serif")
-      .textStyle(function(c) c.color)
-    ;
+//  var labels = vis.add(pv.Panel)
+//    .data(clusters)
+//    .left(function(d) x(d.x) )
+//    .top(function(d) y(d.y))
+//    .add(pv.Label)
+//      .text(function(d) d.name)
+//      .font("bold 11px sans-serif")
+//      //.textStyle(function(c) c.color)
+//      .textStyle('grey')
+//    ;
     
   
   // Info about the current node
