@@ -90,6 +90,8 @@ sub _get_medium_lookup
 sub _get_medium_media_sets_id
 {
     my ( $clustering_engine, $medium ) = @_;
+
+	return 0 unless $medium;
     
     my $db = $clustering_engine->db;
     my $query = $clustering_engine->cluster_run->{ query };
@@ -342,11 +344,11 @@ sub _get_media_clusters
 # get a suitable name for the cluster map defined by the parameters
 sub _get_map_name
 {
-    my ( $db, $cluster_run, $map_type, $queries ) = @_;
+    my ( $db, $cluster_run, $map_type, $queries, $method ) = @_;
     
     if ( $map_type eq 'cluster' )
     {
-        return 'default cluster map';
+        return 'cluster map - ' . $method;
     }
     elsif ( $map_type eq 'polar' )
     {
@@ -541,12 +543,12 @@ sub generate_cluster_map
     
     my $stats = _get_stats( $nodes );
     
-    my $map_name = _get_map_name( $db, $cluster_run, $map_type, $queries );
+    my $map_name = _get_map_name( $db, $cluster_run, $map_type, $queries, $method );
             
     my $cluster_map = $db->create( 'media_cluster_maps', { 
         media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
         name => $map_name,
-        method => $method, 
+        #method => $method, 
         map_type => $map_type,
         json => $json_string,
         nodes_total => $stats->{ nodes_total },

@@ -56,7 +56,8 @@ sub create : Local
     }
 
     my $cluster_run = $c->dbis->create( 'media_cluster_runs', { 
-        queries_id => $query->{ queries_id },
+        method => 'foo',
+		queries_id => $query->{ queries_id },
         num_clusters => $c->req->param( 'num_clusters' ) } );
 
     my $clustering_engine = MediaWords::Cluster->new( $c->dbis, $cluster_run );
