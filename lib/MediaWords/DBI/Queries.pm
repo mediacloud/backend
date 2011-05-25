@@ -1066,10 +1066,10 @@ sub get_stories_with_text
           $db->query( 
               "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, ms.name as media_set_name, " .
               "    d.downloads_id, dt.download_text as story_text " .
-              "  from stories s, media_sets ms, downloads d, download_texts dt, " .
+              "  from stories s, media m, media_sets ms, downloads d, download_texts dt, " .
               "( select distinct ssw.stories_id, msmm.media_sets_id " .
               "    from story_sentence_words ssw, media_sets_media_map msmm " .
-              "    where $date_clause and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
+              "    where $date_clause and ssw.media_id = msmm.media_id " .
               "      and ssw.media_id = msmm.media_id " .
               "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
               "  ) q " .
@@ -1080,7 +1080,7 @@ sub get_stories_with_text
 
     @{ $stories } || return [];
     
-    map { delete( $_->{ story_text } ) } @{ $stories };
+    map { delete( $_->{ downloads_id } ) } @{ $stories };
 
     my $concatenated_stories = [ $stories->[ 0 ] ];
     my $prev_story = shift( @{ $stories } );
