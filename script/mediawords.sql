@@ -792,3 +792,10 @@ CREATE VIEW downloads_in_past_day as select * from downloads where download_time
 CREATE VIEW downloads_with_error_in_past_day as select * from downloads_in_past_day where state = 'error';
 
 CREATE VIEW daily_stats as select * from (SELECT count(*) as daily_downloads from downloads_in_past_day) as dd, (select count(*) as daily_stories from stories_collected_in_past_day) ds , (select count(*) as downloads_to_be_extracted from downloads_to_be_extracted) dex, (select count(*) as download_errors from downloads_with_error_in_past_day ) er;
+
+CREATE TABLE queries_top_weekly_words_json (
+   queries_top_weekly_words_json serial primary key,
+   queries_id integer references queries not null unique,
+   top_weekly_words_json text not null 
+);
+
