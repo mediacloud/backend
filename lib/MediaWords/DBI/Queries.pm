@@ -6,6 +6,7 @@ package MediaWords::DBI::Queries;
 use strict;
 
 use Data::Dumper;
+use JSON;
 
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
@@ -437,6 +438,8 @@ sub _get_top_500_weekly_words_impl
     my $words = $db->query(
         "select w.stem, min( w.term ) as term, " .
           "    sum( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float as stem_count " .
+          ",    sum( w.stem_count::float) as raw_stem_count, sum (tw.total_count::float ) as total_words,              " .
+          "    ${ stem_count_factor }::float as stem_count_factor                                                      " .
           "  from top_500_weekly_words w, total_top_500_weekly_words tw " .
           "  where w.media_sets_id in ( $media_sets_ids_list )  and " .
           "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and $date_clause and " .
@@ -447,11 +450,34 @@ sub _get_top_500_weekly_words_impl
     return $words;
 }
 
+sub _store_top_500_weekly_words_for_query
+{
+    my ( $db, $query, $words ) = @_;
+
+    my $words_json = encode_json( $words );
+    $db->query(
+	       "DELETE FROM queries_top_weekly_words_json  where queries_id = ? ", $query->{ queries_id } 
+	      );
+
+    $db->query(
+	       "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , ? ) ",
+	       $query->{ queries_id }, $words_json
+	      );
+
+    return;
+}
+
 sub get_top_500_weekly_words
 {
     my ( $db, $query ) = @_;
 
-    return _get_top_500_weekly_words_impl( $db, $query );
+    my $ret;
+
+    $ret = _get_top_500_weekly_words_impl( $db, $query );
+
+    _store_top_500_weekly_words_for_query( $db, $query, $ret );
+
+    return $ret;
 }
 
 # get the list of media that include the given stem within the given single query
