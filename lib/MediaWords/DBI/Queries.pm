@@ -454,7 +454,7 @@ sub _store_top_500_weekly_words_for_query
 {
     my ( $db, $query, $words ) = @_;
 
-    eval {
+    #eval {
     my $words_json = encode_json( $words );
     $db->query(
 	       "DELETE FROM queries_top_weekly_words_json  where queries_id = ? ", $query->{ queries_id } 
@@ -464,7 +464,7 @@ sub _store_top_500_weekly_words_for_query
 	       "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , ? ) ",
 	       $query->{ queries_id }, $words_json
 	      );
-	 };
+    #	 };
 
     return;
 }
