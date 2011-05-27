@@ -7,6 +7,7 @@ use strict;
 
 use Data::Dumper;
 use JSON;
+#use Data::Compare;
 
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
@@ -450,6 +451,23 @@ sub _get_top_500_weekly_words_impl
     return $words;
 }
 
+sub _get_json_top_500_weekly_words_for_query
+{
+    my ( $db, $query ) = @_;
+
+    (my $words_json) =  $db->query(
+	       "SELECT top_weekly_words_json FROM queries_top_weekly_words_json where queries_id = ? ",
+	       $query->{ queries_id } )->flat;
+
+    if ( $words_json )
+    {
+       my $words = decode_json( $words_json );
+       return $words;
+    }
+
+    return;
+}
+
 sub _store_top_500_weekly_words_for_query
 {
     my ( $db, $query, $words ) = @_;
@@ -475,9 +493,21 @@ sub get_top_500_weekly_words
 
     my $ret;
 
-    $ret = _get_top_500_weekly_words_impl( $db, $query );
+    my $words = _get_json_top_500_weekly_words_for_query( $db, $query );
 
-    _store_top_500_weekly_words_for_query( $db, $query, $ret );
+    if ( ! $words ) 
+    {
+
+      $ret = _get_top_500_weekly_words_impl( $db, $query );
+      _store_top_500_weekly_words_for_query( $db, $query, $ret );
+    }
+    else
+    {
+      #$ret = _get_top_500_weekly_words_impl( $db, $query );
+      #die unless scalar ( @$ret ) == scalar (@$words );
+      #die unless Compare($ret, $words);
+      $ret = $words;
+    }
 
     return $ret;
 }
