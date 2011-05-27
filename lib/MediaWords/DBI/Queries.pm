@@ -410,7 +410,7 @@ sub get_daily_date_clause
 # Returns a list of words in the form { stem => $s, term => $s, stem_count => $c }.
 # The stem_count is normalized each week against the total counts of all top 500 words for that week
 # and is averaged over the number of weeks, media sets, and dashboard topics queried.
-sub get_top_500_weekly_words
+sub _get_top_500_weekly_words_impl
 {
     my ( $db, $query ) = @_;
 
@@ -445,6 +445,13 @@ sub get_top_500_weekly_words
     )->hashes;
 
     return $words;
+}
+
+sub get_top_500_weekly_words
+{
+    my ( $db, $query ) = @_;
+
+    return _get_top_500_weekly_words_impl( $db, $query );
 }
 
 # get the list of media that include the given stem within the given single query
