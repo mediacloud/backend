@@ -76,6 +76,10 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
+CREATE SEQUENCE query_version;
+select nextval('query_version');
+ALTER TABLE queries add column query_version integer default currval('query_version') not null;
+ALTER TABLE queries add column old_query_version boolean default false not null;
 
 create table queries (
     queries_id              serial              primary key,
@@ -83,7 +87,8 @@ create table queries (
     end_date                date                not null,
     generate_page           boolean             not null default false,
     creation_date           timestamp           not null default now(),
-    description             text                null
+    description             text                null,
+    queries_id              integer             default currval('query_version') not null
 );
 
 create index queries_creation_date on queries (creation_date);
@@ -638,6 +643,18 @@ create table total_daily_words (
 create index total_daily_words_media_sets_id on total_daily_words (media_sets_id);
 create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
 
+create table total_weekly_words (
+       total_weekly_words_id         serial          primary key,
+       media_sets_id                 int             not null references media_sets on delete cascade, 
+       dashboard_topics_id           int             null references dashboard_topics on delete cascade,
+       publish_week                  date            not null,
+       total_count                   int             not null
+);
+create index total_weekly_words_media_sets_id on total_weekly_words (media_sets_id);
+create index total_weekly_words_media_sets_id_publish_day on total_weekly_words (media_sets_id,publish_week);
+create unique index total_weekly_words_ms_id_dt_id_p_week on total_weekly_words(media_sets_id, dashboard_topics_id, publish_week);
+INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words group by media_sets_id, dashboard_topics_id, publish_week order by publish_week asc, media_sets_id, dashboard_topics_id ;
+
 create view daily_words_with_totals 
     as select d.*, t.total_count from daily_words d, total_daily_words t
       where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and
@@ -795,7 +812,8 @@ CREATE VIEW daily_stats as select * from (SELECT count(*) as daily_downloads fro
 
 CREATE TABLE queries_top_weekly_words_json (
    queries_top_weekly_words_json serial primary key,
-   queries_id integer references queries not null unique,
+   queries_id integer references queries not null unique on delete cascade,
    top_weekly_words_json text not null 
 );
+
 
