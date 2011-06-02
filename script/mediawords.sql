@@ -76,10 +76,6 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
-CREATE SEQUENCE query_version;
-select nextval('query_version');
-ALTER TABLE queries add column query_version integer default currval('query_version') not null;
-ALTER TABLE queries add column old_query_version boolean default false not null;
 
 create table queries (
     queries_id              serial              primary key,
@@ -87,8 +83,7 @@ create table queries (
     end_date                date                not null,
     generate_page           boolean             not null default false,
     creation_date           timestamp           not null default now(),
-    description             text                null,
-    queries_id              integer             default currval('query_version') not null
+    description             text                null
 );
 
 create index queries_creation_date on queries (creation_date);
@@ -812,8 +807,7 @@ CREATE VIEW daily_stats as select * from (SELECT count(*) as daily_downloads fro
 
 CREATE TABLE queries_top_weekly_words_json (
    queries_top_weekly_words_json serial primary key,
-   queries_id integer references queries not null unique on delete cascade,
+   queries_id integer references queries not null unique,
    top_weekly_words_json text not null 
 );
-
 
