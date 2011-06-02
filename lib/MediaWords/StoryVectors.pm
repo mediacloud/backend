@@ -436,6 +436,24 @@ sub _get_update_clauses
     return "and $d and $m";
 }
 
+#
+sub _update_total_weekly_words
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: total_weekly_words $sql_date";
+
+    my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    $db->query(
+        "delete from total_weekly_words where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
+    );
+
+    $db->query(
+    "INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
+	      );
+}
+
 # update the top_500_weekly_words table with the 500 most common stop worded stems for each media_sets_id each week
 sub _update_top_500_weekly_words
 {
@@ -833,6 +851,7 @@ sub update_aggregate_words
         if ( $update_weekly && ( ( $date eq $end_date ) || _date_is_sunday( $date ) ) )
         {
             _update_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+	    _update_total_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
 
             _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
