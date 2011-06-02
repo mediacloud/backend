@@ -454,8 +454,15 @@ sub _get_json_top_500_weekly_words_for_query
 
     if ( $words_json )
     {
+        eval {
         my $words = decode_json( $words_json );
         return $words;
+      };
+
+     #open(MYOUTFILE, ">/tmp/json_err.out");
+     #print MYOUTFILE $words_json;
+     #close(MYOUTFILE);
+     say STDERR "JSON Decode error: $@ :$words_json";
     }
 
     return;
@@ -467,6 +474,11 @@ sub _store_top_500_weekly_words_for_query
 
     #eval {
     my $words_json = encode_json( $words );
+
+     # open(MYOUTFILE, ">/tmp/json_stored_" . $query->{ queries_id } .  ".out");
+     # print MYOUTFILE $words_json;
+     # close(MYOUTFILE);
+
     $db->query( "DELETE FROM queries_top_weekly_words_json  where queries_id = ? ", $query->{ queries_id } );
 
     $db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , ? ) ",
