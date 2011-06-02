@@ -211,7 +211,7 @@ sub dedup_sentences
     my ( $db, $story, $sentences ) = @_;
 
     if ( !$db->dbh->{ AutoCommit } )
-    {    
+    {
         $db->query( "lock table story_sentence_counts in row exclusive mode" );
     }
 
@@ -446,12 +446,11 @@ sub _update_total_weekly_words
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
     $db->query(
-        "delete from total_weekly_words where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
-    );
+        "delete from total_weekly_words where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses" );
 
     $db->query(
-    "INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
-	      );
+"INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
+    );
 }
 
 # update the top_500_weekly_words table with the 500 most common stop worded stems for each media_sets_id each week
@@ -494,7 +493,7 @@ sub _update_top_500_weekly_author_words
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
-    return if ( $dashboard_topics_id || $media_sets_id ); 
+    return if ( $dashboard_topics_id || $media_sets_id );
 
     say STDERR "aggregate: top_500_weekly_author_words $sql_date";
 
@@ -663,48 +662,50 @@ sub _update_daily_country_counts
 
     my $stemmed_country_terms = [ map { MediaWords::Util::Countries::get_stemmed_country_terms( $_ ) } @{ $all_countries } ];
 
-    my $single_terms_list = join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
+    my $single_terms_list =
+      join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
 
-    $db->query( 
-        "insert into daily_country_counts( media_sets_id, publish_day, country, country_count ) " .
-        "  select media_sets_id, publish_day, stem, stem_count from daily_words " . 
-        "    where publish_day = '$sql_date'::date and dashboard_topics_id is null and $media_set_clause" .
-        "      and stem in ( $single_terms_list )" );
-    
-    my $double_country_terms = [ grep { @{ $_ }  == 2 } @{ $stemmed_country_terms } ];
+    $db->query( "insert into daily_country_counts( media_sets_id, publish_day, country, country_count ) " .
+          "  select media_sets_id, publish_day, stem, stem_count from daily_words " .
+          "    where publish_day = '$sql_date'::date and dashboard_topics_id is null and $media_set_clause" .
+          "      and stem in ( $single_terms_list )" );
+
+    my $double_country_terms = [ grep { @{ $_ } == 2 } @{ $stemmed_country_terms } ];
 
     for my $country ( @{ $double_country_terms } )
     {
         my $country_name = join( " ", @{ $country } );
         my ( $term_a, $term_b ) = map { $db->dbh->quote( $_ ) } @{ $country };
 
-        $db->query( 
-          "insert into daily_country_counts ( media_sets_id, publish_day, country, country_count ) " .
-          "  select msmm.media_sets_id, ssw.publish_day, ?, count(*) " .
-          "    from story_sentence_words ssw, media_sets_media_map msmm " .
-          "    where ssw.media_id = msmm.media_id and ssw.publish_day = '$sql_date'::date " .
-          "      and stem = $term_a and exists " .
-          "        ( select 1 from story_sentence_words sswb where ssw.publish_day = sswb.publish_day " . 
-          "              and ssw.media_id = sswb.media_id and sswb.stem = $term_b " .
-          "              and ssw.stories_id = sswb.stories_id and ssw.sentence_number = sswb.sentence_number ) " .
-          "   group by msmm.media_sets_id, ssw.publish_day", $country_name );
+        $db->query(
+            "insert into daily_country_counts ( media_sets_id, publish_day, country, country_count ) " .
+              "  select msmm.media_sets_id, ssw.publish_day, ?, count(*) " .
+              "    from story_sentence_words ssw, media_sets_media_map msmm " .
+              "    where ssw.media_id = msmm.media_id and ssw.publish_day = '$sql_date'::date " .
+              "      and stem = $term_a and exists " .
+              "        ( select 1 from story_sentence_words sswb where ssw.publish_day = sswb.publish_day " .
+              "              and ssw.media_id = sswb.media_id and sswb.stem = $term_b " .
+              "              and ssw.stories_id = sswb.stories_id and ssw.sentence_number = sswb.sentence_number ) " .
+              "   group by msmm.media_sets_id, ssw.publish_day",
+            $country_name
+        );
     }
-    
+
     return 1;
 }
 
 # get quoted, comma separate list of the dates in the week starting with
 # the given date
-sub _get_week_dates_list 
+sub _get_week_dates_list
 {
     my ( $start_date ) = @_;
-    
+
     my $dates = [ $start_date ];
     for my $i ( 1 .. 6 )
     {
         push( @{ $dates }, MediaWords::Util::SQL::increment_day( $start_date, $i ) );
     }
-    
+
     return join( ',', map { "'$_'::date" } @{ $dates } );
 }
 
@@ -716,7 +717,7 @@ sub _update_weekly_words
     say STDERR "aggregate: weekly_words $sql_date";
 
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
-    
+
     # use an in list of dates instead of sql between b/c postgres is really slow using
     # between for dates
     my $week_dates = _get_week_dates_list( $sql_date );
@@ -842,7 +843,7 @@ sub update_aggregate_words
         {
             _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
-	    _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             $update_weekly = 1;
         }
 
@@ -851,7 +852,7 @@ sub update_aggregate_words
         if ( $update_weekly && ( ( $date eq $end_date ) || _date_is_sunday( $date ) ) )
         {
             _update_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
-	    _update_total_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            _update_total_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
 
             _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
@@ -881,20 +882,20 @@ sub update_aggregate_author_words
     {
         say STDERR "update_aggregate_words: $date ($start_date - $end_date) $days";
 
-	$update_weekly = 1;
+        $update_weekly = 1;
 
-	{
-	  _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
-	}
+        {
+            _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+        }
 
         # update weeklies either if there was a daily update for the week and if we are at the end of the date range
         # or the end of a week
         if ( $update_weekly && ( ( $date eq $end_date ) || _date_is_sunday( $date ) ) )
         {
-	  {
-            _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
-            _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
-	  }
+            {
+                _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+                _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            }
             $update_weekly = 0;
         }
 
@@ -905,7 +906,6 @@ sub update_aggregate_author_words
 
     $db->commit;
 }
-
 
 # update daily_words, weekly_words, and top_500_weekly_words tables for all included dates
 # for which daily_words data does not already exist
