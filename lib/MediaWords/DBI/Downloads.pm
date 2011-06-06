@@ -130,8 +130,6 @@ sub fetch_content_remote
 
     my $ua = LWP::UserAgent->new;
 
-#    print STDERR "remote request for download from admin.mediacloud.org.\n URL: " . 'http://admin.mediacloud.org/admin/downloads/view/' . $download->{downloads_id} . "\n";
-
     if ( !defined( $download->{ downloads_id } ) )
     {
         return \"";
