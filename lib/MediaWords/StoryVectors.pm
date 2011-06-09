@@ -718,6 +718,10 @@ sub _update_weekly_words
 
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
+    my ( $week_start_date ) = $db->query( " SELECT  date_trunc( 'week', '${ sql_date }'::date ) " )->flat;
+
+    $sql_date = $week_start_date;
+
     # use an in list of dates instead of sql between b/c postgres is really slow using
     # between for dates
     my $week_dates = _get_week_dates_list( $sql_date );
@@ -725,7 +729,8 @@ sub _update_weekly_words
     $db->query(
         "delete from weekly_words where publish_week = date_trunc( 'week', '${ sql_date }'::date ) $update_clauses " );
 
-    $db->query( "insert into weekly_words (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
+    my $query =
+	       "insert into weekly_words (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
           "  select media_sets_id, term, stem, sum_stem_counts, publish_week, dashboard_topics_id from      " .
           "   (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
           "     sum(stem_count_sum) over w as sum_stem_counts  from " .
@@ -735,7 +740,11 @@ sub _update_weekly_words
           "    group by media_sets_id, stem, term, dashboard_topics_id ) as foo" .
           " WINDOW w  as (partition by media_sets_id, stem, publish_week,  dashboard_topics_id  ) " .
           "	               )  q                                                         " .
-          "              where term_rank = 1 and sum_stem_counts > 1 " );
+          "              where term_rank = 1 and sum_stem_counts > 1 ";
+
+    #say STDERR "query:\n$query";
+    $db->query( $query );
+
 
     return 1;
 }
@@ -813,6 +822,16 @@ sub _increment_day
     my $new_date = Date::Format::time2str( "%Y-%m-%d", Date::Parse::str2time( $date ) + 100000 );
 }
 
+#Convert the date to YYYY-MM-DD format is necessary and get rid of hours and minutes
+sub _truncate_as_day
+{
+    my ( $date ) = @_;
+
+    my $new_date = Date::Format::time2str( "%Y-%m-%d", Date::Parse::str2time( $date ) + 100000 );
+
+    return $new_date;
+}
+
 sub _date_is_sunday
 {
     my ( $date ) = @_;
@@ -831,6 +850,9 @@ sub update_aggregate_words
 
     $start_date ||= '2008-06-01';
     $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
+
+    $start_date = _truncate_as_day( $start_date );
+    $end_date   = _truncate_as_day( $end_date );
 
     my $days          = 0;
     my $update_weekly = 0;
@@ -874,6 +896,9 @@ sub update_aggregate_author_words
 
     $start_date ||= '2008-06-01';
     $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
+
+    $start_date = _truncate_as_day( $start_date );
+    $end_date   = _truncate_as_day( $end_date );
 
     my $days          = 0;
     my $update_weekly = 0;
