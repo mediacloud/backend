@@ -61,9 +61,9 @@ sub new
 # parse the feed and add the resulting stories and content downloads to the database
 sub _add_stories_and_content_downloads
 {
-    my ( $self, $download, $response ) = @_;
+    my ( $self, $download, $decoded_content ) = @_;
 
-    my $feed = Feed::Scrape::MediaWords->parse_feed( $response->decoded_content );
+    my $feed = Feed::Scrape::MediaWords->parse_feed( $decoded_content );
 
     die( "Unable to parse feed for $download->{ url }" ) unless $feed;
 
@@ -441,6 +441,27 @@ sub _set_spider_download_state_as_success
     return;
 }
 
+sub handle_feed_content
+{
+    my ( $self, $dbs, $download, $decoded_content ) = @_;
+
+    my $num_new_stories = $self->_add_stories_and_content_downloads( $download, $decoded_content );
+
+    my $content_ref;
+    if ( $num_new_stories > 0 )
+    {
+        $content_ref = \$decoded_content;
+    }
+    else
+    {
+        $content_ref = \"(redundant feed)";
+    }
+
+    MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
+
+    return;
+}
+
 sub handle_response
 {
     my ( $self, $download, $response ) = @_;
@@ -476,19 +497,7 @@ sub handle_response
         case 'feed'
         {
 
-            my $num_new_stories = $self->_add_stories_and_content_downloads( $download, $response );
-
-            my $content_ref;
-            if ( $num_new_stories > 0 )
-            {
-                $content_ref = \$response->decoded_content;
-            }
-            else
-            {
-                $content_ref = \"(redundant feed)";
-            }
-
-            MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
+            $self->handle_feed_content( $dbs, $download, $response->decoded_content );
         }
         case 'archival_only'
         {
