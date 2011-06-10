@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "This will delete all data in the media cloud database.  Are you sure you want to do this (y/n)?"
+echo "This will delete all data in the media cloud database ($PGDATABASE).  Are you sure you want to do this (y/n)?"
 read REPLY
 
 if [ $REPLY != "y" ]; then
