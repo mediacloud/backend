@@ -827,7 +827,7 @@ sub _truncate_as_day
 {
     my ( $date ) = @_;
 
-    my $new_date = Date::Format::time2str( "%Y-%m-%d", Date::Parse::str2time( $date ) + 100000 );
+    my $new_date = Date::Format::time2str( "%Y-%m-%d", Date::Parse::str2time( $date ) );
 
     return $new_date;
 }
@@ -850,6 +850,8 @@ sub update_aggregate_words
 
     $start_date ||= '2008-06-01';
     $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
+
+   say STDERR "update_aggregate_words start_date: '$start_date' end_date:'$end_date' ";
 
     $start_date = _truncate_as_day( $start_date );
     $end_date   = _truncate_as_day( $end_date );
