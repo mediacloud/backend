@@ -74,7 +74,7 @@ sub export_downloads
 
         my $download_content_base64 = encode_base64( encode( "utf8", $$download_content ) );
 
-        #$download->{ encoded_download_content_base_64 } = $download_content_base64;
+        $download->{ encoded_download_content_base_64 } = $download_content_base64;
 
         $root->appendChild( xml_tree_from_hash( $download, 'download' ) );
 
