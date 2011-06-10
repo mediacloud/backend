@@ -180,7 +180,10 @@ sub generate_aggregate_words
     my ( $db, $feed ) = @_;
 
     my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
+    #( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date)  - interval '1 week' ) from stories" )->flat;
     my ( $end_date )   = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
+
+    #( $end_date )   = $db->query( "select date_trunc( 'day', max(publish_date) + interval '1 month' ) from stories" )->flat;
 
     my $dashboard =
       $db->create( 'dashboards', { name => 'test_dashboard', start_date => $start_date, end_date => $end_date } );
@@ -196,7 +199,7 @@ sub generate_aggregate_words
         }
     );
 
-    MediaWords::StoryVectors::update_aggregate_words( $db, $start_date );
+    MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date );
 }
 
 sub _process_top_500_weekly_words_for_testing
