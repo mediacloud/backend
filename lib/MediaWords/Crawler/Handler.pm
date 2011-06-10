@@ -61,7 +61,7 @@ sub new
 # parse the feed and add the resulting stories and content downloads to the database
 sub _add_stories_and_content_downloads
 {
-    my ( $self, $download, $decoded_content ) = @_;
+    my ( $self, $dbs, $download, $decoded_content ) = @_;
 
     my $feed = Feed::Scrape::MediaWords->parse_feed( $decoded_content );
 
@@ -86,9 +86,7 @@ sub _add_stories_and_content_downloads
 
         my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) || time );
 
-        my $media_id = MediaWords::DBI::Downloads::get_media_id( $self->engine->dbs, $download );
-
-        my $dbs = $self->engine->dbs;
+        my $media_id = MediaWords::DBI::Downloads::get_media_id( $dbs, $download );
 
         my $story = $dbs->query( "select * from stories where guid = ? and media_id = ?", $guid, $media_id )->hash;
 
@@ -167,8 +165,8 @@ sub _add_stories_and_content_downloads
                 # just put the download back in the queue.  this is a lot better than locking stories
                 if ( $@ =~ /unique constraint "stories_guid"/ )
                 {
-                    $self->engine->dbs->rollback;
-                    $self->engine->dbs->query( "update downloads set state = 'pending' where downloads_id = ?",
+                    $dbs->rollback;
+                    $dbs->query( "update downloads set state = 'pending' where downloads_id = ?",
                         $download->{ downloads_id } );
                     die( "requeue '$url' due to guid conflict" );
                 }
@@ -180,7 +178,7 @@ sub _add_stories_and_content_downloads
             }
             else
             {
-                $self->engine->dbs->create(
+                $dbs->create(
                     'downloads',
                     {
                         feeds_id      => $download->{ feeds_id },
@@ -205,7 +203,7 @@ sub _add_stories_and_content_downloads
         confess "story id undefined for story: " . Dumper( $story ) unless defined( $story->{ stories_id } );
         die "feed undefined"                                        unless $download->{ feeds_id };
 
-        $self->engine->dbs->find_or_create(
+        $dbs->find_or_create(
             'feeds_stories_map',
             {
                 stories_id => $story->{ stories_id },
@@ -445,7 +443,7 @@ sub handle_feed_content
 {
     my ( $self, $dbs, $download, $decoded_content ) = @_;
 
-    my $num_new_stories = $self->_add_stories_and_content_downloads( $download, $decoded_content );
+    my $num_new_stories = $self->_add_stories_and_content_downloads( $dbs, $download, $decoded_content );
 
     my $content_ref;
     if ( $num_new_stories > 0 )
