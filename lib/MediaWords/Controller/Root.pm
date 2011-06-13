@@ -58,6 +58,7 @@ sub end : ActionClass('RenderView')
 
             $c->stash->{ template } = 'zoe_website_template/error_page.tt2';
 
+	    $c->response->status(500);
         }
     }
 
