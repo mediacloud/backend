@@ -449,6 +449,8 @@ sub _get_json_top_500_weekly_words_for_query
 {
     my ( $db, $query ) = @_;
 
+#    ( my $words_json ) = $db->query( "SELECT decode(top_weekly_words_json, 'base64' ) FROM queries_top_weekly_words_json where queries_id = ? ",
+
     ( my $words_json ) = $db->query( "SELECT top_weekly_words_json FROM queries_top_weekly_words_json where queries_id = ? ",
         $query->{ queries_id } )->flat;
 
@@ -459,10 +461,16 @@ sub _get_json_top_500_weekly_words_for_query
         return $words;
       };
 
+      eval {
+	utf8::upgrade( $words_json );
+	my $words = decode_json( $words_json );
+        return $words;
+      };
+
      #open(MYOUTFILE, ">/tmp/json_err.out");
      #print MYOUTFILE $words_json;
      #close(MYOUTFILE);
-     say STDERR "JSON Decode error: $@ :$words_json";
+     #say STDERR "JSON Decode error: $@ :$words_json";
     }
 
     return;
@@ -472,8 +480,10 @@ sub _store_top_500_weekly_words_for_query
 {
     my ( $db, $query, $words ) = @_;
 
-    #eval {
+    eval {
     my $words_json = encode_json( $words );
+
+    utf8::upgrade( $words_json );
 
      # open(MYOUTFILE, ">/tmp/json_stored_" . $query->{ queries_id } .  ".out");
      # print MYOUTFILE $words_json;
@@ -484,7 +494,10 @@ sub _store_top_500_weekly_words_for_query
     $db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , ? ) ",
         $query->{ queries_id }, $words_json );
 
-    #	 };
+   #$db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , encode(?, 'base64') ) ",
+   #     $query->{ queries_id }, $words_json );
+
+    	 };
 
     return;
 }
@@ -494,6 +507,9 @@ sub get_top_500_weekly_words
     my ( $db, $query ) = @_;
 
     my $ret;
+
+    $ret = _get_top_500_weekly_words_impl( $db, $query );
+    _store_top_500_weekly_words_for_query( $db, $query, $ret );
 
     my $words = _get_json_top_500_weekly_words_for_query( $db, $query );
 
