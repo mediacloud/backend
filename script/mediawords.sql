@@ -76,6 +76,10 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
+/*
+CREATE SEQUENCE query_version;
+select nextval('query_version');
+*/
 
 create table queries (
     queries_id              serial              primary key,
@@ -85,6 +89,11 @@ create table queries (
     creation_date           timestamp           not null default now(),
     description             text                null
 );
+
+/*
+ALTER TABLE queries add column query_version integer default currval('query_version') not null;
+ALTER TABLE queries add column old_query_version boolean default false not null;
+*/
 
 create index queries_creation_date on queries (creation_date);
 create unique index queries_hash on queries ( md5( description ) );
@@ -754,7 +763,7 @@ create index weekly_author_words_media on weekly_author_words(publish_week, auth
 create index weekly_author_words_count on weekly_author_words(publish_week, authors_id, media_sets_id, stem_count);
 
 create table top_500_weekly_author_words (
-       top_500_weekly_words_id      serial          primary key,
+       top_500_weekly_author_words_id      serial          primary key,
        media_sets_id                int             not null references media_sets on delete cascade,
        authors_id                   int             not null references authors on delete cascade,
        term                         varchar(256)    not null,
@@ -806,8 +815,9 @@ CREATE VIEW downloads_with_error_in_past_day as select * from downloads_in_past_
 CREATE VIEW daily_stats as select * from (SELECT count(*) as daily_downloads from downloads_in_past_day) as dd, (select count(*) as daily_stories from stories_collected_in_past_day) ds , (select count(*) as downloads_to_be_extracted from downloads_to_be_extracted) dex, (select count(*) as download_errors from downloads_with_error_in_past_day ) er;
 
 CREATE TABLE queries_top_weekly_words_json (
-   queries_top_weekly_words_json serial primary key,
-   queries_id integer references queries not null unique,
+   queries_top_weekly_words_json_id serial primary key,
+   queries_id integer references queries on delete cascade not null unique,
    top_weekly_words_json text not null 
 );
+
 
