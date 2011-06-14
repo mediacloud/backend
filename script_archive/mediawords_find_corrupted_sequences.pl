@@ -32,8 +32,7 @@ FROM   (SELECT t.oid     AS tableid,
         WHERE  conname LIKE '%_pkey'
                AND t.relname <> 'url_discover_counts'
         ORDER  BY t.relname) AS tables_with_pkeys
-WHERE  NOT ( tablename IN ( 'url_discovery_counts', 'foovar',
-                                   'queries_top_weekly_words_json'
+WHERE  NOT ( tablename IN ( 'url_discovery_counts'
                                        ) );  
 SQL
 
