@@ -34,12 +34,13 @@ FROM   (SELECT t.oid     AS tableid,
         ORDER  BY t.relname) AS tables_with_pkeys
 WHERE  NOT ( tablename IN ( 'url_discovery_counts', 'foovar',
                                    'queries_top_weekly_words_json'
-                                       ,
-                            'download_texts',
-                            'top_500_weekly_author_words',
-                            'total_top_500_weekly_author_words',
-                            'ngram_test_story_sentences',
-                            'total_top_500_weekly_words'
+/*                                        ,
+#                            'download_texts',
+#                            'top_500_weekly_author_words',
+#                            'total_top_500_weekly_author_words',
+#                            'ngram_test_story_sentences',
+#                            'total_top_500_weekly_words'
+*/
                                        ) );  
 SQL
 
