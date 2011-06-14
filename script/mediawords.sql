@@ -446,7 +446,7 @@ CREATE SEQUENCE download_texts_download_texts_id_seq
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
-    CACHE 1;
+    CACHE 1 OWNED BY download_texts.download_texts_id;
 
 CREATE UNIQUE INDEX download_texts_downloads_id_index ON download_texts USING btree (downloads_id);
 
