@@ -776,7 +776,7 @@ create index top_500_weekly_author_words_media on top_500_weekly_author_words(pu
 create index top_500_weekly_author_words_authors on top_500_weekly_author_words(authors_id, publish_week, media_sets_id);
     
 create table total_top_500_weekly_author_words (
-       total_top_500_words_id       serial          primary key,
+       total_top_500_weekly_author_words_id       serial          primary key,
        media_sets_id                int             not null references media_sets on delete cascade,
        authors_id                   int             not null references authors on delete cascade,
        publish_week                 date            not null,
