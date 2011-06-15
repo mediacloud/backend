@@ -844,6 +844,8 @@ sub _show_dashboard_results_single_query
 
     $c->stash->{ word_cloud } = $word_cloud;
 
+    $c->stash->{ has_old_query } = MediaWords::DBI::Queries::query_is_old_version( $c->dbis, $query );
+
 }
 
 sub _concat_or_replace
@@ -904,9 +906,10 @@ sub _show_dashboard_results_compare_queries
 
     MediaWords::DBI::Queries::add_cos_similarities( $c->dbis, $queries );
 
-    $c->stash->{ word_cloud }  = $word_cloud;
-    $c->stash->{ queries }     = $queries;
-    $c->stash->{ queries_ids } = [ map { $_->{ queries_id } } @{ $queries } ];
+    $c->stash->{ word_cloud }    = $word_cloud;
+    $c->stash->{ queries }       = $queries;
+    $c->stash->{ queries_ids }   = [ map { $_->{ queries_id } } @{ $queries } ];
+    $c->stash->{ has_old_query } = any { MediaWords::DBI::Queries::query_is_old_version( $c->dbis, $_ ) } @{ $queries };
 }
 
 # generate main dashboard page
