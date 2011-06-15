@@ -822,6 +822,23 @@ sub _redirect_to_query_url
     $c->res->redirect( $c->uri_for( '/dashboard/view/' . $dashboards_id, $params ) );
 }
 
+sub _redirect_to_latest_query
+{
+    my ( $self, $c, $dashboards_id, $form ) = @_;
+
+    my $params = {};
+
+    foreach my $element ( @{ $form->get_fields() } )
+    {
+        if ( $element->default )
+        {
+            $params->{ $element->name } = $element->default;
+        }
+    }
+
+    $c->res->redirect( $c->uri_for( '/dashboard/view/' . $dashboards_id, $params ) );
+}
+
 # generate main dashboard page for a single query
 sub _show_dashboard_results_single_query
 {
@@ -957,6 +974,11 @@ sub view : Local
     $self->_show_dashboard_results( $c, $dashboards_id );
 
     $self->_update_query_form( $c );
+
+    if ( $c->stash->{ has_old_query } && $c->req->param( 'latest_results' ) )
+    {
+        $self->_redirect_to_latest_query( $c, $dashboards_id, $c->stash->{ form } );
+    }
 
     if ( $c->req->param( 'cmaponly' ) )
     {
