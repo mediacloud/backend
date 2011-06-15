@@ -89,6 +89,12 @@
 [% IF queries.1 %]
  and  [% queries.1.description %]
 [% END %]
+[% IF  has_old_query %]
+	      <span class="smaller" align="right" >
+                   <b>- Archived content. More current results are now <a href="[%c.uri_for('/dashboard/view/' _ dashboard.dashboards_id, { 'q1' => queries.0.queries_id , 'q2' => queries.1.queries_id, 'latest_results' => 1 } ) %]">available</a></b>
+	      </span>
+[% END %]
+
 </div>
 </td>
 </tr>
