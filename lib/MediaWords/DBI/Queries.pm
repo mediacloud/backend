@@ -146,8 +146,10 @@ sub find_query_by_params
 
     my $description = _get_description( $query_params );
 
-    my ( $queries_id ) =
-      $db->query( "select queries_id from queries where md5( description ) = md5( ? )", $description )->flat;
+    my ( $queries_id ) = $db->query(
+"select queries_id from queries where md5( description ) = md5( ? ) and query_version = enum_last (null::query_version_enum ) ",
+        $description
+    )->flat;
 
     return find_query_by_id( $db, $queries_id );
 }
@@ -457,20 +459,20 @@ sub _get_json_top_500_weekly_words_for_query
     if ( $words_json )
     {
         eval {
-        my $words = decode_json( $words_json );
-        return $words;
-      };
+            my $words = decode_json( $words_json );
+            return $words;
+        };
 
-      eval {
-	utf8::upgrade( $words_json );
-	my $words = decode_json( $words_json );
-        return $words;
-      };
+        eval {
+            utf8::upgrade( $words_json );
+            my $words = decode_json( $words_json );
+            return $words;
+        };
 
-     #open(MYOUTFILE, ">/tmp/json_err.out");
-     #print MYOUTFILE $words_json;
-     #close(MYOUTFILE);
-     #say STDERR "JSON Decode error: $@ :$words_json";
+        #open(MYOUTFILE, ">/tmp/json_err.out");
+        #print MYOUTFILE $words_json;
+        #close(MYOUTFILE);
+        #say STDERR "JSON Decode error: $@ :$words_json";
     }
 
     return;
@@ -481,23 +483,23 @@ sub _store_top_500_weekly_words_for_query
     my ( $db, $query, $words ) = @_;
 
     eval {
-    my $words_json = encode_json( $words );
+        my $words_json = encode_json( $words );
 
-    utf8::upgrade( $words_json );
+        utf8::upgrade( $words_json );
 
-     # open(MYOUTFILE, ">/tmp/json_stored_" . $query->{ queries_id } .  ".out");
-     # print MYOUTFILE $words_json;
-     # close(MYOUTFILE);
+        # open(MYOUTFILE, ">/tmp/json_stored_" . $query->{ queries_id } .  ".out");
+        # print MYOUTFILE $words_json;
+        # close(MYOUTFILE);
 
-    $db->query( "DELETE FROM queries_top_weekly_words_json  where queries_id = ? ", $query->{ queries_id } );
+        $db->query( "DELETE FROM queries_top_weekly_words_json  where queries_id = ? ", $query->{ queries_id } );
 
-    $db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , ? ) ",
-        $query->{ queries_id }, $words_json );
+        $db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , ? ) ",
+            $query->{ queries_id }, $words_json );
 
-   #$db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , encode(?, 'base64') ) ",
-   #     $query->{ queries_id }, $words_json );
+#$db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , encode(?, 'base64') ) ",
+#     $query->{ queries_id }, $words_json );
 
-    	 };
+    };
 
     return;
 }
@@ -1187,4 +1189,14 @@ sub get_stories_with_text
     return $concatenated_stories;
 }
 
+# get a list of all stories matching the query with download texts
+sub query_is_old_version
+{
+    my ( $db, $query ) = @_;
+
+    my $results = $db->query( " SELECT  enum_last (null::query_version_enum ) <> ? ", $query->{ query_version } )->flat;
+
+    my $ret = $results->[ 0 ];
+    return $ret;
+}
 1;
