@@ -76,10 +76,7 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
-/*
-CREATE SEQUENCE query_version;
-select nextval('query_version');
-*/
+CREATE TYPE query_version_enum AS ENUM ('1.0');
 
 create table queries (
     queries_id              serial              primary key,
@@ -90,13 +87,12 @@ create table queries (
     description             text                null
 );
 
-/*
-ALTER TABLE queries add column query_version integer default currval('query_version') not null;
-ALTER TABLE queries add column old_query_version boolean default false not null;
-*/
 
 create index queries_creation_date on queries (creation_date);
 create unique index queries_hash on queries ( md5( description ) );
+DROP INDEX queries_hash;
+ALTER TABLE queries ADD COLUMN query_version query_version_enum DEFAULT enum_last (null::query_version_enum ) NOT NULL;
+create unique index queries_hash_version on queries ( md5( description ), query_version );
 
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
