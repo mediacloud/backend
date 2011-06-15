@@ -9,12 +9,6 @@
 [% END %]
               <tr>
 
-<!--
-            <br/>
-            <br/>
-            <div id="coveragemap" class="contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">Coverage Map</span></div>
-            <div id="wordcloud" class="contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">Word Cloud</span></div>
--->
 <td align="left" valign="top">
 [% INCLUDE 'zoe_website_template/word_cloud_content.tt2' %]
 
