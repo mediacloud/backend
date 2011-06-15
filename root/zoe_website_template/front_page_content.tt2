@@ -1,5 +1,12 @@
 <!--This cell is where we'll put the front page content-->
             <table width="100%" id="query_results_content_table" border="0" cellspacing="0" cellpadding="0">
+[% IF  has_old_query %]
+	      <tr>
+	        <td>
+                   <b>These are archived query results. The current results are available <a href="[%c.uri_for('/dashboard/view/' _ dashboard.dashboards_id, { 'q1' => queries.0.queries_id , 'q2' => queries.1.queries_id, 'latest_results' => 1 } ) %]">here</a>.</b>
+		</td>
+	      </tr>
+[% END %]
               <tr>
 
 <!--
