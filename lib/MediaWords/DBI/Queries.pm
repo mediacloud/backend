@@ -510,8 +510,8 @@ sub get_top_500_weekly_words
 
     my $ret;
 
-    $ret = _get_top_500_weekly_words_impl( $db, $query );
-    _store_top_500_weekly_words_for_query( $db, $query, $ret );
+    #$ret = _get_top_500_weekly_words_impl( $db, $query );
+    #_store_top_500_weekly_words_for_query( $db, $query, $ret );
 
     my $words = _get_json_top_500_weekly_words_for_query( $db, $query );
 
