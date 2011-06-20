@@ -1159,33 +1159,8 @@ GROUP  BY dcc.country,
 ORDER  BY dcc.country;  
 SQL
 
-    # my $new_query = <<"SQL";
-    # SELECT dcc.country, SUM(dcc.country_count :: FLOAT) / total_count :: FLOAT AS country_count,
-    #        SUM(dcc.country_count) AS country_count_raw,
-    #        total_count AS total_count
-    # FROM   (SELECT *
-    #         FROM   daily_country_counts
-    #         WHERE  media_sets_id IN ( 18 )
-    #                AND dashboard_topics_id IS NULL
-    #                AND publish_day IN ( '2011-04-11', '2011-04-12', '2011-04-13',
-    #                                     '2011-04-14',
-    #                                     '2011-04-15', '2011-04-16', '2011-04-17' ))
-    #        AS dcc,
-    #        (SELECT SUM(total_count) AS total_count
-    #         FROM   total_daily_words
-    #         WHERE  media_sets_id IN ( 18 )
-    #                AND dashboard_topics_id IS NULL
-    #                AND publish_day IN ( '2011-04-11', '2011-04-12', '2011-04-13',
-    #                                     '2011-04-14',
-    #                                     '2011-04-15', '2011-04-16', '2011-04-17' ))
-    #        tdw
-    # GROUP  BY dcc.country,
-    #           tdw.total_count
-    # ORDER  BY dcc.country;
-    # SQL
-
-    say STDERR $sql;
-    say STDERR $new_sql;
+    #say STDERR $sql;
+    #say STDERR $new_sql;
 
     $db->query( $new_sql )->hashes;
 }
