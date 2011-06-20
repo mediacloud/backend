@@ -1145,18 +1145,14 @@ sub get_country_counts
 
     my $new_sql = <<"SQL";
 SELECT dcc.country, SUM(dcc.country_count :: FLOAT) / total_count :: FLOAT AS country_count,
-       SUM(dcc.country_count) AS country_count_raw,
-       total_count AS total_count
+       SUM(dcc.country_count) AS country_count_raw, total_count AS total_count
 FROM   (SELECT *
         FROM   daily_country_counts
         WHERE  $shared_where_clauses )  AS dcc,
        (SELECT SUM(total_count) AS total_count
         FROM   total_daily_words
-        WHERE  $shared_where_clauses 
-        ) as  tdw
-GROUP  BY dcc.country,
-          tdw.total_count
-ORDER  BY dcc.country;  
+        WHERE  $shared_where_clauses ) as  tdw
+GROUP  BY dcc.country, tdw.total_count ORDER  BY dcc.country;  
 SQL
 
     #say STDERR $sql;
