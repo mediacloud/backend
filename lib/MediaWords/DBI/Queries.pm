@@ -1121,7 +1121,7 @@ sub get_dashboard_topic_options
 
 # get the country counts for the given query normalized by the total daily words
 # in each media set / dashboard topic
-sub get_country_counts
+sub _get_country_counts_impl
 {
     my ( $db, $query ) = @_;
 
@@ -1146,6 +1146,15 @@ SQL
 
     return $ret;
 }
+
+sub get_country_counts
+{
+    my ( $db, $query ) = @_;
+
+    my $ret = _get_country_counts_impl ( $db, $query );
+
+    return $ret;
+} 
 
 # get a list of all stories matching the query with download texts
 sub get_stories_with_text
