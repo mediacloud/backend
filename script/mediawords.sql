@@ -816,4 +816,10 @@ CREATE TABLE queries_top_weekly_words_json (
    top_weekly_words_json text not null 
 );
 
+CREATE TABLE queries_country_counts_json (
+   queries_country_counts_json_id serial primary key,
+   queries_id integer references queries on delete cascade not null unique,
+   country_counts_json text not null 
+);
+
 
