@@ -289,15 +289,24 @@ sub get_dashboard_topics_clause
 
     my $dashboard_topic_clause;
 
+    if ( $prefix )
+    {
+        $prefix = $prefix . '.';
+    }
+    else
+    {
+        $prefix = '';
+    }
+
     $query->{ dashboard_topics_ids } ||= [];
     if ( !$query->{ dashboard_topics_ids } || !@{ $query->{ dashboard_topics_ids } } )
     {
-        $dashboard_topic_clause = "${ prefix }.dashboard_topics_id is null";
+        $dashboard_topic_clause = "${ prefix }" . "dashboard_topics_id is null";
     }
     else
     {
         my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
-        $dashboard_topic_clause = "${ prefix }.dashboard_topics_id in ( $dashboard_topics_ids_list )";
+        $dashboard_topic_clause = "${ prefix }" . "dashboard_topics_id in ( $dashboard_topics_ids_list )";
     }
 
     return $dashboard_topic_clause;
@@ -405,7 +414,18 @@ sub get_daily_date_clause
 
     my $end_date = MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 );
 
-    return get_date_clause( $query->{ start_date }, $end_date, 1, "${ prefix }.publish_day" );
+    my $date_field;
+
+    if ( $prefix )
+    {
+        $date_field = "${ prefix }.publish_day";
+    }
+    else
+    {
+        $date_field = 'publish_day';
+    }
+
+    return get_date_clause( $query->{ start_date }, $end_date, 1, $date_field );
 }
 
 # Gets the top 500 weekly words matching the given query.
@@ -1109,13 +1129,65 @@ sub get_country_counts
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'dcc' );
     my $date_clause = get_daily_date_clause( $query, 'dcc' );
 
-    return $db->query(
-        "SELECT dcc.country, sum( dcc.country_count::float / tdw.total_count::float )::float as country_count " .
-          "FROM daily_country_counts dcc, total_daily_words tdw " .
-          "WHERE  dcc.media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
-          " and dcc.media_sets_id = tdw.media_sets_id and dcc.publish_day = tdw.publish_day " .
-          " and coalesce( dcc.dashboard_topics_id, 0 ) = coalesce( tdw.dashboard_topics_id, 0 ) and $date_clause " .
-          "GROUP BY dcc.country order by dcc.country" )->hashes;
+    my $sql =
+      "SELECT dcc.country, sum( dcc.country_count::float / tdw.total_count::float )::float as country_count " .
+      "FROM daily_country_counts dcc, total_daily_words tdw " .
+      "WHERE  dcc.media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
+      " and dcc.media_sets_id = tdw.media_sets_id and dcc.publish_day = tdw.publish_day " .
+      " and coalesce( dcc.dashboard_topics_id, 0 ) = coalesce( tdw.dashboard_topics_id, 0 ) and $date_clause " .
+      "GROUP BY dcc.country order by dcc.country";
+
+    my $dashboard_topics_clause_2 = get_dashboard_topics_clause( $query );
+    my $date_clause_2             = get_daily_date_clause( $query );
+
+    my $shared_where_clauses =
+      " $dashboard_topics_clause_2 and $date_clause_2 and media_sets_id in ( $media_sets_ids_list )";
+
+    my $new_sql = <<"SQL";
+SELECT dcc.country, SUM(dcc.country_count :: FLOAT) / total_count :: FLOAT AS country_count,
+       SUM(dcc.country_count) AS country_count_raw,
+       total_count AS total_count
+FROM   (SELECT *
+        FROM   daily_country_counts
+        WHERE  $shared_where_clauses )  AS dcc,
+       (SELECT SUM(total_count) AS total_count
+        FROM   total_daily_words
+        WHERE  $shared_where_clauses 
+        ) as  tdw
+GROUP  BY dcc.country,
+          tdw.total_count
+ORDER  BY dcc.country;  
+SQL
+
+    # my $new_query = <<"SQL";
+    # SELECT dcc.country, SUM(dcc.country_count :: FLOAT) / total_count :: FLOAT AS country_count,
+    #        SUM(dcc.country_count) AS country_count_raw,
+    #        total_count AS total_count
+    # FROM   (SELECT *
+    #         FROM   daily_country_counts
+    #         WHERE  media_sets_id IN ( 18 )
+    #                AND dashboard_topics_id IS NULL
+    #                AND publish_day IN ( '2011-04-11', '2011-04-12', '2011-04-13',
+    #                                     '2011-04-14',
+    #                                     '2011-04-15', '2011-04-16', '2011-04-17' ))
+    #        AS dcc,
+    #        (SELECT SUM(total_count) AS total_count
+    #         FROM   total_daily_words
+    #         WHERE  media_sets_id IN ( 18 )
+    #                AND dashboard_topics_id IS NULL
+    #                AND publish_day IN ( '2011-04-11', '2011-04-12', '2011-04-13',
+    #                                     '2011-04-14',
+    #                                     '2011-04-15', '2011-04-16', '2011-04-17' ))
+    #        tdw
+    # GROUP  BY dcc.country,
+    #           tdw.total_count
+    # ORDER  BY dcc.country;
+    # SQL
+
+    say STDERR $sql;
+    say STDERR $new_sql;
+
+    $db->query( $new_sql )->hashes;
 }
 
 # get a list of all stories matching the query with download texts
