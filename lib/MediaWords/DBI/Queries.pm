@@ -1126,17 +1126,6 @@ sub get_country_counts
     my ( $db, $query ) = @_;
 
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
-    my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'dcc' );
-    my $date_clause = get_daily_date_clause( $query, 'dcc' );
-
-    my $sql =
-      "SELECT dcc.country, sum( dcc.country_count::float / tdw.total_count::float )::float as country_count " .
-      "FROM daily_country_counts dcc, total_daily_words tdw " .
-      "WHERE  dcc.media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
-      " and dcc.media_sets_id = tdw.media_sets_id and dcc.publish_day = tdw.publish_day " .
-      " and coalesce( dcc.dashboard_topics_id, 0 ) = coalesce( tdw.dashboard_topics_id, 0 ) and $date_clause " .
-      "GROUP BY dcc.country order by dcc.country";
-
     my $dashboard_topics_clause_2 = get_dashboard_topics_clause( $query );
     my $date_clause_2             = get_daily_date_clause( $query );
 
@@ -1146,19 +1135,16 @@ sub get_country_counts
     my $new_sql = <<"SQL";
 SELECT dcc.country, SUM(dcc.country_count :: FLOAT) / total_count :: FLOAT AS country_count,
        SUM(dcc.country_count) AS country_count_raw, total_count AS total_count
-FROM   (SELECT *
-        FROM   daily_country_counts
-        WHERE  $shared_where_clauses )  AS dcc,
-       (SELECT SUM(total_count) AS total_count
-        FROM   total_daily_words
-        WHERE  $shared_where_clauses ) as  tdw
+FROM   (SELECT * FROM   daily_country_counts WHERE  $shared_where_clauses )  AS dcc,
+       (SELECT SUM(total_count) AS total_count FROM   total_daily_words WHERE  $shared_where_clauses ) as  tdw
 GROUP  BY dcc.country, tdw.total_count ORDER  BY dcc.country;  
 SQL
 
-    #say STDERR $sql;
     #say STDERR $new_sql;
 
-    $db->query( $new_sql )->hashes;
+    my $ret = $db->query( $new_sql )->hashes;
+
+    return $ret;
 }
 
 # get a list of all stories matching the query with download texts
