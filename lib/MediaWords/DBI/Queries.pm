@@ -1119,13 +1119,62 @@ sub get_dashboard_topic_options
     return $dashboard_topic_options;
 }
 
+sub _get_json_country_counts_for_query
+{
+    my ( $db, $query ) = @_;
+
+    ( my $country_counts_json ) =
+      $db->query( "SELECT country_counts_json FROM queries_country_counts_json where queries_id = ? ",
+        $query->{ queries_id } )->flat;
+
+    if ( $country_counts_json )
+    {
+
+        #   eval {
+        my $country_counts = decode_json( $country_counts_json );
+        return $country_counts;
+
+        #  };
+
+        # eval {
+        utf8::upgrade( $country_counts_json );
+        my $country_counts = decode_json( $country_counts_json );
+        return $country_counts;
+
+        # };
+    }
+
+    return;
+}
+
+sub _store_country_counts_for_query
+{
+    my ( $db, $query, $country_counts ) = @_;
+
+    #eval {
+    my $country_counts_json = encode_json( $country_counts );
+
+    utf8::upgrade( $country_counts_json );
+
+    $db->query( "DELETE FROM queries_country_counts_json where queries_id = ? ", $query->{ queries_id } );
+    $db->query(
+        "INSERT INTO queries_country_counts_json (queries_id, country_counts_json) VALUES ( ? , ? ) ",
+        $query->{ queries_id },
+        $country_counts_json
+    );
+
+    #};
+
+    return;
+}
+
 # get the country counts for the given query normalized by the total daily words
 # in each media set / dashboard topic
 sub _get_country_counts_impl
 {
     my ( $db, $query ) = @_;
 
-    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
+    my $media_sets_ids_list       = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause_2 = get_dashboard_topics_clause( $query );
     my $date_clause_2             = get_daily_date_clause( $query );
 
@@ -1151,10 +1200,16 @@ sub get_country_counts
 {
     my ( $db, $query ) = @_;
 
-    my $ret = _get_country_counts_impl ( $db, $query );
+    my $ret = _get_json_country_counts_for_query( $db, $query );
+
+    if ( !$ret )
+    {
+        $ret = _get_country_counts_impl( $db, $query );
+        _store_country_counts_for_query( $db, $query, $ret );
+    }
 
     return $ret;
-} 
+}
 
 # get a list of all stories matching the query with download texts
 sub get_stories_with_text
