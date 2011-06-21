@@ -1,3 +1,4 @@
+
 [% IF word_cloud_term %]
 [% primary = 0 %]
 [% ELSE %]
@@ -47,6 +48,10 @@
 		$('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
 	});
 	
+	$('#country_counts_csv_links a').each(function(index, element){
+	  $.get(element);
+	});
+
 	$('#mediaSource1 select[name="media_sets_id1"]').change(function() {  
 	   $('#medium_name1').val('');
 	} );
@@ -397,7 +402,15 @@
   </tr>
 <ul style="visibility: hidden; display: none" id="hidden_media_list">
 </ul>
-[%  # We no longer need compare_media_setss as a parameter but the js is set up to query it's value we're adding it in a hidden form for the JS to use. %]
+
+[% # These are just used so that we will fetch and cache the country counts data for archiving and performance reasons. %]
+<ul style="visibility: hidden; display: none" id="country_counts_csv_links">
+  <a href="[% c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.0.queries_id}) %]">queries 0 csv</a>
+[% IF queries.1 %]
+  <a href="[% c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.1.queries_id}) %]">queries 1 csv</a>
+[% END %] 
+</ul>
+[%  # We no longer need compare_media_sets as a parameter but the js is set up to query it's value we're adding it in a hidden form for the JS to use. %]
 <form method="get">
       <input  id="compare_media_sets"
 [% IF queries.1 %]
