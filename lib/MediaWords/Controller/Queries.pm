@@ -400,12 +400,12 @@ sub compare : Local
 sub stories : Local
 {
     my ( $self, $c, $queries_id ) = @_;
-    
+
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id )
-        || die( "Unable to find query $queries_id" );
-        
+      || die( "Unable to find query $queries_id" );
+
     my $stories = MediaWords::DBI::Queries::get_stories_with_text( $c->dbis, $query );
-    
+
     MediaWords::Util::CSV::send_hashes_as_csv_page( $c, $stories, "stories.csv" );
 }
 
