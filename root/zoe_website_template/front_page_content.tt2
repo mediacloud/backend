@@ -43,7 +43,6 @@
 <iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %]" ></iframe>
 </div>
 [% ELSE %]
-This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
 [% END %]
  </div></td>
 [% IF !primary %]
