@@ -823,3 +823,37 @@ CREATE TABLE queries_country_counts_json (
 );
 
 
+CREATE OR REPLACE FUNCTION add_query_version (new_query_version_enum_string character varying) RETURNS void
+AS 
+$body$
+DECLARE
+    range_of_old_enum TEXT;
+    new_type_sql TEXT;
+BEGIN
+
+LOCK TABLE queries;
+
+SELECT '''' || array_to_string(ENUM_RANGE(null::query_version_enum), ''',''') || '''' INTO range_of_old_enum;
+
+DROP TYPE IF EXISTS new_query_version_enum;
+
+new_type_sql :=  'CREATE TYPE new_query_version_enum AS ENUM( ' || range_of_old_enum || ', ' || '''' || new_query_version_enum_string || '''' || ')' ;
+--RAISE NOTICE 'Sql: %t', new_type_sql;
+
+EXECUTE new_type_sql;
+
+ALTER TABLE queries ADD COLUMN new_query_version new_query_version_enum DEFAULT enum_last (null::new_query_version_enum ) NOT NULL;
+UPDATE queries set new_query_version = query_version::text::new_query_version_enum;
+ALTER TYPE query_version_enum  RENAME to old_query_version_enum;
+ALTER TABLE queries rename column query_version to old_query_version;
+ALTER TABLE queries rename column new_query_version to query_version;
+ALTER TYPE new_query_version_enum RENAME to query_version_enum;
+ALTER TABLE queries DROP COLUMN old_query_version;
+DROP TYPE old_query_version_enum ;
+
+
+END;
+$body$
+    LANGUAGE plpgsql;
+--
+
