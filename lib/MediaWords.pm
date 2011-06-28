@@ -30,6 +30,7 @@ use Catalyst qw/
   Session::State::Cookie
   Unicode
   StackTrace
+  I18N
   /;
 
 our $VERSION = '0.01';
@@ -50,6 +51,18 @@ my $config = __PACKAGE__->config( -name => 'MediaWords' );
 
 # Start the application
 __PACKAGE__->setup;
+
+sub begin : Private {
+        my ( $self, $c ) = @_;
+        
+
+	$DB::single=1;
+
+        my $locale = $c->request->param('locale');
+        
+        $c->response->headers->push_header( 'Vary' => 'Accept-Language' );  # hmm vary and param?
+        $c->languages( $locale ? [ $locale ] : undef );
+}
 
 sub uri_for
 {

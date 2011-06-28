@@ -1,0 +1,186 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. ("+f.top+")
+#: root/script/crap/protovis-r3.2.js:106 root/script/crap/protovis-r3.2.js:111 root/script/crap/protovis-r3.2.js:126 root/script/protovis-r3.2.js:106 root/script/protovis-r3.2.js:111 root/script/protovis-r3.2.js:126
+msgid "+f.left+"
+msgstr ""
+
+#. ("+q+")
+#: root/script/crap/protovis-r3.2.js:121 root/script/protovis-r3.2.js:121
+msgid "+k+"
+msgstr ""
+
+#: root/zoe_website_template/header.tt2:16
+msgid "About"
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:370
+msgid "About Media Cloud"
+msgstr ""
+
+#: root/zoe_website_template/sentences_and_subsets.tt2:5
+msgid "Available Subsets"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:29
+msgid "Available set within this set"
+msgstr ""
+
+#: root/zoe_website_template/word_cloud_content.tt2:2
+msgid "Click on a word to see sentences."
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:332
+msgid "Compare Query"
+msgstr ""
+
+#: root/zoe_website_template/front_page_content.tt2:75
+msgid "Coverage Map"
+msgstr ""
+
+#: root/zoe_website_template/header.tt2:15
+msgid "Data"
+msgstr ""
+
+#: root/zoe_website_template/source_info_table.tt2:22
+msgid "Data:"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:24
+msgid "Describe media sets"
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:262
+msgid "Embed"
+msgstr ""
+
+#: root/zoe_website_template/header.tt2:17
+msgid "FAQ"
+msgstr ""
+
+#: root/zoe_website_template/header.tt2:12
+msgid "Home"
+msgstr ""
+
+#: root/zoe_website_template/sentences_and_subsets.tt2:10
+msgid "How are these sentences generated?"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:20
+msgid "List media sources"
+msgstr ""
+
+#: root/zoe_website_template/header.tt2:14
+msgid "Media"
+msgstr ""
+
+#: root/zoe_website_template/html_footer.tt2:2
+msgid "Media Cloud is <span id=\"tagline\">a project of the <a href=\"http://cyber.law.harvard.edu/\">Berkman Center for Internet &amp; Society</a> at Harvard</span>"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:22
+msgid "Media Set"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:17
+msgid "Media Source"
+msgstr ""
+
+#: root/zoe_website_template/source_info_table.tt2:13
+msgid "Media Sub-sets:"
+msgstr ""
+
+#: root/zoe_website_template/source_info_table.tt2:4
+msgid "Media:"
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:382
+msgid "News"
+msgstr ""
+
+#: root/zoe_website_template/source_info_table.tt2:14
+msgid "None"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:21
+msgid "OR"
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:273
+msgid "Paste this html to embed in a website:"
+msgstr ""
+
+#: root/zoe_website_template/front_page_content.tt2:59
+msgid "Popular Queries:"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:3
+msgid "Query"
+msgstr ""
+
+#: root/zoe_website_template/sentences_and_subsets.tt2:4
+msgid "Sentences"
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:334
+msgid "Submit"
+msgstr ""
+
+#: root/zoe_website_template/sentences_and_subsets.tt2:23
+msgid "Subset #2"
+msgstr ""
+
+#: root/zoe_website_template/sentences_and_subsets.tt2:26
+msgid "Subset #3"
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:379
+msgid "This week's report"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:9
+msgid "Topic"
+msgstr ""
+
+#: root/zoe_website_template/source_info_table.tt2:18
+msgid "Topic:"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:4 root/zoe_website_template/source_info_table.tt2:8
+msgid "Week"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:6
+msgid "Week of media coverage"
+msgstr ""
+
+#: root/zoe_website_template/word_cloud_content.tt2:3
+msgid "What does this word cloud mean?"
+msgstr ""
+
+#: root/zoe_website_template/media_container.tt2:11
+msgid "What is a topic?"
+msgstr ""
+
+#: root/zoe_website_template/front_page_content.tt2:72
+msgid "Word Cloud"
+msgstr ""
+
+#: root/zoe_website_template/word_cloud_content.tt2:11
+msgid "no words found"
+msgstr ""

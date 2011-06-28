@@ -1,0 +1,184 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#:
+msgid "+f.left+"
+msgstr "+ + F.left"
+
+#:
+msgid "+k+"
+msgstr "+ К +"
+
+#:
+msgid "About"
+msgstr "О"
+
+#:
+msgid "About Media Cloud"
+msgstr "О Медиа Облако"
+
+#:
+msgid "Available Subsets"
+msgstr "Доступные подмножества"
+
+#:
+msgid "Available set within this set"
+msgstr "Доступный набор в этот набор"
+
+#:
+msgid "Click on a word to see sentences."
+msgstr "Нажмите на слово, чтобы увидеть предложения."
+
+#:
+msgid "Compare Query"
+msgstr "Сравните запросов"
+
+#:
+msgid "Coverage Map"
+msgstr "Карта покрытия"
+
+#:
+msgid "Data"
+msgstr "Данные"
+
+#:
+msgid "Data:"
+msgstr "Данные:"
+
+#:
+msgid "Describe media sets"
+msgstr "Опишите наборы носителей"
+
+#:
+msgid "Embed"
+msgstr "Вставлять"
+
+#:
+msgid "FAQ"
+msgstr "Часто задаваемые вопросы"
+
+#:
+msgid "Home"
+msgstr "Домой"
+
+#:
+msgid "How are these sentences generated?"
+msgstr "Как эти предложения генерируются?"
+
+#:
+msgid "List media sources"
+msgstr "Список СМИ"
+
+#:
+msgid "Media"
+msgstr "Средства массовой информации"
+
+#:
+msgid "Media Cloud is <span id=\"tagline\">a project of the <a href=\"http://cyber.law.harvard.edu/\">Berkman Center for Internet &amp; Society</a> at Harvard</span>"
+msgstr "Медиа Облако <span id=\"tagline\">проект <a href=\"http://cyber.law.harvard.edu/\">Центра Беркмана для Интернет и общества</a> в Гарварде</span>"
+
+#:
+msgid "Media Set"
+msgstr "Набора носителей"
+
+#:
+msgid "Media Source"
+msgstr "Media Source"
+
+#:
+msgid "Media Sub-sets:"
+msgstr "Медиа подмножества:"
+
+#:
+msgid "Media:"
+msgstr "СМИ:"
+
+#:
+msgid "News"
+msgstr "Новости"
+
+#:
+msgid "None"
+msgstr "Ни один"
+
+#:
+msgid "OR"
+msgstr "ИЛИ"
+
+#:
+msgid "Paste this html to embed in a website:"
+msgstr "Вставьте этот HTML для внедрения в веб-сайте:"
+
+#:
+msgid "Popular Queries:"
+msgstr "Популярные запросы:"
+
+#:
+msgid "Query"
+msgstr "Запрос"
+
+#:
+msgid "Sentences"
+msgstr "Предложения"
+
+#:
+msgid "Submit"
+msgstr "Представлять"
+
+#:
+msgid "Subset #2"
+msgstr "Подмножество # 2"
+
+#:
+msgid "Subset #3"
+msgstr "Подмножество # 3"
+
+#:
+msgid "This week's report"
+msgstr "На этой неделе докладе"
+
+#:
+msgid "Topic"
+msgstr "Тема"
+
+#:
+msgid "Topic:"
+msgstr "Тема:"
+
+#:
+msgid "Week"
+msgstr "Неделя"
+
+#:
+msgid "Week of media coverage"
+msgstr "Неделя в СМИ"
+
+#:
+msgid "What does this word cloud mean?"
+msgstr "Что означает это слово облако значит?"
+
+#:
+msgid "What is a topic?"
+msgstr "Что такое тема?"
+
+#:
+msgid "Word Cloud"
+msgstr "Word Cloud"
+
+#:
+msgid "no words found"
+msgstr "Не найдено слов"
