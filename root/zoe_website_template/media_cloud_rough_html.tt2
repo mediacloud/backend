@@ -368,13 +368,13 @@
             <br/>
             <div id = "bottomContainer">
               <div id = "popular"> <strong>[% c.loc('About Media Cloud') %]</strong><br />
-              Media Cloud is an open source, open data platform that allows
+              [% c.loc('Media Cloud is an open source, open data platform that allows
               researchers to answer quantitative questions about the content
               of online media. Using Media Cloud, researchers, journalism
               critics and interested citizens can examine what media sources cover
               which stories, what language different media outlets use in
               conjunction with different stories, and how stories spread
-              from one media outlet to another.
+              from one media outlet to another.') %]
               </div>
               <div id = "report"><strong>[% c.loc("This week's report") %]</strong><br />
                 <div id="weekly_report_link"></div><br />

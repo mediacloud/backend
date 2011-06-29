@@ -15,17 +15,20 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. ("+f.top+")
-#: root/script/crap/protovis-r3.2.js:106 root/script/crap/protovis-r3.2.js:111 root/script/crap/protovis-r3.2.js:126 root/script/protovis-r3.2.js:106 root/script/protovis-r3.2.js:111 root/script/protovis-r3.2.js:126
-msgid "+f.left+"
+#: root/zoe_website_template/data_dumps.tt2:6
+msgid "A core goal of the Media Cloud project is to make as much data as legally possible as available as legally possible.  Our hope is to provide the basic data to allow smarter folks than us to ask and answer better questions about the mediasphere than we could without having to do the back end work of collecting and processing the underlying data.  To that end, we make available daily dumps of per-story word counts for every story for every media source we collect (including many media sources that are not included in the main dashboard interface)."
 msgstr ""
 
-#. ("+q+")
-#: root/script/crap/protovis-r3.2.js:121 root/script/protovis-r3.2.js:121
-msgid "+k+"
+#: root/zoe_website_template/faq.tt2:44
+msgid "A similarity score is included in the legend at the bottom of each comparative word cloud.  The similarity score is the <a href=\"https://secure.wikimedia.org/wikipedia/en/wiki/Cosine_similarity\">cosine similarity</a> of the word counts of the 500 most common stopworded words within each of the two queries.  A score of 0 indicates no similarity at all and a score of 1 indicates that the list of word counts is exactly the same.  This similarity score can be used to quantitatively assess the degree to which two queries differ, and to compare differences between various comparisons (to ask, for instance, whether news coverage differed more between two media sources in the past two weeks than the previous two weeks, or to ask whether the content of mainstream media coverage of the economy is more similar to content of the whitehouse feeds than the content of blog coverage)."
 msgstr ""
 
-#: root/zoe_website_template/header.tt2:16
+#. (health'.  Topics require some background processing, so we support only a limited number of them, but we add new topics each week.')
+#: root/zoe_website_template/faq.tt2:26
+msgid "A topic is a way of not just tracking generic content within a given media set or media source, but tracking content closely associated with a specific topic (eg. egypt, economy, or health).  Word clouds generated for a specific topic include only words that appear in the same sentence as the topic word.  So the word cloud for the week of 2010-08-01 for Political Blogs with the health topic will include only words within that week and media source within sentences that include the word "
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:1 root/zoe_website_template/header.tt2:16
 msgid "About"
 msgstr ""
 
@@ -41,6 +44,14 @@ msgstr ""
 msgid "Available set within this set"
 msgstr ""
 
+#: root/zoe_website_template/about_text.tt2:13
+msgid "Can we characterize the overall mix of coverage for a given source?"
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:15
+msgid "Can we track news cycles for specific issues?"
+msgstr ""
+
 #: root/zoe_website_template/word_cloud_content.tt2:2
 msgid "Click on a word to see sentences."
 msgstr ""
@@ -53,7 +64,7 @@ msgstr ""
 msgid "Coverage Map"
 msgstr ""
 
-#: root/zoe_website_template/header.tt2:15
+#: root/zoe_website_template/data_dumps.tt2:3 root/zoe_website_template/header.tt2:15
 msgid "Data"
 msgstr ""
 
@@ -65,6 +76,23 @@ msgstr ""
 msgid "Describe media sets"
 msgstr ""
 
+#: root/zoe_website_template/about_text.tt2:8
+msgid "Do bloggers introduce storylines into mainstream media or the other way around?"
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:16
+msgid "Do online comments shape the news?"
+msgstr ""
+
+#: root/zoe_website_template/data_dumps.tt2:16 root/zoe_website_template/data_dumps.tt2:24
+msgid "Download"
+msgstr ""
+
+#. (obama' for the word cloud representing the week of 2010-08-01 in Popular Blogs will show a list of all sentences including the word 'obama' in that week and media set.  For topic word clouds, only sentences that include both the topic word and the clicked word will be displayed.')
+#: root/zoe_website_template/faq.tt2:34
+msgid "Each word in a word cloud links to the list of sentences including that word within the given week and media set or media source.  So clicking on "
+msgstr ""
+
 #: root/zoe_website_template/media_cloud_rough_html.tt2:262
 msgid "Embed"
 msgstr ""
@@ -73,12 +101,48 @@ msgstr ""
 msgid "FAQ"
 msgstr ""
 
+#: root/zoe_website_template/faq.tt2:38
+msgid "For each media source, we show a percentage indicating the frequency of the clicked word. This percentage is calculated by comparing the number of times the clicked word occurs within the media source in the given week with the total number of words within that media source for the given week. For topic word clouds, the percentage is determined by the occurances of the clicked word within sentences in the media source for the given week that contain the topic word in comparison to the total number of words within these sentences. For words that appear in both queries (words in purple in the word cloud), we average the percentages from the two queries."
+msgstr ""
+
+#: root/zoe_website_template/data_dumps.tt2:12
+msgid "Full Data Dumps"
+msgstr ""
+
 #: root/zoe_website_template/header.tt2:12
 msgid "Home"
 msgstr ""
 
+#: root/zoe_website_template/about_text.tt2:12
+msgid "How are competing terms for the same event used in different publications?"
+msgstr ""
+
 #: root/zoe_website_template/sentences_and_subsets.tt2:10
 msgid "How are these sentences generated?"
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:14
+msgid "How do patterns differ between local and national news coverage?"
+msgstr ""
+
+#: root/zoe_website_template/faq.tt2:16
+msgid "How is the coverage map generated?"
+msgstr ""
+
+#: root/zoe_website_template/faq.tt2:31
+msgid "How is the list of sentences generated?"
+msgstr ""
+
+#: root/zoe_website_template/faq.tt2:5
+msgid "How is the word cloud generated?"
+msgstr ""
+
+#: root/zoe_website_template/data_dumps.tt2:20
+msgid "Incremental Data Dumps"
+msgstr ""
+
+#: root/zoe_website_template/faq.tt2:48
+msgid "Is the source code for Media Cloud available?"
 msgstr ""
 
 #: root/zoe_website_template/media_container.tt2:20
@@ -89,8 +153,31 @@ msgstr ""
 msgid "Media"
 msgstr ""
 
+#: root/zoe_website_template/media_sets.tt2:4
+msgid "Media Cloud collects news stories from media sources. Each media source is a distinct organization such as a mainstream media organization like the <a href=\"http://nytimes.com\">New York Times</a> or a blog like <a href=\"http://www.powerlineblog.com\">Power Line</a>.  Each media source may include a single feed or up to several hundred feeds.  For each media source, the content from all of its feeds are included as the content of the media source."
+msgstr ""
+
 #: root/zoe_website_template/html_footer.tt2:2
 msgid "Media Cloud is <span id=\"tagline\">a project of the <a href=\"http://cyber.law.harvard.edu/\">Berkman Center for Internet &amp; Society</a> at Harvard</span>"
+msgstr ""
+
+#: root/zoe_website_template/media_cloud_rough_html.tt2:371
+msgid ""
+"Media Cloud is an open source, open data platform that allows\r\n"
+"              researchers to answer quantitative questions about the content\r\n"
+"              of online media. Using Media Cloud, researchers, journalism\r\n"
+"              critics and interested citizens can examine what media sources cover\r\n"
+"              which stories, what language different media outlets use in\r\n"
+"              conjunction with different stories, and how stories spread\r\n"
+"              from one media outlet to another."
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:29
+msgid "Media Cloud is made possible by the generous support of the <a href=\"http://www.macfound.org\">John D. and Catherine T. MacArthur Foundation</a> and the <a href=\"http://www.fordfoundation.org\">Ford Foundation</a>."
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:20
+msgid "Media Cloud offers a way to quantitatively examine all of these challenging questions by collecting and analyzing the news stream of tens of thousands of online sources."
 msgstr ""
 
 #: root/zoe_website_template/media_container.tt2:22
@@ -129,12 +216,24 @@ msgstr ""
 msgid "Popular Queries:"
 msgstr ""
 
+#: root/zoe_website_template/about_text.tt2:3
+msgid "Print newspapers are declaring bankruptcy nationwide.  High-profile blogs are proliferating.  Media companies are exploring new production techniques and business models in a landscape that is increasingly dominated by the Internet.  In the midst of this upheaval, it is difficult to know what is actually happening to the shape of our news.  Beyond one-off anecdotes or painstaking manual content analysis, there are few ways to examine the emerging news ecosystem."
+msgstr ""
+
 #: root/zoe_website_template/media_container.tt2:3
 msgid "Query"
 msgstr ""
 
+#: root/zoe_website_template/header.tt2:13
+msgid "Reports"
+msgstr ""
+
 #: root/zoe_website_template/sentences_and_subsets.tt2:4
 msgid "Sentences"
+msgstr ""
+
+#: root/zoe_website_template/data_dumps.tt2:15 root/zoe_website_template/data_dumps.tt2:23
+msgid "Stories"
 msgstr ""
 
 #: root/zoe_website_template/media_cloud_rough_html.tt2:334
@@ -147,6 +246,37 @@ msgstr ""
 
 #: root/zoe_website_template/sentences_and_subsets.tt2:26
 msgid "Subset #3"
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:25
+msgid "Technically, Media Cloud performs five basic functions -- media definition, crawling, text extraction, word vectoring, and analysis.  First, we define the set of media sources we want to collect and discover the feeds for each media source (which in the case of many newspapers includes hundreds of feeds).  Second, we crawl each of those feeds several times each day to discover any new stories published by each feed and then download the html of each new story.  Third, we extract just the substantive content of each story from each html page, leaving behind the ads, navigation, and other cruft.  Fourth, we break that substantive text down into a set word counts so that we can count, down to the level of individual sentences, which words which media sources are using to talk about which topics.  And finally, we have a set of tools for analyzing those word counts, including the Media Dashboard tool that acts as the front page for http://mediacloud.org.  We make available all of the code for the system under an open source license and publish as much of the underlying data as legally possible."
+msgstr ""
+
+#. (elephant' would be blue if it were the 15th most popular word in the first query but only the 50th most popular word in the second query.  If 'elephant' were the 15th most popular word in the first query and the 35th most popular word in the second query, it would be colored purple.  Words are sized according to the number of mentions divided by the number of queries it is found in.  So a word that is found in both queries is sized according to the mentions in both queries divided by two, but a word that is found in only one query is sized according to the number of mentions in the one query with no division.')
+#: root/zoe_website_template/faq.tt2:12
+msgid "The comparative word cloud starts with the top 75 words of each query but colors words according to their relative frequency within each query.  Words in red or blue are words within the top 75 words for one query that are ranked at least 25 spots lower than in the other query.  Words in purple are ranked within 25 spots in both of the queries.  So the word "
+msgstr ""
+
+#: root/zoe_website_template/faq.tt2:19
+msgid "The coverage map displays a heat map of the coverage of a given country for the given media set or media source during the given week.  So for a media source that mentions China frequently but African countries rarely, China should appear very dark on the map while African countries should appear very light.  We use a very simple country tagging system that counts mentions of a given country by looking for either the country name if it is a single word (eg. Ghana) or for two words from the country name to appear anywhere in the same sentence if the country name is more than one word (eg. United States).  This tagging algorithm is likely to have some false negatives and false positives."
+msgstr ""
+
+#: root/zoe_website_template/data_dumps.tt2:9
+msgid "The data dumps are zipped archives containing csv files."
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:5
+msgid ""
+"The idea for Media Cloud emerged through a series discussions between faculty and friends of the Berkman Center.  The conversations would follow a predictable pattern: one person would ask a provocative question about what was happening in the media landscape, someone else would suggest interesting follow-on inquiries, and everyone would realize that a good answer would require heavy number crunching.  Nobody had the time to develop a huge infrastructure and download <strong>all</strong> the news just to answer a single question.  However, there were eventually enough of these questions that we decided to build a tool for everyone to use.<br />\n"
+"Some of the early driving questions included:"
+msgstr ""
+
+#: root/zoe_website_template/media_sets.tt2:7
+msgid "The media sources are collected into media sets. A media set is a collection of media sources grouped together for analytical purposes, for instance as mainstream media or blogs.  Below is a list of the media sets available on the current Media Cloud dashboard."
+msgstr ""
+
+#: root/zoe_website_template/faq.tt2:8
+msgid "There are two different kinds of word clouds generated by the Media Dashboard: a simple word cloud for a single query and a comparative word cloud for two queries.  The single query word cloud includes the 100 most common stopworded words used by the given media set or media source during the given week.  The size of each word is determined by its frequency across all media sources within the query.  Words in a large stoplist of about four thousands words are excluded from the word cloud."
 msgstr ""
 
 #: root/zoe_website_template/media_cloud_rough_html.tt2:379
@@ -173,14 +303,34 @@ msgstr ""
 msgid "What does this word cloud mean?"
 msgstr ""
 
-#: root/zoe_website_template/media_container.tt2:11
+#: root/zoe_website_template/faq.tt2:23 root/zoe_website_template/media_container.tt2:11
 msgid "What is a topic?"
+msgstr ""
+
+#: root/zoe_website_template/faq.tt2:41
+msgid "What is the similarity score?"
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:9
+msgid "What parts of the world are being covered or ignored by different media sources?"
+msgstr ""
+
+#: root/zoe_website_template/about_text.tt2:10
+msgid "Where do stories begin?"
 msgstr ""
 
 #: root/zoe_website_template/front_page_content.tt2:72
 msgid "Word Cloud"
 msgstr ""
 
+#: root/zoe_website_template/faq.tt2:51
+msgid "Yes.  We publish all Media Cloud code under the GNU Affero General Public License, which basically says that you can download the code, modify it, and host your own version of Media Cloud as long as you publish any changes you make it to the code if you host a public version of Media Cloud or distribute your own version of Media Cloud.  The Media Cloud is available at SourceForge <a href=\"http://sourceforge.net/projects/mediacloud/develop\">here</a>.  Please note that we have not for some time made any strong attempt to package Media Cloud or to make it easy for other folks to install and maintain, so enter at your own risk.  Most importantly, the answers to any specific methodological questions about how we collect and analyze the media cloud are available in the open source code."
+msgstr ""
+
 #: root/zoe_website_template/word_cloud_content.tt2:11
 msgid "no words found"
+msgstr ""
+
+#: root/zoe_website_template/data_dumps.tt2:15 root/zoe_website_template/data_dumps.tt2:23
+msgid "through"
 msgstr ""

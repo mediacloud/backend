@@ -1,27 +1,27 @@
 [% INCLUDE 'zoe_website_template/text_page_head.tt2' %]
 
-<b>Data</b>
+<b>[% c.loc('Data') %]</b>
 
 <p>
-A core goal of the Media Cloud project is to make as much data as legally possible as available as legally possible.  Our hope is to provide the basic data to allow smarter folks than us to ask and answer better questions about the mediasphere than we could without having to do the back end work of collecting and processing the underlying data.  To that end, we make available daily dumps of per-story word counts for every story for every media source we collect (including many media sources that are not included in the main dashboard interface).
+[% c.loc('A core goal of the Media Cloud project is to make as much data as legally possible as available as legally possible.  Our hope is to provide the basic data to allow smarter folks than us to ask and answer better questions about the mediasphere than we could without having to do the back end work of collecting and processing the underlying data.  To that end, we make available daily dumps of per-story word counts for every story for every media source we collect (including many media sources that are not included in the main dashboard interface).') %]
 </p>
 <p>
-The data dumps are zipped archives containing csv files.
+[% c.loc('The data dumps are zipped archives containing csv files.') %]
 </p>
 
-<b>Full Data Dumps</b>
+<b>[% c.loc('Full Data Dumps') %]</b>
 <ul>
 [% FOREACH data_dump IN full_data_dumps %]
-<li>[% data_dump.2.wday %] [% data_dump.2.month %] [% data_dump.2.mday %], [% data_dump.2.year %] - [% data_dump.2.time %]  (Stories [% data_dump.2.stories_start %] through [% data_dump.2.stories_end %]) -
-<a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >Download ([% data_dump.2.size_human %])</a>
+<li>[% data_dump.2.wday %] [% data_dump.2.month %] [% data_dump.2.mday %], [% data_dump.2.year %] - [% data_dump.2.time %]  ([% c.loc('Stories') %] [% data_dump.2.stories_start %] [% c.loc('through') %]  [% data_dump.2.stories_end %]) -
+<a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >[% c.loc('Download') %] ([% data_dump.2.size_human %])</a>
 </li>
 [% END %]
 </ul>
-<b>Incremental Data Dumps</b>
+<b>[% c.loc('Incremental Data Dumps') %]</b>
 <ul>
 [% FOREACH data_dump IN incremental_data_dumps %]
-<li>[% data_dump.2.wday %] [% data_dump.2.month %] [% data_dump.2.mday %], [% data_dump.2.year %] - [% data_dump.2.time %]  (Stories [% data_dump.2.stories_start %] through [% data_dump.2.stories_end %]) -
-<a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >Download ([% data_dump.2.size_human %])</a>
+<li>[% data_dump.2.wday %] [% data_dump.2.month %] [% data_dump.2.mday %], [% data_dump.2.year %] - [% data_dump.2.time %]  ([% c.loc('Stories') %] [% data_dump.2.stories_start %] [% c.loc('through') %]  [% data_dump.2.stories_end %]) -
+<a href='[% c.uri_for('/include/data_dumps/' _ data_dump.0) %]' >[% c.loc('Download') %] ([% data_dump.2.size_human %])</a>
 </li>
 [% END %]
 </ul>
