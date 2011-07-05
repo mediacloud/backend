@@ -609,14 +609,14 @@ create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (
     
 create table total_top_500_weekly_words (
        total_top_500_weekly_words_id       serial          primary key,
-       media_sets_id                int             not null, /* references media_sets on delete cascade, */
-       dashboard_topics_id          int             null, /* references dashboard_topics */
+       media_sets_id                int             not null references media_sets on delete cascade, 
+       dashboard_topics_id          int             null references dashboard_topics,
        publish_week                 timestamp       not null,
        total_count                  int             not null
        
 );
 
-create index total_top_500_weekly_words_media 
+create unique index total_top_500_weekly_words_media 
     on total_top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
 
 create view top_500_weekly_words_with_totals
@@ -642,6 +642,7 @@ create table total_daily_words (
 
 create index total_daily_words_media_sets_id on total_daily_words (media_sets_id);
 create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
+CREATE UNIQUE INDEX total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
 
 create table total_weekly_words (
        total_weekly_words_id         serial          primary key,
