@@ -1,0 +1,333 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#:
+msgid "A core goal of the Media Cloud project is to make as much data as legally possible as available as legally possible.  Our hope is to provide the basic data to allow smarter folks than us to ask and answer better questions about the mediasphere than we could without having to do the back end work of collecting and processing the underlying data.  To that end, we make available daily dumps of per-story word counts for every story for every media source we collect (including many media sources that are not included in the main dashboard interface)."
+msgstr "Основной целью проекта Медиа-Клауд, чтобы сделать столько данных, сколько возможно юридически, как имеющиеся в наличии как юридически это возможно. Мы надеемся на то, чтобы обеспечить основные данные, позволяющие люди умнее, чем нам задавать и отвечать на вопросы о лучшей mediasphere, чем мы могли без того, чтобы сделать работу задней части сбора и обработки исходных данных. С этой целью, мы делаем ежедневно отвалов за историю слово рассчитывает Каждый материал для каждого источника средств массовой информации мы собираем (в том числе многие СМИ, которые не включены в основной интерфейс приборной панели)."
+
+#:
+msgid "A similarity score is included in the legend at the bottom of each comparative word cloud.  The similarity score is the <a href=\"https://secure.wikimedia.org/wikipedia/en/wiki/Cosine_similarity\">cosine similarity</a> of the word counts of the 500 most common stopworded words within each of the two queries.  A score of 0 indicates no similarity at all and a score of 1 indicates that the list of word counts is exactly the same.  This similarity score can be used to quantitatively assess the degree to which two queries differ, and to compare differences between various comparisons (to ask, for instance, whether news coverage differed more between two media sources in the past two weeks than the previous two weeks, or to ask whether the content of mainstream media coverage of the economy is more similar to content of the whitehouse feeds than the content of blog coverage)."
+msgstr "Сходство оценка содержится в легенде в нижней части каждой сравнительный облако слова. Сходство оценка <a href=\"https://secure.wikimedia.org/wikipedia/en/wiki/Cosine_similarity\">сходства косинус</a> слова пунктам 500 наиболее распространенных слов stopworded внутри каждой из двух запросов. 0 баллов указывает на отсутствие сходства на всех, и 1 балл означает, что список слов важно, так это то же самое. Это сходство оценка может быть использована для количественной оценки степени, в которой различаются два запроса, и сравнить различия между различными сравнений (спросить, например, будь то освещение новостей отличались более двух сред источников в последние две недели, чем предыдущие две недели , или спросить, есть ли содержание основного освещения в СМИ экономика больше похожа на содержание Уайтхаус кормов, чем содержание блога покрытие)."
+
+#:
+msgid "A topic is a way of not just tracking generic content within a given media set or media source, but tracking content closely associated with a specific topic (eg. egypt, economy, or health).  Word clouds generated for a specific topic include only words that appear in the same sentence as the topic word.  So the word cloud for the week of 2010-08-01 for Political Blogs with the health topic will include only words within that week and media source within sentences that include the word "
+msgstr "Тема способ не только отслеживание общего содержания в течение определенного набора носителей или средств массовой информации источника, но отслеживание содержания тесно связан с конкретной теме (например, Египет, экономики или здоровья). Слово облака создается для конкретной темы включают только слова, которые появляются в одном предложении, как тему слово. Поэтому слово облако в течение недели от 2010-08-01 по политическим блогам с темой здоровья будет включать в себя только слова внутри этой неделе и средств массовой информации источника в предложения, которые включают слово"
+
+#:
+msgid "About"
+msgstr "О"
+
+#:
+msgid "About Media Cloud"
+msgstr "О Медиа Облако"
+
+#:
+msgid "Available Subsets"
+msgstr "Доступные подмножества"
+
+#:
+msgid "Available set within this set"
+msgstr "Доступный набор в этот набор"
+
+#:
+msgid "Can we characterize the overall mix of coverage for a given source?"
+msgstr "Можем ли мы охарактеризовать общей структуре страхового покрытия для данного источника?"
+
+#:
+msgid "Can we track news cycles for specific issues?"
+msgstr "Можем ли мы трек новости циклы по конкретным вопросам?"
+
+#:
+msgid "Click on a word to see sentences."
+msgstr "Нажмите на слово, чтобы увидеть предложения."
+
+#:
+msgid "Compare Query"
+msgstr "Сравните запросов"
+
+#:
+msgid "Coverage Map"
+msgstr "Карта покрытия"
+
+#:
+msgid "Data"
+msgstr "Данные"
+
+#:
+msgid "Data:"
+msgstr "Данные:"
+
+#:
+msgid "Describe media sets"
+msgstr "Опишите наборы носителей"
+
+#:
+msgid "Do bloggers introduce storylines into mainstream media or the other way around?"
+msgstr "У блоггеров ввести сюжетные линии в средствах массовой информации или наоборот?"
+
+#:
+msgid "Do online comments shape the news?"
+msgstr "Есть ли онлайн комментарии форму новость?"
+
+#:
+msgid "Download"
+msgstr "Скачать"
+
+#:
+msgid "Each word in a word cloud links to the list of sentences including that word within the given week and media set or media source.  So clicking on "
+msgstr "Каждое слово в слово облако ссылки на список предложений в том числе и слово в данной недели и набора носителей или средств массовой информации источника. Так нажав на"
+
+#:
+msgid "Embed"
+msgstr "Вставлять"
+
+#:
+msgid "FAQ"
+msgstr "Часто задаваемые вопросы"
+
+#:
+msgid "For each media source, we show a percentage indicating the frequency of the clicked word. This percentage is calculated by comparing the number of times the clicked word occurs within the media source in the given week with the total number of words within that media source for the given week. For topic word clouds, the percentage is determined by the occurances of the clicked word within sentences in the media source for the given week that contain the topic word in comparison to the total number of words within these sentences. For words that appear in both queries (words in purple in the word cloud), we average the percentages from the two queries."
+msgstr "Для каждого источника средств массовой информации, мы показываем процент указывает частоту нажатия слова. Этот процент рассчитывается путем сравнения, сколько раз нажата слово встречается в средствах массовой информации источника в данной неделе общее количество слов в том, что источником информации для данной недели. Для облака тему словом, процент определяется вхождения нажатии слова в предложения в источник информации для данной недели, которые содержат слово тему по сравнению с общим количеством слов в этих предложениях. Для слов, которые появляются в обоих запросов (слов в порфиру в слове облако), мы средний процент от двух запросов."
+
+#:
+msgid "Full Data Dumps"
+msgstr "Полный дамп данных"
+
+#:
+msgid "Home"
+msgstr "Домой"
+
+#:
+msgid "How are competing terms for the same event used in different publications?"
+msgstr "Как конкурируют условия для того же события, используемые в различных публикациях?"
+
+#:
+msgid "How are these sentences generated?"
+msgstr "Как эти предложения генерируются?"
+
+#:
+msgid "How do patterns differ between local and national news coverage?"
+msgstr "Как модели отличаются между местными и национальными новостями?"
+
+#:
+msgid "How is the coverage map generated?"
+msgstr "Как карте покрытия генерируются?"
+
+#:
+msgid "How is the list of sentences generated?"
+msgstr "Как список предложений генерируются?"
+
+#:
+msgid "How is the word cloud generated?"
+msgstr "Как слово облако генерируются?"
+
+#:
+msgid "Incremental Data Dumps"
+msgstr "Дополнительные дамп данных"
+
+#:
+msgid "Is the source code for Media Cloud available?"
+msgstr "Является ли исходный код для СМИ Облако в наличии?"
+
+#:
+msgid "List media sources"
+msgstr "Список СМИ"
+
+#:
+msgid "Media"
+msgstr "Средства массовой информации"
+
+#:
+msgid "Media Cloud collects news stories from media sources. Each media source is a distinct organization such as a mainstream media organization like the <a href=\"http://nytimes.com\">New York Times</a> or a blog like <a href=\"http://www.powerlineblog.com\">Power Line</a>.  Each media source may include a single feed or up to several hundred feeds.  For each media source, the content from all of its feeds are included as the content of the media source."
+msgstr "Медиа Облако собирает новости из источников СМИ. Каждый источник СМИ различные организации, такие как основные средства массовой информации, как <a href=\"http://nytimes.com\">Нью-Йорк Таймс</a> или блог, как <a href=\"http://www.powerlineblog.com\">Power Line</a> . Каждый источник средств массовой информации могут включать один канал или до нескольких сотен каналов. Для каждого источника средств массовой информации, контента из всех своих каналов включены в качестве содержания исходного носителя."
+
+#:
+msgid "Media Cloud is <span id=\"tagline\">a project of the <a href=\"http://cyber.law.harvard.edu/\">Berkman Center for Internet &amp; Society</a> at Harvard</span>"
+msgstr "Медиа Облако <span id=\"tagline\">проект <a href=\"http://cyber.law.harvard.edu/\">Центра Беркмана для Интернет и общества</a> в Гарварде</span>"
+
+#:
+msgid ""
+"Media Cloud is an open source, open data platform that allows\r\n"
+"              researchers to answer quantitative questions about the content\r\n"
+"              of online media. Using Media Cloud, researchers, journalism\r\n"
+"              critics and interested citizens can examine what media sources cover\r\n"
+"              which stories, what language different media outlets use in\r\n"
+"              conjunction with different stories, and how stories spread\r\n"
+"              from one media outlet to another."
+msgstr "Медиа Облако открытым исходным кодом, открытая платформа данных, что позволяет исследователям ответить на количественные вопросы о содержании интернет-СМИ. Использование СМИ Облако, исследователи, критики и журналистики заинтересованные граждане могут изучить, какие средства массовой информации источников покрывать какие истории, на каком языке различных средств массовой информации использовать в сочетании с разными историями, и как историй передается от одного СМИ в другое."
+
+#:
+msgid "Media Cloud is made possible by the generous support of the <a href=\"http://www.macfound.org\">John D. and Catherine T. MacArthur Foundation</a> and the <a href=\"http://www.fordfoundation.org\">Ford Foundation</a>."
+msgstr "Медиа Облако стало возможным благодаря щедрой поддержке <a href=\"http://www.macfound.org\">Джона Д. и Кэтрин Т. Макартуров</a> и <a href=\"http://www.fordfoundation.org\">Фонда Форда</a> ."
+
+#:
+msgid "Media Cloud offers a way to quantitatively examine all of these challenging questions by collecting and analyzing the news stream of tens of thousands of online sources."
+msgstr "Медиа Облако предлагает способ количественно изучить все эти сложные вопросы путем сбора и анализа новостей потоком десятков тысяч источников в Интернете."
+
+#:
+msgid "Media Set"
+msgstr "Набора носителей"
+
+#:
+msgid "Media Source"
+msgstr "Media Source"
+
+#:
+msgid "Media Sub-sets:"
+msgstr "Медиа подмножества:"
+
+#:
+msgid "Media:"
+msgstr "СМИ:"
+
+#:
+msgid "News"
+msgstr "Новости"
+
+#:
+msgid "None"
+msgstr "Ни один"
+
+#:
+msgid "OR"
+msgstr "ИЛИ"
+
+#:
+msgid "Paste this html to embed in a website:"
+msgstr "Вставьте этот HTML для внедрения в веб-сайте:"
+
+#:
+msgid "Popular Queries:"
+msgstr "Популярные запросы:"
+
+#:
+msgid "Print newspapers are declaring bankruptcy nationwide.  High-profile blogs are proliferating.  Media companies are exploring new production techniques and business models in a landscape that is increasingly dominated by the Internet.  In the midst of this upheaval, it is difficult to know what is actually happening to the shape of our news.  Beyond one-off anecdotes or painstaking manual content analysis, there are few ways to examine the emerging news ecosystem."
+msgstr "Печать газет объявления банкротства по всей стране. Громкие блоги множатся. Медиа-компании ищут новые технологии производства и бизнес-моделей на фоне пейзажа, который все больше доминируют в Интернете. В разгар этого потрясения, это трудно понять, что на самом деле происходит с формой наших новостях. Помимо одноразовых анекдоты или кропотливого ручного анализа содержания, Есть несколько способов, чтобы изучить новые новости экосистемы."
+
+#:
+msgid "Query"
+msgstr "Запрос"
+
+#:
+msgid "Reports"
+msgstr "Отчеты"
+
+#:
+msgid "Sentences"
+msgstr "Предложения"
+
+#:
+msgid "Stories"
+msgstr "Истории"
+
+#:
+msgid "Submit"
+msgstr "Представлять"
+
+#:
+msgid "Subset #2"
+msgstr "Подмножество # 2"
+
+#:
+msgid "Subset #3"
+msgstr "Подмножество # 3"
+
+#:
+msgid "Technically, Media Cloud performs five basic functions -- media definition, crawling, text extraction, word vectoring, and analysis.  First, we define the set of media sources we want to collect and discover the feeds for each media source (which in the case of many newspapers includes hundreds of feeds).  Second, we crawl each of those feeds several times each day to discover any new stories published by each feed and then download the html of each new story.  Third, we extract just the substantive content of each story from each html page, leaving behind the ads, navigation, and other cruft.  Fourth, we break that substantive text down into a set word counts so that we can count, down to the level of individual sentences, which words which media sources are using to talk about which topics.  And finally, we have a set of tools for analyzing those word counts, including the Media Dashboard tool that acts as the front page for http://mediacloud.org.  We make available all of the code for the system under an open source license and publish as much of the underlying data as legally possible."
+msgstr "Технически, Медиа Облако выполняет пять основных функций - определение средств массовой информации, ползание, извлечение текста, слова векторизации и анализа. Во-первых, мы определяем набор источников средств массовой информации мы хотим собрать и открыть каналы для каждого источника средств массовой информации (что в случае многих газетах включает в себя сотни каналов). Во-вторых, ползем каждого из этих каналов в несколько раз каждый день, чтобы обнаружить какие-либо новые рассказы опубликованы каждого канала, а затем загрузить HTML каждой новой истории. В-третьих, мы извлекаем только основное содержание каждой истории из каждой HTML-страницы, оставляя за объявления, навигации и других хлама. В-четвертых, мы нарушаем, что основной текст вниз, рассчитывает набор слов, так что мы можем рассчитывать, вплоть до уровня отдельных предложений, какие слова какие источники используете, чтобы говорить о том, какие темы. И, наконец, у нас есть набор инструментов для анализа тех слов пунктам, включая инструмент медиа-панель, которая действует как на первой странице http://mediacloud.org. Мы делаем доступными все код для системы под открытой лицензией и публиковать как можно больше исходных данных, как юридически это возможно."
+
+#:
+msgid "The comparative word cloud starts with the top 75 words of each query but colors words according to their relative frequency within each query.  Words in red or blue are words within the top 75 words for one query that are ranked at least 25 spots lower than in the other query.  Words in purple are ranked within 25 spots in both of the queries.  So the word "
+msgstr "Сравнительный облако слово начинается с верхнего 75 слов каждого запроса, но цвета слов по их относительной частоты в пределах каждого запроса. Слова в красный или синий слов в топ 75 слов за один запрос, оцениваются по меньшей мере 25 мест ниже, чем в других запросов. Слова в фиолетовый оцениваются в пределах 25 пятен в обоих запросов. Поэтому слово"
+
+#:
+msgid "The coverage map displays a heat map of the coverage of a given country for the given media set or media source during the given week.  So for a media source that mentions China frequently but African countries rarely, China should appear very dark on the map while African countries should appear very light.  We use a very simple country tagging system that counts mentions of a given country by looking for either the country name if it is a single word (eg. Ghana) or for two words from the country name to appear anywhere in the same sentence if the country name is more than one word (eg. United States).  This tagging algorithm is likely to have some false negatives and false positives."
+msgstr "Карта покрытия отображает тепловая карта охвата данной страны для данного набора носителей или средств массовой информации источника в течение данной недели. Таким образом, для средств массовой информации источника, который упоминает Китай часто, но редко африканских стран, Китай должен появиться очень темно на карте в то время как африканские страны должны появиться очень легким. Мы используем очень простую систему страны пометки, что рассчитывает упоминания о той или иной стране, ища либо название страны, если это одно слово (например, Гана) или два слова из названия страны, чтобы появиться где-нибудь в том же предложении, если название страны более одного слова (например, США). Этот алгоритм пометки, вероятно, некоторые ложные негативы и ложных срабатываний."
+
+#:
+msgid "The data dumps are zipped archives containing csv files."
+msgstr "Данные свалки молнии архивов, содержащих файлы CSV."
+
+#:
+msgid ""
+"The idea for Media Cloud emerged through a series discussions between faculty and friends of the Berkman Center.  The conversations would follow a predictable pattern: one person would ask a provocative question about what was happening in the media landscape, someone else would suggest interesting follow-on inquiries, and everyone would realize that a good answer would require heavy number crunching.  Nobody had the time to develop a huge infrastructure and download <strong>all</strong> the news just to answer a single question.  However, there were eventually enough of these questions that we decided to build a tool for everyone to use.<br />\n"
+"Some of the early driving questions included:"
+msgstr "Идея для СМИ появилось облако через серию дискуссий между преподавателями и друзьями Беркман Центр. Разговоры будут следовать предсказуемой схеме: один человек спрашивал провокационный вопрос о том, что происходит в медийном, кто-то хотел бы предложить интересные последующих запросов, и все будут понимать, что хороший ответ потребует тяжелых хруст числа. Никто не имел времени, чтобы развить огромную инфраструктуру и скачать <strong>все</strong> новости только ответить на один вопрос. Тем не менее, в конечном итоге были достаточно многие из этих вопросов, мы решили создать инструмент для всех пользователей. <br /> Некоторые из ранних вопросы вождения включают:"
+
+#:
+msgid "The media sources are collected into media sets. A media set is a collection of media sources grouped together for analytical purposes, for instance as mainstream media or blogs.  Below is a list of the media sets available on the current Media Cloud dashboard."
+msgstr "СМИ собирают в наборы средств массовой информации. Набор носителей представляет собой коллекцию СМИ сгруппированы в аналитических целях, например, в качестве средства массовой информации или блогов. Ниже приведен список средств массовой информации, доступных на текущей панели Облако СМИ."
+
+#:
+msgid "There are two different kinds of word clouds generated by the Media Dashboard: a simple word cloud for a single query and a comparative word cloud for two queries.  The single query word cloud includes the 100 most common stopworded words used by the given media set or media source during the given week.  The size of each word is determined by its frequency across all media sources within the query.  Words in a large stoplist of about four thousands words are excluded from the word cloud."
+msgstr "Есть два различных типа слово облака порожденных Dashboard СМИ: простые облака слова одного запроса и сравнительный облако слова для двух запросов. Единого облачка слова запроса включает 100 наиболее распространенных stopworded слова, используемые данной набора носителей или средств массовой информации источника в течение данной недели. Размер каждого слова определяется его частотой между всеми источниками информации в течение запроса. Слова в большой список стоп-слов около четырех тысяч слов, исключаются из слов облако."
+
+#:
+msgid "This week's report"
+msgstr "На этой неделе докладе"
+
+#:
+msgid "Topic"
+msgstr "Тема"
+
+#:
+msgid "Topic:"
+msgstr "Тема:"
+
+#:
+msgid "Week"
+msgstr "Неделя"
+
+#:
+msgid "Week of media coverage"
+msgstr "Неделя в СМИ"
+
+#:
+msgid "What does this word cloud mean?"
+msgstr "Что означает это слово облако значит?"
+
+#:
+msgid "What is a topic?"
+msgstr "Что такое тема?"
+
+#:
+msgid "What is the similarity score?"
+msgstr "Что такое сходство счет?"
+
+#:
+msgid "What parts of the world are being covered or ignored by different media sources?"
+msgstr "Какие части мира покрывается или игнорируются из различных источников средств массовой информации?"
+
+#:
+msgid "Where do stories begin?"
+msgstr "Где историй начиналось?"
+
+#:
+msgid "Word Cloud"
+msgstr "Word Cloud"
+
+#:
+msgid "Yes.  We publish all Media Cloud code under the GNU Affero General Public License, which basically says that you can download the code, modify it, and host your own version of Media Cloud as long as you publish any changes you make it to the code if you host a public version of Media Cloud or distribute your own version of Media Cloud.  The Media Cloud is available at SourceForge <a href=\"http://sourceforge.net/projects/mediacloud/develop\">here</a>.  Please note that we have not for some time made any strong attempt to package Media Cloud or to make it easy for other folks to install and maintain, so enter at your own risk.  Most importantly, the answers to any specific methodological questions about how we collect and analyze the media cloud are available in the open source code."
+msgstr "Да. Мы публикуем весь код Медиа Облако под GNU Affero General Public License, которая в основном говорит, что вы можете скачать код, модифицировать его и разместить собственную версию Медиа Облако тех пор, пока вы публиковать любые изменения его кода, если вы хост публичная версия медиа облако или распространять свою собственную версию медиа-Клу. Облако СМИ можно найти на SourceForge <a href=\"http://sourceforge.net/projects/mediacloud/develop\">здесь</a> . Пожалуйста, обратите внимание, что мы не какое-то время сделал какой-нибудь сильный попытка пакет Облако СМИ или сделать его легким для других людей в установке и обслуживании, так что войти на свой страх и риск. Самое главное, ответы на любые конкретные методологические вопросы о том, как мы собираем и анализируем облако материалы для печати с открытым исходным кодом."
+
+#:
+msgid "no words found"
+msgstr "Не найдено слов"
+
+#:
+msgid "through"
+msgstr "через"

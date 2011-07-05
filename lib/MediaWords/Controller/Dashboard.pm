@@ -1041,7 +1041,7 @@ Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
 sub get_data_dump_file_list
 {
 
-    opendir( DIR, $dump_dir ) || die;
+    opendir( DIR, $dump_dir ) || die "Error opening directory $dump_dir: $@";
     my @files = readdir( DIR );
     closedir( DIR );
 

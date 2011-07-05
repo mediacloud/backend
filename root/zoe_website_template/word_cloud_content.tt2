@@ -1,6 +1,6 @@
 <div id="WCcontentarea">
-<div class="smaller" align="right"><i>Click on a word to see sentences.</i>
-<a href="[% c.uri_for( '/dashboard/faq/' _ dashboard.dashboards_id _ '#word_cloud' ) %]" target="mc_help">What does this word cloud mean?</a>
+<div class="smaller" align="right"><i>[% c.loc('Click on a word to see sentences.') %]</i>
+<a href="[% c.uri_for( '/dashboard/faq/' _ dashboard.dashboards_id _ '#word_cloud' ) %]" target="mc_help">[% c.loc('What does this word cloud mean?') %]</a>
 <br/>
 <br/>
 </div>
@@ -8,7 +8,7 @@
 [% IF word_cloud %]
 [%- word_cloud -%]
 [% ELSE %]
-( no words found [% queries.0.description %]
+( [% c.loc('no words found') %] [% queries.0.description %]
 [% IF queries.1 %] or [% queries.1.description %] [% END %] )
 [% END %]
 <div>

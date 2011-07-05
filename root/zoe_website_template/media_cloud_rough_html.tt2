@@ -259,7 +259,7 @@
 
 	$('<br/>').appendTo($('#WCcontentarea'));
 
-	var embed_info_toggle = $('<span id="embed_toggle">Embed >></span>');
+	var embed_info_toggle = $('<span id="embed_toggle">[% c.loc('Embed') %] >></span>');
 
 	embed_info_toggle.data('open', false);
 
@@ -270,7 +270,7 @@
 	    var current_url = window.location.href;
 	    var iframe_url = current_url + "&wconly=1";
 
-	    var message = "  Paste this html to embed in a website:  ";
+	    var message = "  [% c.loc('Paste this html to embed in a website:') %]  ";
 
 	    var html = '<iframe src="' + iframe_url + '"' + 'cellspacing="0" border="0" name="word_cloud" scrolling="no" frameborder="0" ' + ' width=665 height=480 style="border-style: none; width: 665px;"></iframe>';
 
@@ -329,9 +329,9 @@
       [% media_container_current_number = 2 %]
       [% INCLUDE 'zoe_website_template/media_container.tt2' %]
       <div id = "submissioncontainer"> <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
-             <div id="compare">Compare Query<img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
+             <div id="compare">[% c.loc('Compare Query') %]<img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
       </div><div style="cursor:pointer;">
-                <div id ="submit">Submit <img alt="" src="/include/images/rightarrow.gif" width="15" height="15" /></div>
+                <div id ="submit">[% c.loc('Submit') %] <img alt="" src="/include/images/rightarrow.gif" width="15" height="15" /></div>
                 </div> </div>
       </form>
     
@@ -367,19 +367,19 @@
 [% IF primary %]
             <br/>
             <div id = "bottomContainer">
-              <div id = "popular"> <strong>About Media Cloud</strong><br />
-              Media Cloud is an open source, open data platform that allows
+              <div id = "popular"> <strong>[% c.loc('About Media Cloud') %]</strong><br />
+              [% c.loc('Media Cloud is an open source, open data platform that allows
               researchers to answer quantitative questions about the content
               of online media. Using Media Cloud, researchers, journalism
               critics and interested citizens can examine what media sources cover
               which stories, what language different media outlets use in
               conjunction with different stories, and how stories spread
-              from one media outlet to another.
+              from one media outlet to another.') %]
               </div>
-              <div id = "report"><strong>This week's report</strong><br />
+              <div id = "report"><strong>[% c.loc("This week's report") %]</strong><br />
                 <div id="weekly_report_link"></div><br />
               </div>
-              <div id = "news"><strong>News</strong><br />
+              <div id = "news"><strong>[% c.loc('News') %]</strong><br />
 	        <div id = "news_items">
 		</div>
               </div>

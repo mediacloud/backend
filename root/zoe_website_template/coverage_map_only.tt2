@@ -234,9 +234,9 @@
       [% media_container_current_number = 2 %]
       [% INCLUDE 'zoe_website_template/media_container.tt2' %]
       <div id = "submissioncontainer"> <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
-             <div id="compare">Compare Query<img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
+             <div id="compare">[% c.loc('Compare Query') %]<img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
       </div><div style="cursor:pointer;">
-                <div id ="submit">Submit <img alt="" src="/include/images/rightarrow.gif" width="15" height="15" /></div>
+                <div id ="submit">[% c.loc('Submit') %] <img alt="" src="/include/images/rightarrow.gif" width="15" height="15" /></div>
                 </div> </div>
       </form>
     
