@@ -63,7 +63,8 @@ sub begin : Private {
         $c->response->headers->push_header( 'Vary' => 'Accept-Language' );  # hmm vary and param?
         $c->languages( $locale ? [ $locale ] : undef );
 
-	$c->languages( [ 'en' ] );
+	#switch to english if locale param is not explicitly specified.
+        $c->languages( $locale ? [ $locale ] : [ 'en' ] );
 }
 
 sub uri_for
