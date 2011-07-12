@@ -592,6 +592,7 @@ create table weekly_words (
 );
 
 create index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
+#create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
 
 create table top_500_weekly_words (
@@ -604,7 +605,7 @@ create table top_500_weekly_words (
        publish_week                 timestamp       not null
 );
 
-create index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
+create UNIQUE index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) where dashboard_topics_id is null;
     
 create table total_top_500_weekly_words (
