@@ -555,7 +555,7 @@ sub _update_daily_words
               "                        ) as foo  " .
               "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) " .
               "	               )  q                                                         " .
-              "              where term_rank = 1 and sum_stem_counts > 1 " );
+              "              where term_rank = 1 " );
     }
 
     my $dashboard_topics = $db->query( "select * from dashboard_topics where 1=1 and $dashboard_topic_clause" )->hashes;
@@ -579,7 +579,7 @@ sub _update_daily_words
           "                        ) as foo  " .
           "                WINDOW w  as (partition by media_sets_id, stem, publish_day ) " .
           "	               )  q                                                         " .
-          "             where term_rank = 1 and sum_stem_counts > 1 ";
+          "             where term_rank = 1 ";
 
         # doing these one by one is the only way I could get the postgres planner to create
         # a sane plan
@@ -740,7 +740,7 @@ sub _update_weekly_words
           "    group by media_sets_id, stem, term, dashboard_topics_id ) as foo" .
           " WINDOW w  as (partition by media_sets_id, stem, publish_week,  dashboard_topics_id  ) " .
           "	               )  q                                                         " .
-          "              where term_rank = 1 and sum_stem_counts > 1 ";
+          "              where term_rank = 1 ";
 
     #say STDERR "query:\n$query";
     $db->query( $query );
@@ -777,7 +777,7 @@ sub _update_weekly_author_words
       "    group by media_sets_id, stem, term, authors_id ) as foo" .
       " WINDOW w  as (partition by media_sets_id, stem, publish_week, authors_id  ) " .
       "	               )  q                                                         " .
-      "              where term_rank = 1 and sum_stem_counts > 1 ";
+      "              where term_rank = 1 ";
 
     say STDERR "running  weekly_author_words query:$query";
 
