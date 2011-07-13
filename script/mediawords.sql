@@ -611,7 +611,7 @@ create table total_top_500_weekly_words (
        total_top_500_weekly_words_id       serial          primary key,
        media_sets_id                int             not null references media_sets on delete cascade, 
        dashboard_topics_id          int             null references dashboard_topics,
-       publish_week                 timestamp       not null,
+       publish_week                 date            not null,
        total_count                  int             not null
        
 );
@@ -635,8 +635,8 @@ create view top_500_weekly_words_normalized
 create table total_daily_words (
        total_daily_words_id         serial          primary key,
        media_sets_id                int             not null, /* references media_sets on delete cascade, */
-       dashboard_topics_id           int             null, /* references dashboard_topics, */
-       publish_day                  timestamp       not null,
+       dashboard_topics_id           int            null, /* references dashboard_topics, */
+       publish_day                  date            not null,
        total_count                  int             not null
 );
 
