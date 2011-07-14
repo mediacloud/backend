@@ -595,6 +595,7 @@ create table weekly_words (
 
 create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
+ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
 create table top_500_weekly_words (
        top_500_weekly_words_id      serial          primary key,
@@ -608,7 +609,8 @@ create table top_500_weekly_words (
 
 create UNIQUE index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) where dashboard_topics_id is null;
-    
+ALTER TABLE  top_500_weekly_words ADD CONSTRAINT top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
+  
 create table total_top_500_weekly_words (
        total_top_500_weekly_words_id       serial          primary key,
        media_sets_id                int             not null references media_sets on delete cascade, 
@@ -617,6 +619,7 @@ create table total_top_500_weekly_words (
        total_count                  int             not null
        
 );
+ALTER TABLE  total_top_500_weekly_words ADD CONSTRAINT total_top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
 create unique index total_top_500_weekly_words_media 
     on total_top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
