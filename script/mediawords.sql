@@ -581,6 +581,8 @@ create table daily_words (
 create index daily_words_media on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
 create index daily_words_count on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem_count);
 
+create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
+
 create table weekly_words (
        weekly_words_id              serial          primary key,
        media_sets_id                int             not null, /* references media_sets */
@@ -758,6 +760,8 @@ create table weekly_author_words (
 
 create index weekly_author_words_media on weekly_author_words(publish_week, authors_id, media_sets_id, stem);
 create index weekly_author_words_count on weekly_author_words(publish_week, authors_id, media_sets_id, stem_count);
+
+create UNIQUE index weekly_author_words_unique on weekly_author_words(publish_week, authors_id, media_sets_id, stem);
 
 create table top_500_weekly_author_words (
        top_500_weekly_author_words_id      serial          primary key,
