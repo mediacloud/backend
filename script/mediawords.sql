@@ -619,7 +619,7 @@ create table total_top_500_weekly_words (
        total_count                  int             not null
        
 );
-ALTER TABLE  total_top_500_weekly_words ADD CONSTRAINT total_top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
+ALTER TABLE total_top_500_weekly_words ADD CONSTRAINT total_top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
 create unique index total_top_500_weekly_words_media 
     on total_top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
