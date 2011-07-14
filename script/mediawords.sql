@@ -601,7 +601,7 @@ create table top_500_weekly_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       publish_week                 timestamp       not null
+       publish_week                 date            not null
 );
 
 create UNIQUE index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
