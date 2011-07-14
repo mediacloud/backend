@@ -468,6 +468,8 @@ sub _update_top_500_weekly_words
         "delete from total_top_500_weekly_words where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
     );
 
+    #TODO figure out if regexp_replace( term, E'''s?\\\\Z', '' ) is really necessary
+
     # Note in postgresql [:alpha:] doesn't include international characters.
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
     $db->query(
@@ -536,9 +538,9 @@ sub _update_daily_words
     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
-    $db->query( "delete from daily_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
+    $db->query( "delete from daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
     $db->query(
-        "delete from total_daily_words where publish_day = date_trunc( 'day', '${ sql_date }'::date ) $update_clauses" );
+        "delete from total_daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
 
     if ( !$dashboard_topics_id )
     {
