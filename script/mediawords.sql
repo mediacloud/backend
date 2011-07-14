@@ -734,7 +734,7 @@ CREATE TABLE daily_author_words (
     publish_day date not null
 );
 
-create index daily_author_words_media on daily_author_words(publish_day, authors_id, media_sets_id, stem);
+create UNIQUE index daily_author_words_media on daily_author_words(publish_day, authors_id, media_sets_id, stem);
 create index daily_author_words_count on daily_author_words(publish_day, authors_id, media_sets_id, stem_count);
 
 create table total_daily_author_words (
