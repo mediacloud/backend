@@ -13,7 +13,10 @@
 [% INCLUDE 'zoe_website_template/word_cloud_content.tt2' %]
 
             <div id="CMcontentarea" style="display:none;">
-
+<div class="smaller" align="right"><a href="[% c.uri_for( '/dashboard/faq/' _ dashboard.dashboards_id _ '#coverage_map' ) %]" target="mc_help">[% c.loc('What does this coverage map mean?') %]</a>
+<br/>
+<br/>
+</div>
 [% IF queries.1 %]
 <table style = "width: 100%; height: 100%">
 <tr>
