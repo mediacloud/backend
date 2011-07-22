@@ -185,7 +185,7 @@ sub edit_cluster_run : Local
 
     my $media_cluster_runs = $c->dbis->query(
         "select mcr.* from media_cluster_runs mcr, dashboard_media_sets dms " .
-          "  where mcr.media_sets_id = dms.media_sets_id and dms.dashboard_media_sets_id = ? " .
+          "  where mcr.media_cluster_runs_id = dms.media_cluster_runs_id and dms.dashboard_media_sets_id = ? " .
           "  order by mcr.media_cluster_runs_id ",
         $dashboard_media_sets_id
     )->hashes;
