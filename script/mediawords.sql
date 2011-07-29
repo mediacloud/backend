@@ -133,6 +133,9 @@ create table media_sets (
     vectors_added               boolean     default false,
     include_in_dump             boolean     default true
 );
+
+CREATE VIEW media_sets_tt2_locale_format as select '[% c.loc("' || name || '") %]' || E'\n' ||  '[% c.loc("' || description || '") %] ' as tt2_value from media_sets where set_type = 'collection' and include_in_dump order by media_sets_id;
+
     
 create table queries_media_sets_map (
     queries_id              int                 not null references queries on delete cascade,
@@ -648,6 +651,20 @@ create table total_daily_words (
 create index total_daily_words_media_sets_id on total_daily_words (media_sets_id);
 create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
 CREATE UNIQUE INDEX total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
+
+ 
+create table daily_story_count (
+       daily_storys_id             serial          primary key,
+       media_sets_id               int             not null references media_sets on delete cascade, 
+       dashboard_topics_id         int             null references dashboard_topics, 
+       publish_day                 date            not null,
+       update_time                 timestamp       not null default now(),
+       story_count                 int             not null
+);
+
+create index daily_story_count_media_sets_id on daily_story_count (media_sets_id);
+create index daily_story_count_media_sets_id_publish_day on daily_story_count (media_sets_id, publish_day);
+CREATE UNIQUE INDEX daily_story_count_media_sets_id_dashboard_topic_id_publish_day ON daily_story_count (media_sets_id, dashboard_topics_id, publish_day);
 
 create table total_weekly_words (
        total_weekly_words_id         serial          primary key,
