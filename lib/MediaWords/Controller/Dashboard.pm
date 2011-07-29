@@ -88,6 +88,22 @@ sub _redirect_to_default_page
     #TODO pick a different media_sets_id if this one isn't in the dashboard
     my $media_sets_id = $config->{ mediawords }->{ default_media_set } || 1;
 
+    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
+
+    my $media_sets_id_in_dashboard = scalar(
+        @{
+            $c->dbis->query( "SELECT * from dashboard_media_sets where media_sets_id = ? and dashboards_id = ? ",
+                $media_sets_id, $dashboard->{ dashboards_id } )->hashes
+          }
+    );
+
+    if ( !$media_sets_id_in_dashboard )
+    {
+        $media_sets_id = $c->dbis->query(
+            "SELECT media_sets_id from dashboard_media_sets where dashboards_id = ? order by media_sets_id asc limit 1 ",
+            $dashboard->{ dashboards_id } )->hash->{ media_sets_id };
+    }
+
     my ( $max_date ) = $c->dbis->query(
         " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " .
           "   group by publish_week::date order by publish_week::date desc limit 1 offset 1",
@@ -103,7 +119,6 @@ sub _redirect_to_default_page
         )->flat();
     }
 
-    my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
 
     my $date = maxstr( grep { $_ le $max_date } @{ $dashboard_dates } );
