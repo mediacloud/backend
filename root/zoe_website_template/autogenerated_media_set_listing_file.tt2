@@ -1,0 +1,30 @@
+ [% c.loc("Top 25 Mainstream Media") %]
+ [% c.loc("Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.") %] 
+ [% c.loc("Popular Blogs") %]
+ [% c.loc("1000 most popular feeds in bloglines.") %] 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ [% c.loc("Political Blogs") %]
+ [% c.loc("1000 most influential U.S. political blogs according to Technorati, pruned of mainstream media sources.") %] 
+ [% c.loc("Political Blogs - Center") %]
+ [% c.loc("Blogs manually coded as neither conservative nor liberal from the political blogs set.") %] 
+ [% c.loc("Political Blogs - Right") %]
+ [% c.loc("Blogs manually coded as conservative from the political blogs set.") %] 
+ [% c.loc("Political Blogs - Left") %]
+ [% c.loc("Blogs manually coded as liberal from the political blogs set.") %] 
+ [% c.loc("White House") %]
+ [% c.loc("All public feeds from whitehouse.gov.") %] 
+ 
+ 
+ 
+ [% c.loc("Colin's Nigeria Blogs") %]
+ [% c.loc("list of nigeria blogs from colin on 2011-04-04") %] 
+
