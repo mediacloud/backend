@@ -44,8 +44,32 @@ msgid "About Media Cloud"
 msgstr "О Медиа Облако"
 
 #:
+msgid "Adoption"
+msgstr "Принятие"
+
+#:
+msgid "Advocacy"
+msgstr "Пропаганда"
+
+#:
 msgid "All public feeds from whitehouse.gov."
-msgstr "Все открытые каналы из whitehouse.gov."
+msgstr "Все открытые каналы с whitehouse.gov."
+
+#:
+msgid "Amina"
+msgstr "Амина"
+
+#:
+msgid "Ash"
+msgstr "Зола"
+
+#:
+msgid "Ashtiani"
+msgstr "Аштиани"
+
+#:
+msgid "Assange"
+msgstr "Ассанж"
 
 #:
 msgid "Available Subsets"
@@ -54,6 +78,10 @@ msgstr "Доступные подмножества"
 #:
 msgid "Available set within this set"
 msgstr "Доступный набор в этот набор"
+
+#:
+msgid "Belarus"
+msgstr "Беларусь"
 
 #:
 msgid "Blogs manually coded as conservative from the political blogs set."
@@ -68,12 +96,36 @@ msgid "Blogs manually coded as neither conservative nor liberal from the politic
 msgstr "Дневники вручную кодировать как ни консервативными, ни либеральными от политических блогов набор."
 
 #:
+msgid "Breitbart"
+msgstr "Брейтбарт"
+
+#:
+msgid "Buckets"
+msgstr "Ведра"
+
+#:
+msgid "Bulgaria [boat]"
+msgstr "Болгария [лодки]"
+
+#:
+msgid "Buro"
+msgstr "Buro"
+
+#:
 msgid "Can we characterize the overall mix of coverage for a given source?"
 msgstr "Можем ли мы охарактеризовать общей структуре страхового покрытия для данного источника?"
 
 #:
 msgid "Can we track news cycles for specific issues?"
 msgstr "Можем ли мы трек новости циклы по конкретным вопросам?"
+
+#:
+msgid "Censorship"
+msgstr "Цензура"
+
+#:
+msgid "Christine"
+msgstr "Кристин"
 
 #:
 msgid "Click on a word to see sentences."
@@ -88,8 +140,16 @@ msgid "Compare Query"
 msgstr "Сравните запросов"
 
 #:
+msgid "Cordoba"
+msgstr "Кордова"
+
+#:
 msgid "Coverage Map"
 msgstr "Карта покрытия"
+
+#:
+msgid "DDoS [latin]"
+msgstr "DDoS [латинскими]"
 
 #:
 msgid "Data"
@@ -112,20 +172,56 @@ msgid "Do online comments shape the news?"
 msgstr "Есть ли онлайн комментарии форму новость?"
 
 #:
+msgid "Domodedovo"
+msgstr "Домодедово"
+
+#:
 msgid "Download"
 msgstr "Скачать"
+
+#:
+msgid "Drill"
+msgstr "Дрель"
+
+#:
+msgid "ECHR"
+msgstr "ЕСПЧ"
 
 #:
 msgid "Each word in a word cloud links to the list of sentences including that word within the given week and media set or media source.  So clicking on "
 msgstr "Каждое слово в слово облако ссылки на список предложений в том числе и слово в данной недели и набора носителей или средств массовой информации источника. Так нажав на"
 
 #:
+msgid "Economy"
+msgstr "Экономика"
+
+#:
+msgid "Egypt"
+msgstr "Египет"
+
+#:
 msgid "Embed"
 msgstr "Вставлять"
 
 #:
+msgid "Explosion"
+msgstr "Взрыв"
+
+#:
 msgid "FAQ"
 msgstr "Часто задаваемые вопросы"
+
+#:
+msgid "Facebook"
+msgstr "Facebook"
+
+#:
+msgid "Fans"
+msgstr "Вентиляторы"
+
+#:
+msgid "Fire"
+msgstr "Пожар"
 
 #:
 msgid "For each media source, we show a percentage indicating the frequency of the clicked word. This percentage is calculated by comparing the number of times the clicked word occurs within the media source in the given week with the total number of words within that media source for the given week. For topic word clouds, the percentage is determined by the occurances of the clicked word within sentences in the media source for the given week that contain the topic word in comparison to the total number of words within these sentences. For words that appear in both queries (words in purple in the word cloud), we average the percentages from the two queries."
@@ -136,8 +232,40 @@ msgid "Full Data Dumps"
 msgstr "Полный дамп данных"
 
 #:
+msgid "Gay"
+msgstr "Гей"
+
+#:
+msgid "Gaza"
+msgstr "Сектор Газа"
+
+#:
+msgid "Gingrich"
+msgstr "Гингрич"
+
+#:
+msgid "Gulf"
+msgstr "Пропасть"
+
+#:
+msgid "Hacking"
+msgstr "Взлом"
+
+#:
+msgid "Health Care"
+msgstr "Здравоохранение"
+
+#:
 msgid "Home"
 msgstr "Домой"
+
+#:
+msgid "Homophobia"
+msgstr "Гомофобия"
+
+#:
+msgid "Homosexual"
+msgstr "Гомосексуальный"
 
 #:
 msgid "How are competing terms for the same event used in different publications?"
@@ -164,16 +292,76 @@ msgid "How is the word cloud generated?"
 msgstr "Как слово облако генерируются?"
 
 #:
+msgid "Huckabee"
+msgstr "Хакаби"
+
+#:
 msgid "Incremental Data Dumps"
 msgstr "Дополнительные дамп данных"
+
+#:
+msgid "India"
+msgstr "Индия"
+
+#:
+msgid "Iran"
+msgstr "Иран"
 
 #:
 msgid "Is the source code for Media Cloud available?"
 msgstr "Является ли исходный код для СМИ Облако в наличии?"
 
 #:
+msgid "Japan"
+msgstr "Япония"
+
+#:
+msgid "Kagan"
+msgstr "Каган"
+
+#:
+msgid "Kashin"
+msgstr "Кашин"
+
+#:
+msgid "Kenya"
+msgstr "Кения"
+
+#:
+msgid "Khodorhovsky"
+msgstr "Khodorhovsky"
+
+#:
+msgid "LGBT"
+msgstr "ЛГБТ"
+
+#:
+msgid "Libya"
+msgstr "Ливия"
+
+#:
 msgid "List media sources"
 msgstr "Список СМИ"
+
+#:
+msgid "Luzhkov"
+msgstr "Лужков"
+
+#:
+msgid "Magnitsky"
+msgstr "Магницкий"
+
+#:
+msgid "Man"
+msgstr "Человек"
+
+#:
+msgid "Manezh"
+msgstr "Манеж"
+
+#:
+msgid "Market"
+msgstr "Рынок"
 
 #:
 msgid "Media"
@@ -223,6 +411,34 @@ msgid "Media:"
 msgstr "СМИ:"
 
 #:
+msgid "Medvedev"
+msgstr "Медведев"
+
+#:
+msgid "Metro"
+msgstr "Метро"
+
+#:
+msgid "Modernization"
+msgstr "Модернизация"
+
+#:
+msgid "Mubarak"
+msgstr "Мубарак"
+
+#:
+msgid "Murdoch"
+msgstr "Мердок"
+
+#:
+msgid "Nationalists"
+msgstr "Националисты"
+
+#:
+msgid "Nemtsov"
+msgstr "Немцов"
+
+#:
 msgid "News"
 msgstr "Новости"
 
@@ -235,8 +451,36 @@ msgid "OR"
 msgstr "ИЛИ"
 
 #:
+msgid "Obama"
+msgstr "Обама"
+
+#:
+msgid "Oil"
+msgstr "Нефть"
+
+#:
+msgid "Olympics"
+msgstr "Олимпийские игры"
+
+#:
+msgid "Palin"
+msgstr "Пэйлин"
+
+#:
+msgid "Parade"
+msgstr "Парад"
+
+#:
 msgid "Paste this html to embed in a website:"
 msgstr "Вставьте этот HTML для внедрения в веб-сайте:"
+
+#:
+msgid "Pawlenty"
+msgstr "Поленти"
+
+#:
+msgid "Plane Crash"
+msgstr "Крушение самолета"
 
 #:
 msgid "Political Blogs"
@@ -263,8 +507,28 @@ msgid "Popular Queries:"
 msgstr "Популярные запросы:"
 
 #:
+msgid "Pride"
+msgstr "Гордость"
+
+#:
 msgid "Print newspapers are declaring bankruptcy nationwide.  High-profile blogs are proliferating.  Media companies are exploring new production techniques and business models in a landscape that is increasingly dominated by the Internet.  In the midst of this upheaval, it is difficult to know what is actually happening to the shape of our news.  Beyond one-off anecdotes or painstaking manual content analysis, there are few ways to examine the emerging news ecosystem."
 msgstr "Печать газет объявления банкротства по всей стране. Громкие блоги множатся. Медиа-компании ищут новые технологии производства и бизнес-моделей на фоне пейзажа, который все больше доминируют в Интернете. В разгар этого потрясения, это трудно понять, что на самом деле происходит с формой наших новостях. Помимо одноразовых анекдоты или кропотливого ручного анализа содержания, Есть несколько способов, чтобы изучить новые новости экосистемы."
+
+#:
+msgid "Protest"
+msgstr "Протест"
+
+#:
+msgid "Protests"
+msgstr "Протесты"
+
+#:
+msgid "Putin"
+msgstr "Путин"
+
+#:
+msgid "Putin2"
+msgstr "Putin2"
 
 #:
 msgid "Query"
@@ -275,12 +539,68 @@ msgid "Reports"
 msgstr "Отчеты"
 
 #:
+msgid "Revolution"
+msgstr "Революция"
+
+#:
+msgid "Riots"
+msgstr "Массовые беспорядки"
+
+#:
+msgid "Sagra [village]"
+msgstr "Сагра [деревни]"
+
+#:
+msgid "Sanchez"
+msgstr "Санчес"
+
+#:
+msgid "Seliger"
+msgstr "Селигер"
+
+#:
 msgid "Sentences"
 msgstr "Предложения"
 
 #:
+msgid "Shahzad"
+msgstr "Шахзад"
+
+#:
+msgid "Sherrod"
+msgstr "Шеррод"
+
+#:
+msgid "Skolkovo"
+msgstr "Сколково"
+
+#:
+msgid "Spartak"
+msgstr "Спартак"
+
+#:
+msgid "Spies"
+msgstr "Шпионы"
+
+#:
+msgid "Spies (шпион)"
+msgstr "Шпионы (шпион)"
+
+#:
+msgid "Spill"
+msgstr "Проливать"
+
+#:
+msgid "Square"
+msgstr "Площадь"
+
+#:
 msgid "Stories"
 msgstr "Истории"
+
+#:
+msgid "Strasbourg"
+msgstr "Страсбург"
 
 #:
 msgid "Submit"
@@ -295,8 +615,24 @@ msgid "Subset #3"
 msgstr "Подмножество # 3"
 
 #:
+msgid "Supreme"
+msgstr "Верховный"
+
+#:
+msgid "Svirditov"
+msgstr "Svirditov"
+
+#:
+msgid "Tea"
+msgstr "Чай"
+
+#:
 msgid "Technically, Media Cloud performs five basic functions -- media definition, crawling, text extraction, word vectoring, and analysis.  First, we define the set of media sources we want to collect and discover the feeds for each media source (which in the case of many newspapers includes hundreds of feeds).  Second, we crawl each of those feeds several times each day to discover any new stories published by each feed and then download the html of each new story.  Third, we extract just the substantive content of each story from each html page, leaving behind the ads, navigation, and other cruft.  Fourth, we break that substantive text down into a set word counts so that we can count, down to the level of individual sentences, which words which media sources are using to talk about which topics.  And finally, we have a set of tools for analyzing those word counts, including the Media Dashboard tool that acts as the front page for http://mediacloud.org.  We make available all of the code for the system under an open source license and publish as much of the underlying data as legally possible."
 msgstr "Технически, Медиа Облако выполняет пять основных функций - определение средств массовой информации, ползание, извлечение текста, слова векторизации и анализа. Во-первых, мы определяем набор источников средств массовой информации мы хотим собрать и открыть каналы для каждого источника средств массовой информации (что в случае многих газетах включает в себя сотни каналов). Во-вторых, ползем каждого из этих каналов в несколько раз каждый день, чтобы обнаружить какие-либо новые рассказы опубликованы каждого канала, а затем загрузить HTML каждой новой истории. В-третьих, мы извлекаем только основное содержание каждой истории из каждой HTML-страницы, оставляя за объявления, навигации и других хлама. В-четвертых, мы нарушаем, что основной текст вниз, рассчитывает набор слов, так что мы можем рассчитывать, вплоть до уровня отдельных предложений, какие слова какие источники используете, чтобы говорить о том, какие темы. И, наконец, у нас есть набор инструментов для анализа тех слов пунктам, включая инструмент медиа-панель, которая действует как на первой странице http://mediacloud.org. Мы делаем доступными все код для системы под открытой лицензией и публиковать как можно больше исходных данных, как юридически это возможно."
+
+#:
+msgid "Terrorism"
+msgstr "Терроризм"
 
 #:
 msgid "The comparative word cloud starts with the top 75 words of each query but colors words according to their relative frequency within each query.  Words in red or blue are words within the top 75 words for one query that are ranked at least 25 spots lower than in the other query.  Words in purple are ranked within 25 spots in both of the queries.  So the word "
@@ -345,6 +681,30 @@ msgid "Topic:"
 msgstr "Тема:"
 
 #:
+msgid "Torshin [Bill Sponsor]"
+msgstr "Торшин [Билл Спонсор]"
+
+#:
+msgid "Tunisia"
+msgstr "Тунис"
+
+#:
+msgid "Tunisia (2)"
+msgstr "Тунис (2)"
+
+#:
+msgid "Ukraine"
+msgstr "Украина"
+
+#:
+msgid "Vladikavkaz"
+msgstr "Владикавказ"
+
+#:
+msgid "Volcano"
+msgstr "Вулкан"
+
+#:
 msgid "Week"
 msgstr "Неделя"
 
@@ -381,12 +741,100 @@ msgid "White House"
 msgstr "Белый дом"
 
 #:
+msgid "WikiLeaks [latin]"
+msgstr "WikiLeaks [латинскими]"
+
+#:
+msgid "Wikileaks"
+msgstr "Wikileaks"
+
+#:
+msgid "Wikileaks [cyrillic]"
+msgstr "Wikileaks [кириллица]"
+
+#:
+msgid "Wisconsin"
+msgstr "Висконсин"
+
+#:
+msgid "Woman"
+msgstr "Женщина"
+
+#:
 msgid "Word Cloud"
 msgstr "Word Cloud"
 
 #:
 msgid "Yes.  We publish all Media Cloud code under the GNU Affero General Public License, which basically says that you can download the code, modify it, and host your own version of Media Cloud as long as you publish any changes you make it to the code if you host a public version of Media Cloud or distribute your own version of Media Cloud.  The Media Cloud is available at SourceForge <a href=\"http://sourceforge.net/projects/mediacloud/develop\">here</a>.  Please note that we have not for some time made any strong attempt to package Media Cloud or to make it easy for other folks to install and maintain, so enter at your own risk.  Most importantly, the answers to any specific methodological questions about how we collect and analyze the media cloud are available in the open source code."
 msgstr "Да. Мы публикуем весь код Медиа Облако под GNU Affero General Public License, которая в основном говорит, что вы можете скачать код, модифицировать его и разместить собственную версию Медиа Облако тех пор, пока вы публиковать любые изменения его кода, если вы хост публичная версия медиа облако или распространять свою собственную версию медиа-Клу. Облако СМИ можно найти на SourceForge <a href=\"http://sourceforge.net/projects/mediacloud/develop\">здесь</a> . Пожалуйста, обратите внимание, что мы не какое-то время сделал какой-нибудь сильный попытка пакет Облако СМИ или сделать его легким для других людей в установке и обслуживании, так что войти на свой страх и риск. Самое главное, ответы на любые конкретные методологические вопросы о том, как мы собираем и анализируем облако материалы для печати с открытым исходным кодом."
+
+#:
+msgid "Zuckerberg"
+msgstr "Цукерберг"
+
+#:
+msgid "anonymous"
+msgstr "анонимный"
+
+#:
+msgid "cablegate"
+msgstr "cablegate"
+
+#:
+msgid "cnn"
+msgstr "CNN"
+
+#:
+msgid "deficit"
+msgstr "дефицит"
+
+#:
+msgid "double"
+msgstr "двойной"
+
+#:
+msgid "double dip"
+msgstr "двойной рецессии"
+
+#:
+msgid "election"
+msgstr "выборы"
+
+#:
+msgid "facebook"
+msgstr "facebook"
+
+#:
+msgid "fiscal"
+msgstr "финансовый"
+
+#:
+msgid "iPhone"
+msgstr "iPhone"
+
+#:
+msgid "inec"
+msgstr "ИНЭК"
+
+#:
+msgid "israel"
+msgstr "Израиль"
+
+#:
+msgid "jailbreak"
+msgstr "побег из тюрьмы"
+
+#:
+msgid "juan"
+msgstr "Хуан"
+
+#:
+msgid "kaduna"
+msgstr "Кадуна"
+
+#:
+msgid "laden"
+msgstr "груженый"
 
 #:
 msgid "list media sources"
@@ -397,9 +845,105 @@ msgid "list of nigeria blogs from colin on 2011-04-04"
 msgstr "Список Нигерии блоги из Колина на 2011-04-04"
 
 #:
+msgid "midterm"
+msgstr "среднесрочную"
+
+#:
+msgid "mosque"
+msgstr "мечеть"
+
+#:
 msgid "no words found"
 msgstr "Не найдено слов"
 
 #:
+msgid "npr"
+msgstr "NPR"
+
+#:
+msgid "nuclear"
+msgstr "ядерный"
+
+#:
+msgid "osama"
+msgstr "Усама"
+
+#:
+msgid "palestinian"
+msgstr "палестинский"
+
+#:
+msgid "paul"
+msgstr "Пол"
+
+#:
+msgid "poll"
+msgstr "голосование"
+
+#:
+msgid "rally"
+msgstr "ралли"
+
+#:
+msgid "recession"
+msgstr "рецессия"
+
+#:
+msgid "referendum"
+msgstr "референдум"
+
+#:
+msgid "shutdown"
+msgstr "выключение"
+
+#:
+msgid "syria"
+msgstr "Сирия"
+
+#:
+msgid "tax"
+msgstr "налог"
+
+#:
+msgid "terrorist act"
+msgstr "террористический акт"
+
+#:
 msgid "through"
 msgstr "через"
+
+#:
+msgid "tunisia"
+msgstr "Тунис"
+
+#:
+msgid "twitter"
+msgstr "щебетать"
+
+#:
+msgid "union"
+msgstr "союз"
+
+#:
+msgid "youth"
+msgstr "молодежь"
+
+#:
+msgid "СОРМ"
+msgstr "СОРМ"
+
+#:
+msgid "Усама"
+msgstr "Усама"
+
+#:
+msgid "интернет"
+msgstr "интернет"
+
+#:
+msgid "роскомнадзор"
+msgstr "роскомнадзор"
+
+#:
+msgid "фильтрация"
+msgstr "фильтрация"
