@@ -11,7 +11,7 @@
 [% FOREACH media_set IN media_sets %]
 <p>
 
-<b>[% media_set.name | html %]</b> - <a href="[% c.uri_for( '/dashboard/media/' _ dashboard.dashboards_id, { media_sets_id => media_set.media_sets_id } ) %]">list media sources</a> - [% media_set.description | html %]
+<b>[% c.loc(media_set.name) | html %]</b> - <a href="[% c.uri_for( '/dashboard/media/' _ dashboard.dashboards_id, { media_sets_id => media_set.media_sets_id } ) %]">[%c.loc('list media sources')%]</a> - [% c.loc(media_set.description) | html %]
 
 </p>
 [% END %]
