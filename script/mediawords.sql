@@ -298,6 +298,8 @@ create table dashboard_topics (
 create index dashboard_topics_dashboard on dashboard_topics ( dashboards_id );
 create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added );
 
+CREATE VIEW dashboard_topics_tt2_locale_format as select distinct('[% c.loc("' || name || '") %]') as tt2_value from (select * from dashboard_topics order by name, dashboard_topics_id) AS dashboard_topic_names order by tt2_value;
+
 create table stories (
     stories_id                  serial          primary key,
     media_id                    int             not null references media on delete cascade,
