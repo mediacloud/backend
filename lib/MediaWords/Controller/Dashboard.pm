@@ -752,6 +752,19 @@ sub _purge_form_labels
     return;
 }
 
+sub _localize_option_labels
+{
+    my ($self, $c, $options) = @_;
+
+    foreach my $option ( @{ $options } )
+    {
+        $option->{ label } = $c->loc( $option->{ label } );
+    }
+
+    say STDERR Dumper( $options );
+    return;
+}
+
 # create the query form, set the options of the various elements from the stash values,
 # and set the default values according to the stashed queries
 sub _update_query_form
@@ -787,6 +800,9 @@ sub _update_query_form
         ( { label => 'all' } ),
         map { { label => lc( $_->{ name } ), value => $_->{ dashboard_topics_id } } } @$dashboard_topics
     ];
+
+    $self->_localize_option_labels( $c, $dashboard_topics_options );
+
     $dashboard_topics_id1->options( $dashboard_topics_options );
     $dashboard_topics_id2->options( $dashboard_topics_options ) if ( $dashboard_topics_id2 );
 
@@ -796,6 +812,8 @@ sub _update_query_form
         { label => '(none)', value => undef },
         map { { label => $_->{ name }, value => $_->{ media_sets_id } } } @$collection_media_sets
     ];
+
+    $self->_localize_option_labels( $c, $media_sets_id_options );
 
     $form->get_field( { name => 'media_sets_id1' } )->options( $media_sets_id_options );
     if ( my $f = $form->get_field( { name => 'media_sets_id2' } ) )
