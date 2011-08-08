@@ -16,6 +16,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #:
+msgid " "
+msgstr ""
+
+#:
+msgid "(none)"
+msgstr "(Нет)"
+
+#:
 msgid "1000 most influential U.S. political blogs according to Technorati, pruned of mainstream media sources."
 msgstr "1000 наиболее влиятельных американских политических блогов по Technorati, подрезают из основных источников информации."
 
@@ -773,20 +781,88 @@ msgid "Zuckerberg"
 msgstr "Цукерберг"
 
 #:
+msgid "adoption"
+msgstr "принятие"
+
+#:
+msgid "advocacy"
+msgstr "пропаганда"
+
+#:
+msgid "all"
+msgstr "все"
+
+#:
+msgid "amina"
+msgstr "Амина"
+
+#:
 msgid "anonymous"
 msgstr "анонимный"
+
+#:
+msgid "ash"
+msgstr "зола"
+
+#:
+msgid "ashtiani"
+msgstr "Аштиани"
+
+#:
+msgid "assange"
+msgstr "Ассанж"
+
+#:
+msgid "belarus"
+msgstr "Беларусь"
+
+#:
+msgid "breitbart"
+msgstr "Брейтбарт"
+
+#:
+msgid "buckets"
+msgstr "ведра"
+
+#:
+msgid "bulgaria [boat]"
+msgstr "Болгария [лодки]"
+
+#:
+msgid "buro"
+msgstr "Buro"
 
 #:
 msgid "cablegate"
 msgstr "cablegate"
 
 #:
+msgid "censorship"
+msgstr "цензура"
+
+#:
+msgid "christine"
+msgstr "Кристин"
+
+#:
 msgid "cnn"
 msgstr "CNN"
 
 #:
+msgid "cordoba"
+msgstr "Кордова"
+
+#:
+msgid "ddos [latin]"
+msgstr "DDoS [латинскими]"
+
+#:
 msgid "deficit"
 msgstr "дефицит"
+
+#:
+msgid "domodedovo"
+msgstr "домодедово"
 
 #:
 msgid "double"
@@ -797,24 +873,100 @@ msgid "double dip"
 msgstr "двойной рецессии"
 
 #:
+msgid "drill"
+msgstr "дрель"
+
+#:
+msgid "echr"
+msgstr "ЕСПЧ"
+
+#:
+msgid "economy"
+msgstr "экономика"
+
+#:
+msgid "egypt"
+msgstr "Египет"
+
+#:
 msgid "election"
 msgstr "выборы"
+
+#:
+msgid "explosion"
+msgstr "взрыв"
 
 #:
 msgid "facebook"
 msgstr "facebook"
 
 #:
+msgid "fans"
+msgstr "вентиляторы"
+
+#:
+msgid "fire"
+msgstr "пожар"
+
+#:
 msgid "fiscal"
 msgstr "финансовый"
+
+#:
+msgid "gay"
+msgstr "гей"
+
+#:
+msgid "gaza"
+msgstr "сектор Газа"
+
+#:
+msgid "gingrich"
+msgstr "Гингрич"
+
+#:
+msgid "gulf"
+msgstr "пропасть"
+
+#:
+msgid "hacking"
+msgstr "взлом"
+
+#:
+msgid "health care"
+msgstr "здравоохранение"
+
+#:
+msgid "homophobia"
+msgstr "гомофобии"
+
+#:
+msgid "homosexual"
+msgstr "гомосексуальный"
+
+#:
+msgid "huckabee"
+msgstr "Хакаби"
 
 #:
 msgid "iPhone"
 msgstr "iPhone"
 
 #:
+msgid "india"
+msgstr "Индия"
+
+#:
 msgid "inec"
 msgstr "ИНЭК"
+
+#:
+msgid "iphone"
+msgstr "iphone"
+
+#:
+msgid "iran"
+msgstr "Иран"
 
 #:
 msgid "israel"
@@ -825,6 +977,10 @@ msgid "jailbreak"
 msgstr "побег из тюрьмы"
 
 #:
+msgid "japan"
+msgstr "Япония"
+
+#:
 msgid "juan"
 msgstr "Хуан"
 
@@ -833,8 +989,32 @@ msgid "kaduna"
 msgstr "Кадуна"
 
 #:
+msgid "kagan"
+msgstr "кагана"
+
+#:
+msgid "kashin"
+msgstr "Кашин"
+
+#:
+msgid "kenya"
+msgstr "Кения"
+
+#:
+msgid "khodorhovsky"
+msgstr "khodorhovsky"
+
+#:
 msgid "laden"
 msgstr "груженый"
+
+#:
+msgid "lgbt"
+msgstr "лгбт"
+
+#:
+msgid "libya"
+msgstr "Ливия"
 
 #:
 msgid "list media sources"
@@ -845,12 +1025,60 @@ msgid "list of nigeria blogs from colin on 2011-04-04"
 msgstr "Список Нигерии блоги из Колина на 2011-04-04"
 
 #:
+msgid "luzhkov"
+msgstr "Лужков"
+
+#:
+msgid "magnitsky"
+msgstr "Магницкий"
+
+#:
+msgid "man"
+msgstr "человек"
+
+#:
+msgid "manezh"
+msgstr "Манеж"
+
+#:
+msgid "market"
+msgstr "рынок"
+
+#:
+msgid "medvedev"
+msgstr "медведев"
+
+#:
+msgid "metro"
+msgstr "метро"
+
+#:
 msgid "midterm"
 msgstr "среднесрочную"
 
 #:
+msgid "modernization"
+msgstr "модернизация"
+
+#:
 msgid "mosque"
 msgstr "мечеть"
+
+#:
+msgid "mubarak"
+msgstr "Мубарак"
+
+#:
+msgid "murdoch"
+msgstr "Мердок"
+
+#:
+msgid "nationalists"
+msgstr "националисты"
+
+#:
+msgid "nemtsov"
+msgstr "Немцов"
 
 #:
 msgid "no words found"
@@ -865,6 +1093,18 @@ msgid "nuclear"
 msgstr "ядерный"
 
 #:
+msgid "obama"
+msgstr "обама"
+
+#:
+msgid "oil"
+msgstr "нефть"
+
+#:
+msgid "olympics"
+msgstr "Олимпийские игры"
+
+#:
 msgid "osama"
 msgstr "Усама"
 
@@ -873,12 +1113,48 @@ msgid "palestinian"
 msgstr "палестинский"
 
 #:
+msgid "palin"
+msgstr "Пэйлин"
+
+#:
+msgid "parade"
+msgstr "парад"
+
+#:
 msgid "paul"
 msgstr "Пол"
 
 #:
+msgid "pawlenty"
+msgstr "Поленти"
+
+#:
+msgid "plane crash"
+msgstr "авиакатастрофе"
+
+#:
 msgid "poll"
 msgstr "голосование"
+
+#:
+msgid "pride"
+msgstr "гордость"
+
+#:
+msgid "protest"
+msgstr "протест"
+
+#:
+msgid "protests"
+msgstr "Протесты"
+
+#:
+msgid "putin"
+msgstr "Путин"
+
+#:
+msgid "putin2"
+msgstr "putin2"
 
 #:
 msgid "rally"
@@ -893,8 +1169,72 @@ msgid "referendum"
 msgstr "референдум"
 
 #:
+msgid "revolution"
+msgstr "революция"
+
+#:
+msgid "riots"
+msgstr "массовые беспорядки"
+
+#:
+msgid "sagra [village]"
+msgstr "Сагра [деревни]"
+
+#:
+msgid "sanchez"
+msgstr "Санчес"
+
+#:
+msgid "seliger"
+msgstr "Селигер"
+
+#:
+msgid "shahzad"
+msgstr "Шахзад"
+
+#:
+msgid "sherrod"
+msgstr "Шеррод"
+
+#:
 msgid "shutdown"
 msgstr "выключение"
+
+#:
+msgid "skolkovo"
+msgstr "СКОЛКОВО"
+
+#:
+msgid "spartak"
+msgstr "Спартак"
+
+#:
+msgid "spies"
+msgstr "шпионы"
+
+#:
+msgid "spies (шпион)"
+msgstr "шпионы (шпион)"
+
+#:
+msgid "spill"
+msgstr "проливать"
+
+#:
+msgid "square"
+msgstr "площадь"
+
+#:
+msgid "strasbourg"
+msgstr "Страсбург"
+
+#:
+msgid "supreme"
+msgstr "верховный"
+
+#:
+msgid "svirditov"
+msgstr "svirditov"
 
 #:
 msgid "syria"
@@ -905,6 +1245,14 @@ msgid "tax"
 msgstr "налог"
 
 #:
+msgid "tea"
+msgstr "чай"
+
+#:
+msgid "terrorism"
+msgstr "терроризм"
+
+#:
 msgid "terrorist act"
 msgstr "террористический акт"
 
@@ -913,20 +1261,64 @@ msgid "through"
 msgstr "через"
 
 #:
+msgid "torshin [bill sponsor]"
+msgstr "Торшин [законопроект спонсором]"
+
+#:
 msgid "tunisia"
 msgstr "Тунис"
+
+#:
+msgid "tunisia (2)"
+msgstr "Тунис (2)"
 
 #:
 msgid "twitter"
 msgstr "щебетать"
 
 #:
+msgid "ukraine"
+msgstr "Украина"
+
+#:
 msgid "union"
 msgstr "союз"
 
 #:
+msgid "vladikavkaz"
+msgstr "Владикавказ"
+
+#:
+msgid "volcano"
+msgstr "вулкан"
+
+#:
+msgid "wikileaks"
+msgstr "WikiLeaks"
+
+#:
+msgid "wikileaks [cyrillic]"
+msgstr "WikiLeaks [кириллица]"
+
+#:
+msgid "wikileaks [latin]"
+msgstr "WikiLeaks [латинскими]"
+
+#:
+msgid "wisconsin"
+msgstr "Висконсин"
+
+#:
+msgid "woman"
+msgstr "женщина"
+
+#:
 msgid "youth"
 msgstr "молодежь"
+
+#:
+msgid "zuckerberg"
+msgstr "Цукерберг"
 
 #:
 msgid "СОРМ"
@@ -943,6 +1335,14 @@ msgstr "интернет"
 #:
 msgid "роскомнадзор"
 msgstr "роскомнадзор"
+
+#:
+msgid "сорм"
+msgstr "сорм"
+
+#:
+msgid "усама"
+msgstr "усама"
 
 #:
 msgid "фильтрация"
