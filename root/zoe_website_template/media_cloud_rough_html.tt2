@@ -255,7 +255,7 @@
 			    $('<a/>').attr('href', query.url).text(text).appendTo($('<li/>').appendTo(popular_queries_list));
 			});
 
-		 } );
+		  } );
 
 
 	      } );
