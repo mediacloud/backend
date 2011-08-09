@@ -12,46 +12,64 @@ BEGIN
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
+use MediaWords::Util::Web;
 
 use Text::CSV_XS;
 
-# pull samples from the week following each of the below dates
-use constant SAMPLE_DATES => ( '2011-04-18', '2011-01-17', '2010-10-18' );
+# the number of days to query back from today for the sample
+use constant SAMPLE_NUMBER_DAYS => 365;
 
 # the range to use to sample the story pairs by similarity -- so a range of 0.25
 # means that we will pull equal numbers of story pairs from those pairs that
 # have similarities of 0 - 0.25, 0.25 - 0.5, 0.5 - 0.75, 0.75 - 1.0
-use constant SAMPLE_RANGE => 0.25;
+use constant SAMPLE_RANGE => 0.10;
 
 # number of pairs to pull from each sample range
-use constant SAMPLE_RANGE_PAIRS => 6;
+use constant SAMPLE_RANGE_PAIRS => 110;
+
+# tags_id of tag marking which blog media sources to include
+use constant BLOG_MEDIA_TAGS_ID => 8875108;
+
+# tags_id of tag marking which msm feeds to include
+use constant MSM_FEEDS_TAGS_ID => 8875180;
+
+# query only 1/STORY_QUERY_SAMPLE_RATE stories before generating the cossim matrix
+use constant STORY_QUERY_SAMPLE_RATE => 10;
 
 # get the set of stories belonging to study sets and feeds for the week following the given date
 sub get_stories 
 {
-    my ( $db, $date ) = @_;
+    my ( $db ) = @_;
 
     my $blog_stories = $db->query( 
         "select s.* from stories s, media_tags_map mtm " . 
-        "  where s.media_id = mtm.media_id and mtm.tags_id in ( 8875115, 8875114 ) " . 
-        "    and date_trunc( 'day', s.publish_date ) between '$date' and now() + interval '6 days' " . 
-        "  order by random() limit 1000" )->hashes; 
+        "  where s.media_id = mtm.media_id and mtm.tags_id = " . BLOG_MEDIA_TAGS_ID . " " . 
+        "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
+        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes; 
 
     my $msm_stories = $db->query( 
-        "select s.* from stories s, feeds_stories_map fsm, " . 
-        "    ( select min( stories_id ) min_stories_id from stories where publish_date = '$date'::date ) ms " . 
-        "  where s.stories_id = fsm.stories_id and fsm.feeds_id in ( 390, 61 ) " . 
+        "select s.* from stories s, feeds_stories_map fsm, feeds_tags_map ftm, " . 
+        "    ( select min( stories_id ) min_stories_id from stories " . 
+        "        where publish_date > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' ) ms " . 
+        "  where s.stories_id = fsm.stories_id and fsm.feeds_id =  ftm.feeds_id " . 
+        "    and ftm.tags_id = " . MSM_FEEDS_TAGS_ID  . " " . 
         "    and fsm.stories_id >= ms.min_stories_id " . 
-        "    and date_trunc( 'day', s.publish_date ) between '$date' and now() + interval '6 days' " . 
-        "  order by random() limit 1000" )->hashes; 
+        "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
+        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes; 
 
-    my $limit = @{ $msm_stories } < 1000 ? @{ $msm_stories } : 1000;
-    $limit = @{ $blog_stories } < $limit ? @{ $blog_stories } : $limit;
+    if ( @{ $blog_stories } > @{ $msm_stories } )
+    {
+        splice( @{ $blog_stories }, @{ $msm_stories } );
+    }
+    elsif ( @{ $msm_stories } > @{ $blog_stories } )
+    {
+        splice( @{ $msm_stories }, @{ $blog_stories } );
+    }
+
+
+    push( @{ $msm_stories }, @{ $blog_stories } );
     
-    splice( @{ $msm_stories }, $limit );
-    splice( @{ $blog_stories }, $limit );
-    
-    return [ @{ $msm_stories }, @{ $blog_stories } ];
+    return $msm_stories;
 }
 
 # given a list of stories with similarity scores included, produce a set of story pairs
@@ -73,6 +91,18 @@ sub get_story_pairs
     }
     
     return [ sort { $a->{ similarity } <=> $b->{ similarity } } @{ $story_pairs } ];
+}
+
+# verify that we can download the given urls
+sub urls_are_valid
+{
+    my ( $urls ) = @_;
+    
+    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
+    
+    my $num_valid_urls = grep { $_->is_success } @{ $responses };
+    
+    return ( $num_valid_urls == @{ $responses } );
 }
 
 # given a set of story pairs, return SAMPLE_RANGE_PAIRS pairs randomly selected
@@ -107,8 +137,21 @@ sub get_sample_pairs
 
     my $range_pairs = [ @{ $story_pairs }[ $start .. $end ] ];
     $range_pairs = [ sort { int( rand( 3 ) ) - 1 } @{ $range_pairs } ];
+    
+    my $pruned_range_pairs = [];
+    for my $story_pair ( @{ $range_pairs } )
+    {
+        if ( urls_are_valid( [ map { $story_pair->{ stories }->[ $_ ]->{ url } } ( 0, 1 ) ] ) )
+        {
+            push( @{ $pruned_range_pairs }, $story_pair );
+        }
+        if ( @{ $pruned_range_pairs } >= $max_pairs )
+        {
+            return $pruned_range_pairs;
+        }
+    }
 
-    return [ @{ $range_pairs }[ 0 .. ( $max_pairs - 1 ) ] ];
+    return $pruned_range_pairs;
 }
 
 # print the story pairs in csv format
@@ -129,9 +172,9 @@ sub print_story_pairs_csv
         $output .= $csv->string . "\n";
     }
     
-    my $encoded_output = Encode::encode( 'utf-8', $output );
+    my $decoded_output = Encode::decode( 'utf-8', $output );
     
-    print $encoded_output;   
+    print $decoded_output;   
 }
 
 sub main 
@@ -139,27 +182,25 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
     
     my $study_story_pairs = [];
-    
-    for my $date ( SAMPLE_DATES )
-    {
-		print STDERR "$date: get_stories\n";
-        my $stories = get_stories( $db, $date );            
-        
-		print STDERR "$date: add_sims\n";
-        MediaWords::DBI::Stories::add_cos_similarities( $db, $stories );
-        
-		print STDERR "$date: get_story_pairs\n";
-        my $all_story_pairs = get_story_pairs( $stories );
-        
-        for ( my $floor = 0; $floor < 1; $floor += SAMPLE_RANGE )
-        {
-			print STDERR "$date: $floor get_sample_pairs\n";
-            my $sample_story_pairs = get_sample_pairs( $all_story_pairs, $floor );
-            push( @{ $study_story_pairs }, @{ $sample_story_pairs } );
-        }        
-		print STDERR "$date: done\n";
-    }
 
+	print STDERR "get_stories\n";
+    my $stories = get_stories( $db ); 
+    
+    print STDERR "got " . scalar( @{ $stories } ) . " stories\n";           
+        
+	print STDERR "add_sims\n";
+    MediaWords::DBI::Stories::add_cos_similarities( $db, $stories );
+        
+	print STDERR "get_story_pairs\n";
+    my $all_story_pairs = get_story_pairs( $stories );
+        
+    for ( my $floor = 0; $floor < 1; $floor += SAMPLE_RANGE )
+    {
+		print STDERR "$floor get_sample_pairs\n";
+        my $sample_story_pairs = get_sample_pairs( $all_story_pairs, $floor );
+        push( @{ $study_story_pairs }, @{ $sample_story_pairs } );
+    }        
+    
 	print STDERR "print_story_pairs\n";
     print_story_pairs_csv( $study_story_pairs );
 }
