@@ -151,27 +151,24 @@
 				};
 		 }
 
-		 function get_locale_param()
-		 {
-		    var url_query = window.location.search;
+		 function get_locale_param() {
+		      var url_query = window.location.search;
 
-		    url_query = url_query.substring(1);
+		      url_query = url_query.substring(1);
 
-		    pairs = url_query.split("&");
+		      pairs = url_query.split("&");
 
-		    for (var i = 0; i < pairs.length; i++)
-		    {
-		       var pair = pairs[i].split("=");
+		      for (var i = 0; i < pairs.length; i++) {
+		               var pair = pairs[i].split("=");
 
-		       var name  = decodeURIComponent( pair[0] );
-		       var value = decodeURIComponent( pair[1] );
-		       if ( name == 'locale' )
-		       {
-		           return value;
-		       }
-		    }
+			       var name = decodeURIComponent(pair[0]);
+			       var value = decodeURIComponent(pair[1]);
+			       if (name == 'locale') {
+			           return value;
+			       }
+                      }
 
-		    return;
+                      return;
 		 }
 
 	         //alert('query ' + indx);
