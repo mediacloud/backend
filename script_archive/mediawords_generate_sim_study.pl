@@ -16,7 +16,7 @@ use MediaWords::DBI::Stories;
 use Text::CSV_XS;
 
 # pull samples from the week following each of the below dates
-use constant SAMPLE_DATES => ( '2011-04-16', '2011-05-16', '2011-06-13', '2011-07-11' );
+use constant SAMPLE_DATES => ( '2011-04-18', '2011-01-17', '2010-10-18' );
 
 # the range to use to sample the story pairs by similarity -- so a range of 0.25
 # means that we will pull equal numbers of story pairs from those pairs that
@@ -34,16 +34,16 @@ sub get_stories
     my $blog_stories = $db->query( 
         "select s.* from stories s, media_tags_map mtm " . 
         "  where s.media_id = mtm.media_id and mtm.tags_id in ( 8875115, 8875114 ) " . 
-        "    and s.publish_date between '$date' and now() + interval '1 week' " . 
+        "    and date_trunc( 'day', s.publish_date ) between '$date' and now() + interval '6 days' " . 
         "  order by random() limit 1000" )->hashes; 
 
     my $msm_stories = $db->query( 
         "select s.* from stories s, feeds_stories_map fsm, " . 
-        "    ( select min( stories_id ) min_stories_id from stories where publish_date = '2011-07-11' ) ms " . 
+        "    ( select min( stories_id ) min_stories_id from stories where publish_date = '$date'::date ) ms " . 
         "  where s.stories_id = fsm.stories_id and fsm.feeds_id in ( 390, 61 ) " . 
         "    and fsm.stories_id >= ms.min_stories_id " . 
-        "    and s.publish_date between '$date' and now() + interval '1 week' " . 
-        "  order by random() limit 1000" )->hashes;
+        "    and date_trunc( 'day', s.publish_date ) between '$date' and now() + interval '6 days' " . 
+        "  order by random() limit 1000" )->hashes; 
 
     my $limit = @{ $msm_stories } < 1000 ? @{ $msm_stories } : 1000;
     $limit = @{ $blog_stories } < $limit ? @{ $blog_stories } : $limit;
@@ -67,7 +67,7 @@ sub get_story_pairs
         for ( my $j = 0; $j < $i; $j++ )
         {
             push( @{ $story_pairs }, {        
-                similarity => $stories->[ $i ]->similarities->[ $j ],
+                similarity => $stories->[ $i ]->{ similarities }->[ $j ],
                 stories => [ $stories->[ $i ], $stories->[ $j ] ] } );
         }
     }
@@ -83,18 +83,32 @@ sub get_sample_pairs
     my ( $story_pairs, $floor ) = @_;
     
     my $start = 0;
-    while ( $story_pairs->[ $start++ ]->{ similarity } < $floor ) {}
+    while ( $story_pairs->[ $start ] && ( $story_pairs->[ $start ]->{ similarity } < $floor ) )
+	{
+		$start++;
+	}
+	return [] if ( !$story_pairs->[ $start ] );
 
     my $end = $start;
-    while ( $story_pairs->[ $end++ ]->{ similarity } < $floor + SAMPLE_RANGE ) {}
-    $end--;
+    while ( $story_pairs->[ $end ] && ( $story_pairs->[ $end ]->{ similarity } < ( $floor + SAMPLE_RANGE ) ) ) 
+	{
+		$end++;
+	}
+	$end--;
 
-    die( "Unable to find SAMPLE_RANGE_PAIRS pairs within range" ) if ( ( $end - $start ) < SAMPLE_RANGE_PAIRS );
+	my $max_pairs = $end - $start;
+	if ( ( $end - $start ) > SAMPLE_RANGE_PAIRS )
+	{
+		$max_pairs = SAMPLE_RANGE_PAIRS;
+	}
+	else {
+    	warn( "Unable to find SAMPLE_RANGE_PAIRS pairs within range" );
+	}
 
     my $range_pairs = [ @{ $story_pairs }[ $start .. $end ] ];
     $range_pairs = [ sort { int( rand( 3 ) ) - 1 } @{ $range_pairs } ];
 
-    return [ @{ $range_pairs }[ 0 .. ( SAMPLE_RANGE_PAIRS ) ] ];
+    return [ @{ $range_pairs }[ 0 .. ( $max_pairs - 1 ) ] ];
 }
 
 # print the story pairs in csv format
@@ -126,21 +140,27 @@ sub main
     
     my $study_story_pairs = [];
     
-    for my $date ( '2011-04-16', '2011-05-16', '2011-06-13', '2011-07-11' )
+    for my $date ( SAMPLE_DATES )
     {
+		print STDERR "$date: get_stories\n";
         my $stories = get_stories( $db, $date );            
         
+		print STDERR "$date: add_sims\n";
         MediaWords::DBI::Stories::add_cos_similarities( $db, $stories );
         
-        my $all_story_pairs = get_sorted_story_pairs( $stories );
+		print STDERR "$date: get_story_pairs\n";
+        my $all_story_pairs = get_story_pairs( $stories );
         
-        for ( my $floor = 0; $floor += SAMPLE_RANGE; $floor < 1 )
+        for ( my $floor = 0; $floor < 1; $floor += SAMPLE_RANGE )
         {
+			print STDERR "$date: $floor get_sample_pairs\n";
             my $sample_story_pairs = get_sample_pairs( $all_story_pairs, $floor );
             push( @{ $study_story_pairs }, @{ $sample_story_pairs } );
         }        
+		print STDERR "$date: done\n";
     }
 
+	print STDERR "print_story_pairs\n";
     print_story_pairs_csv( $study_story_pairs );
 }
 
