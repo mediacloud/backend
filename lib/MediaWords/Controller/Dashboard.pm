@@ -754,7 +754,7 @@ sub _purge_form_labels
 
 sub _localize_option_labels
 {
-    my ($self, $c, $options) = @_;
+    my ( $self, $c, $options ) = @_;
 
     foreach my $option ( @{ $options } )
     {
@@ -1253,6 +1253,30 @@ sub json_popular_queries : Local
     #say STDERR Dumper( $popular_queries);
 
     $c->res->body( encode_json( $popular_queries ) );
+
+    return;
+}
+
+sub localize_hash_json : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    say STDERR "Starting localize_hash_json";
+
+    say STDERR 'URI: ' . $c->req->uri;
+
+    my $json_hash_string = $c->req->param( 'hash' );
+
+    say STDERR "localize_hash_json: got json string: $json_hash_string";
+
+    my $json_hash = decode_json( $json_hash_string );
+
+    foreach my $key ( keys %{ $json_hash } )
+    {
+        $json_hash->{ $key } = $c->loc( $json_hash->{ $key } );
+    }
+
+    $c->res->body( encode_json( $json_hash ) );
 
     return;
 }
