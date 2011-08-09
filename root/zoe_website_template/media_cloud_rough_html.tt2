@@ -203,58 +203,58 @@
 			json_str = JSON.stringify( parsed_query_1 );
 			$.getJSON( ' [% c.uri_for('/dashboard/localize_hash_json/') %]', { 'hash': json_str, 'locale': locale_param  }, function (data)
 			{
-		 var source_str = parsed_query_0['media_source'];
+			    var source_str = parsed_query_0['media_source'];
 
-		 if (parsed_query_1['media_source'] && (parsed_query_1['media_source'] != source_str))
-		 {
-		    source_str += ' vs. ' + parsed_query_1['media_source'];
-		 }
+			    if (parsed_query_1['media_source'] && (parsed_query_1['media_source'] != source_str))
+			    {
+			        source_str += ' vs. ' + parsed_query_1['media_source'];
+			    }
 
-		 var topic_str;
+			    var topic_str;
 
-		 if (	parsed_query_0['topic'] && query.query_1_description && !parsed_query_1['topic'] )
-		 {
-		    parsed_query_1['topic'] = 'All';
-		 }
+			    if (parsed_query_0['topic'] && query.query_1_description && !parsed_query_1['topic'])
+			    {
+			        parsed_query_1['topic'] = 'All';
+			    }
 
-		 if (	parsed_query_1['topic'] && !parsed_query_0['topic'] )
-		 {
-		    parsed_query_0['topic'] = 'All';
-		 }
+			    if (parsed_query_1['topic'] && !parsed_query_0['topic'])
+			    {
+			        parsed_query_0['topic'] = 'All';
+			    }
 
-		 if ( 	query.query_1_description && (parsed_query_0['topic'] != parsed_query_1['topic']) )
-		 {
-		    topic_str = parsed_query_0['topic'] + ' vs. ' + parsed_query_1['topic'];
-		 }
-		 else
-		 {
-		    topic_str = parsed_query_0['topic'];
-		 }
+			    if (query.query_1_description && (parsed_query_0['topic'] != parsed_query_1['topic']))
+			    {
+			        topic_str = parsed_query_0['topic'] + ' vs. ' + parsed_query_1['topic'];
+			    }
+			    else
+			    {
+			        topic_str = parsed_query_0['topic'];
+			    }
 
-		 var week_str;
+			    var week_str;
 
- 		 if ( 	parsed_query_1['week'] && (parsed_query_0['week'] != parsed_query_1['week'] ) )
-		 {
-		    week_str = parsed_query_0['week'] + ' vs. ' + parsed_query_1['week'];
-		 }
-		 else
-		 {
-		    week_str = parsed_query_0['week'];
-		 }
+			    if (parsed_query_1['week'] && (parsed_query_0['week'] != parsed_query_1['week']))
+			    {
+			        week_str = parsed_query_0['week'] + ' vs. ' + parsed_query_1['week'];
+			    }
+			    else
+			    {
+			        week_str = parsed_query_0['week'];
+			    }
 
-		 var text = source_str + ' - ';
+			    var text = source_str + ' - ';
 
-		 if (topic_str)
-		 {
-		   //alert('Topic:' + topic_str);
-		   text +=  topic_str + ' - ';
-		 }
-		 
-		 text += week_str;
-	
-	         $('<a/>').attr('href', query.url).text(text).appendTo($('<li/>').appendTo(popular_queries_list));
+			    if (topic_str)
+			    {
+			        //alert('Topic:' + topic_str);
+			        text += topic_str + ' - ';
+			    }
+
+			    text += week_str;
+
+			    $('<a/>').attr('href', query.url).text(text).appendTo($('<li/>').appendTo(popular_queries_list));
 			});
-			
+
 		 } );
 
 
