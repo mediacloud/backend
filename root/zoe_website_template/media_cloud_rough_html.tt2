@@ -196,7 +196,7 @@
 
 		 //alert('locale ' + locale_param);
 
-		 $.getJSON( ' [% c.uri_for('/dashboard/localize_hash_json/') %]', { 'hash': json_str, 'locale': locale_param  }, function (data)
+		 $.getJSON( '[% c.uri_for('/dashboard/localize_hash_json/') %]', { 'hash': json_str, 'locale': locale_param  }, function (data)
 		 {
 			//alert(data);
 			parsed_query_0 = data;
