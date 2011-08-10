@@ -4,7 +4,7 @@ package MediaWords::DBI::Stories;
 
 use strict;
 
-use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
+use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_dot vector_normalize);
 use MediaWords::Util::HTML;
 use MediaWords::Tagger;
 use MediaWords::Util::Config;
@@ -337,7 +337,7 @@ sub get_initial_download_content
     return $content;
 }
 
-# get word vectors for the top 500 words for each story.
+# get word vectors for the top 100 words for each story.
 # add a { vector } field to each story where the vector for each
 # query is the list of the normalized counts of each word, with each word represented
 # by an index value shared across the union of all words for all stories
@@ -347,13 +347,15 @@ sub add_word_vectors
 
     my $word_hash;
 
+    my $i = 0;
     for my $story ( @{ $stories } )
     {
+        print STDERR "add_word_vectors: " . $i++ . "\n";
         my $words = $db->query( 
             "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
             "  where ssw.stories_id = $story->{ stories_id } " .
             "    and not is_stop_stem( 'long', ssw.stem ) " .
-            "  group by ssw.stem order by count( * ) desc limit 500 " )->hashes;
+            "  group by ssw.stem order by count( * ) desc limit 100 " )->hashes;
             
         $story->{ vector } = [ 0 ];
 
@@ -375,31 +377,39 @@ sub add_cos_similarities
 {
     my ( $db, $stories ) = @_;
 
+    print STDERR "add_cos_similarities: add word vectors\n";
     add_word_vectors( $db, $stories );
 
     my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
 
+    print STDERR "add_cos_similarities: create normalized pdl vectors\n";
     for my $story ( @{ $stories } )
     {
-        $story->{ pdl_vector } = vector_new( $num_words );
+        my $pdl_vector = vector_new( $num_words );
 
         for my $i ( 0 .. $num_words - 1 )
         {
-            vector_set( $story->{ pdl_vector }, $i, $story->{ vector }->[ $i ] );
+            vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
         }
+        $story->{ pdl_norm_vector } = vector_normalize( $pdl_vector );
     }
 
+    print STDERR "add_cos_similarities: adding sims\n";
     for my $i ( 0 .. $#{ $stories } )
     {
+        print STDERR "$i / $#{ $stories }: ";
         $stories->[ $i ]->{ cos }->[ $i ] = 1;
 
         for my $j ( $i + 1 .. $#{ $stories } )
         {
-            my $sim = vector_cos_sim( $stories->[ $i ]->{ pdl_vector }, $stories->[ $j ]->{ pdl_vector } );
+            print STDERR "." unless ( $j % 100 );
+            my $sim = vector_dot( $stories->[ $i ]->{ pdl_norm_vector }, $stories->[ $j ]->{ pdl_norm_vector } );
 
             $stories->[ $i ]->{ similarities }->[ $j ] = $sim;
             $stories->[ $j ]->{ similarities }->[ $i ] = $sim;
         }
+        
+        print STDERR "\n";
     }
 }
 
