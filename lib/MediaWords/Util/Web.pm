@@ -24,7 +24,7 @@ sub ParallelGet
         push( @{ $results }, $result );
     }
 
-    my $cmd = "'$FindBin::Bin'/mediawords_web_store.pl";
+    my $cmd = "'$FindBin::Bin'/../script/mediawords_web_store.pl";
 
     if ( !open( CMD, '|-', $cmd ) )
     {
