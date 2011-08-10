@@ -392,8 +392,8 @@ sub add_cos_similarities
             vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
         }
         $story->{ pdl_norm_vector } = vector_normalize( $pdl_vector );
+        $story->{ vector } = undef;
     }
-    $story->{ vector } = undef;
 
     print STDERR "add_cos_similarities: adding sims\n";
     for my $i ( 0 .. $#{ $stories } )
