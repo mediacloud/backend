@@ -47,8 +47,6 @@ sub get_stories
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
         "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes;
         
-    return $blog_stories;
-
     my $msm_stories = $db->query( 
         "select s.* from stories s, feeds_stories_map fsm, feeds_tags_map ftm " . 
         "  where s.stories_id = fsm.stories_id and fsm.feeds_id =  ftm.feeds_id " . 
