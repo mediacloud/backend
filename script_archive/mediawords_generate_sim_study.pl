@@ -25,7 +25,7 @@ use constant SAMPLE_NUMBER_DAYS => 365;
 use constant SAMPLE_RANGE => 0.10;
 
 # number of pairs to pull from each sample range
-use constant SAMPLE_RANGE_PAIRS => 110;
+use constant SAMPLE_RANGE_PAIRS => 120;
 
 # tags_id of tag marking which blog media sources to include
 use constant BLOG_MEDIA_TAGS_ID => 8875108;
@@ -45,15 +45,14 @@ sub get_stories
         "select s.* from stories s, media_tags_map mtm " . 
         "  where s.media_id = mtm.media_id and mtm.tags_id = " . BLOG_MEDIA_TAGS_ID . " " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
-        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes; 
+        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes;
+        
+    return $blog_stories;
 
     my $msm_stories = $db->query( 
-        "select s.* from stories s, feeds_stories_map fsm, feeds_tags_map ftm, " . 
-        "    ( select min( stories_id ) min_stories_id from stories " . 
-        "        where publish_date > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' ) ms " . 
+        "select s.* from stories s, feeds_stories_map fsm, feeds_tags_map ftm " . 
         "  where s.stories_id = fsm.stories_id and fsm.feeds_id =  ftm.feeds_id " . 
         "    and ftm.tags_id = " . MSM_FEEDS_TAGS_ID  . " " . 
-        "    and fsm.stories_id >= ms.min_stories_id " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
         "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes; 
 
@@ -172,9 +171,9 @@ sub print_story_pairs_csv
         $output .= $csv->string . "\n";
     }
     
-    my $decoded_output = Encode::decode( 'utf-8', $output );
+    my $encoded_output = Encode::encode( 'utf-8', $output );
     
-    print $decoded_output;   
+    print $encoded_output;   
 }
 
 sub main 
