@@ -382,9 +382,10 @@ sub add_cos_similarities
 
     my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
 
-    print STDERR "add_cos_similarities: create normalized pdl vectors\n";
+    print STDERR "add_cos_similarities: create normalized pdl vectors ";
     for my $story ( @{ $stories } )
     {
+        print STDERR ".";
         my $pdl_vector = vector_new( $num_words );
 
         for my $i ( 0 .. $num_words - 1 )
@@ -394,6 +395,7 @@ sub add_cos_similarities
         $story->{ pdl_norm_vector } = vector_normalize( $pdl_vector );
         $story->{ vector } = undef;
     }
+    print STDERR "\n";
 
     print STDERR "add_cos_similarities: adding sims\n";
     for my $i ( 0 .. $#{ $stories } )
