@@ -60,6 +60,10 @@ msgid "Advocacy"
 msgstr "Пропаганда"
 
 #:
+msgid "All Sources"
+msgstr "Все источники"
+
+#:
 msgid "All public feeds from whitehouse.gov."
 msgstr "Все открытые каналы с whitehouse.gov."
 
@@ -140,6 +144,62 @@ msgid "Click on a word to see sentences."
 msgstr "Нажмите на слово, чтобы увидеть предложения."
 
 #:
+msgid "Cluster 10"
+msgstr "Кластер 10"
+
+#:
+msgid "Cluster 11"
+msgstr "Кластер 11"
+
+#:
+msgid "Cluster 13"
+msgstr "Кластер 13"
+
+#:
+msgid "Cluster 19"
+msgstr "Кластер 19"
+
+#:
+msgid "Cluster 20"
+msgstr "Кластер 20"
+
+#:
+msgid "Cluster 22"
+msgstr "Кластер 22"
+
+#:
+msgid "Cluster 23"
+msgstr "Кластер 23"
+
+#:
+msgid "Cluster 26"
+msgstr "Кластер 26"
+
+#:
+msgid "Cluster 28"
+msgstr "Кластер 28"
+
+#:
+msgid "Cluster 29"
+msgstr "Кластер 29"
+
+#:
+msgid "Cluster 30"
+msgstr "Кластер 30"
+
+#:
+msgid "Cluster 32"
+msgstr "Кластер 32"
+
+#:
+msgid "Cluster 33"
+msgstr "Кластер 33"
+
+#:
+msgid "Cluster 34"
+msgstr "Кластер 34"
+
+#:
 msgid "Colin's Nigeria Blogs"
 msgstr "Колин Нигерии Дневники"
 
@@ -154,6 +214,42 @@ msgstr "Кордова"
 #:
 msgid "Coverage Map"
 msgstr "Карта покрытия"
+
+#:
+msgid "Culture: Female/Hobbies"
+msgstr "Культура: Женщина / Хобби"
+
+#:
+msgid "Culture: International - Cosmopolitans"
+msgstr "Культура: International - космополиты"
+
+#:
+msgid "Culture: International - Music/File Sharing /Diaspora"
+msgstr "Культура: Международный - Музыка / Обмен файлами / диаспоры"
+
+#:
+msgid "Culture: International - Visual Art/Diaspora"
+msgstr "Культура: International - Визуальное искусство / диаспоры"
+
+#:
+msgid "Culture: Movies/Pop Culture"
+msgstr "Культура: Кино / Поп-культура"
+
+#:
+msgid "Culture: Russian Literature"
+msgstr "Культура: Русская литература"
+
+#:
+msgid "Culture: Russian Orthodox"
+msgstr "Культура: Русская Православная"
+
+#:
+msgid "Culture: Russian Personal, Culture, Hobbies"
+msgstr "Культура: Русская личных, Культура, Увлечения"
+
+#:
+msgid "Culture: Russian Women/Sociability"
+msgstr "Культура: Русские женщины / Коммуникабельность"
 
 #:
 msgid "DDoS [latin]"
@@ -312,6 +408,26 @@ msgid "India"
 msgstr "Индия"
 
 #:
+msgid "Instrumental: A"
+msgstr "Инструментальная:"
+
+#:
+msgid "Instrumental: B"
+msgstr "Инструментальная: B"
+
+#:
+msgid "Instrumental: C"
+msgstr "Инструментальная: C"
+
+#:
+msgid "Instrumental: Pro Government Youth Groups"
+msgstr "Инструментальная: Pro Группы Правительство молодежи"
+
+#:
+msgid "Instrumental: SEO/Spam"
+msgstr "Инструментальная: SEO / Спам"
+
+#:
 msgid "Iran"
 msgstr "Иран"
 
@@ -467,6 +583,10 @@ msgid "Oil"
 msgstr "Нефть"
 
 #:
+msgid "Oil Spill Mainstream Media"
+msgstr "Нефть СМИ разливов Mainstream"
+
+#:
 msgid "Olympics"
 msgstr "Олимпийские игры"
 
@@ -507,6 +627,34 @@ msgid "Political Blogs - Right"
 msgstr "Политические Блоги - Право"
 
 #:
+msgid "Politics: Business, Economics, and Finance"
+msgstr "Политика: Бизнес, экономика и финансы"
+
+#:
+msgid "Politics: Democratic Opposition"
+msgstr "Политика: Демократическая оппозиция"
+
+#:
+msgid "Politics: Ethno-Nationalists"
+msgstr "Политика: этно-националистов"
+
+#:
+msgid "Politics: Russia Focused"
+msgstr "Политика: Россия ориентированные"
+
+#:
+msgid "Politics: Russian Orthodox"
+msgstr "Политика: Русская Православная"
+
+#:
+msgid "Politics: Social and Environmental Activism"
+msgstr "Политика: Социально-Экологический активизм"
+
+#:
+msgid "Politics: Western Facing"
+msgstr "Политика: Западная Облицовка"
+
+#:
 msgid "Popular Blogs"
 msgstr "Дневники"
 
@@ -543,6 +691,22 @@ msgid "Query"
 msgstr "Запрос"
 
 #:
+msgid "Regional: Armenia"
+msgstr "Региональная: Армения"
+
+#:
+msgid "Regional: Belarus"
+msgstr "Страны и регионы: Беларусь"
+
+#:
+msgid "Regional: Israel"
+msgstr "На региональном уровне: Израиль"
+
+#:
+msgid "Regional: Ukraine"
+msgstr "Страны и регионы: Украина"
+
+#:
 msgid "Reports"
 msgstr "Отчеты"
 
@@ -553,6 +717,26 @@ msgstr "Революция"
 #:
 msgid "Riots"
 msgstr "Массовые беспорядки"
+
+#:
+msgid "Russian Government"
+msgstr "Русского правительства"
+
+#:
+msgid "Russian Popular Blogs"
+msgstr "Русский Дневники"
+
+#:
+msgid "Russian Random Blogs"
+msgstr "Случайные русских блогов"
+
+#:
+msgid "Russian TV"
+msgstr "Русский телевизор"
+
+#:
+msgid "Russian Top 25 Mainstream Media"
+msgstr "Русский Top 25 Mainstream СМИ"
 
 #:
 msgid "Sagra [village]"
@@ -581,6 +765,46 @@ msgstr "Шеррод"
 #:
 msgid "Skolkovo"
 msgstr "Сколково"
+
+#:
+msgid "Small: 22"
+msgstr "Малый: 22"
+
+#:
+msgid "Small: 26"
+msgstr "Малый: 26"
+
+#:
+msgid "Small: 28"
+msgstr "Малый: 28"
+
+#:
+msgid "Small: 29"
+msgstr "Малый: 29"
+
+#:
+msgid "Small: 30"
+msgstr "Малый: 30"
+
+#:
+msgid "Small: 33"
+msgstr "Малый: 33"
+
+#:
+msgid "Small: Culture/Authors"
+msgstr "Малый: Культура / Авторы"
+
+#:
+msgid "Small: Culture/Female"
+msgstr "Маленький: Культура / Женский"
+
+#:
+msgid "Small: Radical Photo Community"
+msgstr "Малый: Радикальные фотографию сообщества"
+
+#:
+msgid "Small: Recreation"
+msgstr "Малый: Отдых"
 
 #:
 msgid "Spartak"
@@ -637,6 +861,22 @@ msgstr "Чай"
 #:
 msgid "Technically, Media Cloud performs five basic functions -- media definition, crawling, text extraction, word vectoring, and analysis.  First, we define the set of media sources we want to collect and discover the feeds for each media source (which in the case of many newspapers includes hundreds of feeds).  Second, we crawl each of those feeds several times each day to discover any new stories published by each feed and then download the html of each new story.  Third, we extract just the substantive content of each story from each html page, leaving behind the ads, navigation, and other cruft.  Fourth, we break that substantive text down into a set word counts so that we can count, down to the level of individual sentences, which words which media sources are using to talk about which topics.  And finally, we have a set of tools for analyzing those word counts, including the Media Dashboard tool that acts as the front page for http://mediacloud.org.  We make available all of the code for the system under an open source license and publish as much of the underlying data as legally possible."
 msgstr "Технически, Медиа Облако выполняет пять основных функций - определение средств массовой информации, ползание, извлечение текста, слова векторизации и анализа. Во-первых, мы определяем набор источников средств массовой информации мы хотим собрать и открыть каналы для каждого источника средств массовой информации (что в случае многих газетах включает в себя сотни каналов). Во-вторых, ползем каждого из этих каналов в несколько раз каждый день, чтобы обнаружить какие-либо новые рассказы опубликованы каждого канала, а затем загрузить HTML каждой новой истории. В-третьих, мы извлекаем только основное содержание каждой истории из каждой HTML-страницы, оставляя за объявления, навигации и других хлама. В-четвертых, мы нарушаем, что основной текст вниз, рассчитывает набор слов, так что мы можем рассчитывать, вплоть до уровня отдельных предложений, какие слова какие источники используете, чтобы говорить о том, какие темы. И, наконец, у нас есть набор инструментов для анализа тех слов пунктам, включая инструмент медиа-панель, которая действует как на первой странице http://mediacloud.org. Мы делаем доступными все код для системы под открытой лицензией и публиковать как можно больше исходных данных, как юридически это возможно."
+
+#:
+msgid "Technorati Politics Left Top 25"
+msgstr "Technorati Политика левых Top 25"
+
+#:
+msgid "Technorati Politics No Ideology Top 25"
+msgstr "Technorati Политика Никакая идеология не топ-25"
+
+#:
+msgid "Technorati Politics Right Top 25"
+msgstr "Technorati Политика Право Top 25"
+
+#:
+msgid "Technorati Politics Uncoded"
+msgstr "Technorati Политика Некодированная"
 
 #:
 msgid "Terrorism"
@@ -699,6 +939,10 @@ msgstr "Тунис"
 #:
 msgid "Tunisia (2)"
 msgstr "Тунис (2)"
+
+#:
+msgid "US Random Blogs"
+msgstr "США Случайные Дневники"
 
 #:
 msgid "Ukraine"
@@ -1247,6 +1491,10 @@ msgstr "налог"
 #:
 msgid "tea"
 msgstr "чай"
+
+#:
+msgid "technorati_top_100_tech_2_dec_2010"
+msgstr "technorati_top_100_tech_2_dec_2010"
 
 #:
 msgid "terrorism"
