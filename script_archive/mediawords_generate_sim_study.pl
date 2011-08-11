@@ -172,7 +172,7 @@ sub print_story_pairs_csv
         my $sim = $story_pair->{ similarity };
         my $stories = $story_pair->{ stories };
         my @values = map { ( $stories->[ 0 ]->{ $_ }, $stories->[ 1 ]->{ $_ } ) } qw/title url stories_id media_id publish_date/;
-        if ( !$csv->combine( $sim, map { Encode::encode( 'utf-8', $output ) } @values ) )
+        if ( !$csv->combine( $sim, map { Encode::encode( 'utf-8', $_ ) } @values ) )
         {
             print STDERR "csv error: " . $csv->error_input . "\n";
         }
