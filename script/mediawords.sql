@@ -134,7 +134,7 @@ create table media_sets (
     include_in_dump             boolean     default true
 );
 
-CREATE VIEW media_sets_tt2_locale_format as select '[% c.loc("' || name || '") %]' || E'\n' ||  '[% c.loc("' || description || '") %] ' as tt2_value from media_sets where set_type = 'collection' and include_in_dump order by media_sets_id;
+CREATE VIEW media_sets_tt2_locale_format as select '[% c.loc("' || name || '") %]' || E'\n' ||  '[% c.loc("' || description || '") %] ' as tt2_value from media_sets where set_type = 'collection' order by media_sets_id;
 
     
 create table queries_media_sets_map (
@@ -298,7 +298,7 @@ create table dashboard_topics (
 create index dashboard_topics_dashboard on dashboard_topics ( dashboards_id );
 create index dashboard_topics_vectors_added on dashboard_topics ( vectors_added );
 
-CREATE VIEW dashboard_topics_tt2_locale_format as select distinct('[% c.loc("' || name || '") %]') as tt2_value from (select * from dashboard_topics order by name, dashboard_topics_id) AS dashboard_topic_names order by tt2_value;
+CREATE VIEW dashboard_topics_tt2_locale_format as select distinct on (tt2_value) '[% c.loc("' || name || '") %]' || ' - ' || '[% c.loc("' || lower(name) || '") %]' as tt2_value from (select * from dashboard_topics order by name, dashboard_topics_id) AS dashboard_topic_names order by tt2_value;
 
 create table stories (
     stories_id                  serial          primary key,
