@@ -134,7 +134,7 @@ create table media_sets (
     include_in_dump             boolean     default true
 );
 
-CREATE VIEW media_sets_tt2_locale_format as select '[% c.loc("' || name || '") %]' || E'\n' ||  '[% c.loc("' || description || '") %] ' as tt2_value from media_sets where set_type = 'collection' order by media_sets_id;
+CREATE VIEW media_sets_tt2_locale_format as select  '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' as tt2_value from media_sets where set_type = 'collection' order by media_sets_id;
 
     
 create table queries_media_sets_map (
