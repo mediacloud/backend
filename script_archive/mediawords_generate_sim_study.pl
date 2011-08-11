@@ -34,7 +34,7 @@ use constant BLOG_MEDIA_TAGS_ID => 8875108;
 use constant MSM_FEEDS_TAGS_ID => 8875180;
 
 # query only 1/STORY_QUERY_SAMPLE_RATE stories before generating the cossim matrix
-use constant STORY_QUERY_SAMPLE_RATE => 75;
+use constant STORY_QUERY_SAMPLE_RATE => 25;
 
 # exclude the following media sources
 use constant EXCLUDE_MEDIA_IDS => ( 6933 );
@@ -51,14 +51,14 @@ sub get_stories
         "  where s.media_id = mtm.media_id and mtm.tags_id = " . BLOG_MEDIA_TAGS_ID . " " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
         "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " .
-        "    and s.media_id not in ( $exclude_media_ids_list )" )->hashes;
+        "    and s.media_id not in ( $exclude_media_ids_list ) order by random()" )->hashes;
         
     my $msm_stories = $db->query( 
         "select s.* from stories s, feeds_stories_map fsm, feeds_tags_map ftm " . 
         "  where s.stories_id = fsm.stories_id and fsm.feeds_id =  ftm.feeds_id " . 
         "    and ftm.tags_id = " . MSM_FEEDS_TAGS_ID  . " " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
-        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes; 
+        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 order by random()" )->hashes; 
 
     if ( @{ $blog_stories } > @{ $msm_stories } )
     {
@@ -87,13 +87,20 @@ sub get_story_pairs
     {
         for ( my $j = 0; $j < $i; $j++ )
         {
-            push( @{ $story_pairs }, {        
-                similarity => $stories->[ $i ]->{ similarities }->[ $j ],
-                stories => [ $stories->[ $i ], $stories->[ $j ] ] } );
+            my $sim = $stories->[ $i ]->{ similarities }->[ $j ];
+            # throw away most low similarity stories to avoid making copies
+            if ( ( $sim >= 0.2 ) && !int( rand( 5 ) ) )
+            {
+                push( @{ $story_pairs }, {        
+                    similarity => $stories->[ $i ]->{ similarities }->[ $j ],
+                    stories => [ $stories->[ $i ], $stories->[ $j ] ] } );
+            }
         }
     }
     
-    return [ sort { $a->{ similarity } <=> $b->{ similarity } } @{ $story_pairs } ];
+    my @sorted_pairs = sort { $a->{ similarity } <=> $b->{ similarity } } @{ $story_pairs } ];
+    
+    return \@sorted_pairs;
 }
 
 # verify that we can download the given urls
@@ -162,7 +169,7 @@ sub print_story_pairs_csv
 {
     my ( $story_pairs ) = @_;
 
-    my $csv = Text::CSV_XS->new;
+    my $csv = Text::CSV_XS->new( { binary => 1 } );
     
     $csv->combine( qw/similarity title_1 title_2 url_1 url_2 stories_id_1 stories_id_2 media_id_1 media_id2 publish_date_1 publish_date_2/ );
     my $output = $csv->string . "\n";
