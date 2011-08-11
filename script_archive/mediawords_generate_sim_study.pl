@@ -34,18 +34,24 @@ use constant BLOG_MEDIA_TAGS_ID => 8875108;
 use constant MSM_FEEDS_TAGS_ID => 8875180;
 
 # query only 1/STORY_QUERY_SAMPLE_RATE stories before generating the cossim matrix
-use constant STORY_QUERY_SAMPLE_RATE => 10;
+use constant STORY_QUERY_SAMPLE_RATE => 15;
+
+# exclude the following media sources
+use constant EXCLUDE_MEDIA_IDS => ( 6933 );
 
 # get the set of stories belonging to study sets and feeds for the week following the given date
 sub get_stories 
 {
     my ( $db ) = @_;
 
+    my $exclude_media_ids_list = join( ',', EXCLUDE_MEDIA_IDS );
+
     my $blog_stories = $db->query( 
         "select s.* from stories s, media_tags_map mtm " . 
         "  where s.media_id = mtm.media_id and mtm.tags_id = " . BLOG_MEDIA_TAGS_ID . " " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
-        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " )->hashes;
+        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " .
+        "    and s.media_id not in ( $exclude_media_ids_list )" )->hashes;
         
     my $msm_stories = $db->query( 
         "select s.* from stories s, feeds_stories_map fsm, feeds_tags_map ftm " . 
@@ -165,13 +171,15 @@ sub print_story_pairs_csv
     {
         my $sim = $story_pair->{ similarity };
         my $stories = $story_pair->{ stories };
-        $csv->combine( $sim, map { ( $stories->[ 0 ]->{ $_ }, $stories->[ 1 ]->{ $_ } ) } qw/title url stories_id media_id publish_date/ );
+        my @values = map { ( $stories->[ 0 ]->{ $_ }, $stories->[ 1 ]->{ $_ } ) } qw/title url stories_id media_id publish_date/;
+        if ( !$csv->combine( $sim, map { Encode::encode( 'utf-8', $output ) } @values ) )
+        {
+            print STDERR "csv error: " . $csv->error_input . "\n";
+        }
         $output .= $csv->string . "\n";
     }
     
-    my $encoded_output = Encode::encode( 'utf-8', $output );
-    
-    print $encoded_output;   
+    print $output;   
 }
 
 sub main 
