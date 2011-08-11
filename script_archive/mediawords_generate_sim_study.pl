@@ -34,7 +34,7 @@ use constant BLOG_MEDIA_TAGS_ID => 8875108;
 use constant MSM_FEEDS_TAGS_ID => 8875180;
 
 # query only 1/STORY_QUERY_SAMPLE_RATE stories before generating the cossim matrix
-use constant STORY_QUERY_SAMPLE_RATE => 15;
+use constant STORY_QUERY_SAMPLE_RATE => 75;
 
 # exclude the following media sources
 use constant EXCLUDE_MEDIA_IDS => ( 6933 );
