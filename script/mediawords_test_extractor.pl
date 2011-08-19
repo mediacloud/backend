@@ -201,14 +201,14 @@ sub processDownload
 
     for my $extra_line_number ( @extra_lines )
     {
-        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+        my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
         my $line_text = $preprocessed_lines->[ $extra_line_number ];
 
         my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
 
         foreach my $sentence ( @{ $sentences } )
         {
-            my $dup_sentence = $db->query(
+            my $dup_sentence = $dbs->query(
                 "select * from story_sentence_counts " .
                   "  where sentence_md5 = md5( ? ) and media_id = ? and publish_week = date_trunc( 'week', ?::date )" .
                   "  order by story_sentence_counts_id limit 1",
@@ -322,8 +322,9 @@ sub extractAndScoreDownloads
     if ( $all_extra_sentences_total )
     {
         print " Extra sentences              : $all_extra_sentences_total\n";
+
         print " Extra sentences dedupped     : $all_extra_sentences_dedupped (" .
-          $all_extra_sentences_depudded / $all_extra_sentences_total . ")\n" .;
+          ( $all_extra_sentences_depudded / $all_extra_sentences_total ) . ")\n" .;
         print " Extra sentences not dedupped : $all_extra_sentences_dedupped (" .
           $all_extra_sentences_not_depudded / $all_extra_sentences_total . ")\n" .;
         print " Extra sentences missing : $all_extra_sentences_missing (" .
