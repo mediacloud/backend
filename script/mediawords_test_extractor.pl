@@ -203,16 +203,21 @@ sub processDownload
     my $extra_sentences_not_dedupped = 0;
     my $extra_sentences_missing      = 0;
 
+    my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
+    say Dumper( $story );
+
+
     for my $extra_line_number ( @extra_lines )
     {
-        my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
         my $line_text = $preprocessed_lines->[ $extra_line_number ];
 
 	say "Line text: $line_text";
 
-        my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
+	$line_text = html_strip( $line_text);
 
-	say Dumper( $story );
+	say "Line text no html: $line_text";
+
+        my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
 
         foreach my $sentence ( @{ $sentences } )
         {
