@@ -300,8 +300,8 @@ sub extractAndScoreDownloads
     my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
 
     my $all_extra_sentences_total        = sum( map { $_->{ extra_sentences_total } } @{ $download_results } );
-    my $all_extra_sentences_depupped     = sum( map { $_->{ extra_sentences_depudded } } @{ $download_results } );
-    my $all_extra_sentences_not_depupped = sum( map { $_->{ extra_sentences_not_depudded } } @{ $download_results } );
+    my $all_extra_sentences_dedupped     = sum( map { $_->{ extra_sentences_depudded } } @{ $download_results } );
+    my $all_extra_sentences_not_dedupped = sum( map { $_->{ extra_sentences_not_depudded } } @{ $download_results } );
     my $all_extra_sentences_missing      = sum( map { $_->{ extra_sentences_missing } } @{ $download_results } );
 
     print "$errors errors / " . scalar( @downloads ) . " downloads\n";
