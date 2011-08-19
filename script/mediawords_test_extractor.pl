@@ -21,6 +21,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use Lingua::EN::Sentence::MediaWords;
 use Perl6::Say;
+use Data::Dumper;
 
 my $_re_generate_cache = 0;
 
@@ -210,10 +211,12 @@ sub processDownload
 
         my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
 
+	say Dumper( $story );
+
         foreach my $sentence ( @{ $sentences } )
         {
 
-	    say "Sentence: $sentence ";
+	    say "Sentence: '$sentence'";
 
             my $dup_sentence = $dbs->query(
                 "select * from story_sentence_counts " .
