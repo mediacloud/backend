@@ -324,7 +324,7 @@ sub extractAndScoreDownloads
         print " Extra sentences              : $all_extra_sentences_total\n";
 
         print " Extra sentences dedupped     : $all_extra_sentences_dedupped (" .
-          ( $all_extra_sentences_dedudded / $all_extra_sentences_total ) . ")\n" ;
+          ( $all_extra_sentences_dedupped / $all_extra_sentences_total ) . ")\n" ;
         print " Extra sentences not dedupped : $all_extra_sentences_dedupped (" .
           $all_extra_sentences_not_dedupped / $all_extra_sentences_total . ")\n";
         print " Extra sentences missing : $all_extra_sentences_missing (" .
