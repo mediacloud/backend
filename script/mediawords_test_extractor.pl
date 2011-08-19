@@ -194,6 +194,50 @@ sub processDownload
         $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
     }
 
+    my $extra_sentences_total        = 0;
+    my $extra_sentences_dedupped     = 0;
+    my $extra_sentences_not_dedupped = 0;
+    my $extra_sentences_missing      = 0;
+
+    for my $extra_line_number ( @extra_lines )
+    {
+        my $story = $db->find_by_id( 'stories', $download->{ stories_id } );
+        my $line_text = $preprocessed_lines->[ $extra_line_number ];
+
+        my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
+
+        foreach my $sentence ( @{ $sentences } )
+        {
+            my $dup_sentence = $db->query(
+                "select * from story_sentence_counts " .
+                  "  where sentence_md5 = md5( ? ) and media_id = ? and publish_week = date_trunc( 'week', ?::date )" .
+                  "  order by story_sentence_counts_id limit 1",
+                $sentence,
+                $story->{ media_id },
+                $story->{ publish_date }
+            )->hash;
+
+            $extra_sentences_total++;
+
+            if ( $dup_sentence )
+            {
+                if ( $dup_sentence->{ count } <= 1 )
+                {
+                    $extra_sentences_not_dedupped++;
+                }
+                else
+                {
+                    $extra_sentences_dedupped++;
+                }
+            }
+            else
+            {
+                $extra_sentences_missing++;
+            }
+        }
+
+    }
+
     if ( $download_errors )
     {
         my $story_title =
@@ -215,9 +259,15 @@ sub processDownload
         extra_characters   => $extra_characters,
         errors             => $errors,
         missing_characters => $missing_characters,
-        accuracy           => $story_characters
-        ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
-        : 0
+        accuracy           => (
+            $story_characters
+            ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
+            : 0
+        ),
+        extra_sentences_total        => $extra_sentences_total,
+        extra_sentences_dedupped     => $extra_sentences_dedupped,
+        extra_sentences_not_dedupped => $extra_sentences_not_dedupped,
+        extra_sentences_missing      => $extra_sentences_missing,
     };
 }
 
@@ -249,6 +299,11 @@ sub extractAndScoreDownloads
     my $all_missing_lines      = sum( map { $_->{ missing_line_count } } @{ $download_results } );
     my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
 
+    my $all_extra_sentences_total        = sum( map { $_->{ extra_sentences_total } } @{ $download_results } );
+    my $all_extra_sentences_depupped     = sum( map { $_->{ extra_sentences_depudded } } @{ $download_results } );
+    my $all_extra_sentences_not_depupped = sum( map { $_->{ extra_sentences_not_depudded } } @{ $download_results } );
+    my $all_extra_sentences_missing      = sum( map { $_->{ extra_sentences_missing } } @{ $download_results } );
+
     print "$errors errors / " . scalar( @downloads ) . " downloads\n";
     print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
@@ -262,6 +317,18 @@ sub extractAndScoreDownloads
         print "characters: $all_story_characters story / $all_extra_characters (" .
           $all_extra_characters / $all_story_characters . ") extra / $all_missing_characters (" .
           $all_missing_characters / $all_story_characters . ") missing\n";
+    }
+
+    if ( $all_extra_sentences_total )
+    {
+        print " Extra sentences              : $all_extra_sentences_total\n";
+        print " Extra sentences dedupped     : $all_extra_sentences_dedupped (" .
+          $all_extra_sentences_depudded / $all_extra_sentences_total . ")\n" .;
+        print " Extra sentences not dedupped : $all_extra_sentences_dedupped (" .
+          $all_extra_sentences_not_depudded / $all_extra_sentences_total . ")\n" .;
+        print " Extra sentences missing : $all_extra_sentences_missing (" .
+          $all_extra_sentences_missing / $all_extra_sentences_total . ")\n" .;
+
     }
 }
 
