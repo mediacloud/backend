@@ -22,6 +22,7 @@ use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use Lingua::EN::Sentence::MediaWords;
 use Perl6::Say;
 use Data::Dumper;
+use MediaWords::Util::HTML;
 
 my $_re_generate_cache = 0;
 
@@ -216,6 +217,8 @@ sub processDownload
         foreach my $sentence ( @{ $sentences } )
         {
 
+	    $sentence = html_strip( $sentence )
+;
 	    say "Sentence: '$sentence'";
 
             my $dup_sentence = $dbs->query(
