@@ -20,6 +20,7 @@ use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use Lingua::EN::Sentence::MediaWords;
+use Perl6::Say;
 
 my $_re_generate_cache = 0;
 
@@ -205,10 +206,15 @@ sub processDownload
         my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
         my $line_text = $preprocessed_lines->[ $extra_line_number ];
 
+	say "Line text: $line_text";
+
         my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
 
         foreach my $sentence ( @{ $sentences } )
         {
+
+	    say "Sentence: $sentence ";
+
             my $dup_sentence = $dbs->query(
                 "select * from story_sentence_counts " .
                   "  where sentence_md5 = md5( ? ) and media_id = ? and publish_week = date_trunc( 'week', ?::date )" .
