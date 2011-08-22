@@ -269,7 +269,7 @@ sub processDownload
     my $extra_line_count   = scalar( @extra_lines );
     my $missing_line_count = scalar( @missing_lines );
 
-    return {
+    my $ret = {
         story_characters   => $story_characters,
         story_line_count   => $story_line_count,
         extra_line_count   => $extra_line_count,
@@ -287,6 +287,9 @@ sub processDownload
         extra_sentences_not_dedupped => $extra_sentences_not_dedupped,
         extra_sentences_missing      => $extra_sentences_missing,
     };
+
+    say Dumper( $ret );
+    return $ret;
 }
 
 sub extractAndScoreDownloads
