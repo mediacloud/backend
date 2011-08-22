@@ -205,10 +205,10 @@ sub processDownload
     my $extra_sentences_missing      = 0;
 
     my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
-    say Dumper( $story );
+    #say Dumper( $story );
 
 
-    for my $extra_line_number ( @extracted_lines )
+    for my $extra_line_number ( @extra_lines )
     {
         my $line_text = $preprocessed_lines->[ $extra_line_number ];
 
@@ -225,7 +225,7 @@ sub processDownload
 
 	    $sentence = html_strip( $sentence )
 ;
-	    say "Sentence: '$sentence'";
+	    #say "Sentence: '$sentence'";
 
             my $dup_sentence = $dbs->query(
                 "select * from story_sentence_counts " .
@@ -289,7 +289,7 @@ sub processDownload
         extra_sentences_missing      => $extra_sentences_missing,
     };
 
-    say Dumper( $ret );
+    #say Dumper( $ret );
     return $ret;
 }
 
