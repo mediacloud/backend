@@ -313,6 +313,8 @@ sub extractAndScoreDownloads
         push( @{ $download_results }, $download_result );
     }
 
+    say STDERR Dumper( $download_results );
+
     my $all_story_characters   = sum( map { $_->{ story_characters } } @{ $download_results } );
     my $all_extra_characters   = sum( map { $_->{ extra_characters } } @{ $download_results } );
     my $all_missing_characters = sum( map { $_->{ missing_characters } } @{ $download_results } );
