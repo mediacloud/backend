@@ -207,7 +207,7 @@ sub processDownload
     say Dumper( $story );
 
 
-    for my $extra_line_number ( @extra_lines )
+    for my $extra_line_number ( @extracted_lines )
     {
         my $line_text = $preprocessed_lines->[ $extra_line_number ];
 
