@@ -240,7 +240,7 @@ sub processDownload
 
             if ( $dup_sentence )
             {
-                if ( $dup_sentence->{ count } <= 1 )
+                if ( $dup_sentence->{ sentence_count } <= 1 )
                 {
                     $extra_sentences_not_dedupped++;
                 }
