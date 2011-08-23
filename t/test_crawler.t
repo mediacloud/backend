@@ -120,6 +120,9 @@ sub get_expanded_stories
 
         $story->{ story_sentence_words } =
           $db->query( "select * from story_sentence_words where stories_id = ?", $story->{ stories_id } )->hashes;
+
+        $story->{ story_sentences } =
+          $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ", $story->{ stories_id } )->hashes;
     }
 
     return $stories;
@@ -159,6 +162,11 @@ sub test_stories
             eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
+
+	    is ( scalar( @{ $story->{ story_sentences } } ), scalar( @{ $test_story->{ story_sentences } } ), "story sentence count" );
+
+	    cmp_deeply (  $story->{ story_sentences }, $test_story->{ story_sentences } , "story sentences " );
+
           TODO:
             {
                 my $fake_var;    #silence warnings
