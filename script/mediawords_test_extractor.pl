@@ -152,9 +152,15 @@ sub get_preprocessed_content_lines_for_download
 
 sub _get_sentence_info_for_lines
 {
-    my ( $lines, $dbs ) = @_;
+    my ( $line_numbers, $preprocessed_lines, $story, $dbs ) = @_;
 
-    for my $extra_line_number ( @{ $lines } )
+    my $extra_sentences_total        = 0;
+    my $extra_sentences_dedupped     = 0;
+    my $extra_sentences_not_dedupped = 0;
+    my $extra_sentences_missing      = 0;
+
+
+    for my $extra_line_number ( @{ $line_numbers } )
     {
         my $line_text = $preprocessed_lines->[ $extra_line_number ];
 
@@ -265,7 +271,7 @@ sub processDownload
 
     #say Dumper( $story );
 
-    my $extra_line_sentence_info = _get_sentence_info_for_lines( [ @extra_lines ], $dbs );
+    my $extra_line_sentence_info = _get_sentence_info_for_lines( [ @extra_lines ], $preprocessed_lines, $story, $dbs );
 
     my $extra_sentences_dedupped     = $extra_line_sentence_info->{ sentences_dupped };
     my $extra_sentences_not_dedupped = $extra_line_sentence_info->{ sentences_not_dupped };
