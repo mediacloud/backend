@@ -27,6 +27,7 @@ use Digest::SHA qw(sha1 sha1_hex sha1_base64);
 #use XML::LibXML::CDATASection;
 use Encode;
 use MIME::Base64;
+use Lingua::EN::Sentence::MediaWords;
 
 #use XML::LibXML::Enhanced;
 
@@ -61,6 +62,10 @@ sub store_preprocessed_result
 
     say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
     say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
+
+    my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $extract_results->{ extracted_text } ) || return;
+
+    say Dumper( $sentences );
 
     return;
 
