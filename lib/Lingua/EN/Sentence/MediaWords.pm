@@ -65,7 +65,7 @@ my @PLACES = (
     'arc', 'al', 'ave',  "blv?d", 'cl', 'ct',   'cres', 'dr',  "expy?", 'dist',
     'mt',  'ft', "fw?y", "hwa?y", 'la', "pde?", 'pl',   'plz', 'rd',    'st'
 );
-my @MONTHS = ( 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'sept' );
+my @MONTHS = ( 'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec', 'sept' );
 my @MISC = ( 'vs', 'etc', 'no', 'esp' );
 
 my @RU = ( 'ул', 'г', 'гор', 'г-жа' );
@@ -228,7 +228,7 @@ sub remove_false_end_of_sentence
     $marked_segment =~ s/(\.\.\. )$EOS([[:lower:]])/$1$2/sgo;
 
     # fix "." "?" "!"
-    $marked_segment =~ s/(['"]$P['"]\s+)$EOS/$1/sgo;
+    $marked_segment =~ s/(['"“]$P['"”]\s+)$EOS/$1/sgo;
     ## fix where abbreviations exist
     #foreach (@ABBREVIATIONS) { $marked_segment=~s/(\b$_$PAP\s)$EOS/$1/isgo; }
 
