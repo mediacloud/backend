@@ -3,6 +3,7 @@
 # test MediaWords::Crawler::Extractor against manually extracted downloads
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -19,6 +20,10 @@ use MediaWords::DBI::Downloads;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
+use Lingua::EN::Sentence::MediaWords;
+use Perl6::Say;
+use Data::Dumper;
+use MediaWords::Util::HTML;
 
 my $_re_generate_cache = 0;
 
@@ -194,6 +199,64 @@ sub processDownload
         $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
     }
 
+    my $extra_sentences_total        = 0;
+    my $extra_sentences_dedupped     = 0;
+    my $extra_sentences_not_dedupped = 0;
+    my $extra_sentences_missing      = 0;
+
+    my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
+    #say Dumper( $story );
+
+
+    for my $extra_line_number ( @extra_lines )
+    {
+        my $line_text = $preprocessed_lines->[ $extra_line_number ];
+
+	say "Line text: $line_text";
+
+	$line_text = html_strip( $line_text);
+
+	say "Line text no html: $line_text";
+
+        my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
+
+        foreach my $sentence ( @{ $sentences } )
+        {
+
+	    $sentence = html_strip( $sentence )
+;
+	    #say "Sentence: '$sentence'";
+
+            my $dup_sentence = $dbs->query(
+                "select * from story_sentence_counts " .
+                  "  where sentence_md5 = md5( ? ) and media_id = ? and publish_week = date_trunc( 'week', ?::date )" .
+                  "  order by story_sentence_counts_id limit 1",
+                $sentence,
+                $story->{ media_id },
+                $story->{ publish_date }
+            )->hash;
+
+            $extra_sentences_total++;
+
+            if ( $dup_sentence )
+            {
+                if ( $dup_sentence->{ sentence_count } <= 1 )
+                {
+                    $extra_sentences_not_dedupped++;
+                }
+                else
+                {
+                    $extra_sentences_dedupped++;
+                }
+            }
+            else
+            {
+                $extra_sentences_missing++;
+            }
+        }
+
+    }
+
     if ( $download_errors )
     {
         my $story_title =
@@ -207,7 +270,7 @@ sub processDownload
     my $extra_line_count   = scalar( @extra_lines );
     my $missing_line_count = scalar( @missing_lines );
 
-    return {
+    my $ret = {
         story_characters   => $story_characters,
         story_line_count   => $story_line_count,
         extra_line_count   => $extra_line_count,
@@ -215,10 +278,19 @@ sub processDownload
         extra_characters   => $extra_characters,
         errors             => $errors,
         missing_characters => $missing_characters,
-        accuracy           => $story_characters
-        ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
-        : 0
+        accuracy           => (
+            $story_characters
+            ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
+            : 0
+        ),
+        extra_sentences_total        => $extra_sentences_total,
+        extra_sentences_dedupped     => $extra_sentences_dedupped,
+        extra_sentences_not_dedupped => $extra_sentences_not_dedupped,
+        extra_sentences_missing      => $extra_sentences_missing,
     };
+
+    #say Dumper( $ret );
+    return $ret;
 }
 
 sub extractAndScoreDownloads
@@ -241,6 +313,8 @@ sub extractAndScoreDownloads
         push( @{ $download_results }, $download_result );
     }
 
+    say STDERR Dumper( $download_results );
+
     my $all_story_characters   = sum( map { $_->{ story_characters } } @{ $download_results } );
     my $all_extra_characters   = sum( map { $_->{ extra_characters } } @{ $download_results } );
     my $all_missing_characters = sum( map { $_->{ missing_characters } } @{ $download_results } );
@@ -248,6 +322,11 @@ sub extractAndScoreDownloads
     my $all_extra_lines        = sum( map { $_->{ extra_line_count } } @{ $download_results } );
     my $all_missing_lines      = sum( map { $_->{ missing_line_count } } @{ $download_results } );
     my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
+
+    my $all_extra_sentences_total        = sum( map { $_->{ extra_sentences_total } } @{ $download_results } );
+    my $all_extra_sentences_dedupped     = sum( map { $_->{ extra_sentences_dedupped } } @{ $download_results } );
+    my $all_extra_sentences_not_dedupped = sum( map { $_->{ extra_sentences_not_dedupped } } @{ $download_results } );
+    my $all_extra_sentences_missing      = sum( map { $_->{ extra_sentences_missing } } @{ $download_results } );
 
     print "$errors errors / " . scalar( @downloads ) . " downloads\n";
     print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
@@ -262,6 +341,19 @@ sub extractAndScoreDownloads
         print "characters: $all_story_characters story / $all_extra_characters (" .
           $all_extra_characters / $all_story_characters . ") extra / $all_missing_characters (" .
           $all_missing_characters / $all_story_characters . ") missing\n";
+    }
+
+    if ( $all_extra_sentences_total )
+    {
+        print " Extra sentences              : $all_extra_sentences_total\n";
+
+        print " Extra sentences dedupped     : $all_extra_sentences_dedupped (" .
+          ( $all_extra_sentences_dedupped / $all_extra_sentences_total ) . ")\n" ;
+        print " Extra sentences not dedupped : $all_extra_sentences_not_dedupped (" .
+          $all_extra_sentences_not_dedupped / $all_extra_sentences_total . ")\n";
+        print " Extra sentences missing : $all_extra_sentences_missing (" .
+          $all_extra_sentences_missing / $all_extra_sentences_total . ")\n" ;
+
     }
 }
 
