@@ -88,7 +88,7 @@ sub fetch_content_local
         return undef;
     }
 
-    if ( $download->{ path } =~ /^content:(.*)/ ) 
+    if ( $download->{ path } =~ /^content:(.*)/ )
     {
         my $content = $1;
         return \$content;
@@ -103,10 +103,10 @@ sub fetch_content_local
         warn( "Unable to parse download path: $download->{ path }" );
         return undef;
     }
-    
+
     my ( $starting_block, $num_blocks, $tar_file, $download_file ) = ( $1, $2, $3, $4 );
-    
-    my $config = MediaWords::Util::Config::get_config;
+
+    my $config   = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
     my $tar_path = "$data_dir/content/$tar_file";
 
@@ -117,9 +117,9 @@ sub fetch_content_local
     {
         warn( "Error gunzipping content for download $download->{ downloads_id }: $IO::Uncompress::Gunzip::GunzipError" );
     }
-    
+
     my $decoded_content = decode( 'utf-8', $content );
-    
+
     return \$decoded_content;
 }
 
@@ -228,21 +228,21 @@ sub extract_download
 }
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period
-# 
+#
 sub add_period_to_tagline
 {
     my ( $lines, $scores, $i ) = @_;
-    
+
     if ( ( $i < 1 ) || ( $i >= ( @{ $lines } - 1 ) ) )
     {
         return;
     }
-    
+
     if ( $scores->[ $i - 1 ]->{ is_story } || $scores->[ $i + 1 ]->{ is_story } )
     {
         return;
     }
-    
+
     if ( $lines->[ $i ] =~ m~[^\.]\s*</[a-z]+>$~i )
     {
         $lines->[ $i ] .= '.';
@@ -260,6 +260,106 @@ sub _do_extraction_from_content_ref
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
 
+sub _contains_block_level_tags
+{
+    my ( $string ) = @_;
+
+    if (
+        $string =~ m{
+            (
+                <h1> | <h2> | <h3> | <h4> | <h5> | <h6> | <p> | <div> | <dl> | <dt> | <dd> | <ol> | <ul> | <li> | <dir> |
+                  <menu> | <address> | <blockquote> | <center> | <div> | <hr> | <ins> | <noscript> | <pre>
+            )
+        }ix
+      )
+    {
+        return 1;
+    }
+
+    if (
+        $string =~ m{
+            (
+                </h1> | </h2> | </h3> | </h4> | </h5> | </h6> | </p> | </div> | </dl> | </dt> | </dd> | </ol> | </ul> |
+                  </li> | </dir> | </menu> | </address> | </blockquote> | </center> | </div> | </hr> | </ins> | </noscript> |
+                  </pre>
+            )
+        }ix
+      )
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+sub _new_lines_around_block_level_tags
+{
+    my ( $string ) = @_;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    return $string if ( !_contains_block_level_tags( $string ) );
+
+    $string =~ s{
+       (
+        <h1>|<h2>|<h3>|<h4>|<h5>|<h6>|
+        <p>|
+        <div>|
+	<dl>|
+	<dt>|
+	<dd>|
+	<ol>|
+	<ul>|
+	<li>|
+	<dir>|
+	<menu>|
+	<address>|
+	<blockquote>|
+	<center>|
+	<div>|
+	<hr>|
+	<ins>|
+	<noscript>|
+	<pre>
+      )
+      }
+      {\n\n$1}gsxi;
+
+    $string =~ s{
+       (
+        </h1>|</h2>|</h3>|</h4>|</h5>|</h6>|
+        </p>|
+        </div>|
+	</dl>|
+	</dt>|
+	</dd>|
+	</ol>|
+	</ul>|
+	</li>|
+	</dir>|
+	</menu>|
+	</address>|
+	</blockquote>|
+	</center>|
+	</div>|
+	</hr>|
+	</ins>|
+	</noscript>|
+	</pre>
+     )
+     }
+     {$1\n\n}gsxi;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    #exit;
+
+    #$string = 'sddd';
+
+    return $string;
+
+}
+
 sub extract_preprocessed_lines_for_story
 {
     my ( $lines, $story_title, $story_description ) = @_;
@@ -270,9 +370,16 @@ sub extract_preprocessed_lines_for_story
     for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
     {
         if ( $scores->[ $i ]->{ is_story } )
-        {        
+        {
+
             #add_period_to_tagline( $lines, $scores, $i );
-            $extracted_html .= ' ' . $lines->[ $i ];            
+            $extracted_html .= ' ' . _new_lines_around_block_level_tags( $lines->[ $i ] );
+        }
+        elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
+        {
+
+            # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+            $extracted_html .= "\n\n";
         }
     }
 
@@ -300,26 +407,22 @@ sub get_parent
 # get the relative path (to be used within the tarball) to store the given download
 # the path for a download is:
 # <media_id>/<year>/<month>/<day>/<hour>/<minute>[/<parent download_id>]/<download_id
-sub _get_download_path 
+sub _get_download_path
 {
     my ( $db, $download ) = @_;
 
     my $feed = $db->query( "select * from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
 
     my @date = ( $download->{ download_time } =~ /(\d\d\d\d)-(\d\d)-(\d\d).(\d\d):(\d\d):(\d\d)/ );
-    
-    my @path = ( 
-        sprintf( "%06d", $feed->{ media_id } ),
-        sprintf( "%06d", $feed->{ feeds_id } ),
-        @date
-    );
+
+    my @path = ( sprintf( "%06d", $feed->{ media_id } ), sprintf( "%06d", $feed->{ feeds_id } ), @date );
 
     for ( my $p = get_parent( $db, $download ) ; $p ; $p = get_parent( $db, $p ) )
     {
         push( @path, $p->{ downloads_id } );
     }
-    
-    push( @path, $download->{ downloads_id } . '.gz' ) ;
+
+    push( @path, $download->{ downloads_id } . '.gz' );
 
     return join( '/', @path );
 }
@@ -328,11 +431,11 @@ sub _get_download_path
 sub _get_tar_file
 {
     my ( $db, $download ) = @_;
-    
+
     my $date = $download->{ download_time };
     $date =~ s/(\d\d\d\d)-(\d\d)-(\d\d).*/$1$2$3/;
     my $file = "mediacloud-content-$date.tar";
-    
+
     return $file;
 }
 
@@ -344,12 +447,12 @@ sub store_content
     if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
     {
         my $state = 'success';
-	my $path  = 'content:' . $$content_ref;
+        my $path  = 'content:' . $$content_ref;
         $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
             $state, $path, $download->{ downloads_id } );
 
-	$download->{ state } = $state;
-	$download->{ path }  = $path;
+        $download->{ state } = $state;
+        $download->{ path }  = $path;
         return;
     }
 
@@ -360,7 +463,7 @@ sub store_content
 
     my $tar_file = _get_tar_file( $db, $download );
     my $tar_path = "$data_dir/content/$tar_file";
-        
+
     my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
 
     my $gzipped_content;
@@ -373,14 +476,14 @@ sub store_content
     }
 
     my ( $starting_block, $num_blocks ) = Archive::Tar::Indexed::append_file( $tar_path, \$gzipped_content, $download_path );
-    
+
     my $tar_id = "tar:$starting_block:$num_blocks:$tar_file:$download_path";
 
     $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
         'success', $tar_id, $download->{ downloads_id } );
 
     $download->{ state } = 'success';
-    $download->{ path  } = $tar_id;    
+    $download->{ path }  = $tar_id;
 }
 
 # convenience method to get the media_id for the download
@@ -402,13 +505,13 @@ sub get_media_id
 # convenience method to get the media source for the given download
 sub get_medium
 {
-   my ( $db, $download ) = @_;
+    my ( $db, $download ) = @_;
 
-   my $media_id = get_media_id( $db, $download );
+    my $media_id = get_media_id( $db, $download );
 
-   my $medium = $db->find_by_id( 'media', $media_id );
+    my $medium = $db->find_by_id( 'media', $media_id );
 
-   return $medium;
+    return $medium;
 }
 
 sub process_download_for_extractor
