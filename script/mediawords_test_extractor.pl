@@ -150,6 +150,73 @@ sub get_preprocessed_content_lines_for_download
     return $preprocessed_lines;
 }
 
+sub _get_sentence_info_for_lines
+{
+    my ( $line_numbers, $preprocessed_lines, $story, $dbs ) = @_;
+
+    my $sentences_total        = 0;
+    my $sentences_dedupped     = 0;
+    my $sentences_not_dedupped = 0;
+    my $sentences_missing      = 0;
+
+    for my $line_number ( @{ $line_numbers } )
+    {
+        my $line_text = $preprocessed_lines->[ $line_number ];
+
+        say "Line text: $line_text";
+
+        $line_text = html_strip( $line_text );
+
+        say "Line text no html: $line_text";
+
+        my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
+
+        foreach my $sentence ( @{ $sentences } )
+        {
+
+            $sentence = html_strip( $sentence );
+
+            #say "Sentence: '$sentence'";
+
+            my $dup_sentence = $dbs->query(
+                "select * from story_sentence_counts " .
+                  "  where sentence_md5 = md5( ? ) and media_id = ? and publish_week = date_trunc( 'week', ?::date )" .
+                  "  order by story_sentence_counts_id limit 1",
+                $sentence,
+                $story->{ media_id },
+                $story->{ publish_date }
+            )->hash;
+
+            $sentences_total++;
+
+            if ( $dup_sentence )
+            {
+                if ( $dup_sentence->{ sentence_count } <= 1 )
+                {
+                    $sentences_not_dedupped++;
+                }
+                else
+                {
+                    $sentences_dedupped++;
+                }
+            }
+            else
+            {
+                $sentences_missing++;
+            }
+        }
+
+    }
+
+    my $ret = {
+        sentences_total      => $sentences_total,
+        sentences_not_dupped => $sentences_not_dedupped,
+        sentences_dupped     => $sentences_dedupped,
+        sentences_missing    => $sentences_missing,
+    };
+
+}
+
 sub processDownload
 {
     ( my $download, my $dbs ) = @_;
@@ -179,6 +246,8 @@ sub processDownload
     my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
     my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
 
+    my @correctly_included_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@missing_lines, \@extra_lines ] ) ] );
+
     my $story_characters = get_character_count_for_story( $download, $line_should_be_in_story );
 
     my $download_errors;
@@ -199,63 +268,34 @@ sub processDownload
         $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
     }
 
-    my $extra_sentences_total        = 0;
-    my $extra_sentences_dedupped     = 0;
-    my $extra_sentences_not_dedupped = 0;
-    my $extra_sentences_missing      = 0;
-
     my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
+
     #say Dumper( $story );
 
+    my $extra_line_sentence_info = _get_sentence_info_for_lines( [ @extra_lines ], $preprocessed_lines, $story, $dbs );
 
-    for my $extra_line_number ( @extra_lines )
-    {
-        my $line_text = $preprocessed_lines->[ $extra_line_number ];
+    my $extra_sentences_dedupped     = $extra_line_sentence_info->{ sentences_dupped };
+    my $extra_sentences_not_dedupped = $extra_line_sentence_info->{ sentences_not_dupped };
+    my $extra_sentences_missing      = $extra_line_sentence_info->{ sentences_missing };
 
-	say "Line text: $line_text";
+    my $extra_sentences_total = $extra_line_sentence_info->{ sentences_total };
 
-	$line_text = html_strip( $line_text);
+    my $correctly_included_line_sentence_info =
+      _get_sentence_info_for_lines( [ @correctly_included_lines ], $preprocessed_lines, $story, $dbs );
 
-	say "Line text no html: $line_text";
+    my $correctly_included_sentences_dedupped     = $correctly_included_line_sentence_info->{ sentences_dupped };
+    my $correctly_included_sentences_not_dedupped = $correctly_included_line_sentence_info->{ sentences_not_dupped };
+    my $correctly_included_sentences_missing      = $correctly_included_line_sentence_info->{ sentences_missing };
 
-        my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
+    my $correctly_included_sentences_total = $correctly_included_line_sentence_info->{ sentences_total };
 
-        foreach my $sentence ( @{ $sentences } )
-        {
+    my $missing_line_sentence_info = _get_sentence_info_for_lines( [ @missing_lines ], $preprocessed_lines, $story, $dbs );
 
-	    $sentence = html_strip( $sentence )
-;
-	    #say "Sentence: '$sentence'";
+    my $missing_sentences_dedupped     = $missing_line_sentence_info->{ sentences_dupped };
+    my $missing_sentences_not_dedupped = $missing_line_sentence_info->{ sentences_not_dupped };
+    my $missing_sentences_missing      = $missing_line_sentence_info->{ sentences_missing };
 
-            my $dup_sentence = $dbs->query(
-                "select * from story_sentence_counts " .
-                  "  where sentence_md5 = md5( ? ) and media_id = ? and publish_week = date_trunc( 'week', ?::date )" .
-                  "  order by story_sentence_counts_id limit 1",
-                $sentence,
-                $story->{ media_id },
-                $story->{ publish_date }
-            )->hash;
-
-            $extra_sentences_total++;
-
-            if ( $dup_sentence )
-            {
-                if ( $dup_sentence->{ sentence_count } <= 1 )
-                {
-                    $extra_sentences_not_dedupped++;
-                }
-                else
-                {
-                    $extra_sentences_dedupped++;
-                }
-            }
-            else
-            {
-                $extra_sentences_missing++;
-            }
-        }
-
-    }
+    my $missing_sentences_total = $missing_line_sentence_info->{ sentences_total };
 
     if ( $download_errors )
     {
@@ -287,6 +327,16 @@ sub processDownload
         extra_sentences_dedupped     => $extra_sentences_dedupped,
         extra_sentences_not_dedupped => $extra_sentences_not_dedupped,
         extra_sentences_missing      => $extra_sentences_missing,
+
+        missing_sentences_total        => $missing_sentences_total,
+        missing_sentences_dedupped     => $missing_sentences_dedupped,
+        missing_sentences_not_dedupped => $missing_sentences_not_dedupped,
+        missing_sentences_missing      => $missing_sentences_missing,
+
+        correctly_included_sentences_total        => $correctly_included_sentences_total,
+        correctly_included_sentences_dedupped     => $correctly_included_sentences_dedupped,
+        correctly_included_sentences_not_dedupped => $correctly_included_sentences_not_dedupped,
+        correctly_included_sentences_missing      => $correctly_included_sentences_missing,
     };
 
     #say Dumper( $ret );
@@ -328,6 +378,20 @@ sub extractAndScoreDownloads
     my $all_extra_sentences_not_dedupped = sum( map { $_->{ extra_sentences_not_dedupped } } @{ $download_results } );
     my $all_extra_sentences_missing      = sum( map { $_->{ extra_sentences_missing } } @{ $download_results } );
 
+    my $all_missing_sentences_total        = sum( map { $_->{ missing_sentences_total } } @{ $download_results } );
+    my $all_missing_sentences_dedupped     = sum( map { $_->{ missing_sentences_dedupped } } @{ $download_results } );
+    my $all_missing_sentences_not_dedupped = sum( map { $_->{ missing_sentences_not_dedupped } } @{ $download_results } );
+    my $all_missing_sentences_missing      = sum( map { $_->{ missing_sentences_missing } } @{ $download_results } );
+
+    my $all_correctly_included_sentences_total =
+      sum( map { $_->{ correctly_included_sentences_total } } @{ $download_results } );
+    my $all_correctly_included_sentences_dedupped =
+      sum( map { $_->{ correctly_included_sentences_dedupped } } @{ $download_results } );
+    my $all_correctly_included_sentences_not_dedupped =
+      sum( map { $_->{ correctly_included_sentences_not_dedupped } } @{ $download_results } );
+    my $all_correctly_included_sentences_missing =
+      sum( map { $_->{ correctly_included_sentences_missing } } @{ $download_results } );
+
     print "$errors errors / " . scalar( @downloads ) . " downloads\n";
     print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
@@ -348,13 +412,39 @@ sub extractAndScoreDownloads
         print " Extra sentences              : $all_extra_sentences_total\n";
 
         print " Extra sentences dedupped     : $all_extra_sentences_dedupped (" .
-          ( $all_extra_sentences_dedupped / $all_extra_sentences_total ) . ")\n" ;
+          ( $all_extra_sentences_dedupped / $all_extra_sentences_total ) . ")\n";
         print " Extra sentences not dedupped : $all_extra_sentences_not_dedupped (" .
           $all_extra_sentences_not_dedupped / $all_extra_sentences_total . ")\n";
         print " Extra sentences missing : $all_extra_sentences_missing (" .
-          $all_extra_sentences_missing / $all_extra_sentences_total . ")\n" ;
+          $all_extra_sentences_missing / $all_extra_sentences_total . ")\n";
 
     }
+
+    if ( $all_correctly_included_sentences_total )
+    {
+        print " Correctly_Included sentences              : $all_correctly_included_sentences_total\n";
+
+        print " Correctly_Included sentences dedupped     : $all_correctly_included_sentences_dedupped (" .
+          ( $all_correctly_included_sentences_dedupped / $all_correctly_included_sentences_total ) . ")\n";
+        print " Correctly_Included sentences not dedupped : $all_correctly_included_sentences_not_dedupped (" .
+          $all_correctly_included_sentences_not_dedupped / $all_correctly_included_sentences_total . ")\n";
+        print " Correctly_Included sentences missing : $all_correctly_included_sentences_missing (" .
+          $all_correctly_included_sentences_missing / $all_correctly_included_sentences_total . ")\n";
+    }
+
+    if ( $all_missing_sentences_total )
+    {
+        print " Missing sentences              : $all_missing_sentences_total\n";
+
+        print " Missing sentences dedupped     : $all_missing_sentences_dedupped (" .
+          ( $all_missing_sentences_dedupped / $all_missing_sentences_total ) . ")\n";
+        print " Missing sentences not dedupped : $all_missing_sentences_not_dedupped (" .
+          $all_missing_sentences_not_dedupped / $all_missing_sentences_total . ")\n";
+        print " Missing sentences missing : $all_missing_sentences_missing (" .
+          $all_missing_sentences_missing / $all_missing_sentences_total . ")\n";
+
+    }
+
 }
 
 # do a test run of the text extractor
