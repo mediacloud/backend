@@ -63,7 +63,10 @@ sub store_preprocessed_result
     say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
     say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
 
+    say STDERR "Starting get_sentences ";
     my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $extract_results->{ extracted_text } ) || return;
+
+    say STDERR "Finished get_sentences ";
 
     say Dumper( $sentences );
 
