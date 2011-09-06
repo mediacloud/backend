@@ -94,7 +94,7 @@ sub get_sentences
     return [] unless defined $text;
 
     # this prevents a regexp bug from hanging the program in remove_false_end_of_sentence (see comement in function)
-	$text =~ s/[^[\n:alnum:][:punct:]]+/ /g;
+	$text =~ s/[^\n[:alnum:][:punct:]]+/ /g;
 	
 	# the above regexp and html stripping often leave a space before the period at the end of a sentence
 	$text =~ s/ +\./\./g;
