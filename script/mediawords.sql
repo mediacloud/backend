@@ -556,7 +556,12 @@ create table story_sentence_counts (
        first_sentence_number        int             not null
 );
 
+--# We have chossen not to make the 'story_sentence_counts_md5' index unique purely for performance reasons.
+--# Duplicate rows within this index are not desirable but are relatively rare in practice.
+--# Thus we have decided to avoid the performance and code complexity implications of a unique index
+-- See Issue 1599
 create index story_sentence_counts_md5 on story_sentence_counts( media_id, publish_week, sentence_md5 );
+
 create index story_sentence_counts_first_stories_id on story_sentence_counts( first_stories_id );
 
 create table story_sentence_words (

@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+use strict;
 
 BEGIN {
     $ENV{CATALYST_SCRIPT_GEN} = 40;
