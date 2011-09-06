@@ -15,7 +15,8 @@ use Archive::Tar::Indexed;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
-
+use MediaWords::DBI::DownloadTexts;
+use MediaWords::StoryVectors;
 use Perl6::Say;
 use Data::Dumper;
 
