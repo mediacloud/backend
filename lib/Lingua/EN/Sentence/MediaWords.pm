@@ -95,7 +95,12 @@ sub get_sentences
 
     # this prevents a regexp bug from hanging the program in remove_false_end_of_sentence (see comement in function)
 	$text =~ s/[^\n[:alnum:][:punct:]]+/ /g;
-	
+
+        #Further workaround for remove_false_end_of_sentence bug: add EOS for double newline then purge newlines
+        #For some reason we need to be this here instead in first_sentence_breaking
+        $text =~ s/\n\s*\n/$EOS/gso;
+	$text =~ s/[[:alnum:][:punct:]]+/ /g;
+
 	# the above regexp and html stripping often leave a space before the period at the end of a sentence
 	$text =~ s/ +\./\./g;
 	
