@@ -380,7 +380,7 @@ sub extract_preprocessed_lines_for_story
         {
 
             # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-            $extracted_html .= "\n\n";
+            #$extracted_html .= "\n\n";
         }
     }
 
