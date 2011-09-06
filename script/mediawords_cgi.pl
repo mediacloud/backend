@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 
+use strict;
 use Catalyst::ScriptRunner;
 Catalyst::ScriptRunner->run('MediaWords', 'CGI');
 
