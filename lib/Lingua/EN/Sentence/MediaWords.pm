@@ -100,6 +100,7 @@ sub get_sentences
         #For some reason we need to be this here instead in first_sentence_breaking
         $text =~ s/\n\s*\n/$EOS/gso;
 	$text =~ s/\n/ /g;
+	$text =~ s/\s+/ /g;
 
 	# the above regexp and html stripping often leave a space before the period at the end of a sentence
 	$text =~ s/ +\./\./g;
