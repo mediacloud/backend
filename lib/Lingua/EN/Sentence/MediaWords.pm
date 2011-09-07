@@ -111,6 +111,9 @@ sub get_sentences
 	$text =~ s/([[:lower:]])\.([[:upper:]])/$1. $2/g;
 	
 	my $marked_text = first_sentence_breaking($text);    
+
+	$marked_text =~ s/[^$EOS[:alnum:][:punct:]]+/ /g;
+
 	my $fixed_marked_text = remove_false_end_of_sentence($marked_text);
 	$fixed_marked_text = split_unsplit_stuff($fixed_marked_text);
 	my @sentences = split(/$EOS/,$fixed_marked_text);
