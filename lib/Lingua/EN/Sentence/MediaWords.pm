@@ -252,10 +252,10 @@ sub _apply_dangerous_regex
     my ( $text ) = @_;
 
     print "starting _apply_dangerous_regex\n";
-    #print Dumper( $text );
+    print Dumper( $text );
     print "\n";
     my $temp = $text;
-    $temp = encode_base64( $temp );
+    $temp = encode_base64( encode ( "utf8", $temp ) );
     print Dumper( $temp);
     print "\n";
 
@@ -287,7 +287,9 @@ sub remove_false_end_of_sentence
 
     #$marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
 
-    $marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
+    #$marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
+
+    $marked_segment = _apply_dangerous_regex( $marked_segment );
 
 #    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
 
