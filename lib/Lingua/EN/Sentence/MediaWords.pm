@@ -221,6 +221,9 @@ sub remove_false_end_of_sentence
 
     $marked_segment =~ s/([^-\w]\w$PAP\s)$EOS/$1/sgo;
 
+
+    $marked_segment =~ s/$EOS\s$EOS/$EOS/g;
+
     # this hangs unless we do the $text =~ s/[^[:alnum:][:punct:]]+/ /g; above
 
     #my $o = Regexp::Optimizer->new;
