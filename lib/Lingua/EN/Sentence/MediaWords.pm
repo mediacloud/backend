@@ -99,6 +99,7 @@ sub get_sentences
         #Further workaround for remove_false_end_of_sentence bug: add EOS for double newline then purge newlines
         #For some reason we need to be this here instead in first_sentence_breaking
         $text =~ s/\n\s*\n/\n\n/gso;
+        $text =~ s/\n\n\n*/\n\n/gso;
         $text =~ s/\n\n/$EOS/gso;
 	$text =~ s/\n/ /g;
 	$text =~ s/\s+/ /g;
@@ -221,7 +222,13 @@ sub remove_false_end_of_sentence
     $marked_segment =~ s/([^-\w]\w$PAP\s)$EOS/$1/sgo;
 
     # this hangs unless we do the $text =~ s/[^[:alnum:][:punct:]]+/ /g; above
+
+    #my $o = Regexp::Optimizer->new;
+    #my $re = $o->optimize( /([^-\w]\w$P)$EOS/ );
+    #my $re_hang = /([^-\w]\w$P)$EOS/sgo ;
+
     $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
+   # $marked_segment =~ s/$re_hang/$1/sgo;
 
     # don't split after a white-space followed by a single letter followed
     # by a dot followed by another whitespace.
