@@ -253,7 +253,9 @@ sub _apply_dangerous_regex
     print "starting _apply_dangerous_regex\n";
     print Dumper( $text );
     print "\n";
-    print encode_base64( $text );
+    my $temp = $text;
+    print encode_base64( $temp );
+    print "\n$temp";
     print "\n";
 
     $text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
