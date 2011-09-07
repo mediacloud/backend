@@ -11,6 +11,7 @@ require 5.005_03;
 use strict;
 use POSIX qw(locale_h);
 use utf8;
+use Data::Dumper;
 
 #==============================================================================
 #
@@ -214,6 +215,36 @@ sub set_locale
 #
 #==============================================================================
 
+sub _split_into_chunks
+{
+    my ( $text ) = @_;
+
+    my $string_length = length($text);
+
+    my $pos = 0;
+    
+    my $ret = [];
+
+    my $segment_length = 1000;
+
+    while ( $pos < $string_length )
+      {
+	 my $segment = substr $text, $pos, $segment_length;
+
+	 print Dumper( $segment );
+
+	 $pos += $segment_length;
+
+	 push @{$ret}, $segment;
+      }
+
+    print "DUMPERING\n";
+    print  Dumper ( [$ret] );
+    print "Dumped\n";
+
+    return $ret;
+}
+
 ## Please email me any suggestions for optimizing these RegExps.
 sub remove_false_end_of_sentence
 {
@@ -233,7 +264,9 @@ sub remove_false_end_of_sentence
 
     #$P   = q/[\.!?]/;            
 
-    $marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
+    #$marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
+
+    $marked_segment = join '', map { $_ =~ s/([^-\w]\w[\.!?])\001/$1/sgo; $_   }  @ {_split_into_chunks( $marked_segment )};
 
 #    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
 
