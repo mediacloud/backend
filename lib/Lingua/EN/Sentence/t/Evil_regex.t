@@ -24,6 +24,7 @@ use Lingua::Stem::Snowball;
 use MediaWords::Util::Stemmer;
 use Data::Dumper;
 use Encode;
+use MIME::Base64;
 
 my $test_string = <<'QUOTE';
 Sentence contain version 2.0 of the text. Foo.
@@ -33,11 +34,11 @@ QUOTE
 
 
 my $VAR1 = "ity.\x{201d} Cic";
+
 my $var1_base64 =  'aXR5LuKAnQEgQ2lj
 ';
 
-
-my $var1_base64_decoded = decode_base64 ( $var_base64 );
+my $var1_base64_decoded = decode_base64 ( $var1_base64 );
 
 say STDERR Dumper( $VAR1 );
 say STDERR Dumper( $var1_base64_decoded );
@@ -50,6 +51,6 @@ say STDERR Dumper( $fixed_var );
 
 {
     is( $VAR1, $expected_fixed_var, "sentence_split" );
-    is( $var1_based_decoded, $expected_fixed_var, "sentence_split" );
+    is( $var1_base64_decoded, $expected_fixed_var, "sentence_split" );
 
 }
