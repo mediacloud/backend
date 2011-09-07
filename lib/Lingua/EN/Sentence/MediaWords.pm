@@ -251,7 +251,7 @@ sub _apply_dangerous_regex
     my ( $text ) = @_;
 
     print "starting _apply_dangerous_regex\n";
-    print Dumper( $text );
+    #print Dumper( $text );
     print "\n";
     my $temp = $text;
     print encode_base64( $temp );
