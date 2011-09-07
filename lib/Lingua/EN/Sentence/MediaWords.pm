@@ -12,6 +12,7 @@ use strict;
 use POSIX qw(locale_h);
 use utf8;
 use Data::Dumper;
+use MIME::Base64;
 
 #==============================================================================
 #
@@ -252,10 +253,12 @@ sub _apply_dangerous_regex
     print "starting _apply_dangerous_regex\n";
     print Dumper( $text );
     print "\n";
+    print encode_base64( $text );
+    print "\n";
 
     $text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
 
-    print "Finished _apply_dangerous_regex\n";
+    print "Finished _apply_dangerous_regex\n\n";
 
     return $text;
 }
