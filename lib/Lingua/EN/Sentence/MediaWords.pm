@@ -230,7 +230,7 @@ sub remove_false_end_of_sentence
 
     #$P   = q/[\.!?]/;            
 
-    $marked_segment =~ s/([^-\w]\w[\.!?])$EOS/$1/sgo;
+    $marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
 
 #    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
 
