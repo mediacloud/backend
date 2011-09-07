@@ -13,6 +13,7 @@ use POSIX qw(locale_h);
 use utf8;
 use Data::Dumper;
 use MIME::Base64;
+use Encode;
 
 #==============================================================================
 #
