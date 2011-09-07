@@ -255,6 +255,8 @@ sub _apply_dangerous_regex
 
     $text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
 
+    print "Finished _apply_dangerous_regex\n";
+
     return $text;
 }
 
