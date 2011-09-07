@@ -225,7 +225,7 @@ sub remove_false_end_of_sentence
 
     #my $o = Regexp::Optimizer->new;
     #my $re = $o->optimize( /([^-\w]\w$P)$EOS/ );
-    #my $re_hang = /([^-\w]\w$P)$EOS/sgo ;
+    #my $re_hang = /([^-\w]\w$P)$EOS/so ;
 
     $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
    # $marked_segment =~ s/$re_hang/$1/sgo;
@@ -306,7 +306,7 @@ sub clean_sentences
 sub first_sentence_breaking
 {
     my ( $text ) = @_;
-    $text =~ s/\n\s*\n/$EOS/gso;       ## double new-line means a different sentence.
+    #$text =~ s/\n\s*\n/$EOS/gso;       ## double new-line means a different sentence.
     $text =~ s/($PAP\s)/$1$EOS/gso;
     $text =~ s/(\s\w$P)/$1$EOS/gso;    # breake also when single letter comes before punc.
     return $text;
