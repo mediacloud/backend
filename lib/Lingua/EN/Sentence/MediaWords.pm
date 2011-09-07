@@ -221,16 +221,19 @@ sub remove_false_end_of_sentence
 
     $marked_segment =~ s/([^-\w]\w$PAP\s)$EOS/$1/sgo;
 
-
-    $marked_segment =~ s/$EOS\s$EOS/$EOS/g;
-
     # this hangs unless we do the $text =~ s/[^[:alnum:][:punct:]]+/ /g; above
 
     #my $o = Regexp::Optimizer->new;
     #my $re = $o->optimize( /([^-\w]\w$P)$EOS/ );
     #my $re_hang = /([^-\w]\w$P)$EOS/so ;
 
-    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
+
+    #$P   = q/[\.!?]/;            
+
+    $marked_segment =~ s/([^-\w]\w[\.!?])$EOS/$1/sgo;
+
+#    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
+
    # $marked_segment =~ s/$re_hang/$1/sgo;
 
     # don't split after a white-space followed by a single letter followed
