@@ -167,6 +167,12 @@ sub limit_string_length
 #
 # NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
 # same transaction to avoid deadlocks
+#
+# NOTE ALSO: There is a known concurrency issue if this function is called by multiple threads see #1599
+# However, we have determined that the issue is rare enough in practice that it is not of particular concern.
+# So we have decided to simply leave things in place as they are rather than risk the performance and code complexity issues
+# of ensuring atomic updates. 
+#
 sub count_duplicate_sentences
 {
     my ( $db, $sentence, $sentence_number, $story ) = @_;
