@@ -128,9 +128,7 @@ sub _get_topic_chart_url_date_term_counts
         $media_set_group = $media_set_legend = '';
     }
 
-    my $date_term_counts = [
-        $c->dbis->query(
-            "select topic_words.publish_day, min( dt.query ) $media_set_legend as term, " .
+    my $sql =             "select topic_words.publish_day, min( dt.query ) $media_set_legend as term, " .
               "    sum( topic_words.total_count::float / all_words.total_count::float )::float as term_count " .
               "  from total_daily_words topic_words, total_daily_words all_words, dashboard_topics dt, media_sets ms " .
               "  where topic_words.media_sets_id in ( $media_sets_ids_list ) " .
@@ -139,7 +137,11 @@ sub _get_topic_chart_url_date_term_counts
               . "    and all_words.dashboard_topics_id is null and dt.dashboard_topics_id = topic_words.dashboard_topics_id "
               . "    and $date_clause "
               . "    and ms.media_sets_id = topic_words.media_sets_id "
-              . "  group by topic_words.publish_day, dt.dashboard_topics_id $media_set_group"
+              . "  group by topic_words.publish_day, dt.dashboard_topics_id $media_set_group";
+
+    say STDERR "$sql";
+    my $date_term_counts = [
+        $c->dbis->query( $sql
           )->arrays
     ];
 
