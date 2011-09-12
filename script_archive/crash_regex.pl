@@ -36,7 +36,11 @@ sub hang_regex
 {
     my ( $text ) = @_;
 
+    print STDERR "starting hang_regex\n";
+
     $text =~ s/([^-\w]\w\.)\001/$1/sgo; 
+
+    print STDERR "finished hang_regex\n";
 
     return $text;
 }
@@ -47,7 +51,9 @@ my $var2_base64_decoded = decode ( "utf8", decode_base64 ( $VAR2 ) );
 
 say STDERR Dumper( $VAR2);
 say STDERR Dumper( $var2_base64_decoded );
-Lingua::EN::Sentence::MediaWords::_apply_dangerous_regex ( $var2_base64_decoded );
+
 hang_regex ( $var2_base64_decoded );
+
+Lingua::EN::Sentence::MediaWords::_apply_dangerous_regex ( $var2_base64_decoded );
 
 say STDERR "Survived dangerous regular expression";
