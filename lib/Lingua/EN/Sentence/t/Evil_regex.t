@@ -60,6 +60,9 @@ my $VAR2 = '0L/QvtGA0Y/QtNC60LDQvC4BIFRhZ3M6INCe0L/Qv9C+0LfQuNGG0LjRjyAB';
 
 my $var2_base64_decoded = decode_base64 ( $var1_base64 );
 
+say STDERR Dumper( $VAR2);
+say STDERR Dumper( $var2_base64_decoded );
+
 my $fixed_var = Lingua::EN::Sentence::MediaWords::_apply_dangerous_regex ( $var2_base64_decoded );
 
 say STDERR "Survived dangerous regular expression";
