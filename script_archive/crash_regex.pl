@@ -37,8 +37,8 @@ use vars qw/$VERSION @ISA @EXPORT_OK $EOS $LOC $AP $P $PAP @ABBREVIATIONS/;
 use Carp qw/cluck/;
 
 # LC_CTYPE now in locale "French, Canada, codeset ISO 8859-1"
-$LOC = setlocale( LC_CTYPE, "fr_CA.ISO8859-1" );
-use locale;
+#$LOC = setlocale( LC_CTYPE, "fr_CA.ISO8859-1" );
+#use locale;
 
 sub hang_regex
 {
