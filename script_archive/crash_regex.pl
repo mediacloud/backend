@@ -31,6 +31,7 @@ use MediaWords::Util::Stemmer;
 use Data::Dumper;
 use Encode;
 use MIME::Base64;
+use Regexp::Optimizer;
 
 sub hang_regex
 {
