@@ -256,9 +256,11 @@ sub _apply_dangerous_regex
       utf8::upgrade( $text );
       print Dumper( $text );
       print "\n";
+
     };
 
     my $temp = $text;
+    print Dumper( $temp );
     utf8::upgrade( $temp );
     my $temp_base64 = encode_base64( $temp );
 
