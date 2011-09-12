@@ -227,7 +227,7 @@ sub _split_into_chunks
     
     my $ret = [];
 
-    my $segment_length = 100;
+    my $segment_length = 10;
 
     while ( $pos < $string_length )
       {
@@ -276,8 +276,13 @@ sub _apply_dangerous_regex
 
     #$text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
 
+    print "starting _apply_dangerous_regex part 1\n";
+
     $text =~ s/([^-\w]\w\.)\001/$1/sgo; 
+
+    print "starting _apply_dangerous_regex part 2\n";
     $text =~ s/([^-\w]\w\!)\001/$1/sgo; 
+    print "starting _apply_dangerous_regex part 3\n";
     $text =~ s/([^-\w]\w\?)\001/$1/sgo; 
     print "Finished _apply_dangerous_regex\n\n";
 
