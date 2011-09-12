@@ -58,7 +58,7 @@ say STDERR Dumper( $fixed_var );
 
 my $VAR2 = '0L/QvtGA0Y/QtNC60LDQvC4B';
 
-my $var2_base64_decoded = decode ( "utf8", decode_base64 ( $var1_base64 ) );
+my $var2_base64_decoded = decode ( "utf8", decode_base64 ( $VAR2 ) );
 
 say STDERR Dumper( $VAR2);
 say STDERR Dumper( $var2_base64_decoded );
