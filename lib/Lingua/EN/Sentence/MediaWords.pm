@@ -252,15 +252,21 @@ sub _apply_dangerous_regex
     my ( $text ) = @_;
 
     print "starting _apply_dangerous_regex\n";
-    print Dumper( $text );
-    print "\n";
+    eval {
+      print Dumper( $text );
+      print "\n";
+    };
+
     my $temp = $text;
     $temp = encode_base64( encode ( "utf8", $temp ) );
     print Dumper( $temp);
     print "\n";
 
-    $text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
+    #$text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
 
+    $text =~ s/([^-\w]\w\.)\001/$1/sgo; 
+    $text =~ s/([^-\w]\w\!)\001/$1/sgo; 
+    $text =~ s/([^-\w]\w\?)\001/$1/sgo; 
     print "Finished _apply_dangerous_regex\n\n";
 
     return $text;
