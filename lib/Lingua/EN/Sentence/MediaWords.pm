@@ -314,9 +314,9 @@ sub remove_false_end_of_sentence
 
     #$marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
 
-    $marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
+    #$marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
 
-    #$marked_segment = _apply_dangerous_regex( $marked_segment );
+    $marked_segment = _apply_dangerous_regex( $marked_segment );
 
 #    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
 
