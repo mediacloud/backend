@@ -262,8 +262,10 @@ sub _apply_dangerous_regex
     utf8::upgrade( $temp );
     my $temp_base64 = encode_base64( $temp );
 
-    print $temp_base64;
-    print "\n";
+    eval {
+      print $temp_base64;
+      print "\n";
+    };
 
     utf8::upgrade( $temp_base64 );
 
