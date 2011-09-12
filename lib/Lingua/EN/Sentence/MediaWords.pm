@@ -260,7 +260,7 @@ sub _apply_dangerous_regex
 
     my $temp = $text;
     utf8::upgrade( $temp );
-    $temp_base64 = encode_base64( $temp );
+    my $temp_base64 = encode_base64( $temp );
     print Dumper( $temp_base64);
     print "\n";
 
