@@ -55,3 +55,11 @@ say STDERR Dumper( $fixed_var );
     is( $var1_base64_decoded, $expected_fixed_var, "sentence_split" );
 
 }
+
+my $VAR2 = '0L/QvtGA0Y/QtNC60LDQvC4BIFRhZ3M6INCe0L/Qv9C+0LfQuNGG0LjRjyAB';
+
+my $var2_base64_decoded = decode ( "utf8", decode_base64 ( $var1_base64 ) );
+
+my $fixed_var = Lingua::EN::Sentence::MediaWords::_apply_dangerous_regex ( $var1_base64_decoded );
+
+say STDERR "Survived dangerous regular expression";
