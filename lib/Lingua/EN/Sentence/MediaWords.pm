@@ -265,7 +265,7 @@ sub _apply_dangerous_regex
     my $temp_base64 = encode_base64( encode("UTF-8", $temp ) );
 
     eval {
-      print $temp_base64;
+      print "Based64 encoded: '$temp_base64'";
       print "\n";
     };
 
