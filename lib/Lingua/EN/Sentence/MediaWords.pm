@@ -253,6 +253,7 @@ sub _apply_dangerous_regex
 
     print "starting _apply_dangerous_regex\n";
     eval {
+      utf8::encode($text );
       print Dumper( $text );
       print "\n";
     };
