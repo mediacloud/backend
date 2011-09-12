@@ -227,7 +227,7 @@ sub _split_into_chunks
     
     my $ret = [];
 
-    my $segment_length = 10;
+    my $segment_length = 5;
 
     while ( $pos < $string_length )
       {
