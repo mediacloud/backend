@@ -32,6 +32,7 @@ use Data::Dumper;
 use Encode;
 use MIME::Base64;
 use Regexp::Optimizer;
+use POSIX qw(locale_h);
 
 sub hang_regex
 {
