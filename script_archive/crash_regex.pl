@@ -91,6 +91,6 @@ say STDERR Dumper( $var2_base64_decoded );
 
 hang_regex ( $var2_base64_decoded );
 
-Lingua::EN::Sentence::MediaWords::_apply_dangerous_regex ( $var2_base64_decoded );
+#Lingua::EN::Sentence::MediaWords::_apply_dangerous_regex ( $var2_base64_decoded );
 
 say STDERR "Survived dangerous regular expression";
