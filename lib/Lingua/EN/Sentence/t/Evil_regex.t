@@ -56,7 +56,7 @@ say STDERR Dumper( $fixed_var );
 
 }
 
-my $VAR2 = '0L/QvtGA0Y/QtNC60LDQvC4BIFRhZ3M6INCe0L/Qv9C+0LfQuNGG0LjRjyAB';
+my $VAR2 = '0L/QvtGA0Y/QtNC60LDQvC4B';
 
 my $var2_base64_decoded = decode_base64 ( $var1_base64 );
 
