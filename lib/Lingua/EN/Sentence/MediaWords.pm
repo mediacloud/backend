@@ -262,7 +262,7 @@ sub _apply_dangerous_regex
     my $temp = $text;
     print Dumper( $temp );
     utf8::upgrade( $temp );
-    my $temp_base64 = encode_base64( $temp );
+    my $temp_base64 = encode_base64( encode("UTF-8", $temp ) );
 
     eval {
       print $temp_base64;
