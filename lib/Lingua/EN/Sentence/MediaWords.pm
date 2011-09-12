@@ -253,13 +253,14 @@ sub _apply_dangerous_regex
 
     print "starting _apply_dangerous_regex\n";
     eval {
-      #utf8::upgrade( $text );
+      utf8::upgrade( $text );
       print Dumper( $text );
       print "\n";
     };
 
     my $temp = $text;
-    $temp = encode_base64( encode ( "utf8", $temp ) );
+    utf8::upgrade( $temp );
+    $temp = encode_base64( $temp );
     print Dumper( $temp);
     print "\n";
 
