@@ -227,7 +227,7 @@ sub _split_into_chunks
     
     my $ret = [];
 
-    my $segment_length = 1000;
+    my $segment_length = 100;
 
     while ( $pos < $string_length )
       {
@@ -305,9 +305,9 @@ sub remove_false_end_of_sentence
 
     #$marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
 
-    #$marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
+    $marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
 
-    $marked_segment = _apply_dangerous_regex( $marked_segment );
+    #$marked_segment = _apply_dangerous_regex( $marked_segment );
 
 #    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
 
