@@ -258,8 +258,8 @@ sub _apply_dangerous_regex
     print "starting _apply_dangerous_regex\n";
     eval {
       #utf8::upgrade( $text );
-      print Dumper( $text );
-      print "\n";
+      #print Dumper( $text );
+      #print "\n";
 
     };
 
@@ -269,24 +269,24 @@ sub _apply_dangerous_regex
     my $temp_base64 = encode_base64( encode("UTF-8", $temp ) );
 
     eval {
-      print "Based64 encoded: '$temp_base64'";
-      print "\n";
+      #print "Based64 encoded: '$temp_base64'";
+      #print "\n";
     };
 
-    utf8::upgrade( $temp_base64 );
+    #utf8::upgrade( $temp_base64 );
 
-    print Dumper ($temp_base64);
-    print "\n";
+    #print Dumper ($temp_base64);
+    #print "\n";
 
     #$text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
 
-    print "starting _apply_dangerous_regex part 1\n";
+    #print "starting _apply_dangerous_regex part 1\n";
 
     $text =~ s/([^-\w]\w\.)\001/$1/sgo; 
 
-    print "starting _apply_dangerous_regex part 2\n";
+    #print "starting _apply_dangerous_regex part 2\n";
     $text =~ s/([^-\w]\w\!)\001/$1/sgo; 
-    print "starting _apply_dangerous_regex part 3\n";
+    #print "starting _apply_dangerous_regex part 3\n";
     $text =~ s/([^-\w]\w\?)\001/$1/sgo; 
     print "Finished _apply_dangerous_regex\n\n";
 
