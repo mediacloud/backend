@@ -58,7 +58,7 @@ say STDERR Dumper( $fixed_var );
 
 my $VAR2 = '0L/QvtGA0Y/QtNC60LDQvC4BIFRhZ3M6INCe0L/Qv9C+0LfQuNGG0LjRjyAB';
 
-my $var2_base64_decoded = decode ( "utf8", decode_base64 ( $var1_base64 ) );
+my $var2_base64_decoded = decode_base64 ( $var1_base64 );
 
 my $fixed_var = Lingua::EN::Sentence::MediaWords::_apply_dangerous_regex ( $var2_base64_decoded );
 
