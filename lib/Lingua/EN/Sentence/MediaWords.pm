@@ -14,6 +14,7 @@ use utf8;
 use Data::Dumper;
 use MIME::Base64;
 use Encode;
+use Lingua::EN::Sentence::ApplyRegexWithoutLocale;
 
 #==============================================================================
 #
@@ -250,6 +251,9 @@ sub _split_into_chunks
 sub _apply_dangerous_regex
 {
     my ( $text ) = @_;
+
+    return Lingua::EN::Sentence::ApplyRegexWithoutLocale::_apply_dangerous_regex( $text );
+
 
     print "starting _apply_dangerous_regex\n";
     eval {
