@@ -261,7 +261,13 @@ sub _apply_dangerous_regex
     my $temp = $text;
     utf8::upgrade( $temp );
     my $temp_base64 = encode_base64( $temp );
-    print Dumper( $temp_base64);
+
+    print $temp_base64;
+    print "\n";
+
+    utf8::upgrade( $temp_base64 );
+
+    print Dumper ($temp_base64);
     print "\n";
 
     #$text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
