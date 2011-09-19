@@ -181,7 +181,7 @@ sub generate_google_data_table_from_dates
         $i++;
     }
 
-    print STDERR $datatable->output_json();
+    eval { print STDERR $datatable->output_json(); };
 
     return $datatable;
 }
