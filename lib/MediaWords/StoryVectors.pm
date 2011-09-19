@@ -171,7 +171,7 @@ sub limit_string_length
 # NOTE ALSO: There is a known concurrency issue if this function is called by multiple threads see #1599
 # However, we have determined that the issue is rare enough in practice that it is not of particular concern.
 # So we have decided to simply leave things in place as they are rather than risk the performance and code complexity issues
-# of ensuring atomic updates. 
+# of ensuring atomic updates.
 #
 sub count_duplicate_sentences
 {
@@ -535,7 +535,7 @@ sub _update_top_500_weekly_author_words
 
 sub _update_daily_stories_counts
 {
-   my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
     say STDERR "aggregate: update_daily_stories_counts $sql_date";
 
@@ -552,19 +552,18 @@ sub _update_daily_stories_counts
     if ( !$dashboard_topics_id )
     {
 
-        my $sql = 
-	      "insert into daily_story_count (media_sets_id, dashboard_topics_id, publish_day, story_count) " .
-              "                     select media_sets_id, null as dashboard_topics_id,  " .
-              "                      min(publish_day) as publish_day, count(*) as story_count" .
-              "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
-              "                      where ssw.publish_day = '${sql_date}'::date and " .
-              "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
-              "                      group by msmm.media_sets_id, ssw.publish_day "  ;
+        my $sql =
+          "insert into daily_story_count (media_sets_id, dashboard_topics_id, publish_day, story_count) " .
+          "                     select media_sets_id, null as dashboard_topics_id,  " .
+          "                      min(publish_day) as publish_day, count(*) as story_count" .
+          "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
+          "                      where ssw.publish_day = '${sql_date}'::date and " .
+          "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
+          "                      group by msmm.media_sets_id, ssw.publish_day ";
 
         $db->query( $sql );
 
     }
-
 
 }
 
@@ -580,8 +579,7 @@ sub _update_daily_words
     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
     $db->query( "delete from daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
-    $db->query(
-        "delete from total_daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
+    $db->query( "delete from total_daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
 
     if ( !$dashboard_topics_id )
     {
@@ -769,25 +767,22 @@ sub _update_weekly_words
     # between for dates
     my $week_dates = _get_week_dates_list( $sql_date );
 
-    $db->query(
-        "delete from weekly_words where publish_week = '${ sql_date }'::date  $update_clauses " );
+    $db->query( "delete from weekly_words where publish_week = '${ sql_date }'::date  $update_clauses " );
 
     my $query =
-	       "insert into weekly_words (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
-          "  select media_sets_id, term, stem, sum_stem_counts, publish_week, dashboard_topics_id from      " .
-          "   (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
-          "     sum(stem_count_sum) over w as sum_stem_counts  from " .
-          "(  select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
-          " '${ sql_date }'::date as publish_week, dashboard_topics_id from daily_words " .
-          "    where publish_day in ( $week_dates ) $update_clauses " .
-          "    group by media_sets_id, stem, term, dashboard_topics_id ) as foo" .
-          " WINDOW w  as (partition by media_sets_id, stem, publish_week,  dashboard_topics_id  ) " .
-          "	               )  q                                                         " .
-          "              where term_rank = 1 ";
+      "insert into weekly_words (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
+      "  select media_sets_id, term, stem, sum_stem_counts, publish_week, dashboard_topics_id from      " .
+      "   (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+      "     sum(stem_count_sum) over w as sum_stem_counts  from " .
+      "(  select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
+      " '${ sql_date }'::date as publish_week, dashboard_topics_id from daily_words " .
+      "    where publish_day in ( $week_dates ) $update_clauses " .
+      "    group by media_sets_id, stem, term, dashboard_topics_id ) as foo" .
+      " WINDOW w  as (partition by media_sets_id, stem, publish_week,  dashboard_topics_id  ) " .
+      "	               )  q                                                         " . "              where term_rank = 1 ";
 
     #say STDERR "query:\n$query";
     $db->query( $query );
-
 
     return 1;
 }
@@ -819,8 +814,7 @@ sub _update_weekly_author_words
       "        and date_trunc( 'week', '${sql_date}'::date )  + interval '6 days' $update_clauses " .
       "    group by media_sets_id, stem, term, authors_id ) as foo" .
       " WINDOW w  as (partition by media_sets_id, stem, publish_week, authors_id  ) " .
-      "	               )  q                                                         " .
-      "              where term_rank = 1 ";
+      "	               )  q                                                         " . "              where term_rank = 1 ";
 
     say STDERR "running  weekly_author_words query:$query";
 
@@ -894,7 +888,7 @@ sub update_aggregate_words
     $start_date ||= '2008-06-01';
     $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
 
-   say STDERR "update_aggregate_words start_date: '$start_date' end_date:'$end_date' ";
+    say STDERR "update_aggregate_words start_date: '$start_date' end_date:'$end_date' ";
 
     $start_date = _truncate_as_day( $start_date );
     $end_date   = _truncate_as_day( $end_date );
@@ -906,7 +900,7 @@ sub update_aggregate_words
     {
         say STDERR "update_aggregate_words: $date ($start_date - $end_date) $days";
 
-	#_update_daily_stories_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
+        #_update_daily_stories_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
 
         if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
         {
