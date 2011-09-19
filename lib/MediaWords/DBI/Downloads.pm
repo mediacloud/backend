@@ -367,20 +367,36 @@ sub extract_preprocessed_lines_for_story
 
     my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
 
+    my $config = MediaWords::Util::Config::get_config;
+    my $dont_add_double_new_line_for_block_elements = $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes';
+
     my $extracted_html = '';
     for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
     {
         if ( $scores->[ $i ]->{ is_story } )
         {
+	    my $line_text;
 
-            #add_period_to_tagline( $lines, $scores, $i );
+	    unless ( $dont_add_double_new_line_for_block_elements )
+	    {
+
+	      $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
+	    }
+	    else
+	    {
+	      $line_text = $lines->[ $i ];
+	    }
+
             $extracted_html .= ' ' . _new_lines_around_block_level_tags( $lines->[ $i ] );
         }
         elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
         {
 
-            # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-            #$extracted_html .= "\n\n";
+	    unless ( $dont_add_double_new_line_for_block_elements )
+	    {
+	        # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+	        $extracted_html .= "\n\n";
+	    }
         }
     }
 
