@@ -65,3 +65,6 @@ mail:
 
     #Uncomment to put the site into overload. This disables functionality so that the site can handle more traffic.
     #site_overload_mode: "yes"
+
+    # Uncomment to allow sentences to cross block level html elments such a <p> or <div> 
+    #disable_block_element_sentence_splitting: "yes"
