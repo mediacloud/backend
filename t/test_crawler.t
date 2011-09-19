@@ -162,6 +162,8 @@ sub test_stories
         my $test_story = $test_story_hash->{ $story->{ title } };
         if ( ok( $test_story, "story match: " . $story->{ title } ) )
         {
+	    #$story->{ extracted_text } =~ s/\n\n\n*/\n\n/g;
+
             for my $field ( qw(publish_date description guid extracted_text) )
             {
                 oldstyle_diff;
