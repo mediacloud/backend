@@ -52,7 +52,7 @@ say STDERR Dumper( $fixed_var );
 
 {
     #is( $VAR1, $expected_fixed_var, "sentence_split" );
-    is( $var1_base64_decoded, $expected_fixed_var, "sentence_split" );
+    is( $var1_base64_decoded, $fixed_var, "sentence_split" );
 
 }
 
