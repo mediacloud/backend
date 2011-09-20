@@ -369,7 +369,8 @@ sub extract_preprocessed_lines_for_story
 
     my $config = MediaWords::Util::Config::get_config;
     my $dont_add_double_new_line_for_block_elements =
-      $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes';
+      defined( $config->{ mediawords }->{ disable_block_element_sentence_splitting } )
+      && ( $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes' );
 
     my $extracted_html = '';
 
