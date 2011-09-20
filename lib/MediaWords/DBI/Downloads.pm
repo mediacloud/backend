@@ -371,11 +371,17 @@ sub extract_preprocessed_lines_for_story
     my $dont_add_double_new_line_for_block_elements = $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes';
 
     my $extracted_html = '';
+
+    # This variable is used to make sure we don't add unnecessary double newlines
+    my $previous_concated_line_was_story = 0;
+
     for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
     {
         if ( $scores->[ $i ]->{ is_story } )
         {
 	    my $line_text;
+
+	    $previous_concated_line_was_story = 1;
 
 	    unless ( $dont_add_double_new_line_for_block_elements )
 	    {
@@ -387,15 +393,22 @@ sub extract_preprocessed_lines_for_story
 	      $line_text = $lines->[ $i ];
 	    }
 
-            $extracted_html .= ' ' . _new_lines_around_block_level_tags( $lines->[ $i ] );
+            $extracted_html .= ' ' . $line_text;
         }
         elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
         {
 
 	    unless ( $dont_add_double_new_line_for_block_elements )
 	    {
-	        # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-	        $extracted_html .= "\n\n";
+	        ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
+	        if ( $previous_concated_line_was_story )  
+		{   
+
+		    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+		    $extracted_html .= "\n\n";
+
+		    $previous_concated_line_was_story = 0;
+	        }
 	    }
         }
     }
