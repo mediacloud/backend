@@ -92,7 +92,15 @@ sub get_value_of_base_64_node
             $story_title, $story_description );
 
         my $expected_extracted_html = get_value_of_base_64_node( $root, 'extracted_html_base64' );
-        is( $extract_results->{ extracted_html }, $expected_extracted_html, "extracted html $xml_file" );
+
+	my $expected_extracted_html_ignore_sentence_splitting = $expected_extracted_html;
+
+	$expected_extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
+
+	my $extracted_html_ignore_sentence_splitting =  $extract_results->{ extracted_html };
+	$extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
+
+        is( $extracted_html_ignore_sentence_splitting, $expected_extracted_html_ignore_sentence_splitting, "extracted html $xml_file" );
 
         my $expected_extracted_text = get_value_of_base_64_node( $root, 'extracted_text_base64' );
 

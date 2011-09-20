@@ -11,6 +11,10 @@ require 5.005_03;
 use strict;
 use POSIX qw(locale_h);
 use utf8;
+use Data::Dumper;
+use MIME::Base64;
+use Encode;
+use Lingua::EN::Sentence::ApplyRegexWithoutLocale;
 
 #==============================================================================
 #
@@ -94,8 +98,16 @@ sub get_sentences
     return [] unless defined $text;
 
     # this prevents a regexp bug from hanging the program in remove_false_end_of_sentence (see comement in function)
-	$text =~ s/[^[:alnum:][:punct:]]+/ /g;
-	
+	$text =~ s/[^\n[:alnum:][:punct:]]+/ /g;
+
+        #Further workaround for remove_false_end_of_sentence bug: add EOS for double newline then purge newlines
+        #For some reason we need to be this here instead in first_sentence_breaking
+        $text =~ s/\n\s*\n/\n\n/gso;
+        $text =~ s/\n\n\n*/\n\n/gso;
+        $text =~ s/\n\n/$EOS/gso;
+	$text =~ s/\n/ /g;
+	$text =~ s/\s+/ /g;
+
 	# the above regexp and html stripping often leave a space before the period at the end of a sentence
 	$text =~ s/ +\./\./g;
 	
@@ -103,6 +115,9 @@ sub get_sentences
 	$text =~ s/([[:lower:]])\.([[:upper:]])/$1. $2/g;
 	
 	my $marked_text = first_sentence_breaking($text);    
+
+	$marked_text =~ s/[^$EOS[:alnum:][:punct:]]+/ /g;
+
 	my $fixed_marked_text = remove_false_end_of_sentence($marked_text);
 	$fixed_marked_text = split_unsplit_stuff($fixed_marked_text);
 	my @sentences = split(/$EOS/,$fixed_marked_text);
@@ -203,6 +218,81 @@ sub set_locale
 #
 #==============================================================================
 
+sub _split_into_chunks
+{
+    my ( $text ) = @_;
+
+    my $string_length = length($text);
+
+    my $pos = 0;
+    
+    my $ret = [];
+
+    my $segment_length = 5;
+
+    while ( $pos < $string_length )
+      {
+	 my $segment = substr $text, $pos, $segment_length;
+
+	 print Dumper( $segment );
+
+	 $pos += $segment_length;
+
+	 push @{$ret}, $segment;
+      }
+
+    print "DUMPERING\n";
+    print  Dumper ( [$ret] );
+    print "Dumped\n";
+
+    return $ret;
+}
+
+sub _apply_dangerous_regex
+{
+    my ( $text ) = @_;
+
+    return Lingua::EN::Sentence::ApplyRegexWithoutLocale::_apply_dangerous_regex( $text );
+
+
+    print "starting _apply_dangerous_regex\n";
+    eval {
+      #utf8::upgrade( $text );
+      #print Dumper( $text );
+      #print "\n";
+
+    };
+
+    my $temp = $text;
+    #print Dumper( $temp );
+    #utf8::upgrade( $temp );
+    my $temp_base64 = encode_base64( encode("UTF-8", $temp ) );
+
+    eval {
+      #print "Based64 encoded: '$temp_base64'";
+      #print "\n";
+    };
+
+    #utf8::upgrade( $temp_base64 );
+
+    #print Dumper ($temp_base64);
+    #print "\n";
+
+    #$text =~ s/([^-\w]\w[\.!?])\001/$1/sgo; 
+
+    #print "starting _apply_dangerous_regex part 1\n";
+
+    $text =~ s/([^-\w]\w\.)\001/$1/sgo; 
+
+    #print "starting _apply_dangerous_regex part 2\n";
+    $text =~ s/([^-\w]\w\!)\001/$1/sgo; 
+    #print "starting _apply_dangerous_regex part 3\n";
+    $text =~ s/([^-\w]\w\?)\001/$1/sgo; 
+    print "Finished _apply_dangerous_regex\n\n";
+
+    return $text;
+}
+
 ## Please email me any suggestions for optimizing these RegExps.
 sub remove_false_end_of_sentence
 {
@@ -214,7 +304,23 @@ sub remove_false_end_of_sentence
     $marked_segment =~ s/([^-\w]\w$PAP\s)$EOS/$1/sgo;
 
     # this hangs unless we do the $text =~ s/[^[:alnum:][:punct:]]+/ /g; above
-    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
+
+    #my $o = Regexp::Optimizer->new;
+    #my $re = $o->optimize( /([^-\w]\w$P)$EOS/ );
+    #my $re_hang = /([^-\w]\w$P)$EOS/so ;
+
+
+    #$P   = q/[\.!?]/;            
+
+    #$marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
+
+    #$marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
+
+    $marked_segment = _apply_dangerous_regex( $marked_segment );
+
+#    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
+
+   # $marked_segment =~ s/$re_hang/$1/sgo;
 
     # don't split after a white-space followed by a single letter followed
     # by a dot followed by another whitespace.
@@ -292,7 +398,7 @@ sub clean_sentences
 sub first_sentence_breaking
 {
     my ( $text ) = @_;
-    $text =~ s/\n\s*\n/$EOS/gso;       ## double new-line means a different sentence.
+    #$text =~ s/\n\s*\n/$EOS/gso;       ## double new-line means a different sentence.
     $text =~ s/($PAP\s)/$1$EOS/gso;
     $text =~ s/(\s\w$P)/$1$EOS/gso;    # breake also when single letter comes before punc.
     return $text;

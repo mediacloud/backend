@@ -120,9 +120,27 @@ sub get_expanded_stories
 
         $story->{ story_sentence_words } =
           $db->query( "select * from story_sentence_words where stories_id = ?", $story->{ stories_id } )->hashes;
+
+        $story->{ story_sentences } =
+          $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ", $story->{ stories_id } )->hashes;
     }
 
     return $stories;
+}
+
+sub _purge_story_sentences_id_field
+{
+    my ( $sentences ) = @_;
+
+    for my $sentence ( @$sentences )
+    {
+        #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
+
+	#die Dumper ($sentence);
+
+        $sentence->{ story_sentences_id } = '';
+        delete $sentence->{ story_sentences_id };
+    }
 }
 
 # test various results of the crawler
@@ -144,6 +162,9 @@ sub test_stories
         my $test_story = $test_story_hash->{ $story->{ title } };
         if ( ok( $test_story, "story match: " . $story->{ title } ) )
         {
+	    #$story->{ extracted_text } =~ s/\n//g;
+	    #$test_story->{ extracted_text } =~ s/\n//g;
+
             for my $field ( qw(publish_date description guid extracted_text) )
             {
                 oldstyle_diff;
@@ -159,6 +180,15 @@ sub test_stories
             eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
+
+	    is ( scalar( @{ $story->{ story_sentences } } ), scalar( @{ $test_story->{ story_sentences } } ), "story sentence count"  . $story->{ stories_id } );
+
+	    _purge_story_sentences_id_field (  $story->{ story_sentences } );
+	    _purge_story_sentences_id_field (  $test_story->{ story_sentences } );
+
+	    cmp_deeply (  $story->{ story_sentences }, $test_story->{ story_sentences } , "story sentences " . $story->{ stories_id } );
+
+
           TODO:
             {
                 my $fake_var;    #silence warnings
@@ -166,7 +196,7 @@ sub test_stories
                 my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
                 my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
 
-                is( $story_sentence_words_count, $test_story_sentence_words_count, "story words count" );
+                is( $story_sentence_words_count, $test_story_sentence_words_count, "story words count for "  . $story->{ stories_id } );
             }
         }
 

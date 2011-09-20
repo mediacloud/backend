@@ -261,20 +261,156 @@ sub _do_extraction_from_content_ref
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
 
+sub _contains_block_level_tags
+{
+    my ( $string ) = @_;
+
+    if (
+        $string =~ m{
+            (
+                <h1> | <h2> | <h3> | <h4> | <h5> | <h6> | <p> | <div> | <dl> | <dt> | <dd> | <ol> | <ul> | <li> | <dir> |
+                  <menu> | <address> | <blockquote> | <center> | <div> | <hr> | <ins> | <noscript> | <pre>
+            )
+        }ix
+      )
+    {
+        return 1;
+    }
+
+    if (
+        $string =~ m{
+            (
+                </h1> | </h2> | </h3> | </h4> | </h5> | </h6> | </p> | </div> | </dl> | </dt> | </dd> | </ol> | </ul> |
+                  </li> | </dir> | </menu> | </address> | </blockquote> | </center> | </div> | </hr> | </ins> | </noscript> |
+                  </pre>
+            )
+        }ix
+      )
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+sub _new_lines_around_block_level_tags
+{
+    my ( $string ) = @_;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    return $string if ( !_contains_block_level_tags( $string ) );
+
+    $string =~ s{
+       (
+        <h1>|<h2>|<h3>|<h4>|<h5>|<h6>|
+        <p>|
+        <div>|
+	<dl>|
+	<dt>|
+	<dd>|
+	<ol>|
+	<ul>|
+	<li>|
+	<dir>|
+	<menu>|
+	<address>|
+	<blockquote>|
+	<center>|
+	<div>|
+	<hr>|
+	<ins>|
+	<noscript>|
+	<pre>
+      )
+      }
+      {\n\n$1}gsxi;
+
+    $string =~ s{
+       (
+        </h1>|</h2>|</h3>|</h4>|</h5>|</h6>|
+        </p>|
+        </div>|
+	</dl>|
+	</dt>|
+	</dd>|
+	</ol>|
+	</ul>|
+	</li>|
+	</dir>|
+	</menu>|
+	</address>|
+	</blockquote>|
+	</center>|
+	</div>|
+	</hr>|
+	</ins>|
+	</noscript>|
+	</pre>
+     )
+     }
+     {$1\n\n}gsxi;
+
+    #say STDERR "_new_lines_around_block_level_tags '$string'";
+
+    #exit;
+
+    #$string = 'sddd';
+
+    return $string;
+
+}
+
 sub extract_preprocessed_lines_for_story
 {
     my ( $lines, $story_title, $story_description ) = @_;
 
     my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
 
+    my $config = MediaWords::Util::Config::get_config;
+    my $dont_add_double_new_line_for_block_elements =
+      $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes';
+
     my $extracted_html = '';
+
+    # This variable is used to make sure we don't add unnecessary double newlines
+    my $previous_concated_line_was_story = 0;
+
     for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
     {
         if ( $scores->[ $i ]->{ is_story } )
         {
+            my $line_text;
 
-            #add_period_to_tagline( $lines, $scores, $i );
-            $extracted_html .= ' ' . $lines->[ $i ];
+            $previous_concated_line_was_story = 1;
+
+            unless ( $dont_add_double_new_line_for_block_elements )
+            {
+
+                $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
+            }
+            else
+            {
+                $line_text = $lines->[ $i ];
+            }
+
+            $extracted_html .= ' ' . $line_text;
+        }
+        elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
+        {
+
+            unless ( $dont_add_double_new_line_for_block_elements )
+            {
+                ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
+                if ( $previous_concated_line_was_story )
+                {
+
+                    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+                    $extracted_html .= "\n\n";
+
+                    $previous_concated_line_was_story = 0;
+                }
+            }
         }
     }
 
