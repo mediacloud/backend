@@ -368,7 +368,8 @@ sub extract_preprocessed_lines_for_story
     my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
 
     my $config = MediaWords::Util::Config::get_config;
-    my $dont_add_double_new_line_for_block_elements = $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes';
+    my $dont_add_double_new_line_for_block_elements =
+      $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes';
 
     my $extracted_html = '';
 
@@ -379,37 +380,37 @@ sub extract_preprocessed_lines_for_story
     {
         if ( $scores->[ $i ]->{ is_story } )
         {
-	    my $line_text;
+            my $line_text;
 
-	    $previous_concated_line_was_story = 1;
+            $previous_concated_line_was_story = 1;
 
-	    unless ( $dont_add_double_new_line_for_block_elements )
-	    {
+            unless ( $dont_add_double_new_line_for_block_elements )
+            {
 
-	      $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
-	    }
-	    else
-	    {
-	      $line_text = $lines->[ $i ];
-	    }
+                $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
+            }
+            else
+            {
+                $line_text = $lines->[ $i ];
+            }
 
             $extracted_html .= ' ' . $line_text;
         }
         elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
         {
 
-	    unless ( $dont_add_double_new_line_for_block_elements )
-	    {
-	        ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
-	        if ( $previous_concated_line_was_story )  
-		{   
+            unless ( $dont_add_double_new_line_for_block_elements )
+            {
+                ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
+                if ( $previous_concated_line_was_story )
+                {
 
-		    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-		    $extracted_html .= "\n\n";
+                    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
+                    $extracted_html .= "\n\n";
 
-		    $previous_concated_line_was_story = 0;
-	        }
-	    }
+                    $previous_concated_line_was_story = 0;
+                }
+            }
         }
     }
 
