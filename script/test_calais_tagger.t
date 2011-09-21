@@ -34,7 +34,7 @@ Jul 30 - Chemical company Ineos develops technology to make bioethanol from wast
 __END_TEST_CASE__
         ,
         test_output =>
-'biofuels, car fleets, chemicals, cleaner energy sources, food, food debate, ineos, michelle carlile-alkhouri, oil prices, personal finance, technology news, thomson reuters'
+'amex, biofuels, car fleets, chemicals, cleaner energy sources, food, food debate, ineos, michelle carlile-alkhouri, oil prices, personal finance, technology news, thomson reuters'
     }
 ];
 
