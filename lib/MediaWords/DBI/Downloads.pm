@@ -418,10 +418,9 @@ sub get_extracted_html
     return $extracted_html;
 }
 
-sub _get_extracted_html_for_lines_from_scores
+sub _get_included_line_numbers
 {
-
-    my ( $lines, $scores ) = @_;
+    my ( $scores ) = @_;
 
     my @included_lines;
     for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
@@ -432,57 +431,7 @@ sub _get_extracted_html_for_lines_from_scores
         }
     }
 
-    return get_extracted_html( $lines, \@included_lines );
-
-    my $config = MediaWords::Util::Config::get_config;
-    my $dont_add_double_new_line_for_block_elements =
-      defined( $config->{ mediawords }->{ disable_block_element_sentence_splitting } )
-      && ( $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes' );
-
-    my $extracted_html = '';
-
-    # This variable is used to make sure we don't add unnecessary double newlines
-    my $previous_concated_line_was_story = 0;
-
-    for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
-    {
-        if ( $scores->[ $i ]->{ is_story } )
-        {
-            my $line_text;
-
-            $previous_concated_line_was_story = 1;
-
-            unless ( $dont_add_double_new_line_for_block_elements )
-            {
-
-                $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
-            }
-            else
-            {
-                $line_text = $lines->[ $i ];
-            }
-
-            $extracted_html .= ' ' . $line_text;
-        }
-        elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
-        {
-
-            unless ( $dont_add_double_new_line_for_block_elements )
-            {
-                ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
-                if ( $previous_concated_line_was_story )
-                {
-
-                    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-                    $extracted_html .= "\n\n";
-
-                    $previous_concated_line_was_story = 0;
-                }
-            }
-        }
-    }
-
-    return $extracted_html;
+    return \@included_lines;
 }
 
 sub extract_preprocessed_lines_for_story
@@ -491,7 +440,9 @@ sub extract_preprocessed_lines_for_story
 
     my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
 
-    my $extracted_html = _get_extracted_html_for_lines_from_scores( $lines, $scores );
+    my $included_line_numbers = _get_included_line_numbers( $scores );
+
+    my $extracted_html =  get_extracted_html( $lines, $included_line_numbers );
 
     return {
         extracted_html => $extracted_html,
