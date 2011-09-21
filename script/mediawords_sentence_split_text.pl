@@ -16,6 +16,7 @@ use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::DownloadTexts;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
@@ -167,7 +168,10 @@ sub store_downloads
         say "Processing download $download->{downloads_id}";
 
         my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
-        my $extract_results    = MediaWords::DBI::Downloads::extract_download( $dbs, $download );
+        my $extract_results    = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+
+	MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
+
         my $content_ref        = MediaWords::DBI::Downloads::fetch_content( $download );
 
         my $story = $dbs->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;

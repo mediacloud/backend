@@ -16,6 +16,7 @@ use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::DownloadTexts;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
@@ -59,6 +60,10 @@ sub store_preprocessed_result
     my $lines_concated = join "", map { $_ . "\n" } @{ $preprocessed_lines };
 
     say STDERR "Preprocessed_lines:\n";
+
+    
+    MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
+
 
     say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
     say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";

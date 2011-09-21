@@ -20,11 +20,13 @@ use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;
 use MediaWords::DBI::Downloads;
 use MediaWords::DB;
+use MediaWords::DBI::DownloadTexts;
 use XML::LibXML;
 use Encode;
 use MIME::Base64;
 use Carp qw (confess);
-
+use Data::Dumper;
+use Perl6::Say;
 
 Readonly my $output_dir => "$cwd/download_content_test_data";
 
@@ -91,11 +93,19 @@ sub get_value_of_base_64_node
           MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $actual_preprocessed_text_array,
             $story_title, $story_description );
 
+	#$DB::single = 2;
+	MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
+
+	#say Dumper( $extract_results );
+
+	#exit;
+
         my $expected_extracted_html = get_value_of_base_64_node( $root, 'extracted_html_base64' );
 
 	my $expected_extracted_html_ignore_sentence_splitting = $expected_extracted_html;
 
 	$expected_extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
+
 
 	my $extracted_html_ignore_sentence_splitting =  $extract_results->{ extracted_html };
 	$extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
