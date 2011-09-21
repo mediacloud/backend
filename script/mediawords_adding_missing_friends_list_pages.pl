@@ -6,10 +6,6 @@
 #
 # to run several instances in parallel, supply the number of the given process and the total number of processes
 # example:
-# mediawords_extract_tags.pl 1 4 &
-# mediawords_extract_tags.pl 2 4 &
-# mediawords_extract_tags.pl 3 4 &
-# mediawords_extract_tags.pl 4 4 &
 
 use strict;
 
