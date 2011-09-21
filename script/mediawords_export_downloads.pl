@@ -40,7 +40,6 @@ sub xml_tree_from_hash
     return $node;
 }
 
-# extract, story, and tag downloaded text for a $process_num / $num_processes slice of downloads
 sub export_downloads
 {
     my ( $start_downloads_id, $end_downloads_id ) = @_;
