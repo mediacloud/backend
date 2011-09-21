@@ -361,11 +361,10 @@ sub _new_lines_around_block_level_tags
 
 }
 
-sub extract_preprocessed_lines_for_story
+sub _get_extracted_html_for_lines_from_scores
 {
-    my ( $lines, $story_title, $story_description ) = @_;
 
-    my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
+    my ( $lines, $scores ) = @_;
 
     my $config = MediaWords::Util::Config::get_config;
     my $dont_add_double_new_line_for_block_elements =
@@ -414,6 +413,17 @@ sub extract_preprocessed_lines_for_story
             }
         }
     }
+
+    return $extracted_html;
+}
+
+sub extract_preprocessed_lines_for_story
+{
+    my ( $lines, $story_title, $story_description ) = @_;
+
+    my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
+
+    my $extracted_html = _get_extracted_html_for_lines_from_scores( $lines, $scores );
 
     return {
         extracted_html => $extracted_html,
