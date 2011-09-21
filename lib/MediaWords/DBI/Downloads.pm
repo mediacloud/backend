@@ -215,7 +215,7 @@ sub fetch_preprocessed_content_lines
 #   extracted_text => $text,    # a string with the extracted html strippped to text
 #   download_lines => $lines,   # an array of the lines of original html
 #   scores => $scores }         # the scores returned by Mediawords::Crawler::Extractor::score_lines
-sub extract_download
+sub extractor_results_for_download
 {
     my ( $db, $download ) = @_;
 
@@ -261,163 +261,6 @@ sub _do_extraction_from_content_ref
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
 
-sub _contains_block_level_tags
-{
-    my ( $string ) = @_;
-
-    if (
-        $string =~ m{
-            (
-                <h1> | <h2> | <h3> | <h4> | <h5> | <h6> | <p> | <div> | <dl> | <dt> | <dd> | <ol> | <ul> | <li> | <dir> |
-                  <menu> | <address> | <blockquote> | <center> | <div> | <hr> | <ins> | <noscript> | <pre>
-            )
-        }ix
-      )
-    {
-        return 1;
-    }
-
-    if (
-        $string =~ m{
-            (
-                </h1> | </h2> | </h3> | </h4> | </h5> | </h6> | </p> | </div> | </dl> | </dt> | </dd> | </ol> | </ul> |
-                  </li> | </dir> | </menu> | </address> | </blockquote> | </center> | </div> | </hr> | </ins> | </noscript> |
-                  </pre>
-            )
-        }ix
-      )
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-sub _new_lines_around_block_level_tags
-{
-    my ( $string ) = @_;
-
-    #say STDERR "_new_lines_around_block_level_tags '$string'";
-
-    return $string if ( !_contains_block_level_tags( $string ) );
-
-    $string =~ s{
-       (
-        <h1>|<h2>|<h3>|<h4>|<h5>|<h6>|
-        <p>|
-        <div>|
-	<dl>|
-	<dt>|
-	<dd>|
-	<ol>|
-	<ul>|
-	<li>|
-	<dir>|
-	<menu>|
-	<address>|
-	<blockquote>|
-	<center>|
-	<div>|
-	<hr>|
-	<ins>|
-	<noscript>|
-	<pre>
-      )
-      }
-      {\n\n$1}gsxi;
-
-    $string =~ s{
-       (
-        </h1>|</h2>|</h3>|</h4>|</h5>|</h6>|
-        </p>|
-        </div>|
-	</dl>|
-	</dt>|
-	</dd>|
-	</ol>|
-	</ul>|
-	</li>|
-	</dir>|
-	</menu>|
-	</address>|
-	</blockquote>|
-	</center>|
-	</div>|
-	</hr>|
-	</ins>|
-	</noscript>|
-	</pre>
-     )
-     }
-     {$1\n\n}gsxi;
-
-    #say STDERR "_new_lines_around_block_level_tags '$string'";
-
-    #exit;
-
-    #$string = 'sddd';
-
-    return $string;
-
-}
-
-sub get_extracted_html
-{
-    my ( $lines, $included_lines ) = @_;
-
-    my $is_line_included = { map { $_ => 1 } @{ $included_lines } };
-
-    my $config = MediaWords::Util::Config::get_config;
-    my $dont_add_double_new_line_for_block_elements =
-      defined( $config->{ mediawords }->{ disable_block_element_sentence_splitting } )
-      && ( $config->{ mediawords }->{ disable_block_element_sentence_splitting } eq 'yes' );
-
-    my $extracted_html = '';
-
-    # This variable is used to make sure we don't add unnecessary double newlines
-    my $previous_concated_line_was_story = 0;
-
-    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
-    {
-        if ( $is_line_included->{ $i } )
-        {
-            my $line_text;
-
-            $previous_concated_line_was_story = 1;
-
-            unless ( $dont_add_double_new_line_for_block_elements )
-            {
-
-                $line_text = _new_lines_around_block_level_tags( $lines->[ $i ] );
-            }
-            else
-            {
-                $line_text = $lines->[ $i ];
-            }
-
-            $extracted_html .= ' ' . $line_text;
-        }
-        elsif ( _contains_block_level_tags( $lines->[ $i ] ) )
-        {
-
-            unless ( $dont_add_double_new_line_for_block_elements )
-            {
-                ## '\n\n\ is used as a sentence splitter so no need to add it more than once between text lines
-                if ( $previous_concated_line_was_story )
-                {
-
-                    # Add double newline bc/ it will be recognized by the sentence splitter as a sentence boundary.
-                    $extracted_html .= "\n\n";
-
-                    $previous_concated_line_was_story = 0;
-                }
-            }
-        }
-    }
-
-    return $extracted_html;
-}
-
 sub _get_included_line_numbers
 {
     my ( $scores ) = @_;
@@ -442,13 +285,14 @@ sub extract_preprocessed_lines_for_story
 
     my $included_line_numbers = _get_included_line_numbers( $scores );
 
-    my $extracted_html =  get_extracted_html( $lines, $included_line_numbers );
+    #my $extracted_html =  get_extracted_html( $lines, $included_line_numbers );
 
     return {
-        extracted_html => $extracted_html,
-        extracted_text => html_strip( $extracted_html ),
+        #extracted_html => $extracted_html,
+        #extracted_text => html_strip( $extracted_html ),
+	included_line_numbers => $included_line_numbers,
         download_lines => $lines,
-        scores         => $scores
+        scores         => $scores,
     };
 }
 
