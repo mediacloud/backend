@@ -2,11 +2,6 @@
 
 # run a loop extracting the text of any downloads that have not been extracted yet
 
-# usage: mediawords_extract_text.pl [<num of processes>]
-#
-# example:
-# mediawords_extract_tags.pl 4 &
-
 # number of downloads to fetch at a time
 use constant PROCESS_SIZE => 100;
 
