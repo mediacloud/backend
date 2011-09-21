@@ -1,12 +1,5 @@
 #!/usr/bin/perl
 
-# run a loop extracting the text of any downloads that have not been extracted yet
-
-# usage: mediawords_extract_text.pl [<process num> <num of processes>]
-#
-# to run several instances in parallel, supply the number of the given process and the total number of processes
-# example:
-
 use strict;
 
 BEGIN
