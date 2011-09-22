@@ -191,18 +191,21 @@ sub update_text
 {
     my ( $db, $download_text ) = @_;
 
-    say STDERR "update_text";
+    #say STDERR "update_text";
 
     my $extracted_line_numbers = $db->query( "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
 				      $download_text->{ download_texts_id } )->flat;
 
-    say STDERR "got extracted_line_numbers";
+    #say Dumper ( $extracted_line_numbers );
+    #say STDERR "got extracted_line_numbers";
 
     my $download = $db->query( 'SELECT * from downloads where downloads_id = ? limit 1 ', $download_text->{ downloads_id } )->hash;
 
     die unless $download;
 
     my $lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+
+    #say Dumper ( $extracted_line_numbers );
 
     my $extracted_html =  get_extracted_html ( $lines, $extracted_line_numbers );
 
@@ -211,7 +214,11 @@ sub update_text
     $download_text->{ download_text }        = $extracted_text;
     $download_text->{ download_text_length } = length( $extracted_text );
 
+    #say Dumper ( $download_text );
+
     $db->update_by_id ( 'download_texts', $download_text->{ download_texts_id}, $download_text);
+
+    #say Dumper ( $download_text );
 
     return;
 }
