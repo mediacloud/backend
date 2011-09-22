@@ -187,6 +187,35 @@ sub update_extractor_results_with_text_and_html
     return $extractor_results;
 }
 
+sub update_text
+{
+    my ( $db, $download_text ) = @_;
+
+    say STDERR "update_text";
+
+    my $extracted_line_numbers = $db->query( "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
+				      $download_text->{ download_texts_id } )->flat;
+
+    say STDERR "got extracted_line_numbers";
+
+    my $download = $db->query( 'SELECT * from downloads where downloads_id = ? limit 1 ', $download_text->{ downloads_id } )->hash;
+
+    die unless $download;
+
+    my $lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+
+    my $extracted_html =  get_extracted_html ( $lines, $extracted_line_numbers );
+
+    my $extracted_text = html_strip( $extracted_html );
+
+    $download_text->{ download_text }        = $extracted_text;
+    $download_text->{ download_text_length } = length( $extracted_text );
+
+    $db->update_by_id ( 'download_texts', $download_text->{ download_texts_id}, $download_text);
+
+    return;
+}
+
 # extract the text from a download and store that text in download_texts.
 # also add the extracted line numbers to extracted_lines
 sub create_from_download
@@ -224,6 +253,12 @@ sub create_from_download
     }
 
     $db->dbh->pg_putcopyend();
+
+#    update_text( $db, $download_text );
+
+    #die "Extractor text length mismatch for $download_text->{ download_texts_id } :    " . length($extracted_text) . " != " . length($download_text->{download_text }) unless length($extracted_text) eq length($download_text->{download_text });
+
+#    die "Extractor text mismatch for $download_text->{ download_texts_id } " unless $extracted_text eq $download_text->{download_text };
 
     $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
 
