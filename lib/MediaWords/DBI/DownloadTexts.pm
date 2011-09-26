@@ -12,32 +12,35 @@ use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::Downloads;
 
+use Regexp::Optimizer;
+
+my $o = Regexp::Optimizer->new;
+
+my $_block_level_start_tag_re =  $o->optimize ( qr{
+             (
+                 <h1> | <h2> | <h3> | <h4> | <h5> | <h6> | <p> | <div> | <dl> | <dt> | <dd> | <ol> | <ul> | <li> | <dir> |
+                   <menu> | <address> | <blockquote> | <center> | <div> | <hr> | <ins> | <noscript> | <pre>
+             )
+         }ix );
+
+my $_block_level_end_tag_re =  $o->optimize ( qr{
+             (
+                 </h1> | </h2> | </h3> | </h4> | </h5> | </h6> | </p> | </div> | </dl> | </dt> | </dd> | </ol> | </ul> |
+                   </li> | </dir> | </menu> | </address> | </blockquote> | </center> | </div> | </hr> | </ins> | </noscript> |
+                   </pre>
+             )
+         }ix );
 
 sub _contains_block_level_tags
 {
     my ( $string ) = @_;
 
-    if (
-        $string =~ m{
-            (
-                <h1> | <h2> | <h3> | <h4> | <h5> | <h6> | <p> | <div> | <dl> | <dt> | <dd> | <ol> | <ul> | <li> | <dir> |
-                  <menu> | <address> | <blockquote> | <center> | <div> | <hr> | <ins> | <noscript> | <pre>
-            )
-        }ix
-      )
+    if ( $string =~ $_block_level_start_tag_re  )
     {
         return 1;
     }
 
-    if (
-        $string =~ m{
-            (
-                </h1> | </h2> | </h3> | </h4> | </h5> | </h6> | </p> | </div> | </dl> | </dt> | </dd> | </ol> | </ul> |
-                  </li> | </dir> | </menu> | </address> | </blockquote> | </center> | </div> | </hr> | </ins> | </noscript> |
-                  </pre>
-            )
-        }ix
-      )
+    if ( $string =~ $_block_level_end_tag_re )
     {
         return 1;
     }
@@ -177,7 +180,7 @@ sub update_extractor_results_with_text_and_html
     my $download_lines = $extractor_results->{ download_lines };
 
     my $included_line_numbers = $extractor_results->{ included_line_numbers };
-    my $extracted_html =  get_extracted_html ( $download_lines, $included_line_numbers );
+    my $extracted_html = get_extracted_html( $download_lines, $included_line_numbers );
 
     my $extracted_text = html_strip( $extracted_html );
 
@@ -193,13 +196,15 @@ sub update_text
 
     #say STDERR "update_text";
 
-    my $extracted_line_numbers = $db->query( "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
-				      $download_text->{ download_texts_id } )->flat;
+    my $extracted_line_numbers =
+      $db->query( "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
+        $download_text->{ download_texts_id } )->flat;
 
     #say Dumper ( $extracted_line_numbers );
     #say STDERR "got extracted_line_numbers";
 
-    my $download = $db->query( 'SELECT * from downloads where downloads_id = ? limit 1 ', $download_text->{ downloads_id } )->hash;
+    my $download =
+      $db->query( 'SELECT * from downloads where downloads_id = ? limit 1 ', $download_text->{ downloads_id } )->hash;
 
     die unless $download;
 
@@ -207,7 +212,7 @@ sub update_text
 
     #say Dumper ( $extracted_line_numbers );
 
-    my $extracted_html =  get_extracted_html ( $lines, $extracted_line_numbers );
+    my $extracted_html = get_extracted_html( $lines, $extracted_line_numbers );
 
     my $extracted_text = html_strip( $extracted_html );
 
@@ -216,7 +221,7 @@ sub update_text
 
     #say Dumper ( $download_text );
 
-    $db->update_by_id ( 'download_texts', $download_text->{ download_texts_id}, $download_text);
+    $db->update_by_id( 'download_texts', $download_text->{ download_texts_id }, $download_text );
 
     #say Dumper ( $download_text );
 
@@ -237,7 +242,7 @@ sub create_from_download
 
     my $download_lines = $extract->{ download_lines };
 
-    my $extracted_html =  get_extracted_html ( $download_lines, $included_line_numbers );
+    my $extracted_html = get_extracted_html( $download_lines, $included_line_numbers );
 
     my $extracted_text = html_strip( $extracted_html );
 
@@ -253,17 +258,17 @@ sub create_from_download
     );
 
     $db->dbh->do( "copy extracted_lines(download_texts_id, line_number) from STDIN" );
-    foreach my $included_line_number ( @ { $included_line_numbers } )
+    foreach my $included_line_number ( @{ $included_line_numbers } )
     {
 
-            $db->dbh->pg_putcopydata( $download_text->{ download_texts_id } . "\t" . $included_line_number . "\n" );
+        $db->dbh->pg_putcopydata( $download_text->{ download_texts_id } . "\t" . $included_line_number . "\n" );
     }
 
     $db->dbh->pg_putcopyend();
 
-#    update_text( $db, $download_text );
+    #    update_text( $db, $download_text );
 
-    #die "Extractor text length mismatch for $download_text->{ download_texts_id } :    " . length($extracted_text) . " != " . length($download_text->{download_text }) unless length($extracted_text) eq length($download_text->{download_text });
+#die "Extractor text length mismatch for $download_text->{ download_texts_id } :    " . length($extracted_text) . " != " . length($download_text->{download_text }) unless length($extracted_text) eq length($download_text->{download_text });
 
 #    die "Extractor text mismatch for $download_text->{ download_texts_id } " unless $extracted_text eq $download_text->{download_text };
 
