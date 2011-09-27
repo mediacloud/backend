@@ -140,34 +140,6 @@ sub main
         die "no options given ";
     }
 
-    my $downloads;
-
-    say STDERR @download_ids;
-
-    if ( @download_ids )
-    {
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    elsif ( $file )
-    {
-        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
-        @download_ids = <DOWNLOAD_ID_FILE>;
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    else
-    {
-        die "must specify file or downloads id";
-    }
-
-    say STDERR Dumper( $downloads );
-
-    die 'no downloads found ' unless scalar( @$downloads );
-
-    say STDERR scalar( @$downloads ) . ' downloads';
-
-    reextract_downloads( $downloads );
-
-    #regenerate_download_texts_for_downloads( $downloads );
 }
 
 main();
