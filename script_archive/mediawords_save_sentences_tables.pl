@@ -37,17 +37,30 @@ my $date_based_tables = {
     total_daily_words          => 'publish_day',
     total_top_500_weekly_words => 'publish_week',
     total_weekly_words         => 'publish_week',
-  };
+};
 
-  #story_sentence_counts
+#story_sentence_counts
 
-  my $tables_to_save = [
+my $tables_to_save = [
     qw (
       stories
       story_sentence_words
       story_sentences
       )
-  ];
+];
+
+sub get_new_table_name
+{
+    my ( $old_table_name, $prefix, $dates ) = @_;
+
+    my $date_string = join '_', @{ $dates };
+
+    $date_string =~ s/-/_/g;
+
+    my $new_table_name = "$prefix" . "_$old_table_name" . '_' . $date_string;
+
+    return $new_table_name;
+}
 
 sub save_table_by_stories_id
 {
@@ -56,7 +69,8 @@ sub save_table_by_stories_id
     say "copying table '$table_name'";
 
     die if !$prefix;
-    my $new_table_name = "$prefix" . "_$table_name";
+
+    my $new_table_name = get_new_table_name( $table_name, $prefix, $dates );
 
     #say "DROP TABLE if exists $new_table_name ";
 
@@ -77,15 +91,16 @@ sub save_table_by_date
     say "copying table '$table_name'";
 
     die if !$prefix;
-    my $new_table_name = "$prefix" . "_$table_name";
+
+    my $new_table_name = get_new_table_name( $table_name, $prefix, $dates );
 
     #say "DROP TABLE if exists $new_table_name ";
 
     $dbs->query( "DROP TABLE if exists $new_table_name " );
 
-    my $date_list = join ",", map { "'$_'" } @ { $dates };
+    my $date_list = join ",", map { "'$_'" } @{ $dates };
 
-    my $sql =  " CREATE TABLE $new_table_name AS SELECT * from $table_name where $date_field in ( $date_list ) ;";
+    my $sql = " CREATE TABLE $new_table_name AS SELECT * from $table_name where $date_field in ( $date_list ) ;";
 
     say $sql;
 
@@ -98,18 +113,16 @@ sub main
 
     my $dbs = MediaWords::DB::connect_to_db;
 
+    my $dates = [ '2011-01-03', '2011-01-10' ];
+
     foreach my $date_based_table ( sort keys %{ $date_based_tables } )
     {
-        save_table_by_date(
-            $dbs, $date_based_table, 'copy_test',
-            [ '2011-01-03' ],
-            $date_based_tables->{ $date_based_table }
-        );
+        save_table_by_date( $dbs, $date_based_table, 'copy_test', $dates, $date_based_tables->{ $date_based_table } );
     }
 
-   foreach my $table_to_save ( @$tables_to_save )
+    foreach my $table_to_save ( @$tables_to_save )
     {
-        save_table_by_stories_id( $dbs, $table_to_save, 'copy_test', [ '2011-01-03' ] );
+        save_table_by_stories_id( $dbs, $table_to_save, 'copy_test', $dates );
     }
 
     exit;
@@ -118,8 +131,8 @@ sub main
     my @download_ids;
 
     GetOptions(
-        'file|f=s'                  => \$file,
-        'downloads|d=s'             => \@download_ids,
+        'file|f=s'      => \$file,
+        'downloads|d=s' => \@download_ids,
     ) or die;
 
     unless ( $file || ( @download_ids ) )
