@@ -14,28 +14,32 @@ use MediaWords::DBI::Downloads;
 
 use Regexp::Optimizer;
 
+my $_block_level_element_tags = [
+    qw ( h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu
+      address blockquote center div hr ins noscript pre )
+];
+
 my $o = Regexp::Optimizer->new;
 
-my $_block_level_start_tag_re =  $o->optimize ( qr{
-             (
-                 <h1> | <h2> | <h3> | <h4> | <h5> | <h6> | <p> | <div> | <dl> | <dt> | <dd> | <ol> | <ul> | <li> | <dir> |
-                   <menu> | <address> | <blockquote> | <center> | <div> | <hr> | <ins> | <noscript> | <pre>
-             )
-         }ix );
+my $tag_list = join '|', ( map { quotemeta $_ } ( @{ $_block_level_element_tags } ) );
 
-my $_block_level_end_tag_re =  $o->optimize ( qr{
-             (
-                 </h1> | </h2> | </h3> | </h4> | </h5> | </h6> | </p> | </div> | </dl> | </dt> | </dd> | </ol> | </ul> |
-                   </li> | </dir> | </menu> | </address> | </blockquote> | </center> | </div> | </hr> | </ins> | </noscript> |
-                   </pre>
-             )
-         }ix );
+my $_block_level_start_tag_re = $o->optimize(
+    qr{
+                   < (:? $tag_list ) >
+           }ix
+);
+
+my $_block_level_end_tag_re = $o->optimize(
+    qr{
+                   </ (:? $tag_list ) >
+           }ix
+);
 
 sub _contains_block_level_tags
 {
     my ( $string ) = @_;
 
-    if ( $string =~ $_block_level_start_tag_re  )
+    if ( $string =~ $_block_level_start_tag_re )
     {
         return 1;
     }
@@ -57,51 +61,14 @@ sub _new_lines_around_block_level_tags
     return $string if ( !_contains_block_level_tags( $string ) );
 
     $string =~ s{
-       (
-        <h1>|<h2>|<h3>|<h4>|<h5>|<h6>|
-        <p>|
-        <div>|
-	<dl>|
-	<dt>|
-	<dd>|
-	<ol>|
-	<ul>|
-	<li>|
-	<dir>|
-	<menu>|
-	<address>|
-	<blockquote>|
-	<center>|
-	<div>|
-	<hr>|
-	<ins>|
-	<noscript>|
-	<pre>
+       ( $_block_level_start_tag_re
       )
       }
       {\n\n$1}gsxi;
 
     $string =~ s{
        (
-        </h1>|</h2>|</h3>|</h4>|</h5>|</h6>|
-        </p>|
-        </div>|
-	</dl>|
-	</dt>|
-	</dd>|
-	</ol>|
-	</ul>|
-	</li>|
-	</dir>|
-	</menu>|
-	</address>|
-	</blockquote>|
-	</center>|
-	</div>|
-	</hr>|
-	</ins>|
-	</noscript>|
-	</pre>
+$_block_level_end_tag_re
      )
      }
      {$1\n\n}gsxi;
