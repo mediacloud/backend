@@ -756,9 +756,16 @@ sub _localize_option_labels
 {
     my ( $self, $c, $options ) = @_;
 
+    #say STDERR Dumper( $options );
+
     foreach my $option ( @{ $options } )
     {
+        #say STDERR "Localizing option";
+        #say STDERR Dumper ( $option );
+
+	eval {
         $option->{ label } = $c->loc( $option->{ label } );
+      };
     }
 
     say STDERR Dumper( $options );
