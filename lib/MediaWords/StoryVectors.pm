@@ -46,6 +46,9 @@ sub _insert_story_sentence_words
 
     while ( my ( $sentence_num, $sentence_counts ) = each( %{ $word_counts } ) )
     {
+        $db->dbh->do(
+"copy story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) from STDIN"
+        );
         while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
         {
 
@@ -53,17 +56,23 @@ sub _insert_story_sentence_words
 #print STDERR "\n";
 
             eval {
-                $db->query(
-'insert into story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) '
-                      . '  values ( ?,?,?,?,?,?,? )',
-                    $story->{ stories_id },
-                    $hash->{ count },
-                    $sentence_num,
-                    encode_utf8( $stem ),
-                    encode_utf8( lc( $hash->{ word } ) ),
-                    $story->{ publish_date },
-                    $story->{ media_id }
-                );
+
+                $db->dbh->pg_putcopydata(
+                    $story->{ stories_id } . "\t" . $hash->{ count } . "\t" . $sentence_num . "\t" . encode_utf8( $stem ) .
+                      "\t" . encode_utf8( lc( $hash->{ word } ) ) . "\t" . $story->{ publish_date } . "\t" .
+                      $story->{ media_id } . "\n");
+
+           #                 $db->query(
+           # 'insert into story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) '
+           #                       . '  values ( ?,?,?,?,?,?,? )',
+           #                     $story->{ stories_id },
+           #                     $hash->{ count },
+           #                     $sentence_num,
+           #                     encode_utf8( $stem ),
+           #                     encode_utf8( lc( $hash->{ word } ) ),
+           #                     $story->{ publish_date },
+           #                     $story->{ media_id }
+           #                 );
 
             };
             if ( $@ )
@@ -72,6 +81,8 @@ sub _insert_story_sentence_words
                 die $@;
             }
         }
+        $db->dbh->pg_putcopyend();
+
     }
 }
 
