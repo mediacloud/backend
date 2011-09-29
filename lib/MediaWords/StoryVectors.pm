@@ -62,18 +62,6 @@ sub _insert_story_sentence_words
                       "\t" . encode_utf8( lc( $hash->{ word } ) ) . "\t" . $story->{ publish_date } . "\t" .
                       $story->{ media_id } . "\n");
 
-           #                 $db->query(
-           # 'insert into story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) '
-           #                       . '  values ( ?,?,?,?,?,?,? )',
-           #                     $story->{ stories_id },
-           #                     $hash->{ count },
-           #                     $sentence_num,
-           #                     encode_utf8( $stem ),
-           #                     encode_utf8( lc( $hash->{ word } ) ),
-           #                     $story->{ publish_date },
-           #                     $story->{ media_id }
-           #                 );
-
             };
             if ( $@ )
             {
