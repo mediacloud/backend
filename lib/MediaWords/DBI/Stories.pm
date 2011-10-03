@@ -241,11 +241,20 @@ sub add_default_tags
     return $module_tags;
 }
 
-sub update_rss_full_text_field
+sub get_media_source_for_story
 {
     my ( $db, $story ) = @_;
 
     my $medium = $db->query( "select * from media where media_id = ? ", $story->{ media_id } )->hash;
+
+    return $medium;
+}
+
+sub update_rss_full_text_field
+{
+    my ( $db, $story ) = @_;
+
+    my $medium = get_media_source_for_story( $db, $story );
 
     my $full_text_in_rss = 0;
 
