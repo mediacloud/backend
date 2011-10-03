@@ -45,7 +45,7 @@ sub extract_text
 
         my $downloads = $db->query(
             "SELECT d.* from downloads d " . "  where d.extracted='f' and d.type='content' and d.state='success' " .
-              "    and  (( ( d.feeds_id + $process_num ) % $num_processes ) = 0 ) " . " order by stories_id asc " .
+              "    and  (( ( d.feeds_id + $process_num ) % $num_processes ) = 0 ) " . " order by stories_id desc " .
               "  limit " . PROCESS_SIZE );
 
         # my $downloads = $db->query( "select * from downloads where stories_id = 418981" );
