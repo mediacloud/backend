@@ -46,30 +46,38 @@ sub _insert_story_sentence_words
 
     while ( my ( $sentence_num, $sentence_counts ) = each( %{ $word_counts } ) )
     {
-        $db->dbh->do(
+        eval {
+            $db->dbh->do(
 "copy story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) from STDIN"
-        );
-        while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
-        {
+            );
+            while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
+            {
 
 #print STDERR $story->{ stories_id }.$hash->{ count }.$sentence_num.encode_utf8( $stem ).encode_utf8( lc( $hash->{ word } ) ).$story->{ publish_date }.$story->{ media_id };
 #print STDERR "\n";
 
-            eval {
+                eval {
 
-                $db->dbh->pg_putcopydata(
-                    $story->{ stories_id } . "\t" . $hash->{ count } . "\t" . $sentence_num . "\t" . encode_utf8( $stem ) .
-                      "\t" . encode_utf8( lc( $hash->{ word } ) ) . "\t" . $story->{ publish_date } . "\t" .
-                      $story->{ media_id } . "\n");
+                    $db->dbh->pg_putcopydata(
+                        $story->{ stories_id } . "\t" . $hash->{ count } . "\t" . $sentence_num . "\t" .
+                          encode_utf8( $stem ) . "\t" . encode_utf8( lc( $hash->{ word } ) ) . "\t" .
+                          $story->{ publish_date } . "\t" . $story->{ media_id } . "\n" );
 
-            };
-            if ( $@ )
-            {
-                print STDERR "Error inserting into story_sentence_words\n";
-                die $@;
+                };
+                if ( $@ )
+                {
+                    print STDERR "Error inserting into story_sentence_words\n";
+                    die $@;
+                }
             }
+            $db->dbh->pg_putcopyend();
+        };
+
+        if ( $@ )
+        {
+            print STDERR "Error inserting into story_sentence_words\n";
+            die $@;
         }
-        $db->dbh->pg_putcopyend();
 
     }
 }
