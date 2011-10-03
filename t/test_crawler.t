@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Data::Dumper;
 
 # basic sanity test of crawler functionality
 
@@ -26,6 +27,7 @@ use MediaWords::StoryVectors;
 use LWP::UserAgent;
 use Perl6::Say;
 use Data::Sorting qw( :basics :arrays :extras );
+use Readonly;
 
 # add a test media source and feed to the database
 sub add_test_feed
@@ -51,6 +53,8 @@ sub add_test_feed
     return $feed;
 }
 
+Readonly my $crawler_timeout => 60;
+
 # run the crawler for one minute, which should be enough time to gather all of the stories from the test feed
 sub run_crawler
 {
@@ -60,7 +64,7 @@ sub run_crawler
     $crawler->processes( 1 );
     $crawler->throttle( 1 );
     $crawler->sleep_interval( 1 );
-    $crawler->timeout( 60 );
+    $crawler->timeout( $crawler_timeout );
     $crawler->pending_check_interval( 1 );
 
     $| = 1;
@@ -77,12 +81,24 @@ sub extract_downloads
 
     print "extracting downloads ...\n";
 
-    my $downloads = $db->query( "select * from downloads" )->hashes;
+    my $downloads = $db->query( "select * from downloads where type = 'content'" )->hashes;
 
     for my $download ( @{ $downloads } )
     {
         MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, 1 );
     }
+}
+
+sub update_download_texts
+{
+    my ( $db ) = @_;
+
+    my $download_texts = $db->query( "select * from download_texts" )->hashes;
+
+    for my $download_text ( @{ $download_texts } )
+    {
+        MediaWords::DBI::DownloadTexts::update_text( $db, $download_text );
+    }   
 }
 
 # run extractor, tagger, and vector on all stories
