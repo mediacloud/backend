@@ -32,6 +32,10 @@ my $_SCRUB_TAGS = [ qw/script style frame applet textarea/ ];
 
 # METHODS
 
+#
+# TODO rewrite _remove_tags_in_comments using Inline::C to improve performance.
+#
+
 # remove >s from inside comments so the simple line density scorer
 # doesn't get confused about where tags end
 sub _remove_tags_in_comments
