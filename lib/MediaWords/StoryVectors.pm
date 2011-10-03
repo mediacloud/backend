@@ -257,6 +257,13 @@ sub dedup_sentences
     return $deduped_sentences;
 }
 
+sub _story_within_media_source_story_words_data_range
+{
+    my ( $db, $story ) = @_;
+
+    return 1;
+}
+
 # update story vectors for the given story, updating story_sentences and story_sentence_words
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones (useful for optimization
 # if you are very sure no story vectors exist for this story).
@@ -272,6 +279,8 @@ sub update_story_sentence_words
         $db->query( "delete from story_sentences where stories_id = ?",             $story->{ stories_id } );
         $db->query( "delete from story_sentence_counts where first_stories_id = ?", $story->{ stories_id } );
     }
+
+    return if ( ! _story_within_media_source_story_words_data_range ( $db, $story ) );
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
