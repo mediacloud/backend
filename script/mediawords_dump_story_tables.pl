@@ -43,7 +43,6 @@ sub get_max_stories_id
     return $max_stories_id;
 }
 
-
 sub get_min_stories_id
 {
     my ( $dbh ) = @_;
@@ -322,11 +321,13 @@ sub main
 
     my $dumped_stories = dump_story_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
 
-    dump_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
-    dump_total_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
+    if ( $full )
+    {
+        dump_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
+        dump_total_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
+    }
 
     $dbh->disconnect;
-
 
     my $zip = Archive::Zip->new();
 
