@@ -117,8 +117,6 @@ sub dump_story_words
 
     }
 
-    $dbh->disconnect;
-
     return [ $first_dumped_id, $last_dumped_id ];
 }
 
@@ -134,6 +132,42 @@ sub dump_stories
         $output_file,
         " select stories_id, media_id, url, guid, title, publish_date, collect_date from stories " .
           "   where stories_id >= ? and stories_id <= ? order by stories_id",
+        [ $first_dumped_id, $last_dumped_id ],
+        1
+    );
+}
+
+sub dump_weekly_words
+{
+    my ( $dbh, $dir, $first_dumped_id, $last_dumped_id ) = @_;
+
+    my $file_name = "$dir/weekly_words_" . $first_dumped_id . "_$last_dumped_id" . ".csv";
+    open my $output_file, ">", "$file_name"
+      or die "Can't open $file_name: $@";
+
+    $dbh->query_csv_dump(
+        $output_file,
+        " select * from weekly_words where publish_week in                                    " .
+          " (select distinct (date_trunc('week', publish_date)::date ) as publish_week from stories" .
+          " where stories_id >= ? and stories_id <=? order by publish_week) order by weekly_words_id ",
+        [ $first_dumped_id, $last_dumped_id ],
+        1
+    );
+}
+
+sub dump_total_weekly_words
+{
+    my ( $dbh, $dir, $first_dumped_id, $last_dumped_id ) = @_;
+
+    my $file_name = "$dir/total_weekly_words_" . $first_dumped_id . "_$last_dumped_id" . ".csv";
+    open my $output_file, ">", "$file_name"
+      or die "Can't open $file_name: $@";
+
+    $dbh->query_csv_dump(
+        $output_file,
+        " select * from total_weekly_words where publish_week in                                    " .
+          " (select distinct (date_trunc('week', publish_date)::date ) as publish_week from stories" .
+          " where stories_id >= ? and stories_id <=? order by publish_week) order by total_weekly_words_id ",
         [ $first_dumped_id, $last_dumped_id ],
         1
     );
@@ -158,10 +192,12 @@ sub dump_media_sets
     open my $output_file, ">", "$file_name"
       or die "Can't open $file_name: $@";
 
-    $dbh->query_csv_dump( $output_file, "select ms.media_sets_id, ms.name, msmm.media_id
+    $dbh->query_csv_dump(
+        $output_file, "select ms.media_sets_id, ms.name, msmm.media_id
   from media_sets ms, media_sets_media_map msmm
   where ms.media_sets_id = msmm.media_sets_id
-    and ms.set_type = 'collection'  and ms.include_in_dump order by media_sets_id, media_id", [], 1 );
+    and ms.set_type = 'collection'  and ms.include_in_dump order by media_sets_id, media_id", [], 1
+    );
 }
 
 sub _current_date
@@ -247,7 +283,7 @@ sub main
 
     if ( $full )
     {
-	$stories_id_start = get_min_stories_id( $dbh );
+        $stories_id_start = get_min_stories_id( $dbh );
     }
     else
     {
@@ -285,6 +321,12 @@ sub main
     #exit;
 
     my $dumped_stories = dump_story_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
+
+    dump_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
+    dump_total_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
+
+    $dbh->disconnect;
+
 
     my $zip = Archive::Zip->new();
 
