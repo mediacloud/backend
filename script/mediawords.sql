@@ -683,6 +683,7 @@ create table total_weekly_words (
 create index total_weekly_words_media_sets_id on total_weekly_words (media_sets_id);
 create index total_weekly_words_media_sets_id_publish_day on total_weekly_words (media_sets_id,publish_week);
 create unique index total_weekly_words_ms_id_dt_id_p_week on total_weekly_words(media_sets_id, dashboard_topics_id, publish_week);
+CREATE INDEX total_weekly_words_publish_week on total_weekly_words(publish_week);
 INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words group by media_sets_id, dashboard_topics_id, publish_week order by publish_week asc, media_sets_id, dashboard_topics_id ;
 
 create view daily_words_with_totals 
