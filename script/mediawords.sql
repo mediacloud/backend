@@ -605,6 +605,7 @@ create table weekly_words (
 
 create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
+CREATE INDEX weekly_words_publish_week on weekly_words(publish_week);
 ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
 create table top_500_weekly_words (
