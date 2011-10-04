@@ -257,9 +257,80 @@ sub dedup_sentences
     return $deduped_sentences;
 }
 
-sub _story_within_media_source_story_words_data_range
+sub _medium_has_story_words_start_date
+{
+    my ( $medium ) = @_;
+
+    my $default_story_words_start_date =
+      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
+
+    return defined( $default_story_words_start_date );
+}
+
+sub _get_story_words_start_date_for_medium
+{
+
+    my ( $medium ) = @_;
+
+    my $default_story_words_start_date =
+      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
+
+    return $default_story_words_start_date;
+
+}
+
+sub _medium_has_story_words_end_date
+{
+    my ( $medium ) = @_;
+
+    my $default_story_words_start_date =
+      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
+
+    return defined( $default_story_words_start_date );
+}
+
+sub _get_story_words_end_date_for_medium
+{
+
+    my ( $medium ) = @_;
+
+    my $default_story_words_start_date =
+      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
+
+    return $default_story_words_start_date;
+
+}
+
+sub _date_with_media_source_story_words_range
+{
+    my ( $medium, $publish_date ) = @_;
+
+    if ( _medium_has_story_words_start_date( $medium ) )
+    {
+        my $medium_sw_start_date = _get_story_words_start_date_for_medium( $medium );
+
+        return 0 if $medium_sw_start_date > $publish_date;
+    }
+
+    if ( _medium_has_story_words_end_date( $medium ) )
+    {
+        my $medium_sw_end_date = _get_story_words_end_date_for_medium( $medium );
+
+        return 0 if $medium_sw_end_date < $publish_date;
+    }
+
+    return 1;
+}
+
+sub _story_within_media_source_story_words_date_range
 {
     my ( $db, $story ) = @_;
+
+    my $medium = MediaWords::DBI::Stories::get_media_source_for_story( $db, $story );
+
+    my $publish_date = $story->{ publish_date };
+
+    return _date_with_media_source_story_words_range( $medium, $publish_date );
 
     return 1;
 }
@@ -280,7 +351,7 @@ sub update_story_sentence_words
         $db->query( "delete from story_sentence_counts where first_stories_id = ?", $story->{ stories_id } );
     }
 
-    return if ( ! _story_within_media_source_story_words_data_range ( $db, $story ) );
+    return if ( !_story_within_media_source_story_words_date_range( $db, $story ) );
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
