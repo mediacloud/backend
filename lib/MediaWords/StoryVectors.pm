@@ -264,13 +264,18 @@ sub _medium_has_story_words_start_date
     my $default_story_words_start_date =
       MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
 
-    return defined( $default_story_words_start_date );
+    return defined( $default_story_words_start_date ) || $medium->{ sw_data_start_date };
 }
 
 sub _get_story_words_start_date_for_medium
 {
 
     my ( $medium ) = @_;
+
+    if ( defined( $medium->{ sw_data_start_date } ) && $medium->{ sw_data_start_date } )
+    {
+        return $medium->{ sw_data_start_date };
+    }
 
     my $default_story_words_start_date =
       MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
@@ -283,10 +288,10 @@ sub _medium_has_story_words_end_date
 {
     my ( $medium ) = @_;
 
-    my $default_story_words_start_date =
+    my $default_story_words_end_date =
       MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
 
-    return defined( $default_story_words_start_date );
+    return defined( $default_story_words_end_date ) || $medium->{ sw_data_end_date };
 }
 
 sub _get_story_words_end_date_for_medium
@@ -294,10 +299,17 @@ sub _get_story_words_end_date_for_medium
 
     my ( $medium ) = @_;
 
-    my $default_story_words_start_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
+    if ( defined( $medium->{ sw_data_end_date } ) && $medium->{ sw_data_end_date } )
+    {
+        return $medium->{ sw_data_end_date };
+    }
+    else
+    {
+        my $default_story_words_end_date =
+          MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
 
-    return $default_story_words_start_date;
+        return $default_story_words_end_date;
+    }
 
 }
 
