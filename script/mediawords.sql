@@ -608,6 +608,7 @@ create table daily_words (
 
 create index daily_words_media on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
 create index daily_words_count on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem_count);
+create index daily_words_publish_week on daily_words(week_start_date(publish_day));
 
 create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
 
