@@ -660,6 +660,8 @@ create table total_daily_words (
 
 create index total_daily_words_media_sets_id on total_daily_words (media_sets_id);
 create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
+create index total_daily_words_publish_day on total_daily_words (publish_day);
+#create index total_daily_words_publish_week on total_daily_words (date_trunc('week', publish_day::timestamp)::date);
 CREATE UNIQUE INDEX total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
 
  
