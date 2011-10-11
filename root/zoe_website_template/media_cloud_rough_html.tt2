@@ -400,7 +400,12 @@
 <tr>
  <td align="left">
 
+[% IF has_sw_data %]
  [% INCLUDE 'zoe_website_template/sentences_and_subsets.tt2' %]
+[% ELSE %]
+<b>Note: Sentence level data is not available for this query during the selected week.</b>
+[% END %] 
+
  </td>   
          
         </tr>
