@@ -54,9 +54,6 @@ __PACKAGE__->setup;
 
 sub begin : Private {
         my ( $self, $c ) = @_;
-        
-
-	$DB::single=1;
 
         my $locale = $c->request->param('locale');
         
