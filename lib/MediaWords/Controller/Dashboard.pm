@@ -903,6 +903,7 @@ sub _show_dashboard_results_single_query
 
     $c->stash->{ has_old_query } = MediaWords::DBI::Queries::query_is_old_version( $c->dbis, $query );
 
+    $c->stash->{ has_sw_data } = MediaWords::DBI::Queries::query_has_sw_data( $c->dbis, $query );
 }
 
 sub _concat_or_replace
@@ -967,6 +968,7 @@ sub _show_dashboard_results_compare_queries
     $c->stash->{ queries }       = $queries;
     $c->stash->{ queries_ids }   = [ map { $_->{ queries_id } } @{ $queries } ];
     $c->stash->{ has_old_query } = any { MediaWords::DBI::Queries::query_is_old_version( $c->dbis, $_ ) } @{ $queries };
+    $c->stash->{ has_sw_data }   = all { MediaWords::DBI::Queries::query_has_sw_data( $c->dbis, $_ ) } @ { $queries };
 }
 
 # generate main dashboard page
