@@ -12,6 +12,9 @@ use JSON;
 
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
+use MediaWords::StoryVectors;
+use Perl6::Say;
+
 
 # max number of sentences to return in various get_*_stories_with_sentences functions
 use constant MAX_QUERY_SENTENCES => 1000;
@@ -1292,4 +1295,31 @@ sub query_is_old_version
     my $ret = $results->[ 0 ];
     return $ret;
 }
+
+sub query_has_sw_data
+{
+    my ( $db, $query ) = @_;
+
+    my $ret = 1;
+
+
+    say STDERR Dumper ( $query );
+    say STDERR "media_sets_ids ";
+    say STDERR Dumper ( $query->{ media_sets_ids } );
+
+    foreach my $media_sets_id ( @ { $query->{ media_sets_ids } } )
+    {
+       my $end_date   =  MediaWords::StoryVectors::get_default_story_words_end_date();
+       my $start_date =  MediaWords::StoryVectors::get_default_story_words_start_date();
+
+       my $results = $db->query( " SELECT media_set_retains_sw_data_for_date( ?, ?, ?, ?) " , $media_sets_id, $query->{start_date }, $start_date, $end_date )->flat;
+
+       say STDERR Dumper ( $results );
+
+       $ret &&= $results->[0];
+    }
+
+    return $ret;
+}
+
 1;
