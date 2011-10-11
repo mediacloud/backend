@@ -357,6 +357,18 @@ sub _story_within_media_source_story_words_date_range
     return 1;
 }
 
+sub purge_story_words_data_for_unretained_dates
+{
+    my ( $db ) = @_;
+
+    my $default_story_words_start_date = get_default_story_words_start_date();
+    my $default_story_words_end_date   = get_default_story_words_end_date();
+
+    $db->query( " SELECT purge_story_words( ? , ? )", $default_story_words_start_date, $default_story_words_end_date );
+
+    return;
+}
+
 # update story vectors for the given story, updating story_sentences and story_sentence_words
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones (useful for optimization
 # if you are very sure no story vectors exist for this story).
