@@ -257,19 +257,33 @@ sub dedup_sentences
     return $deduped_sentences;
 }
 
+sub get_default_story_words_start_date
+{
+    my $default_story_words_start_date =
+      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
+
+    return $default_story_words_start_date;
+}
+
+sub get_default_story_words_end_date
+{
+    my $default_story_words_end_date =
+      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
+
+    return $default_story_words_end_date;
+}
+
 sub _medium_has_story_words_start_date
 {
     my ( $medium ) = @_;
 
-    my $default_story_words_start_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
+    my $default_story_words_start_date = get_default_story_words_start_date();
 
     return defined( $default_story_words_start_date ) || $medium->{ sw_data_start_date };
 }
 
 sub _get_story_words_start_date_for_medium
 {
-
     my ( $medium ) = @_;
 
     if ( defined( $medium->{ sw_data_start_date } ) && $medium->{ sw_data_start_date } )
@@ -277,19 +291,16 @@ sub _get_story_words_start_date_for_medium
         return $medium->{ sw_data_start_date };
     }
 
-    my $default_story_words_start_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_start_date };
+    my $default_story_words_start_date = get_default_story_words_start_date();
 
     return $default_story_words_start_date;
-
 }
 
 sub _medium_has_story_words_end_date
 {
     my ( $medium ) = @_;
 
-    my $default_story_words_end_date =
-      MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
+    my $default_story_words_end_date = get_default_story_words_end_date();
 
     return defined( $default_story_words_end_date ) || $medium->{ sw_data_end_date };
 }
@@ -305,8 +316,7 @@ sub _get_story_words_end_date_for_medium
     }
     else
     {
-        my $default_story_words_end_date =
-          MediaWords::Util::Config::get_config->{ mediawords }->{ default_story_words_end_date };
+        my $default_story_words_end_date = get_default_story_words_end_date();
 
         return $default_story_words_end_date;
     }
@@ -866,8 +876,9 @@ sub _update_weekly_words
     # between for dates
     my $week_dates = _get_week_dates_list( $sql_date );
 
-    $db->query( "delete from weekly_words where publish_week = '${ sql_date }'::date  $update_clauses " );
-    #$db->query( "delete from weekly_words where publish_week = '${ sql_date }'::date and media_sets_id in ( select distinct(media_sets_id) from total_daily_words where week_start_date(publish_day) = '${ sql_date }'::date ) $update_clauses " );
+    $db->query(
+"delete from weekly_words where publish_week = '${ sql_date }'::date and media_sets_id in ( select distinct(media_sets_id) from total_daily_words where week_start_date(publish_day) = '${ sql_date }'::date ) $update_clauses "
+    );
 
     my $query =
       "insert into weekly_words (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
