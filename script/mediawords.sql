@@ -316,7 +316,7 @@ BEGIN
     return  ( start_date <= test_date ) and ( end_date >= test_date );    
 END;
 $$
-LANGUAGE 'plpgsql'
+LANGUAGE 'plpgsql' STABLE
  ;
 
 /*
