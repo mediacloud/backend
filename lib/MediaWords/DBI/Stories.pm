@@ -362,9 +362,9 @@ sub add_word_vectors
         print STDERR "add_word_vectors: " . $i++ . "\n";
         my $words = $db->query( 
             "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
-            "  where ssw.stories_id = $story->{ stories_id } " .
+            "  where ssw.stories_id = ? " .
             # "    and not is_stop_stem( 'long', ssw.stem ) " .
-            "  group by ssw.stem order by count( * ) desc limit 1000 " )->hashes;
+            "  group by ssw.stem order by sum( stem_count ) desc limit 1000 ", $story->{ stories_id } )->hashes;
             
         $story->{ vector } = [ 0 ];
 
