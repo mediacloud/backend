@@ -14,6 +14,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Web;
 
+
 use Text::CSV_XS;
 
 # the number of days to query back from today for the sample
@@ -25,40 +26,42 @@ use constant SAMPLE_NUMBER_DAYS => 365;
 use constant SAMPLE_RANGE => 0.10;
 
 # number of pairs to pull from each sample range
-use constant SAMPLE_RANGE_PAIRS => 120;
+use constant SAMPLE_RANGE_PAIRS => 10;
 
 # tags_id of tag marking which blog media sources to include
-use constant BLOG_MEDIA_TAGS_ID => 8875108;
+use constant BLOG_MEDIA_TAGS_IDS => ( 875024 );
 
 # tags_id of tag marking which msm feeds to include
-use constant MSM_FEEDS_TAGS_ID => 8875180;
+use constant MSM_MEDIA_TAGS_IDS => ( 8875073, 8875076, 8875077, 8875078, 8875079, 8875084, 8875087 );
 
 # query only 1/STORY_QUERY_SAMPLE_RATE stories before generating the cossim matrix
-use constant STORY_QUERY_SAMPLE_RATE => 25;
+use constant STORY_QUERY_SAMPLE_RATE => 500;
 
 # exclude the following media sources
-use constant EXCLUDE_MEDIA_IDS => ( 6933 );
+use constant EXCLUDE_MEDIA_IDS => ( 1762 );
 
 # get the set of stories belonging to study sets and feeds for the week following the given date
 sub get_stories 
 {
     my ( $db ) = @_;
 
+    my $blog_tags_list = join( ',', BLOG_MEDIA_TAGS_IDS );
+    my $msm_tags_list = join( ',', MSM_MEDIA_TAGS_IDS );
     my $exclude_media_ids_list = join( ',', EXCLUDE_MEDIA_IDS );
 
     my $blog_stories = $db->query( 
         "select s.* from stories s, media_tags_map mtm " . 
-        "  where s.media_id = mtm.media_id and mtm.tags_id = " . BLOG_MEDIA_TAGS_ID . " " . 
+        "  where s.media_id = mtm.media_id and mtm.tags_id in ( $blog_tags_list ) " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
         "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " .
         "    and s.media_id not in ( $exclude_media_ids_list ) order by random()" )->hashes;
         
     my $msm_stories = $db->query( 
-        "select s.* from stories s, feeds_stories_map fsm, feeds_tags_map ftm " . 
-        "  where s.stories_id = fsm.stories_id and fsm.feeds_id =  ftm.feeds_id " . 
-        "    and ftm.tags_id = " . MSM_FEEDS_TAGS_ID  . " " . 
+        "select s.* from stories s, media_tags_map mtm " . 
+        "  where s.media_id = mtm.media_id and mtm.tags_id in ( $msm_tags_list ) " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
-        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 order by random()" )->hashes; 
+        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " .
+        "    and s.media_id not in ( $exclude_media_ids_list ) order by random()" )->hashes;
 
     if ( @{ $blog_stories } > @{ $msm_stories } )
     {
@@ -68,8 +71,7 @@ sub get_stories
     {
         splice( @{ $msm_stories }, @{ $blog_stories } );
     }
-
-
+    
     push( @{ $msm_stories }, @{ $blog_stories } );
     
     return $msm_stories;
@@ -98,7 +100,7 @@ sub get_story_pairs
         }
     }
     
-    my @sorted_pairs = sort { $a->{ similarity } <=> $b->{ similarity } } @{ $story_pairs } ];
+    my @sorted_pairs = sort { $a->{ similarity } <=> $b->{ similarity } } @{ $story_pairs };
     
     return \@sorted_pairs;
 }
