@@ -363,14 +363,19 @@ sub add_word_vectors
         my $words = $db->query( 
             "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
             "  where ssw.stories_id = $story->{ stories_id } " .
-            "    and not is_stop_stem( 'long', ssw.stem ) " .
-            "  group by ssw.stem order by count( * ) desc limit 100 " )->hashes;
+            # "    and not is_stop_stem( 'long', ssw.stem ) " .
+            "  group by ssw.stem order by count( * ) desc limit 1000 " )->hashes;
             
         $story->{ vector } = [ 0 ];
 
+        my $next_word_index = 0;
         for my $word ( @{ $words } )
         {
-            $word_hash->{ $word->{ stem } } ||= scalar( values( %{ $word_hash } ) );
+            if ( !$word_hash->{ $word->{ stem } } )
+            {
+                $word_hash->{ $word->{ stem } } = $next_word_index++;
+            }
+            
             my $word_index = $word_hash->{ $word->{ stem } };
 
             $story->{ vector }->[ $word_index ] = $word->{ stem_count };
