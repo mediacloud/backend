@@ -15,7 +15,6 @@ use MediaWords::Util::SQL;
 use MediaWords::StoryVectors;
 use Perl6::Say;
 
-
 # max number of sentences to return in various get_*_stories_with_sentences functions
 use constant MAX_QUERY_SENTENCES => 1000;
 
@@ -533,8 +532,15 @@ sub get_top_500_weekly_words
 
     my $ret;
 
-    #$ret = _get_top_500_weekly_words_impl( $db, $query );
-    #_store_top_500_weekly_words_for_query( $db, $query, $ret );
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $disable_json = $config->{ mediawords }->{ disable_json_top_500_words_cache } eq 'yes';
+
+    if ( $disable_json )
+    {
+        $ret = _get_top_500_weekly_words_impl( $db, $query );
+        return $ret;
+    }
 
     my $words = _get_json_top_500_weekly_words_for_query( $db, $query );
 
@@ -1302,21 +1308,24 @@ sub query_has_sw_data
 
     my $ret = 1;
 
-
-    say STDERR Dumper ( $query );
+    say STDERR Dumper( $query );
     say STDERR "media_sets_ids ";
-    say STDERR Dumper ( $query->{ media_sets_ids } );
+    say STDERR Dumper( $query->{ media_sets_ids } );
 
-    foreach my $media_sets_id ( @ { $query->{ media_sets_ids } } )
+    foreach my $media_sets_id ( @{ $query->{ media_sets_ids } } )
     {
-       my $end_date   =  MediaWords::StoryVectors::get_default_story_words_end_date();
-       my $start_date =  MediaWords::StoryVectors::get_default_story_words_start_date();
+        my $end_date   = MediaWords::StoryVectors::get_default_story_words_end_date();
+        my $start_date = MediaWords::StoryVectors::get_default_story_words_start_date();
 
-       my $results = $db->query( " SELECT media_set_retains_sw_data_for_date( ?, ?, ?, ?) " , $media_sets_id, $query->{start_date }, $start_date, $end_date )->flat;
+        my $results = $db->query(
+            " SELECT media_set_retains_sw_data_for_date( ?, ?, ?, ?) ",
+            $media_sets_id, $query->{ start_date },
+            $start_date, $end_date
+        )->flat;
 
-       say STDERR Dumper ( $results );
+        say STDERR Dumper( $results );
 
-       $ret &&= $results->[0];
+        $ret &&= $results->[ 0 ];
     }
 
     return $ret;
