@@ -18,7 +18,7 @@ use MediaWords::Util::Web;
 use Text::CSV_XS;
 
 # the number of days to query back from today for the sample
-use constant SAMPLE_NUMBER_DAYS => 365;
+use constant SAMPLE_NUMBER_DAYS => 30;
 
 # the range to use to sample the story pairs by similarity -- so a range of 0.25
 # means that we will pull equal numbers of story pairs from those pairs that
@@ -29,13 +29,13 @@ use constant SAMPLE_RANGE => 0.10;
 use constant SAMPLE_RANGE_PAIRS => 10;
 
 # tags_id of tag marking which blog media sources to include
-use constant BLOG_MEDIA_TAGS_IDS => ( 875024 );
+use constant BLOG_MEDIA_TAGS_IDS => ( 8875024 );
 
 # tags_id of tag marking which msm feeds to include
 use constant MSM_MEDIA_TAGS_IDS => ( 8875073, 8875076, 8875077, 8875078, 8875079, 8875084, 8875087 );
 
 # query only 1/STORY_QUERY_SAMPLE_RATE stories before generating the cossim matrix
-use constant STORY_QUERY_SAMPLE_RATE => 500;
+use constant STORY_QUERY_SAMPLE_RATE => 5;
 
 # exclude the following media sources
 use constant EXCLUDE_MEDIA_IDS => ( 1762 );
@@ -45,23 +45,39 @@ sub get_stories
 {
     my ( $db ) = @_;
 
-    my $blog_tags_list = join( ',', BLOG_MEDIA_TAGS_IDS );
-    my $msm_tags_list = join( ',', MSM_MEDIA_TAGS_IDS );
+    my $tags_list = join( ',', BLOG_MEDIA_TAGS_IDS, MSM_MEDIA_TAGS_IDS );
     my $exclude_media_ids_list = join( ',', EXCLUDE_MEDIA_IDS );
 
-    my $blog_stories = $db->query( 
-        "select s.* from stories s, media_tags_map mtm " . 
-        "  where s.media_id = mtm.media_id and mtm.tags_id in ( $blog_tags_list ) " . 
+    my $all_stories = $db->query( 
+        "select s.*, mtm.tags_id from stories s, media_tags_map mtm " . 
+        "  where s.media_id = mtm.media_id and mtm.tags_id in ( $tags_list ) " . 
         "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
         "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " .
         "    and s.media_id not in ( $exclude_media_ids_list ) order by random()" )->hashes;
         
-    my $msm_stories = $db->query( 
-        "select s.* from stories s, media_tags_map mtm " . 
-        "  where s.media_id = mtm.media_id and mtm.tags_id in ( $msm_tags_list ) " . 
-        "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
-        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " .
-        "    and s.media_id not in ( $exclude_media_ids_list ) order by random()" )->hashes;
+    print STDERR "all stories: " . scalar( @{ $all_stories } ) . "\n";
+
+    # the above query takes a Long Time, including a seq scan of stories, so we
+    # just do it once and then sort throught the results in perl to make sure
+    # we have equal numbers of msm and blog stories
+    my $blog_tags_lookup = {};
+    map { $blog_tags_lookup->{ $_ } = 1 } BLOG_MEDIA_TAGS_IDS;
+    
+    my $blog_stories = [];
+    my $msm_stories = [];
+    for my $story ( @{ $all_stories } )
+    {
+        if ( $blog_tags_lookup->{ $story->{ tags_id } } )
+        {
+            push( @{ $blog_stories }, $story );
+        }
+        else {
+            push( @{ $msm_stories }, $story );
+        }
+    }
+    
+    print STDERR "blog stories: " . scalar( @{ $blog_stories } ) . "\n";
+    print STDERR "msm stories: " . scalar( @{ $msm_stories } ) . "\n";
 
     if ( @{ $blog_stories } > @{ $msm_stories } )
     {
