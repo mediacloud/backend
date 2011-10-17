@@ -43,6 +43,33 @@ $$
 LANGUAGE 'plpgsql'
  ;
 
+CREATE OR REPLACE FUNCTION purge_story_sentences(default_start_day date, default_end_day date)
+  RETURNS VOID  AS
+$$
+DECLARE
+    media_rec record;
+    current_time timestamp;
+BEGIN
+    current_time := timeofday()::timestamp;
+
+    RAISE NOTICE 'time - %', current_time;
+    FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) ORDER BY media_id LOOP
+        current_time := timeofday()::timestamp;
+        RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
+        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) < date_trunc( 'day', media_rec.start_date ); 
+    END LOOP;
+
+  RAISE NOTICE 'time - %', current_time;  -- Prints 30
+  FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) ORDER BY media_id LOOP
+        current_time := timeofday()::timestamp;
+        RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
+        DELETE from story_sentences where media_id = media_rec.media_id and date_trunc( 'day', publish_date ) > date_trunc( 'day', media_rec.end_date ); 
+    END LOOP;
+END;
+$$
+LANGUAGE 'plpgsql'
+ ;
+
 create table media (
     media_id            serial          primary key,
     url                 varchar(1024)   not null,
