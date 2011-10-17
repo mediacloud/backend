@@ -20,7 +20,7 @@ use Term::Prompt;
 sub main
 {
     my $warning_message =
-"Warning this script will delete data from the story words table. Are you sure you wish to continue?";
+"Warning this script will delete data from the story_sentences and story_sentences_words tables. Are you sure you wish to continue?";
 
     my $continue_and_reset_db = &prompt( "y", $warning_message, "", "n" );
 
