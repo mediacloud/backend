@@ -29,6 +29,7 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     MediaWords::StoryVectors::purge_story_words_data_for_unretained_dates( $db );
+    MediaWords::StoryVectors::purge_story_sentences_data_for_unretained_dates( $db );
 }
 
 main();
