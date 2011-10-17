@@ -20,9 +20,13 @@ use MediaWords::Util::Countries;
 use Date::Format;
 use Date::Parse;
 use utf8;
+use Readonly;
 
 # minimum length of words in story_sentence_words
 use constant MIN_STEM_LENGTH => 3;
+
+Readonly my $sentence_study_table_prefix => 'sen_study_old_';
+Readonly my $sentence_study_table_suffix => '_2011_01_03_2011_01_10';
 
 # if story is a ref, return itself, otherwise treat it as a stories_id and query for the story ref
 sub _get_story
@@ -579,6 +583,66 @@ sub _update_total_weekly_words
 "INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
     );
 }
+#
+sub _sentence_study_update_total_weekly_words
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: total_weekly_words $sql_date";
+
+    my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    my $total_weekly_words_table = $sentence_study_table_prefix . 'total_weekly_words' . $sentence_study_table_suffix;
+    my $weekly_words_table = $sentence_study_table_prefix . 'weekly_words' . $sentence_study_table_suffix;
+
+    $db->query(
+        "delete from $total_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses" );
+
+    $db->query(
+"INSERT INTO $total_weekly_words_table(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from $weekly_words_table where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
+    );
+}
+
+# update the top_500_weekly_words table with the 500 most common stop worded stems for each media_sets_id each week
+sub _sentence_study_update_top_500_weekly_words
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: _sentence_study_update_top_500_weekly_words $sql_date";
+
+    my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    my $top_500_weekly_words_table = $sentence_study_table_prefix . 'top_500_weekly_words' . $sentence_study_table_suffix;
+    my $total_top_500_weekly_words_table = $sentence_study_table_prefix . 'total_top_500_weekly_words' . $sentence_study_table_suffix;
+    my $weekly_words_table = $sentence_study_table_prefix . 'weekly_words' . $sentence_study_table_suffix;
+
+    $db->query(
+        "delete from $top_500_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses" );
+    $db->query(
+        "delete from $total_top_500_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
+    );
+
+    #TODO figure out if regexp_replace( term, E'''s?\\\\Z', '' ) is really necessary
+
+    # Note in postgresql [:alpha:] doesn't include international characters.
+    # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
+    $db->query(
+        "insert into $top_500_weekly_words_table (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
+          "  select media_sets_id, regexp_replace( term, E'''s?\\\\Z', '' ), " .
+          "      stem, stem_count, publish_week, dashboard_topics_id " . "    from ( " .
+          "      select media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id, " .
+          "          rank() over ( partition by media_sets_id, dashboard_topics_id order by stem_count desc ) as stem_rank  "
+          . "      from $weekly_words_table "
+          . "      where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses "
+          . "        and not is_stop_stem( 'long', stem ) and stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]' ) q "
+          . "    where stem_rank < 500 "
+          . "    order by stem_rank asc " );
+
+    $db->query( "insert into $total_top_500_weekly_words_table (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
+          "  select media_sets_id, publish_week, sum( stem_count ), dashboard_topics_id from $top_500_weekly_words_table " .
+          "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
+          "    group by media_sets_id, publish_week, dashboard_topics_id" );
+}
 
 # update the top_500_weekly_words table with the 500 most common stop worded stems for each media_sets_id each week
 sub _update_top_500_weekly_words
@@ -911,6 +975,59 @@ sub _update_weekly_words
 }
 
 # update the given table for the given date and interval
+sub _sentence_study_update_weekly_words
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    say STDERR "aggregate: _sentence_study_update_weekly_words $sql_date";
+
+    my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+
+    my ( $week_start_date ) = $db->query( " SELECT  week_start_date( '${ sql_date }'::date ) " )->flat;
+
+    $sql_date = $week_start_date;
+
+    # use an in list of dates instead of sql between b/c postgres is really slow using
+    # between for dates
+    my $week_dates = _get_week_dates_list( $sql_date );
+
+    my $table_prefix = 'sen_study_new_';
+    my $table_suffix = '_2011_01_03_2011_01_10';
+
+    my $weekly_words_table = $sentence_study_table_prefix . 'weekly_words' . $sentence_study_table_suffix;
+    my $daily_words_table  = $sentence_study_table_prefix . 'daily_words' . $sentence_study_table_suffix;
+
+    say STDERR "Delete query ";
+
+    $db->query(
+"delete from $weekly_words_table where publish_week = '${ sql_date }'::date $update_clauses "
+    );
+
+    
+
+    my $query =
+      "insert into $weekly_words_table (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
+      "  select media_sets_id, term, stem, sum_stem_counts, publish_week, dashboard_topics_id from      " .
+      "   (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
+      "     sum(stem_count_sum) over w as sum_stem_counts  from " .
+      "(  select media_sets_id, term, stem, sum(stem_count) as stem_count_sum, " .
+      " '${ sql_date }'::date as publish_week, dashboard_topics_id from $daily_words_table " .
+      "    where  week_start_date(publish_day) = '${ sql_date }'::date $update_clauses " .
+      "    group by media_sets_id, stem, term, dashboard_topics_id ) as foo" .
+      " WINDOW w  as (partition by media_sets_id, stem, publish_week,  dashboard_topics_id  ) " .
+      "	               )  q                                                         " . "              where term_rank = 1 ";
+
+    say STDERR "insert_query: '$query'";
+
+    #say STDERR "query:\n$query";
+    $db->query( $query );
+
+    return 1;
+}
+
+
+
+# update the given table for the given date and interval
 sub _update_weekly_author_words
 {
     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
@@ -1085,6 +1202,59 @@ sub update_aggregate_author_words
                 _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
                 _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             }
+            $update_weekly = 0;
+        }
+
+        $db->commit();
+
+        $days++;
+    }
+
+    $db->commit;
+}
+
+
+sub update_aggregate_words_for_sentence_study
+{
+    my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    $start_date ||= '2008-06-01';
+    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
+
+    say STDERR "update_aggregate_words_for_sentence_study start_date: '$start_date' end_date:'$end_date' ";
+
+    $start_date = _truncate_as_day( $start_date );
+    $end_date   = _truncate_as_day( $end_date );
+
+    my $days          = 0;
+    my $update_weekly = 0;
+
+    for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
+    {
+        say STDERR "update_aggregate_words: $date ($start_date - $end_date) $days";
+
+        #_update_daily_stories_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
+
+        if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
+        {
+            # _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            # _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
+            # _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            # $update_weekly = 1;
+        }
+
+	$update_weekly = 1;
+
+        # update weeklies either if there was a daily update for the week and if we are at the end of the date range
+        # or the end of a week
+        if ( $update_weekly && ( ( $date eq $end_date ) || _date_is_sunday( $date ) ) )
+        {
+            _sentence_study_update_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            _sentence_study_update_total_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            _sentence_study_update_top_500_weekly_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+
+            # _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            # _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             $update_weekly = 0;
         }
 
