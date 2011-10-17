@@ -25,7 +25,7 @@ my $_cached_vector_magnitudes;
 
 sub reset_cos_sim_cache
 {
-    $_cached_cos_sims = {};
+    $_cached_cos_sims          = {};
     $_cached_vector_magnitudes = {};
 }
 
@@ -53,21 +53,21 @@ sub vector_dot
 sub vector_magnitude
 {
     my ( $v ) = @_;
-    
-    return sqrt( sum( $v ** 2 ) );
+
+    return sqrt( sum( $v**2 ) );
 }
 
 sub vector_magnitude_cached
 {
     my ( $v, $k ) = @_;
-    
+
     my $m = $_cached_vector_magnitudes->{ $k };
     if ( !defined( $m ) )
     {
         $m = vector_magnitude( $v );
         $_cached_vector_magnitudes->{ $k } = $m;
     }
-    
+
     return $m;
 }
 
@@ -75,7 +75,7 @@ sub vector_magnitude_cached
 sub vector_cos_sim
 {
     my ( $v1, $v2 ) = @_;
-    
+
     return vector_dot( norm( $v1 ), norm( $v2 ) );
 }
 
@@ -84,14 +84,14 @@ sub vector_cos_sim
 sub vector_cos_sim_cached
 {
     my ( $v1, $v2, $k1, $k2 ) = @_;
-    
+
     my $s = $_cached_cos_sims->{ $k1 }->{ $k2 } || $_cached_cos_sims->{ $k2 }->{ $k1 };
     if ( !defined( $s ) )
     {
         $s = vector_dot( $v1, $v2 ) / ( vector_magnitude_cached( $v1, $k1 ) * vector_magnitude_cached( $v2, $k2 ) );
         $_cached_cos_sims->{ $k1 }->{ $k2 } = $s;
     }
-    
+
     return $s;
 }
 
@@ -144,7 +144,12 @@ sub vector_get
 sub vector_set
 {
     my ( $v, $pos, $val ) = @_;
-    index( $v, $pos ) .= $val if ( defined( $val) && $val > 0 );
+
+    if ( defined( $val ) && $val > 0 )
+    {
+        index( $v, $pos ) .= $val;
+    }
+
     return $v;
 }
 
