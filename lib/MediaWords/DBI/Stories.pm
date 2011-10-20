@@ -357,6 +357,7 @@ sub add_word_vectors
     my $word_hash;
 
     my $i = 0;
+    my $next_word_index = 0;
     for my $story ( @{ $stories } )
     {
         print STDERR "add_word_vectors: " . $i++ . "\n";
@@ -368,10 +369,9 @@ sub add_word_vectors
             
         $story->{ vector } = [ 0 ];
 
-        my $next_word_index = 0;
         for my $word ( @{ $words } )
         {
-            if ( !$word_hash->{ $word->{ stem } } )
+            if ( !defined( $word_hash->{ $word->{ stem } } ) )
             {
                 $word_hash->{ $word->{ stem } } = $next_word_index++;
             }
@@ -379,9 +379,9 @@ sub add_word_vectors
             my $word_index = $word_hash->{ $word->{ stem } };
 
             $story->{ vector }->[ $word_index ] = $word->{ stem_count };
-        }
+        }        
     }
-
+    
     return $stories;
 }
 
