@@ -380,7 +380,31 @@ sub purge_story_sentences_data_for_unretained_dates
     my $default_story_words_start_date = get_default_story_words_start_date();
     my $default_story_words_end_date   = get_default_story_words_end_date();
 
-    $db->query( " SELECT purge_story_sentences( ?::date , ?::date )", $default_story_words_start_date, $default_story_words_end_date );
+    $db->query(
+        " SELECT purge_story_sentences( ?::date , ?::date )",
+        $default_story_words_start_date,
+        $default_story_words_end_date
+    );
+
+    return;
+}
+
+sub purge_daily_words_data_for_unretained_dates
+{
+    my ( $db ) = @_;
+
+    my $default_story_words_start_date = get_default_story_words_start_date();
+    my $default_story_words_end_date   = get_default_story_words_end_date();
+
+    $db->query(
+"DELETE from daily_words where not media_set_retains_sw_data_for_date ( media_sets_id, publish_day, ?::date, ?::date) ",
+        $default_story_words_start_date, $default_story_words_end_date
+    );
+
+    $db->query(
+"DELETE from total_daily_words where not media_set_retains_sw_data_for_date ( media_sets_id, publish_day, ?::date, ?::date) ",
+        $default_story_words_start_date, $default_story_words_end_date
+    );
 
     return;
 }
@@ -595,6 +619,7 @@ sub _update_total_weekly_words
 "INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
     );
 }
+
 #
 sub _sentence_study_update_total_weekly_words
 {
@@ -605,10 +630,11 @@ sub _sentence_study_update_total_weekly_words
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
     my $total_weekly_words_table = $sentence_study_table_prefix . 'total_weekly_words' . $sentence_study_table_suffix;
-    my $weekly_words_table = $sentence_study_table_prefix . 'weekly_words' . $sentence_study_table_suffix;
+    my $weekly_words_table       = $sentence_study_table_prefix . 'weekly_words' . $sentence_study_table_suffix;
 
     $db->query(
-        "delete from $total_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses" );
+        "delete from $total_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
+    );
 
     $db->query(
 "INSERT INTO $total_weekly_words_table(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from $weekly_words_table where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
@@ -625,13 +651,15 @@ sub _sentence_study_update_top_500_weekly_words
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
     my $top_500_weekly_words_table = $sentence_study_table_prefix . 'top_500_weekly_words' . $sentence_study_table_suffix;
-    my $total_top_500_weekly_words_table = $sentence_study_table_prefix . 'total_top_500_weekly_words' . $sentence_study_table_suffix;
+    my $total_top_500_weekly_words_table =
+      $sentence_study_table_prefix . 'total_top_500_weekly_words' . $sentence_study_table_suffix;
     my $weekly_words_table = $sentence_study_table_prefix . 'weekly_words' . $sentence_study_table_suffix;
 
     $db->query(
-        "delete from $top_500_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses" );
+"delete from $top_500_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
+    );
     $db->query(
-        "delete from $total_top_500_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
+"delete from $total_top_500_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
     );
 
     #TODO figure out if regexp_replace( term, E'''s?\\\\Z', '' ) is really necessary
@@ -639,18 +667,20 @@ sub _sentence_study_update_top_500_weekly_words
     # Note in postgresql [:alpha:] doesn't include international characters.
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
     $db->query(
-        "insert into $top_500_weekly_words_table (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
-          "  select media_sets_id, regexp_replace( term, E'''s?\\\\Z', '' ), " .
-          "      stem, stem_count, publish_week, dashboard_topics_id " . "    from ( " .
-          "      select media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id, " .
-          "          rank() over ( partition by media_sets_id, dashboard_topics_id order by stem_count desc ) as stem_rank  "
+        "insert into $top_500_weekly_words_table (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) "
+          . "  select media_sets_id, regexp_replace( term, E'''s?\\\\Z', '' ), "
+          . "      stem, stem_count, publish_week, dashboard_topics_id "
+          . "    from ( "
+          . "      select media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id, "
+          . "          rank() over ( partition by media_sets_id, dashboard_topics_id order by stem_count desc ) as stem_rank  "
           . "      from $weekly_words_table "
           . "      where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses "
           . "        and not is_stop_stem( 'long', stem ) and stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]' ) q "
           . "    where stem_rank < 500 "
           . "    order by stem_rank asc " );
 
-    $db->query( "insert into $total_top_500_weekly_words_table (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
+    $db->query(
+        "insert into $total_top_500_weekly_words_table (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
           "  select media_sets_id, publish_week, sum( stem_count ), dashboard_topics_id from $top_500_weekly_words_table " .
           "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
           "    group by media_sets_id, publish_week, dashboard_topics_id" );
@@ -1011,11 +1041,7 @@ sub _sentence_study_update_weekly_words
 
     say STDERR "Delete query ";
 
-    $db->query(
-"delete from $weekly_words_table where publish_week = '${ sql_date }'::date $update_clauses "
-    );
-
-    
+    $db->query( "delete from $weekly_words_table where publish_week = '${ sql_date }'::date $update_clauses " );
 
     my $query =
       "insert into $weekly_words_table (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
@@ -1036,8 +1062,6 @@ sub _sentence_study_update_weekly_words
 
     return 1;
 }
-
-
 
 # update the given table for the given date and interval
 sub _update_weekly_author_words
@@ -1225,7 +1249,6 @@ sub update_aggregate_author_words
     $db->commit;
 }
 
-
 sub update_aggregate_words_for_sentence_study
 {
     my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
@@ -1249,13 +1272,14 @@ sub update_aggregate_words_for_sentence_study
 
         if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
         {
+
             # _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             # _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
             # _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             # $update_weekly = 1;
         }
 
-	$update_weekly = 1;
+        $update_weekly = 1;
 
         # update weeklies either if there was a daily update for the week and if we are at the end of the date range
         # or the end of a week
