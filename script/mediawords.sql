@@ -26,14 +26,21 @@ BEGIN
     current_time := timeofday()::timestamp;
 
     RAISE NOTICE 'time - %', current_time;
-    FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) ORDER BY media_id LOOP
+
+    IF ( ( not default_start_day is null ) and ( not default_end_day is null ) ) THEN
+       RAISE NOTICE 'deleting for media without explict sw dates';
+       DELETE from story_sentence_words where media_id in ( select media_id from media where (sw_data_start_date is null) and (sw_data_end_date is null) )
+          AND ( publish_day < default_start_day or publish_day > default_end_day);
+    END IF;
+
+    FOR media_rec in  SELECT media_id, coalesce( sw_data_start_date, default_start_day ) as start_date FROM media where not (coalesce ( sw_data_start_date, default_start_day ) is null ) and (not sw_data_start_date is null) and (not sw_data_end_date is null) ORDER BY media_id LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, start_date - % time - %', media_rec.media_id, media_rec.start_date, current_time;
         DELETE from story_sentence_words where media_id = media_rec.media_id and publish_day < media_rec.start_date; 
     END LOOP;
 
   RAISE NOTICE 'time - %', current_time;  -- Prints 30
-  FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) ORDER BY media_id LOOP
+  FOR media_rec in  SELECT media_id, coalesce( sw_data_end_date, default_end_day ) as end_date FROM media where not (coalesce ( sw_data_end_date, default_end_day ) is null ) and (not sw_data_start_date is null) and (not sw_data_end_date is null) ORDER BY media_id LOOP
         current_time := timeofday()::timestamp;
         RAISE NOTICE 'media_id is %, end_date - % time - %', media_rec.media_id, media_rec.end_date, current_time;
         DELETE from story_sentence_words where media_id = media_rec.media_id and publish_day > media_rec.end_date; 
@@ -332,7 +339,7 @@ BEGIN
 
     RAISE NOTICE 'time - %', current_time;
 
-    SELECT media_sets_id, max(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, min( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
+    SELECT media_sets_id, min(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, max( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
 
     start_date = media_rec.sw_data_start_date; 
     end_date = media_rec.sw_data_end_date;
