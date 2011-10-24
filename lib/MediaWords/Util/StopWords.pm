@@ -201,6 +201,7 @@ sub get_en_short_stop_word_lookup
         'color'       => 1,
         'column'      => 1,
         'come'        => 1,
+        'comment'     => 1,
         'common'      => 1,
         'company'     => 1,
         'compare'     => 1,
