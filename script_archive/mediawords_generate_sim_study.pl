@@ -4,6 +4,8 @@
 
 use strict;
 
+use encoding "utf8";
+
 BEGIN
 {
     use FindBin;
@@ -12,13 +14,18 @@ BEGIN
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
+use MediaWords::Util::Stemmer;
 use MediaWords::Util::Web;
-
 
 use Text::CSV_XS;
 
-# the number of days to query back from today for the sample
-use constant SAMPLE_NUMBER_DAYS => 30;
+# start and end date of sample
+use constant SAMPLE_START_DATE => '2010-04-01';
+use constant SAMPLE_END_DATE => '2011-04-01';
+
+# if SAMPLE_KEYWORDS is not empty, include only stories that include
+# at least one of these keywords
+use constant SAMPLE_KEYWORDS => qw(путин Медведев кудрин Египет Тунис протест беспорядки пожар смог добровольцы лес мигалки ведерки метро Взрывы теракт культуры Лубянка домодедово взрыв теракт аеропорт Кашин Химки Селигер Наши Ходорковский ЮКОС модернизация Скoлково инновация инноград коррупция прозрачность подотчетность);
 
 # the range to use to sample the story pairs by similarity -- so a range of 0.25
 # means that we will pull equal numbers of story pairs from those pairs that
@@ -34,8 +41,8 @@ use constant BLOG_MEDIA_TAGS_IDS => ( 8875024 );
 # tags_id of tag marking which msm feeds to include
 use constant MSM_MEDIA_TAGS_IDS => ( 8875073, 8875076, 8875077, 8875078, 8875079, 8875084, 8875087 );
 
-# query only 1/STORY_QUERY_SAMPLE_RATE stories before generating the cossim matrix
-use constant STORY_QUERY_SAMPLE_RATE => 5;
+# stories to query, before correcting for equal blogs / msm and keywords filtering
+use constant STORY_QUERY_LIMIT => 7500;
 
 # exclude the following media sources
 use constant EXCLUDE_MEDIA_IDS => ( 1762 );
@@ -47,13 +54,14 @@ sub get_stories
 
     my $tags_list = join( ',', BLOG_MEDIA_TAGS_IDS, MSM_MEDIA_TAGS_IDS );
     my $exclude_media_ids_list = join( ',', EXCLUDE_MEDIA_IDS );
-
+    
     my $all_stories = $db->query( 
         "select s.*, mtm.tags_id from stories s, media_tags_map mtm " . 
         "  where s.media_id = mtm.media_id and mtm.tags_id in ( $tags_list ) " . 
-        "    and date_trunc( 'day', s.publish_date ) > now() - interval '" . SAMPLE_NUMBER_DAYS . " days' " . 
-        "    and ( s.stories_id % " . STORY_QUERY_SAMPLE_RATE . " ) = 0 " .
-        "    and s.media_id not in ( $exclude_media_ids_list ) order by random()" )->hashes;
+        "    and date_trunc( 'day', s.publish_date ) between ?::date and ?::date " . 
+        "    and s.media_id not in ( $exclude_media_ids_list ) " . 
+        "    order by random() limit " . STORY_QUERY_LIMIT,
+        SAMPLE_START_DATE, SAMPLE_END_DATE )->hashes;
         
     print STDERR "all stories: " . scalar( @{ $all_stories } ) . "\n";
 
@@ -107,12 +115,12 @@ sub get_story_pairs
         {
             my $sim = $stories->[ $i ]->{ similarities }->[ $j ];
             # throw away most low similarity stories to avoid making copies
-            if ( ( $sim >= 0.2 ) && !int( rand( 5 ) ) )
-            {
+            # if ( ( $sim >= 0.2 ) && !int( rand( 5 ) ) )
+            # {
                 push( @{ $story_pairs }, {        
                     similarity => $stories->[ $i ]->{ similarities }->[ $j ],
                     stories => [ $stories->[ $i ], $stories->[ $j ] ] } );
-            }
+            # }
         }
     }
     
@@ -207,8 +215,44 @@ sub print_story_pairs_csv
     print $output;   
 }
 
+# return only the stories that include at least one word from 'SAMPLE_KEYWORDS'.
+# assumes that each story has a { words } field as returned by add_word_vectors with
+# the keep_words argument set to true.
+sub filter_for_keywords
+{
+    my ( $stories ) = @_;
+    
+    return $stories if ( !SAMPLE_KEYWORDS );
+    
+    my $stemmer = MediaWords::Util::Stemmer->new;
+    
+    my $keystem_lookup = {};
+    map { print STDERR "keystem: $_ " . lc( $_ ) . "\n"; $keystem_lookup->{ lc( $_ ) } = 1 } @{ $stemmer->stem( SAMPLE_KEYWORDS ) };
+        
+    my $filtered_stories = [];
+    for my $story ( @{ $stories } )
+    {
+        # print STDERR "filter_for_keywords: " . scalar( @{ $story->{ words } } ) . " words\n";
+        for my $word ( @{ $story->{ words } } )
+        {
+            # print STDERR "filter_for_keywords: $word->{ stem }\n";
+            if ( $keystem_lookup->{ $word->{ stem } } )
+            {
+                push( @{ $filtered_stories }, $story );
+                # print STDERR "filter_for_keywords: matched $word->{ term }\n";
+                last;
+            }
+        }
+    }
+    
+    return $filtered_stories;
+}
+
 sub main 
 {
+    binmode( STDOUT, 'utf8' );
+    binmode( STDERR, 'utf8' );
+
     my $db = MediaWords::DB::connect_to_db;
     
     my $study_story_pairs = [];
@@ -217,6 +261,14 @@ sub main
     my $stories = get_stories( $db ); 
     
     print STDERR "got " . scalar( @{ $stories } ) . " stories\n";           
+        
+    print STDERR "add word vectors\n";
+    MediaWords::DBI::Stories::add_word_vectors( $db, $stories, 1 );        
+    
+    print STDERR "filter for keywords\n";
+    $stories = filter_for_keywords( $stories );
+    
+    print STDERR "filtered stories: " . scalar( @{ $stories } ) . "\n";
         
 	print STDERR "add_sims\n";
     MediaWords::DBI::Stories::add_cos_similarities( $db, $stories );
