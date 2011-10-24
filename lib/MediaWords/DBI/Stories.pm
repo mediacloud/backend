@@ -346,13 +346,15 @@ sub get_initial_download_content
     return $content;
 }
 
-# get word vectors for the top 100 words for each story.
+# get word vectors for the top 1000 words for each story.
 # add a { vector } field to each story where the vector for each
-# query is the list of the normalized counts of each word, with each word represented
-# by an index value shared across the union of all words for all stories
+# query is the list of the counts of each word, with each word represented
+# by an index value shared across the union of all words for all stories.
+# if keep_words is true, also add a { words } field to each story
+# with the list of words for each story in { stem => s, term => s, stem_count => s } form.
 sub add_word_vectors
 {
-    my ( $db, $stories ) = @_;
+    my ( $db, $stories, $keep_words ) = @_;
 
     my $word_hash;
 
@@ -360,11 +362,11 @@ sub add_word_vectors
     my $next_word_index = 0;
     for my $story ( @{ $stories } )
     {
-        print STDERR "add_word_vectors: " . $i++ . "\n";
+        print STDERR "add_word_vectors: " . $i++ . "[ $story->{ stories_id } ]\n";
         my $words = $db->query( 
             "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
             "  where ssw.stories_id = ? " .
-            # "    and not is_stop_stem( 'long', ssw.stem ) " .
+            "    and not is_stop_stem( 'short', ssw.stem ) " .
             "  group by ssw.stem order by sum( stem_count ) desc limit 1000 ", $story->{ stories_id } )->hashes;
             
         $story->{ vector } = [ 0 ];
@@ -379,7 +381,13 @@ sub add_word_vectors
             my $word_index = $word_hash->{ $word->{ stem } };
 
             $story->{ vector }->[ $word_index ] = $word->{ stem_count };
-        }        
+        }  
+        
+        if ( $keep_words )
+        {
+            print STDERR "keep words: " . scalar( @{ $words } ) . "\n";
+            $story->{ words } = $words;
+        }
     }
     
     return $stories;
@@ -391,8 +399,9 @@ sub add_cos_similarities
 {
     my ( $db, $stories ) = @_;
 
-    print STDERR "add_cos_similarities: add word vectors\n";
-    add_word_vectors( $db, $stories );
+    return if ( !@{ $stories } );
+    
+    die( "must call add_word_vectors before add_cos_similarities" ) if ( !$stories->[ 0 ]->{ vector } );
 
     my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
 
