@@ -29,7 +29,7 @@ BEGIN
 
     IF ( ( not default_start_day is null ) and ( not default_end_day is null ) ) THEN
        RAISE NOTICE 'deleting for media without explict sw dates';
-       DELETE from story_sentence_words where media_id in ( select media_id from media where (sw_data_start_date is null) and (sw_data_end_date is null) )
+       DELETE from story_sentence_words where not media_id in ( select media_id from media where ( not (sw_data_start_date is null)) and (not (sw_data_end_date is null)) )
           AND ( publish_day < default_start_day or publish_day > default_end_day);
     END IF;
 
@@ -337,15 +337,15 @@ DECLARE
 BEGIN
     current_time := timeofday()::timestamp;
 
-    RAISE NOTICE 'time - %', current_time;
+    -- RAISE NOTICE 'time - %', current_time;
 
     SELECT media_sets_id, min(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, max( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
 
     start_date = media_rec.sw_data_start_date; 
     end_date = media_rec.sw_data_end_date;
 
-    RAISE NOTICE 'start date - %', start_date;
-    RAISE NOTICE 'end date - %', end_date;
+    -- RAISE NOTICE 'start date - %', start_date;
+    -- RAISE NOTICE 'end date - %', end_date;
 
     return  ( start_date <= test_date ) and ( end_date >= test_date );    
 END;
