@@ -332,15 +332,15 @@ DECLARE
 BEGIN
     current_time := timeofday()::timestamp;
 
-    RAISE NOTICE 'time - %', current_time;
+    --RAISE NOTICE 'time - % ', current_time;
 
     SELECT media_sets_id, min(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, max( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
 
     start_date = media_rec.sw_data_start_date; 
     end_date = media_rec.sw_data_end_date;
 
-    RAISE NOTICE 'start date - %', start_date;
-    RAISE NOTICE 'end date - %', end_date;
+    --RAISE NOTICE 'start date - %', start_date;
+    --RAISE NOTICE 'end date - %', end_date;
 
     return;
 END;
@@ -375,6 +375,36 @@ BEGIN
 END;
 $$
 LANGUAGE 'plpgsql' STABLE
+ ;
+
+CREATE OR REPLACE FUNCTION purge_daily_words_for_media_set(v_media_sets_id int, default_start_day date, default_end_day date)
+RETURNS VOID AS 
+$$
+DECLARE
+    media_rec record;
+    current_time timestamp;
+    start_date   date;
+    end_date     date;
+BEGIN
+    current_time := timeofday()::timestamp;
+
+    RAISE NOTICE ' purge_daily_words_for_media_set media_sets_id %, time - %', v_media_sets_id, current_time;
+
+    media_rec = media_set_sw_data_retention_dates( v_media_sets_id, default_start_day,  default_end_day );
+
+    start_date = media_rec.start_date; 
+    end_date = media_rec.end_date;
+
+    RAISE NOTICE 'start date - %', start_date;
+    RAISE NOTICE 'end date - %', end_date;
+
+    DELETE from daily_words where media_sets_id = v_media_sets_id and (publish_day < start_date or publish_day > end_date) ;
+    DELETE from total_daily_words where media_sets_id = v_media_sets_id and (publish_day < start_date or publish_day > end_date) ;
+
+    return;
+END;
+$$
+LANGUAGE 'plpgsql' 
  ;
 
 /*
