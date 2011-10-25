@@ -396,15 +396,8 @@ sub purge_daily_words_data_for_unretained_dates
     my $default_story_words_start_date = get_default_story_words_start_date();
     my $default_story_words_end_date   = get_default_story_words_end_date();
 
-    $db->query(
-"DELETE from daily_words where not media_set_retains_sw_data_for_date ( media_sets_id, publish_day, ?::date, ?::date) ",
-        $default_story_words_start_date, $default_story_words_end_date
-    );
-
-    $db->query(
-"DELETE from total_daily_words where not media_set_retains_sw_data_for_date ( media_sets_id, publish_day, ?::date, ?::date) ",
-        $default_story_words_start_date, $default_story_words_end_date
-    );
+    $db->query( "SELECT purge_daily_words_for_media_set( media_sets_id, ?::date, ?::date) FROM media_sets ORDER BY media_sets_id ",
+        $default_story_words_start_date, $default_story_words_end_date );
 
     return;
 }
