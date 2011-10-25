@@ -324,6 +324,30 @@ create table media_sets_media_map (
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
 create index media_sets_media_map_media on media_sets_media_map ( media_id );
 
+CREATE OR REPLACE FUNCTION media_set_sw_data_retention_dates(v_media_sets_id int, default_start_day date, default_end_day date, OUT start_date date, OUT end_date date) AS
+$$
+DECLARE
+    media_rec record;
+    current_time timestamp;
+BEGIN
+    current_time := timeofday()::timestamp;
+
+    RAISE NOTICE 'time - %', current_time;
+
+    SELECT media_sets_id, min(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, max( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
+
+    start_date = media_rec.sw_data_start_date; 
+    end_date = media_rec.sw_data_end_date;
+
+    RAISE NOTICE 'start date - %', start_date;
+    RAISE NOTICE 'end date - %', end_date;
+
+    return;
+END;
+$$
+LANGUAGE 'plpgsql' STABLE
+ ;
+
 --CREATE VIEW media_sets_explict_sw_data_dates as  select media_sets_id, min(media.sw_data_start_date) as sw_data_start_date, max( media.sw_data_end_date) as sw_data_end_date from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id )   group by media_sets_id;
 
 CREATE OR REPLACE FUNCTION media_set_retains_sw_data_for_date(v_media_sets_id int, test_date date, default_start_day date, default_end_day date)
@@ -339,10 +363,10 @@ BEGIN
 
     -- RAISE NOTICE 'time - %', current_time;
 
-    SELECT media_sets_id, min(coalesce (media.sw_data_start_date, default_start_day )) as sw_data_start_date, max( coalesce ( media.sw_data_end_date,  default_end_day )) as sw_data_end_date INTO media_rec from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id ) and media_sets_id = v_media_sets_id  group by media_sets_id;
+   media_rec = media_set_sw_data_retention_dates( v_media_sets_id, default_start_day,  default_end_day ); -- INTO (media_rec);
 
-    start_date = media_rec.sw_data_start_date; 
-    end_date = media_rec.sw_data_end_date;
+   start_date = media_rec.start_date; 
+   end_date = media_rec.end_date;
 
     -- RAISE NOTICE 'start date - %', start_date;
     -- RAISE NOTICE 'end date - %', end_date;
