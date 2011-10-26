@@ -48,6 +48,10 @@ SQL
             say 'skipping table ' . $table->{ tablename } . ' that does not have a sequence id ';
             next;
         }
+
+	#temporary hack for sentence study
+	next if $table eq 'sen_study_new_weekly_words_2011_01_03_2011_01_10';
+
         my $sequence_query =
           'select * from (select max(' . $table->{ id_column } . ' ) as max_id, nextval( ' . "'" .
           $table->{ pg_get_serial_sequence } . "'" . ' ) as sequence_val from  ' . $table->{ tablename } .
