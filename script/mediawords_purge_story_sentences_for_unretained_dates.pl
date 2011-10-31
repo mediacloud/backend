@@ -20,7 +20,7 @@ use Term::Prompt;
 sub main
 {
     my $warning_message =
-"Warning this script will delete data from the story_sentences and story_sentences_words tables. Are you sure you wish to continue?";
+"Warning this script will delete data from the story_sentences, story_sentences_words, and story_sentence_counts tables. Are you sure you wish to continue?";
 
     my $continue_and_reset_db = &prompt( "y", $warning_message, "", "n" );
 
@@ -30,6 +30,7 @@ sub main
 
     MediaWords::StoryVectors::purge_story_words_data_for_unretained_dates( $db );
     MediaWords::StoryVectors::purge_story_sentences_data_for_unretained_dates( $db );
+    MediaWords::StoryVectors::purge_story_sentence_counts_data_for_unretained_dates( $db );
 }
 
 main();
