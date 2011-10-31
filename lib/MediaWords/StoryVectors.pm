@@ -389,6 +389,22 @@ sub purge_story_sentences_data_for_unretained_dates
     return;
 }
 
+sub purge_story_sentence_counts_data_for_unretained_dates
+{
+    my ( $db ) = @_;
+
+    my $default_story_words_start_date = get_default_story_words_start_date();
+    my $default_story_words_end_date   = get_default_story_words_end_date();
+
+    $db->query(
+        " SELECT purge_story_sentence_counts( ?::date , ?::date )",
+        $default_story_words_start_date,
+        $default_story_words_end_date
+    );
+
+    return;
+}
+
 sub purge_daily_words_data_for_unretained_dates
 {
     my ( $db ) = @_;
