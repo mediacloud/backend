@@ -19,7 +19,6 @@ package MediaWords::Cluster;
 # query - query referenced by cluster_run field
 # media_word_vectors - list of top NUM_MEDIUM_WORDS for each media source in query (see comments above _get_media_word_vectors() )
 # stem_vector - lookup table for both stem->term and cross-media-source stem indexes (see comments above _get_stem_vector() )
-# clustering_engine - clustering_engine used to run clustering job, should always be 'kmeans' now, which uses our custome built kmeans engine
 # sparse_matrix - MediaWords::Util::BigPDLVector sparse matrix of a word vector for each media source
 # row_labels - list containing the media_id associated with each row of the sparse_matrix
 # col_labels - list containing the stem associated with each column of the sparse_matrix
@@ -35,7 +34,9 @@ use Data::Dumper;
 use Perl6::Say;
 use Tie::IxHash;
 
+use MediaWords::Cluster::Copy;
 use MediaWords::Cluster::Kmeans;
+use MediaWords::Cluster::MediaSets;
 use MediaWords::Util::Config;
 use MediaWords::Util::Timing qw( start_time stop_time );
 use MediaWords::Util::BigPDLVector qw( vector_new vector_dot vector_normalize vector_set reset_cos_sim_cache );
@@ -58,15 +59,6 @@ use constant NUM_MEDIUM_WORDS => 100;
 # { stem_vector } Tie::IxHash in the form of { < stem > => < term > }
 
 # INTERNAL FUNCTIONS
-
-# get the clustering engine from mediawords.yml, or default to 'kmeans'.
-# should be called by new().
-sub _get_clustering_engine
-{
-    my $clustering_engine = MediaWords::Util::Config::get_config->{ mediawords }->{ clustering_engine };
-    $clustering_engine ||= 'kmeans';
-    return $clustering_engine;
-}
 
 # query all word vectors for all media. this should be called by new().
 #
@@ -312,6 +304,8 @@ sub _add_descriptions_from_features
     my $word_ranks;
     for my $c ( 0 .. $#{ $clusters }  )
     {
+        next if ( $clusters->[ $c ]->{ description } );
+
         my $words = [ sort { $b->{ weight } <=> $a->{ weight } } @{ $clusters->[ $c ]->{ internal_features } } ];
         for my $w ( 0 .. $#{ $words } )
         {
@@ -323,6 +317,8 @@ sub _add_descriptions_from_features
         
     for my $c ( 0 .. $#{ $clusters } )
     {
+        next if ( $clusters->[ $c ]->{ description } );
+        
         for my $word ( @{ $clusters->[ $c ]->{ sorted_words } } )
         {
             my $word_has_lowest_rank = 1;
@@ -370,6 +366,19 @@ sub _add_internal_features
     }
 }
 
+# return false if the state is not completed and the clustering engine is 'copy' or 'media_sets', 
+# since neither of those actually need the vectors
+sub _needs_vectors 
+{
+    my ( $cluster_run ) = @_;
+    
+    return 1 if ( $cluster_run->{ state } eq 'completed' );
+        
+    return 0 if ( grep { $cluster_run->{ clustering_engine } eq $_ } qw( media_sets copy ) );
+    
+    return 1;
+}
+
 # PUBLIC METHODS
 
 sub new 
@@ -384,16 +393,17 @@ sub new
 
     $cluster_run->{ query } = MediaWords::DBI::Queries::find_query_by_id( $db, $cluster_run->{ queries_id } );
     $self->cluster_run( $cluster_run );
-
+    
+    # don't do the expensive vector generation if we're just clustering by media sets
+    return $self if ( !_needs_vectors( $cluster_run ) );
+    
     reset_cos_sim_cache();
 
     my $t0 = start_time( "caching media word vectors" );
     $self->media_word_vectors( $self->_get_media_word_vectors() );
     stop_time( "caching media word vectors", $t0 );
 
-    $self->stem_vector( $self->_get_stem_vector() );
-    
-    $self->clustering_engine( $self->_get_clustering_engine() );
+    $self->stem_vector( $self->_get_stem_vector() ); 
     
     $t0 = start_time( "getting sparse matrix" );
     my ( $sparse_matrix, $row_labels, $col_labels ) = $self->_get_sparse_matrix( NUM_MEDIUM_WORDS );
@@ -413,7 +423,6 @@ sub query{ $_[0]->{ _query } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _q
 sub cluster_run { $_[0]->{ _cluster_run } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _cluster_run } };
 sub media_word_vectors { $_[0]->{ _media_word_vectors } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _media_word_vectors } };
 sub stem_vector { $_[0]->{ _stem_vector } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _stem_vector } };
-sub clustering_engine { $_[0]->{ _clustering_engine } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _clustering_engine } };
 sub sparse_matrix { $_[0]->{ _sparse_matrix } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _sparse_matrix } };
 sub row_labels { $_[0]->{ _row_labels } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _row_labels } };
 sub col_labels { $_[0]->{ _col_labels } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _col_labels } };
@@ -435,12 +444,18 @@ sub execute_media_cluster_run
     my $t0 = start_time( "execute clustering run" );
 
     my $clusters;
-    if ( $self->clustering_engine eq 'kmeans' )
+    if ( $self->cluster_run->{ clustering_engine } eq 'kmeans' )
     {
         $clusters = MediaWords::Cluster::Kmeans::get_clusters( $self );
     }
+    elsif ( $self->cluster_run->{ clustering_engine } eq 'media_sets' ) {
+        $clusters = MediaWords::Cluster::MediaSets::get_clusters( $self );
+    }
+    elsif ( $self->cluster_run->{ clustering_engine } eq 'copy' ) {
+        $clusters = MediaWords::Cluster::Copy::get_clusters( $self );
+    }    
     else {
-        die "Unknown clustering_engine '" . $self->clustering_engine . "'";
+        die "Unknown clustering_engine '" . $self->cluster_run->{ clustering_engine } . "'";
     }
 
     stop_time( "execute clustering run", $t0 );
@@ -452,20 +467,14 @@ sub execute_media_cluster_run
     return $clusters;
 }
 
-# execute a media cluster run and store the results in the db
-# see above comments for execute_media_cluster_run for parameters
-# and return values.l
-sub execute_and_store_media_cluster_run
+# store the clusters within the given media_cluster_run 
+sub store_media_cluster_run
 {
-    my ( $self ) = @_;
-
+    my ( $self, $clusters ) = @_;
+    
     my $db = $self->db;
     my $cluster_run = $self->cluster_run;
     
-    $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'executing' } );
-
-    my $clusters = $self->execute_media_cluster_run();
-
     for my $cluster ( @{ $clusters } )
     {
         my $media_cluster = $db->create( 'media_clusters', {
@@ -493,7 +502,26 @@ sub execute_and_store_media_cluster_run
             }
         }
     }
+}
 
+# execute a media cluster run and store the results in the db
+# see above comments for execute_media_cluster_run for parameters
+# and return values.
+sub execute_and_store_media_cluster_run
+{
+    my ( $self ) = @_;
+
+    my $db = $self->db;
+    my $cluster_run = $self->cluster_run;
+    
+    $cluster_run->{ state } = 'executing';
+    $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'executing' } );
+
+    my $clusters = $self->execute_media_cluster_run();
+    
+    $self->store_media_cluster_run( $clusters );
+                
+    $cluster_run->{ state } = 'completed';
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'completed' } );
 
     return $clusters;

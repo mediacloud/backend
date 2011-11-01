@@ -56,7 +56,7 @@ sub create : Local
     }
 
     my $cluster_run = $c->dbis->create( 'media_cluster_runs', { 
-        method => 'foo',
+        clustering_engine => $c->req->param( 'clustering_engine' ),
 		queries_id => $query->{ queries_id },
         num_clusters => $c->req->param( 'num_clusters' ) } );
 
@@ -74,15 +74,12 @@ sub _get_media_query
     return MediaWords::DBI::Queries::find_or_create_media_sub_query( $db, $query, [ map { $_->{ media_id } } @{ $media } ] );
 }
 
-# view the results of a cluster run
-sub view : Local
+# get the media clusters associated with the media cluster run, including
+# fillingin the media and words 
+sub get_cluster_run_clusters
 {
-    my ( $self, $c, $cluster_runs_id ) = @_;
-
-    my $cluster_run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) || die( "Unable to find run $cluster_runs_id" );
-
-    my $cluster_run_query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $cluster_run->{ queries_id } );
-
+    my ( $self, $c, $cluster_run, $cluster_run_query, $stand_alone ) = @_;
+    
     my $media_clusters = $c->dbis->query( 
         "select * from media_clusters where media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " .
         "  order by media_clusters_id" )->hashes;
@@ -101,9 +98,25 @@ sub view : Local
         $mc->{ query } = _get_media_query( $c->dbis, $cluster_run_query, $mc->{ media } );
         map { $_->{ query } = _get_media_query( $c->dbis, $cluster_run_query, [ $_ ] ) }@{ $mc->{ media } };
         
-        my $base_url = "/queries/sentences/$mc->{ query }->{ queries_id }";
-        $mc->{ word_cloud } = MediaWords::Util::WordCloud_Legacy::get_word_cloud( $c, $base_url, $cluster_words, $mc->{ query } );
+        my $base_url ="/queries/sentences/$mc->{ query }->{ queries_id }";
+        $mc->{ word_cloud } = MediaWords::Util::WordCloud_Legacy::get_word_cloud( $c, $base_url, $cluster_words, $mc->{ query }, $stand_alone );
     }
+    
+    return $media_clusters;
+}
+
+# view the results of a cluster run
+sub view : Local
+{
+    my ( $self, $c, $cluster_runs_id ) = @_;
+
+    my $cluster_run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) || die( "Unable to find run $cluster_runs_id" );
+    
+    my $stand_alone = $c->req->param( 'stand_alone' );
+
+    my $cluster_run_query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $cluster_run->{ queries_id } );
+
+    my $media_clusters = $self->get_cluster_run_clusters( $c, $cluster_run, $cluster_run_query, $stand_alone );
 
     $cluster_run->{ tag_name } = MediaWords::Util::Tags::lookup_tag_name( $c->dbis, $cluster_run->{ tags_id } );
 
@@ -112,7 +125,7 @@ sub view : Local
     {
         $cluster_map = $c->dbis->find_by_id( 'media_cluster_maps', $cluster_maps_id );
     }
-    
+        
     my $cluster_maps = $c->dbis->query( 
         "select * from media_cluster_maps where media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " . 
         "  order by media_cluster_maps_id" )->hashes;
@@ -123,8 +136,40 @@ sub view : Local
     $c->stash->{ cluster_maps }     = $cluster_maps;
     $c->stash->{ cluster_map }      = $cluster_map;
 
-    $c->stash->{ template }         = 'clusters/view.tt2';
 
+    if ( $stand_alone ) 
+    {
+        $c->stash->{ template } = 'clusters/view_standalone.tt2';
+    }
+    else {        
+        $c->stash->{ template } = 'clusters/view.tt2';
+    }
+}
+
+# view time slices of the given cluster map for every four weeks
+sub view_time_slice_map : Local
+{
+    my ( $self, $c, $cluster_runs_id ) = @_;
+    
+    my $cluster_run = $c->dbis->find_by_id( 'media_cluster_runs', $cluster_runs_id ) 
+        || die ( "Unable to find cluster run '$cluster_runs_id'" );
+    
+    $cluster_run->{ query } = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $cluster_run->{ queries_id } );
+
+    my $cluster_maps_id = $c->req->param( 'media_cluster_maps_id' ) || die( "no cluster maps id" );
+    my $cluster_map = $c->dbis->find_by_id( 'media_cluster_maps', $cluster_maps_id ) || die ( "Unable to find cluster map '$cluster_maps_id'" );
+    $cluster_map->{ query } = $cluster_run->{ query };
+    
+    my $time_slice_maps = MediaWords::Cluster::Map::get_time_slice_maps( $c->dbis, $cluster_run, $cluster_map );
+    
+    my $media_clusters = $self->get_cluster_run_clusters( $c, $cluster_run, $cluster_run->{ query }, 1 );
+
+    $c->stash->{ clusters }         = $media_clusters;
+    $c->stash->{ cluster_run }      = $cluster_run;
+    $c->stash->{ query }            = $cluster_run->{ query };
+    $c->stash->{ cluster_maps }     = [ $cluster_map, @{ $time_slice_maps } ];
+
+    $c->stash->{ template } = 'clusters/view_time_slice_maps.tt2';    
 }
 
 # create the form for processing a unipolar cluster map

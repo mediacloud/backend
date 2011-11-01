@@ -29,11 +29,13 @@ package MediaWords::Cluster::Map;
 use strict;
 
 use Data::Dumper;
+use List::Util;
 use Math::Random;
 
 use MediaWords::Cluster;
 use MediaWords::Cluster::Map::GraphLayoutAesthetic;
 use MediaWords::Cluster::Map::GraphViz;
+use MediaWords::DBI::Queries;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 use MediaWords::Util::BigPDLVector qw( vector_new vector_cos_sim vector_normalize vector_set vector_cos_sim_cached );
@@ -165,6 +167,11 @@ sub _get_nodes
         push( @{ $nodes->[ $sim->[ 0 ] ]->{ links } }, 
             { target_id => $sim->[ 1 ], sim => $sim->[ 2 ], target_media_id => $row_labels->[ $sim->[ 1 ] ] } );
     }
+    
+    for my $j ( 0 .. $max_medium_row )
+    {
+        $nodes->[ $j ] ||= _get_medium_node( $clustering_engine, $medium_lookup->{ $row_labels->[ $j ] } );
+    }   
                                                                 
     return $nodes;
 }
@@ -250,7 +257,7 @@ sub _get_cosine_sim_list
     my $sim_list = [];
 
     $max_links = ( $max_links > MAX_NUM_LINKS ) ? MAX_NUM_LINKS : $max_links;
-    
+        
     for my $i ( 0 .. $max_row )
     {
         for my $j ( $i + 1 .. $max_row )
@@ -469,8 +476,8 @@ sub _normalize_coordinates
         $y_min = $y if ( !defined( $y_min ) || ( $y < $y_min ) );
     }
 
-    my $x_range = $x_max - $x_min;
-    my $y_range = $y_max - $y_min;
+    my $x_range = ( $x_max - $x_min ) || 1;
+    my $y_range = ( $y_max - $y_min ) || 1;
 
     for my $node ( @{ $nodes } )
     {
@@ -489,14 +496,15 @@ sub _get_protovis_json
 
     my $centroids = _get_centroids_from_plotted_nodes( $media_clusters, $nodes );
 
+    my $color_lookup = _get_cluster_color_lookup( $media_clusters );
+        
+    for my $n ( @{ $nodes }, @{ $centroids } )
+    {
+        $n->{ color } = ( $color_lookup->{ $n->{ clusters_id } } || "rgb(0,0,0)" );
+    }
+
     _normalize_coordinates( 10, $centroids, $nodes );
     _normalize_coordinates( 10, $nodes );
-
-    my $color_lookup = _get_cluster_color_lookup( $media_clusters );
-    map { $_->{ color } = $color_lookup->{ $_->{ clusters_id } } || "rgb(0,0,0)" } ( @{ $nodes }, @{ $centroids } );
-
-    my $shape_lookup = _get_media_set_shape_lookup( $media_sets );
-    map { $_->{ shape } = $shape_lookup->{ $_->{ media_sets_id } } } ( @{ $nodes }, @{ $media_sets } );
         
     map { for my $i ( 0 .. $#{ $_ } ) { $_->[ $i ]->{ i } = $i; } } ( $nodes, $centroids, $media_sets );
     
@@ -523,7 +531,7 @@ sub generate_cluster_map
     my $clustering_engine = MediaWords::Cluster->new( $db, $cluster_run );
     
     my $media_clusters = _get_media_clusters( $db, $cluster_run );
-    
+        
     my $media_sets = $cluster_run->{ query }->{ media_sets };
     
     my $sim_list;
@@ -534,6 +542,12 @@ sub generate_cluster_map
     else {
         $sim_list = _get_cosine_sim_list( $clustering_engine, $max_links );
     }   
+    
+    if ( !@{ $sim_list } ) 
+    {
+        warn( "not enough data to generate cluster map" );
+        return undef;
+    }
     
     my $nodes = _get_nodes( $clustering_engine, $sim_list, $media_clusters, $queries );
     
@@ -548,15 +562,154 @@ sub generate_cluster_map
     my $cluster_map = $db->create( 'media_cluster_maps', { 
         media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
         name => $map_name,
-        #method => $method, 
+        method => $method, 
         map_type => $map_type,
         json => $json_string,
         nodes_total => $stats->{ nodes_total },
         nodes_rendered => $stats->{ nodes_rendered },
         links_rendered => $stats->{ links_rendered } } );
+    
+    for ( my $i = 0; $i < @{ $queries }; $i++ )
+    {
+        $db->create( 'media_cluster_map_poles', {
+            name => $queries->[ $i ]->{ description },
+            media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id },
+            pole_number => $i,
+            queries_id => $queries->[ $i ]->{ queries_id } } );
+    }
         
     return $cluster_map;    
 }
 
+# return a copy of the given query, which is identical to the given query
+# in all respects except possibly the start and end dates
+sub _get_time_slice_query
+{
+    my ( $db, $query, $start_date, $end_date ) = @_;
+    
+    my $time_slice_params = { %{ $query } };
+    $time_slice_params->{ start_date } = $start_date;
+    $time_slice_params->{ end_date } = $end_date;
+        
+    return MediaWords::DBI::Queries::find_or_create_query_by_params( $db, $time_slice_params );    
+}
+
+# return time slices of the given query, identical to the given query but
+# covering every 4 week period starting with the query start date
+sub _get_query_time_slices
+{
+    my ( $db, $query ) = @_;
+    
+    my $query_time_slices = [];
+    
+    my $slice_start_date = $query->{ start_date };
+    while ( $slice_start_date lt $query->{ end_date } )
+    {
+        my $slice_end_date = MediaWords::Util::SQL::increment_day( $slice_start_date, 27 );
+        $slice_end_date = List::Util::minstr( $slice_end_date, $query->{ end_date } );
+        
+        push( @{ $query_time_slices }, _get_time_slice_query( $db, $query, $slice_start_date, $slice_end_date ) );
+        
+        $slice_start_date = MediaWords::Util::SQL::increment_day( $slice_end_date, 1 );
+    }
+    
+    return $query_time_slices;
+}
+
+# look for a cluster run that represents the given time slice query
+# for the given clsuter run in the db.  if it doesn't exist, 
+# create one.
+sub _get_time_slice_cluster_run
+{
+    my ( $db, $cluster_run, $time_slice_query ) = @_;
+    
+    my $time_slice_cluster_run = $db->query(
+        "select * from media_cluster_runs " .
+        "  where queries_id = ? and source_media_cluster_runs_id = ? ",
+        $time_slice_query->{ queries_id }, $cluster_run->{ media_cluster_runs_id } )->hash;
+    
+    return $time_slice_cluster_run if ( $time_slice_cluster_run );
+
+    my $time_slice_cluster_run = $db->create( 'media_cluster_runs', {
+        queries_id => $time_slice_query->{ queries_id },
+        num_clusters => $cluster_run->{ num_clusters },
+        clustering_engine => 'copy',
+        state => 'pending',
+        source_media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id } } );
+        
+    my $clustering_engine = MediaWords::Cluster->new( $db, $time_slice_cluster_run );
+    $clustering_engine->execute_and_store_media_cluster_run();
+    
+    return $time_slice_cluster_run;
+}
+
+# return time sliced versions of any polar queries assocaited
+# with the given cluster map.  if the cluster map is not
+# of 'polar' type, return undef
+sub _get_time_slice_polar_queries
+{
+    my ( $db, $cluster_map, $time_slice_query ) = @_;
+
+    return undef if ( $cluster_map->{ map_type } ne 'polar' );
+
+    my $time_slice_polar_queries = [];
+
+    my $polar_query_ids = [ $db->query(
+        "select q.queries_id from media_cluster_map_poles mcmp, queries q " . 
+        "  where mcmp.queries_id = q.queries_id and mcmp.media_cluster_maps_id = ? " .
+        "  order by mcmp.pole_number asc", 
+        $cluster_map->{ media_cluster_maps_id } )->flat ];
+    for my $polar_query_id ( @{ $polar_query_ids } )
+    {
+        my $polar_query = MediaWords::DBI::Queries::find_query_by_id( $db, $polar_query_id );
+        my $time_slice_polar_query = _get_time_slice_query( 
+            $db, $polar_query, $time_slice_query->{ start_date }, $time_slice_query->{ end_date } );
+        push( @{ $time_slice_polar_queries }, $time_slice_polar_query );
+    }
+    
+    return $time_slice_polar_queries;
+}
+
+# return a cluster map based on a time slice of the given cluster map, 
+# generating one if it does not already exist
+sub _get_time_slice_map
+{
+    my ( $db, $cluster_run, $cluster_map, $time_slice_query ) = @_;
+    
+    my $time_slice_cluster_run = _get_time_slice_cluster_run( $db, $cluster_run, $time_slice_query );
+    
+    my $time_slice_map = $db->query(
+        "select * from media_cluster_maps where media_cluster_runs_id = ?",
+        $time_slice_cluster_run->{ media_cluster_runs_id } )->hash;
+    
+    return $time_slice_map if ( $time_slice_map );
+    
+    my $time_slice_polar_queries = _get_time_slice_polar_queries( $db, $cluster_map, $time_slice_query );
+
+    my $time_slice_map = generate_cluster_map( $db, $time_slice_cluster_run, $cluster_map->{ map_type },
+        $time_slice_polar_queries, $cluster_map->{ links_rendered }, $cluster_map->{ method } );
+        
+}
+
+# return versions of the given cluster map for every four week period starting with the start date of the
+# given cluster map.  if the maps do not already exist, generate new ones.
+sub get_time_slice_maps
+{
+    my ( $db, $cluster_run, $cluster_map ) = @_;
+        
+    my $time_slice_queries = _get_query_time_slices( $db, $cluster_run->{ query } );
+    
+    my $time_slice_maps = [];
+    for my $time_slice_query ( @{ $time_slice_queries } )
+    {
+        if ( my $time_slice_map = _get_time_slice_map( $db, $cluster_run, $cluster_map, $time_slice_query ) )
+        {
+            $time_slice_map->{ query } = $time_slice_query;
+            push( @{ $time_slice_maps }, $time_slice_map ) if ( $time_slice_map );
+        }
+    }
+    
+    return $time_slice_maps;
+}
 
 1;
