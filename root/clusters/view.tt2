@@ -1,9 +1,13 @@
-[% title = 'Cluster Run: ' _ cluster_run.num_clusters _ ' clusters ' _ query.description %]
+[% title = 'Cluster Run: ' _ cluster_run.clustering_engine _ ' ' _ cluster_run.num_clusters _ ' clusters ' _ query.description %]
 [% INCLUDE include/header.tt2 %]
 
 <p><b>Cluster Maps</b></p>
 
 <fieldset>
+
+<p>
+<a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, 'stand_alone' => 1 } ) %]">view cluster run as stand alone page</a>
+</p>
 
 <p>generate a cluster map: 
 <a href="[% c.uri_for( '/clusters/create_cluster_map/' _ cluster_run.media_cluster_runs_id ) %]">cluster map</a> |
@@ -54,10 +58,15 @@
       </tr>
     </table>
     
+    <p>
+    <a href="[% c.uri_for( '/clusters/view_time_slice_map/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id } ) %]">view cluster map over time</a>
+    </p>
+
+    
 [% END #IF cluster_map %]
 
 <p>
-A cluster map is a visual representation of the similarity of the media sources within the given query.  The mapping method determines the location of the media source within the map.  The cluster membership determines the color of each dot on the map.  To generate a new map, click on either 'cluster map' or 'polar map' above.  A cluster map will map the media sources according to their similarity to one another.  A polar map will map the media sources according to their similarity to a single other query.
+A cluster map is a visual representation of the similarity of the media sources within the given query.  The mapping method determines the location of the media source within the map.  The cluster membership determines the color of each dot on the map.  To generate a new map, click on either 'cluster map' or 'polar map' above.  A cluster map will map the media sources according to their similarity to one another.  A polar map will map the media sources according to their similarity to a single other query.  When viewing a given cluster map, you have the option to view the given cluster map over time, which will show both the given cluster map and time slices of that cluster map for every four weeks.
 </p>
 
 </fieldset>

@@ -86,7 +86,7 @@
       .overflow("hidden")
       .data(nodes)
     .add(pv.Dot)
-      .shape(function(d) d.shape)
+//      .shape(function(d) d.shape)
       .left(function(d) x(d.x))
       .top(function(d) y(d.y))
       .def("active", false)
@@ -127,7 +127,7 @@
         .textStyle(function(c) c.color)
       ;
   
-  // The shape_legend
+/*  // The shape_legend
   var shape_legend = vis.add(pv.Panel)
       .data(sets)
       .right(0)
@@ -145,7 +145,7 @@
       .add(pv.Label)
         .text(function(s) s.name)
       ;
-
+*/
   // labels over every cluster
 //  var labels = vis.add(pv.Panel)
 //    .data(clusters)

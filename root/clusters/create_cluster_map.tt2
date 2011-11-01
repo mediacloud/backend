@@ -13,7 +13,7 @@ with.
 <p>
 If the current query includes more than one media set, each the media set of each media source on the cluster map will be
 represented by a different shape (so in a query including both Top 25 MSM and Popular Blogs, media sources within Top 25 MSM
-will be squares and media sources within Popular Blgos will be diamonds).
+will be squares and media sources within Popular Blogs will be diamonds).
 <p>
 None of the current methods take into account the actual similarity score.  Instead, they just treat every media source as 
 either similar or not similar to each other media source.  The max number of links below sets the max number of 'similar' 

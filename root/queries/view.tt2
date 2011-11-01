@@ -140,6 +140,7 @@ Use this to get a list of either all sentences within this query or all sentence
 <table>
 
 <tr>
+<th>engine</th>
 <th>number of clusters</th>
 <th>state</th>
 <th>view cluster run</th>
@@ -149,6 +150,7 @@ Use this to get a list of either all sentences within this query or all sentence
 
 <tr>
 
+<td>[% cluster_run.clustering_engine %]</td>
 <td>[% cluster_run.num_clusters %]</td>
 <td>[% cluster_run.state | html %]</td>
 <td><a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id ) %]">view</a></td>

@@ -7,6 +7,16 @@ elements:
     comment: The number of clusters to create
     constraints:
         - Required
+        
+  - type: Select
+    name: clustering_engine
+    label: Clustering Engine
+    comment: Engine to use to generate clusters.
+    constraints:
+        - Required
+    options:
+        - [ 'kmeans', 'kmeans' ]
+        - [ 'media_sets', 'media_sets' ]
 
   - type: Submit
     value: generate clusters
