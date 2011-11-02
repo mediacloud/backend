@@ -95,11 +95,11 @@ sub get_cluster_run_clusters
             "  where media_clusters_id = $mc->{ media_clusters_id } and internal = 't' " .
             "  order by weight desc" )->hashes;
         
-        $mc->{ query } = _get_media_query( $c->dbis, $cluster_run_query, $mc->{ media } );
-        map { $_->{ query } = _get_media_query( $c->dbis, $cluster_run_query, [ $_ ] ) }@{ $mc->{ media } };
-        
-        my $base_url ="/queries/sentences/$mc->{ query }->{ queries_id }";
-        $mc->{ word_cloud } = MediaWords::Util::WordCloud_Legacy::get_word_cloud( $c, $base_url, $cluster_words, $mc->{ query }, $stand_alone );
+        # $mc->{ query } = _get_media_query( $c->dbis, $cluster_run_query, $mc->{ media } );
+        # map { $_->{ query } = _get_media_query( $c->dbis, $cluster_run_query, [ $_ ] ) }@{ $mc->{ media } };
+        # 
+        # my $base_url ="/queries/sentences/$mc->{ query }->{ queries_id }";
+        $mc->{ word_cloud } = MediaWords::Util::WordCloud_Legacy::get_word_cloud( $c, '/', $cluster_words, undef, 1 );
     }
     
     return $media_clusters;
