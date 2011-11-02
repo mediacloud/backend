@@ -21,7 +21,7 @@ sub get_clusters
     my $source_cluster_run = $db->find_by_id( 'media_cluster_runs', $source_cluster_runs_id );
     
     my $source_clusters = $db->query( 
-        "select * from media_clusters where media_cluster_runs_id = ? ", 
+        "select * from media_clusters where media_cluster_runs_id = ? order by media_clusters_id asc ", 
         $source_cluster_run->{ media_cluster_runs_id } )->hashes;
 
     my $dest_clusters = [];
