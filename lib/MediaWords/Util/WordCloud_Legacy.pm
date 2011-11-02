@@ -23,7 +23,7 @@ use constant WORD_RANK_SIGNIFICANT_DIFFERENCE => 25;
 # the given term. optionally pass an author in place of a query.
 sub get_word_cloud
 {
-    my ( $c, $base_url, $words, $query ) = @_;
+    my ( $c, $base_url, $words, $query, $no_url ) = @_;
 
     if ( @{ $words } > NUM_WORD_CLOUD_WORDS )
     {
@@ -34,19 +34,19 @@ sub get_word_cloud
 
     for my $word ( @{ $words } )
     {
-
-        my $url = $c->uri_for( $base_url, { 
+        my $url = $no_url ? '' : $c->uri_for( $base_url, { 
             queries_ids => $query->{ queries_id }, authors_id => $query->{ authors_id }, 
             stem => $word->{ stem }, term => $word->{ term } } );
-
-	$url =~ s/&/&amp;/g;
+	    
+	    $url =~ s/&/&amp;/g;
+	    
         if ( $word->{ stem_count } == 0 )
         {
             warn "0 stem count for word:" . Dumper( $word );
         }
         else
         {
-            $cloud->add( $word->{ term }, $url, $word->{ stem_count } * 100000 );
+            $cloud->add( $word->{ term }, '', $word->{ stem_count } * 100000 );
         }
     }
 
@@ -58,6 +58,11 @@ sub get_word_cloud
     if ( $c->req->param( 'highlight_mode' ) )
     {
         $html =~ s/(span class="tagcloud[0-9]+"><a)/$1 onclick="this.style.color='red '; return false;"/g;
+    }
+    
+    if ( $no_url )
+    {
+        $html =~ s/href=""/href="" onclick="return false;"/g;
     }
 
     return $html;
