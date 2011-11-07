@@ -29,12 +29,12 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
     $db->dbh->{ AutoCommit } = 0;
     
-    my $medium = $db->find_by_id( 'media', $medium_id );
+    my $medium = $db->find_by_id( 'media', $medium_id ) || die( "Unable to find medium: $medium_id" );
     
     $medium->{ full_text_rss } = 1;
     $db->update_by_id( 'media', $medium_id, { full_text_rss => 1 } );
     
-    my $stories = $db->query( "select * from stories where media_id = ? and full_text_rss = 'f'", $medium_id )->hashes;
+    my $stories = $db->query( "select * from stories where media_id = $medium_id and full_text_rss = 'f'" )->hashes;
     
     my $i = 0;
     for my $story ( @{ $stories } )
