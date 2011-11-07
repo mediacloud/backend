@@ -335,14 +335,14 @@ sub _date_with_media_source_story_words_range
     {
         my $medium_sw_start_date = _get_story_words_start_date_for_medium( $medium );
 
-        return 0 if $medium_sw_start_date > $publish_date;
+        return 0 if $medium_sw_start_date gt $publish_date;
     }
 
     if ( _medium_has_story_words_end_date( $medium ) )
     {
         my $medium_sw_end_date = _get_story_words_end_date_for_medium( $medium );
 
-        return 0 if $medium_sw_end_date < $publish_date;
+        return 0 if $medium_sw_end_date lt $publish_date;
     }
 
     return 1;
