@@ -168,7 +168,7 @@ sub _get_sparse_vector_from_dense_vector
 {
     my ( $self, $dense_vector ) = @_;
 
-    return vector_new( 1 ) if ( !@{ $dense_vector } )
+    return vector_new( 1 ) if ( !@{ $dense_vector } );
 
     use PDL;
     my $sparse_vector = vector_new( scalar @{ $dense_vector } );
