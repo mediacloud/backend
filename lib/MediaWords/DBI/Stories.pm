@@ -404,21 +404,24 @@ sub add_cos_similarities
     die( "must call add_word_vectors before add_cos_similarities" ) if ( !$stories->[ 0 ]->{ vector } );
 
     my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
-
-    print STDERR "add_cos_similarities: create normalized pdl vectors ";
-    for my $story ( @{ $stories } )
+    
+    if ( $num_words )
     {
-        print STDERR ".";
-        my $pdl_vector = vector_new( $num_words );
-
-        for my $i ( 0 .. $num_words - 1 )
+        print STDERR "add_cos_similarities: create normalized pdl vectors ";
+        for my $story ( @{ $stories } )
         {
-            vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
+            print STDERR ".";
+            my $pdl_vector = vector_new( $num_words );
+
+            for my $i ( 0 .. $num_words - 1 )
+            {
+                vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
+            }
+            $story->{ pdl_norm_vector } = vector_normalize( $pdl_vector );
+            $story->{ vector } = undef;
         }
-        $story->{ pdl_norm_vector } = vector_normalize( $pdl_vector );
-        $story->{ vector } = undef;
+        print STDERR "\n";
     }
-    print STDERR "\n";
 
     print STDERR "add_cos_similarities: adding sims\n";
     for my $i ( 0 .. $#{ $stories } )
@@ -429,7 +432,11 @@ sub add_cos_similarities
         for my $j ( $i + 1 .. $#{ $stories } )
         {
             print STDERR "." unless ( $j % 100 );
-            my $sim = vector_dot( $stories->[ $i ]->{ pdl_norm_vector }, $stories->[ $j ]->{ pdl_norm_vector } );
+            my $sim = 0;
+            if ( $num_words )
+            {
+                $sim = vector_dot( $stories->[ $i ]->{ pdl_norm_vector }, $stories->[ $j ]->{ pdl_norm_vector } );
+            }
 
             $stories->[ $i ]->{ similarities }->[ $j ] = $sim;
             $stories->[ $j ]->{ similarities }->[ $i ] = $sim;
