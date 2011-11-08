@@ -168,6 +168,8 @@ sub _get_sparse_vector_from_dense_vector
 {
     my ( $self, $dense_vector ) = @_;
 
+    return vector_new( 1 ) if ( !@{ $dense_vector } )
+
     use PDL;
     my $sparse_vector = vector_new( scalar @{ $dense_vector } );
 
@@ -352,7 +354,6 @@ sub _add_internal_features
 {
     my ( $self, $clusters ) = @_;
  
-
     for my $cluster ( @{ $clusters } )
     {
         my $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sub_query( 
@@ -529,16 +530,17 @@ sub execute_and_store_media_cluster_run
 
 # get a sparse stem vector for the given query including words that are already present
 # in the existing stem_vector
-sub  get_query_vector
+sub get_query_vector
 {
     my ( $self, $query ) = @_;
  
     my $words = MediaWords::DBI::Queries::get_top_500_weekly_words( $self->db, $query );
 
-    splice( @{ $words }, NUM_MEDIUM_WORDS, undef ) if ( @{ $words } > NUM_MEDIUM_WORDS );
+    splice( @{ $words }, NUM_MEDIUM_WORDS ) if ( @{ $words } > NUM_MEDIUM_WORDS );
     
     my $dense_vector = [];
     
+    print STDERR $self->cluster_run->{ state } . "\n";
     map { $dense_vector->[ $_ ] = 0 } ( 0 .. ( $self->stem_vector->Length - 1 ) );
     
     for my $word ( @{ $words } )
