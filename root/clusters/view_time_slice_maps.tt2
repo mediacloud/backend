@@ -28,7 +28,8 @@
 
 <p />
     
-/*    <div id='clusters'>
+<!--
+    <div id='clusters'>
     [% FOREACH cluster IN clusters %]
       <fieldset>
         <p>
@@ -42,6 +43,7 @@
       <br />
     [% END #[% FOREACH cluster IN media_clusters %]
     </div>
-*/
+-->
+
   </body>
 </html>
