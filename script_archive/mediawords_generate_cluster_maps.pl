@@ -107,14 +107,18 @@ sub print_cluster_map_link
 {
     my ( $db, $cluster_map, $topic_set ) = @_;
     
-    my $topics_ids_list = join( ",", @{ $topic_set } );
+    my $topic_label = 'All topics';
+    if ( $topic_set )
+    {
+        my $topics_ids_list = join( ",", @{ $topic_set } );
     
-    my $topic_names_list = join( ',', $db->query( 
-        "select name from dashboard_topics " . 
-        "where dashboard_topics_id in ($topics_ids_list)" )->flat );
+        $topic_label = join( ',', $db->query( 
+            "select name from dashboard_topics " . 
+            "where dashboard_topics_id in ($topics_ids_list)" )->flat );
+    }   
         
     print( "<p><a href='http://amanda.law.harvard.edu/admin/clusters/view_time_slice_map/" . 
-        "$cluster_map->{ media_cluster_runs_id }?media_cluster_maps_id=$cluster_map->{ media_cluster_maps_id }'>$topic_names_list</a></p>\n" );
+        "$cluster_map->{ media_cluster_runs_id }?media_cluster_maps_id=$cluster_map->{ media_cluster_maps_id }'>$topic_label</a></p>\n" );
 }
 
 sub main 
@@ -123,7 +127,7 @@ sub main
     
     my $query_params = get_query_params();
     
-    print_cluster_map_url( generate_cluster_maps( $db, $query_params ) );
+    print_cluster_map_link( $db, generate_cluster_maps( $db, $query_params ) );
         
     for my $topic_set ( TOPIC_SETS )
     {
