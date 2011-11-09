@@ -209,11 +209,11 @@ sub _get_sparse_matrix
     $row_labels = [];
     $col_labels = [];
 
-    my $i;
+    my $i = 0;
     print STDERR "Adding media sources... ";
     for my $medium ( @{ $media } )
     {
-        print STDERR $i++ . " ";
+        print STDERR $i++ . " " if ( !( $i % 100 ) );
         if ( my $dense_vector = $self->_get_medium_stem_vector( $medium, $max_word_rank ) )
         {
             my $sparse_vector = $self->_get_sparse_vector_from_dense_vector( $dense_vector );
