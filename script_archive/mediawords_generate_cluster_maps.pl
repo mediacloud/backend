@@ -18,7 +18,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Queries;
 
 # start and end dates for the cluster query
-use constant QUERY_START_DATE => '2010-04-01';
+use constant QUERY_START_DATE => '2010-12-01';
 use constant QUERY_END_DATE => '2011-04-01';
 
 # media sets for which to generate maps
@@ -50,9 +50,9 @@ sub get_cluster_run
         "  where queries_id = ? and clustering_engine = 'media_sets' ",
         $query->{ queries_id } )->hash;
     
-    return $cluster_run if ( $cluster_run );
+    return $cluster_run if ( $cluster_run && $cluster_run->{ state } eq 'completed' );
 
-    my $cluster_run = $db->create( 'media_cluster_runs', {
+    my $cluster_run ||= $db->create( 'media_cluster_runs', {
         queries_id => $query->{ queries_id },
         num_clusters => 1,
         clustering_engine => 'media_sets',
@@ -102,14 +102,19 @@ sub generate_cluster_maps
     return $cluster_map;
 }
 
-# print amanda url to view time slice cluster maps for given cluster map
-sub print_cluster_map_url
+# print amanda link to view time slice cluster maps for given cluster map
+sub print_cluster_map_link
 {
-    my ( $cluster_map ) = @_;
-
-    # print( "http://amanda.law.harvard.edu/admin/clusters/view_time_slice_maps/" . 
-    print( "http://metaverse:3000/clusters/view_time_slice_map/" . 
-        "$cluster_map->{ media_cluster_runs_id }?media_cluster_maps_id=$cluster_map->{ media_cluster_maps_id }\n" );
+    my ( $db, $cluster_map, $topic_set ) = @_;
+    
+    my $topics_ids_list = join( ",", @{ $topic_set } );
+    
+    my $topic_names_list = join( ',', $db->query( 
+        "select name from dashboard_topics " . 
+        "where dashboard_topics_id in ($topics_ids_list)" )->flat );
+        
+    print( "<p><a href='http://amanda.law.harvard.edu/admin/clusters/view_time_slice_map/" . 
+        "$cluster_map->{ media_cluster_runs_id }?media_cluster_maps_id=$cluster_map->{ media_cluster_maps_id }'>$topic_names_list</a></p>\n" );
 }
 
 sub main 
@@ -119,7 +124,7 @@ sub main
     my $query_params = get_query_params();
     
     print_cluster_map_url( generate_cluster_maps( $db, $query_params ) );
-    
+        
     for my $topic_set ( TOPIC_SETS )
     {
         $query_params->{ dashboard_topics_ids } = $topic_set;
