@@ -14,7 +14,7 @@
     [% PROCESS clusters/protovis_transform.tt2 %]
     
 <p>
-Hover to see the details of a blog.  Click to visit a blog.  Drag to recenter the map.  Scroll to zoom the map.
+    <a href="[% c.uri_for( '/clusters/view_time_slice_map/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id } ) %]">view this cluster map alone</a>
 </p>
 
 </fieldset>
@@ -28,7 +28,7 @@ Hover to see the details of a blog.  Click to visit a blog.  Drag to recenter th
 
 <p />
     
-    <div id='clusters'>
+/*    <div id='clusters'>
     [% FOREACH cluster IN clusters %]
       <fieldset>
         <p>
@@ -42,6 +42,6 @@ Hover to see the details of a blog.  Click to visit a blog.  Drag to recenter th
       <br />
     [% END #[% FOREACH cluster IN media_clusters %]
     </div>
-
+*/
   </body>
 </html>

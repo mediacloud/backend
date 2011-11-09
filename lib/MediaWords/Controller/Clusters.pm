@@ -162,9 +162,9 @@ sub view_time_slice_map : Local
     
     my $time_slice_maps = MediaWords::Cluster::Map::get_time_slice_maps( $c->dbis, $cluster_run, $cluster_map );
     
-    my $media_clusters = $self->get_cluster_run_clusters( $c, $cluster_run, $cluster_run->{ query }, 1 );
+    # my $media_clusters = $self->get_cluster_run_clusters( $c, $cluster_run, $cluster_run->{ query }, 1 );
 
-    $c->stash->{ clusters }         = $media_clusters;
+    #$c->stash->{ clusters }         = $media_clusters;
     $c->stash->{ cluster_run }      = $cluster_run;
     $c->stash->{ query }            = $cluster_run->{ query };
     $c->stash->{ cluster_maps }     = [ $cluster_map, @{ $time_slice_maps } ];
