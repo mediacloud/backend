@@ -133,7 +133,7 @@ sub main
     {
         $query_params->{ dashboard_topics_ids } = $topic_set;
         
-        print_cluster_map_url( generate_cluster_maps( $db, $query_params ) );
+        print_cluster_map_link( $db, generate_cluster_maps( $db, $query_params ), $topic_set );
     }
 }
 
