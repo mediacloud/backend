@@ -49,6 +49,17 @@ sub create_medium
     }
 }
 
+sub find_medium
+{
+    my ( $medium_url, $medium_name ) = @_;
+
+    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+
+    my $medium = $db->query( 'select * from media where url = ?', $medium_url )->hash;
+
+    return $medium;
+}
+
 sub main
 {
     binmode STDOUT, ":utf8";
@@ -56,7 +67,10 @@ sub main
 
     my $ua = LWP::UserAgent->new;
 
-    for my $i ( 1 .. 20 )
+    my $found = 0;
+    my $not_found = 0;
+
+    for my $i ( 1 .. 1 )
     {
         print "fetching http://blogs.yandex.ru/top/?page=$i\n";
         my $html = $ua->get( "http://blogs.yandex.ru/top/?page=$i" )->decoded_content;
@@ -65,9 +79,20 @@ sub main
         while ( $html =~ m~"></a><a href="([^"]*)" title="([^"]*)">~gi )
         {
             my ( $url, $title ) = ( $1, $2 );
-            create_medium( $url, $title );
+	    if ( ! find_medium ( $url, $title ) )
+	    {
+	      print "Couldn't find '$url' $title\n";
+	      $not_found++;
+	    }
+	    else
+	    {
+	      $found++;
+	    }
+            #create_medium( $url, $title );
         }
     }
+
+    print "Found $found Couldn't find $not_found\n";
 }
 
 main();
