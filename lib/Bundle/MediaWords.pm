@@ -75,6 +75,8 @@ Lingua::Stem::Snowball
 
 HTML::TagCloud
 
+HTML::TreeBuilder::XPath
+
 DBIx::Class::Schema
 
 XML::LibXML
