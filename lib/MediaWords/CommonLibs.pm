@@ -2,7 +2,6 @@ package MediaWords::CommonLibs;
 
 use 5.8.8;
 
-
 require Exporter;
 @ISA = qw(Exporter);
 
@@ -19,26 +18,26 @@ use Exporter;
 use List::Util;
 use List::MoreUtils;
 
-sub import {
+sub import
+{
     use Data::Dumper();
     require Readonly;
 
     warnings->import();
     strict->import();
-    Data::Dumper->export_to_level(1, , @Data::Dumper::Export );
+    Data::Dumper->export_to_level( 1,, @Data::Dumper::Export );
 
-    Readonly->export_to_level( 1, , @Readonly::Export);
+    Readonly->export_to_level( 1,, @Readonly::Export );
 
-    List::Util->export_to_level( 1, , @List::Util::EXPORT_OK);
-    List::MoreUtils->export_to_level( 1, , @List::MoreUtils::EXPORT_OK);
+    List::Util->export_to_level( 1,, @List::Util::EXPORT_OK );
+    List::MoreUtils->export_to_level( 1,, @List::MoreUtils::EXPORT_OK );
 
-     MediaWords::CommonLibs->export_to_level( 1, , qw ( say ) );
-     MediaWords::CommonLibs->export_to_level( 1, , qw ( Readonly ) );
+    MediaWords::CommonLibs->export_to_level( 1,, qw ( say ) );
+    MediaWords::CommonLibs->export_to_level( 1,, qw ( Readonly ) );
     {
-    no strict;
-    *{caller().'::say'} = \&say;
+        no strict;
+        *{ caller() . '::say' } = \&say;
     }
 }
-
 
 1;
