@@ -51,6 +51,8 @@ Catalyst::Plugin::StackTrace
 
 Catalyst::Test
 
+Catalyst::Controller::HTML::FormFu
+
 Date::Parse
 
 Data::Sorting
