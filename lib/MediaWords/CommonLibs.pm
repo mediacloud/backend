@@ -1,9 +1,11 @@
 package MediaWords::CommonLibs;
+use MediaWords::CommonLibs;
+
 
 use 5.8.8;
 
 require Exporter;
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
 use strict;
 use warnings;
@@ -27,7 +29,7 @@ sub import
     strict->import();
     Data::Dumper->export_to_level( 1,, @Data::Dumper::Export );
 
-    Readonly->export_to_level( 1,, @Readonly::Export );
+    #Readonly->export_to_level( 1,, @Readonly::Export );
 
     List::Util->export_to_level( 1,, @List::Util::EXPORT_OK );
     List::MoreUtils->export_to_level( 1,, @List::MoreUtils::EXPORT_OK );
