@@ -23,6 +23,10 @@ List::Member
 
 Hash::Merge
 
+#Object::Signature is needed by Catalyst::Plugin but dependancy wasn't detected so we're explicitly adding it.
+
+Object::Signature
+
 Catalyst
 
 Catalyst::Devel
