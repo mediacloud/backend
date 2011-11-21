@@ -12,7 +12,7 @@ use warnings;
 
 use Perl6::Say;
 
-use mro     ();
+#use mro     ();
 use feature ();
 use Data::Dumper;
 
