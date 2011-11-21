@@ -31,6 +31,7 @@ use MIME::Base64;
 use Lingua::EN::Sentence::MediaWords;
 use File::Temp;
 use File::Slurp;
+use Time::HiRes qw ( time);
 
 #use XML::LibXML::Enhanced;
 
@@ -53,23 +54,22 @@ sub create_base64_encoded_element
 
 sub store_preprocessed_result
 {
-    my ( $download, $preprocessed_lines, $extract_results, $content_ref, $story ) = @_;
+    my ( $download, $preprocessed_lines, $extract_results, $content_refx ) = @_;
 
     say STDERR "starting store_preprocessed_result";
     say STDERR "downloads_id: " . $download->{ downloads_id };
-    say STDERR "STORY GUID $story->{ guid }";
-    say STDERR "STORY GUID $story->{ title }";
+
     my $lines_concated = join "", map { $_ . "\n" } @{ $preprocessed_lines };
 
     say STDERR "Preprocessed_lines:\n";
 
     MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
 
-    say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
-    say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
+    #say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
+    #say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
 
-    say STDERR "Starting get_sentences ";
-    my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $extract_results->{ extracted_text } ) || return;
+    #say STDERR "Starting get_sentences ";
+    #my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $extract_results->{ extracted_text } ) || return;
 
     #say STDERR "Finished get_sentences ";
 
@@ -129,23 +129,40 @@ sub store_downloads
     {
         say "Processing download $download->{downloads_id}";
 
-        my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
-        my $extract_results    = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
         my $content_ref        = MediaWords::DBI::Downloads::fetch_content( $download );
 
-        my $story = $dbs->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
+	my $extract_results;
+	my $preprocessed_lines;
+
+	my $mc_extract_start_time = time;
+
+	for my $i ( 0 .. 100 )
+	  {
+	    say $i;
+	    $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+	    $extract_results    = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+
+	    store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref );
+	  }
+
+	my $mc_extract_stop_time = time;
+
+	my $goose_extract_start_time = time;
 
         my $goose_extracted = extract_with_goose( $content_ref, $download->{ url } );
 
-        say STDERR $goose_extracted;
+	my $goose_extract_stop_time = time;
 
-        store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref, $story );
+        say STDERR $goose_extracted;
 
         my $score =
           Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
           ->getSimilarityStrings( $goose_extracted, $extract_results->{ extracted_text } );
 
         say "similarity score: $score";
+
+	say "media cloud time: ( $mc_extract_stop_time - $mc_extract_start_time ); " . ( $mc_extract_stop_time - $mc_extract_start_time );
+	say "goose time: ( $goose_extract_stop_time - $goose_extract_start_time );"       . ( $goose_extract_stop_time - $goose_extract_start_time );
     }
 
 }
