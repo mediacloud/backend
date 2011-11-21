@@ -39,6 +39,8 @@ my $_re_generate_cache = 0;
 
 Readonly my $output_dir => 'download_content_test_data';
 
+Readonly my $goose_dir => '/home/dlarochelle/goose/goose';
+
 sub create_base64_encoded_element
 {
     my ( $name, $content ) = @_;
@@ -93,8 +95,6 @@ sub extract_with_goose
     say FILE $$content_ref;
 
     close( FILE );
-
-    Readonly my $goose_dir => '/home/dlarochelle/goose/goose';
 
     my $extracted_text_file = "$temp_dir/output.txt";
     my $system_command =
