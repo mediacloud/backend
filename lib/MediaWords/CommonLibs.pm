@@ -13,7 +13,7 @@ use warnings;
 use Perl6::Say;
 
 #use mro     ();
-use feature ();
+#use feature ();
 use Data::Dumper;
 
 use List::Util;
