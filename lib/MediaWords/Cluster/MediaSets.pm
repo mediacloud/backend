@@ -1,4 +1,6 @@
 package MediaWords::Cluster::MediaSets;
+use MediaWords::CommonLibs;
+
 
 # cluster based just on media set membership
 

@@ -1,4 +1,6 @@
 package MediaWords::Tagger::Yahoo;
+use MediaWords::CommonLibs;
+
 
 # generate tags for text using the yahoo term extractor
 

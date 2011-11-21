@@ -1,4 +1,6 @@
 package MediaWords::Pg::Stopwords;
+use MediaWords::CommonLibs;
+
 
 # defines is_stop_stem plperl function
 

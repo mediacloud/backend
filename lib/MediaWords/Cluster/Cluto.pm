@@ -1,4 +1,6 @@
 package MediaWords::Cluster::Cluto;
+use MediaWords::CommonLibs;
+
 
 # This module provides an interface to the cluto clustering toolkit based on the command line binaries rather
 # than the libray.  We use this module because the library distributed by cluto does not work on

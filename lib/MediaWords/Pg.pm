@@ -1,4 +1,6 @@
 package MediaWords::Pg;
+use MediaWords::CommonLibs;
+
 
 # utility modules for plperl functions
 

@@ -1,4 +1,6 @@
 package MediaWords::DBI::StoriesTagsMapMediaSubtables;
+use MediaWords::CommonLibs;
+
 
 # various helper functions for downloads
 

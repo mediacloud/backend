@@ -1,4 +1,6 @@
 package MediaWords::Controller::Stats;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

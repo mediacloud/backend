@@ -1,4 +1,6 @@
 package MediaWords::Cluster;
+use MediaWords::CommonLibs;
+
 
 # cluster media sources based on their word vectors
 

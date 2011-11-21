@@ -1,4 +1,6 @@
 package MediaWords::Crawler::BlogUrlCanonicalizer;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

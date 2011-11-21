@@ -1,4 +1,6 @@
 package MediaWords::Controller::Feeds;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

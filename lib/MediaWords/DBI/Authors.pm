@@ -1,4 +1,6 @@
 package MediaWords::DBI::Authors;
+use MediaWords::CommonLibs;
+
 
 use strict;
 

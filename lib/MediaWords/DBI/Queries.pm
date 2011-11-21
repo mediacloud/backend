@@ -1,4 +1,6 @@
 package MediaWords::DBI::Queries;
+use MediaWords::CommonLibs;
+
 
 # various routines for accessing the queries table and for querying
 # the aggregate vector tables (daily/weekly/top_500_weekly)_words

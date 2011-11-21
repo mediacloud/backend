@@ -1,4 +1,6 @@
 package MediaWords::Crawler::Engine;
+use MediaWords::CommonLibs;
+
 
 # core engine of crawler:
 # * fork specified number of crawlers

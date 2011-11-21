@@ -1,4 +1,6 @@
 package MediaWords::Crawler::BlogPageProcessor_LiveJournal;
+use MediaWords::CommonLibs;
+
 
 use strict;
 

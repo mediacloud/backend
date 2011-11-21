@@ -1,4 +1,6 @@
 package MediaWords::Crawler::BlogPageProcessor;
+use MediaWords::CommonLibs;
+
 
 use strict;
 

@@ -1,4 +1,6 @@
 package MediaWords;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

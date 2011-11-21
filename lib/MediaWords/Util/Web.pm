@@ -1,4 +1,6 @@
 package MediaWords::Util::Web;
+use MediaWords::CommonLibs;
+
 
 # various functions for editing feed and medium tags
 

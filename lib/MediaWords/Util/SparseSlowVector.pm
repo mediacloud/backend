@@ -1,4 +1,6 @@
 package MediaWords::Util::SparseSlowVector;
+use MediaWords::CommonLibs;
+
 
 use 5.006;
 use strict;

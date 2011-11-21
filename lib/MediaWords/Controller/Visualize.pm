@@ -1,4 +1,6 @@
 package MediaWords::Controller::Visualize;
+use MediaWords::CommonLibs;
+
 
 use Encode;
 use strict;

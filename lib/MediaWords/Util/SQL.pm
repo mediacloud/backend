@@ -1,4 +1,6 @@
 package MediaWords::Util::SQL;
+use MediaWords::CommonLibs;
+
 
 # misc utility functions for sql
 

@@ -1,4 +1,6 @@
 package MediaWords::Model::DBIS;
+use MediaWords::CommonLibs;
+
 
 # custom DBIx::Simple::MediaWords based model for mediawords
 

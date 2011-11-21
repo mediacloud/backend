@@ -1,4 +1,6 @@
 package MediaWords::Util::Countries;
+use MediaWords::CommonLibs;
+
 
 use Moose;
 use strict;

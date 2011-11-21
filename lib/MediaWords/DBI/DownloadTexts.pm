@@ -1,4 +1,6 @@
 package MediaWords::DBI::DownloadTexts;
+use MediaWords::CommonLibs;
+
 
 # various helper functions for the download_texts table
 

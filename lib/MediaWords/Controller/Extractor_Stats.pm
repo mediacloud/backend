@@ -1,4 +1,6 @@
 package MediaWords::Controller::Extractor_Stats;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

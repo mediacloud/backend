@@ -1,4 +1,6 @@
 package MediaWords::Cluster::Kmeans;
+use MediaWords::CommonLibs;
+
 
 # Jon's implementation of the k-means clustering algorithm
 

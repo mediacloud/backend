@@ -1,4 +1,6 @@
 package MediaWords::Crawler::BlogSpiderPostingHandler;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

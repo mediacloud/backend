@@ -1,4 +1,6 @@
 package MediaWords::DBI::Stories;
+use MediaWords::CommonLibs;
+
 
 # various helper functions for stories
 

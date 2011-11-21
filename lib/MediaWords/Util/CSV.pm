@@ -1,4 +1,6 @@
 package MediaWords::Util::CSV;
+use MediaWords::CommonLibs;
+
 
 use strict;
 

@@ -1,4 +1,6 @@
 package MediaWords::DBI::MediaSets;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

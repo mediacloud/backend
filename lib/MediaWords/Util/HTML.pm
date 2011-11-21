@@ -1,4 +1,6 @@
 package MediaWords::Util::HTML;
+use MediaWords::CommonLibs;
+
 
 # various functions for manipulating html
 

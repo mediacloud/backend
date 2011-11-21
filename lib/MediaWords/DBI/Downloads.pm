@@ -1,4 +1,6 @@
 package MediaWords::DBI::Downloads;
+use MediaWords::CommonLibs;
+
 
 # various helper functions for downloads
 

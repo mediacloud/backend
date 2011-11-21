@@ -1,4 +1,6 @@
 package MediaWords::View::TT;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use base 'Catalyst::View::TT';

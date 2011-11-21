@@ -1,4 +1,6 @@
 package MediaWords::Controller::ComingSoon;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

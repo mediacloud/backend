@@ -1,4 +1,6 @@
 package MediaWords::Util::SparseVector;
+use MediaWords::CommonLibs;
+
 
 # Jon's rewrite of Math::SparseVector
 #

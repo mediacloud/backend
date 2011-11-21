@@ -1,4 +1,6 @@
 package MediaWords::Crawler::Downloads_Queue;
+use MediaWords::CommonLibs;
+
 
 # provide one request at a time a crawler process
 

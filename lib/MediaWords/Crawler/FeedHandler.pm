@@ -1,4 +1,6 @@
 package MediaWords::Crawler::FeedHandler;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

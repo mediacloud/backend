@@ -1,4 +1,6 @@
 package MediaWords::Util::JSON;
+use MediaWords::CommonLibs;
+
 
 # very simple module for generating from perl data
 

@@ -1,4 +1,6 @@
 package MediaWords::Pg::Cleanup;
+use MediaWords::CommonLibs;
+
 
 # various cleanup functions
 

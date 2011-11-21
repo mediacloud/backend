@@ -1,4 +1,6 @@
 package MediaWords::Controller::Dashboard;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;
@@ -35,7 +37,7 @@ use JSON;
 use Time::HiRes;
 use XML::Simple qw(:strict);
 use Dir::Self;
-use Readonly;
+#use Readonly;
 use CHI;
 use File::stat;
 

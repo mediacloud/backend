@@ -1,4 +1,6 @@
 package MediaWords::StoryVectors;
+use MediaWords::CommonLibs;
+
 
 # methods to generate the story_sentences and story_sentence_words and associated aggregated tables
 

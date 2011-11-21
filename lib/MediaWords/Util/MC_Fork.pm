@@ -1,4 +1,6 @@
 package MediaWords::Util::MC_Fork;
+use MediaWords::CommonLibs;
+
 
 use Moose;
 use strict;

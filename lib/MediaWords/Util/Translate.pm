@@ -1,4 +1,6 @@
 package MediaWords::Util::Translate;
+use MediaWords::CommonLibs;
+
 
 # various functions for manipulating html
 

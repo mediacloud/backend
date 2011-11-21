@@ -1,4 +1,6 @@
 package MediaWords::Cluster::Map::GraphViz;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use Data::Dumper;

@@ -1,4 +1,6 @@
 package MediaWords::Tagger::Calais;
+use MediaWords::CommonLibs;
+
 
 use strict;
 

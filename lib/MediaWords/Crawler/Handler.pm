@@ -1,4 +1,6 @@
 package MediaWords::Crawler::Handler;
+use MediaWords::CommonLibs;
+
 
 # process the fetched response for the crawler:
 # * store the download in the database,

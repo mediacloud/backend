@@ -1,4 +1,6 @@
 package MediaWords::Cluster::Map;
+use MediaWords::CommonLibs;
+
 
 # Generate cluster maps from existing media cluster run data.
 #

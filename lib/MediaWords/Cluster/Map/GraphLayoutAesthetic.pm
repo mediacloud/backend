@@ -1,4 +1,6 @@
 package MediaWords::Cluster::Map::GraphLayoutAesthetic;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use Data::Dumper;

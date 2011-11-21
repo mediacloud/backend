@@ -1,4 +1,6 @@
 package MediaWords::Util::WordCloud_Legacy;
+use MediaWords::CommonLibs;
+
 
 # generate a word cloud based on a query and a list of words
 

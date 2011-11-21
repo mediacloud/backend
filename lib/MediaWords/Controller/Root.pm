@@ -1,4 +1,6 @@
 package MediaWords::Controller::Root;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;

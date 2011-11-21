@@ -1,4 +1,6 @@
 package MediaWords::Util::BigPDLVector;
+use MediaWords::CommonLibs;
+
 
 # Jon's wrapper for PDL vector methods--should use the same interface as SparseHashVector, SparseSlowVector
 #

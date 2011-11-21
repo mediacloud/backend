@@ -1,4 +1,6 @@
 package MediaWords::Controller::Queries;
+use MediaWords::CommonLibs;
+
 
 # set of screens for creating and analyzing queries
 

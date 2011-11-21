@@ -1,4 +1,6 @@
 package MediaWords::Controller::Media;
+use MediaWords::CommonLibs;
+
 
 use Encode;
 use strict;

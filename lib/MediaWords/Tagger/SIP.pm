@@ -1,4 +1,6 @@
 package MediaWords::Tagger::SIP;
+use MediaWords::CommonLibs;
+
 
 #This is just a very quick and dirty first implementation of some of the SIP tagging I had in mind
 #At this point, this is only story by story tagging; I haven't yet implemented the sort of daily meme tracking we discussed

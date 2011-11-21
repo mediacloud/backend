@@ -1,4 +1,6 @@
 package MediaWords::Controller::Downloads;
+use MediaWords::CommonLibs;
+
 
 use strict;
 use warnings;
