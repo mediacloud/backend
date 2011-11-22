@@ -74,8 +74,6 @@ sub get_preprocessed_content_lines_for_download
     return $preprocessed_lines;
 }
 
-
-
 sub store_extractor_line_scores
 {
     ( my $scores, my $lines, my $download, my $dbs ) = @_;
@@ -107,7 +105,6 @@ sub store_extractor_line_scores
     $dbs->commit;
 }
 
-
 #returns the sum of the string length for each line the training table says should be in the story.
 sub get_character_count_for_story
 {
@@ -117,7 +114,6 @@ sub get_character_count_for_story
 
     return $story_characters;
 }
-
 
 sub get_sentence_info_for_lines
 {
@@ -185,6 +181,7 @@ sub get_sentence_info_for_lines
     };
 
 }
+
 sub html_stripped_text_length
 {
     my $html_text = shift;
