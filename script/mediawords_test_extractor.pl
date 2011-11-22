@@ -28,7 +28,6 @@ use MediaWords::Util::ExtractorTest;
 
 my $_re_generate_cache = 0;
 
-
 sub processDownload
 {
     ( my $download, my $dbs ) = @_;
@@ -51,7 +50,9 @@ sub processDownload
 
     my $scores = [];
 
-    $scores =  MediaWords::Util::ExtractorTest::get_extractor_scores_for_lines( $preprocessed_lines, $story_title, $story_description, $download, $dbs, ! $_re_generate_cache );
+    $scores =
+      MediaWords::Util::ExtractorTest::get_extractor_scores_for_lines( $preprocessed_lines, $story_title, $story_description,
+        $download, $dbs, !$_re_generate_cache );
 
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
@@ -60,7 +61,8 @@ sub processDownload
 
     my @correctly_included_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@missing_lines, \@extra_lines ] ) ] );
 
-    my $story_characters = MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
+    my $story_characters =
+      MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
 
     my $download_errors;
 
@@ -68,7 +70,8 @@ sub processDownload
 
     for my $missing_line_number ( @missing_lines )
     {
-        $missing_characters += MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $missing_line_number ] );
+        $missing_characters +=
+          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $missing_line_number ] );
 
         $download_errors .= "missing line $missing_line_number: " . $preprocessed_lines->[ $missing_line_number ] . "\n";
     }
@@ -76,7 +79,8 @@ sub processDownload
 
     for my $extra_line_number ( @extra_lines )
     {
-        $extra_characters += MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $extra_line_number ] );
+        $extra_characters +=
+          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $extra_line_number ] );
         $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
     }
 
@@ -84,7 +88,8 @@ sub processDownload
 
     #say Dumper( $story );
 
-    my $extra_line_sentence_info = MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @extra_lines ], $preprocessed_lines, $story, $dbs );
+    my $extra_line_sentence_info =
+      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @extra_lines ], $preprocessed_lines, $story, $dbs );
 
     my $extra_sentences_dedupped     = $extra_line_sentence_info->{ sentences_dupped };
     my $extra_sentences_not_dedupped = $extra_line_sentence_info->{ sentences_not_dupped };
@@ -93,7 +98,8 @@ sub processDownload
     my $extra_sentences_total = $extra_line_sentence_info->{ sentences_total };
 
     my $correctly_included_line_sentence_info =
-      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @correctly_included_lines ], $preprocessed_lines, $story, $dbs );
+      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @correctly_included_lines ],
+        $preprocessed_lines, $story, $dbs );
 
     my $correctly_included_sentences_dedupped     = $correctly_included_line_sentence_info->{ sentences_dupped };
     my $correctly_included_sentences_not_dedupped = $correctly_included_line_sentence_info->{ sentences_not_dupped };
@@ -101,7 +107,8 @@ sub processDownload
 
     my $correctly_included_sentences_total = $correctly_included_line_sentence_info->{ sentences_total };
 
-    my $missing_line_sentence_info = MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @missing_lines ], $preprocessed_lines, $story, $dbs );
+    my $missing_line_sentence_info =
+      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @missing_lines ], $preprocessed_lines, $story, $dbs );
 
     my $missing_sentences_dedupped     = $missing_line_sentence_info->{ sentences_dupped };
     my $missing_sentences_not_dedupped = $missing_line_sentence_info->{ sentences_not_dupped };
