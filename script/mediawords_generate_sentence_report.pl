@@ -27,6 +27,8 @@ use URI::Escape;
 use DBIx::Simple::MediaWords;
 use HTML::StripPP;
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 
 # number of terms to include in each word cloud
 use constant NUM_CLOUD_TERMS => 50;

@@ -14,6 +14,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::StoryVectors;
 
 # get the min start_date and max end_date for the dashboards associated with the given

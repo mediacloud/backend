@@ -15,6 +15,8 @@ use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
 use Readonly;

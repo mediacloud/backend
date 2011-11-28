@@ -15,6 +15,8 @@ BEGIN
 
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::Pg::Schema;
 use Perl6::Say;
 use Term::Prompt;

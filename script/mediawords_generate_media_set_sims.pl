@@ -16,6 +16,8 @@ BEGIN
 use Data::Dumper;
 use List::Util;
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use PDL;
 
 # given a list of either media set ids or patterns, return all matching

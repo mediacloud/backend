@@ -14,6 +14,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use DBIx::Simple::MediaWords;
 use TableCreationUtils;
 

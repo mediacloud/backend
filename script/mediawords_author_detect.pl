@@ -13,6 +13,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use XML::LibXML;
 use Getopt::Long;
 use Readonly;

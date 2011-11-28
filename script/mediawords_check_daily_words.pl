@@ -16,6 +16,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 
 sub main 
 {

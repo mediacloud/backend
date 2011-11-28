@@ -11,6 +11,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;
 

@@ -11,6 +11,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::Crawler::Extractor;
 use Getopt::Long;
 use HTML::Strip;

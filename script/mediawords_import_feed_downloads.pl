@@ -10,6 +10,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;

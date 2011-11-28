@@ -12,6 +12,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use DBI;
 use DBIx::Simple;
 use DBIx::Simple::MediaWords;

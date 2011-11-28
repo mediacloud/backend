@@ -19,6 +19,8 @@ BEGIN
 
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::Pg::Schema;
 
 sub main

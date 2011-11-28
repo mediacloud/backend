@@ -13,6 +13,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use DBIx::Simple::MediaWords;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 use TableCreationUtils;

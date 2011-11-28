@@ -11,6 +11,8 @@ BEGIN
 
 use Encode;
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use DBIx::Simple::MediaWords;
 use List::Uniq ':all';
 use TableCreationUtils;

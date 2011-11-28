@@ -15,6 +15,8 @@ BEGIN
 
 use Archive::Tar::Indexed;
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 
 sub main {
     my ( $archive_file ) = @ARGV;

@@ -18,6 +18,8 @@ BEGIN
 }
 
 use MediaWords::DB;
+use MediaWords::CommonLibs;
+
 use MediaWords::StoryVectors;
 
 sub main
