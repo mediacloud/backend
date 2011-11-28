@@ -23,12 +23,15 @@ use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use File::Copy;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use MediaWords::Controller::Dashboard;
+use IO::Compress::Zip qw(:all);
 
 use Getopt::Long;
 use Date::Parse;
 use Data::Dumper;
 use Carp;
 use Dir::Self;
+use Cwd;
+
 my $_stories_id_window_size = 1000;
 
 # base dir
@@ -333,19 +336,33 @@ sub main
 
     my $zip = Archive::Zip->new();
 
-    my $dir_member = $zip->addTree( "$temp_dir" );
+    # my $dir_member = $zip->addTree( "$temp_dir" );
 
     # Save the Zip file
 
     my $dump_zip_file_name = $dump_name . '_' . $dumped_stories->[ 0 ] . '_' . $dumped_stories->[ 1 ];
 
     my $tmp_zip_file_path = "/$data_dir/tmp_$dump_zip_file_name" . ".zip";
-    unless ( $zip->writeToFileNamed( $tmp_zip_file_path ) == AZ_OK )
+    # unless ( $zip->writeToFileNamed( $tmp_zip_file_path ) == AZ_OK )
+    # {
+    #     die 'write error';
+    # }
+
     {
-        die 'write error';
+        my $old_dir = getcwd();
+        chdir( $temp_dir );
+
+        my @files = <*/*>;
+
+        say Dumper( [ @files ] );
+
+        zip \@files =>, "$tmp_zip_file_path", Zip64 => 1 or die "Cannot create zip file: $ZipError\n";
+
+        chdir( $old_dir );
     }
 
-    move( $tmp_zip_file_path, "/$data_dir/$dump_zip_file_name" . ".zip" ) || die "Error renaming file $@";
+    move( $tmp_zip_file_path,       "/$data_dir/$dump_zip_file_name" . ".zip" )   || die "Error renaming file $@";
+    #move( $tmp_zip_file_path . '2', "/$data_dir/$dump_zip_file_name" . ".zip_2" ) || die "Error renaming file $@";
 }
 
 main();
