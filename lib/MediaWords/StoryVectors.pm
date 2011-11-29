@@ -456,7 +456,7 @@ sub update_story_sentence_words
 
         my $base_dir;
 
-        BEGIN
+        #BEGIN
         {
             use File::Basename ();
             use Cwd            ();
