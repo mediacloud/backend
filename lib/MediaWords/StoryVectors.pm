@@ -1313,9 +1313,6 @@ sub update_aggregate_words_for_sentence_study
     $db->commit;
 }
 
-# update daily_words, weekly_words, and top_500_weekly_words tables for all included dates
-# for which daily_words data does not already exist
-#
 # if dashbaord_topics_id or media_sets_id are specified, only update for the given
 # dashboard_topic or media_set
 sub update_country_counts
