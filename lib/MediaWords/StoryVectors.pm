@@ -1315,6 +1315,8 @@ sub update_aggregate_words_for_sentence_study
 
 # if dashbaord_topics_id or media_sets_id are specified, only update for the given
 # dashboard_topic or media_set
+
+# TODO this method is only used by ./mediawords_update_aggregate_country_counts.pl do we still want to keep it?
 sub update_country_counts
 {
     my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
