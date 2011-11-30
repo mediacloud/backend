@@ -195,8 +195,7 @@ create table queries (
 
 
 create index queries_creation_date on queries (creation_date);
-create unique index queries_hash on queries ( md5( description ) );
-DROP INDEX queries_hash;
+create index queries_hash on queries ( md5( description ) );
 ALTER TABLE queries ADD COLUMN query_version query_version_enum DEFAULT enum_last (null::query_version_enum ) NOT NULL;
 create unique index queries_hash_version on queries ( md5( description ), query_version );
 
