@@ -250,7 +250,7 @@ sub dedup_sentences
         }
     }
 
-    $db->commit;
+    $db->dbh->{ AutoCommit } || $db->commit;
 
     if ( @{ $sentences } && !@{ $deduped_sentences } )
     {
@@ -1210,12 +1210,12 @@ sub update_aggregate_words
             $update_weekly = 0;
         }
 
-        $db->commit();
+        $db->dbh->{ AutoCommit } || $db->commit();
 
         $days++;
     }
 
-    $db->commit;
+    $db->dbh->{ AutoCommit } || $db->commit;
 }
 
 sub update_aggregate_author_words
