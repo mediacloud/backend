@@ -89,6 +89,9 @@ sub _run_fetcher
                     die( "fetcher " . $self->fetcher_number . ": Unable to find download_id: $downloads_id" );
                 }
 
+		say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
+                    $download->{ url } . " starting";
+
                 my $start_fetch_time = [ Time::HiRes::gettimeofday ];
                 my $response = $fetcher->fetch_download( $download );
                 my $end_fetch_time = [ Time::HiRes::gettimeofday ];
