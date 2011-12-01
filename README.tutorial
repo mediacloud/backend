@@ -2,8 +2,8 @@ Following is a brief tutorial walking through the process of adding a media
 source to the database and downloading, extracting, and tagging the stories
 from the source.
 
-* Go to the home page of the web app (http://localhost:3000 if running
-  mediawords_server.pl on your local machine).
+* Go to the admin home page of the web app which at media/list 
+    eg. (http://localhost:3000/media/list if running mediawords_server.pl on your local machine).
   
 * Click on 'Add Media'.
 
