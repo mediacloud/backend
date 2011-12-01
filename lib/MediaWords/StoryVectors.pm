@@ -1,7 +1,6 @@
 package MediaWords::StoryVectors;
 use MediaWords::CommonLibs;
 
-
 # methods to generate the story_sentences and story_sentence_words and associated aggregated tables
 
 use strict;
@@ -414,8 +413,11 @@ sub purge_daily_words_data_for_unretained_dates
     my $default_story_words_start_date = get_default_story_words_start_date();
     my $default_story_words_end_date   = get_default_story_words_end_date();
 
-    $db->query( "SELECT purge_daily_words_for_media_set( media_sets_id, ?::date, ?::date) FROM media_sets ORDER BY media_sets_id ",
-        $default_story_words_start_date, $default_story_words_end_date );
+    $db->query(
+        "SELECT purge_daily_words_for_media_set( media_sets_id, ?::date, ?::date) FROM media_sets ORDER BY media_sets_id ",
+        $default_story_words_start_date,
+        $default_story_words_end_date
+    );
 
     return;
 }
@@ -509,24 +511,12 @@ sub update_story_sentence_words
 
         for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
         {
-            my $words = _tokenize( [ $sentences->[ $sentence_num ] ] );
-            my $stems = $stemmer->stem( @{ $words } );
-
-            for ( my $word_num = 0 ; $word_num < @{ $words } ; $word_num++ )
-            {
-                my ( $word, $stem ) = ( $words->[ $word_num ], $stems->[ $word_num ] );
-
-                limit_string_length( $word, 256 );
-                limit_string_length( $stem, 256 );
-
-                if ( _valid_stem( $stem, $word, $stop_stems ) )
-                {
-                    $sentence_word_counts->{ $sentence_num }->{ $stem }->{ word } ||= $word;
-                    $sentence_word_counts->{ $sentence_num }->{ $stem }->{ count }++;
-                }
-            }
-
             _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
+
+            my $word_counts_for_sentence =
+               _get_stem_word_counts_for_english_sentence( $stemmer, $sentences->[ $sentence_num ], $stop_stems );
+
+            $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
         }
     }
 
@@ -542,6 +532,33 @@ sub update_story_sentence_words
 	   			 }
    			}
 	 }};
+}
+
+sub _get_stem_word_counts_for_english_sentence
+{
+    my ( $stemmer, $sentence, $stop_stems ) = @_;
+
+    my $words = _tokenize( [ $sentence ] );
+
+    my $stems = $stemmer->stem( @{ $words } );
+
+    my $word_counts = {};
+
+    for ( my $word_num = 0 ; $word_num < @{ $words } ; $word_num++ )
+    {
+        my ( $word, $stem ) = ( $words->[ $word_num ], $stems->[ $word_num ] );
+
+        limit_string_length( $word, 256 );
+        limit_string_length( $stem, 256 );
+
+        if ( _valid_stem( $stem, $word, $stop_stems ) )
+        {
+            $word_counts->{ $stem }->{ word } ||= $word;
+            $word_counts->{ $stem }->{ count }++;
+        }
+    }
+
+    return $word_counts;
 }
 
 # fill the story_sentence_words table with all stories in ssw_queue
