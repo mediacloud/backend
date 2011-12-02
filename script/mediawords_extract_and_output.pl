@@ -101,6 +101,9 @@ sub store_downloads
 
         my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
         my $extract_results    = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+
+	say STDERR "Got extract_results:\n ". Dumper( $extract_results);
+
         my $content_ref        = MediaWords::DBI::Downloads::fetch_content( $download );
 
         my $story = $dbs->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
