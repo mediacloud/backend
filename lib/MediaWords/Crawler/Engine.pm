@@ -99,6 +99,7 @@ sub _run_fetcher
                 say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " . $download->{ url } .
                   " fetched";
 
+		$DB::single = 1;
                 eval { $handler->handle_response( $download, $response ); };
 
                 my $fetch_time = Time::HiRes::tv_interval( $start_fetch_time, $end_fetch_time );
