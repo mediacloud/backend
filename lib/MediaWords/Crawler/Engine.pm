@@ -96,6 +96,9 @@ sub _run_fetcher
                 my $response = $fetcher->fetch_download( $download );
                 my $end_fetch_time = [ Time::HiRes::gettimeofday ];
 
+		say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
+                    $download->{ url } . " fetched";
+
                 eval { $handler->handle_response( $download, $response ); };
 
                 my $fetch_time = Time::HiRes::tv_interval( $start_fetch_time,  $end_fetch_time );
@@ -107,7 +110,7 @@ sub _run_fetcher
                 }
 
                 print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
-                    $download->{ url } . " complete [ $fetch_time / $handle_time ]\n";
+                    $download->{ url } . " processing complete [ $fetch_time / $handle_time ]\n";
             }
             else
             {
