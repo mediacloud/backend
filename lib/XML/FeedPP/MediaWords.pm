@@ -28,6 +28,11 @@ use Class::Std;
         my $type    = $arg_ref->{ type };
 
         my $fp;
+
+	say STDERR Dumper ( { content -> $content, 
+			      type -> $type,
+			    } );
+
         eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
 
         $feedPP{ $ident } = $fp;
