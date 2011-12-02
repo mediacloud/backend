@@ -268,6 +268,8 @@ XML::TreePP
 
 Encode::HanConvert
 
+Sys::SigAction
+
 =head1 DESCRIPTION
 
 Bundle for modules required by MediaWords;
