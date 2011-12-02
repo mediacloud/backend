@@ -306,7 +306,7 @@ sub crawl_single_download
 
             # print "fetcher $fetcher_number request assigned\n";
 
-            last OUTER_LOOP;
+            #last OUTER_LOOP;
         }
 
     }
