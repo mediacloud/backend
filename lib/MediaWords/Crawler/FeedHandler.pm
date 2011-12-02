@@ -45,6 +45,8 @@ sub _add_stories_and_content_downloads
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
+    $DB::single = 1;
+
     my $feed = Feed::Scrape::MediaWords->parse_feed( $decoded_content );
 
     die( "Unable to parse feed for $download->{ url }" ) unless $feed;
