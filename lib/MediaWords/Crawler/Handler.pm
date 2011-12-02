@@ -287,7 +287,7 @@ sub handle_response
 {
     my ( $self, $download, $response ) = @_;
 
-    #say STDERR "fetcher " . $self->engine->fetcher_number . " handle response: " . $download->{url};
+    say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{url};
 
     my $dbs = $self->engine->dbs;
 
@@ -312,7 +312,8 @@ sub handle_response
 
     $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-    # say STDERR "switching on download type " . $download->{type};
+    say STDERR "fetcher " . $self->engine->fetcher_number . "switching on download type " . $download->{type};
+
     switch ( $download->{ type } )
     {
         case 'feed'
@@ -373,6 +374,8 @@ sub handle_response
             die "Unknown download type " . $download->{ type }, "\n";
         }
     }
+
+    say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{url};
 }
 
 # calling engine
