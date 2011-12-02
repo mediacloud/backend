@@ -271,38 +271,45 @@ sub crawl_single_download
     my $queued_downloads = [ $download ];
 
     #print "wait for fetcher requests ...\n";
-    for my $s ( $socket_select->can_read() )
+
+  OUTER_LOOP:
+    while ( 1 )
     {
-        my $fetcher_number = $s->getline();
-
-        if ( !defined( $fetcher_number ) )
+        for my $s ( $socket_select->can_read() )
         {
-            print STDERR "skipping fetcher in which we couldn't read the fetcher number\n";
-            $socket_select->remove( $s );
-            next;
+            my $fetcher_number = $s->getline();
+
+            if ( !defined( $fetcher_number ) )
+            {
+                print STDERR "skipping fetcher in which we couldn't read the fetcher number\n";
+                $socket_select->remove( $s );
+                next;
+            }
+
+            chomp( $fetcher_number );
+
+            #print "get fetcher $fetcher_number ping\n";
+
+            if ( my $queued_download = shift( @{ $queued_downloads } ) )
+            {
+
+                # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
+                $s->printflush( $queued_download->{ downloads_id } . "\n" );
+            }
+            else
+            {
+
+                #print STDERR "sending fetcher $fetcher_number none\n";
+                $s->printflush( "none\n" );
+                last;
+            }
+
+            # print "fetcher $fetcher_number request assigned\n";
+
+            last OUTER_LOOP;
         }
 
-        chomp( $fetcher_number );
-
-        #print "get fetcher $fetcher_number ping\n";
-
-        if ( my $queued_download = shift( @{ $queued_downloads } ) )
-        {
-
-            # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
-            $s->printflush( $queued_download->{ downloads_id } . "\n" );
-        }
-        else
-        {
-
-            #print STDERR "sending fetcher $fetcher_number none\n";
-            $s->printflush( "none\n" );
-            last;
-        }
-
-        # print "fetcher $fetcher_number request assigned\n";
     }
-
     $self->dbs->commit;
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
