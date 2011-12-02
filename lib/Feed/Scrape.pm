@@ -271,6 +271,7 @@ sub parse_feed
     $content = _fix_atom_content_element_encoding( $content );
 
     my $feed;
+    $DB::single = 1;
     eval { $feed = XML::FeedPP::MediaWords->new( { content => $content, type => 'string' } ) };
 
     if ( $@ )
