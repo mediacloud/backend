@@ -23,15 +23,27 @@ use Class::Std;
     {
         my ( $self, $ident, $arg_ref ) = @_;
 
-	$DB::single = 1;
         my $content = $arg_ref->{ content };
         my $type    = $arg_ref->{ type };
 
         my $fp;
 
-	say STDERR Dumper ( { content -> $content, 
-			      type -> $type,
-			    } );
+	my $dump_content = 0;
+	my $dump_file = '/tmp/content.txt';
+
+	$DB::single = 1;
+
+	if ( $dump_content )
+	{
+
+	  open OUTFILE, ">", $dump_file;
+
+	  say OUTFILE $content;
+
+	  # say STDERR Dumper ( { content -> $content, 
+	  # 		      type -> $type,
+	  # 		      } );
+	}
 
         eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
 
