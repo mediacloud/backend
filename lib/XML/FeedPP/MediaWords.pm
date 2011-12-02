@@ -40,6 +40,8 @@ use Class::Std;
 
 	  say OUTFILE $content;
 
+	  close OUTFILE;
+
 	  # say STDERR Dumper ( { content -> $content, 
 	  # 		      type -> $type,
 	  # 		      } );
