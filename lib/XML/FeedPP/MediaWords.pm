@@ -93,8 +93,6 @@ sub create_wrapped_rss_item
     my $package = shift;
     my $obj     = shift;
 
-    $DB::single = 1;
-
     my $debug = Dumper( $obj );
 
     #say $debug;
