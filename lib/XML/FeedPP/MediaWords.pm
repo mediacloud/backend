@@ -23,6 +23,7 @@ use Class::Std;
     {
         my ( $self, $ident, $arg_ref ) = @_;
 
+	$DB::single = 1;
         my $content = $arg_ref->{ content };
         my $type    = $arg_ref->{ type };
 
