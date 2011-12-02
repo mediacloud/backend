@@ -267,7 +267,8 @@ sub crawl_single_download
 
     my $start_time = time;
 
-    my $queued_downloads = [ $downloads_id ];
+    my $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
+    my $queued_downloads = [ $download ];
 
     #print "wait for fetcher requests ...\n";
     for my $s ( $socket_select->can_read() )
