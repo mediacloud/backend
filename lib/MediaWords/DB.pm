@@ -62,7 +62,11 @@ sub connect_to_db
 {
     my ( $label ) = @_;
 
-    return DBIx::Simple::MediaWords->connect( connect_info( $label ) );
+    my $ret = DBIx::Simple::MediaWords->connect( connect_info( $label ) );
+
+    die "Error in connect_to_db $@" unless defined( $ret);
+
+    return $ret;
 }
 
 sub connect_settings
