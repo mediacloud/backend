@@ -1,7 +1,6 @@
 package MediaWords::Crawler::Handler;
 use MediaWords::CommonLibs;
 
-
 # process the fetched response for the crawler:
 # * store the download in the database,
 # * store the response content in the fs,
@@ -181,9 +180,11 @@ sub _call_pager
 {
     my ( $self, $dbs, $download, $response ) = @_;
 
+    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _call_pager for download " . $download->{ downloads_id };
     if ( $download->{ sequence } > MAX_PAGES )
     {
-        print "reached max pages (" . MAX_PAGES . ") for url " . $download->{ url } . "\n";
+        print STDERR "fetcher " . $self->engine->fetcher_number . "reached max pages (" . MAX_PAGES . ") for url " .
+          $download->{ url } . "\n";
         return;
     }
 
@@ -191,7 +192,7 @@ sub _call_pager
 
     if ( $dbs->query( "SELECT * from downloads where parent = ? ", $download->{ downloads_id } )->hash )
     {
-        print "story already paged for url " . $download->{ url } . "\n";
+        print STDERR "fetcher " . $self->engine->fetcher_number . "story already paged for url " . $download->{ url } . "\n";
         return;
     }
 
@@ -201,7 +202,8 @@ sub _call_pager
         MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $response->decoded_content ) )
     {
 
-        print "next page: $next_page_url\nprev page: " . $download->{ url } . "\n";
+        print STDERR "fetcher " . $self->engine->fetcher_number . "next page: $next_page_url\nprev page: " .
+          $download->{ url } . "\n";
 
         $dbs->create(
             'downloads',
@@ -225,6 +227,8 @@ sub _call_pager
 sub _queue_author_extraction
 {
     my ( $self, $download, $response ) = @_;
+
+    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _queue_author_extraction for download ". $download->{ downloads_id };;
 
     if ( $download->{ sequence } > 1 )
     {
@@ -262,6 +266,8 @@ sub _process_content
 {
     my ( $self, $dbs, $download, $response ) = @_;
 
+    say STDERR "fetcher " . $self->engine->fetcher_number . "starting _process_content for  " . $download->{ downloads_id };
+
     $self->_call_pager( $dbs, $download, $response );
 
     $self->_queue_author_extraction( $download );
@@ -269,6 +275,8 @@ sub _process_content
     #MediaWords::Crawler::Parser->get_and_append_story_text
     #($self->engine->db, $download->feeds_id->parser_module,
     #$download->stories_id, $response->decoded_content);
+
+    say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
 
 sub _set_spider_download_state_as_success
@@ -287,7 +295,7 @@ sub handle_response
 {
     my ( $self, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{url};
+    say STDERR "fetcher " . $self->engine->fetcher_number . " starting handle response: " . $download->{ url };
 
     my $dbs = $self->engine->dbs;
 
@@ -298,6 +306,8 @@ sub handle_response
             encode( 'utf-8', $response->status_line ),
             $download->{ downloads_id }
         );
+
+        # TODO uncomment $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
         return;
     }
 
@@ -312,7 +322,7 @@ sub handle_response
 
     $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . "switching on download type " . $download->{type};
+    say STDERR "fetcher " . $self->engine->fetcher_number . "switching on download type " . $download->{ type };
 
     switch ( $download->{ type } )
     {
@@ -375,7 +385,7 @@ sub handle_response
         }
     }
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{url};
+    say STDERR "fetcher " . $self->engine->fetcher_number . " completed handle response: " . $download->{ url };
 }
 
 # calling engine
