@@ -1,7 +1,6 @@
 package MediaWords::Crawler::Pager;
 use MediaWords::CommonLibs;
 
-
 # module for finding the next page link in a page of html content
 
 use strict;
@@ -28,6 +27,9 @@ sub _get_url_base
     return $1;
 }
 
+my $regex_match_count = 0;
+my $regex_tried_count = 0;
+
 # use a variety of texts to guess whether a given link is a link to a next page
 sub _link_is_next_page
 {
@@ -44,16 +46,24 @@ sub _link_is_next_page
         return 0;
     }
 
-    if ( $text =~ /(.*)<img[^>]+alt=["']([^"']*)['"][^>]*>(.*)/is )
+    $regex_tried_count++;
+
+    if ( ( $text =~ /.*<img[^>].*/is ) && ( $text =~ /.*<img[^>]+alt=["'][^"']*['"][^>]*>.*/is ) )
     {
-        my $stripped_text = "$1 $3";
-        my $alt           = $2;
-
-        if ( $stripped_text !~ /\w/ )
+        if ( $text =~ /(.*)<img[^>]+alt=["']([^"']*)['"][^>]*>(.*)/is )
         {
-            $text = $alt;
+            my $stripped_text = "$1 $3";
+            my $alt           = $2;
 
-            #print "alt text: $text\n";
+            $regex_match_count++;
+            say "Slow regex matched. match_count $regex_match_count / $regex_tried_count. text length: " . length( $text );
+
+            if ( $stripped_text !~ /\w/ )
+            {
+                $text = $alt;
+
+                #print "alt text: $text\n";
+            }
         }
     }
 
@@ -106,15 +116,16 @@ sub get_next_page_url
 
     while ( $$content_ref =~ /<a\s/isog )
     {
-        my $pos = $-[0];
+        my $pos = $-[ 0 ];
         my $len;
 
         if ( substr( $$content_ref, $pos ) !~ m~</a[^\w]~iso )
         {
             $len = $content_length - $pos;
         }
-        else {
-            $len = $-[0];
+        else
+        {
+            $len = $-[ 0 ];
         }
 
         if ( !( substr( $$content_ref, $pos, $len ) =~ m~<a[^>]+href=["']([^"']*)["'][^>]*>(.*)~iso ) )
@@ -124,17 +135,17 @@ sub get_next_page_url
 
         my $raw_url = $1;
         my $text    = $2;
-        
+
         my $full_url = lc( url( decode_entities( $raw_url ) )->abs( $base_url )->as_string() );
 
         if ( _link_is_next_page( $raw_url, $full_url, $text, $base_url ) && !$validate_sub->( $full_url ) )
         {
             $url = $full_url;
-        
+
             #print "found next page: $url [$text]\n";
         }
     }
-    
+
     if ( $url )
     {
         return url( decode_entities( $url ) )->abs( $base_url )->as_string();
