@@ -88,6 +88,8 @@ sub get_next_page_url
 
     my $content_ref = \$_[ 3 ];
 
+    say STDERR "Starting get_next_page_url";
+
     # blogs and forums almost never have paging but often have 'next' story / thread links
     if ( $base_url =~ /blog|forum|discuss/ )
     {
@@ -99,6 +101,9 @@ sub get_next_page_url
     my $url;
 
     my $content_length = length( $$content_ref );
+
+    say STDERR "Starting get_next_page_url content_length: $content_length";
+
     while ( $$content_ref =~ /<a\s/isog )
     {
         my $pos = $-[0];
