@@ -20,13 +20,13 @@ sub main
 
     die unless $downloads_id;
 
-    my $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (?)", $download_id )->hashes;
+    my $dbs = MediaWords::DB::connect_to_db;
 
-    my $download = pop @ {$downloads );
+    my $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (?)", $downloads_id )->hashes;
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $download = pop @{ $downloads };
 
-    my $content_ref        = MediaWords::DBI::Downloads::fetch_content( $download );
+    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
 
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
