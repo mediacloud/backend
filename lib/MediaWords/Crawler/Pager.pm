@@ -48,6 +48,7 @@ sub _link_is_next_page
 
     $regex_tried_count++;
 
+    ## This if statement is redundant but is needed for performance reasons on Perl 5.8.
     if ( ( $text =~ /.*<img[^>].*/is ) && ( $text =~ /.*<img[^>]+alt=["'][^"']*['"][^>]*>.*/is ) )
     {
         if ( $text =~ /(.*)<img[^>]+alt=["']([^"']*)['"][^>]*>(.*)/is )
