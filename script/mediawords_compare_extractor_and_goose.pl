@@ -30,6 +30,7 @@ use MediaWords::Util::ExtractorTest;
 use HTML::Strip;
 use MediaWords::Util::HTML;
 use File::Slurp;
+use IPC::Open2;
 
 my $_re_generate_cache = 0;
 
@@ -58,6 +59,31 @@ sub get_story_text_for_lines
     return $expected_txt;
 }
 
+my $goose_started = 0;
+
+    my($chld_out, $chld_in);
+
+   my $goose_pid;
+
+sub start_goose
+{
+   my $system_command =
+      "bash -c \"cd $goose_dir; mvn exec:java -Dexec.mainClass=com.gravity.goose.TalkToMeGoose -Dexec.args='' -e -q \"";
+
+   say STDERR $system_command;
+
+   $goose_pid = open2($chld_out, $chld_in, $system_command);
+
+   sleep 3;
+
+   $goose_started = 1;
+}
+
+sub kill_goose
+{
+   kill($goose_pid);
+}
+
 sub extract_with_goose
 {
     my ( $content_ref, $url ) = @_;
@@ -75,16 +101,40 @@ sub extract_with_goose
     close( FILE );
 
     my $extracted_text_file = "$temp_dir/output.txt";
-    my $system_command =
-"cd $goose_dir; mvn exec:java -Dexec.mainClass=com.gravity.goose.TalkToMeGoose -Dexec.args='$url $raw_html_file' -e -q > $extracted_text_file";
 
-    say STDERR $system_command;
+    if ( ! $goose_started)
+    {
+       start_goose();
+    }
 
-    system( $system_command );
+    say STDERR "sending goose url and file location: $url $raw_html_file";
 
-    my $extracted_text = read_file( $extracted_text_file );
+    say $chld_in, "$url $raw_html_file" || die "$@";
 
-    $extracted_text =~ s/^\+ Error stacktraces are turned on\.//;
+    #system( $system_command );
+
+    # my $extracted_text = read_file( $extracted_text_file );
+
+    my $extracted_text;
+
+    while ( my $line = <$chld_out> )
+    {
+       chomp( $line );
+
+       #say STDERR "Got line'$line'";
+       if ( $line eq 'ARTICLE DUMPED' )
+      {
+	last;
+      }
+        $extracted_text .= $line;
+    }
+
+    #$extracted_text =~ s/^\+ Error stacktraces are turned on\.//;
+
+    say STDERR "got extracted_text for goose";
+    #say STDERR "text: $extracted_text";
+
+    #exit;
     return $extracted_text;
 }
 
@@ -103,7 +153,7 @@ sub processDownload
 
     my $expected_story_txt = get_story_text_for_lines( $preprocessed_lines, [ keys % { $line_should_be_in_story } ] );
 
-    say "Expected txt: $expected_story_txt\n";
+    #say "Expected txt: $expected_story_txt\n";
     #exit;
 
     my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
@@ -112,7 +162,7 @@ sub processDownload
 
     my $extracted_story_txt =  get_story_text_for_lines( $preprocessed_lines, \@extracted_lines );
 
-    say "extracted story txt: $extracted_story_txt\n";
+    #say "extracted story txt: $extracted_story_txt\n";
 
      my $mc_similarity_score =
           Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
@@ -124,7 +174,7 @@ sub processDownload
 
     my $goose_extracted = extract_with_goose( $content_ref, $download->{ url } );
 
-    say "goose extracted txt: $goose_extracted";
+    #say "goose extracted txt: $goose_extracted";
 
     my $goose_similarity_score = 
           Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
@@ -389,6 +439,8 @@ sub main
     }
 
     extractAndScoreDownloads( $downloads );
+
+    kill( $goose_pid );
 }
 
 main();
