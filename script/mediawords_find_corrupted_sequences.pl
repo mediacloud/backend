@@ -53,8 +53,8 @@ SQL
             next;
         }
 
-	#temporary hack for sentence study
-	next if $table eq 'sen_study_new_weekly_words_2011_01_03_2011_01_10';
+        #temporary hack for sentence study
+        next if $table eq 'sen_study_new_weekly_words_2011_01_03_2011_01_10';
 
         my $sequence_query =
           'select * from (select max(' . $table->{ id_column } . ' ) as max_id, nextval( ' . "'" .
