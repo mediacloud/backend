@@ -81,6 +81,12 @@ sub start_goose
 
 sub kill_goose
 {
+
+    say STDERR "killing goose";
+
+    close ( $chld_in);
+
+    sleep 1;
     kill( $goose_pid );
 }
 
@@ -206,15 +212,28 @@ sub extractAndScoreDownloads
 
     my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
+    start_goose();
+
+    my $download_count = scalar(@downloads);
+
+    my $downloads_processed = 0;
     for my $download ( @downloads )
     {
         my $download_result = processDownload( $download, $dbs );
 
         push( @{ $download_results }, $download_result );
+
+	$downloads_processed++;
+	say STDERR "processed $downloads_processed / $download_count downloads";
     }
+
+    kill_goose();
 
     say STDERR Dumper( $download_results );
 
+    
+
+    return;
     exit;
 
     # my $all_story_characters   = sum( map { $_->{ story_characters } } @{ $download_results } );
