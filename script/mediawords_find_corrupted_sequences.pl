@@ -32,7 +32,9 @@ FROM   (SELECT t.oid     AS tableid,
                JOIN pg_class t
                  ON ( c.conrelid = t.oid )
         WHERE  conname LIKE '%_pkey'
-               AND t.relname <> 'url_discover_counts'
+               AND NOT (t.relname in 
+                    ( 'url_discover_counts', 'sen_study_new_weekly_words_2011_01_03_2011_01_10',
+                      'sen_study_old_weekly_words_2011_01_03_2011_01_10'  ) )
         ORDER  BY t.relname) AS tables_with_pkeys
 WHERE  NOT ( tablename IN ( 'url_discovery_counts'
                                        ) );  
