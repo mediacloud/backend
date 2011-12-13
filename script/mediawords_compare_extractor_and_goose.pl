@@ -31,11 +31,16 @@ use HTML::Strip;
 use MediaWords::Util::HTML;
 use File::Slurp;
 use IPC::Open2;
+ use Time::HiRes qw( time );
 
 my $_re_generate_cache = 0;
 
 Readonly my $output_dir => 'download_content_test_data';
 Readonly my $goose_dir  => '/home/dlarochelle/goose/goose';
+
+my $expected_text_time = 0;
+my $mc_extractor_time = 0;
+my $goose_extractor_time = 0;
 
 sub get_story_html_for_lines
 {
@@ -137,7 +142,7 @@ sub extract_with_goose
 
     #$extracted_text =~ s/^\+ Error stacktraces are turned on\.//;
 
-    say STDERR "got extracted_text for goose";
+    say STDERR "got extracted_text from goose";
 
     #say STDERR "text: $extracted_text";
 
@@ -151,6 +156,10 @@ sub processDownload
 
     my $errors = 0;
 
+    say STDERR "processDownload: $download->{downloads_id}";
+
+    my $expected_text_start_time = time();
+
     my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
 
     my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
@@ -160,10 +169,16 @@ sub processDownload
 
     my $expected_story_txt = get_story_text_for_lines( $preprocessed_lines, [ keys %{ $line_should_be_in_story } ] );
 
+    say STDERR "got expected story text for download $download->{downloads_id}";
+
     #say "Expected txt: $expected_story_txt\n";
     #exit;
 
     my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
+
+    $expected_text_time += time() - $expected_text_start_time;
+
+    my $mc_extractor_start_time = time();
 
     my @extracted_lines =
       MediaWords::Util::ExtractorTest::get_extracted_lines_for_story( $download, $dbs, $preprocessed_lines,
@@ -179,6 +194,10 @@ sub processDownload
 
     say "Similarity score: $mc_similarity_score\n";
 
+    $mc_extractor_time += time() - $mc_extractor_start_time;
+
+    my $goose_extractor_start_time = time();
+
     my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
 
     my $goose_extracted = extract_with_goose( $content_ref, $download->{ url } );
@@ -193,6 +212,8 @@ sub processDownload
         mc_similarity_score    => $mc_similarity_score,
         goose_similarity_score => $goose_similarity_score
     };
+
+    $goose_extractor_time += time() - $goose_extractor_start_time;
 
     say Dumper ( $ret );
 
@@ -231,7 +252,19 @@ sub extractAndScoreDownloads
 
     say STDERR Dumper( $download_results );
 
-    
+    my @mc_similarity_score = map { $_->{ mc_similarity_score } } @ { $download_results } ;
+    my @goose_similarity_score = map { $_->{ goose_similarity_score } } @ { $download_results } ;
+
+
+    my $mc_average_similarity_score = sum ( @mc_similarity_score ) / scalar( @mc_similarity_score );
+    my $goose_average_similarity_score = sum ( @goose_similarity_score ) / scalar( @goose_similarity_score );
+
+    say "Average Media Cloud simility score: $mc_average_similarity_score";
+    say "Average Goose       simility score: $goose_average_similarity_score";
+
+    say "Expected text time:  $expected_text_time ";
+    say "Media Cloud extractor time: $mc_extractor_time";
+    say "Goose extractor time : $goose_extractor_time";
 
     return;
     exit;
