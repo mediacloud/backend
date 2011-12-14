@@ -213,7 +213,14 @@ sub create_sub_table_for_media_id
 
     print STDERR 'START DROP TABLE if exists ' . $stories_tags_media_sub_table . ' ' . localtime() . "\n";
 
-    $dbh->query( 'DROP TABLE if exists ' . $stories_tags_media_sub_table );
+    {
+        my $old_handler =  $SIG{__WARN__};
+
+	$SIG{__WARN__} = 'IGNORE';
+	$dbh->query( 'DROP TABLE if exists ' . $stories_tags_media_sub_table );
+
+	$SIG{__WARN__} = $old_handler;
+    }
 
     print STDERR 'FINISH DROP TABLE if exists ' . $stories_tags_media_sub_table . ' ' . localtime() . "\n";
 
