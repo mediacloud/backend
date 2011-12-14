@@ -151,7 +151,7 @@ sub find_query_by_params
     my $description = _get_description( $query_params );
 
     my ( $queries_id ) = $db->query(
-"select queries_id from queries where md5( description ) = md5( ? ) and query_version = enum_last (null::query_version_enum ) ",
+"select queries_id from queries where description = ? and query_version = enum_last (null::query_version_enum ) ",
         $description
     )->flat;
 
@@ -451,6 +451,7 @@ sub _get_top_500_weekly_words_impl
     my $media_sets_ids_list     = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
     my $date_clause             = get_weekly_date_clause( $query, 'w' );
+    my $tw_date_clause          = get_weekly_date_clause( $query, 'tw' );
 
     # we have to divide stem_count by the number of media_sets to get the correct ratio b/c
     # the query below sum()s the stem for all media_sets
@@ -464,6 +465,7 @@ sub _get_top_500_weekly_words_impl
           "  from top_500_weekly_words w, total_top_500_weekly_words tw " .
           "  where w.media_sets_id in ( $media_sets_ids_list )  and " .
           "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and $date_clause and " .
+		  "    tw.media_sets_id in ( $media_sets_ids_list ) and $tw_date_clause and " .
           "    $dashboard_topics_clause and coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
           "  group by w.stem order by sum( w.stem_count::float / tw.total_count::float )::float desc " . "  limit 500",
     )->hashes;
@@ -911,6 +913,7 @@ sub get_media
 
 # return list of term counts for the given terms within the given query in the following form:
 # [ [ < date >, < term >, < count > ], ... ]
+
 sub get_term_counts
 {
     my ( $db, $query, $terms ) = @_;
@@ -922,28 +925,52 @@ sub get_term_counts
     my $stems = MediaWords::Util::Stemmer->new->stem( @{ $terms } );
     my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
 
+    my $num_term_combinations = @{ $query->{ media_sets } } * @{ $stems };
+    my ( $media_set_group, $media_set_legend );
+    if ( $num_term_combinations < 5 )
+    {
+        $media_set_group  = ', ms.media_sets_id';
+        $media_set_legend = " || ' - ' || min( ms.name )";
+    }
+    else
+    {
+        $media_set_group = $media_set_legend = '';
+    }
+
+
     my $date_term_counts = [
         $db->query(
-            "select dw.publish_day, dw.stem, sum( dw.stem_count::float / tw.total_count::float )::float as count " .
-              "  from daily_words dw, total_daily_words tw " .
+            "select dw.publish_day, dw.stem $media_set_legend as term, " . 
+            "      sum( dw.stem_count::float / tw.total_count::float )::float as count " .
+              "  from daily_words dw, total_daily_words tw, media_sets ms " .
               "  where dw.media_sets_id in ( $media_sets_ids_list ) and dw.media_sets_id = tw.media_sets_id " .
               "    and $dashboard_topics_clause " .
               "    and coalesce( tw.dashboard_topics_id, 0 ) = coalesce( dw.dashboard_topics_id, 0 ) " .
               "    and $date_clause " . "    and dw.publish_day = tw.publish_day " . "    and dw.stem in ( $stems_list ) " .
-              "  group by dw.publish_day, dw.stem " . "  order by dw.publish_day, dw.stem "
+              "    and ms.media_sets_id = dw.media_sets_id " .
+              "  group by dw.publish_day, dw.stem $media_set_group " . 
+              "  order by dw.publish_day, dw.stem "
           )->arrays
     ];
 
     my $term_lookup = {};
     map { $term_lookup->{ $stems->[ $_ ] } = $terms->[ $_ ] } ( 0 .. $#{ $stems } );
-
+    
     for my $d ( @{ $date_term_counts } )
     {
-        $d->[ 1 ] = $term_lookup->{ $d->[ 1 ] };
+        if ( $media_set_legend )
+        {
+            $d->[ 1 ] =~ $term_lookup->{ $d->[ 1 ] };
+        }
+        else {
+            $d->[ 1 ] =~ /([^-]*) - (.*)/;
+            my ( $stem, $media_set_label ) = ( $1, $2 );
+            $d->[ 1 ] = $term_lookup->{ $d->[ 1 ] } . " - $media_set_label";
+        }
     }
 
     #print STDERR Dumper( $date_term_counts );
-    return $date_term_counts;
+	return $date_term_counts;
 }
 
 # For each term, get the ratio of total mentions of that term to total mentions
