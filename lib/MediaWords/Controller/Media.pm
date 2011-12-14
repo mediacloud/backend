@@ -93,7 +93,7 @@ sub find_medium_by_response
     my $r = $response;
 
     my $medium;
-    while ( $r && !( $medium = $self->find_medium_by_url( $c, $r->request->url ) ) )
+    while ( $r && !( $medium = $self->find_medium_by_url( $c, decode( 'utf8', $r->request->url ) ) ) )
     {
         $r = $r->previous;
     }
@@ -172,7 +172,7 @@ sub get_medium_title_from_response
     my ( $title ) = ( $content =~ /<title>(.*?)<\/title>/is );
     $title = html_strip( $title );
     $title = trim( $title );
-    $title ||= trim( $response->request->url );
+    $title ||= trim( decode( 'utf8', $response->request->url ) );
     $title =~ s/\s+/ /g;
 
     $title =~ s/^\W*home\W*//i;
@@ -216,14 +216,14 @@ sub add_missing_media_from_urls
 
         if ( !$medium )
         {
-            if ( $medium = $c->dbis->query( "select * from media where name = ?", $title )->hash )
+            if ( $medium = $c->dbis->query( "select * from media where name = ?", encode( 'UTF-8', $title ) )->hash )
             {
                 $url_media->[ $url_media_index ]->{ message } =
                   "using existing medium with duplicate title '$title' already in database for '$url'";
             }
             else
             {
-                $medium = $c->dbis->create( 'media', { name => $title, url => $url, moderated => 'f', feeds_added => 'f' } );
+                $medium = $c->dbis->create( 'media', { name => encode( 'UTF-8', $title ), url => encode( 'UTF-8', $url ), moderated => 'f', feeds_added => 'f' } );
             }
         }
 
