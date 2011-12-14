@@ -571,15 +571,18 @@ sub generate_cluster_map
         nodes_rendered => $stats->{ nodes_rendered },
         links_rendered => $stats->{ links_rendered } } );
     
-    for ( my $i = 0; $i < @{ $queries }; $i++ )
-    {
-        $db->create( 'media_cluster_map_poles', {
-            name => $queries->[ $i ]->{ description },
-            media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id },
-            pole_number => $i,
-            queries_id => $queries->[ $i ]->{ queries_id } } );
+    if ( $queries )
+	{
+		for ( my $i = 0; $i < @{ $queries }; $i++ )
+    	{
+    	    $db->create( 'media_cluster_map_poles', {
+    	        name => $queries->[ $i ]->{ description },
+    	        media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id },
+    	        pole_number => $i,
+    	        queries_id => $queries->[ $i ]->{ queries_id } } );
+    	}
     }
-        
+
     return $cluster_map;    
 }
 
