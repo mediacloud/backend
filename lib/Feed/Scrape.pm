@@ -460,7 +460,7 @@ sub normalize_feed_url
 {
     my ( $url ) = @_;
 
-    $url =~ lc( $url );
+    $url = lc( $url );
 
     # remove multiple formats of the same feed
     $url =~ s/(atom|rdf|xml|feed|application)/rss/g;
