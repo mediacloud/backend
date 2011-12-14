@@ -1,7 +1,6 @@
 package MediaWords::Cluster::Map;
 use MediaWords::CommonLibs;
 
-
 # Generate cluster maps from existing media cluster run data.
 #
 # This module includes common code to get a media cluster run ready to be visualized.
@@ -48,8 +47,8 @@ use constant MAX_NUM_LINKS   => 10000;
 # Return a hash ref with the number of links and nodes
 sub _get_stats
 {
-    my ( $nodes )      = @_;
-    
+    my ( $nodes ) = @_;
+
     my $nodes_total    = 0;
     my $nodes_rendered = 0;
     my $links_total    = 0;
@@ -62,19 +61,19 @@ sub _get_stats
     }
 
     my $stats = {
-        nodes_total     => $nodes_total,
-        nodes_rendered  => $nodes_rendered,
-        links_rendered  => $links_total
+        nodes_total    => $nodes_total,
+        nodes_rendered => $nodes_rendered,
+        links_rendered => $links_total
     };
 
     return $stats;
 }
 
 # get a lookup table of media from the media list of all media_clusters
-sub _get_medium_lookup 
+sub _get_medium_lookup
 {
     my ( $media_clusters ) = @_;
-    
+
     my $medium_lookup = {};
     for my $media_cluster ( @{ $media_clusters } )
     {
@@ -84,7 +83,7 @@ sub _get_medium_lookup
             $medium_lookup->{ $medium->{ media_id } } = $medium;
         }
     }
-    
+
     return $medium_lookup;
 }
 
@@ -95,17 +94,16 @@ sub _get_medium_media_sets_id
 {
     my ( $clustering_engine, $medium ) = @_;
 
-	return 0 unless $medium;
-    
-    my $db = $clustering_engine->db;
+    return 0 unless $medium;
+
+    my $db    = $clustering_engine->db;
     my $query = $clustering_engine->cluster_run->{ query };
-    
+
     my ( $node_media_sets_id ) = $clustering_engine->db->query(
         "select msmm.media_sets_id from media_sets_media_map msmm, queries_media_sets_map qmsm " .
-        "  where msmm.media_sets_id = qmsm.media_sets_id " . 
-        "    and qmsm.queries_id = $query->{ queries_id } " . 
-        "    and msmm.media_id = $medium->{ media_id }" )->flat;
-        
+          "  where msmm.media_sets_id = qmsm.media_sets_id " . "    and qmsm.queries_id = $query->{ queries_id } " .
+          "    and msmm.media_id = $medium->{ media_id }" )->flat;
+
     return $node_media_sets_id;
 }
 
@@ -117,35 +115,37 @@ sub _get_medium_node
     my $media_sets_id = _get_medium_media_sets_id( $clustering_engine, $medium );
 
     return {
-        name                => $medium->{ name },
-        clusters_id         => $medium->{ media_clusters_id },
-        media_id            => $medium->{ media_id },
-        url                 => $medium->{ url },
-        media_sets_id       => $media_sets_id,
-        linked              => 1 };
+        name          => $medium->{ name },
+        clusters_id   => $medium->{ media_clusters_id },
+        media_id      => $medium->{ media_id },
+        url           => $medium->{ url },
+        media_sets_id => $media_sets_id,
+        linked        => 1
+    };
 }
 
 # given a query, return a node record
 sub _get_query_node
 {
     my ( $query ) = @_;
-    
+
     return {
-        name                => $query->{ description },
-        query               => 1,
-        linked              => 1 };    
-}    
+        name   => $query->{ description },
+        query  => 1,
+        linked => 1
+    };
+}
 
 # create the nodes with similarity links for feeding into mapping implementation
 sub _get_nodes
 {
     my ( $clustering_engine, $sim_list, $media_clusters, $queries ) = @_;
 
-    die "media_clusters cannot be empty"      if scalar( @$media_clusters ) == 0;
+    die "media_clusters cannot be empty" if scalar( @$media_clusters ) == 0;
 
-    my $row_labels = $clustering_engine->row_labels;
+    my $row_labels     = $clustering_engine->row_labels;
     my $max_medium_row = $#{ $row_labels };
-    
+
     my $nodes = [];
 
     my $medium_lookup = _get_medium_lookup( $media_clusters );
@@ -160,21 +160,24 @@ sub _get_nodes
                 {
                     $nodes->[ $i ] = _get_medium_node( $clustering_engine, $medium_lookup->{ $row_labels->[ $i ] } );
                 }
-                else {
+                else
+                {
                     $nodes->[ $i ] = _get_query_node( $queries->[ $i - $max_medium_row - 1 ] );
                 }
                 $nodes->[ $i ]->{ nodes_id } = $i;
-            }            
+            }
         }
-        push( @{ $nodes->[ $sim->[ 0 ] ]->{ links } }, 
-            { target_id => $sim->[ 1 ], sim => $sim->[ 2 ], target_media_id => $row_labels->[ $sim->[ 1 ] ] } );
+        push(
+            @{ $nodes->[ $sim->[ 0 ] ]->{ links } },
+            { target_id => $sim->[ 1 ], sim => $sim->[ 2 ], target_media_id => $row_labels->[ $sim->[ 1 ] ] }
+        );
     }
-    
+
     for my $j ( 0 .. $max_medium_row )
     {
         $nodes->[ $j ] ||= _get_medium_node( $clustering_engine, $medium_lookup->{ $row_labels->[ $j ] } );
-    }   
-                                                                
+    }
+
     return $nodes;
 }
 
@@ -201,25 +204,25 @@ sub _plot_nodes
 }
 
 # add the given similarity to a list in order of the similarity score,
-# with the lowest similarity first, only keeping $max_similarities 
+# with the lowest similarity first, only keeping $max_similarities
 # links in the list at any time, and only adding similarities that are
 # at least as big as min_similarity
 sub _add_to_sim_list
 {
     my ( $list, $sim, $max_similarities, $min_similarity ) = @_;
-        
+
     $list ||= [];
-    
+
     if ( $sim->[ 2 ] < $min_similarity )
     {
         return $list;
     }
-    
+
     if ( !@{ $list } )
     {
         unshift( @{ $list }, $sim );
         return $list;
-    }        
+    }
 
     if ( ( @{ $list } < $max_similarities ) && ( $sim->[ 2 ] <= $list->[ 0 ]->[ 2 ] ) )
     {
@@ -227,7 +230,7 @@ sub _add_to_sim_list
         return $list;
     }
 
-    for my $i ( 0 .. $#{ $list } ) 
+    for my $i ( 0 .. $#{ $list } )
     {
         if ( $sim->[ 2 ] > $list->[ $i ]->[ 2 ] )
         {
@@ -235,12 +238,12 @@ sub _add_to_sim_list
             last;
         }
     }
-    
+
     if ( @{ $list } > $max_similarities )
     {
         shift( @{ $list } );
     }
-    
+
     return $list;
 }
 
@@ -253,21 +256,25 @@ sub _get_cosine_sim_list
     my ( $clustering_engine, $max_links ) = @_;
 
     my $sparse_matrix = $clustering_engine->sparse_matrix;
-    my $row_labels = $clustering_engine->row_labels;
+    my $row_labels    = $clustering_engine->row_labels;
 
-    my $max_row = $#{ $sparse_matrix };
+    my $max_row  = $#{ $sparse_matrix };
     my $sim_list = [];
 
     $max_links = ( $max_links > MAX_NUM_LINKS ) ? MAX_NUM_LINKS : $max_links;
-        
+
     for my $i ( 0 .. $max_row )
     {
         for my $j ( $i + 1 .. $max_row )
         {
-            my $dp = vector_cos_sim_cached( 
-                $sparse_matrix->[ $i ], $sparse_matrix->[ $j ], $row_labels->[ $i ], $row_labels->[ $j ] );
+            my $dp = vector_cos_sim_cached(
+                $sparse_matrix->[ $i ],
+                $sparse_matrix->[ $j ],
+                $row_labels->[ $i ],
+                $row_labels->[ $j ]
+            );
 
-            my $sim = [ $i , $j , $dp ];
+            my $sim = [ $i, $j, $dp ];
             $sim_list = _add_to_sim_list( $sim_list, $sim, $max_links, MIN_LINK_WEIGHT );
         }
     }
@@ -275,7 +282,7 @@ sub _get_cosine_sim_list
     return $sim_list;
 }
 
-# returns a list of similarities between the polar queries and the media sources 
+# returns a list of similarities between the polar queries and the media sources
 # in the following form sorted by lowest weight first:
 # [ < max_matrix_row + query_num >, matrix_row, weight ]
 sub _get_pole_cosine_sim_list
@@ -283,9 +290,9 @@ sub _get_pole_cosine_sim_list
     my ( $clustering_engine, $queries ) = @_;
 
     my $sparse_matrix = $clustering_engine->sparse_matrix;
-    my $row_labels = $clustering_engine->row_labels;
-    
-    my $max_row = $#{ $sparse_matrix };
+    my $row_labels    = $clustering_engine->row_labels;
+
+    my $max_row  = $#{ $sparse_matrix };
     my $sim_list = [];
 
     my $pole_row = $max_row;
@@ -293,14 +300,15 @@ sub _get_pole_cosine_sim_list
     {
         my $pole_vector = $clustering_engine->get_query_vector( $query );
         $pole_row++;
-        
+
         for my $i ( 0 .. $max_row )
         {
+
             # say STDERR "row $i ($row_labels->[ $i ]):";
             # say STDERR "****";
             # say STDERR MediaWords::Util::BigPDLVector::vector_string( $sparse_matrix->[ $i ] );
             # say STDERR "****";
-            # 
+            #
             # say STDERR "pole:";
             # say STDERR "****";
             # say STDERR MediaWords::Util::BigPDLVector::vector_string( $pole_vector );
@@ -311,11 +319,11 @@ sub _get_pole_cosine_sim_list
             say STDERR "sim $row_labels->[ $i ]: $dp";
         }
     }
-    
+
     # give the poles negative similarity to each other so that they will be spaced as far apart
     # as possible
-    map { push( @{ $sim_list }, [ $max_row, $max_row + $_, -2 ] ); } ( 1 .. $#{ $queries } );        
-    
+    map { push( @{ $sim_list }, [ $max_row, $max_row + $_, -2 ] ); } ( 1 .. $#{ $queries } );
+
     return $sim_list;
 }
 
@@ -325,17 +333,17 @@ sub _get_pole_cosine_sim_list
 sub _get_media_clusters
 {
     my ( $db, $cluster_run ) = @_;
-    
-    my $media_clusters = $db->query( 
-        "select * from media_clusters where media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " . 
-        "  order by media_clusters_id" )->hashes;
-        
-    my $media = $db->query( 
-        "select m.*, mc.media_clusters_id from media m, media_clusters mc, media_clusters_media_map mcmm " .
-        "  where m.media_id = mcmm.media_id and mcmm.media_clusters_id = mc.media_clusters_id " . 
-        "    and mc.media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " .
-        "  order by mc.media_clusters_id, m.media_id " )->hashes;
-    
+
+    my $media_clusters =
+      $db->query( "select * from media_clusters where media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " .
+          "  order by media_clusters_id" )->hashes;
+
+    my $media =
+      $db->query( "select m.*, mc.media_clusters_id from media m, media_clusters mc, media_clusters_media_map mcmm " .
+          "  where m.media_id = mcmm.media_id and mcmm.media_clusters_id = mc.media_clusters_id " .
+          "    and mc.media_cluster_runs_id = $cluster_run->{ media_cluster_runs_id } " .
+          "  order by mc.media_clusters_id, m.media_id " )->hashes;
+
     # add each media source to the appopriate media cluster, which we can do
     # with a straight loop b/c the above queries are sorted appropriately
     my $i = 0;
@@ -346,7 +354,7 @@ sub _get_media_clusters
             push( @{ $media_cluster->{ media } }, $media->[ $i++ ] );
         }
     }
-    
+
     return $media_clusters;
 }
 
@@ -354,7 +362,7 @@ sub _get_media_clusters
 sub _get_map_name
 {
     my ( $db, $cluster_run, $map_type, $queries, $method ) = @_;
-    
+
     if ( $map_type eq 'cluster' )
     {
         return 'cluster map - ' . $method;
@@ -363,7 +371,8 @@ sub _get_map_name
     {
         return "polar: " . join( " v. ", map { $_->{ description } } @{ $queries } );
     }
-    else {
+    else
+    {
         die( "Unknown map type '$map_type'" );
     }
 }
@@ -382,8 +391,8 @@ sub _get_centroids_from_plotted_nodes
 
     for my $cluster ( @{ $media_clusters } )
     {
-        my $clusters_id   = $cluster->{ media_clusters_id };
-        my $cluster_name  = $cluster->{ description };
+        my $clusters_id  = $cluster->{ media_clusters_id };
+        my $cluster_name = $cluster->{ description };
 
         my $xTotal = 0;
         my $yTotal = 0;
@@ -392,10 +401,10 @@ sub _get_centroids_from_plotted_nodes
 
         for my $i ( 0 .. $#{ $nodes } )
         {
-            if ( my $node = $nodes->[ $i ] ) 
+            if ( my $node = $nodes->[ $i ] )
             {
                 if ( $node->{ clusters_id } && ( $node->{ clusters_id } == $clusters_id ) )
-                {                                
+                {
                     $xTotal += $node->{ x };
                     $yTotal += $node->{ y };
                     $num_nodes++;
@@ -403,10 +412,10 @@ sub _get_centroids_from_plotted_nodes
             }
         }
 
-        if ( $num_nodes ) 
+        if ( $num_nodes )
         {
-            my $x = $xTotal / $num_nodes;
-            my $y = $yTotal / $num_nodes;
+            my $x        = $xTotal / $num_nodes;
+            my $y        = $yTotal / $num_nodes;
             my $centroid = { x => $x, y => $y, clusters_id => $clusters_id, name => $cluster_name };
             push( @{ $centroids }, $centroid );
         }
@@ -419,16 +428,16 @@ sub _get_centroids_from_plotted_nodes
 sub _get_media_set_shape_lookup
 {
     my ( $media_sets ) = @_;
-    
+
     my $lookup = {};
-    
+
     my $shapes = [ qw(circle triangle diamond square tick bar) ];
-    
-    for my $m ( 0.. $#{ $media_sets } )
+
+    for my $m ( 0 .. $#{ $media_sets } )
     {
         $lookup->{ $media_sets->[ $m ]->{ media_sets_id } } = $shapes->[ $m ] || $shapes->[ 0 ];
     }
-    
+
     return $lookup;
 }
 
@@ -436,39 +445,42 @@ sub _get_media_set_shape_lookup
 sub _get_cluster_color_lookup
 {
     my ( $clusters ) = @_;
-    
+
     my $lookup = {};
-    
+
     my $colors = [
-        "rgb(31,119,180)", "rgb(174,199,232)", "rgb(255,127,14)", "rgb(255,187,120)", "rgb(44,160,44)", "rgb(152,223,138)", 
-        "rgb(214,39,40)", "rgb(255,152,150)", "rgb(148,103,189)", "rgb(197,176,213)", "rgb(140,86,75)", "rgb(196,156,148)", 
-        "rgb(227,119,194)", "rgb(247,182,210)", "rgb(127,127,127)", "rgb(199,199,199)", "rgb(188,189,34)", "rgb(219,219,141)", 
-        "rgb(23,190,207)", "rgb(158,218,229)", "rgb(132,196,206)", "rgb(255,167,121)", "rgb(204,90,206)", "rgb(111,17,201)", 
-        "rgb(111,62,93)" ];
-    
-    for my $c ( 0.. $#{ $clusters } )
+        "rgb(31,119,180)",  "rgb(174,199,232)", "rgb(255,127,14)",  "rgb(255,187,120)",
+        "rgb(44,160,44)",   "rgb(152,223,138)", "rgb(214,39,40)",   "rgb(255,152,150)",
+        "rgb(148,103,189)", "rgb(197,176,213)", "rgb(140,86,75)",   "rgb(196,156,148)",
+        "rgb(227,119,194)", "rgb(247,182,210)", "rgb(127,127,127)", "rgb(199,199,199)",
+        "rgb(188,189,34)",  "rgb(219,219,141)", "rgb(23,190,207)",  "rgb(158,218,229)",
+        "rgb(132,196,206)", "rgb(255,167,121)", "rgb(204,90,206)",  "rgb(111,17,201)",
+        "rgb(111,62,93)"
+    ];
+
+    for my $c ( 0 .. $#{ $clusters } )
     {
         $lookup->{ $clusters->[ $c ]->{ media_clusters_id } } = $colors->[ $c ] || "rgb(0,0,0)";
     }
-    
+
     return $lookup;
 }
 
 # normalize the coordinates for the given list to range between $max to -$max for both
-# the x and y coordinates.  resets the 'x' and 'y' field of each of the 
+# the x and y coordinates.  resets the 'x' and 'y' field of each of the
 # hashes in the given list to the normalized value.  if a $norm_nodes param is
 # passed as the third param, use that norm_data to determine the raw max x and y.
 sub _normalize_coordinates
 {
     my ( $max, $nodes, $norm_nodes ) = @_;
-    
+
     $norm_nodes ||= $nodes;
-    
+
     my ( $x_max, $x_min, $y_max, $y_min );
     for my $node ( @{ $norm_nodes } )
     {
         next if ( !$node->{ clusters_id } );
-        
+
         my $x = $node->{ x };
         my $y = $node->{ y };
 
@@ -484,7 +496,7 @@ sub _normalize_coordinates
     for my $node ( @{ $nodes } )
     {
         next if ( !$node->{ x } || !$node->{ y } );
-        
+
         $node->{ x } = ( ( ( $node->{ x } - $x_min ) / $x_range ) * $max * 2 ) - $max;
         $node->{ y } = ( ( ( $node->{ y } - $y_min ) / $y_range ) * $max * 2 ) - $max;
     }
@@ -499,7 +511,7 @@ sub _get_protovis_json
     my $centroids = _get_centroids_from_plotted_nodes( $media_clusters, $nodes );
 
     my $color_lookup = _get_cluster_color_lookup( $media_clusters );
-        
+
     for my $n ( @{ $nodes }, @{ $centroids } )
     {
         $n->{ color } = ( $color_lookup->{ $n->{ clusters_id } } || "rgb(0,0,0)" );
@@ -507,15 +519,18 @@ sub _get_protovis_json
 
     _normalize_coordinates( 10, $centroids, $nodes );
     _normalize_coordinates( 10, $nodes );
-        
-    map { for my $i ( 0 .. $#{ $_ } ) { $_->[ $i ]->{ i } = $i; } } ( $nodes, $centroids, $media_sets );
-    
+
+    map
+    {
+        for my $i ( 0 .. $#{ $_ } ) { $_->[ $i ]->{ i } = $i; }
+    } ( $nodes, $centroids, $media_sets );
+
     return MediaWords::Util::JSON::get_json_from_perl( { nodes => $nodes, clusters => $centroids, sets => $media_sets } );
 }
 
 # Prepare the graph by adding nodes and links to it
 
-# generate a media cluster map for a given cluster run 
+# generate a media cluster map for a given cluster run
 #
 # if $queries is passed, generate a polar map using each of the given
 # queries as a pole for the map by generating similarities only between
@@ -529,61 +544,70 @@ sub _get_protovis_json
 sub generate_cluster_map
 {
     my ( $db, $cluster_run, $map_type, $queries, $max_links, $method ) = @_;
-    
+
     my $clustering_engine = MediaWords::Cluster->new( $db, $cluster_run );
-    
+
     my $media_clusters = _get_media_clusters( $db, $cluster_run );
-        
+
     my $media_sets = $cluster_run->{ query }->{ media_sets };
-    
+
     my $sim_list;
     if ( $queries )
     {
         $sim_list = _get_pole_cosine_sim_list( $clustering_engine, $queries );
     }
-    else {
+    else
+    {
         $sim_list = _get_cosine_sim_list( $clustering_engine, $max_links );
-    }   
-    
-    if ( !@{ $sim_list } ) 
+    }
+
+    if ( !@{ $sim_list } )
     {
         warn( "not enough data to generate cluster map" );
         return undef;
     }
-    
+
     my $nodes = _get_nodes( $clustering_engine, $sim_list, $media_clusters, $queries );
-    
+
     _plot_nodes( $method, $nodes );
-    
+
     my $json_string = _get_protovis_json( $nodes, $media_clusters, $media_sets );
-    
+
     my $stats = _get_stats( $nodes );
-    
+
     my $map_name = _get_map_name( $db, $cluster_run, $map_type, $queries, $method );
-            
-    my $cluster_map = $db->create( 'media_cluster_maps', { 
-        media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
-        name => $map_name,
-        method => $method, 
-        map_type => $map_type,
-        json => $json_string,
-        nodes_total => $stats->{ nodes_total },
-        nodes_rendered => $stats->{ nodes_rendered },
-        links_rendered => $stats->{ links_rendered } } );
-    
+
+    my $cluster_map = $db->create(
+        'media_cluster_maps',
+        {
+            media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
+            name                  => $map_name,
+            method                => $method,
+            map_type              => $map_type,
+            json                  => $json_string,
+            nodes_total           => $stats->{ nodes_total },
+            nodes_rendered        => $stats->{ nodes_rendered },
+            links_rendered        => $stats->{ links_rendered }
+        }
+    );
+
     if ( $queries )
-	{
-		for ( my $i = 0; $i < @{ $queries }; $i++ )
-    	{
-    	    $db->create( 'media_cluster_map_poles', {
-    	        name => $queries->[ $i ]->{ description },
-    	        media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id },
-    	        pole_number => $i,
-    	        queries_id => $queries->[ $i ]->{ queries_id } } );
-    	}
+    {
+        for ( my $i = 0 ; $i < @{ $queries } ; $i++ )
+        {
+            $db->create(
+                'media_cluster_map_poles',
+                {
+                    name                  => $queries->[ $i ]->{ description },
+                    media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id },
+                    pole_number           => $i,
+                    queries_id            => $queries->[ $i ]->{ queries_id }
+                }
+            );
+        }
     }
 
-    return $cluster_map;    
+    return $cluster_map;
 }
 
 # return a copy of the given query, which is identical to the given query
@@ -591,12 +615,12 @@ sub generate_cluster_map
 sub _get_time_slice_query
 {
     my ( $db, $query, $start_date, $end_date ) = @_;
-    
+
     my $time_slice_params = { %{ $query } };
     $time_slice_params->{ start_date } = $start_date;
-    $time_slice_params->{ end_date } = $end_date;
-        
-    return MediaWords::DBI::Queries::find_or_create_query_by_params( $db, $time_slice_params );    
+    $time_slice_params->{ end_date }   = $end_date;
+
+    return MediaWords::DBI::Queries::find_or_create_query_by_params( $db, $time_slice_params );
 }
 
 # return time slices of the given query, identical to the given query but
@@ -604,47 +628,52 @@ sub _get_time_slice_query
 sub _get_query_time_slices
 {
     my ( $db, $query ) = @_;
-    
+
     my $query_time_slices = [];
-    
+
     my $slice_start_date = $query->{ start_date };
     while ( $slice_start_date lt $query->{ end_date } )
     {
         my $slice_end_date = MediaWords::Util::SQL::increment_day( $slice_start_date, 27 );
         $slice_end_date = List::Util::minstr( $slice_end_date, $query->{ end_date } );
-        
+
         push( @{ $query_time_slices }, _get_time_slice_query( $db, $query, $slice_start_date, $slice_end_date ) );
-        
+
         $slice_start_date = MediaWords::Util::SQL::increment_day( $slice_end_date, 1 );
     }
-    
+
     return $query_time_slices;
 }
 
 # look for a cluster run that represents the given time slice query
-# for the given clsuter run in the db.  if it doesn't exist, 
+# for the given clsuter run in the db.  if it doesn't exist,
 # create one.
 sub _get_time_slice_cluster_run
 {
     my ( $db, $cluster_run, $time_slice_query ) = @_;
-    
+
     my $time_slice_cluster_run = $db->query(
-        "select * from media_cluster_runs " .
-        "  where queries_id = ? and source_media_cluster_runs_id = ? ",
-        $time_slice_query->{ queries_id }, $cluster_run->{ media_cluster_runs_id } )->hash;
-    
+        "select * from media_cluster_runs " . "  where queries_id = ? and source_media_cluster_runs_id = ? ",
+        $time_slice_query->{ queries_id },
+        $cluster_run->{ media_cluster_runs_id }
+    )->hash;
+
     return $time_slice_cluster_run if ( $time_slice_cluster_run );
 
-    my $time_slice_cluster_run = $db->create( 'media_cluster_runs', {
-        queries_id => $time_slice_query->{ queries_id },
-        num_clusters => $cluster_run->{ num_clusters },
-        clustering_engine => 'copy',
-        state => 'pending',
-        source_media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id } } );
-        
+    my $time_slice_cluster_run = $db->create(
+        'media_cluster_runs',
+        {
+            queries_id                   => $time_slice_query->{ queries_id },
+            num_clusters                 => $cluster_run->{ num_clusters },
+            clustering_engine            => 'copy',
+            state                        => 'pending',
+            source_media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id }
+        }
+    );
+
     my $clustering_engine = MediaWords::Cluster->new( $db, $time_slice_cluster_run );
     $clustering_engine->execute_and_store_media_cluster_run();
-    
+
     return $time_slice_cluster_run;
 }
 
@@ -659,41 +688,47 @@ sub _get_time_slice_polar_queries
 
     my $time_slice_polar_queries = [];
 
-    my $polar_query_ids = [ $db->query(
-        "select q.queries_id from media_cluster_map_poles mcmp, queries q " . 
-        "  where mcmp.queries_id = q.queries_id and mcmp.media_cluster_maps_id = ? " .
-        "  order by mcmp.pole_number asc", 
-        $cluster_map->{ media_cluster_maps_id } )->flat ];
+    my $polar_query_ids = [
+        $db->query(
+            "select q.queries_id from media_cluster_map_poles mcmp, queries q " .
+              "  where mcmp.queries_id = q.queries_id and mcmp.media_cluster_maps_id = ? " .
+              "  order by mcmp.pole_number asc",
+            $cluster_map->{ media_cluster_maps_id }
+          )->flat
+    ];
     for my $polar_query_id ( @{ $polar_query_ids } )
     {
         my $polar_query = MediaWords::DBI::Queries::find_query_by_id( $db, $polar_query_id );
-        my $time_slice_polar_query = _get_time_slice_query( 
-            $db, $polar_query, $time_slice_query->{ start_date }, $time_slice_query->{ end_date } );
+        my $time_slice_polar_query =
+          _get_time_slice_query( $db, $polar_query, $time_slice_query->{ start_date }, $time_slice_query->{ end_date } );
         push( @{ $time_slice_polar_queries }, $time_slice_polar_query );
     }
-    
+
     return $time_slice_polar_queries;
 }
 
-# return a cluster map based on a time slice of the given cluster map, 
+# return a cluster map based on a time slice of the given cluster map,
 # generating one if it does not already exist
 sub _get_time_slice_map
 {
     my ( $db, $cluster_run, $cluster_map, $time_slice_query ) = @_;
-    
+
     my $time_slice_cluster_run = _get_time_slice_cluster_run( $db, $cluster_run, $time_slice_query );
-    
-    my $time_slice_map = $db->query(
-        "select * from media_cluster_maps where media_cluster_runs_id = ?",
+
+    my $time_slice_map = $db->query( "select * from media_cluster_maps where media_cluster_runs_id = ?",
         $time_slice_cluster_run->{ media_cluster_runs_id } )->hash;
-    
+
     return $time_slice_map if ( $time_slice_map );
-    
+
     my $time_slice_polar_queries = _get_time_slice_polar_queries( $db, $cluster_map, $time_slice_query );
 
-    my $time_slice_map = generate_cluster_map( $db, $time_slice_cluster_run, $cluster_map->{ map_type },
-        $time_slice_polar_queries, $cluster_map->{ links_rendered }, $cluster_map->{ method } );
-        
+    my $time_slice_map = generate_cluster_map(
+        $db, $time_slice_cluster_run, $cluster_map->{ map_type },
+        $time_slice_polar_queries,
+        $cluster_map->{ links_rendered },
+        $cluster_map->{ method }
+    );
+
 }
 
 # return versions of the given cluster map for every four week period starting with the start date of the
@@ -701,9 +736,9 @@ sub _get_time_slice_map
 sub get_time_slice_maps
 {
     my ( $db, $cluster_run, $cluster_map ) = @_;
-        
+
     my $time_slice_queries = _get_query_time_slices( $db, $cluster_run->{ query } );
-    
+
     my $time_slice_maps = [];
     for my $time_slice_query ( @{ $time_slice_queries } )
     {
@@ -713,7 +748,7 @@ sub get_time_slice_maps
             push( @{ $time_slice_maps }, $time_slice_map ) if ( $time_slice_map );
         }
     }
-    
+
     return $time_slice_maps;
 }
 
