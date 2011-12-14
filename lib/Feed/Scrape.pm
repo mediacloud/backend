@@ -301,7 +301,7 @@ sub get_valid_feeds_from_urls
     my $url_hash;
     $urls = [ grep { !$url_hash->{ $_ }++ } @{ $urls } ];
 
-    $urls = [ grep { $_ !~ /\.(gif|jpg|jpeg|png|css|js)/i } @{ $urls } ];
+    $urls = [ grep { $_ !~ /\.(gif|jpg|jpeg|png|css|js)$/i } @{ $urls } ];
 
     my $links = $class->_validate_and_name_feed_urls( $urls );
 
