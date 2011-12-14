@@ -201,8 +201,7 @@ sub scrape : Local
 
         my $existing_urls = [];
 
-        my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( $url, $recurse, $c->dbis, $ignore_patterns,
-            $existing_urls );
+        my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $url ], $recurse );
 
         $c->stash->{ links }         = $links;
         $c->stash->{ existing_urls } = $existing_urls;
@@ -443,7 +442,7 @@ sub batch_create_do : Local
 
     my $urls = [ map { $_ =~ s/[\n\r\s]//g; $_ } split( "\n", $c->request->param( 'urls' ) ) ];
 
-    my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_urls( $urls, $c );
+    my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_urls( $urls, $c->dbis );
 
     for my $link ( @{ $links } )
     {
