@@ -8,7 +8,6 @@ use strict;
 
 use Encode;
 use HTTP::Request::Common;
-use LWP::UserAgent::Determined;
 use URI::Escape;
 use URI::Split;
 use XML::TreePP;
