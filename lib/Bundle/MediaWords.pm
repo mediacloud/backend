@@ -11,8 +11,6 @@ __END__
 
 Algorithm::Cluster
 
-Task::Catalyst
-
 Class::Std
 
 BerkeleyDB
@@ -53,6 +51,8 @@ Catalyst::Test
 
 Catalyst::Controller::HTML::FormFu
 
+Task::Catalyst
+
 Date::Parse
 
 Data::Sorting
@@ -84,8 +84,6 @@ XML::LibXML
 DBD::Pg
 
 XML::FeedPP
-
-LWP::UserAgent::Determined
 
 RDF::Simple::Parser
 
