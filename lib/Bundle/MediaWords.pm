@@ -7,6 +7,8 @@ __END__
 
 =head1 CONTENTS
 
+Alien::Tidyp
+
 #Perl6::Say #Temporarily removing dependency since this module is no longer on cpan
 
 Algorithm::Cluster
@@ -267,6 +269,8 @@ XML::TreePP
 Encode::HanConvert
 
 Sys::SigAction
+
+DateTime::Format::Pg
 
 =head1 DESCRIPTION
 
