@@ -196,8 +196,6 @@ HTML::Entities
 
 HTML::FormFu::Unicode
 
-HTML::StripPP
-
 HTTP::Request
 
 HTTP::Request::Common
