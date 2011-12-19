@@ -7,6 +7,7 @@ __END__
 
 =head1 CONTENTS
 
+#Alien::Tidyp is needed in order to get the tidyp clibary that HTML::Tidy needs -- many modules below depend on HTML::Tidy
 Alien::Tidyp
 
 #Perl6::Say #Temporarily removing dependency since this module is no longer on cpan
