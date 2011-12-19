@@ -4,7 +4,11 @@ use MediaWords::CommonLibs;
 
 # generate tags for text using the yahoo term extractor
 
-use LWP::UserAgent::Determined;
+#TODO LWP::UserAgent::Determined hangs during install so we're temporary switching to LWP::UserAgent
+## This is a known bug that we hope will be fixed: https://rt.cpan.org/Public/Bug/Display.html?id=71491
+#use LWP::UserAgent::Determined;
+use LWP::UserAgent;
+
 use XML::TreePP;
 
 use strict;
@@ -21,7 +25,9 @@ sub get_tags
 
     #print "get_keywords_from_yahoo: $content\n";
 
-    my $ua = LWP::UserAgent::Determined->new();
+    #TODO switch back to LWP::UserAgent::Determined if its install gets fixed
+    #my $ua = LWP::UserAgent::Determined->new();
+    my $ua = LWP::UserAgent;
 
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ yahoo_key };
 
