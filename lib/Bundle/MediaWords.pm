@@ -139,13 +139,15 @@ Text::Table
 
 Array::Compare
 
-IPC::System::Simple  --  needed for ./script
-
-Parallel::ForkManager -- needed for ./script
+#--  needed for ./script
+IPC::System::Simple  
+#-- needed for ./script
+Parallel::ForkManager 
 
 Pod::Simple -- dependancy not detected by cpan
 
-Module::CPANTS::Analyse -- dependancy not detected by cpan
+# -- dependancy not detected by cpan
+Module::CPANTS::Analyse
 
 Feed::Find
 
