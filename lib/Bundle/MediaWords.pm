@@ -229,6 +229,9 @@ LWP::Simple
 
 LWP::UserAgent
 
+#Used by LWP::UserAgent internally and needed for https links to work
+LWP::Protocol::https
+
 MIME::Base64
 
 Moose
