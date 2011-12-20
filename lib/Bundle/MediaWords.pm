@@ -40,8 +40,6 @@ Catalyst::Plugin::Session::Store::FastMmap
 
 Catalyst::Plugin::ConfigLoader
 
-Catalyst::Plugin::ConfigDefaults
-
 Catalyst::Plugin::Static::Simple
 
 Catalyst::Plugin::Session
@@ -198,8 +196,6 @@ File::Slurp
 Getopt::Long
 
 HTML::Entities
-
-HTML::FormFu::Unicode
 
 HTTP::Request
 
