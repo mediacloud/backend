@@ -14,7 +14,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::Downloads;
 
-use Regexp::Optimizer;
+#use Regexp::Optimizer;
 
 my $_block_level_element_tags = [
     qw ( h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu
