@@ -23,7 +23,7 @@ use Lingua::EN::Sentence::ApplyRegexWithoutLocale;
 #==============================================================================
 require Exporter;
 
-use Regexp::Optimizer;
+#use Regexp::Optimizer;
 
 #==============================================================================
 #
@@ -76,7 +76,8 @@ my @RU = ( 'ул', 'г', 'гор', 'г-жа' );
 
 my @ABBREVIATIONS = ( @PEOPLE, @ARMY, @INSTITUTES, @COMPANIES, @PLACES, @MONTHS, @MISC, @RU );
 my $ABBREVIATIONS_STRING = '(:?' . join( '|', @ABBREVIATIONS ) . ')';
-my $ABBREVIATIONS_RE = Regexp::Optimizer->new->optimize( qr/$ABBREVIATIONS_STRING/iso );
+#my $ABBREVIATIONS_RE = Regexp::Optimizer->new->optimize( qr/$ABBREVIATIONS_STRING/iso );
+my $ABBREVIATIONS_RE = qr/$ABBREVIATIONS_STRING/iso ;
 
 #==============================================================================
 #
