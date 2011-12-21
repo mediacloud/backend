@@ -35,7 +35,7 @@ with perl and cpan.
   and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
   default_tag_modules setting to 'NYTTopics Calais',
 
-* IMPORTANT: On Ubuntu you must 5Cinstall the following packages inorder to build the perl modules: expat libexpat1-dev libxml2-dev, libdb-dev, libtest-www-mechanize-perl. Running the following command to install these packages:
+* IMPORTANT: On Ubuntu you must install the following packages in order to build the perl modules: expat libexpat1-dev libxml2-dev, libdb-dev, libtest-www-mechanize-perl libtidy-dev libopengl-perl. Running the following command to install these packages:
       sudo apt-get install expat libexpat1-dev libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev  libopengl-perl
 
 * OPTIONAL: On Ubuntu run the following command to try to install some of the perl module dependencies using the package manager.  Not all perl modules are in the repository so you will still need to follow the next step to install the remaining module depencies:
