@@ -305,11 +305,6 @@ sub remove_false_end_of_sentence
 
     # this hangs unless we do the $text =~ s/[^[:alnum:][:punct:]]+/ /g; above
 
-    #my $o = Regexp::Optimizer->new;
-    #my $re = $o->optimize( /([^-\w]\w$P)$EOS/ );
-    #my $re_hang = /([^-\w]\w$P)$EOS/so ;
-
-
     #$P   = q/[\.!?]/;            
 
     #$marked_segment =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
