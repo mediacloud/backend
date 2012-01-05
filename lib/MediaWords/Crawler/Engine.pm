@@ -302,7 +302,7 @@ sub crawl_single_download
 
                 #print STDERR "sending fetcher $fetcher_number none\n";
                 $s->printflush( "none\n" );
-                last;
+                last OUTER_Loop;
             }
 
             # print "fetcher $fetcher_number request assigned\n";
