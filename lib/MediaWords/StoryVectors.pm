@@ -534,6 +534,17 @@ sub update_story_sentence_words
 	 }};
 }
 
+sub get_stem_word_counts_for_english_sentence
+{
+    my ( $sentence ) = @_;
+
+    my $stop_stems = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup();
+
+    my $stemmer    = MediaWords::Util::Stemmer->new;
+
+    return _get_stem_word_counts_for_english_sentence ( $stemmer, $sentence, $stop_stems );
+}
+
 sub _get_stem_word_counts_for_english_sentence
 {
     my ( $stemmer, $sentence, $stop_stems ) = @_;
