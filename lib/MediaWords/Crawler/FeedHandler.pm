@@ -79,7 +79,7 @@ sub _add_stories_and_content_downloads
             my $start_date = $date->subtract( hours => 12 )->iso8601();
             my $end_date = $date->add( hours => 12 )->iso8601();
 
-      # TODO -- DRL not sure if assuming UTF-8 is a good idea but will experiment with this code form the gsoc_dsheets branch
+      # TODO -- DRL not sure if assuming UTF-8 is a good idea but will experiment with this code from the gsoc_dsheets branch
             my $title;
 
             # This unicode decode may not be necessary! XML::Feed appears to at least /sometimes/ return
