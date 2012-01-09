@@ -287,6 +287,7 @@ sub _add_stale_feeds
   DOWNLOAD:
     for my $feed ( @feeds )
     {
+        ##TODO add a constraint to the fields table in the database to ensure that the URL is valid
         if ( !$feed->{ url } || substr( $feed->{ url }, 0, 7 ) ne 'http://' )
         {
 
