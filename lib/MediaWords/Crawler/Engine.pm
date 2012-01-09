@@ -253,6 +253,7 @@ sub crawl
     sleep( 5 );
 }
 
+#TODO merge with the crawl method
 sub crawl_single_download
 {
     my ( $self, $downloads_id ) = @_;
