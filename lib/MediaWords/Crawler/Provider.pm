@@ -1,7 +1,6 @@
 package MediaWords::Crawler::Provider;
 use MediaWords::CommonLibs;
 
-
 # provide one request at a time a crawler process
 
 use strict;
@@ -295,27 +294,7 @@ sub _add_stale_feeds
             next DOWNLOAD;
         }
 
-        my $priority = 0;
-        if ( !$feed->{ last_download_time } )
-        {
-            $priority = 10;
-        }
-
-        my $host = lc( ( URI::Split::uri_split( $feed->{ url } ) )[ 1 ] );
-        my $download = $self->engine->dbs->create(
-            'downloads',
-            {
-                feeds_id      => $feed->{ feeds_id },
-                url           => $feed->{ url },
-                host          => $host,
-                type          => 'feed',
-                sequence      => 1,
-                state         => 'queued',
-                priority      => $priority,
-                download_time => 'now()',
-                extracted     => 'f'
-            }
-        );
+        my $download = _create_download_for_feed( $feed, $dbs );
 
         $download->{ _media_id } = $feed->{ media_id };
 
@@ -332,6 +311,35 @@ sub _add_stale_feeds
 
     print STDERR "end _add_stale_feeds\n";
 
+}
+
+sub _create_download_for_feed
+{
+    my ( $feed, $dbs ) = @_;
+
+    my $priority = 0;
+    if ( !$feed->{ last_download_time } )
+    {
+        $priority = 10;
+    }
+
+    my $host = lc( ( URI::Split::uri_split( $feed->{ url } ) )[ 1 ] );
+    my $download = $dbs->create(
+        'downloads',
+        {
+            feeds_id      => $feed->{ feeds_id },
+            url           => $feed->{ url },
+            host          => $host,
+            type          => 'feed',
+            sequence      => 1,
+            state         => 'queued',
+            priority      => $priority,
+            download_time => 'now()',
+            extracted     => 'f'
+        }
+    );
+
+    return $download;
 }
 
 #TODO combine _queue_download_list & _queue_download_list_per_site_limit
