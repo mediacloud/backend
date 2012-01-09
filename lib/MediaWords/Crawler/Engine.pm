@@ -42,6 +42,41 @@ sub new
     return $self;
 }
 
+sub _fetch_and_handle_download
+{
+
+    my ( $self, $download, $fetcher, $handler ) = @_;
+
+    if ( !$download )
+    {
+        die( "fetcher " . $self->fetcher_number . ": Unable to find download_id: $download->{downloads_id}" );
+    }
+
+    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " starting";
+
+    my $start_fetch_time = [ Time::HiRes::gettimeofday ];
+    my $response         = $fetcher->fetch_download( $download );
+    my $end_fetch_time   = [ Time::HiRes::gettimeofday ];
+
+    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " fetched";
+
+    $DB::single = 1;
+    eval { $handler->handle_response( $download, $response ); };
+
+    my $fetch_time = Time::HiRes::tv_interval( $start_fetch_time, $end_fetch_time );
+    my $handle_time = Time::HiRes::tv_interval( $end_fetch_time );
+
+    if ( $@ )
+    {
+        die( "Error in handle_response() for downloads_id '$download->{downloads_id}' '" . $download->{ url } . "' : $@" );
+    }
+
+    print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } .
+      " processing complete [ $fetch_time / $handle_time ]\n";
+
+    return;
+}
+
 # continually loop through the provide, fetch, respond cycle
 # for one crawler process
 sub _run_fetcher
@@ -84,34 +119,9 @@ sub _run_fetcher
 
                 # print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id'\n";
                 $download = $self->dbs->find_by_id( 'downloads', $downloads_id );
-                if ( !$download )
-                {
-                    die( "fetcher " . $self->fetcher_number . ": Unable to find download_id: $downloads_id" );
-                }
 
-                say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " . $download->{ url } .
-                  " starting";
+                $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
-                my $start_fetch_time = [ Time::HiRes::gettimeofday ];
-                my $response         = $fetcher->fetch_download( $download );
-                my $end_fetch_time   = [ Time::HiRes::gettimeofday ];
-
-                say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " . $download->{ url } .
-                  " fetched";
-
-		$DB::single = 1;
-                eval { $handler->handle_response( $download, $response ); };
-
-                my $fetch_time = Time::HiRes::tv_interval( $start_fetch_time, $end_fetch_time );
-                my $handle_time = Time::HiRes::tv_interval( $end_fetch_time );
-
-                if ( $@ )
-                {
-                    die( "Error in handle_response() for downloads_id '$downloads_id' '" . $download->{ url } . "' : $@" );
-                }
-
-                print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id' " .
-                  $download->{ url } . " processing complete [ $fetch_time / $handle_time ]\n";
             }
             else
             {
@@ -177,6 +187,24 @@ sub spawn_fetchers
             }
         }
     }
+}
+
+sub _create_fetcher_engine_for_testing
+{
+    my ( $fetcher_number ) = @_;
+
+    my $crawler = MediaWords::Crawler::Engine->new();
+
+    #$crawler->processes( 1 );
+    #$crawler->throttle( 1 );
+    #$crawler->sleep_interval( 1 );
+
+    #$crawler->timeout( $crawler_timeout );
+    #$crawler->pending_check_interval( 1 );
+
+    $crawler->fetcher_number( $fetcher_number );
+
+    return $crawler;
 }
 
 # fork off fetching processes and then provide them with requests
