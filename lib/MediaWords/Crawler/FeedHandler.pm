@@ -68,7 +68,7 @@ sub _get_stories_from_feed_contents
 
         $url =~ s/[\n\r\s]//g;
 
-        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) || time );
+        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) ) || DateTime->from_epoch( epoch => Date::Parse::str2time( $download->{ download_time} ) );
 
         # if ( !$story )
         $num_new_stories++;
