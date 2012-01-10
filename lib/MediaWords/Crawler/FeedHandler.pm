@@ -116,8 +116,8 @@ sub _get_stories_from_feed_contents
 
         # if ( !$story )
         $num_new_stories++;
- 
-	my $description = ref( $item->description ) ? ( '' ) : ( $item->description || '' );
+
+        my $description = ref( $item->description ) ? ( '' ) : ( $item->description || '' );
 
         my $story = {
             url          => $url,
@@ -140,12 +140,13 @@ sub _story_is_new
 {
     my ( $dbs, $story ) = @_;
 
-    my $db_story = $dbs->query( "select * from stories where guid = ? and media_id = ?", $story->{guid}, $story->{media_id} )->hash;
+    my $db_story =
+      $dbs->query( "select * from stories where guid = ? and media_id = ?", $story->{ guid }, $story->{ media_id } )->hash;
 
     if ( !$db_story )
     {
 
-        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $story->date->pubDate() ) );
+        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $story->{ publish_date } ) );
 
         my $start_date = $date->subtract( hours => 12 )->iso8601();
         my $end_date = $date->add( hours => 12 )->iso8601();
@@ -160,28 +161,26 @@ sub _story_is_new
         # very misleadingly named function checks for unicode character string
         # in perl's internal representation -- not a byte-string that contains UTF-8
         # data
-        # if ( Encode::is_utf8( $item->title ) )
-        # {
-        #     $title = $item->title;
-        # }
-        # else
-        # {
 
-        #     # TODO: A utf-8 byte string is only highly likely... we should actually examine the HTTP
-        #     #   header or the XML pragma so this doesn't explode when given another encoding.
-        #     $title = decode( 'utf-8', $item->title );
-        #     if ( Encode::is_utf8( $item->title ) )
-        #     {
+         if ( Encode::is_utf8( $story->{title} ) )
+         {
+             $title = $story->{title};
+         }
+         else
+         {
 
-        #         # TODO: catch this
-        #         print STDERR "Feed " . $download->{ feeds_id } . " has inconsistent encoding for title:\n";
-        #         print STDERR "$title\n";
-        #     }
-        # }
+             # TODO: A utf-8 byte string is only highly likely... we should actually examine the HTTP
+             #   header or the XML pragma so this doesn't explode when given another encoding.
+             $title = decode( 'utf-8', $story->{title} );
+         }
+
+        #say STDERR "Searching for story by title";
+
         $db_story = $dbs->query(
             "select * from stories where title = ? and media_id = ? " .
               "and publish_date between date '$start_date' and date '$end_date' for update",
-            $story->{title}, $story->{media_id}
+            $title,
+            $story->{ media_id }
         )->hash;
     }
 
@@ -199,8 +198,40 @@ sub _add_story_and_content_download
 {
     my ( $dbs, $story, $parent_download ) = @_;
 
-    $story = $dbs->create( "stories", $story );
-    MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
+    eval {
+
+        $story = $dbs->create( "stories", $story );
+        MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
+
+    };
+
+    #TODO handle race conditions differently
+    if ( $@ )
+    {
+
+        # if we hit a race condition with another process having just inserted this guid / media_id,
+        # just put the download back in the queue.  this is a lot better than locking stories
+        if ( $@ =~ /unique constraint "stories_guid"/ )
+        {
+            $dbs->rollback;
+            $dbs->query( "update downloads set state = 'pending' where downloads_id = ?",
+                $parent_download->{ downloads_id } );
+            die( "requeue '$parent_download->{url}' due to guid conflict '$story->{ url }'" );
+        }
+        else
+        {
+            print Dumper( $story );
+            die( $@ );
+        }
+    }
+
+    $dbs->find_or_create(
+        'feeds_stories_map',
+        {
+            stories_id => $story->{ stories_id },
+            feeds_id   => $parent_download->{ feeds_id }
+        }
+    );
 
     $dbs->create(
         'downloads',
@@ -208,8 +239,8 @@ sub _add_story_and_content_download
             feeds_id      => $parent_download->{ feeds_id },
             stories_id    => $story->{ stories_id },
             parent        => $parent_download->{ downloads_id },
-            url           => $story->{url },
-            host          => lc( ( URI::Split::uri_split( $story->{url} ) )[ 1 ] ),
+            url           => $story->{ url },
+            host          => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
             type          => 'content',
             sequence      => 1,
             state         => 'pending',
@@ -385,7 +416,16 @@ sub handle_feed_content
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
-    my $num_new_stories = _add_stories_and_content_downloads( $dbs, $download, $decoded_content );
+    my $stories = _get_stories_from_feed_contents( $dbs, $download, $decoded_content );
+
+    my $new_stories = [ grep { _story_is_new( $dbs, $_ ) } @{ $stories } ];
+
+    foreach my $story ( @$new_stories )
+    {
+        _add_story_and_content_download( $dbs, $story, $download );
+    }
+
+    my $num_new_stories = scalar( @{ $new_stories } );
 
     my $content_ref;
     if ( $num_new_stories > 0 )
@@ -394,6 +434,7 @@ sub handle_feed_content
     }
     else
     {
+        #say STDERR "No stories found";
         $content_ref = \"(redundant feed)";
     }
 
