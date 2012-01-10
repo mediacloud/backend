@@ -256,6 +256,8 @@ Time::HiRes
 
 Time::Local
 
+Try::Tiny
+
 URI
 
 URI::Escape
