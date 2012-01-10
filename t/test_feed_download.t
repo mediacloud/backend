@@ -363,6 +363,10 @@ sub main
 
 	    $crawler->fetch_and_handle_single_download( $download );
 
+	    my $redundant_feed_download = MediaWords::Crawler::Provider::_create_download_for_feed( $feed, $db ); 
+
+	    $crawler->fetch_and_handle_single_download( $redundant_feed_download );
+
             #run_crawler();
 
             #extract_downloads( $db );
