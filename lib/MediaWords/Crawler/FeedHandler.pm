@@ -233,7 +233,7 @@ sub _add_story_and_content_download
 
 }
 
-sub handle_feed_content
+sub add_feed_stories_and_downloads
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
@@ -247,6 +247,15 @@ sub handle_feed_content
     }
 
     my $num_new_stories = scalar( @{ $new_stories } );
+
+    return $num_new_stories;
+}
+
+sub handle_feed_content
+{
+    my ( $dbs, $download, $decoded_content ) = @_;
+
+    my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content ) ; 
 
     my $content_ref;
     if ( $num_new_stories > 0 )
