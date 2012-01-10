@@ -172,16 +172,4 @@ foreach my $test_case ( @{ $test_cases } )
 
     cmp_deeply( $stories, $test_case->{ test_output } );
 
-    #say Dumper( $stories );
-
-    # is(
-    #     join( "", map { $_ . "\n" } @{ HTML::CruftText::clearCruftText( $test_case->{ test_input } ) } ),
-    #     $test_case->{ test_output },
-    #     $test_case->{ test_name }
-    # );
-
-   # my $result = MediaWords::Crawler::Extractor::score_lines( HTML::CruftText::clearCruftText( $test_case->{ test_input } ),
-   #     "__NO_TITLE__" );
-
-    # ok( $result, "title_not_found_test" );
 }
