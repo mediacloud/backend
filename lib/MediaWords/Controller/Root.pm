@@ -1,7 +1,6 @@
 package MediaWords::Controller::Root;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -50,26 +49,26 @@ sub end : ActionClass('RenderView')
 
     if ( scalar @{ $c->error } )
     {
-        $c->stash->{ errors } = [ map { $_ }  @{ $c->error } ];
+        $c->stash->{ errors } = [ map { $_ } @{ $c->error } ];
 
         print STDERR "Handling error:\n";
-        print STDERR Dumper(  $c->stash->{ errors } );
+        print STDERR Dumper( $c->stash->{ errors } );
 
-	my $config = MediaWords::Util::Config::get_config;
-	my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } eq 'yes';
+        my $config = MediaWords::Util::Config::get_config;
+        my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } eq 'yes';
 
-	if ( $always_show_stack_traces ) 
-	  { 
-	    $c->config->{stacktrace}->{enable} = 1;
-	  }
+        if ( $always_show_stack_traces )
+        {
+            $c->config->{ stacktrace }->{ enable } = 1;
+        }
 
-        if ( ! ($c->debug() || $always_show_stack_traces ) )
+        if ( !( $c->debug() || $always_show_stack_traces ) )
         {
             $c->error( 0 );
 
             $c->stash->{ template } = 'zoe_website_template/error_page.tt2';
 
-	    $c->response->status(500);
+            $c->response->status( 500 );
         }
     }
 
