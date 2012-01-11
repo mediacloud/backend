@@ -77,6 +77,23 @@ sub _fetch_and_handle_download
     return;
 }
 
+sub fetch_and_handle_single_download
+{
+
+    my ( $self, $download) = @_;
+
+    $self->reconnect_db();
+
+    my $fetcher = MediaWords::Crawler::Fetcher->new( $self );
+    my $handler = MediaWords::Crawler::Handler->new( $self );
+
+    $self->_fetch_and_handle_download( $download, $fetcher, $handler );
+
+    $self->dbs->commit;
+
+    return;
+}
+
 # continually loop through the provide, fetch, respond cycle
 # for one crawler process
 sub _run_fetcher
