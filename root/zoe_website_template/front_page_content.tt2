@@ -75,7 +75,9 @@
                     <div id = "wordcloud" class = "contentSelected"><span onclick="swapDIV('WCcontentarea')" style="cursor:pointer;">[% c.loc('Word Cloud') %]</span></div>
 
 [% IF ( ( queries.0.dashboard_topics.size < 1 ) && ( ( !queries.1 ) || ( queries.1.dashboard_topics.size < 1 ) ) ) %]
+[% IF !hide_coverage_map %]
                     <div id = "coveragemap" class = "contentUnselected"><span onclick="swapDIV('CMcontentarea')" style="cursor:pointer;">[% c.loc('Coverage Map') %]</span></div>
+[% END %]
 [% END %]
 
 		    </div>
