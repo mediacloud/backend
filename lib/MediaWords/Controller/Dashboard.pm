@@ -1,7 +1,6 @@
 package MediaWords::Controller::Dashboard;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 
@@ -37,6 +36,7 @@ use JSON;
 use Time::HiRes;
 use XML::Simple qw(:strict);
 use Dir::Self;
+
 #use Readonly;
 use CHI;
 use File::stat;
@@ -762,12 +762,11 @@ sub _localize_option_labels
 
     foreach my $option ( @{ $options } )
     {
+
         #say STDERR "Localizing option";
         #say STDERR Dumper ( $option );
 
-	eval {
-        $option->{ label } = $c->loc( $option->{ label } );
-      };
+        eval { $option->{ label } = $c->loc( $option->{ label } ); };
     }
 
     say STDERR Dumper( $options );
@@ -970,7 +969,7 @@ sub _show_dashboard_results_compare_queries
     $c->stash->{ queries }       = $queries;
     $c->stash->{ queries_ids }   = [ map { $_->{ queries_id } } @{ $queries } ];
     $c->stash->{ has_old_query } = any { MediaWords::DBI::Queries::query_is_old_version( $c->dbis, $_ ) } @{ $queries };
-    $c->stash->{ has_sw_data }   = all { MediaWords::DBI::Queries::query_has_sw_data( $c->dbis, $_ ) } @ { $queries };
+    $c->stash->{ has_sw_data }   = all { MediaWords::DBI::Queries::query_has_sw_data( $c->dbis, $_ ) } @{ $queries };
 }
 
 # generate main dashboard page
