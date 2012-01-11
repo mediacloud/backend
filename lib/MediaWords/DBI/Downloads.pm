@@ -351,6 +351,10 @@ sub store_content
 {
     my ( $db, $download, $content_ref ) = @_;
 
+    #say STDERR "starting store_content for download $download->{ downloads_id } ";
+
+    #TODO refactor to eliminate common code.
+
     if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
     {
         my $state = 'success';
