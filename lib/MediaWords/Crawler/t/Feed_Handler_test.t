@@ -111,7 +111,7 @@ __END_TEST_CASE__
 	<generator>http://wordpress.org/?v=3.2.1</generator>
 <creativeCommons:license>http://creativecommons.org/licenses/by-sa/3.0/</creativeCommons:license>
 		<item>
-		<title>Why Life is Too Short for Spiral Notebooks</title>
+		<title></title>
 
 		<link>https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/</link>
 		<comments>https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/#comments</comments>
@@ -119,6 +119,19 @@ __END_TEST_CASE__
 				<category><![CDATA[Uncategorized]]></category>
 
 		<guid isPermaLink="false">http://blogs.law.harvard.edu/dlarochelle/?p=350</guid>
+
+		<description>One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.</description>
+			<content:encoded><p>One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible. This post will detail why I’ve switched to using wireless bound notebooks exclusively.</p></content:encoded>
+			<wfw:commentRss>https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+	<creativeCommons:license>http://creativecommons.org/licenses/by-sa/3.0/</creativeCommons:license>
+	</item>
+        <item>
+		<title>Skipped Item</title>
+
+		<comments>https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/#comments</comments>
+		<dc:creator>dlarochelle</dc:creator>
+				<category><![CDATA[Uncategorized]]></category>
 
 		<description>One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.</description>
 			<content:encoded><p>One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible. This post will detail why I’ve switched to using wireless bound notebooks exclusively.</p></content:encoded>
@@ -136,7 +149,7 @@ __END_TEST_CASE__
                 'media_id'     => 1,
                 'publish_date' => '2012-01-10 06:20:10',
                 'url' => 'https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/',
-                'title' => 'Why Life is Too Short for Spiral Notebooks',
+                'title' => '(no title)',
                 'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
                 'description' =>
                   'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
