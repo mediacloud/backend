@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 use Data::Dumper;
+use MediaWords::Util::Config;
 
 #
 # Sets the actions in this controller to be registered with no prefix
@@ -54,7 +55,15 @@ sub end : ActionClass('RenderView')
         print STDERR "Handling error:\n";
         print STDERR Dumper(  $c->stash->{ errors } );
 
-        if ( !$c->debug() )
+	my $config = MediaWords::Util::Config::get_config;
+	my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } eq 'yes';
+
+	if ( $always_show_stack_traces ) 
+	  { 
+	    $c->config->{stacktrace}->{enable} = 1;
+	  }
+
+        if ( ! ($c->debug() || $always_show_stack_traces ) )
         {
             $c->error( 0 );
 
