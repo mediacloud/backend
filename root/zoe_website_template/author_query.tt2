@@ -3,6 +3,7 @@
 [% ELSE %]
 [% primary = 1 %]
 [% END %]
+[% hide_coverage_map = 1 %]
 [% INCLUDE 'zoe_website_template/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
