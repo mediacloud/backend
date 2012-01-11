@@ -1361,6 +1361,8 @@ sub author_query : Local : FormConfig
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
+    $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
+
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
 
     my ( $min_author_words_date ) = $c->dbis->query( 'select min(publish_week) from top_500_weekly_author_words;' )->flat();
