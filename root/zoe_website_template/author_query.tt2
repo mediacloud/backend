@@ -25,6 +25,36 @@
        		  });
    }
 
+//TODO this function is slightly different than the one with the same name in media_cloud_rough_html.tt2
+// Merge them to DRY the code.
+function show_sentences_for_word_cloud_item(word_cloud_item)
+	{
+	     //alert('start scroll');
+	     
+	     $.scrollTo($('#textSources') );
+	     //alert('finish scroll');
+	     //alert(query_string);
+	     //alert(query_string2);
+
+	     var query_string2 = word_cloud_item.data('original_query_string');
+
+	     $('#iframe_place_holder table').remove();
+
+	     var iframe_url = "[% c.uri_for('/dashboard/sentences_author/') _ dashboard.dashboards_id %]" + "?" + query_string2 + "&iframe=1";
+
+	     var sentence_loading_message = $('<div/>').text('Loading sentences, please wait...'); 
+	     $('#iframe_place_holder').append(sentence_loading_message);
+
+	     $('#sentence_frame').iframeAutoHeight();
+             $('#sentence_frame').attr('src', iframe_url ).load();
+	     $('#sentence_frame').load( function() {  sentence_loading_message.text('').remove(); 
+	                                 $.scrollTo($('#textSources'), 1000);
+ 	                              });
+
+	      // var foo = $('#sentence_frame').contents().find('#media_source_percent_table td');
+	      // foo.click(function() { alert('click override'); } );  	
+	}
+
    $(document).ready(function() 
     {
         var data = [
@@ -60,22 +90,61 @@
 
 	[% IF word_cloud %]
 	$('#sentence_frame').iframeAutoHeight();
-	$('#htmltagcloud a').click(function(e) {
-	var $this = $(this);
-	e.preventDefault();
-	var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
-	//alert(query_string);
+	// $('#htmltagcloud a').click(function(e) {
+	// var $this = $(this);
+	// e.preventDefault();
+	// var query_string = jQuery.url.setUrl($this.attr('href')).attr('query');
+	// //alert(query_string);
 	
-	$('#iframe_place_holder table').remove();
-	//$('#iframe_place_holder').not('#sentence_frame').remove();
+	// $('#iframe_place_holder table').remove();
+	// //$('#iframe_place_holder').not('#sentence_frame').remove();
 
-	var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string + "&iframe=1";
+	// var iframe_url = "[% c.uri_for('/dashboard/sentences/') _ dashboard.dashboards_id %]" + "?" + query_string + "&iframe=1";
 
-	$('#sentence_frame').attr('src', iframe_url ).load();
-	$('#sentence_frame').load();
+	// $('#sentence_frame').attr('src', iframe_url ).load();
+	// $('#sentence_frame').load();
 
+	// });  
+ 	var flag = true;
+
+	$('#htmltagcloud a').each(function(idx, word_link)
+	{
+	var $this = $(this);
+
+	if ($this.data('url_altered'))	
+	{
+	  return true;
+	}
+
+	var new_query = $.query.set('term', $this.text() ).toString();
+
+	//alert(new_query);
+	
+	$this.data('url_altered', true);
+
+	//var current_url = window.location.href;
+	//var query_url = current_url + "&term=" + $this.text();
+
+	var data_query_url = $this.find('span');
+
+	var query_string = jQuery.url.setUrl(data_query_url.attr('data-query-url')).attr('query');
+
+	$this.data( 'original_query_string', query_string);
 	});  
 
+	[% IF word_cloud_term %]
+
+	var word_cloud_link = $('#htmltagcloud span a').filter( function (index) {
+	    var $this = $(this);
+	    //alert($this.text());
+	   
+	   return $this.text() == '[% word_cloud_term %]' + "";
+	});
+
+	show_sentences_for_word_cloud_item(word_cloud_link);
+	[% ELSE %]
+
+        [% END %]
         [% END %]
 
         $('#openheatmap_container').insertOpenHeatMap({
