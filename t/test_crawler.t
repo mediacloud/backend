@@ -15,6 +15,9 @@ use Test::More;
 use Test::Differences;
 use Test::Deep;
 
+#use Test::NoWarnings;
+
+
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::MediaSets;
