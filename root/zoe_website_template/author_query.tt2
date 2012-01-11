@@ -219,29 +219,8 @@ function onError(err)
 </div>
 [% IF primary %]
             <br/>
-            <div id = "bottomContainer">
-              <div id = "popular"> <strong>About Media Cloud</strong><br />
-              Media Cloud is an open source, open data platform that allows
-              researchers to answer quantitative questions about the content
-              of online media. Using Media Cloud, researchers, journalism
-              critics and interested citizens can examine what media sources cover
-              which stories, what language different media outlets use in
-              conjunction with different stories, and how stories spread
-              from one media outlet to another.
-              </div>
-              <div id = "report"><strong>This week's report</strong><br />
-                <a href="http://www.mediacloud.org/blog">This is a link</a> to the Weekly report which doubles as a news page, with maybe the headline pulled in from its RSS<br />
-              </div>
-              <div id = "news"><strong>News</strong><br />
-	        <div id = "news_items">
-                Have there been recent updates and changes?  I bet there are some!
-                  <br />
-                <br />
-                  At the very least, here's the most recent headline!!!  And link to the blog!
-		</div>
-              </div>
-            </div>
-            
+[% INCLUDE 'zoe_website_template/bottom_container_div.tt2' %]
+
             <!--This is where the content ends!--></td>
         </tr>
         <tr>
