@@ -19,6 +19,10 @@ use XML::LibXML;
 use Getopt::Long;
 use Readonly;
 use Carp;
+use MediaWords::DBI::Downloads;
+use Data::Dumper;
+use Encode;
+use MIME::Base64;
 
 sub addDownloadChild
 {
@@ -31,7 +35,16 @@ sub addDownloadChild
 
     $download->appendTextChild( 'url',  $row->{ download_url } );
     $download->appendTextChild( 'host', $row->{ host } );
-    $download->appendTextChild( 'text', $row->{ download_text } );
+
+    print STDERR "Starting fetch_content\n";
+    my $download_content = MediaWords::DBI::Downloads::fetch_content($row);
+
+    my $data_section = XML::LibXML::CDATASection->new( encode_base64( encode( "utf8", $$download_content ) ) );
+
+    my $download_content = XML::LibXML::Element->new( 'download_content' );
+    $download_content->appendChild($data_section);
+
+    $download->appendChild($download_content);
 
     $story->appendChild( $download );
 }
