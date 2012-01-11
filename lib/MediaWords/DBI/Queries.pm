@@ -16,6 +16,7 @@ use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
 use MediaWords::StoryVectors;
 use Perl6::Say;
+use Readonly;
 
 # max number of sentences to return in various get_*_stories_with_sentences functions
 use constant MAX_QUERY_SENTENCES => 1000;
@@ -457,12 +458,29 @@ sub _get_top_500_weekly_words_impl
     # the query below sum()s the stem for all media_sets
     my $stem_count_factor = @{ $query->{ media_sets_ids } };
 
+    my $table_prefix = '';
+
+    if ( defined ( $query-> { top_500_weekly_words_table_prefix } ) ) 
+    {
+	$table_prefix = $query-> { top_500_weekly_words_table_prefix };
+    }
+
+    my $table_suffix = '';
+
+    if ( defined ( $query-> { top_500_weekly_words_table_suffix } ) ) 
+    {
+	$table_suffix = $query-> { top_500_weekly_words_table_suffix };
+    }
+
+    my $top_500_weekly_words_table = $table_prefix . 'top_500_weekly_words' . $table_suffix;
+    my $total_top_500_weekly_words_table = $table_prefix . 'total_top_500_weekly_words' . $table_suffix;
+
     my $words = $db->query(
         "select w.stem, min( w.term ) as term, " .
           "    sum( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float as stem_count " .
           ",    sum( w.stem_count::float) as raw_stem_count, sum (tw.total_count::float ) as total_words,              " .
           "    ${ stem_count_factor }::float as stem_count_factor                                                      " .
-          "  from top_500_weekly_words w, total_top_500_weekly_words tw " .
+          "  from $top_500_weekly_words_table w, $total_top_500_weekly_words_table tw " .
           "  where w.media_sets_id in ( $media_sets_ids_list )  and " .
           "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and $date_clause and " .
 		  "    tw.media_sets_id in ( $media_sets_ids_list ) and $tw_date_clause and " .
