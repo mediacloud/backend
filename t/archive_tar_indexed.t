@@ -1,7 +1,8 @@
 use strict;
 
 use File::Temp;
-use Test::More tests => 203;
+use Test::More tests => 203 + 1;
+use Test::NoWarnings;
 
 BEGIN { use_ok 'Archive::Tar::Indexed' }
 
