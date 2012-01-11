@@ -98,17 +98,38 @@ sub _reset_schema
     $schema ||= 'public';
 
     # TODO: should check for failure
-    $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
-    $db->query( "DROP LANGUAGE IF EXISTS plperlu CASCADE" );
+    {
+      my $old_handler =  $SIG{__WARN__};
 
-    #removes schema used by dklab enum procedures
-    #schema will be re-added in dklab sqlfile
-    $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
+      $SIG{__WARN__} = 'IGNORE';
+
+      #sub { 
+	# say 'ignoring warning';
+      #};
+
+      no warnings;
+      # By default this will complain but the drop cascading to other objects
+      # THis warning is just noise so get rid of it.
+
+      $db->dbh->trace( 0 );
+      say STDERR Dumper ($db->dbh->trace);
+
+      $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
+
+      #removes schema used by dklab enum procedures
+      #schema will be re-added in dklab sqlfile
+      $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
+
+      $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
+
+      $SIG{__WARN__} = $old_handler;
+    }
+
+    $db->query( "DROP LANGUAGE IF EXISTS plperlu CASCADE" );
 
     $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE " );
     $db->query( "CREATE LANGUAGE plpgsql" );
     $db->query( "CREATE SCHEMA $schema" );
-    $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
 
     return undef;
 }
@@ -123,9 +144,11 @@ sub load_sql_file
     {
         my ( $line ) = @_;
 
-        if ( not $line =~ /^NOTICE:|^CREATE|^ALTER/ )
+	#say "Got line: '$line'";
+        if ( not $line =~ /^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^psql.*: NOTICE:/ )
         {
-            carp $line;
+            carp "Evil line: '$line'";
+            die "Evil line: '$line'";
         }
 
         return $line;
