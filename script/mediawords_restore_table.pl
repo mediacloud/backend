@@ -21,6 +21,15 @@ use Readonly;
 use Carp;
 use MIME::Base64;
 
+#Tests opening the files to make sure they're valid
+sub test_opening_files
+{
+    my ( $line_number_file, $sql_dump_file ) = @_;
+
+    open my $LINE_NUMBERS_FILE_HANDLE, "<$line_number_file" or die $!;
+    open my $SQL_DUMP_FILE_HANDLE,     "<$sql_dump_file"    or die $!;
+}
+
 sub main
 {
 
@@ -38,9 +47,11 @@ sub main
     die "$usage\n"
       unless $table_name && $sql_dump_file && $line_number_file;
 
-    say STDERR Dumper( [ $table_name, $sql_dump_file, $line_number_file ] );
+    test_opening_files( $line_number_file, $sql_dump_file );
 
-    print STDERR "starting --  " . localtime() . "\n";
+    #say STDERR Dumper( [ $table_name, $sql_dump_file, $line_number_file ] );
+
+    say STDERR "starting --  " . localtime();
 
     my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
@@ -52,7 +63,6 @@ sub main
     );
 
     open my $LINE_NUMBERS_FILE_HANDLE, "<$line_number_file" or die $!;
-    open my $SQL_DUMP_FILE_HANDLE,     "<$sql_dump_file"    or die $!;
 
     my $line_num = 0;
     my $line;
@@ -69,7 +79,7 @@ sub main
 
     say STDERR "Line:'$line'";
 
-    say STDERR $line_num;
+    #say STDERR $line_num;
 
     my ( $start_line ) = split ':', $line;
 
@@ -85,11 +95,16 @@ sub main
     close( $LINE_NUMBERS_FILE_HANDLE );
 
     $line_num = 0;
+
+    open my $SQL_DUMP_FILE_HANDLE, "<$sql_dump_file" or die $!;
+
+    say STDERR "reading dump file in search of start line ($start_line#)";
+
     while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
     {
         $line_num++;
 
-        say "line number $line_num: '$line'";
+        #say "line number $line_num: '$line'";
         last if $line_num >= $start_line;
     }
 
@@ -97,40 +112,47 @@ sub main
 
     say $line;
 
+    undef( $line );
+
     while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
     {
-
-        #last if ($line =~ m/Data f/ );
         $line_num++;
         last if ( $line =~ /^COPY $table_name \(.*\) FROM stdin;/ );
-
-        #last if ($line =~ m/.\d+/ );
     }
 
     die unless $line;
 
-    say $line;
+    #say $line;
 
-    $line =~ s/^COPY $table_name \(/COPY $restored_table_name \(/;
+    my $query = $line;
 
-    say $line;
+    $query =~ s/^COPY $table_name \(/COPY $restored_table_name \(/;
 
-    $db->dbh->do( $line );
+    say STDERR "starting datacopy at -- " . localtime();
+
+    say STDERR "SQL Query '$query'";
+
+    $db->dbh->do( $query );
 
     while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
     {
         $line_num++;
 
-        say "line number $line_num: '$line'";
+        #say "line number $line_num: '$line'";
 
         $db->dbh->pg_putcopydata( $line );
 
         last if $line_num >= $end_line;
+
+        if ( ( $line_num % 1000 ) == 0 )
+        {
+            say STDERR "On line $line_num continuing until $end_line";
+        }
     }
 
     $db->dbh->pg_putcopyend();
 
-    say "Finished";
+    say STDERR "finished datacopy at -- " . localtime();
 }
 
 main();
