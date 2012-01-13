@@ -359,7 +359,8 @@ sub compare : Local
 
     $form->process( $c->request );
 
-    if ( !$form->submitted_and_valid() )
+    my $queries_id_2 = $c->req->param( 'queries_id_2' );
+    if ( !$queries_id_2 && !$form->submitted_and_valid() )
     {
         $c->stash->{ query_a }  = $query_a;
         $c->stash->{ form }     = $form;
@@ -367,11 +368,18 @@ sub compare : Local
         return;
     }
 
-    my $req = $c->req;
+    if ( !$queries_id_2 )
+    {
+        my $req = $c->req;
+        undef( $req->parameters->{ queries_id } );
 
-    undef( $req->parameters->{ queries_id } );
-    my $query_b = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req );
+        my $query_b = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req );
+        $c->response->redirect( $c->uri_for( "/queries/compare", { queries_id => $queries_id, queries_id_2 => $query_b->{ queries_id } } ) );
+        return;
+    }
 
+    my $query_b = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id_2 )
+        || die( "Unable to find query $queries_id_2" );
     my $words_a = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query_a );
     my $words_b = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query_b );
 
