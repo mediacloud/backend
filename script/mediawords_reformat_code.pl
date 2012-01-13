@@ -1,6 +1,7 @@
-#!/usr/bin/perl
-
-# import list of spidered russian blogs from csv
+#!/bin/sh
+#! -*-perl-*-
+eval 'exec perl -x -wS $0 ${1+"$@"}'
+  if 0;
 
 use strict;
 
