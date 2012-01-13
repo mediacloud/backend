@@ -107,7 +107,7 @@ sub main
         #say "line number $line_num: '$line'";
         last if $line_num >= $start_line;
 
-        if ( ( $line_num % 10000 ) == 0 )
+        if ( ( $line_num % 100000 ) == 0 )
         {
             say STDERR "Reading line $line_num -- continuing until $start_line";
         }
