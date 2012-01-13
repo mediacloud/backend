@@ -98,7 +98,7 @@ sub main
 
     open my $SQL_DUMP_FILE_HANDLE, "<$sql_dump_file" or die $!;
 
-    say STDERR "reading dump file in search of start line ($start_line#)";
+    say STDERR "reading dump file in search of start line ($start_line#) at --" . localtime();
 
     while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
     {
@@ -106,10 +106,16 @@ sub main
 
         #say "line number $line_num: '$line'";
         last if $line_num >= $start_line;
+
+        if ( ( $line_num % 10000 ) == 0 )
+        {
+            say STDERR "Reading line $line_num -- continuing until $start_line";
+        }
     }
 
     die "line is '$line' $line_num != $start_line " unless $line_num == $start_line;
 
+    say STDERR "Reached file start line ($start_line#) at --" . localtime();
     say $line;
 
     undef( $line );
@@ -144,7 +150,7 @@ sub main
 
         last if $line_num >= $end_line;
 
-        if ( ( $line_num % 1000 ) == 0 )
+        if ( ( $line_num % 10000 ) == 0 )
         {
             say STDERR "On line $line_num continuing until $end_line";
         }
