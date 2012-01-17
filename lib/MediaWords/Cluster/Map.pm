@@ -660,7 +660,7 @@ sub _get_time_slice_cluster_run
 
     return $time_slice_cluster_run if ( $time_slice_cluster_run );
 
-    my $time_slice_cluster_run = $db->create(
+    $time_slice_cluster_run = $db->create(
         'media_cluster_runs',
         {
             queries_id                   => $time_slice_query->{ queries_id },
@@ -722,13 +722,14 @@ sub _get_time_slice_map
 
     my $time_slice_polar_queries = _get_time_slice_polar_queries( $db, $cluster_map, $time_slice_query );
 
-    my $time_slice_map = generate_cluster_map(
+    $time_slice_map = generate_cluster_map(
         $db, $time_slice_cluster_run, $cluster_map->{ map_type },
         $time_slice_polar_queries,
         $cluster_map->{ links_rendered },
         $cluster_map->{ method }
     );
 
+    return $time_slice_map;
 }
 
 # return versions of the given cluster map for every four week period starting with the start date of the
