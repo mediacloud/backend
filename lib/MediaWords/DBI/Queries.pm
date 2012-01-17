@@ -1193,9 +1193,9 @@ sub _get_json_country_counts_for_query
         #  };
 
         # eval {
-        utf8::upgrade( $country_counts_json );
-        my $country_counts = decode_json( $country_counts_json );
-        return $country_counts;
+        # utf8::upgrade( $country_counts_json );
+        # my $country_counts = decode_json( $country_counts_json );
+        # return $country_counts;
 
         # };
     }
