@@ -14,6 +14,12 @@ BEGIN
 my $skip_reason = "Need to update tests after classes were moved and interfaces changes: The relevant classes now live in MediaWords::Cluster::Map ";
 
 use Test::More skip_all => $skip_reason;
+
+use Test::NoWarnings;
+
+#Commenting out test no warnings because all tests are skipped
+#use Test::NoWarnings;
+
 use Test::Differences;
 use Test::Deep;
 
