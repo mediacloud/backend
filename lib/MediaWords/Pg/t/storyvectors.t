@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 
+#use Test::NoWarnings;
 #use Test::More tests => 6;
 use Test::More skip_all => "Need to find a way to test the storyvector stuff";
 
