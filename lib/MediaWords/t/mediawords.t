@@ -12,7 +12,8 @@ BEGIN
 use Data::Dumper;
 use MediaWords::Pg::Schema;
 
-use Test::More tests => 12;
+use Test::NoWarnings;
+use Test::More tests => 12 + 1;
 
 BEGIN
 {
