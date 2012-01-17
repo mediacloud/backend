@@ -160,6 +160,8 @@ sub make_scrape_form
 {
     my ( $self, $c, $medium ) = @_;
 
+    die "Undefined media source " if !$medium;
+
     my $form = $c->create_form(
         {
             load_config_file => $c->path_to() . '/root/forms/scrape_feeds.yml',
