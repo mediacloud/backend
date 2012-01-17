@@ -15,6 +15,7 @@ BEGIN
 
 use Readonly;
 
+use Test::NoWarnings;
 use Test::More;
 use HTML::CruftText;
 use Test::Deep;
@@ -158,7 +159,8 @@ __END_TEST_CASE__
     },
 ];
 
-plan tests => scalar @{ $test_cases };
+my $num_tests = scalar @{ $test_cases };
+plan tests => $num_tests + 1;
 
 foreach my $test_case ( @{ $test_cases } )
 {
