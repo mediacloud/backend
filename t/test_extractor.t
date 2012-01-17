@@ -11,6 +11,9 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
+#Commenting out test no warnings because all tests are skipped
+#use Test::NoWarnings;
+
 use Test::More skip_all => "need to figure out why tests haven't worked";
 use Test::Differences;
 use Test::Deep;
