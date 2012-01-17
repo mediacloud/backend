@@ -13,6 +13,7 @@ use DBIx::Simple::MediaWords;
 use MediaWords::Util::Tags;
 use MediaWords::DB;
 
+#use Test::NoWarnings;
 #use Test::More tests => 7;
 use Test::More skip_all => "We need to set up a special database to actually test clustering";
 

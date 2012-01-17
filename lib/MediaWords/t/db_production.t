@@ -2,7 +2,8 @@ use strict;
 use warnings;
 use Dir::Self;
 use Data::Dumper;
-use Test::More tests => 11;
+use Test::NoWarnings;
+use Test::More tests => 11 + 1;
 
 BEGIN
 {
