@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use Test::More tests => 13;
+
+use Test::NoWarnings;
+use Test::More tests => 13 + 1;
 use MediaWords::Util::HTML;
 use Lingua::EN::Sentence::MediaWords;
 use Test::More;
