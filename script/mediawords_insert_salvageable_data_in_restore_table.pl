@@ -42,25 +42,34 @@ sub main
     die "$usage\n"
       unless $table;
 
-    say STDERR "starting --  " . localtime();
+    my $start_time = localtime();
+
+    say STDERR "starting --  $start_time";
 
     my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     my $restore_table = $table . '_restore';
 
-    Readonly my $back_records_to_test => 1000;
+    Readonly my $back_records_to_test => 2000;
 
     Readonly my $restore_table_max_id_query => "select max($table" . "_id) from $restore_table ";
 
-    Readonly my $table_id_range_query => "$table" . "_id > ( ( $restore_table_max_id_query ) - 10 ) and $table" . "_id < ( $restore_table_max_id_query ) ";
+    Readonly my $table_id_range_query => "$table" . "_id > ( ( $restore_table_max_id_query ) - $back_records_to_test ) and $table" . "_id < ( $restore_table_max_id_query ) ";
 
     Readonly my $sql_query => "INSERT INTO $restore_table (select * from $table where $table_id_range_query EXCEPT select * from $restore_table where $table_id_range_query ) ";
 
     say STDERR "Starting SQL query at " . localtime() . " : '$sql_query'";
     $db->query( $sql_query );
 
-    Readonly my $restore_after_old_max_id_query => "INSERT INTO $restore_table 
+    Readonly my $restore_after_old_max_id_query => "INSERT INTO $restore_table SELECT * FROM $table where $table" . "_id > ( $restore_table_max_id_query ) ";
+
+    say STDERR "Starting SQL query at " . localtime() . " : '$restore_after_old_max_id_query'";
+    $db->query( $restore_after_old_max_id_query );
+
+    my $end_time = localtime();
+
+    say STDERR "Completed start: $start_time end: $end_time";
 }
 
 main();
