@@ -12,7 +12,8 @@ BEGIN
 
 use Readonly;
 
-use Test::More tests => 7;
+use Test::NoWarnings;
+use Test::More tests => 7 + 1;
 use utf8;
 
 use Lingua::Stem;
