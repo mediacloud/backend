@@ -16,7 +16,8 @@ use File::Slurp;
 use Data::Dumper;
 use XML::FeedPP;
 
-use Test::More tests => 2;
+use Test::NoWarnings;
+use Test::More tests => 2 +1;
 
 use_ok( 'Feed::Scrape::MediaWords' );
 
@@ -42,7 +43,7 @@ sub main()
         my $url  = $item->link() || $item->guid();
         my $guid = $item->guid() || $item->link();
 	
-	ok( (!$guid) || ! ref ( $guid ) , "GUID is nonscalar $guid");
+	ok( (!$guid) || ! ref ( $guid ) , "GUID is nonscalar " . ($guid ? $guid : '<undefined?') );
 
 	next unless $url || $guid;
 
