@@ -9,6 +9,9 @@ BEGIN
 
 use warnings;
 use Data::Dumper;
+
+#Commenting out test no warnings because all tests are skipped
+#use Test::NoWarnings;
 use Test::More skip_all => 'We are moving away from using CLUTO';
 
 use Statistics::Cluto ':all';
