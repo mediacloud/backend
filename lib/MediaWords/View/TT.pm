@@ -13,7 +13,7 @@ use MediaWords::Util::Config;
 sub new
 {
     my $class = shift;
-    my $self  = $class->NEXT::new( @_ );
+    my $self  = $class->next::method( @_ );
     $self->{ template }->context->define_filter(
         round => sub {
             my $nr = shift;
