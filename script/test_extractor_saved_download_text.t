@@ -16,6 +16,8 @@ BEGIN
 use Readonly;
 
 use Test::More;
+require Test::NoWarnings;
+
 use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;
 use MediaWords::DBI::Downloads;
@@ -130,5 +132,7 @@ sub get_value_of_base_64_node
         is( $story_line_numbers_actual, $story_line_numbers_expected, "story line numbers" );
     }
 }
+
+Test::NoWarnings::had_no_warnings();
 
 done_testing;
