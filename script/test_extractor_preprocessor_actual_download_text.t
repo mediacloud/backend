@@ -12,6 +12,7 @@ BEGIN
 
 use Readonly;
 
+use Test::NoWarnings;
 use Test::More;
 use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;
