@@ -20,6 +20,7 @@ use Getopt::Long;
 use Readonly;
 use Carp;
 use MIME::Base64;
+use Try::Tiny;
 
 #Tests opening the files to make sure they're valid
 sub test_opening_files
@@ -55,6 +56,8 @@ sub main
 
     my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
+
+    $db->dbh->{ AutoCommit } = 0;
 
     my $restored_table_name = $table_name . '_restore';
 
@@ -109,7 +112,7 @@ sub main
 
         if ( ( $line_num % 100000 ) == 0 )
         {
-            say STDERR "Reading line $line_num -- continuing until $start_line";
+            say STDERR "Reading line $line_num -- continuing until $start_line " . ( 100.0 * $line_num / $start_line ) . "%";
         }
     }
 
@@ -146,8 +149,19 @@ sub main
 
         #say "line number $line_num: '$line'";
 
-        $db->dbh->pg_putcopydata( $line );
+        try
+        {
 
+            #say STDERR "putting data";
+
+            $db->dbh->pg_putcopydata( $line );
+        }
+        catch
+        {
+            my $message =
+              "Database error with pg_putcopydata line number $line_num '$line' " . "at " . localtime() . " :\n" . "$_";
+            die $message;
+        };
         last if $line_num >= $end_line;
 
         if ( ( $line_num % 10000 ) == 0 )
@@ -156,7 +170,12 @@ sub main
         }
     }
 
+    say STDERR "running pg_putcopyend()";
     $db->dbh->pg_putcopyend();
+
+    say STDERR "committing ";
+
+    $db->commit;
 
     say STDERR "finished datacopy at -- " . localtime();
 }
