@@ -14,6 +14,8 @@ use Readonly;
 use Data::Dumper;
 
 use Test::More;
+require Test::NoWarnings;
+
 use_ok( 'MediaWords::Tagger::Calais' );
 
 my $test_cases = [
@@ -59,5 +61,7 @@ foreach my $test_case ( @{ $test_cases } )
         is( join( ", ", map { $_ } @{ $tags } ), $test_case->{ test_output }, $test_case->{ test_name } );
     }
 }
+
+Test::NoWarnings::had_no_warnings();
 
 done_testing();
