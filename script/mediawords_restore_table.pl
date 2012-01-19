@@ -27,8 +27,56 @@ sub test_opening_files
 {
     my ( $line_number_file, $sql_dump_file ) = @_;
 
-    open my $LINE_NUMBERS_FILE_HANDLE, "<$line_number_file" or die $!;
-    open my $SQL_DUMP_FILE_HANDLE,     "<$sql_dump_file"    or die $!;
+    open my $LINE_NUMBERS_FILE_HANDLE, "<", $line_number_file or die $!;
+    open my $SQL_DUMP_FILE_HANDLE,     "<", $sql_dump_file    or die $!;
+}
+
+sub copy_data_until_line_num
+{
+    my ( $db, $SQL_DUMP_FILE_HANDLE, $copy_query, $start_line, $end_line ) = @_;
+
+    say STDERR "starting datacopy at -- " . localtime();
+
+    say STDERR "SQL Query '$copy_query'";
+
+    $db->dbh->do( $copy_query );
+
+    my $line_num = $start_line;
+
+    while ( ( my $line = <$SQL_DUMP_FILE_HANDLE> ) )
+    {
+        $line_num++;
+
+        #say "line number $line_num: '$line'";
+
+        try
+        {
+
+            #say STDERR "putting data";
+
+            $db->dbh->pg_putcopydata( $line );
+        }
+        catch
+        {
+            my $message =
+              "Database error with pg_putcopydata line number $line_num '$line' " . "at " . localtime() . " :\n" . "$_";
+            die $message;
+        };
+
+        last if $line_num >= $end_line;
+
+        if ( ( $line_num % 10000 ) == 0 )
+        {
+            say STDERR "On line $line_num continuing until $end_line " . ( 100.0 * ( $line_num - $start_line) / ( $end_line - $start_line ) ) . '%';
+        }
+    }
+
+    die unless $line_num == $end_line;
+
+    say STDERR "running pg_putcopyend()";
+    $db->dbh->pg_putcopyend();
+
+    return;
 }
 
 sub main
@@ -53,17 +101,6 @@ sub main
     #say STDERR Dumper( [ $table_name, $sql_dump_file, $line_number_file ] );
 
     say STDERR "starting --  " . localtime();
-
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
-      || die DBIx::Simple::MediaWords->error;
-
-    $db->dbh->{ AutoCommit } = 0;
-
-    my $restored_table_name = $table_name . '_restore';
-
-    $db->query(
-        "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); "
-    );
 
     open my $LINE_NUMBERS_FILE_HANDLE, "<$line_number_file" or die $!;
 
@@ -103,7 +140,7 @@ sub main
 
     say STDERR "reading dump file in search of start line ($start_line#) at --" . localtime();
 
-    while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
+    while ( <$SQL_DUMP_FILE_HANDLE> )
     {
         $line_num++;
 
@@ -119,7 +156,8 @@ sub main
     die "line is '$line' $line_num != $start_line " unless $line_num == $start_line;
 
     say STDERR "Reached file start line ($start_line#) at --" . localtime();
-    say $line;
+
+    #say $line;
 
     undef( $line );
 
@@ -133,49 +171,44 @@ sub main
 
     #say $line;
 
+    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+      || die DBIx::Simple::MediaWords->error;
+
+    $db->dbh->{ AutoCommit } = 0;
+
+    my $restored_table_name = $table_name . '_restore';
+
+    $db->query(
+        "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); "
+    );
+
     my $query = $line;
 
     $query =~ s/^COPY $table_name \(/COPY $restored_table_name \(/;
 
-    say STDERR "starting datacopy at -- " . localtime();
+    my $end_line_1 = int( $line_num + ($end_line - $line_num ) / 2 );
 
-    say STDERR "SQL Query '$query'";
+    my $end_line_2 = $end_line;
 
-    $db->dbh->do( $query );
+    copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
 
-    while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
-    {
-        $line_num++;
-
-        #say "line number $line_num: '$line'";
-
-        try
-        {
-
-            #say STDERR "putting data";
-
-            $db->dbh->pg_putcopydata( $line );
-        }
-        catch
-        {
-            my $message =
-              "Database error with pg_putcopydata line number $line_num '$line' " . "at " . localtime() . " :\n" . "$_";
-            die $message;
-        };
-        last if $line_num >= $end_line;
-
-        if ( ( $line_num % 10000 ) == 0 )
-        {
-            say STDERR "On line $line_num continuing until $end_line";
-        }
-    }
-
-    say STDERR "running pg_putcopyend()";
-    $db->dbh->pg_putcopyend();
-
-    say STDERR "committing ";
+    say STDERR "committing first copy";
 
     $db->commit;
+    $db->disconnect;
+
+    $db = 0;
+    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+      || die DBIx::Simple::MediaWords->error;
+
+    $db->dbh->{ AutoCommit } = 0;
+
+    copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
+
+    say STDERR "committing first copy";
+
+    $db->commit;
+    $db->disconnect;
 
     say STDERR "finished datacopy at -- " . localtime();
 }
