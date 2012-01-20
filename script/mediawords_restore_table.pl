@@ -59,32 +59,20 @@ sub main
 
     #say $line;
 
-    my $line;
+    my $query =  MediaWords::Util::DatabaseRestore::read_until_copy_statement( $SQL_DUMP_FILE_HANDLE, $table_name, \$line_num );
 
-    while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
-    {
-        $line_num++;
-        last if ( $line =~ /^COPY $table_name \(.*\) FROM stdin;/ );
-    }
+    $query =~ s/^COPY $table_name \(/COPY $restored_table_name \(/;
 
-    die unless $line;
-
-    #say $line;
+    my $restored_table_name = MediaWords::Util::DatabaseRestore::get_restore_table_name( $table_name );
+    my $restore_table_query =
+      "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); ";
 
     my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
       || die DBIx::Simple::MediaWords->error;
 
     $db->dbh->{ AutoCommit } = 0;
 
-    my $restored_table_name = MediaWords::Util::DatabaseRestore::get_restore_table_name( $table_name );
-    my $restore_table_query =
-      "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); ";
-
     $db->query( $restore_table_query );
-
-    my $query = $line;
-
-    $query =~ s/^COPY $table_name \(/COPY $restored_table_name \(/;
 
     my $end_line_1 = int( $line_num + ( $end_line - $line_num ) / 2 );
 

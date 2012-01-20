@@ -157,5 +157,23 @@ sub get_restore_table_name
     return $restored_table_name;
 }
 
+sub read_until_copy_statement
+{
+    my ( $SQL_DUMP_FILE_HANDLE, $table_name, $line_num ) = @_;
+
+    my $line;
+
+    while ( ( $line = <$SQL_DUMP_FILE_HANDLE> ) )
+    {
+        $$line_num++;
+        last if ( $line =~ /^COPY $table_name \(.*\) FROM stdin;/ );
+    }
+
+    die unless $line;
+
+    my $copy_statement = $line;
+
+    return $copy_statement;
+}
 
 1;
