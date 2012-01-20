@@ -1206,9 +1206,9 @@ sub data_dumps : Local
     my $full_data_dumps        = [ grep { $_->[ 0 ] =~ /.*_full_.*/ } @$data_dumps ];
     my $incremental_data_dumps = [ grep { $_->[ 0 ] =~ /.*_incremental_.*/ } @$data_dumps ];
 
-    if ( scalar( @{ $incremental_data_dumps } ) > 30 )
+    if ( scalar( @{ $incremental_data_dumps } ) > 60 )
     {
-        $incremental_data_dumps = [ ( ( @{ $incremental_data_dumps } )[ -30 .. -1 ] ) ];
+        $incremental_data_dumps = [ ( ( @{ $incremental_data_dumps } )[ -60 .. -1 ] ) ];
     }
 
     say STDERR Dumper( $data_dump_files );
