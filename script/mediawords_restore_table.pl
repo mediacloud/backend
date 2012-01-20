@@ -21,133 +21,7 @@ use Readonly;
 use Carp;
 use MIME::Base64;
 use Try::Tiny;
-
-#Tests opening the files to make sure they're valid
-sub test_opening_files
-{
-    my ( $line_number_file, $sql_dump_file ) = @_;
-
-    open my $LINE_NUMBERS_FILE_HANDLE, "<", $line_number_file or die $!;
-    open my $SQL_DUMP_FILE_HANDLE,     "<", $sql_dump_file    or die $!;
-}
-
-sub copy_data_until_line_num
-{
-    my ( $db, $SQL_DUMP_FILE_HANDLE, $copy_query, $start_line, $end_line ) = @_;
-
-    say STDERR "starting datacopy at -- " . localtime();
-
-    say STDERR "SQL Query '$copy_query'";
-
-    $db->dbh->do( $copy_query );
-
-    my $line_num = $start_line;
-
-    while ( ( my $line = <$SQL_DUMP_FILE_HANDLE> ) )
-    {
-        $line_num++;
-
-        #say "line number $line_num: '$line'";
-
-        try
-        {
-
-            #say STDERR "putting data";
-
-            $db->dbh->pg_putcopydata( $line );
-        }
-        catch
-        {
-            my $message =
-              "Database error with pg_putcopydata line number $line_num '$line' " . "at " . localtime() . " :\n" . "$_";
-            die $message;
-        };
-
-        last if $line_num >= $end_line;
-
-        if ( ( $line_num % 10000 ) == 0 )
-        {
-            say STDERR "On line $line_num continuing until $end_line " .
-              ( 100.0 * ( $line_num - $start_line ) / ( $end_line - $start_line ) ) . '%';
-        }
-    }
-
-    die unless $line_num == $end_line;
-
-    say STDERR "running pg_putcopyend()";
-    $db->dbh->pg_putcopyend();
-
-    return;
-}
-
-sub get_start_and_end_line_for_table
-{
-    my ( $line_number_file, $table_name ) = @_;
-
-    open my $LINE_NUMBERS_FILE_HANDLE, "<$line_number_file" or die $!;
-
-    my $line_num = 0;
-    my $line;
-
-    while ( ( $line = <$LINE_NUMBERS_FILE_HANDLE> ) )
-    {
-
-        #last if ($line =~ m/Data f/ );
-        last if ( $line =~ /.\d+\:-- Data for Name: $table_name; Type\: TABLE DATA; Schema\: public;/ );
-
-        #last if ($line =~ m/.\d+/ );
-        $line_num++;
-    }
-
-    say STDERR "Line:'$line'";
-
-    #say STDERR $line_num;
-
-    my ( $start_line ) = split ':', $line;
-
-    say STDERR "start line:$start_line";
-
-    $line = <$LINE_NUMBERS_FILE_HANDLE>;
-    $line = <$LINE_NUMBERS_FILE_HANDLE>;
-
-    my ( $end_line ) = split ':', $line;
-
-    say STDERR "end_line: $end_line";
-
-    close( $LINE_NUMBERS_FILE_HANDLE );
-
-    return { start_line => $start_line, end_line => $end_line };
-
-}
-
-sub read_until_line_num
-{
-
-    my ( $SQL_DUMP_FILE_HANDLE, $start_line ) = @_;
-
-    my $line_num = 0;
-
-    say STDERR "reading dump file in search of start line ($start_line#) at --" . localtime();
-
-    while ( <$SQL_DUMP_FILE_HANDLE> )
-    {
-        $line_num++;
-
-        #say "line number $line_num: '$line'";
-        last if $line_num >= $start_line;
-
-        if ( ( $line_num % 100000 ) == 0 )
-        {
-            say STDERR "Reading line $line_num -- continuing until $start_line " . ( 100.0 * $line_num / $start_line ) . "%";
-        }
-    }
-
-    die " $line_num != $start_line " unless $line_num == $start_line;
-
-    say STDERR "Reached file start line ($start_line#) at --" . localtime();
-
-    return;
-}
+use MediaWords::Util::DatabaseRestore;
 
 sub main
 {
@@ -166,20 +40,20 @@ sub main
     die "$usage\n"
       unless $table_name && $sql_dump_file && $line_number_file;
 
-    test_opening_files( $line_number_file, $sql_dump_file );
+    MediaWords::Util::DatabaseRestore::test_opening_files( $line_number_file, $sql_dump_file );
 
     #say STDERR Dumper( [ $table_name, $sql_dump_file, $line_number_file ] );
 
     say STDERR "starting --  " . localtime();
 
-    my $start_and_end_lines = get_start_and_end_line_for_table( $line_number_file, $table_name );
+    my $start_and_end_lines = MediaWords::Util::DatabaseRestore::get_start_and_end_line_for_table( $line_number_file, $table_name );
 
     my $start_line = $start_and_end_lines->{ start_line };
     my $end_line   = $start_and_end_lines->{ end_line };
 
     open my $SQL_DUMP_FILE_HANDLE, "<$sql_dump_file" or die $!;
 
-    read_until_line_num( $SQL_DUMP_FILE_HANDLE, $start_line );
+    MediaWords::Util::DatabaseRestore::read_until_line_num( $SQL_DUMP_FILE_HANDLE, $start_line );
 
     my $line_num = $start_line;
 
@@ -202,11 +76,11 @@ sub main
 
     $db->dbh->{ AutoCommit } = 0;
 
-    my $restored_table_name = $table_name . '_restore';
+    my $restored_table_name = MediaWords::Util::DatabaseRestore::get_restore_table_name( $table_name );
+    my $restore_table_query =
+      "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); ";
 
-    $db->query(
-        "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); "
-    );
+    $db->query( $restore_table_query );
 
     my $query = $line;
 
@@ -216,7 +90,7 @@ sub main
 
     my $end_line_2 = $end_line;
 
-    copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
+    MediaWords::Util::DatabaseRestore::copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
 
     say STDERR "committing first copy";
 
@@ -230,7 +104,7 @@ sub main
 
     $db->dbh->{ AutoCommit } = 0;
 
-    copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
+    MediaWords::Util::DatabaseRestore::copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
 
     say STDERR "committing first copy";
 
