@@ -58,8 +58,6 @@ sub main
 
     my $line_num = $start_line;
 
-    #say $line;
-
     my $restored_table_name = MediaWords::Util::DatabaseRestore::get_restore_table_name( $table_name );
     my $copy_query =
       MediaWords::Util::DatabaseRestore::read_until_copy_statement( $SQL_DUMP_FILE_HANDLE, $table_name, \$line_num );
@@ -76,15 +74,11 @@ sub main
     my $routine = sub {
         my ( $line, $line_num ) = @_;
 
-        #say STDERR "putting data";
-
         print $line;
     };
 
     MediaWords::Util::DatabaseRestore::process_data_until_line_num( $SQL_DUMP_FILE_HANDLE, $start_line, $end_line,
         $routine );
-
-    #MediaWords::Util::DatabaseRestore::copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line );
 
     say STDERR "finished datacopy at -- " . localtime();
 }
