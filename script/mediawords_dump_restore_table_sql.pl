@@ -29,18 +29,21 @@ sub main
     my Readonly $usage =
       'USAGE: ./mediawords_dump_restore_table_sql.pl --table_name foo --sql_dump_file dump_file --line_number_file file ';
 
-    my ( $table_name, $sql_dump_file, $line_number_file );
+    my ( $table_name, $sql_dump_file, $line_number_file, $output_file );
 
     GetOptions(
         'table_name=s'       => \$table_name,
         'sql_dump_file=s'    => \$sql_dump_file,
-        'line_number_file=s' => \$line_number_file
+        'line_number_file=s' => \$line_number_file,
+        'output_file=s'      => \$output_file,
     ) or die "$usage\n";
 
     die "$usage\n"
-      unless $table_name && $sql_dump_file && $line_number_file;
+      unless $table_name && $sql_dump_file && $line_number_file && $output_file;
 
     MediaWords::Util::DatabaseRestore::test_opening_files( $line_number_file, $sql_dump_file );
+
+    open my $OUTPUT_FILE, '>', $output_file;
 
     #say STDERR Dumper( [ $table_name, $sql_dump_file, $line_number_file ] );
 
@@ -67,18 +70,20 @@ sub main
     my $restore_table_query =
       "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); ";
 
-    say $restore_table_query;
+    say $OUTPUT_FILE, $restore_table_query;
 
-    say $copy_query;
+    say $OUTPUT_FILE, $copy_query;
 
     my $routine = sub {
         my ( $line, $line_num ) = @_;
 
-        print $line;
+        print  $OUTPUT_FILE $line;
     };
 
     MediaWords::Util::DatabaseRestore::process_data_until_line_num( $SQL_DUMP_FILE_HANDLE, $start_line, $end_line,
         $routine );
+
+    close( $OUTPUT_FILE );
 
     say STDERR "finished datacopy at -- " . localtime();
 }
