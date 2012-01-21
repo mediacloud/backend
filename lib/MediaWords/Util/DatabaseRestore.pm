@@ -173,6 +173,7 @@ sub read_until_copy_statement
 
     my $copy_statement = $line;
 
+    chomp( $copy_statement );
     return $copy_statement;
 }
 
