@@ -51,7 +51,7 @@ sub main
 
     my $restore_table = $table . '_restore';
 
-    Readonly my $back_records_to_test => 2000;
+    Readonly my $back_records_to_test => 10000;
 
     Readonly my $restore_table_max_id_query => "select max($table" . "_id) from $restore_table ";
 
