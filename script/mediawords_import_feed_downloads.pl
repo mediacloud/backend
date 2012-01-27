@@ -54,6 +54,8 @@ sub import_downloads
 
     my $db = MediaWords::DB::connect_to_db;
 
+    my $downloads_processed = 0;
+
     foreach my $child_node ( $root->childNodes() )
     {
         #say STDERR "child_node: " . $child_node->nodeName();
@@ -96,7 +98,10 @@ sub import_downloads
 
 	eval {
 	MediaWords::Crawler::FeedHandler::handle_feed_content($db,  $db_download, $decoded_content );
-        say STDERR Dumper( $db_download );
+	$downloads_processed++;
+
+	say STDERR "Processed $downloads_processed downloads";
+        #say STDERR Dumper( $db_download );
 	};
 
 	if ( $@ )
