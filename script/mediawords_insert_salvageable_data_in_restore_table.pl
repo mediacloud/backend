@@ -64,8 +64,8 @@ sub main
 
     Readonly my $restore_after_old_max_id_query => "INSERT INTO $restore_table SELECT * FROM $table where $table" . "_id > ( $restore_table_max_id_query ) ";
 
-    say STDERR "Starting SQL query at " . localtime() . " : '$restore_after_old_max_id_query'";
-    $db->query( $restore_after_old_max_id_query );
+    #say STDERR "Starting SQL query at " . localtime() . " : '$restore_after_old_max_id_query'";
+    #$db->query( $restore_after_old_max_id_query );
 
     my $end_time = localtime();
 
