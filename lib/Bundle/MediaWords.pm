@@ -130,8 +130,6 @@ HTML::FormFu
 #-- Temporarily adding HTML::Strip - it's used in scripts and tests.
 HTML::Strip
 
-Search::FreeText::LexicalAnalysis::Tokenize  - Temporarily adding used in Stemmer.t
-
 Arff::Util
 
 Class::CSV
