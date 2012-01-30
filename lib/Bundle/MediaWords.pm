@@ -127,7 +127,8 @@ Switch
 
 HTML::FormFu
 
-HTML::Strip - Temporarily adding - it's used in scripts and tests.
+#-- Temporarily adding HTML::Strip - it's used in scripts and tests.
+HTML::Strip
 
 Search::FreeText::LexicalAnalysis::Tokenize  - Temporarily adding used in Stemmer.t
 
