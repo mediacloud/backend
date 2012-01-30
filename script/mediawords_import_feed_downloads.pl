@@ -107,9 +107,9 @@ sub import_downloads
 	if ( $@ )
 	{
 	   warn $@;
-	   say "'$decoded_content'";
+	   #say "'$decoded_content'";
 	   say $old_downloads_id;
-	   exit;
+	   #exit;
 	}
     }
 }
