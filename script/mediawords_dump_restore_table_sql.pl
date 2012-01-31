@@ -49,8 +49,6 @@ sub main
 
     MediaWords::Util::DatabaseRestore::test_opening_files( $line_number_file, $sql_dump_file );
 
-    open my $OUTPUT_FILE, '>', $output_file;
-
     #say STDERR Dumper( [ $table_name, $sql_dump_file, $line_number_file ] );
 
     say STDERR "starting --  " . localtime();
@@ -67,6 +65,8 @@ sub main
     {
 	exit;
     }
+
+    open my $OUTPUT_FILE, '>', $output_file;
 
     open my $SQL_DUMP_FILE_HANDLE, "<", $sql_dump_file or die $!;
 
