@@ -1449,7 +1449,7 @@
       },
       "Catalyst::Runtime" : {
          "dist" : "Catalyst-Runtime-5.90007",
-         "module" : "Catalyst",
+         "module" : "Catalyst::ClassData",
          "mymeta" : {
             "abstract" : "The Catalyst Framework Runtime",
             "author" : [
@@ -2877,6 +2877,247 @@
          },
          "version" : "2.05"
       },
+      "Devel::Cover" : {
+         "dist" : "Devel-Cover-0.79",
+         "module" : "Devel::Cover",
+         "mymeta" : {
+            "abstract" : "Code coverage metrics for Perl",
+            "author" : [
+               "Paul Johnson (pjcj@cpan.org)"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.58, CPAN::Meta::Converter version 2.110930001, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Devel-Cover",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc",
+                  "tests",
+                  "utils"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "recommends" : {
+                     "JSON::PP" : 0,
+                     "PPI::HTML" : "1.07",
+                     "Parallel::Iterator" : 0,
+                     "Perl::Tidy" : "20060719",
+                     "Pod::Coverage" : "0.06",
+                     "Pod::Coverage::CountParents" : 0,
+                     "Template" : "2",
+                     "Test::Differences" : 0,
+                     "perl" : "5.008002"
+                  },
+                  "requires" : {
+                     "Digest::MD5" : 0,
+                     "Storable" : 0,
+                     "Test::More" : 0,
+                     "Test::Warn" : 0,
+                     "perl" : "5.006001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Devel-Cover"
+               },
+               "homepage" : "http://www.pjcj.net/perl.html",
+               "license" : [
+                  "http://dev.perl.org/licenses"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/pjcj/Devel--Cover"
+               },
+               "x_MailingList" : "http://lists.perl.org/list/perl-qa.html"
+            },
+            "version" : "0.79"
+         },
+         "name" : "Devel::Cover",
+         "pathname" : "P/PJ/PJCJ/Devel-Cover-0.79.tar.gz",
+         "provides" : {
+            "Devel::Cover" : {
+               "file" : "Devel/Cover.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Annotation::Git" : {
+               "file" : "Devel/Cover/Annotation/Git.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Annotation::Random" : {
+               "file" : "Devel/Cover/Annotation/Random.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Annotation::Svk" : {
+               "file" : "Devel/Cover/Annotation/Svk.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Branch" : {
+               "file" : "Devel/Cover/Branch.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Condition" : {
+               "file" : "Devel/Cover/Condition.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Condition_and_2" : {
+               "file" : "Devel/Cover/Condition_and_2.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Condition_and_3" : {
+               "file" : "Devel/Cover/Condition_and_3.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Condition_or_2" : {
+               "file" : "Devel/Cover/Condition_or_2.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Condition_or_3" : {
+               "file" : "Devel/Cover/Condition_or_3.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Condition_xor_4" : {
+               "file" : "Devel/Cover/Condition_xor_4.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Criterion" : {
+               "file" : "Devel/Cover/Criterion.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::DB" : {
+               "file" : "Devel/Cover/DB.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::DB::Criterion" : {
+               "file" : "Devel/Cover/Truth_Table.pm"
+            },
+            "Devel::Cover::DB::Digests" : {
+               "file" : "Devel/Cover/DB/Digests.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::DB::File" : {
+               "file" : "Devel/Cover/DB/File.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::DB::IO" : {
+               "file" : "Devel/Cover/DB/IO.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::DB::IO::JSON" : {
+               "file" : "Devel/Cover/DB/IO/JSON.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::DB::IO::Storable" : {
+               "file" : "Devel/Cover/DB/IO/Storable.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::DB::Run" : {
+               "file" : "Devel/Cover/DB.pm"
+            },
+            "Devel::Cover::DB::Structure" : {
+               "file" : "Devel/Cover/DB/Structure.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Inc" : {
+               "file" : "Devel/Cover/Inc.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Op" : {
+               "file" : "Devel/Cover/Op.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Pod" : {
+               "file" : "Devel/Cover/Pod.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Compilation" : {
+               "file" : "Devel/Cover/Report/Compilation.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Html" : {
+               "file" : "Devel/Cover/Report/Html.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Html_basic" : {
+               "file" : "Devel/Cover/Report/Html_basic.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Html_basic::Template::Provider" : {
+               "file" : "Devel/Cover/Report/Html_basic.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Html_minimal" : {
+               "file" : "Devel/Cover/Report/Html_minimal.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Html_subtle" : {
+               "file" : "Devel/Cover/Report/Html_subtle.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Html_subtle::Template::Provider" : {
+               "file" : "Devel/Cover/Report/Html_subtle.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Sort" : {
+               "file" : "Devel/Cover/Report/Sort.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Text" : {
+               "file" : "Devel/Cover/Report/Text.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Report::Text2" : {
+               "file" : "Devel/Cover/Report/Text2.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Statement" : {
+               "file" : "Devel/Cover/Statement.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Subroutine" : {
+               "file" : "Devel/Cover/Subroutine.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Test" : {
+               "file" : "Devel/Cover/Test.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Time" : {
+               "file" : "Devel/Cover/Time.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Truth_Table" : {
+               "file" : "Devel/Cover/Truth_Table.pm",
+               "version" : "0.79"
+            },
+            "Devel::Cover::Truth_Table::Row" : {
+               "file" : "Devel/Cover/Truth_Table.pm"
+            },
+            "Devel::Cover::Web" : {
+               "file" : "Devel/Cover/Web.pm",
+               "version" : "0.79"
+            }
+         },
+         "version" : "0.79"
+      },
       "Devel::GlobalDestruction" : {
          "dist" : "Devel-GlobalDestruction-0.04",
          "module" : "Devel::GlobalDestruction",
@@ -3849,7 +4090,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MakeMaker.pm"
+               "file" : "ExtUtils/MY.pm"
             }
          },
          "version" : "6.62"
@@ -10773,6 +11014,67 @@
          },
          "version" : "0.01"
       },
+      "Readonly" : {
+         "dist" : "Readonly-1.03",
+         "module" : "Readonly",
+         "mymeta" : {
+            "abstract" : "Facility for creating read-only scalars, arrays, hashes.",
+            "author" : [
+               "Eric J. Roode <roode@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Readonly",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {}
+               }
+            },
+            "release_status" : "stable",
+            "version" : "1.03"
+         },
+         "name" : "Readonly",
+         "pathname" : "R/RO/ROODE/Readonly-1.03.tar.gz",
+         "provides" : {
+            "Readonly" : {
+               "file" : "Readonly.pm",
+               "version" : "1.03"
+            },
+            "Readonly::Array" : {
+               "file" : "Readonly.pm"
+            },
+            "Readonly::Hash" : {
+               "file" : "Readonly.pm"
+            },
+            "Readonly::Scalar" : {
+               "file" : "Readonly.pm"
+            }
+         },
+         "version" : "1.03"
+      },
       "Spiffy" : {
          "dist" : "Spiffy-0.30",
          "module" : "Spiffy",
@@ -12579,6 +12881,55 @@
             }
          },
          "version" : "0.19"
+      },
+      "Test::Strict" : {
+         "dist" : "Test-Strict-0.14",
+         "module" : "Test::Strict",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "unknown"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.42, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Test-Strict",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Devel::Cover" : "0.43",
+                     "File::Find" : "0.01",
+                     "File::Spec" : "0.01",
+                     "File::Temp" : "0.01",
+                     "FindBin" : "0.01",
+                     "Test::Builder" : "0.01",
+                     "Test::Simple" : "0.47"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.14"
+         },
+         "name" : "Test::Strict",
+         "pathname" : "P/PD/PDENIS/Test-Strict-0.14.tar.gz",
+         "provides" : {
+            "Test::Strict" : {
+               "file" : "Test/Strict.pm",
+               "version" : "0.14"
+            }
+         },
+         "version" : "0.14"
       },
       "Test::TCP" : {
          "dist" : "Test-TCP-1.14",
