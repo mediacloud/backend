@@ -29,13 +29,16 @@ sub main
     my Readonly $usage =
       'USAGE: ./mediawords_dump_restore_table_sql.pl --table_name foo --sql_dump_file dump_file --line_number_file file ';
 
-    my ( $table_name, $sql_dump_file, $line_number_file, $output_file );
+    my ( $table_name, $sql_dump_file, $line_number_file, $output_file, $display_only );
+
+    $display_only = 0;
 
     GetOptions(
         'table_name=s'       => \$table_name,
         'sql_dump_file=s'    => \$sql_dump_file,
         'line_number_file=s' => \$line_number_file,
         'output_file=s'      => \$output_file,
+        'display_line_numbers_only=b' => \$display_only,
     ) or die "$usage\n";
 
     die "$usage\n"
@@ -54,6 +57,13 @@ sub main
 
     my $start_line = $start_and_end_lines->{ start_line };
     my $end_line   = $start_and_end_lines->{ end_line };
+
+    say STDERR "start line: $start_line, end line: $end_line ";
+
+    if ( $display_only )
+    {
+	exit;
+    }
 
     open my $SQL_DUMP_FILE_HANDLE, "<", $sql_dump_file or die $!;
 
