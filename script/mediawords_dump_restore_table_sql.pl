@@ -38,11 +38,14 @@ sub main
         'sql_dump_file=s'    => \$sql_dump_file,
         'line_number_file=s' => \$line_number_file,
         'output_file=s'      => \$output_file,
-        'display_line_numbers_only=b' => \$display_only,
+        'display_line_numbers_only' => \$display_only,
     ) or die "$usage\n";
 
     die "$usage\n"
-      unless $table_name && $sql_dump_file && $line_number_file && $output_file;
+      unless $table_name && $sql_dump_file && $line_number_file ;
+
+    die "$usage\n"
+      unless $output_file or $display_only ;
 
     MediaWords::Util::DatabaseRestore::test_opening_files( $line_number_file, $sql_dump_file );
 
