@@ -61,9 +61,10 @@ sub main
 
     my $query =  MediaWords::Util::DatabaseRestore::read_until_copy_statement( $SQL_DUMP_FILE_HANDLE, $table_name, \$line_num );
 
+    my $restored_table_name = MediaWords::Util::DatabaseRestore::get_restore_table_name( $table_name );
+
     $query =~ s/^COPY $table_name \(/COPY $restored_table_name \(/;
 
-    my $restored_table_name = MediaWords::Util::DatabaseRestore::get_restore_table_name( $table_name );
     my $restore_table_query =
       "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); ";
 
