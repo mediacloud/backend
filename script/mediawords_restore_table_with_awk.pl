@@ -60,7 +60,7 @@ sub main
 
     say STDERR "Running awk_command for table '$table_name': $awk_command";
 
-    system( $awk_command ) && die "Error running $awk_command: '$@'";
+    system( $awk_command ) && die "Error running command $awk_command for table $table_name: '$@'";
 
     say STDERR "Finished '$awk_command' for $table_name";
 
