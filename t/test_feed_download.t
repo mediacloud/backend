@@ -14,7 +14,7 @@ BEGIN
 use Test::More;
 use Test::Differences;
 use Test::Deep;
-#use Test::NoWarnings;
+require Test::NoWarnings;
 
 
 use MediaWords::Crawler::Engine;
@@ -392,6 +392,7 @@ sub main
 
             kill_local_server( $url_to_crawl );
 
+	    Test::NoWarnings::had_no_warnings();
             done_testing();
         }
     );
