@@ -138,7 +138,7 @@ sub fetch_content_remote
         return \"";
     }
 
-    my $username = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content_username };
+    my $username = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content_user };
     my $password = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content_password };
     my $url      = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content_url };
 
@@ -165,6 +165,7 @@ sub fetch_content_remote
     }
     else
     {
+        warn( "error fetching remote content: " . $response->as_string );
         return \"";
     }
 }
@@ -174,18 +175,15 @@ sub fetch_content
 {
     my ( $download ) = @_;
 
-    if ( my $content_ref = fetch_content_local( $download ) )
-    {
-        return $content_ref;
-    }
-
     my $fetch_remote = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content } || 'no';
     if ( $fetch_remote eq 'yes' )
     {
         return fetch_content_remote( $download );
     }
-    else
-    {
+    elsif ( my $content_ref = fetch_content_local( $download ) ) {
+        return $content_ref;
+    }
+    else {
         return \'';
     }
 }
