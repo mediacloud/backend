@@ -26,7 +26,8 @@ function annotatedTimeLineChart(chart_element, url, dataString) {
 
             //alert(json);
             chart.draw(data, {
-                displayAnnotations: true
+                displayAnnotations: true,
+		legendPosition: 'newRow'
             });
 
             //alert(data.toJSON() );
