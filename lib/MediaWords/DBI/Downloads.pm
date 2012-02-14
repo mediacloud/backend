@@ -159,7 +159,7 @@ sub fetch_content_remote
 
     if ( $response->is_success() )
     {
-        my $content = $response->content();
+        my $content = $response->decoded_content();
 
         return \$content;
     }
