@@ -20,7 +20,7 @@ $(document).ready(function()
 [ [% term.term | html %] - [% term.max_term_ratio * 100 | format( '%.02f' ) %]% ]
 [% END %]
 </p>
-<div style='width: 700px; height: 350px' id='annotated_time_line' >
+<div style='width: 800px; height: 450px' id='annotated_time_line' >
 </div>
 
 <p>
