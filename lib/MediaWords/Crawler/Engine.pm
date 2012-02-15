@@ -348,7 +348,7 @@ sub crawl_single_download
 
                 #print STDERR "sending fetcher $fetcher_number none\n";
                 $s->printflush( "none\n" );
-                last OUTER_Loop;
+                last OUTER_LOOP;
             }
 
             # print "fetcher $fetcher_number request assigned\n";
@@ -358,6 +358,8 @@ sub crawl_single_download
 
     }
     $self->dbs->commit;
+
+    sleep( 5 );
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
     print "waiting 5 seconds for children to exit ...\n";
