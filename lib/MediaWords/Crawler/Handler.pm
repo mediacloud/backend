@@ -329,7 +329,16 @@ sub handle_response
         case 'feed'
         {
 
-            MediaWords::Crawler::FeedHandler::handle_feed_content( $dbs, $download, $response->decoded_content );
+	    my $config = MediaWords::Util::Config::get_config;
+	    if ( (  $config->{ mediawords }->{ do_not_process_feeds }  )  && ( $config->{ mediawords }->{ do_not_process_feeds } eq 'yes' ) )
+	    {
+	       MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
+	    }
+	    else
+	    {
+	       MediaWords::Crawler::FeedHandler::handle_feed_content( $dbs, $download, $response->decoded_content );
+	    }
+
         }
         case 'archival_only'
         {
