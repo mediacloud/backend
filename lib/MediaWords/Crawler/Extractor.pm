@@ -15,7 +15,6 @@ use Time::HiRes;
 use List::MoreUtils qw(first_index indexes last_index);
 use Array::Compare;
 use HTML::CruftText;
-use Switch 'Perl6';
 use Carp qw (confess);
 use Lingua::ZH::MediaWords;
 
