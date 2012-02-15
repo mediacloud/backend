@@ -15,7 +15,7 @@ use Test::More;
 use Test::Differences;
 use Test::Deep;
 
-#use Test::NoWarnings;
+require Test::NoWarnings;
 
 
 use MediaWords::Crawler::Engine;
@@ -31,6 +31,8 @@ use LWP::UserAgent;
 use Perl6::Say;
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
+
+#use feature 'unicode_strings';
 
 # add a test media source and feed to the database
 sub add_test_feed
@@ -418,6 +420,7 @@ sub main
             print "Killing server\n";
             kill_local_server( $url_to_crawl );
 
+	    Test::NoWarnings::had_no_warnings();
             done_testing();
         }
     );
