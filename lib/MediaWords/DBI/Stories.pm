@@ -85,12 +85,21 @@ sub get_text
         push( @{ $download_texts }, "(downloads pending extraction)" );
     }
 
-    # DRL - Does this code do anything commenting out for now...
-    # my ( $title, $description ) =
-    #   $db->query( "select title, description from stories where stories_id = ?", $story->{ stories_id } )->flat;
-
     return _get_text_from_download_text( $story, $download_texts );
 
+}
+
+# get extracted html of all the download texts associate with the story
+sub get_extracted_html_from_db
+{
+    my ( $db, $story ) = @_;
+    
+    my $download_texts = $db->query(
+        "select dt.* from download_texts dt, downloads d " .
+        "  where dt.downloads_id = d.downloads_id and d.stories_id = ? " .
+        "  order by d.downloads_id", $story->{ stories_id } )->hashes;
+        
+    return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );    
 }
 
 # Like get_text but it doesn't include both the rss information and the extracted text. Including both could cause some sentences to appear twice and throw off our word counts.

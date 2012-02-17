@@ -14,6 +14,8 @@ use Storable;
 sub ParallelGet
 {
     my ( $urls ) = @_;
+    
+    return [] unless ( $urls && @{ $urls } );
 
     my $web_store_input;
     my $results;

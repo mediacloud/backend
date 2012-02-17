@@ -172,29 +172,30 @@ sub update_extractor_results_with_text_and_html
     return $extractor_results;
 }
 
-sub update_text
+# get the extracted html from the database for the given download
+sub get_extracted_html_from_db
 {
     my ( $db, $download_text ) = @_;
-
-    #say STDERR "update_text";
-
-    my $extracted_line_numbers =
-      $db->query( "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
+    
+    my $extracted_line_numbers = $db->query( 
+        "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
         $download_text->{ download_texts_id } )->flat;
 
-    #say Dumper ( $extracted_line_numbers );
-    #say STDERR "got extracted_line_numbers";
-
     my $download =
-      $db->query( 'SELECT * from downloads where downloads_id = ? limit 1 ', $download_text->{ downloads_id } )->hash;
+      $db->query( 'SELECT * from downloads where downloads_id = ? ', $download_text->{ downloads_id } )->hash;
 
     die unless $download;
 
     my $lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
 
-    #say Dumper ( $extracted_line_numbers );
+    return get_extracted_html( $lines, $extracted_line_numbers );
+}
 
-    my $extracted_html = get_extracted_html( $lines, $extracted_line_numbers );
+sub update_text
+{
+    my ( $db, $download_text ) = @_;
+
+    my $extracted_html = get_extracted_html_from_db( $db, $download_text );
 
     my $extracted_text = html_strip( $extracted_html );
 
