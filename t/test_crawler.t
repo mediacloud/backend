@@ -96,7 +96,7 @@ sub extract_downloads
 
     print "extracting downloads ...\n";
 
-    my $downloads = $db->query( "select * from downloads where type = 'content'" )->hashes;
+    my $downloads = $db->query( "select * from downloads where type = 'content' order by stories_id, downloads_id" )->hashes;
 
     for my $download ( @{ $downloads } )
     {
