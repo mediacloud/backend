@@ -36,6 +36,8 @@ sub ParallelGet
         return;
     }
 
+    binmode( CMD, 'utf8' );
+
     print CMD $web_store_input;
     close( CMD );
 
