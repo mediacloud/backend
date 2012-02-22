@@ -9,12 +9,15 @@ package Lingua::EN::Sentence::MediaWords;
 #==============================================================================
 require 5.005_03;
 use strict;
-use POSIX qw(locale_h);
+#use warnings;
+use POSIX;
 use utf8;
 use Data::Dumper;
 use MIME::Base64;
 use Encode;
 use Lingua::EN::Sentence::ApplyRegexWithoutLocale;
+
+use if $] >= 5.014, re => '/d';
 
 #==============================================================================
 #
@@ -99,7 +102,12 @@ sub get_sentences
     return [] unless defined $text;
 
     # this prevents a regexp bug from hanging the program in remove_false_end_of_sentence (see comement in function)
-	$text =~ s/[^\n[:alnum:][:punct:]]+/ /g;
+        $text =~ s/[^\n[:alnum:][:punct:]]+/ /g;
+
+        #print "get_sentences for '$text'\n";
+	#$text =~ s/[^\n\p{IsAlnum}[:punct:]]+/ /g;
+
+        #print "get_sentences cleaned to '$text'\n";
 
         #Further workaround for remove_false_end_of_sentence bug: add EOS for double newline then purge newlines
         #For some reason we need to be this here instead in first_sentence_breaking
@@ -114,13 +122,25 @@ sub get_sentences
 	
 	# we see lots of cases of missing spaces after sentence ending periods
 	$text =~ s/([[:lower:]])\.([[:upper:]])/$1. $2/g;
-	
+
+        #print "get_sentences before first_sentence_breaking '$text'\n";
 	my $marked_text = first_sentence_breaking($text);    
 
-	$marked_text =~ s/[^$EOS[:alnum:][:punct:]]+/ /g;
+        #print "get_sentences marked text '$marked_text'\n";
+
+	#$marked_text =~ s/[^$EOS\p{XPosixAlnum}[:punct:]]+/ /g;
+	$marked_text =~ s/[^$EOS\p{IsAlnum}[:punct:]]+/ /g;
+
+        #print "get_sentences marked text '$marked_text'\n";
 
 	my $fixed_marked_text = remove_false_end_of_sentence($marked_text);
+
+        #print "get_sentences fixed_marked_text '$fixed_marked_text'\n";
+
 	$fixed_marked_text = split_unsplit_stuff($fixed_marked_text);
+
+        #print "get_sentences fixed_marked_text '$fixed_marked_text'\n";
+
 	my @sentences = split(/$EOS/,$fixed_marked_text);
 	my $cleaned_sentences = clean_sentences(\@sentences);
 	
@@ -313,6 +333,8 @@ sub remove_false_end_of_sentence
     #$marked_segment = join '', map { _apply_dangerous_regex( $_ ) }  @ {_split_into_chunks( $marked_segment )};
 
     $marked_segment = _apply_dangerous_regex( $marked_segment );
+
+    #print "marked_segment: '$marked_segment\n'";
 
 #    $marked_segment =~ s/([^-\w]\w$P)$EOS/$1/sgo;
 
