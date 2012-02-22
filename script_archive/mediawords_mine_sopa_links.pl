@@ -677,7 +677,7 @@ sub main
     
     my $db = MediaWords::DB::connect_to_db;
     
-    delete_duplicate_sopa_stories( $db );
+    delete_duplicate_sopa_links( $db );
     
     
     # if ( $option eq '-r' )
