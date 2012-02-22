@@ -425,7 +425,6 @@ sub get_medium
 
 sub process_download_for_extractor
 {
-
     my ( $db, $download, $process_num ) = @_;
 
     print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
