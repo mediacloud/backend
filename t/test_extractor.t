@@ -11,8 +11,7 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-#Commenting out test no warnings because all tests are skipped
-#use Test::NoWarnings;
+require Test::NoWarnings;
 
 use Test::More skip_all => "need to figure out why tests haven't worked";
 use Test::Differences;
@@ -79,46 +78,7 @@ sub main
 	my $dump	 = @ARGV;
     extract_and_compare( 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
 
-    # MediaWords::Test::DB::test_on_test_database(
-    #     sub {
-    #         use Encode;
-    #         my ( $db ) = @_;
-
-    #         my $crawler_data_location = get_crawler_data_directory();
-
-    #         my $url_to_crawl = MediaWords::Test::LocalServer::start_server( $crawler_data_location );
-
-    #         my $feed = add_test_feed( $db, $url_to_crawl );
-
-    #         run_crawler();
-
-    #         extract_downloads( $db );
-
-    # 	    update_download_texts( $db );
-
-    #         process_stories( $db );
-
-    #         if ( defined( $dump ) && ( $dump eq '-d' ) )
-    #         {
-    #             dump_stories( $db, $feed );
-    #         }
-
-    #         test_stories( $db, $feed );
-
-    #         generate_aggregate_words( $db, $feed );
-    #         if ( defined( $dump ) && ( $dump eq '-d' ) )
-    #         {
-    #             dump_top_500_weekly_words( $db, $feed );
-    #         }
-
-    #         test_top_500_weekly_words( $db, $feed );
-
-    #         print "Killing server\n";
-    #         kill_local_server( $url_to_crawl );
-
-    #         done_testing();
-    #     }
-    # );
+    Test::NoWarnings::had_no_warnings();
 
 }
 
