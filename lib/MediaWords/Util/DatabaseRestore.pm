@@ -83,7 +83,7 @@ sub get_start_and_end_line_for_table
 {
     my ( $line_number_file, $table_name ) = @_;
 
-    open my $LINE_NUMBERS_FILE_HANDLE, "<$line_number_file" or die $!;
+    open my $LINE_NUMBERS_FILE_HANDLE, "<", $line_number_file or die $!;
 
     my $line_num = 0;
     my $line;
