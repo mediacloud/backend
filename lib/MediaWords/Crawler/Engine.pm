@@ -52,13 +52,15 @@ sub _fetch_and_handle_download
         die( "fetcher " . $self->fetcher_number . ": Unable to find download_id: $download->{downloads_id}" );
     }
 
-    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " starting";
+    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } .
+      " starting";
 
     my $start_fetch_time = [ Time::HiRes::gettimeofday ];
     my $response         = $fetcher->fetch_download( $download );
     my $end_fetch_time   = [ Time::HiRes::gettimeofday ];
 
-    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " fetched";
+    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } .
+      " fetched";
 
     $DB::single = 1;
     eval { $handler->handle_response( $download, $response ); };
@@ -71,8 +73,8 @@ sub _fetch_and_handle_download
         die( "Error in handle_response() for downloads_id '$download->{downloads_id}' '" . $download->{ url } . "' : $@" );
     }
 
-    print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } .
-      " processing complete [ $fetch_time / $handle_time ]\n";
+    print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " .
+      $download->{ url } . " processing complete [ $fetch_time / $handle_time ]\n";
 
     return;
 }
@@ -80,7 +82,7 @@ sub _fetch_and_handle_download
 sub fetch_and_handle_single_download
 {
 
-    my ( $self, $download) = @_;
+    my ( $self, $download ) = @_;
 
     $self->reconnect_db();
 
@@ -131,7 +133,7 @@ sub _run_fetcher
                 chomp( $downloads_id );
             }
 
-            if ( $downloads_id && ( $downloads_id ne 'none' ) )
+            if ( $downloads_id && ( $downloads_id ne 'none' ) && ( $downloads_id ne 'exit' ) )
             {
 
                 # print STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$downloads_id'\n";
@@ -139,6 +141,11 @@ sub _run_fetcher
 
                 $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
+            }
+            elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
+            {
+	        say STDERR "exiting as a fetcher";
+                #exit 0;
             }
             else
             {
@@ -347,7 +354,19 @@ sub crawl_single_download
             {
 
                 #print STDERR "sending fetcher $fetcher_number none\n";
-                $s->printflush( "none\n" );
+                $s->printflush( "exit\n" );
+
+		my @fetchers = @{$self->{fetchers}};
+
+		my $fetcher = $fetchers[ $fetcher_number ];
+
+		my $fetcher_pid = $fetcher->{ pid } ;
+                
+		sleep (3);
+		say STDERR "waiting for fetcher $fetcher_number ( pid  $fetcher_pid ) ";
+		#waitpid ( $fetcher_pid, 0 );
+
+		say STDERR "exting loop after wait";
                 last OUTER_LOOP;
             }
 
@@ -361,7 +380,7 @@ sub crawl_single_download
 
     sleep( 5 );
 
-    kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
+    #kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
     print "waiting 5 seconds for children to exit ...\n";
     sleep( 5 );
 }
