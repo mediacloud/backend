@@ -626,7 +626,7 @@ sub spider_new_links
             print STDERR "spidering $link->{ url } ...\n";
             my $story = get_matching_story_from_db( $db, $link ) || add_new_story( $db, $link, $i );
             
-            if ( !story_is_sopa_story( $db, $sopa ) && story_matches_sopa_keywords( $db, $story ) )
+            if ( !story_is_sopa_story( $db, $story ) && story_matches_sopa_keywords( $db, $story ) )
             {
                 print STDERR "SOPA MATCH: $link->{ url }\n";
                 add_to_sopa_stories_and_links( $db, $story, $link->{ iteration } + 1 );                
