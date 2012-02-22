@@ -1,4 +1,4 @@
-[% INCLUDE 'zoe_website_template/text_page_head.tt2' %]
+[% INCLUDE 'public_ui/text_page_head.tt2' %]
 
 <b>[% c.loc('Data') %]</b>
 
@@ -31,5 +31,5 @@
 </ul>
 
 
-[% INCLUDE 'zoe_website_template/text_page_foot.tt2' %]
+[% INCLUDE 'public_ui/text_page_foot.tt2' %]
 

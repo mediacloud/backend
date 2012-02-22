@@ -16,7 +16,7 @@ function onMapCreated()
    //alert("got data " + data);
    map.loadValuesFromCSVString(data);
 
-[% INCLUDE 'zoe_website_template/open_heat_map_settings.tt2' %]
+[% INCLUDE 'public_ui/open_heat_map_settings.tt2' %]
 
    onDataLoaded();
    } );

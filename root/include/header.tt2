@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-   [% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
+   [% INCLUDE 'public_ui/third_party_libs.tt2' %]
 
     <script type="text/javascript" src="/script/protovis-r3.2.js"></script>
     <script type="text/javascript" src="/script/jquery.tipsy.js"></script>

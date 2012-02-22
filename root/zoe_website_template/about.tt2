@@ -1,4 +1,0 @@
-
-[% INCLUDE 'zoe_website_template/text_page_head.tt2' %]
-[% INCLUDE 'zoe_website_template/about_text.tt2' %]
-[% INCLUDE 'zoe_website_template/text_page_foot.tt2' %]

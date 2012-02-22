@@ -4,7 +4,7 @@
 [% primary = 1 %]
 [% END %]
 [% hide_coverage_map = 1 %]
-[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+[% INCLUDE 'public_ui/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
 
@@ -70,7 +70,7 @@ function show_sentences_for_word_cloud_item(word_cloud_item)
 
        $('#authors_id1').hide();
         $('#author_name1').autocomplete(
-   [% INCLUDE 'zoe_website_template/author_jquery_ui_autocomplete_options.tt2' %]
+   [% INCLUDE 'public_ui/author_jquery_ui_autocomplete_options.tt2' %]
    );
 
         $('#media_query_form').validate({
@@ -219,12 +219,12 @@ function onError(err)
 
 [% # form.render() %]
 
-[% INCLUDE 'zoe_website_template/header.tt2' %]
+[% INCLUDE 'public_ui/header.tt2' %]
 
 [% IF primary %]
 <tr>
 <td>
- [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
+ [% INCLUDE 'public_ui/front_page_content.tt2' %]
 </td>
 </tr>
 [% END %]
@@ -263,7 +263,7 @@ function onError(err)
 [% IF ! primary %]
   <tr>
     <td>
- [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
+ [% INCLUDE 'public_ui/front_page_content.tt2' %]
 </td>
 </tr>
 [% END %]
@@ -271,7 +271,7 @@ function onError(err)
 <tr>
  <td align="left">
 
- [% INCLUDE 'zoe_website_template/sentences_and_subsets.tt2' %]
+ [% INCLUDE 'public_ui/sentences_and_subsets.tt2' %]
  </td>   
          
         </tr>
@@ -289,7 +289,7 @@ function onError(err)
 </div>
 [% IF primary %]
             <br/>
-[% INCLUDE 'zoe_website_template/bottom_container_div.tt2' %]
+[% INCLUDE 'public_ui/bottom_container_div.tt2' %]
 
             <!--This is where the content ends!--></td>
         </tr>
@@ -321,5 +321,5 @@ function onError(err)
 [% END %] 
 type="hidden"/>
 </form>
-[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
+[% INCLUDE 'public_ui/html_footer.tt2' %]
 

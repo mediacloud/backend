@@ -1025,15 +1025,15 @@ sub view : Local
 
     if ( $c->req->param( 'cmaponly' ) )
     {
-        $c->stash->{ template } = 'zoe_website_template/coverage_map_only.tt2';
+        $c->stash->{ template } = 'public_ui/coverage_map_only.tt2';
     }
     elsif ( $c->req->param( 'wconly' ) )
     {
-        $c->stash->{ template } = 'zoe_website_template/word_cloud_only.tt2';
+        $c->stash->{ template } = 'public_ui/word_cloud_only.tt2';
     }
     else
     {
-        $c->stash->{ template } = 'zoe_website_template/media_cloud_rough_html.tt2';
+        $c->stash->{ template } = 'public_ui/media_cloud_rough_html.tt2';
     }
 }
 
@@ -1047,7 +1047,7 @@ sub news : Local
         $dashboards_id = $self->_default_dashboards_id( $c );
     }
     $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
-    $c->stash->{ template } = 'zoe_website_template/news.tt2';
+    $c->stash->{ template } = 'public_ui/news.tt2';
 }
 
 # static about page
@@ -1060,7 +1060,7 @@ sub about : Local
         $dashboards_id = $self->_default_dashboards_id( $c );
     }
     $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
-    $c->stash->{ template } = 'zoe_website_template/about.tt2';
+    $c->stash->{ template } = 'public_ui/about.tt2';
 }
 
 # static faq page
@@ -1073,7 +1073,7 @@ sub faq : Local
         $dashboards_id = $self->_default_dashboards_id( $c );
     }
     $c->stash->{ dashboard } = $self->_get_dashboard( $c, $dashboards_id );
-    $c->stash->{ template } = 'zoe_website_template/faq.tt2';
+    $c->stash->{ template } = 'public_ui/faq.tt2';
 }
 
 # base dir
@@ -1221,7 +1221,7 @@ sub data_dumps : Local
     $c->stash->{ full_data_dumps }        = $full_data_dumps;
     $c->stash->{ incremental_data_dumps } = $incremental_data_dumps;
 
-    $c->stash->{ template } = 'zoe_website_template/data_dumps.tt2';
+    $c->stash->{ template } = 'public_ui/data_dumps.tt2';
 }
 
 sub coverage_changes : Local : FormConfig
@@ -1237,7 +1237,7 @@ sub coverage_changes : Local : FormConfig
         $c->stash->{ show_results }          = 1;
         $c->stash->{ compare_media_sets_id } = $c->req->param( 'compare_media_sets_id' );
     }
-    $c->stash->{ template } = 'zoe_website_template/coverage_changes.tt2';
+    $c->stash->{ template } = 'public_ui/coverage_changes.tt2';
 }
 
 sub json_popular_queries : Local
@@ -1404,7 +1404,7 @@ sub author_query : Local : FormConfig
 
     $c->stash->{ dashboard }       = $dashboard;
     $c->stash->{ dashboard_dates } = $dashboard_dates;
-    $c->stash->{ template }        = 'zoe_website_template/author_query.tt2';
+    $c->stash->{ template }        = 'public_ui/author_query.tt2';
 }
 
 sub _translate_word_list
@@ -1752,7 +1752,7 @@ sub coverage_map_iframe : Local
     }
 
     $c->stash->{ csv_url }  = $csv_url;
-    $c->stash->{ template } = 'zoe_website_template/coverage_map_iframe.tt2';
+    $c->stash->{ template } = 'public_ui/coverage_map_iframe.tt2';
 }
 
 # list the sentence counts for each medium in the query for the given stem
@@ -1954,7 +1954,7 @@ sub media_sets : Local
 
     $c->stash->{ dashboard }  = $dashboard;
     $c->stash->{ media_sets } = $media_sets;
-    $c->stash->{ template }   = 'zoe_website_template/media_sets.tt2';
+    $c->stash->{ template }   = 'public_ui/media_sets.tt2';
 }
 
 sub media : Local
@@ -1980,7 +1980,7 @@ sub media : Local
     $c->stash->{ dashboard } = $dashboard;
     $c->stash->{ media_set } = $media_set;
     $c->stash->{ media }     = $media;
-    $c->stash->{ template }  = 'zoe_website_template/media.tt2';
+    $c->stash->{ template }  = 'public_ui/media.tt2';
 }
 
 1;

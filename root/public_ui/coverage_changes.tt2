@@ -1,4 +1,4 @@
-[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+[% INCLUDE 'public_ui/html_head.tt2' %]
 
 <body>
 <script language="javascript" type="text/javascript">
@@ -11,8 +11,8 @@
 [% END %]
         ];
  
-        $('#medium_name1').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
-        $('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+        $('#medium_name1').autocomplete( [% INCLUDE 'public_ui/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+        $('#medium_name2').autocomplete( [% INCLUDE 'public_ui/medium_name_jquery_ui_autocomplete_options.tt2' %] );
 
         $('#media_query_form').validate({
            rules: {
@@ -42,7 +42,7 @@
 
 [% # form.render() %]
 
-[% INCLUDE 'zoe_website_template/header.tt2' %]
+[% INCLUDE 'public_ui/header.tt2' %]
 
  <tr>
     <td>
@@ -112,5 +112,5 @@
       </table>
       
       <!--This is where the content ends!-->
-[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
+[% INCLUDE 'public_ui/html_footer.tt2' %]
 

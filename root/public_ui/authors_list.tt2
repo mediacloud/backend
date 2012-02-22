@@ -1,4 +1,4 @@
-[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+[% INCLUDE 'public_ui/html_head.tt2' %]
 
 <body>
 <script language="javascript" type="text/javascript">
@@ -6,7 +6,7 @@
     {
        $('#authors_id1').hide();
         $('#author_name1').autocomplete(
-   [% INCLUDE 'zoe_website_template/author_jquery_ui_autocomplete_options.tt2' %]
+   [% INCLUDE 'public_ui/author_jquery_ui_autocomplete_options.tt2' %]
    );
 
         $('#media_query_form').validate({
@@ -43,7 +43,7 @@ function onError(err)
 
 [% # form.render() %]
 
-[% INCLUDE 'zoe_website_template/header.tt2' %]
+[% INCLUDE 'public_ui/header.tt2' %]
 
   <tr>
 
@@ -76,7 +76,7 @@ function onError(err)
   <tr>
     <td><!--This is where the content starts!-->
 
-[% INCLUDE 'zoe_website_template/side_bar.tt2' %]     
+[% INCLUDE 'public_ui/side_bar.tt2' %]     
 
             <br/>
 <h2> [% author_name %] </h2>

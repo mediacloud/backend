@@ -1,6 +1,6 @@
 <html>
 <head>
-[% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
+[% INCLUDE 'public_ui/third_party_libs.tt2' %]
 
 </head>
 
@@ -22,7 +22,7 @@
 
 [% csv_url_string = csv_url %]
 
-[% INCLUDE 'zoe_website_template/heat_map_js.tt2' %]
+[% INCLUDE 'public_ui/heat_map_js.tt2' %]
 
 </script>
 <div id="openheatmap_container"><b>Loading map please wait</b> <img src="[% c.uri_for('/include/ajax-loader.gif') %]" alt="spinner"/></div>

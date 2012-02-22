@@ -60,7 +60,7 @@ sub message : Local
     if (0)
     {
       $c->stash->{ dashboard } = $default_dashboard;
-      $c->stash->{ template }  = 'zoe_website_template/comingsoon.tt2';
+      $c->stash->{ template }  = 'public_ui/comingsoon.tt2';
     }
 }
 

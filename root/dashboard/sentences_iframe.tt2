@@ -1,6 +1,6 @@
 <html>
 <head>
-[% INCLUDE 'zoe_website_template/third_party_libs.tt2' %]
+[% INCLUDE 'public_ui/third_party_libs.tt2' %]
 
 <style>
 .view_article

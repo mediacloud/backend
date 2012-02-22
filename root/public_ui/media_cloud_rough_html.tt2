@@ -5,7 +5,7 @@
 [% primary = 1 %]
 [% END %]
 
-[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+[% INCLUDE 'public_ui/html_head.tt2' %]
 <body>
 <script language="javascript" type="text/javascript">
 <!--
@@ -44,8 +44,8 @@
         $('#hidden_media_list').hide();
 
 	$.getJSON('[% c.uri_for('/dashboard/dashboard_media_source_names_json/') _ dashboard.dashboards_id %]', function(data, textStatus, jqXHR) {
-        	$('#medium_name1').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
-		$('#medium_name2').autocomplete( [% INCLUDE 'zoe_website_template/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+        	$('#medium_name1').autocomplete( [% INCLUDE 'public_ui/medium_name_jquery_ui_autocomplete_options.tt2' %] );
+		$('#medium_name2').autocomplete( [% INCLUDE 'public_ui/medium_name_jquery_ui_autocomplete_options.tt2' %] );
 	});
 	
 	$('#country_counts_csv_links a').each(function(index, element){
@@ -360,12 +360,12 @@
 
 [% # form.render() %]
 
-[% INCLUDE 'zoe_website_template/header.tt2' %]
+[% INCLUDE 'public_ui/header.tt2' %]
 
 [% IF primary %]
 <tr>
 <td>
- [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
+ [% INCLUDE 'public_ui/front_page_content.tt2' %]
 </td>
 </tr>
 [% END %]
@@ -377,9 +377,9 @@
       <input type="hidden" name="show_results" value="true" />
       [% # form.get_field( 'compare_media_sets')  %]
       [% media_container_current_number = 1 %]
-      [% INCLUDE 'zoe_website_template/media_container.tt2' %]
+      [% INCLUDE 'public_ui/media_container.tt2' %]
       [% media_container_current_number = 2 %]
-      [% INCLUDE 'zoe_website_template/media_container.tt2' %]
+      [% INCLUDE 'public_ui/media_container.tt2' %]
       <div id = "submissioncontainer"> <div onclick="DisplayDIV('mediacontainer2')" style="cursor:pointer;">
              <div id="compare">[% c.loc('Compare Query') %]<img alt="" src="/include/images/downarrow.gif" width="15" height="15" /></div>
       </div><div style="cursor:pointer;">
@@ -392,7 +392,7 @@
 [% IF ! primary %]
   <tr>
     <td>
- [% INCLUDE 'zoe_website_template/front_page_content.tt2' %]
+ [% INCLUDE 'public_ui/front_page_content.tt2' %]
 </td>
 </tr>
 [% END %]
@@ -401,7 +401,7 @@
  <td align="left">
 
 [% IF has_sw_data %]
- [% INCLUDE 'zoe_website_template/sentences_and_subsets.tt2' %]
+ [% INCLUDE 'public_ui/sentences_and_subsets.tt2' %]
 [% ELSE %]
 <b>Note: Sentence level data is not available for this query during the selected week.</b>
 [% END %] 
@@ -424,7 +424,7 @@
 [% IF primary %]
             <br/>
 
-[% INCLUDE 'zoe_website_template/bottom_container_div.tt2' %]
+[% INCLUDE 'public_ui/bottom_container_div.tt2' %]
             <!--This is where the content ends!--></td>
         </tr>
         <tr>
@@ -460,4 +460,4 @@
 [% END %] 
 type="hidden"/>
 </form>
-[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
+[% INCLUDE 'public_ui/html_footer.tt2' %]

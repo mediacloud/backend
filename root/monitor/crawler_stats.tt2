@@ -1,4 +1,4 @@
-[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+[% INCLUDE 'public_ui/html_head.tt2' %]
 <body>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.gvChart-1.0.1.js') %]"></script> 
@@ -45,7 +45,7 @@
 
 [% # form.render() %]
 
-[% INCLUDE 'zoe_website_template/header.tt2' %]
+[% INCLUDE 'public_ui/header.tt2' %]
 
 <tr>
 <td>
@@ -74,4 +74,4 @@
     <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
   </tr>
 
-[% INCLUDE 'zoe_website_template/html_footer.tt2' %]
+[% INCLUDE 'public_ui/html_footer.tt2' %]

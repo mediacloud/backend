@@ -4,7 +4,7 @@
 [% primary = 1 %]
 [% END %]
 
-[% INCLUDE 'zoe_website_template/html_head.tt2' %]
+[% INCLUDE 'public_ui/html_head.tt2' %]
 <body style="background-color: #FFFFFF; background: #FFFFFF" >
 <script language="javascript" type="text/javascript">
 <!--
@@ -101,7 +101,7 @@
 
               <tr  style="background-color: #DFF0FF; background: #DFF0FF; width: 665px; height: 333px">
 <td align="left" valign="top" style=" width: 665px; height: 333px">
-[% INCLUDE 'zoe_website_template/word_cloud_content.tt2' %]
+[% INCLUDE 'public_ui/word_cloud_content.tt2' %]
 </td>
 </tr>
 </table>
