@@ -14,8 +14,10 @@ BEGIN
 
 use Data::Dumper;
 use DateTime;
+use Encode;
 use HTML::LinkExtractor;
 use URI;
+use URI::Escape;
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
@@ -36,9 +38,6 @@ my $_story_lookup;
 
 # list of downloads to precache downloads for
 my $_link_downloads_list;
-
-# current position of precaching on $_link_downloads_list
-my $_link_downloads_pos;
 
 # precached link downloads
 my $_link_downloads_cache;
@@ -295,13 +294,14 @@ sub cache_link_downloads
     my ( $links ) = @_;
     
     $_link_downloads_list = $links;
-    $_link_downloads_pos = 0;
 }
 
 # if the url has been precached, return it, otherwise download the current links and the next ten links
 sub get_cached_link_download
 {
-    my ( $url ) = @_;
+    my ( $url, $link_num ) = @_;
+    
+    $url = URI->new( $url )->as_string;
     
     if ( my $content = $_link_downloads_cache->{ $url } )
     {
@@ -309,22 +309,34 @@ sub get_cached_link_download
     }
 
     my $links = $_link_downloads_list;
-    my $pos = $_link_downloads_pos;
-    
-    my $urls = [ map { $_->{ redirect_url } || $_->{ url } } { @{ $links } }[ $pos .. $pos+9 ] ];
+    my $urls = []; 
+    for ( my $i = 0; $urls->[ $link_num + $i ] && $i < 10; $i++ )
+    {
+        my $link = $links->[ $i ];
+        push( @{ $urls }, URI->new( $link->{ redirect_url } || $link->{ url } )->as_string );
+    }
     
     my $responses = MediaWords::Util::Web::ParallelGet( $urls );
     
     $_link_downloads_cache = {};
     for my $response ( @{ $responses } )
     {
-        my $original_url = MediaWords::Util::Web::get_original_request( $response )->uri->as_string;
-        $_links_downloads_cache->{ $original_url } = $response->decoded_content;
+        my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
+        if ( $response->is_success )
+        {
+            print STDERR "original_url: $original_url " . length( $response->decoded_content ) . "\n";
+            $_link_downloads_cache->{ $original_url } = $response->decoded_content;
+        }
+        else {
+            my $msg = "error retrieving content for $original_url: " . $response->status_line;
+            warn( $msg );
+            $_link_downloads_cache->{ $original_url } = $msg;
+        }   
     }
-    
-    $_link_downloads_pos += 10;
-    
-    return $_link_downloads_cache->{ $url };
+            
+    warn( "Unable to find cached download for '$url'" ) if ( !defined( $_link_downloads_cache->{ $url } ) );
+     
+    return $_link_downloads_cache->{ $url } || '';
 }
 
 # lookup or create the spidered:sopa tag
@@ -353,25 +365,24 @@ sub get_spider_medium
     
     my ( $medium_url, $medium_name ) = ( $1, $2 );
     
-    my $spidered_sopa_tag = get_spidered_sopa_tag( $db );
+    $medium_name =~ s/^www.//;
     
-    my $medium = $db->query( 
-        "select m.* from media m, media_tags_map mtm " .
-        "  where m.media_id = mtm.media_id and mtm.tags_id = ? and m.url = ? and m.name = ?",
-        $spidered_sopa_tag, $medium_url, $medium_name )->hash;
+    my $medium = $db->query( "select m.* from media m where m.url = ? or m.name = ?", $medium_url, $medium_name )->hash;
     return $medium if ( $medium );
     
     $medium = {
         name => $medium_name,
         url => $medium_url,
-        moderated = 't',
-        feeds_added = 't' };
+        moderated => 't',
+        feeds_added => 't' };
         
     $medium = $db->create( 'media', $medium );
     
-    $db->query( 
-        "insert into media_tags_map ( media_id, tags_id ) values ( ?, ? )",
-        $medium->{ media_id }, $spidered_sopa_tag->{ tags_id } );
+    print STDERR "add medium: " . Dumper( $medium ) . "\n";
+    
+    my $spidered_sopa_tag = get_spidered_sopa_tag( $db );
+    
+    $db->create( 'media_tags_map', { media_id => $medium->{ media_id }, tags_id => $spidered_sopa_tag->{ tags_id } } );
         
     return $medium;
 }
@@ -381,101 +392,65 @@ sub get_spider_feed
 {
     my ( $db, $medium ) = @_;
     
-    my $feed = $db->query( "select * from feeds where media_id = ? limit 1", $medium->{ media_id } )->hash;
+    my $feed_query = "select * from feeds where media_id = ? and name = 'Sopa Spider Feed'" ;
+    
+    my $feed = $db->query( $feed_query, $medium->{ media_id } )->hash;
     return $feed if ( $feed );
     
     $db->query( 
         "insert into feeds ( media_id, url, last_download_time, name ) " . 
-        "  values ( ?, ?, now() + interval '10 years', 'Feed' )",
+        "  values ( ?, ?, now() + interval '10 years', 'Sopa Spider Feed' )",
         $medium->{ media_id }, $medium->{ url } );
         
-    return $db->query( "select * from feeds where media_id = ? limit 1", $medium->{ media_id } )->hash;
+    return $db->query( $feed_query, $medium->{ media_id } )->hash;
+    
 }
 
 # parse the content for tags that might indicate the story's title
 sub get_story_title_from_content
 {
-    # my ( $content ) = @_;
+    # my ( $content, $url ) = @_;
     
-    if ( $_[0] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) return $1;
+    if ( $_[0] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
 
-    if ( $_[0] =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si ) return $1;
+    if ( $_[0] =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si ) { return $1; }
 
-    if ( $_[0] =~ m~<title>([^<]+)</title>~si ) return $1;
+    if ( $_[0] =~ m~<title>([^<]+)</title>~si ) { return $1; }
     
-    return '(no title)';
+    return $_[1];
 }
+
+# return true if the args are valid date arguments.  assume a date has to be between 2000 and 2020.
+sub valid_date_parts
+{
+    my ( $year, $month, $day ) = @_;
+    
+    return 0 if ( ( $year < 2000 ) || ( $year > 2020 ) );
+    
+    return Date::Parse::str2time( "$year-$month-$day" );
+}
+
 
 # guess publish date from the story and content.  failsafe is to use the
 # date of the linking story
 sub guess_publish_date
 {
-    my ( $db, $link, $story ) = @_;
-#    my ( $db, $link, $story ) = @_;
-    my ( $content_ref ) = \$_[3];
+    my ( $db, $link ) = @_;
     
-    if ( $_[3] =~ m~<time \s+datetime=\"([^\"]+)\"\s+pubdate~is ) return $1;
-    if ( $_[3] =~ m~<time \s+datetime=\'([^\']+)\'\s+pubdate~is ) return $1;
+    if ( $_[2] =~ m~<time \s+datetime=\"([^\"]+)\"\s+pubdate~is ) { return $1; }
+    if ( $_[2] =~ m~<time \s+datetime=\'([^\']+)\'\s+pubdate~is ) { return $1; }
 
-    if ( $story->{ url } =~ m~(\d\d\d\d/\d\d/\d\d) )
+    if ( ( $link->{ url } =~ m~(20\d\d)/(\d\d)/(\d\d)~ ) || ( $link->{ redirect_url } =~ m~(20\d\d)/(\d\d)/(\d\d)~ ) )
     {
-        my $publish_date = $1;
-        $publish_date =~ s~/~-~g;
-        return $publish_date;
+        return "$1-$2-$3" if ( valid_date_parts( $1, $2, $3 ) );        
+    }
+
+    if ( ( $link->{ url } =~ m~/(20\d\d)(\d\d)(\d\d)/~ ) || ( $link->{ redirect_url } =~ m~(20\d\d)(\d\d)(\d\d)~ ) )
+    {
+        return "$1-$2-$3" if ( valid_date_parts( $1, $2, $3 ) );
     }
     
     return $db->find_by_id( 'stories', $link->{ stories_id } )->{ publish_date };
-}
-
-# add a new story and download corresponding to the given link
-sub add_new_story_and_download
-{
-    my ( $db, $link ) = @_;
-    
-    my $story_url = $link->{ redirect_url } || $link->{ url };
-    
-    my $story_content = get_cached_link_download( $story_url );
-    
-    my $medium = get_spider_medium( $db, $story_url );
-    my $feed = get_spider_feed( $db, $medium );
-    
-    my $title = get_story_title_from_content( $story_content );
-    
-    my $pubish_date = guess_publish_date( $db, $link, $story, $story_content );
-    
-    my $story = {
-        url          => $story_url,
-        guid         => $story_url,
-        media_id     => $media_id,
-        publish_date => $publish_date,
-        collect_date => DateTime->now->datetime,
-        title        => $title,
-        description  => ''
-    };
-    
-    $story = $db->create( 'stories', $story );
-    
-    $db->query( 
-        "insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )", 
-        $feed->{ feeds_id }, $story->{ stories_id } );
-    
-    my $download = {
-        feeds_id      => $feed->{ feeds_id },
-        stories_id    => $story->{ stories_id },
-        url           => $story->{ url },
-        host          => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
-        type          => 'content',
-        sequence      => 1,
-        state         => 'success',
-        priority      => 1,
-        download_time => DateTime->now->datetime,
-        extracted     => 't' };
-    
-    $download = $db->create( 'downloads', $download );
-    
-    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
-
-    return ( $story, $download );
 }
 
 # extract the story for the given download
@@ -489,20 +464,88 @@ sub extract_download
     warn "extract error processing download $download->{ downloads_id }" if ( $@ );
 }
 
+# add a new story and download corresponding to the given link
+sub add_new_story
+{
+    my ( $db, $link, $link_num ) = @_;
+    
+    my $story_url = $link->{ redirect_url } || $link->{ url };
+    if ( length( $story_url ) > 1024 )
+    {
+        $story_url = substr( $story_url, 0, 1024 );
+    }
+    
+    my $story_content = get_cached_link_download( $story_url, $link_num );
+    
+    my $medium = get_spider_medium( $db, $story_url );
+    my $feed = get_spider_feed( $db, $medium );
+    
+    my $title = get_story_title_from_content( $story_content, $story_url );
+    
+    my $publish_date = guess_publish_date( $db, $link, $story_content );
+    
+    my $story = {
+        url          => $story_url,
+        guid         => $story_url,
+        media_id     => $medium->{ media_id },
+        publish_date => $publish_date,
+        collect_date => DateTime->now->datetime,
+        title        => encode( 'utf8', $title ),
+        description  => ''
+    };
+    
+    $story = $db->create( 'stories', $story );
+
+    my $spidered_sopa_tag = get_spidered_sopa_tag( $db );
+    $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_sopa_tag->{ tags_id } } );
+
+    
+    print STDERR "add story: " . Dumper( $story ) . "\n";
+    
+    #$db->create( 'feeds_stories_map', { feeds_id => $feed->{ feeds_id }, stories_id => $story->{ stories_id } } );
+    
+    my $download = {
+        feeds_id      => $feed->{ feeds_id },
+        stories_id    => $story->{ stories_id },
+        url           => $story->{ url },
+        host          => lc( ( URI::Split::uri_split( $story->{ url } ) )[ 1 ] ),
+        type          => 'content',
+        sequence      => 1,
+        state         => 'success',
+        path          => 'content:pending',
+        priority      => 1,
+        download_time => DateTime->now->datetime,
+        extracted     => 't' };
+    
+    $download = $db->create( 'downloads', $download );
+    
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+    
+    extract_download( $db, $download );
+
+    return $story;
+}
+
 # return true if the story_sentences for the story match any of the sopa patterns
 sub story_matches_sopa_keywords
 {
     my ( $db, $story ) = @_;
     
     my $keyword_pattern = 
-        '[[:<:]]sopa[[:>:]]|stop\s+online\s+privacy\s+act|' .
-        '[[:<:]]acta[[:>:]]|anti-counterfeiting\s+trade\s+agreement|' ..
-        '[[:<:]]coica[[:>:]]|combating\s+online\s+infringement\s+and\s+counterfeits\s+act|' . 
-        '[[:<:]]pipa[[:>:]]|protect\s+ip\s+act';
+        '[[:<:]]sopa[[:>:]]|stop[[:space:]]+online[[:space:]]+privacy[[:space:]]+act|' .
+        '[[:<:]]acta[[:>:]]|anti-counterfeiting[[:space:]]+trade[[:space:]]+agreement|' .
+        '[[:<:]]coica[[:>:]]|combating[[:space:]]+online[[:space:]]+infringement[[:space:]]+and[[:space:]]+counterfeits[[:space:]]+act|' . 
+        '[[:<:]]pipa[[:>:]]|protect[[:space:]]+ip[[:space:]]+act';
     
-    my $matches_sopa = $db->query( 
-        "select 1 from story_sentences ss where ss.stories_id = ? and " . 
-        "    lower( ss.sentence ) ~ '$keyword_pattern'", $story->{ stories_id } )->list;
+    my $query =
+        "select 1 from story_sentences ss where ss.stories_id = $story->{ stories_id } and " . 
+        "    lower( ss.sentence ) ~ '$keyword_pattern'";
+
+    # print STDERR "match query: $query\n";
+    
+    my ( $matches_sopa ) = $db->query( $query )->flat;
+    
+    # print STDERR "MATCH\n" if ( $matches_sopa );
         
     return $matches_sopa;
 }
@@ -535,11 +578,31 @@ sub update_other_matching_links
         if ( ( $lu eq $su ) || ( $lru eq $su ) )
         {
             $link->{ ref_stories_id } = $story->{ stories_id };        
-            $db->query( 
-                "update sopa_links set link_spidered = 't', ref_stories_id = ? where sopa_links_id = ?",
-                $link->{ ref_stories_id }, $link->{ sopa_links_id } );
+            $db->query( "update sopa_links set ref_stories_id = ? where sopa_links_id = ?", $story->{ stories_id }, $link->{ sopa_links_id } );
         }
     }    
+}
+
+# look for a story matching the link url in the db
+sub get_matching_story_from_db
+{
+    my ( $db, $link ) = @_;
+    
+    return $db->query( 
+        "select * from stories s where s.url in ( ? , ? ) or s.guid in ( ?, ? )",
+        $link->{ url }, $link->{ redirect_url }, $link->{ url }, $link->{ redirect_url } )->hash;
+}
+
+# return true if the story is already in sopa_stories
+sub story_is_new
+{
+    my ( $db, $story ) = @_;
+    
+    my $is_new = $db->query( "select 1 from sopa_stories where stories_id = ?", $story->{ stories_id } )->list;
+    
+    print STDERR "EXISTING SOPA STORY\n" if ( !$is_new );
+    
+    return $is_new;
 }
 
 # download any unmatched link, add it as a story, extract it, add any links to the sopa links list
@@ -547,26 +610,29 @@ sub spider_new_links
 {
     my ( $db, $iteration ) = @_;
     
-    my $new_links = $db->query( "select * from sopa_links where ref_stories_id is null and link_spidered = 'f'" );
+    my $new_links = $db->query( 
+        "select distinct ss.iteration, sl.* from sopa_links sl, sopa_stories ss " . 
+        "  where sl.ref_stories_id is null and sl.stories_id = ss.stories_id and ss.iteration < ?", 
+        $iteration )->hashes;
     
     cache_link_downloads( $new_links );
     
-    for my $link ( @{ $new_links } ) 
+    for ( my $i = 0; $i < @{ $new_links }; $i++ )
     {
+        my $link = $new_links->[ $i ];
+
         if ( !$link->{ ref_stories_id } )
         {
-            my ( $story, $download ) = add_new_story_and_download( $db, $link );
+            print STDERR "spidering $link->{ url } ...\n";
+            my $story = get_matching_story_from_db( $db, $link ) || add_new_story( $db, $link, $i );
             
-            extract_download( $db, $download );
-            
-            if ( story_matches_sopa_keywords( $db, $story ) )
+            if ( !story_is_sopa_story( $db, $sopa ) && story_matches_sopa_keywords( $db, $story ) )
             {
-                add_to_sopa_stories_and_links( $db, $story, $iteration );                
+                print STDERR "SOPA MATCH: $link->{ url }\n";
+                add_to_sopa_stories_and_links( $db, $story, $link->{ iteration } + 1 );                
             }
             
-            $db->query( "update sopa_links set link_spidered = 't' where sopa_links_id = ?", $link->{ sopa_links_id } );
-            
-            update_other_matching_links( $db, $story, $links );
+            $db->query( "update sopa_links set ref_stories_id = ? where sopa_links_id = ?", $story->{ stories_id }, $link->{ sopa_links_id } ); 
         }
     }
 }
@@ -582,6 +648,26 @@ sub run_spider
     }
 }
 
+# run through sopa_links and make sure there are no duplicate stories_id, ref_stories_id dups
+sub delete_duplicate_sopa_links
+{
+    my ( $db ) = @_;
+    
+    my $duplicate_links = $db->query( 
+        "select count(*), stories_id, ref_stories_id from sopa_links "  .
+        "  group by stories_id, ref_stories_id having count(*) > 1" )->hashes;
+    
+    for my $duplicate_link ( @{ $duplicate_links } ) 
+    {
+        my $ids = [ $db->query( 
+            "select sopa_links_id from sopa_links where stories_id = ? and ref_stories_id = ?", 
+            $duplicate_link->{ stories_id }, $duplicate_links->{ ref_stories_id } )->flat ];
+            
+        shift( @{ $ids } );
+        map { $db->query( "delete from sopa_links where sopa_links_id = ?", $_ ) } @{ $ids };
+    }
+}
+
 sub main
 {
     my ( $option ) = @ARGV;
@@ -590,6 +676,9 @@ sub main
     binmode( STDERR, 'utf8' );
     
     my $db = MediaWords::DB::connect_to_db;
+    
+    delete_duplicate_sopa_stories( $db );
+    
     
     # if ( $option eq '-r' )
     # {
