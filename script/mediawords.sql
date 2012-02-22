@@ -507,6 +507,7 @@ create index stories_url on stories (url);
 create index stories_publish_date on stories (publish_date);
 create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
+create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
