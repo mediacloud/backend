@@ -734,6 +734,7 @@ create table story_sentences (
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
 create index story_sentences_publish_day on story_sentences( date_trunc( 'day', publish_date ), media_id );
+ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
     
 create table story_sentence_counts (
        story_sentence_counts_id     bigserial       primary key,
