@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # this is a daemon process that polls the word_cloud_topics table every minute to check for any pending
 # word_cloud_topics and generates reports for any it finds.

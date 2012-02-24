@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # set the given medium to have full_text_rss == true.  reprocess all of the
 # stories for the given medium to use the story->{ description } for the 

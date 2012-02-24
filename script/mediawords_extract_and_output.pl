@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # test MediaWords::Crawler::Extractor against manually extracted downloads
 

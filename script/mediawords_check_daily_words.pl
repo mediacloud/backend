@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # run two checks to make sure the daily words table is getting written correctly:
 # * check for any cases in the past month in which the total_daily_words entry for a 

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # start a daemon that crawls all feeds in the database.
 # see MediaWords::Crawler::Engine.pm for details.

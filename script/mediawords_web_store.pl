@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # accept a list of urls and file names on standard input and get those in parallel.  for each url, store the
 # Storable of the response in the associated file name.

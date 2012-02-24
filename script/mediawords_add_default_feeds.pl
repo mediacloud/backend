@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # periodically check for new media sources that have not had default feeds added to them and add the default feeds
 

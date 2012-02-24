@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # manually walk through the given archive, finding and reassigning file info for
 # all download files in the archive

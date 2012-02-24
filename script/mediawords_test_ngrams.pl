@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # number of downloads to fetch at a time
 use constant PROCESS_SIZE => 100;

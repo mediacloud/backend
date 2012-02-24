@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # run a loop extracting the text of any downloads that have not been extracted yet
 

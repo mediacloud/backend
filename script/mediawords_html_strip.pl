@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #Runs html_strip on the concat'ed input and prints the results.
 

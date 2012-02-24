@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # dump the all stories belonging to the given query, including the extracted text of each story, as a csv
 

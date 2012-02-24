@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # create media_tag_tag_counts table by querying the database tags / feeds / stories
 

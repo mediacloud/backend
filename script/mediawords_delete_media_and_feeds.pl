@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # delete any media or feeds marked with a 'workflow:deletme' tag
 

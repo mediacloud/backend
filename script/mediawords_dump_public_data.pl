@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # create a dump with all public data.
 # the output is a .tar.gz'd directory of csv files.

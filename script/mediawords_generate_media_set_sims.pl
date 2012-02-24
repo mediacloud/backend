@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # generate similarity scores between one media set and each subsequent media set
 #

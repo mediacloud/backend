@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # fill the *_words tables from scratch (or refill if they have already been filled)
 

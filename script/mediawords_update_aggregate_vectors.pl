@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # update the aggregate vector tables needed to run clustering and dashboard systems
 #
