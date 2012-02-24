@@ -11,3 +11,5 @@ use Lingua::StopWords;
 use Lingua::Stem::Snowball;
 use Data::Dumper;
 use Time::Local;
+
+1;
