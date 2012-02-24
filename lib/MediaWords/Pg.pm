@@ -1,7 +1,7 @@
 package MediaWords::Pg;
-use MediaWords::CommonLibs;
 
-
+use Data::Dumper;
+use MediaWords::Pg::DependsList;
 # utility modules for plperl functions
 
 use strict;
