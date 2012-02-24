@@ -14,7 +14,8 @@ use HTML::LinkExtractor;
 use IO::Compress::Gzip;
 use URI::Split;
 use Carp;
-use Switch;
+use if $] < 5.014, Switch => 'Perl6';
+use if $] >= 5.014, feature => 'switch';
 
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
@@ -55,9 +56,9 @@ sub get_rss_feeds
         $rss_detection_method = 'default';
     }
 
-    switch ( $rss_detection_method )
+    given ( $rss_detection_method )
     {
-        case 'feed::scrape-validate'
+        when ('feed::scrape-validate')
         {
 
             #print "Using   'feed::scrape-validate' \n";
@@ -66,7 +67,7 @@ sub get_rss_feeds
             #print Dumper($xml_feeds);
             @feeds = map { $_->{ url } } @{ $xml_feeds };
         }
-        case 'feed::scrape-no-validate'
+        when ('feed::scrape-no-validate')
         {
 
             #print "Using   'feed::scrape-no-validate' \n";
@@ -75,13 +76,13 @@ sub get_rss_feeds
             #print Dumper($xml_feeds);
             @feeds = @{ $xml_feeds };
         }
-        case 'default'
+        when ('default')
         {
 
             #print "using default feed parsing\n";
             @feeds = Feed::Find->find_in_html( \$response->content, $url );
         }
-        else { die "invalid rss detection method " . MediaWords::Crawler::BlogUrlProcessor::get_rss_detection_method; }
+        default { die "invalid rss detection method " . MediaWords::Crawler::BlogUrlProcessor::get_rss_detection_method; }
     }
 
     #filter out empty string and undefined URLs

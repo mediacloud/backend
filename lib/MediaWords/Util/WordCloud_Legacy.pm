@@ -7,7 +7,8 @@ use MediaWords::CommonLibs;
 use strict;
 
 use Data::Dumper;
-use Switch 'Perl6';
+use if $] < 5.014, Switch => 'Perl6';
+use if $] >= 5.014, feature => 'switch';
 
 use HTML::TagCloud;
 use List::MoreUtils;
@@ -121,9 +122,9 @@ sub _get_merged_word_count
     given ( $set )
     {
 
-        when 'list_1' { $ret = $words_1_hash->{ $word }; }
-        when 'list_2' { $ret = $words_2_hash->{ $word }; }
-        when 'both'
+        when ('list_1') { $ret = $words_1_hash->{ $word }; }
+        when ('list_2') { $ret = $words_2_hash->{ $word }; }
+        when ('both')
         {
             my $temp_hash_ref = $words_1_hash->{ $word };
 

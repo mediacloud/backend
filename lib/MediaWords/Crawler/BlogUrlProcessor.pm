@@ -15,7 +15,10 @@ use HTML::LinkExtractor;
 use IO::Compress::Gzip;
 use URI::Split;
 use Carp;
-use Switch;
+use if $] < 5.014, Switch => 'Perl6';
+use if $] >= 5.014, feature => 'switch';
+#use feature 'switch';
+
 use XML::LibXML;
 
 use MediaWords::Crawler::Pager;
@@ -204,24 +207,26 @@ sub _url_passes_validation_rule
 {
     my ( $url_validation_rule, $url ) = @_;
 
-    switch ( $url_validation_rule->nodeName )
+    my $nodeName =  $url_validation_rule->nodeName;
+
+    given ( $nodeName )
     {
-        case 'require_string_starts_with'
+        when ('require_string_starts_with')
         {
             my $ind = index( $url, $url_validation_rule->textContent() );
             return ( $ind == 0 );
         }
-        case 'require_string'
+        when ('require_string')
         {
             my $ind = index( $url, $url_validation_rule->textContent() );
             return ( $ind != -1 );
         }
-        case 'forbid_string'
+        when ('forbid_string')
         {
             my $ind = index( $url, $url_validation_rule->textContent() );
             return ( $ind == -1 );
         }
-        else
+        default
         {
             die "Invalid validation rule : " . $url_validation_rule->nodeName . " ";
         }
@@ -244,29 +249,29 @@ sub canonicalize_url_impl
     {
         _log Dumper( $conversion_rule->toString );
 
-        switch ( $conversion_rule->nodeName )
+        given ( $conversion_rule->nodeName )
         {
-            case 'append_directory' { $ret = append_directory( $ret, $conversion_rule ); }
-            case 'get_tilda_directory_root' { $ret = canonicalize_tilda_url( $ret ); }
-            case 'get_domain_only_url'      { $ret = get_domain_only_url( $ret ); }
-            case 'get_base_directory'       { $ret = get_base_directory( $ret, $conversion_rule ); }
-            case 'get_child_directory'      { $ret = get_child_directory( $ret, $conversion_rule ); }
-            case 'change_subdomain'         { $ret = change_subdomain( $ret, $conversion_rule ); }
-            case 'regular_expression_replace_url_query'
+            when ('append_directory') { $ret = append_directory( $ret, $conversion_rule ); }
+            when ('get_tilda_directory_root') { $ret = canonicalize_tilda_url( $ret ); }
+            when ('get_domain_only_url')      { $ret = get_domain_only_url( $ret ); }
+            when ('get_base_directory')       { $ret = get_base_directory( $ret, $conversion_rule ); }
+            when ('get_child_directory')      { $ret = get_child_directory( $ret, $conversion_rule ); }
+            when ('change_subdomain')         { $ret = change_subdomain( $ret, $conversion_rule ); }
+            when ('regular_expression_replace_url_query')
             {
                 $ret = regular_expression_replace_in_query( $ret, $conversion_rule );
             }
-            case 'regular_expression_replace_url_path'
+            when ('regular_expression_replace_url_path')
             {
                 $ret = regular_expression_replace_in_path( $ret, $conversion_rule );
             }
-            case 'regular_expression_replace_url_path_and_query'
+            when ('regular_expression_replace_url_path_and_query')
             {
                 $ret = regular_expression_replace_in_path_and_query( $ret, $conversion_rule );
             }
-            case 'set_path' { $ret = set_path( $ret, $conversion_rule ); }
-            case 'set_query' { $ret = set_query( $ret, $conversion_rule ); }
-            else { die "Invalid url conversion rule: " . $conversion_rule->nodeName; }
+            when ('set_path') { $ret = set_path( $ret, $conversion_rule ); }
+            when ('set_query') { $ret = set_query( $ret, $conversion_rule ); }
+            default { die "Invalid url conversion rule: " . $conversion_rule->nodeName; }
         }
     }
     _log "returning: '$ret'\n";

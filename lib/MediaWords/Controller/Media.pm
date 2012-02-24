@@ -22,7 +22,8 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
 use Perl6::Say;
-use Switch 'Perl6';
+use if $] < 5.014, Switch => 'Perl6';
+use if $] >= 5.014, feature => 'switch';
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -794,10 +795,10 @@ sub do_find_likely_full_text_rss : Local
 
         given ( $full_text_value )
         {
-            when 1 { $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?",  $media_id ); }
-            when 0 { $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id ); }
+            when (1) { $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?",  $media_id ); }
+            when (0) { $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id ); }
 
-            when '' { $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id ); }
+            when ('') { $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id ); }
             default { die "Bad case in switch :'$full_text_value'"; }
 
         }
