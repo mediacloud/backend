@@ -15,7 +15,6 @@ use HTML::LinkExtractor;
 use IO::Compress::Gzip;
 use URI::Split;
 use Carp;
-use Switch;
 
 use MediaWords::Crawler::Pager;
 use MediaWords::DBI::Downloads;
