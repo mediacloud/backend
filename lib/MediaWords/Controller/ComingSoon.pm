@@ -26,7 +26,6 @@ use Perl6::Say;
 use Data::Dumper;
 use Date::Format;
 use Date::Parse;
-use Switch 'Perl6';
 use Locale::Country;
 use Date::Calc qw(:all);
 use JSON;
