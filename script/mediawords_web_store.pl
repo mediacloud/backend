@@ -19,7 +19,7 @@ use Storable;
 
 use constant NUM_PARALLEL      => 10;
 use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
-use constant TIMEOUT           => 60;
+use constant TIMEOUT           => 20;
 use constant MAX_REDIRECT      => 15;
 use constant BOT_FROM          => 'mediacloud@cyber.law.harvard.edu';
 use constant BOT_AGENT         => 'mediacloud bot (http://mediacloud.org)';
@@ -60,9 +60,14 @@ sub main
 
     my $i     = 0;
     my $total = scalar( @{ $requests } );
+    
+    $SIG{ALRM} = sub { die ("web request timed out"); };
+    
     for my $request ( @{ $requests } )
     {
         $i++;
+        
+        alarm( TIMEOUT );
         $pm->start and next;
 
         print STDERR "fetch [$i/$total] : $request->{ url }\n";
@@ -74,6 +79,8 @@ sub main
         Storable::store( $response, $request->{ file } );
 
         $pm->finish;
+        
+        alarm( 0 );
     }
 
     $pm->wait_all_children;

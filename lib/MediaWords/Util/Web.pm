@@ -44,11 +44,19 @@ sub ParallelGet
     my $responses;
     for my $result ( @{ $results } )
     {
-        my $response = Storable::retrieve( $result->{ file } );
-
-        push( @{ $responses }, $response );
-
-        unlink( $result->{ file } );
+        my $response;
+        if ( -f $result->{ file } )
+        {
+            $response = Storable::retrieve( $result->{ file } );
+            push( @{ $responses }, $response );
+            unlink( $result->{ file } );
+        }
+        else {
+            $response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
+            $response->request( HTTP::Request->new( GET => $result->{ url } ) );
+            
+            push( @{ $responses }, $response );
+        }
     }
 
     return $responses;
