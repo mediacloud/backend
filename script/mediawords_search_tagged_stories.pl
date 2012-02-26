@@ -79,7 +79,7 @@ sub search_and_tag_stories
     my $c = 0;
     for my $story_match ( @{ $story_matches } )
     {
-        print STDERR "update story $story_match->{ title }\n";
+        # print STDERR "update story $story_match->{ title }\n";
         for ( my $i = 0; $i < @{ $patterns }; $i++ )
         {
             my $pattern = $patterns->[ $i ];
@@ -88,7 +88,7 @@ sub search_and_tag_stories
                 $story_match->{ stories_id }, $pattern->{ tag }->{ tags_id } );
             if ( $story_match->{ "match_$i" } ) 
             {
-                print STDERR "$pattern->{ tag }->{ tag }\n";
+                # print STDERR "$pattern->{ tag }->{ tag }\n";
                 $db->query(
                     "insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )",
                     $story_match->{ stories_id }, $pattern->{ tag }->{ tags_id } );
@@ -103,6 +103,9 @@ sub main
 {
     my ( $tag_string ) = @ARGV;
     
+    binmode( STDOUT, 'utf8' );
+    binmode( STDERR, 'utf8' );
+
     die( "usage: $0 <tag_set:tag>" ) if ( !$tag_string );
     
     my $db = MediaWords::DB::connect_to_db;
