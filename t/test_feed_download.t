@@ -75,19 +75,6 @@ sub get_expanded_stories
         "select s.* from stories s, feeds_stories_map fsm " . "  where s.stories_id = fsm.stories_id and fsm.feeds_id = ?",
         $feed->{ feeds_id } )->hashes;
 
-    # for my $story ( @{ $stories } )
-    # {
-    #     $story->{ content } = ${ MediaWords::DBI::Stories::fetch_content( $db, $story ) };
-    #     $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
-    #     $story->{ tags } = MediaWords::DBI::Stories::get_db_module_tags( $db, $story, 'NYTTopics' );
-
-    #     $story->{ story_sentence_words } =
-    #       $db->query( "select * from story_sentence_words where stories_id = ?", $story->{ stories_id } )->hashes;
-
-    #     $story->{ story_sentences } =
-    #       $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ", $story->{ stories_id } )->hashes;
-    # }
-
     return $stories;
 }
 
@@ -239,26 +226,12 @@ sub main
 
 	    $crawler->fetch_and_handle_single_download( $redundant_feed_download );
 
-            #run_crawler();
-
-            #extract_downloads( $db );
-
-            #process_stories( $db );
-
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
                 dump_stories( $db, $feed );
             }
 
             test_stories( $db, $feed );
-
-            # generate_aggregate_words( $db, $feed );
-            # if ( defined( $dump ) && ( $dump eq '-d' ) )
-            # {
-            #     dump_top_500_weekly_words( $db, $feed );
-            # }
-
-            # test_top_500_weekly_words( $db, $feed );
 
             # print "Killing server\n";
 
