@@ -1,7 +1,6 @@
 package MediaWords::Crawler::Extractor;
 use MediaWords::CommonLibs;
 
-
 # extract substantive new story text from html pages
 
 use strict;
@@ -399,8 +398,8 @@ sub find_auto_excluded_lines
 {
     my ( $lines ) = @_;
 
-    my $markers        = find_markers( $lines );
-    my $sphereit_map   = get_sphereit_map( $markers );
+    my $markers      = find_markers( $lines );
+    my $sphereit_map = get_sphereit_map( $markers );
 
     my $ret = [];
 
@@ -474,6 +473,58 @@ sub heuristically_scored_lines
     my ( $lines, $title, $description, $auto_excluded_lines ) = @_;
 
     return _heuristically_scored_lines_impl( $lines, $title, $description, $auto_excluded_lines, 0 );
+}
+
+#
+# New subroutine "calculate_line_extraction_metrics" extracted - Mon Feb 27 17:19:53 2012.
+#
+sub calculate_line_extraction_metrics
+{
+    my $i              = shift;
+    my $description    = shift;
+    my $line           = shift;
+    my $sphereit_map   = shift;
+    my $has_clickprint = shift;
+
+    Readonly my $article_has_clickprint => $has_clickprint;    #<--- syntax error at (eval 980) line 11, near "Readonly my "
+
+    Readonly my $article_has_sphereit_map        => $sphereit_map;
+    Readonly my $sphereit_map_includes_line      => ( $sphereit_map && $sphereit_map->{ $i } );
+    Readonly my $description_similarity_discount => get_description_similarity_discount( $line, $description );
+
+    return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
+        $sphereit_map_includes_line );
+}    #<--- syntax error at (eval 980) line 18, near ";
+
+#
+# New subroutine "get_copyright_count" extracted - Mon Feb 27 17:27:56 2012.
+#
+sub get_copyright_count
+{
+    my $line = shift;
+
+    my $copyright_count = 0;
+
+    while ( $line =~ /copyright|copying|&copy;|all rights reserved/ig )
+    {
+        $copyright_count++;
+    }
+    return ( $copyright_count );
+}
+
+#
+# New subroutine "calculate_line_extraction_metrics_2" extracted - Mon Feb 27 17:30:21 2012.
+#
+sub calculate_line_extraction_metrics_2
+{
+    my $line_text  = shift;
+    my $line       = shift;
+    my $title_text = shift;
+
+    Readonly my $line_length => length( $line );    #<--- syntax error at (eval 983) line 8, near "Readonly my "
+    Readonly my $line_starts_with_title_text => lineStartsWithTitleText( $line_text, $title_text );
+
+    return ( $line_length, $line_starts_with_title_text );
 }
 
 sub _heuristically_scored_lines_impl
@@ -569,25 +620,30 @@ sub _heuristically_scored_lines_impl
         }
         else
         {
+            my $line_info = {};
+
             $html_density = get_html_density( $line );
 
-	    Readonly my $line_length =>  length( $line );
-	    Readonly my $line_starts_with_title_text => lineStartsWithTitleText( $line_text, $title_text );
+            my ( $line_length, $line_starts_with_title_text ) =
+              calculate_line_extraction_metrics_2( $line_text, $line, $title_text );
 
-	    my $copyright_count = 0;
+            my ( $copyright_count ) = get_copyright_count( $line );
 
-	    while ( $line =~ /copyright|copying|&copy;|all rights reserved/ig )
-            {
-	        $copyright_count++;
-            }
+            my (
+                $article_has_clickprint,          $article_has_sphereit_map,
+                $description_similarity_discount, $sphereit_map_includes_line
+            ) = calculate_line_extraction_metrics( $i, $description, $line, $sphereit_map, $has_clickprint );
 
-	    Readonly my $article_has_clickprint => $has_clickprint;
+            $line_info->{ html_density }                    = $html_density;
+            $line_info->{ line_length }                     = $line_length;
+            $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
+            $line_info->{ copyright_copy }                  = $copyright_count;
+            $line_info->{ article_has_clickprint }          = $article_has_clickprint;
+            $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
+            $line_info->{ description_similarity_discount } = $description_similarity_discount;
+            $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
 
-	    Readonly my $article_has_sphereit_map => $sphereit_map;
-	    Readonly my $sphereit_map_includes_line => ($sphereit_map && $sphereit_map->{ $i } ); 
-	    Readonly my $description_similarity_discount => get_description_similarity_discount( $line, $description );
-
-            if (   ( $line_length < MINIMUM_CHARACTERS )
+            if (   ( $line_info->{ line_length } < MINIMUM_CHARACTERS )
                 && ( $html_density < MINIMUM_CHARACTERS_SCORE ) )
             {
                 $explanation .= "minimum characters score: " . MINIMUM_CHARACTERS_SCORE . "\n";
@@ -618,18 +674,18 @@ sub _heuristically_scored_lines_impl
                 $discounted_html_density += $comment_addition;
             }
 
-            if ( $line_length > LENGTH_DISCOUNT_LENGTH )
+            if ( $line_info->{ line_length } > LENGTH_DISCOUNT_LENGTH )
             {
                 $explanation .= "length discount: " . LENGTH_DISCOUNT . "\n";
                 $discounted_html_density *= LENGTH_DISCOUNT;
             }
-            if ( $line_length > ( 4 * LENGTH_DISCOUNT_LENGTH ) )
+            if ( $line_info->{ line_length } > ( 4 * LENGTH_DISCOUNT_LENGTH ) )
             {
                 $explanation .= "super length discount: " . LENGTH_DISCOUNT . "\n";
                 $discounted_html_density *= LENGTH_DISCOUNT;
             }
 
-            for ( my $j = 0; $j < $copyright_count; $j++)
+            for ( my $j = 0 ; $j < $copyright_count ; $j++ )
             {
                 $explanation .= "copyright discount: " . COPYRIGHT_DISCOUNT . "\n";
                 $discounted_html_density *= COPYRIGHT_DISCOUNT;
