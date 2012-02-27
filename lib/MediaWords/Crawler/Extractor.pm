@@ -571,7 +571,9 @@ sub _heuristically_scored_lines_impl
         {
             $html_density = get_html_density( $line );
 
-            if (   ( length( $line ) < MINIMUM_CHARACTERS )
+	    Readonly my $line_length =>  length( $line );
+
+            if (   ( $line_length < MINIMUM_CHARACTERS )
                 && ( $html_density < MINIMUM_CHARACTERS_SCORE ) )
             {
                 $explanation .= "minimum characters score: " . MINIMUM_CHARACTERS_SCORE . "\n";
@@ -602,12 +604,12 @@ sub _heuristically_scored_lines_impl
                 $discounted_html_density += $comment_addition;
             }
 
-            if ( length( $line ) > LENGTH_DISCOUNT_LENGTH )
+            if ( $line_length > LENGTH_DISCOUNT_LENGTH )
             {
                 $explanation .= "length discount: " . LENGTH_DISCOUNT . "\n";
                 $discounted_html_density *= LENGTH_DISCOUNT;
             }
-            if ( length( $line ) > ( 4 * LENGTH_DISCOUNT_LENGTH ) )
+            if ( $line_length > ( 4 * LENGTH_DISCOUNT_LENGTH ) )
             {
                 $explanation .= "super length discount: " . LENGTH_DISCOUNT . "\n";
                 $discounted_html_density *= LENGTH_DISCOUNT;
