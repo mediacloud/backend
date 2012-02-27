@@ -572,6 +572,20 @@ sub _heuristically_scored_lines_impl
             $html_density = get_html_density( $line );
 
 	    Readonly my $line_length =>  length( $line );
+	    Readonly my $line_starts_with_title_text => lineStartsWithTitleText( $line_text, $title_text );
+
+	    my $copyright_count = 0;
+
+	    while ( $line =~ /copyright|copying|&copy;|all rights reserved/ig )
+            {
+	        $copyright_count++;
+            }
+
+	    Readonly my $article_has_clickprint => $has_clickprint;
+
+	    Readonly my $article_has_sphereit_map => $sphereit_map;
+	    Readonly my $sphereit_map_includes_line => ($sphereit_map && $sphereit_map->{ $i } ); 
+	    Readonly my $description_similarity_discount => get_description_similarity_discount( $line, $description );
 
             if (   ( $line_length < MINIMUM_CHARACTERS )
                 && ( $html_density < MINIMUM_CHARACTERS_SCORE ) )
@@ -584,7 +598,7 @@ sub _heuristically_scored_lines_impl
 
             if ( !$skip_title_search )
             {
-                if ( lineStartsWithTitleText( $line_text, $title_text ) )
+                if ( $line_starts_with_title_text )
                 {
                     $found_article_title = 1;
                     $explanation .= "title match discount" . "\n";
@@ -615,19 +629,19 @@ sub _heuristically_scored_lines_impl
                 $discounted_html_density *= LENGTH_DISCOUNT;
             }
 
-            while ( $line =~ /copyright|copying|&copy;|all rights reserved/ig )
+            for ( my $j = 0; $j < $copyright_count; $j++)
             {
                 $explanation .= "copyright discount: " . COPYRIGHT_DISCOUNT . "\n";
                 $discounted_html_density *= COPYRIGHT_DISCOUNT;
             }
 
-            if ( $has_clickprint )
+            if ( $article_has_clickprint )
             {
                 $explanation .= "clickprint discount: " . CLICKPRINT_DISCOUNT . "\n";
                 $discounted_html_density *= CLICKPRINT_DISCOUNT;
             }
 
-            if ( $sphereit_map && $sphereit_map->{ $i } )
+            if ( $article_has_sphereit_map && $sphereit_map_includes_line )
             {
                 $explanation .= "sphereit discount: " . SPHEREIT_DISCOUNT . "\n";
                 $discounted_html_density *= SPHEREIT_DISCOUNT;
@@ -653,7 +667,7 @@ sub _heuristically_scored_lines_impl
             if (   ( $discounted_html_density > MAX_HTML_DENSITY )
                 && ( $discounted_html_density < ( MAX_HTML_DENSITY * 3 ) ) )
             {
-                my $d = get_description_similarity_discount( $line, $description );
+                my $d = $description_similarity_discount;
                 if ( $d < 1 )
                 {
                     $explanation .= "similarity discount: $d\n";
