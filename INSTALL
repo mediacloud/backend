@@ -51,7 +51,7 @@ where <MEDIACLOUD_DIR> is the root directory for mediacloud.  This will install 
   the installation process and respond to any questions that come up.
 
 * SUGGESTED: Verify that the necessary modules are installed. Run the media cloudcoverage test verify that all required modules have been installed. Run:
-      prove -l  t/cover.t
+      prove -l  t/compile.t
 If there are errors determine which modules are missing and install them in cpan.
 
 * Run ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
