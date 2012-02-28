@@ -4,7 +4,6 @@ use MediaWords::CommonLibs;
 # extract substantive new story text from html pages
 
 use strict;
-use warnings;
 
 use HTML::Entities;
 use MediaWords::Util::HTML;
@@ -528,6 +527,31 @@ sub calculate_line_extraction_metrics_2
     return ( $line_length, $line_starts_with_title_text );
 }
 
+sub calculate_full_line_metrics
+{
+    my ( $line, $line_text, $line_number, $title_text, $description, $sphereit_map, $has_clickprint ) = @_;
+
+    my $line_info = {};
+
+    my ( $line_length, $line_starts_with_title_text ) =
+      calculate_line_extraction_metrics_2( $line_text, $line, $title_text );
+
+    my ( $copyright_count ) = get_copyright_count( $line );
+
+    my ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount, $sphereit_map_includes_line )
+      = calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint );
+
+    $line_info->{ line_length }                     = $line_length;
+    $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
+    $line_info->{ copyright_copy }                  = $copyright_count;
+    $line_info->{ article_has_clickprint }          = $article_has_clickprint;
+    $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
+    $line_info->{ description_similarity_discount } = $description_similarity_discount;
+    $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
+
+    return $line_info;
+}
+
 sub _heuristically_scored_lines_impl
 {
     my ( $lines, $title, $description, $auto_excluded_lines, $skip_title_search ) = @_;
@@ -621,28 +645,11 @@ sub _heuristically_scored_lines_impl
         }
         else
         {
-            my $line_info = {};
 
+            my $line_info = calculate_full_line_metrics( $line, $line_text, $i, $title_text, $description, $sphereit_map,
+                $has_clickprint );
             $html_density = get_html_density( $line );
-
-            my ( $line_length, $line_starts_with_title_text ) =
-              calculate_line_extraction_metrics_2( $line_text, $line, $title_text );
-
-            my ( $copyright_count ) = get_copyright_count( $line );
-
-            my (
-                $article_has_clickprint,          $article_has_sphereit_map,
-                $description_similarity_discount, $sphereit_map_includes_line
-            ) = calculate_line_extraction_metrics( $i, $description, $line, $sphereit_map, $has_clickprint );
-
-            $line_info->{ html_density }                    = $html_density;
-            $line_info->{ line_length }                     = $line_length;
-            $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
-            $line_info->{ copyright_copy }                  = $copyright_count;
-            $line_info->{ article_has_clickprint }          = $article_has_clickprint;
-            $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
-            $line_info->{ description_similarity_discount } = $description_similarity_discount;
-            $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
+            $line_info->{ html_density } = $html_density;
 
             if (   ( $line_info->{ line_length } < MINIMUM_CHARACTERS )
                 && ( $line_info->{ html_density } < MINIMUM_CHARACTERS_SCORE ) )
@@ -724,7 +731,7 @@ sub _heuristically_scored_lines_impl
             if (   ( $discounted_html_density > MAX_HTML_DENSITY )
                 && ( $discounted_html_density < ( MAX_HTML_DENSITY * 3 ) ) )
             {
-                my $d = $description_similarity_discount;
+                my $d = $line_info->{ description_similarity_discount };
                 if ( $d < 1 )
                 {
                     $explanation .= "similarity discount: $d\n";
