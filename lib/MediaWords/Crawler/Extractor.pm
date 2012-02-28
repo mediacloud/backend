@@ -59,7 +59,6 @@ use constant REQUIRE_NON_BLANK => 1004;
 # we don't care about lines with only html and no text
 use constant REQUIRE_NON_HTML => 1005;
 
-
 # STATICS
 
 # markers -- patterns used to find lines than can help find the text
@@ -416,7 +415,7 @@ sub heuristically_scored_lines
 {
     my ( $lines, $title, $description, $auto_excluded_lines ) = @_;
 
-    return _heuristically_scored_lines_impl( $lines, $title, $description, $auto_excluded_lines, 0 );
+    return _heuristically_scored_lines_impl( $lines, $title, $description, $auto_excluded_lines);
 }
 
 #
@@ -571,7 +570,7 @@ sub _get_info_for_lines
 
 sub _heuristically_scored_lines_impl
 {
-    my ( $lines, $title, $description, $auto_excluded_lines, $skip_title_search ) = @_;
+    my ( $lines, $title, $description, $auto_excluded_lines ) = @_;
 
     # use Data::Dumper;
     # die ( Dumper( @_ ) );
@@ -585,7 +584,7 @@ sub _heuristically_scored_lines_impl
 
     my $info_for_lines = _get_info_for_lines( $lines, $title, $description, $auto_excluded_lines );
 
-    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_line_with_line_info( $info_for_lines, $skip_title_search );
+    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_line_with_line_info( $info_for_lines );
 
     return $scores;
 }

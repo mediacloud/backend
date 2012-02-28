@@ -14,9 +14,9 @@ use Text::Similarity::Overlaps;
 use Text::Trim;
 
 use Time::HiRes;
-use List::MoreUtils qw(first_index indexes last_index);
+use List::MoreUtils qw(any first_index indexes last_index none);
+
 use Array::Compare;
-use HTML::CruftText;
 use Carp qw (confess);
 use Lingua::ZH::MediaWords;
 
@@ -83,7 +83,7 @@ use constant REQUIRE_NON_HTML => 1005;
 
 sub _score_line_with_line_info
 {
-    my ( $info_for_lines, $skip_title_search ) = @_;
+    my ( $info_for_lines ) = @_;
 
     my $scores = [];
 
@@ -92,6 +92,8 @@ sub _score_line_with_line_info
     my $comment_addition;
 
     my $last_story_line = 0;
+
+    my $skip_title_search = none { ( $_->{ line_starts_with_title_text } ) } @ { $info_for_lines };
 
     for ( my $i = 0 ; $i < @{ $info_for_lines } ; $i++ )
     {
@@ -244,13 +246,7 @@ sub _score_line_with_line_info
 
     MediaWords::Crawler::Extractor::print_time( "loop_lines" );
 
-    #In rare cases we won't match the article title and we'll discount all lines
-    #we rescore the article without looking for the title to fix this
-    if ( !$found_article_title && !$skip_title_search )
-    {
-        $skip_title_search = 1;
-        return _score_line_with_line_info( $info_for_lines, $skip_title_search );
-    }
+    die "Did not find title text" if ( !$found_article_title && !$skip_title_search );
 
     return $scores;
 }
