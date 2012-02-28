@@ -791,7 +791,15 @@ sub _score_line_with_line_info
 
     }
 
-    return ( $scores, $found_article_title );
+    #In rare cases we won't match the article title and we'll discount all lines
+    #we rescore the article without looking for the title to fix this
+    if ( !$found_article_title && !$skip_title_search )
+    {
+        $skip_title_search = 1;
+        return _score_line_with_line_info( $info_for_lines, $skip_title_search );
+    }
+
+    return $scores;
 }
 
 sub _heuristically_scored_lines_impl
@@ -808,21 +816,9 @@ sub _heuristically_scored_lines_impl
         return;
     }
 
-    #print "markers: ";
-    #use Data::Dumper;
-    #print Dumper($markers);
-
     my $info_for_lines = _get_info_for_lines( $lines, $title, $description, $auto_excluded_lines );
 
-    my ( $scores, $found_article_title ) = _score_line_with_line_info( $info_for_lines, $skip_title_search );
-
-    #In rare cases we won't match the article title and we'll discount all lines
-    #we rescore the article without looking for the title to fix this
-    if ( !$found_article_title && !$skip_title_search )
-    {
-        $skip_title_search = 1;
-        return _heuristically_scored_lines_impl( $lines, $title, $description, $auto_excluded_lines, $skip_title_search );
-    }
+    my $scores = _score_line_with_line_info( $info_for_lines, $skip_title_search );
 
     return $scores;
 }
