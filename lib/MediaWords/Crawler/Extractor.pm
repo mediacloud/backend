@@ -24,9 +24,6 @@ use Lingua::ZH::MediaWords;
 # only include lines with at least four letters
 use constant REQUIRE_WORD => 1000;
 
-# only include text from inside the body tag
-use constant REQUIRE_BODY => 1001;
-
 # if there are clickprint tags, require that the text be inside them
 use constant REQUIRE_CLICKPRINT => 1002;
 
@@ -41,6 +38,7 @@ use constant REQUIRE_NON_HTML => 1005;
 
 # STATICS
 
+## TODO merge this with the one in HTML::CruftText
 # markers -- patterns used to find lines than can help find the text
 my $_MARKER_PATTERNS = {
     startclickprintinclude => qr/<\!--\s*startclickprintinclude/i,
@@ -138,8 +136,7 @@ sub find_auto_excluded_lines
 
         my $auto_exclude = 0;
 
-        if (   REQUIRE_BODY
-            && $markers->{ body }
+        if ( $markers->{ body }
             && ( $i < ( $markers->{ body }->[ 0 ] || 0 ) ) )
         {
             $explanation .= "require body";
