@@ -556,6 +556,8 @@ sub calculate_full_line_metrics
         return $line_info;
     }
 
+    $line_info->{ html_density } = get_html_density( $line );
+
     my $line_text = html_strip( $line );
 
     $line_text =~ s/^\s*//;
@@ -653,11 +655,11 @@ sub _heuristically_scored_lines_impl
 
     for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
-        my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
+        #my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
 
-        $line =~ s/^\s*//;
-        $line =~ s/\s*$//;
-        $line =~ s/\s+/ /;
+        #$line =~ s/^\s*//;
+        #$line =~ s/\s*$//;
+        #$line =~ s/\s+/ /;
 
         #        print STDERR "line: $line" . "\n";
 
@@ -701,8 +703,7 @@ sub _heuristically_scored_lines_impl
         else
         {
 
-            $html_density = get_html_density( $line );
-            $line_info->{ html_density } = $html_density;
+            $html_density =  $line_info->{ html_density };
 
             if (   ( $line_info->{ line_length } < MINIMUM_CHARACTERS )
                 && ( $line_info->{ html_density } < MINIMUM_CHARACTERS_SCORE ) )
@@ -796,7 +797,7 @@ sub _heuristically_scored_lines_impl
         $score->{ html_density }            = $html_density            || 0;
         $score->{ discounted_html_density } = $discounted_html_density || 0;
         $score->{ explanation }             = $explanation             || '';
-        $score->{ is_story } = ( $line && ( $discounted_html_density < MAX_HTML_DENSITY ) ) || 0;
+        $score->{ is_story } =  ( $discounted_html_density < MAX_HTML_DENSITY ) || 0;
         $score->{ line_number } = $i;
 
         if ( $score->{ is_story } )
