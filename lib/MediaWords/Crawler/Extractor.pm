@@ -644,17 +644,17 @@ sub _heuristically_scored_lines_impl
             $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
 
             if (   ( $line_info->{ line_length } < MINIMUM_CHARACTERS )
-                && ( $html_density < MINIMUM_CHARACTERS_SCORE ) )
+                && ( $line_info->{ html_density } < MINIMUM_CHARACTERS_SCORE ) )
             {
                 $explanation .= "minimum characters score: " . MINIMUM_CHARACTERS_SCORE . "\n";
-                $html_density = MINIMUM_CHARACTERS_SCORE;
+                $line_info->{ html_density } = MINIMUM_CHARACTERS_SCORE;
             }
 
-            $discounted_html_density = $html_density;
+            $discounted_html_density = $line_info->{ html_density };
 
             if ( !$skip_title_search )
             {
-                if ( $line_starts_with_title_text )
+                if ( $line_info->{ line_starts_with_title_text } )
                 {
                     $found_article_title = 1;
                     $explanation .= "title match discount" . "\n";
@@ -685,19 +685,19 @@ sub _heuristically_scored_lines_impl
                 $discounted_html_density *= LENGTH_DISCOUNT;
             }
 
-            for ( my $j = 0 ; $j < $copyright_count ; $j++ )
+            for ( my $j = 0 ; $j < $line_info->{ copyright_copy } ; $j++ )
             {
                 $explanation .= "copyright discount: " . COPYRIGHT_DISCOUNT . "\n";
                 $discounted_html_density *= COPYRIGHT_DISCOUNT;
             }
 
-            if ( $article_has_clickprint )
+            if ( $line_info->{ article_has_click_print } )
             {
                 $explanation .= "clickprint discount: " . CLICKPRINT_DISCOUNT . "\n";
                 $discounted_html_density *= CLICKPRINT_DISCOUNT;
             }
 
-            if ( $article_has_sphereit_map && $sphereit_map_includes_line )
+            if ( $line_info->{ article_has_sphereit_map } && $line_info->{ sphereit_map_includes_line } )
             {
                 $explanation .= "sphereit discount: " . SPHEREIT_DISCOUNT . "\n";
                 $discounted_html_density *= SPHEREIT_DISCOUNT;
