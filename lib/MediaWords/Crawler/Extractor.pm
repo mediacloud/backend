@@ -643,26 +643,19 @@ sub _heuristically_scored_lines_impl
     #use Data::Dumper;
     #print Dumper($markers);
 
+    my $info_for_lines = _get_info_for_lines( $lines, $title, $description, $auto_excluded_lines );
+
     my $scores = [];
 
+    my $found_article_title = 0;
+
+    {
     my $comment_addition;
 
     my $last_story_line = 0;
 
-    my $found_article_title = 0;
-
-    my $info_for_lines = _get_info_for_lines( $lines, $title, $description, $auto_excluded_lines );
-
     for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
-        #my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
-
-        #$line =~ s/^\s*//;
-        #$line =~ s/\s*$//;
-        #$line =~ s/\s+/ /;
-
-        #        print STDERR "line: $line" . "\n";
-
         my $score;
 
         my ( $html_density, $discounted_html_density, $explanation );
@@ -811,6 +804,8 @@ sub _heuristically_scored_lines_impl
     }
 
     print_time( "loop_lines" );
+
+    }
 
     #In rare cases we won't match the article title and we'll discount all lines
     #we rescore the article without looking for the title to fix this
