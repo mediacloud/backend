@@ -529,9 +529,40 @@ sub calculate_line_extraction_metrics_2
 
 sub calculate_full_line_metrics
 {
-    my ( $line, $line_text, $line_number, $title_text, $description, $sphereit_map, $has_clickprint ) = @_;
+    my ( $line, $line_number, $title_text, $description, $sphereit_map, $has_clickprint, $auto_excluded_lines, $markers ) =
+      @_;
 
     my $line_info = {};
+
+    if (   $markers->{ comment }
+        && $markers->{ comment }->[ 0 ]
+        && ( $markers->{ comment }->[ 0 ] == $line_number ) )
+    {
+        shift( @{ $markers->{ comment } } );
+        $line_info->{ has_comment } = 1;
+    }
+    else
+    {
+        $line_info->{ has_comment } = 0;
+    }
+
+    if ( $auto_excluded_lines->[ $line_number ]->[ 0 ] )
+    {
+        my $auto_exclude_explanation = $auto_excluded_lines->[ $line_number ]->[ 1 ];
+
+        $line_info->{ auto_excluded }            = 1;
+        $line_info->{ auto_exclude_explanation } = $auto_exclude_explanation;
+
+        return $line_info;
+    }
+
+    my $line_text = html_strip( $line );
+
+    $line_text =~ s/^\s*//;
+    $line_text =~ s/\s*$//;
+    $line_text =~ s/\s+/ /;
+
+    $line_info->{ auto_excluded } = 0;
 
     my ( $line_length, $line_starts_with_title_text ) =
       calculate_line_extraction_metrics_2( $line_text, $line, $title_text );
@@ -597,24 +628,18 @@ sub _heuristically_scored_lines_impl
         $line =~ s/\s*$//;
         $line =~ s/\s+/ /;
 
-        my $line_text = html_strip( $line );
-
-        $line_text =~ s/^\s*//;
-        $line_text =~ s/\s*$//;
-        $line_text =~ s/\s+/ /;
-
         #        print STDERR "line: $line" . "\n";
 
         my $score;
 
         my ( $html_density, $discounted_html_density, $explanation );
 
-        if (   $markers->{ comment }
-            && $markers->{ comment }->[ 0 ]
-            && ( $markers->{ comment }->[ 0 ] == $i ) )
+        my $line_info = calculate_full_line_metrics( $line, $i, $title_text, $description, $sphereit_map, $has_clickprint,
+            $auto_excluded_lines, $markers );
+
+        if ( $line_info->{ has_comment } )
         {
             $comment_addition += COMMENT_ADDITION;
-            shift( @{ $markers->{ comment } } );
         }
         else
         {
@@ -626,9 +651,9 @@ sub _heuristically_scored_lines_impl
             $comment_addition = 0;
         }
 
-        if ( $auto_excluded_lines->[ $i ]->[ 0 ] )
+        if ( $line_info->{ auto_excluded } )
         {
-            my $auto_exclude_explanation = $auto_excluded_lines->[ $i ]->[ 1 ];
+            my $auto_exclude_explanation = $line_info->{ auto_exclude_explanation };
             my $explanation_codes        = {
                 "require body"       => REQUIRE_BODY,
                 "require non-blank"  => REQUIRE_NON_BLANK,
@@ -646,8 +671,6 @@ sub _heuristically_scored_lines_impl
         else
         {
 
-            my $line_info = calculate_full_line_metrics( $line, $line_text, $i, $title_text, $description, $sphereit_map,
-                $has_clickprint );
             $html_density = get_html_density( $line );
             $line_info->{ html_density } = $html_density;
 
