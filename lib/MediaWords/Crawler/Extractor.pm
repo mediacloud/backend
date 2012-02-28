@@ -620,6 +620,7 @@ sub _heuristically_scored_lines_impl
 
     my $found_article_title = 0;
 
+    my $info_for_lines = [];
     for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
         my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
@@ -636,6 +637,25 @@ sub _heuristically_scored_lines_impl
 
         my $line_info = calculate_full_line_metrics( $line, $i, $title_text, $description, $sphereit_map, $has_clickprint,
             $auto_excluded_lines, $markers );
+
+        $info_for_lines->[ $i ] = $line_info;
+    }
+
+    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+    {
+        my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
+
+        $line =~ s/^\s*//;
+        $line =~ s/\s*$//;
+        $line =~ s/\s+/ /;
+
+        #        print STDERR "line: $line" . "\n";
+
+        my $score;
+
+        my ( $html_density, $discounted_html_density, $explanation );
+
+        my $line_info = $info_for_lines->[ $i ];
 
         if ( $line_info->{ has_comment } )
         {
