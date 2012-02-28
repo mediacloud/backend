@@ -4,6 +4,7 @@ use MediaWords::CommonLibs;
 # extract substantive new story text from html pages
 
 use strict;
+use warnings;
 
 use HTML::Entities;
 use MediaWords::Util::HTML;
@@ -691,7 +692,7 @@ sub _heuristically_scored_lines_impl
                 $discounted_html_density *= COPYRIGHT_DISCOUNT;
             }
 
-            if ( $line_info->{ article_has_click_print } )
+            if ( $line_info->{ article_has_clickprint } )
             {
                 $explanation .= "clickprint discount: " . CLICKPRINT_DISCOUNT . "\n";
                 $discounted_html_density *= CLICKPRINT_DISCOUNT;
