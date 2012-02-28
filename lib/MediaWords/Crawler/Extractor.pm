@@ -592,21 +592,10 @@ sub _heuristically_scored_lines_impl
 
     print_time( "score_lines" );
 
-    my $title_text = html_strip( $title );
-
-    $title_text =~ s/^\s*//;
-    $title_text =~ s/\s*$//;
-    $title_text =~ s/\s+/ /;
-
     if ( !defined( $lines ) )
     {
         return;
     }
-
-    my $markers        = find_markers( $lines );
-    my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
-    my $sphereit_map   = get_sphereit_map( $markers );
-    print_time( "find_markers" );
 
     #print "markers: ";
     #use Data::Dumper;
@@ -621,24 +610,41 @@ sub _heuristically_scored_lines_impl
     my $found_article_title = 0;
 
     my $info_for_lines = [];
-    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+
     {
-        my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
 
-        $line =~ s/^\s*//;
-        $line =~ s/\s*$//;
-        $line =~ s/\s+/ /;
+       my $title_text = html_strip( $title );
 
-        #        print STDERR "line: $line" . "\n";
+       $title_text =~ s/^\s*//;
+       $title_text =~ s/\s*$//;
+       $title_text =~ s/\s+/ /;
 
-        my $score;
+        my $markers        = find_markers( $lines );
+        my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
+        my $sphereit_map   = get_sphereit_map( $markers );
+        print_time( "find_markers" );
 
-        my ( $html_density, $discounted_html_density, $explanation );
+        for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+        {
+            my $line = defined( $lines->[ $i ] ) ? $lines->[ $i ] : '';
 
-        my $line_info = calculate_full_line_metrics( $line, $i, $title_text, $description, $sphereit_map, $has_clickprint,
-            $auto_excluded_lines, $markers );
+            $line =~ s/^\s*//;
+            $line =~ s/\s*$//;
+            $line =~ s/\s+/ /;
 
-        $info_for_lines->[ $i ] = $line_info;
+            #        print STDERR "line: $line" . "\n";
+
+            my $score;
+
+            my ( $html_density, $discounted_html_density, $explanation );
+
+            my $line_info =
+              calculate_full_line_metrics( $line, $i, $title_text, $description, $sphereit_map, $has_clickprint,
+                $auto_excluded_lines, $markers );
+
+            $info_for_lines->[ $i ] = $line_info;
+        }
+
     }
 
     for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
