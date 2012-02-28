@@ -654,7 +654,7 @@ sub _heuristically_scored_lines_impl
 
     my $last_story_line = 0;
 
-    for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+    for ( my $i = 0 ; $i < @{ $info_for_lines } ; $i++ )
     {
         my $score;
 
