@@ -81,7 +81,7 @@ use constant REQUIRE_NON_BLANK => 1004;
 # we don't care about lines with only html and no text
 use constant REQUIRE_NON_HTML => 1005;
 
-sub _score_line_with_line_info
+sub _score_lines_with_line_info
 {
     my ( $info_for_lines ) = @_;
 

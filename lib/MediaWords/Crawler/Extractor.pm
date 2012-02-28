@@ -584,7 +584,7 @@ sub _heuristically_scored_lines_impl
 
     my $info_for_lines = _get_info_for_lines( $lines, $title, $description, $auto_excluded_lines );
 
-    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_line_with_line_info( $info_for_lines );
+    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $info_for_lines );
 
     return $scores;
 }
