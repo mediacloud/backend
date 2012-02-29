@@ -183,21 +183,19 @@ sub score_lines
 {
     my ( $lines, $title, $description ) = @_;
 
-    my $auto_excluded_lines = find_auto_excluded_lines( $lines );
-
-    return heuristically_scored_lines( $lines, $title, $description, $auto_excluded_lines );
+    return heuristically_scored_lines( $lines, $title, $description );
 }
 
 sub heuristically_scored_lines
 {
-    my ( $lines, $title, $description, $auto_excluded_lines ) = @_;
+    my ( $lines, $title, $description ) = @_;
 
-    return _heuristically_scored_lines_impl( $lines, $title, $description, $auto_excluded_lines );
+    return _heuristically_scored_lines_impl( $lines, $title, $description );
 }
 
 sub _heuristically_scored_lines_impl
 {
-    my ( $lines, $title, $description, $auto_excluded_lines ) = @_;
+    my ( $lines, $title, $description ) = @_;
 
     # use Data::Dumper;
     # die ( Dumper( @_ ) );
@@ -208,6 +206,8 @@ sub _heuristically_scored_lines_impl
     {
         return;
     }
+
+    my $auto_excluded_lines = find_auto_excluded_lines( $lines );
 
     my $info_for_lines =
       MediaWords::Crawler::AnalyzeLines::_get_info_for_lines( $lines, $title, $description, $auto_excluded_lines );
