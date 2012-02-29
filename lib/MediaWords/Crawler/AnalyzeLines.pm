@@ -333,13 +333,16 @@ sub calculate_full_line_metrics
     $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
     $line_info->{ description_similarity_discount } = $description_similarity_discount;
     $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
+    $line_info->{ line_number }                     = $line_number;
 
     return $line_info;
 }
 
-sub _get_info_for_lines
+sub get_info_for_lines
 {
-    my ( $lines, $title, $description, $auto_excluded_lines ) = @_;
+    my ( $lines, $title, $description ) = @_;
+
+    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
 
     my $info_for_lines = [];
 
@@ -377,3 +380,5 @@ sub _get_info_for_lines
 
     return $info_for_lines;
 }
+
+1;

@@ -207,10 +207,8 @@ sub _heuristically_scored_lines_impl
         return;
     }
 
-    my $auto_excluded_lines = find_auto_excluded_lines( $lines );
-
     my $info_for_lines =
-      MediaWords::Crawler::AnalyzeLines::_get_info_for_lines( $lines, $title, $description, $auto_excluded_lines );
+      MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $title, $description );
 
     my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $info_for_lines );
 
