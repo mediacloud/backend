@@ -31,6 +31,66 @@ use Data::Compare;
 
 my $_re_generate_cache = 0;
 
+sub _get_required_lines
+  {
+    my ( $line_should_be_in_story ) = @_;
+
+    my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
+
+    return @required_lines;
+  }
+
+sub _get_optional_lines
+  {
+    my ( $line_should_be_in_story ) = @_;
+
+    my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
+
+    return @optional_lines;
+  }
+
+sub _get_missing_lines
+{
+    my ( $line_should_be_in_story, $extracted_lines ) = @_;
+
+    my @extracted_lines = @ { $extracted_lines };
+
+    my @required_lines = _get_required_lines ( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines ( $line_should_be_in_story );
+
+    my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
+
+    return @missing_lines;
+}
+
+sub _get_extra_lines
+{
+    my ( $line_should_be_in_story, $extracted_lines ) = @_;
+
+    my @extracted_lines = @ { $extracted_lines };
+
+    my @required_lines = _get_required_lines ( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines ( $line_should_be_in_story );
+
+    my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
+
+    return @extra_lines;
+}
+
+sub _get_correctly_included_lines
+{
+    my ( $line_should_be_in_story, $extracted_lines ) = @_;
+
+    my @extracted_lines = @ { $extracted_lines };
+
+    my @required_lines = _get_required_lines ( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines ( $line_should_be_in_story );
+
+    my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
+
+    return @extra_lines;
+}
+
 sub compare_extraction_with_training_data
 {
     my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs ) = @_;
@@ -38,15 +98,14 @@ sub compare_extraction_with_training_data
     my $errors = 0;
 
     my @extracted_lines = @ { $extracted_lines };
-    my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
-    my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
 
     my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
 
-    my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
-    my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
+    my @missing_lines = _get_missing_lines( $line_should_be_in_story, $extracted_lines );
 
-    my @correctly_included_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@missing_lines, \@extra_lines ] ) ] );
+    my @extra_lines = _get_extra_lines( $line_should_be_in_story, $extracted_lines );
+
+    my @correctly_included_lines =  _get_correctly_included_lines( $line_should_be_in_story, $extracted_lines ); 
 
     my $story_characters =
       MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
