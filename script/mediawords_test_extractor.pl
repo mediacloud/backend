@@ -32,31 +32,31 @@ use Data::Compare;
 my $_re_generate_cache = 0;
 
 sub _get_required_lines
-  {
+{
     my ( $line_should_be_in_story ) = @_;
 
     my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
 
     return @required_lines;
-  }
+}
 
 sub _get_optional_lines
-  {
+{
     my ( $line_should_be_in_story ) = @_;
 
     my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
 
     return @optional_lines;
-  }
+}
 
 sub _get_missing_lines
 {
     my ( $line_should_be_in_story, $extracted_lines ) = @_;
 
-    my @extracted_lines = @ { $extracted_lines };
+    my @extracted_lines = @{ $extracted_lines };
 
-    my @required_lines = _get_required_lines ( $line_should_be_in_story );
-    my @optional_lines = _get_optional_lines ( $line_should_be_in_story );
+    my @required_lines = _get_required_lines( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
 
     my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
 
@@ -67,10 +67,10 @@ sub _get_extra_lines
 {
     my ( $line_should_be_in_story, $extracted_lines ) = @_;
 
-    my @extracted_lines = @ { $extracted_lines };
+    my @extracted_lines = @{ $extracted_lines };
 
-    my @required_lines = _get_required_lines ( $line_should_be_in_story );
-    my @optional_lines = _get_optional_lines ( $line_should_be_in_story );
+    my @required_lines = _get_required_lines( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
 
     my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
 
@@ -81,14 +81,33 @@ sub _get_correctly_included_lines
 {
     my ( $line_should_be_in_story, $extracted_lines ) = @_;
 
-    my @extracted_lines = @ { $extracted_lines };
+    my @extracted_lines = @{ $extracted_lines };
 
-    my @required_lines = _get_required_lines ( $line_should_be_in_story );
-    my @optional_lines = _get_optional_lines ( $line_should_be_in_story );
+    my @required_lines = _get_required_lines( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
 
     my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
 
     return @extra_lines;
+}
+
+sub get_line_level_extractor_results
+{
+
+    my ( $line_should_be_in_story, $extra_lines, $missing_lines ) = @_;
+
+    my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
+
+    my $extra_line_count   = scalar( @{ $extra_lines } );
+    my $missing_line_count = scalar( @{ $missing_lines } );
+
+    my $ret = {
+        story_line_count   => $story_line_count,
+        extra_line_count   => $extra_line_count,
+        missing_line_count => $missing_line_count,
+    };
+
+    return $ret;
 }
 
 sub compare_extraction_with_training_data
@@ -97,15 +116,15 @@ sub compare_extraction_with_training_data
 
     my $errors = 0;
 
-    my @extracted_lines = @ { $extracted_lines };
-
-    my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
+    my @extracted_lines = @{ $extracted_lines };
 
     my @missing_lines = _get_missing_lines( $line_should_be_in_story, $extracted_lines );
 
     my @extra_lines = _get_extra_lines( $line_should_be_in_story, $extracted_lines );
 
-    my @correctly_included_lines =  _get_correctly_included_lines( $line_should_be_in_story, $extracted_lines ); 
+    my @correctly_included_lines = _get_correctly_included_lines( $line_should_be_in_story, $extracted_lines );
+
+    my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, \@extra_lines, \@missing_lines );
 
     my $story_characters =
       MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
@@ -172,14 +191,9 @@ sub compare_extraction_with_training_data
         $errors++;
     }
 
-    my $extra_line_count   = scalar( @extra_lines );
-    my $missing_line_count = scalar( @missing_lines );
-
     my $ret = {
-        story_characters   => $story_characters,
-        story_line_count   => $story_line_count,
-        extra_line_count   => $extra_line_count,
-        missing_line_count => $missing_line_count,
+        story_characters => $story_characters,
+        %{ $line_level_results },
         extra_characters   => $extra_characters,
         errors             => $errors,
         missing_characters => $missing_characters,
@@ -211,33 +225,35 @@ sub processDownload
 {
     ( my $download, my $dbs ) = @_;
 
-
-
     my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
 
-    my $line_info = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
-    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
+    my $line_info       = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
+    my $scores          = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
-    my @extracted_lines_from_get_extracted_lines_for_story = MediaWords::Util::ExtractorTest::get_extracted_lines_for_story ( $download, $dbs, $preprocessed_lines, !$_re_generate_cache );
+    my @extracted_lines_from_get_extracted_lines_for_story =
+      MediaWords::Util::ExtractorTest::get_extracted_lines_for_story( $download, $dbs, $preprocessed_lines,
+        !$_re_generate_cache );
 
-    if ( ! Compare( \@extracted_lines_from_get_extracted_lines_for_story, \@extracted_lines ) )
+    if ( !Compare( \@extracted_lines_from_get_extracted_lines_for_story, \@extracted_lines ) )
     {
-       say "line_info\n" . Dumper( $line_info );
-       say "scores\n" . Dumper( $scores );
-       say 'Extracted lines from get_extracted_lines_for_story';
-       say Dumper(\@extracted_lines_from_get_extracted_lines_for_story );
-       say 'Extracted lines';
-       say Dumper(\@extracted_lines );
-       die ;
+        say "line_info\n" . Dumper( $line_info );
+        say "scores\n" . Dumper( $scores );
+        say 'Extracted lines from get_extracted_lines_for_story';
+        say Dumper( \@extracted_lines_from_get_extracted_lines_for_story );
+        say 'Extracted lines';
+        say Dumper( \@extracted_lines );
+        die;
     }
+
     #die unless Compare( \@extracted_lines_from_line_info, \@extracted_lines );
 
     my $extracted_lines = \@extracted_lines;
 
     my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
 
-    return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs );
+    return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines,
+        $dbs );
 }
 
 sub extractAndScoreDownloads
