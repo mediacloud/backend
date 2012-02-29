@@ -31,34 +31,13 @@ use Data::Compare;
 
 my $_re_generate_cache = 0;
 
-sub processDownload
+sub compare_extraction_with_training_data
 {
-    ( my $download, my $dbs ) = @_;
+    my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs ) = @_;
 
     my $errors = 0;
 
-    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
-
-    my $line_info = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
-    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
-    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
-
-    my @extracted_lines_from_get_extracted_lines_for_story = MediaWords::Util::ExtractorTest::get_extracted_lines_for_story ( $download, $dbs, $preprocessed_lines, !$_re_generate_cache );
-
-    if ( ! Compare( \@extracted_lines_from_get_extracted_lines_for_story, \@extracted_lines ) )
-    {
-       say "line_info\n" . Dumper( $line_info );
-       say "scores\n" . Dumper( $scores );
-       say 'Extracted lines from get_extracted_lines_for_story';
-       say Dumper(\@extracted_lines_from_get_extracted_lines_for_story );
-       say 'Extracted lines';
-       say Dumper(\@extracted_lines );
-       die ;
-    }
-    #die unless Compare( \@extracted_lines_from_line_info, \@extracted_lines );
-
-    my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
-
+    my @extracted_lines = @ { $extracted_lines };
     my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
     my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
 
@@ -166,8 +145,40 @@ sub processDownload
         correctly_included_sentences_missing      => $correctly_included_sentences_missing,
     };
 
-    #say Dumper( $ret );
     return $ret;
+}
+
+sub processDownload
+{
+    ( my $download, my $dbs ) = @_;
+
+
+
+    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
+
+    my $line_info = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
+    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
+    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
+
+    my @extracted_lines_from_get_extracted_lines_for_story = MediaWords::Util::ExtractorTest::get_extracted_lines_for_story ( $download, $dbs, $preprocessed_lines, !$_re_generate_cache );
+
+    if ( ! Compare( \@extracted_lines_from_get_extracted_lines_for_story, \@extracted_lines ) )
+    {
+       say "line_info\n" . Dumper( $line_info );
+       say "scores\n" . Dumper( $scores );
+       say 'Extracted lines from get_extracted_lines_for_story';
+       say Dumper(\@extracted_lines_from_get_extracted_lines_for_story );
+       say 'Extracted lines';
+       say Dumper(\@extracted_lines );
+       die ;
+    }
+    #die unless Compare( \@extracted_lines_from_line_info, \@extracted_lines );
+
+    my $extracted_lines = \@extracted_lines;
+
+    my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
+
+    return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs );
 }
 
 sub extractAndScoreDownloads
