@@ -27,6 +27,7 @@ use Perl6::Say;
 use Data::Dumper;
 use MediaWords::Util::HTML;
 use MediaWords::Util::ExtractorTest;
+use Data::Compare;
 
 my $_re_generate_cache = 0;
 
@@ -36,16 +37,32 @@ sub processDownload
 
     my $errors = 0;
 
+    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
+
+    my $line_info = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
+    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
+    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
+
+    my @extracted_lines_from_get_extracted_lines_for_story = MediaWords::Util::ExtractorTest::get_extracted_lines_for_story ( $download, $dbs, $preprocessed_lines, !$_re_generate_cache );
+
+    if ( ! Compare( \@extracted_lines_from_get_extracted_lines_for_story, \@extracted_lines ) )
+    {
+       say "line_info\n" . Dumper( $line_info );
+       say "scores\n" . Dumper( $scores );
+       say 'Extracted lines from get_extracted_lines_for_story';
+       say Dumper(\@extracted_lines_from_get_extracted_lines_for_story );
+       say 'Extracted lines';
+       say Dumper(\@extracted_lines );
+       die ;
+    }
+    #die unless Compare( \@extracted_lines_from_line_info, \@extracted_lines );
+
     my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
 
     my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
     my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
 
-    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
-
     my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
-
-    my @extracted_lines = MediaWords::Util::ExtractorTest::get_extracted_lines_for_story ( $download, $dbs, $preprocessed_lines, !$_re_generate_cache );
 
     my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
     my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
@@ -173,7 +190,7 @@ sub extractAndScoreDownloads
         push( @{ $download_results }, $download_result );
     }
 
-    say STDERR Dumper( $download_results );
+    #say STDERR Dumper( $download_results );
 
     my $all_story_characters   = sum( map { $_->{ story_characters } } @{ $download_results } );
     my $all_extra_characters   = sum( map { $_->{ extra_characters } } @{ $download_results } );
