@@ -286,6 +286,8 @@ sub calculate_full_line_metrics
 
     my $line_info = {};
 
+    $line_info->{ line_number }                     = $line_number;
+
     if (   $markers->{ comment }
         && $markers->{ comment }->[ 0 ]
         && ( $markers->{ comment }->[ 0 ] == $line_number ) )
@@ -333,7 +335,6 @@ sub calculate_full_line_metrics
     $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
     $line_info->{ description_similarity_discount } = $description_similarity_discount;
     $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
-    $line_info->{ line_number }                     = $line_number;
 
     return $line_info;
 }
