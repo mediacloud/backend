@@ -97,8 +97,6 @@ sub _score_lines_with_line_info
 
     for ( my $i = 0 ; $i < @{ $info_for_lines } ; $i++ )
     {
-        my $score;
-
         my ( $html_density, $discounted_html_density, $explanation );
 
         my $line_info = $info_for_lines->[ $i ];
@@ -228,6 +226,7 @@ sub _score_lines_with_line_info
             }
         }
 
+        my $score;
         $score->{ html_density }            = $html_density                                   || 0;
         $score->{ discounted_html_density } = $discounted_html_density                        || 0;
         $score->{ explanation }             = $explanation                                    || '';
