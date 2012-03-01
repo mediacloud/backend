@@ -270,22 +270,9 @@ sub processDownload
     my $scores          = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
-    my @extracted_lines_from_get_extracted_lines_for_story =
-      MediaWords::Util::ExtractorTest::get_extracted_lines_for_story( $download, $dbs, $preprocessed_lines,
-        !$_re_generate_cache );
-
-    if ( !Compare( \@extracted_lines_from_get_extracted_lines_for_story, \@extracted_lines ) )
-    {
-        say "line_info\n" . Dumper( $line_info );
-        say "scores\n" . Dumper( $scores );
-        say 'Extracted lines from get_extracted_lines_for_story';
-        say Dumper( \@extracted_lines_from_get_extracted_lines_for_story );
-        say 'Extracted lines';
-        say Dumper( \@extracted_lines );
-        die;
-    }
-
-    #die unless Compare( \@extracted_lines_from_line_info, \@extracted_lines );
+    #my @extracted_lines_from_get_extracted_lines_for_story =
+    #  MediaWords::Util::ExtractorTest::get_extracted_lines_for_story( $download, $dbs, $preprocessed_lines,
+    #    !$_re_generate_cache );
 
     my $extracted_lines = \@extracted_lines;
 
