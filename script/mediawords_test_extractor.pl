@@ -112,15 +112,34 @@ sub get_line_level_extractor_results
 
 sub get_character_level_extractor_results
 {
-    my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $preprocessed_lines, $dbs ) = @_;
+    my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $correctly_included_lines, $preprocessed_lines,
+        $dbs, $line_info )
+      = @_;
 
     my $extra_line_count   = scalar( @{ $extra_lines } );
     my $missing_line_count = scalar( @{ $missing_lines } );
 
     my $errors = 0;
 
+    die unless $line_info;
+
     my $story_characters =
       MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
+
+    #say STDERR Dumper ( $line_info );
+
+    #say STDERR "Dumping";
+
+    #say STDERR "correctly_included_lines " . Dumper( $correctly_included_lines );
+
+    #say STDERR Dumper ( [ map { $line_info->[ $_ ]->{html_stripped_text_length } } @$correctly_included_lines ] );
+    my $correctly_included_character_length =
+      sum( map { $line_info->[ $_ ]->{html_stripped_text_length } } @$correctly_included_lines );
+
+    my $story_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } keys %{ $line_should_be_in_story } );
+
+    my $missing_lines_character_length = sum( map { $line_info->[ $_ ]->{html_stripped_text_length }  } @$missing_lines );
+    my $extra_lines_character_length   = sum( map { $line_info->[ $_ ]->{html_stripped_text_length } } @$extra_lines );
 
     my $download_errors;
 
@@ -141,6 +160,15 @@ sub get_character_level_extractor_results
           MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $extra_line_number ] );
         $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
     }
+
+    $correctly_included_character_length ||= 0;
+
+    $missing_lines_character_length ||= 0;
+    $extra_lines_character_length ||= 0;
+
+    #say STDERR "Story characters: $story_lines_character_length old $story_characters";
+    #say STDERR "Miss  characters: $missing_lines_character_length old $missing_characters  ";
+    #say STDERR "Extra characters:$extra_lines_character_length old  $extra_characters ";
 
     if ( $download_errors )
     {
@@ -227,7 +255,9 @@ sub get_story_level_extractor_results
 
 sub compare_extraction_with_training_data
 {
-    my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs ) = @_;
+    my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info ) = @_;
+
+    #say STDERR Dumper( $line_info );
 
     my @extracted_lines = @{ $extracted_lines };
 
@@ -237,14 +267,18 @@ sub compare_extraction_with_training_data
 
     my @correctly_included_lines = _get_correctly_included_lines( $line_should_be_in_story, $extracted_lines );
 
-    my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, \@extra_lines, \@missing_lines );
+    my $missing_lines            = \@missing_lines;
+    my $extra_lines              = \@extra_lines;
+    my $correctly_included_lines = \@correctly_included_lines;
+
+    my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, $extra_lines, $missing_lines );
 
     my $character_level_results =
-      get_character_level_extractor_results( $download, $line_should_be_in_story, \@missing_lines, \@extra_lines,
-        $preprocessed_lines, $dbs );
+      get_character_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
+        $correctly_included_lines, $preprocessed_lines, $dbs, $line_info );
 
     my $sentence_level_results =
-      get_story_level_extractor_results( $download, $line_should_be_in_story, \@missing_lines, \@extra_lines,
+      get_story_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
         \@correctly_included_lines, $preprocessed_lines, $dbs );
 
     my $ret = { %{ $line_level_results }, %{ $character_level_results }, %{ $sentence_level_results }, };
@@ -284,7 +318,7 @@ sub processDownload
     my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
 
     return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines,
-        $dbs );
+        $dbs, $line_info );
 }
 
 sub extractAndScoreDownloads
