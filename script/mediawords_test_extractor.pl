@@ -110,11 +110,66 @@ sub get_line_level_extractor_results
     return $ret;
 }
 
+sub get_character_level_extractor_results
+{
+    my ( $download, $line_should_be_in_story, $missing_lines,  $extra_lines, $preprocessed_lines, $dbs ) = @_;
+
+
+    my $extra_line_count   = scalar( @{ $extra_lines } );
+    my $missing_line_count = scalar( @{ $missing_lines } );
+
+    my $errors = 0;
+
+    my $story_characters =
+      MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
+
+    my $download_errors;
+
+    my $missing_characters = 0;
+
+    for my $missing_line_number ( @$missing_lines )
+    {
+        $missing_characters +=
+          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $missing_line_number ] );
+
+        $download_errors .= "missing line $missing_line_number: " . $preprocessed_lines->[ $missing_line_number ] . "\n";
+    }
+    my $extra_characters = 0;
+
+    for my $extra_line_number ( @$extra_lines )
+    {
+        $extra_characters +=
+          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $extra_line_number ] );
+        $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
+    }
+
+    if ( $download_errors )
+    {
+        my $story_title =
+          $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
+
+        print "****\nerrors in download " . $download->{ downloads_id } . ": " . $story_title . "\n" .
+          "$download_errors\n****\n";
+        $errors++;
+    }
+
+    my $ret = {story_characters => $story_characters,
+        extra_characters   => $extra_characters,
+        errors             => $errors,
+        missing_characters => $missing_characters,
+	accuracy           => (
+            $story_characters
+            ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
+            : 0
+        ),
+	      };
+
+    return $ret;
+}
+
 sub compare_extraction_with_training_data
 {
     my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs ) = @_;
-
-    my $errors = 0;
 
     my @extracted_lines = @{ $extracted_lines };
 
@@ -126,28 +181,7 @@ sub compare_extraction_with_training_data
 
     my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, \@extra_lines, \@missing_lines );
 
-    my $story_characters =
-      MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
-
-    my $download_errors;
-
-    my $missing_characters = 0;
-
-    for my $missing_line_number ( @missing_lines )
-    {
-        $missing_characters +=
-          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $missing_line_number ] );
-
-        $download_errors .= "missing line $missing_line_number: " . $preprocessed_lines->[ $missing_line_number ] . "\n";
-    }
-    my $extra_characters = 0;
-
-    for my $extra_line_number ( @extra_lines )
-    {
-        $extra_characters +=
-          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $extra_line_number ] );
-        $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
-    }
+    my $character_level_results = get_character_level_extractor_results( $download, $line_should_be_in_story, \@missing_lines,  \@extra_lines, $preprocessed_lines, $dbs ) ;
 
     my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
 
@@ -181,27 +215,14 @@ sub compare_extraction_with_training_data
 
     my $missing_sentences_total = $missing_line_sentence_info->{ sentences_total };
 
-    if ( $download_errors )
-    {
-        my $story_title =
-          $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
-
-        print "****\nerrors in download " . $download->{ downloads_id } . ": " . $story_title . "\n" .
-          "$download_errors\n****\n";
-        $errors++;
-    }
-
     my $ret = {
-        story_characters => $story_characters,
         %{ $line_level_results },
-        extra_characters   => $extra_characters,
-        errors             => $errors,
-        missing_characters => $missing_characters,
-        accuracy           => (
-            $story_characters
-            ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
-            : 0
-        ),
+        %{ $character_level_results },
+        #story_characters => $story_characters,
+        #extra_characters   => $extra_characters,
+        #errors             => $errors,
+        #missing_characters => $missing_characters,
+       
         extra_sentences_total        => $extra_sentences_total,
         extra_sentences_dedupped     => $extra_sentences_dedupped,
         extra_sentences_not_dedupped => $extra_sentences_not_dedupped,
