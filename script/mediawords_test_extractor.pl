@@ -137,29 +137,28 @@ sub get_character_level_extractor_results
       sum( map { $line_info->[ $_ ]->{html_stripped_text_length } } @$correctly_included_lines );
 
     my $story_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } keys %{ $line_should_be_in_story } );
-
     my $missing_lines_character_length = sum( map { $line_info->[ $_ ]->{html_stripped_text_length }  } @$missing_lines );
     my $extra_lines_character_length   = sum( map { $line_info->[ $_ ]->{html_stripped_text_length } } @$extra_lines );
 
-    my $download_errors;
+    # my $download_errors;
 
-    my $missing_characters = 0;
+    # my $missing_characters = 0;
 
-    for my $missing_line_number ( @$missing_lines )
-    {
-        $missing_characters +=
-          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $missing_line_number ] );
+    # for my $missing_line_number ( @$missing_lines )
+    # {
+    #     $missing_characters +=
+    #       MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $missing_line_number ] );
 
-        $download_errors .= "missing line $missing_line_number: " . $preprocessed_lines->[ $missing_line_number ] . "\n";
-    }
-    my $extra_characters = 0;
+    #     $download_errors .= "missing line $missing_line_number: " . $preprocessed_lines->[ $missing_line_number ] . "\n";
+    # }
+    # my $extra_characters = 0;
 
-    for my $extra_line_number ( @$extra_lines )
-    {
-        $extra_characters +=
-          MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $extra_line_number ] );
-        $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
-    }
+    # for my $extra_line_number ( @$extra_lines )
+    # {
+    #     $extra_characters +=
+    #       MediaWords::Util::ExtractorTest::html_stripped_text_length( $preprocessed_lines->[ $extra_line_number ] );
+    #     $download_errors .= "extra line $extra_line_number: " . $preprocessed_lines->[ $extra_line_number ] . "\n";
+    # }
 
     $correctly_included_character_length ||= 0;
 
@@ -170,24 +169,24 @@ sub get_character_level_extractor_results
     #say STDERR "Miss  characters: $missing_lines_character_length old $missing_characters  ";
     #say STDERR "Extra characters:$extra_lines_character_length old  $extra_characters ";
 
-    if ( $download_errors )
-    {
-        my $story_title =
-          $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
+    # if ( $download_errors )
+    # {
+    #     my $story_title =
+    #       $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
 
-        print "****\nerrors in download " . $download->{ downloads_id } . ": " . $story_title . "\n" .
-          "$download_errors\n****\n";
-        $errors++;
-    }
+    #     print "****\nerrors in download " . $download->{ downloads_id } . ": " . $story_title . "\n" .
+    #       "$download_errors\n****\n";
+    #     $errors++;
+    # }
 
     my $ret = {
-        story_characters   => $story_characters,
-        extra_characters   => $extra_characters,
+        story_characters   => $story_lines_character_length,
+        extra_characters   => $extra_lines_character_length,
         errors             => $errors,
-        missing_characters => $missing_characters,
+        missing_characters => $missing_lines_character_length,
         accuracy           => (
-            $story_characters
-            ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
+            $story_lines_character_length
+            ? int( ( $extra_lines_character_length + $missing_lines_character_length ) / $story_lines_character_length * 100 )
             : 0
         ),
     };
