@@ -112,8 +112,7 @@ sub get_line_level_extractor_results
 
 sub get_character_level_extractor_results
 {
-    my ( $download, $line_should_be_in_story, $missing_lines,  $extra_lines, $preprocessed_lines, $dbs ) = @_;
-
+    my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $preprocessed_lines, $dbs ) = @_;
 
     my $extra_line_count   = scalar( @{ $extra_lines } );
     my $missing_line_count = scalar( @{ $missing_lines } );
@@ -153,16 +152,75 @@ sub get_character_level_extractor_results
         $errors++;
     }
 
-    my $ret = {story_characters => $story_characters,
+    my $ret = {
+        story_characters   => $story_characters,
         extra_characters   => $extra_characters,
         errors             => $errors,
         missing_characters => $missing_characters,
-	accuracy           => (
+        accuracy           => (
             $story_characters
             ? int( ( $extra_characters + $missing_characters ) / $story_characters * 100 )
             : 0
         ),
-	      };
+    };
+
+    return $ret;
+}
+
+sub get_story_level_extractor_results
+{
+    my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $correctly_included_lines, $preprocessed_lines,
+        $dbs )
+      = @_;
+
+    my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
+
+    #say Dumper( $story );
+
+    my $extra_line_sentence_info =
+      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( $extra_lines, $preprocessed_lines, $story, $dbs );
+
+    my $extra_sentences_dedupped     = $extra_line_sentence_info->{ sentences_dupped };
+    my $extra_sentences_not_dedupped = $extra_line_sentence_info->{ sentences_not_dupped };
+    my $extra_sentences_missing      = $extra_line_sentence_info->{ sentences_missing };
+
+    my $extra_sentences_total = $extra_line_sentence_info->{ sentences_total };
+
+    my $correctly_included_line_sentence_info =
+      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( $correctly_included_lines, $preprocessed_lines, $story,
+        $dbs );
+
+    my $correctly_included_sentences_dedupped     = $correctly_included_line_sentence_info->{ sentences_dupped };
+    my $correctly_included_sentences_not_dedupped = $correctly_included_line_sentence_info->{ sentences_not_dupped };
+    my $correctly_included_sentences_missing      = $correctly_included_line_sentence_info->{ sentences_missing };
+
+    my $correctly_included_sentences_total = $correctly_included_line_sentence_info->{ sentences_total };
+
+    my $missing_line_sentence_info =
+      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( $missing_lines, $preprocessed_lines, $story, $dbs );
+
+    my $missing_sentences_dedupped     = $missing_line_sentence_info->{ sentences_dupped };
+    my $missing_sentences_not_dedupped = $missing_line_sentence_info->{ sentences_not_dupped };
+    my $missing_sentences_missing      = $missing_line_sentence_info->{ sentences_missing };
+
+    my $missing_sentences_total = $missing_line_sentence_info->{ sentences_total };
+
+    my $ret = {
+        extra_sentences_total        => $extra_sentences_total,
+        extra_sentences_dedupped     => $extra_sentences_dedupped,
+        extra_sentences_not_dedupped => $extra_sentences_not_dedupped,
+        extra_sentences_missing      => $extra_sentences_missing,
+
+        missing_sentences_total        => $missing_sentences_total,
+        missing_sentences_dedupped     => $missing_sentences_dedupped,
+        missing_sentences_not_dedupped => $missing_sentences_not_dedupped,
+        missing_sentences_missing      => $missing_sentences_missing,
+
+        correctly_included_sentences_total        => $correctly_included_sentences_total,
+        correctly_included_sentences_dedupped     => $correctly_included_sentences_dedupped,
+        correctly_included_sentences_not_dedupped => $correctly_included_sentences_not_dedupped,
+        correctly_included_sentences_missing      => $correctly_included_sentences_missing,
+    };
 
     return $ret;
 }
@@ -181,63 +239,15 @@ sub compare_extraction_with_training_data
 
     my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, \@extra_lines, \@missing_lines );
 
-    my $character_level_results = get_character_level_extractor_results( $download, $line_should_be_in_story, \@missing_lines,  \@extra_lines, $preprocessed_lines, $dbs ) ;
+    my $character_level_results =
+      get_character_level_extractor_results( $download, $line_should_be_in_story, \@missing_lines, \@extra_lines,
+        $preprocessed_lines, $dbs );
 
-    my $story = $dbs->find_by_id( 'stories', $download->{ stories_id } );
+    my $sentence_level_results =
+      get_story_level_extractor_results( $download, $line_should_be_in_story, \@missing_lines, \@extra_lines,
+        \@correctly_included_lines, $preprocessed_lines, $dbs );
 
-    #say Dumper( $story );
-
-    my $extra_line_sentence_info =
-      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @extra_lines ], $preprocessed_lines, $story, $dbs );
-
-    my $extra_sentences_dedupped     = $extra_line_sentence_info->{ sentences_dupped };
-    my $extra_sentences_not_dedupped = $extra_line_sentence_info->{ sentences_not_dupped };
-    my $extra_sentences_missing      = $extra_line_sentence_info->{ sentences_missing };
-
-    my $extra_sentences_total = $extra_line_sentence_info->{ sentences_total };
-
-    my $correctly_included_line_sentence_info =
-      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @correctly_included_lines ],
-        $preprocessed_lines, $story, $dbs );
-
-    my $correctly_included_sentences_dedupped     = $correctly_included_line_sentence_info->{ sentences_dupped };
-    my $correctly_included_sentences_not_dedupped = $correctly_included_line_sentence_info->{ sentences_not_dupped };
-    my $correctly_included_sentences_missing      = $correctly_included_line_sentence_info->{ sentences_missing };
-
-    my $correctly_included_sentences_total = $correctly_included_line_sentence_info->{ sentences_total };
-
-    my $missing_line_sentence_info =
-      MediaWords::Util::ExtractorTest::get_sentence_info_for_lines( [ @missing_lines ], $preprocessed_lines, $story, $dbs );
-
-    my $missing_sentences_dedupped     = $missing_line_sentence_info->{ sentences_dupped };
-    my $missing_sentences_not_dedupped = $missing_line_sentence_info->{ sentences_not_dupped };
-    my $missing_sentences_missing      = $missing_line_sentence_info->{ sentences_missing };
-
-    my $missing_sentences_total = $missing_line_sentence_info->{ sentences_total };
-
-    my $ret = {
-        %{ $line_level_results },
-        %{ $character_level_results },
-        #story_characters => $story_characters,
-        #extra_characters   => $extra_characters,
-        #errors             => $errors,
-        #missing_characters => $missing_characters,
-       
-        extra_sentences_total        => $extra_sentences_total,
-        extra_sentences_dedupped     => $extra_sentences_dedupped,
-        extra_sentences_not_dedupped => $extra_sentences_not_dedupped,
-        extra_sentences_missing      => $extra_sentences_missing,
-
-        missing_sentences_total        => $missing_sentences_total,
-        missing_sentences_dedupped     => $missing_sentences_dedupped,
-        missing_sentences_not_dedupped => $missing_sentences_not_dedupped,
-        missing_sentences_missing      => $missing_sentences_missing,
-
-        correctly_included_sentences_total        => $correctly_included_sentences_total,
-        correctly_included_sentences_dedupped     => $correctly_included_sentences_dedupped,
-        correctly_included_sentences_not_dedupped => $correctly_included_sentences_not_dedupped,
-        correctly_included_sentences_missing      => $correctly_included_sentences_missing,
-    };
+    my $ret = { %{ $line_level_results }, %{ $character_level_results }, %{ $sentence_level_results }, };
 
     return $ret;
 }
