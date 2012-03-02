@@ -19,7 +19,7 @@ set -o  errexit
 perlbrew use perl-5.14.2@mediacloud
 
 
-echo $PATH
+#echo $PATH
 
 cmd_str="$1"
 shift
