@@ -28,6 +28,7 @@ use Data::Dumper;
 use MediaWords::Util::HTML;
 use MediaWords::Util::ExtractorTest;
 use Data::Compare;
+use Storable;
 
 my $_re_generate_cache = 0;
 my $_test_sentences    = 0;
@@ -260,14 +261,45 @@ sub compare_extraction_with_training_data
     return $ret;
 }
 
-sub processDownload
+sub store_test_in_xml_file
 {
-    ( my $download, my $dbs ) = @_;
+    my ( $line_should_be_in_story, $line_info ) = @_;
 
+    my $stored_object = {
+        line_should_be_in_story => $line_should_be_in_story,
+        line_info               => $line_info
+    };
+
+    #store ( $stored_object, '/tmp/foo');
+    #retreive
+}
+
+sub analyze_download
+{
+    my ( $download, my $dbs ) = @_;
     my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
 
-    my $line_info       = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
-    my $scores          = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
+    my $line_info = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
+
+    my $ret = {
+        download           => $download,
+        line_info          => $line_info,
+        preprocessed_lines => $preprocessed_lines,
+    };
+
+    return $ret;
+}
+
+sub processDownload
+{
+    ( my $analyzed_download, my $dbs ) = @_;
+
+    my $download           = $analyzed_download->{ download };
+    my $line_info          = $analyzed_download->{ line_info };
+    my $preprocessed_lines = $analyzed_download->{ preprocessed_lines };
+
+    #my $line_info       = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
+    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
     #my @extracted_lines_from_get_extracted_lines_for_story =
@@ -277,6 +309,10 @@ sub processDownload
     my $extracted_lines = \@extracted_lines;
 
     my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
+
+    #store_test_in_xml_file( $line_should_be_in_story, $line_info );
+
+    #exit;
 
     return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines,
         $dbs, $line_info );
@@ -295,12 +331,28 @@ sub extractAndScoreDownloads
 
     my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
+    my $analyzed_downloads = [];
+
     for my $download ( @downloads )
     {
-        my $download_result = processDownload( $download, $dbs );
+        my $download_result = analyze_download( $download, $dbs );
+
+        push( @{ $analyzed_downloads }, $download_result );
+    }
+
+    for my $analyzed_download ( @$analyzed_downloads )
+    {
+        my $download_result = processDownload( $analyzed_download, $dbs );
 
         push( @{ $download_results }, $download_result );
     }
+
+    process_download_results( $download_results, \@downloads );
+}
+
+sub process_download_results
+{
+    my ( $download_results, $downloads ) = @_;
 
     #say STDERR Dumper( $download_results );
 
@@ -312,7 +364,7 @@ sub extractAndScoreDownloads
     my $all_missing_lines      = sum( map { $_->{ missing_line_count } } @{ $download_results } );
     my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
 
-    print "$errors errors / " . scalar( @downloads ) . " downloads\n";
+    print "$errors errors / " . scalar( @$downloads ) . " downloads\n";
     print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
