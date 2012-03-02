@@ -10,6 +10,7 @@ use List::MoreUtils;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use HTML::Strip;
 use MediaWords::Util::HTML;
+use MediaWords::Crawler::AnalyzeLines;
 
 sub get_lines_that_should_be_in_story
 {
@@ -53,6 +54,22 @@ sub get_extractor_scores_for_lines
         $ret = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description, );
         store_extractor_line_scores( $ret, $lines, $download, $dbs );
     }
+    return $ret;
+}
+
+sub get_line_analysis_info
+{
+    my ( $download, $dbs, $preprocessed_lines ) = @_;
+
+    my $ret;
+
+    my $story_title =
+      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
+    my $story_description =
+      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
+
+    $ret = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $preprocessed_lines, $story_title, $story_description, );
+
     return $ret;
 }
 
