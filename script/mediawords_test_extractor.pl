@@ -281,10 +281,13 @@ sub analyze_download
 
     my $line_info = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
 
+    my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
+
     my $ret = {
         download           => $download,
         line_info          => $line_info,
         preprocessed_lines => $preprocessed_lines,
+	line_should_be_in_story => $line_should_be_in_story,
     };
 
     return $ret;
@@ -298,13 +301,13 @@ sub processDownload
     my $line_info          = $analyzed_download->{ line_info };
     my $preprocessed_lines = $analyzed_download->{ preprocessed_lines };
 
+    my $line_should_be_in_story = $analyzed_download->{ line_should_be_in_story };
+
     my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
 
     my $extracted_lines = \@extracted_lines;
-
-    my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
 
     return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines,
         $dbs, $line_info );
