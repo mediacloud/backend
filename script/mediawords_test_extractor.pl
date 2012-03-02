@@ -30,8 +30,11 @@ use MediaWords::Util::ExtractorTest;
 use Data::Compare;
 use Storable;
 
-my $_re_generate_cache = 0;
-my $_test_sentences    = 0;
+my $_re_generate_cache  = 0;
+my $_test_sentences     = 0;
+
+my $_download_data_load_file ;
+my $_download_data_store_file;
 
 sub _get_required_lines
 {
@@ -115,7 +118,7 @@ sub get_line_level_extractor_results
 sub get_character_level_extractor_results
 {
     my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $correctly_included_lines, $preprocessed_lines,
-        $dbs, $line_info )
+         $line_info )
       = @_;
 
     my $extra_line_count   = scalar( @{ $extra_lines } );
@@ -245,7 +248,7 @@ sub compare_extraction_with_training_data
 
     my $character_level_results =
       get_character_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
-        $correctly_included_lines, $preprocessed_lines, $dbs, $line_info );
+        $correctly_included_lines, $preprocessed_lines, $line_info );
 
     my $sentence_level_results = {};
 
@@ -298,36 +301,25 @@ sub processDownload
     my $line_info          = $analyzed_download->{ line_info };
     my $preprocessed_lines = $analyzed_download->{ preprocessed_lines };
 
-    #my $line_info       = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
     my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
-    #my @extracted_lines_from_get_extracted_lines_for_story =
-    #  MediaWords::Util::ExtractorTest::get_extracted_lines_for_story( $download, $dbs, $preprocessed_lines,
-    #    !$_re_generate_cache );
 
     my $extracted_lines = \@extracted_lines;
 
     my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
 
-    #store_test_in_xml_file( $line_should_be_in_story, $line_info );
-
-    #exit;
-
     return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines,
         $dbs, $line_info );
 }
 
-sub extractAndScoreDownloads
+sub analyze_downloads
 {
-
-    my $downloads = shift;
+    my ( $downloads ) = @_;
 
     my @downloads = @{ $downloads };
 
     @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
-
-    my $download_results = [];
 
     my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
@@ -340,6 +332,36 @@ sub extractAndScoreDownloads
         push( @{ $analyzed_downloads }, $download_result );
     }
 
+    return $analyzed_downloads;
+}
+
+sub extractAndScoreDownloads
+{
+    my $downloads = shift;
+
+    my $analyzed_downloads = [];
+
+    if ( defined ($_download_data_load_file ) ) {
+      say STDERR "reading datafile $_download_data_load_file ";
+      $analyzed_downloads = retrieve( $_download_data_load_file ) || die;
+      say STDERR "read datafile $_download_data_load_file ";
+
+    }
+    else
+    {
+      $analyzed_downloads = analyze_downloads( $downloads );
+    }
+
+    if ( $_download_data_store_file )
+    {
+       store ( $analyzed_downloads, $_download_data_store_file );
+    }
+
+
+    my $download_results = [];
+
+    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+
     for my $analyzed_download ( @$analyzed_downloads )
     {
         my $download_result = processDownload( $analyzed_download, $dbs );
@@ -347,12 +369,12 @@ sub extractAndScoreDownloads
         push( @{ $download_results }, $download_result );
     }
 
-    process_download_results( $download_results, \@downloads );
+    process_download_results( $download_results );
 }
 
 sub process_download_results
 {
-    my ( $download_results, $downloads ) = @_;
+    my ( $download_results, $download_count ) = @_;
 
     #say STDERR Dumper( $download_results );
 
@@ -364,7 +386,7 @@ sub process_download_results
     my $all_missing_lines      = sum( map { $_->{ missing_line_count } } @{ $download_results } );
     my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
 
-    print "$errors errors / " . scalar( @$downloads ) . " downloads\n";
+    print "$errors errors / " . scalar ( @ $download_results ) . " downloads\n";
     print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
@@ -459,10 +481,14 @@ sub main
         'downloads|d=s'             => \@download_ids,
         'regenerate_database_cache' => \$_re_generate_cache,
         'test_sentences'            => \$_test_sentences,
+        'download_data_load_file=s'      => \$_download_data_load_file,
+        'download_data_store_file=s'      => \$_download_data_store_file,
     ) or die;
 
     my $downloads;
 
+    if ( ! $_download_data_load_file )
+      {
     if ( @download_ids )
     {
         $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
@@ -479,6 +505,7 @@ sub main
 "SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
         )->hashes;
     }
+  }
 
     extractAndScoreDownloads( $downloads );
 }
