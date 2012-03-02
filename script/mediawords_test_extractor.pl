@@ -128,9 +128,6 @@ sub get_character_level_extractor_results
 
     die unless $line_info;
 
-    my $story_characters =
-      MediaWords::Util::ExtractorTest::get_character_count_for_story( $download, $line_should_be_in_story );
-
     #say STDERR Dumper ( $line_info );
 
     #say STDERR "Dumping";
