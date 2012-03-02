@@ -300,6 +300,10 @@ sub calculate_full_line_metrics
         $line_info->{ has_comment } = 0;
     }
 
+    my $line_text = html_strip( $line );
+
+    $line_info->{ html_stripped_text_length } = length( $line_text );
+
     if ( $auto_excluded_lines->[ $line_number ]->[ 0 ] )
     {
         my $auto_exclude_explanation = $auto_excluded_lines->[ $line_number ]->[ 1 ];
@@ -311,8 +315,6 @@ sub calculate_full_line_metrics
     }
 
     $line_info->{ html_density } = get_html_density( $line );
-
-    my $line_text = html_strip( $line );
 
     $line_text =~ s/^\s*//;
     $line_text =~ s/\s*$//;
