@@ -85,6 +85,8 @@ sub _score_lines_with_line_info
 {
     my ( $info_for_lines ) = @_;
 
+    die unless defined ($info_for_lines );
+
     my $scores = [];
 
     my $found_article_title = 0;
