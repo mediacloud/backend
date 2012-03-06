@@ -504,7 +504,7 @@ sub main
         'test_sentences'                  => \$_test_sentences,
         'download_data_load_file=s'       => \$_download_data_load_file,
         'download_data_store_file=s'      => \$_download_data_store_file,
-        'dont_store_preprocessed_lines=s' => \$_dont_store_preprocessed_lines,
+        'dont_store_preprocessed_lines' => \$_dont_store_preprocessed_lines,
     ) or die;
 
     my $downloads;
