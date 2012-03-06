@@ -36,6 +36,7 @@ my $_test_sentences    = 0;
 
 my $_download_data_load_file;
 my $_download_data_store_file;
+my $_dont_store_preprocessed_lines;
 
 sub _get_required_lines
 {
@@ -140,8 +141,9 @@ sub get_character_level_extractor_results
 
     my $story_lines_character_length =
       sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } keys %{ $line_should_be_in_story } );
-    my $missing_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$missing_lines );
-    my $extra_lines_character_length   = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$extra_lines );
+    my $missing_lines_character_length =
+      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$missing_lines );
+    my $extra_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$extra_lines );
 
     $correctly_included_character_length ||= 0;
 
@@ -354,7 +356,27 @@ sub extractAndScoreDownloads
 
     if ( $_download_data_store_file )
     {
+        my $preprocessed_lines_tmp;
+
+        if ( $_dont_store_preprocessed_lines )
+        {
+            foreach my $analyzed_download ( @$analyzed_downloads )
+            {
+                push @{ $preprocessed_lines_tmp }, $analyzed_download->{ preprocessed_lines };
+                undef( $analyzed_download->{ preprocessed_lines } );
+            }
+        }
+
         store( $analyzed_downloads, $_download_data_store_file );
+
+        if ( defined( $preprocessed_lines_tmp ) )
+        {
+            foreach my $analyzed_download ( @$analyzed_downloads )
+            {
+                $analyzed_download->{ preprocessed_lines } = shift @{ $preprocessed_lines_tmp };
+            }
+
+        }
     }
 
     my $download_results = [];
@@ -476,12 +498,13 @@ sub main
     my @download_ids;
 
     GetOptions(
-        'file|f=s'                   => \$file,
-        'downloads|d=s'              => \@download_ids,
-        'regenerate_database_cache'  => \$_re_generate_cache,
-        'test_sentences'             => \$_test_sentences,
-        'download_data_load_file=s'  => \$_download_data_load_file,
-        'download_data_store_file=s' => \$_download_data_store_file,
+        'file|f=s'                        => \$file,
+        'downloads|d=s'                   => \@download_ids,
+        'regenerate_database_cache'       => \$_re_generate_cache,
+        'test_sentences'                  => \$_test_sentences,
+        'download_data_load_file=s'       => \$_download_data_load_file,
+        'download_data_store_file=s'      => \$_download_data_store_file,
+        'dont_store_preprocessed_lines=s' => \$_dont_store_preprocessed_lines,
     ) or die;
 
     my $downloads;
