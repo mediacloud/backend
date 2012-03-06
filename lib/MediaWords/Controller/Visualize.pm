@@ -13,7 +13,7 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 
 use Regexp::Common qw /URI/;
-use YAML::Syck;
+#use YAML::Syck;
 use URI::Escape;
 
 use Lingua::Stem;

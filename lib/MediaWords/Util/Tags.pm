@@ -1,6 +1,8 @@
 package MediaWords::Util::Tags;
 use MediaWords::CommonLibs;
 
+#TODO replace YAML::Syck with another module
+use YAML::Syck;
 
 # various functions for editing feed and medium tags
 
@@ -70,6 +72,7 @@ sub make_edit_tags_form
         }
     );
 
+    #TODO replace YAML::Syck with another module
     my $config_data = YAML::Syck::Load( $yaml );
     $form->populate( $config_data );
 

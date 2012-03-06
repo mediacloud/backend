@@ -8,7 +8,7 @@ use warnings;
 use base 'Catalyst::Controller';
 
 use Regexp::Common qw /URI/;
-use YAML::Syck;
+#use YAML::Syck;
 use Text::Trim;
 use URI::Split;
 use List::MoreUtils qw(any all none notall true false firstidx first_index
