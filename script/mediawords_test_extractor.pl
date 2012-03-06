@@ -29,11 +29,12 @@ use MediaWords::Util::HTML;
 use MediaWords::Util::ExtractorTest;
 use Data::Compare;
 use Storable;
+use 5.14.2;
 
-my $_re_generate_cache  = 0;
-my $_test_sentences     = 0;
+my $_re_generate_cache = 0;
+my $_test_sentences    = 0;
 
-my $_download_data_load_file ;
+my $_download_data_load_file;
 my $_download_data_store_file;
 
 sub _get_required_lines
@@ -98,7 +99,6 @@ sub _get_correctly_included_lines
 
 sub get_line_level_extractor_results
 {
-
     my ( $line_should_be_in_story, $extra_lines, $missing_lines ) = @_;
 
     my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
@@ -118,7 +118,7 @@ sub get_line_level_extractor_results
 sub get_character_level_extractor_results
 {
     my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $correctly_included_lines, $preprocessed_lines,
-         $line_info )
+        $line_info )
       = @_;
 
     my $extra_line_count   = scalar( @{ $extra_lines } );
@@ -140,8 +140,8 @@ sub get_character_level_extractor_results
 
     my $story_lines_character_length =
       sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } keys %{ $line_should_be_in_story } );
-    my $missing_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } @$missing_lines );
-    my $extra_lines_character_length   = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } @$extra_lines );
+    my $missing_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$missing_lines );
+    my $extra_lines_character_length   = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$extra_lines );
 
     $correctly_included_character_length ||= 0;
 
@@ -284,10 +284,10 @@ sub analyze_download
     my $line_should_be_in_story = MediaWords::Util::ExtractorTest::get_lines_that_should_be_in_story( $download, $dbs );
 
     my $ret = {
-        download           => $download,
-        line_info          => $line_info,
-        preprocessed_lines => $preprocessed_lines,
-	line_should_be_in_story => $line_should_be_in_story,
+        download                => $download,
+        line_info               => $line_info,
+        preprocessed_lines      => $preprocessed_lines,
+        line_should_be_in_story => $line_should_be_in_story,
     };
 
     return $ret;
@@ -305,7 +305,6 @@ sub processDownload
 
     my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
-
 
     my $extracted_lines = \@extracted_lines;
 
@@ -341,22 +340,22 @@ sub extractAndScoreDownloads
 
     my $analyzed_downloads = [];
 
-    if ( defined ($_download_data_load_file ) ) {
-      say STDERR "reading datafile $_download_data_load_file ";
-      $analyzed_downloads = retrieve( $_download_data_load_file ) || die;
-      say STDERR "read datafile $_download_data_load_file ";
+    if ( defined( $_download_data_load_file ) )
+    {
+        say STDERR "reading datafile $_download_data_load_file ";
+        $analyzed_downloads = retrieve( $_download_data_load_file ) || die;
+        say STDERR "read datafile $_download_data_load_file ";
 
     }
     else
     {
-      $analyzed_downloads = analyze_downloads( $downloads );
+        $analyzed_downloads = analyze_downloads( $downloads );
     }
 
     if ( $_download_data_store_file )
     {
-       store ( $analyzed_downloads, $_download_data_store_file );
+        store( $analyzed_downloads, $_download_data_store_file );
     }
-
 
     my $download_results = [];
 
@@ -386,7 +385,7 @@ sub process_download_results
     my $all_missing_lines      = sum( map { $_->{ missing_line_count } } @{ $download_results } );
     my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
 
-    print "$errors errors / " . scalar ( @ $download_results ) . " downloads\n";
+    print "$errors errors / " . scalar( @$download_results ) . " downloads\n";
     print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
@@ -477,35 +476,35 @@ sub main
     my @download_ids;
 
     GetOptions(
-        'file|f=s'                  => \$file,
-        'downloads|d=s'             => \@download_ids,
-        'regenerate_database_cache' => \$_re_generate_cache,
-        'test_sentences'            => \$_test_sentences,
-        'download_data_load_file=s'      => \$_download_data_load_file,
-        'download_data_store_file=s'      => \$_download_data_store_file,
+        'file|f=s'                   => \$file,
+        'downloads|d=s'              => \@download_ids,
+        'regenerate_database_cache'  => \$_re_generate_cache,
+        'test_sentences'             => \$_test_sentences,
+        'download_data_load_file=s'  => \$_download_data_load_file,
+        'download_data_store_file=s' => \$_download_data_store_file,
     ) or die;
 
     my $downloads;
 
-    if ( ! $_download_data_load_file )
-      {
-    if ( @download_ids )
+    if ( !$_download_data_load_file )
     {
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    elsif ( $file )
-    {
-        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
-        @download_ids = <DOWNLOAD_ID_FILE>;
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    else
-    {
-        $downloads = $dbs->query(
+        if ( @download_ids )
+        {
+            $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+        }
+        elsif ( $file )
+        {
+            open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
+            @download_ids = <DOWNLOAD_ID_FILE>;
+            $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+        }
+        else
+        {
+            $downloads = $dbs->query(
 "SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
-        )->hashes;
+            )->hashes;
+        }
     }
-  }
 
     extractAndScoreDownloads( $downloads );
 }
