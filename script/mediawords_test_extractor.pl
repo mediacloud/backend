@@ -139,7 +139,7 @@ sub get_character_level_extractor_results
       sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } @$correctly_included_lines );
 
     my $story_lines_character_length =
-      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } keys %{ $line_should_be_in_story } );
+      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } keys %{ $line_should_be_in_story } );
     my $missing_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$missing_lines );
     my $extra_lines_character_length   = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$extra_lines );
 
