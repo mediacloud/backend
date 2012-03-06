@@ -11,7 +11,7 @@ with perl and cpan.
 * Install postgresql (8.4 or greater).  Make sure that plperl support
   is included in your postgresql installation, or install the necessary
   addon packages for it.  E.g. on Ubuntu run: 
-  	sudo apt-get install postgresql;
+  	sudo apt-get install postgresql-8.4;
 	sudo apt-get install postgresql-plperl-8.4;
 	sudo apt-get install postgresql-server-dev-8.4;
 
@@ -36,7 +36,7 @@ with perl and cpan.
   default_tag_modules setting to 'NYTTopics Calais',
 
 * IMPORTANT: On Ubuntu you must install the following packages in order to build the perl modules: expat libexpat1-dev libxml2-dev, libdb-dev, libtest-www-mechanize-perl libtidy-dev libopengl-perl. Running the following command to install these packages:
-      sudo apt-get install expat libexpat1-dev libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev  libopengl-perl
+      sudo apt-get install expat libexpat1-dev libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev  libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev
 
 * OPTIONAL: On Ubuntu run the following command to try to install some of the perl module dependencies using the package manager.  Not all perl modules are in the repository so you will still need to follow the next step to install the remaining module depencies:
 
