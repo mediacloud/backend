@@ -563,7 +563,8 @@ CREATE INDEX downloads_stories_to_be_extracted on downloads (stories_id) where e
 CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='content' and state='success';
 CREATE INDEX downloads_spider_urls on downloads(url) where type = 'spider_blog_home' or type = 'spider_posting' or type = 'spider_rss' or type = 'spider_blog_friends_list';
 CREATE INDEX downloads_spider_download_errors_to_clear on downloads(state,type,error_message) where state='error' and type in ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list') and (error_message like '50%' or error_message= 'Download timed out by Fetcher::_timeout_stale_downloads') ;
-CREATE INDEX downloads_state_queued on downloads(state) where state='queued' or state='fetching';
+CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
+CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
 
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
@@ -769,6 +770,8 @@ create index story_sentence_words_story on story_sentence_words (stories_id, sen
 create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
 create index story_sentence_words_day on story_sentence_words(publish_day);
 create index story_sentence_words_media_day on story_sentence_words (media_id, publish_day);
+#ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
+#ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
 create table daily_words (
        daily_words_id               serial          primary key,
