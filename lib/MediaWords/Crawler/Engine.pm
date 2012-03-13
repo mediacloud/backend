@@ -303,6 +303,8 @@ sub crawl
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
     print "waiting 5 seconds for children to exit ...\n";
     sleep( 5 );
+
+    print STDERR "using kill 9 to make sure children stop ";
     kill( 9, map { $_->{ pid } } @{ $self->{ fetchers } } );
 }
 
