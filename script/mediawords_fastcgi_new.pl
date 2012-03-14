@@ -15,4 +15,4 @@ use Carton::CLI;
 
 my $mediacloud_fastcgi_script = "$script_dir/mediawords_fastcgi.pl";
 
-Carton::CLI->new->run( 'exec', $mediacloud_fastcgi_script );
+Carton::CLI->new->run( 'exec', '--', $mediacloud_fastcgi_script, $@ );
