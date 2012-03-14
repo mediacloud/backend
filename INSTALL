@@ -4,9 +4,7 @@ send any questions to info@mediacloud.org.
 
 These instructions assume comfort with postgresql and especially with perl. You
 will have a difficult time installing the system if you do not have experience
-with perl and cpan.
-
-* Install perl.
+with perl and cpan. These instructions have only been tested on Ubuntu Linux.
 
 * Install postgresql (8.4 or greater).  Make sure that plperl support
   is included in your postgresql installation, or install the necessary
@@ -35,24 +33,36 @@ with perl and cpan.
   and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
   default_tag_modules setting to 'NYTTopics Calais',
 
-* IMPORTANT: On Ubuntu you must install the following packages in order to build the perl modules: expat libexpat1-dev libxml2-dev, libdb-dev, libtest-www-mechanize-perl libtidy-dev libopengl-perl. Running the following command to install these packages:
+* IMPORTANT: On Ubuntu you must install a number of packages. Run the following command to install these packages:
       sudo apt-get install expat libexpat1-dev libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev  libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl  libreadonly-xs-perl
 
-* OPTIONAL: On Ubuntu run the following command to try to install some of the perl module dependencies using the package manager.  Not all perl modules are in the repository so you will still need to follow the next step to install the remaining module depencies:
+* Configure cpan on your system if you have not already done so. As root, run the following cpan command and answer the configuration questions. You should generally just be able to accept the defaults:
+  	    sudo -u root -H cpan
 
-            cat <MEDIACLOUD_DIR>/lib/Bundle/MediaWords.pm  | grep ':' | grep -v 'package ' | xargs -n 1 apt-cache search | uniq | sed -e 's/ - .*//' | sudo xargs apt-get install --install-recommends   
+* Install system wide Perl modules that are needed for the pg/plperl stored procedures by CDing to the directory where mediacloud is located and running the following commands:
+     sudo -u root -H cpan -v
+     cat lib/MediaWords/Pg/DependsList.pm | grep -v '#' | grep -v MediaWords | grep '^use' | grep -v 'strict;' | grep -v 'HTML::StripPP' | sed -e 's/^use //' | sed -e 's/ qw.*//' | sed -e 's/;$//' | xargs -n 1 sudo -n -u root -H cpan install
 
-* Configure cpan on your system if you have not already done so. As root, run the cpan command and answer the configuration questions. You should generally just be able to accept the defaults.
+*  Run the following commands to install Perlbrew, carton and the required modules:
 
-* As root, run 
-       PERL5LIB=<MEDIACLOUD_DIR>/lib PERL_MM_USE_DEFAULT=1 perl -MCPAN -e 'install Bundle::MediaWords'
+TMPDIR="." ./foreign_modules/perlbrew_install.sh
+source ~/perl5/perlbrew/etc/bashrc
+perlbrew init
+nice perlbrew install perl-5.14.2 -Duseithreads -Dusemultiplicity -Duse64bitint -Duse64bitall -Duseposix -Dusethreads -Duselargefiles -Dccflags=-DDEBIAN
+perlbrew switch perl-5.14.2
+perlbrew install-cpanm
+perlbrew lib create mediacloud
+perlbrew switch perl-5.14.2@mediacloud
+cpanm foreign_modules/carton-v0.9.3.tar.gz
+cpanm foreign_modules/List-MoreUtils-0.33.tgz
+carton install foreign_modules/YAML-Syck-1.20.tar.gz
+carton install
+carton install
+cpanm foreign_modules/Devel-NYTProf-4.06.tar.gz 
 
-where <MEDIACLOUD_DIR> is the root directory for mediacloud.  This will install the many, many perl module dependencies.  Expect this to take a long time and install scores of modules.  The PERL_MM_USE_DEFAULT environment variable is set to indicate a noninteractive sesssion, however not all modules respect this setting so you may have to occasionally check
-  the installation process and respond to any questions that come up.
-
-* SUGGESTED: Verify that the necessary modules are installed. Run the media cloudcoverage test verify that all required modules have been installed. Run:
-      prove -l  t/compile.t
-If there are errors determine which modules are missing and install them in cpan.
+* SUGGESTED: Verify that the necessary modules are installed. Run the media cloud coverage test to verify that all required modules have been installed. Run:
+      prove -l  t/cover.t
+If there are errors determine which modules are missing and install them by running carton.
 
 * Run ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
   
