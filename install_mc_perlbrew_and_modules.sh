@@ -19,7 +19,8 @@ perlbrew lib create mediacloud
 perlbrew switch perl-5.14.2@mediacloud
 cpanm foreign_modules/carton-v0.9.3.tar.gz
 cpanm foreign_modules/List-MoreUtils-0.33.tgz
+carton install --deploy
+carton install --deploy
 carton install foreign_modules/YAML-Syck-1.20.tar.gz
-carton install
-carton install
+carton install foreign_modules/carton-v0.9.3.tar.gz
 cpanm foreign_modules/Devel-NYTProf-4.06.tar.gz 
