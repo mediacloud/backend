@@ -2,6 +2,8 @@
 
 use 5.14.2;
 
+use strict;
+
 use File::Basename 'dirname';
 use File::Spec;
 
