@@ -6,6 +6,8 @@ These instructions assume comfort with postgresql and especially with perl. You
 will have a difficult time installing the system if you do not have experience
 with perl and cpan. These instructions have only been tested on Ubuntu Linux.
 
+NOTE: We recommend you create a new user to run and install Media Cloud. These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
+
 * Install postgresql (8.4 or greater).  Make sure that plperl support
   is included in your postgresql installation, or install the necessary
   addon packages for it.  E.g. on Ubuntu run: 
@@ -49,14 +51,14 @@ with perl and cpan. These instructions have only been tested on Ubuntu Linux.
      ./install_mc_perlbrew_and_modules.sh
 
 * SUGGESTED: Verify that the necessary modules are installed. Run the media cloud coverage test to verify that all required modules have been installed. Run:
-      source
+      source ~/perl5/perlbrew/etc/bashrc
       carton exec -Ilib/ -- prove -r t/compile.t
 
 If there are errors determine which modules are missing and install them by running carton install.
 
-* Run ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
+* Run ./script/run_with_carton ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
   
-* Run script/mediawords_server.pl.  This should start up the web server.
+* Run ./script/run_with_carton ./script/mediawords_server.pl.  This should start up the web server.
   If the command line returns no errors, go to http://localhost:3000 
   (or replace localhost with whatever host the system is on) to
   access the server.
