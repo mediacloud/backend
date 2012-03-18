@@ -388,7 +388,7 @@ sub dump_training_data_csv
 
     open( my $csv_fh, '>', $training_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
 
-    say $csv_fh $csv->string;
+    say $csv_fh $csv->string();
 
     say STDERR "CSV dump complete";
 
