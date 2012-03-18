@@ -386,7 +386,7 @@ sub dump_training_data_csv
         $csv->add_line( $line_not_autoexcluded );
     }
 
-    my $training_data_csv_filename => '/tmp/training_data.csv';
+    my Readonly $training_data_csv_filename => '/tmp/training_data.csv';
 
     open( my $csv_fh, '>', $training_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
 
