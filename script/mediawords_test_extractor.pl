@@ -372,7 +372,7 @@ sub dump_training_data_csv
 
     use Class::CSV;
 
-    my $fields = [ keys %{ $lines_not_autoexecluded[ 0 ] } ];
+    my $fields = [ keys %{ [@lines_not_autoexecluded]->[ 0 ] } ];
 
     my $csv = Class::CSV->new(
         fields         => $fields,
