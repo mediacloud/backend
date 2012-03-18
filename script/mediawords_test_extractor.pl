@@ -360,7 +360,9 @@ sub dump_training_data_csv
 
     say " dump_training_data_csv creating all_line_infos";
 
-    my @all_line_infos = map { @{ $_->{ line_info } } } ( @{ $analyzed_downloads } )[ 0 .. 2000 ];
+    #$analyzed_downloads =  [ ( @{ $analyzed_downloads } [ 0 ... 2000 ] ) ];
+
+    my @all_line_infos = map { @{ $_->{ line_info } } } ( @{ $analyzed_downloads } );
 
     say Dumper ( [ @all_line_infos ] );
 
