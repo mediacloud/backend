@@ -370,6 +370,29 @@ sub dump_training_data_csv
 
     say Dumper ( [ @lines_not_autoexcluded ] );
 
+
+    use Class::CSV;
+
+    my $fields = [ keys % { $lines_not_autoexecluded[0] } ];
+ 
+    my $csv = Class::CSV->new(
+			      fields         => $fields,
+			      line_separator => "\r\n";
+			     );
+
+    foreach my $line_not_autoexcluded ( @lines_not_autoexcluded )
+    {
+       $csv->add_line( $line_not_autoexcluded );
+    }
+
+    my $training_data_csv_filename => '/tmp/training_data.csv';
+
+    open ( my $csv_fh, '>', $traing_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
+
+    say $csv_fh $csv->string;
+
+    say STDERR "CSV dump complete";
+
     exit;
 }
 
