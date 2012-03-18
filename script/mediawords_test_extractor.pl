@@ -376,7 +376,7 @@ sub dump_training_data_csv
 
     my $csv = Class::CSV->new(
         fields         => $fields,
-        line_separator => "\r\n";
+        line_separator => "\r\n",
     );
 
     foreach my $line_not_autoexcluded ( @lines_not_autoexcluded )
