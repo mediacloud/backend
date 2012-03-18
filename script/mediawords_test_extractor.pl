@@ -37,6 +37,7 @@ my $_test_sentences    = 0;
 my $_download_data_load_file;
 my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
+my $_dump_training_data_csv;
 
 sub _get_required_lines
 {
@@ -336,6 +337,34 @@ sub analyze_downloads
     return $analyzed_downloads;
 }
 
+sub dump_training_data_csv
+{
+    my ( $analyzed_downloads ) = @_;
+
+    foreach my  $analyzed_download  ( @ { $analyzed_downloads } )
+    {
+
+      my $line_info = $analyzed_download->{ line_info };
+
+      my $line_should_be_in_story = $analyzed_download->{ line_should_be_in_story };
+      foreach my $line ( @ { $ line_info } )
+      {
+	$line->{ in_story } = defined ( $line_should_be_in_story->{ $line->{ line_number } } )? 1 : 0;
+      }
+
+    }
+
+    my @all_line_infos = map { @ { $_->{ line_info } } } @ { $analyzed_downloads };
+
+    say Dumper (  [ @all_line_infos ] );
+
+    my @lines_not_autoexcluded = grep { ! $_->{ auto_excluded}  } @all_line_infos;
+
+    say Dumper ( [ @lines_not_autoexcluded ] );
+
+    exit;
+}
+
 sub extractAndScoreDownloads
 {
     my $downloads = shift;
@@ -352,6 +381,11 @@ sub extractAndScoreDownloads
     else
     {
         $analyzed_downloads = analyze_downloads( $downloads );
+    }
+
+    if ( defined ( $_dump_training_data_csv ) )
+    {
+        dump_training_data_csv( $analyzed_downloads );
     }
 
     if ( $_download_data_store_file )
@@ -505,6 +539,7 @@ sub main
         'download_data_load_file=s'       => \$_download_data_load_file,
         'download_data_store_file=s'      => \$_download_data_store_file,
         'dont_store_preprocessed_lines' => \$_dont_store_preprocessed_lines,
+        'dump_training_data_csv' => \$_dump_training_data_csv,
     ) or die;
 
     my $downloads;
