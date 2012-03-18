@@ -345,49 +345,48 @@ sub dump_training_data_csv
 
     say " dump_training_data_csv add line should be in story";
 
-    foreach my  $analyzed_download  ( @ { $analyzed_downloads } )
+    foreach my $analyzed_download ( @{ $analyzed_downloads } )
     {
 
-      my $line_info = $analyzed_download->{ line_info };
+        my $line_info = $analyzed_download->{ line_info };
 
-      my $line_should_be_in_story = $analyzed_download->{ line_should_be_in_story };
-      foreach my $line ( @ { $ line_info } )
-      {
-	$line->{ in_story } = defined ( $line_should_be_in_story->{ $line->{ line_number } } )? 1 : 0;
-      }
+        my $line_should_be_in_story = $analyzed_download->{ line_should_be_in_story };
+        foreach my $line ( @{ $line_info } )
+        {
+            $line->{ in_story } = defined( $line_should_be_in_story->{ $line->{ line_number } } ) ? 1 : 0;
+        }
 
     }
 
     say " dump_training_data_csv creating all_line_infos";
 
-    my @all_line_infos = map { @ { $_->{ line_info } } } @ { $analyzed_downloads };
+    my @all_line_infos = map { @{ $_->{ line_info } } } @{ $analyzed_downloads };
 
-    say Dumper (  [ @all_line_infos ] );
+    say Dumper ( [ @all_line_infos ] );
 
     say " dump_training_data_csv creating lines_not_autoexcluded";
 
-    my @lines_not_autoexcluded = grep { ! $_->{ auto_excluded}  } @all_line_infos;
+    my @lines_not_autoexcluded = grep { !$_->{ auto_excluded } } @all_line_infos;
 
     say Dumper ( [ @lines_not_autoexcluded ] );
 
-
     use Class::CSV;
 
-    my $fields = [ keys % { $lines_not_autoexecluded[0] } ];
- 
+    my $fields = [ keys %{ $lines_not_autoexecluded[ 0 ] } ];
+
     my $csv = Class::CSV->new(
-			      fields         => $fields,
-			      line_separator => "\r\n";
-			     );
+        fields         => $fields,
+        line_separator => "\r\n";
+    );
 
     foreach my $line_not_autoexcluded ( @lines_not_autoexcluded )
     {
-       $csv->add_line( $line_not_autoexcluded );
+        $csv->add_line( $line_not_autoexcluded );
     }
 
     my $training_data_csv_filename => '/tmp/training_data.csv';
 
-    open ( my $csv_fh, '>', $traing_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
+    open( my $csv_fh, '>', $traing_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
 
     say $csv_fh $csv->string;
 
@@ -414,7 +413,7 @@ sub extractAndScoreDownloads
         $analyzed_downloads = analyze_downloads( $downloads );
     }
 
-    if ( defined ( $_dump_training_data_csv ) )
+    if ( defined( $_dump_training_data_csv ) )
     {
         dump_training_data_csv( $analyzed_downloads );
     }
@@ -563,14 +562,14 @@ sub main
     my @download_ids;
 
     GetOptions(
-        'file|f=s'                        => \$file,
-        'downloads|d=s'                   => \@download_ids,
-        'regenerate_database_cache'       => \$_re_generate_cache,
-        'test_sentences'                  => \$_test_sentences,
-        'download_data_load_file=s'       => \$_download_data_load_file,
-        'download_data_store_file=s'      => \$_download_data_store_file,
+        'file|f=s'                      => \$file,
+        'downloads|d=s'                 => \@download_ids,
+        'regenerate_database_cache'     => \$_re_generate_cache,
+        'test_sentences'                => \$_test_sentences,
+        'download_data_load_file=s'     => \$_download_data_load_file,
+        'download_data_store_file=s'    => \$_download_data_store_file,
         'dont_store_preprocessed_lines' => \$_dont_store_preprocessed_lines,
-        'dump_training_data_csv' => \$_dump_training_data_csv,
+        'dump_training_data_csv'        => \$_dump_training_data_csv,
     ) or die;
 
     my $downloads;
