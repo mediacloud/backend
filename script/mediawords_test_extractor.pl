@@ -360,7 +360,7 @@ sub dump_training_data_csv
 
     say " dump_training_data_csv creating all_line_infos";
 
-    my @all_line_infos = map { @{ $_->{ line_info } } } @{ $analyzed_downloads };
+    my @all_line_infos = map { @{ $_->{ line_info } } } ( @{ $analyzed_downloads } )[ 0 .. 2000 ];
 
     say Dumper ( [ @all_line_infos ] );
 
@@ -380,6 +380,8 @@ sub dump_training_data_csv
         fields         => $fields,
         line_separator => "\r\n",
     );
+
+    $csv->add_line( $fields );
 
     foreach my $line_not_autoexcluded ( @lines_not_autoexcluded )
     {
