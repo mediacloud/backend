@@ -341,6 +341,10 @@ sub dump_training_data_csv
 {
     my ( $analyzed_downloads ) = @_;
 
+    say "starting dump_training_data_csv";
+
+    say " dump_training_data_csv add line should be in story";
+
     foreach my  $analyzed_download  ( @ { $analyzed_downloads } )
     {
 
@@ -354,9 +358,13 @@ sub dump_training_data_csv
 
     }
 
+    say " dump_training_data_csv creating all_line_infos";
+
     my @all_line_infos = map { @ { $_->{ line_info } } } @ { $analyzed_downloads };
 
     say Dumper (  [ @all_line_infos ] );
+
+    say " dump_training_data_csv creating lines_not_autoexcluded";
 
     my @lines_not_autoexcluded = grep { ! $_->{ auto_excluded}  } @all_line_infos;
 
