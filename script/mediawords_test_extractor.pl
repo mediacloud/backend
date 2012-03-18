@@ -386,7 +386,7 @@ sub dump_training_data_csv
 
     my $training_data_csv_filename => '/tmp/training_data.csv';
 
-    open( my $csv_fh, '>', $traing_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
+    open( my $csv_fh, '>', $training_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
 
     say $csv_fh $csv->string;
 
