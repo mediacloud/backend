@@ -573,6 +573,8 @@ create view downloads_non_media as select d.* from downloads d where d.feeds_id 
 CREATE INDEX downloads_sites_index on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'));
 CREATE INDEX downloads_sites_pending on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3')) where state='pending';
 
+CREATE INDEX CONCURRENTLY downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
+
 /*
 CREATE INDEX downloads_sites_downloads_id_pending on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id) where state='pending';
 CREATE INDEX downloads_sites_index_downloads_id on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id);
