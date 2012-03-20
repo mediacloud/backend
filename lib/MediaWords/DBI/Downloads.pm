@@ -209,7 +209,7 @@ sub rewrite_downloads_content
 
     my $path = $download->{ path };
 
-    store_content( $db, $download, $down_load_content_ref );
+    store_content( $db, $download, $download_content_ref );
 
     my $download_content_ref_new = fetch_content( $download );
 
