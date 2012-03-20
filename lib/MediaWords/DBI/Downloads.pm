@@ -184,7 +184,8 @@ sub fetch_content
         return $content_ref;
     }
     else {
-        return \'';
+        my $ret = '';
+        return \$ret;
     }
 }
 
