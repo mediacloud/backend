@@ -24,6 +24,23 @@ use Data::Dumper;
 
 use constant INLINE_CONTENT_LENGTH => 256;
 
+sub _get_local_file_content_path_from_path
+{
+    my ( $path ) = @_;
+
+    # note redefine delimitor from '/' to '~'
+    $path =~ s~^.*/(content/.*.gz)$~$1~;
+
+    my $config = MediaWords::Util::Config::get_config;
+    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
+
+    $data_dir = "" if ( !$data_dir );
+    $path     = "" if ( !$path );
+    $path     = "$data_dir/$path";
+
+    return $path;
+}
+
 # return a ref to the content associated with the given download, or under if there is none
 sub fetch_content_local_file
 {
@@ -35,15 +52,7 @@ sub fetch_content_local_file
         return undef;
     }
 
-    # note redefine delimitor from '/' to '~'
-    $path =~ s~^.*/(content/.*.gz)$~$1~;
-
-    my $config = MediaWords::Util::Config::get_config;
-    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
-
-    $data_dir = "" if ( !$data_dir );
-    $path     = "" if ( !$path );
-    $path     = "$data_dir/$path";
+    $path = _get_local_file_content_path_from_path( $path );
 
     my $content;
 
@@ -187,6 +196,24 @@ sub fetch_content
         my $ret = '';
         return \$ret;
     }
+}
+
+sub rewrite_downloads_content
+{
+    my ( $db, $download ) = @_;
+
+    my $fetch_remote = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content } || 'no';
+    die "CANNOT rewrite mobile content" if ( $fetch_remote eq 'yes' );
+ 
+    my $download_content_ref = fetch_content( $download );
+
+    my $path = $download->{ path };
+
+    store_content( $db, $download, $down_load_content_ref );
+
+    my $download_content_ref_new = fetch_content( $download );
+
+    die unless $$download_content_ref eq $$download_content_ref_new;
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor
