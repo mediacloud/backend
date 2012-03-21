@@ -214,6 +214,18 @@ sub rewrite_downloads_content
     my $download_content_ref_new = fetch_content( $download );
 
     die unless $$download_content_ref eq $$download_content_ref_new;
+
+    die if $path eq $download->{ path };
+
+    my $full_path = _get_local_file_content_path_from_path( $path );
+    
+    if ( ! (-f $full_path ) )
+    {
+        $full_path =~ s/\.gz$/.dl/;
+    }
+
+    say "Deleting $full_path";
+    die "Could not delete $full_path: $! " unless unlink( $full_path );
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor
