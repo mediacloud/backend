@@ -40,6 +40,22 @@ my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
 my $_dump_training_data_csv;
 
+sub _rewrite_download_list
+{
+    my ( $db, $downloads ) = @_;
+
+    foreach my $download ( @ { $downloads } )
+    {
+	say "rewriting download " . $download->{ downloads_id };
+	say "Old download path: " . $download->{ path };
+	MediaWords::DBI::Downloads::rewrite_downloads_content( $dbs, $download );
+	say "New download path: " . $download->{ path };
+    }    
+
+    return;
+
+}
+
 # do a test run of the text extractor
 sub main
 {
@@ -73,14 +89,8 @@ sub main
 	$downloads = $dbs->query( "select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit 10; " )->hashes;
     }
 
-
-    foreach my $download ( @ { $downloads } )
-    {
-	say "rewriting download " . $download->{ downloads_id };
-	say "Old download path: " . $download->{ path };
-	MediaWords::DBI::Downloads::rewrite_downloads_content( $dbs, $download );
-	say "New download path: " . $download->{ path };
-    }
+    _rewrite_download_list( $db, $downloads );
+  
 }
 
 main();
