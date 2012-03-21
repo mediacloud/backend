@@ -68,11 +68,18 @@ sub main
 	@download_ids = <DOWNLOAD_ID_FILE>;
 	$downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
     }
+    else
+    {
+	$downloads = $dbs->query( "select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit 10; " )->hashes;
+    }
 
 
     foreach my $download ( @ { $downloads } )
     {
+	say "rewriting download " . $downloads->{ downloads_id };
+	say "Old download path: " . $downloads->{ path };
 	MediaWords::DBI::Downloads::rewrite_downloads_content( $dbs, $download );
+	say "New download path: " . $downloads->{ path };
     }
 }
 
