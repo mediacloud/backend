@@ -76,10 +76,10 @@ sub main
 
     foreach my $download ( @ { $downloads } )
     {
-	say "rewriting download " . $downloads->{ downloads_id };
-	say "Old download path: " . $downloads->{ path };
+	say "rewriting download " . $download->{ downloads_id };
+	say "Old download path: " . $download->{ path };
 	MediaWords::DBI::Downloads::rewrite_downloads_content( $dbs, $download );
-	say "New download path: " . $downloads->{ path };
+	say "New download path: " . $download->{ path };
     }
 }
 
