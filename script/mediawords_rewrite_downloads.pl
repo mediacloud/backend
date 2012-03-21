@@ -46,16 +46,16 @@ sub _rewrite_download_list
 
     say "Starting to process batch of " . scalar ( @ { $downloads } );
 
-    Readonly my $status_update_frequency => 100;
+    Readonly my $status_update_frequency => 10;
 
     my $downloads_processed = 0;
 
     foreach my $download ( @ { $downloads } )
     {
-	say "rewriting download " . $download->{ downloads_id };
-	say "Old download path: " . $download->{ path };
+	#say "rewriting download " . $download->{ downloads_id };
+	#say "Old download path: " . $download->{ path };
 	MediaWords::DBI::Downloads::rewrite_downloads_content( $dbs, $download );
-	say "New download path: " . $download->{ path };
+	#say "New download path: " . $download->{ path };
 
 	$downloads_processed++;
 
@@ -99,7 +99,7 @@ sub main
     }
     else
     {
-	Readonly my $download_batch_size => 1000;
+	Readonly my $download_batch_size => 100;
 
 	Readonly my $max_iterations => 2;
 
