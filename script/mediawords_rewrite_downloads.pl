@@ -86,10 +86,20 @@ sub main
     }
     else
     {
-	$downloads = $dbs->query( "select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit 10; " )->hashes;
+	Readonly my $download_batch_size => 100;
+
+	Readonly my $max_iterations => 2;
+
+	my $iterations = 0;
+
+	do {
+	    $downloads = $dbs->query( "select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit 10; " )->hashes;
+	    _rewrite_download_list( $dbs, $downloads );
+	    $iterations++;
+
+	} while ( (scalar ( $downloads) > 0) && ($iterations < $max_iterations) );
     }
 
-    _rewrite_download_list( $dbs, $downloads );
   
 }
 
