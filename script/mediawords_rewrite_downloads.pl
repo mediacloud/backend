@@ -44,12 +44,25 @@ sub _rewrite_download_list
 {
     my ( $dbs, $downloads ) = @_;
 
+    say "Starting to process batch of " . scalar ( @ { $downloads } );
+
+    Readonly my $status_update_frequency => 100;
+
+    my $downloads_processed = 0;
+
     foreach my $download ( @ { $downloads } )
     {
 	say "rewriting download " . $download->{ downloads_id };
 	say "Old download path: " . $download->{ path };
 	MediaWords::DBI::Downloads::rewrite_downloads_content( $dbs, $download );
 	say "New download path: " . $download->{ path };
+
+	$downloads_processed++;
+
+	if ( $downloads_processed % $status_update_frequency == 0 )
+	{
+	    say "Processed $downloads_processed of " . scalar( @ { $downloads } ) . " downloads";
+	}
     }    
 
     return;
@@ -86,14 +99,14 @@ sub main
     }
     else
     {
-	Readonly my $download_batch_size => 100;
+	Readonly my $download_batch_size => 1000;
 
 	Readonly my $max_iterations => 2;
 
 	my $iterations = 0;
 
 	do {
-	    $downloads = $dbs->query( "select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit 10; " )->hashes;
+	    $downloads = $dbs->query( "select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit $download_batch_size; " )->hashes;
 	    _rewrite_download_list( $dbs, $downloads );
 	    $iterations++;
 
