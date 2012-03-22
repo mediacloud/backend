@@ -18,7 +18,6 @@ use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::Downloads;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
@@ -30,6 +29,7 @@ use MediaWords::Util::ExtractorTest;
 use Data::Compare;
 use Storable;
 use MediaWords::DBI::Downloads;
+
 #use Thread::Pool;
 use 5.14.2;
 use threads;
@@ -76,46 +76,6 @@ sub _rewrite_download_list
 
 }
 
-# sub worker_routine
-# {
-#     my ( $ ) = @_;
-
-#     say STDERR "Calling worker_routine";
-
-#     #return;
-
-#     return _rewrite_download_list( $db_global, [ $download ] );
-# }
-
-# sub _get_pool
-# {
-#     my $pool = Thread::Pool->new(
-#         {
-#             optimize => 'cpu',    # default: memory
-
-#             do => \&worker_routine,    # must have
-#                                       pre => sub { $db_global = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info ); },      # default: none
-#                                       #post => sub { print "stopping with @_\n",     # default: none
-
-#             #stream => sub { print "streamline with @_\n", # default: none
-
-#             #monitor => sub { print "monitor with @_\n",   # default: none
-#             pre_post_monitor_only => 0,    # default: 0 = also for "do"
-#                                            #checkpoint => \&checkpoint,
-#                                            #frequency => 1000,
-
-#             autoshutdown => 1,             # default: 1 = yes
-
-#             workers => 10,                 # default: 1
-#             maxjobs => 50,                 # default: 5 * workers
-#             minjobs => 20,                 # default: maxjobs / 2
-#         },
-
-#     );
-
-#     return $pool;
-# }
-
 # do a test run of the text extractor
 sub main
 {
@@ -153,46 +113,53 @@ sub main
 
         my $iterations = 0;
 
-	say STDERR "Calling _get_pool";
+        say STDERR "Calling _get_pool";
 
-	#my $pool = _get_pool();
+        #my $pool = _get_pool();
 
-	say STDERR "Called _get_pool";
+        say STDERR "Called _get_pool";
 
-	my $q = Thread::Queue->new();    # A new empty queue
-	# Worker thread
-	my $thr = threads->create(sub {
-	                                 my $thread_db =  DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
-					 while (my $download = $q->dequeue()) {
-					     say STDERR "rewriting download: " . $downloads->{ id };
-					     MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
-					 }
-				  });
+        my $q   = Thread::Queue->new();    # A new empty queue
+                                           # Worker thread
+        my $thr = threads->create(
+            sub {
 
-	
+                use MediaWords::DBI::Downloads;
+                my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+                while ( my $download = $q->dequeue() )
+                {
+                    say STDERR "rewriting download: " . $download->{ id };
+                    MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
+                }
+                say "Thread returning ";
+                return;
+            }
+        );
+
         do
         {
             $downloads = $dbs->query(
 "select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit $download_batch_size; "
             )->hashes;
 
-	    foreach my $download ( @ { $downloads } )
-	    {
-		$q->enqueue( $download);
-	    }
+            foreach my $download ( @{ $downloads } )
+            {
+                $q->enqueue( $download );
+            }
 
-	    say STDERR "queued downloads for itertaion ";
+            say STDERR "queued downloads for itertaion ";
 
             #_rewrite_download_list( $dbs, $downloads );
             $iterations++;
 
         } while ( ( scalar( $downloads ) > 0 ) && ( $iterations < $max_iterations ) );
 
-	say STDERR "Joining thread";
-	foreach my $thr (threads->list()) {
-	    $thr->join();
-	    say STDERR "joined thread";
-	}
+        say STDERR "Joining thread";
+        foreach my $thr ( threads->list() )
+        {
+            $thr->join();
+            say STDERR "joined thread";
+        }
     }
 }
 
