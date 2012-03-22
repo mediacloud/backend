@@ -130,6 +130,7 @@ sub main
                 {
 		    #die "test";
                     say STDERR "rewriting download: " . $download->{ downloads_id };
+		    say STDERR "old download path: " . $download->{ path };
                     MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
                 }
                 say "Thread returning ";
