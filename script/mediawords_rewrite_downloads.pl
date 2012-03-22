@@ -112,36 +112,38 @@ sub main
 
         Readonly my $max_iterations => 2;
 
+        Readonly my $num_threads => 5;
         my $iterations = 0;
 
-        say STDERR "Calling _get_pool";
+        my $q = Thread::Queue->new();    # A new empty queue
 
-        #my $pool = _get_pool();
+        foreach my $thread_num ( 1 .. $num_threads )
+        {
 
-        say STDERR "Called _get_pool";
+	    say "Creating thread: $thread_num";
 
-        my $q   = Thread::Queue->new();    # A new empty queue
-                                           # Worker thread
-        my $thr = threads->create(
-            sub {
+            # Worker thread
+            my $thr = threads->create(
+                sub {
 
-                use MediaWords::DBI::Downloads;
-                my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
-                while ( my $download = $q->dequeue() )
-                {
-                    last if $download == -1;
+                    use MediaWords::DBI::Downloads;
+                    my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+                    while ( my $download = $q->dequeue() )
+                    {
+                        last if $download == -1;
 
-                    #die "test";
-                    say STDERR "rewriting download: " . $download->{ downloads_id };
-                    say STDERR "old download path: " . $download->{ path };
-                    MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
+                        #die "test";
+                        say STDERR "rewriting download: " . $download->{ downloads_id };
+                        say STDERR "old download path: " . $download->{ path };
+                        MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
+                    }
+                    say "Thread returning ";
+                    threads->exit();
+                    return;
                 }
-                say "Thread returning ";
-		threads->exit();
-                return;
-            }
-        );
+            );
 
+        }
         do
         {
             $downloads = $dbs->query(
