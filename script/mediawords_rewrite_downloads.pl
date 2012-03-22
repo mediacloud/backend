@@ -112,8 +112,8 @@ sub main
 
         Readonly my $max_iterations => 2;
 
-        Readonly my $num_threads => 5;
-        my $iterations = 0;
+        Readonly my $num_threads => 10;
+        my $iterations = 1_000_000;
 
         my $q = Thread::Queue->new();    # A new empty queue
 
