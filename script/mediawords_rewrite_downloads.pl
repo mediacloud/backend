@@ -128,7 +128,8 @@ sub main
                 my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
                 while ( my $download = $q->dequeue() )
                 {
-                    say STDERR "rewriting download: " . $download->{ id };
+		    die "test";
+                    say STDERR "rewriting download: " . $download->{ downloads_id };
                     MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
                 }
                 say "Thread returning ";
