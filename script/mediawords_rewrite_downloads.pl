@@ -128,6 +128,7 @@ sub main
                 my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
                 while ( my $download = $q->dequeue() )
                 {
+		    last if $download == -1;
 		    #die "test";
                     say STDERR "rewriting download: " . $download->{ downloads_id };
 		    say STDERR "old download path: " . $download->{ path };
@@ -159,6 +160,7 @@ sub main
         say STDERR "Joining thread";
         foreach my $thr ( threads->list() )
         {
+	    $q->enqueue( -1);
             $thr->join();
             say STDERR "joined thread";
         }
