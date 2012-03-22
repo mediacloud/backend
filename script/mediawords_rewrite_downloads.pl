@@ -165,7 +165,7 @@ sub main
 	                                 my $thread_db =  DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 					 while (my $download = $q->dequeue()) {
 					     say STDERR "rewriting download: " . $downloads->{ id };
-					     MediaWords::DBI::Downloads::rewrite_downloads_content( $dbs, $download );
+					     MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
 					 }
 				  });
 
