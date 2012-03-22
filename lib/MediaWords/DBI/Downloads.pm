@@ -228,11 +228,13 @@ sub rewrite_downloads_content
     {
 	say STDERR "file missing: $full_path";
 	say STDERR "content is:\n'" . $$download_content_ref . "'";
-	die;
+	die "File to deleted: '$full_path' does not exist for non-empty content: '$$download_content_ref'" unless $$download_content_ref == '';
     }
-
-    say "Deleting $full_path";
-    die "Could not delete $full_path: $! " unless unlink( $full_path );
+    else
+    {
+	say "Deleting $full_path";
+	die "Could not delete $full_path: $! " unless unlink( $full_path );
+    }
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor
