@@ -137,6 +137,7 @@ sub main
                     MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
                 }
                 say "Thread returning ";
+		threads->exit();
                 return;
             }
         );
