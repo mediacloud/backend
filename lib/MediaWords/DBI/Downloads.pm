@@ -224,6 +224,13 @@ sub rewrite_downloads_content
         $full_path =~ s/\.gz$/.dl/;
     }
 
+    if ( ! (-f $full_path ) )
+    {
+	say STDERR "file missing: $full_path";
+	say STDERR "content is:\n'" . $$download_content_ref . "'";
+	die;
+    }
+
     say "Deleting $full_path";
     die "Could not delete $full_path: $! " unless unlink( $full_path );
 }
