@@ -145,7 +145,7 @@ sub main
     else
     {
 
-        Readonly my $download_batch_size => 100;
+        Readonly my $download_batch_size => 50;
 
         Readonly my $max_iterations => 2;
 
@@ -172,10 +172,16 @@ sub main
 		say "Added $jobs_added";
 	    }
 
-            _rewrite_download_list( $dbs, $downloads );
+            #_rewrite_download_list( $dbs, $downloads );
             $iterations++;
 
         } while ( ( scalar( $downloads ) > 0 ) && ( $iterations < $max_iterations ) );
+
+	say STDERR "Shutting down pool";
+	$pool->shutdown();
+	say STDERR "Shut down pool";
+
+	
     }
 }
 
