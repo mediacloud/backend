@@ -228,7 +228,7 @@ sub rewrite_downloads_content
     {
 	say STDERR "file missing: $full_path";
 	say STDERR "content is:\n'" . $$download_content_ref . "'";
-	die "File to deleted: '$full_path' does not exist for non-empty content: '$$download_content_ref'" unless $$download_content_ref == '';
+	die "File to deleted: '$full_path' does not exist for non-empty content: '$$download_content_ref'" unless $$download_content_ref eq '';
     }
     else
     {
