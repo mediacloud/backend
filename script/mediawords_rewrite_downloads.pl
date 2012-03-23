@@ -126,14 +126,14 @@ sub main
             my $thr = threads->create(
                 sub {
 
+		    use TryCatch;
+
                     use MediaWords::DBI::Downloads;
                     my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
                     my $thread_id = threads->tid();
 		    
 		    say STDERR "Thread $thread_id";
-
-                    use Try::Tiny;
 
 		    say STDERR "Try::Tiny used";
 
