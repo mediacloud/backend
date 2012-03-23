@@ -120,7 +120,7 @@ sub main
         foreach my $thread_num ( 1 .. $num_threads )
         {
 
-	    say "Creating thread: $thread_num";
+            say "Creating thread: $thread_num";
 
             # Worker thread
             my $thr = threads->create(
@@ -129,18 +129,29 @@ sub main
                     use MediaWords::DBI::Downloads;
                     my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
-		    my $thread_id = threads->tid();
-                    while ( my $download = $q->dequeue() )
-                    {
-                        last if $download == -1;
+                    my $thread_id = threads->tid();
 
-                        #die "test";
-                        say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id };
-                        say STDERR "Thread $thread_id old download path: " . $download->{ path };
-                        MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
+                    use Try::Tiny;
+
+                    try
+                    {
+                        while ( my $download = $q->dequeue() )
+                        {
+                            last if $download == -1;
+
+                            #die "test";
+                            say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id };
+                            say STDERR "Thread $thread_id old download path: " . $download->{ path };
+                            MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
+                        }
+                        say "Thread $thread_id returning ";
+                        threads->exit();
+
                     }
-                    say "Thread $thread_id returning ";
-                    threads->exit();
+                    catch
+                    {
+                        die "Thread $thread_id dying due to caught error: $_ ";
+                    }
                     return;
                 }
             );
@@ -166,7 +177,7 @@ sub main
         } while ( ( scalar( $downloads ) > 0 ) && ( $iterations < $max_iterations ) );
 
         say STDERR "Joining thread";
-	say STDERR $q->pending() . " downloads in q";
+        say STDERR $q->pending() . " downloads in q";
         foreach my $thr ( threads->list() )
         {
             $q->enqueue( -1 );
