@@ -174,7 +174,7 @@ sub main
                 $q->enqueue( $download );
             }
 
-            say STDERR "queued downloads for itertaion $iteration";
+            say STDERR "queued downloads for itertaion $iterations";
 	    say STDERR scalar( @ { $downloads} ) . " downloads downloaded ";
             say STDERR $q->pending() . " downloads in q";
 
