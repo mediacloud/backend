@@ -156,7 +156,7 @@ sub main
                     catch
                     {
                         say STDERR "Thread $thread_id dying due to caught error: $_ ";
-                        die "Thread $thread_id dying due to caught error: $_ ";
+                        #die "Thread $thread_id dying due to caught error: $_ ";
                     }
                     return;
                 }
@@ -184,6 +184,24 @@ sub main
 
         say STDERR "Joining thread";
         say STDERR $q->pending() . " downloads in q";
+
+	say "Adding thread exit downloads";
+
+        foreach my $thr ( threads->list() )
+        {
+            $q->enqueue( -1 );
+        }
+
+	say STDERR "waiting for queue to empty ";
+
+	while ($q->pending() > 0 )
+	{
+	    threads->yield();
+	    sleep(1);
+	}
+
+	say STDERR "q emptied joining threads";
+
         foreach my $thr ( threads->list() )
         {
             $q->enqueue( -1 );
