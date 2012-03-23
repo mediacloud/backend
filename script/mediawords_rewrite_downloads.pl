@@ -135,6 +135,7 @@ sub main
 
                     try
                     {
+			say STDERR "Starting while loop in thread $thread_id";
                         while ( my $download = $q->dequeue() )
                         {
                             last if $download == -1;
@@ -150,6 +151,7 @@ sub main
                     }
                     catch
                     {
+                        say STDERR "Thread $thread_id dying due to caught error: $_ ";
                         die "Thread $thread_id dying due to caught error: $_ ";
                     }
                     return;
