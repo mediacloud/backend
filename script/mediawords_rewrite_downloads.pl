@@ -112,7 +112,7 @@ sub main
 
         Readonly my $max_iterations => 2;
 
-        Readonly my $num_threads => 10;
+        Readonly my $num_threads => 5;
         my $iterations = 1_000_000;
 
         my $q = Thread::Queue->new();    # A new empty queue
@@ -128,16 +128,18 @@ sub main
 
                     use MediaWords::DBI::Downloads;
                     my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+
+		    my $thread_id = threads->tid();
                     while ( my $download = $q->dequeue() )
                     {
                         last if $download == -1;
 
                         #die "test";
-                        say STDERR "rewriting download: " . $download->{ downloads_id };
-                        say STDERR "old download path: " . $download->{ path };
+                        say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id };
+                        say STDERR "Thread $thread_id old download path: " . $download->{ path };
                         MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
                     }
-                    say "Thread returning ";
+                    say "Thread $thread_id returning ";
                     threads->exit();
                     return;
                 }
@@ -156,6 +158,7 @@ sub main
             }
 
             say STDERR "queued downloads for itertaion ";
+            say STDERR $q->pending() . " downloads in q";
 
             #_rewrite_download_list( $dbs, $downloads );
             $iterations++;
@@ -163,6 +166,7 @@ sub main
         } while ( ( scalar( $downloads ) > 0 ) && ( $iterations < $max_iterations ) );
 
         say STDERR "Joining thread";
+	say STDERR $q->pending() . " downloads in q";
         foreach my $thr ( threads->list() )
         {
             $q->enqueue( -1 );
