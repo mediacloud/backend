@@ -124,38 +124,39 @@ sub main
             my $thr = threads->create(
                 sub {
 
-		    use TryCatch;
+                    use TryCatch;
 
                     use MediaWords::DBI::Downloads;
                     my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
                     my $thread_id = threads->tid();
-		    
-		    say STDERR "Thread $thread_id";
 
-		    say STDERR "Try::Tiny used";
+                    say STDERR "Thread $thread_id";
 
-                    try
+                    say STDERR "Try::Tiny used";
+
+                    say STDERR "Starting while loop in thread $thread_id";
+                    while ( my $download = $q->dequeue() )
                     {
-			say STDERR "Starting while loop in thread $thread_id";
-                        while ( my $download = $q->dequeue() )
-                        {
-                            last if $download == -1;
+                        last if $download == -1;
 
-                            #die "test";
+                        #die "test";
+                        try
+                        {
+
                             say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id };
                             say STDERR "Thread $thread_id old download path: " . $download->{ path };
                             MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
                         }
-                        say "Thread $thread_id returning ";
-                        threads->exit();
+                        catch
+                        {
+                            say STDERR "Thread $thread_id dying due to caught error on downloads " . $downloads->{ downloads_id } . " : $@ ";
+                            die "Thread $thread_id dying due to caught erroron  downloads " . $downloads->{ downloads_id } . " : $@ ";
+                        }
+                    }
+                    say "Thread $thread_id returning ";
+                    threads->exit();
 
-                    }
-                    catch
-                    {
-                        say STDERR "Thread $thread_id dying due to caught error: $@ ";
-                        die "Thread $thread_id dying due to caught error: $@ ";
-                    }
                     return;
                 }
             );
@@ -176,7 +177,7 @@ sub main
             }
 
             say STDERR "queued downloads for itertaion $iterations";
-	    say STDERR scalar( @ { $downloads} ) . " downloads downloaded ";
+            say STDERR scalar( @{ $downloads } ) . " downloads downloaded ";
             say STDERR $q->pending() . " downloads in q";
 
             #_rewrite_download_list( $dbs, $downloads );
@@ -187,22 +188,22 @@ sub main
         say STDERR "Joining thread";
         say STDERR $q->pending() . " downloads in q";
 
-	say "Adding thread exit downloads";
+        say "Adding thread exit downloads";
 
         foreach my $thr ( threads->list() )
         {
             $q->enqueue( -1 );
         }
 
-	say STDERR "waiting for queue to empty ";
+        say STDERR "waiting for queue to empty ";
 
-	while ($q->pending() > 0 )
-	{
-	    threads->yield();
-	    sleep(1);
-	}
+        while ( $q->pending() > 0 )
+        {
+            threads->yield();
+            sleep( 1 );
+        }
 
-	say STDERR "q emptied joining threads";
+        say STDERR "q emptied joining threads";
 
         foreach my $thr ( threads->list() )
         {
