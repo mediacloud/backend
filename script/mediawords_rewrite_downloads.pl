@@ -131,11 +131,11 @@ sub main
 
                     my $thread_id = threads->tid();
 		    
-		    say stderr "Thread $thread_id";
+		    say STDERR "Thread $thread_id";
 
                     use Try::Tiny;
 
-		    say stderr "Try::Tiny used";
+		    say STDERR "Try::Tiny used";
 
                     try
                     {
