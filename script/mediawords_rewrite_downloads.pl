@@ -150,8 +150,8 @@ sub main
                         }
                         catch
                         {
-                            say STDERR "Thread $thread_id dying due to caught error on downloads " . $downloads->{ downloads_id } . " : $@ ";
-                            die "Thread $thread_id dying due to caught erroron  downloads " . $downloads->{ downloads_id } . " : $@ ";
+                            say STDERR "Thread $thread_id caught error on downloads " . $download->{ downloads_id } . " : $@ ";
+                            die "Thread $thread_id dying due to caught error on  downloads " . $download->{ downloads_id } . " : $@ ";
                         }
                     }
                     say "Thread $thread_id returning ";
