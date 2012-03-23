@@ -130,8 +130,12 @@ sub main
                     my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
 
                     my $thread_id = threads->tid();
+		    
+		    say stderr "Thread $thread_id";
 
                     use Try::Tiny;
+
+		    say stderr "Try::Tiny used";
 
                     try
                     {
