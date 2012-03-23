@@ -153,8 +153,8 @@ sub main
                     }
                     catch
                     {
-                        say STDERR "Thread $thread_id dying due to caught error: $_ ";
-                        #die "Thread $thread_id dying due to caught error: $_ ";
+                        say STDERR "Thread $thread_id dying due to caught error: $@ ";
+                        die "Thread $thread_id dying due to caught error: $@ ";
                     }
                     return;
                 }
