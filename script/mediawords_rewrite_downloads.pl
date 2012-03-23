@@ -110,11 +110,9 @@ sub main
 
         Readonly my $download_batch_size => 50;
 
-        Readonly my $max_iterations => 2;
+        Readonly my $max_iterations => 1_000;
 
         Readonly my $num_threads => 5;
-        my $iterations = 1_000_000;
-
         my $q = Thread::Queue->new();    # A new empty queue
 
         foreach my $thread_num ( 1 .. $num_threads )
@@ -163,6 +161,9 @@ sub main
             );
 
         }
+
+        my $iterations = 0;
+
         do
         {
             $downloads = $dbs->query(
