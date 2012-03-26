@@ -10,6 +10,13 @@ database:
       user  : "USERNAME"
       pass  : "PASSWORD"
 
+    - label : "test"
+      type  : "pg"
+      host  : "HOST"
+      db    : "DATABASE"
+      user  : "USERNAME"
+      pass  : "PASSWORD"
+
 mail:
     - smtp_server : "SMTP_SERVER"
       bug_email : "EMAIL_ADDRESS_TO_RECEIVE_BUG_REPORT_EMAILS"
