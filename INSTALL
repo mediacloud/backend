@@ -56,6 +56,9 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
 
 If there are errors determine which modules are missing and install them by running carton install.
 
+* Make sure that the directory in which Media Cloud is located can be read by the postgres user. Run something like the following:
+      chmod +rx ~/
+
 * Run ./script/run_with_carton ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
   
 * Run ./script/run_with_carton ./script/mediawords_server.pl.  This should start up the web server.
