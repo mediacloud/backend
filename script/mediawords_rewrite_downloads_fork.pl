@@ -89,7 +89,7 @@ sub extract_text
         if ( !$download_found )
         {
             print STDERR "[$process_num] no downloads found. sleeping ...\n";
-            sleep 60;
+            #sleep 60;
         }
 
     }
