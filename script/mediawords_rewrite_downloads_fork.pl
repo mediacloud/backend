@@ -43,7 +43,8 @@ sub extract_text
 
     my $job_process_num = $process_num + int( ( $num_total_processes / $num_total_jobs ) * ( $job_number - 1 ) );
 
-    Readonly my $download_batch_size => 1000/$num_total_processes;
+    #Readonly my $download_batch_size => 1000/$num_total_processes;
+    Readonly my $download_batch_size => 66;
 
     Readonly my $max_iterations => 1;
 
