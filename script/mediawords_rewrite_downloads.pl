@@ -108,11 +108,11 @@ sub main
     else
     {
 
-        Readonly my $download_batch_size => 50;
+        Readonly my $download_batch_size => 500;
 
-        Readonly my $max_iterations => 1_000;
+        Readonly my $max_iterations => 100;
 
-        Readonly my $num_threads => 5;
+        Readonly my $num_threads => 15;
         my $q = Thread::Queue->new();    # A new empty queue
 
         foreach my $thread_num ( 1 .. $num_threads )
