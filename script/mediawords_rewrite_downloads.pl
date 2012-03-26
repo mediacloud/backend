@@ -199,8 +199,9 @@ sub main
 
         while ( $q->pending() > 0 )
         {
+	    say STDERR $q->pending() . " downloads in q";
             threads->yield();
-            sleep( 1 );
+            sleep( 10 );
         }
 
         say STDERR "q emptied joining threads";
