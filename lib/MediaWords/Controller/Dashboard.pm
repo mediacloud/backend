@@ -1572,6 +1572,14 @@ sub sentences_author : Local
     require MediaWords::Util::Translate;
     import MediaWords::Util::Translate;
 
+    my $site_overload_mode = $config->{ mediawords }->{ site_overload_mode } || 'no';
+
+    if ( $site_overload_mode eq 'yes' )
+    {
+        $c->stash->{ template } = 'dashboard/sentences_iframe_overload_mode.tt2';
+        return;
+    }
+
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
     my $authors_id = $c->req->param( 'authors_id' ) || die( 'no authors_id' );
