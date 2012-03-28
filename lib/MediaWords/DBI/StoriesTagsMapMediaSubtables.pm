@@ -83,8 +83,7 @@ my $_sub_table_names = [];
 
 sub get_media_ids
 {
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
-      || die DBIx::Simple::MediaWords->error;
+    my $db =  MediaWords::DB::connect_to_db;
 
     my $media_id_rows = $db->query( "SELECT DISTINCT(media_id) from media" );
 
