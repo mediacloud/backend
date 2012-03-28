@@ -42,12 +42,12 @@ SQL
     my $table_name      = "top_ten_tags_for_media";
     my $temp_table_name = $table_name . time();
 
-    my $dbh = DBI->connect( MediaWords::DB::connect_info );
+    #my $dbh = DBI->connect( MediaWords::DB::connect_info );
 
     #    print "restarting sequence ...\n";
     #    $dbh->do("alter sequence top_ten_tags_for_media_seq restart 1");
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info() );
+    my $db = MediaWords::DB::connect_to_db();
 
     #evil hack
     $db->query( "DROP TABLE if exists $temp_table_name" );
