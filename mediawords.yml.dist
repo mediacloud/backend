@@ -83,6 +83,10 @@ mail:
     # Generally the only reason you would want to do this is to run a backup crawler
     #do_not_process_feeds: 'yes'
 
+    #controlls the maximum time SQL queries can run for -- time is in ms
+    #uncomment to enable a 10 minute timeout
+    #db_statement_timeout: "600000"
+
     # An experiment parameter to dump stack traces in error message even if not in debug mode
     # NOTE: may leak DB passwords and is not to be use in production
     #always_show_stack_traces: "yes"
