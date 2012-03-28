@@ -28,7 +28,7 @@ sub create_medium
 
     eval {
 
-        my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+        my $db = MediaWords::DB::connect_to_db();
 
         my $medium = $db->query( 'select * from media where url = ?', $medium_url )->hash;
         $medium ||= $db->query( 'select * from media where name = ?', $medium_name )->hash;
@@ -53,7 +53,7 @@ sub find_medium
 {
     my ( $medium_url, $medium_name ) = @_;
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $db = MediaWords::DB::connect_to_db();
 
     my $medium = $db->query( 'select * from media where url = ?', $medium_url )->hash;
 

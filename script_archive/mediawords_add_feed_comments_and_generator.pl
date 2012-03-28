@@ -20,7 +20,7 @@ use MediaWords::DBI::Feeds;
 sub main
 {
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $db = MediaWords::DB::connect_to_db();
 
 # my $feeds = $db->query("select * from feeds where feeds_id in (select max(feeds_id) from feeds group by media_id) order by feeds_id")->hashes;
     my $feeds = $db->query( "select * from feeds order by feeds_id" )->hashes;

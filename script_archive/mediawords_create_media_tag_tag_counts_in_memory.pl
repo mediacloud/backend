@@ -20,7 +20,7 @@ my $_stories_id_stop        = $_stories_id_start + $_stories_id_window_size;
 
 sub get_stories_map_with_tags
 {
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "grabing stories  -- " . localtime() . "\n";
@@ -73,7 +73,7 @@ sub get_tags_map
 
     if ( !defined( $_tags_map ) )
     {
-        my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+        my $dbh = MediaWords::DB::connect_to_db()
           || die DBIx::Simple::MediaWords->error;
 
         print STDERR "grabbing from tags  -- " . localtime() . "\n";
@@ -143,7 +143,7 @@ sub get_media_tag_hash_count_from_stories_map
 
 sub get_max_stories_id
 {
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     my $max_stories_id_row = $dbh->query( "select max(stories_id) as max_id from stories" ) || die $dbh->error;
@@ -181,7 +181,7 @@ sub insert_rows_for_media_id
 
     my $rows_for_media_id = 0;
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     #$dbh->dbh->{AutoCommit} = 0;
@@ -281,7 +281,7 @@ sub get_rows_to_insert
 
 sub create_media_tag_tag_counts_temp_table
 {
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "creating media_tag_tag_counts_new table \n";
@@ -313,7 +313,7 @@ sub main
 
     while ( $_stories_id_start <= $max_stories_id )
     {
-        my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+        my $dbh = MediaWords::DB::connect_to_db()
           || die DBIx::Simple::MediaWords->error;
 
         my $rows_to_insert = get_rows_to_insert();
@@ -321,7 +321,7 @@ sub main
         scroll_stories_id_window();
     }
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "creating indices ... -- " . localtime() . "\n";

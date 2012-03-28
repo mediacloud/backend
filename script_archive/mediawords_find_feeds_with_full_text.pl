@@ -18,7 +18,7 @@ use Data::Dumper;
 # create a media source from a feed url
 sub main
 {
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $db = MediaWords::DB::connect_to_db();
 
     Readonly my $aggregate_stats => " max(similarity) as max_similarity, avg(similarity) as avg_similarity, " .
       "   min(similarity) as min_similarity,  avg(length(extracted_text)) as avg_extracted_length," .

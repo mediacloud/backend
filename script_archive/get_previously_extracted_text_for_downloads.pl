@@ -26,7 +26,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $dbs = MediaWords::DB::connect_to_db();
 
     my $file;
     my @download_ids;

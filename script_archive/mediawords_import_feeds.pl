@@ -29,7 +29,7 @@ sub create_media
 
     eval {
 
-        my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+        my $db = MediaWords::DB::connect_to_db();
 
         my $response = LWP::UserAgent->new->request( HTTP::Request->new( GET => $feed_url ) );
 

@@ -29,7 +29,7 @@ sub _get_ymd
 sub main
 {
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $db = MediaWords::DB::connect_to_db();
 
     eval { $db->query( "create table duplicate_stories (stories_id int, feeds_id int)" ); };
     $db->query( "truncate table duplicate_stories" );
