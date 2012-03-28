@@ -1572,6 +1572,8 @@ sub sentences_author : Local
     require MediaWords::Util::Translate;
     import MediaWords::Util::Translate;
 
+    my $config = MediaWords::Util::Config::get_config;
+
     my $site_overload_mode = $config->{ mediawords }->{ site_overload_mode } || 'no';
 
     if ( $site_overload_mode eq 'yes' )
