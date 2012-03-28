@@ -66,6 +66,13 @@ sub connect_to_db
 
     die "Error in connect_to_db $@" unless defined( $ret);
 
+    my $config = MediaWords::Util::Config::get_config();
+
+    if ( defined ( $config->{mediawords}->{ db_statement_timeout } ) )
+    {
+	$ret->query( " SET statement_timeout TO ? " , $config->{mediawords}->{ db_statement_timeout } );
+    }
+
     return $ret;
 }
 
