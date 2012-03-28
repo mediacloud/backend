@@ -232,7 +232,7 @@ sub main
 
             foreach my $thr ( threads->list() )
             {
-                if ( $thr->done )
+                if ( $thr->is_joinable )
                 {
                     my $tid = $thr->tid;
                     eval {
@@ -251,6 +251,7 @@ sub main
         {
             my $tid = $thr->tid;
             $q->enqueue( -1 );
+	    say "Tid is " . $thr->is_joinable . " done ";
             $thr->join();
             say STDERR "joined thread $tid";
         }
