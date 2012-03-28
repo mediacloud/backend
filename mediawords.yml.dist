@@ -83,7 +83,7 @@ mail:
     # Generally the only reason you would want to do this is to run a backup crawler
     #do_not_process_feeds: 'yes'
 
-    #controlls the maximum time SQL queries can run for -- time is in ms
+    #controls the maximum time SQL queries can run for -- time is in ms
     #uncomment to enable a 10 minute timeout
     #db_statement_timeout: "600000"
 
