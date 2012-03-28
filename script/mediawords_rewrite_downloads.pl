@@ -11,26 +11,16 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-# use MediaWords::Crawler::Extractor;
-use Getopt::Long;
-
 # use HTML::Strip;
-use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
 use Readonly;
-use List::Util qw(first max maxstr min minstr reduce shuffle sum);
-use List::Compare::Functional qw (get_unique get_complement get_union_ref );
-use Perl6::Say;
+#use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+#use List::Compare::Functional qw (get_unique get_complement get_union_ref );
+#use Perl6::Say;
 use Data::Dumper;
 use Cwd;
-
-# use MediaWords::Util::HTML;
-# use MediaWords::Util::ExtractorTest;
-# use Data::Compare;
-# use Storable;
-# use MediaWords::DBI::Downloads;
 
 #use Thread::Pool;
 use 5.14.2;
@@ -75,7 +65,6 @@ sub _rewrite_download_list
     }
 
     return;
-
 }
 
 # do a test run of the text extractor
@@ -86,27 +75,27 @@ sub main
 
     my $dbs = MediaWords::DB::connect_to_db();
 
-    my $file;
-    my @download_ids;
+    #my $file;
+    #my @download_ids;
 
-    GetOptions(
-        'file|f=s'      => \$file,
-        'downloads|d=s' => \@download_ids,
-    ) or die;
+    # GetOptions(
+    #     'file|f=s'      => \$file,
+    #     'downloads|d=s' => \@download_ids,
+    # ) or die;
 
-    my $downloads;
+    # my $downloads;
 
-    if ( @download_ids )
-    {
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    elsif ( $file )
-    {
-        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
-        @download_ids = <DOWNLOAD_ID_FILE>;
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    else
+    # if ( @download_ids )
+    # {
+    #     $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+    # }
+    # elsif ( $file )
+    # {
+    #     open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
+    #     @download_ids = <DOWNLOAD_ID_FILE>;
+    #     $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+    # }
+    #else
     {
 
         Readonly my $download_batch_size => 2000;
@@ -181,6 +170,7 @@ sub main
           ->hash->{ max };
 
         say STDERR "starting with downloads_id $min_downloads_id_to_rewrite";
+	my $downloads;
         do
         {
 
@@ -242,6 +232,8 @@ sub main
                     say STDERR "joined thread $tid";
                 }
             }
+
+	    last if scalar( threads->list() ) == 0;
 
         }
 
