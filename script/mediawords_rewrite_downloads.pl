@@ -116,7 +116,7 @@ sub main
         Readonly my $num_threads => 30;
         my $q = Thread::Queue->new();    # A new empty queue
 
-	my $cwd = getcwd();
+        my $cwd = getcwd();
 
         foreach my $thread_num ( 1 .. $num_threads )
         {
@@ -127,7 +127,7 @@ sub main
             my $thr = threads->create(
                 sub {
 
-		    chdir $cwd;
+                    chdir $cwd;
 
                     use TryCatch;
 
@@ -153,8 +153,10 @@ sub main
                         }
                         catch
                         {
-                            say STDERR "Thread $thread_id caught error on downloads " . $download->{ downloads_id } . " : $@ ";
-                            die "Thread $thread_id dying due to caught error on  downloads " . $download->{ downloads_id } . " : $@ ";
+                            say STDERR "Thread $thread_id caught error on downloads " . $download->{ downloads_id } .
+                              " : $@ ";
+                            die "Thread $thread_id dying due to caught error on  downloads " . $download->{ downloads_id } .
+                              " : $@ ";
                         }
                     }
                     say "Thread $thread_id returning ";
@@ -168,31 +170,36 @@ sub main
 
         my $iterations = 0;
 
-	my $last_downloads_id = 0;
+        my $last_downloads_id = 0;
 
-	my $min_downloads_id_to_rewrite = $dbs->query( " SELECT min(downloads_id) from downloads where state = 'success' and path like 'content/%' ; " )->hash->{ min };
+        my $min_downloads_id_to_rewrite =
+          $dbs->query( " SELECT min(downloads_id) from downloads where state = 'success' and path like 'content/%' ; " )
+          ->hash->{ min };
 
-	my $max_downloads_id_to_rewrite = $dbs->query( " SELECT max(downloads_id) from downloads where state = 'success' and path like 'content/%' ; " )->hash->{ max };
+        my $max_downloads_id_to_rewrite =
+          $dbs->query( " SELECT max(downloads_id) from downloads where state = 'success' and path like 'content/%' ; " )
+          ->hash->{ max };
 
-	say STDERR "starting with downloads_id $min_downloads_id_to_rewrite";
+        say STDERR "starting with downloads_id $min_downloads_id_to_rewrite";
         do
         {
 
-	    while ( $q->pending() >  ( $download_batch_size * 3 ) )
-	    {
-		say STDERR $q->pending() . " downloads in q";
-		threads->yield();
-		sleep( 10 );
-	    }
+            while ( $q->pending() > ( $download_batch_size * 3 ) )
+            {
+                say STDERR $q->pending() . " downloads in q";
+                threads->yield();
+                sleep( 10 );
+            }
 
             $downloads = $dbs->query(
-"select * from downloads where state = 'success' and path like 'content/%' and downloads_id > ? ORDER BY downloads_id asc limit $download_batch_size; ", $last_downloads_id
+"select * from downloads where state = 'success' and path like 'content/%' and downloads_id > ? ORDER BY downloads_id asc limit $download_batch_size; ",
+                $last_downloads_id
             )->hashes;
 
             foreach my $download ( @{ $downloads } )
             {
                 $q->enqueue( $download );
-		$last_downloads_id = $download->{ downloads_id };
+                $last_downloads_id = $download->{ downloads_id };
             }
 
             say STDERR "queued downloads for itertaion $iterations";
@@ -219,18 +226,33 @@ sub main
 
         while ( $q->pending() > 0 )
         {
-	    say STDERR $q->pending() . " downloads in q";
+            say STDERR $q->pending() . " downloads in q";
             threads->yield();
             sleep( 10 );
+
+            foreach my $thr ( threads->list() )
+            {
+                if ( $thr->done )
+                {
+                    my $tid = $thr->tid;
+                    eval {
+                        say STDERR "Joining done thread $tid ";
+                        $thr->join();
+                    };
+                    say STDERR "joined thread $tid";
+                }
+            }
+
         }
 
         say STDERR "q emptied joining threads";
 
         foreach my $thr ( threads->list() )
         {
+            my $tid = $thr->tid;
             $q->enqueue( -1 );
             $thr->join();
-            say STDERR "joined thread";
+            say STDERR "joined thread $tid";
         }
     }
 }
