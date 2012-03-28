@@ -24,6 +24,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use Perl6::Say;
 use Data::Dumper;
+use Cwd;
 
 # use MediaWords::Util::HTML;
 # use MediaWords::Util::ExtractorTest;
@@ -108,12 +109,14 @@ sub main
     else
     {
 
-        Readonly my $download_batch_size => 10000;
+        Readonly my $download_batch_size => 2000;
 
-        Readonly my $max_iterations => 1;
+        Readonly my $max_iterations => 2;
 
         Readonly my $num_threads => 30;
         my $q = Thread::Queue->new();    # A new empty queue
+
+	my $cwd = getcwd();
 
         foreach my $thread_num ( 1 .. $num_threads )
         {
@@ -124,6 +127,8 @@ sub main
             my $thr = threads->create(
                 sub {
 
+		    chdir $cwd;
+
                     use TryCatch;
 
                     use MediaWords::DBI::Downloads;
@@ -132,8 +137,6 @@ sub main
                     my $thread_id = threads->tid();
 
                     say STDERR "Thread $thread_id";
-
-                    say STDERR "Try::Tiny used";
 
                     say STDERR "Starting while loop in thread $thread_id";
                     while ( my $download = $q->dequeue() )
@@ -165,19 +168,36 @@ sub main
 
         my $iterations = 0;
 
+	my $last_downloads_id = 0;
+
+	my $min_downloads_id_to_rewrite = $dbs->query( " SELECT min(downloads_id) from downloads where state = 'success' and path like 'content/%' ; " )->hash->{ min };
+
+	my $max_downloads_id_to_rewrite = $dbs->query( " SELECT max(downloads_id) from downloads where state = 'success' and path like 'content/%' ; " )->hash->{ max };
+
+	say STDERR "starting with downloads_id $min_downloads_id_to_rewrite";
         do
         {
+
+	    while ( $q->pending() >  ( $download_batch_size * 3 ) )
+	    {
+		say STDERR $q->pending() . " downloads in q";
+		threads->yield();
+		sleep( 10 );
+	    }
+
             $downloads = $dbs->query(
-"select * from downloads where state = 'success' and path like 'content/%' ORDER BY downloads_id asc limit $download_batch_size; "
+"select * from downloads where state = 'success' and path like 'content/%' and downloads_id > ? ORDER BY downloads_id asc limit $download_batch_size; ", $last_downloads_id
             )->hashes;
 
             foreach my $download ( @{ $downloads } )
             {
                 $q->enqueue( $download );
+		$last_downloads_id = $download->{ downloads_id };
             }
 
             say STDERR "queued downloads for itertaion $iterations";
             say STDERR scalar( @{ $downloads } ) . " downloads downloaded ";
+            say STDERR " last queued download $last_downloads_id max download is $max_downloads_id_to_rewrite";
             say STDERR $q->pending() . " downloads in q";
 
             #_rewrite_download_list( $dbs, $downloads );
