@@ -77,7 +77,7 @@ sub main
         die( "Unable to mkdir $dump_dir: $!" );
     }
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $db = MediaWords::DB::connect_to_db();
 
     if ( !chdir( $dump_dir ) )
     {

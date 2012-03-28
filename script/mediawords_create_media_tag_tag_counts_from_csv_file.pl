@@ -23,7 +23,7 @@ sub create_media_tag_tag_counts_temp_table
 {
     my ( $table_space ) = @_;
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "creating media_tag_tag_counts_new table \n";

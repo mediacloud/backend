@@ -68,7 +68,7 @@ sub main
     my $restore_table_query =
       "CREATE TABLE $restored_table_name ( LIKE $table_name INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES ); ";
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $db = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     $db->dbh->{ AutoCommit } = 0;
@@ -88,7 +88,7 @@ sub main
 
     $db = 0;
 
-    $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    $db = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     $db->dbh->{ AutoCommit } = 0;

@@ -46,7 +46,7 @@ sub main
 
     say STDERR "starting --  $start_time";
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $db = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     my $restore_table = $table . '_restore';

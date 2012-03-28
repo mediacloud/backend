@@ -83,7 +83,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $dbs = MediaWords::DB::connect_to_db();
 
     my $file;
     my @download_ids;
@@ -127,7 +127,7 @@ sub main
                     use TryCatch;
 
                     use MediaWords::DBI::Downloads;
-                    my $thread_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+                    my $thread_db = MediaWords::DB::connect_to_db();
 
                     my $thread_id = threads->tid();
 

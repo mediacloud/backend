@@ -137,7 +137,7 @@ sub main
 
     exit unless ( $result );
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     MediaWords::DBI::StoriesTagsMapMediaSubtables::recreate_schema( $dbh );

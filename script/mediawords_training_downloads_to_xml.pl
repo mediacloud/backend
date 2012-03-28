@@ -35,7 +35,7 @@ sub main
 
     print STDERR "starting --  " . localtime() . "\n";
 
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $db = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "starting -- search query " . localtime() . "\n";

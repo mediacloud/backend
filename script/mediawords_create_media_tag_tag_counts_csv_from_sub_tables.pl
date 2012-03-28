@@ -26,7 +26,7 @@ sub get_stories_map_with_tags
 
     purge_tag_tag_set_map();
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     print STDERR "grabing stories  -- " . localtime() . "\n";
@@ -100,7 +100,7 @@ sub get_tags_map
 
     if ( !defined( $_tags_map ) )
     {
-        my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+        my $dbh = MediaWords::DB::connect_to_db()
           || die DBIx::Simple::MediaWords->error;
 
         print STDERR "grabbing from tags  -- " . localtime() . "\n";
@@ -194,7 +194,7 @@ sub insert_rows_for_media_id
 
     my $rows_for_media_id = 0;
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     my $media_name = $dbh->find_by_id( 'media', $media_id )->{ name };

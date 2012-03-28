@@ -23,7 +23,7 @@ sub main
 
     while ( 1 )
     {
-        my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+        my $db = MediaWords::DB::connect_to_db();
 
         my $media = $db->query( "select * from media where feeds_added = false order by media_id" )->hashes;
 

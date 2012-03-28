@@ -20,7 +20,7 @@ use TableCreationUtils;
 sub main
 {
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     my ( $tag_sets_id ) = $dbh->query( "select tag_sets_id from tag_sets where name = 'NYTTopics'" )->flat;

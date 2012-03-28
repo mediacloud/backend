@@ -1371,7 +1371,7 @@ sub generate_report
 # (re)connect to db
 sub reconnect_to_db
 {
-    $_db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    $_db = MediaWords::DB::connect_to_db();
 }
 
 # start a polling daemon, generating reports from word_cloud_topics as they appear in the db

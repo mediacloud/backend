@@ -323,7 +323,7 @@ sub analyze_downloads
 
     @downloads = sort { $a->{ downloads_id } <=> $b->{ downloads_id } } @downloads;
 
-    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $dbs = MediaWords::DB::connect_to_db();
 
     my $analyzed_downloads = [];
 
@@ -457,7 +457,7 @@ sub extractAndScoreDownloads
 
     my $download_results = [];
 
-    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $dbs = MediaWords::DB::connect_to_db();
 
     for my $analyzed_download ( @$analyzed_downloads )
     {
@@ -568,7 +568,7 @@ sub main
 
     my $db = MediaWords::DB->authenticate();
 
-    my $dbs = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $dbs = MediaWords::DB::connect_to_db();
 
     my $file;
     my @download_ids;

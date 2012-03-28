@@ -20,7 +20,7 @@ use TableCreationUtils;
 sub main
 {
 
-    my $dbh = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info )
+    my $dbh = MediaWords::DB::connect_to_db()
       || die DBIx::Simple::MediaWords->error;
 
     $dbh->query( "DROP TABLE if exists media_rss_full_text_detection_data_new" ) or die $dbh->error;

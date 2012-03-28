@@ -17,7 +17,7 @@ use MediaWords::CommonLibs;
 
 sub main
 {
-    my $db = DBIx::Simple::MediaWords->connect( MediaWords::DB::connect_info );
+    my $db = MediaWords::DB::connect_to_db();
 
     my $offset = 0;
     my $limit  = 5000;
