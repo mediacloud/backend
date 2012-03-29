@@ -118,7 +118,7 @@ sub main
 
                     chdir $cwd;
 
-                    use TryCatch;
+                    #use TryCatch;
 
                     use MediaWords::DBI::Downloads;
                     my $thread_db = MediaWords::DB::connect_to_db();
@@ -133,18 +133,17 @@ sub main
                         last if $download == -1;
 
                         #die "test";
-                        try
+                        eval
                         {
 
-                            say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id };
-                            say STDERR "Thread $thread_id old download path: " . $download->{ path };
+                            say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id } . " with path " . $download->{ path };
                             MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
-                        }
-                        catch
+                        };
+			if ( $@ )
                         {
                             say STDERR "Thread $thread_id caught error on downloads " . $download->{ downloads_id } .
                               " : $@ ";
-                            die "Thread $thread_id dying due to caught error on  downloads " . $download->{ downloads_id } .
+                            die "Thread $thread_id due to caught error on  downloads " . $download->{ downloads_id } .
                               " : $@ ";
                         }
                     }
