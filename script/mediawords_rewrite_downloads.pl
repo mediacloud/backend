@@ -143,7 +143,7 @@ sub main
                         {
                             say STDERR "Thread $thread_id caught error on downloads " . $download->{ downloads_id } .
                               " : $@ ";
-                            die "Thread $thread_id due to caught error on  downloads " . $download->{ downloads_id } .
+                            warn "Thread $thread_id due to caught error on  downloads " . $download->{ downloads_id } .
                               " : $@ ";
                         }
                     }
