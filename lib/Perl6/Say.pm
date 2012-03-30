@@ -24,8 +24,9 @@ sub say {
     local $SIG{__WARN__} = sub { $warning = join q{}, @_ };
     my $res = print {$handle} @_, "\n";
     return $res if $res;
-    $warning =~ s/[ ]at[ ].*//xms;
-    warn $warning;
+	# commenting this out b/c it makes say croak when the file handle is closed
+    # $warning =~ s/[ ]at[ ].*//xms;
+    # croak $warning;
 }
 
 # Handle direct calls...
