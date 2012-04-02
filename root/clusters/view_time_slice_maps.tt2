@@ -14,7 +14,8 @@
     [% PROCESS clusters/protovis_transform.tt2 %]
     
 <p>
-    <a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %]">view this cluster map alone ([% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %])</a>
+    <a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %]">view this cluster map alone ([% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %])</a> | 
+    <a href="[% c.uri_for( '/queries/view/' _ cluster_map.query.queries_id ) %]">view time slice query</a>
 </p>
 
 </fieldset>
