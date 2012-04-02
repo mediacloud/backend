@@ -68,7 +68,7 @@ if ( 1 )
     #    exit;
 }
 
-my $query_rows = $db->query(
+$query_rows = $db->query(
 "SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m "
       . " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10",
 
