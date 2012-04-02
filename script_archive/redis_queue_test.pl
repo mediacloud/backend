@@ -49,20 +49,20 @@ if ( 1 )
 
     $r->flushdb();
 
-    while ( my $story = $query_rows->hash )
+    while ( my $query_row = $query_rows->hash )
     {
 
         #say $$query_rows;
-        #say $story;
+        #say $query_row;
 
         #3exit;
-        #say Dumper( $story );
+        #say Dumper( $query_row );
 
-        say "Setting authors_stories_map_id: " . $story->{ authors_stories_map_id };
-        my @story_list = %$story;
+        say "Setting authors_stories_map_id: " . $query_row->{ authors_stories_map_id };
+        my @story_list = %$query_row;
 
         #say "As " . Dumper( \@story_list);
-        $r->hmset( $story->{ authors_stories_map_id }, @story_list );
+        $r->hmset( $query_row->{ authors_stories_map_id }, @story_list );
 
     }
 
@@ -78,10 +78,10 @@ my $query_rows = $db->query(
     $date
 );
 
-while ( my $story = $query_rows->hash )
+while ( my $query_row = $query_rows->hash )
 {
 
-    my $got = $r->hgetall( $story->{  authors_stories_map_id } );
+    my $got = $r->hgetall( $query_row->{  authors_stories_map_id } );
 
     say Dumper( $got );
 
