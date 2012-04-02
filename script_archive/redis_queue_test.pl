@@ -36,13 +36,11 @@ my $r = Redis->new( server => "$server:$port", debug => 0 );
 
 my $db = MediaWords::DB::connect_to_db();
 
-
 my $query_rows = $db->query(
 "SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m " . 
     " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10" , 
     $date
 );
-
 
 if ( 1 )
 {
@@ -55,14 +53,14 @@ if ( 1 )
         #say $$query_rows;
         #say $query_row;
 
-        #3exit;
+        #exit;
         #say Dumper( $query_row );
 
         say "Setting authors_stories_map_id: " . $query_row->{ authors_stories_map_id };
-        my @story_list = %$query_row;
+        my @row_list = %$query_row;
 
-        #say "As " . Dumper( \@story_list);
-        $r->hmset( $query_row->{ authors_stories_map_id }, @story_list );
+        #say "As " . Dumper( \@row_list);
+        $r->hmset( $query_row->{ authors_stories_map_id }, @row_list );
 
     }
 
