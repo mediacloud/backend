@@ -65,16 +65,14 @@ if ( 1 )
 
     say "Set all stories ";
 
+    $query_rows = $db->query(
+"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m "
+          . " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10",
+        $date
+    );
+
     #    exit;
 }
-
-#$query_rows = $db->query(
-#"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m "
-#      . " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10",
-
-#" SELECT * from authors_stories_map natural join authors natural join stories natural join media where date_trunc('day', publish_date) =  ?  order by authors_stories_map asc ",
-    $date
-#);
 
 while ( my $query_row = $query_rows->hash )
 {
