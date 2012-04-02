@@ -37,10 +37,9 @@ my $r = Redis->new( server => "$server:$port", debug => 0 );
 my $db = MediaWords::DB::connect_to_db();
 
 
-my $stories = $db->query(
+my $query_rows = $db->query(
 "SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m " . 
     " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10" , 
-#" SELECT * from authors_stories_map natural join authors natural join stories natural join media where date_trunc('day', publish_date) =  ?  order by authors_stories_map asc ",
     $date
 );
 
@@ -50,10 +49,10 @@ if ( 1 )
 
     $r->flushdb();
 
-    while ( my $story = $stories->hash )
+    while ( my $story = $query_rows->hash )
     {
 
-        #say $stories;
+        #say $$query_rows;
         #say $story;
 
         #3exit;
@@ -65,14 +64,6 @@ if ( 1 )
         #say "As " . Dumper( \@story_list);
         $r->hmset( $story->{ authors_stories_map_id }, @story_list );
 
-	# foreach my $key ( keys % $story )
-	# {
-	#     say " Setting  " .  $story->{ authors_stories_map_id } . ", $key, $story->{ $key } ";
-
-	#     $r->hset( $story->{ authors_stories_map_id }, $key, $story->{ $key } );
-
-	#     last;
-	# }
     }
 
     say "Set all stories ";
@@ -80,14 +71,14 @@ if ( 1 )
 #    exit;
 }
 
-my $stories = $db->query(
+my $query_rows = $db->query(
 "SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m " . 
     " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10" , 
 #" SELECT * from authors_stories_map natural join authors natural join stories natural join media where date_trunc('day', publish_date) =  ?  order by authors_stories_map asc ",
     $date
 );
 
-while ( my $story = $stories->hash )
+while ( my $story = $query_rows->hash )
 {
 
     my $got = $r->hgetall( $story->{  authors_stories_map_id } );
