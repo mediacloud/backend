@@ -20,10 +20,12 @@ use MediaWords::DB;
 
 my $server;
 my $port;
+my $date;
 
 GetOptions(
     'server=s'      => \$server,
     'port=s' => \$port,
+    'date=s' => \$date
     ) or die;
 
 die  unless $server && $port;
@@ -32,24 +34,22 @@ say "starting";
 
 my $r = Redis->new( server => "$server:$port", debug => 0 );
 
-#my $hash = { key1 => 'val1', key2 => 'val2' };
-
-#$r->hmset( 'foo', ( %$hash ) );
-
 my $db = MediaWords::DB::connect_to_db();
 
-#my $stories = $db->query(" SELECT * from stories ORDER by stories_id asc limit 10 " )->hashes;
 
 my $stories = $db->query(
-" SELECT * from authors_stories_map natural join authors natural join stories where date_trunc('day', publish_date) =  ? order by authors_stories_map asc limit 10;",
-    '2012-04-02'
+"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m " . 
+    " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10" , 
+#" SELECT * from authors_stories_map natural join authors natural join stories natural join media where date_trunc('day', publish_date) =  ?  order by authors_stories_map asc ",
+    $date
 );
 
-#say Dumper( $stories );
-#exit;
 
 if ( 1 )
 {
+
+    $r->flushdb();
+
     while ( my $story = $stories->hash )
     {
 
@@ -59,38 +59,40 @@ if ( 1 )
         #3exit;
         #say Dumper( $story );
 
-        say "Setting story: " . $story->{ stories_id };
+        say "Setting authors_stories_map_id: " . $story->{ authors_stories_map_id };
         my @story_list = %$story;
 
-        #say "As  @story_list";
-        $r->hmset( $story->{ stories_id }, @story_list );
+        #say "As " . Dumper( \@story_list);
+        $r->hmset( $story->{ authors_stories_map_id }, @story_list );
+
+	# foreach my $key ( keys % $story )
+	# {
+	#     say " Setting  " .  $story->{ authors_stories_map_id } . ", $key, $story->{ $key } ";
+
+	#     $r->hset( $story->{ authors_stories_map_id }, $key, $story->{ $key } );
+
+	#     last;
+	# }
     }
 
     say "Set all stories ";
 
-    exit;
+#    exit;
 }
 
-#$r->flushdb();
+my $stories = $db->query(
+"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m " . 
+    " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10" , 
+#" SELECT * from authors_stories_map natural join authors natural join stories natural join media where date_trunc('day', publish_date) =  ?  order by authors_stories_map asc ",
+    $date
+);
 
 while ( my $story = $stories->hash )
 {
-    my $got = $r->hgetall( $story->{ stories_id } );
+
+    my $got = $r->hgetall( $story->{  authors_stories_map_id } );
 
     say Dumper( $got );
 
 }
 
-# my $r_q = Redis::Queue->new( redis=> $r, queue => 'mc_queue' );
-
-#
-
-#$r_q->sendMessage( %$hash );
-
-#$r_q->sendMessage( 10, 10, 10 );
-
-#my ($id, $val) = $r_q->receiveMessage();
-
-#use Data::Dumper;
-
-#say Dumper( [ $id, $val ] );
