@@ -17,18 +17,17 @@ use Getopt::Long;
 use Data::Dumper;
 use MediaWords::DB;
 
-
 my $server;
 my $port;
 my $date;
 
 GetOptions(
-    'server=s'      => \$server,
-    'port=s' => \$port,
-    'date=s' => \$date
-    ) or die;
+    'server=s' => \$server,
+    'port=s'   => \$port,
+    'date=s'   => \$date
+) or die;
 
-die  unless $server && $port;
+die unless $server && $port;
 
 say "starting";
 
@@ -37,8 +36,8 @@ my $r = Redis->new( server => "$server:$port", debug => 0 );
 my $db = MediaWords::DB::connect_to_db();
 
 my $query_rows = $db->query(
-"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m " . 
-    " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10" , 
+"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m "
+      . " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10",
     $date
 );
 
@@ -66,12 +65,13 @@ if ( 1 )
 
     say "Set all stories ";
 
-#    exit;
+    #    exit;
 }
 
 my $query_rows = $db->query(
-"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m " . 
-    " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10" , 
+"SELECT * from authors_stories_map natural join authors natural join stories natural join ( select media_id, url as media_url, name as media_name, moderated, feeds_added, extract_author from media ) as m "
+      . " where date_trunc('day', publish_date) =  ?  order by authors_stories_map_id asc  limit 10",
+
 #" SELECT * from authors_stories_map natural join authors natural join stories natural join media where date_trunc('day', publish_date) =  ?  order by authors_stories_map asc ",
     $date
 );
@@ -79,7 +79,7 @@ my $query_rows = $db->query(
 while ( my $query_row = $query_rows->hash )
 {
 
-    my $got = $r->hgetall( $query_row->{  authors_stories_map_id } );
+    my $got = $r->hgetall( $query_row->{ authors_stories_map_id } );
 
     say Dumper( $got );
 
