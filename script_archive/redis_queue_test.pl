@@ -52,6 +52,7 @@ if ( 1 )
         #say $$query_rows;
         #say $query_row;
 
+	delete  $query_row->{ story_texts_id } ;
         #exit;
         #say Dumper( $query_row );
 
