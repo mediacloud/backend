@@ -1,11 +1,22 @@
 #!/bin/bash
 
-## These 3 lines are mandatory.
-export PERLBREW_ROOT=$HOME/perl5/perlbrew
-export PERLBREW_HOME=$HOME/.perlbrew
-echo source ${PERLBREW_ROOT}/etc/bashrc
+cmd_str="$1"
+shift
+full_path_str=`readlink -m $cmd_str`
 
-source ${PERLBREW_ROOT}/etc/bashrc
+
+working_dir=`dirname $0`
+
+cd $working_dir
+
+source ./set_perl_brew_environment.sh
+
+### These 3 lines are mandatory.
+#export PERLBREW_ROOT=$HOME/perl5/perlbrew
+#export PERLBREW_HOME=$HOME/.perlbrew
+#echo source ${PERLBREW_ROOT}/etc/bashrc
+
+#source ${PERLBREW_ROOT}/etc/bashrc
 
 set -u
 set -o  errexit
@@ -16,19 +27,12 @@ set -o  errexit
 #   source ~/perl5/perlbrew/etc/bashrc
 #fi
 
-perlbrew use perl-5.14.2@mediacloud
+#perlbrew use perl-5.14.2@mediacloud
 
 
 #echo $PATH
 
-cmd_str="$1"
-shift
-full_path_str=`readlink -m $cmd_str`
 
-
-working_dir=`dirname $0`
-
-cd $working_dir
 
 cd ..
 #echo "$BASHPID"
