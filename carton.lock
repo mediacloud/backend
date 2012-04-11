@@ -35330,6 +35330,82 @@
          },
          "version" : "0.18"
       },
+      "YAML::Syck" : {
+         "dist" : "YAML-Syck-1.20",
+         "module" : "YAML::Syck",
+         "mymeta" : {
+            "abstract" : "Fast, lightweight YAML loader and dumper",
+            "author" : [
+               "Audrey Tang <cpan@audreyt.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "mit"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "YAML-Syck",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.62"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.62"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "perl" : "5.006"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "https://rt.cpan.org/Public/Dist/Display.html?Name=YAML-Syck"
+               },
+               "homepage" : "http://search.cpan.org/dist/YAML-Syck",
+               "license" : [
+                  "http://opensource.org/licenses/mit-license.php"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/avar/YAML-Syck"
+               }
+            },
+            "version" : "1.20"
+         },
+         "name" : "YAML::Syck",
+         "pathname" : "T/TO/TODDR/YAML-Syck-1.20.tar.gz",
+         "provides" : {
+            "JSON::Syck" : {
+               "file" : "JSON/Syck.pm",
+               "version" : "0.43"
+            },
+            "YAML::Dumper::Syck" : {
+               "file" : "YAML/Dumper/Syck.pm"
+            },
+            "YAML::Loader::Syck" : {
+               "file" : "YAML/Loader/Syck.pm"
+            },
+            "YAML::Syck" : {
+               "file" : "YAML/Syck.pm",
+               "version" : "1.20"
+            }
+         },
+         "version" : "1.20"
+      },
       "YAML::Tiny" : {
          "dist" : "YAML-Tiny-1.50",
          "module" : "YAML::Tiny",
