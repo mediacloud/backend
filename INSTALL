@@ -64,9 +64,12 @@ If there are errors determine which modules are missing and install them by runn
 * Make sure that the directory in which Media Cloud is located can be read by the postgres user. Run something like the following:
       chmod +rx ~/
 
-* Run ./script/run_with_carton.sh ./script/mediawords_create_db.pl  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
+* Run the following:
+    ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+
+  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
   
-* Run ./script/run_with_carton ./script/mediawords_server.pl.  This should start up the web server.
+* Run ./script/run_with_carton.sh ./script/mediawords_server.pl.  This should start up the web server.
   If the command line returns no errors, go to http://localhost:3000 
   (or replace localhost with whatever host the system is on) to
   access the server.
