@@ -204,6 +204,62 @@
          },
          "version" : "v1.4.7"
       },
+      "App::cpanminus" : {
+         "dist" : "App-cpanminus-1.5010",
+         "module" : "App::cpanminus",
+         "mymeta" : {
+            "abstract" : "Get, unpack, build and install modules from CPAN.",
+            "author" : [
+               "unknown"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120900, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "App-cpanminus",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "ExtUtils::Install" : "1.46",
+                     "ExtUtils::MakeMaker" : "6.31",
+                     "Module::Build" : "0.36"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "1.5010"
+         },
+         "name" : "App::cpanminus",
+         "pathname" : "M/MI/MIYAGAWA/App-cpanminus-1.5010.tar.gz",
+         "provides" : {
+            "App::cpanminus" : {
+               "file" : "App/cpanminus.pm",
+               "version" : "1.5010"
+            }
+         },
+         "version" : "1.5010"
+      },
       "AppConfig" : {
          "dist" : "AppConfig-1.66",
          "module" : "AppConfig",
@@ -1306,6 +1362,364 @@
          },
          "version" : "0.50"
       },
+      "CPAN::DistnameInfo" : {
+         "dist" : "CPAN-DistnameInfo-0.12",
+         "module" : "CPAN::DistnameInfo",
+         "mymeta" : {
+            "abstract" : "Extract distribution name and version from a distribution filename",
+            "author" : [
+               "Graham Barr <gbarr@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.48, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "CPAN-DistnameInfo",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Test::More" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "repository" : {
+                  "url" : "http://github.com/gbarr/CPAN-DistnameInfo"
+               }
+            },
+            "version" : "0.12"
+         },
+         "name" : "CPAN::DistnameInfo",
+         "pathname" : "G/GB/GBARR/CPAN-DistnameInfo-0.12.tar.gz",
+         "provides" : {
+            "CPAN::DistnameInfo" : {
+               "file" : "CPAN/DistnameInfo.pm",
+               "version" : "0.12"
+            }
+         },
+         "version" : "0.12"
+      },
+      "CPAN::Meta" : {
+         "dist" : "CPAN-Meta-2.120921",
+         "module" : "CPAN::Meta",
+         "mymeta" : {
+            "abstract" : "the distribution metadata for a CPAN dist",
+            "author" : [
+               "David Golden <dagolden@cpan.org>",
+               "Ricardo Signes <rjbs@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300013, CPAN::Meta::Converter version 2.120920, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "CPAN-Meta",
+            "no_index" : {
+               "directory" : [
+                  "history"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Data::Dumper" : 0,
+                     "File::Basename" : 0,
+                     "File::Find" : 0,
+                     "File::Spec" : 0,
+                     "File::Temp" : "0.20",
+                     "IO::Dir" : 0,
+                     "Test::More" : "0.88",
+                     "overload" : 0,
+                     "utf8" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "CPAN::Meta::Requirements" : "2.121",
+                     "CPAN::Meta::YAML" : "0.008",
+                     "Carp" : 0,
+                     "JSON::PP" : "2.27200",
+                     "Parse::CPAN::Meta" : "1.4403",
+                     "Scalar::Util" : 0,
+                     "strict" : 0,
+                     "version" : "0.88",
+                     "warnings" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "CPAN::Meta" : {
+                  "file" : "lib/CPAN/Meta.pm",
+                  "version" : "2.120921"
+               },
+               "CPAN::Meta::Converter" : {
+                  "file" : "lib/CPAN/Meta/Converter.pm",
+                  "version" : "2.120921"
+               },
+               "CPAN::Meta::Feature" : {
+                  "file" : "lib/CPAN/Meta/Feature.pm",
+                  "version" : "2.120921"
+               },
+               "CPAN::Meta::History" : {
+                  "file" : "lib/CPAN/Meta/History.pm",
+                  "version" : "2.120921"
+               },
+               "CPAN::Meta::Prereqs" : {
+                  "file" : "lib/CPAN/Meta/Prereqs.pm",
+                  "version" : "2.120921"
+               },
+               "CPAN::Meta::Spec" : {
+                  "file" : "lib/CPAN/Meta/Spec.pm",
+                  "version" : "2.120921"
+               },
+               "CPAN::Meta::Validator" : {
+                  "file" : "lib/CPAN/Meta/Validator.pm",
+                  "version" : "2.120921"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=CPAN-Meta"
+               },
+               "homepage" : "https://github.com/dagolden/cpan-meta",
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://github.com/dagolden/cpan-meta.git"
+               }
+            },
+            "version" : "2.120921"
+         },
+         "name" : "CPAN::Meta",
+         "pathname" : "D/DA/DAGOLDEN/CPAN-Meta-2.120921.tar.gz",
+         "provides" : {
+            "CPAN::Meta" : {
+               "file" : "CPAN/Meta.pm",
+               "version" : "2.120921"
+            },
+            "CPAN::Meta::Converter" : {
+               "file" : "CPAN/Meta/Converter.pm",
+               "version" : "2.120921"
+            },
+            "CPAN::Meta::Feature" : {
+               "file" : "CPAN/Meta/Feature.pm",
+               "version" : "2.120921"
+            },
+            "CPAN::Meta::History" : {
+               "file" : "CPAN/Meta/History.pm",
+               "version" : "2.120921"
+            },
+            "CPAN::Meta::Prereqs" : {
+               "file" : "CPAN/Meta/Prereqs.pm",
+               "version" : "2.120921"
+            },
+            "CPAN::Meta::Spec" : {
+               "file" : "CPAN/Meta/Spec.pm",
+               "version" : "2.120921"
+            },
+            "CPAN::Meta::Validator" : {
+               "file" : "CPAN/Meta/Validator.pm",
+               "version" : "2.120921"
+            }
+         },
+         "version" : "2.120921"
+      },
+      "CPAN::Meta::Requirements" : {
+         "dist" : "CPAN-Meta-Requirements-2.121",
+         "module" : "CPAN::Meta::Requirements",
+         "mymeta" : {
+            "abstract" : "a set of version requirements for a CPAN dist",
+            "author" : [
+               "David Golden <dagolden@cpan.org>",
+               "Ricardo Signes <rjbs@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300013, CPAN::Meta::Converter version 2.120920, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "CPAN-Meta-Requirements",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "xt",
+                  "examples",
+                  "corpus"
+               ],
+               "package" : [
+                  "DB"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "File::Find" : 0,
+                     "File::Temp" : 0,
+                     "Test::More" : "0.88"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.17"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "Scalar::Util" : 0,
+                     "strict" : 0,
+                     "version" : "0.77",
+                     "warnings" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "CPAN::Meta::Requirements" : {
+                  "file" : "lib/CPAN/Meta/Requirements.pm",
+                  "version" : "2.121"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=CPAN-Meta-Requirements"
+               },
+               "homepage" : "https://github.com/dagolden/cpan-meta-requirements",
+               "repository" : {
+                  "url" : "https://github.com/dagolden/cpan-meta-requirements.git"
+               }
+            },
+            "version" : "2.121"
+         },
+         "name" : "CPAN::Meta::Requirements",
+         "pathname" : "D/DA/DAGOLDEN/CPAN-Meta-Requirements-2.121.tar.gz",
+         "provides" : {
+            "CPAN::Meta::Requirements" : {
+               "file" : "CPAN/Meta/Requirements.pm",
+               "version" : "2.121"
+            }
+         },
+         "version" : "2.121"
+      },
+      "CPAN::Meta::YAML" : {
+         "dist" : "CPAN-Meta-YAML-0.008",
+         "module" : "CPAN::Meta::YAML",
+         "mymeta" : {
+            "abstract" : "Read and write a subset of YAML for CPAN Meta files",
+            "author" : [
+               "Adam Kennedy <adamk@cpan.org>",
+               "David Golden <dagolden@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300009, CPAN::Meta::Converter version 2.120630, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "CPAN-Meta-YAML",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "xt",
+                  "examples",
+                  "corpus"
+               ],
+               "package" : [
+                  "DB"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "File::Find" : 0,
+                     "File::Spec" : 0,
+                     "File::Spec::Functions" : 0,
+                     "File::Temp" : 0,
+                     "Test::More" : 0,
+                     "vars" : 0,
+                     "warnings" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.17"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "Exporter" : 0,
+                     "Scalar::Util" : 0,
+                     "strict" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "CPAN::Meta::YAML" : {
+                  "file" : "lib/CPAN/Meta/YAML.pm",
+                  "version" : "0.008"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=CPAN-Meta-YAML"
+               },
+               "homepage" : "https://github.com/dagolden/cpan-meta-yaml",
+               "repository" : {
+                  "url" : "https://github.com/dagolden/cpan-meta-yaml.git"
+               }
+            },
+            "version" : "0.008"
+         },
+         "name" : "CPAN::Meta::YAML",
+         "pathname" : "D/DA/DAGOLDEN/CPAN-Meta-YAML-0.008.tar.gz",
+         "provides" : {
+            "CPAN::Meta::YAML" : {
+               "file" : "CPAN/Meta/YAML.pm",
+               "version" : "0.008"
+            }
+         },
+         "version" : "0.008"
+      },
       "Cache::Cache" : {
          "dist" : "Cache-Cache-1.06",
          "module" : "Cache::Cache",
@@ -1532,6 +1946,90 @@
             }
          },
          "version" : "0.93"
+      },
+      "Capture::Tiny" : {
+         "dist" : "Capture-Tiny-0.17",
+         "module" : "Capture::Tiny",
+         "mymeta" : {
+            "abstract" : "Capture STDOUT and STDERR from Perl, XS or external programs",
+            "author" : [
+               "David Golden <dagolden@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300005, CPAN::Meta::Converter version 2.120351, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "apache_2_0"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Capture-Tiny",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "xt",
+                  "examples",
+                  "corpus"
+               ],
+               "package" : [
+                  "DB"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Config" : 0,
+                     "File::Find" : 0,
+                     "IO::File" : 0,
+                     "Test::More" : "0.62"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "Exporter" : 0,
+                     "File::Spec" : 0,
+                     "File::Temp" : 0,
+                     "IO::Handle" : 0,
+                     "Scalar::Util" : 0,
+                     "strict" : 0,
+                     "warnings" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "Capture::Tiny" : {
+                  "file" : "lib/Capture/Tiny.pm",
+                  "version" : "0.17"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=Capture-Tiny"
+               },
+               "homepage" : "https://github.com/dagolden/capture-tiny",
+               "repository" : {
+                  "url" : "https://github.com/dagolden/capture-tiny.git"
+               }
+            },
+            "version" : "0.17"
+         },
+         "name" : "Capture::Tiny",
+         "pathname" : "D/DA/DAGOLDEN/Capture-Tiny-0.17.tar.gz",
+         "provides" : {
+            "Capture::Tiny" : {
+               "file" : "Capture/Tiny.pm",
+               "version" : "0.17"
+            }
+         },
+         "version" : "0.17"
       },
       "Carp::Assert" : {
          "dist" : "Carp-Assert-0.20",
@@ -13282,6 +13780,501 @@
          },
          "version" : "0.02"
       },
+      "Dist::Metadata" : {
+         "dist" : "Dist-Metadata-0.922",
+         "module" : "Dist::Metadata",
+         "mymeta" : {
+            "abstract" : "Information about a perl module distribution",
+            "author" : [
+               "Randy Stauner <rwstauner@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.112621, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Dist-Metadata",
+            "no_index" : {
+               "directory" : [
+                  "corpus",
+                  "examples",
+                  "inc",
+                  "share",
+                  "t",
+                  "xt"
+               ],
+               "namespace" : [
+                  "Local",
+                  "t::lib"
+               ],
+               "package" : [
+                  "DB"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "File::Spec" : 0,
+                     "Test::Fatal" : 0,
+                     "Test::MockObject" : "1.09",
+                     "Test::More" : "0.96"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Archive::Tar" : "1",
+                     "Archive::Zip" : "1.30",
+                     "CPAN::DistnameInfo" : "0.12",
+                     "CPAN::Meta" : "2.1",
+                     "Carp" : 0,
+                     "File::Basename" : 0,
+                     "File::Find" : 0,
+                     "File::Spec::Native" : "1.002",
+                     "File::Temp" : "0.19",
+                     "List::Util" : 0,
+                     "Module::Metadata" : 0,
+                     "Path::Class" : "0.24",
+                     "Try::Tiny" : "0.09",
+                     "constant" : 0,
+                     "parent" : 0,
+                     "strict" : 0,
+                     "warnings" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "Dist::Metadata" : {
+                  "file" : "lib/Dist/Metadata.pm",
+                  "version" : "0.922"
+               },
+               "Dist::Metadata::Archive" : {
+                  "file" : "lib/Dist/Metadata/Archive.pm",
+                  "version" : "0.922"
+               },
+               "Dist::Metadata::Dir" : {
+                  "file" : "lib/Dist/Metadata/Dir.pm",
+                  "version" : "0.922"
+               },
+               "Dist::Metadata::Dist" : {
+                  "file" : "lib/Dist/Metadata/Dist.pm",
+                  "version" : "0.922"
+               },
+               "Dist::Metadata::Struct" : {
+                  "file" : "lib/Dist/Metadata/Struct.pm",
+                  "version" : "0.922"
+               },
+               "Dist::Metadata::Tar" : {
+                  "file" : "lib/Dist/Metadata/Tar.pm",
+                  "version" : "0.922"
+               },
+               "Dist::Metadata::Zip" : {
+                  "file" : "lib/Dist/Metadata/Zip.pm",
+                  "version" : "0.922"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=Dist-Metadata"
+               },
+               "homepage" : "https://github.com/rwstauner/Dist-Metadata",
+               "repository" : {
+                  "url" : "https://github.com/rwstauner/Dist-Metadata.git"
+               }
+            },
+            "version" : "0.922",
+            "x_Dist_Zilla" : {
+               "plugins" : [
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::NextVersion",
+                     "name" : "@Author::RWSTAUNER/Git::NextVersion",
+                     "version" : "1.112510"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::GenerateFile",
+                     "name" : "@Author::RWSTAUNER/GenerateManifestSkip",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::GatherDir",
+                     "name" : "@Author::RWSTAUNER/GatherDir",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneCruft",
+                     "name" : "@Author::RWSTAUNER/PruneCruft",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ManifestSkip",
+                     "name" : "@Author::RWSTAUNER/ManifestSkip",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneFiles",
+                     "name" : "@Author::RWSTAUNER/PruneRepoMetaFiles",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneFiles",
+                     "name" : "@Author::RWSTAUNER/PruneDevelCoverDatabase",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Authority",
+                     "name" : "@Author::RWSTAUNER/Authority",
+                     "version" : "1.005"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::NextRelease",
+                     "name" : "@Author::RWSTAUNER/NextRelease",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PkgVersion",
+                     "name" : "@Author::RWSTAUNER/PkgVersion",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Prepender",
+                     "name" : "@Author::RWSTAUNER/Prepender",
+                     "version" : "1.112280"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodWeaver",
+                     "name" : "@Author::RWSTAUNER/PodWeaver",
+                     "version" : "3.101641"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::License",
+                     "name" : "@Author::RWSTAUNER/License",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Readme",
+                     "name" : "@Author::RWSTAUNER/Readme",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Bugtracker",
+                     "name" : "@Author::RWSTAUNER/Bugtracker",
+                     "version" : "1.111080"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Repository",
+                     "name" : "@Author::RWSTAUNER/Repository",
+                     "version" : "0.18"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::GithubMeta",
+                     "name" : "@Author::RWSTAUNER/GithubMeta",
+                     "version" : "0.22"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::AutoPrereqs",
+                     "name" : "@Author::RWSTAUNER/AutoPrereqs",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaNoIndex",
+                     "name" : "@Author::RWSTAUNER/MetaNoIndex",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaProvides::Package",
+                     "name" : "@Author::RWSTAUNER/MetaProvides::Package",
+                     "version" : "1.12060501"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MinimumPerl",
+                     "name" : "@Author::RWSTAUNER/MinimumPerl",
+                     "version" : "1.003"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaConfig",
+                     "name" : "@Author::RWSTAUNER/MetaConfig",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaYAML",
+                     "name" : "@Author::RWSTAUNER/MetaYAML",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaJSON",
+                     "name" : "@Author::RWSTAUNER/MetaJSON",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ExecDir",
+                     "name" : "@Author::RWSTAUNER/ExecDir",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ShareDir",
+                     "name" : "@Author::RWSTAUNER/ShareDir",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MakeMaker",
+                     "name" : "@Author::RWSTAUNER/MakeMaker",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::PodSpelling",
+                     "name" : "@Author::RWSTAUNER/Test::PodSpelling",
+                     "version" : "2.1.0"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::UnusedVars",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::UnusedVars",
+                     "version" : "2.0.1"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Synopsis",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Synopsis",
+                     "version" : "2.0.1"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Version",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Version",
+                     "version" : "0.1.2"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodCoverageTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/PodCoverageTests",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Perl::Critic",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Perl::Critic",
+                     "version" : "2.112410"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::CPAN::Changes",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::CPAN::Changes",
+                     "version" : "0.005"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::CPAN::Meta::JSON",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::CPAN::Meta::JSON",
+                     "version" : "0.003"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::DistManifest",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::DistManifest",
+                     "version" : "2.0.1"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/MetaTests",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Compile",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Compile",
+                     "version" : "1.112820"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Kwalitee",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Kwalitee",
+                     "version" : "2.020000"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::NoTabsTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/NoTabsTests",
+                     "version" : "0.01"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::MinimumVersion",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::MinimumVersion",
+                     "version" : "2.0.1"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Pod::LinkCheck",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Pod::LinkCheck",
+                     "version" : "1.001"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::EOLTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/EOLTests",
+                     "version" : "0.02"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodSyntaxTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/PodSyntaxTests",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MojibakeTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/MojibakeTests",
+                     "version" : "0.3"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Manifest",
+                     "name" : "@Author::RWSTAUNER/Manifest",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CheckExtraTests",
+                     "name" : "@Author::RWSTAUNER/CheckExtraTests",
+                     "version" : "0.004"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CheckChangesHasContent",
+                     "name" : "@Author::RWSTAUNER/CheckChangesHasContent",
+                     "version" : "0.003"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::TestRelease",
+                     "name" : "@Author::RWSTAUNER/TestRelease",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ConfirmRelease",
+                     "name" : "@Author::RWSTAUNER/ConfirmRelease",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::UploadToCPAN",
+                     "name" : "@Author::RWSTAUNER/UploadToCPAN",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Check",
+                     "name" : "@Author::RWSTAUNER/@Git/Check",
+                     "version" : "1.112510"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Commit",
+                     "name" : "@Author::RWSTAUNER/@Git/Commit",
+                     "version" : "1.112510"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Tag",
+                     "name" : "@Author::RWSTAUNER/@Git/Tag",
+                     "version" : "1.112510"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Push",
+                     "name" : "@Author::RWSTAUNER/@Git/Push",
+                     "version" : "1.112510"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::InstallRelease",
+                     "name" : "@Author::RWSTAUNER/InstallRelease",
+                     "version" : "0.007"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Prereqs",
+                     "config" : {
+                        "Dist::Zilla::Plugin::Prereqs" : {
+                           "phase" : "runtime",
+                           "type" : "requires"
+                        }
+                     },
+                     "name" : "Prereqs",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Run::BeforeBuild",
+                     "name" : "Run::BeforeBuild",
+                     "version" : "0.010"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneFiles",
+                     "name" : "PruneFiles",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ReportVersions::Tiny",
+                     "name" : "ReportVersions::Tiny",
+                     "version" : "1.03"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":InstallModules",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":IncModules",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":TestFiles",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":ExecFiles",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":ShareFiles",
+                     "version" : "4.300002"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":MainModule",
+                     "version" : "4.300002"
+                  }
+               ],
+               "zilla" : {
+                  "class" : "Dist::Zilla::Dist::Builder",
+                  "config" : {
+                     "is_trial" : "0"
+                  },
+                  "version" : "4.300002"
+               }
+            },
+            "x_authority" : "cpan:RWSTAUNER"
+         },
+         "name" : "Dist::Metadata",
+         "pathname" : "R/RW/RWSTAUNER/Dist-Metadata-0.922.tar.gz",
+         "provides" : {
+            "Dist::Metadata" : {
+               "file" : "Dist/Metadata.pm",
+               "version" : "0.922"
+            },
+            "Dist::Metadata::Archive" : {
+               "file" : "Dist/Metadata/Archive.pm",
+               "version" : "0.922"
+            },
+            "Dist::Metadata::Dir" : {
+               "file" : "Dist/Metadata/Dir.pm",
+               "version" : "0.922"
+            },
+            "Dist::Metadata::Dist" : {
+               "file" : "Dist/Metadata/Dist.pm",
+               "version" : "0.922"
+            },
+            "Dist::Metadata::Struct" : {
+               "file" : "Dist/Metadata/Struct.pm",
+               "version" : "0.922"
+            },
+            "Dist::Metadata::Tar" : {
+               "file" : "Dist/Metadata/Tar.pm",
+               "version" : "0.922"
+            },
+            "Dist::Metadata::Zip" : {
+               "file" : "Dist/Metadata/Zip.pm",
+               "version" : "0.922"
+            }
+         },
+         "version" : "0.922"
+      },
       "Email::Valid" : {
          "dist" : "Email-Valid-0.187",
          "module" : "Email::Valid",
@@ -13827,6 +14820,68 @@
          },
          "version" : "0.06"
       },
+      "Exception::Class" : {
+         "dist" : "Exception-Class-1.32",
+         "module" : "Exception::Class",
+         "mymeta" : {
+            "abstract" : "A module that allows you to declare real exception classes in Perl",
+            "author" : [
+               "Dave Rolsky <autarch@urth.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.101740, CPAN::Meta::Converter version 2.101670, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "artistic_2"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Exception-Class",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : "0.88"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.31"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Class::Data::Inheritable" : "0.02",
+                     "Devel::StackTrace" : "1.20",
+                     "Scalar::Util" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Exception-Class"
+               },
+               "repository" : {
+                  "url" : "http://hg.urth.org/hg/Exception-Class"
+               }
+            },
+            "version" : "1.32"
+         },
+         "name" : "Exception::Class",
+         "pathname" : "D/DR/DROLSKY/Exception-Class-1.32.tar.gz",
+         "provides" : {
+            "Exception::Class" : {
+               "file" : "Exception/Class.pm",
+               "version" : "1.32"
+            },
+            "Exception::Class::Base" : {
+               "file" : "Exception/Class/Base.pm",
+               "version" : "1.32"
+            }
+         },
+         "version" : "1.32"
+      },
       "Exporter::Lite" : {
          "dist" : "Exporter-Lite-0.02",
          "module" : "Exporter::Lite",
@@ -14049,7 +15104,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MakeMaker.pm"
+               "file" : "ExtUtils/MY.pm"
             }
          },
          "version" : "6.62"
@@ -14581,6 +15636,426 @@
          },
          "version" : "9999.19"
       },
+      "File::Spec::Native" : {
+         "dist" : "File-Spec-Native-1.003",
+         "module" : "File::Spec::Native",
+         "mymeta" : {
+            "abstract" : "Use native OS implementation of File::Spec from a subclass",
+            "author" : [
+               "Randy Stauner <rwstauner@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.200009, CPAN::Meta::Converter version 2.110930001, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "File-Spec-Native",
+            "no_index" : {
+               "directory" : [
+                  "corpus",
+                  "examples",
+                  "inc",
+                  "share",
+                  "t",
+                  "xt"
+               ],
+               "namespace" : [
+                  "Local",
+                  "t::lib"
+               ],
+               "package" : [
+                  "DB"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "File::Find" : 0,
+                     "File::Spec::Functions" : 0,
+                     "File::Temp" : 0,
+                     "Test::More" : "0.88"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "File::Spec" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "File::Spec::Native" : {
+                  "file" : "lib/File/Spec/Native.pm",
+                  "version" : "1.003"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=File-Spec-Native"
+               },
+               "homepage" : "http://github.com/rwstauner/File-Spec-Native",
+               "repository" : {
+                  "url" : "http://github.com/rwstauner/File-Spec-Native"
+               }
+            },
+            "version" : "1.003",
+            "x_Dist_Zilla" : {
+               "plugins" : [
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::NextVersion",
+                     "name" : "@Author::RWSTAUNER/Git::NextVersion",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::GenerateFile",
+                     "name" : "@Author::RWSTAUNER/GenerateManifestSkip",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::GatherDir",
+                     "name" : "@Author::RWSTAUNER/GatherDir",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneCruft",
+                     "name" : "@Author::RWSTAUNER/PruneCruft",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ManifestSkip",
+                     "name" : "@Author::RWSTAUNER/ManifestSkip",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneFiles",
+                     "name" : "@Author::RWSTAUNER/PruneBuilderFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneFiles",
+                     "name" : "@Author::RWSTAUNER/PruneRepoMetaFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneFiles",
+                     "name" : "@Author::RWSTAUNER/PruneDevelCoverDatabase",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Authority",
+                     "name" : "@Author::RWSTAUNER/Authority",
+                     "version" : "1.005"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::NextRelease",
+                     "name" : "@Author::RWSTAUNER/NextRelease",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PkgVersion",
+                     "name" : "@Author::RWSTAUNER/PkgVersion",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Prepender",
+                     "name" : "@Author::RWSTAUNER/Prepender",
+                     "version" : "1.103470"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodWeaver",
+                     "name" : "@Author::RWSTAUNER/PodWeaver",
+                     "version" : "3.101641"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::License",
+                     "name" : "@Author::RWSTAUNER/License",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Readme",
+                     "name" : "@Author::RWSTAUNER/Readme",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Bugtracker",
+                     "name" : "@Author::RWSTAUNER/Bugtracker",
+                     "version" : "1.111080"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Repository",
+                     "name" : "@Author::RWSTAUNER/Repository",
+                     "version" : "0.18"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::GithubMeta",
+                     "name" : "@Author::RWSTAUNER/GithubMeta",
+                     "version" : "0.14"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::AutoPrereqs",
+                     "name" : "@Author::RWSTAUNER/AutoPrereqs",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaNoIndex",
+                     "name" : "@Author::RWSTAUNER/MetaNoIndex",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaProvides::Package",
+                     "name" : "@Author::RWSTAUNER/MetaProvides::Package",
+                     "version" : "1.12060501"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MinimumPerl",
+                     "name" : "@Author::RWSTAUNER/MinimumPerl",
+                     "version" : "1.003"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaConfig",
+                     "name" : "@Author::RWSTAUNER/MetaConfig",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaYAML",
+                     "name" : "@Author::RWSTAUNER/MetaYAML",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaJSON",
+                     "name" : "@Author::RWSTAUNER/MetaJSON",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ExecDir",
+                     "name" : "@Author::RWSTAUNER/ExecDir",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ShareDir",
+                     "name" : "@Author::RWSTAUNER/ShareDir",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MakeMaker",
+                     "name" : "@Author::RWSTAUNER/MakeMaker",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ReportVersions::Tiny",
+                     "name" : "@Author::RWSTAUNER/ReportVersions::Tiny",
+                     "version" : "1.03_01"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodSpellingTests",
+                     "name" : "@Author::RWSTAUNER/PodSpellingTests",
+                     "version" : "1.111520"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::UnusedVarsTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/UnusedVarsTests",
+                     "version" : "1.100860"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PortabilityTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/PortabilityTests",
+                     "version" : "1.111840"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Version",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Version",
+                     "version" : "0.1.2"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodCoverageTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/PodCoverageTests",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CompileTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/CompileTests",
+                     "version" : "1.110930"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::CPAN::Changes",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::CPAN::Changes",
+                     "version" : "0.005"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/MetaTests",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::KwaliteeTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/KwaliteeTests",
+                     "version" : "1.101420"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MinimumVersionTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/MinimumVersionTests",
+                     "version" : "1.101421"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CriticTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/CriticTests",
+                     "version" : "1.111450"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::DistManifestTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/DistManifestTests",
+                     "version" : "1.101420"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::CPAN::Meta::JSON",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::CPAN::Meta::JSON",
+                     "version" : "0.003"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::SynopsisTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/SynopsisTests",
+                     "version" : "1.101420"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::EOLTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/EOLTests",
+                     "version" : "0.02"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Test::Pod::LinkCheck",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/Test::Pod::LinkCheck",
+                     "version" : "1.001"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::NoTabsTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/NoTabsTests",
+                     "version" : "0.01"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MojibakeTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/MojibakeTests",
+                     "version" : "0.3"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodSyntaxTests",
+                     "name" : "@Author::RWSTAUNER/@TestingMania/PodSyntaxTests",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Manifest",
+                     "name" : "@Author::RWSTAUNER/Manifest",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CheckExtraTests",
+                     "name" : "@Author::RWSTAUNER/CheckExtraTests",
+                     "version" : "0.004"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CheckChangesHasContent",
+                     "name" : "@Author::RWSTAUNER/CheckChangesHasContent",
+                     "version" : "0.003"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::TestRelease",
+                     "name" : "@Author::RWSTAUNER/TestRelease",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ConfirmRelease",
+                     "name" : "@Author::RWSTAUNER/ConfirmRelease",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::UploadToCPAN",
+                     "name" : "@Author::RWSTAUNER/UploadToCPAN",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Check",
+                     "name" : "@Author::RWSTAUNER/@Git/Check",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Commit",
+                     "name" : "@Author::RWSTAUNER/@Git/Commit",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Tag",
+                     "name" : "@Author::RWSTAUNER/@Git/Tag",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Push",
+                     "name" : "@Author::RWSTAUNER/@Git/Push",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::InstallRelease",
+                     "name" : "@Author::RWSTAUNER/InstallRelease",
+                     "version" : "0.007"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":InstallModules",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":IncModules",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":TestFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":ExecFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":ShareFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":MainModule",
+                     "version" : "4.200009"
+                  }
+               ],
+               "zilla" : {
+                  "class" : "Dist::Zilla::Dist::Builder",
+                  "config" : {
+                     "is_trial" : 0
+                  },
+                  "version" : "4.200009"
+               }
+            },
+            "x_authority" : "cpan:RWSTAUNER"
+         },
+         "name" : "File::Spec::Native",
+         "pathname" : "R/RW/RWSTAUNER/File-Spec-Native-1.003.tar.gz",
+         "provides" : {
+            "File::Spec::Native" : {
+               "file" : "File/Spec/Native.pm",
+               "version" : "1.003"
+            }
+         },
+         "version" : "1.003"
+      },
       "File::Which" : {
          "dist" : "File-Which-1.09",
          "module" : "File::Which",
@@ -14638,6 +16113,103 @@
             }
          },
          "version" : "1.09"
+      },
+      "File::chdir" : {
+         "dist" : "File-chdir-0.1006",
+         "module" : "File::chdir",
+         "mymeta" : {
+            "abstract" : "a more sensible way to change directories",
+            "author" : [
+               "David A Golden <dagolden@cpan.org>",
+               "Michael G Schwern <schwern@pobox.com> (original author)"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.112580, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "File-chdir",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "xt",
+                  "examples",
+                  "corpus"
+               ],
+               "package" : [
+                  "DB"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "File::Find" : 0,
+                     "File::Temp" : 0,
+                     "Test::More" : 0,
+                     "warnings" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "Cwd" : "3.16",
+                     "Exporter" : 0,
+                     "File::Spec::Functions" : "3.27",
+                     "strict" : 0,
+                     "vars" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "File::chdir" : {
+                  "file" : "lib/File/chdir.pm",
+                  "version" : "0.1006"
+               },
+               "File::chdir::ARRAY" : {
+                  "file" : "lib/File/chdir.pm",
+                  "version" : "0.1006"
+               },
+               "File::chdir::SCALAR" : {
+                  "file" : "lib/File/chdir.pm",
+                  "version" : "0.1006"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=File-chdir"
+               },
+               "homepage" : "https://github.com/dagolden/file-chdir",
+               "repository" : {
+                  "url" : "https://github.com/dagolden/file-chdir.git"
+               }
+            },
+            "version" : "0.1006"
+         },
+         "name" : "File::chdir",
+         "pathname" : "D/DA/DAGOLDEN/File-chdir-0.1006.tar.gz",
+         "provides" : {
+            "File::chdir" : {
+               "file" : "File/chdir.pm",
+               "version" : "0.1006"
+            },
+            "File::chdir::ARRAY" : {
+               "file" : "File/chdir.pm"
+            },
+            "File::chdir::SCALAR" : {
+               "file" : "File/chdir.pm"
+            }
+         },
+         "version" : "0.1006"
       },
       "Filesys::Notify::Simple" : {
          "dist" : "Filesys-Notify-Simple-0.08",
@@ -15423,6 +16995,503 @@
             }
          },
          "version" : "6.00"
+      },
+      "HTML::FormFu" : {
+         "dist" : "HTML-FormFu-0.09007",
+         "module" : "HTML::FormFu",
+         "mymeta" : {},
+         "name" : "HTML::FormFu",
+         "pathname" : "P/PE/PERLER/HTML-FormFu-0.09007.tar.gz",
+         "provides" : {
+            "HTML::FormFu" : {
+               "file" : "HTML/FormFu.pm",
+               "version" : "0.09007"
+            },
+            "HTML::FormFu::Attribute" : {
+               "file" : "HTML/FormFu/Attribute.pm"
+            },
+            "HTML::FormFu::Constants" : {
+               "file" : "HTML/FormFu/Constants.pm"
+            },
+            "HTML::FormFu::Constraint" : {
+               "file" : "HTML/FormFu/Constraint.pm"
+            },
+            "HTML::FormFu::Constraint::ASCII" : {
+               "file" : "HTML/FormFu/Constraint/ASCII.pm"
+            },
+            "HTML::FormFu::Constraint::AllOrNone" : {
+               "file" : "HTML/FormFu/Constraint/AllOrNone.pm"
+            },
+            "HTML::FormFu::Constraint::AutoSet" : {
+               "file" : "HTML/FormFu/Constraint/AutoSet.pm"
+            },
+            "HTML::FormFu::Constraint::Bool" : {
+               "file" : "HTML/FormFu/Constraint/Bool.pm"
+            },
+            "HTML::FormFu::Constraint::Callback" : {
+               "file" : "HTML/FormFu/Constraint/Callback.pm"
+            },
+            "HTML::FormFu::Constraint::CallbackOnce" : {
+               "file" : "HTML/FormFu/Constraint/CallbackOnce.pm"
+            },
+            "HTML::FormFu::Constraint::DateTime" : {
+               "file" : "HTML/FormFu/Constraint/DateTime.pm"
+            },
+            "HTML::FormFu::Constraint::DependOn" : {
+               "file" : "HTML/FormFu/Constraint/DependOn.pm"
+            },
+            "HTML::FormFu::Constraint::Email" : {
+               "file" : "HTML/FormFu/Constraint/Email.pm"
+            },
+            "HTML::FormFu::Constraint::Equal" : {
+               "file" : "HTML/FormFu/Constraint/Equal.pm"
+            },
+            "HTML::FormFu::Constraint::File" : {
+               "file" : "HTML/FormFu/Constraint/File.pm"
+            },
+            "HTML::FormFu::Constraint::File::MIME" : {
+               "file" : "HTML/FormFu/Constraint/File/MIME.pm"
+            },
+            "HTML::FormFu::Constraint::File::MaxSize" : {
+               "file" : "HTML/FormFu/Constraint/File/MaxSize.pm"
+            },
+            "HTML::FormFu::Constraint::File::MinSize" : {
+               "file" : "HTML/FormFu/Constraint/File/MinSize.pm"
+            },
+            "HTML::FormFu::Constraint::File::Size" : {
+               "file" : "HTML/FormFu/Constraint/File/Size.pm"
+            },
+            "HTML::FormFu::Constraint::Integer" : {
+               "file" : "HTML/FormFu/Constraint/Integer.pm"
+            },
+            "HTML::FormFu::Constraint::Length" : {
+               "file" : "HTML/FormFu/Constraint/Length.pm"
+            },
+            "HTML::FormFu::Constraint::MaxLength" : {
+               "file" : "HTML/FormFu/Constraint/MaxLength.pm"
+            },
+            "HTML::FormFu::Constraint::MaxRange" : {
+               "file" : "HTML/FormFu/Constraint/MaxRange.pm"
+            },
+            "HTML::FormFu::Constraint::MinLength" : {
+               "file" : "HTML/FormFu/Constraint/MinLength.pm"
+            },
+            "HTML::FormFu::Constraint::MinMaxFields" : {
+               "file" : "HTML/FormFu/Constraint/MinMaxFields.pm"
+            },
+            "HTML::FormFu::Constraint::MinRange" : {
+               "file" : "HTML/FormFu/Constraint/MinRange.pm"
+            },
+            "HTML::FormFu::Constraint::Number" : {
+               "file" : "HTML/FormFu/Constraint/Number.pm"
+            },
+            "HTML::FormFu::Constraint::Printable" : {
+               "file" : "HTML/FormFu/Constraint/Printable.pm"
+            },
+            "HTML::FormFu::Constraint::Range" : {
+               "file" : "HTML/FormFu/Constraint/Range.pm"
+            },
+            "HTML::FormFu::Constraint::Regex" : {
+               "file" : "HTML/FormFu/Constraint/Regex.pm"
+            },
+            "HTML::FormFu::Constraint::Repeatable::Any" : {
+               "file" : "HTML/FormFu/Constraint/Repeatable/Any.pm"
+            },
+            "HTML::FormFu::Constraint::Required" : {
+               "file" : "HTML/FormFu/Constraint/Required.pm"
+            },
+            "HTML::FormFu::Constraint::Set" : {
+               "file" : "HTML/FormFu/Constraint/Set.pm"
+            },
+            "HTML::FormFu::Constraint::SingleValue" : {
+               "file" : "HTML/FormFu/Constraint/SingleValue.pm"
+            },
+            "HTML::FormFu::Constraint::Word" : {
+               "file" : "HTML/FormFu/Constraint/Word.pm"
+            },
+            "HTML::FormFu::Constraint::reCAPTCHA" : {
+               "file" : "HTML/FormFu/Constraint/reCAPTCHA.pm"
+            },
+            "HTML::FormFu::Deflator" : {
+               "file" : "HTML/FormFu/Deflator.pm"
+            },
+            "HTML::FormFu::Deflator::Callback" : {
+               "file" : "HTML/FormFu/Deflator/Callback.pm"
+            },
+            "HTML::FormFu::Deflator::CompoundDateTime" : {
+               "file" : "HTML/FormFu/Deflator/CompoundDateTime.pm"
+            },
+            "HTML::FormFu::Deflator::CompoundSplit" : {
+               "file" : "HTML/FormFu/Deflator/CompoundSplit.pm"
+            },
+            "HTML::FormFu::Deflator::FormatNumber" : {
+               "file" : "HTML/FormFu/Deflator/FormatNumber.pm"
+            },
+            "HTML::FormFu::Deflator::PathClassFile" : {
+               "file" : "HTML/FormFu/Deflator/PathClassFile.pm"
+            },
+            "HTML::FormFu::Deflator::Strftime" : {
+               "file" : "HTML/FormFu/Deflator/Strftime.pm"
+            },
+            "HTML::FormFu::Deploy" : {
+               "file" : "HTML/FormFu/Deploy.pm"
+            },
+            "HTML::FormFu::Element" : {
+               "file" : "HTML/FormFu/Element.pm"
+            },
+            "HTML::FormFu::Element::Blank" : {
+               "file" : "HTML/FormFu/Element/Blank.pm"
+            },
+            "HTML::FormFu::Element::Block" : {
+               "file" : "HTML/FormFu/Element/Block.pm"
+            },
+            "HTML::FormFu::Element::Button" : {
+               "file" : "HTML/FormFu/Element/Button.pm"
+            },
+            "HTML::FormFu::Element::Checkbox" : {
+               "file" : "HTML/FormFu/Element/Checkbox.pm"
+            },
+            "HTML::FormFu::Element::Checkboxgroup" : {
+               "file" : "HTML/FormFu/Element/Checkboxgroup.pm"
+            },
+            "HTML::FormFu::Element::ComboBox" : {
+               "file" : "HTML/FormFu/Element/ComboBox.pm"
+            },
+            "HTML::FormFu::Element::ContentButton" : {
+               "file" : "HTML/FormFu/Element/ContentButton.pm"
+            },
+            "HTML::FormFu::Element::Date" : {
+               "file" : "HTML/FormFu/Element/Date.pm"
+            },
+            "HTML::FormFu::Element::DateTime" : {
+               "file" : "HTML/FormFu/Element/DateTime.pm"
+            },
+            "HTML::FormFu::Element::Fieldset" : {
+               "file" : "HTML/FormFu/Element/Fieldset.pm"
+            },
+            "HTML::FormFu::Element::File" : {
+               "file" : "HTML/FormFu/Element/File.pm"
+            },
+            "HTML::FormFu::Element::Hidden" : {
+               "file" : "HTML/FormFu/Element/Hidden.pm"
+            },
+            "HTML::FormFu::Element::Hr" : {
+               "file" : "HTML/FormFu/Element/Hr.pm"
+            },
+            "HTML::FormFu::Element::Image" : {
+               "file" : "HTML/FormFu/Element/Image.pm"
+            },
+            "HTML::FormFu::Element::Label" : {
+               "file" : "HTML/FormFu/Element/Label.pm"
+            },
+            "HTML::FormFu::Element::Multi" : {
+               "file" : "HTML/FormFu/Element/Multi.pm"
+            },
+            "HTML::FormFu::Element::Number" : {
+               "file" : "HTML/FormFu/Element/Number.pm"
+            },
+            "HTML::FormFu::Element::Password" : {
+               "file" : "HTML/FormFu/Element/Password.pm"
+            },
+            "HTML::FormFu::Element::Radio" : {
+               "file" : "HTML/FormFu/Element/Radio.pm"
+            },
+            "HTML::FormFu::Element::Radiogroup" : {
+               "file" : "HTML/FormFu/Element/Radiogroup.pm"
+            },
+            "HTML::FormFu::Element::Repeatable" : {
+               "file" : "HTML/FormFu/Element/Repeatable.pm"
+            },
+            "HTML::FormFu::Element::Reset" : {
+               "file" : "HTML/FormFu/Element/Reset.pm"
+            },
+            "HTML::FormFu::Element::Select" : {
+               "file" : "HTML/FormFu/Element/Select.pm"
+            },
+            "HTML::FormFu::Element::SimpleTable" : {
+               "file" : "HTML/FormFu/Element/SimpleTable.pm"
+            },
+            "HTML::FormFu::Element::Src" : {
+               "file" : "HTML/FormFu/Element/Src.pm"
+            },
+            "HTML::FormFu::Element::Submit" : {
+               "file" : "HTML/FormFu/Element/Submit.pm"
+            },
+            "HTML::FormFu::Element::Text" : {
+               "file" : "HTML/FormFu/Element/Text.pm"
+            },
+            "HTML::FormFu::Element::Textarea" : {
+               "file" : "HTML/FormFu/Element/Textarea.pm"
+            },
+            "HTML::FormFu::Element::reCAPTCHA" : {
+               "file" : "HTML/FormFu/Element/reCAPTCHA.pm"
+            },
+            "HTML::FormFu::Exception" : {
+               "file" : "HTML/FormFu/Exception.pm"
+            },
+            "HTML::FormFu::Exception::Constraint" : {
+               "file" : "HTML/FormFu/Exception/Constraint.pm"
+            },
+            "HTML::FormFu::Exception::Inflator" : {
+               "file" : "HTML/FormFu/Exception/Inflator.pm"
+            },
+            "HTML::FormFu::Exception::Input" : {
+               "file" : "HTML/FormFu/Exception/Input.pm"
+            },
+            "HTML::FormFu::Exception::Transformer" : {
+               "file" : "HTML/FormFu/Exception/Transformer.pm"
+            },
+            "HTML::FormFu::Exception::Validator" : {
+               "file" : "HTML/FormFu/Exception/Validator.pm"
+            },
+            "HTML::FormFu::FakeQuery" : {
+               "file" : "HTML/FormFu/FakeQuery.pm"
+            },
+            "HTML::FormFu::Filter" : {
+               "file" : "HTML/FormFu/Filter.pm"
+            },
+            "HTML::FormFu::Filter::Callback" : {
+               "file" : "HTML/FormFu/Filter/Callback.pm"
+            },
+            "HTML::FormFu::Filter::CompoundJoin" : {
+               "file" : "HTML/FormFu/Filter/CompoundJoin.pm"
+            },
+            "HTML::FormFu::Filter::CompoundSprintf" : {
+               "file" : "HTML/FormFu/Filter/CompoundSprintf.pm"
+            },
+            "HTML::FormFu::Filter::CopyValue" : {
+               "file" : "HTML/FormFu/Filter/CopyValue.pm"
+            },
+            "HTML::FormFu::Filter::Encode" : {
+               "file" : "HTML/FormFu/Filter/Encode.pm"
+            },
+            "HTML::FormFu::Filter::FormatNumber" : {
+               "file" : "HTML/FormFu/Filter/FormatNumber.pm"
+            },
+            "HTML::FormFu::Filter::HTMLEscape" : {
+               "file" : "HTML/FormFu/Filter/HTMLEscape.pm"
+            },
+            "HTML::FormFu::Filter::HTMLScrubber" : {
+               "file" : "HTML/FormFu/Filter/HTMLScrubber.pm"
+            },
+            "HTML::FormFu::Filter::LowerCase" : {
+               "file" : "HTML/FormFu/Filter/LowerCase.pm"
+            },
+            "HTML::FormFu::Filter::NonNumeric" : {
+               "file" : "HTML/FormFu/Filter/NonNumeric.pm"
+            },
+            "HTML::FormFu::Filter::Regex" : {
+               "file" : "HTML/FormFu/Filter/Regex.pm"
+            },
+            "HTML::FormFu::Filter::Split" : {
+               "file" : "HTML/FormFu/Filter/Split.pm"
+            },
+            "HTML::FormFu::Filter::TrimEdges" : {
+               "file" : "HTML/FormFu/Filter/TrimEdges.pm"
+            },
+            "HTML::FormFu::Filter::UpperCase" : {
+               "file" : "HTML/FormFu/Filter/UpperCase.pm"
+            },
+            "HTML::FormFu::Filter::Whitespace" : {
+               "file" : "HTML/FormFu/Filter/Whitespace.pm"
+            },
+            "HTML::FormFu::I18N" : {
+               "file" : "HTML/FormFu/I18N.pm"
+            },
+            "HTML::FormFu::I18N::bg" : {
+               "file" : "HTML/FormFu/I18N/bg.pm"
+            },
+            "HTML::FormFu::I18N::da" : {
+               "file" : "HTML/FormFu/I18N/da.pm"
+            },
+            "HTML::FormFu::I18N::de" : {
+               "file" : "HTML/FormFu/I18N/de.pm"
+            },
+            "HTML::FormFu::I18N::en" : {
+               "file" : "HTML/FormFu/I18N/en.pm"
+            },
+            "HTML::FormFu::I18N::es" : {
+               "file" : "HTML/FormFu/I18N/es.pm"
+            },
+            "HTML::FormFu::I18N::fr" : {
+               "file" : "HTML/FormFu/I18N/fr.pm"
+            },
+            "HTML::FormFu::I18N::hu" : {
+               "file" : "HTML/FormFu/I18N/hu.pm"
+            },
+            "HTML::FormFu::I18N::it" : {
+               "file" : "HTML/FormFu/I18N/it.pm"
+            },
+            "HTML::FormFu::I18N::ja" : {
+               "file" : "HTML/FormFu/I18N/ja.pm"
+            },
+            "HTML::FormFu::I18N::no" : {
+               "file" : "HTML/FormFu/I18N/no.pm"
+            },
+            "HTML::FormFu::I18N::pt_br" : {
+               "file" : "HTML/FormFu/I18N/pt_br.pm"
+            },
+            "HTML::FormFu::I18N::pt_pt" : {
+               "file" : "HTML/FormFu/I18N/pt_pt.pm"
+            },
+            "HTML::FormFu::I18N::ro" : {
+               "file" : "HTML/FormFu/I18N/ro.pm"
+            },
+            "HTML::FormFu::I18N::ru" : {
+               "file" : "HTML/FormFu/I18N/ru.pm"
+            },
+            "HTML::FormFu::I18N::ua" : {
+               "file" : "HTML/FormFu/I18N/ua.pm"
+            },
+            "HTML::FormFu::I18N::zh_cn" : {
+               "file" : "HTML/FormFu/I18N/zh_cn.pm"
+            },
+            "HTML::FormFu::Inflator" : {
+               "file" : "HTML/FormFu/Inflator.pm"
+            },
+            "HTML::FormFu::Inflator::Callback" : {
+               "file" : "HTML/FormFu/Inflator/Callback.pm"
+            },
+            "HTML::FormFu::Inflator::CompoundDateTime" : {
+               "file" : "HTML/FormFu/Inflator/CompoundDateTime.pm"
+            },
+            "HTML::FormFu::Inflator::DateTime" : {
+               "file" : "HTML/FormFu/Inflator/DateTime.pm"
+            },
+            "HTML::FormFu::Literal" : {
+               "file" : "HTML/FormFu/Literal.pm"
+            },
+            "HTML::FormFu::Localize" : {
+               "file" : "HTML/FormFu/Localize.pm"
+            },
+            "HTML::FormFu::Model" : {
+               "file" : "HTML/FormFu/Model.pm"
+            },
+            "HTML::FormFu::Model::HashRef" : {
+               "file" : "HTML/FormFu/Model/HashRef.pm"
+            },
+            "HTML::FormFu::MultiForm" : {
+               "file" : "HTML/FormFu/MultiForm.pm"
+            },
+            "HTML::FormFu::ObjectUtil" : {
+               "file" : "HTML/FormFu/ObjectUtil.pm"
+            },
+            "HTML::FormFu::OutputProcessor" : {
+               "file" : "HTML/FormFu/OutputProcessor.pm"
+            },
+            "HTML::FormFu::OutputProcessor::Indent" : {
+               "file" : "HTML/FormFu/OutputProcessor/Indent.pm"
+            },
+            "HTML::FormFu::OutputProcessor::StripWhitespace" : {
+               "file" : "HTML/FormFu/OutputProcessor/StripWhitespace.pm"
+            },
+            "HTML::FormFu::Plugin" : {
+               "file" : "HTML/FormFu/Plugin.pm"
+            },
+            "HTML::FormFu::Plugin::StashValid" : {
+               "file" : "HTML/FormFu/Plugin/StashValid.pm"
+            },
+            "HTML::FormFu::Preload" : {
+               "file" : "HTML/FormFu/Preload.pm"
+            },
+            "HTML::FormFu::Processor" : {
+               "file" : "HTML/FormFu/Processor.pm"
+            },
+            "HTML::FormFu::QueryType::CGI" : {
+               "file" : "HTML/FormFu/QueryType/CGI.pm"
+            },
+            "HTML::FormFu::QueryType::CGI::Simple" : {
+               "file" : "HTML/FormFu/QueryType/CGI/Simple.pm"
+            },
+            "HTML::FormFu::QueryType::Catalyst" : {
+               "file" : "HTML/FormFu/QueryType/Catalyst.pm"
+            },
+            "HTML::FormFu::Role::Constraint::Others" : {
+               "file" : "HTML/FormFu/Role/Constraint/Others.pm"
+            },
+            "HTML::FormFu::Role::ContainsElements" : {
+               "file" : "HTML/FormFu/Role/ContainsElements.pm"
+            },
+            "HTML::FormFu::Role::ContainsElementsSharedWithField" : {
+               "file" : "HTML/FormFu/Role/ContainsElementsSharedWithField.pm"
+            },
+            "HTML::FormFu::Role::CreateChildren" : {
+               "file" : "HTML/FormFu/Role/CreateChildren.pm"
+            },
+            "HTML::FormFu::Role::Element::Coercible" : {
+               "file" : "HTML/FormFu/Role/Element/Coercible.pm"
+            },
+            "HTML::FormFu::Role::Element::Field" : {
+               "file" : "HTML/FormFu/Role/Element/Field.pm"
+            },
+            "HTML::FormFu::Role::Element::FieldMethods" : {
+               "file" : "HTML/FormFu/Role/Element/FieldMethods.pm"
+            },
+            "HTML::FormFu::Role::Element::Group" : {
+               "file" : "HTML/FormFu/Role/Element/Group.pm"
+            },
+            "HTML::FormFu::Role::Element::Input" : {
+               "file" : "HTML/FormFu/Role/Element/Input.pm"
+            },
+            "HTML::FormFu::Role::Element::MultiElement" : {
+               "file" : "HTML/FormFu/Role/Element/MultiElement.pm"
+            },
+            "HTML::FormFu::Role::Element::NonBlock" : {
+               "file" : "HTML/FormFu/Role/Element/NonBlock.pm"
+            },
+            "HTML::FormFu::Role::Element::ProcessOptionsFromModel" : {
+               "file" : "HTML/FormFu/Role/Element/ProcessOptionsFromModel.pm"
+            },
+            "HTML::FormFu::Role::Element::SingleValueField" : {
+               "file" : "HTML/FormFu/Role/Element/SingleValueField.pm"
+            },
+            "HTML::FormFu::Role::Filter::Compound" : {
+               "file" : "HTML/FormFu/Role/Filter/Compound.pm"
+            },
+            "HTML::FormFu::Role::FormAndBlockMethods" : {
+               "file" : "HTML/FormFu/Role/FormAndBlockMethods.pm"
+            },
+            "HTML::FormFu::Role::FormAndElementMethods" : {
+               "file" : "HTML/FormFu/Role/FormAndElementMethods.pm"
+            },
+            "HTML::FormFu::Role::GetProcessors" : {
+               "file" : "HTML/FormFu/Role/GetProcessors.pm"
+            },
+            "HTML::FormFu::Role::HasParent" : {
+               "file" : "HTML/FormFu/Role/HasParent.pm"
+            },
+            "HTML::FormFu::Role::NestedHashUtils" : {
+               "file" : "HTML/FormFu/Role/NestedHashUtils.pm"
+            },
+            "HTML::FormFu::Role::Populate" : {
+               "file" : "HTML/FormFu/Role/Populate.pm"
+            },
+            "HTML::FormFu::Role::Render" : {
+               "file" : "HTML/FormFu/Role/Render.pm"
+            },
+            "HTML::FormFu::Transformer" : {
+               "file" : "HTML/FormFu/Transformer.pm"
+            },
+            "HTML::FormFu::Transformer::Callback" : {
+               "file" : "HTML/FormFu/Transformer/Callback.pm"
+            },
+            "HTML::FormFu::Upload" : {
+               "file" : "HTML/FormFu/Upload.pm"
+            },
+            "HTML::FormFu::UploadParam" : {
+               "file" : "HTML/FormFu/UploadParam.pm"
+            },
+            "HTML::FormFu::Util" : {
+               "file" : "HTML/FormFu/Util.pm"
+            },
+            "HTML::FormFu::Validator" : {
+               "file" : "HTML/FormFu/Validator.pm"
+            },
+            "HTML::FormFu::Validator::Callback" : {
+               "file" : "HTML/FormFu/Validator/Callback.pm"
+            }
+         },
+         "version" : "0.09007"
       },
       "HTML::LinkExtractor" : {
          "dist" : "HTML-LinkExtractor-0.13",
@@ -17744,7 +19813,7 @@
       },
       "JSON" : {
          "dist" : "JSON-2.53",
-         "module" : "JSON",
+         "module" : "JSON::PP",
          "mymeta" : {
             "abstract" : "JSON (JavaScript Object Notation) encoder/decoder",
             "author" : [
@@ -17824,7 +19893,7 @@
                "file" : "JSON/backportPP.pm"
             }
          },
-         "version" : "2.53"
+         "version" : "2.27200"
       },
       "JSON::Any" : {
          "dist" : "JSON-Any-1.29",
@@ -17867,7 +19936,6 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
-                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -19036,6 +21104,62 @@
             }
          },
          "version" : "0.044"
+      },
+      "List::MoreUtils" : {
+         "dist" : "List-MoreUtils-0.33",
+         "module" : "List::MoreUtils",
+         "mymeta" : {
+            "abstract" : "Provide the stuff missing in List::Util",
+            "author" : [
+               "Tassilo von Parseval <tassilo.von.parseval@rwth-aachen.de>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "List-MoreUtils",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : "0.42"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::CBuilder" : "0.27",
+                     "ExtUtils::MakeMaker" : "6.52"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Test::More" : "0.82",
+                     "perl" : "5.00503"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.33"
+         },
+         "name" : "List::MoreUtils",
+         "pathname" : "A/AD/ADAMK/List-MoreUtils-0.33.tar.gz",
+         "provides" : {
+            "List::MoreUtils" : {
+               "file" : "List/MoreUtils.pm",
+               "version" : "0.33"
+            }
+         },
+         "version" : "0.33"
       },
       "List::Pairwise" : {
          "dist" : "List-Pairwise-0.30",
@@ -25488,6 +27612,63 @@
          },
          "version" : "1.00"
       },
+      "Parse::CPAN::Meta" : {
+         "dist" : "Parse-CPAN-Meta-1.4404",
+         "module" : "Parse::CPAN::Meta",
+         "mymeta" : {
+            "abstract" : "Parse META.yml and META.json CPAN metadata files",
+            "author" : [
+               "Adam Kennedy <adamk@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120630, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Parse-CPAN-Meta",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "CPAN::Meta::YAML" : "0.008",
+                     "File::Spec" : "0.80",
+                     "JSON::PP" : "2.27200",
+                     "Test::More" : "0.47"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "1.4404"
+         },
+         "name" : "Parse::CPAN::Meta",
+         "pathname" : "D/DA/DAGOLDEN/Parse-CPAN-Meta-1.4404.tar.gz",
+         "provides" : {
+            "Parse::CPAN::Meta" : {
+               "file" : "Parse/CPAN/Meta.pm",
+               "version" : "1.4404"
+            }
+         },
+         "version" : "1.4404"
+      },
       "Parse::RecDescent" : {
          "dist" : "Parse-RecDescent-1.967006",
          "module" : "Parse::RecDescent",
@@ -29119,6 +31300,82 @@
          },
          "version" : "1.23"
       },
+      "Test::MockObject" : {
+         "dist" : "Test-MockObject-1.20120301",
+         "module" : "Test::MockObject",
+         "mymeta" : {
+            "abstract" : "Perl extension for emulating troublesome interfaces",
+            "author" : [
+               "chromatic"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300009, CPAN::Meta::Converter version 2.120530, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Test-MockObject",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::Exception" : 0,
+                     "Test::More" : "0.98",
+                     "Test::Warn" : "0.23",
+                     "base" : 0,
+                     "overload" : 0,
+                     "vars" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "CGI" : 0,
+                     "Carp" : 0,
+                     "Devel::Peek" : 0,
+                     "Scalar::Util" : 0,
+                     "Test::Builder" : 0,
+                     "Test::Exception" : "0.31",
+                     "Test::More" : "0.98",
+                     "Test::Warn" : "0.23",
+                     "UNIVERSAL::can" : "1.20110617",
+                     "UNIVERSAL::isa" : "1.20110614",
+                     "strict" : 0,
+                     "warnings" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-MockObject"
+               },
+               "repository" : {
+                  "url" : "https://github.com/chromatic/Test-MockObject.git"
+               }
+            },
+            "version" : "1.20120301"
+         },
+         "name" : "Test::MockObject",
+         "pathname" : "C/CH/CHROMATIC/Test-MockObject-1.20120301.tar.gz",
+         "provides" : {
+            "Test::MockObject" : {
+               "file" : "Test/MockObject.pm",
+               "version" : "1.20120301"
+            },
+            "Test::MockObject::Extends" : {
+               "file" : "Test/MockObject/Extends.pm",
+               "version" : "1.20120301"
+            }
+         },
+         "version" : "1.20120301"
+      },
       "Test::MockTime" : {
          "dist" : "Test-MockTime-0.12",
          "module" : "Test::MockTime",
@@ -31176,6 +33433,122 @@
          },
          "version" : "0.11"
       },
+      "UNIVERSAL::can" : {
+         "dist" : "UNIVERSAL-can-1.20110617",
+         "module" : "UNIVERSAL::can",
+         "mymeta" : {
+            "abstract" : "work around buggy code calling UNIVERSAL::can() as a function",
+            "author" : [
+               "chromatic"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.200007, CPAN::Meta::Converter version 2.110930, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "UNIVERSAL-can",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : 0,
+                     "overload" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Scalar::Util" : 0,
+                     "vars" : 0,
+                     "warnings::register" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "homepage" : "https://github.com/chromatic/UNIVERSAL-can",
+               "repository" : {
+                  "url" : "https://github.com/chromatic/UNIVERSAL-can.git"
+               }
+            },
+            "version" : "1.20110617"
+         },
+         "name" : "UNIVERSAL::can",
+         "pathname" : "C/CH/CHROMATIC/UNIVERSAL-can-1.20110617.tar.gz",
+         "provides" : {
+            "UNIVERSAL::can" : {
+               "file" : "UNIVERSAL/can.pm",
+               "version" : "1.20110617"
+            }
+         },
+         "version" : "1.20110617"
+      },
+      "UNIVERSAL::isa" : {
+         "dist" : "UNIVERSAL-isa-1.20110614",
+         "module" : "UNIVERSAL::isa",
+         "mymeta" : {
+            "abstract" : "Attempt to recover from people calling UNIVERSAL::isa as a function",
+            "author" : [
+               "chromatic"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.200007, CPAN::Meta::Converter version 2.110930, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "UNIVERSAL-isa",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "CGI" : 0,
+                     "Test::More" : 0,
+                     "overload" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Scalar::Util" : 0,
+                     "UNIVERSAL" : 0,
+                     "vars" : 0,
+                     "warnings::register" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "homepage" : "https://github.com/chromatic/UNIVERSAL-isa",
+               "repository" : {
+                  "url" : "https://github.com/chromatic/UNIVERSAL-isa.git"
+               }
+            },
+            "version" : "1.20110614"
+         },
+         "name" : "UNIVERSAL::isa",
+         "pathname" : "C/CH/CHROMATIC/UNIVERSAL-isa-1.20110614.tar.gz",
+         "provides" : {
+            "UNIVERSAL::isa" : {
+               "file" : "UNIVERSAL/isa.pm",
+               "version" : "1.20110614"
+            }
+         },
+         "version" : "1.20110614"
+      },
       "URI" : {
          "dist" : "URI-1.59",
          "module" : "URI::Escape",
@@ -32892,7 +35265,7 @@
       },
       "YAML::LibYAML" : {
          "dist" : "YAML-LibYAML-0.38",
-         "module" : "YAML::XS",
+         "module" : "YAML::LibYAML",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -32955,83 +35328,7 @@
                "file" : "YAML/XS/LibYAML.pm"
             }
          },
-         "version" : "0.38"
-      },
-      "YAML::Syck" : {
-         "dist" : "YAML-Syck-1.20",
-         "module" : "YAML::Syck",
-         "mymeta" : {
-            "abstract" : "Fast, lightweight YAML loader and dumper",
-            "author" : [
-               "Audrey Tang <cpan@audreyt.org>"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
-            "license" : [
-               "mit"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "YAML-Syck",
-            "no_index" : {
-               "directory" : [
-                  "inc",
-                  "t"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.62"
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.62"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "perl" : "5.006"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "bugtracker" : {
-                  "web" : "https://rt.cpan.org/Public/Dist/Display.html?Name=YAML-Syck"
-               },
-               "homepage" : "http://search.cpan.org/dist/YAML-Syck",
-               "license" : [
-                  "http://opensource.org/licenses/mit-license.php"
-               ],
-               "repository" : {
-                  "url" : "http://github.com/avar/YAML-Syck"
-               }
-            },
-            "version" : "1.20"
-         },
-         "name" : "YAML::Syck",
-         "pathname" : "T/TO/TODDR/YAML-Syck-1.20.tar.gz",
-         "provides" : {
-            "JSON::Syck" : {
-               "file" : "JSON/Syck.pm",
-               "version" : "0.43"
-            },
-            "YAML::Dumper::Syck" : {
-               "file" : "YAML/Dumper/Syck.pm"
-            },
-            "YAML::Loader::Syck" : {
-               "file" : "YAML/Loader/Syck.pm"
-            },
-            "YAML::Syck" : {
-               "file" : "YAML/Syck.pm",
-               "version" : "1.20"
-            }
-         },
-         "version" : "1.20"
+         "version" : "0.18"
       },
       "YAML::Tiny" : {
          "dist" : "YAML-Tiny-1.50",
@@ -33209,6 +35506,135 @@
          },
          "version" : "0.28"
       },
+      "carton" : {
+         "dist" : "carton-v0.9.4",
+         "module" : "Carton",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "Tatsuhiko Miyagawa"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "carton",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t",
+                  "xt"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59",
+                     "Test::More" : "0.88",
+                     "Test::Requires" : 0,
+                     "version" : "0.77"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59",
+                     "version" : "0.77"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "App::cpanminus" : "1.5",
+                     "CPAN::Meta" : "2.112",
+                     "Capture::Tiny" : 0,
+                     "Dist::Metadata" : 0,
+                     "Exception::Class" : "1.32",
+                     "ExtUtils::MakeMaker" : "6.59",
+                     "File::chdir" : 0,
+                     "Getopt::Long" : "2.36",
+                     "IO::Compress::Gzip" : 0,
+                     "JSON" : "2.53",
+                     "Module::Build" : "0.38",
+                     "Module::Metadata" : "1.000003",
+                     "Term::ANSIColor" : "1.12",
+                     "Try::Tiny" : "0.09",
+                     "local::lib" : "1.008",
+                     "parent" : "0.223",
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "provides" : {
+               "Carton" : {
+                  "file" : "lib/Carton.pm",
+                  "version" : "v0.9.4"
+               },
+               "Carton::CLI" : {
+                  "file" : "lib/Carton/CLI.pm",
+                  "version" : 0
+               },
+               "Carton::Error" : {
+                  "file" : "lib/Carton/Error.pm",
+                  "version" : 0
+               },
+               "Carton::Tree" : {
+                  "file" : "lib/Carton/Tree.pm",
+                  "version" : 0
+               },
+               "Carton::TreeNode" : {
+                  "file" : "lib/Carton/Tree.pm",
+                  "version" : 0
+               },
+               "Carton::Util" : {
+                  "file" : "lib/Carton/Util.pm",
+                  "version" : 0
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "https://github.com/miyagawa/carton/issues"
+               },
+               "homepage" : "https://github.com/miyagawa/carton",
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://github.com/miyagawa/carton.git"
+               }
+            },
+            "version" : "v0.9.4"
+         },
+         "name" : "carton",
+         "pathname" : "M/MI/MIYAGAWA/carton-v0.9.4.tar.gz",
+         "provides" : {
+            "Carton" : {
+               "file" : "Carton.pm",
+               "version" : "v0.9.4"
+            },
+            "Carton::CLI" : {
+               "file" : "Carton/CLI.pm"
+            },
+            "Carton::Error" : {
+               "file" : "Carton/Error.pm"
+            },
+            "Carton::Tree" : {
+               "file" : "Carton/Tree.pm"
+            },
+            "Carton::TreeNode" : {
+               "file" : "Carton/Tree.pm"
+            },
+            "Carton::Util" : {
+               "file" : "Carton/Util.pm"
+            }
+         },
+         "version" : "v0.9.4"
+      },
       "common::sense" : {
          "dist" : "common-sense-3.4",
          "module" : "common::sense",
@@ -33260,6 +35686,81 @@
             }
          },
          "version" : "3.4"
+      },
+      "local::lib" : {
+         "dist" : "local-lib-1.008004",
+         "module" : "local::lib",
+         "mymeta" : {
+            "abstract" : "create and use a local lib/ for perl modules with PERL5LIB",
+            "author" : [
+               "Matt S Trout <mst@shadowcat.co.uk> http://www.shadowcat.co.uk/"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "local-lib",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t",
+                  "xt"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "CPAN" : "1.82",
+                     "ExtUtils::Install" : "1.43",
+                     "ExtUtils::MakeMaker" : "6.31",
+                     "Module::Build" : "0.36",
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=local-lib"
+               },
+               "homepage" : "http://git.shadowcat.co.uk/gitweb/gitweb.cgi?p=p5sagit/local-lib.git",
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://git.shadowcat.co.uk/p5sagit/local-lib.git"
+               }
+            },
+            "version" : "1.008004"
+         },
+         "name" : "local::lib",
+         "pathname" : "A/AP/APEIRON/local-lib-1.008004.tar.gz",
+         "provides" : {
+            "lib::core::only" : {
+               "file" : "lib/core/only.pm"
+            },
+            "local::lib" : {
+               "file" : "local/lib.pm",
+               "version" : "1.008004"
+            }
+         },
+         "version" : "1.008004"
       },
       "namespace::autoclean" : {
          "dist" : "namespace-autoclean-0.13",
