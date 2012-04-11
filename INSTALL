@@ -11,9 +11,7 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
 * Install postgresql (8.4 or greater).  Make sure that plperl support
   is included in your postgresql installation, or install the necessary
   addon packages for it.  E.g. on Ubuntu run: 
-  	sudo apt-get install postgresql-8.4;
-	sudo apt-get install postgresql-plperl-8.4;
-	sudo apt-get install postgresql-server-dev-8.4;
+  	sudo apt-get install postgresql-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4;
 
    (The postgresql server dev package is needed by some of the perl modules that mediacloud depends on.)
 
