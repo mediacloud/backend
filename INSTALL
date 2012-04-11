@@ -11,7 +11,7 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
 * Install postgresql (8.4 or greater).  Make sure that plperl support
   is included in your postgresql installation, or install the necessary
   addon packages for it.  E.g. on Ubuntu run: 
-  	sudo apt-get install postgresql-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4;
+  	sudo apt-get install postgresql-8.4 postgresql-client-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4;
 
    (The postgresql server dev package is needed by some of the perl modules that mediacloud depends on.)
 
@@ -64,7 +64,7 @@ If there are errors determine which modules are missing and install them by runn
 * Make sure that the directory in which Media Cloud is located can be read by the postgres user. Run something like the following:
       chmod +rx ~/
 
-* Run ./script/run_with_carton ./script/mediawords_create_db.pl.  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
+* Run ./script/run_with_carton.sh ./script/mediawords_create_db.pl  This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
   
 * Run ./script/run_with_carton ./script/mediawords_server.pl.  This should start up the web server.
   If the command line returns no errors, go to http://localhost:3000 
