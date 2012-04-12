@@ -3,7 +3,7 @@
 ## These 3 lines are mandatory.
 export PERLBREW_ROOT=$HOME/perl5/perlbrew
 export PERLBREW_HOME=$HOME/.perlbrew
-echo source ${PERLBREW_ROOT}/etc/bashrc
+#echo source ${PERLBREW_ROOT}/etc/bashrc
 
 source ${PERLBREW_ROOT}/etc/bashrc
 
