@@ -56,8 +56,7 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
      ./install_mc_perlbrew_and_modules.sh
 
 * SUGGESTED: Verify that the necessary modules are installed. Run the media cloud coverage test to verify that all required modules have been installed. Run:
-      source script/set_perl_brew_environment.sh
-      carton exec -Ilib/ -- prove -r t/compile.t
+      ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
 
 If there are errors determine which modules are missing and install them by running carton install.
 
