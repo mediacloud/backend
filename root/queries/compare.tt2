@@ -34,7 +34,7 @@ Words are sized according to the number of mentions divided by the number of que
 </p>
 
 <p>
-<a href="http://www.microsofttranslator.com/bv.aspx?to=en&a=http%3A%2F%2Fwww.mediacloud.org%2Fdashboard%2Fview%2F1%3Fq2%3D[% query_b.queries_id %]%26q1%3D[% query_a.queryes_id %]%26wconly%3D1">translate from russian</a>
+<a href="http://www.microsofttranslator.com/bv.aspx?to=en&a=http%3A%2F%2Fwww.mediacloud.org%2Fdashboard%2Fview%2F1%3Fq2%3D[% query_b.queries_id %]%26q1%3D[% query_a.queries_id %]%26wconly%3D1">translate from russian</a>
 </p>
 
 </fieldset>
