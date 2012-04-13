@@ -33,4 +33,8 @@ Words in red or blue above are words within the top 75 words for the respective 
 Words are sized according to the number of mentions divided by the number of queries it is found in.  So a word that is found in both queries is sized according to the mentions in both queries divided by two, but a word that is found in only one query is sized according to the number of mentions in the one query with no division.
 </p>
 
+<p>
+<a href="http://www.microsofttranslator.com/bv.aspx?to=en&a=http%3A%2F%2Fwww.mediacloud.org%2Fdashboard%2Fview%2F1%3Fq2%3D[% query_b.queries_id %]%26q1%3D[% query_a.queryes_id %]%26wconly%3D1">translate from russian</a>
+</p>
+
 </fieldset>
