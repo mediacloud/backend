@@ -1,7 +1,6 @@
 package MediaWords::Util::CSV;
 use MediaWords::CommonLibs;
 
-
 use strict;
 
 use Encode;
@@ -9,17 +8,21 @@ use Text::CSV_XS;
 
 # various functions for outputting csv
 
-# return an encoded csv file representing a list of hashes
+# return an encoded csv file representing a list of hashes.
+# if $fields is specified, use it as a list of field names and
+# dump the fields in the specified order.  otherwise, just
+# get the field names from the hash in the first row (with
+# semi-random order)
 sub get_hashes_as_encoded_csv
 {
-    my ( $hashes ) = @_;
+    my ( $hashes, $fields ) = @_;
     
     my $output = '';
     if ( @{ $hashes } )
     {
         my $csv = Text::CSV_XS->new;
 
-        my $keys = [ keys( %{ $hashes->[ 0 ] } ) ];
+        my $keys = $fields || [ keys( %{ $hashes->[ 0 ] } ) ];
         $csv->combine( @{ $keys } );
         
         $output .= $csv->string . "\n";
