@@ -21907,6 +21907,69 @@
          },
          "version" : "0.06"
       },
+      "Modern::Perl" : {
+         "dist" : "Modern-Perl-1.20120130",
+         "module" : "Modern::Perl",
+         "mymeta" : {
+            "abstract" : "enable all of the features of Modern Perl with one import",
+            "author" : [
+               "chromatic"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Modern-Perl",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Module::Build" : "0.3601",
+                     "Test::More" : "0.98"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30",
+                     "Module::Build" : "0.3601"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "IO::File" : 0,
+                     "IO::Handle" : 0,
+                     "autodie" : "2.10",
+                     "feature" : 0,
+                     "mro" : 0,
+                     "perl" : "5.010",
+                     "strict" : 0,
+                     "warnings" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "homepage" : "https://github.com/chromatic/Modern-Perl",
+               "repository" : {
+                  "url" : "https://github.com/chromatic/Modern-Perl.git"
+               }
+            },
+            "version" : "1.20120130"
+         },
+         "name" : "Modern::Perl",
+         "pathname" : "C/CH/CHROMATIC/Modern-Perl-1.20120130.tar.gz",
+         "provides" : {
+            "Modern::Perl" : {
+               "file" : "Modern/Perl.pm",
+               "version" : "1.20120130"
+            }
+         },
+         "version" : "1.20120130"
+      },
       "Module::Find" : {
          "dist" : "Module-Find-0.10",
          "module" : "Module::Find",
