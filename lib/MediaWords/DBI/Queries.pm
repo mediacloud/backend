@@ -14,7 +14,7 @@ use JSON;
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
 use MediaWords::StoryVectors;
-use Perl6::Say;
+
 use Readonly;
 
 # max number of sentences to return in various get_*_stories_with_sentences functions

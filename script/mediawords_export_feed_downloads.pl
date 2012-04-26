@@ -16,7 +16,7 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
-use Perl6::Say;
+
 use XML::LibXML;
 use MIME::Base64;
 use Encode;

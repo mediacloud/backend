@@ -5,7 +5,7 @@ use strict;
 use warnings;
 
 use Encode;
-use Perl6::Say;
+
 use Data::Dumper;
 
 # Creates a new media_set for the given media source

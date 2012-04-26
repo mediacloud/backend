@@ -13,7 +13,7 @@ use utf8;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
-use Perl6::Say;
+
 
 sub main
 {

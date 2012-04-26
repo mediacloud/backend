@@ -25,7 +25,7 @@ use MediaWords::DBI::Stories;
 use Data::Dumper;
 use Encode;
 use MIME::Base64;
-use Perl6::Say;
+
 use HTML::TreeBuilder;
 use HTML::TreeBuilder::XPath;
 

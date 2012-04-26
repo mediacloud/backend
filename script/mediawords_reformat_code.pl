@@ -14,7 +14,7 @@ BEGIN
 use strict;
 use warnings;
 
-use Perl6::Say;
+
 use Data::Dumper;
 use Perl::Tidy 20090616;
 

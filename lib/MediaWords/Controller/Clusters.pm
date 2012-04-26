@@ -15,7 +15,7 @@ use MediaWords::Util::Timing qw( start_time stop_time );
 use MediaWords::Util::WordCloud_Legacy;
 
 use Data::Dumper;
-use Perl6::Say;
+
 use POSIX;
 
 # Set a threshold for link weight--links won't be displayed if they're less than this

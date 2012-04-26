@@ -17,7 +17,7 @@ use DBIx::Simple::MediaWords;
 use MediaWords::Tagger;
 use MediaWords::DBI::Downloads;
 use List::Uniq ':all';
-use Perl6::Say;
+
 
 sub get_media_ids_to_update_by_rss_length_and_similarity
 {

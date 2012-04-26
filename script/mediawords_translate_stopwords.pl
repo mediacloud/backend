@@ -21,7 +21,7 @@ use Feed::Scrape;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
-use Perl6::Say;
+
 use Data::Dumper;
 use LWP::Debug;
 use MediaWords::Util::Translate;

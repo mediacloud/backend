@@ -18,7 +18,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::StoryVectors;
-use Perl6::Say;
+
 use Data::Dumper;
 
 use constant INLINE_CONTENT_LENGTH => 256;

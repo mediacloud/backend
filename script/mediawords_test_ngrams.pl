@@ -19,7 +19,7 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
-use Perl6::Say;
+
 use Text::Ngrams;
 use Data::Dumper;
 

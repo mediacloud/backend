@@ -24,7 +24,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use XML::LibXML;
 use Data::Dumper;
-use Perl6::Say;
+
 use Digest::SHA qw(sha1 sha1_hex sha1_base64);
 
 #use XML::LibXML::CDATASection;

@@ -6,7 +6,7 @@ use MediaWords::CommonLibs;
 use strict;
 use Encode;
 use Encode::HanConvert;
-use Perl6::Say;
+
 use Lingua::ZH::WordSegmenter;
 use Data::Dumper;
 

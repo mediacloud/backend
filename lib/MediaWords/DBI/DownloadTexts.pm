@@ -6,7 +6,7 @@ use MediaWords::CommonLibs;
 use strict;
 
 use Encode;
-use Perl6::Say;
+
 use Data::Dumper;
 
 use MediaWords::Util::Config;

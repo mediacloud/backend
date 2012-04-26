@@ -27,7 +27,7 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
-use Perl6::Say;
+
 
 # extract, story, and tag downloaded text a slice of downloads.
 # downloads are extracted by a total of num_total_jobs processings

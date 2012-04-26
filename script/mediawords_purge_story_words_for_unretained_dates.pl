@@ -16,7 +16,7 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Pg::Schema;
-use Perl6::Say;
+
 use Term::Prompt;
 
 sub main

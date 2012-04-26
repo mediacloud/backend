@@ -8,7 +8,7 @@ use warnings;
 use parent 'Catalyst::Controller';
 
 use Data::Dumper;
-use Perl6::Say;
+
 
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;

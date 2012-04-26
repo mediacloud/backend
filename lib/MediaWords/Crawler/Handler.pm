@@ -22,7 +22,7 @@ use URI::Split;
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
 use Carp;
-use Perl6::Say;
+
 use List::Util qw (max maxstr);
 
 use Feed::Scrape::MediaWords;

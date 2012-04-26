@@ -5,7 +5,7 @@ use Moose;
 use strict;
 use warnings;
 
-use Perl6::Say;
+
 use Data::Dumper;
 
 my $child_pids = [];

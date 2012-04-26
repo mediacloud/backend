@@ -32,7 +32,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Perl6::Say;
+
 use Tie::IxHash;
 
 use MediaWords::Cluster::Copy;

@@ -27,7 +27,7 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
-use Perl6::Say;
+
 
 # fork of $num_processes
 sub main

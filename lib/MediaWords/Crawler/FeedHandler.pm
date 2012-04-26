@@ -14,7 +14,7 @@ use FindBin;
 use IO::Compress::Gzip;
 use URI::Split;
 use Carp;
-use Perl6::Say;
+
 use List::Util qw (max maxstr);
 use Try::Tiny;
 

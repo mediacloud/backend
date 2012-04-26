@@ -25,7 +25,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
-use Perl6::Say;
+
 use MediaWords::DBI::Authors;
 use MediaWords::Util::MC_Fork;
 use Data::Dumper;

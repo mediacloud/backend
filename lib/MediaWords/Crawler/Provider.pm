@@ -14,7 +14,7 @@ use List::MoreUtils;
 use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
 use Readonly;
-use Perl6::Say;
+
 
 # how often to download each feed (seconds)
 use constant STALE_FEED_INTERVAL => 3 * 14400;

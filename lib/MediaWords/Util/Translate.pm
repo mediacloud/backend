@@ -12,7 +12,7 @@ our @EXPORT = qw(translate);
 
 use strict;
 use WebService::Google::Language;
-use Perl6::Say;
+
 use Text::Trim;
 use CHI;
 use MediaWords::Util::Config;

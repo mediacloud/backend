@@ -14,7 +14,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Perl6::Say;
+
 
 use MediaWords::DB;
 use MediaWords::CommonLibs;
