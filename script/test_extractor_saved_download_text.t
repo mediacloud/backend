@@ -28,7 +28,7 @@ use Encode;
 use MIME::Base64;
 use Carp qw (confess);
 use Data::Dumper;
-use Perl6::Say;
+
 
 Readonly my $output_dir => "$cwd/download_content_test_data";
 

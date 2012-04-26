@@ -29,7 +29,7 @@ use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
-use Perl6::Say;
+
 
 sub main
 {

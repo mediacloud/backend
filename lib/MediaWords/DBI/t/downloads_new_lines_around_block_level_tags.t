@@ -8,7 +8,7 @@ use Lingua::EN::Sentence::MediaWords;
 use Test::More;
 use Test::Differences;
 use Test::Deep;
-use Perl6::Say;
+
 use Data::Dumper;
 
 BEGIN

@@ -27,7 +27,7 @@ use MediaWords::Test::LocalServer;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
-use Perl6::Say;
+
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
 
