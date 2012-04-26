@@ -42,13 +42,13 @@ sub main
 
     #my $num_processes = int( $num_total_processes / $num_total_jobs );
 
-    while ( 1) 
+    while ( 1 )
     {
-        sleep (2);
+        sleep( 2 );
 
-	say STDERR "heart beat...";
+        say STDERR "heart beat...";
 
-	sleep( 5);
+        sleep( 5 );
 
     }
 }

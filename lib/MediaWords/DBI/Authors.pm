@@ -1,7 +1,6 @@
 package MediaWords::DBI::Authors;
 use MediaWords::CommonLibs;
 
-
 use strict;
 
 use Encode;
@@ -155,7 +154,7 @@ sub _get_by_line_from_content
     {
         $ret = $node->as_text;
     }
-     else
+    else
     {
         say STDERR "author not found";
     }
@@ -179,11 +178,11 @@ sub get_author_from_content
 
         $author =~ s/^By //i;
         $author = lc( $author );
-	$author =~ s/^posted by\:? //;
-	$author =~ s/^\s*//;
-	$author =~ s/\s*$//;
-	$author =~ s/\s+/ /;
-	$author =~ s/posted by\:? //;
+        $author =~ s/^posted by\:? //;
+        $author =~ s/^\s*//;
+        $author =~ s/\s*$//;
+        $author =~ s/\s+/ /;
+        $author =~ s/posted by\:? //;
     }
 
     return $author;

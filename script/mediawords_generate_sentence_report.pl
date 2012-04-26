@@ -29,7 +29,6 @@ use HTML::StripPP;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
-
 # number of terms to include in each word cloud
 use constant NUM_CLOUD_TERMS => 50;
 
@@ -854,8 +853,7 @@ sub generate_timeline_chart_url
         @{ $params },
         'chd=s:' . join(
             ',',
-            map
-            {
+            map {
                 join( '', map { $enc->{ int( $_ * ( 60 / $max ) ) } } @{ $_ } )
               } @{ $time_slicely_data }
         )

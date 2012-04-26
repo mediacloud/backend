@@ -1,7 +1,6 @@
 package MediaWords::Controller::MediaSets;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use MediaWords::DBI::MediaSets;
@@ -100,7 +99,8 @@ sub create_collection_media_set
 {
     my ( $self, $c, $name, $tags_id, $description ) = @_;
 
-    my $media_set = $c->dbis->create( 'media_sets', 
+    my $media_set =
+      $c->dbis->create( 'media_sets',
         { name => $name, description => $description, set_type => 'collection', tags_id => $tags_id } );
     my $media = $c->dbis->query(
         "select m.* from media m, media_tags_map mtm " . "  where m.media_id = mtm.media_id and mtm.tags_id = ?", $tags_id )

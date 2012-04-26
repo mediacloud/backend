@@ -1,7 +1,6 @@
 package MediaWords::DBI::Queries;
 use MediaWords::CommonLibs;
 
-
 # various routines for accessing the queries table and for querying
 # the aggregate vector tables (daily/weekly/top_500_weekly)_words
 
@@ -152,9 +151,8 @@ sub find_query_by_params
     my $description = _get_description( $query_params );
 
     my ( $queries_id ) = $db->query(
-"select queries_id from queries where description = ? and query_version = enum_last (null::query_version_enum ) ",
-        $description
-    )->flat;
+        "select queries_id from queries where description = ? and query_version = enum_last (null::query_version_enum ) ",
+        $description )->flat;
 
     return find_query_by_id( $db, $queries_id );
 }
@@ -460,19 +458,19 @@ sub _get_top_500_weekly_words_impl
 
     my $table_prefix = '';
 
-    if ( defined ( $query-> { top_500_weekly_words_table_prefix } ) ) 
+    if ( defined( $query->{ top_500_weekly_words_table_prefix } ) )
     {
-	$table_prefix = $query-> { top_500_weekly_words_table_prefix };
+        $table_prefix = $query->{ top_500_weekly_words_table_prefix };
     }
 
     my $table_suffix = '';
 
-    if ( defined ( $query-> { top_500_weekly_words_table_suffix } ) ) 
+    if ( defined( $query->{ top_500_weekly_words_table_suffix } ) )
     {
-	$table_suffix = $query-> { top_500_weekly_words_table_suffix };
+        $table_suffix = $query->{ top_500_weekly_words_table_suffix };
     }
 
-    my $top_500_weekly_words_table = $table_prefix . 'top_500_weekly_words' . $table_suffix;
+    my $top_500_weekly_words_table       = $table_prefix . 'top_500_weekly_words' . $table_suffix;
     my $total_top_500_weekly_words_table = $table_prefix . 'total_top_500_weekly_words' . $table_suffix;
 
     my $words = $db->query(
@@ -483,7 +481,7 @@ sub _get_top_500_weekly_words_impl
           "  from $top_500_weekly_words_table w, $total_top_500_weekly_words_table tw " .
           "  where w.media_sets_id in ( $media_sets_ids_list )  and " .
           "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and $date_clause and " .
-		  "    tw.media_sets_id in ( $media_sets_ids_list ) and $tw_date_clause and " .
+          "    tw.media_sets_id in ( $media_sets_ids_list ) and $tw_date_clause and " .
           "    $dashboard_topics_clause and coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
           "  group by w.stem order by sum( w.stem_count::float / tw.total_count::float )::float desc " . "  limit 500",
     )->hashes;
@@ -955,32 +953,31 @@ sub get_term_counts
         $media_set_group = $media_set_legend = '';
     }
 
-
     my $date_term_counts = [
         $db->query(
-            "select dw.publish_day, dw.stem $media_set_legend as term, " . 
-            "      sum( dw.stem_count::float / tw.total_count::float )::float as count " .
+            "select dw.publish_day, dw.stem $media_set_legend as term, " .
+              "      sum( dw.stem_count::float / tw.total_count::float )::float as count " .
               "  from daily_words dw, total_daily_words tw, media_sets ms " .
               "  where dw.media_sets_id in ( $media_sets_ids_list ) and dw.media_sets_id = tw.media_sets_id " .
               "    and $dashboard_topics_clause " .
               "    and coalesce( tw.dashboard_topics_id, 0 ) = coalesce( dw.dashboard_topics_id, 0 ) " .
               "    and $date_clause " . "    and dw.publish_day = tw.publish_day " . "    and dw.stem in ( $stems_list ) " .
-              "    and ms.media_sets_id = dw.media_sets_id " .
-              "  group by dw.publish_day, dw.stem $media_set_group " . 
+              "    and ms.media_sets_id = dw.media_sets_id " . "  group by dw.publish_day, dw.stem $media_set_group " .
               "  order by dw.publish_day, dw.stem "
           )->arrays
     ];
 
     my $term_lookup = {};
     map { $term_lookup->{ $stems->[ $_ ] } = $terms->[ $_ ] } ( 0 .. $#{ $stems } );
-    
+
     for my $d ( @{ $date_term_counts } )
     {
         if ( $media_set_legend )
         {
             $d->[ 1 ] =~ $term_lookup->{ $d->[ 1 ] };
         }
-        else {
+        else
+        {
             $d->[ 1 ] =~ /([^-]*) - (.*)/;
             my ( $stem, $media_set_label ) = ( $1, $2 );
             $d->[ 1 ] = $term_lookup->{ $d->[ 1 ] } . " - $media_set_label";
@@ -988,7 +985,7 @@ sub get_term_counts
     }
 
     #print STDERR Dumper( $date_term_counts );
-	return $date_term_counts;
+    return $date_term_counts;
 }
 
 # For each term, get the ratio of total mentions of that term to total mentions

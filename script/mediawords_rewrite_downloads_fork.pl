@@ -43,7 +43,8 @@ sub extract_text
 
     my $job_process_num = $process_num + int( ( $num_total_processes / $num_total_jobs ) * ( $job_number - 1 ) );
 
-    Readonly my $download_batch_size => int(10000/$num_total_processes);
+    Readonly my $download_batch_size => int( 10000 / $num_total_processes );
+
     #Readonly my $download_batch_size => 6;
 
     Readonly my $max_iterations => 1;
@@ -54,10 +55,10 @@ sub extract_text
         my $num_downloads = 0;
         print STDERR "[$process_num, $job_process_num] find new downloads ($num_downloads remaining) ...\n";
 
-	my $downloads = $db->query(
-	    "select * from downloads d where "  .
-	    " state = 'success' and path like 'content/%' and  (( ( d.feeds_id + $job_process_num ) % $num_total_processes ) = 0 ) " . 
-	    " ORDER BY downloads_id asc limit $download_batch_size; " );
+        my $downloads =
+          $db->query( "select * from downloads d where " .
+" state = 'success' and path like 'content/%' and  (( ( d.feeds_id + $job_process_num ) % $num_total_processes ) = 0 ) "
+              . " ORDER BY downloads_id asc limit $download_batch_size; " );
 
         # my $downloads = $db->query( "select * from downloads where stories_id = 418981" );
         my $download_found;
@@ -81,10 +82,10 @@ sub extract_text
             }
         }
 
-	say STDERR " Job $process_num committing";
+        say STDERR " Job $process_num committing";
         $db->commit;
 
-	exit;
+        exit;
 
         if ( !$download_found )
         {

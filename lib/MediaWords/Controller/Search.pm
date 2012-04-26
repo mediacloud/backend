@@ -1,7 +1,6 @@
 package MediaWords::Controller::Search;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use parent 'Catalyst::Controller';

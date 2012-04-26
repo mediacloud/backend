@@ -60,13 +60,13 @@ sub main
 
     my $i     = 0;
     my $total = scalar( @{ $requests } );
-    
-    $SIG{ALRM} = sub { die ("web request timed out"); };
-    
+
+    $SIG{ ALRM } = sub { die( "web request timed out" ); };
+
     for my $request ( @{ $requests } )
     {
         $i++;
-        
+
         alarm( TIMEOUT );
         $pm->start and next;
 
@@ -79,7 +79,7 @@ sub main
         Storable::store( $response, $request->{ file } );
 
         $pm->finish;
-        
+
         alarm( 0 );
     }
 

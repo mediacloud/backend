@@ -345,9 +345,9 @@ sub dump_training_data_csv
 
     say "shuffling analyzed_downloads";
 
-    srand(12345);
+    srand( 12345 );
 
-    $analyzed_downloads = [ shuffle @ { $analyzed_downloads } ];
+    $analyzed_downloads = [ shuffle @{ $analyzed_downloads } ];
 
     say " dump_training_data_csv add line should be in story";
 

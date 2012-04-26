@@ -16,7 +16,7 @@ use Text::CSV_XS;
 sub get_hashes_as_encoded_csv
 {
     my ( $hashes, $fields ) = @_;
-    
+
     my $output = '';
     if ( @{ $hashes } )
     {
@@ -24,7 +24,7 @@ sub get_hashes_as_encoded_csv
 
         my $keys = $fields || [ keys( %{ $hashes->[ 0 ] } ) ];
         $csv->combine( @{ $keys } );
-        
+
         $output .= $csv->string . "\n";
 
         for my $hash ( @{ $hashes } )
@@ -34,9 +34,9 @@ sub get_hashes_as_encoded_csv
             $output .= $csv->string . "\n";
         }
     }
-    
+
     my $encoded_output = Encode::encode( 'utf-8', $output );
-    
+
     return $encoded_output;
 }
 
@@ -46,9 +46,9 @@ sub send_hashes_as_csv_page
     my ( $c, $hashes, $title ) = @_;
 
     my $encoded_output = get_hashes_as_encoded_csv( $hashes );
-    
+
     $c->res->header( 'Content-Disposition', qq[attachment; filename="$title"] );
-    $c->res->header( 'Content-Length', length( $encoded_output ) );
+    $c->res->header( 'Content-Length',      length( $encoded_output ) );
     $c->res->content_type( 'text/csv' );
     $c->res->body( $encoded_output );
 }

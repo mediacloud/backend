@@ -23,7 +23,6 @@ use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
-
 use constant MEDIA_SET_NAMES => ();
 
 use constant NUM_CLOUD_TERMS    => 50;

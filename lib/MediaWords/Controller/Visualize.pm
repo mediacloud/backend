@@ -1,7 +1,6 @@
 package MediaWords::Controller::Visualize;
 use MediaWords::CommonLibs;
 
-
 use Encode;
 use strict;
 use warnings;
@@ -13,6 +12,7 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 
 use Regexp::Common qw /URI/;
+
 #use YAML::Syck;
 use URI::Escape;
 

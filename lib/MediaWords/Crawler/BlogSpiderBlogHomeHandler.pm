@@ -1,7 +1,6 @@
 package MediaWords::Crawler::BlogSpiderBlogHomeHandler;
 use MediaWords::CommonLibs;
 
-
 use strict;
 
 # MODULES

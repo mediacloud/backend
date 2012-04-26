@@ -1,7 +1,6 @@
 package MediaWords::Util::Stemmer;
 use MediaWords::CommonLibs;
 
-
 use Moose;
 use strict;
 use warnings;

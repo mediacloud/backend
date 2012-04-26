@@ -31,15 +31,15 @@ use HTML::Strip;
 use MediaWords::Util::HTML;
 use File::Slurp;
 use IPC::Open2;
- use Time::HiRes qw( time );
+use Time::HiRes qw( time );
 
 my $_re_generate_cache = 0;
 
 Readonly my $output_dir => 'download_content_test_data';
 Readonly my $goose_dir  => '/home/dlarochelle/goose/goose';
 
-my $expected_text_time = 0;
-my $mc_extractor_time = 0;
+my $expected_text_time   = 0;
+my $mc_extractor_time    = 0;
 my $goose_extractor_time = 0;
 
 sub get_story_html_for_lines
@@ -89,7 +89,7 @@ sub kill_goose
 
     say STDERR "killing goose";
 
-    close ( $chld_in);
+    close( $chld_in );
 
     sleep 1;
     kill( $goose_pid );
@@ -235,7 +235,7 @@ sub extractAndScoreDownloads
 
     start_goose();
 
-    my $download_count = scalar(@downloads);
+    my $download_count = scalar( @downloads );
 
     my $downloads_processed = 0;
     for my $download ( @downloads )
@@ -244,20 +244,19 @@ sub extractAndScoreDownloads
 
         push( @{ $download_results }, $download_result );
 
-	$downloads_processed++;
-	say STDERR "processed $downloads_processed / $download_count downloads";
+        $downloads_processed++;
+        say STDERR "processed $downloads_processed / $download_count downloads";
     }
 
     kill_goose();
 
     say STDERR Dumper( $download_results );
 
-    my @mc_similarity_score = map { $_->{ mc_similarity_score } } @ { $download_results } ;
-    my @goose_similarity_score = map { $_->{ goose_similarity_score } } @ { $download_results } ;
+    my @mc_similarity_score    = map { $_->{ mc_similarity_score } } @{ $download_results };
+    my @goose_similarity_score = map { $_->{ goose_similarity_score } } @{ $download_results };
 
-
-    my $mc_average_similarity_score = sum ( @mc_similarity_score ) / scalar( @mc_similarity_score );
-    my $goose_average_similarity_score = sum ( @goose_similarity_score ) / scalar( @goose_similarity_score );
+    my $mc_average_similarity_score    = sum( @mc_similarity_score ) / scalar( @mc_similarity_score );
+    my $goose_average_similarity_score = sum( @goose_similarity_score ) / scalar( @goose_similarity_score );
 
     say "Average Media Cloud simility score: $mc_average_similarity_score";
     say "Average Goose       simility score: $goose_average_similarity_score";

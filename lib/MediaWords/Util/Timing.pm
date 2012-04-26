@@ -1,7 +1,6 @@
 package MediaWords::Util::Timing;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use Time::HiRes qw( gettimeofday tv_interval );
 

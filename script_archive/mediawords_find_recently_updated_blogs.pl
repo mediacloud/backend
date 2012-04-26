@@ -35,23 +35,20 @@ sub _is_recently_updated
 
     my $medium;
 
-#    my $response = LWP::UserAgent->new()->request( HTTP::Request->new( GET => $feed_url ) );
-    my $response = LWP::UserAgent->new( agent => 'Firefox/3.0.11')->request( HTTP::Request->new( GET => $feed_url ) );
-
-    
+    #    my $response = LWP::UserAgent->new()->request( HTTP::Request->new( GET => $feed_url ) );
+    my $response = LWP::UserAgent->new( agent => 'Firefox/3.0.11' )->request( HTTP::Request->new( GET => $feed_url ) );
 
     if ( !$response->is_success )
     {
-       my $retry_count = 0;
+        my $retry_count = 0;
 
-       while ($retry_count <= 9 && !$response->is_success)
-       {
-	   print STDERR "Retrying fetch of '$feed_url' ($medium_url): " . $response->status_line . "\n";
-	  $response = LWP::UserAgent->new->request( HTTP::Request->new( GET => $feed_url ) );
+        while ( $retry_count <= 9 && !$response->is_success )
+        {
+            print STDERR "Retrying fetch of '$feed_url' ($medium_url): " . $response->status_line . "\n";
+            $response = LWP::UserAgent->new->request( HTTP::Request->new( GET => $feed_url ) );
 
-	  
-	  $retry_count++;
-       }
+            $retry_count++;
+        }
     }
 
     if ( !$response->is_success )
@@ -83,9 +80,9 @@ sub _is_recently_updated
 
     my $last_post_date = 0;
 
-    my $days = 60;
-    my $seconds_per_day =  60 * 60 * 24;
-    my $age_in_seconds = $days * $seconds_per_day;
+    my $days            = 60;
+    my $seconds_per_day = 60 * 60 * 24;
+    my $age_in_seconds  = $days * $seconds_per_day;
 
     my @recent_items = grep { _feed_item_age( $_ ) < ( $age_in_seconds ) } $feed->get_item;
 

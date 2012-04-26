@@ -1,7 +1,6 @@
 package MediaWords::Controller::Stories;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use base 'Catalyst::Controller';

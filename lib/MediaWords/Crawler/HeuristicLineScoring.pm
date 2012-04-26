@@ -85,7 +85,7 @@ sub _score_lines_with_line_info
 {
     my ( $info_for_lines ) = @_;
 
-    die unless defined ($info_for_lines );
+    die unless defined( $info_for_lines );
 
     my $scores = [];
 
@@ -95,7 +95,7 @@ sub _score_lines_with_line_info
 
     my $last_story_line = 0;
 
-    my $skip_title_search = none { ( $_->{ line_starts_with_title_text } ) } @ { $info_for_lines };
+    my $skip_title_search = none { ( $_->{ line_starts_with_title_text } ) } @{ $info_for_lines };
 
     for ( my $i = 0 ; $i < @{ $info_for_lines } ; $i++ )
     {

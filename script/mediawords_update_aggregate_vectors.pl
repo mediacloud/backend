@@ -23,38 +23,43 @@ use MediaWords::StoryVectors;
 sub get_media_set_date_range
 {
     my ( $db, $media_set ) = @_;
-    
+
     my ( $start_date, $end_date );
     if ( $media_set->{ set_type } eq 'collection' )
     {
-        ( $start_date, $end_date ) = $db->query( 
-            "select min(d.start_date), max(d.end_date) from dashboard_media_sets dms, dashboards d " . 
-            "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = ?", 
-            $media_set->{ media_sets_id } )->flat;
-    } 
-    elsif ( $media_set->{ set_type } eq 'medium' ) {
         ( $start_date, $end_date ) = $db->query(
-            "select min(d.start_date), max(d.end_date) " . 
-            "  from dashboard_media_sets dms, dashboards d, media_sets_media_map msmm, media_sets ms " . 
-            "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = msmm.media_sets_id and " .
-            "  msmm.media_id = ms.media_id and ms.media_sets_id = ?", 
-            $media_set->{ media_sets_id } )->flat;
+            "select min(d.start_date), max(d.end_date) from dashboard_media_sets dms, dashboards d " .
+              "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = ?",
+            $media_set->{ media_sets_id }
+        )->flat;
     }
-    elsif ( $media_set->{ set_type } eq 'cluster' ) {
+    elsif ( $media_set->{ set_type } eq 'medium' )
+    {
         ( $start_date, $end_date ) = $db->query(
-            "select min(d.start_date), max(d.end_date) " . 
-            "  from dashboard_media_sets dms, dashboards d, media_clusters mc, media_sets ms " .
-            "  where ms.media_sets_id = ? and ms.media_clusters_id = mc.media_clusters_id and " .
-            "    mc.media_cluster_runs_id = dms.media_cluster_runs_id and " . 
-            "    dms.dashboards_id = d.dashboards_id",
-            $media_set->{ media_sets_id } )->flat;        
+            "select min(d.start_date), max(d.end_date) " .
+              "  from dashboard_media_sets dms, dashboards d, media_sets_media_map msmm, media_sets ms " .
+              "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = msmm.media_sets_id and " .
+              "  msmm.media_id = ms.media_id and ms.media_sets_id = ?",
+            $media_set->{ media_sets_id }
+        )->flat;
     }
-    else {
+    elsif ( $media_set->{ set_type } eq 'cluster' )
+    {
+        ( $start_date, $end_date ) = $db->query(
+            "select min(d.start_date), max(d.end_date) " .
+              "  from dashboard_media_sets dms, dashboards d, media_clusters mc, media_sets ms " .
+              "  where ms.media_sets_id = ? and ms.media_clusters_id = mc.media_clusters_id and " .
+              "    mc.media_cluster_runs_id = dms.media_cluster_runs_id and " . "    dms.dashboards_id = d.dashboards_id",
+            $media_set->{ media_sets_id }
+        )->flat;
+    }
+    else
+    {
         die( "unknown set_type '$media_set->{ set_type }'" );
     }
-    
+
     ( $start_date, $end_date ) = map { substr( $_, 0, 10 ) } ( $start_date, $end_date );
-    
+
     return ( $start_date, $end_date );
 }
 
@@ -68,45 +73,48 @@ sub run_daemon
 
     while ( 1 )
     {
-        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '12 hours' )::date" )->flat;
+        my ( $yesterday )     = $db->query( "select date_trunc( 'day', now() - interval '12 hours' )::date" )->flat;
         my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )::date" )->flat;
         ( $yesterday, $one_month_ago ) = map { substr( $_, 0, 10 ) } ( $yesterday, $one_month_ago );
 
         MediaWords::StoryVectors::update_aggregate_words( $db, $one_month_ago, $yesterday );
 
         # this is almost as slow as just revectoring everthing, so I'm commenting out for now
-        my $media_sets = $db->query( "select ms.* from media_sets ms where ms.vectors_added = false order by ms.media_sets_id" )->hashes;
+        my $media_sets =
+          $db->query( "select ms.* from media_sets ms where ms.vectors_added = false order by ms.media_sets_id" )->hashes;
         for my $media_set ( @{ $media_sets } )
         {
             my ( $start_date, $end_date ) = get_media_set_date_range( $db, $media_set );
             if ( $start_date && $end_date )
             {
-                if ( $end_date gt $yesterday ) 
+                if ( $end_date gt $yesterday )
                 {
                     $end_date = $yesterday;
                 }
-            
+
                 print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
-                MediaWords::StoryVectors::update_aggregate_words( 
-                    $db, $start_date, $end_date, 0, undef, $media_set->{ media_sets_id } ); 
-                $db->query( "update media_sets set vectors_added = true where media_sets_id = ?", $media_set->{ media_sets_id } );
+                MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 0, undef,
+                    $media_set->{ media_sets_id } );
+                $db->query( "update media_sets set vectors_added = true where media_sets_id = ?",
+                    $media_set->{ media_sets_id } );
             }
         }
 
-        my $dashboard_topics = $db->query( "select * from dashboard_topics where vectors_added = false order by dashboard_topics_id" )->hashes;
+        my $dashboard_topics =
+          $db->query( "select * from dashboard_topics where vectors_added = false order by dashboard_topics_id" )->hashes;
         for my $dashboard_topic ( @{ $dashboard_topics } )
         {
             print STDERR "update_aggregate_vectors: dashboard_topic $dashboard_topic->{ dashboard_topics_id }\n";
 
-            my ( $start_date, $end_date ) = map { substr( $_, 0, 10 ) } 
-                ( $dashboard_topic->{ start_date } , $dashboard_topic->{ end_date } );
-                if ( $end_date gt $yesterday ) 
-                {
-                    $end_date = $yesterday;
-                }
+            my ( $start_date, $end_date ) =
+              map { substr( $_, 0, 10 ) } ( $dashboard_topic->{ start_date }, $dashboard_topic->{ end_date } );
+            if ( $end_date gt $yesterday )
+            {
+                $end_date = $yesterday;
+            }
 
-            MediaWords::StoryVectors::update_aggregate_words(
-                $db, $start_date, $end_date, 1, $dashboard_topic->{ dashboard_topics_id } );
+            MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 1,
+                $dashboard_topic->{ dashboard_topics_id } );
 
             $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
                 $dashboard_topic->{ dashboard_topics_id } );
@@ -118,9 +126,9 @@ sub run_daemon
 
 sub main
 {
-    my $top_500_only = @ARGV && ( $ARGV[0] eq '-5' ) && shift( @ARGV );
-    my $daemon       = @ARGV && ( $ARGV[0] eq '-d' ) && shift( @ARGV );
-    my $force        = @ARGV && ( $ARGV[0] eq '-f' ) && shift( @ARGV );
+    my $top_500_only = @ARGV && ( $ARGV[ 0 ] eq '-5' ) && shift( @ARGV );
+    my $daemon       = @ARGV && ( $ARGV[ 0 ] eq '-d' ) && shift( @ARGV );
+    my $force        = @ARGV && ( $ARGV[ 0 ] eq '-f' ) && shift( @ARGV );
 
     my ( $start_date, $end_date ) = @ARGV;
 

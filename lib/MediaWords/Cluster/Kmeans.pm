@@ -1,7 +1,6 @@
 package MediaWords::Cluster::Kmeans;
 use MediaWords::CommonLibs;
 
-
 # Jon's implementation of the k-means clustering algorithm
 
 use strict;
@@ -53,8 +52,12 @@ sub _assign_nodes
 
         for my $cluster ( @{ $clusters } )
         {
-            my $dp = vector_cos_sim_cached( 
-                $node->{ vector }, $cluster->{ centroid }, $node->{ media_id }, $cluster->{ centroid_media_id } );
+            my $dp = vector_cos_sim_cached(
+                $node->{ vector },
+                $cluster->{ centroid },
+                $node->{ media_id },
+                $cluster->{ centroid_media_id }
+            );
             if ( $dp >= $node->{ score } )          # must be >= to ensure the score gets updated
             {
                 $node->{ score }   = $dp;
@@ -125,6 +128,7 @@ sub _find_center
 
 sub _k_recurse
 {
+
     # Take in the node list, a bunch of empty clusters with centers, and the number of times left to recurse
     my ( $nodes, $clusters, $num_iterations ) = @_;
 
@@ -197,8 +201,12 @@ sub _seed_clusters_plus_plus
 
             for my $cluster ( @{ $clusters } )
             {
-                my $cluster_sim = vector_cos_sim_cached( 
-                    $node->{ vector }, $cluster->{ centroid }, $node->{ media_id }, $cluster->{ centroid_media_id } );
+                my $cluster_sim = vector_cos_sim_cached(
+                    $node->{ vector },
+                    $cluster->{ centroid },
+                    $node->{ media_id },
+                    $cluster->{ centroid_media_id }
+                );
                 $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
             }
 
@@ -279,9 +287,12 @@ sub _seed_clusters_plus_plus2
 
                 for my $cluster ( @{ $new_clusters } )
                 {
-                    my $cluster_sim = vector_cos_sim_cached( 
-                        $inner_node->{ vector }, $cluster->{ centroid }, 
-                        $inner_node->{ media_id }, $cluster->{ centroid_media_id } );
+                    my $cluster_sim = vector_cos_sim_cached(
+                        $inner_node->{ vector },
+                        $cluster->{ centroid },
+                        $inner_node->{ media_id },
+                        $cluster->{ centroid_media_id }
+                    );
                     $max_cluster_sim = $cluster_sim if $cluster_sim > $max_cluster_sim;
                 }
 
@@ -307,11 +318,11 @@ sub _seed_clusters_plus_plus2
 sub _refactor_matrix_into_nodes
 {
     my ( $clustering_engine ) = @_;
-    
-    my $matrix = $clustering_engine->sparse_matrix;
+
+    my $matrix           = $clustering_engine->sparse_matrix;
     my $criterion_matrix = $clustering_engine->sparse_matrix;
-    my $row_labels = $clustering_engine->row_labels;
-    
+    my $row_labels       = $clustering_engine->row_labels;
+
     my $nodes = [];
     for my $i ( 0 .. $#{ $matrix } )
     {
@@ -346,16 +357,19 @@ sub _eval_clusters_i2
 
         # my $criterion_score = 0;
         my $nodes = $cluster->{ nodes };
-        
+
         for my $i ( 0 .. $#{ $nodes } )
         {
             for my $j ( $i .. $#{ $nodes } )
             {
-                $cluster_score += vector_cos_sim_cached( 
-                    $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector },
-                    $nodes->[ $i ]->{ media_id }, $nodes->[ $j ]->{ media_id } );
+                $cluster_score += vector_cos_sim_cached(
+                    $nodes->[ $i ]->{ vector },
+                    $nodes->[ $j ]->{ vector },
+                    $nodes->[ $i ]->{ media_id },
+                    $nodes->[ $j ]->{ media_id }
+                );
 
-                # $criterion_score += vector_cos_sim( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
+              # $criterion_score += vector_cos_sim( $nodes->[$i]->{ criterion_vector }, $nodes->[$j]->{ criterion_vector } );
             }
         }
 
@@ -393,9 +407,12 @@ sub _eval_clusters_normalized
             {
                 for my $j ( $i .. $#{ $nodes } )
                 {
-                    my $dp = vector_cos_sim_cached( 
-                        $nodes->[ $i ]->{ vector }, $nodes->[ $j ]->{ vector },
-                        $nodes->[ $i ]->{ media_id }, $nodes->[ $j ]->{ media_id } );
+                    my $dp = vector_cos_sim_cached(
+                        $nodes->[ $i ]->{ vector },
+                        $nodes->[ $j ]->{ vector },
+                        $nodes->[ $i ]->{ media_id },
+                        $nodes->[ $j ]->{ media_id }
+                    );
                     $internal_score += $dp / $scale_factor unless ( $dp == 1 );
                 }
             }
@@ -404,9 +421,12 @@ sub _eval_clusters_normalized
             my $external_score = 0;
             for my $comp_cluster ( @{ $clusters } )
             {
-                my $dp = vector_cos_sim_cached( 
-                    $cluster->{ centroid }, $comp_cluster->{ centroid },
-                    $cluster->{ centroid_media_id } , $comp_cluster->{ centroid_media_id } );
+                my $dp = vector_cos_sim_cached(
+                    $cluster->{ centroid },
+                    $comp_cluster->{ centroid },
+                    $cluster->{ centroid_media_id },
+                    $comp_cluster->{ centroid_media_id }
+                );
                 $external_score += $dp / ( $num_clusters - 1 ) unless ( $dp == 1 );
             }
 
@@ -446,7 +466,7 @@ sub _eval_scores
 # Do a bunch of cluster runs and return the best one
 sub _get_best_cluster_run
 {
-    my( $clustering_engine, $nodes, $num_iterations, $num_cluster_runs ) = @_;
+    my ( $clustering_engine, $nodes, $num_iterations, $num_cluster_runs ) = @_;
 
     my $num_clusters = $clustering_engine->cluster_run->{ num_clusters };
 
@@ -526,10 +546,10 @@ sub _make_nice_clusters
         #         term   => $clustering_engine->stem_vector->FETCH( $stem ),
         #         weight => vector_get( $cluster->{ centroid }, $key )
         #     };
-        # 
+        #
         #     push @{ $features }, $feature;
         # }
-        # 
+        #
         # # Sort the internal features by weight
         # my @all_sorted_features = sort { $b->{ weight } <=> $a->{ weight } } @{ $features };
         # @{ $nice_cluster->{ internal_features } } = @all_sorted_features[ 0 .. 50 ];
@@ -549,27 +569,27 @@ sub _make_nice_clusters
     return $nice_clusters;
 }
 
-# given the sparse_matrix and row_labels generated by the clustering engine, 
+# given the sparse_matrix and row_labels generated by the clustering engine,
 # execute the kmeans clustering implementation.
 # return the list of clusters.
 sub get_clusters
 {
     my ( $clustering_engine ) = @_;
-    
+
     if ( $clustering_engine->cluster_run->{ num_clusters } > @{ $clustering_engine->sparse_matrix } )
     {
         die "You can't have more clusters than sources";
     }
 
     my $num_cluster_runs = NUM_CLUSTER_RUNS;
-    my $num_nodes = @{ $clustering_engine->sparse_matrix };
-    
+    my $num_nodes        = @{ $clustering_engine->sparse_matrix };
+
     if ( $num_nodes < 200 )
     {
-        $num_cluster_runs *= int( log( 400 ) - log( $num_nodes) );
+        $num_cluster_runs *= int( log( 400 ) - log( $num_nodes ) );
     }
 
-    my $nodes = _refactor_matrix_into_nodes( $clustering_engine );
+    my $nodes         = _refactor_matrix_into_nodes( $clustering_engine );
     my $best_clusters = _get_best_cluster_run( $clustering_engine, $nodes, NUM_ITERATIONS, $num_cluster_runs );
     my $nice_clusters = _make_nice_clusters( $clustering_engine, $best_clusters );
 

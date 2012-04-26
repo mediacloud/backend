@@ -1,7 +1,6 @@
 package MediaWords::Util::Web;
 use MediaWords::CommonLibs;
 
-
 # various functions for editing feed and medium tags
 
 use strict;
@@ -14,7 +13,7 @@ use Storable;
 sub ParallelGet
 {
     my ( $urls ) = @_;
-    
+
     return [] unless ( $urls && @{ $urls } );
 
     my $web_store_input;
@@ -51,10 +50,11 @@ sub ParallelGet
             push( @{ $responses }, $response );
             unlink( $result->{ file } );
         }
-        else {
+        else
+        {
             $response = HTTP::Response->new( '500', "web store timeout for $result->{ url }" );
             $response->request( HTTP::Request->new( GET => $result->{ url } ) );
-            
+
             push( @{ $responses }, $response );
         }
     }

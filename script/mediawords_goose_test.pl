@@ -131,29 +131,29 @@ sub store_downloads
     {
         say "Processing download $download->{downloads_id}";
 
-        my $content_ref        = MediaWords::DBI::Downloads::fetch_content( $download );
+        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
 
-	my $extract_results;
-	my $preprocessed_lines;
+        my $extract_results;
+        my $preprocessed_lines;
 
-	my $mc_extract_start_time = time;
+        my $mc_extract_start_time = time;
 
-	for my $i ( 0 .. 100 )
-	  {
-	    say $i;
-	    $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
-	    $extract_results    = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+        for my $i ( 0 .. 100 )
+        {
+            say $i;
+            $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+            $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
 
-	    store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref );
-	  }
+            store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref );
+        }
 
-	my $mc_extract_stop_time = time;
+        my $mc_extract_stop_time = time;
 
-	my $goose_extract_start_time = time;
+        my $goose_extract_start_time = time;
 
         my $goose_extracted = extract_with_goose( $content_ref, $download->{ url } );
 
-	my $goose_extract_stop_time = time;
+        my $goose_extract_stop_time = time;
 
         say STDERR $goose_extracted;
 
@@ -163,8 +163,10 @@ sub store_downloads
 
         say "similarity score: $score";
 
-	say "media cloud time: ( $mc_extract_stop_time - $mc_extract_start_time ); " . ( $mc_extract_stop_time - $mc_extract_start_time );
-	say "goose time: ( $goose_extract_stop_time - $goose_extract_start_time );"       . ( $goose_extract_stop_time - $goose_extract_start_time );
+        say "media cloud time: ( $mc_extract_stop_time - $mc_extract_start_time ); " .
+          ( $mc_extract_stop_time - $mc_extract_start_time );
+        say "goose time: ( $goose_extract_stop_time - $goose_extract_start_time );" .
+          ( $goose_extract_stop_time - $goose_extract_start_time );
     }
 
 }

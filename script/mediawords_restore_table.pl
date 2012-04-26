@@ -46,7 +46,8 @@ sub main
 
     say STDERR "starting --  " . localtime();
 
-    my $start_and_end_lines = MediaWords::Util::DatabaseRestore::get_start_and_end_line_for_table( $line_number_file, $table_name );
+    my $start_and_end_lines =
+      MediaWords::Util::DatabaseRestore::get_start_and_end_line_for_table( $line_number_file, $table_name );
 
     my $start_line = $start_and_end_lines->{ start_line };
     my $end_line   = $start_and_end_lines->{ end_line };
@@ -59,7 +60,8 @@ sub main
 
     #say $line;
 
-    my $query =  MediaWords::Util::DatabaseRestore::read_until_copy_statement( $SQL_DUMP_FILE_HANDLE, $table_name, \$line_num );
+    my $query =
+      MediaWords::Util::DatabaseRestore::read_until_copy_statement( $SQL_DUMP_FILE_HANDLE, $table_name, \$line_num );
 
     my $restored_table_name = MediaWords::Util::DatabaseRestore::get_restore_table_name( $table_name );
 
@@ -79,7 +81,8 @@ sub main
 
     my $end_line_2 = $end_line;
 
-    MediaWords::Util::DatabaseRestore::copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
+    MediaWords::Util::DatabaseRestore::copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num,
+        $end_line_1 );
 
     say STDERR "committing first copy";
 
@@ -93,7 +96,8 @@ sub main
 
     $db->dbh->{ AutoCommit } = 0;
 
-    MediaWords::Util::DatabaseRestore::copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num, $end_line_1 );
+    MediaWords::Util::DatabaseRestore::copy_data_until_line_num( $db, $SQL_DUMP_FILE_HANDLE, $query, $line_num,
+        $end_line_1 );
 
     say STDERR "committing first copy";
 

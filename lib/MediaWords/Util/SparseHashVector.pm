@@ -1,7 +1,6 @@
 package MediaWords::Util::SparseVector;
 use MediaWords::CommonLibs;
 
-
 # Jon's rewrite of Math::SparseVector
 #
 # Instead of object orientation, I've just provided a bunch of declarative

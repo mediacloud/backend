@@ -14,7 +14,6 @@ use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
-
 sub main
 {
     my $db = MediaWords::DB::connect_to_db();

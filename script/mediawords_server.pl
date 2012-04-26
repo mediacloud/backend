@@ -1,12 +1,13 @@
 #!/usr/bin/env perl
 use strict;
 
-BEGIN {
-    $ENV{CATALYST_SCRIPT_GEN} = 40;
+BEGIN
+{
+    $ENV{ CATALYST_SCRIPT_GEN } = 40;
 }
 
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run('MediaWords', 'Server');
+Catalyst::ScriptRunner->run( 'MediaWords', 'Server' );
 
 1;
 

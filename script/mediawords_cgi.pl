@@ -2,7 +2,7 @@
 
 use strict;
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run('MediaWords', 'CGI');
+Catalyst::ScriptRunner->run( 'MediaWords', 'CGI' );
 
 1;
 

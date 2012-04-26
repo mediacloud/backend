@@ -87,12 +87,12 @@ sub main
 
     my $content = MediaWords::DBI::Stories::get_initial_download_content( $db, $story );
 
-    my $author =  MediaWords::DBI::Authors::get_author_from_content( $content );
+    my $author = MediaWords::DBI::Authors::get_author_from_content( $content );
 
     if ( !$author )
     {
         say "couldn't find byline for $story_id";
-	say "story content:\n" . Dumper($content);
+        say "story content:\n" . Dumper( $content );
         exit;
     }
     else

@@ -112,16 +112,15 @@ my $lines = 0;
 
 use Spreadsheet::WriteExcel;
 
-    # Create a new Excel workbook
-    my $workbook = Spreadsheet::WriteExcel->new('perl.xls');
+# Create a new Excel workbook
+my $workbook = Spreadsheet::WriteExcel->new( 'perl.xls' );
 
-    # Add a worksheet
-    my $worksheet = $workbook->add_worksheet();
+# Add a worksheet
+my $worksheet = $workbook->add_worksheet();
 
-
-    # Write a formatted and unformatted string, row and column notation.
-    my $col = my $row = 0;
-    $worksheet->write($row, $col, $fields);
+# Write a formatted and unformatted string, row and column notation.
+my $col = my $row = 0;
+$worksheet->write( $row, $col, $fields );
 
 foreach my $file ( @ARGV )
 {
@@ -134,30 +133,31 @@ foreach my $file ( @ARGV )
     while ( my $url = <$fh> )
     {
 
-        chomp($url);
-        chomp($url);
+        chomp( $url );
+        chomp( $url );
 
-	$url =~ s/\r//g;
-	$url =~ s/\n//g;
+        $url =~ s/\r//g;
+        $url =~ s/\n//g;
 
-	$lines++;
+        $lines++;
 
-	#next WHILE_LOOP if ( $lines == 1 );
+        #next WHILE_LOOP if ( $lines == 1 );
 
-	#last WHILE_LOOP if ( $lines == 5 );
+        #last WHILE_LOOP if ( $lines == 5 );
 
-	#say STDERR "'". $url . "-'-";
+        #say STDERR "'". $url . "-'-";
 
-	say STDERR Dumper ( $url );
-	#exit;
+        say STDERR Dumper( $url );
+
+        #exit;
 
         my $url_info = process_url( $url );
 
-	$url_info->{ file } = $file;
+        $url_info->{ file } = $file;
 
-	my $non_stop_word_counts = [];
+        my $non_stop_word_counts = [];
 
-	my $word_and_count_list = [];
+        my $word_and_count_list = [];
 
         if ( defined( $url_info->{ sorted_counts } ) )
         {
@@ -167,31 +167,31 @@ foreach my $file ( @ARGV )
               [ grep { !MediaWords::Util::StopWords::get_tiny_stop_word_lookup()->{ $_->[ 0 ] } }
                   @{ $url_info->{ sorted_counts } } ];
 
-	    $word_and_count_list = [  map { join ':', @{ $_ } } @{ $non_stop_word_counts } ];
-            $url_info->{ non_stop_word_counts } = join ';', @ { $word_and_count_list };
+            $word_and_count_list = [ map { join ':', @{ $_ } } @{ $non_stop_word_counts } ];
+            $url_info->{ non_stop_word_counts } = join ';', @{ $word_and_count_list };
         }
 
         $url_info->{ sorted_counts } = undef;
 
         delete( $url_info->{ sorted_counts } );
 
-	#$url_info->{ formatted_text } =~ s/\r//g;
+        #$url_info->{ formatted_text } =~ s/\r//g;
 
-	my %temp_hash = %{$url_info };
-	my @fields_list =  @ {$fields };
+        my %temp_hash   = %{ $url_info };
+        my @fields_list = @{ $fields };
 
-	#say Dumper ( [@temp_hash{ @fields_list } ] );
+        #say Dumper ( [@temp_hash{ @fields_list } ] );
 
-	#next;
-	$worksheet->write( $lines, 0, [@temp_hash{ @fields_list } ] );
+        #next;
+        $worksheet->write( $lines, 0, [ @temp_hash{ @fields_list } ] );
 
-	$worksheet->write( $lines, scalar ( @fields_list  ), $word_and_count_list );
+        $worksheet->write( $lines, scalar( @fields_list ), $word_and_count_list );
 
-	delete ( $url_info->{ formatted_text } );
+        delete( $url_info->{ formatted_text } );
 
         $csv->add_line( $url_info );
 
-	#exit;
+        #exit;
     }
 }
 

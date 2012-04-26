@@ -1,7 +1,6 @@
 package MediaWords::Util::Translate;
 use MediaWords::CommonLibs;
 
-
 # various functions for manipulating html
 
 require Exporter;
@@ -24,7 +23,7 @@ BEGIN
 {
     use FindBin;
     my $source_file_dir = "$FindBin::Bin";
-    $media_cloud_root_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ script_dir }. "/..";
+    $media_cloud_root_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ script_dir } . "/..";
 }
 
 my $cache = CHI->new(
@@ -43,8 +42,9 @@ sub _translate
 
     my $service = WebService::Google::Language->new(
         'referer' => 'http://example.com/',
-#        'src'     => 'ru',
-        'dest'    => 'en',
+
+        #        'src'     => 'ru',
+        'dest' => 'en',
     );
 
     my $text = $original_text;

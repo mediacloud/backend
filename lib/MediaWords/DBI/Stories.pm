@@ -1,7 +1,6 @@
 package MediaWords::DBI::Stories;
 use MediaWords::CommonLibs;
 
-
 # various helper functions for stories
 
 use strict;
@@ -93,13 +92,14 @@ sub get_text
 sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
-    
+
     my $download_texts = $db->query(
         "select dt.* from download_texts dt, downloads d " .
-        "  where dt.downloads_id = d.downloads_id and d.stories_id = ? " .
-        "  order by d.downloads_id", $story->{ stories_id } )->hashes;
-        
-    return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );    
+          "  where dt.downloads_id = d.downloads_id and d.stories_id = ? " . "  order by d.downloads_id",
+        $story->{ stories_id }
+    )->hashes;
+
+    return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
 }
 
 # Like get_text but it doesn't include both the rss information and the extracted text. Including both could cause some sentences to appear twice and throw off our word counts.
@@ -369,17 +369,18 @@ sub add_word_vectors
 
     my $word_hash;
 
-    my $i = 0;
+    my $i               = 0;
     my $next_word_index = 0;
     for my $story ( @{ $stories } )
     {
         print STDERR "add_word_vectors: " . $i++ . "[ $story->{ stories_id } ]\n";
-        my $words = $db->query( 
+        my $words = $db->query(
             "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
-            "  where ssw.stories_id = ? " .
-            "    and not is_stop_stem( 'short', ssw.stem ) " .
-            "  group by ssw.stem order by sum( stem_count ) desc limit 1000 ", $story->{ stories_id } )->hashes;
-            
+              "  where ssw.stories_id = ? " . "    and not is_stop_stem( 'short', ssw.stem ) " .
+              "  group by ssw.stem order by sum( stem_count ) desc limit 1000 ",
+            $story->{ stories_id }
+        )->hashes;
+
         $story->{ vector } = [ 0 ];
 
         for my $word ( @{ $words } )
@@ -388,19 +389,19 @@ sub add_word_vectors
             {
                 $word_hash->{ $word->{ stem } } = $next_word_index++;
             }
-            
+
             my $word_index = $word_hash->{ $word->{ stem } };
 
             $story->{ vector }->[ $word_index ] = $word->{ stem_count };
-        }  
-        
+        }
+
         if ( $keep_words )
         {
             print STDERR "keep words: " . scalar( @{ $words } ) . "\n";
             $story->{ words } = $words;
         }
     }
-    
+
     return $stories;
 }
 
@@ -411,11 +412,11 @@ sub add_cos_similarities
     my ( $db, $stories ) = @_;
 
     return if ( !@{ $stories } );
-    
+
     die( "must call add_word_vectors before add_cos_similarities" ) if ( !$stories->[ 0 ]->{ vector } );
 
     my $num_words = List::Util::max( map { scalar( @{ $_->{ vector } } ) } @{ $stories } );
-    
+
     if ( $num_words )
     {
         print STDERR "add_cos_similarities: create normalized pdl vectors ";
@@ -429,7 +430,7 @@ sub add_cos_similarities
                 vector_set( $pdl_vector, $i, $story->{ vector }->[ $i ] );
             }
             $story->{ pdl_norm_vector } = vector_normalize( $pdl_vector );
-            $story->{ vector } = undef;
+            $story->{ vector }          = undef;
         }
         print STDERR "\n";
     }
@@ -452,11 +453,9 @@ sub add_cos_similarities
             $stories->[ $i ]->{ similarities }->[ $j ] = $sim;
             $stories->[ $j ]->{ similarities }->[ $i ] = $sim;
         }
-        
+
         print STDERR "\n";
     }
 }
-
-
 
 1;

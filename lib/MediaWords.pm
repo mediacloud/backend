@@ -1,7 +1,6 @@
 package MediaWords;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 
@@ -54,16 +53,17 @@ my $config = __PACKAGE__->config( -name => 'MediaWords' );
 # Start the application
 __PACKAGE__->setup;
 
-sub begin : Private {
-        my ( $self, $c ) = @_;
+sub begin : Private
+{
+    my ( $self, $c ) = @_;
 
-        my $locale = $c->request->param('locale');
-        
-        $c->response->headers->push_header( 'Vary' => 'Accept-Language' );  # hmm vary and param?
-        $c->languages( $locale ? [ $locale ] : undef );
+    my $locale = $c->request->param( 'locale' );
 
-	#switch to english if locale param is not explicitly specified.
-        $c->languages( $locale ? [ $locale ] : [ 'en' ] );
+    $c->response->headers->push_header( 'Vary' => 'Accept-Language' );    # hmm vary and param?
+    $c->languages( $locale ? [ $locale ] : undef );
+
+    #switch to english if locale param is not explicitly specified.
+    $c->languages( $locale ? [ $locale ] : [ 'en' ] );
 }
 
 sub uri_for

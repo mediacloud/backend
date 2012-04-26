@@ -72,9 +72,9 @@ sub strip
       (?:\s[^>]*)?  #   skip junk to ">"
     )               # end if (3)
     >               # tag closed
-   }{ }gsxi;          # STRIP THIS TAG
-   
-   return $_ ? HTML::Entities::decode_entities($_) : "";
+   }{ }gsxi;    # STRIP THIS TAG
+
+    return $_ ? HTML::Entities::decode_entities( $_ ) : "";
 }
 
 1;

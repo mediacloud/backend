@@ -28,24 +28,24 @@ use Class::Std;
 
         my $fp;
 
-	my $dump_content = 0;
-	my $dump_file = '/tmp/content.txt';
+        my $dump_content = 0;
+        my $dump_file    = '/tmp/content.txt';
 
-	$DB::single = 1;
+        $DB::single = 1;
 
-	if ( $dump_content )
-	{
+        if ( $dump_content )
+        {
 
-	  open OUTFILE, ">", $dump_file;
+            open OUTFILE, ">", $dump_file;
 
-	  say OUTFILE $content;
+            say OUTFILE $content;
 
-	  close OUTFILE;
+            close OUTFILE;
 
-	  # say STDERR Dumper ( { content -> $content, 
-	  # 		      type -> $type,
-	  # 		      } );
-	}
+            # say STDERR Dumper ( { content -> $content,
+            # 		      type -> $type,
+            # 		      } );
+        }
 
         eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
 

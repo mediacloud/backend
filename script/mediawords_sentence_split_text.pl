@@ -56,7 +56,7 @@ sub store_preprocessed_result
     my ( $download, $preprocessed_lines, $extract_results, $content_ref, $story ) = @_;
 
     say STDERR "starting store_preprocessed_result";
-    say STDERR "downloads_id: " . $download->{downloads_id};
+    say STDERR "downloads_id: " . $download->{ downloads_id };
     say STDERR "STORY GUID $story->{ guid }";
     say STDERR "STORY GUID $story->{ title }";
     my $lines_concated = join "", map { $_ . "\n" } @{ $preprocessed_lines };
@@ -67,7 +67,7 @@ sub store_preprocessed_result
     say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
 
     say STDERR "Starting get_sentences ";
-    my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $extract_results->{ extracted_text } ) || return;
+    my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $extract_results->{ extracted_text } ) || return;
 
     say STDERR "Finished get_sentences ";
 
@@ -85,7 +85,6 @@ sub store_preprocessed_result
 
     my $story_element = XML::LibXML::Element->new( 'story' );
 
-
     my $story_guid_element = XML::LibXML::Element->new( 'story_guid' );
     my $story_guid         = XML::LibXML::CDATASection->new( $story->{ guid } );
     $story_guid_element->appendChild( $story_guid );
@@ -99,7 +98,6 @@ sub store_preprocessed_result
 
     $root->appendChild( $story_element );
 
-   
     my $preprocessed_lines_element = create_base64_encoded_element( 'preprocessed_lines_base64', $lines_concated );
 
     $root->appendChild( $preprocessed_lines_element );
@@ -170,11 +168,11 @@ sub store_downloads
         say "Processing download $download->{downloads_id}";
 
         my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
-        my $extract_results    = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
+        my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
 
-	MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
+        MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
 
-        my $content_ref        = MediaWords::DBI::Downloads::fetch_content( $download );
+        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
 
         my $story = $dbs->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
 
@@ -207,16 +205,16 @@ sub main
 
     my $text = '';
 
-    while (<>)
+    while ( <> )
     {
-	$text .= $_;
+        $text .= $_;
     }
 
     say STDERR "Starting get_sentences";
 
-    my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $text );
+    my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $text );
 
-    say Dumper($sentences );
+    say Dumper( $sentences );
 }
 
 main();

@@ -1,7 +1,6 @@
 package MediaWords::Controller::Dashboards;
 use MediaWords::CommonLibs;
 
-
 # various pages for administering dashboards
 
 use strict;

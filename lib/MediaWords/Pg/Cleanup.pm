@@ -80,5 +80,4 @@ sub remove_duplicate_stories
     }
 }
 
-
 1;

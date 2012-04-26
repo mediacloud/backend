@@ -1,7 +1,6 @@
 package MediaWords::Util::HTML;
 use MediaWords::CommonLibs;
 
-
 # various functions for manipulating html
 
 require Exporter;
@@ -37,11 +36,11 @@ sub html_strip
     # This appears to be necessary on Perl 5.8 but not on 5.10.
     #
 
-    if ( !defined( $_[0] ) )
+    if ( !defined( $_[ 0 ] ) )
     {
         return '';
     }
-    
+
     if ( ( length( $_[ 0 ] ) > 14000 ) )
     {
         my $max_segment_length = 14000;

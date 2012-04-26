@@ -90,7 +90,7 @@ sub regenerate_download_texts_for_downloads
     {
         MediaWords::DBI::DownloadTexts::update_text( $dbs, $download_text );
 
-	#say Dumper ( $download_text );
+        #say Dumper ( $download_text );
     }
 
     #return;
@@ -117,7 +117,7 @@ sub regenerate_download_texts_for_downloads
             #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
             # }
 
-	    say "Updating story sentence words ";
+            say "Updating story sentence words ";
 
             MediaWords::StoryVectors::update_story_sentence_words( $dbs, $story );
         }
@@ -174,6 +174,7 @@ sub main
     say STDERR scalar( @$downloads ) . ' downloads';
 
     reextract_downloads( $downloads );
+
     #regenerate_download_texts_for_downloads( $downloads );
 }
 

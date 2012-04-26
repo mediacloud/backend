@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Catalyst::ScriptRunner;
-Catalyst::ScriptRunner->run('MediaWords', 'Create');
+Catalyst::ScriptRunner->run( 'MediaWords', 'Create' );
 
 1;
 

@@ -21,7 +21,6 @@ use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::CommonLibs;
 
-
 # tag sets to omit from dump
 use constant OMIT_TAG_SETS => qw( workflow );
 

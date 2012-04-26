@@ -7,10 +7,11 @@ use strict;
 use File::Basename 'dirname';
 use File::Spec;
 
-my $script_dir = dirname(File::Spec->rel2abs( __FILE__ ));
-chdir( "$script_dir/..");
+my $script_dir = dirname( File::Spec->rel2abs( __FILE__ ) );
+chdir( "$script_dir/.." );
 
 use Cwd;
+
 #say getcwd;
 
 use Carton::CLI;

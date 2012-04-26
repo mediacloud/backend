@@ -16,6 +16,7 @@ use MediaWords::DB;
 use MediaWords::CommonLibs;
 
 use Readonly;
+
 #use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 #use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 #use Perl6::Say;
@@ -133,13 +134,13 @@ sub main
                         last if $download == -1;
 
                         #die "test";
-                        eval
-                        {
+                        eval {
 
-                            say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id } . " with path " . $download->{ path };
+                            say STDERR "Thread $thread_id rewriting download: " . $download->{ downloads_id } .
+                              " with path " . $download->{ path };
                             MediaWords::DBI::Downloads::rewrite_downloads_content( $thread_db, $download );
                         };
-			if ( $@ )
+                        if ( $@ )
                         {
                             say STDERR "Thread $thread_id caught error on downloads " . $download->{ downloads_id } .
                               " : $@ ";
@@ -169,7 +170,7 @@ sub main
           ->hash->{ max };
 
         say STDERR "starting with downloads_id $min_downloads_id_to_rewrite";
-	my $downloads;
+        my $downloads;
         do
         {
 
@@ -232,7 +233,7 @@ sub main
                 }
             }
 
-	    last if scalar( threads->list() ) == 0;
+            last if scalar( threads->list() ) == 0;
 
         }
 
@@ -242,7 +243,7 @@ sub main
         {
             my $tid = $thr->tid;
             $q->enqueue( -1 );
-	    say "Tid is " . $thr->is_joinable . " done ";
+            say "Tid is " . $thr->is_joinable . " done ";
             $thr->join();
             say STDERR "joined thread $tid";
         }

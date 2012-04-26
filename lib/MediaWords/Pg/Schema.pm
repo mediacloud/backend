@@ -1,7 +1,6 @@
 package MediaWords::Pg::Schema;
 use MediaWords::CommonLibs;
 
-
 # import functions into server schema
 
 use strict;
@@ -20,7 +19,7 @@ my $_functions = [
     # [ module name, function name, number of parameters, return_type ]
     [ 'MediaWords::Pg::Stopwords', 'is_stop_stem',             2, 'boolean' ],
     [ 'MediaWords::Pg::Cleanup',   'remove_duplicate_stories', 2, 'text' ],
-    [ 'MediaWords::Util::HTML',   'html_strip', 1, 'text' ],
+    [ 'MediaWords::Util::HTML',    'html_strip',               1, 'text' ],
 ];
 
 my $_spi_functions = [
@@ -99,30 +98,31 @@ sub _reset_schema
 
     # TODO: should check for failure
     {
-      my $old_handler =  $SIG{__WARN__};
+        my $old_handler = $SIG{ __WARN__ };
 
-      $SIG{__WARN__} = 'IGNORE';
+        $SIG{ __WARN__ } = 'IGNORE';
 
-      #sub { 
-	# say 'ignoring warning';
-      #};
+        #sub {
+        # say 'ignoring warning';
+        #};
 
-      no warnings;
-      # By default this will complain but the drop cascading to other objects
-      # THis warning is just noise so get rid of it.
+        no warnings;
 
-      $db->dbh->trace( 0 );
-      say STDERR Dumper ($db->dbh->trace);
+        # By default this will complain but the drop cascading to other objects
+        # THis warning is just noise so get rid of it.
 
-      $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
+        $db->dbh->trace( 0 );
+        say STDERR Dumper( $db->dbh->trace );
 
-      #removes schema used by dklab enum procedures
-      #schema will be re-added in dklab sqlfile
-      $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
+        $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
 
-      $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
+        #removes schema used by dklab enum procedures
+        #schema will be re-added in dklab sqlfile
+        $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
 
-      $SIG{__WARN__} = $old_handler;
+        $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
+
+        $SIG{ __WARN__ } = $old_handler;
     }
 
     $db->query( "DROP LANGUAGE IF EXISTS plperlu CASCADE" );
@@ -144,7 +144,7 @@ sub load_sql_file
     {
         my ( $line ) = @_;
 
-	#say "Got line: '$line'";
+        #say "Got line: '$line'";
         if ( not $line =~ /^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^psql.*: NOTICE:/ )
         {
             carp "Evil line: '$line'";

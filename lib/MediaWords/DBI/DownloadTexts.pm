@@ -1,7 +1,6 @@
 package MediaWords::DBI::DownloadTexts;
 use MediaWords::CommonLibs;
 
-
 # various helper functions for the download_texts table
 
 use strict;
@@ -38,17 +37,15 @@ my $tag_list = join '|', ( map { quotemeta $_ } ( @{ $_block_level_element_tags 
 # )
 #  ;
 
-my $_block_level_start_tag_re = 
-    qr{
+my $_block_level_start_tag_re = qr{
                    < (:? $tag_list ) (:? > | \s )
            }ix
-;
+  ;
 
-my $_block_level_end_tag_re =
-    qr{
+my $_block_level_end_tag_re = qr{
                    </ (:? $tag_list ) >
            }ix
-;
+  ;
 
 sub _contains_block_level_tags
 {
@@ -176,13 +173,12 @@ sub update_extractor_results_with_text_and_html
 sub get_extracted_html_from_db
 {
     my ( $db, $download_text ) = @_;
-    
-    my $extracted_line_numbers = $db->query( 
-        "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
+
+    my $extracted_line_numbers =
+      $db->query( "SELECT line_number from extracted_lines where download_texts_id = ? order by line_number asc",
         $download_text->{ download_texts_id } )->flat;
 
-    my $download =
-      $db->query( 'SELECT * from downloads where downloads_id = ? ', $download_text->{ downloads_id } )->hash;
+    my $download = $db->query( 'SELECT * from downloads where downloads_id = ? ', $download_text->{ downloads_id } )->hash;
 
     die unless $download;
 

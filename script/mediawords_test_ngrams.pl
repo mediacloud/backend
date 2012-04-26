@@ -120,7 +120,6 @@ SQL
 
         $stories_processed++;
 
-       
         #exit;
     }
 }

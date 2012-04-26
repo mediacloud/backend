@@ -89,7 +89,8 @@ sub extract_author
                     $db->query( "update authors_stories_queue set state='success' where authors_stories_queue_id=?",
                         $authors_stories_queue_item->{ authors_stories_queue_id } );
                     say STDERR "[$process_num] Created authors_stories_map for $author & $stories_id";
-		    #say STDERR  Dumper( $authors_stories_map_row );
+
+                    #say STDERR  Dumper( $authors_stories_map_row );
                 }
             };
 

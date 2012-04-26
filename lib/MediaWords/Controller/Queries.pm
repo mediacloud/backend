@@ -1,7 +1,6 @@
 package MediaWords::Controller::Queries;
 use MediaWords::CommonLibs;
 
-
 # set of screens for creating and analyzing queries
 
 use strict;
@@ -374,12 +373,13 @@ sub compare : Local
         undef( $req->parameters->{ queries_id } );
 
         my $query_b = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req );
-        $c->response->redirect( $c->uri_for( "/queries/compare", { queries_id => $queries_id, queries_id_2 => $query_b->{ queries_id } } ) );
+        $c->response->redirect(
+            $c->uri_for( "/queries/compare", { queries_id => $queries_id, queries_id_2 => $query_b->{ queries_id } } ) );
         return;
     }
 
     my $query_b = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id_2 )
-        || die( "Unable to find query $queries_id_2" );
+      || die( "Unable to find query $queries_id_2" );
     my $words_a = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query_a );
     my $words_b = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query_b );
 

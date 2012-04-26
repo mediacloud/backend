@@ -181,7 +181,8 @@ sub _call_pager
 {
     my ( $self, $dbs, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _call_pager for download " . $download->{ downloads_id };
+    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _call_pager for download " .
+      $download->{ downloads_id };
     if ( $download->{ sequence } > MAX_PAGES )
     {
         print STDERR "fetcher " . $self->engine->fetcher_number . "reached max pages (" . MAX_PAGES . ") for url " .
@@ -229,7 +230,8 @@ sub _queue_author_extraction
 {
     my ( $self, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _queue_author_extraction for download ". $download->{ downloads_id };;
+    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _queue_author_extraction for download " .
+      $download->{ downloads_id };
 
     if ( $download->{ sequence } > 1 )
     {
@@ -327,59 +329,60 @@ sub handle_response
 
     given ( $download->{ type } )
     {
-        when ('feed')
+        when ( 'feed' )
         {
 
-	    my $config = MediaWords::Util::Config::get_config;
-	    if ( (  $config->{ mediawords }->{ do_not_process_feeds }  )  && ( $config->{ mediawords }->{ do_not_process_feeds } eq 'yes' ) )
-	    {
-	       MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
-	    }
-	    else
-	    {
-	       MediaWords::Crawler::FeedHandler::handle_feed_content( $dbs, $download, $response->decoded_content );
-	    }
+            my $config = MediaWords::Util::Config::get_config;
+            if (   ( $config->{ mediawords }->{ do_not_process_feeds } )
+                && ( $config->{ mediawords }->{ do_not_process_feeds } eq 'yes' ) )
+            {
+                MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
+            }
+            else
+            {
+                MediaWords::Crawler::FeedHandler::handle_feed_content( $dbs, $download, $response->decoded_content );
+            }
 
         }
-        when ('archival_only')
+        when ( 'archival_only' )
         {
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
         }
-        when ('content')
+        when ( 'content' )
         {
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
             $self->_process_content( $dbs, $download, $response );
         }
-        when ('spider_blog_home')
+        when ( 'spider_blog_home' )
         {
             $self->{ blog_spider_handler }->_process_spidered_download( $download, $response );
             $self->_set_spider_download_state_as_success( $download );
         }
-        when ('spider_rss')
+        when ( 'spider_rss' )
         {
             $self->_add_spider_posting_downloads( $download, $response );
             $self->_set_spider_download_state_as_success( $download );
         }
-        when ('spider_posting')
+        when ( 'spider_posting' )
         {
             $self->{ blog_spider_posting_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
             $self->{ blog_spider_posting_handler }->process_spidered_posting_download( $download, $response );
             $self->_set_spider_download_state_as_success( $download );
         }
-        when ('spider_blog_friends_list')
+        when ( 'spider_blog_friends_list' )
         {
             $self->{ blog_friends_list_handler } = MediaWords::Crawler::BlogSpiderPostingHandler->new( $self->engine );
             $self->{ blog_friends_list_handler }->process_spidered_posting_download( $download, $response );
             $self->_set_spider_download_state_as_success( $download );
         }
-        when ('spider_validation_blog_home')
+        when ( 'spider_validation_blog_home' )
         {
             print STDERR "starting spider_validation_blog_home\n";
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );
             $self->_set_spider_download_state_as_success( $download );
             print STDERR "completed spider_validation_blog_home\n";
         }
-        when ('spider_validation_rss')
+        when ( 'spider_validation_rss' )
         {
             print STDERR "starting spider_validation_rss\n";
             MediaWords::DBI::Downloads::store_content( $dbs, $download, \$response->decoded_content );

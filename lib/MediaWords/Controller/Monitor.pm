@@ -1,7 +1,6 @@
 package MediaWords::Controller::Monitor;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 
@@ -65,18 +64,20 @@ sub crawler_google_data_table : Local : FormConfig
     say STDERR "crawler_google_data_table";
 
     my $start_date = $c->req->param( 'start_date' );
-    my $end_date   =  $c->req->param( 'end_date' );
+    my $end_date   = $c->req->param( 'end_date' );
 
     say STDERR "start_date: $start_date end_date: $end_date";
 
     my $download_day_counts = $c->dbis->query(
+
 #"select date_trunc('day', download_time) as day, count(*) from downloads where download_time >now() - interval '10 weeks' group by date_trunc('day', download_time);"
-"select date_trunc('day', download_time) as day, count(*) from downloads where download_time >= ? and  download_time <= ?::Date + interval '1 day' group by date_trunc('day', download_time);", $start_date, $end_date
+"select date_trunc('day', download_time) as day, count(*) from downloads where download_time >= ? and  download_time <= ?::Date + interval '1 day' group by date_trunc('day', download_time);",
+        $start_date, $end_date
     )->hashes();
 
-    foreach my $download_day_count (@$download_day_counts)
+    foreach my $download_day_count ( @$download_day_counts )
     {
-       $download_day_count->{day} = DateTime::Format::Pg->parse_datetime ($download_day_count->{day});
+        $download_day_count->{ day } = DateTime::Format::Pg->parse_datetime( $download_day_count->{ day } );
     }
 
     my $datatable = Data::Google::Visualization::DataTable::MediaWords->new();
@@ -85,7 +86,7 @@ sub crawler_google_data_table : Local : FormConfig
         { id => 'day',   label => 'Date',  type => 'date' },
         { id => 'count', label => 'Count', type => 'number' },
     );
-    
+
     #say STDERR Dumper( $download_day_counts );
 
     $datatable->add_rows( @{ $download_day_counts } );
@@ -93,10 +94,11 @@ sub crawler_google_data_table : Local : FormConfig
     my $json_output = $datatable->output_json(
 
         #columns => ['date','number','string' ],
-        pretty  => 1,
+        pretty => 1,
     );
 
     $c->res->body( $json_output );
+
     #$c->res->content_type( "application/json" );
 
     $c->stash->{ download_day_counts } = $download_day_counts;
@@ -111,7 +113,7 @@ sub view : Local : FormConfig
 
     say STDERR "Monitor view";
 
-    $c->stash->{ template }            = 'monitor/crawler_stats.tt2';
+    $c->stash->{ template } = 'monitor/crawler_stats.tt2';
 }
 
 1;

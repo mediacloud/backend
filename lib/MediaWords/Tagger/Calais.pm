@@ -1,7 +1,6 @@
 package MediaWords::Tagger::Calais;
 use MediaWords::CommonLibs;
 
-
 use strict;
 
 # generate tags for text using calais

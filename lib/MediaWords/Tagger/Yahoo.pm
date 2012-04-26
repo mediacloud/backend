@@ -1,7 +1,6 @@
 package MediaWords::Tagger::Yahoo;
 use MediaWords::CommonLibs;
 
-
 # generate tags for text using the yahoo term extractor
 
 #TODO LWP::UserAgent::Determined hangs during install so we're temporary switching to LWP::UserAgent

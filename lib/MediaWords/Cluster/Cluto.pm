@@ -1,7 +1,6 @@
 package MediaWords::Cluster::Cluto;
 use MediaWords::CommonLibs;
 
-
 # This module provides an interface to the cluto clustering toolkit based on the command line binaries rather
 # than the libray.  We use this module because the library distributed by cluto does not work on
 # some linux platforms for which the command line processes do work
@@ -351,8 +350,8 @@ sub _add_cluster_features_from_output_labelled
 sub _get_clusters
 {
     my ( $cluster, $matrix, $row_labels, $col_labels ) = @_;
-    
-    my $stems = $cluster->{ stem_vector };
+
+    my $stems        = $cluster->{ stem_vector };
     my $num_clusters = $cluster->{ cluster_run }->{ num_clusters };
 
     #my $sparse_matrix = _get_sparse_matrix( $matrix );

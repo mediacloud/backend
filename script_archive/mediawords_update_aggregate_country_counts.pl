@@ -18,7 +18,7 @@ use MediaWords::StoryVectors;
 
 sub main
 {
-    my $force        = @ARGV && ( $ARGV[0] eq '-f' ) && shift( @ARGV );
+    my $force = @ARGV && ( $ARGV[ 0 ] eq '-f' ) && shift( @ARGV );
 
     my ( $start_date, $end_date ) = @ARGV;
 

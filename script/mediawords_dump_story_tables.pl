@@ -343,6 +343,7 @@ sub main
     my $dump_zip_file_name = $dump_name . '_' . $dumped_stories->[ 0 ] . '_' . $dumped_stories->[ 1 ];
 
     my $tmp_zip_file_path = "/$data_dir/tmp_$dump_zip_file_name" . ".zip";
+
     # unless ( $zip->writeToFileNamed( $tmp_zip_file_path ) == AZ_OK )
     # {
     #     die 'write error';
@@ -361,7 +362,8 @@ sub main
         chdir( $old_dir );
     }
 
-    move( $tmp_zip_file_path,       "/$data_dir/$dump_zip_file_name" . ".zip" )   || die "Error renaming file $@";
+    move( $tmp_zip_file_path, "/$data_dir/$dump_zip_file_name" . ".zip" ) || die "Error renaming file $@";
+
     #move( $tmp_zip_file_path . '2', "/$data_dir/$dump_zip_file_name" . ".zip_2" ) || die "Error renaming file $@";
 }
 

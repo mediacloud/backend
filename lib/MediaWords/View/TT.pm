@@ -1,7 +1,6 @@
 package MediaWords::View::TT;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use base 'Catalyst::View::TT';
 use MediaWords::Util::HTML;
@@ -37,19 +36,18 @@ sub new
         }
     );
 
-
     $self->{ template }->context->define_filter(
         url_encode => sub {
 
             #$Data::Dumper::Purity = 1;
             #$Data::Dumper::Useperl = 1;
             my $nr = shift;
-            say STDERR "encoding: '$nr'"  if (length($nr) > 0 );
+            say STDERR "encoding: '$nr'" if ( length( $nr ) > 0 );
 
-	    $nr =~ s/&/&amp;/g;
-            say STDERR "returning: '$nr'"  if (length($nr) > 0 );
+            $nr =~ s/&/&amp;/g;
+            say STDERR "returning: '$nr'" if ( length( $nr ) > 0 );
 
-	    return $nr;
+            return $nr;
             ##say STDERR Dumper($nr)  if (length($nr) > 0 );
             #$nr = html_strip( $nr );
             ##say STDERR Dumper($nr)  if (length($nr) > 0 );
@@ -71,12 +69,12 @@ sub new
         ga_account_code => sub {
             my $nr = shift;
 
-	    my $config      = MediaWords::Util::Config::get_config;
-	    my $ga_code     = $config->{ google_analytics }->{ account };
+            my $config  = MediaWords::Util::Config::get_config;
+            my $ga_code = $config->{ google_analytics }->{ account };
 
             $nr = $ga_code;
 
-	    return $nr;
+            return $nr;
         }
     );
 
@@ -84,12 +82,12 @@ sub new
         ga_domainname => sub {
             my $nr = shift;
 
-	    my $config      = MediaWords::Util::Config::get_config;
-	    my $ga_domain     = $config->{ google_analytics }->{ domainname };
+            my $config    = MediaWords::Util::Config::get_config;
+            my $ga_domain = $config->{ google_analytics }->{ domainname };
 
             $nr = $ga_domain;
 
-	    return $nr;
+            return $nr;
         }
     );
 

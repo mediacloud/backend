@@ -1,7 +1,6 @@
 package MediaWords::Cluster::Map::GraphViz;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use Data::Dumper;
 use List::Member;
@@ -24,26 +23,27 @@ sub _add_nodes_and_links_to_graph
 
     for my $i ( 0 .. $#{ $nodes } )
     {
-        if ( my $node = $nodes->[ $i ] ) 
+        if ( my $node = $nodes->[ $i ] )
         {
             $graph->add_node( $i );
-            
+
             map { push( @{ $links }, [ $i, $_->{ target_id }, $_->{ sim } ] ) } @{ $node->{ links } };
         }
     }
 
     for my $link ( @{ $links } )
     {
+
         # graphviz doesn't pay attention to weights, but it does to lengths
         $graph->add_edge( $link->[ 0 ], => $link->[ 1 ], len => ( 1 - $link->[ 2 ] ) + 0.1 );
     }
-    
+
     return $graph;
 }
 
 # run the force layout and parse the text results from GraphViz.
 # add {x} and {y} fields to each node.
-# 
+#
 # the output to parse from $graph->as_text looks like:
 # digraph test {
 #   graph [ratio=fill];
@@ -58,13 +58,13 @@ sub _add_nodes_and_links_to_graph
 sub _run_force_layout
 {
     my ( $graph, $nodes ) = @_;
-    
+
     my $output = $graph->as_text;
-    
+
     while ( $output =~ /label=(\d+), pos="(\d+),(\d+)"/g )
     {
         my ( $node_id, $x, $y ) = ( $1, $2, $3 );
-        
+
         $nodes->[ $node_id ]->{ x } = $x;
         $nodes->[ $node_id ]->{ y } = $y;
     }
@@ -74,7 +74,7 @@ sub _run_force_layout
 sub plot_nodes
 {
     my ( $method, $nodes ) = @_;
-    
+
     my $graph = _add_nodes_and_links_to_graph( $method, $nodes );
 
     _run_force_layout( $graph, $nodes );

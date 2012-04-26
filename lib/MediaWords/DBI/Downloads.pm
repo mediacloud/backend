@@ -1,7 +1,6 @@
 package MediaWords::DBI::Downloads;
 use MediaWords::CommonLibs;
 
-
 # various helper functions for downloads
 
 use strict;
@@ -189,10 +188,12 @@ sub fetch_content
     {
         return fetch_content_remote( $download );
     }
-    elsif ( my $content_ref = fetch_content_local( $download ) ) {
+    elsif ( my $content_ref = fetch_content_local( $download ) )
+    {
         return $content_ref;
     }
-    else {
+    else
+    {
         my $ret = '';
         return \$ret;
     }
@@ -204,7 +205,7 @@ sub rewrite_downloads_content
 
     my $fetch_remote = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content } || 'no';
     die "CANNOT rewrite mobile content" if ( $fetch_remote eq 'yes' );
- 
+
     my $download_content_ref = fetch_content( $download );
 
     my $path = $download->{ path };
@@ -218,24 +219,25 @@ sub rewrite_downloads_content
     die if $path eq $download->{ path };
 
     my $full_path = _get_local_file_content_path_from_path( $path );
-    
-    if ( ! (-f $full_path ) )
+
+    if ( !( -f $full_path ) )
     {
         $full_path =~ s/\.gz$/.dl/;
     }
 
-    if ( ! (-f $full_path ) )
+    if ( !( -f $full_path ) )
     {
-	return if $$download_content_ref eq '';
+        return if $$download_content_ref eq '';
 
-	say STDERR "file missing: $full_path";
-	say STDERR "content is:\n'" . $$download_content_ref . "'";
-	warn "File to deleted: '$full_path' does not exist for non-empty content: '$$download_content_ref'" unless $$download_content_ref eq '';
+        say STDERR "file missing: $full_path";
+        say STDERR "content is:\n'" . $$download_content_ref . "'";
+        warn "File to deleted: '$full_path' does not exist for non-empty content: '$$download_content_ref'"
+          unless $$download_content_ref eq '';
     }
     else
     {
-	say "Deleting $full_path";
-	die "Could not delete $full_path: $! " unless unlink( $full_path );
+        say "Deleting $full_path";
+        die "Could not delete $full_path: $! " unless unlink( $full_path );
     }
 }
 
@@ -339,11 +341,12 @@ sub extract_preprocessed_lines_for_story
     #my $extracted_html =  get_extracted_html( $lines, $included_line_numbers );
 
     return {
+
         #extracted_html => $extracted_html,
         #extracted_text => html_strip( $extracted_html ),
-	included_line_numbers => $included_line_numbers,
-        download_lines => $lines,
-        scores         => $scores,
+        included_line_numbers => $included_line_numbers,
+        download_lines        => $lines,
+        scores                => $scores,
     };
 }
 

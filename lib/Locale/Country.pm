@@ -1,4 +1,5 @@
 package Locale::Country;
+
 # Copyright (C) 2001      Canon Research Centre Europe (CRE).
 # Copyright (C) 2002-2009 Neil Bowers
 # Copyright (c) 2010-2011 Sullivan Beck
@@ -19,60 +20,81 @@ use Locale::Codes::Country;
 #       Public Global Variables
 #=======================================================================
 
-our($VERSION,@ISA,@EXPORT,@EXPORT_OK);
+our ( $VERSION, @ISA, @EXPORT, @EXPORT_OK );
 
-$VERSION='3.16';
-@ISA       = qw(Exporter);
-@EXPORT    = qw(code2country
-                country2code
-                all_country_codes
-                all_country_names
-                country_code2code
-                LOCALE_CODE_ALPHA_2
-                LOCALE_CODE_ALPHA_3
-                LOCALE_CODE_NUMERIC
-                LOCALE_CODE_FIPS
-                LOCALE_CODE_DOM
-               );
+$VERSION = '3.16';
+@ISA     = qw(Exporter);
+@EXPORT  = qw(code2country
+  country2code
+  all_country_codes
+  all_country_names
+  country_code2code
+  LOCALE_CODE_ALPHA_2
+  LOCALE_CODE_ALPHA_3
+  LOCALE_CODE_NUMERIC
+  LOCALE_CODE_FIPS
+  LOCALE_CODE_DOM
+);
 
-sub _code {
-   my($code,$codeset) = @_;
-   $code = ""  if (! $code);
+sub _code
+{
+    my ( $code, $codeset ) = @_;
+    $code = "" if ( !$code );
 
-   $codeset = LOCALE_CODE_DEFAULT  if (! defined($codeset)  ||  $codeset eq "");
+    $codeset = LOCALE_CODE_DEFAULT if ( !defined( $codeset ) || $codeset eq "" );
 
-   if ($codeset =~ /^\d+$/) {
-      if      ($codeset ==  LOCALE_CODE_ALPHA_2) {
-         $codeset = "alpha2";
-      } elsif ($codeset ==  LOCALE_CODE_ALPHA_3) {
-         $codeset = "alpha3";
-      } elsif ($codeset ==  LOCALE_CODE_NUMERIC) {
-         $codeset = "num";
-      } elsif ($codeset ==  LOCALE_CODE_FIPS) {
-         $codeset = "fips";
-      } elsif ($codeset ==  LOCALE_CODE_DOM) {
-         $codeset = "dom";
-      } else {
-         return (1);
-      }
-   }
+    if ( $codeset =~ /^\d+$/ )
+    {
+        if ( $codeset == LOCALE_CODE_ALPHA_2 )
+        {
+            $codeset = "alpha2";
+        }
+        elsif ( $codeset == LOCALE_CODE_ALPHA_3 )
+        {
+            $codeset = "alpha3";
+        }
+        elsif ( $codeset == LOCALE_CODE_NUMERIC )
+        {
+            $codeset = "num";
+        }
+        elsif ( $codeset == LOCALE_CODE_FIPS )
+        {
+            $codeset = "fips";
+        }
+        elsif ( $codeset == LOCALE_CODE_DOM )
+        {
+            $codeset = "dom";
+        }
+        else
+        {
+            return ( 1 );
+        }
+    }
 
-   if      ($codeset eq "alpha2"  ||
-            $codeset eq "alpha3") {
-      $code    = lc($code);
-   } elsif ($codeset eq "num") {
-      if (defined($code)  &&  $code ne "") {
-         return (1)  unless ($code =~ /^\d+$/);
-         $code    = sprintf("%.3d", $code);
-      }
-   } elsif ($codeset eq "fips"  ||
-            $codeset eq "dom") {
-      $code    = uc($code);
-   } else {
-      return (1);
-   }
+    if (   $codeset eq "alpha2"
+        || $codeset eq "alpha3" )
+    {
+        $code = lc( $code );
+    }
+    elsif ( $codeset eq "num" )
+    {
+        if ( defined( $code ) && $code ne "" )
+        {
+            return ( 1 ) unless ( $code =~ /^\d+$/ );
+            $code = sprintf( "%.3d", $code );
+        }
+    }
+    elsif ($codeset eq "fips"
+        || $codeset eq "dom" )
+    {
+        $code = uc( $code );
+    }
+    else
+    {
+        return ( 1 );
+    }
 
-   return (0,$code,$codeset);
+    return ( 0, $code, $codeset );
 }
 
 #=======================================================================
@@ -81,12 +103,13 @@ sub _code {
 #
 #=======================================================================
 
-sub code2country {
-   my($err,$code,$codeset) = _code(@_);
-   return undef  if ($err  ||
-                     ! defined $code);
+sub code2country
+{
+    my ( $err, $code, $codeset ) = _code( @_ );
+    return undef if ( $err
+        || !defined $code );
 
-   return Locale::Codes::_code2name("country",$code,$codeset);
+    return Locale::Codes::_code2name( "country", $code, $codeset );
 }
 
 #=======================================================================
@@ -95,14 +118,15 @@ sub code2country {
 #
 #=======================================================================
 
-sub country2code {
-   my($country,$codeset) = @_;
-   my($err,$tmp);
-   ($err,$tmp,$codeset) = _code("",$codeset);
-   return undef  if ($err  ||
-                     ! defined $country);
+sub country2code
+{
+    my ( $country, $codeset ) = @_;
+    my ( $err, $tmp );
+    ( $err, $tmp, $codeset ) = _code( "", $codeset );
+    return undef if ( $err
+        || !defined $country );
 
-   return Locale::Codes::_name2code("country",$country,$codeset);
+    return Locale::Codes::_name2code( "country", $country, $codeset );
 }
 
 #=======================================================================
@@ -111,16 +135,17 @@ sub country2code {
 #
 #=======================================================================
 
-sub country_code2code {
-   (@_ == 3) or croak "country_code2code() takes 3 arguments!";
-   my($code,$inset,$outset) = @_;
-   my($err,$tmp);
-   ($err,$code,$inset) = _code($code,$inset);
-   return undef  if ($err);
-   ($err,$tmp,$outset) = _code("",$outset);
-   return undef  if ($err);
+sub country_code2code
+{
+    ( @_ == 3 ) or croak "country_code2code() takes 3 arguments!";
+    my ( $code, $inset, $outset ) = @_;
+    my ( $err, $tmp );
+    ( $err, $code, $inset ) = _code( $code, $inset );
+    return undef if ( $err );
+    ( $err, $tmp, $outset ) = _code( "", $outset );
+    return undef if ( $err );
 
-   return Locale::Codes::_code2code("country",$code,$inset,$outset);
+    return Locale::Codes::_code2code( "country", $code, $inset, $outset );
 }
 
 #=======================================================================
@@ -129,15 +154,15 @@ sub country_code2code {
 #
 #=======================================================================
 
-sub all_country_codes {
-   my($codeset) = @_;
-   my($err,$tmp);
-   ($err,$tmp,$codeset) = _code("",$codeset);
-   return undef  if ($err);
+sub all_country_codes
+{
+    my ( $codeset ) = @_;
+    my ( $err, $tmp );
+    ( $err, $tmp, $codeset ) = _code( "", $codeset );
+    return undef if ( $err );
 
-   return Locale::Codes::_all_codes("country",$codeset);
+    return Locale::Codes::_all_codes( "country", $codeset );
 }
-
 
 #=======================================================================
 #
@@ -145,13 +170,14 @@ sub all_country_codes {
 #
 #=======================================================================
 
-sub all_country_names {
-   my($codeset) = @_;
-   my($err,$tmp);
-   ($err,$tmp,$codeset) = _code("",$codeset);
-   return undef  if ($err);
+sub all_country_names
+{
+    my ( $codeset ) = @_;
+    my ( $err, $tmp );
+    ( $err, $tmp, $codeset ) = _code( "", $codeset );
+    return undef if ( $err );
 
-   return Locale::Codes::_all_names("country",$codeset);
+    return Locale::Codes::_all_names( "country", $codeset );
 }
 
 #=======================================================================
@@ -160,15 +186,16 @@ sub all_country_names {
 #
 #=======================================================================
 
-sub rename_country {
-   my($code,$new_name,@args) = @_;
-   my $nowarn   = 0;
-   $nowarn      = 1, pop(@args)  if ($args[$#args] eq "nowarn");
-   my $codeset  = shift(@args);
-   my $err;
-   ($err,$code,$codeset) = _code($code,$codeset);
+sub rename_country
+{
+    my ( $code, $new_name, @args ) = @_;
+    my $nowarn = 0;
+    $nowarn = 1, pop( @args ) if ( $args[ $#args ] eq "nowarn" );
+    my $codeset = shift( @args );
+    my $err;
+    ( $err, $code, $codeset ) = _code( $code, $codeset );
 
-   return Locale::Codes::_rename("country",$code,$new_name,$codeset,$nowarn);
+    return Locale::Codes::_rename( "country", $code, $new_name, $codeset, $nowarn );
 }
 
 #=======================================================================
@@ -177,15 +204,16 @@ sub rename_country {
 #
 #=======================================================================
 
-sub add_country {
-   my($code,$name,@args) = @_;
-   my $nowarn   = 0;
-   $nowarn      = 1, pop(@args)  if ($args[$#args] eq "nowarn");
-   my $codeset  = shift(@args);
-   my $err;
-   ($err,$code,$codeset) = _code($code,$codeset);
+sub add_country
+{
+    my ( $code, $name, @args ) = @_;
+    my $nowarn = 0;
+    $nowarn = 1, pop( @args ) if ( $args[ $#args ] eq "nowarn" );
+    my $codeset = shift( @args );
+    my $err;
+    ( $err, $code, $codeset ) = _code( $code, $codeset );
 
-   return Locale::Codes::_add_code("country",$code,$name,$codeset,$nowarn);
+    return Locale::Codes::_add_code( "country", $code, $name, $codeset, $nowarn );
 }
 
 #=======================================================================
@@ -194,15 +222,16 @@ sub add_country {
 #
 #=======================================================================
 
-sub delete_country {
-   my($code,@args) = @_;
-   my $nowarn   = 0;
-   $nowarn      = 1, pop(@args)  if ($args[$#args] eq "nowarn");
-   my $codeset  = shift(@args);
-   my $err;
-   ($err,$code,$codeset) = _code($code,$codeset);
+sub delete_country
+{
+    my ( $code, @args ) = @_;
+    my $nowarn = 0;
+    $nowarn = 1, pop( @args ) if ( $args[ $#args ] eq "nowarn" );
+    my $codeset = shift( @args );
+    my $err;
+    ( $err, $code, $codeset ) = _code( $code, $codeset );
 
-   return Locale::Codes::_delete_code("country",$code,$codeset,$nowarn);
+    return Locale::Codes::_delete_code( "country", $code, $codeset, $nowarn );
 }
 
 #=======================================================================
@@ -211,11 +240,12 @@ sub delete_country {
 #
 #=======================================================================
 
-sub add_country_alias {
-   my($name,$new_name,$nowarn) = @_;
-   $nowarn   = (defined($nowarn)  &&  $nowarn eq "nowarn" ? 1 : 0);
+sub add_country_alias
+{
+    my ( $name, $new_name, $nowarn ) = @_;
+    $nowarn = ( defined( $nowarn ) && $nowarn eq "nowarn" ? 1 : 0 );
 
-   return Locale::Codes::_add_alias("country",$name,$new_name,$nowarn);
+    return Locale::Codes::_add_alias( "country", $name, $new_name, $nowarn );
 }
 
 #=======================================================================
@@ -224,11 +254,12 @@ sub add_country_alias {
 #
 #=======================================================================
 
-sub delete_country_alias {
-   my($name,$nowarn) = @_;
-   $nowarn   = (defined($nowarn)  &&  $nowarn eq "nowarn" ? 1 : 0);
+sub delete_country_alias
+{
+    my ( $name, $nowarn ) = @_;
+    $nowarn = ( defined( $nowarn ) && $nowarn eq "nowarn" ? 1 : 0 );
 
-   return Locale::Codes::_delete_alias("country",$name,$nowarn);
+    return Locale::Codes::_delete_alias( "country", $name, $nowarn );
 }
 
 #=======================================================================
@@ -237,16 +268,17 @@ sub delete_country_alias {
 #
 #=======================================================================
 
-sub rename_country_code {
-   my($code,$new_code,@args) = @_;
-   my $nowarn   = 0;
-   $nowarn      = 1, pop(@args)  if ($args[$#args] eq "nowarn");
-   my $codeset  = shift(@args);
-   my $err;
-   ($err,$code,$codeset)     = _code($code,$codeset);
-   ($err,$new_code,$codeset) = _code($new_code,$codeset)  if (! $err);
+sub rename_country_code
+{
+    my ( $code, $new_code, @args ) = @_;
+    my $nowarn = 0;
+    $nowarn = 1, pop( @args ) if ( $args[ $#args ] eq "nowarn" );
+    my $codeset = shift( @args );
+    my $err;
+    ( $err, $code, $codeset ) = _code( $code, $codeset );
+    ( $err, $new_code, $codeset ) = _code( $new_code, $codeset ) if ( !$err );
 
-   return Locale::Codes::_rename_code("country",$code,$new_code,$codeset,$nowarn);
+    return Locale::Codes::_rename_code( "country", $code, $new_code, $codeset, $nowarn );
 }
 
 #=======================================================================
@@ -255,16 +287,17 @@ sub rename_country_code {
 #
 #=======================================================================
 
-sub add_country_code_alias {
-   my($code,$new_code,@args) = @_;
-   my $nowarn   = 0;
-   $nowarn      = 1, pop(@args)  if ($args[$#args] eq "nowarn");
-   my $codeset  = shift(@args);
-   my $err;
-   ($err,$code,$codeset)     = _code($code,$codeset);
-   ($err,$new_code,$codeset) = _code($new_code,$codeset)  if (! $err);
+sub add_country_code_alias
+{
+    my ( $code, $new_code, @args ) = @_;
+    my $nowarn = 0;
+    $nowarn = 1, pop( @args ) if ( $args[ $#args ] eq "nowarn" );
+    my $codeset = shift( @args );
+    my $err;
+    ( $err, $code, $codeset ) = _code( $code, $codeset );
+    ( $err, $new_code, $codeset ) = _code( $new_code, $codeset ) if ( !$err );
 
-   return Locale::Codes::_add_code_alias("country",$code,$new_code,$codeset,$nowarn);
+    return Locale::Codes::_add_code_alias( "country", $code, $new_code, $codeset, $nowarn );
 }
 
 #=======================================================================
@@ -273,15 +306,16 @@ sub add_country_code_alias {
 #
 #=======================================================================
 
-sub delete_country_code_alias {
-   my($code,@args) = @_;
-   my $nowarn   = 0;
-   $nowarn      = 1, pop(@args)  if ($args[$#args] eq "nowarn");
-   my $codeset  = shift(@args);
-   my $err;
-   ($err,$code,$codeset)     = _code($code,$codeset);
+sub delete_country_code_alias
+{
+    my ( $code, @args ) = @_;
+    my $nowarn = 0;
+    $nowarn = 1, pop( @args ) if ( $args[ $#args ] eq "nowarn" );
+    my $codeset = shift( @args );
+    my $err;
+    ( $err, $code, $codeset ) = _code( $code, $codeset );
 
-   return Locale::Codes::_delete_code_alias("country",$code,$codeset,$nowarn);
+    return Locale::Codes::_delete_code_alias( "country", $code, $codeset, $nowarn );
 }
 
 #=======================================================================
@@ -290,14 +324,16 @@ sub delete_country_code_alias {
 #
 #=======================================================================
 
-sub alias_code {
-   my($alias,$code,@args) = @_;
-   my $success = rename_country_code($code,$alias,@args);
-   return 0  if (! $success);
-   return $alias;
+sub alias_code
+{
+    my ( $alias, $code, @args ) = @_;
+    my $success = rename_country_code( $code, $alias, @args );
+    return 0 if ( !$success );
+    return $alias;
 }
 
 1;
+
 # Local Variables:
 # mode: cperl
 # indent-tabs-mode: nil

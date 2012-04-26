@@ -1,7 +1,6 @@
 package MediaWords::Util::Config;
 use MediaWords::CommonLibs;
 
-
 # Parse and return data from mediawords.yml config file.
 
 # This code should be used instead of MediaWords->config in general, b/c

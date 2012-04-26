@@ -514,7 +514,7 @@ sub update_story_sentence_words
             _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
 
             my $word_counts_for_sentence =
-               _get_stem_word_counts_for_english_sentence( $stemmer, $sentences->[ $sentence_num ], $stop_stems );
+              _get_stem_word_counts_for_english_sentence( $stemmer, $sentences->[ $sentence_num ], $stop_stems );
 
             $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
         }
@@ -540,9 +540,9 @@ sub get_stem_word_counts_for_english_sentence
 
     my $stop_stems = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup();
 
-    my $stemmer    = MediaWords::Util::Stemmer->new;
+    my $stemmer = MediaWords::Util::Stemmer->new;
 
-    return _get_stem_word_counts_for_english_sentence ( $stemmer, $sentence, $stop_stems );
+    return _get_stem_word_counts_for_english_sentence( $stemmer, $sentence, $stop_stems );
 }
 
 sub _get_stem_word_counts_for_english_sentence

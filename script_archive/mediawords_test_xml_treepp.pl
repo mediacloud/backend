@@ -57,25 +57,26 @@ sub main
     my $fp;
 
     say "starting eval for content:\n$content";
-  
+
     #my $opts = { map { $_ => $args->{$_} } grep { ! /^-/ } keys %$args };
 
     my $opts = {};
 
-#    my $VERSION = 'foo';
+    #    my $VERSION = 'foo';
 
     my $TREEPP_OPTIONS = {
-#    force_array => [qw( item rdf:li entry )],
-  #  first_out   => [qw( -xmlns:rdf -xmlns -rel -type url title link )],
- #   last_out    => [qw( description image item items entry -width -height )],
-#    user_agent  => "XML-FeedPP/$VERSION ",
+
+        #    force_array => [qw( item rdf:li entry )],
+        #  first_out   => [qw( -xmlns:rdf -xmlns -rel -type url title link )],
+        #   last_out    => [qw( description image item items entry -width -height )],
+        #    user_agent  => "XML-FeedPP/$VERSION ",
     };
 
-    my $tpp = XML::TreePP->new(%$TREEPP_OPTIONS, %$opts);
+    my $tpp = XML::TreePP->new( %$TREEPP_OPTIONS, %$opts );
 
     $tpp->parse( $content );
 
-#    eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
+    #    eval { $fp = XML::FeedPP->new( $content, -type => $type ); };
 
     say "finished";
 }

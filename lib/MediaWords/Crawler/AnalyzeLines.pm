@@ -286,7 +286,7 @@ sub calculate_full_line_metrics
 
     my $line_info = {};
 
-    $line_info->{ line_number }                     = $line_number;
+    $line_info->{ line_number } = $line_number;
 
     if (   $markers->{ comment }
         && $markers->{ comment }->[ 0 ]

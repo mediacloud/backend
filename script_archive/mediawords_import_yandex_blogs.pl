@@ -67,7 +67,7 @@ sub main
 
     my $ua = LWP::UserAgent->new;
 
-    my $found = 0;
+    my $found     = 0;
     my $not_found = 0;
 
     for my $i ( 1 .. 1 )
@@ -79,15 +79,16 @@ sub main
         while ( $html =~ m~"></a><a href="([^"]*)" title="([^"]*)">~gi )
         {
             my ( $url, $title ) = ( $1, $2 );
-	    if ( ! find_medium ( $url, $title ) )
-	    {
-	      print "Couldn't find '$url' $title\n";
-	      $not_found++;
-	    }
-	    else
-	    {
-	      $found++;
-	    }
+            if ( !find_medium( $url, $title ) )
+            {
+                print "Couldn't find '$url' $title\n";
+                $not_found++;
+            }
+            else
+            {
+                $found++;
+            }
+
             #create_medium( $url, $title );
         }
     }

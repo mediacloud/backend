@@ -1,7 +1,6 @@
 package MediaWords::Crawler::BlogPageProcessor;
 use MediaWords::CommonLibs;
 
-
 use strict;
 
 # MODULES
@@ -58,7 +57,7 @@ sub get_rss_feeds
 
     given ( $rss_detection_method )
     {
-        when ('feed::scrape-validate')
+        when ( 'feed::scrape-validate' )
         {
 
             #print "Using   'feed::scrape-validate' \n";
@@ -67,7 +66,7 @@ sub get_rss_feeds
             #print Dumper($xml_feeds);
             @feeds = map { $_->{ url } } @{ $xml_feeds };
         }
-        when ('feed::scrape-no-validate')
+        when ( 'feed::scrape-no-validate' )
         {
 
             #print "Using   'feed::scrape-no-validate' \n";
@@ -76,7 +75,7 @@ sub get_rss_feeds
             #print Dumper($xml_feeds);
             @feeds = @{ $xml_feeds };
         }
-        when ('default')
+        when ( 'default' )
         {
 
             #print "using default feed parsing\n";

@@ -1,7 +1,6 @@
 package MediaWords::Util::StopWords;
 use MediaWords::CommonLibs;
 
-
 # provides stop words with enough stop words to
 
 use strict;

@@ -1,13 +1,13 @@
 package MediaWords::Controller::Media;
 use MediaWords::CommonLibs;
 
-
 use Encode;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
 use Regexp::Common qw /URI/;
+
 #use YAML::Syck;
 use Text::Trim;
 use URI::Split;
@@ -224,7 +224,15 @@ sub add_missing_media_from_urls
             }
             else
             {
-                $medium = $c->dbis->create( 'media', { name => encode( 'UTF-8', $title ), url => encode( 'UTF-8', $url ), moderated => 'f', feeds_added => 'f' } );
+                $medium = $c->dbis->create(
+                    'media',
+                    {
+                        name        => encode( 'UTF-8', $title ),
+                        url         => encode( 'UTF-8', $url ),
+                        moderated   => 'f',
+                        feeds_added => 'f'
+                    }
+                );
             }
         }
 
@@ -479,15 +487,18 @@ sub moderate : Local
 
     say STDERR "Media sets id $media_sets_id";
 
-    if (defined($media_sets_id))
+    if ( defined( $media_sets_id ) )
     {
-         $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id in (select media_id from media_sets_media_map where media_sets_id = ?) and media_id > ? " . "  order by media_id",
-				   $media_sets_id, $prev_media_id )->hashes;
+        $media = $c->dbis->query(
+"select * from media where moderated = 'f' and media_id in (select media_id from media_sets_media_map where media_sets_id = ?) and media_id > ? "
+              . "  order by media_id",
+            $media_sets_id, $prev_media_id
+        )->hashes;
     }
     else
     {
-         $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " . "  order by media_id",
-				   $prev_media_id )->hashes;
+        $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " . "  order by media_id",
+            $prev_media_id )->hashes;
     }
 
     my ( $medium, $tag_names, $feeds, $merge_media );
@@ -507,13 +518,13 @@ sub moderate : Local
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
 
-    $c->stash->{ media_sets_id }= $media_sets_id;
-    $c->stash->{ medium }      = $medium;
-    $c->stash->{ tag_names }   = $tag_names;
-    $c->stash->{ feeds }       = $feeds;
-    $c->stash->{ queue_size }  = scalar( @{ $media } );
-    $c->stash->{ merge_media } = $merge_media;
-    $c->stash->{ template }    = 'media/moderate.tt2';
+    $c->stash->{ media_sets_id } = $media_sets_id;
+    $c->stash->{ medium }        = $medium;
+    $c->stash->{ tag_names }     = $tag_names;
+    $c->stash->{ feeds }         = $feeds;
+    $c->stash->{ queue_size }    = scalar( @{ $media } );
+    $c->stash->{ merge_media }   = $merge_media;
+    $c->stash->{ template }      = 'media/moderate.tt2';
 }
 
 # display search form, and results of a query was submitted.
@@ -795,10 +806,10 @@ sub do_find_likely_full_text_rss : Local
 
         given ( $full_text_value )
         {
-            when (1) { $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?",  $media_id ); }
-            when (0) { $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id ); }
+            when ( 1 ) { $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?",  $media_id ); }
+            when ( 0 ) { $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id ); }
 
-            when ('') { $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id ); }
+            when ( '' ) { $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id ); }
             default { die "Bad case in switch :'$full_text_value'"; }
 
         }
@@ -829,9 +840,9 @@ sub _get_likely_rss_full_text_media_list
 
     $media = [ reverse @{ $media } ];
 
-    foreach my $medium (@{$media})
+    foreach my $medium ( @{ $media } )
     {
-       $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood($medium);
+        $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood( $medium );
     }
 
     return $media;
@@ -908,7 +919,7 @@ sub eval_rss_full_text : Local
       $c->dbis->query( " select * from media_rss_full_text_detection_data natural join media where media_id = ? ", $id )
       ->hashes->[ 0 ];
 
-    $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood($medium);
+    $medium->{ full_text_rss_rating } = _rate_full_text_rss_likely_hood( $medium );
 
     #say STDERR Dumper( $medium );
 
@@ -925,7 +936,7 @@ sub eval_rss_full_text : Local
         $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $c->dbis, $story );
     }
 
-    my $next_media_id = $self->_get_next_media_id($c, $id);
+    my $next_media_id = $self->_get_next_media_id( $c, $id );
 
     # say STDERR Dumper( $recent_stories );
 
@@ -959,7 +970,7 @@ sub do_eval_rss_full_text : Local
         $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $id );
     }
 
-    my $next_media_id = $self->_get_next_media_id($c, $id);
+    my $next_media_id = $self->_get_next_media_id( $c, $id );
 
     my $status_msg = "UPDATED media: $id - Here's the next source";
 

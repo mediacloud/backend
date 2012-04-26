@@ -1,7 +1,6 @@
 package MediaWords::Util::Countries;
 use MediaWords::CommonLibs;
 
-
 use Moose;
 use strict;
 use warnings;
@@ -19,6 +18,7 @@ my $_country_name_remapping = {
     # 'albania',
     # 'algeria',
     'american samoa' => -1,
+
     # 'andorra',
     # 'angola',
     # 'anguilla',
@@ -41,9 +41,9 @@ my $_country_name_remapping = {
     # 'benin',
     # 'bermuda',
     # 'bhutan',
-    'bolivia, plurinational state of' => 'bolivia',
+    'bolivia, plurinational state of'   => 'bolivia',
     'bonaire, saint eustatius and saba' => -1,
-    'bosnia and herzegovina' => 'bosnia',
+    'bosnia and herzegovina'            => 'bosnia',
 
     # 'botswana',
     # 'bouvet island',
@@ -58,12 +58,14 @@ my $_country_name_remapping = {
     # 'cameroon',
     # 'canada',
     'cape verde' => -1,
+
     # 'cayman islands',
     'central african republic' => 'central african',
+
     # 'chad',
     # 'chile',
     # 'china',
-    'christmas island' => -1,
+    'christmas island'        => -1,
     'cocos (keeling) islands' => -1,
 
     # 'colombia',
@@ -72,6 +74,7 @@ my $_country_name_remapping = {
     'congo, the democratic republic of the' => 'congo republic',
 
     'cook islands' => -1,
+
     # 'costa rica',
     # 'cote d\'ivoire',
     # 'croatia',
@@ -81,11 +84,13 @@ my $_country_name_remapping = {
     # 'czech republic',
     # 'denmark',
     # 'djibouti',
-    'dominica' => -1,
+    'dominica'           => -1,
     'dominican republic' => 'dominican',
+
     # 'ecuador',
     # 'egypt',
     'el salvador' => 'salvador el',
+
     # 'equatorial guinea',
     # 'eritrea',
     # 'estonia',
@@ -93,14 +98,16 @@ my $_country_name_remapping = {
     'falkland islands (malvinas)' => 'falkland',
 
     'faroe islands' => 'faroe',
+
     # 'fiji',
     # 'finland',
     # 'france',
     'france, metropolitan' => -1,
 
-    'french guiana' => 'guiana french',
-    'french polynesia' => 'polynesia french',
+    'french guiana'               => 'guiana french',
+    'french polynesia'            => 'polynesia french',
     'french southern territories' => -1,
+
     # 'gabon',
     # 'gambia',
     # 'georgia',
@@ -138,10 +145,10 @@ my $_country_name_remapping = {
     # 'jamaica',
     # 'japan',
     'jersey'                                  => -1,              #the island of Jersy would be confused with the state
-    # 'jordan',
-    # 'kazakhstan',
-    # 'kenya',
-    # 'kiribati',
+                                                                  # 'jordan',
+                                                                  # 'kazakhstan',
+                                                                  # 'kenya',
+                                                                  # 'kiribati',
     'korea, democratic people\'s republic of' => 'north korea',
     'korea, republic of'                      => 'south korea',
 
@@ -160,6 +167,7 @@ my $_country_name_remapping = {
     # 'luxembourg',
     # 'macao',
     'macedonia, the former yugoslav republic of' => 'macedonia',
+
     # 'madagascar',
     # 'malawi',
     # 'malaysia',
@@ -173,7 +181,8 @@ my $_country_name_remapping = {
     # 'mayotte',
     # 'mexico',
     'micronesia, federated states of' => 'micronesia',
-    'moldova, republic of' => 'moldova',
+    'moldova, republic of'            => 'moldova',
+
     # 'monaco',
     # 'mongolia',
     # 'montenegro',
@@ -186,21 +195,25 @@ my $_country_name_remapping = {
     # 'nepal',
     # 'netherlands',
     'netherlands antilles' => -1,
-    'new caledonia' => 'caledonia',
-    'new zealand' => 'zealand',
+    'new caledonia'        => 'caledonia',
+    'new zealand'          => 'zealand',
+
     # 'nicaragua',
     # 'niger',
     # 'nigeria',
     # 'niue',
     # 'norfolk island',
     'northern mariana islands' => -1,
+
     # 'norway',
     # 'oman',
     # 'pakistan',
     # 'palau',
     'palestinian territory, occupied' => 'palestine',
+
     # 'panama',
     'papua new guinea' => 'papua guina',
+
     # 'paraguay',
     # 'peru',
     # 'philippines',
@@ -215,32 +228,34 @@ my $_country_name_remapping = {
     'russian federation' => 'russia',
 
     # 'rwanda',
-    'saint barthelemy' => -1,
+    'saint barthelemy'                             => -1,
     'saint helena, ascension and tristan da cunha' => -1,
     'saint kitts and nevis'                        => -1,
-    'saint lucia' => -1,
-    'saint martin (french part)' => -1,
-    'saint pierre and miquelon'        => -1,
-    'saint vincent and the grenadines' => -1,
+    'saint lucia'                                  => -1,
+    'saint martin (french part)'                   => -1,
+    'saint pierre and miquelon'                    => -1,
+    'saint vincent and the grenadines'             => -1,
 
     # 'samoa',
-    'san marino' => -1,
+    'san marino'            => -1,
     'sao tome and principe' => -1,
 
     # 'saudi arabia',
     # 'senegal',
     # 'serbia',
-# we should be able to delete the next line    
-      'serbia and montenegro' => 'serbia montenegro',
+    # we should be able to delete the next line
+    'serbia and montenegro' => 'serbia montenegro',
+
     # 'seychelles',
     # 'sierra leone',
     'sint maarten (dutch part)' => -1,
+
     # 'singapore',
     # 'slovakia',
     # 'slovenia',
     # 'solomon islands',
     # 'somalia',
-    'south africa' => 'africa south',
+    'south africa'                                 => 'africa south',
     'south georgia and the south sandwich islands' => -1,
 
     # 'spain',
@@ -255,8 +270,10 @@ my $_country_name_remapping = {
     'syrian arab republic' => 'syria',
 
     'taiwan, province of china' => 'taiwan',
+
     # 'tajikistan',
     'tanzania, united republic of' => 'tanznia',
+
     # 'thailand',
     # 'timor-leste' => -1,
     # 'togo',
@@ -273,6 +290,7 @@ my $_country_name_remapping = {
     # 'uganda',
     # 'ukraine',
     'united arab emirates' => 'emirates arab',
+
     # 'united kingdom',
     # 'united states',
     'united states minor outlying islands' => -1,
@@ -281,11 +299,12 @@ my $_country_name_remapping = {
     # 'uzbekistan',
     # 'vanuatu',
     'venezuela, bolivarian republic of' => 'venezuela',
-    'viet nam'                => 'vietnam',
-    'virgin islands, british' => -1,
-    'virgin islands, u.s.'    => -1,
-    'wallis and futuna'       => 'futuna',
-    'western sahara' => 'sahara western',
+    'viet nam'                          => 'vietnam',
+    'virgin islands, british'           => -1,
+    'virgin islands, u.s.'              => -1,
+    'wallis and futuna'                 => 'futuna',
+    'western sahara'                    => 'sahara western',
+
     # 'yemen',
     # 'zambia',
     # 'zimbabwe',
@@ -347,7 +366,7 @@ sub get_stemmed_country_terms
 
     my @country_split = split ' ', $country;
 
-    die ( "country has more than two terms: '$country'" ) if ( @country_split > 2 );
+    die( "country has more than two terms: '$country'" ) if ( @country_split > 2 );
 
     return $stemmer->stem( @country_split );
 }

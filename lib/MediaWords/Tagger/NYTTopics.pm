@@ -1,7 +1,6 @@
 package MediaWords::Tagger::NYTTopics;
 use MediaWords::CommonLibs;
 
-
 # search through the text for nyt topic terms
 
 use strict;

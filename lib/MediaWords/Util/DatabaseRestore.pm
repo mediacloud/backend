@@ -8,7 +8,6 @@ use strict;
 
 use Time::Local;
 
-
 #Tests opening the files to make sure they're valid
 sub test_opening_files
 {

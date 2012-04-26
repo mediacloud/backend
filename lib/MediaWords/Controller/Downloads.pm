@@ -1,7 +1,6 @@
 package MediaWords::Controller::Downloads;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -101,8 +100,8 @@ sub view : Local
     }
 
     my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
- 
-    $c->response->content_type( 'text/plain; charset=utf8' );    
+
+    $c->response->content_type( 'text/plain; charset=utf8' );
     $c->response->content_length( length( $encoded_content ) );
     $c->response->body( $encoded_content );
 }

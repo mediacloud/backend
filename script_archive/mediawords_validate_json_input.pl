@@ -17,30 +17,30 @@ use JSON;
 use Data::Dumper;
 use utf8;
 
-my $test_scalar = [ {"term" => "ekponé"}];
+my $test_scalar = [ { "term" => "ekponé" } ];
 
 sub main
 {
-   my $json;
-    while(<>)
-      {
-	$json .= $_;
-      }
+    my $json;
+    while ( <> )
+    {
+        $json .= $_;
+    }
 
-   # print Dumper($test_scalar);
+    # print Dumper($test_scalar);
 
-   # print Dumper(encode_json($test_scalar));
-   # print Dumper(decode_json(encode_json($test_scalar)));
+    # print Dumper(encode_json($test_scalar));
+    # print Dumper(decode_json(encode_json($test_scalar)));
 
-   # print Dumper( $json);
-     my $words = decode_json( $json );
-     my $words = from_json( $json );
+    # print Dumper( $json);
+    my $words = decode_json( $json );
+    my $words = from_json( $json );
 
-   my $reencoded = encode_json( $words );
+    my $reencoded = encode_json( $words );
 
-   my $redecoded = decode_json( $reencoded );
-    
-   # print Dumper( $words);
+    my $redecoded = decode_json( $reencoded );
+
+    # print Dumper( $words);
 }
 
 main();

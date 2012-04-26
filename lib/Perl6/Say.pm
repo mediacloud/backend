@@ -4,7 +4,7 @@
 # EVENTUALLY WE WOULD LIKE TO DROP SUPPORT FOR PERL 5.8 BUT UNFORTUNATELY OUR PRODUCTION SERVER IS ON UBUNTU 8.04 AND STILL RUNS THAT VERSION
 
 {
-use strict;  #added to make our test suite happy.
+    use strict;    #added to make our test suite happy.
 }
 
 # THE CODE BELOW WAS WRITTEN BY Damian Conway and is included here unchanged.
@@ -17,21 +17,23 @@ $VERSION = '0.04';
 use Scalar::Util 'openhandle';
 use Carp;
 
-sub say {
-    my $handle = openhandle($_[0]) ? shift : \*STDOUT;
+sub say
+{
+    my $handle = openhandle( $_[ 0 ] ) ? shift : \*STDOUT;
     @_ = $_ if !@_;
     my $warning;
-    local $SIG{__WARN__} = sub { $warning = join q{}, @_ };
-    my $res = print {$handle} @_, "\n";
+    local $SIG{ __WARN__ } = sub { $warning = join q{}, @_ };
+    my $res = print { $handle } @_, "\n";
     return $res if $res;
-	# commenting this out b/c it makes say croak when the file handle is closed
+
+    # commenting this out b/c it makes say croak when the file handle is closed
     # $warning =~ s/[ ]at[ ].*//xms;
     # croak $warning;
 }
 
 # Handle direct calls...
 
-sub import { *{caller().'::say'} = \&say; }
+sub import { *{ caller() . '::say' } = \&say; }
 
 # Handle OO calls:
 

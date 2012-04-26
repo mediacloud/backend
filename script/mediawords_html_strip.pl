@@ -22,13 +22,12 @@ sub main
 {
 
     my $html;
-    while (<>)
+    while ( <> )
     {
-       $html .= $_;
+        $html .= $_;
     }
 
-    print (MediaWords::Util::HTML::html_strip( $html ) );
-
+    print( MediaWords::Util::HTML::html_strip( $html ) );
 
     exit;
 

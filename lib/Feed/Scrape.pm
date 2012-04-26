@@ -10,13 +10,14 @@ use HTML::Entities;
 use List::Util;
 use Regexp::Common qw /URI/;
 use URI::URL;
+
 #use XML::FeedPP;
 use XML::LibXML;
-use List::MoreUtils qw(any all none notall true false firstidx first_index 
-                           lastidx last_index insert_after insert_after_string 
-                           apply after after_incl before before_incl indexes 
-                           firstval first_value lastval last_value each_array
-                           each_arrayref pairwise natatime mesh zip uniq minmax);
+use List::MoreUtils qw(any all none notall true false firstidx first_index
+  lastidx last_index insert_after insert_after_string
+  apply after after_incl before before_incl indexes
+  firstval first_value lastval last_value each_array
+  each_arrayref pairwise natatime mesh zip uniq minmax);
 
 use MediaWords::Util::Web;
 
@@ -160,17 +161,15 @@ sub _fix_atom_content_element_encoding
 {
     my $xml_string = shift @_;
 
-    my $parser      = XML::LibXML->new;
+    my $parser = XML::LibXML->new;
     my $doc;
 
-    eval {
-      $doc = $parser->parse_string( $xml_string );
-    };
+    eval { $doc = $parser->parse_string( $xml_string ); };
 
-    if ($@)
+    if ( $@ )
     {
-      say STDERR "Error parsing feed string";
-      return $xml_string;
+        say STDERR "Error parsing feed string";
+        return $xml_string;
     }
 
     my $doc_element = $doc->documentElement() || die;
@@ -188,7 +187,7 @@ sub _fix_atom_content_element_encoding
     {
         next if ( !$content_node->hasChildNodes() );
 
-	my $child_nodes = $content_node->childNodes();
+        my $child_nodes = $content_node->childNodes();
 
         my $child_node_count = $child_nodes->size;
 
@@ -200,23 +199,24 @@ sub _fix_atom_content_element_encoding
             next if ( $first_child->nodeType == XML_TEXT_NODE );
         }
 
-	my @content_node_child_list = $child_nodes->get_nodelist();
+        my @content_node_child_list = $child_nodes->get_nodelist();
 
         # allow white space before CDATA_SECTION
-	if (any { $_->nodeType == XML_CDATA_SECTION_NODE} @content_node_child_list )
-	{
-	    my @non_cdata_children = grep {$_->nodeType !=  XML_CDATA_SECTION_NODE} @content_node_child_list;
+        if ( any { $_->nodeType == XML_CDATA_SECTION_NODE } @content_node_child_list )
+        {
+            my @non_cdata_children = grep { $_->nodeType != XML_CDATA_SECTION_NODE } @content_node_child_list;
 
-	    if (all {$_->nodeType == XML_TEXT_NODE }  @non_cdata_children )
-	      {
-		if (all {$_->data =~ /\s+/ }  @non_cdata_children )
-		  {
-		    #say STDERR "Skipping CDATA and white space only description ";
-		    #exit;
-		    next;
-		  }
-	      }
-	}
+            if ( all { $_->nodeType == XML_TEXT_NODE } @non_cdata_children )
+            {
+                if ( all { $_->data =~ /\s+/ } @non_cdata_children )
+                {
+
+                    #say STDERR "Skipping CDATA and white space only description ";
+                    #exit;
+                    next;
+                }
+            }
+        }
 
         $fixed_content_element = 1;
 
@@ -230,6 +230,7 @@ sub _fix_atom_content_element_encoding
 
         my $cdata_node = XML::LibXML::CDATASection->new( $child_nodes_string );
         $content_node->appendChild( $cdata_node );
+
         #say STDERR "fixed content_node: " . $content_node->toString;
     }
 
@@ -277,6 +278,7 @@ sub parse_feed
     if ( $@ )
     {
         say STDERR "Parsed Feed failed";
+
         #say dump( $feed );
 
         return undef;

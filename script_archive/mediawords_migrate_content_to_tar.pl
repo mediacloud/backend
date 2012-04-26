@@ -26,7 +26,7 @@ sub create_tar_downloads_queue
     {
         $db->query( "drop table tar_downloads_queue" );
     }
-    
+
     $db->query( "create table tar_downloads_queue as select downloads_id from downloads where not path like 'tar:%'" );
     $db->query( "create index tar_downloads_queue_download on tar_downloads_queue (downloads_id)" );
 }
@@ -35,9 +35,9 @@ sub create_tar_downloads_queue
 sub migrate_download
 {
     my ( $db, $download ) = @_;
-    
+
     my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
-    
+
     MediaWords::DBI::Downloads::store_content( $db, $download, $content_ref );
 }
 
@@ -45,13 +45,18 @@ sub migrate_download
 sub undo_migration
 {
     my ( $db ) = @_;
-    
+
     my $config = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
-    
+
     my $files = [];
-    
-    File::Find::find( sub { if ( /^\d+\.gz$/ ) { push( @{ $files }, $File::Find::name ) } }, "$data_dir/content" );
+
+    File::Find::find(
+        sub {
+            if ( /^\d+\.gz$/ ) { push( @{ $files }, $File::Find::name ) }
+        },
+        "$data_dir/content"
+    );
 
     for my $file ( @{ $files } )
     {
@@ -60,40 +65,36 @@ sub undo_migration
             die( "Unable to parse file '$file'" );
         }
         my ( $download_path, $downloads_id ) = ( $1, $2 );
-        
-        $db->query( 
-            "update downloads set path = ? where downloads_id = ?",
-            $download_path, $downloads_id
-            );
+
+        $db->query( "update downloads set path = ? where downloads_id = ?", $download_path, $downloads_id );
         print "$downloads_id -> $download_path\n";
     }
 }
 
-sub main 
+sub main
 {
     my ( $opt ) = @ARGV;
-    
+
     my $db = MediaWords::DB::connect_to_db;
-    
+
     if ( $opt eq '-r' )
     {
         undo_migration( $db );
         return;
     }
-    
+
     if ( $opt eq '-s' )
     {
         create_tar_downloads_queue( $db );
     }
-    
+
     my $i = 0;
-    while ( 1 ) 
+    while ( 1 )
     {
-        my $downloads = $db->query( 
-            "select * from tar_downloads_queue t, downloads d " .
-            "  where d.downloads_id = t.downloads_id limit 10"
-            )->hashes;
-        
+        my $downloads = $db->query(
+            "select * from tar_downloads_queue t, downloads d " . "  where d.downloads_id = t.downloads_id limit 10" )
+          ->hashes;
+
         @{ $downloads } || last;
 
         for my $download ( @{ $downloads } )
@@ -101,10 +102,10 @@ sub main
             migrate_download( $db, $download );
             $db->query( "delete from tar_downloads_queue where downloads_id = ?", $download->{ downloads_id } );
         }
-        
+
         print( ( ++$i * 10 ) . " downloads migrated\n" );
     }
-    
+
 }
 
 main();

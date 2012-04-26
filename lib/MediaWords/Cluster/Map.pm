@@ -520,8 +520,7 @@ sub _get_protovis_json
     _normalize_coordinates( 10, $centroids, $nodes );
     _normalize_coordinates( 10, $nodes );
 
-    map
-    {
+    map {
         for my $i ( 0 .. $#{ $_ } ) { $_->[ $i ]->{ i } = $i; }
     } ( $nodes, $centroids, $media_sets );
 

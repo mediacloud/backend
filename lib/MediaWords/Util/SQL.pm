@@ -1,7 +1,6 @@
 package MediaWords::Util::SQL;
 use MediaWords::CommonLibs;
 
-
 # misc utility functions for sql
 
 use strict;
@@ -19,7 +18,7 @@ sub get_ids_in_list
     {
         die( "non-number list id list: " . join( ', ', @{ $list } ) );
     }
-    
+
     return join( ',', @{ $list } );
 }
 
@@ -27,19 +26,18 @@ sub get_ids_in_list
 sub increment_day
 {
     my ( $date, $days ) = @_;
-    
+
     $days = 1 if ( !defined( $days ) );
-    
-    my $year = substr( $date, 0, 4 );
+
+    my $year  = substr( $date, 0, 4 );
     my $month = substr( $date, 5, 2 );
-    my $day = substr( $date, 8, 2 );
-    
-    my $epoch_date = Time::Local::timelocal( 0, 0, 0, $day, $month-1, $year ) + ( ( ( $days * 24 ) + 12 ) * 60 * 60 );
-    
+    my $day   = substr( $date, 8, 2 );
+
+    my $epoch_date = Time::Local::timelocal( 0, 0, 0, $day, $month - 1, $year ) + ( ( ( $days * 24 ) + 12 ) * 60 * 60 );
+
     ( undef, undef, undef, $day, $month, $year ) = localtime( $epoch_date );
-    
+
     return sprintf( '%04d-%02d-%02d', $year + 1900, $month + 1, $day );
 }
-
 
 1;

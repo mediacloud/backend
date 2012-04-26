@@ -1,7 +1,6 @@
 package MediaWords::Crawler::Fetcher;
 use MediaWords::CommonLibs;
 
-
 use strict;
 
 use DateTime;

@@ -20,9 +20,9 @@ use Storable;
 
 sub main
 {
-    my $lines = retrieve("$dir/../script_archive/crash_lines");
+    my $lines = retrieve( "$dir/../script_archive/crash_lines" );
 
-    MediaWords::Crawler::Extractor::find_auto_excluded_lines($lines);
+    MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
 
     exit;
 

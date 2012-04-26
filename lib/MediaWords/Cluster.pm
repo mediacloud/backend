@@ -1,12 +1,11 @@
 package MediaWords::Cluster;
 use MediaWords::CommonLibs;
 
-
 # cluster media sources based on their word vectors
 
 # to generate a cluter run, create new clustering engine by passing in a DBIx::simple db handle and a media_cluster_run
-# and then call either execute_media_cluster_run or execute_and_store_media_cluster_run, each of which returns a list 
-# of the resulting clusters 
+# and then call either execute_media_cluster_run or execute_and_store_media_cluster_run, each of which returns a list
+# of the resulting clusters
 #
 # my $c = MediaWords::Cluster->new( $db, $cluster_run );
 # my $clusters = $c->execute_and_store_cluster_run();
@@ -26,7 +25,7 @@ use MediaWords::CommonLibs;
 # col_labels - list containing the stem associated with each column of the sparse_matrix
 #
 # some of the work done within new() to create these fields from the cluster_run record may be useful for doing other
-# clustering related tasks, for example, Cluster::Map uses a cluster object within executing a clustering run to 
+# clustering related tasks, for example, Cluster::Map uses a cluster object within executing a clustering run to
 # generate a cluster map
 
 use strict;
@@ -52,7 +51,6 @@ use constant MIN_FREQUENCY => 0;
 # number of words to use from each media_source
 use constant NUM_MEDIUM_WORDS => 100;
 
-
 # FIELDS
 
 # { db } DBIx::Simple database handle
@@ -65,7 +63,7 @@ use constant NUM_MEDIUM_WORDS => 100;
 # query all word vectors for all media. this should be called by new().
 #
 # returns a list of word records for each media source in the following format:
-# { < media_id > => { media_id => < media_id >, stem => { stem }, term => < term >, 
+# { < media_id > => { media_id => < media_id >, stem => { stem }, term => < term >,
 #       stem_count => < normalized stem_count >, medium_rank => < word rank> } }
 #
 # the word rank is the rank from 1 to NUM_MEDIUM_WORDS of the word within the given
@@ -74,7 +72,7 @@ sub _get_media_word_vectors
 {
     my ( $self ) = @_;
 
-    my $db = $self->db;
+    my $db          = $self->db;
     my $cluster_run = $self->cluster_run;
 
     my $media_word_vectors = {};
@@ -82,34 +80,31 @@ sub _get_media_word_vectors
     my $query = $cluster_run->{ query };
 
     my $dashboard_topics_clause = MediaWords::DBI::Queries::get_dashboard_topics_clause( $query, 'mw' );
-    my $media_sets_ids_list = join(',', @{ $query->{ media_sets_ids } } );
-    
-    my $words = $db->query(
-        "select * from ( " .
-        "  select medium_ms.media_id, mw.stem, min(mw.term) as term, " . 
-        "      sum( mw.stem_count::float / tw.total_count::float )::float as stem_count, " .
-        "      rank() over (partition by medium_ms.media_id " . 
-        "        order by sum( mw.stem_count::float / tw.total_count::float )::float desc ) as medium_rank " .
-        "    from top_500_weekly_words mw, media_sets medium_ms, media_sets collection_ms, " . 
-        "      media_sets_media_map msmm, total_top_500_weekly_words tw " .
-        "    where medium_ms.media_sets_id = mw.media_sets_id " .
-        "      and medium_ms.media_id = msmm.media_id and msmm.media_sets_id = collection_ms.media_sets_id " .
-        "      and collection_ms.media_sets_id in ( $media_sets_ids_list ) " .
-        "      and mw.publish_week between date_trunc( 'week', '$query->{ start_date }'::date) " .
-        "      and date_trunc( 'week', '$query->{ end_date }'::date) " .
-        "      and $dashboard_topics_clause " .
-        "      and mw.media_sets_id = tw.media_sets_id and mw.publish_week = tw.publish_week " . 
-        "      and coalesce( mw.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
-        "    group by medium_ms.media_id, mw.stem " . 
-        "    order by sum( mw.stem_count::float / tw.total_count::float )::float desc ) q " . 
-        "  where medium_rank <= " . NUM_MEDIUM_WORDS . " " . 
-        "  order by media_id, medium_rank" )->hashes;
-    
+    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
+
+    my $words =
+      $db->query( "select * from ( " . "  select medium_ms.media_id, mw.stem, min(mw.term) as term, " .
+          "      sum( mw.stem_count::float / tw.total_count::float )::float as stem_count, " .
+          "      rank() over (partition by medium_ms.media_id " .
+          "        order by sum( mw.stem_count::float / tw.total_count::float )::float desc ) as medium_rank " .
+          "    from top_500_weekly_words mw, media_sets medium_ms, media_sets collection_ms, " .
+          "      media_sets_media_map msmm, total_top_500_weekly_words tw " .
+          "    where medium_ms.media_sets_id = mw.media_sets_id " .
+          "      and medium_ms.media_id = msmm.media_id and msmm.media_sets_id = collection_ms.media_sets_id " .
+          "      and collection_ms.media_sets_id in ( $media_sets_ids_list ) " .
+          "      and mw.publish_week between date_trunc( 'week', '$query->{ start_date }'::date) " .
+          "      and date_trunc( 'week', '$query->{ end_date }'::date) " . "      and $dashboard_topics_clause " .
+          "      and mw.media_sets_id = tw.media_sets_id and mw.publish_week = tw.publish_week " .
+          "      and coalesce( mw.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
+          "    group by medium_ms.media_id, mw.stem " .
+          "    order by sum( mw.stem_count::float / tw.total_count::float )::float desc ) q " . "  where medium_rank <= " .
+          NUM_MEDIUM_WORDS . " " . "  order by media_id, medium_rank" )->hashes;
+
     for my $word ( @{ $words } )
-    {        
+    {
         push( @{ $media_word_vectors->{ $word->{ media_id } } }, $word );
     }
-    
+
     return $media_word_vectors;
 }
 
@@ -157,7 +152,7 @@ sub _get_medium_stem_vector
     for my $word ( @{ $words } )
     {
         my $p = $word->{ stem_count };
-        if ( $p > MIN_FREQUENCY )  
+        if ( $p > MIN_FREQUENCY )
         {
             $medium_stem_vector->[ $stems->Indices( $word->{ stem } ) ] = $p;
         }
@@ -198,10 +193,10 @@ sub _get_sparse_vector_from_dense_vector
 sub _get_sparse_matrix
 {
     my ( $self, $max_word_rank ) = @_;
-    
-    my $db = $self->db;
+
+    my $db          = $self->db;
     my $cluster_run = $self->cluster_run;
-    my $stems = $self->stem_vector;
+    my $stems       = $self->stem_vector;
 
     my $media = MediaWords::DBI::Queries::get_media( $db, $cluster_run->{ query } );
 
@@ -233,7 +228,7 @@ sub _get_sparse_matrix
 sub _dump_matrix
 {
     my ( $self, $matrix, $row_labels, $col_labels ) = @_;
-    
+
     my $db = $self->db;
 
     use Class::CSV;
@@ -298,15 +293,15 @@ sub _dump_matrix
     close( CSV_OUT );
 }
 
-# for each cluster, set the description to the lowest ranked word 
-# in the given cluster that is ranked lower in the given cluster 
+# for each cluster, set the description to the lowest ranked word
+# in the given cluster that is ranked lower in the given cluster
 # than in any other cluster
 sub _add_descriptions_from_features
 {
     my ( $self, $clusters ) = @_;
 
     my $word_ranks;
-    for my $c ( 0 .. $#{ $clusters }  )
+    for my $c ( 0 .. $#{ $clusters } )
     {
         next if ( $clusters->[ $c ]->{ description } );
 
@@ -315,21 +310,21 @@ sub _add_descriptions_from_features
         {
             $word_ranks->{ $words->[ $w ]->{ stem } }->[ $c ] = $w;
         }
-        
+
         $clusters->[ $c ]->{ sorted_words } = $words;
     }
-        
+
     for my $c ( 0 .. $#{ $clusters } )
     {
         next if ( $clusters->[ $c ]->{ description } );
-        
+
         for my $word ( @{ $clusters->[ $c ]->{ sorted_words } } )
         {
             my $word_has_lowest_rank = 1;
             for my $n ( 0 .. $#{ $clusters } )
             {
                 next if ( $n == $c );
-            
+
                 my $other_cluster_rank = $word_ranks->{ $word->{ stem } }->[ $n ];
                 if ( defined( $other_cluster_rank ) && ( $other_cluster_rank <= $word_ranks->{ $word->{ stem } }->[ $c ] ) )
                 {
@@ -337,15 +332,16 @@ sub _add_descriptions_from_features
                     last;
                 }
             }
-            
+
             if ( $word_has_lowest_rank )
             {
                 $clusters->[ $c ]->{ description } = $word->{ term };
                 last;
             }
         }
-        
+
         die if ( !$clusters->[ $c ]->{ description } );
+
         # in the unlikely case that two clusters are identical, fall back to the first word
         $clusters->[ $c ]->{ description } ||= $clusters->[ $c ]->{ sorted_words }->[ 0 ]->{ term };
     }
@@ -355,63 +351,66 @@ sub _add_descriptions_from_features
 sub _add_internal_features
 {
     my ( $self, $clusters ) = @_;
- 
+
     for my $cluster ( @{ $clusters } )
     {
-        my $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sub_query( 
-            $self->db, $self->cluster_run->{ query }, $cluster->{ media_ids } );
+        my $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sub_query(
+            $self->db,
+            $self->cluster_run->{ query },
+            $cluster->{ media_ids }
+        );
         my $cluster_words = MediaWords::DBI::Queries::get_top_500_weekly_words( $self->db, $cluster_query );
-                
+
         splice( @{ $cluster_words }, NUM_FEATURES ) if ( @{ $cluster_words } > NUM_FEATURES );
         map { $_->{ weight } = $_->{ stem_count } } @{ $cluster_words };
-        
+
         $cluster->{ internal_features } = $cluster_words;
     }
 }
 
-# return false if the state is not completed and the clustering engine is 'copy' or 'media_sets', 
+# return false if the state is not completed and the clustering engine is 'copy' or 'media_sets',
 # since neither of those actually need the vectors
-sub _needs_vectors 
+sub _needs_vectors
 {
     my ( $cluster_run ) = @_;
-    
+
     return 1 if ( $cluster_run->{ state } eq 'completed' );
-        
+
     return 0 if ( grep { $cluster_run->{ clustering_engine } eq $_ } qw( media_sets copy ) );
-    
+
     return 1;
 }
 
 # PUBLIC METHODS
 
-sub new 
+sub new
 {
     my ( $class, $db, $cluster_run ) = @_;
-    
+
     my $self = {};
-    
+
     $self = bless( $self, $class );
 
     $self->db( $db );
 
     $cluster_run->{ query } = MediaWords::DBI::Queries::find_query_by_id( $db, $cluster_run->{ queries_id } );
     $self->cluster_run( $cluster_run );
-    
+
     # don't do the expensive vector generation if we're just clustering by media sets
     return $self if ( !_needs_vectors( $cluster_run ) );
-    
+
     reset_cos_sim_cache();
 
     my $t0 = start_time( "caching media word vectors" );
     $self->media_word_vectors( $self->_get_media_word_vectors() );
     stop_time( "caching media word vectors", $t0 );
 
-    $self->stem_vector( $self->_get_stem_vector() ); 
-    
+    $self->stem_vector( $self->_get_stem_vector() );
+
     $t0 = start_time( "getting sparse matrix" );
     my ( $sparse_matrix, $row_labels, $col_labels ) = $self->_get_sparse_matrix( NUM_MEDIUM_WORDS );
     stop_time( "getting sparse matrix", $t0 );
-    
+
     $self->sparse_matrix( $sparse_matrix );
     $self->row_labels( $row_labels );
     $self->col_labels( $col_labels );
@@ -421,20 +420,24 @@ sub new
 
 # accessor methods
 
-sub db { $_[0]->{ _db } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _db } };
-sub query{ $_[0]->{ _query } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _query } };
-sub cluster_run { $_[0]->{ _cluster_run } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _cluster_run } };
-sub media_word_vectors { $_[0]->{ _media_word_vectors } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _media_word_vectors } };
-sub stem_vector { $_[0]->{ _stem_vector } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _stem_vector } };
-sub sparse_matrix { $_[0]->{ _sparse_matrix } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _sparse_matrix } };
-sub row_labels { $_[0]->{ _row_labels } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _row_labels } };
-sub col_labels { $_[0]->{ _col_labels } = $_[1] if ( defined( $_[1] ) ); return $_[0]->{ _col_labels } };
+sub db          { $_[ 0 ]->{ _db }          = $_[ 1 ] if ( defined( $_[ 1 ] ) ); return $_[ 0 ]->{ _db } }
+sub query       { $_[ 0 ]->{ _query }       = $_[ 1 ] if ( defined( $_[ 1 ] ) ); return $_[ 0 ]->{ _query } }
+sub cluster_run { $_[ 0 ]->{ _cluster_run } = $_[ 1 ] if ( defined( $_[ 1 ] ) ); return $_[ 0 ]->{ _cluster_run } }
 
+sub media_word_vectors
+{
+    $_[ 0 ]->{ _media_word_vectors } = $_[ 1 ] if ( defined( $_[ 1 ] ) );
+    return $_[ 0 ]->{ _media_word_vectors };
+}
+sub stem_vector   { $_[ 0 ]->{ _stem_vector }   = $_[ 1 ] if ( defined( $_[ 1 ] ) ); return $_[ 0 ]->{ _stem_vector } }
+sub sparse_matrix { $_[ 0 ]->{ _sparse_matrix } = $_[ 1 ] if ( defined( $_[ 1 ] ) ); return $_[ 0 ]->{ _sparse_matrix } }
+sub row_labels    { $_[ 0 ]->{ _row_labels }    = $_[ 1 ] if ( defined( $_[ 1 ] ) ); return $_[ 0 ]->{ _row_labels } }
+sub col_labels    { $_[ 0 ]->{ _col_labels }    = $_[ 1 ] if ( defined( $_[ 1 ] ) ); return $_[ 0 ]->{ _col_labels } }
 
 # given the word vector matrix and other data generated by new(), use
 # cluster_run->{ clustering_method } to generate clusters for the
 # media sources within the cluster_run->{ query }
-# 
+#
 # returns the list of generated clusters with the following fields:
 # * description
 # * centroid_media_id
@@ -443,7 +446,7 @@ sub col_labels { $_[0]->{ _col_labels } = $_[1] if ( defined( $_[1] ) ); return 
 sub execute_media_cluster_run
 {
     my ( $self ) = @_;
-    
+
     my $t0 = start_time( "execute clustering run" );
 
     my $clusters;
@@ -451,57 +454,72 @@ sub execute_media_cluster_run
     {
         $clusters = MediaWords::Cluster::Kmeans::get_clusters( $self );
     }
-    elsif ( $self->cluster_run->{ clustering_engine } eq 'media_sets' ) {
+    elsif ( $self->cluster_run->{ clustering_engine } eq 'media_sets' )
+    {
         $clusters = MediaWords::Cluster::MediaSets::get_clusters( $self );
     }
-    elsif ( $self->cluster_run->{ clustering_engine } eq 'copy' ) {
+    elsif ( $self->cluster_run->{ clustering_engine } eq 'copy' )
+    {
         $clusters = MediaWords::Cluster::Copy::get_clusters( $self );
-    }    
-    else {
+    }
+    else
+    {
         die "Unknown clustering_engine '" . $self->cluster_run->{ clustering_engine } . "'";
     }
 
     stop_time( "execute clustering run", $t0 );
-    
+
     $self->_add_internal_features( $clusters );
-    
+
     $self->_add_descriptions_from_features( $clusters );
 
     return $clusters;
 }
 
-# store the clusters within the given media_cluster_run 
+# store the clusters within the given media_cluster_run
 sub store_media_cluster_run
 {
     my ( $self, $clusters ) = @_;
-    
-    my $db = $self->db;
+
+    my $db          = $self->db;
     my $cluster_run = $self->cluster_run;
-    
+
     for my $cluster ( @{ $clusters } )
     {
-        my $media_cluster = $db->create( 'media_clusters', {
-            media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
-            description           => $cluster->{ description },
-            centroid_media_id     => $cluster->{ centroid_media_id } } );
+        my $media_cluster = $db->create(
+            'media_clusters',
+            {
+                media_cluster_runs_id => $cluster_run->{ media_cluster_runs_id },
+                description           => $cluster->{ description },
+                centroid_media_id     => $cluster->{ centroid_media_id }
+            }
+        );
 
         for my $media_id ( @{ $cluster->{ media_ids } } )
         {
-            $db->create( 'media_clusters_media_map', {
-                media_clusters_id => $media_cluster->{ media_clusters_id },
-                media_id          => $media_id } );
+            $db->create(
+                'media_clusters_media_map',
+                {
+                    media_clusters_id => $media_cluster->{ media_clusters_id },
+                    media_id          => $media_id
+                }
+            );
         }
 
         for my $int_feature ( @{ $cluster->{ internal_features } } )
         {
             if ( defined $int_feature )
             {
-                $db->create('media_cluster_words', {
+                $db->create(
+                    'media_cluster_words',
+                    {
                         media_clusters_id => $media_cluster->{ media_clusters_id },
                         internal          => 't',
                         weight            => $int_feature->{ weight },
                         stem              => $int_feature->{ stem },
-                        term              => $int_feature->{ term } } );
+                        term              => $int_feature->{ term }
+                    }
+                );
             }
         }
     }
@@ -514,16 +532,16 @@ sub execute_and_store_media_cluster_run
 {
     my ( $self ) = @_;
 
-    my $db = $self->db;
+    my $db          = $self->db;
     my $cluster_run = $self->cluster_run;
-    
+
     $cluster_run->{ state } = 'executing';
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'executing' } );
 
     my $clusters = $self->execute_media_cluster_run();
-    
+
     $self->store_media_cluster_run( $clusters );
-                
+
     $cluster_run->{ state } = 'completed';
     $db->update_by_id( 'media_cluster_runs', $cluster_run->{ media_cluster_runs_id }, { state => 'completed' } );
 
@@ -535,16 +553,16 @@ sub execute_and_store_media_cluster_run
 sub get_query_vector
 {
     my ( $self, $query ) = @_;
- 
+
     my $words = MediaWords::DBI::Queries::get_top_500_weekly_words( $self->db, $query );
 
     splice( @{ $words }, NUM_MEDIUM_WORDS ) if ( @{ $words } > NUM_MEDIUM_WORDS );
-    
+
     my $dense_vector = [];
-    
+
     print STDERR $self->cluster_run->{ state } . "\n";
     map { $dense_vector->[ $_ ] = 0 } ( 0 .. ( $self->stem_vector->Length - 1 ) );
-    
+
     for my $word ( @{ $words } )
     {
         if ( defined( my $index = $self->stem_vector->Indices( $word->{ stem } ) ) )
@@ -552,9 +570,8 @@ sub get_query_vector
             $dense_vector->[ $index ] = $word->{ stem_count };
         }
     }
-    
+
     return $self->_get_sparse_vector_from_dense_vector( $dense_vector );
 }
-
 
 1;

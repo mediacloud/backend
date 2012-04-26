@@ -225,16 +225,15 @@ sub get_extracted_lines_for_story
     my $scores = [];
 
     {
-    my $story_title =
-      $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
-    my $story_description =
-      $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
+        my $story_title =
+          $dbs->query( "SELECT title FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
+        my $story_description =
+          $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{ stories_id } )
+          ->flat->[ 0 ];
 
-
-    $scores =
-      MediaWords::Util::ExtractorTest::get_extractor_scores_for_lines( $preprocessed_lines, $story_title, $story_description,
-        $download, $dbs, $use_cache );
-     }
+        $scores = MediaWords::Util::ExtractorTest::get_extractor_scores_for_lines( $preprocessed_lines, $story_title,
+            $story_description, $download, $dbs, $use_cache );
+    }
 
     my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 

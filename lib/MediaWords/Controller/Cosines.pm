@@ -340,7 +340,7 @@ sub build_media_data
 ##
 ## Commenting out the ': Local' so this function cannot be invoked from the web.
 #sub media_tag_counts : Local
-sub media_tag_counts 
+sub media_tag_counts
 {
 
     my ( $self, $c ) = @_;

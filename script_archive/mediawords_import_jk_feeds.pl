@@ -23,19 +23,19 @@ use MediaWords::DB;
 sub add_tag
 {
     my ( $db, $media_id, $tag_set_name, $tag_name ) = @_;
-    
+
     my $tag_set = $db->find_or_create( 'tag_sets', { name => $tag_set_name } );
     my $tag = $db->find_or_create( 'tags', { tag => $tag_name, tag_sets_id => $tag_set->{ tag_sets_id } } );
 
     $db->find_or_create( 'media_tags_map', { media_id => $media_id, tags_id => $tag->{ tags_id } } );
 }
 
-# create a media source from a blog url and a 
+# create a media source from a blog url and a
 sub create_medium
 {
     my ( $db, $blog_url ) = @_;
 
-    if ( $blog_url !~ /^http/ ) 
+    if ( $blog_url !~ /^http/ )
     {
         $blog_url = "http://$blog_url";
     }
@@ -55,13 +55,14 @@ sub create_medium
     }
 
     my $html = $response->decoded_content;
-    
+
     my $medium_name;
     if ( $html =~ /<title>(.*)<\/title>/i )
     {
         $medium_name = $1;
     }
-    else {
+    else
+    {
         $medium_name = $blog_url;
     }
 
@@ -70,11 +71,11 @@ sub create_medium
     {
         $feed_url = "$blog_url/data/atom";
     }
-    elsif ($blog_url =~ /liveinternet.ru/ )
+    elsif ( $blog_url =~ /liveinternet.ru/ )
     {
         $feed_url = "$blog_url/rss";
     }
-    
+
     if ( my ( $media_id ) = $db->query( "select media_id from media where name = ?", $medium_name )->flat )
     {
         print STDERR "medium '$medium_name' ($blog_url) already exists\n";
@@ -84,17 +85,18 @@ sub create_medium
     my $medium;
     if ( $feed_url )
     {
-        $medium = $db->create
-            ( 'media', { name => $medium_name, url => $blog_url, moderated => 'true', feeds_added => 'true' } );
+        $medium =
+          $db->create( 'media', { name => $medium_name, url => $blog_url, moderated => 'true', feeds_added => 'true' } );
         $db->create( 'feeds', { name => $medium_name, url => $feed_url, media_id => $medium->{ media_id } } );
     }
-    else {
-        $medium = $db->create
-            ( 'media', { name => $medium_name, url => $blog_url, moderated => 'false', feeds_added => 'false' } );
+    else
+    {
+        $medium =
+          $db->create( 'media', { name => $medium_name, url => $blog_url, moderated => 'false', feeds_added => 'false' } );
     }
-        
+
     print STDERR "added $blog_url, $medium_name, $feed_url\n";
-        
+
     return $medium->{ media_id };
 }
 
@@ -102,7 +104,7 @@ sub main
 {
     my ( $file ) = @ARGV;
 
-    binmode STDIN, ":utf8";
+    binmode STDIN,  ":utf8";
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
@@ -121,7 +123,7 @@ sub main
     {
         eval {
             my $db = MediaWords::DB::connect_to_db;
-            
+
             if ( my $media_id = create_medium( $db, $row->{ url } ) )
             {
                 add_tag( $db, $media_id, 'collection', 'morning_analytics_russia_full_20101109' );

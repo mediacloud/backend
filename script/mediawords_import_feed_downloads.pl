@@ -58,6 +58,7 @@ sub import_downloads
 
     foreach my $child_node ( $root->childNodes() )
     {
+
         #say STDERR "child_node: " . $child_node->nodeName();
         my $download = { map { $_->nodeName() => $_->textContent() } $child_node->childNodes() };
 
@@ -71,20 +72,21 @@ sub import_downloads
 
         foreach my $key ( sort keys %{ $download } )
         {
-            if ( ! $download->{ $key } )
+            if ( !$download->{ $key } )
             {
 
-                if ( !defined(  $download->{ $key } ) )
+                if ( !defined( $download->{ $key } ) )
                 {
                     delete( $download->{ $key } );
-		    next;
+                    next;
                 }
-		
-	         #$DB::single = 2 if $download->{ download_time } eq '2010-08-25 05:12:48.617132';
+
+                #$DB::single = 2 if $download->{ download_time } eq '2010-08-25 05:12:48.617132';
 
                 if ( $download->{ $key } eq '' )
                 {
-		    #say STDERR "Deleting '$key' ";
+
+                    #say STDERR "Deleting '$key' ";
                     delete( $download->{ $key } );
                 }
             }
@@ -92,25 +94,28 @@ sub import_downloads
 
         #say STDERR Dumper( $download );
 
-	next if ( '(redundant feed)' eq $decoded_content ); # The download contains no content so don't add it.
+        next if ( '(redundant feed)' eq $decoded_content );    # The download contains no content so don't add it.
 
         my $db_download = $db->create( 'downloads', $download );
 
-	eval {
-	MediaWords::Crawler::FeedHandler::handle_feed_content($db,  $db_download, $decoded_content );
-	$downloads_processed++;
+        eval {
+            MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $db_download, $decoded_content );
+            $downloads_processed++;
 
-	say STDERR "Processed $downloads_processed downloads";
-        #say STDERR Dumper( $db_download );
-	};
+            say STDERR "Processed $downloads_processed downloads";
 
-	if ( $@ )
-	{
-	   warn $@;
-	   #say "'$decoded_content'";
-	   say $old_downloads_id;
-	   #exit;
-	}
+            #say STDERR Dumper( $db_download );
+        };
+
+        if ( $@ )
+        {
+            warn $@;
+
+            #say "'$decoded_content'";
+            say $old_downloads_id;
+
+            #exit;
+        }
     }
 }
 

@@ -20,7 +20,7 @@ use Perl6::Say;
 use XML::LibXML;
 use MIME::Base64;
 use Encode;
-use List::Util qw (min) ;
+use List::Util qw (min);
 
 sub xml_tree_from_hash
 {
@@ -108,7 +108,7 @@ sub export_downloads
 
         $cur_downloads_id = $download->{ downloads_id } + 1;
 
-	next if ( $$download_content eq '(redundant feed)' );
+        next if ( $$download_content eq '(redundant feed)' );
 
         if ( '(redundant feed)' ne $download_content_base64 )
         {

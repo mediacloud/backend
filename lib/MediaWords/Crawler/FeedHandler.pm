@@ -254,7 +254,7 @@ sub handle_feed_content
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
-    my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content ) ; 
+    my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
 
     my $content_ref;
     if ( $num_new_stories > 0 )

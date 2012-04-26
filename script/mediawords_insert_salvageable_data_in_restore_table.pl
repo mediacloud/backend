@@ -55,14 +55,18 @@ sub main
 
     Readonly my $restore_table_max_id_query => "select max($table" . "_id) from $restore_table ";
 
-    Readonly my $table_id_range_query => "$table" . "_id > ( ( $restore_table_max_id_query ) - $back_records_to_test ) and $table" . "_id < ( $restore_table_max_id_query ) ";
+    Readonly my $table_id_range_query => "$table" .
+      "_id > ( ( $restore_table_max_id_query ) - $back_records_to_test ) and $table" .
+      "_id < ( $restore_table_max_id_query ) ";
 
-    Readonly my $sql_query => "INSERT INTO $restore_table (select * from $table where $table_id_range_query EXCEPT select * from $restore_table where $table_id_range_query ) ";
+    Readonly my $sql_query =>
+"INSERT INTO $restore_table (select * from $table where $table_id_range_query EXCEPT select * from $restore_table where $table_id_range_query ) ";
 
     say STDERR "Starting SQL query at " . localtime() . " : '$sql_query'";
     $db->query( $sql_query );
 
-    Readonly my $restore_after_old_max_id_query => "INSERT INTO $restore_table SELECT * FROM $table where $table" . "_id > ( $restore_table_max_id_query ) ";
+    Readonly my $restore_after_old_max_id_query => "INSERT INTO $restore_table SELECT * FROM $table where $table" .
+      "_id > ( $restore_table_max_id_query ) ";
 
     #say STDERR "Starting SQL query at " . localtime() . " : '$restore_after_old_max_id_query'";
     #$db->query( $restore_after_old_max_id_query );

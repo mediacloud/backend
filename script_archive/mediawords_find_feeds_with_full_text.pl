@@ -27,8 +27,7 @@ sub main
       "   avg(length(extracted_text) - length(html_strip(title || description))) as avg_length_diff, " .
       "   stddev_samp(length(extracted_text)) as std_extracted_length,  " .
       "   stddev_samp(length(html_strip(title || description))) as std_rss_length,   " .
-      "   stddev_samp(length(extracted_text) - length(html_strip(title || description))) as std_length_diff"
-;
+      "   stddev_samp(length(extracted_text) - length(html_strip(title || description))) as std_length_diff";
 
     Readonly my $story_restrictions => "publish_date > now() - interval '2 weeks' and " .
       " media_id in (select media_id from media_feed_counts where feed_count <= 2)";
@@ -47,31 +46,27 @@ sub main
           "         $story_restrictions ) as media_extraction_text_similarity group by media_id order by media_id ) as foo"
       );
 
+    my $hashes = $res ? $res->hashes : [];
 
-    my $hashes = $res? $res->hashes : [];
-
-    print STDERR scalar(@{$hashes}) . " media\n";
+    print STDERR scalar( @{ $hashes } ) . " media\n";
 
     #the moderation_notes field doesn't show up in the CSV so just purge it...
-    foreach my $hash (@$hashes)
+    foreach my $hash ( @$hashes )
     {
-       undef $hash->{moderation_notes};
-       $hash->{name} =~ s/\n//g;
+        undef $hash->{ moderation_notes };
+        $hash->{ name } =~ s/\n//g;
     }
-
 
     my $header = $res->columns;
 
-    my $csv = Class::CSV->new(
-    fields         => $header,
-  );
+    my $csv = Class::CSV->new( fields => $header, );
 
-    $csv->add_line($header);
+    $csv->add_line( $header );
 
     #print Dumper($hashes);
-    foreach my $hash (@$hashes)
+    foreach my $hash ( @$hashes )
     {
-       $csv->add_line($hash);
+        $csv->add_line( $hash );
     }
 
     print STDERR "Starting print\n";

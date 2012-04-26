@@ -144,7 +144,8 @@ sub _run_fetcher
             }
             elsif ( $downloads_id && ( $downloads_id eq 'exit' ) )
             {
-	        say STDERR "exiting as a fetcher";
+                say STDERR "exiting as a fetcher";
+
                 #exit 0;
             }
             else
@@ -359,17 +360,18 @@ sub crawl_single_download
                 #print STDERR "sending fetcher $fetcher_number none\n";
                 $s->printflush( "exit\n" );
 
-		my @fetchers = @{$self->{fetchers}};
+                my @fetchers = @{ $self->{ fetchers } };
 
-		my $fetcher = $fetchers[ $fetcher_number ];
+                my $fetcher = $fetchers[ $fetcher_number ];
 
-		my $fetcher_pid = $fetcher->{ pid } ;
-                
-		sleep (3);
-		say STDERR "waiting for fetcher $fetcher_number ( pid  $fetcher_pid ) ";
-		#waitpid ( $fetcher_pid, 0 );
+                my $fetcher_pid = $fetcher->{ pid };
 
-		say STDERR "exting loop after wait";
+                sleep( 3 );
+                say STDERR "waiting for fetcher $fetcher_number ( pid  $fetcher_pid ) ";
+
+                #waitpid ( $fetcher_pid, 0 );
+
+                say STDERR "exting loop after wait";
                 last OUTER_LOOP;
             }
 

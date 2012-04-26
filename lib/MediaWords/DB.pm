@@ -1,7 +1,6 @@
 package MediaWords::DB;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 
@@ -64,13 +63,13 @@ sub connect_to_db
 
     my $ret = DBIx::Simple::MediaWords->connect( connect_info( $label ) );
 
-    die "Error in connect_to_db $@" unless defined( $ret);
+    die "Error in connect_to_db $@" unless defined( $ret );
 
     my $config = MediaWords::Util::Config::get_config();
 
-    if ( defined ( $config->{mediawords}->{ db_statement_timeout } ) )
+    if ( defined( $config->{ mediawords }->{ db_statement_timeout } ) )
     {
-	$ret->query( " SET statement_timeout TO ? " , $config->{mediawords}->{ db_statement_timeout } );
+        $ret->query( " SET statement_timeout TO ? ", $config->{ mediawords }->{ db_statement_timeout } );
     }
 
     return $ret;

@@ -1,7 +1,6 @@
 package MediaWords::Util::WordCloud;
 use MediaWords::CommonLibs;
 
-
 # generate a word cloud based on a query and a list of words
 
 use strict;
@@ -9,7 +8,6 @@ use strict;
 use Data::Dumper;
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
-
 
 use HTML::TagCloud;
 use List::MoreUtils;
@@ -145,9 +143,9 @@ sub _get_merged_word_count
     given ( $set )
     {
 
-        when ('list_1') { $ret = $words_1_hash->{ $word }; }
-        when ('list_2') { $ret = $words_2_hash->{ $word }; }
-        when ('both')
+        when ( 'list_1' ) { $ret = $words_1_hash->{ $word }; }
+        when ( 'list_2' ) { $ret = $words_2_hash->{ $word }; }
+        when ( 'both' )
         {
             my $temp_hash_ref = $words_1_hash->{ $word };
 
@@ -231,9 +229,9 @@ sub get_multi_set_word_cloud
         given ( $set )
         {
 
-            when ('list_1') { $word_cloud_list_class = "word_cloud_list1"; }
-            when ('list_2') { $word_cloud_list_class = "word_cloud_list2"; }
-            when ('both')   { $word_cloud_list_class = "word_cloud_both_lists"; }
+            when ( 'list_1' ) { $word_cloud_list_class = "word_cloud_list1"; }
+            when ( 'list_2' ) { $word_cloud_list_class = "word_cloud_list2"; }
+            when ( 'both' )   { $word_cloud_list_class = "word_cloud_both_lists"; }
             default
             {
                 die "Invalid case '$set'";

@@ -1,7 +1,6 @@
 package MediaWords::Util::Chart;
 use MediaWords::CommonLibs;
 
-
 use strict;
 
 use Data::Dumper;

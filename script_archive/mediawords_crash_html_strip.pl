@@ -20,12 +20,11 @@ use Storable;
 
 sub main
 {
-    my $line = ${retrieve("$dir/../script_archive/crash_line")};
+    my $line = ${ retrieve( "$dir/../script_archive/crash_line" ) };
 
     #my $line = $lines->[0];
 
-    (MediaWords::Util::HTML::html_strip( $line ) );
-
+    ( MediaWords::Util::HTML::html_strip( $line ) );
 
     exit;
 

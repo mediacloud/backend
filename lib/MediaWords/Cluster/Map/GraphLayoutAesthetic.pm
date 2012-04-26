@@ -1,7 +1,6 @@
 package MediaWords::Cluster::Map::GraphLayoutAesthetic;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use Data::Dumper;
 use List::Member;
@@ -28,10 +27,10 @@ sub _get_centroids_from_graph
 
         for my $i ( 0 .. $#{ $nodes } )
         {
-            if ( my $node = $nodes->[ $i ] ) 
+            if ( my $node = $nodes->[ $i ] )
             {
                 if ( $node->{ cluster_id } && ( $node->{ cluster_id } == $cluster_id ) )
-                {                                
+                {
                     $xTotal += $graph->get_vertex_attribute( $i, "x_coord" );
                     $yTotal += $graph->get_vertex_attribute( $i, "y_coord" );
                     $num_nodes++;
@@ -68,7 +67,7 @@ sub _run_force_layout_on_graph
             min_edge_length => 1
         }
     );
-    
+
     for my $vertex ( $graph->vertices )
     {
         my $nodes_id = $graph->get_vertex_attribute( $vertex, "nodes_id" );
@@ -95,7 +94,7 @@ sub _add_nodes_and_links_to_graph
             map { $graph->add_weighted_edge( $node->{ nodes_id }, $_->{ target_id }, 1 ) } @{ $node->{ links } };
         }
     }
-    
+
     return $graph;
 }
 

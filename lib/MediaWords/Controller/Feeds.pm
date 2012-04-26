@@ -1,7 +1,6 @@
 package MediaWords::Controller::Feeds;
 use MediaWords::CommonLibs;
 
-
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -203,7 +202,8 @@ sub scrape : Local
 
         my $existing_urls = [];
 
-        my $links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns,
+        my $links =
+          Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $url ], $recurse, $c->dbis, $ignore_patterns,
             $existing_urls );
 
         $c->stash->{ links }         = $links;

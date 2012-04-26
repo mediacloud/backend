@@ -37,14 +37,14 @@ sub addDownloadChild
     $download->appendTextChild( 'host', $row->{ host } );
 
     print STDERR "Starting fetch_content\n";
-    my $download_content = MediaWords::DBI::Downloads::fetch_content($row);
+    my $download_content = MediaWords::DBI::Downloads::fetch_content( $row );
 
     my $data_section = XML::LibXML::CDATASection->new( encode_base64( encode( "utf8", $$download_content ) ) );
 
     my $download_content = XML::LibXML::Element->new( 'download_content' );
-    $download_content->appendChild($data_section);
+    $download_content->appendChild( $data_section );
 
-    $download->appendChild($download_content);
+    $download->appendChild( $download_content );
 
     $story->appendChild( $download );
 }
@@ -93,10 +93,12 @@ sub get_matching_articles_within_date_range
 
     my $matching_articles = $db->query(
 "select stories.*, stories.url as story_url from download_texts, downloads, stories where downloads.downloads_id=download_texts.downloads_id and downloads.stories_id=stories.stories_id "
-      #    . ' and publish_date >= ?  and publish_date <= ? '
+
+          #    . ' and publish_date >= ?  and publish_date <= ? '
           . ' order by media_id, stories.stories_id',
-      # $start_date, $end_date
-				      );
+
+        # $start_date, $end_date
+    );
 
     print STDERR "finished  -- search query " . localtime() . "\n";
 
@@ -177,8 +179,7 @@ sub main
     my $start_date;
     my $end_date;
 
-    my Readonly $usage =
-      'USAGE: ' . __FILE__ . ' --file=FILE_NAME [--start_date=DATE --end_date=DATE]';
+    my Readonly $usage = 'USAGE: ' . __FILE__ . ' --file=FILE_NAME [--start_date=DATE --end_date=DATE]';
 
     GetOptions(
         'file=s'       => \$output_file,
@@ -187,7 +188,7 @@ sub main
     ) or die "$usage\n";
 
     die "$usage\n"
-      unless $output_file ;
+      unless $output_file;
 
     die "$usage\n"
       if ( ( $start_date or $end_date ) and ( !( $start_date and $end_date ) ) );
@@ -195,10 +196,9 @@ sub main
     print STDERR "starting --  " . localtime() . "\n";
 
     $start_date = '2008-01-01';
-    $end_date = '2011-01-01';
+    $end_date   = '2011-01-01';
 
-
-    my $db =  MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db;
 
     print STDERR "starting -- search query " . localtime() . "\n";
 
@@ -235,7 +235,7 @@ sub main
             $story = create_story_element( $row );
 
             add_feed_elements_to_story( $db, $story, $stories_id );
-            add_downloads_to_story( $db, $story, $stories_id);
+            add_downloads_to_story( $db, $story, $stories_id );
             $media_element->appendChild( $story );
             $last_story_id = $stories_id;
         }

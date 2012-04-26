@@ -1,7 +1,6 @@
 package MediaWords::Tagger;
 use MediaWords::CommonLibs;
 
-
 # analyze text and assign tags using various methods implemented in the MediaWords::Tagger::* modules
 
 use strict;

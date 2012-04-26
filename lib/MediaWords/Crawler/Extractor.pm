@@ -207,8 +207,7 @@ sub _heuristically_scored_lines_impl
         return;
     }
 
-    my $info_for_lines =
-      MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $title, $description );
+    my $info_for_lines = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $title, $description );
 
     my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $info_for_lines );
 

@@ -1,7 +1,6 @@
 package MediaWords::Util::MC_Fork;
 use MediaWords::CommonLibs;
 
-
 use Moose;
 use strict;
 use warnings;
@@ -25,10 +24,10 @@ sub mc_fork
     }
     else
     {
-        if ( defined( $SIG { TERM } ) )
-	{
-	    undef( $SIG{ TERM } );
-	}
+        if ( defined( $SIG{ TERM } ) )
+        {
+            undef( $SIG{ TERM } );
+        }
 
         $child_pids = [];
     }
