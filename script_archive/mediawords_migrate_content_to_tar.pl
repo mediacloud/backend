@@ -99,6 +99,7 @@ sub main
 
         for my $download ( @{ $downloads } )
         {
+            print STDERR "$download->{ downloads_id } -> $download->{ path }\n";
             migrate_download( $db, $download );
             $db->query( "delete from tar_downloads_queue where downloads_id = ?", $download->{ downloads_id } );
         }
