@@ -1,4 +1,5 @@
 package MediaWords::Cluster::MediaSets;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # cluster based just on media set membership

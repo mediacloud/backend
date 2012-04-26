@@ -1,4 +1,5 @@
 package MediaWords::DBI::StoriesTagsMapMediaSubtables;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # various helper functions for downloads

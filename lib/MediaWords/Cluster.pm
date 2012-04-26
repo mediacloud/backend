@@ -1,4 +1,5 @@
 package MediaWords::Cluster;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # cluster media sources based on their word vectors

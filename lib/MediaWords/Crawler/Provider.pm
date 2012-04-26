@@ -1,4 +1,5 @@
 package MediaWords::Crawler::Provider;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # provide one request at a time a crawler process

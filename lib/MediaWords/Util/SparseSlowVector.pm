@@ -1,4 +1,5 @@
 package MediaWords::Util::SparseSlowVector;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use 5.006;

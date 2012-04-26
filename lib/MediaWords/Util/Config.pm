@@ -1,4 +1,5 @@
 package MediaWords::Util::Config;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # Parse and return data from mediawords.yml config file.

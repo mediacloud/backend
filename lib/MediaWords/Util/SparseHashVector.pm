@@ -1,4 +1,5 @@
 package MediaWords::Util::SparseVector;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # Jon's rewrite of Math::SparseVector

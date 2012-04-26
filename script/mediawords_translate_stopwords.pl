@@ -19,6 +19,7 @@ use Text::Trim;
 use DBIx::Simple::MediaWords;
 use Feed::Scrape;
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 

@@ -1,4 +1,5 @@
 package MediaWords::Controller::Cosines;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;

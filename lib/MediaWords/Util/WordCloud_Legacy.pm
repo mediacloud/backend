@@ -1,4 +1,5 @@
 package MediaWords::Util::WordCloud_Legacy;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # generate a word cloud based on a query and a list of words

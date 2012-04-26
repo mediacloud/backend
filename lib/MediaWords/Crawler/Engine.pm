@@ -1,4 +1,5 @@
 package MediaWords::Crawler::Engine;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # core engine of crawler:

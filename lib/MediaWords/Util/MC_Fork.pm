@@ -1,4 +1,5 @@
 package MediaWords::Util::MC_Fork;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use Moose;

@@ -1,4 +1,5 @@
 package MediaWords::DBI::Queries;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # various routines for accessing the queries table and for querying

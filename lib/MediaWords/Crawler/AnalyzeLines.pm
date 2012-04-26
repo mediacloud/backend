@@ -1,4 +1,5 @@
 package MediaWords::Crawler::AnalyzeLines;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 use MediaWords::Crawler::Extractor;

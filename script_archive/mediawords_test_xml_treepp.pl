@@ -25,6 +25,7 @@ use Data::Dumper;
 
 use Digest::SHA qw(sha1 sha1_hex sha1_base64);
 
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 #use XML::LibXML::CDATASection;

@@ -1,4 +1,5 @@
 package MediaWords::DBI::MediaSets;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;

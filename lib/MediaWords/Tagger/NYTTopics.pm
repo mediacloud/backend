@@ -1,4 +1,5 @@
 package MediaWords::Tagger::NYTTopics;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # search through the text for nyt topic terms

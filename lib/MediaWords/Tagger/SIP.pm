@@ -1,4 +1,5 @@
 package MediaWords::Tagger::SIP;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 #This is just a very quick and dirty first implementation of some of the SIP tagging I had in mind

@@ -1,4 +1,5 @@
 package MediaWords::Cluster::Copy;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # copy the clustering solution of $cluster_run->copy_source_cluster_run

@@ -16,6 +16,7 @@ use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;

@@ -17,6 +17,7 @@ use Feed::Scrape;
 
 use strict;
 
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use LWP::Protocol::https;
 

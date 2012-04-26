@@ -1,4 +1,5 @@
 package MediaWords::Controller::Clusters;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # set of screens for listing, creating, and viewing the results of clustering runs

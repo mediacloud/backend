@@ -1,4 +1,5 @@
 package MediaWords::Pg::Schema;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # import functions into server schema

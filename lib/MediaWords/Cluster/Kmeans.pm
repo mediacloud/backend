@@ -1,4 +1,5 @@
 package MediaWords::Cluster::Kmeans;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # Jon's implementation of the k-means clustering algorithm

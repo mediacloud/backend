@@ -1,4 +1,5 @@
 package MediaWords::Cluster::Map::GraphViz;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;

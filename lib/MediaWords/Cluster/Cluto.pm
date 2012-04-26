@@ -1,4 +1,5 @@
 package MediaWords::Cluster::Cluto;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # This module provides an interface to the cluto clustering toolkit based on the command line binaries rather

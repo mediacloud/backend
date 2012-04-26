@@ -1,4 +1,5 @@
 package MediaWords::Controller::Queries;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # set of screens for creating and analyzing queries

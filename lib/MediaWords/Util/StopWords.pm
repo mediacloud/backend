@@ -1,4 +1,5 @@
 package MediaWords::Util::StopWords;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # provides stop words with enough stop words to
