@@ -2,8 +2,6 @@ package MediaWords::CommonLibs;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-use Modern::Perl '2012';
-
 require Exporter;
 our @ISA = qw(Exporter);
 
