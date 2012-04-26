@@ -19,10 +19,11 @@ use MediaWords::DBI::Queries;
 
 # start and end dates for the cluster query
 use constant QUERY_START_DATE => '2010-12-01';
-use constant QUERY_END_DATE   => '2011-04-01';
+use constant QUERY_END_DATE   => '2011-05-01';
 
 # media sets for which to generate maps
-use constant MEDIA_SETS => ( 16710, 16711, 16712, 16713, 16714, 16715, 16716, 1878, 4631, 5719 );
+#use constant MEDIA_SETS => ( 16710, 16711, 16712, 16713, 16714, 16715, 16716, 1878, 4631, 5719 );
+use constant MEDIA_SETS => ( 16712, 16715, 1878, 4631, 5719 );
 
 # sets of topics to use for the cluster queries
 use constant TOPIC_SETS => ( [ 331, 332, 333 ], [ 334, 335, 336, 337 ], [ 338, 339 ], [ 340, 341 ] );
