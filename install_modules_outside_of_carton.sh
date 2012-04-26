@@ -3,7 +3,6 @@
 working_dir=`dirname $0`
 
 cd $working_dir
-cd ..
 
 source ./script/set_perl_brew_environment.sh
 perl -v
