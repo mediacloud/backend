@@ -15109,6 +15109,67 @@
          },
          "version" : "6.62"
       },
+      "FCGI" : {
+         "dist" : "FCGI-0.74",
+         "module" : "FCGI",
+         "mymeta" : {
+            "abstract" : "Fast CGI module",
+            "author" : [
+               "Sven Verdoolaege (skimo@kotnet.org)"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.59, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "FCGI",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {}
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://git.shadowcat.co.uk/catagits/fcgi2.git"
+               }
+            },
+            "version" : "0.74"
+         },
+         "name" : "FCGI",
+         "pathname" : "F/FL/FLORA/FCGI-0.74.tar.gz",
+         "provides" : {
+            "FCGI" : {
+               "file" : "FCGI.pm",
+               "version" : "0.74"
+            },
+            "FCGI::Stream" : {
+               "file" : "FCGI.pm"
+            }
+         },
+         "version" : "0.74"
+      },
       "Feed::Find" : {
          "dist" : "Feed-Find-0.07",
          "module" : "Feed::Find",
