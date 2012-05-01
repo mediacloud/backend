@@ -1,6 +1,9 @@
+#!/usr/bin/env perl
+
 use strict;
 use warnings;
 use Data::Dumper;
+use Modern::Perl "2012";
 
 # basic sanity test of crawler functionality
 
