@@ -15,10 +15,10 @@ use Array::Compare;
 
 # markers -- patterns used to find lines than can help find the text
 my $_MARKER_PATTERNS = {
-    startclickprintinclude => qr/<\!--\s*startclickprintinclude/i,
-    endclickprintinclude   => qr/<\!--\s*endclickprintinclude/i,
-    startclickprintexclude => qr/<\!--\s*startclickprintexclude/i,
-    endclickprintexclude   => qr/<\!--\s*endclickprintexclude/i,
+    startclickprintinclude => qr/<\!--\s*startclickprintinclude/pi,
+    endclickprintinclude   => qr/<\!--\s*endclickprintinclude/pi,
+    startclickprintexclude => qr/<\!--\s*startclickprintexclude/pi,
+    endclickprintexclude   => qr/<\!--\s*endclickprintexclude/pi,
     sphereitbegin          => qr/<\!--\s*DISABLEsphereit\s*start/i,
     sphereitend            => qr/<\!--\s*DISABLEsphereit\s*end/i,
     body                   => qr/<body/i,
@@ -299,11 +299,11 @@ sub _remove_nonclickprint_text
             if ( $$current_substring =~ $_MARKER_PATTERNS->{ startclickprintinclude } )
             {
                 $$current_substring =~
-                  "s/.*?$_MARKER_PATTERNS->{startclickprintinclude}/$_MARKER_PATTERNS->{startclickprintinclude}/";
+                  "s/.*?$_MARKER_PATTERNS->{startclickprintinclude}/$_MARKER_PATTERNS->{startclickprintinclude}/p";
 
                 $$current_substring =~ $_MARKER_PATTERNS->{ startclickprintinclude };
 
-                $current_substring = \substr( $$current_substring, length( $` ) + length( $& ) );
+                $current_substring = \substr( $$current_substring, length( ${^PREMATCH} ) + length( ${^MATCH} ) );
 
                 $current_substring = \_get_string_after_comment_end_tags( $current_substring );
 
@@ -321,7 +321,7 @@ sub _remove_nonclickprint_text
             #			print "in_click_print\n";
             if ( $$current_substring =~ $_MARKER_PATTERNS->{ startclickprintexclude } )
             {
-                $current_substring = \substr( $$current_substring, length( $& ) + length( $` ) );
+                $current_substring = \substr( $$current_substring, length( ${^MATCH} ) + length( ${^PREMATCH} ) );
 
                 $current_substring = \_get_string_after_comment_end_tags( $current_substring );
                 $state             = "in_click_print_exclude";
@@ -329,7 +329,7 @@ sub _remove_nonclickprint_text
             }
             elsif ( $$current_substring =~ $_MARKER_PATTERNS->{ endclickprintinclude } )
             {
-                $current_substring = \substr( $$current_substring, length( $& ) + length( $` ) );
+                $current_substring = \substr( $$current_substring, length( ${^MATCH} ) + length( ${^PREMATCH} ) );
 
                 $current_substring = \_get_string_after_comment_end_tags( $current_substring );
 
@@ -344,9 +344,9 @@ sub _remove_nonclickprint_text
             {
                 my $index = index( $$current_substring, $_MARKER_PATTERNS->{ endclickprintexclude } );
 
-                substr( $$current_substring, 0, length( $` ), '' );
+                substr( $$current_substring, 0, length( ${^PREMATCH} ), '' );
 
-                $current_substring = \substr( $$current_substring, length( $& ) );
+                $current_substring = \substr( $$current_substring, length( ${^MATCH} ) );
 
                 $current_substring = \_get_string_after_comment_end_tags( $current_substring );
 
@@ -373,9 +373,9 @@ sub _get_string_after_comment_end_tags
 
     my $comment_end_pos = 0;
 
-    if ( $$current_substring =~ /^\s*-->/ )
+    if ( $$current_substring =~ /^\s*-->/p )
     {
-        $comment_end_pos = length( $& );
+        $comment_end_pos = length( ${^MATCH} );
     }
     return substr( $$current_substring, $comment_end_pos );
 }
