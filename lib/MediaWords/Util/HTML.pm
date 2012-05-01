@@ -1,6 +1,7 @@
 package MediaWords::Util::HTML;
-use Modern::Perl "2012";
-use MediaWords::CommonLibs;
+#use Modern::Perl "2012";
+#use MediaWords::CommonLibs;
+#TODO this module is used by pl/perl stored database procedures so we can't used certain libraries.
 
 # various functions for manipulating html
 
