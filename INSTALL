@@ -3,8 +3,10 @@ want to install the system, follow these instructions as they are and
 send any questions to info@mediacloud.org.
 
 These instructions assume comfort with postgresql and especially with perl. You
-will have a difficult time installing the system if you do not have experience
-with perl and cpan. These instructions have only been tested on Ubuntu Linux.
+may have a difficult time installing the system if you do not have experience
+with perl and cpan. 
+
+NOTE: THESE INSTRUCTIONS HAVE ONLY BEEN TESTED ON UBUNTU LINUX. We recommend using Ubuntu 11.10 (Oneiric) or later. Earlier versions may be missing some of the necessary packages.
 
 NOTE: We recommend you create a new user to run and install Media Cloud. These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
@@ -43,7 +45,7 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
   default_tag_modules setting to 'NYTTopics Calais',
 
 * IMPORTANT: On Ubuntu you must install a number of packages. Run the following command to install these packages:
-      sudo apt-get install expat postgresql-server-dev-8.4 libexpat1-dev libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev  libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl  libreadonly-xs-perl build-essential make gcc g++ cpanminus
+      sudo apt-get install expat postgresql-server-dev-8.4 postgresql-client-8.4 libexpat1-dev libxml2-dev libdb-dev libtest-www-mechanize-perl libtidy-dev  libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl  libreadonly-xs-perl build-essential make gcc g++ cpanminus
 
 * Install system wide Perl modules that are needed for the pg/plperl stored procedures by CDing to the directory where mediacloud is located and running the following commands:
      sudo -u root -H cpanm -v
@@ -76,4 +78,3 @@ If there are errors determine which modules are missing and install them by runn
 
 * Perform brilliant analysis, fix our broken code, document how the system
   works, and otherwise contribute to the project.
-
