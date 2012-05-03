@@ -19517,6 +19517,70 @@
          },
          "version" : "1.1102"
       },
+      "IO::Socket::SSL" : {
+         "dist" : "IO-Socket-SSL-1.66",
+         "module" : "IO::Socket::SSL",
+         "mymeta" : {
+            "abstract" : "Nearly transparent SSL encapsulation for IO::Socket::INET.",
+            "author" : [
+               "Steffen Ullrich & Peter Behroozi & Marko Asplund"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "IO-Socket-SSL",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Net::SSLeay" : "1.21",
+                     "Scalar::Util" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "1.66"
+         },
+         "name" : "IO::Socket::SSL",
+         "pathname" : "S/SU/SULLR/IO-Socket-SSL-1.66.tar.gz",
+         "provides" : {
+            "IO::Socket::SSL" : {
+               "file" : "IO/Socket/SSL.pm",
+               "version" : "1.66"
+            },
+            "IO::Socket::SSL::SSL_Context" : {
+               "file" : "IO/Socket/SSL.pm"
+            },
+            "IO::Socket::SSL::SSL_HANDLE" : {
+               "file" : "IO/Socket/SSL.pm"
+            },
+            "IO::Socket::SSL::Session_Cache" : {
+               "file" : "IO/Socket/SSL.pm"
+            }
+         },
+         "version" : "1.66"
+      },
       "IO::Stringy" : {
          "dist" : "IO-stringy-2.110",
          "module" : "IO::Scalar",
@@ -20058,6 +20122,7 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
+                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -20143,15 +20208,15 @@
          "version" : "2.32"
       },
       "LWP" : {
-         "dist" : "libwww-perl-6.03",
-         "module" : "LWP",
+         "dist" : "libwww-perl-6.04",
+         "module" : "LWP::UserAgent",
          "mymeta" : {
             "abstract" : "The World-Wide Web library for Perl",
             "author" : [
                "Gisle Aas <gisle@activestate.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -20207,7 +20272,7 @@
                      "URI" : "1.10",
                      "URI::Escape" : 0,
                      "WWW::RobotRules" : "6",
-                     "perl" : "5.008008"
+                     "perl" : "5.008001"
                   }
                }
             },
@@ -20218,14 +20283,14 @@
                },
                "x_MailingList" : "mailto:libwww@perl.org"
             },
-            "version" : "6.03"
+            "version" : "6.04"
          },
          "name" : "LWP",
-         "pathname" : "G/GA/GAAS/libwww-perl-6.03.tar.gz",
+         "pathname" : "G/GA/GAAS/libwww-perl-6.04.tar.gz",
          "provides" : {
             "LWP" : {
                "file" : "LWP.pm",
-               "version" : "6.03"
+               "version" : "6.04"
             },
             "LWP::Authen::Basic" : {
                "file" : "LWP/Authen/Basic.pm"
@@ -20306,10 +20371,10 @@
             },
             "LWP::UserAgent" : {
                "file" : "LWP/UserAgent.pm",
-               "version" : "6.03"
+               "version" : "6.04"
             }
          },
-         "version" : "6.03"
+         "version" : "6.04"
       },
       "LWP::MediaTypes" : {
          "dist" : "LWP-MediaTypes-6.01",
@@ -20370,6 +20435,73 @@
             }
          },
          "version" : "6.01"
+      },
+      "LWP::Protocol::https" : {
+         "dist" : "LWP-Protocol-https-6.03",
+         "module" : "LWP::Protocol::https",
+         "mymeta" : {
+            "abstract" : "Provide https support for LWP::UserAgent",
+            "author" : [
+               "Gisle Aas <gisle@activestate.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "LWP-Protocol-https",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "IO::Socket::SSL" : "1.54",
+                     "LWP::UserAgent" : "6.04",
+                     "Mozilla::CA" : "20110101",
+                     "Net::HTTPS" : "6",
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "repository" : {
+                  "url" : "http://github.com/gisle/lwp-protocol-https"
+               },
+               "x_MailingList" : "mailto:libwww@perl.org"
+            },
+            "version" : "6.03"
+         },
+         "name" : "LWP::Protocol::https",
+         "pathname" : "G/GA/GAAS/LWP-Protocol-https-6.03.tar.gz",
+         "provides" : {
+            "LWP::Protocol::https" : {
+               "file" : "LWP/Protocol/https.pm",
+               "version" : "6.03"
+            },
+            "LWP::Protocol::https::Socket" : {
+               "file" : "LWP/Protocol/https.pm"
+            }
+         },
+         "version" : "6.03"
       },
       "Lingua::EN::Sentence" : {
          "dist" : "Lingua-EN-Sentence-0.25",
@@ -25806,6 +25938,65 @@
          },
          "version" : "0.05"
       },
+      "Mozilla::CA" : {
+         "dist" : "Mozilla-CA-20120309",
+         "module" : "Mozilla::CA",
+         "mymeta" : {
+            "abstract" : "Mozilla's CA cert bundle in PEM format",
+            "author" : [
+               "Gisle Aas <gisle@activestate.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120630, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Mozilla-CA",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "perl" : "5.006"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "repository" : {
+                  "url" : "http://github.com/gisle/mozilla-ca"
+               }
+            },
+            "version" : "20120309"
+         },
+         "name" : "Mozilla::CA",
+         "pathname" : "A/AB/ABH/Mozilla-CA-20120309.tar.gz",
+         "provides" : {
+            "Mozilla::CA" : {
+               "file" : "Mozilla/CA.pm",
+               "version" : "20120309"
+            }
+         },
+         "version" : "20120309"
+      },
       "Net::Calais" : {
          "dist" : "Net-Calais-1.02",
          "module" : "Net::Calais",
@@ -25939,6 +26130,77 @@
             }
          },
          "version" : "6.02"
+      },
+      "Net::SSLeay" : {
+         "dist" : "Net-SSLeay-1.48",
+         "module" : "Net::SSLeay",
+         "mymeta" : {
+            "abstract" : "Perl extension for using OpenSSL",
+            "author" : [
+               "Maintained by Mike McCauley and Florian Ragwitz since November 2005"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Net-SSLeay",
+            "no_index" : {
+               "directory" : [
+                  "examples",
+                  "ext",
+                  "helper_script",
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.36"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.36"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "MIME::Base64" : 0,
+                     "Test::More" : "0.60_01",
+                     "perl" : "5.005"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "https://rt.cpan.org/Public/Dist/Display.html?Name=net-ssleay"
+               },
+               "repository" : {
+                  "url" : "http://svn.debian.org/wsvn/net-ssleay"
+               }
+            },
+            "version" : "1.48"
+         },
+         "name" : "Net::SSLeay",
+         "pathname" : "M/MI/MIKEM/Net-SSLeay-1.48.tar.gz",
+         "provides" : {
+            "Net::SSLeay" : {
+               "file" : "Net/SSLeay.pm",
+               "version" : "1.48"
+            },
+            "Net::SSLeay::Handle" : {
+               "file" : "Net/SSLeay/Handle.pm",
+               "version" : "0.61"
+            }
+         },
+         "version" : "1.48"
       },
       "Net::Server" : {
          "dist" : "Net-Server-0.99",
@@ -35524,7 +35786,7 @@
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],
