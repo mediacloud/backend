@@ -53,6 +53,16 @@ sub index : Path : Args(0)
     $self->_redirect_to_default_page( $c, $dashboards_id );
 }
 
+sub loop_forever : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    while ( 1 )
+    {
+        sleep( 1 );
+    }
+}
+
 sub get_default_dashboards_id
 {
     my ( $dbis ) = @_;
