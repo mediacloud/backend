@@ -82,6 +82,10 @@ sub very_slow_query : Local
         sleep( 1 );
         print STDERR ( $hash->{ downloads_id } );
     }
+
+    $c->response->body( 'finished the slow very query' );
+
+    return;
 }
 
 sub get_default_dashboards_id
