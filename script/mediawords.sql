@@ -216,6 +216,7 @@ create index queries_creation_date on queries (creation_date);
 create index queries_hash on queries ( md5( description ) );
 ALTER TABLE queries ADD COLUMN query_version query_version_enum DEFAULT enum_last (null::query_version_enum ) NOT NULL;
 create unique index queries_hash_version on queries ( md5( description ), query_version );
+CREATE INDEX queries_description ON queries USING btree (description);
 
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
