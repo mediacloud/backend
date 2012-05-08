@@ -252,7 +252,7 @@ create table media_sets (
     set_type                    text        not null,
     media_id                    int         references media on delete cascade,
     tags_id                     int         references tags on delete cascade,
-    media_clusters_id           int         references media_clusters,
+    media_clusters_id           int         references media_clusters on delete cascade,
     creation_date               timestamp   default now(),
     vectors_added               boolean     default false,
     include_in_dump             boolean     default true
