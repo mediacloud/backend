@@ -625,6 +625,7 @@ create table stories_tags_map
 
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);
 create index stories_tags_map_tag on stories_tags_map (tags_id);
+CREATE INDEX stories_tags_map_story_id ON stories_tags_map USING btree (stories_id);
 
 create table extractor_training_lines
 (
