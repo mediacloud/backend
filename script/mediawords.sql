@@ -16,6 +16,24 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
+CREATE OR REPLACE FUNCTION loop_forever()
+    RETURNS VOID AS
+$$
+DECLARE
+    temp integer;
+BEGIN
+   temp := 1;
+   LOOP
+    temp := temp + 1;
+    perform pg_sleep( 1 );
+    RAISE NOTICE 'time - %', temp; 
+   END LOOP;
+END;
+$$
+LANGUAGE 'plpgsql' IMMUTABLE
+  COST 10;
+
+
 CREATE OR REPLACE FUNCTION purge_story_words(default_start_day date, default_end_day date)
   RETURNS VOID  AS
 $$
@@ -375,6 +393,10 @@ LANGUAGE 'plpgsql' STABLE
  ;
 
 CREATE VIEW media_sets_explict_sw_data_dates as  select media_sets_id, min(media.sw_data_start_date) as sw_data_start_date, max( media.sw_data_end_date) as sw_data_end_date from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id )   group by media_sets_id;
+
+CREATE VIEW media_with_collections AS
+    SELECT t.tag, m.media_id, m.url, m.name, m.moderated, m.feeds_added, m.moderation_notes, m.full_text_rss FROM media m, tags t, tag_sets ts, media_tags_map mtm WHERE (((((ts.name)::text = 'collection'::text) AND (ts.tag_sets_id = t.tag_sets_id)) AND (mtm.tags_id = t.tags_id)) AND (mtm.media_id = m.media_id)) ORDER BY m.media_id;
+
 
 CREATE OR REPLACE FUNCTION media_set_retains_sw_data_for_date(v_media_sets_id int, test_date date, default_start_day date, default_end_day date)
   RETURNS BOOLEAN AS
@@ -790,6 +812,7 @@ create index daily_words_count on daily_words(publish_day, media_sets_id, dashbo
 create index daily_words_publish_week on daily_words(week_start_date(publish_day));
 
 create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
+CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
        weekly_words_id              serial          primary key,
