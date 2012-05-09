@@ -2,6 +2,8 @@ package MediaWords::MyFCgiManager;
 use Moose;
 use namespace::autoclean;
 use FCGI::ProcManager;
+use Modern::Perl '2012';
+use MediaWords::CommonLibs;
 
 has '_fcgi_procmanager' => (
     is => 'ro',
@@ -14,7 +16,7 @@ around BUILDARGS => sub {
     my $class = shift;
     my $ret = $class->$orig(_fcgi_procmanager => FCGI::ProcManager->new(@_));
 
-    $ret->{die_timeout} = 2;
+    $ret->{_fcgi_procmanager}->{die_timeout} = 2;
 
     return $ret;
 };
