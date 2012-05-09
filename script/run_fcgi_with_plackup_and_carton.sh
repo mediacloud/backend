@@ -10,4 +10,4 @@ cd $working_dir
 
 echo $$ run_fcgi_with_plackup_and_carton.sh pid >&2
 
-exec ./run_plackup_with_carton.sh -s FCGI
+exec ./run_plackup_with_carton.sh -s FCGI --manager MediaWords::MyFCgiManager
