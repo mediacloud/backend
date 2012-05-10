@@ -674,7 +674,7 @@ ALTER TABLE ONLY download_texts
     ADD CONSTRAINT download_texts_pkey PRIMARY KEY (download_texts_id);
 
 ALTER TABLE ONLY download_texts
-    ADD CONSTRAINT download_texts_downloads_id_fkey FOREIGN KEY (downloads_id) REFERENCES downloads(downloads_id);
+    ADD CONSTRAINT download_texts_downloads_id_fkey FOREIGN KEY (downloads_id) REFERENCES downloads(downloads_id) ON DELETE CASCADE;
 
 ALTER TABLE download_texts ALTER COLUMN download_text_length set NOT NULL;
 
