@@ -3,7 +3,7 @@
 <b>[% c.loc('Data') %]</b>
 
 <p>
-[% c.loc('A core goal of the Media Cloud project is to make as much data as legally possible as available as legally possible.  Our hope is to provide the basic data to allow smarter folks than us to ask and answer better questions about the mediasphere than we could without having to do the back end work of collecting and processing the underlying data.  To that end, we make available daily dumps of per-story word counts for every story for every media source we collect (including many media sources that are not included in the main dashboard interface).') %]
+[% c.loc('A core goal of the Media Cloud project is to make as much data available as legally possible.  Our hope is to provide the basic data to allow smarter folks than us to ask and answer better questions about the mediasphere than we could without having to do the back end work of collecting and processing the underlying data.  To that end, we make available daily dumps of per-story word counts for every story for every media source we collect (including many media sources that are not included in the main dashboard interface).') %]
 </p>
 <p>
 [% c.loc('The data dumps are zipped archives containing csv files.') %] 
