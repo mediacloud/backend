@@ -886,19 +886,6 @@ create index total_daily_words_publish_day on total_daily_words (publish_day);
 create index total_daily_words_publish_week on total_daily_words (week_start_date(publish_day));
 CREATE UNIQUE INDEX total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
 
- 
-create table daily_story_count (
-       daily_storys_id             serial          primary key,
-       media_sets_id               int             not null references media_sets on delete cascade, 
-       dashboard_topics_id         int             null references dashboard_topics, 
-       publish_day                 date            not null,
-       update_time                 timestamp       not null default now(),
-       story_count                 int             not null
-);
-
-create index daily_story_count_media_sets_id on daily_story_count (media_sets_id);
-create index daily_story_count_media_sets_id_publish_day on daily_story_count (media_sets_id, publish_day);
-CREATE UNIQUE INDEX daily_story_count_media_sets_id_dashboard_topic_id_publish_day ON daily_story_count (media_sets_id, dashboard_topics_id, publish_day);
 
 create table total_weekly_words (
        total_weekly_words_id         serial          primary key,
