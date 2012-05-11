@@ -67,8 +67,8 @@ If there are errors determine which modules are missing and install them by runn
 
   This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
   
-* Run ./script/run_with_carton.sh ./script/mediawords_server.pl.  This should start up the web server.
-  If the command line returns no errors, go to http://localhost:3000 
+* Run ./script/run_plackup_with_carton.sh.  This should start up the web server.
+  If the command line returns no errors, go to http://localhost:5000 
   (or replace localhost with whatever host the system is on) to
   access the server.
   
