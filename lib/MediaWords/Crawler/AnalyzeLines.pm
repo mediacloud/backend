@@ -240,8 +240,8 @@ sub calculate_line_extraction_metrics
 
     Readonly my $article_has_clickprint => $has_clickprint;    #<--- syntax error at (eval 980) line 11, near "Readonly my "
 
-    Readonly my $article_has_sphereit_map        => $sphereit_map;
-    Readonly my $sphereit_map_includes_line      => ( $sphereit_map && $sphereit_map->{ $i } );
+    Readonly my $article_has_sphereit_map        => defined( $sphereit_map );
+    Readonly my $sphereit_map_includes_line      => ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
     Readonly my $description_similarity_discount => get_description_similarity_discount( $line, $description );
 
     return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
