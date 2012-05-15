@@ -15,6 +15,8 @@ sub read_file
 {
     my ( $tar_file, $file_name, $starting_block, $num_blocks ) = @_;
 
+    warn ( "number of blocks can be 0. Tar file '$tar_file', file name '$file_name' " ) if $num_blocks == 0;
+
     my $tar_cmd =
       "dd if='$tar_file' bs=512 skip=$starting_block count=$num_blocks 2> /dev/null | tar -x -O -f - '$file_name'";
     my $content = `$tar_cmd`;
