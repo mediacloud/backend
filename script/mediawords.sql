@@ -16,6 +16,24 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
+CREATE OR REPLACE FUNCTION loop_forever()
+    RETURNS VOID AS
+$$
+DECLARE
+    temp integer;
+BEGIN
+   temp := 1;
+   LOOP
+    temp := temp + 1;
+    perform pg_sleep( 1 );
+    RAISE NOTICE 'time - %', temp; 
+   END LOOP;
+END;
+$$
+LANGUAGE 'plpgsql' IMMUTABLE
+  COST 10;
+
+
 CREATE OR REPLACE FUNCTION purge_story_words(default_start_day date, default_end_day date)
   RETURNS VOID  AS
 $$
@@ -198,6 +216,7 @@ create index queries_creation_date on queries (creation_date);
 create index queries_hash on queries ( md5( description ) );
 ALTER TABLE queries ADD COLUMN query_version query_version_enum DEFAULT enum_last (null::query_version_enum ) NOT NULL;
 create unique index queries_hash_version on queries ( md5( description ), query_version );
+CREATE INDEX queries_description ON queries USING btree (description);
 
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
@@ -233,7 +252,7 @@ create table media_sets (
     set_type                    text        not null,
     media_id                    int         references media on delete cascade,
     tags_id                     int         references tags on delete cascade,
-    media_clusters_id           int         references media_clusters,
+    media_clusters_id           int         references media_clusters on delete cascade,
     creation_date               timestamp   default now(),
     vectors_added               boolean     default false,
     include_in_dump             boolean     default true
@@ -375,6 +394,10 @@ LANGUAGE 'plpgsql' STABLE
  ;
 
 CREATE VIEW media_sets_explict_sw_data_dates as  select media_sets_id, min(media.sw_data_start_date) as sw_data_start_date, max( media.sw_data_end_date) as sw_data_end_date from media_sets_media_map join media on (media_sets_media_map.media_id = media.media_id )   group by media_sets_id;
+
+CREATE VIEW media_with_collections AS
+    SELECT t.tag, m.media_id, m.url, m.name, m.moderated, m.feeds_added, m.moderation_notes, m.full_text_rss FROM media m, tags t, tag_sets ts, media_tags_map mtm WHERE (((((ts.name)::text = 'collection'::text) AND (ts.tag_sets_id = t.tag_sets_id)) AND (mtm.tags_id = t.tags_id)) AND (mtm.media_id = m.media_id)) ORDER BY m.media_id;
+
 
 CREATE OR REPLACE FUNCTION media_set_retains_sw_data_for_date(v_media_sets_id int, test_date date, default_start_day date, default_end_day date)
   RETURNS BOOLEAN AS
@@ -575,8 +598,9 @@ CREATE INDEX downloads_sites_pending on downloads (regexp_replace(host, $q$^(.)*
 
 CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
 
+CREATE INDEX downloads_sites_downloads_id_pending ON downloads USING btree (regexp_replace((host)::text, '^(.)*?([^.]+)\\.([^.]+)$'::text, '\\2.\\3'::text), downloads_id) WHERE (state = 'pending'::download_state);
+
 /*
-CREATE INDEX downloads_sites_downloads_id_pending on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id) where state='pending';
 CREATE INDEX downloads_sites_index_downloads_id on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id);
 */
 
@@ -601,6 +625,7 @@ create table stories_tags_map
 
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);
 create index stories_tags_map_tag on stories_tags_map (tags_id);
+CREATE INDEX stories_tags_map_story_id ON stories_tags_map USING btree (stories_id);
 
 create table extractor_training_lines
 (
@@ -649,7 +674,7 @@ ALTER TABLE ONLY download_texts
     ADD CONSTRAINT download_texts_pkey PRIMARY KEY (download_texts_id);
 
 ALTER TABLE ONLY download_texts
-    ADD CONSTRAINT download_texts_downloads_id_fkey FOREIGN KEY (downloads_id) REFERENCES downloads(downloads_id);
+    ADD CONSTRAINT download_texts_downloads_id_fkey FOREIGN KEY (downloads_id) REFERENCES downloads(downloads_id) ON DELETE CASCADE;
 
 ALTER TABLE download_texts ALTER COLUMN download_text_length set NOT NULL;
 
@@ -790,6 +815,7 @@ create index daily_words_count on daily_words(publish_day, media_sets_id, dashbo
 create index daily_words_publish_week on daily_words(week_start_date(publish_day));
 
 create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
+CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
        weekly_words_id              serial          primary key,
@@ -860,19 +886,6 @@ create index total_daily_words_publish_day on total_daily_words (publish_day);
 create index total_daily_words_publish_week on total_daily_words (week_start_date(publish_day));
 CREATE UNIQUE INDEX total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
 
- 
-create table daily_story_count (
-       daily_storys_id             serial          primary key,
-       media_sets_id               int             not null references media_sets on delete cascade, 
-       dashboard_topics_id         int             null references dashboard_topics, 
-       publish_day                 date            not null,
-       update_time                 timestamp       not null default now(),
-       story_count                 int             not null
-);
-
-create index daily_story_count_media_sets_id on daily_story_count (media_sets_id);
-create index daily_story_count_media_sets_id_publish_day on daily_story_count (media_sets_id, publish_day);
-CREATE UNIQUE INDEX daily_story_count_media_sets_id_dashboard_topic_id_publish_day ON daily_story_count (media_sets_id, dashboard_topics_id, publish_day);
 
 create table total_weekly_words (
        total_weekly_words_id         serial          primary key,

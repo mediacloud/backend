@@ -54,6 +54,41 @@ sub index : Path : Args(0)
     $self->_redirect_to_default_page( $c, $dashboards_id );
 }
 
+sub loop_forever : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    while ( 1 )
+    {
+        sleep( 1 );
+    }
+}
+
+sub very_slow_query : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    my $dbis = $c->dbis;
+
+    say STDERR " Starting super slow query...";
+
+    my $hashes = $dbis->query(
+" select * from story_sentence_words , ( select  md5( md5(url || downloads_id) || description || random()) as foo,  md5(description || host || downloads_id) from downloads natural join stories natural join story_sentence_words natural join story_sentences natural join download_texts where md5 ( ( md5(md5(term) || stem ) || download_text ) ) = md5( md5(url || downloads_id) || description || random())  or ( md5(sentence) = md5(url || random()  ) or ( sentence like '%xxx%' or download_text like '%fooss%'  ) ) )   as inner_query where term = foo limit 10000 "
+    )->hashes;
+
+    say STDERR "finished super slow query...";
+
+    foreach my $hash ( @{ $hashes } )
+    {
+        sleep( 1 );
+        print STDERR ( $hash->{ downloads_id } );
+    }
+
+    $c->response->body( 'finished the slow very query' );
+
+    return;
+}
+
 sub get_default_dashboards_id
 {
     my ( $dbis ) = @_;

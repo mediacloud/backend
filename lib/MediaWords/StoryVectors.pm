@@ -800,39 +800,39 @@ sub _update_top_500_weekly_author_words
           "    group by media_sets_id, publish_week, authors_id" );
 }
 
-sub _update_daily_stories_counts
-{
-    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+# sub _update_daily_stories_counts
+# {
+#     my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
 
-    say STDERR "aggregate: update_daily_stories_counts $sql_date";
+#     say STDERR "aggregate: update_daily_stories_counts $sql_date";
 
-    my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
-    my $media_set_clause       = _get_media_set_clause( $media_sets_id );
-    my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
+#     my $dashboard_topic_clause = _get_dashboard_topic_clause( $dashboard_topics_id );
+#     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
+#     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
-    $db->query( "delete from daily_story_count where publish_day = '${ sql_date }'::date $update_clauses" );
+#     $db->query( "delete from daily_story_count where publish_day = '${ sql_date }'::date $update_clauses" );
 
-    #$db->query( "delete from daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
-    #$db->query(
-    #    "delete from total_daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
+#     #$db->query( "delete from daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
+#     #$db->query(
+#     #    "delete from total_daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
 
-    if ( !$dashboard_topics_id )
-    {
+#     if ( !$dashboard_topics_id )
+#     {
 
-        my $sql =
-          "insert into daily_story_count (media_sets_id, dashboard_topics_id, publish_day, story_count) " .
-          "                     select media_sets_id, null as dashboard_topics_id,  " .
-          "                      min(publish_day) as publish_day, count(*) as story_count" .
-          "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
-          "                      where ssw.publish_day = '${sql_date}'::date and " .
-          "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
-          "                      group by msmm.media_sets_id, ssw.publish_day ";
+#         my $sql =
+#           "insert into daily_story_count (media_sets_id, dashboard_topics_id, publish_day, story_count) " .
+#           "                     select media_sets_id, null as dashboard_topics_id,  " .
+#           "                      min(publish_day) as publish_day, count(*) as story_count" .
+#           "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
+#           "                      where ssw.publish_day = '${sql_date}'::date and " .
+#           "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
+#           "                      group by msmm.media_sets_id, ssw.publish_day ";
 
-        $db->query( $sql );
+#         $db->query( $sql );
 
-    }
+#     }
 
-}
+# }
 
 # update the given table for the given date and interval
 sub _update_daily_words
