@@ -1,4 +1,6 @@
 package Lingua::EN::Sentence::MediaWords;
+use Modern::Perl "2012";
+use MediaWords::CommonLibs;
 
 # local, optimized version of Lingua::EN::Sentence
 
