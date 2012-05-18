@@ -42,17 +42,19 @@ sub _apply_dangerous_regex
         print "\n";
     }
 
-    #$text =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
+    print "starting _apply_dangerous_regex \n";
 
-    print "starting _apply_dangerous_regex part 1\n";
+    $text =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
 
-    $text =~ s/([^-\w]\w\.)\001/$1/sgo;
+    # print "starting _apply_dangerous_regex part 1\n";
 
-    print "starting _apply_dangerous_regex part 2\n";
-    $text =~ s/([^-\w]\w\!)\001/$1/sgo;
-    print "starting _apply_dangerous_regex part 3\n";
-    $text =~ s/([^-\w]\w\?)\001/$1/sgo;
-    print "Finished _apply_dangerous_regex\n\n";
+    # $text =~ s/([^-\w]\w\.)\001/$1/sgo;
+
+    # print "starting _apply_dangerous_regex part 2\n";
+    # $text =~ s/([^-\w]\w\!)\001/$1/sgo;
+    # print "starting _apply_dangerous_regex part 3\n";
+    # $text =~ s/([^-\w]\w\?)\001/$1/sgo;
+    # print "Finished _apply_dangerous_regex\n\n";
 
     return $text;
 }
