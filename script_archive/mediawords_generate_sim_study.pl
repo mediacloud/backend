@@ -43,7 +43,7 @@ use constant BLOG_MEDIA_TAGS_IDS => ( 8875024 );
 use constant MSM_MEDIA_TAGS_IDS => ( 8875073, 8875076, 8875077, 8875078, 8875079, 8875084, 8875087 );
 
 # stories to query, before correcting for equal blogs / msm and keywords filtering
-use constant STORY_QUERY_LIMIT => 7500;
+use constant STORY_QUERY_LIMIT => 5000;
 
 # exclude the following media sources
 use constant EXCLUDE_MEDIA_IDS => ( 1762 );
