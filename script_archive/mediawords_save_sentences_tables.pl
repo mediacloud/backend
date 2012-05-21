@@ -115,14 +115,18 @@ sub main
 
     my $dates = [ '2011-01-03', '2011-01-10' ];
 
+    my $prefix = 'sen_study_new';
+
+    #my $prefix = 'sen_study_old';
+
     foreach my $date_based_table ( sort keys %{ $date_based_tables } )
     {
-        save_table_by_date( $dbs, $date_based_table, 'copy_test', $dates, $date_based_tables->{ $date_based_table } );
+        save_table_by_date( $dbs, $date_based_table, $prefix, $dates, $date_based_tables->{ $date_based_table } );
     }
 
     foreach my $table_to_save ( @$tables_to_save )
     {
-        save_table_by_stories_id( $dbs, $table_to_save, 'copy_test', $dates );
+        save_table_by_stories_id( $dbs, $table_to_save, $prefix, $dates );
     }
 
     exit;
