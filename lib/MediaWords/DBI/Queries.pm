@@ -943,7 +943,7 @@ sub get_term_counts
 
     my $num_term_combinations = @{ $query->{ media_sets } } * @{ $stems };
     my ( $media_set_group, $media_set_legend );
-    if ( $num_term_combinations < 5 )
+    if ( $num_term_combinations < 6 )
     {
         $media_set_group  = ', ms.media_sets_id';
         $media_set_legend = " || ' - ' || min( ms.name )";
