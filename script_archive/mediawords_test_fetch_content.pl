@@ -19,9 +19,10 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
 
-    my $downloads = $db->query(
-        "select * from downloads where state = 'success' and type = 'content' " . "  order by downloads_id desc limit 10" )
-      ->hashes;
+ #    my $downloads = $db->query(
+ #        "select * from downloads where state = 'success' and type = 'content' " . "  order by downloads_id desc limit 10" )
+ #      ->hashes;
+    my $downloads = $db->query( "select * from downloads where downloads_id = ?", $ARGV[ 0 ] )->hashes;
 
     for my $d ( @{ $downloads } )
     {
