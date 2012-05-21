@@ -95,12 +95,24 @@ sub view : Local
 
     my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
 
+    #say STDERR "content_ref is $content_ref";
+    #say STDERR Dumper( $content_ref );
+
     if ( !$content_ref )
     {
-        $content_ref = \"no content available for this download";
+        $content_ref = \ "no content available for this download";
     }
 
-    my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
+    my $encoded_content;
+
+    if ( $$content_ref ) 
+    {
+	$encoded_content = Encode::encode( 'utf-8', $$content_ref );
+    }
+    else
+    {
+	$encoded_content = $$content_ref;
+    }
 
     $c->response->content_type( 'text/plain; charset=utf8' );
     $c->response->content_length( length( $encoded_content ) );
