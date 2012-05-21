@@ -377,7 +377,7 @@ sub add_word_vectors
         my $words = $db->query(
             "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
               "  where ssw.stories_id = ? " . "    and not is_stop_stem( 'short', ssw.stem ) " .
-              "  group by ssw.stem order by sum( stem_count ) desc limit 1000 ",
+              "  group by ssw.stem order by sum( stem_count ) desc limit 100 ",
             $story->{ stories_id }
         )->hashes;
 
