@@ -4,17 +4,15 @@ cmd_str="$1"
 shift
 full_path_str=`readlink -m $cmd_str`
 
-
 working_dir=`dirname $0`
 
 cd $working_dir
-
-source ./set_perl_brew_environment.sh
 
 set -u
 set -o  errexit
 
 cd ..
 #echo "$BASHPID"
-echo carton exec -- $full_path_str $@
-exec carton exec -- $full_path_str $@
+echo ./script/run_carton.sh exec -- $full_path_str $@
+exec ./script/run_carton.sh exec -- $full_path_str $@
+
