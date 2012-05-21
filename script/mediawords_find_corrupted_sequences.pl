@@ -11,9 +11,10 @@ BEGIN
 use Data::Dumper;
 use utf8;
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-use Perl6::Say;
+
 
 sub main
 {

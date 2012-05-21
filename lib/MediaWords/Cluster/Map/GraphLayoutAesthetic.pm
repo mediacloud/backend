@@ -1,10 +1,11 @@
 package MediaWords::Cluster::Map::GraphLayoutAesthetic;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
 use Data::Dumper;
 use List::Member;
-use Perl6::Say;
+
 
 use Graph;
 use Graph::Layout::Aesthetic;

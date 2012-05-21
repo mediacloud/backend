@@ -17,7 +17,7 @@ use Test::More tests => 14 +1;
 
 use_ok( 'MediaWords::Util::StopWords' );
 use MediaWords::Util::StopWords;
-use Perl6::Say;
+
 use Data::Dumper;
 use utf8;
 

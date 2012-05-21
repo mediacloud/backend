@@ -1,10 +1,11 @@
 package MediaWords::Pg::Schema;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # import functions into server schema
 
 use strict;
-use Perl6::Say;
+
 use IPC::Run3;
 use Carp;
 use FindBin;

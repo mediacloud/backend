@@ -10,7 +10,7 @@ package XML::FeedPP::MediaWords;
 ##
 use strict;
 use warnings;
-use Perl6::Say;
+
 use Data::Dumper;
 use XML::FeedPP;
 
@@ -105,7 +105,7 @@ use Class::Std;
 package XML::FeedPP::RSS::Item::MediaWords;
 
 use base 'XML::FeedPP::RSS::Item';
-use Perl6::Say;
+
 use Data::Dumper;
 
 sub create_wrapped_rss_item

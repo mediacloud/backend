@@ -1,4 +1,5 @@
 package MediaWords::Controller::Queries;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # set of screens for creating and analyzing queries
@@ -8,7 +9,7 @@ use warnings;
 use parent 'Catalyst::Controller';
 
 use Data::Dumper;
-use Perl6::Say;
+
 
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;

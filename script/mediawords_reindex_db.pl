@@ -15,10 +15,11 @@ BEGIN
 
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use MediaWords::Pg::Schema;
-use Perl6::Say;
+
 use Term::Prompt;
 use Data::Dumper;
 use Smart::Comments;

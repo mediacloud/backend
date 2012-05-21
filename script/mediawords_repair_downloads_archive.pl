@@ -15,6 +15,7 @@ BEGIN
 
 use Archive::Tar::Indexed;
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 sub main

@@ -1,4 +1,5 @@
 package MediaWords::Cluster;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # cluster media sources based on their word vectors
@@ -32,7 +33,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Perl6::Say;
+
 use Tie::IxHash;
 
 use MediaWords::Cluster::Copy;

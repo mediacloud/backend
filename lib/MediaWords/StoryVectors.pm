@@ -1,4 +1,5 @@
 package MediaWords::StoryVectors;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # methods to generate the story_sentences and story_sentence_words and associated aggregated tables
@@ -6,7 +7,7 @@ use MediaWords::CommonLibs;
 use strict;
 use Encode;
 use Encode::HanConvert;
-use Perl6::Say;
+
 use Lingua::ZH::WordSegmenter;
 use Data::Dumper;
 

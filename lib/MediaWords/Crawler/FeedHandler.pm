@@ -1,4 +1,5 @@
 package MediaWords::Crawler::FeedHandler;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -14,7 +15,7 @@ use FindBin;
 use IO::Compress::Gzip;
 use URI::Split;
 use Carp;
-use Perl6::Say;
+
 use List::Util qw (max maxstr);
 use Try::Tiny;
 

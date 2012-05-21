@@ -14,9 +14,10 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Perl6::Say;
+
 
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use MediaWords::StoryVectors;

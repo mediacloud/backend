@@ -1,4 +1,5 @@
 package MediaWords::Controller::Feeds;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;

@@ -1,10 +1,11 @@
 package MediaWords::Cluster::Map::GraphViz;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
 use Data::Dumper;
 use List::Member;
-use Perl6::Say;
+
 
 use GraphViz;
 

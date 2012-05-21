@@ -15,7 +15,7 @@ use Readonly;
 use utf8;
 
 use Data::Dumper;
-use Perl6::Say;
+
 use Encode;
 use MIME::Base64;
 use Lingua::EN::Sentence::MediaWords;
@@ -24,7 +24,7 @@ use utf8;
 use Lingua::Stem;
 use Lingua::Stem::Ru;
 use Data::Dumper;
-use Perl6::Say;
+
 use Lingua::EN::Sentence::MediaWords;
 use Lingua::Stem::Snowball;
 use MediaWords::Util::Stemmer;

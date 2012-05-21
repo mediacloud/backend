@@ -11,7 +11,7 @@ use MediaWords::Util::Config;
 use MediaWords::DB;
 
 use Data::Page;
-use Perl6::Say;
+
 use Data::Dumper;
 
 use base qw(DBIx::Simple);

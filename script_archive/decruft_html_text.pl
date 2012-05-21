@@ -23,7 +23,7 @@ use MediaWords::DB;
 use XML::LibXML;
 use Encode;
 use MIME::Base64;
-use Perl6::Say;
+
 
 sub main
 {

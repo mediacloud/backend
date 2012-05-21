@@ -1,17 +1,18 @@
 package MediaWords::DBI::Authors;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
 
 use Encode;
-use Perl6::Say;
+
 use Data::Dumper;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use Data::Dumper;
 use Encode;
 use MIME::Base64;
-use Perl6::Say;
+
 use HTML::TreeBuilder;
 use HTML::TreeBuilder::XPath;
 

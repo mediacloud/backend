@@ -1,4 +1,5 @@
 package MediaWords::Crawler::Extractor;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # extract substantive new story text from html pages

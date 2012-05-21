@@ -1,4 +1,5 @@
 package MediaWords::Crawler::BlogPageProcessor_LiveJournal;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;

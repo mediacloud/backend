@@ -23,7 +23,7 @@ use DBIx::Simple::MediaWords;
 use Feed::Scrape;
 use MediaWords::DB;
 use Data::Dumper;
-use Perl6::Say;
+
 use Class::CSV;
 use utf8;
 use List::MoreUtils qw(any all none notall true false firstidx first_index

@@ -1,4 +1,5 @@
 package MediaWords::View::TT;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -70,7 +71,7 @@ sub new
             my $nr = shift;
 
             my $config  = MediaWords::Util::Config::get_config;
-            my $ga_code = $config->{ google_analytics }->{ account };
+            my $ga_code = $config->{ google_analytics }? $config->{ google_analytics }->{ account } : '';
 
             $nr = $ga_code;
 
@@ -83,7 +84,7 @@ sub new
             my $nr = shift;
 
             my $config    = MediaWords::Util::Config::get_config;
-            my $ga_domain = $config->{ google_analytics }->{ domainname };
+            my $ga_domain =  $config->{ google_analytics }? $config->{ google_analytics }->{ domainname } : '';
 
             $nr = $ga_domain;
 

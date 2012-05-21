@@ -1,4 +1,5 @@
 package MediaWords::Util::Tags;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 #TODO replace YAML::Syck with another module

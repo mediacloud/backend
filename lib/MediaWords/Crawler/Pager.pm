@@ -1,4 +1,5 @@
 package MediaWords::Crawler::Pager;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # module for finding the next page link in a page of html content

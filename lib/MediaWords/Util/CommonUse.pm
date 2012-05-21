@@ -1,9 +1,10 @@
 package MediaWords::Util::CommonUse;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
-use Perl6::Say;
+
 use Data::Dumper;
 
 1;

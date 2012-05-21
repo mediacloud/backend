@@ -1,4 +1,5 @@
 package MediaWords::Controller::Downloads;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -17,7 +18,7 @@ use MediaWords::Crawler::Provider;
 use MediaWords::Crawler::Handler;
 use MediaWords::DBI::Downloads;
 use Data::Dumper;
-use Perl6::Say;
+
 use Encode;
 
 # CONSTANTS

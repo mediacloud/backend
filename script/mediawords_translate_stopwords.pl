@@ -19,9 +19,10 @@ use Text::Trim;
 use DBIx::Simple::MediaWords;
 use Feed::Scrape;
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-use Perl6::Say;
+
 use Data::Dumper;
 use LWP::Debug;
 use MediaWords::Util::Translate;

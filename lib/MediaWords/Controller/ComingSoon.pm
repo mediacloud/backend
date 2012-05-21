@@ -1,4 +1,5 @@
 package MediaWords::Controller::ComingSoon;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -21,7 +22,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
 use MediaWords::Util::Stemmer;
 
-use Perl6::Say;
+
 use Data::Dumper;
 use Date::Format;
 use Date::Parse;

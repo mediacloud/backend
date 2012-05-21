@@ -1,4 +1,5 @@
 package MediaWords::DBI::Downloads;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # various helper functions for downloads
@@ -18,7 +19,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::StoryVectors;
-use Perl6::Say;
+
 use Data::Dumper;
 
 use constant INLINE_CONTENT_LENGTH => 256;

@@ -1,4 +1,5 @@
 package MediaWords::DBI::DownloadTexts;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # various helper functions for the download_texts table
@@ -6,7 +7,7 @@ use MediaWords::CommonLibs;
 use strict;
 
 use Encode;
-use Perl6::Say;
+
 use Data::Dumper;
 
 use MediaWords::Util::Config;

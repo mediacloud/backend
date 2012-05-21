@@ -19,7 +19,7 @@ use Text::Trim;
 use DBIx::Simple::MediaWords;
 use Feed::Scrape;
 use MediaWords::DB;
-use Perl6::Say;
+
 use Data::Dumper;
 use XML::RAI;
 use XML::LibXML;

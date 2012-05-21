@@ -1,4 +1,5 @@
 package MediaWords::Crawler::Handler;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # process the fetched response for the crawler:
@@ -22,7 +23,7 @@ use URI::Split;
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
 use Carp;
-use Perl6::Say;
+
 use List::Util qw (max maxstr);
 
 use Feed::Scrape::MediaWords;

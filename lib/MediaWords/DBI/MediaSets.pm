@@ -1,11 +1,12 @@
 package MediaWords::DBI::MediaSets;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
 
 use Encode;
-use Perl6::Say;
+
 use Data::Dumper;
 
 # Creates a new media_set for the given media source

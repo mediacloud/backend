@@ -1,6 +1,9 @@
+#!/usr/bin/env perl
+
 use strict;
 use warnings;
 use Data::Dumper;
+use Modern::Perl "2012";
 
 # basic sanity test of crawler functionality
 
@@ -28,7 +31,7 @@ use MediaWords::Test::LocalServer;
 use DBIx::Simple::MediaWords;
 use MediaWords::StoryVectors;
 use LWP::UserAgent;
-use Perl6::Say;
+
 use Data::Sorting qw( :basics :arrays :extras );
 use Readonly;
 

@@ -1,11 +1,12 @@
 package MediaWords::Util::MC_Fork;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use Moose;
 use strict;
 use warnings;
 
-use Perl6::Say;
+
 use Data::Dumper;
 
 my $child_pids = [];

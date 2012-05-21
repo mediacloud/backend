@@ -6,7 +6,7 @@ use strict;
 
 use Carp;
 
-use Perl6::Say;
+
 use Data::Dumper;
 
 use base qw(Data::Google::Visualization::DataTable);

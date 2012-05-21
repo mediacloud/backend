@@ -1,4 +1,5 @@
 package MediaWords::Util::DatabaseRestore;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use Try::Tiny;
 

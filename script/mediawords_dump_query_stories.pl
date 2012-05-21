@@ -11,6 +11,7 @@ BEGIN
 }
 
 use MediaWords::DB;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Queries;

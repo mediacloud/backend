@@ -1,4 +1,5 @@
 package MediaWords::Util::Web;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # various functions for editing feed and medium tags

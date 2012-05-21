@@ -11,6 +11,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Crawler::Engine;
 

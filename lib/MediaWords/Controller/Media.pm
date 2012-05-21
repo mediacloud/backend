@@ -1,4 +1,5 @@
 package MediaWords::Controller::Media;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use Encode;
@@ -21,7 +22,7 @@ use Data::Dumper;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
-use Perl6::Say;
+
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
 

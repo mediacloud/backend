@@ -1,4 +1,5 @@
 package MediaWords::Tagger::Yahoo;
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # generate tags for text using the yahoo term extractor
