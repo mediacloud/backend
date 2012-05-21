@@ -174,7 +174,7 @@ sub fetch_content_remote
     }
     else
     {
-        warn( "error fetching remote content: " . $response->as_string );
+        die( "error fetching remote content for download " . $download->{ downloads_id } . ":\n" .  $response->as_string );
         return \"";
     }
 }
