@@ -341,25 +341,61 @@ sub _add_descriptions_from_features
             }
         }
 
-        die if ( !$clusters->[ $c ]->{ description } );
+        die( "no description for cluster '$c'" ) if ( !$clusters->[ $c ]->{ description } );
 
         # in the unlikely case that two clusters are identical, fall back to the first word
         $clusters->[ $c ]->{ description } ||= $clusters->[ $c ]->{ sorted_words }->[ 0 ]->{ term };
     }
 }
 
+
 # add the most common words in each cluster as that cluster's internal features
 sub _add_internal_features
 {
     my ( $self, $clusters ) = @_;
 
+    # it's a lot quicker to query the media_set directly if we can rather than querying all of the individual media sources
+    my $use_media_sets = 0;
+    if ( $self->cluster_run->{ clustering_engine } eq 'media_sets' )
+    {
+        my $cluster_name_lookup = {};
+        for my $cluster ( @{ $clusters } )
+        {
+            $use_media_sets = 0;
+            last if ( $cluster_name_lookup->{ $cluster->{ description } } );
+            $cluster_name_lookup->{ $cluster->{ description } } = 1;
+            
+            $cluster->{ media_set } = $self->db->query( 
+                "select ms.* from media_sets ms, queries_media_sets_map qmsm " .
+                "  where ms.media_sets_id = qmsm.media_sets_id and qmsm.queries_id = ? " .
+                "    and ms.name = ?",
+                $self->cluster_run->{ query }->{ queries_id }, $cluster->{ description } )->hash || last;
+            $use_media_sets = 1;
+        }
+    }
+
     for my $cluster ( @{ $clusters } )
     {
-        my $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sub_query(
-            $self->db,
-            $self->cluster_run->{ query },
-            $cluster->{ media_ids }
-        );
+        my $cluster_query;
+        if ( $use_media_sets )
+        {
+            # $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sets_sub_query( 
+            #     $self->db, $self->cluster_run->{ query }, [ $cluster->{ media_set }->{ media_sets_id } ] );
+            my $query = $self->cluster_run->{ query };
+            $cluster_query = MediaWords::DBI::Queries::find_or_create_query_by_params(
+                $self->db,
+                {
+                    start_date           => $query->{ start_date },
+                    end_date             => $query->{ end_date },
+                    dashboard_topics_ids => $query->{ dashboard_topics_ids },
+                    media_sets_ids       => [ $cluster->{ media_set }->{ media_sets_id } ]
+                }
+            );
+        }
+        else {
+            $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sub_query( 
+                $self->db, $self->cluster_run->{ query }, $cluster->{ media_ids } );
+        }
         my $cluster_words = MediaWords::DBI::Queries::get_top_500_weekly_words( $self->db, $cluster_query );
 
         splice( @{ $cluster_words }, NUM_FEATURES ) if ( @{ $cluster_words } > NUM_FEATURES );
@@ -369,13 +405,13 @@ sub _add_internal_features
     }
 }
 
-# return false if the state is not completed and the clustering engine is 'copy' or 'media_sets',
+# return false if the state is completed and the clustering engine is 'copy' or 'media_sets', 
 # since neither of those actually need the vectors
 sub _needs_vectors
 {
     my ( $cluster_run ) = @_;
 
-    return 1 if ( $cluster_run->{ state } eq 'completed' );
+    return 1 if ( $cluster_run->{ state } ne 'completed' );
 
     return 0 if ( grep { $cluster_run->{ clustering_engine } eq $_ } qw( media_sets copy ) );
 
@@ -386,7 +422,7 @@ sub _needs_vectors
 
 sub new
 {
-    my ( $class, $db, $cluster_run ) = @_;
+    my ( $class, $db, $cluster_run, $force_vectors ) = @_;
 
     my $self = {};
 
@@ -397,8 +433,11 @@ sub new
     $cluster_run->{ query } = MediaWords::DBI::Queries::find_query_by_id( $db, $cluster_run->{ queries_id } );
     $self->cluster_run( $cluster_run );
 
+    # print STDERR "need vector check\n";
     # don't do the expensive vector generation if we're just clustering by media sets
-    return $self if ( !_needs_vectors( $cluster_run ) );
+    return $self if ( !$force_vectors && !_needs_vectors( $cluster_run ) );
+    # print STDERR "need vector check PASSED\n";
+
 
     reset_cos_sim_cache();
 
@@ -561,7 +600,7 @@ sub get_query_vector
 
     my $dense_vector = [];
 
-    print STDERR $self->cluster_run->{ state } . "\n";
+    # print STDERR $self->cluster_run->{ state } . "\n";
     map { $dense_vector->[ $_ ] = 0 } ( 0 .. ( $self->stem_vector->Length - 1 ) );
 
     for my $word ( @{ $words } )
