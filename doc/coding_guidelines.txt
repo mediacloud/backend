@@ -9,6 +9,10 @@ The only exception is modules that are used by the plperl stored procedures.
 
 Any source files that do not use Modern::Perl and MediaWords::CommonLibs must have a comment explaining why these libraries are not being used.
 
+Shebang Lines
+
+In order to ensure that scripts can be run with perlbrew the Perl location in the shebang line should be determined by the environment rather than being hard coded. Instead of #!/usr/bin/perl use #!/usr/bin/env perl
+
 Code Formatting 
 
 Developers are requested to use the mediawords_reformat_code.pl script to ensure that their code follows the formatting guidelines and to prevent merge conflicts. Ideally edited files should be reformated prior to each svn check in. 
