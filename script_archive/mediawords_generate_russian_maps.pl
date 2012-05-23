@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # generate a csv of urls of query based urls for the russia project.
 # the columnns of the table are topics, and the rows are various

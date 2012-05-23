@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Run through stories found for sopa study and find all the links in each story.
 # For each link, try to find whether it matches any given story.  Write the 
