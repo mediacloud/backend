@@ -16,6 +16,8 @@ use Data::Dumper;
 use Test::More;
 require Test::NoWarnings;
 
+use MediaWords::Util::Config;
+
 use_ok( 'MediaWords::Tagger::Calais' );
 
 my $test_cases = [
@@ -39,6 +41,16 @@ __END_TEST_CASE__
 'amex, biofuels, car fleets, chemicals, cleaner energy sources, food, food debate, ineos, michelle carlile-alkhouri, oil prices, personal finance, technology news, thomson reuters'
     }
 ];
+
+
+my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ calais_key };
+
+if ( ! defined( $key ) )
+{
+    say STDERR 'skipping calais tests because the calais key is not defined';
+    done_testing();
+    exit;
+}
 
 foreach my $test_case ( @{ $test_cases } )
 {
