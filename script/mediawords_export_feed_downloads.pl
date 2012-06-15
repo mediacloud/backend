@@ -141,7 +141,10 @@ sub export_all_downloads
     my ( $max_downloads_id ) =
       $db->query( " SELECT max( downloads_id) from downloads where type = 'feed' and state = 'success' " )->flat();
 
-    my $start_downloads_id = 0;
+    my ( $min_downloads_id ) =
+      $db->query( " SELECT min( downloads_id) from downloads " )->flat();
+
+    my $start_downloads_id = $min_downloads_id;
 
     Readonly my $download_batch_size => 1000;
 
