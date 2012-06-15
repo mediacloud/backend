@@ -144,7 +144,8 @@ sub export_all_downloads
     my ( $min_downloads_id ) =
       $db->query( " SELECT min( downloads_id) from downloads " )->flat();
 
-    my $start_downloads_id = $min_downloads_id;
+    #Make sure the file start and end ranges are multiples of 1000
+    my $start_downloads_id = int($min_downloads_id/1000)*1000;
 
     Readonly my $download_batch_size => 1000;
 
