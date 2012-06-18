@@ -53,7 +53,7 @@ sub _get_stories_from_feed_contents
     }
     catch
     {
-        die( "Error processing feed for $download->{ url } " );
+        die( "Error processing feed for $download->{ url }: $_ " );
     };
 }
 
