@@ -6,7 +6,7 @@ These instructions assume comfort with postgresql and especially with perl. You
 may have a difficult time installing the system if you do not have experience
 with perl and cpan. 
 
-NOTE: THESE INSTRUCTIONS HAVE ONLY BEEN TESTED ON UBUNTU LINUX. We recommend using Ubuntu 11.10 (Oneiric) or later. Earlier versions may be missing some of the necessary packages.
+NOTE: THESE INSTRUCTIONS HAVE ONLY BEEN TESTED ON UBUNTU LINUX. We recommend using Ubuntu 11.10 (Oneiric) or later. Earlier versions may be missing some of the necessary packages. Additionally mediacloud requires a 64 bit OS.
 
 NOTE: We recommend you create a new user to run and install Media Cloud. These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
@@ -53,6 +53,8 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
 
 *  Run the install_mc_perlbrew_and_modules.sh script. This scripts installs Perlbrew, carton and the required modules. I.E. simply CD to the base directory of mediacloud and run the following. Note that the script will take a long time to complete:
      ./install_mc_perlbrew_and_modules.sh
+
+NOTE this script will fail if you aren't running a 64 bit OS.
 
 * SUGGESTED: Verify that the necessary modules are installed. Run the media cloud coverage test to verify that all required modules have been installed. Run:
       ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
