@@ -74,9 +74,7 @@ If there are errors determine which modules are missing and install them by runn
   (or replace localhost with whatever host the system is on) to
   access the server.
   
-* Walk through the instructions in README.tutorial to setup a source
-  in the web app; download, extract, and tag its stories; and browse
-  the results.
+* THE doc/ DIRECTORY CONTAINS ADDITIONAL DOCUMENTATION. Refer to the README files in that directory for more information.
 
 * Perform brilliant analysis, fix our broken code, document how the system
   works, and otherwise contribute to the project.
