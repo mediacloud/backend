@@ -90,3 +90,6 @@ mail:
     # An experiment parameter to dump stack traces in error message even if not in debug mode
     # NOTE: may leak DB passwords and is not to be use in production
     #always_show_stack_traces: "yes"
+
+    #uncomment to make the public homepage the default start page    
+    #default_home_page: "dashboard/view"
