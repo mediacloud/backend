@@ -51,6 +51,53 @@ sub xml_tree_from_hash
     return $node;
 }
 
+sub get_story_downloads
+{
+    my ( $db, $story ) = @_;
+
+    my $story_downloads = $db->query( " SELECT * FROM downloads where stories_id = ? order by sequence asc ", $story->{ stories_id } )->hashes;
+
+    #say STDERR "Got story downloads ";
+    #say STDERR Dumper( $story_downloads);
+
+    return $story_downloads;
+}
+
+sub get_story_children_for_feed_download
+{
+    my ( $db, $download ) = @_;
+
+    my $story_children = $db->query( " select * from stories where stories_id in ( select stories_id from downloads where parent  = ?  ) ", $download->{ downloads_id } )->hashes;
+
+    return $story_children;
+}
+
+sub process_feed_download
+{
+    my ( $db, $download ) = @_;
+
+    #say STDERR Dumper ( $download );
+
+    my $story_children = get_story_children_for_feed_download ( $db, $download );
+
+    my $story_child_count = scalar(  @ { $story_children } );
+
+    say STDERR "$story_child_count stories for downloads";
+
+    if ( $story_child_count > 0 )
+    {
+	say Dumper( $download );
+    }
+
+    foreach my $child_story ( @ { $story_children } )
+    {
+	say STDERR Dumper ( $child_story );
+	my $story_downloads = get_story_downloads( $db, $child_story );
+    }
+
+    exit if ( $story_child_count > 0 );
+}
+
 sub export_downloads
 {
     my ( $start_downloads_id, $end_downloads_id, $batch_number ) = @_;
@@ -114,9 +161,9 @@ sub export_downloads
         if ( '(redundant feed)' ne $download_content_base64 )
         {
 
-            $download->{ encoded_download_content_base_64 } = $download_content_base64;
+            #$download->{ encoded_download_content_base_64 } = $download_content_base64;
 
-	    get_story_children_for_feed_download( $db, $download );
+	    process_feed_download( $db, $download );
 
             $root->appendChild( xml_tree_from_hash( $download, 'download' ) );
         }
@@ -131,8 +178,8 @@ sub export_downloads
     }
 
     my $file = "/tmp/downloads" . $file_number . ".xml";
-    open my $OUT, ">", $file || die "$@";
-    print $OUT $doc->toString || die "$@";
+    #open my $OUT, ">", $file || die "$@";
+    #print $OUT $doc->toString || die "$@";
 }
 
 sub export_all_downloads
@@ -153,13 +200,15 @@ sub export_all_downloads
 
     my $batch_number = 0;
 
+    $start_downloads_id = 30851;
+
     while ( $start_downloads_id <= $max_downloads_id )
     {
         export_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number );
         $start_downloads_id += $download_batch_size;
         $batch_number++;
 
-        exit;
+        #exit;
     }
 }
 
