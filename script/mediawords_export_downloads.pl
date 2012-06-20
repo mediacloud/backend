@@ -1,10 +1,5 @@
 #!/usr/bin/env perl
 
-# run a loop extracting the text of any downloads that have not been extracted yet
-
-# number of downloads to fetch at a time
-use constant PROCESS_SIZE => 100;
-
 use strict;
 use warnings;
 
@@ -90,7 +85,6 @@ sub export_downloads
 # fork of $num_processes
 sub main
 {
-    my ( $num_processes ) = @ARGV;
 
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
