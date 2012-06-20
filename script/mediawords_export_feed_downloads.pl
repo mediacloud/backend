@@ -17,39 +17,12 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
+use MediaWords::Util::XML;
 
 use XML::LibXML;
 use MIME::Base64;
 use Encode;
 use List::Util qw (min);
-
-sub xml_tree_from_hash
-{
-    my ( $hash, $name ) = @_;
-
-    my $node = XML::LibXML::Element->new( $name );
-
-    foreach my $key ( sort keys %{ $hash } )
-    {
-
-        #say STDERR "appending '$key'  $hash->{ $key } ";
-
-        my $key_val = $hash->{ $key };
-
-        if ( !defined( $key_val ) )
-        {
-            $key_val = '';
-        }
-
-        #next if ( ( $key eq 'error_message' ) && ( ! defined (  $hash->{ $key }  ) ) );
-
-        #die "$key not defined for hash" unless defined (  $hash->{ $key }  );
-
-        $node->appendTextChild( $key, $key_val );
-    }
-
-    return $node;
-}
 
 sub export_downloads
 {
