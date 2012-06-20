@@ -24,39 +24,12 @@ use MIME::Base64;
 use Encode;
 use List::Util qw (min);
 
-# sub xml_tree_from_hash
-# {
-#     my ( $hash, $name ) = @_;
-
-#     my $node = XML::LibXML::Element->new( $name );
-
-#     foreach my $key ( sort keys %{ $hash } )
-#     {
-
-#         #say STDERR "appending '$key'  $hash->{ $key } ";
-
-#         my $key_val = $hash->{ $key };
-
-#         if ( !defined( $key_val ) )
-#         {
-#             $key_val = '';
-#         }
-
-#         #next if ( ( $key eq 'error_message' ) && ( ! defined (  $hash->{ $key }  ) ) );
-
-#         #die "$key not defined for hash" unless defined (  $hash->{ $key }  );
-
-#         $node->appendTextChild( $key, $key_val );
-#     }
-
-#     return $node;
-# }
-
 sub get_story_downloads
 {
     my ( $db, $story ) = @_;
 
-    my $story_downloads = $db->query( " SELECT * FROM downloads where stories_id = ? order by sequence asc ", $story->{ stories_id } )->hashes;
+    my $story_downloads =
+      $db->query( " SELECT * FROM downloads where stories_id = ? order by sequence asc ", $story->{ stories_id } )->hashes;
 
     #say STDERR "Got story downloads ";
     #say STDERR Dumper( $story_downloads);
@@ -68,9 +41,22 @@ sub get_story_children_for_feed_download
 {
     my ( $db, $download ) = @_;
 
-    my $story_children = $db->query( " select * from stories where stories_id in ( select stories_id from downloads where parent  = ?  ) ", $download->{ downloads_id } )->hashes;
+    my $story_children =
+      $db->query( " select * from stories where stories_id in ( select stories_id from downloads where parent  = ?  ) ",
+        $download->{ downloads_id } )->hashes;
 
     return $story_children;
+}
+
+sub get_xml_element_for_download
+{
+    my ( $download ) = @_;
+
+    my $download_content_base64 = _get_base_64_encoded_download_content( $download );
+
+    #$download->{ encoded_download_content_base_64 } = $download_content_base64;
+
+    my $download_xml = xml_tree_from_hash( $download, 'download' );
 }
 
 sub process_feed_download
@@ -79,24 +65,59 @@ sub process_feed_download
 
     #say STDERR Dumper ( $download );
 
-    my $story_children = get_story_children_for_feed_download ( $db, $download );
+    my $story_children = get_story_children_for_feed_download( $db, $download );
 
-    my $story_child_count = scalar(  @ { $story_children } );
+    my $story_child_count = scalar( @{ $story_children } );
 
-    say STDERR "$story_child_count stories for downloads";
+    #say STDERR "$story_child_count stories for downloads";
 
     if ( $story_child_count > 0 )
     {
-	say Dumper( $download );
+        #say Dumper( $download );
     }
-
-    foreach my $child_story ( @ { $story_children } )
+    else
     {
-	say STDERR Dumper ( $child_story );
-	my $story_downloads = get_story_downloads( $db, $child_story );
+	return;
     }
 
-    exit if ( $story_child_count > 0 );
+    my $download_xml = get_xml_element_for_download( $download );
+
+    my $child_stories_xml = XML::LibXML::Element->new( 'child_stories' );
+
+    foreach my $story_child ( @{ $story_children } )
+    {
+        my $story_xml = xml_tree_from_hash( $story_child, 'story' );
+
+        #say STDERR Dumper ( $child_story );
+        my $story_downloads = get_story_downloads( $db, $story_child );
+
+	my $story_downloads_xml = XML::LibXML::Element->new( 'story_downloads' );
+
+        foreach my $story_download ( @{ $story_downloads } )
+        {
+            $story_downloads_xml->appendChild( get_xml_element_for_download( $story_download ) );
+        }
+
+	$story_xml->appendChild( $story_downloads_xml );
+
+        $child_stories_xml->appendChild( $story_xml );
+    }
+   
+    $download_xml->appendChild( $child_stories_xml );
+
+    return $download_xml;
+}
+
+sub _get_base_64_encoded_download_content
+{
+
+    my ( $download ) = @_;
+
+    my $download_content = MediaWords::DBI::Downloads::fetch_content( $download );
+
+    my $download_content_base64 = encode_base64( encode( "utf8", $$download_content ) );
+ 
+    return $download_content_base64;
 }
 
 sub export_downloads
@@ -126,6 +147,8 @@ sub export_downloads
         $end_downloads_id = min( $end_downloads_id, $max_downloads_id );
     }
 
+    my $downloads_added = 0;
+
     while ( $cur_downloads_id <= $end_downloads_id )
     {
 
@@ -151,24 +174,20 @@ sub export_downloads
 
         last unless $download;
 
-        my $download_content = MediaWords::DBI::Downloads::fetch_content( $download );
-
-        my $download_content_base64 = encode_base64( encode( "utf8", $$download_content ) );
+        my $download_content_base64 = _get_base_64_encoded_download_content( $download );
 
         $cur_downloads_id = $download->{ downloads_id } + 1;
 
-        next if ( $$download_content eq '(redundant feed)' );
 
-        if ( '(redundant feed)' ne $download_content_base64 )
-        {
+	#$download->{ encoded_download_content_base_64 } = $download_content_base64;
 
-            #$download->{ encoded_download_content_base_64 } = $download_content_base64;
+	my $download_xml = process_feed_download( $db, $download );
 
-	    process_feed_download( $db, $download );
-
-            $root->appendChild( xml_tree_from_hash( $download, 'download' ) );
-        }
-
+	if ( defined ( $download_xml ) )
+	{
+	    $downloads_added = 1;
+	    $root->appendChild( $download_xml );
+	}
     }
 
     my $file_number = '';
@@ -179,8 +198,12 @@ sub export_downloads
     }
 
     my $file = "/tmp/downloads" . $file_number . ".xml";
-    #open my $OUT, ">", $file || die "$@";
-    #print $OUT $doc->toString || die "$@";
+
+    if ( $downloads_added )
+    {
+	open my $OUT, ">", $file || die "$@";
+	print $OUT $doc->toString(2) || die "$@";
+    }
 }
 
 sub export_all_downloads
@@ -191,17 +214,14 @@ sub export_all_downloads
     my ( $max_downloads_id ) =
       $db->query( " SELECT max( downloads_id) from downloads where type = 'feed' and state = 'success' " )->flat();
 
-    my ( $min_downloads_id ) =
-      $db->query( " SELECT min( downloads_id) from downloads " )->flat();
+    my ( $min_downloads_id ) = $db->query( " SELECT min( downloads_id) from downloads " )->flat();
 
     #Make sure the file start and end ranges are multiples of 1000
-    my $start_downloads_id = int($min_downloads_id/1000)*1000;
+    my $start_downloads_id = int( $min_downloads_id / 1000 ) * 1000;
 
-    Readonly my $download_batch_size => 1000;
+    Readonly my $download_batch_size => 100;
 
     my $batch_number = 0;
-
-    $start_downloads_id = 30851;
 
     while ( $start_downloads_id <= $max_downloads_id )
     {
