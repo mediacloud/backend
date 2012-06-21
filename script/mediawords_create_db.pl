@@ -35,17 +35,17 @@ sub main
 
     if ( $result )
     {
-        say;
+        say '';
         say "Warning:";
         say "Error creating database";
     }
     else
     {
-        say;
-        say;
-        say;
+        say '';
+        say '';
+        say '';
         say "Database creation successfull.";
-        say;
+        say '';
     }
 }
 
