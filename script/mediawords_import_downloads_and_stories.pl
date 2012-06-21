@@ -24,23 +24,6 @@ use Encode;
 use Data::Dumper;
 use MediaWords::Crawler::Handler;
 
-sub xml_tree_from_hash
-{
-    my ( $hash, $name ) = @_;
-
-    my $node = XML::LibXML::Element->new( $name );
-
-    foreach my $key ( sort keys %{ $hash } )
-    {
-
-        #say STDERR "appending '$key'  $hash->{ $key } ";
-        $node->appendTextChild( $key, $hash->{ $key } );
-    }
-
-    return $node;
-}
-
-# extract, story, and tag downloaded text for a $process_num / $num_processes slice of downloads
 sub import_downloads
 {
     my ( $xml_file_name ) = @_;
@@ -49,7 +32,12 @@ sub import_downloads
 
     my $parser = XML::LibXML->new;
 
-    my $doc = $parser->parse_fh( $fh );
+    #my $doc = $parser->parse_fh( $fh, { no_blanks => 1 } );
+    my $doc = XML::LibXML->load_xml({
+      IO => $fh,
+      no_blanks => 1,
+				    }
+    );
 
     my $root = $doc->documentElement() || die;
 
@@ -62,6 +50,13 @@ sub import_downloads
 
         #say STDERR "child_node: " . $child_node->nodeName();
         my $download = { map { $_->nodeName() => $_->textContent() } $child_node->childNodes() };
+
+	#say STDERR $root->toString( 2);
+	say STDERR Dumper ( $child_node );
+	say STDERR $child_node->toString( 2);
+	say STDERR Dumper ( $download );
+
+	exit;
 
         my $old_downloads_id = $download->{ downloads_id };
         delete( $download->{ downloads_id } );
