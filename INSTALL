@@ -19,15 +19,11 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
 
 * Create a postgres database and user.  The database user must be a superuser
   to run some of the plperl procedural scripts. Run the following commands:
-     sudo su - postgres
-     createuser -s mediaclouduser --pwprompt 
-     createdb --owner mediaclouduser mediacloud
-     exit
+     sudo su -c 'createuser -s mediaclouduser --pwprompt' - postgres
+     sudo su -c 'createdb --owner mediaclouduser mediacloud' - postgres
 
 * Create a postgres test database. This database is used for running the test suite. Be aware that it will be replaced every time the test suite is run. Run the following commands:
-     sudo su - postgres
-     createdb --owner mediaclouduser mediacloud_test
-     exit
+     sudo su -c 'createdb --owner mediaclouduser mediacloud' - postgres
 
 * Copy mediawords.yml.dist to mediawords.yml.
 
