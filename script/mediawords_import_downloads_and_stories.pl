@@ -33,10 +33,11 @@ sub import_downloads
     my $parser = XML::LibXML->new;
 
     #my $doc = $parser->parse_fh( $fh, { no_blanks => 1 } );
-    my $doc = XML::LibXML->load_xml({
-      IO => $fh,
-      no_blanks => 1,
-				    }
+    my $doc = XML::LibXML->load_xml(
+        {
+            IO        => $fh,
+            no_blanks => 1,
+        }
     );
 
     my $root = $doc->documentElement() || die;
@@ -51,20 +52,23 @@ sub import_downloads
         #say STDERR "child_node: " . $child_node->nodeName();
         my $download = { map { $_->nodeName() => $_->textContent() } $child_node->childNodes() };
 
-	#say STDERR $root->toString( 2);
-	say STDERR Dumper ( $child_node );
-	say STDERR $child_node->toString( 2);
-	say STDERR Dumper ( $download );
+        #say STDERR $root->toString( 2);
+        say STDERR Dumper( $child_node );
+        #say STDERR $child_node->toString( 2 );
+        #say STDERR Dumper( $download );
 
-	exit;
 
         my $old_downloads_id = $download->{ downloads_id };
         delete( $download->{ downloads_id } );
 
-        my $decoded_content = decode_base64( $download->{ encoded_download_content_base_64 } );
+        my $decoded_content = $download->{ encoded_download_content_base_64 } && decode_base64( $download->{ encoded_download_content_base_64 } );
         delete( $download->{ encoded_download_content_base_64 } );
 
-        #say STDERR Dumper( $download );
+	delete ( $download->{ child_stories } );
+
+        say STDERR Dumper( $download );
+
+        #exit;
 
         foreach my $key ( sort keys %{ $download } )
         {
