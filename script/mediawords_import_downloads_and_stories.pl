@@ -68,21 +68,11 @@ sub hash_from_element
 
     foreach my $key ( sort keys %{ $ret } )
     {
-        if ( !$ret->{ $key } )
-        {
-            if ( !defined( $ret->{ $key } ) )
+            if ( !defined( $ret->{ $key } ) ||  $ret->{ $key } eq '' )
             {
                 delete( $ret->{ $key } );
                 next;
             }
-
-            if ( $ret->{ $key } eq '' )
-            {
-
-                #say STDERR "Deleting '$key' ";
-                delete( $ret->{ $key } );
-            }
-        }
     }
 
     return $ret;
