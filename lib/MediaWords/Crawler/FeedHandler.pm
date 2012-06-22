@@ -159,11 +159,9 @@ sub _add_story_using_parent_download
     return $story;
 }
 
-sub _add_story_and_content_download
+sub _create_child_download_for_story
 {
     my ( $dbs, $story, $parent_download ) = @_;
-
-   my $story = _add_story_using_parent_download ( $dbs, $story, $parent_download );
 
     $dbs->create(
         'downloads',
@@ -181,6 +179,15 @@ sub _add_story_and_content_download
             extracted     => 'f'
         }
     );
+}
+
+sub _add_story_and_content_download
+{
+    my ( $dbs, $story, $parent_download ) = @_;
+
+    $story = _add_story_using_parent_download( $dbs, $story, $parent_download );
+
+    _create_child_download_for_story( $dbs, $story, $parent_download );
 }
 
 sub add_feed_stories_and_downloads
