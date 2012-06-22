@@ -121,28 +121,29 @@ sub _add_story_using_parent_download
 {
     my ( $dbs, $story, $parent_download ) = @_;
 
-    eval {
+    #say STDERR "starting _add_story_using_parent_download ";
+    #say STDERR Dumper( $story );
 
+    try {
         $story = $dbs->create( "stories", $story );
-    };
-
-    #TODO handle race conditions differently
-    if ( $@ )
+    }
+    catch
     {
-	
-        if ( $@ =~ /unique constraint "stories_guid"/ )
-        {
-	    warn  "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '". $story->{guid} . "')";
 
-	    return ;
+        #TODO handle race conditions differently
+        if ( $_ =~ /unique constraint "stories_guid"/ )
+        {
+            warn "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
+
+            return;
         }
         else
         {
-	    say STDERR 'error adding story dying';
+            say STDERR 'error adding story dying';
             say STDERR Dumper( $story );
-            die( $@ );
+            die( $_ );
         }
-    }
+    };
 
     MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
 
@@ -185,9 +186,9 @@ sub _add_story_and_content_download
 
     $story = _add_story_using_parent_download( $dbs, $story, $parent_download );
 
-    if ( defined ( $story ) )
+    if ( defined( $story ) )
     {
-	_create_child_download_for_story( $dbs, $story, $parent_download );
+        _create_child_download_for_story( $dbs, $story, $parent_download );
     }
 }
 
