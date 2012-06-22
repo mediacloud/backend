@@ -129,19 +129,17 @@ sub _add_story_using_parent_download
     #TODO handle race conditions differently
     if ( $@ )
     {
-
-        # if we hit a race condition with another process having just inserted this guid / media_id,
-        # just put the download back in the queue.  this is a lot better than locking stories
+	
         if ( $@ =~ /unique constraint "stories_guid"/ )
         {
-            $dbs->rollback;
-            $dbs->query( "update downloads set state = 'pending' where downloads_id = ?",
-                $parent_download->{ downloads_id } );
-            die( "requeue '$parent_download->{url}' due to guid conflict '$story->{ url }'" );
+	    warn  "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '". $story->{guid} . "')";
+
+	    return ;
         }
         else
         {
-            print Dumper( $story );
+	    say STDERR 'error adding story dying';
+            say STDERR Dumper( $story );
             die( $@ );
         }
     }
@@ -187,7 +185,10 @@ sub _add_story_and_content_download
 
     $story = _add_story_using_parent_download( $dbs, $story, $parent_download );
 
-    _create_child_download_for_story( $dbs, $story, $parent_download );
+    if ( defined ( $story ) )
+    {
+	_create_child_download_for_story( $dbs, $story, $parent_download );
+    }
 }
 
 sub add_feed_stories_and_downloads
