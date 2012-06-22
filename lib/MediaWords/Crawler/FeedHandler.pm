@@ -155,13 +155,15 @@ sub _add_story_using_parent_download
             feeds_id   => $parent_download->{ feeds_id }
         }
     );
+
+    return $story;
 }
 
 sub _add_story_and_content_download
 {
     my ( $dbs, $story, $parent_download ) = @_;
 
-   _add_story_using_parent_download ( $dbs, $story, $parent_download );
+   my $story = _add_story_using_parent_download ( $dbs, $story, $parent_download );
 
     $dbs->create(
         'downloads',
