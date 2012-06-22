@@ -117,8 +117,7 @@ sub _get_stories_from_feed_contents_impl
     return $ret;
 }
 
-
-sub _add_story_and_content_download
+sub _add_story_using_parent_download
 {
     my ( $dbs, $story, $parent_download ) = @_;
 
@@ -156,6 +155,13 @@ sub _add_story_and_content_download
             feeds_id   => $parent_download->{ feeds_id }
         }
     );
+}
+
+sub _add_story_and_content_download
+{
+    my ( $dbs, $story, $parent_download ) = @_;
+
+   _add_story_using_parent_download ( $dbs, $story, $parent_download );
 
     $dbs->create(
         'downloads',
@@ -173,7 +179,6 @@ sub _add_story_and_content_download
             extracted     => 'f'
         }
     );
-
 }
 
 sub add_feed_stories_and_downloads
