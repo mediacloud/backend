@@ -117,63 +117,6 @@ sub _get_stories_from_feed_contents_impl
     return $ret;
 }
 
-sub _story_is_new
-{
-    my ( $dbs, $story ) = @_;
-
-    my $db_story =
-      $dbs->query( "select * from stories where guid = ? and media_id = ?", $story->{ guid }, $story->{ media_id } )->hash;
-
-    if ( !$db_story )
-    {
-
-        my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $story->{ publish_date } ) );
-
-        my $start_date = $date->subtract( hours => 12 )->iso8601();
-        my $end_date = $date->add( hours => 12 )->iso8601();
-
-      # TODO -- DRL not sure if assuming UTF-8 is a good idea but will experiment with this code from the gsoc_dsheets branch
-        my $title;
-
-        # This unicode decode may not be necessary! XML::Feed appears to at least /sometimes/ return
-        # character strings instead of byte strings. Decoding a character string is an error. This code now
-        # only fails if a non-ASCII byte-string is returned from XML::Feed.
-
-        # very misleadingly named function checks for unicode character string
-        # in perl's internal representation -- not a byte-string that contains UTF-8
-        # data
-
-        if ( Encode::is_utf8( $story->{ title } ) )
-        {
-            $title = $story->{ title };
-        }
-        else
-        {
-
-            # TODO: A utf-8 byte string is only highly likely... we should actually examine the HTTP
-            #   header or the XML pragma so this doesn't explode when given another encoding.
-            $title = decode( 'utf-8', $story->{ title } );
-        }
-
-        #say STDERR "Searching for story by title";
-
-        $db_story = $dbs->query(
-            "select * from stories where title = ? and media_id = ? " .
-              "and publish_date between date '$start_date' and date '$end_date' for update",
-            $title,
-            $story->{ media_id }
-        )->hash;
-    }
-
-    if ( !$db_story )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
 
 sub _add_story_and_content_download
 {
@@ -182,8 +125,6 @@ sub _add_story_and_content_download
     eval {
 
         $story = $dbs->create( "stories", $story );
-        MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
-
     };
 
     #TODO handle race conditions differently
@@ -205,6 +146,8 @@ sub _add_story_and_content_download
             die( $@ );
         }
     }
+
+    MediaWords::DBI::Stories::update_rss_full_text_field( $dbs, $story );
 
     $dbs->find_or_create(
         'feeds_stories_map',
@@ -239,7 +182,7 @@ sub add_feed_stories_and_downloads
 
     my $stories = _get_stories_from_feed_contents( $dbs, $download, $decoded_content );
 
-    my $new_stories = [ grep { _story_is_new( $dbs, $_ ) } @{ $stories } ];
+    my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];
 
     foreach my $story ( @$new_stories )
     {
