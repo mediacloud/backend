@@ -30,8 +30,8 @@ sub hash_from_element
 {
     my ( $element, $excluded_keys ) = @_;
 
-    say "start hash_from_element ";
-    say Dumper( $element );
+    #say "start hash_from_element ";
+    #say Dumper( $element );
 
     try
     {
@@ -44,17 +44,17 @@ sub hash_from_element
 
     my @childNodes = $element->childNodes();
 
-    say Dumper ( @childNodes );
+    #say Dumper ( @childNodes );
 
     my $node_types = [ map { $_->nodeType } @childNodes ];
 
-    say Dumper ( $node_types );
+    #say Dumper ( $node_types );
 
     my $ret;
 
     $ret = { map { $_->nodeName() => $_->textContent() } @childNodes };
 
-    say Dumper ( $ret );
+    #say Dumper ( $ret );
 
     #say 'hash_from_element returning ' . Dumper ( $ret );
 
@@ -70,7 +70,6 @@ sub hash_from_element
     {
         if ( !$ret->{ $key } )
         {
-
             if ( !defined( $ret->{ $key } ) )
             {
                 delete( $ret->{ $key } );
@@ -182,6 +181,8 @@ sub import_downloads
 
         my $db_download = $db->create( 'downloads', $download );
 
+        MediaWords::DBI::Downloads::store_content( $db, $db_download, \$decoded_content );
+
         foreach my $story_element ( @$new_stories )
         {
 
@@ -206,32 +207,41 @@ sub import_downloads
 
             delete( $story_hash->{ stories_id } );
 
-            MediaWords::Crawler::FeedHandler::_add_story_using_parent_download( $db, $story_hash, $db_download );
+            my $db_story =
+              MediaWords::Crawler::FeedHandler::_add_story_using_parent_download( $db, $story_hash, $db_download );
+            my @story_downloads_list = $story_element->getElementsByTagName( "story_downloads" );
 
-            my $db_story;
-        }
+            die unless ( scalar( @story_downloads_list ) == 1 );
 
-        exit;
+            my $story_downloads_list_element = $story_downloads_list[ 0 ];
 
-        #TODO find new stories.
+            my @story_downloads = $story_downloads_list_element->getElementsByTagName( "download" );
 
-        eval {
-            MediaWords::Crawler::FeedHandler::handle_feed_content( $db, $db_download, $decoded_content );
-            $downloads_processed++;
+            my $parent = $db_download;
+            foreach my $story_download ( @story_downloads )
+            {
+                my $download_hash = hash_from_element( $story_download, [ qw ( child_stories ) ] );
 
-            say STDERR "Processed $downloads_processed downloads";
+                if ( $download_hash->{ state } ne 'success' )
+                {
+                    $download_hash->{ state } = 'pending';
+                }
 
-            #say STDERR Dumper( $db_download );
-        };
+                $download_hash->{ parent }     = $parent->{ downloads_id };
+                $download_hash->{ stories_id } = $db_story->{ stories_id };
+                $download_hash->{ extracted }  = 'f';
 
-        if ( $@ )
-        {
-            warn $@;
+                my $decoded_content = $download_hash->{ encoded_download_content_base_64 }
+                  && decode_base64( $download_hash->{ encoded_download_content_base_64 } );
+                delete( $download_hash->{ encoded_download_content_base_64 } );
 
-            #say "'$decoded_content'";
-            say $old_downloads_id;
+                say Dumper ( $download_hash );
 
-            #exit;
+                my $db_story_download = $db->create( 'downloads', $download_hash );
+
+                $parent = $db_story_download;
+
+            }
         }
     }
 }
