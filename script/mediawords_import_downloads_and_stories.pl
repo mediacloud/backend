@@ -66,14 +66,14 @@ sub hash_from_element
         }
     }
 
-    foreach my $key ( sort keys %{ $ret } )
-    {
-            if ( !defined( $ret->{ $key } ) ||  $ret->{ $key } eq '' )
-            {
-                delete( $ret->{ $key } );
-                next;
-            }
-    }
+     foreach my $key ( sort keys %{ $ret } )
+     {
+             if ( !defined( $ret->{ $key } ) ||  $ret->{ $key } eq '' )
+             {
+                 undef($ret->{ $key });
+                 next;
+             }
+     }
 
     return $ret;
 }
@@ -221,13 +221,19 @@ sub import_downloads
                 $download_hash->{ stories_id } = $db_story->{ stories_id };
                 $download_hash->{ extracted }  = 'f';
 
-                my $decoded_content = $download_hash->{ encoded_download_content_base_64 }
+                my $story_download_decoded_content = $download_hash->{ encoded_download_content_base_64 }
                   && decode_base64( $download_hash->{ encoded_download_content_base_64 } );
                 delete( $download_hash->{ encoded_download_content_base_64 } );
 
                 say Dumper ( $download_hash );
 
+		if ( !defined ( $download_hash->{ host } ) )
+		{
+		   $download_hash->{ host } = '';
+		}
                 my $db_story_download = $db->create( 'downloads', $download_hash );
+
+		MediaWords::DBI::Downloads::store_content( $db, $db_story_download, \$story_download_decoded_content );
 
                 $parent = $db_story_download;
 
