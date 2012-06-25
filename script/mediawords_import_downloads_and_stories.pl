@@ -33,22 +33,11 @@ sub hash_from_element
     #say "start hash_from_element ";
     #say Dumper( $element );
 
-    try
-    {
-        say 'starting hash_from_element for ' . $element->nodeName();
-    }
-    catch
-    {
-        warning( "error outputing nodeName $_" );
-    };
+    #say 'starting hash_from_element for ' . $element->nodeName();
 
     my @childNodes = $element->childNodes();
 
-    #say Dumper ( @childNodes );
-
     my $node_types = [ map { $_->nodeType } @childNodes ];
-
-    #say Dumper ( $node_types );
 
     my $ret;
 
@@ -82,6 +71,8 @@ sub import_downloads
 {
     my ( $xml_file_name ) = @_;
 
+    say "processing file $xml_file_name";
+
     open my $fh, $xml_file_name || die "Error opening file:$xml_file_name $@";
 
     my $parser = XML::LibXML->new;
@@ -100,19 +91,22 @@ sub import_downloads
 
     my $downloads_processed = 0;
 
-    $DB::single = 2;
+    my @root_child_nodes =  $root->childNodes();
 
-    foreach my $child_node ( $root->childNodes() )
+    my $feed_downloads_processed = 0;
+
+    foreach my $child_node ( @root_child_nodes )
     {
+        $feed_downloads_processed++;
 
-        say STDERR "child_node: " . $child_node->nodeName();
+        say "Processing download $feed_downloads_processed out of ". scalar ( @root_child_nodes );
 
-        $DB::single = 2;
+        #say STDERR "child_node: " . $child_node->nodeName();
 
         my $download = hash_from_element( $child_node, [ qw ( child_stories ) ] );
 
         #say STDERR $root->toString( 2);
-        say STDERR Dumper( $child_node );
+        #say STDERR Dumper( $child_node );
 
         #say STDERR $child_node->toString( 2 );
         #say STDERR Dumper( $download );
@@ -126,10 +120,6 @@ sub import_downloads
 
         #say STDERR Dumper( $download );
 
-        #exit;
-
-        say STDERR Dumper( $download );
-
         next if ( '(redundant feed)' eq $decoded_content );    # The download contains no content so don't add it.
 
         my @child_stories_list = $child_node->getElementsByTagName( "child_stories" );
@@ -138,13 +128,10 @@ sub import_downloads
 
         my $child_stories_element = $child_stories_list[ 0 ];
 
-        say "Dumping child stories list";
-
-        say Dumper ( [ @child_stories_list ] );
-
-        say "Dumping child stories element";
-
-        say Dumper ( $child_stories_element );
+        # say "Dumping child stories list";
+        # say Dumper ( [ @child_stories_list ] );
+        # say "Dumping child stories element";
+        # say Dumper ( $child_stories_element );
 
         my $story_elements = [ $child_stories_element->getElementsByTagName( "story" ) ];
 
@@ -158,7 +145,6 @@ sub import_downloads
 
             if ( MediaWords::DBI::Stories::is_new( $db, $story ) )
             {
-
                 #say 'new story:';
                 #say Dumper( $story );
 
@@ -182,7 +168,6 @@ sub import_downloads
 
             try
             {
-                $DB::single = 2;
                 $story_hash = hash_from_element( $story_element, [ qw ( story_downloads ) ] );
                 confess 'null story_hash ' unless $story_hash;
             }
@@ -220,23 +205,25 @@ sub import_downloads
                 $download_hash->{ parent }     = $parent->{ downloads_id };
                 $download_hash->{ stories_id } = $db_story->{ stories_id };
                 $download_hash->{ extracted }  = 'f';
+                $download_hash->{ path }       = '';
 
-                my $story_download_decoded_content = $download_hash->{ encoded_download_content_base_64 }
+		my $story_download_decoded_content = $download_hash->{ encoded_download_content_base_64 }
                   && decode_base64( $download_hash->{ encoded_download_content_base_64 } );
-                delete( $download_hash->{ encoded_download_content_base_64 } );
-
-                say Dumper ( $download_hash );
+		delete( $download_hash->{ encoded_download_content_base_64 } );
 
 		if ( !defined ( $download_hash->{ host } ) )
 		{
 		   $download_hash->{ host } = '';
 		}
+
                 my $db_story_download = $db->create( 'downloads', $download_hash );
 
-		MediaWords::DBI::Downloads::store_content( $db, $db_story_download, \$story_download_decoded_content );
+		if ( $db_story_download->{ state } eq 'sucess' )
+		{
+		   MediaWords::DBI::Downloads::store_content( $db, $db_story_download, \$story_download_decoded_content );
+		 }
 
                 $parent = $db_story_download;
-
             }
         }
     }
