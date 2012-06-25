@@ -277,7 +277,7 @@ sub update_rss_full_text_field
 
     #This is a temporary hack to work around a bug in XML::FeedPP
     # Item description() will sometimes return a hash instead of text. In Handler.pm we replaced the hash ref with ''
-    if ( length( $story->{ description } ) == 0 )
+    if ( defined( $story->{ description }) && (length( $story->{ description } ) == 0 ) )
     {
         $full_text_in_rss = 0;
     }
