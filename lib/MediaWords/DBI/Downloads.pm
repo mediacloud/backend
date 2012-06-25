@@ -22,7 +22,7 @@ use MediaWords::StoryVectors;
 
 use Data::Dumper;
 
-use constant INLINE_CONTENT_LENGTH => 256;
+Readonly my $INLINE_CONTENT_LENGTH => 256;
 
 sub _get_local_file_content_path_from_path
 {
@@ -408,7 +408,7 @@ sub store_content
 
     #TODO refactor to eliminate common code.
 
-    if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
+    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
     {
         my $state = 'success';
         my $path  = 'content:' . $$content_ref;
