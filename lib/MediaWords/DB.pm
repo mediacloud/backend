@@ -125,11 +125,13 @@ sub exec_psql_for_db
 {
     my ( $label, @ARGS ) = @_;
 
-    _set_environment_vars_for_db();
+    _set_environment_vars_for_db( $label );
 
     exec( 'psql', @ARGS );
     die 'exec failed';
 }
+
+
 
 sub authenticate
 {
