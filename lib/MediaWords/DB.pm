@@ -100,7 +100,7 @@ sub connect_settings
 
 sub exec_psql_for_db
 {
-    my ( $label ) = @_;
+    my ( $label, @ARGS ) = @_;
 
     my $connect_settings = connect_settings( $label );
 
@@ -113,7 +113,7 @@ sub exec_psql_for_db
     $ENV{ 'PGDATABASE' } = $connect_settings->{ db };
     $ENV{ 'PGUSER' }     = $connect_settings->{ user };
 
-    exec( 'psql' );
+    exec( 'psql', @ARGS );
     die 'exec failed';
 }
 
