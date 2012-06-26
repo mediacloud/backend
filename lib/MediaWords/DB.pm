@@ -132,6 +132,21 @@ sub exec_psql_for_db
 }
 
 
+sub print_shell_env_commands_for_psql
+{
+    my ( $label, @ARGS ) = @_;
+
+    _set_environment_vars_for_db( $label );
+
+    my $psql_env_vars = [ qw ( PGPASSWORD PGHOST PGDATABASE PGUSER ) ];
+
+    foreach my $psql_env_var ( @ { $psql_env_vars } )
+    {
+	say "export $psql_env_var=" . $ENV{ $psql_env_var };
+    }
+}
+
+
 
 sub authenticate
 {
