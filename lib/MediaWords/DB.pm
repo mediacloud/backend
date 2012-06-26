@@ -109,20 +109,23 @@ sub get_db_labels
     return @labels;
 }
 
-sub exec_psql_for_db
+sub _set_environment_vars_for_db
 {
-    my ( $label, @ARGS ) = @_;
+    my ( $label ) = @_;
 
     my $connect_settings = connect_settings( $label );
-
-    my $password = $connect_settings->{ pass };
-
-    #can't give password to psql as an option
-
+    
     $ENV{ 'PGPASSWORD' } = $connect_settings->{ pass };
     $ENV{ 'PGHOST' }     = $connect_settings->{ host };
     $ENV{ 'PGDATABASE' } = $connect_settings->{ db };
     $ENV{ 'PGUSER' }     = $connect_settings->{ user };
+}
+
+sub exec_psql_for_db
+{
+    my ( $label, @ARGS ) = @_;
+
+    _set_environment_vars_for_db();
 
     exec( 'psql', @ARGS );
     die 'exec failed';
