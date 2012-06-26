@@ -98,6 +98,28 @@ sub connect_settings
     return $_connect_settings;
 }
 
+sub exec_psql_for_db
+{
+    my ( $label ) = @_;
+
+    my $connect_settings = connect_settings( $label );
+
+    my $psql_options = {};
+
+    $psql_options->{ '--dbname' }   = $connect_settings->{ db };
+    $psql_options->{ '--host' }     = $connect_settings->{ host };
+    $psql_options->{ '--username' } = $connect_settings->{ user };
+
+    my $password = $connect_settings->{ pass };
+
+    #can't give password to psql as an option
+
+    $ENV{ 'PGPASSWORD' } = $connect_settings->{ pass };
+
+    exec( 'psql', ( %$psql_options ) );
+    die 'exec failed';
+}
+
 sub authenticate
 {
     my ( $self, $label ) = @_;
