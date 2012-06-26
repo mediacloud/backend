@@ -26,12 +26,12 @@ sub main
 
     my $db_label;
 
-    if ( $ARGS[ 0 ] eq '--list-labels' )
+    if ( ( defined( $ARGS[ 0 ] ) ) && ( $ARGS[ 0 ] eq '--list-labels' ) )
     {
         $list_labels = 1;
         shift @ARGS;
     }
-    elsif ( $ARGS[ 0 ] eq '--db-label' )
+    elsif ( ( defined( $ARGS[ 0 ] ) ) && ( $ARGS[ 0 ] eq '--db-label' ) )
     {
         shift @ARGS;
         $db_label = shift @ARGS;
