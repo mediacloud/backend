@@ -98,6 +98,17 @@ sub connect_settings
     return $_connect_settings;
 }
 
+sub get_db_labels
+{
+    my $all_settings = MediaWords::Util::Config::get_config->{ database };
+
+    defined( $all_settings ) or croak( "No database connections configured" );
+
+    my @labels = map { $_->{ label } } @{ $all_settings };
+
+    return @labels;
+}
+
 sub exec_psql_for_db
 {
     my ( $label, @ARGS ) = @_;
