@@ -310,8 +310,16 @@ sub main
 
     my $last_dumped_id = get_max_stories_id( $dbh );
 
+    say "Starting dump_media";
+
     dump_media( $dbh, $dir );
+
+    say "Starting dump_media_sets";
+
     dump_media_sets( $dbh, $dir );
+
+    say "Starting dump_stories";
+
     dump_stories( $dbh, $dir, $stories_id_start, $last_dumped_id );
 
     my $existing_dump_files = MediaWords::Controller::Dashboard::get_data_dump_file_list();
@@ -325,11 +333,15 @@ sub main
 
     #exit;
 
+    say "Starting dump_story_words";
+
     my $dumped_stories = dump_story_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
 
     if ( $full )
     {
+        say "Starting dump_weekly_words";
         dump_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
+        say "Starting dump_total_weekly_words";
         dump_total_weekly_words( $dbh, $dir, $stories_id_start, $last_dumped_id );
     }
 
@@ -366,6 +378,9 @@ sub main
     move( $tmp_zip_file_path, "/$data_dir/$dump_zip_file_name" . ".zip" ) || die "Error renaming file $@";
 
     #move( $tmp_zip_file_path . '2', "/$data_dir/$dump_zip_file_name" . ".zip_2" ) || die "Error renaming file $@";
+
+    say STDERR "Dump completed";
+    say "Dump completed";
 }
 
 main();
