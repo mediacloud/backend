@@ -177,6 +177,8 @@ sub main
     reextract_downloads( $downloads );
 
     #regenerate_download_texts_for_downloads( $downloads );
+
+    say STDERR "completed extraction";
 }
 
 main();
