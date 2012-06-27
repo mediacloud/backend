@@ -90,7 +90,11 @@ sub _get_stories_from_feed_contents_impl
         {
 	    try 
 	    {
-		$publish_date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) )->datetime;
+		my $date_string = $item->pubDate();
+		
+		$date_string =~ s/(\d\d\d\d-\d\d-\d\dT\d\d\:\d\d\:\d\d)-\d\d\d\:\d\d/\1/;
+
+		$publish_date = DateTime->from_epoch( epoch => Date::Parse::str2time( $date_string ) )->datetime;
 	    }
 	    catch
 	    {
