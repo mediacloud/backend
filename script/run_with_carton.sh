@@ -13,6 +13,6 @@ set -o  errexit
 
 cd ..
 #echo "$BASHPID"
-echo ./script/run_carton.sh exec -- $full_path_str $@
+#echo ./script/run_carton.sh exec -- $full_path_str $@
 exec ./script/run_carton.sh exec -- $full_path_str $@
 
