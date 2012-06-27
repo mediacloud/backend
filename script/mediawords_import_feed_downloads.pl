@@ -125,6 +125,8 @@ sub main
 {
     my $xml_file_name = shift( @ARGV );
 
+    say "Processing file $xml_file_name";
+
     die "Must specify file name" unless $xml_file_name;
 
     binmode STDOUT, ":utf8";
