@@ -88,7 +88,15 @@ sub _get_stories_from_feed_contents_impl
 
         if ( $item->pubDate() )
         {
-            $publish_date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) )->datetime;
+	    try 
+	    {
+		$publish_date = DateTime->from_epoch( epoch => Date::Parse::str2time( $item->pubDate() ) )->datetime;
+	    }
+	    catch
+	    {
+		$publish_date = $download_time;
+		warn "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time:$_";
+	    }
         }
         else
         {
