@@ -42,7 +42,7 @@ my $_re_generate_cache = 0;
 
 Readonly my $output_dir => 'download_content_test_data';
 
-Readonly my $goose_dir => '/home/dlarochelle/goose/goose';
+Readonly my $goose_dir => '/space/mediacloud/goose/goose';
 
 sub create_base64_encoded_element
 {
