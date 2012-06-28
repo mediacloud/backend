@@ -18,23 +18,47 @@ use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
 use MediaWords::Util::DatabaseRestore;
+use Getopt::Long;
 
 sub main
 {
-    my @ARGS = @ARGV;
+    my Readonly $usage =
+      'USAGE: ./mediawords_find_duplicate_primary_keys_in_dump.pl --table_name foo --sql_dump_file dump_file --byte_offset_file file ';
 
-    open ( my $sql_file, '<', '/tmp/media.sql' );
+    my ( $table_name, $sql_dump_file, $byte_offset_file );
 
-    my $start_byte = 899;
+    GetOptions(
+        'table_name=s'       => \$table_name,
+        'sql_dump_file=s'    => \$sql_dump_file,
+        'byte_offset_file=s' => \$byte_offset_file
+    ) or die "$usage\n";
+
+    die "$usage\n"
+      unless $table_name && $sql_dump_file && $byte_offset_file;
+
+    MediaWords::Util::DatabaseRestore::test_opening_files( $byte_offset_file, $sql_dump_file );
+
+    #say STDERR Dumper( [ $table_name, $sql_dump_file, $byte_offset_file ] );
+
+    say STDERR "starting --  " . localtime();
+
+    #This function just parse grep output so despite its name it doesn't care if the thing to the left of the ':' is a byte offset or line number
+    my $start_and_end_bytes =
+      MediaWords::Util::DatabaseRestore::get_start_and_end_line_for_table( $byte_offset_file, $table_name );
+
+    my $start_byte = $start_and_end_bytes->{ start_line };
+    my $end_byte  = $start_and_end_bytes->{ end_line };
+
+    open ( my $sql_file, '<', $sql_dump_file );
 
     seek( $sql_file, $start_byte, 0 );
+
 
     my $lines_until_copy = 0;
     MediaWords::Util::DatabaseRestore::read_until_copy_statement( $sql_file, 'media', \$lines_until_copy );
 
     my $primary_keys = {};
     
-
     my $lines_read = 0;
 
     my $last_pos = tell( $sql_file);
