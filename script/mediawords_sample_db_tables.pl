@@ -53,7 +53,7 @@ sub main
 	    " from generate_series(1,15), (select max($table" . "_id) as max_id, min($table" . "_id) as min_id from $table) s1 " .
 	    "        limit 15)  order by random() limit 5; ";
 
-	say Dumper( $dbs->query($query)->hashes );
+	#say Dumper( $dbs->query($query)->hashes );
     }
 }
 
