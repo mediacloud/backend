@@ -35,6 +35,10 @@ sub main
 
     @tables = get_complement( [ \@non_id_tables, \@tables ] );
 
+    say "Dumping tables";
+
+    say Dumper( \@tables );
+
     foreach my $table ( @tables )
     {
 	say "Dumping sample of table '$table'";
