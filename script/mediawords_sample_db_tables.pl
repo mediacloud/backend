@@ -35,6 +35,11 @@ sub main
 
     @tables = get_complement( [ \@non_id_tables, \@tables ] );
 
+    my @web_writtable_tables = qw ( query_story_searches media_tags_map popular_queries queries queries_country_counts_json queries_top_weekly_words_json
+ query_story_searches );
+
+    @tables = get_complement( [ \@web_writtable_tables, \@tables ] );
+
     say "Dumping tables";
 
     say Dumper( \@tables );
@@ -48,7 +53,7 @@ sub main
 	
 	say Dumper( $dbs->query( $min_max_query )->hashes );
 
-	say "Dumping sample of table '$table'";
+	#say "Dumping sample of table '$table'";
 	my $query = "select * from $table where $table" . "_id in (select floor(random() * (max_id - min_id + 1))::integer + min_id " .
 	    " from generate_series(1,15), (select max($table" . "_id) as max_id, min($table" . "_id) as min_id from $table) s1 " .
 	    "        limit 15)  order by random() limit 5; ";
