@@ -12,6 +12,7 @@ BEGIN
 use MediaWords::DB;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use IO::Handle qw( flush );
 
 use Readonly;
 
@@ -38,6 +39,8 @@ sub main
 
     @tables = get_complement( [ \@web_writtable_tables, \@tables ] );
 
+    autoflush STDOUT 1;
+
     say "Dumping tables";
 
     say Dumper( \@tables );
@@ -54,10 +57,12 @@ sub main
 	$dbs->query('select setseed(.12345);');
 	say "Dumping sample of table '$table'";
 	my $query = "select * from $table where $table" . "_id in (select floor(random() * (max_id - min_id + 1))::integer + min_id " .
-	    " from generate_series(1,5000), (select max($table" . "_id) as max_id, min($table" . "_id) as min_id from $table) s1 " .
-	    "        limit 5000)  order by random() limit 1000; ";
+	    " from generate_series(1,500), (select max($table" . "_id) as max_id, min($table" . "_id) as min_id from $table) s1 " .
+	    "        limit 500)  order by random() limit 200; ";
 
 	say Dumper( $dbs->query($query)->hashes );
+
+	#OUTPUT_HANDLE->flush(1);
     }
 }
 
