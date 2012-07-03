@@ -86,6 +86,25 @@ sub _get_extra_lines
     return @extra_lines;
 }
 
+sub _get_non_optional_non_autoexcluded_line_count
+{
+
+    my ( $line_should_be_in_story, $line_info ) = @_;
+    
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
+
+    my $non_autoexcluded = [ grep { ! $_->{ auto_excluded } } @ { $line_info } ];
+
+    my $non_autoexcluded_line_numbers = [ map { $_->{ line_number } } @$non_autoexcluded ];
+
+    # say Dumper ( \@optional_lines );
+    # say Dumper ( $non_autoexcluded );
+    # say Dumper ( $non_autoexcluded_line_numbers );
+    # say Dumper ( scalar ( @ $non_autoexcluded_line_numbers ) );
+
+    return scalar ( @ $non_autoexcluded_line_numbers );
+}
+
 sub _get_correctly_included_lines
 {
     my ( $line_should_be_in_story, $extracted_lines ) = @_;
@@ -102,7 +121,7 @@ sub _get_correctly_included_lines
 
 sub get_line_level_extractor_results
 {
-    my ( $line_should_be_in_story, $extra_lines, $missing_lines ) = @_;
+    my ( $line_should_be_in_story, $extra_lines, $missing_lines, $non_optional_non_autoexclude_line_count ) = @_;
 
     my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
 
@@ -113,6 +132,7 @@ sub get_line_level_extractor_results
         story_line_count   => $story_line_count,
         extra_line_count   => $extra_line_count,
         missing_line_count => $missing_line_count,
+        non_optional_non_autoexclude_line_count => $non_optional_non_autoexclude_line_count,
     };
 
     return $ret;
@@ -245,7 +265,9 @@ sub compare_extraction_with_training_data
     my $extra_lines              = \@extra_lines;
     my $correctly_included_lines = \@correctly_included_lines;
 
-    my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, $extra_lines, $missing_lines );
+    my $non_optional_non_autoexcluded_line_count = _get_non_optional_non_autoexcluded_line_count( $line_should_be_in_story, $line_info );
+
+    my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, $extra_lines, $missing_lines, $non_optional_non_autoexcluded_line_count );
 
     my $character_level_results =
       get_character_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
@@ -371,13 +393,13 @@ sub dump_training_data_csv
 
     my @all_line_infos = map { @{ $_->{ line_info } } } ( @{ $analyzed_downloads } );
 
-    say Dumper ( [ @all_line_infos ] );
+    #say Dumper ( [ @all_line_infos ] );
 
     say " dump_training_data_csv creating lines_not_autoexcluded";
 
     my @lines_not_autoexcluded = grep { !$_->{ auto_excluded } } @all_line_infos;
 
-    say Dumper ( [ @lines_not_autoexcluded ] );
+    #say Dumper ( [ @lines_not_autoexcluded ] );
 
     use Class::CSV;
 
@@ -419,7 +441,6 @@ sub extractAndScoreDownloads
         say STDERR "reading datafile $_download_data_load_file ";
         $analyzed_downloads = retrieve( $_download_data_load_file ) || die;
         say STDERR "read datafile $_download_data_load_file ";
-
     }
     else
     {
@@ -452,7 +473,6 @@ sub extractAndScoreDownloads
             {
                 $analyzed_download->{ preprocessed_lines } = shift @{ $preprocessed_lines_tmp };
             }
-
         }
     }
 
@@ -484,9 +504,14 @@ sub process_download_results
     my $all_missing_lines      = sum( map { $_->{ missing_line_count } } @{ $download_results } );
     my $errors                 = sum( map { $_->{ errors } } @{ $download_results } );
 
+    my $non_optional_non_autoexclude_line_count =  sum( map { $_->{ non_optional_non_autoexclude_line_count } } @{ $download_results } );
+
     print "$errors errors / " . scalar( @$download_results ) . " downloads\n";
-    print "lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
+    print "story lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
+
+    print "non_ignoreable lines: $non_optional_non_autoexclude_line_count / $all_extra_lines (" . $all_extra_lines / $non_optional_non_autoexclude_line_count  .
+      ") extra / $all_missing_lines (" . $all_missing_lines / $non_optional_non_autoexclude_line_count . ") missing\n";
 
     if ( $all_story_characters == 0 )
     {
