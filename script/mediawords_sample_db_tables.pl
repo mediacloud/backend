@@ -25,8 +25,6 @@ sub main
 {
     my $dbs = MediaWords::DB::connect_to_db();
 
-    $dbs->query('select setseed(.12345);');
-
     my $table_names_query = "SELECT table_name FROM information_schema.tables WHERE table_type <> 'VIEW' and table_schema = 'public' and not ( table_name like 'sopa_date_counts_dump_00%' ) and not ( table_name like 'sopa_links_dump_00%'  ) and not ( table_name like 'sopa_media_dump%' ) and not ( table_name like 'sopa_%' ) order by table_name asc";
 
     my @tables = $dbs->query( $table_names_query )->flat();
@@ -53,6 +51,7 @@ sub main
 	
 	say Dumper( $dbs->query( $min_max_query )->hashes );
 
+	$dbs->query('select setseed(.12345);');
 	say "Dumping sample of table '$table'";
 	my $query = "select * from $table where $table" . "_id in (select floor(random() * (max_id - min_id + 1))::integer + min_id " .
 	    " from generate_series(1,15), (select max($table" . "_id) as max_id, min($table" . "_id) as min_id from $table) s1 " .
