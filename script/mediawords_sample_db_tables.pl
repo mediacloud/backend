@@ -27,7 +27,7 @@ sub main
 
     $dbs->query('select setseed(.12345);');
 
-    my $table_names_query = "SELECT table_name FROM information_schema.tables WHERE table_type <> 'VIEW' and table_schema = 'public' order by table_name asc";
+    my $table_names_query = "SELECT table_name FROM information_schema.tables WHERE table_type <> 'VIEW' and table_schema = 'public' and not ( table_name like 'sopa_date_counts_dump_00%' ) order by table_name asc";
 
     my @tables = $dbs->query( $table_names_query )->flat();
 
