@@ -31,7 +31,7 @@ sub main
 
     my @tables = $dbs->query( $table_names_query )->flat();
 
-    my @non_id_tables = qw ( daily_country_counts daily_stats daily_words_with_totals india_million media_tag_counts queries_dashboard_topics_map queries_media_sets_map ssw_queue story_sentence_words tar_downloads_queue top_ten_tags_for_media url_discovery_counts extractor_training_lines_corrupted_download_content );
+    my @non_id_tables = qw ( daily_country_counts daily_stats daily_words_with_totals india_million media_tag_counts queries_dashboard_topics_map queries_media_sets_map ssw_queue story_sentence_words tar_downloads_queue top_ten_tags_for_media url_discovery_counts extractor_training_lines_corrupted_download_content hr_pilot_study_stories);
 
     @tables = get_complement( [ \@non_id_tables, \@tables ] );
 
