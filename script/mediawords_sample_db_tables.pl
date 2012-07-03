@@ -41,6 +41,13 @@ sub main
 
     foreach my $table ( @tables )
     {
+	say "Dumping min max of table $table";
+
+	my $min_max_query = "select min($table" . "_id) as min, max($table" . "_id) from $table";
+
+	
+	say Dumper( $dbs->query( $min_max_query )->hashes );
+
 	say "Dumping sample of table '$table'";
 	my $query = "select * from $table where $table" . "_id in (select floor(random() * (max_id - min_id + 1))::integer + min_id " .
 	    " from generate_series(1,15), (select max($table" . "_id) as max_id, min($table" . "_id) as min_id from $table) s1 " .
