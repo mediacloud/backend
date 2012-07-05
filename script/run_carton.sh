@@ -7,5 +7,5 @@ source $working_dir/set_perl_brew_environment.sh
 set -u
 set -o  errexit
 
-#echo carton $@
-exec carton $@
+#echo carton "$@"
+exec carton "$@"
