@@ -9,6 +9,7 @@ use strict;
 use File::Temp;
 use FindBin;
 use Storable;
+use MediaWords::Util::Paths;
 
 # get urls in parallel
 sub ParallelGet
@@ -28,7 +29,10 @@ sub ParallelGet
         push( @{ $results }, $result );
     }
 
-    my $cmd = "'$FindBin::Bin'/../script/mediawords_web_store.pl";
+    my $mc_script_path =  MediaWords::Util::Paths::mc_script_path();
+    my $cmd = "'$mc_script_path'/../script/mediawords_web_store.pl";
+
+    #say STDERR "opening cmd:'$cmd' ";
 
     if ( !open( CMD, '|-', $cmd ) )
     {
