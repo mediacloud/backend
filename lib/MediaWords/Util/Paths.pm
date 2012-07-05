@@ -32,4 +32,5 @@ sub mc_script_path
 
     return $script_path;
 }
+
 1;
