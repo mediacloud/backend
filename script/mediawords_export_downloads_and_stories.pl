@@ -54,7 +54,7 @@ sub get_xml_element_for_download
 
     my $download_content_base64 = _get_base_64_encoded_download_content( $download );
 
-    #$download->{ encoded_download_content_base_64 } = $download_content_base64;
+    $download->{ encoded_download_content_base_64 } = $download_content_base64;
 
     my $download_xml = xml_tree_from_hash( $download, 'download' );
 }
@@ -202,7 +202,7 @@ sub export_downloads
     if ( $downloads_added )
     {
 	open my $OUT, ">", $file || die "$@";
-	print $OUT $doc->toString(2) || die "$@";
+	print $OUT $doc->toString( 2 ) || die "$@";
     }
 }
 
