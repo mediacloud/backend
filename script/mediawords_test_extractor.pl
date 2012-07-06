@@ -380,9 +380,13 @@ sub dump_training_data_csv
         my $line_info = $analyzed_download->{ line_info };
 
         my $line_should_be_in_story = $analyzed_download->{ line_should_be_in_story };
+
+	my $downloads_id = $analyzed_download->{ download }->{ downloads_id };
         foreach my $line ( @{ $line_info } )
         {
             $line->{ in_story } = defined( $line_should_be_in_story->{ $line->{ line_number } } ) ? 1 : 0;
+	    $line->{ training_result } = $line_should_be_in_story->{ $line->{ line_number } } // 'exclude';
+	    $line->{ downloads_id } = $downloads_id;
         }
 
     }
