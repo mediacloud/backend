@@ -103,66 +103,6 @@ sub get_html_density
     return ( $html_length / ( length( $line ) + ( $chinese_character_adjustment ) ) );
 }
 
-# return hash with lines numbers that should be included by clickprint as names:
-# { linenum1 => 1, linenum2 => 1, ...}
-sub get_clickprint_map
-{
-    my ( $markers ) = @_;
-
-    my $clickprint_map;
-
-    if ( !defined( $markers->{ startclickprintinclude } ) )
-    {
-        return;
-    }
-
-    $markers->{ endclickprintinclude }   ||= [];
-    $markers->{ startclickprintexclude } ||= [];
-    $markers->{ endclickprintexclude }   ||= [];
-
-    while ( my $start_include = shift( @{ $markers->{ startclickprintinclude } } ) )
-    {
-        my $end_include = shift( @{ $markers->{ endclickprintinclude } } );
-
-        if ( !defined( $end_include ) )
-        {
-            print STDERR
-"Invalid clickprint: startclickprintinclude at line: $start_include does not have a matching endclickprintinclude";
-            return;
-        }
-
-        for ( my $i = $start_include ; $i <= $end_include ; $i++ )
-        {
-            $clickprint_map->{ $i } = 1;
-        }
-
-        if ( my $start_exclude = shift( @{ $markers->{ startclickprintexclude } } ) )
-        {
-            if ( $start_exclude > $end_include )
-            {
-                unshift( @{ $markers->{ startclickprintexclude } }, $start_exclude );
-            }
-            else
-            {
-                my $end_exclude = shift( @{ $markers->{ endclickprintexclude } } )
-                  || $end_include;
-
-                #TODO consider just printing an error and returning of the startexclude does not have a matching end exclude
-
-                if ( $start_exclude >= $start_include )
-                {
-                    for ( my $i = $start_exclude + 1 ; $i < $end_exclude ; $i++ )
-                    {
-                        $clickprint_map->{ $i } = 0;
-                    }
-                }
-            }
-        }
-    }
-
-    return $clickprint_map;
-}
-
 sub lineStartsWithTitleText
 {
     my ( $line_text, $title_text ) = @_;
