@@ -88,19 +88,19 @@ sub _get_stories_from_feed_contents_impl
 
         if ( $item->pubDate() )
         {
-	    try 
-	    {
-		my $date_string = $item->pubDate();
-		
-		$date_string =~ s/(\d\d\d\d-\d\d-\d\dT\d\d\:\d\d\:\d\d)-\d\d\d\:\d\d/$1/;
+            try
+            {
+                my $date_string = $item->pubDate();
 
-		$publish_date = DateTime->from_epoch( epoch => Date::Parse::str2time( $date_string ) )->datetime;
-	    }
-	    catch
-	    {
-		$publish_date = $download_time;
-		warn "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time:$_";
-	    }
+                $date_string =~ s/(\d\d\d\d-\d\d-\d\dT\d\d\:\d\d\:\d\d)-\d\d\d\:\d\d/$1/;
+
+                $publish_date = DateTime->from_epoch( epoch => Date::Parse::str2time( $date_string ) )->datetime;
+            }
+            catch
+            {
+                $publish_date = $download_time;
+                warn "Error getting date from item pubDate ('" . $item->pubDate() . "') just using download time:$_";
+            }
         }
         else
         {
@@ -136,7 +136,8 @@ sub _add_story_using_parent_download
     #say STDERR "starting _add_story_using_parent_download ";
     #say STDERR Dumper( $story );
 
-    try {
+    try
+    {
         $story = $dbs->create( "stories", $story );
     }
     catch
