@@ -10,7 +10,7 @@ NOTE: THESE INSTRUCTIONS HAVE ONLY BEEN TESTED ON UBUNTU LINUX. We recommend usi
 
 NOTE: We recommend you create a new user to run and install Media Cloud. These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
-* Install postgresql (8.4 or greater).  Make sure that plperl support
+* Install Postgresql 8.4.  Make sure that plperl support
   is included in your postgresql installation, or install the necessary
   addon packages for it.  E.g. on Ubuntu run: 
   	sudo apt-get install postgresql-8.4 postgresql-client-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4;
