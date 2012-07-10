@@ -1,5 +1,6 @@
 package Carton::CLI::MediaWords;
 
+use strict;
 use parent( 'Carton::CLI' );
 
 sub cmd_exec {
