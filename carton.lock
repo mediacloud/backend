@@ -2,7 +2,6 @@
    "modules" : {
       "Algorithm::Cluster" : {
          "dist" : "Algorithm-Cluster-1.50",
-         "module" : "Algorithm::Cluster",
          "mymeta" : {
             "abstract" : "Perl interface to the C Clustering Library",
             "author" : [
@@ -53,11 +52,11 @@
                "file" : "Algorithm/Cluster/Record.pm"
             }
          },
+         "target" : "Algorithm::Cluster",
          "version" : "1.50"
       },
       "Algorithm::Diff" : {
          "dist" : "Algorithm-Diff-1.1902",
-         "module" : "Algorithm::Diff",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -109,11 +108,11 @@
                "version" : "1.1"
             }
          },
+         "target" : "Algorithm::Diff",
          "version" : "1.1902"
       },
       "Alien::Tidyp" : {
          "dist" : "Alien-Tidyp-v1.4.7",
-         "module" : "Alien::Tidyp",
          "mymeta" : {
             "abstract" : "Building, finding and using tidyp library - L<http://www.tidyp.com>",
             "author" : [
@@ -202,11 +201,11 @@
                "file" : "Alien/Tidyp/ConfigData.pm"
             }
          },
+         "target" : "Alien::Tidyp",
          "version" : "v1.4.7"
       },
       "Any::Moose" : {
          "dist" : "Any-Moose-0.18",
-         "module" : "Any::Moose",
          "mymeta" : {
             "abstract" : "use Moose or Mouse modules",
             "author" : [
@@ -253,11 +252,11 @@
                "version" : "0.18"
             }
          },
+         "target" : "Any::Moose",
          "version" : "0.18"
       },
       "AnyEvent" : {
          "dist" : "AnyEvent-7.0",
-         "module" : "AnyEvent",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -448,11 +447,11 @@
                "version" : "0"
             }
          },
+         "target" : "AnyEvent",
          "version" : "7.0"
       },
       "AnyEvent::HTTP" : {
          "dist" : "AnyEvent-HTTP-2.14",
-         "module" : "AnyEvent::HTTP",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -503,11 +502,11 @@
                "version" : "2.14"
             }
          },
+         "target" : "AnyEvent::HTTP",
          "version" : "2.14"
       },
       "App::cpanminus" : {
          "dist" : "App-cpanminus-1.5010",
-         "module" : "App::cpanminus",
          "mymeta" : {
             "abstract" : "Get, unpack, build and install modules from CPAN.",
             "author" : [
@@ -559,11 +558,11 @@
                "version" : "1.5010"
             }
          },
+         "target" : "App::cpanminus",
          "version" : "1.5010"
       },
       "AppConfig" : {
          "dist" : "AppConfig-1.66",
-         "module" : "AppConfig",
          "mymeta" : {
             "abstract" : "AppConfig is a bundle of Perl5 modules for reading configuration files and parsing command line arguments.",
             "author" : [
@@ -626,11 +625,11 @@
                "version" : "1.65"
             }
          },
+         "target" : "AppConfig",
          "version" : "1.66"
       },
       "Archive::Zip" : {
          "dist" : "Archive-Zip-1.30",
-         "module" : "Archive::Zip",
          "mymeta" : {
             "abstract" : "Provide an interface to ZIP archive files.",
             "author" : [
@@ -736,11 +735,11 @@
                "version" : "1.30"
             }
          },
+         "target" : "Archive::Zip",
          "version" : "1.30"
       },
       "Array::Compare" : {
          "dist" : "Array-Compare-2.02",
-         "module" : "Array::Compare",
          "mymeta" : {
             "abstract" : "Perl extension for comparing arrays.",
             "author" : [
@@ -797,11 +796,11 @@
                "version" : "2.02"
             }
          },
+         "target" : "Array::Compare",
          "version" : "2.02"
       },
       "Astro::FITS::Header" : {
          "dist" : "Astro-FITS-Header-3.03",
-         "module" : "Astro::FITS::Header",
          "mymeta" : {
             "abstract" : "Object-oriented interface to FITS HDUs",
             "author" : [
@@ -914,11 +913,11 @@
                "version" : "3.01"
             }
          },
+         "target" : "Astro::FITS::Header",
          "version" : "3.03"
       },
       "B::Hooks::EndOfScope" : {
          "dist" : "B-Hooks-EndOfScope-0.09",
-         "module" : "B::Hooks::EndOfScope",
          "mymeta" : {
             "abstract" : "Execute code after a scope finished compilation",
             "author" : [
@@ -1116,11 +1115,11 @@
                "version" : "0.09"
             }
          },
+         "target" : "B::Hooks::EndOfScope",
          "version" : "0.09"
       },
       "BerkeleyDB" : {
          "dist" : "BerkeleyDB-0.50",
-         "module" : "BerkeleyDB",
          "mymeta" : {
             "abstract" : "Perl extension for Berkeley DB version 2, 3, 4 or 5",
             "author" : [
@@ -1207,11 +1206,11 @@
                "file" : "BerkeleyDB.pm"
             }
          },
+         "target" : "BerkeleyDB",
          "version" : "0.50"
       },
       "Bit::Vector" : {
          "dist" : "Bit-Vector-7.1",
-         "module" : "Bit::Vector",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -1259,11 +1258,11 @@
                "version" : "7.1"
             }
          },
+         "target" : "Bit::Vector",
          "version" : "7.1"
       },
       "CGI::Compile" : {
          "dist" : "CGI-Compile-0.15",
-         "module" : "CGI::Compile",
          "mymeta" : {
             "abstract" : "Compile .cgi scripts to a code reference like ModPerl::Registry",
             "author" : [
@@ -1327,11 +1326,11 @@
                "version" : "0.15"
             }
          },
+         "target" : "CGI::Compile",
          "version" : "0.15"
       },
       "CGI::Emulate::PSGI" : {
          "dist" : "CGI-Emulate-PSGI-0.14",
-         "module" : "CGI::Emulate::PSGI",
          "mymeta" : {
             "abstract" : "PSGI adapter for CGI",
             "author" : [
@@ -1392,11 +1391,11 @@
                "file" : "CGI/Parse/PSGI.pm"
             }
          },
+         "target" : "CGI::Emulate::PSGI",
          "version" : "0.14"
       },
       "CGI::PSGI" : {
          "dist" : "CGI-PSGI-0.15",
-         "module" : "CGI::PSGI",
          "mymeta" : {
             "abstract" : "Adapt CGI.pm to the PSGI protocol",
             "author" : [
@@ -1458,11 +1457,11 @@
                "version" : "0.15"
             }
          },
+         "target" : "CGI::PSGI",
          "version" : "0.15"
       },
       "CGI::Simple" : {
          "dist" : "CGI-Simple-1.113",
-         "module" : "CGI::Simple::Cookie",
          "mymeta" : {
             "abstract" : "A Simple totally OO CGI interface that is CGI.pm compliant",
             "author" : [
@@ -1544,11 +1543,11 @@
                "version" : "1.113"
             }
          },
+         "target" : "CGI::Simple::Cookie",
          "version" : "1.113"
       },
       "CHI" : {
          "dist" : "CHI-0.50",
-         "module" : "CHI",
          "mymeta" : {
             "abstract" : "Unified cache handling interface",
             "author" : [
@@ -1860,11 +1859,11 @@
                "version" : "0.50"
             }
          },
+         "target" : "CHI",
          "version" : "0.50"
       },
       "CPAN::DistnameInfo" : {
          "dist" : "CPAN-DistnameInfo-0.12",
-         "module" : "CPAN::DistnameInfo",
          "mymeta" : {
             "abstract" : "Extract distribution name and version from a distribution filename",
             "author" : [
@@ -1919,11 +1918,11 @@
                "version" : "0.12"
             }
          },
+         "target" : "CPAN::DistnameInfo",
          "version" : "0.12"
       },
       "CPAN::Meta" : {
          "dist" : "CPAN-Meta-2.120921",
-         "module" : "CPAN::Meta",
          "mymeta" : {
             "abstract" : "the distribution metadata for a CPAN dist",
             "author" : [
@@ -2053,11 +2052,11 @@
                "version" : "2.120921"
             }
          },
+         "target" : "CPAN::Meta",
          "version" : "2.120921"
       },
       "CPAN::Meta::Requirements" : {
          "dist" : "CPAN-Meta-Requirements-2.121",
-         "module" : "CPAN::Meta::Requirements",
          "mymeta" : {
             "abstract" : "a set of version requirements for a CPAN dist",
             "author" : [
@@ -2134,11 +2133,11 @@
                "version" : "2.121"
             }
          },
+         "target" : "CPAN::Meta::Requirements",
          "version" : "2.121"
       },
       "CPAN::Meta::YAML" : {
          "dist" : "CPAN-Meta-YAML-0.008",
-         "module" : "CPAN::Meta::YAML",
          "mymeta" : {
             "abstract" : "Read and write a subset of YAML for CPAN Meta files",
             "author" : [
@@ -2218,11 +2217,11 @@
                "version" : "0.008"
             }
          },
+         "target" : "CPAN::Meta::YAML",
          "version" : "0.008"
       },
       "Cache::Cache" : {
          "dist" : "Cache-Cache-1.06",
-         "module" : "Cache::Cache",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -2332,11 +2331,11 @@
                "file" : "Cache/SizeAwareSharedMemoryCache.pm"
             }
          },
+         "target" : "Cache::Cache",
          "version" : "1.06"
       },
       "Cache::FastMmap" : {
          "dist" : "Cache-FastMmap-1.40",
-         "module" : "Cache::FastMmap",
          "mymeta" : {
             "abstract" : "Uses an mmap'ed file to act as a shared memory interprocess cache",
             "author" : [
@@ -2389,11 +2388,11 @@
                "file" : "Cache/FastMmap.pm"
             }
          },
+         "target" : "Cache::FastMmap",
          "version" : "1.40"
       },
       "Captcha::reCAPTCHA" : {
          "dist" : "Captcha-reCAPTCHA-0.94",
-         "module" : "Captcha::reCAPTCHA",
          "mymeta" : {
             "abstract" : "A Perl implementation of the reCAPTCHA API",
             "author" : [
@@ -2445,11 +2444,11 @@
                "version" : "0.93"
             }
          },
+         "target" : "Captcha::reCAPTCHA",
          "version" : "0.93"
       },
       "Capture::Tiny" : {
          "dist" : "Capture-Tiny-0.17",
-         "module" : "Capture::Tiny",
          "mymeta" : {
             "abstract" : "Capture STDOUT and STDERR from Perl, XS or external programs",
             "author" : [
@@ -2529,11 +2528,11 @@
                "version" : "0.17"
             }
          },
+         "target" : "Capture::Tiny",
          "version" : "0.17"
       },
       "Carp::Assert" : {
          "dist" : "Carp-Assert-0.20",
-         "module" : "Carp::Assert",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -2573,11 +2572,11 @@
                "version" : "0.20"
             }
          },
+         "target" : "Carp::Assert",
          "version" : "0.20"
       },
       "Carp::Assert::More" : {
          "dist" : "Carp-Assert-More-1.12",
-         "module" : "Carp::Assert::More",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -2622,11 +2621,11 @@
                "version" : "1.12"
             }
          },
+         "target" : "Carp::Assert::More",
          "version" : "1.12"
       },
       "Carp::Clan" : {
          "dist" : "Carp-Clan-6.04",
-         "module" : "Carp::Clan",
          "mymeta" : {
             "abstract" : "Report errors from perspective of caller of a \"clan\" of modules",
             "author" : [
@@ -2665,11 +2664,11 @@
                "version" : "6.04"
             }
          },
+         "target" : "Carp::Clan",
          "version" : "6.04"
       },
       "Catalyst::Action::RenderView" : {
          "dist" : "Catalyst-Action-RenderView-0.16",
-         "module" : "Catalyst::Action::RenderView",
          "mymeta" : {
             "abstract" : "Sensible default end action.",
             "author" : [
@@ -2732,11 +2731,11 @@
                "version" : "0.16"
             }
          },
+         "target" : "Catalyst::Action::RenderView",
          "version" : "0.16"
       },
       "Catalyst::Component::InstancePerContext" : {
          "dist" : "Catalyst-Component-InstancePerContext-0.001001",
-         "module" : "Catalyst::Component::InstancePerContext",
          "mymeta" : {
             "abstract" : "Moose role to create only one instance of component per context",
             "author" : [
@@ -2784,11 +2783,11 @@
                "version" : "0.001001"
             }
          },
+         "target" : "Catalyst::Component::InstancePerContext",
          "version" : "0.001001"
       },
       "Catalyst::Controller::HTML::FormFu" : {
          "dist" : "Catalyst-Controller-HTML-FormFu-0.09003",
-         "module" : "Catalyst::Controller::HTML::FormFu",
          "mymeta" : {
             "abstract" : "Catalyst integration for HTML::FormFu",
             "author" : [
@@ -2904,11 +2903,11 @@
                "file" : "HTML/FormFu/Plugin/RequestToken.pm"
             }
          },
+         "target" : "Catalyst::Controller::HTML::FormFu",
          "version" : "0.09003"
       },
       "Catalyst::Devel" : {
          "dist" : "Catalyst-Devel-1.36",
-         "module" : "Catalyst::Devel",
          "mymeta" : {
             "abstract" : "Catalyst Development Tools",
             "author" : [
@@ -3011,11 +3010,11 @@
                "file" : "Module/Install/Catalyst.pm"
             }
          },
+         "target" : "Catalyst::Devel",
          "version" : "1.36"
       },
       "Catalyst::Plugin::ConfigLoader" : {
          "dist" : "Catalyst-Plugin-ConfigLoader-0.30",
-         "module" : "Catalyst::Plugin::ConfigLoader",
          "mymeta" : {
             "abstract" : "Load config files of various types",
             "author" : [
@@ -3078,11 +3077,11 @@
                "version" : "0.30"
             }
          },
+         "target" : "Catalyst::Plugin::ConfigLoader",
          "version" : "0.30"
       },
       "Catalyst::Plugin::I18N" : {
          "dist" : "Catalyst-Plugin-I18N-0.10",
-         "module" : "Catalyst::Plugin::I18N",
          "mymeta" : {
             "abstract" : "I18N for Catalyst",
             "author" : [
@@ -3147,11 +3146,11 @@
                "version" : "0.10"
             }
          },
+         "target" : "Catalyst::Plugin::I18N",
          "version" : "0.10"
       },
       "Catalyst::Plugin::Session" : {
          "dist" : "Catalyst-Plugin-Session-0.32",
-         "module" : "Catalyst::Plugin::Session",
          "mymeta" : {
             "abstract" : "Generic Session plugin - ties together server side storage and client side state required to maintain session data.",
             "author" : [
@@ -3235,11 +3234,11 @@
                "version" : "123"
             }
          },
+         "target" : "Catalyst::Plugin::Session",
          "version" : "0.32"
       },
       "Catalyst::Plugin::Session::State::Cookie" : {
          "dist" : "Catalyst-Plugin-Session-State-Cookie-0.17",
-         "module" : "Catalyst::Plugin::Session::State::Cookie",
          "mymeta" : {
             "abstract" : "Maintain session IDs using cookies.",
             "author" : [
@@ -3303,11 +3302,11 @@
                "version" : "0.17"
             }
          },
+         "target" : "Catalyst::Plugin::Session::State::Cookie",
          "version" : "0.17"
       },
       "Catalyst::Plugin::Session::Store::FastMmap" : {
          "dist" : "Catalyst-Plugin-Session-Store-FastMmap-0.15",
-         "module" : "Catalyst::Plugin::Session::Store::FastMmap",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -3365,11 +3364,11 @@
                "version" : "0.15"
             }
          },
+         "target" : "Catalyst::Plugin::Session::Store::FastMmap",
          "version" : "0.15"
       },
       "Catalyst::Plugin::Session::Store::File" : {
          "dist" : "Catalyst-Plugin-Session-Store-File-0.18",
-         "module" : "Catalyst::Plugin::Session::Store::File",
          "mymeta" : {
             "abstract" : "File storage backend for session data.",
             "author" : [
@@ -3433,11 +3432,11 @@
                "version" : "0.18"
             }
          },
+         "target" : "Catalyst::Plugin::Session::Store::File",
          "version" : "0.18"
       },
       "Catalyst::Plugin::StackTrace" : {
          "dist" : "Catalyst-Plugin-StackTrace-0.11",
-         "module" : "Catalyst::Plugin::StackTrace",
          "mymeta" : {
             "abstract" : "Display a stack trace on the debug screen",
             "author" : [
@@ -3498,11 +3497,11 @@
                "version" : "0.11"
             }
          },
+         "target" : "Catalyst::Plugin::StackTrace",
          "version" : "0.11"
       },
       "Catalyst::Plugin::Static::Simple" : {
          "dist" : "Catalyst-Plugin-Static-Simple-0.29",
-         "module" : "Catalyst::Plugin::Static::Simple",
          "mymeta" : {
             "abstract" : "Make serving static pages painless.",
             "author" : [
@@ -3566,11 +3565,11 @@
                "version" : "0.29"
             }
          },
+         "target" : "Catalyst::Plugin::Static::Simple",
          "version" : "0.29"
       },
       "Catalyst::Plugin::Unicode" : {
          "dist" : "Catalyst-Plugin-Unicode-0.93",
-         "module" : "Catalyst::Plugin::Unicode",
          "mymeta" : {
             "abstract" : "Unicode aware Catalyst (old style)",
             "author" : [
@@ -3634,11 +3633,11 @@
                "version" : "0.93"
             }
          },
+         "target" : "Catalyst::Plugin::Unicode",
          "version" : "0.93"
       },
       "Catalyst::Runtime" : {
          "dist" : "Catalyst-Runtime-5.90011",
-         "module" : "Catalyst::Runtime",
          "mymeta" : {
             "abstract" : "The Catalyst Framework Runtime",
             "author" : [
@@ -3877,11 +3876,11 @@
                "file" : "Catalyst/View.pm"
             }
          },
+         "target" : "Catalyst::Runtime",
          "version" : "5.90011"
       },
       "Catalyst::View::TT" : {
          "dist" : "Catalyst-View-TT-0.37",
-         "module" : "Catalyst::View::TT",
          "mymeta" : {
             "abstract" : "Template View Class",
             "author" : [
@@ -3954,11 +3953,11 @@
                "version" : "0.37"
             }
          },
+         "target" : "Catalyst::View::TT",
          "version" : "0.37"
       },
       "Class::Accessor" : {
          "dist" : "Class-Accessor-0.34",
-         "module" : "Class::Accessor",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -4005,11 +4004,11 @@
                "version" : "0.34"
             }
          },
+         "target" : "Class::Accessor",
          "version" : "0.34"
       },
       "Class::Accessor::Chained" : {
          "dist" : "Class-Accessor-Chained-0.01",
-         "module" : "Class::Accessor::Chained::Fast",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -4061,11 +4060,11 @@
                "file" : "Class/Accessor/Chained/Fast.pm"
             }
          },
+         "target" : "Class::Accessor::Chained::Fast",
          "version" : "0.01"
       },
       "Class::Accessor::Grouped" : {
          "dist" : "Class-Accessor-Grouped-0.10006",
-         "module" : "Class::Accessor::Grouped",
          "mymeta" : {
             "abstract" : "Lets you build groups of accessors",
             "author" : [
@@ -4133,11 +4132,11 @@
                "version" : "0.10006"
             }
          },
+         "target" : "Class::Accessor::Grouped",
          "version" : "0.10006"
       },
       "Class::Accessor::Lite" : {
          "dist" : "Class-Accessor-Lite-0.05",
-         "module" : "Class::Accessor::Lite",
          "mymeta" : {
             "abstract" : "a minimalistic variant of Class::Accessor",
             "author" : [
@@ -4190,11 +4189,11 @@
                "version" : "0.05"
             }
          },
+         "target" : "Class::Accessor::Lite",
          "version" : "0.05"
       },
       "Class::C3" : {
          "dist" : "Class-C3-0.23",
-         "module" : "Class::C3",
          "mymeta" : {
             "abstract" : "A pragma to use the C3 method resolution order algortihm",
             "author" : [
@@ -4247,11 +4246,11 @@
                "version" : "0.23"
             }
          },
+         "target" : "Class::C3",
          "version" : "0.23"
       },
       "Class::C3::Adopt::NEXT" : {
          "dist" : "Class-C3-Adopt-NEXT-0.13",
-         "module" : "Class::C3::Adopt::NEXT",
          "mymeta" : {
             "abstract" : "make NEXT suck less",
             "author" : [
@@ -4455,11 +4454,11 @@
                "version" : "0.13"
             }
          },
+         "target" : "Class::C3::Adopt::NEXT",
          "version" : "0.13"
       },
       "Class::C3::Componentised" : {
          "dist" : "Class-C3-Componentised-1.001000",
-         "module" : "Class::C3::Componentised",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -4526,11 +4525,11 @@
                "file" : "Class/C3/Componentised/ApplyHooks.pm"
             }
          },
+         "target" : "Class::C3::Componentised",
          "version" : "1.001000"
       },
       "Class::CSV" : {
          "dist" : "Class-CSV-1.03",
-         "module" : "Class::CSV",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -4579,11 +4578,11 @@
                "file" : "Class/CSV.pm"
             }
          },
+         "target" : "Class::CSV",
          "version" : "1.03"
       },
       "Class::Data::Inheritable" : {
          "dist" : "Class-Data-Inheritable-0.08",
-         "module" : "Class::Data::Inheritable",
          "mymeta" : {
             "abstract" : "Inheritable, overridable class data",
             "author" : [
@@ -4620,11 +4619,11 @@
                "version" : "0.08"
             }
          },
+         "target" : "Class::Data::Inheritable",
          "version" : "0.08"
       },
       "Class::ErrorHandler" : {
          "dist" : "Class-ErrorHandler-0.01",
-         "module" : "Class::ErrorHandler",
          "mymeta" : {
             "abstract" : "Base class for error handling",
             "author" : [
@@ -4658,11 +4657,11 @@
                "version" : "0.01"
             }
          },
+         "target" : "Class::ErrorHandler",
          "version" : "0.01"
       },
       "Class::Factory::Util" : {
          "dist" : "Class-Factory-Util-1.7",
-         "module" : "Class::Factory::Util",
          "mymeta" : {
             "abstract" : "Provide utility methods for factory classes",
             "author" : [
@@ -4702,11 +4701,11 @@
                "version" : "1.7"
             }
          },
+         "target" : "Class::Factory::Util",
          "version" : "1.7"
       },
       "Class::Inspector" : {
          "dist" : "Class-Inspector-1.27",
-         "module" : "Class::Inspector",
          "mymeta" : {
             "abstract" : "Get information about a class and its structure",
             "author" : [
@@ -4773,11 +4772,11 @@
                "version" : "1.27"
             }
          },
+         "target" : "Class::Inspector",
          "version" : "1.27"
       },
       "Class::Load" : {
          "dist" : "Class-Load-0.13",
-         "module" : "Class::Load",
          "mymeta" : {
             "abstract" : "a working (require \"Class::Name\") and more",
             "author" : [
@@ -4840,11 +4839,11 @@
                "version" : "0.13"
             }
          },
+         "target" : "Class::Load",
          "version" : "0.13"
       },
       "Class::Load::XS" : {
          "dist" : "Class-Load-XS-0.03",
-         "module" : "Class::Load::XS",
          "mymeta" : {
             "abstract" : "XS implementation of parts of Class::Load",
             "author" : [
@@ -4900,11 +4899,11 @@
                "version" : "0.03"
             }
          },
+         "target" : "Class::Load::XS",
          "version" : "0.03"
       },
       "Class::MakeMethods" : {
          "dist" : "Class-MakeMethods-1.01",
-         "module" : "Class::MakeMethods",
          "mymeta" : {
             "abstract" : "Generate common types of methods",
             "author" : [
@@ -5162,11 +5161,11 @@
                "version" : "1.008"
             }
          },
+         "target" : "Class::MakeMethods",
          "version" : "1.01"
       },
       "Class::Method::Modifiers" : {
          "dist" : "Class-Method-Modifiers-1.09",
-         "module" : "Class::Method::Modifiers",
          "mymeta" : {
             "abstract" : "provides Moose-like method modifiers",
             "author" : [
@@ -5222,11 +5221,11 @@
                "version" : "1.09"
             }
          },
+         "target" : "Class::Method::Modifiers",
          "version" : "1.09"
       },
       "Class::Singleton" : {
          "dist" : "Class-Singleton-1.4",
-         "module" : "Class::Singleton",
          "mymeta" : {
             "abstract" : "Base class for creating singleton objects",
             "author" : [
@@ -5263,11 +5262,11 @@
                "version" : "1.4"
             }
          },
+         "target" : "Class::Singleton",
          "version" : "1.4"
       },
       "Class::Std" : {
          "dist" : "Class-Std-0.011",
-         "module" : "Class::Std",
          "mymeta" : {
             "abstract" : "Support for creating standard \"inside-out\" classes",
             "author" : [
@@ -5306,11 +5305,11 @@
                "file" : "Class/Std.pm"
             }
          },
+         "target" : "Class::Std",
          "version" : "0.011"
       },
       "Class::XSAccessor" : {
          "dist" : "Class-XSAccessor-1.13",
-         "module" : "Class::XSAccessor",
          "mymeta" : {
             "abstract" : "Generate fast XS accessors without runtime compilation",
             "author" : [
@@ -5371,11 +5370,11 @@
                "version" : "1.13"
             }
          },
+         "target" : "Class::XSAccessor",
          "version" : "1.13"
       },
       "Clone" : {
          "dist" : "Clone-0.31",
-         "module" : "Clone",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -5414,11 +5413,11 @@
                "version" : "0.31"
             }
          },
+         "target" : "Clone",
          "version" : "0.31"
       },
       "Config::Any" : {
          "dist" : "Config-Any-0.23",
-         "module" : "Config::Any",
          "mymeta" : {
             "abstract" : "Load configuration from different file formats, transparently",
             "author" : [
@@ -5500,11 +5499,11 @@
                "file" : "Config/Any/YAML.pm"
             }
          },
+         "target" : "Config::Any",
          "version" : "0.23"
       },
       "Config::General" : {
          "dist" : "Config-General-2.50",
-         "module" : "Config::General",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -5568,11 +5567,11 @@
                "version" : "2.14"
             }
          },
+         "target" : "Config::General",
          "version" : "2.50"
       },
       "Context::Preserve" : {
          "dist" : "Context-Preserve-0.01",
-         "module" : "Context::Preserve",
          "mymeta" : {
             "abstract" : "run code after a subroutine call, preserving the context the subroutine would have seen if it were the last statement in the caller",
             "author" : [
@@ -5620,11 +5619,11 @@
                "version" : "0.01"
             }
          },
+         "target" : "Context::Preserve",
          "version" : "0.01"
       },
       "Convert::UU" : {
          "dist" : "Convert-UU-0.5201",
-         "module" : "Convert::UU",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -5661,11 +5660,11 @@
                "version" : "0.5201"
             }
          },
+         "target" : "Convert::UU",
          "version" : "0.5201"
       },
       "Coro" : {
          "dist" : "Coro-6.08",
-         "module" : "Coro",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -5817,11 +5816,11 @@
                "version" : "6.08"
             }
          },
+         "target" : "Coro",
          "version" : "6.08"
       },
       "Corona" : {
          "dist" : "Corona-0.1004",
-         "module" : "Corona",
          "mymeta" : {
             "abstract" : "Coro based PSGI web server",
             "author" : [
@@ -5895,11 +5894,11 @@
                "version" : "0.1002"
             }
          },
+         "target" : "Corona",
          "version" : "0.1004"
       },
       "Crypt::CBC" : {
          "dist" : "Crypt-CBC-2.30",
-         "module" : "Crypt::CBC",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -5938,11 +5937,11 @@
                "version" : "2.30"
             }
          },
+         "target" : "Crypt::CBC",
          "version" : "2.30"
       },
       "Crypt::DES" : {
          "dist" : "Crypt-DES-2.05",
-         "module" : "Crypt::DES",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -5981,11 +5980,11 @@
                "version" : "2.05"
             }
          },
+         "target" : "Crypt::DES",
          "version" : "2.05"
       },
       "DBD::Pg" : {
          "dist" : "DBD-Pg-2.18.1",
-         "module" : "DBD::Pg",
          "mymeta" : {
             "abstract" : "DBI PostgreSQL interface",
             "author" : [
@@ -6095,11 +6094,11 @@
                "file" : "DBD/Pg.pm"
             }
          },
+         "target" : "DBD::Pg",
          "version" : "v2.18.1"
       },
       "DBD::SQLite" : {
          "dist" : "DBD-SQLite-1.35",
-         "module" : "DBD::SQLite",
          "mymeta" : {
             "abstract" : "Self Contained SQLite RDBMS in a DBI Driver",
             "author" : [
@@ -6175,11 +6174,11 @@
                "file" : "DBD/SQLite.pm"
             }
          },
+         "target" : "DBD::SQLite",
          "version" : "1.35"
       },
       "DBI" : {
          "dist" : "DBI-1.617",
-         "module" : "DBI",
          "mymeta" : {
             "abstract" : "Database independent interface for Perl",
             "author" : [
@@ -6546,11 +6545,11 @@
                "file" : "DBI.pm"
             }
          },
+         "target" : "DBI",
          "version" : "1.617"
       },
       "DBIx::Class" : {
          "dist" : "DBIx-Class-0.08196",
-         "module" : "DBIx::Class",
          "mymeta" : {
             "abstract" : "Extensible and flexible object <-> relational mapper.",
             "author" : [
@@ -6930,11 +6929,11 @@
                "version" : "0.1"
             }
          },
+         "target" : "DBIx::Class",
          "version" : "0.08196"
       },
       "DBIx::Simple" : {
          "dist" : "DBIx-Simple-1.35",
-         "module" : "DBIx::Simple",
          "mymeta" : {
             "abstract" : "Very complete easy-to-use OO interface to DBI",
             "author" : [
@@ -6999,11 +6998,11 @@
                "file" : "DBIx/Simple.pm"
             }
          },
+         "target" : "DBIx::Simple",
          "version" : "1.35"
       },
       "Data::Compare" : {
          "dist" : "Data-Compare-1.22",
-         "module" : "Data::Compare",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -7058,11 +7057,11 @@
                "version" : "1"
             }
          },
+         "target" : "Data::Compare",
          "version" : "1.22"
       },
       "Data::Dump" : {
          "dist" : "Data-Dump-1.21",
-         "module" : "Data::Dump",
          "mymeta" : {
             "abstract" : "Pretty printing of data structures",
             "author" : [
@@ -7137,11 +7136,11 @@
                "file" : "Data/Dump/Trace.pm"
             }
          },
+         "target" : "Data::Dump",
          "version" : "1.21"
       },
       "Data::Dumper::Concise" : {
          "dist" : "Data-Dumper-Concise-2.020",
-         "module" : "Data::Dumper::Concise",
          "mymeta" : {
             "abstract" : "Less indentation and newlines plus sub deparsing",
             "author" : [
@@ -7203,11 +7202,11 @@
                "file" : "Devel/Dwarn.pm"
             }
          },
+         "target" : "Data::Dumper::Concise",
          "version" : "2.020"
       },
       "Data::OptList" : {
          "dist" : "Data-OptList-0.107",
-         "module" : "Data::OptList",
          "mymeta" : {
             "abstract" : "parse and validate simple name/value option pairs",
             "author" : [
@@ -7456,11 +7455,11 @@
                "version" : "0.107"
             }
          },
+         "target" : "Data::OptList",
          "version" : "0.107"
       },
       "Data::Page" : {
          "dist" : "Data-Page-2.02",
-         "module" : "Data::Page",
          "mymeta" : {
             "abstract" : "help when paging through sets of results",
             "author" : [
@@ -7512,11 +7511,11 @@
                "version" : "2.02"
             }
          },
+         "target" : "Data::Page",
          "version" : "2.02"
       },
       "Data::Serializer" : {
          "dist" : "Data-Serializer-0.59",
-         "module" : "Data::Serializer",
          "mymeta" : {
             "abstract" : "Modules that serialize data structures",
             "author" : [
@@ -7752,11 +7751,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Data::Serializer",
          "version" : "0.59"
       },
       "Data::Sorting" : {
          "dist" : "Data-Sorting-0.9",
-         "module" : "Data::Sorting",
          "mymeta" : {
             "abstract" : "Multi-key sort using function results",
             "author" : [
@@ -7806,11 +7805,11 @@
                "version" : "0.9"
             }
          },
+         "target" : "Data::Sorting",
          "version" : "0.9"
       },
       "Data::UUID" : {
          "dist" : "Data-UUID-1.217",
-         "module" : "Data::UUID",
          "mymeta" : {
             "abstract" : "Perl extension for generating Globally/Universally",
             "author" : [
@@ -7860,11 +7859,11 @@
                "version" : "1.217"
             }
          },
+         "target" : "Data::UUID",
          "version" : "1.217"
       },
       "Data::Visitor" : {
          "dist" : "Data-Visitor-0.27",
-         "module" : "Data::Visitor",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -7922,11 +7921,11 @@
                "file" : "Data/Visitor/Callback.pm"
             }
          },
+         "target" : "Data::Visitor",
          "version" : "0.27"
       },
       "Date::Calc" : {
          "dist" : "Date-Calc-6.3",
-         "module" : "Date::Calc",
          "mymeta" : {
             "abstract" : "Gregorian calendar date calculations",
             "author" : [
@@ -7986,11 +7985,11 @@
                "version" : "6.3"
             }
          },
+         "target" : "Date::Calc",
          "version" : "6.3"
       },
       "DateTime" : {
          "dist" : "DateTime-0.72",
-         "module" : "DateTime",
          "mymeta" : {
             "abstract" : "A date and time object",
             "author" : [
@@ -8088,11 +8087,11 @@
                "version" : "0.72"
             }
          },
+         "target" : "DateTime",
          "version" : "0.72"
       },
       "DateTime::Format::Builder" : {
          "dist" : "DateTime-Format-Builder-0.80",
-         "module" : "DateTime::Format::Builder",
          "mymeta" : {
             "abstract" : "Create DateTime parser classes and objects.",
             "author" : [
@@ -8200,11 +8199,11 @@
                "version" : "0.77"
             }
          },
+         "target" : "DateTime::Format::Builder",
          "version" : "0.80"
       },
       "DateTime::Format::Natural" : {
          "dist" : "DateTime-Format-Natural-0.98",
-         "module" : "DateTime::Format::Natural",
          "mymeta" : {
             "abstract" : "Create machine readable date/time with natural parsing logic",
             "author" : [
@@ -8381,11 +8380,11 @@
                "version" : "0.03"
             }
          },
+         "target" : "DateTime::Format::Natural",
          "version" : "0.98"
       },
       "DateTime::Format::Pg" : {
          "dist" : "DateTime-Format-Pg-0.16007",
-         "module" : "DateTime::Format::Pg",
          "mymeta" : {
             "abstract" : "Parse and format PostgreSQL dates and times",
             "author" : [
@@ -8447,11 +8446,11 @@
                "version" : "0.16007"
             }
          },
+         "target" : "DateTime::Format::Pg",
          "version" : "0.16007"
       },
       "DateTime::Format::Strptime" : {
          "dist" : "DateTime-Format-Strptime-1.5000",
-         "module" : "DateTime::Format::Strptime",
          "mymeta" : {
             "abstract" : "Parse and format strp and strf time patterns",
             "author" : [
@@ -8505,11 +8504,11 @@
                "version" : "1.5000"
             }
          },
+         "target" : "DateTime::Format::Strptime",
          "version" : "1.5000"
       },
       "DateTime::Locale" : {
          "dist" : "DateTime-Locale-0.45",
-         "module" : "DateTime::Locale",
          "mymeta" : {
             "abstract" : "Localization support for DateTime.pm",
             "author" : [
@@ -11849,11 +11848,11 @@
                "file" : "DateTime/Locale/zu_ZA.pm"
             }
          },
+         "target" : "DateTime::Locale",
          "version" : "0.45"
       },
       "DateTime::TimeZone" : {
          "dist" : "DateTime-TimeZone-1.42",
-         "module" : "DateTime::TimeZone",
          "mymeta" : {
             "abstract" : "Time zone object base class and factory",
             "author" : [
@@ -13587,11 +13586,11 @@
                "version" : "1.42"
             }
          },
+         "target" : "DateTime::TimeZone",
          "version" : "1.42"
       },
       "Devel::Caller" : {
          "dist" : "Devel-Caller-2.05",
-         "module" : "Devel::Caller",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -13642,11 +13641,11 @@
                "version" : "2.05"
             }
          },
+         "target" : "Devel::Caller",
          "version" : "2.05"
       },
       "Devel::Cover" : {
          "dist" : "Devel-Cover-0.79",
-         "module" : "Devel::Cover",
          "mymeta" : {
             "abstract" : "Code coverage metrics for Perl",
             "author" : [
@@ -13883,11 +13882,11 @@
                "version" : "0.79"
             }
          },
+         "target" : "Devel::Cover",
          "version" : "0.79"
       },
       "Devel::GlobalDestruction" : {
          "dist" : "Devel-GlobalDestruction-0.04",
-         "module" : "Devel::GlobalDestruction",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -13938,11 +13937,11 @@
                "version" : "0.04"
             }
          },
+         "target" : "Devel::GlobalDestruction",
          "version" : "0.04"
       },
       "Devel::NYTProf" : {
          "dist" : "Devel-NYTProf-4.06",
-         "module" : "Devel::NYTProf",
          "mymeta" : {
             "abstract" : "Powerful fast feature-rich perl source code profiler",
             "author" : [
@@ -14048,11 +14047,11 @@
                "version" : "4.00"
             }
          },
+         "target" : "Devel::NYTProf",
          "version" : "4.06"
       },
       "Devel::StackTrace" : {
          "dist" : "Devel-StackTrace-1.27",
-         "module" : "Devel::StackTrace",
          "mymeta" : {
             "abstract" : "An object representing a stack trace",
             "author" : [
@@ -14109,11 +14108,11 @@
                "version" : "1.27"
             }
          },
+         "target" : "Devel::StackTrace",
          "version" : "1.27"
       },
       "Devel::StackTrace::AsHTML" : {
          "dist" : "Devel-StackTrace-AsHTML-0.11",
-         "module" : "Devel::StackTrace::AsHTML",
          "mymeta" : {
             "abstract" : "Displays stack trace in HTML",
             "author" : [
@@ -14176,11 +14175,11 @@
                "version" : "0.11"
             }
          },
+         "target" : "Devel::StackTrace::AsHTML",
          "version" : "0.11"
       },
       "Devel::Symdump" : {
          "dist" : "Devel-Symdump-2.08",
-         "module" : "Devel::Symdump",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -14222,11 +14221,11 @@
                "file" : "Devel/Symdump/Export.pm"
             }
          },
+         "target" : "Devel::Symdump",
          "version" : "2.08"
       },
       "Digest::HMAC" : {
          "dist" : "Digest-HMAC-1.03",
-         "module" : "Digest::HMAC_SHA1",
          "mymeta" : {
             "abstract" : "Keyed-Hashing for Message Authentication",
             "author" : [
@@ -14286,11 +14285,11 @@
                "version" : "1.03"
             }
          },
+         "target" : "Digest::HMAC_SHA1",
          "version" : "1.03"
       },
       "Digest::JHash" : {
          "dist" : "Digest-JHash-0.07",
-         "module" : "Digest::JHash",
          "mymeta" : {
             "abstract" : "Perl extension for 32 bit Jenkins Hashing Algorithm",
             "author" : [
@@ -14338,11 +14337,11 @@
                "version" : "0.07"
             }
          },
+         "target" : "Digest::JHash",
          "version" : "0.07"
       },
       "Digest::SHA1" : {
          "dist" : "Digest-SHA1-2.13",
-         "module" : "Digest::SHA1",
          "mymeta" : {
             "abstract" : "Perl interface to the SHA-1 algorithm",
             "author" : [
@@ -14394,11 +14393,11 @@
                "version" : "2.13"
             }
          },
+         "target" : "Digest::SHA1",
          "version" : "2.13"
       },
       "Dir::Self" : {
          "dist" : "Dir-Self-0.10",
-         "module" : "Dir::Self",
          "mymeta" : {
             "abstract" : "a __DIR__ constant for the directory your source file is in",
             "author" : [
@@ -14439,11 +14438,11 @@
                "version" : "0.10"
             }
          },
+         "target" : "Dir::Self",
          "version" : "0.10"
       },
       "Dist::CheckConflicts" : {
          "dist" : "Dist-CheckConflicts-0.02",
-         "module" : "Dist::CheckConflicts",
          "mymeta" : {
             "abstract" : "declare version conflicts for your dist",
             "author" : [
@@ -14693,11 +14692,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Dist::CheckConflicts",
          "version" : "0.02"
       },
       "Dist::Metadata" : {
          "dist" : "Dist-Metadata-0.922",
-         "module" : "Dist::Metadata",
          "mymeta" : {
             "abstract" : "Information about a perl module distribution",
             "author" : [
@@ -15188,11 +15187,11 @@
                "version" : "0.922"
             }
          },
+         "target" : "Dist::Metadata",
          "version" : "0.922"
       },
       "EV" : {
          "dist" : "EV-4.11",
-         "module" : "EV",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -15245,11 +15244,11 @@
                "file" : "EV/MakeMaker.pm"
             }
          },
+         "target" : "EV",
          "version" : "4.11"
       },
       "Email::Valid" : {
          "dist" : "Email-Valid-0.187",
-         "module" : "Email::Valid",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -15307,11 +15306,11 @@
                "version" : "0.187"
             }
          },
+         "target" : "Email::Valid",
          "version" : "0.187"
       },
       "Encode::HanConvert" : {
          "dist" : "Encode-HanConvert-0.35",
-         "module" : "Encode::HanConvert",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -15357,11 +15356,11 @@
                "version" : "0.06"
             }
          },
+         "target" : "Encode::HanConvert",
          "version" : "0.35"
       },
       "Encode::Locale" : {
          "dist" : "Encode-Locale-1.02",
-         "module" : "Encode::Locale",
          "mymeta" : {
             "abstract" : "Determine the locale encoding",
             "author" : [
@@ -15422,11 +15421,11 @@
                "version" : "1.02"
             }
          },
+         "target" : "Encode::Locale",
          "version" : "1.02"
       },
       "Error" : {
          "dist" : "Error-0.17017",
-         "module" : "Error",
          "mymeta" : {
             "abstract" : "Error/exception handling in an OO-ish way",
             "author" : [
@@ -15499,11 +15498,11 @@
                "file" : "Error.pm"
             }
          },
+         "target" : "Error",
          "version" : "0.17017"
       },
       "Eval::Closure" : {
          "dist" : "Eval-Closure-0.06",
-         "module" : "Eval::Closure",
          "mymeta" : {
             "abstract" : "safely and cleanly create closures via string eval",
             "author" : [
@@ -15790,11 +15789,11 @@
                "version" : "0.06"
             }
          },
+         "target" : "Eval::Closure",
          "version" : "0.06"
       },
       "Exception::Class" : {
          "dist" : "Exception-Class-1.32",
-         "module" : "Exception::Class",
          "mymeta" : {
             "abstract" : "A module that allows you to declare real exception classes in Perl",
             "author" : [
@@ -15852,11 +15851,11 @@
                "version" : "1.32"
             }
          },
+         "target" : "Exception::Class",
          "version" : "1.32"
       },
       "Exporter::Lite" : {
          "dist" : "Exporter-Lite-0.02",
-         "module" : "Exporter::Lite",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -15895,11 +15894,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Exporter::Lite",
          "version" : "0.02"
       },
       "ExtUtils::MakeMaker" : {
          "dist" : "ExtUtils-MakeMaker-6.62",
-         "module" : "ExtUtils::MakeMaker",
          "mymeta" : {
             "abstract" : "Create a module Makefile",
             "author" : [
@@ -16079,11 +16078,11 @@
                "file" : "ExtUtils/MY.pm"
             }
          },
+         "target" : "ExtUtils::MakeMaker",
          "version" : "6.62"
       },
       "FCGI" : {
          "dist" : "FCGI-0.74",
-         "module" : "FCGI",
          "mymeta" : {
             "abstract" : "Fast CGI module",
             "author" : [
@@ -16140,11 +16139,11 @@
                "file" : "FCGI.pm"
             }
          },
+         "target" : "FCGI",
          "version" : "0.74"
       },
       "FCGI::Client" : {
          "dist" : "FCGI-Client-0.08",
-         "module" : "FCGI::Client",
          "mymeta" : {
             "abstract" : "client library for fastcgi protocol",
             "author" : [
@@ -16218,11 +16217,11 @@
                "file" : "FCGI/Client/RecordHeader.pm"
             }
          },
+         "target" : "FCGI::Client",
          "version" : "0.08"
       },
       "FCGI::ProcManager" : {
          "dist" : "FCGI-ProcManager-0.24",
-         "module" : "FCGI::ProcManager",
          "mymeta" : {
             "abstract" : "A perl-based FastCGI process manager",
             "author" : [
@@ -16279,11 +16278,11 @@
                "file" : "FCGI/ProcManager/Constrained.pm"
             }
          },
+         "target" : "FCGI::ProcManager",
          "version" : "0.24"
       },
       "Feed::Find" : {
          "dist" : "Feed-Find-0.07",
-         "module" : "Feed::Find",
          "mymeta" : {
             "abstract" : "Syndication feed auto-discovery",
             "author" : [
@@ -16349,11 +16348,11 @@
                "version" : "0.07"
             }
          },
+         "target" : "Feed::Find",
          "version" : "0.07"
       },
       "File::ChangeNotify" : {
          "dist" : "File-ChangeNotify-0.20",
-         "module" : "File::ChangeNotify",
          "mymeta" : {
             "abstract" : "Watch for changes to files, cross-platform style",
             "author" : [
@@ -16441,11 +16440,11 @@
                "version" : "0.20"
             }
          },
+         "target" : "File::ChangeNotify",
          "version" : "0.20"
       },
       "File::Copy::Recursive" : {
          "dist" : "File-Copy-Recursive-0.38",
-         "module" : "File::Copy::Recursive",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -16487,11 +16486,11 @@
                "version" : "0.38"
             }
          },
+         "target" : "File::Copy::Recursive",
          "version" : "0.38"
       },
       "File::Find::Rule" : {
          "dist" : "File-Find-Rule-0.33",
-         "module" : "File::Find::Rule",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -16545,11 +16544,11 @@
                "version" : "0.33"
             }
          },
+         "target" : "File::Find::Rule",
          "version" : "0.33"
       },
       "File::Listing" : {
          "dist" : "File-Listing-6.03",
-         "module" : "File::Listing",
          "mymeta" : {
             "abstract" : "parse directory listing",
             "author" : [
@@ -16621,11 +16620,11 @@
                "file" : "File/Listing.pm"
             }
          },
+         "target" : "File::Listing",
          "version" : "6.03"
       },
       "File::Remove" : {
          "dist" : "File-Remove-1.51",
-         "module" : "File::Remove",
          "mymeta" : {
             "abstract" : "Remove files and directories",
             "author" : [
@@ -16689,11 +16688,11 @@
                "version" : "1.51"
             }
          },
+         "target" : "File::Remove",
          "version" : "1.51"
       },
       "File::ShareDir" : {
          "dist" : "File-ShareDir-1.03",
-         "module" : "File::ShareDir",
          "mymeta" : {
             "abstract" : "Locate per-dist and per-module shared files",
             "author" : [
@@ -16760,11 +16759,11 @@
                "version" : "1.03"
             }
          },
+         "target" : "File::ShareDir",
          "version" : "1.03"
       },
       "File::Slurp" : {
          "dist" : "File-Slurp-9999.19",
-         "module" : "File::Slurp",
          "mymeta" : {
             "abstract" : "Simple and Efficient Reading/Writing/Modifying of Complete Files",
             "author" : [
@@ -16806,11 +16805,11 @@
                "version" : "9999.19"
             }
          },
+         "target" : "File::Slurp",
          "version" : "9999.19"
       },
       "File::Spec::Native" : {
          "dist" : "File-Spec-Native-1.003",
-         "module" : "File::Spec::Native",
          "mymeta" : {
             "abstract" : "Use native OS implementation of File::Spec from a subclass",
             "author" : [
@@ -17226,11 +17225,11 @@
                "version" : "1.003"
             }
          },
+         "target" : "File::Spec::Native",
          "version" : "1.003"
       },
       "File::Which" : {
          "dist" : "File-Which-1.09",
-         "module" : "File::Which",
          "mymeta" : {
             "abstract" : "Portable implementation of the \"which\" utility",
             "author" : [
@@ -17284,11 +17283,11 @@
                "version" : "1.09"
             }
          },
+         "target" : "File::Which",
          "version" : "1.09"
       },
       "File::chdir" : {
          "dist" : "File-chdir-0.1006",
-         "module" : "File::chdir",
          "mymeta" : {
             "abstract" : "a more sensible way to change directories",
             "author" : [
@@ -17381,11 +17380,11 @@
                "file" : "File/chdir.pm"
             }
          },
+         "target" : "File::chdir",
          "version" : "0.1006"
       },
       "File::pushd" : {
          "dist" : "File-pushd-1.002",
-         "module" : "File::pushd",
          "mymeta" : {
             "abstract" : "change directory temporarily for a limited scope",
             "author" : [
@@ -17467,11 +17466,11 @@
                "version" : "1.002"
             }
          },
+         "target" : "File::pushd",
          "version" : "1.002"
       },
       "Filesys::Notify::Simple" : {
          "dist" : "Filesys-Notify-Simple-0.08",
-         "module" : "Filesys::Notify::Simple",
          "mymeta" : {
             "abstract" : "Simple and dumb file system watcher",
             "author" : [
@@ -17534,11 +17533,11 @@
                "version" : "0.08"
             }
          },
+         "target" : "Filesys::Notify::Simple",
          "version" : "0.08"
       },
       "Getopt::Long::Descriptive" : {
          "dist" : "Getopt-Long-Descriptive-0.090",
-         "module" : "Getopt::Long::Descriptive",
          "mymeta" : {
             "abstract" : "Getopt::Long, but simpler and more powerful",
             "author" : [
@@ -17787,11 +17786,11 @@
                "version" : "0.090"
             }
          },
+         "target" : "Getopt::Long::Descriptive",
          "version" : "0.090"
       },
       "Graph" : {
          "dist" : "Graph-0.94",
-         "module" : "Graph",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -17910,11 +17909,11 @@
                "version" : "0.71"
             }
          },
+         "target" : "Graph",
          "version" : "0.94"
       },
       "Graph::Layout::Aesthetic" : {
          "dist" : "Graph-Layout-Aesthetic-0.12",
-         "module" : "Graph::Layout::Aesthetic",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -18016,11 +18015,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Graph::Layout::Aesthetic",
          "version" : "0.12"
       },
       "GraphViz" : {
          "dist" : "GraphViz-2.09",
-         "module" : "GraphViz",
          "mymeta" : {
             "abstract" : "Interface to the GraphViz graphing tool",
             "author" : [
@@ -18163,11 +18162,11 @@
                "version" : "2.09"
             }
          },
+         "target" : "GraphViz",
          "version" : "2.09"
       },
       "Guard" : {
          "dist" : "Guard-1.022",
-         "module" : "Guard",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -18215,11 +18214,11 @@
                "version" : "1.022"
             }
          },
+         "target" : "Guard",
          "version" : "1.022"
       },
       "HTML::Form" : {
          "dist" : "HTML-Form-6.00",
-         "module" : "HTML::Form",
          "mymeta" : {
             "abstract" : "Class that represents an HTML form element",
             "author" : [
@@ -18304,11 +18303,11 @@
                "file" : "HTML/Form.pm"
             }
          },
+         "target" : "HTML::Form",
          "version" : "6.00"
       },
       "HTML::FormFu" : {
          "dist" : "HTML-FormFu-0.09007",
-         "module" : "HTML::FormFu",
          "mymeta" : {},
          "name" : "HTML::FormFu",
          "pathname" : "P/PE/PERLER/HTML-FormFu-0.09007.tar.gz",
@@ -18801,11 +18800,11 @@
                "file" : "HTML/FormFu/Validator/Callback.pm"
             }
          },
+         "target" : "HTML::FormFu",
          "version" : "0.09007"
       },
       "HTML::LinkExtractor" : {
          "dist" : "HTML-LinkExtractor-0.13",
-         "module" : "HTML::LinkExtractor",
          "mymeta" : {
             "abstract" : "Extract I<L<links|/\"WHAT'S A LINK-type tag\">> from an HTML document\r",
             "author" : [
@@ -18855,11 +18854,11 @@
                "version" : "0.13"
             }
          },
+         "target" : "HTML::LinkExtractor",
          "version" : "0.13"
       },
       "HTML::Parser" : {
          "dist" : "HTML-Parser-3.69",
-         "module" : "HTML::Parser",
          "mymeta" : {
             "abstract" : "HTML parser class",
             "author" : [
@@ -18944,11 +18943,11 @@
                "version" : "3.69"
             }
          },
+         "target" : "HTML::Parser",
          "version" : "3.69"
       },
       "HTML::Scrubber" : {
          "dist" : "HTML-Scrubber-0.09",
-         "module" : "HTML::Scrubber",
          "mymeta" : {
             "abstract" : "Perl extension for scrubbing/sanitizing html",
             "author" : [
@@ -19260,11 +19259,11 @@
                "version" : "0.09"
             }
          },
+         "target" : "HTML::Scrubber",
          "version" : "0.09"
       },
       "HTML::Strip" : {
          "dist" : "HTML-Strip-1.06",
-         "module" : "HTML::Strip",
          "mymeta" : {
             "abstract" : "Perl extension for stripping HTML markup from text.",
             "author" : [
@@ -19312,11 +19311,11 @@
                "version" : "1.06"
             }
          },
+         "target" : "HTML::Strip",
          "version" : "1.06"
       },
       "HTML::TagCloud" : {
          "dist" : "HTML-TagCloud-0.37",
-         "module" : "HTML::TagCloud",
          "mymeta" : {
             "abstract" : "Generate An HTML Tag Cloud",
             "author" : [
@@ -19366,11 +19365,11 @@
                "version" : "0.37"
             }
          },
+         "target" : "HTML::TagCloud",
          "version" : "0.37"
       },
       "HTML::Tagset" : {
          "dist" : "HTML-Tagset-3.20",
-         "module" : "HTML::Tagset",
          "mymeta" : {
             "abstract" : "data tables useful in parsing HTML",
             "author" : [
@@ -19407,11 +19406,11 @@
                "version" : "3.20"
             }
          },
+         "target" : "HTML::Tagset",
          "version" : "3.20"
       },
       "HTML::Tiny" : {
          "dist" : "HTML-Tiny-1.05",
-         "module" : "HTML::Tiny",
          "mymeta" : {
             "abstract" : "Lightweight, dependency free HTML/XML generation",
             "author" : [
@@ -19461,11 +19460,11 @@
                "version" : "1.05"
             }
          },
+         "target" : "HTML::Tiny",
          "version" : "1.05"
       },
       "HTML::TokeParser::Simple" : {
          "dist" : "HTML-TokeParser-Simple-3.15",
-         "module" : "HTML::TokeParser::Simple",
          "mymeta" : {
             "abstract" : "Easy to use C<HTML::TokeParser> interface",
             "author" : [
@@ -19577,11 +19576,11 @@
                "version" : "1.0"
             }
          },
+         "target" : "HTML::TokeParser::Simple",
          "version" : "3.15"
       },
       "HTML::Tree" : {
          "dist" : "HTML-Tree-4.2",
-         "module" : "HTML::TreeBuilder",
          "mymeta" : {
             "abstract" : "Class for objects that represent HTML elements",
             "author" : [
@@ -19682,11 +19681,11 @@
                "version" : "4.2"
             }
          },
+         "target" : "HTML::TreeBuilder",
          "version" : "4.2"
       },
       "HTML::TreeBuilder::XPath" : {
          "dist" : "HTML-TreeBuilder-XPath-0.14",
-         "module" : "HTML::TreeBuilder::XPath",
          "mymeta" : {
             "abstract" : "add XPath support to HTML::TreeBuilder",
             "author" : [
@@ -19753,11 +19752,11 @@
                "file" : "HTML/TreeBuilder/XPath.pm"
             }
          },
+         "target" : "HTML::TreeBuilder::XPath",
          "version" : "0.14"
       },
       "HTTP::Body" : {
          "dist" : "HTTP-Body-1.15",
-         "module" : "HTTP::Body",
          "mymeta" : {
             "abstract" : "HTTP Body Parser",
             "author" : [
@@ -19835,11 +19834,11 @@
                "version" : "1.15"
             }
          },
+         "target" : "HTTP::Body",
          "version" : "1.15"
       },
       "HTTP::Cookies" : {
          "dist" : "HTTP-Cookies-6.00",
-         "module" : "HTTP::Cookies",
          "mymeta" : {
             "abstract" : "HTTP cookie jars",
             "author" : [
@@ -19906,11 +19905,11 @@
                "version" : "6.00"
             }
          },
+         "target" : "HTTP::Cookies",
          "version" : "6.00"
       },
       "HTTP::Daemon" : {
          "dist" : "HTTP-Daemon-6.00",
-         "module" : "HTTP::Daemon",
          "mymeta" : {
             "abstract" : "a simple http server class",
             "author" : [
@@ -19976,11 +19975,11 @@
                "file" : "HTTP/Daemon.pm"
             }
          },
+         "target" : "HTTP::Daemon",
          "version" : "6.00"
       },
       "HTTP::Date" : {
          "dist" : "HTTP-Date-6.00",
-         "module" : "HTTP::Date",
          "mymeta" : {
             "abstract" : "date conversion routines",
             "author" : [
@@ -20040,11 +20039,11 @@
                "version" : "6.00"
             }
          },
+         "target" : "HTTP::Date",
          "version" : "6.00"
       },
       "HTTP::Message" : {
          "dist" : "HTTP-Message-6.02",
-         "module" : "HTTP::Status",
          "mymeta" : {
             "abstract" : "HTTP style messages",
             "author" : [
@@ -20152,11 +20151,11 @@
                "version" : "6.00"
             }
          },
-         "version" : "6.00"
+         "target" : "HTTP::Status",
+         "version" : "6.02"
       },
       "HTTP::Negotiate" : {
          "dist" : "HTTP-Negotiate-6.00",
-         "module" : "HTTP::Negotiate",
          "mymeta" : {
             "abstract" : "choose a variant to serve",
             "author" : [
@@ -20213,11 +20212,11 @@
                "version" : "6.00"
             }
          },
+         "target" : "HTTP::Negotiate",
          "version" : "6.00"
       },
       "HTTP::Parser::XS" : {
          "dist" : "HTTP-Parser-XS-0.14",
-         "module" : "HTTP::Parser::XS",
          "mymeta" : {
             "abstract" : "a fast, primitive HTTP request parser",
             "author" : [
@@ -20275,11 +20274,11 @@
                "file" : "HTTP/Parser/XS/PP.pm"
             }
          },
+         "target" : "HTTP::Parser::XS",
          "version" : "0.14"
       },
       "HTTP::Request::AsCGI" : {
          "dist" : "HTTP-Request-AsCGI-1.2",
-         "module" : "HTTP::Request::AsCGI",
          "mymeta" : {
             "abstract" : "Set up a CGI environment from an HTTP::Request",
             "author" : [
@@ -20330,11 +20329,11 @@
                "version" : "1.2"
             }
          },
+         "target" : "HTTP::Request::AsCGI",
          "version" : "1.2"
       },
       "HTTP::Server::Simple" : {
          "dist" : "HTTP-Server-Simple-0.44",
-         "module" : "HTTP::Server::Simple",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -20399,11 +20398,11 @@
                "version" : "0"
             }
          },
+         "target" : "HTTP::Server::Simple",
          "version" : "0.44"
       },
       "HTTP::Server::Simple::PSGI" : {
          "dist" : "HTTP-Server-Simple-PSGI-0.14",
-         "module" : "HTTP::Server::Simple::PSGI",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -20456,11 +20455,11 @@
                "file" : "HTTP/Server/Simple/PSGI.pm"
             }
          },
+         "target" : "HTTP::Server::Simple::PSGI",
          "version" : "0.14"
       },
       "Hash::Flatten" : {
          "dist" : "Hash-Flatten-1.19",
-         "module" : "Hash::Flatten",
          "mymeta" : {
             "abstract" : "flatten/unflatten complex data hashes",
             "author" : [
@@ -20511,11 +20510,11 @@
                "version" : "1.19"
             }
          },
+         "target" : "Hash::Flatten",
          "version" : "1.19"
       },
       "Hash::Merge" : {
          "dist" : "Hash-Merge-0.12",
-         "module" : "Hash::Merge",
          "mymeta" : {
             "abstract" : "Merges arbitrarily deep hashes into a single hash",
             "author" : [
@@ -20566,11 +20565,11 @@
                "version" : "0.12"
             }
          },
+         "target" : "Hash::Merge",
          "version" : "0.12"
       },
       "Hash::MoreUtils" : {
          "dist" : "Hash-MoreUtils-0.02",
-         "module" : "Hash::MoreUtils",
          "mymeta" : {
             "abstract" : "Provide the stuff missing in Hash::Util",
             "author" : [
@@ -20620,11 +20619,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Hash::MoreUtils",
          "version" : "0.02"
       },
       "Hash::MultiValue" : {
          "dist" : "Hash-MultiValue-0.10",
-         "module" : "Hash::MultiValue",
          "mymeta" : {
             "abstract" : "Store multiple values per key",
             "author" : [
@@ -20686,11 +20685,11 @@
                "version" : "0.10"
             }
          },
+         "target" : "Hash::MultiValue",
          "version" : "0.10"
       },
       "IO::CaptureOutput" : {
          "dist" : "IO-CaptureOutput-1.1102",
-         "module" : "IO::CaptureOutput",
          "mymeta" : {
             "abstract" : "capture STDOUT and STDERR from Perl code, subprocesses or XS",
             "author" : [
@@ -20760,11 +20759,11 @@
                "version" : "1.1102"
             }
          },
+         "target" : "IO::CaptureOutput",
          "version" : "1.1102"
       },
       "IO::Handle::Util" : {
          "dist" : "IO-Handle-Util-0.01",
-         "module" : "IO::Handle::Util",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -20838,18 +20837,18 @@
                "file" : "IO/Handle/Util/Tie.pm"
             }
          },
+         "target" : "IO::Handle::Util",
          "version" : "0.01"
       },
       "IO::Socket::SSL" : {
          "dist" : "IO-Socket-SSL-1.66",
-         "module" : "IO::Socket::SSL",
          "mymeta" : {
             "abstract" : "Nearly transparent SSL encapsulation for IO::Socket::INET.",
             "author" : [
                "Steffen Ullrich & Peter Behroozi & Marko Asplund"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -20902,11 +20901,11 @@
                "file" : "IO/Socket/SSL.pm"
             }
          },
+         "target" : "IO::Socket::SSL",
          "version" : "1.66"
       },
       "IO::String" : {
          "dist" : "IO-String-1.08",
-         "module" : "IO::String",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -20954,11 +20953,11 @@
                "version" : "1.08"
             }
          },
+         "target" : "IO::String",
          "version" : "1.08"
       },
       "IO::Stringy" : {
          "dist" : "IO-stringy-2.110",
-         "module" : "IO::Scalar",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -21040,11 +21039,11 @@
                "file" : "IO/WrapTie.pm"
             }
          },
+         "target" : "IO::Scalar",
          "version" : "2.110"
       },
       "IPC::Run" : {
          "dist" : "IPC-Run-0.91",
-         "module" : "IPC::Run",
          "mymeta" : {
             "abstract" : "system() and background procs w/ piping, redirs, ptys (Unix, Win32)",
             "author" : [
@@ -21132,11 +21131,11 @@
                "version" : "0.90"
             }
          },
+         "target" : "IPC::Run",
          "version" : "0.91"
       },
       "IPC::Run3" : {
          "dist" : "IPC-Run3-0.045",
-         "module" : "IPC::Run3",
          "mymeta" : {
             "abstract" : "run a subprocess with input/ouput redirection",
             "author" : [
@@ -21214,11 +21213,11 @@
                "version" : "0.045"
             }
          },
+         "target" : "IPC::Run3",
          "version" : "0.045"
       },
       "IPC::System::Simple" : {
          "dist" : "IPC-System-Simple-1.21",
-         "module" : "IPC::System::Simple",
          "mymeta" : {
             "abstract" : "Run commands simply, with detailed diagnostics",
             "author" : [
@@ -21288,11 +21287,11 @@
                "version" : "1.21"
             }
          },
+         "target" : "IPC::System::Simple",
          "version" : "1.21"
       },
       "Inline" : {
          "dist" : "Inline-0.50",
-         "module" : "Inline",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -21370,11 +21369,11 @@
                "file" : "Inline/denter.pm"
             }
          },
+         "target" : "Inline",
          "version" : "0.50"
       },
       "JSON" : {
          "dist" : "JSON-2.53",
-         "module" : "JSON",
          "mymeta" : {
             "abstract" : "JSON (JavaScript Object Notation) encoder/decoder",
             "author" : [
@@ -21454,11 +21453,11 @@
                "file" : "JSON/backportPP.pm"
             }
          },
+         "target" : "JSON",
          "version" : "2.53"
       },
       "JSON::Any" : {
          "dist" : "JSON-Any-1.29",
-         "module" : "JSON::Any",
          "mymeta" : {
             "abstract" : "Wrapper Class for the various JSON classes.",
             "author" : [
@@ -21497,7 +21496,6 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
-                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -21523,11 +21521,11 @@
                "version" : "1.29"
             }
          },
+         "target" : "JSON::Any",
          "version" : "1.29"
       },
       "JSON::XS" : {
          "dist" : "JSON-XS-2.32",
-         "module" : "JSON::XS",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -21580,11 +21578,11 @@
                "file" : "JSON/XS.pm"
             }
          },
+         "target" : "JSON::XS",
          "version" : "2.32"
       },
       "JavaScript::Value::Escape" : {
          "dist" : "JavaScript-Value-Escape-0.06",
-         "module" : "JavaScript::Value::Escape",
          "mymeta" : {
             "abstract" : "Avoid XSS with JavaScript value interpolation",
             "author" : [
@@ -21645,18 +21643,18 @@
                "version" : "0.06"
             }
          },
+         "target" : "JavaScript::Value::Escape",
          "version" : "0.06"
       },
       "LWP" : {
          "dist" : "libwww-perl-6.04",
-         "module" : "LWP::UserAgent",
          "mymeta" : {
             "abstract" : "The World-Wide Web library for Perl",
             "author" : [
                "Gisle Aas <gisle@activestate.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -21814,11 +21812,11 @@
                "version" : "6.04"
             }
          },
+         "target" : "LWP",
          "version" : "6.04"
       },
       "LWP::MediaTypes" : {
          "dist" : "LWP-MediaTypes-6.01",
-         "module" : "LWP::MediaTypes",
          "mymeta" : {
             "abstract" : "guess media type for a file or a URL",
             "author" : [
@@ -21874,18 +21872,18 @@
                "version" : "6.01"
             }
          },
+         "target" : "LWP::MediaTypes",
          "version" : "6.01"
       },
       "LWP::Protocol::https" : {
          "dist" : "LWP-Protocol-https-6.03",
-         "module" : "LWP::Protocol::https",
          "mymeta" : {
             "abstract" : "Provide https support for LWP::UserAgent",
             "author" : [
                "Gisle Aas <gisle@activestate.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -21941,11 +21939,11 @@
                "file" : "LWP/Protocol/https.pm"
             }
          },
+         "target" : "LWP::Protocol::https",
          "version" : "6.03"
       },
       "Lingua::EN::Sentence" : {
          "dist" : "Lingua-EN-Sentence-0.25",
-         "module" : "Lingua::EN::Sentence",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -21993,11 +21991,11 @@
                "version" : "0.25"
             }
          },
+         "target" : "Lingua::EN::Sentence",
          "version" : "0.25"
       },
       "Lingua::PT::Stemmer" : {
          "dist" : "Lingua-PT-Stemmer-0.01",
-         "module" : "Lingua::PT::Stemmer",
          "mymeta" : {
             "abstract" : "Portuguese language stemming",
             "author" : [
@@ -22049,11 +22047,11 @@
                "version" : "0.01"
             }
          },
+         "target" : "Lingua::PT::Stemmer",
          "version" : "0.01"
       },
       "Lingua::Stem" : {
          "dist" : "Lingua-Stem-0.84",
-         "module" : "Lingua::Stem",
          "mymeta" : {
             "abstract" : "Stemming of words in various languages",
             "author" : [
@@ -22179,11 +22177,11 @@
                "version" : "1.01"
             }
          },
+         "target" : "Lingua::Stem",
          "version" : "0.84"
       },
       "Lingua::Stem::Fr" : {
          "dist" : "Lingua-Stem-Fr-0.02",
-         "module" : "Lingua::Stem::Fr",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -22231,11 +22229,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Lingua::Stem::Fr",
          "version" : "0.02"
       },
       "Lingua::Stem::It" : {
          "dist" : "Lingua-Stem-It-0.02",
-         "module" : "Lingua::Stem::It",
          "mymeta" : {
             "abstract" : "Porter's stemming algorithm for Italian",
             "author" : [
@@ -22283,11 +22281,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Lingua::Stem::It",
          "version" : "0.02"
       },
       "Lingua::Stem::Ru" : {
          "dist" : "Lingua-Stem-Ru-0.01",
-         "module" : "Lingua::Stem::Ru",
          "mymeta" : {
             "abstract" : "Porter's stemming algorithm for Russian",
             "author" : [
@@ -22335,11 +22333,11 @@
                "version" : "0.01"
             }
          },
+         "target" : "Lingua::Stem::Ru",
          "version" : "0.01"
       },
       "Lingua::Stem::Snowball" : {
          "dist" : "Lingua-Stem-Snowball-0.952",
-         "module" : "Lingua::Stem::Snowball",
          "mymeta" : {
             "abstract" : "Perl interface to Snowball stemmers.",
             "author" : [
@@ -22391,11 +22389,11 @@
                "version" : "0.952"
             }
          },
+         "target" : "Lingua::Stem::Snowball",
          "version" : "0.952"
       },
       "Lingua::Stem::Snowball::Da" : {
          "dist" : "Lingua-Stem-Snowball-Da-1.01",
-         "module" : "Lingua::Stem::Snowball::Da",
          "mymeta" : {
             "abstract" : "Porters stemming algorithm for Denmark",
             "author" : [
@@ -22443,11 +22441,11 @@
                "version" : "1.01"
             }
          },
+         "target" : "Lingua::Stem::Snowball::Da",
          "version" : "1.01"
       },
       "Lingua::Stem::Snowball::No" : {
          "dist" : "Snowball-Norwegian-1.2",
-         "module" : "Lingua::Stem::Snowball::No",
          "mymeta" : {
             "abstract" : "Porters stemming algorithm for norwegian.",
             "author" : [
@@ -22492,11 +22490,11 @@
                "version" : "1.2"
             }
          },
+         "target" : "Lingua::Stem::Snowball::No",
          "version" : "1.2"
       },
       "Lingua::Stem::Snowball::Se" : {
          "dist" : "Snowball-Swedish-1.2",
-         "module" : "Lingua::Stem::Snowball::Se",
          "mymeta" : {
             "abstract" : "Porters stemming algorithm for swedish.",
             "author" : [
@@ -22541,11 +22539,11 @@
                "version" : "1.2"
             }
          },
+         "target" : "Lingua::Stem::Snowball::Se",
          "version" : "1.2"
       },
       "Lingua::StopWords" : {
          "dist" : "Lingua-StopWords-0.09",
-         "module" : "Lingua::StopWords",
          "mymeta" : {
             "abstract" : "Stop words for several languages.",
             "author" : [
@@ -22634,11 +22632,11 @@
                "version" : "0.08"
             }
          },
+         "target" : "Lingua::StopWords",
          "version" : "0.09"
       },
       "Lingua::ZH::WordSegmenter" : {
          "dist" : "Lingua-ZH-WordSegmenter-0.01",
-         "module" : "Lingua::ZH::WordSegmenter",
          "mymeta" : {
             "abstract" : "Simplified Chinese Word Segmentation ",
             "author" : [
@@ -22689,11 +22687,11 @@
                "version" : "0.01"
             }
          },
+         "target" : "Lingua::ZH::WordSegmenter",
          "version" : "0.01"
       },
       "List::Compare" : {
          "dist" : "List-Compare-0.37",
-         "module" : "List::Compare",
          "mymeta" : {
             "abstract" : "Compare elements of two or more lists",
             "author" : [
@@ -22745,11 +22743,11 @@
                "file" : "List/Compare.pm"
             }
          },
+         "target" : "List::Compare",
          "version" : "0.37"
       },
       "List::Member" : {
          "dist" : "List-Member-0.044-withoutworldwriteables",
-         "module" : "List::Member",
          "mymeta" : {
             "abstract" : "PROLOG's member/2: return index of $x in @y.\r",
             "author" : [
@@ -22797,11 +22795,11 @@
                "version" : "0.044"
             }
          },
+         "target" : "List::Member",
          "version" : "0.044"
       },
       "List::MoreUtils" : {
          "dist" : "List-MoreUtils-0.33",
-         "module" : "List::MoreUtils",
          "mymeta" : {
             "abstract" : "Provide the stuff missing in List::Util",
             "author" : [
@@ -22853,11 +22851,11 @@
                "version" : "0.33"
             }
          },
+         "target" : "List::MoreUtils",
          "version" : "0.33"
       },
       "List::Pairwise" : {
          "dist" : "List-Pairwise-0.30",
-         "module" : "List::Pairwise",
          "mymeta" : {
             "abstract" : "map/grep arrays and hashes pairwise",
             "author" : [
@@ -22913,11 +22911,11 @@
                "version" : "0.30"
             }
          },
+         "target" : "List::Pairwise",
          "version" : "0.30"
       },
       "List::Uniq" : {
          "dist" : "List-Uniq-0.20",
-         "module" : "List::Uniq",
          "mymeta" : {
             "abstract" : "extract the unique elements of a list",
             "author" : [
@@ -22956,11 +22954,11 @@
                "version" : "0.20"
             }
          },
+         "target" : "List::Uniq",
          "version" : "0.20"
       },
       "Locale::Maketext::Lexicon" : {
          "dist" : "Locale-Maketext-Lexicon-0.91",
-         "module" : "Locale::Maketext::Lexicon",
          "mymeta" : {
             "abstract" : "Use other catalog formats in Maketext",
             "author" : [
@@ -23096,11 +23094,11 @@
                "version" : "0.05"
             }
          },
+         "target" : "Locale::Maketext::Lexicon",
          "version" : "0.91"
       },
       "Log::Any" : {
          "dist" : "Log-Any-0.14",
-         "module" : "Log::Any",
          "mymeta" : {
             "abstract" : "Bringing loggers and listeners together",
             "author" : [
@@ -23176,11 +23174,11 @@
                "version" : "0.14"
             }
          },
+         "target" : "Log::Any",
          "version" : "0.14"
       },
       "Log::Trace" : {
          "dist" : "Log-Trace-1.070",
-         "module" : "Log::Trace",
          "mymeta" : {
             "abstract" : "provides a unified approach to tracing",
             "author" : [
@@ -23230,11 +23228,11 @@
                "version" : "1.070"
             }
          },
+         "target" : "Log::Trace",
          "version" : "1.070"
       },
       "MIME::Types" : {
          "dist" : "MIME-Types-1.34",
-         "module" : "MIME::Types",
          "mymeta" : {
             "abstract" : "Definition of MIME types",
             "author" : [
@@ -23288,11 +23286,11 @@
                "version" : "1.34"
             }
          },
+         "target" : "MIME::Types",
          "version" : "1.34"
       },
       "MRO::Compat" : {
          "dist" : "MRO-Compat-0.11",
-         "module" : "MRO::Compat",
          "mymeta" : {
             "abstract" : "mro::* interface compatibility for Perls < 5.9.5",
             "author" : [
@@ -23354,11 +23352,11 @@
                "version" : "0.11"
             }
          },
+         "target" : "MRO::Compat",
          "version" : "0.11"
       },
       "Mail" : {
          "dist" : "MailTools-2.08",
-         "module" : "Mail::Address",
          "mymeta" : {
             "abstract" : "Various e-mail related modules",
             "author" : [
@@ -23409,6 +23407,7 @@
          "name" : "Mail",
          "pathname" : "M/MA/MARKOV/MailTools-2.08.tar.gz",
          "provides" : {
+            "Mail" : {},
             "Mail::Address" : {
                "file" : "Mail/Address.pm",
                "version" : "2.08"
@@ -23494,11 +23493,11 @@
                "version" : "2.08"
             }
          },
+         "target" : "Mail::Address",
          "version" : "2.08"
       },
       "Math::Random" : {
          "dist" : "Math-Random-0.71",
-         "module" : "Math::Random",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -23546,11 +23545,11 @@
                "version" : "0.71"
             }
          },
+         "target" : "Math::Random",
          "version" : "0.71"
       },
       "Math::Round" : {
          "dist" : "Math-Round-0.06",
-         "module" : "Math::Round",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -23598,11 +23597,11 @@
                "version" : "0.06"
             }
          },
+         "target" : "Math::Round",
          "version" : "0.06"
       },
       "Modern::Perl" : {
          "dist" : "Modern-Perl-1.20120130",
-         "module" : "Modern::Perl",
          "mymeta" : {
             "abstract" : "enable all of the features of Modern Perl with one import",
             "author" : [
@@ -23661,11 +23660,11 @@
                "version" : "1.20120130"
             }
          },
+         "target" : "Modern::Perl",
          "version" : "1.20120130"
       },
       "Module::Find" : {
          "dist" : "Module-Find-0.10",
-         "module" : "Module::Find",
          "mymeta" : {
             "abstract" : "Find and use installed modules in a (sub)category",
             "author" : [
@@ -23726,11 +23725,11 @@
                "version" : "0.10"
             }
          },
+         "target" : "Module::Find",
          "version" : "0.10"
       },
       "Module::Install" : {
          "dist" : "Module-Install-1.04",
-         "module" : "Module::Install",
          "mymeta" : {
             "abstract" : "Standalone, extensible Perl module installer",
             "author" : [
@@ -23948,11 +23947,11 @@
                "version" : "1.04"
             }
          },
+         "target" : "Module::Install",
          "version" : "1.04"
       },
       "Module::Runtime" : {
          "dist" : "Module-Runtime-0.011",
-         "module" : "Module::Runtime",
          "mymeta" : {
             "abstract" : "runtime module handling",
             "author" : [
@@ -24019,11 +24018,11 @@
                "version" : "0.011"
             }
          },
+         "target" : "Module::Runtime",
          "version" : "0.011"
       },
       "Module::ScanDeps" : {
          "dist" : "Module-ScanDeps-1.07",
-         "module" : "Module::ScanDeps",
          "mymeta" : {
             "abstract" : "Recursively scan Perl code for dependencies",
             "author" : [
@@ -24096,11 +24095,11 @@
                "file" : "Module/ScanDeps/DataFeed.pm"
             }
          },
+         "target" : "Module::ScanDeps",
          "version" : "1.07"
       },
       "Module::Util" : {
          "dist" : "Module-Util-1.07",
-         "module" : "Module::Util",
          "mymeta" : {
             "abstract" : "Module name tools and transformations",
             "author" : [
@@ -24150,11 +24149,11 @@
                "version" : "1.07"
             }
          },
+         "target" : "Module::Util",
          "version" : "1.07"
       },
       "Moose" : {
          "dist" : "Moose-2.0401",
-         "module" : "Moose",
          "mymeta" : {
             "abstract" : "A postmodern object system for Perl 5",
             "author" : [
@@ -24930,11 +24929,11 @@
                "version" : "2.0401"
             }
          },
+         "target" : "Moose",
          "version" : "2.0401"
       },
       "MooseX::Aliases" : {
          "dist" : "MooseX-Aliases-0.10",
-         "module" : "MooseX::Aliases",
          "mymeta" : {
             "abstract" : "easy aliasing of methods and attributes in Moose",
             "author" : [
@@ -25239,11 +25238,11 @@
                "version" : "0.10"
             }
          },
+         "target" : "MooseX::Aliases",
          "version" : "0.10"
       },
       "MooseX::Attribute::Chained" : {
          "dist" : "MooseX-Attribute-Chained-1.0.1",
-         "module" : "MooseX::Attribute::Chained",
          "mymeta" : {
             "abstract" : "Attribute that returns the instance to allow for chaining",
             "author" : [
@@ -25566,11 +25565,11 @@
                "version" : "v1.0.1"
             }
          },
+         "target" : "MooseX::Attribute::Chained",
          "version" : "v1.0.1"
       },
       "MooseX::Daemonize" : {
          "dist" : "MooseX-Daemonize-0.13",
-         "module" : "MooseX::Daemonize",
          "mymeta" : {
             "abstract" : "Role for daemonizing your Moose based application",
             "author" : [
@@ -25653,11 +25652,11 @@
                "file" : "Test/MooseX/Daemonize.pm"
             }
          },
+         "target" : "MooseX::Daemonize",
          "version" : "0.13"
       },
       "MooseX::Emulate::Class::Accessor::Fast" : {
          "dist" : "MooseX-Emulate-Class-Accessor-Fast-0.00903",
-         "module" : "MooseX::Emulate::Class::Accessor::Fast",
          "mymeta" : {
             "abstract" : "Emulate Class::Accessor::Fast behavior using Moose attributes",
             "author" : [
@@ -25726,11 +25725,11 @@
                "file" : "MooseX/Emulate/Class/Accessor/Fast/Meta/Role/Attribute.pm"
             }
          },
+         "target" : "MooseX::Emulate::Class::Accessor::Fast",
          "version" : "0.00903"
       },
       "MooseX::Getopt" : {
          "dist" : "MooseX-Getopt-0.38",
-         "module" : "MooseX::Getopt",
          "mymeta" : {
             "abstract" : "A Moose role for processing command line options",
             "author" : [
@@ -26025,11 +26024,11 @@
                "version" : "0.38"
             }
          },
+         "target" : "MooseX::Getopt",
          "version" : "0.38"
       },
       "MooseX::MethodAttributes" : {
          "dist" : "MooseX-MethodAttributes-0.26",
-         "module" : "MooseX::MethodAttributes::Inheritable",
          "mymeta" : {
             "abstract" : "code attribute introspection",
             "author" : [
@@ -26320,11 +26319,11 @@
                "version" : "0.26"
             }
          },
+         "target" : "MooseX::MethodAttributes::Inheritable",
          "version" : "0.26"
       },
       "MooseX::Params::Validate" : {
          "dist" : "MooseX-Params-Validate-0.16",
-         "module" : "MooseX::Params::Validate",
          "mymeta" : {
             "abstract" : "an extension of Params::Validate using Moose's types",
             "author" : [
@@ -26384,11 +26383,11 @@
                "version" : "0.16"
             }
          },
+         "target" : "MooseX::Params::Validate",
          "version" : "0.16"
       },
       "MooseX::Role::Parameterized" : {
          "dist" : "MooseX-Role-Parameterized-1.00",
-         "module" : "MooseX::Role::Parameterized",
          "mymeta" : {
             "abstract" : "roles with composition parameters",
             "author" : [
@@ -26464,11 +26463,11 @@
                "version" : "0.27"
             }
          },
+         "target" : "MooseX::Role::Parameterized",
          "version" : "1.00"
       },
       "MooseX::Role::WithOverloading" : {
          "dist" : "MooseX-Role-WithOverloading-0.09",
-         "module" : "MooseX::Role::WithOverloading",
          "mymeta" : {
             "abstract" : "Roles which support overloading",
             "author" : [
@@ -26734,11 +26733,11 @@
                "version" : "0.09"
             }
          },
+         "target" : "MooseX::Role::WithOverloading",
          "version" : "0.09"
       },
       "MooseX::SemiAffordanceAccessor" : {
          "dist" : "MooseX-SemiAffordanceAccessor-0.09",
-         "module" : "MooseX::SemiAffordanceAccessor",
          "mymeta" : {
             "abstract" : "Name your accessors foo() and set_foo()",
             "author" : [
@@ -26795,11 +26794,11 @@
                "version" : "0.09"
             }
          },
+         "target" : "MooseX::SemiAffordanceAccessor",
          "version" : "0.09"
       },
       "MooseX::SetOnce" : {
          "dist" : "MooseX-SetOnce-0.200001",
-         "module" : "MooseX::SetOnce",
          "mymeta" : {
             "abstract" : "write-once, read-many attributes for Moose",
             "author" : [
@@ -27076,11 +27075,11 @@
                "version" : "0.200001"
             }
          },
+         "target" : "MooseX::SetOnce",
          "version" : "0.200001"
       },
       "MooseX::Types" : {
          "dist" : "MooseX-Types-0.31",
-         "module" : "MooseX::Types::Moose",
          "mymeta" : {
             "abstract" : "Organise your Moose types in libraries",
             "author" : [
@@ -27175,11 +27174,11 @@
                "version" : "0.31"
             }
          },
+         "target" : "MooseX::Types::Moose",
          "version" : "0.31"
       },
       "MooseX::Types::Common" : {
          "dist" : "MooseX-Types-Common-0.001004",
-         "module" : "MooseX::Types::Common::Numeric",
          "mymeta" : {
             "abstract" : "A library of commonly used type constraints",
             "author" : [
@@ -27250,11 +27249,11 @@
                "version" : "0.001004"
             }
          },
+         "target" : "MooseX::Types::Common::Numeric",
          "version" : "0.001004"
       },
       "MooseX::Types::LoadableClass" : {
          "dist" : "MooseX-Types-LoadableClass-0.006",
-         "module" : "MooseX::Types::LoadableClass",
          "mymeta" : {
             "abstract" : "ClassName type constraint with coercion to load the class.",
             "author" : [
@@ -27317,11 +27316,11 @@
                "version" : "0.006"
             }
          },
+         "target" : "MooseX::Types::LoadableClass",
          "version" : "0.006"
       },
       "MooseX::Types::Path::Class" : {
          "dist" : "MooseX-Types-Path-Class-0.05",
-         "module" : "MooseX::Types::Path::Class",
          "mymeta" : {
             "abstract" : "A Path::Class type library for Moose",
             "author" : [
@@ -27376,18 +27375,18 @@
                "version" : "0.05"
             }
          },
+         "target" : "MooseX::Types::Path::Class",
          "version" : "0.05"
       },
       "Mozilla::CA" : {
          "dist" : "Mozilla-CA-20120309",
-         "module" : "Mozilla::CA",
          "mymeta" : {
             "abstract" : "Mozilla's CA cert bundle in PEM format",
             "author" : [
                "Gisle Aas <gisle@activestate.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120630, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120630, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -27435,11 +27434,11 @@
                "version" : "20120309"
             }
          },
+         "target" : "Mozilla::CA",
          "version" : "20120309"
       },
       "Net::Calais" : {
          "dist" : "Net-Calais-1.02",
-         "module" : "Net::Calais",
          "mymeta" : {
             "abstract" : "Interface to OpenCalais web service",
             "author" : [
@@ -27490,11 +27489,11 @@
                "version" : "1.02"
             }
          },
+         "target" : "Net::Calais",
          "version" : "1.02"
       },
       "Net::FastCGI" : {
          "dist" : "Net-FastCGI-0.13",
-         "module" : "Net::FastCGI",
          "mymeta" : {
             "abstract" : "FastCGI Toolkit",
             "author" : [
@@ -27574,11 +27573,11 @@
                "version" : "0.13"
             }
          },
+         "target" : "Net::FastCGI",
          "version" : "0.13"
       },
       "Net::HTTP" : {
          "dist" : "Net-HTTP-6.02",
-         "module" : "Net::HTTP",
          "mymeta" : {
             "abstract" : "Low-level HTTP connection (client)",
             "author" : [
@@ -27653,18 +27652,18 @@
                "version" : "6.02"
             }
          },
+         "target" : "Net::HTTP",
          "version" : "6.02"
       },
       "Net::SSLeay" : {
          "dist" : "Net-SSLeay-1.48",
-         "module" : "Net::SSLeay",
          "mymeta" : {
             "abstract" : "Perl extension for using OpenSSL",
             "author" : [
                "Maintained by Mike McCauley and Florian Ragwitz since November 2005"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -27724,11 +27723,11 @@
                "version" : "0.61"
             }
          },
+         "target" : "Net::SSLeay",
          "version" : "1.48"
       },
       "Net::Server" : {
          "dist" : "Net-Server-0.99",
-         "module" : "Net::Server",
          "mymeta" : {
             "abstract" : "Extensible, general Perl server engine",
             "author" : [
@@ -27854,11 +27853,11 @@
                "file" : "Net/Server.pm"
             }
          },
+         "target" : "Net::Server",
          "version" : "0.99"
       },
       "Net::Server::Coro" : {
          "dist" : "Net-Server-Coro-1.2",
-         "module" : "Net::Server::Coro",
          "mymeta" : {
             "abstract" : "A co-operative multithreaded server using Coro",
             "author" : [
@@ -27923,11 +27922,11 @@
                "file" : "Net/Server/Proto/Coro.pm"
             }
          },
+         "target" : "Net::Server::Coro",
          "version" : "1.2"
       },
       "Number::Compare" : {
          "dist" : "Number-Compare-0.03",
-         "module" : "Number::Compare",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -27977,11 +27976,11 @@
                "version" : "0.03"
             }
          },
+         "target" : "Number::Compare",
          "version" : "0.03"
       },
       "Number::Format" : {
          "dist" : "Number-Format-1.73",
-         "module" : "Number::Format",
          "mymeta" : {
             "abstract" : "Perl extension for formatting numbers",
             "author" : [
@@ -28022,11 +28021,11 @@
                "version" : "1.73"
             }
          },
+         "target" : "Number::Format",
          "version" : "1.73"
       },
       "Object::Signature" : {
          "dist" : "Object-Signature-1.07",
-         "module" : "Object::Signature",
          "mymeta" : {
             "abstract" : "Generate cryptographic signatures for objects",
             "author" : [
@@ -28093,11 +28092,11 @@
                "version" : "1.07"
             }
          },
+         "target" : "Object::Signature",
          "version" : "1.07"
       },
       "PAR::Dist" : {
          "dist" : "PAR-Dist-0.48",
-         "module" : "PAR::Dist",
          "mymeta" : {
             "abstract" : "Create and manipulate PAR distributions",
             "author" : [
@@ -28150,11 +28149,11 @@
                "version" : "0.48"
             }
          },
+         "target" : "PAR::Dist",
          "version" : "0.48"
       },
       "PDL" : {
          "dist" : "PDL-2.4.10",
-         "module" : "PDL",
          "mymeta" : {
             "abstract" : "Perl Data Language",
             "author" : [
@@ -28674,11 +28673,11 @@
                "file" : "PDL/PP/XS.pm"
             }
          },
+         "target" : "PDL",
          "version" : "v2.4.10"
       },
       "PSGI" : {
          "dist" : "PSGI-1.10",
-         "module" : "PSGI",
          "mymeta" : {
             "abstract" : "Perl Web Server Gateway Interface Specification",
             "author" : [
@@ -28731,11 +28730,11 @@
                "version" : "1.10"
             }
          },
+         "target" : "PSGI",
          "version" : "1.10"
       },
       "Package::DeprecationManager" : {
          "dist" : "Package-DeprecationManager-0.11",
-         "module" : "Package::DeprecationManager",
          "mymeta" : {
             "abstract" : "Manage deprecation warnings for your distribution",
             "author" : [
@@ -28793,11 +28792,11 @@
                "version" : "0.11"
             }
          },
+         "target" : "Package::DeprecationManager",
          "version" : "0.11"
       },
       "Package::Stash" : {
          "dist" : "Package-Stash-0.33",
-         "module" : "Package::Stash",
          "mymeta" : {
             "abstract" : "routines for manipulating stashes",
             "author" : [
@@ -29117,11 +29116,11 @@
                "version" : "0.33"
             }
          },
+         "target" : "Package::Stash",
          "version" : "0.33"
       },
       "Package::Stash::XS" : {
          "dist" : "Package-Stash-XS-0.25",
-         "module" : "Package::Stash::XS",
          "mymeta" : {
             "abstract" : "faster and more correct implementation of the Package::Stash API",
             "author" : [
@@ -29405,11 +29404,11 @@
                "version" : "0.25"
             }
          },
+         "target" : "Package::Stash::XS",
          "version" : "0.25"
       },
       "PadWalker" : {
          "dist" : "PadWalker-1.92",
-         "module" : "PadWalker",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -29457,11 +29456,11 @@
                "version" : "1.92"
             }
          },
+         "target" : "PadWalker",
          "version" : "1.92"
       },
       "Parallel::ForkManager" : {
          "dist" : "Parallel-ForkManager-0.7.9",
-         "module" : "Parallel::ForkManager",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -29509,11 +29508,11 @@
                "version" : "v0.7.9"
             }
          },
+         "target" : "Parallel::ForkManager",
          "version" : "v0.7.9"
       },
       "Parallel::Prefork" : {
          "dist" : "Parallel-Prefork-0.13",
-         "module" : "Parallel::Prefork",
          "mymeta" : {
             "abstract" : "A simple prefork server framework",
             "author" : [
@@ -29581,11 +29580,11 @@
                "file" : "Parallel/Prefork/SpareWorkers/Scoreboard.pm"
             }
          },
+         "target" : "Parallel::Prefork",
          "version" : "0.13"
       },
       "Params::Classify" : {
          "dist" : "Params-Classify-0.013",
-         "module" : "Params::Classify",
          "mymeta" : {
             "abstract" : "argument type classification",
             "author" : [
@@ -29656,11 +29655,11 @@
                "version" : "0.013"
             }
          },
+         "target" : "Params::Classify",
          "version" : "0.013"
       },
       "Params::Util" : {
          "dist" : "Params-Util-1.04",
-         "module" : "Params::Util",
          "mymeta" : {
             "abstract" : "Simple, compact and correct param-checking functions",
             "author" : [
@@ -29714,11 +29713,11 @@
                "version" : "1.04"
             }
          },
+         "target" : "Params::Util",
          "version" : "1.04"
       },
       "Params::Validate" : {
          "dist" : "Params-Validate-1.00",
-         "module" : "Params::Validate",
          "mymeta" : {
             "abstract" : "Validate method/function parameters",
             "author" : [
@@ -29779,11 +29778,11 @@
                "version" : "1.00"
             }
          },
+         "target" : "Params::Validate",
          "version" : "1.00"
       },
       "Parse::CPAN::Meta" : {
          "dist" : "Parse-CPAN-Meta-1.4404",
-         "module" : "Parse::CPAN::Meta",
          "mymeta" : {
             "abstract" : "Parse META.yml and META.json CPAN metadata files",
             "author" : [
@@ -29836,11 +29835,11 @@
                "version" : "1.4404"
             }
          },
+         "target" : "Parse::CPAN::Meta",
          "version" : "1.4404"
       },
       "Parse::RecDescent" : {
          "dist" : "Parse-RecDescent-1.967006",
-         "module" : "Parse::RecDescent",
          "mymeta" : {
             "abstract" : "Generate Recursive-Descent Parsers",
             "author" : [
@@ -29939,11 +29938,11 @@
                "file" : "Parse/RecDescent.pm"
             }
          },
+         "target" : "Parse::RecDescent",
          "version" : "1.967006"
       },
       "Path::Class" : {
          "dist" : "Path-Class-0.24",
-         "module" : "Path::Class",
          "mymeta" : {
             "abstract" : "Cross-platform path specification manipulation",
             "author" : [
@@ -30019,11 +30018,11 @@
                "version" : "0.24"
             }
          },
+         "target" : "Path::Class",
          "version" : "0.24"
       },
       "Perl::Tidy" : {
          "dist" : "Perl-Tidy-20101217",
-         "module" : "Perl::Tidy",
          "mymeta" : {
             "abstract" : "indent and reformat perl scripts",
             "author" : [
@@ -30111,11 +30110,11 @@
                "file" : "Perl/Tidy.pm"
             }
          },
+         "target" : "Perl::Tidy",
          "version" : "20101217"
       },
       "Plack" : {
          "dist" : "Plack-0.9985",
-         "module" : "Plack::Test",
          "mymeta" : {
             "abstract" : "Perl Superglue for Web frameworks and Web Servers (PSGI toolkit)",
             "author" : [
@@ -30453,11 +30452,11 @@
                "file" : "Plack/Util.pm"
             }
          },
+         "target" : "Plack::Test",
          "version" : "0.9985"
       },
       "Plack::App::Proxy" : {
          "dist" : "Plack-App-Proxy-0.21",
-         "module" : "Plack::App::Proxy",
          "mymeta" : {
             "abstract" : "proxy requests",
             "author" : [
@@ -30546,11 +30545,11 @@
                "file" : "Plack/Middleware/Proxy/RewriteLocation.pm"
             }
          },
+         "target" : "Plack::App::Proxy",
          "version" : "0.21"
       },
       "Plack::Middleware::Auth::Digest" : {
          "dist" : "Plack-Middleware-Auth-Digest-0.04",
-         "module" : "Plack::Middleware::Auth::Digest",
          "mymeta" : {
             "abstract" : "Digest authentication",
             "author" : [
@@ -30614,11 +30613,11 @@
                "version" : "0.04"
             }
          },
+         "target" : "Plack::Middleware::Auth::Digest",
          "version" : "0.04"
       },
       "Plack::Middleware::ConsoleLogger" : {
          "dist" : "Plack-Middleware-ConsoleLogger-0.04",
-         "module" : "Plack::Middleware::ConsoleLogger",
          "mymeta" : {
             "abstract" : "Write logs to Firebug or Webkit Inspector",
             "author" : [
@@ -30683,11 +30682,11 @@
                "version" : "0.04"
             }
          },
+         "target" : "Plack::Middleware::ConsoleLogger",
          "version" : "0.04"
       },
       "Plack::Middleware::Debug" : {
          "dist" : "Plack-Middleware-Debug-0.14",
-         "module" : "Plack::Middleware::Debug",
          "mymeta" : {
             "abstract" : "display information about the current request/response",
             "author" : [
@@ -30795,11 +30794,11 @@
                "file" : "Plack/Middleware/Debug/TrackObjects.pm"
             }
          },
+         "target" : "Plack::Middleware::Debug",
          "version" : "0.14"
       },
       "Plack::Middleware::Deflater" : {
          "dist" : "Plack-Middleware-Deflater-0.05",
-         "module" : "Plack::Middleware::Deflater",
          "mymeta" : {
             "abstract" : "Compress response body with Gzip or Deflate",
             "author" : [
@@ -30865,11 +30864,11 @@
                "version" : "0.05"
             }
          },
+         "target" : "Plack::Middleware::Deflater",
          "version" : "0.05"
       },
       "Plack::Middleware::Header" : {
          "dist" : "Plack-Middleware-Header-0.04",
-         "module" : "Plack::Middleware::Header",
          "mymeta" : {
             "abstract" : "modify HTTP response headers",
             "author" : [
@@ -30933,11 +30932,11 @@
                "version" : "0.04"
             }
          },
+         "target" : "Plack::Middleware::Header",
          "version" : "0.04"
       },
       "Plack::Middleware::ReverseProxy" : {
          "dist" : "Plack-Middleware-ReverseProxy-0.11",
-         "module" : "Plack::Middleware::ReverseProxy",
          "mymeta" : {
             "abstract" : "Supports app to run as a reverse proxy backend",
             "author" : [
@@ -31003,11 +31002,11 @@
                "version" : "0.11"
             }
          },
+         "target" : "Plack::Middleware::ReverseProxy",
          "version" : "0.11"
       },
       "Plack::Middleware::Session" : {
          "dist" : "Plack-Middleware-Session-0.14",
-         "module" : "Plack::Middleware::Session",
          "mymeta" : {
             "abstract" : "Middleware for session management",
             "author" : [
@@ -31105,11 +31104,11 @@
                "version" : "0.14"
             }
          },
+         "target" : "Plack::Middleware::Session",
          "version" : "0.14"
       },
       "Plack::Test::ExternalServer" : {
          "dist" : "Plack-Test-ExternalServer-0.01",
-         "module" : "Plack::Test::ExternalServer",
          "mymeta" : {
             "abstract" : "Run HTTP tests on external live servers",
             "author" : [
@@ -31154,11 +31153,11 @@
                "version" : "0.01"
             }
          },
+         "target" : "Plack::Test::ExternalServer",
          "version" : "0.01"
       },
       "Pod::Coverage" : {
          "dist" : "Pod-Coverage-0.22",
-         "module" : "Pod::Coverage",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -31223,11 +31222,11 @@
                "file" : "Pod/Coverage/Overloader.pm"
             }
          },
+         "target" : "Pod::Coverage",
          "version" : "0.22"
       },
       "Probe::Perl" : {
          "dist" : "Probe-Perl-0.01",
-         "module" : "Probe::Perl",
          "mymeta" : {
             "abstract" : "Information about the currently running perl",
             "author" : [
@@ -31273,11 +31272,11 @@
                "version" : "0.01"
             }
          },
+         "target" : "Probe::Perl",
          "version" : "0.01"
       },
       "Proc::Wait3" : {
          "dist" : "Proc-Wait3-0.04",
-         "module" : "Proc::Wait3",
          "mymeta" : {
             "abstract" : "Perl extension for wait3 system call",
             "author" : [
@@ -31325,11 +31324,11 @@
                "version" : "0.04"
             }
          },
+         "target" : "Proc::Wait3",
          "version" : "0.04"
       },
       "RDF::Simple" : {
          "dist" : "RDF-Simple-0.415",
-         "module" : "RDF::Simple",
          "mymeta" : {
             "abstract" : "read and write RDF without complication",
             "author" : [
@@ -31425,11 +31424,11 @@
                "version" : "1.003"
             }
          },
+         "target" : "RDF::Simple",
          "version" : "1.004"
       },
       "Readonly" : {
          "dist" : "Readonly-1.03",
-         "module" : "Readonly",
          "mymeta" : {
             "abstract" : "Facility for creating read-only scalars, arrays, hashes.",
             "author" : [
@@ -31486,11 +31485,11 @@
                "file" : "Readonly.pm"
             }
          },
+         "target" : "Readonly",
          "version" : "1.03"
       },
       "Regexp::Assemble" : {
          "dist" : "Regexp-Assemble-0.35",
-         "module" : "Regexp::Assemble",
          "mymeta" : {
             "abstract" : "Assemble multiple Regular Expressions into a single RE",
             "author" : [
@@ -31538,11 +31537,11 @@
                "version" : "0.35"
             }
          },
+         "target" : "Regexp::Assemble",
          "version" : "0.35"
       },
       "Regexp::Common" : {
          "dist" : "Regexp-Common-2011121001",
-         "module" : "Regexp::Common",
          "mymeta" : {
             "abstract" : "Provide commonly requested regular expressions",
             "author" : [
@@ -31735,11 +31734,11 @@
                "version" : "2010010201"
             }
          },
+         "target" : "Regexp::Common",
          "version" : "2011121001"
       },
       "SQL::Abstract" : {
          "dist" : "SQL-Abstract-1.72",
-         "module" : "SQL::Abstract",
          "mymeta" : {
             "abstract" : "Generate SQL from Perl data structures",
             "author" : [
@@ -31829,11 +31828,11 @@
                "file" : "SQL/Abstract/Tree.pm"
             }
          },
+         "target" : "SQL::Abstract",
          "version" : "1.72"
       },
       "Scope::Guard" : {
          "dist" : "Scope-Guard-0.20",
-         "module" : "Scope::Guard",
          "mymeta" : {
             "abstract" : "lexically-scoped resource management",
             "author" : [
@@ -31883,11 +31882,11 @@
                "version" : "0.20"
             }
          },
+         "target" : "Scope::Guard",
          "version" : "0.20"
       },
       "Server::Starter" : {
          "dist" : "Server-Starter-0.11",
-         "module" : "Server::Starter",
          "mymeta" : {
             "abstract" : "a superdaemon for hot-deploying server programs",
             "author" : [
@@ -31948,11 +31947,11 @@
                "version" : "0.11"
             }
          },
+         "target" : "Server::Starter",
          "version" : "0.11"
       },
       "Smart::Comments" : {
          "dist" : "Smart-Comments-1.0.4",
-         "module" : "Smart::Comments",
          "mymeta" : {
             "abstract" : "Comments that do more than just sit there",
             "author" : [
@@ -32015,11 +32014,11 @@
                "version" : "v1.0.4"
             }
          },
+         "target" : "Smart::Comments",
          "version" : "v1.0.4"
       },
       "Spiffy" : {
          "dist" : "Spiffy-0.30",
-         "module" : "Spiffy",
          "mymeta" : {
             "abstract" : "Spiffy Perl Interface Framework For You",
             "author" : [
@@ -32065,11 +32064,11 @@
                "version" : "0.30"
             }
          },
+         "target" : "Spiffy",
          "version" : "0.30"
       },
       "Starlet" : {
          "dist" : "Starlet-0.14",
-         "module" : "Starlet",
          "mymeta" : {
             "abstract" : "a simple, high-performance PSGI/Plack HTTP server",
             "author" : [
@@ -32140,11 +32139,11 @@
                "file" : "Starlet/Server.pm"
             }
          },
+         "target" : "Starlet",
          "version" : "0.14"
       },
       "Starman" : {
          "dist" : "Starman-0.2014",
-         "module" : "Starman",
          "mymeta" : {
             "abstract" : "High-performance preforking PSGI/Plack web server",
             "author" : [
@@ -32227,11 +32226,11 @@
                "file" : "Starman/Server.pm"
             }
          },
+         "target" : "Starman",
          "version" : "0.2014"
       },
       "String::RewritePrefix" : {
          "dist" : "String-RewritePrefix-0.006",
-         "module" : "String::RewritePrefix",
          "mymeta" : {
             "abstract" : "rewrite strings based on a set of known prefixes",
             "author" : [
@@ -32459,11 +32458,11 @@
                "version" : "0.006"
             }
          },
+         "target" : "String::RewritePrefix",
          "version" : "0.006"
       },
       "Sub::Exporter" : {
          "dist" : "Sub-Exporter-0.982",
-         "module" : "Sub::Exporter",
          "mymeta" : {
             "abstract" : "a sophisticated exporter for custom-built routines",
             "author" : [
@@ -32524,11 +32523,11 @@
                "version" : "0.982"
             }
          },
+         "target" : "Sub::Exporter",
          "version" : "0.982"
       },
       "Sub::Install" : {
          "dist" : "Sub-Install-0.925",
-         "module" : "Sub::Install",
          "mymeta" : {
             "abstract" : "install subroutines into packages easily",
             "author" : [
@@ -32582,11 +32581,11 @@
                "version" : "0.925"
             }
          },
+         "target" : "Sub::Install",
          "version" : "0.925"
       },
       "Sub::Name" : {
          "dist" : "Sub-Name-0.05",
-         "module" : "Sub::Name",
          "mymeta" : {
             "abstract" : "(re)name a sub",
             "author" : [
@@ -32634,11 +32633,11 @@
                "version" : "0.05"
             }
          },
+         "target" : "Sub::Name",
          "version" : "0.05"
       },
       "Sub::Override" : {
          "dist" : "Sub-Override-0.08",
-         "module" : "Sub::Override",
          "mymeta" : {
             "abstract" : "Perl extension for easily overriding subroutines",
             "author" : [
@@ -32690,11 +32689,11 @@
                "version" : "0.08"
             }
          },
+         "target" : "Sub::Override",
          "version" : "0.08"
       },
       "Sub::Uplevel" : {
          "dist" : "Sub-Uplevel-0.22",
-         "module" : "Sub::Uplevel",
          "mymeta" : {
             "abstract" : "apparently run a function in a higher stack frame",
             "author" : [
@@ -32766,11 +32765,11 @@
                "version" : "0.22"
             }
          },
+         "target" : "Sub::Uplevel",
          "version" : "0.22"
       },
       "Task::Plack" : {
          "dist" : "Task-Plack-0.26",
-         "module" : "Task::Plack",
          "mymeta" : {
             "abstract" : "Plack bundle",
             "author" : [
@@ -32853,11 +32852,11 @@
                "version" : "0.26"
             }
          },
+         "target" : "Task::Plack",
          "version" : "0.26"
       },
       "Task::Weaken" : {
          "dist" : "Task-Weaken-1.04",
-         "module" : "Task::Weaken",
          "mymeta" : {
             "abstract" : "Ensure that a platform has weaken support",
             "author" : [
@@ -32921,11 +32920,11 @@
                "version" : "1.04"
             }
          },
+         "target" : "Task::Weaken",
          "version" : "1.04"
       },
       "Template" : {
          "dist" : "Template-Toolkit-2.23",
-         "module" : "Template",
          "mymeta" : {
             "abstract" : "comprehensive template processing system",
             "author" : [
@@ -33170,11 +33169,11 @@
                "file" : "Template/Provider.pm"
             }
          },
+         "target" : "Template",
          "version" : "2.23"
       },
       "Template::Timer" : {
          "dist" : "Template-Timer-1.00",
-         "module" : "Template::Timer",
          "mymeta" : {
             "abstract" : "Rudimentary profiling for Template Toolkit",
             "author" : [
@@ -33221,11 +33220,11 @@
                "version" : "1.00"
             }
          },
+         "target" : "Template::Timer",
          "version" : "1.00"
       },
       "Term::Prompt" : {
          "dist" : "Term-Prompt-1.04",
-         "module" : "Term::Prompt",
          "mymeta" : {
             "abstract" : "Perl extension for prompting a user for information\r",
             "author" : [
@@ -33276,11 +33275,11 @@
                "version" : "1.04"
             }
          },
+         "target" : "Term::Prompt",
          "version" : "1.04"
       },
       "Term::ReadKey" : {
          "dist" : "TermReadKey-2.30",
-         "module" : "Term::ReadKey",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -33328,11 +33327,11 @@
                "version" : "2.30"
             }
          },
+         "target" : "Term::ReadKey",
          "version" : "2.30"
       },
       "Test::Assertions" : {
          "dist" : "Test-Assertions-1.054",
-         "module" : "Test::Assertions",
          "mymeta" : {
             "abstract" : "a simple set of building blocks for both unit and runtime testing",
             "author" : [
@@ -33388,11 +33387,11 @@
                "version" : "1.018"
             }
          },
+         "target" : "Test::Assertions",
          "version" : "1.054"
       },
       "Test::Base" : {
          "dist" : "Test-Base-0.60",
-         "module" : "Test::Base",
          "mymeta" : {
             "abstract" : "A Data Driven Testing Framework",
             "author" : [
@@ -33466,11 +33465,11 @@
                "file" : "Test/Base.pm"
             }
          },
+         "target" : "Test::Base",
          "version" : "0.60"
       },
       "Test::Class" : {
          "dist" : "Test-Class-0.36",
-         "module" : "Test::Class",
          "mymeta" : {
             "abstract" : "Easily create test classes in an xUnit/JUnit style",
             "author" : [
@@ -33552,11 +33551,11 @@
                "version" : "0.34"
             }
          },
+         "target" : "Test::Class",
          "version" : "0.36"
       },
       "Test::Deep" : {
          "dist" : "Test-Deep-0.108",
-         "module" : "Test::Deep",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -33751,11 +33750,11 @@
                "file" : "Test/Deep/HashKeysOnly.pm"
             }
          },
+         "target" : "Test::Deep",
          "version" : "0.108"
       },
       "Test::Differences" : {
          "dist" : "Test-Differences-0.61",
-         "module" : "Test::Differences",
          "mymeta" : {
             "abstract" : "Test strings and data structures and show differences if not ok",
             "author" : [
@@ -33810,11 +33809,11 @@
                "version" : "0.61"
             }
          },
+         "target" : "Test::Differences",
          "version" : "0.61"
       },
       "Test::Exception" : {
          "dist" : "Test-Exception-0.31",
-         "module" : "Test::Exception",
          "mymeta" : {
             "abstract" : "Test exception based code",
             "author" : [
@@ -33869,11 +33868,11 @@
                "version" : "0.31"
             }
          },
+         "target" : "Test::Exception",
          "version" : "0.31"
       },
       "Test::Fatal" : {
          "dist" : "Test-Fatal-0.008",
-         "module" : "Test::Fatal",
          "mymeta" : {
             "abstract" : "incredibly simple helpers for testing code with exceptions",
             "author" : [
@@ -34150,11 +34149,11 @@
                "version" : "0.008"
             }
          },
+         "target" : "Test::Fatal",
          "version" : "0.008"
       },
       "Test::File" : {
          "dist" : "Test-File-1.31",
-         "module" : "Test::File",
          "mymeta" : {
             "abstract" : "Check file attributes",
             "author" : [
@@ -34218,11 +34217,11 @@
                "version" : "1.31"
             }
          },
+         "target" : "Test::File",
          "version" : "1.31"
       },
       "Test::HexString" : {
          "dist" : "Test-HexString-0.03",
-         "module" : "Test::HexString",
          "mymeta" : {
             "abstract" : "test binary strings with hex dump diagnostics",
             "author" : [
@@ -34273,11 +34272,11 @@
                "version" : "0.03"
             }
          },
+         "target" : "Test::HexString",
          "version" : "0.03"
       },
       "Test::LongString" : {
          "dist" : "Test-LongString-0.15",
-         "module" : "Test::LongString",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -34328,11 +34327,11 @@
                "version" : "0.15"
             }
          },
+         "target" : "Test::LongString",
          "version" : "0.15"
       },
       "Test::Manifest" : {
          "dist" : "Test-Manifest-1.23",
-         "module" : "Test::Manifest",
          "mymeta" : {
             "abstract" : "interact with a t/test_manifest file",
             "author" : [
@@ -34383,11 +34382,11 @@
                "version" : "1.23"
             }
          },
+         "target" : "Test::Manifest",
          "version" : "1.23"
       },
       "Test::MockObject" : {
          "dist" : "Test-MockObject-1.20120301",
-         "module" : "Test::MockObject",
          "mymeta" : {
             "abstract" : "Perl extension for emulating troublesome interfaces",
             "author" : [
@@ -34459,11 +34458,11 @@
                "version" : "1.20120301"
             }
          },
+         "target" : "Test::MockObject",
          "version" : "1.20120301"
       },
       "Test::MockTime" : {
          "dist" : "Test-MockTime-0.12",
-         "module" : "Test::MockTime",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -34504,11 +34503,11 @@
                "version" : "0.12"
             }
          },
+         "target" : "Test::MockTime",
          "version" : "0.12"
       },
       "Test::NoWarnings" : {
          "dist" : "Test-NoWarnings-1.04",
-         "module" : "Test::NoWarnings",
          "mymeta" : {
             "abstract" : "Make sure you didn't emit any warnings while testing",
             "author" : [
@@ -34569,11 +34568,11 @@
                "version" : "1.04"
             }
          },
+         "target" : "Test::NoWarnings",
          "version" : "1.04"
       },
       "Test::Pod" : {
          "dist" : "Test-Pod-1.45",
-         "module" : "Test::Pod",
          "mymeta" : {
             "abstract" : "check for POD errors in files",
             "author" : [
@@ -34640,11 +34639,11 @@
                "version" : "1.45"
             }
          },
+         "target" : "Test::Pod",
          "version" : "1.45"
       },
       "Test::Pod::Coverage" : {
          "dist" : "Test-Pod-Coverage-1.08",
-         "module" : "Test::Pod::Coverage",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -34687,11 +34686,11 @@
                "version" : "1.08"
             }
          },
+         "target" : "Test::Pod::Coverage",
          "version" : "1.08"
       },
       "Test::Requires" : {
          "dist" : "Test-Requires-0.06",
-         "module" : "Test::Requires",
          "mymeta" : {
             "abstract" : "Checks to see if the module can be loaded",
             "author" : [
@@ -34748,11 +34747,11 @@
                "version" : "0.06"
             }
          },
+         "target" : "Test::Requires",
          "version" : "0.06"
       },
       "Test::Script" : {
          "dist" : "Test-Script-1.07",
-         "module" : "Test::Script",
          "mymeta" : {
             "abstract" : "Basic cross-platform tests for scripts",
             "author" : [
@@ -34819,11 +34818,11 @@
                "version" : "1.07"
             }
          },
+         "target" : "Test::Script",
          "version" : "1.07"
       },
       "Test::SharedFork" : {
          "dist" : "Test-SharedFork-0.19",
-         "module" : "Test::SharedFork",
          "mymeta" : {
             "abstract" : "fork test",
             "author" : [
@@ -34891,11 +34890,11 @@
                "file" : "Test/SharedFork/Store.pm"
             }
          },
+         "target" : "Test::SharedFork",
          "version" : "0.19"
       },
       "Test::Strict" : {
          "dist" : "Test-Strict-0.14",
-         "module" : "Test::Strict",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -34940,11 +34939,11 @@
                "version" : "0.14"
             }
          },
+         "target" : "Test::Strict",
          "version" : "0.14"
       },
       "Test::TCP" : {
          "dist" : "Test-TCP-1.14",
-         "module" : "Test::TCP",
          "mymeta" : {
             "abstract" : "testing TCP program",
             "author" : [
@@ -35003,11 +35002,11 @@
                "version" : "1.14"
             }
          },
+         "target" : "Test::TCP",
          "version" : "1.14"
       },
       "Test::Tester" : {
          "dist" : "Test-Tester-0.108",
-         "module" : "Test::Tester",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -35057,11 +35056,11 @@
                "file" : "Test/Tester/Delegate.pm"
             }
          },
+         "target" : "Test::Tester",
          "version" : "0.108"
       },
       "Test::WWW::Mechanize" : {
          "dist" : "Test-WWW-Mechanize-1.38",
-         "module" : "Test::WWW::Mechanize",
          "mymeta" : {
             "abstract" : "Testing-specific WWW::Mechanize subclass",
             "author" : [
@@ -35133,11 +35132,11 @@
                "version" : "1.38"
             }
          },
+         "target" : "Test::WWW::Mechanize",
          "version" : "1.38"
       },
       "Test::WWW::Mechanize::Catalyst" : {
          "dist" : "Test-WWW-Mechanize-Catalyst-0.56",
-         "module" : "Test::WWW::Mechanize::Catalyst",
          "mymeta" : {
             "abstract" : "Test::WWW::Mechanize for Catalyst",
             "author" : [
@@ -35205,11 +35204,11 @@
                "version" : "0.56"
             }
          },
+         "target" : "Test::WWW::Mechanize::Catalyst",
          "version" : "0.56"
       },
       "Test::Warn" : {
          "dist" : "Test-Warn-0.23",
-         "module" : "Test::Warn",
          "mymeta" : {
             "abstract" : "Perl extension to test methods for warnings",
             "author" : [
@@ -35279,11 +35278,11 @@
                "file" : "Test/Warn.pm"
             }
          },
+         "target" : "Test::Warn",
          "version" : "0.23"
       },
       "Test::use::ok" : {
          "dist" : "Test-use-ok-0.02",
-         "module" : "Test::use::ok",
          "mymeta" : {
             "abstract" : "Alternative to Test::More::use_ok",
             "author" : [
@@ -35332,11 +35331,11 @@
                "version" : "0.02"
             }
          },
+         "target" : "Test::use::ok",
          "version" : "0.02"
       },
       "Text::CSV_XS" : {
          "dist" : "Text-CSV_XS-0.86",
-         "module" : "Text::CSV_XS",
          "mymeta" : {
             "abstract" : "Comma-Separated Values manipulation routines",
             "author" : [
@@ -35406,11 +35405,11 @@
                "version" : "0.86"
             }
          },
+         "target" : "Text::CSV_XS",
          "version" : "0.86"
       },
       "Text::Diff" : {
          "dist" : "Text-Diff-1.41",
-         "module" : "Text::Diff",
          "mymeta" : {
             "abstract" : "Perform diffs on files and record sets",
             "author" : [
@@ -35477,11 +35476,11 @@
                "version" : "1.41"
             }
          },
+         "target" : "Text::Diff",
          "version" : "1.41"
       },
       "Text::German" : {
          "dist" : "Text-German-0.06",
-         "module" : "Text::German",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -35553,11 +35552,11 @@
                "file" : "Text/German/Vorsilbe.pm"
             }
          },
+         "target" : "Text::German",
          "version" : "0.06"
       },
       "Text::Glob" : {
          "dist" : "Text-Glob-0.09",
-         "module" : "Text::Glob",
          "mymeta" : {
             "abstract" : "match globbing patterns against text",
             "author" : [
@@ -35607,11 +35606,11 @@
                "version" : "0.09"
             }
          },
+         "target" : "Text::Glob",
          "version" : "0.09"
       },
       "Text::MicroTemplate" : {
          "dist" : "Text-MicroTemplate-0.18",
-         "module" : "Text::MicroTemplate",
          "mymeta" : {
             "abstract" : "Micro template engine with Perl5 language",
             "author" : [
@@ -35674,11 +35673,11 @@
                "file" : "Text/MicroTemplate/File.pm"
             }
          },
+         "target" : "Text::MicroTemplate",
          "version" : "0.18"
       },
       "Text::Ngrams" : {
          "dist" : "Text-Ngrams-2.002",
-         "module" : "Text::Ngrams",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -35717,11 +35716,11 @@
                "version" : "2.002"
             }
          },
+         "target" : "Text::Ngrams",
          "version" : "2.002"
       },
       "Text::Similarity" : {
          "dist" : "Text-Similarity-0.08",
-         "module" : "Text::Similarity",
          "mymeta" : {
             "abstract" : "Measure the pair-wise Similarity of Files or Strings",
             "author" : [
@@ -35777,11 +35776,11 @@
                "version" : "0.05"
             }
          },
+         "target" : "Text::Similarity",
          "version" : "0.08"
       },
       "Text::SimpleTable" : {
          "dist" : "Text-SimpleTable-2.03",
-         "module" : "Text::SimpleTable",
          "mymeta" : {
             "abstract" : "Simple eyecandy ASCII tables",
             "author" : [
@@ -35839,11 +35838,11 @@
                "version" : "2.03"
             }
          },
+         "target" : "Text::SimpleTable",
          "version" : "2.03"
       },
       "Text::Trim" : {
          "dist" : "Text-Trim-1.02",
-         "module" : "Text::Trim",
          "mymeta" : {
             "abstract" : "remove leading and/or trailing whitespace from strings",
             "author" : [
@@ -35893,11 +35892,11 @@
                "version" : "1.02"
             }
          },
+         "target" : "Text::Trim",
          "version" : "1.02"
       },
       "Tie::IxHash" : {
          "dist" : "Tie-IxHash-1.22",
-         "module" : "Tie::IxHash",
          "mymeta" : {
             "abstract" : "ordered associative arrays for Perl",
             "author" : [
@@ -35946,11 +35945,11 @@
                "version" : "1.22"
             }
          },
+         "target" : "Tie::IxHash",
          "version" : "1.22"
       },
       "Tie::ToObject" : {
          "dist" : "Tie-ToObject-0.03",
-         "module" : "Tie::ToObject",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -35992,11 +35991,11 @@
                "version" : "0.03"
             }
          },
+         "target" : "Tie::ToObject",
          "version" : "0.03"
       },
       "Time::Duration" : {
          "dist" : "Time-Duration-1.06",
-         "module" : "Time::Duration",
          "mymeta" : {
             "abstract" : "rounded or exact English expression of durations",
             "author" : [
@@ -36042,11 +36041,11 @@
                "version" : "1.06"
             }
          },
+         "target" : "Time::Duration",
          "version" : "1.06"
       },
       "Time::Duration::Parse" : {
          "dist" : "Time-Duration-Parse-0.06",
-         "module" : "Time::Duration::Parse",
          "mymeta" : {
             "abstract" : "Parse string that represents time duration",
             "author" : [
@@ -36093,11 +36092,11 @@
                "version" : "0.06"
             }
          },
+         "target" : "Time::Duration::Parse",
          "version" : "0.06"
       },
       "TimeDate" : {
          "dist" : "TimeDate-1.20",
-         "module" : "Date::Format",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -36291,13 +36290,14 @@
             "Time::Zone" : {
                "file" : "Time/Zone.pm",
                "version" : "2.24"
-            }
+            },
+            "TimeDate" : {}
          },
-         "version" : "2.24"
+         "target" : "Date::Format",
+         "version" : "1.20"
       },
       "Tree::DAG_Node" : {
          "dist" : "Tree-DAG_Node-1.06",
-         "module" : "Tree::DAG_Node",
          "mymeta" : {
             "abstract" : "(super)class for representing nodes in a tree",
             "author" : [
@@ -36338,11 +36338,11 @@
                "version" : "1.06"
             }
          },
+         "target" : "Tree::DAG_Node",
          "version" : "1.06"
       },
       "Tree::Simple" : {
          "dist" : "Tree-Simple-1.18",
-         "module" : "Tree::Simple",
          "mymeta" : {
             "abstract" : "A simple tree object",
             "author" : [
@@ -36403,11 +36403,11 @@
                "version" : "1.11"
             }
          },
+         "target" : "Tree::Simple",
          "version" : "1.18"
       },
       "Tree::Simple::VisitorFactory" : {
          "dist" : "Tree-Simple-VisitorFactory-0.10",
-         "module" : "Tree::Simple::Visitor::FindByPath",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -36529,11 +36529,11 @@
                "version" : "0.10"
             }
          },
-         "version" : "0.03"
+         "target" : "Tree::Simple::Visitor::FindByPath",
+         "version" : "0.10"
       },
       "Try::Tiny" : {
          "dist" : "Try-Tiny-0.11",
-         "module" : "Try::Tiny",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -36583,11 +36583,11 @@
                "version" : "0.11"
             }
          },
+         "target" : "Try::Tiny",
          "version" : "0.11"
       },
       "Twiggy" : {
          "dist" : "Twiggy-0.1020",
-         "module" : "Twiggy",
          "mymeta" : {
             "abstract" : "AnyEvent HTTP server for PSGI (like Thin)",
             "author" : [
@@ -36673,11 +36673,11 @@
                "file" : "Twiggy/Server.pm"
             }
          },
+         "target" : "Twiggy",
          "version" : "0.1020"
       },
       "UNIVERSAL::can" : {
          "dist" : "UNIVERSAL-can-1.20110617",
-         "module" : "UNIVERSAL::can",
          "mymeta" : {
             "abstract" : "work around buggy code calling UNIVERSAL::can() as a function",
             "author" : [
@@ -36730,11 +36730,11 @@
                "version" : "1.20110617"
             }
          },
+         "target" : "UNIVERSAL::can",
          "version" : "1.20110617"
       },
       "UNIVERSAL::isa" : {
          "dist" : "UNIVERSAL-isa-1.20110614",
-         "module" : "UNIVERSAL::isa",
          "mymeta" : {
             "abstract" : "Attempt to recover from people calling UNIVERSAL::isa as a function",
             "author" : [
@@ -36789,11 +36789,11 @@
                "version" : "1.20110614"
             }
          },
+         "target" : "UNIVERSAL::isa",
          "version" : "1.20110614"
       },
       "URI" : {
          "dist" : "URI-1.59",
-         "module" : "URI::Escape",
          "mymeta" : {
             "abstract" : "Uniform Resource Identifiers (absolute and relative)",
             "author" : [
@@ -36985,11 +36985,11 @@
                "file" : "URI/urn/oid.pm"
             }
          },
-         "version" : "3.31"
+         "target" : "URI::Escape",
+         "version" : "1.59"
       },
       "Variable::Magic" : {
          "dist" : "Variable-Magic-0.47",
-         "module" : "Variable::Magic",
          "mymeta" : {
             "abstract" : "Associate user-defined magic to variables from Perl.",
             "author" : [
@@ -37056,11 +37056,11 @@
                "version" : "0.47"
             }
          },
+         "target" : "Variable::Magic",
          "version" : "0.47"
       },
       "WWW::Mechanize" : {
          "dist" : "WWW-Mechanize-1.71",
-         "module" : "WWW::Mechanize",
          "mymeta" : {
             "abstract" : "Handy web browsing in a Perl object",
             "author" : [
@@ -37149,11 +37149,11 @@
                "file" : "WWW/Mechanize/Link.pm"
             }
          },
+         "target" : "WWW::Mechanize",
          "version" : "1.71"
       },
       "WWW::RobotRules" : {
          "dist" : "WWW-RobotRules-6.01",
-         "module" : "WWW::RobotRules",
          "mymeta" : {
             "abstract" : "database of robots.txt-derived permissions",
             "author" : [
@@ -37219,11 +37219,11 @@
                "file" : "WWW/RobotRules.pm"
             }
          },
+         "target" : "WWW::RobotRules",
          "version" : "6.01"
       },
       "WebService::Google::Language" : {
          "dist" : "WebService-Google-Language-0.14",
-         "module" : "WebService::Google::Language",
          "mymeta" : {
             "abstract" : "Perl interface to the Google AJAX Language API",
             "author" : [
@@ -37296,11 +37296,11 @@
                "version" : "0"
             }
          },
+         "target" : "WebService::Google::Language",
          "version" : "0.14"
       },
       "XML::FeedPP" : {
          "dist" : "XML-FeedPP-0.43",
-         "module" : "XML::FeedPP",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -37400,11 +37400,11 @@
                "file" : "XML/FeedPP.pm"
             }
          },
+         "target" : "XML::FeedPP",
          "version" : "0.43"
       },
       "XML::LibXML" : {
          "dist" : "XML-LibXML-1.90",
-         "module" : "XML::LibXML",
          "mymeta" : {
             "abstract" : "Interface to Gnome libxml2 xml parsing and DOM library",
             "author" : [
@@ -37597,11 +37597,11 @@
                "file" : "XML/LibXML.pm"
             }
          },
+         "target" : "XML::LibXML",
          "version" : "1.90"
       },
       "XML::NamespaceSupport" : {
          "dist" : "XML-NamespaceSupport-1.11",
-         "module" : "XML::NamespaceSupport",
          "mymeta" : {
             "abstract" : "a simple generic namespace support class",
             "author" : [
@@ -37659,11 +37659,11 @@
                "version" : "1.11"
             }
          },
+         "target" : "XML::NamespaceSupport",
          "version" : "1.11"
       },
       "XML::Parser" : {
          "dist" : "XML-Parser-2.41",
-         "module" : "XML::Parser",
          "mymeta" : {
             "abstract" : "A perl module for parsing XML documents",
             "author" : [
@@ -37738,11 +37738,11 @@
                "file" : "XML/Parser/Style/Tree.pm"
             }
          },
+         "target" : "XML::Parser",
          "version" : "2.41"
       },
       "XML::SAX" : {
          "dist" : "XML-SAX-0.99",
-         "module" : "XML::SAX",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -37826,11 +37826,11 @@
                "file" : "XML/SAX/PurePerl/Reader/URI.pm"
             }
          },
+         "target" : "XML::SAX",
          "version" : "0.99"
       },
       "XML::SAX::Base" : {
          "dist" : "XML-SAX-Base-1.08",
-         "module" : "XML::SAX::Base",
          "mymeta" : {
             "abstract" : "Base class for SAX Drivers and Filters",
             "author" : [
@@ -37886,11 +37886,11 @@
                "version" : "1.08"
             }
          },
+         "target" : "XML::SAX::Base",
          "version" : "1.08"
       },
       "XML::Simple" : {
          "dist" : "XML-Simple-2.18",
-         "module" : "XML::Simple",
          "mymeta" : {
             "abstract" : "Easy API to maintain XML (esp config files)",
             "author" : [
@@ -37942,11 +37942,11 @@
                "version" : "2.18"
             }
          },
+         "target" : "XML::Simple",
          "version" : "2.18"
       },
       "XML::TreePP" : {
          "dist" : "XML-TreePP-0.41",
-         "module" : "XML::TreePP",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -37997,11 +37997,11 @@
                "version" : "0.41"
             }
          },
+         "target" : "XML::TreePP",
          "version" : "0.41"
       },
       "XML::Twig" : {
          "dist" : "XML-Twig-3.39",
-         "module" : "XML::Twig",
          "mymeta" : {
             "abstract" : "XML, The Perl Way",
             "author" : [
@@ -38084,11 +38084,11 @@
                "file" : "XML/Twig/XPath.pm"
             }
          },
+         "target" : "XML::Twig",
          "version" : "3.39"
       },
       "XML::Writer" : {
          "dist" : "XML-Writer-0.615",
-         "module" : "XML::Writer",
          "mymeta" : {
             "abstract" : "Easily generate well-formed, namespace-aware XML.",
             "author" : [
@@ -38139,11 +38139,11 @@
                "file" : "XML/Writer.pm"
             }
          },
+         "target" : "XML::Writer",
          "version" : "0.615"
       },
       "XML::XPath" : {
          "dist" : "XML-XPath-1.13",
-         "module" : "XML::XPath",
          "mymeta" : {
             "abstract" : "a set of modules for parsing and evaluating XPath statements",
             "author" : [
@@ -38277,11 +38277,11 @@
                "file" : "XML/XPath/XMLParser.pm"
             }
          },
+         "target" : "XML::XPath",
          "version" : "1.13"
       },
       "XML::XPathEngine" : {
          "dist" : "XML-XPathEngine-0.13",
-         "module" : "XML::XPathEngine",
          "mymeta" : {
             "abstract" : "a re-usable XPath engine for DOM-like trees",
             "author" : [
@@ -38361,11 +38361,11 @@
                "file" : "XML/XPathEngine/Variable.pm"
             }
          },
+         "target" : "XML::XPathEngine",
          "version" : "0.13"
       },
       "YAML" : {
          "dist" : "YAML-0.78",
-         "module" : "YAML",
          "mymeta" : {
             "abstract" : "YAML Ain't Markup Language (tm)",
             "author" : [
@@ -38503,11 +38503,11 @@
                "file" : "YAML/Node.pm"
             }
          },
+         "target" : "YAML",
          "version" : "0.78"
       },
       "YAML::LibYAML" : {
          "dist" : "YAML-LibYAML-0.38",
-         "module" : "YAML::LibYAML",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -38570,18 +38570,18 @@
                "file" : "YAML/XS/LibYAML.pm"
             }
          },
+         "target" : "YAML::LibYAML",
          "version" : "0.18"
       },
       "YAML::Syck" : {
          "dist" : "YAML-Syck-1.20",
-         "module" : "YAML::Syck",
          "mymeta" : {
             "abstract" : "Fast, lightweight YAML loader and dumper",
             "author" : [
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],
@@ -38646,11 +38646,11 @@
                "version" : "1.20"
             }
          },
+         "target" : "YAML::Syck",
          "version" : "1.20"
       },
       "YAML::Tiny" : {
          "dist" : "YAML-Tiny-1.50",
-         "module" : "YAML::Tiny",
          "mymeta" : {
             "abstract" : "Read/Write YAML files with as little code as possible",
             "author" : [
@@ -38709,11 +38709,11 @@
                "version" : "1.50"
             }
          },
+         "target" : "YAML::Tiny",
          "version" : "1.50"
       },
       "aliased" : {
          "dist" : "aliased-0.30",
-         "module" : "aliased",
          "mymeta" : {
             "abstract" : "Use shorter versions of class names.",
             "author" : [
@@ -38754,11 +38754,11 @@
                "version" : "0.30"
             }
          },
+         "target" : "aliased",
          "version" : "0.30"
       },
       "asa" : {
          "dist" : "asa-1.03",
-         "module" : "asa",
          "mymeta" : {
             "abstract" : "Lets your class/object say it works like something else",
             "author" : [
@@ -38822,11 +38822,11 @@
                "version" : "1.03"
             }
          },
+         "target" : "asa",
          "version" : "1.03"
       },
       "boolean" : {
          "dist" : "boolean-0.28",
-         "module" : "boolean",
          "mymeta" : {
             "abstract" : "Boolean support for Perl",
             "author" : [
@@ -38890,11 +38890,11 @@
                "version" : "0.28"
             }
          },
+         "target" : "boolean",
          "version" : "0.28"
       },
       "carton" : {
          "dist" : "carton-v0.9.4",
-         "module" : "carton",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -39020,11 +39020,11 @@
             },
             "carton" : {}
          },
+         "target" : "carton",
          "version" : "v0.9.4"
       },
       "common::sense" : {
          "dist" : "common-sense-3.4",
-         "module" : "common::sense",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
@@ -39072,11 +39072,11 @@
                "version" : "3.4"
             }
          },
+         "target" : "common::sense",
          "version" : "3.4"
       },
       "local::lib" : {
          "dist" : "local-lib-1.008004",
-         "module" : "local::lib",
          "mymeta" : {
             "abstract" : "create and use a local lib/ for perl modules with PERL5LIB",
             "author" : [
@@ -39147,11 +39147,11 @@
                "version" : "1.008004"
             }
          },
+         "target" : "local::lib",
          "version" : "1.008004"
       },
       "namespace::autoclean" : {
          "dist" : "namespace-autoclean-0.13",
-         "module" : "namespace::autoclean",
          "mymeta" : {
             "abstract" : "Keep imports out of your namespace",
             "author" : [
@@ -39379,11 +39379,11 @@
                "version" : "0.13"
             }
          },
+         "target" : "namespace::autoclean",
          "version" : "0.13"
       },
       "namespace::clean" : {
          "dist" : "namespace-clean-0.22",
-         "module" : "namespace::clean",
          "mymeta" : {
             "abstract" : "Keep imports and functions out of your namespace",
             "author" : [
@@ -39444,6 +39444,7 @@
                "version" : "0.22"
             }
          },
+         "target" : "namespace::clean",
          "version" : "0.22"
       }
    },
