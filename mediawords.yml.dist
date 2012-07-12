@@ -5,17 +5,17 @@ name: MediaWords
 database:
     - label : "LABEL"
       type  : "pg"
-      host  : "HOST"
-      db    : "DATABASE"
-      user  : "USERNAME"
-      pass  : "PASSWORD"
+      host  : "localhost"
+      db    : "mediacloud"
+      user  : "mediaclouduser"
+      pass  : "mediacloud"
 
     - label : "test"
       type  : "pg"
       host  : "HOST"
-      db    : "DATABASE"
-      user  : "USERNAME"
-      pass  : "PASSWORD"
+      db    : "mediacloud_text"
+      user  : "mediaclouduser"
+      pass  : "mediacloud"
 
 mail:
     - smtp_server : "SMTP_SERVER"
