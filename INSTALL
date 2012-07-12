@@ -17,17 +17,17 @@ NOTE: We recommend you create a new user to run and install Media Cloud. These i
 
    (The postgresql server dev package is needed by some of the perl modules that mediacloud depends on.)
 
-* Create a postgres database and user.  The database user must be a superuser
-  to run some of the plperl procedural scripts. Run the following commands:
-     sudo su -c 'createuser -s mediaclouduser --pwprompt' - postgres
-     sudo su -c 'createdb --owner mediaclouduser mediacloud' - postgres
+* Create the default Postgresql user and databases for mediacloud. From the mediacloud root directory run:
 
-* Create a postgres test database. This database is used for running the test suite. Be aware that it will be replaced every time the test suite is run. Run the following commands:
-     sudo su -c 'createdb --owner mediaclouduser mediacloud_test' - postgres
+  sudo ./install_scripts/create_default_db_user_and_databases.sh 
+
+This will create a Postgresql user called 'mediaclouduser' and two databases owned by this user: mediacloud and mediacloud_test.
 
 * Copy mediawords.yml.dist to mediawords.yml.
 
-* Fill in the database section in mediawords.yml with the connection information for the databases you created above. NOTE: The label field for the test database must be 'test' and the test database must be listed after the main database.
+* SECURITY NOTE: The Postgresql user created above has a default Postgresql password and will have administrative access to Postgresql. These instructions assume that these instructions assume mediacloud is being installed on a system with firewalls that prevent remote access to Postgresql and that the local users are trustworthy. If you wish to change the password of the Postgresql mediaclouduser in Postgresql you will also need to edit mediawords.yml.
+
+* Optional: Update the database section in mediawords.yml. Most users can skip this step and use the defaults. However, if you have changed the password of the Postgresql mediaclouduser or if you have a custom database setup you must update mediawords.yml. NOTE: The label field for the test database must be 'test' and the test database must be listed after the main database.
 
 * OPTIONAL: Edit the other sections of mediawords.yml to suit your local
   configuration.  NOTE THAT if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment 'default_tag_module', you should also uncomment 'mediawords'.
