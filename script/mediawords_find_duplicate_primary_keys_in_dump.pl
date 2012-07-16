@@ -55,7 +55,7 @@ sub main
 
 
     my $lines_until_copy = 0;
-    MediaWords::Util::DatabaseRestore::read_until_copy_statement( $sql_file, 'media', \$lines_until_copy );
+    MediaWords::Util::DatabaseRestore::read_until_copy_statement( $sql_file, $table_name, \$lines_until_copy );
 
     my $primary_keys = {};
     
