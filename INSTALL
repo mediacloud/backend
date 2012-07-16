@@ -10,6 +10,25 @@ NOTE: THESE INSTRUCTIONS HAVE ONLY BEEN TESTED ON UBUNTU LINUX. We recommend usi
 
 NOTE: We recommend you create a new user to run and install Media Cloud. These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
+QUICK START:
+
+Most users can run the following commands from the Media Cloud root directory:
+     sudo ./install_scripts/install_mediacloud_deb_package_dependencies.sh
+     sudo ./install_scripts/create_default_db_user_and_databases.sh 
+     cp  mediawords.yml.dist mediawords.yml
+     sudo ./install_scripts/install_system_wide_modules_for_plpg_perl.sh
+     ./install_mc_perlbrew_and_modules.sh
+     ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
+     ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+
+Users who are really impatient can just run a single script to execute to those commands. By running ./install.sh from the Media Cloud root directory:
+
+     ./install.sh
+
+
+Detailed install:
+
+
 * Install the necessary Ubuntu deb packages. From the mediacloud root directory run:
 
   sudo ./install_scripts/install_mediacloud_deb_package_dependencies.sh
