@@ -53,6 +53,7 @@ sub main
 
     seek( $sql_file, $start_byte, 0 );
 
+    say STDERR "reading data until copy statement";
 
     my $lines_until_copy = 0;
     MediaWords::Util::DatabaseRestore::read_until_copy_statement( $sql_file, $table_name, \$lines_until_copy );
@@ -62,6 +63,8 @@ sub main
     my $lines_read = 0;
 
     my $last_pos = tell( $sql_file);
+
+    say STDERR "searching for duplicate keys";
 
     while ( my $line = <$sql_file> )
     {
