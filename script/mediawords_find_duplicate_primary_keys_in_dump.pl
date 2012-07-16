@@ -70,7 +70,7 @@ sub main
     {
 	$lines_read++;
 
-	if ( ($lines_read % 10000) == 0 )
+	if ( ($lines_read % 1000000) == 0 )
 	{
 	    say STDERR "searched $lines_read line records";
 	}
