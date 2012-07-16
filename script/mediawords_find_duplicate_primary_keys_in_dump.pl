@@ -79,11 +79,11 @@ sub main
 
 	$line =~ /^(\d+)\t/;
 
-	exit if $line =~ /^\-\-/;
+	last if $line =~ /^\-\-/;
 
 	my $key = $1;
 
-	exit unless defined($key);
+	last unless defined($key);
 
 	#say "Primary key is '$key'";
 
@@ -117,6 +117,23 @@ sub main
 
 	#exit if $lines_read >= 10;
     }
+
+    say "finished searching for duplicate primary keys";
+    say "last pos is $last_pos";
+
+    my $current_pos = tell( $sql_file );
+
+    say "current pos is $current_pos";
+
+    say "expected end byte $end_byte";
+ 
+    seek( $sql_file, $last_pos, 0 );
+
+    my $line_on_last_pos = <$sql_file>;
+
+    say "Line on last pos is $line_on_last_pos";
+
+    seek( $sql_file, $current_pos, 0 );
 }
 
 main();
