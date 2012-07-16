@@ -35,9 +35,8 @@ This will create a Postgresql user called 'mediaclouduser' and two databases own
   and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
   default_tag_modules setting to 'NYTTopics Calais',
 
-* Install system wide Perl modules that are needed for the pg/plperl stored procedures by CDing to the directory where mediacloud is located and running the following commands:
-     sudo -u root -H cpanm -V
-     cat lib/MediaWords/Pg/DependsList.pm | grep -v '#' | grep -v MediaWords | grep '^use' | grep -v 'strict;' | grep -v 'HTML::StripPP' | sed -e 's/^use //' | sed -e 's/ qw.*//' | sed -e 's/;$//' | xargs -n 1 sudo -n -u root -H cpanm
+* Install system wide Perl modules that are needed for the pg/plperl stored procedures by CDing to the directory where mediacloud is located and running the following command script:
+     sudo ./install_scripts/install_system_wide_modules_for_plpg_perl.sh 
 
 *  Run the install_mc_perlbrew_and_modules.sh script. This scripts installs Perlbrew, carton and the required modules. I.E. simply CD to the base directory of mediacloud and run the following. Note that the script will take a long time to complete:
      ./install_mc_perlbrew_and_modules.sh
