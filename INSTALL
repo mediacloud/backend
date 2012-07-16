@@ -10,9 +10,19 @@ NOTE: THESE INSTRUCTIONS HAVE ONLY BEEN TESTED ON UBUNTU LINUX. We recommend usi
 
 NOTE: We recommend you create a new user to run and install Media Cloud. These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
+SUPER QUICK START:
+
+We recommend that you first read through this entire file. However, users who are really impatient can just run a single script to execute the necessary commands to install media by running ./install.sh from the Media Cloud root directory:
+
+     ./install.sh
+
+This script simply runs the commands given in the quick start section below.
+
+If this script run successfully, skip to the POST INSTALL section at the end of this file.
+
 QUICK START:
 
-Most users can run the following commands from the Media Cloud root directory:
+We recommend that you read through this entire file. Nevertheless most users will be able to simply run the following commands from the Media Cloud root directory:
      sudo ./install_scripts/install_mediacloud_deb_package_dependencies.sh
      sudo ./install_scripts/create_default_db_user_and_databases.sh 
      cp  mediawords.yml.dist mediawords.yml
@@ -21,13 +31,9 @@ Most users can run the following commands from the Media Cloud root directory:
      ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
      ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 
-Users who are really impatient can just run a single script to execute to those commands. By running ./install.sh from the Media Cloud root directory:
+After you have sucessfully run the above commands, skip to the POST INSTALL section at the end of this file.
 
-     ./install.sh
-
-
-Detailed install:
-
+DETAILED INSTALL
 
 * Install the necessary Ubuntu deb packages. From the mediacloud root directory run:
 
@@ -75,6 +81,8 @@ If there are errors determine which modules are missing and install them by runn
     ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 
   This will create create the necessary database tables and procedures within the database you specified above.  Answer 'yes' at the prompt since the database you created above should be empty.
+
+POST INSTALL
   
 * Run ./script/run_plackup_with_carton.sh.  This should start up the web server.
   If the command line returns no errors, go to http://localhost:5000 
