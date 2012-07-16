@@ -58,7 +58,7 @@ sub main
     my $lines_until_copy = 0;
     MediaWords::Util::DatabaseRestore::read_until_copy_statement( $sql_file, $table_name, \$lines_until_copy );
 
-    my $primary_keys = {};
+    my $primary_keys = [];
     
     my $lines_read = 0;
 
@@ -87,9 +87,9 @@ sub main
 
 	#say "Primary key is '$key'";
 
-	if ( !defined ( $primary_keys->{ $key } ) )
+	if ( !defined ( $primary_keys->[ $key ] ) )
 	{
-	    $primary_keys->{ $key } = $last_pos;
+	    $primary_keys->[ $key ] = $last_pos;
 	}
 	else
 	{
@@ -97,7 +97,7 @@ sub main
 
 	    my $current_pos = tell( $sql_file );
 
-	    my $old_pos =  $primary_keys->{ $key };
+	    my $old_pos =  $primary_keys->[ $key ];
 
 	    seek( $sql_file, $old_pos, 0 );
 
