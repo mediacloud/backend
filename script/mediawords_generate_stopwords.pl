@@ -273,9 +273,10 @@ sub gen_normalised_inverse_document_frequency
 # Term-based Random Sampling
 sub gen_term_based_sampling
 {
-    my ( $db, $sentence_limit, $tbrs_iterations ) = @_;
+    my ( $db, $sentence_limit, $stoplist_threshold, $tbrs_iterations ) = @_;
 
-    my %result_terms;
+    my %result_terms;          # terms and their weights
+    my %result_term_counts;    # number of times each term was assessed
 
     # "Repeat Y times, where Y is a parameter:"
     for ( my $i = 0 ; $i < $tbrs_iterations ; $i++ )
@@ -361,7 +362,9 @@ sub gen_term_based_sampling
             ++$tf_x if ( $sample_text_terms->[ $n ] eq $random_term );
         }
 
-        die "At least one occurence of randomly chosen term '$random_term' should be present, 0 found.\n" if ( $tf_x == 0 );
+        die
+"At least one occurence of randomly chosen term '$random_term' should be present, 0 found.\nSample text: $sample_text\n"
+          if ( $tf_x == 0 );
         die "Corpus length is 0.\n"                                             if ( $token_c == 0 );
         die "Term frequency of the random term in the whole collection is 0.\n" if ( $F == 0 );
         die "Sample corpus length is 0.\n"                                      if ( $l_x == 0 );
@@ -381,13 +384,33 @@ sub gen_term_based_sampling
         print STDERR "\tw_t = $w_t\n";
 
         # Add to results hash
-        $result_terms{ $random_term } = $w_t;
+        ++$result_term_counts{ $random_term };
+        $result_terms{ $random_term } += $w_t;
     }
 
-    # Sort and print
+    # "Shrink the array by merging the elements containing the same term and take the
+    # average of the term’s associated weights. For example, if the term “retrieval”
+    # appears three times in the array and its weights are 0.5, 0.4 and 0.3 respectively,
+    # we merge these three elements together into one single one and the weight of the
+    # term “retrieval” will become (0.5 + 0.4 + 0.3) / 3 = 0.4"
+    my $result_term;
+    my $result_weight;
+    while ( ( $result_term, $result_weight ) = each( %result_terms ) )
+    {
+        $result_terms{ $result_term } = $result_terms{ $result_term } / $result_term_counts{ $result_term };
+    }
+
+    # "Rank the shrunk array in increasing order depending on the term’s weight. In
+    # other words, sort the array in ascending order."
+    my $stopwords_printed = 0;
     foreach my $term ( sort { $result_terms{ $a } cmp $result_terms{ $b } } keys %result_terms )
     {
         print STDERR "$term\t$result_terms{$term}\n";
+
+        # "Extract the L top-ranked terms as stopword list for the collection. L is a
+        # parameter. Therefore, it is often a good idea to use trial and error."
+        ++$stopwords_printed;
+        last if ( $stopwords_printed >= $stoplist_threshold );
     }
 }
 
@@ -431,7 +454,7 @@ sub main
     }
     elsif ( $generation_type eq 'tbrs' )
     {
-        gen_term_based_sampling( $db, $sentence_limit, $tbrs_iterations );
+        gen_term_based_sampling( $db, $sentence_limit, $stoplist_threshold, $tbrs_iterations );
     }
 
     print STDERR "finished --  " . localtime() . "\n";
