@@ -6,11 +6,15 @@ if [ `uname` == 'Darwin' ]; then
     CREATEDB=/opt/local/lib/postgresql84/bin/createdb
 else
     # assume Ubuntu
-    PSQL=/usr/bin/env psql
-    CREATEDB=/usr/bin/env createdb
+    PSQL="psql"
+    CREATEDB="createdb"
 fi
 
-sudo su -c "$PSQL -c \"CREATE USER mediaclouduser WITH SUPERUSER password 'mediacloud' ; \" " - postgres
+PASSWORD="mediacloud"
+
+echo "Creating postgresql user 'mediaclouduser' with password '$PASSWORD'"
+
+sudo su -c "$PSQL -c \"CREATE USER mediaclouduser WITH SUPERUSER password '$PASSWORD' ; \" " - postgres
 echo "creating database mediacloud"
 sudo su -c "$CREATEDB --owner mediaclouduser mediacloud" - postgres
 echo "creating database mediacloud_test"

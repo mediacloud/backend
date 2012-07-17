@@ -6,8 +6,8 @@ if [ `uname` == 'Darwin' ]; then
     DROPDB=/opt/local/lib/postgresql84/bin/dropdb
 else
     # assume Ubuntu
-    PSQL=/usr/bin/env psql
-    DROPDB=/usr/bin/env dropdb
+    PSQL="psql"
+    DROPDB="dropdb"
 fi
 
 sudo su -c "$DROPDB mediacloud" - postgres
