@@ -127,12 +127,12 @@ sub gen_term_frequency
 
 }
 
-# Inverse Document Frequency (IDF)
-sub gen_inverse_document_frequency
+# Prepare the temporary table for IDF / NIDF calculations
+sub _fill_temp_table_for_idf
 {
-    my ( $db, $term_limit, $sentence_limit, $stoplist_threshold ) = @_;
+    my ( $db, $term_limit, $sentence_limit ) = @_;
 
-    # Temp. table for storing word counts
+        # Temp. table for storing word counts
     $db->query( "DROP TABLE IF EXISTS temp_term_counts" );
     $db->query(
         "CREATE TEMPORARY TABLE temp_term_counts (
@@ -203,6 +203,17 @@ sub gen_inverse_document_frequency
         $db->dbh->pg_putcopyend();
     }
 
+    return $story_count
+}
+
+# Inverse Document Frequency (IDF)
+sub gen_inverse_document_frequency
+{
+    my ( $db, $term_limit, $sentence_limit, $stoplist_threshold ) = @_;
+
+    # Read stories (documents), generate the temporary term table
+    my $story_count = _fill_temp_table_for_idf($db, $term_limit, $sentence_limit);
+
     # Print term count
     my $term_count_rs = $db->query(
         "SELECT
@@ -226,7 +237,29 @@ sub gen_inverse_document_frequency
 # Normalised Inverse Document Frequency (normalised IDF)
 sub gen_normalised_inverse_document_frequency
 {
-    print "Not implemented.\n";    # FIXME
+    my ( $db, $term_limit, $sentence_limit, $stoplist_threshold ) = @_;
+
+    # Read stories (documents), generate the temporary term table
+    my $story_count = _fill_temp_table_for_idf($db, $term_limit, $sentence_limit);
+
+    # Print term count
+    my $term_count_rs = $db->query(
+        "SELECT
+                                    term,
+                                    LOG((($story_count - COUNT(term)) + 0.5) / (COUNT(term) + 0.5)) AS nidf
+                                  FROM temp_term_counts
+                                  GROUP BY term
+                                  ORDER BY nidf ASC
+                                  LIMIT $stoplist_threshold"
+    );
+    binmode( STDERR, ":utf8" );
+    while ( my $term_count = $term_count_rs->hash() )
+    {
+        printf STDERR "%s\t%f\n", $term_count->{ term }, $term_count->{ nidf };
+    }
+
+    # Cleanup
+    $db->query( "DROP TABLE temp_term_counts" );
 }
 
 # Term-based Random Sampling
