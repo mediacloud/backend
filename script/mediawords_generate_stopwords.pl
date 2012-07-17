@@ -1,15 +1,19 @@
 #!/usr/bin/env perl
 
 # FIXME:description
+# FIXME http://en.wikipedia.org/wiki/Tf*idf
 #
 # Valid types:
 #   tf -- Term frequency (TF) (default)
-#   ntf -- Normalised term frequency (normalised TF)
 #   idf -- Inverse Document Frequency (IDF)
 #   nidf -- Normalised Inverse Document Frequency (normalised IDF)
 #   tbrs -- Term-based Random Sampling
 #
-# usage: mediawords_generate_stopwords.pl [--type=tf|ntf|idf|nidf|tbrs] [--term_limit=i] [--sentence_limit=i] [--stoplist_threshold=i]
+# usage: mediawords_generate_stopwords.pl \
+#   [--type=tf|idf|nidf|tbrs] \
+#   [--term_limit=i] \
+#   [--sentence_limit=i] \
+#   [--stoplist_threshold=i]
 #
 # example:
 # FIXME:example
@@ -121,12 +125,6 @@ sub gen_term_frequency
 
 }
 
-# Normalised term frequency (normalised TF)
-sub gen_normalised_term_frequency
-{
-    print "Not implemented.\n";    # FIXME
-}
-
 # Inverse Document Frequency (IDF)
 sub gen_inverse_document_frequency
 {
@@ -149,13 +147,13 @@ sub gen_term_based_sampling
 sub main
 {
     my $generation_type    = 'tf';                                     # which method of stoplist generation should be used
-    my @valid_types        = ( 'tf', 'ntf', 'idf', 'nidf', 'tbrs' );
+    my @valid_types        = ( 'tf', 'idf', 'nidf', 'tbrs' );
     my $term_limit         = 0;                                        # how many terms (words) to take into account
     my $sentence_limit     = 4000;                                     # how many sentences to take into account
     my $stoplist_threshold = 20;                                       # how many stopwords to print
 
     my Readonly $usage =
-      'Usage: ./mediawords_generate_stopwords.pl' . ' [--type=tf|ntf|idf|nidf|tbrs]' . ' [--term_limit=i]' .
+      'Usage: ./mediawords_generate_stopwords.pl' . ' [--type=tf|idf|nidf|tbrs]' . ' [--term_limit=i]' .
       ' [--sentence_limit=i]' . ' [--stoplist_threshold=i]';
 
     GetOptions(
@@ -172,10 +170,6 @@ sub main
     my $db = MediaWords::DB::connect_to_db() || die DBIx::Simple::MediaWords->error;
 
     if ( $generation_type eq 'tf' ) { gen_term_frequency( $db, $term_limit, $sentence_limit, $stoplist_threshold ); }
-    elsif ( $generation_type eq 'ntf' )
-    {
-        gen_normalised_term_frequency( $db, $term_limit, $sentence_limit, $stoplist_threshold );
-    }
     elsif ( $generation_type eq 'idf' )
     {
         gen_inverse_document_frequency( $db, $term_limit, $sentence_limit, $stoplist_threshold );
