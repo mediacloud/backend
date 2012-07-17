@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -u
+set -o  errexit
+
 if [ `uname` == 'Darwin' ]; then
     # Mac OS X
     PSQL=/opt/local/lib/postgresql84/bin/psql
