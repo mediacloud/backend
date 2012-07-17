@@ -9,7 +9,7 @@
 #   nidf -- Normalised Inverse Document Frequency (normalised IDF)
 #   tbrs -- Term-based Random Sampling
 #
-# usage: mediawords_generate_stopwords.pl [--type=tf|ntf|idf|nidf|tbrs]
+# usage: mediawords_generate_stopwords.pl [--type=tf|ntf|idf|nidf|tbrs] [--term_limit=i] [--sentence_limit=i] [--stoplist_threshold=i]
 #
 # example:
 # FIXME:example
@@ -34,7 +34,7 @@ use Encode;
 # Term frequency (TF)
 sub gen_term_frequency
 {
-    my ( $db ) = @_;
+    my ( $db, $term_limit, $sentence_limit, $stoplist_threshold ) = @_;
 
     # Using 'story_sentence_words' might be a more natural choice, but that list of words
     # might already be stemmed by this way or another, so let's re-tokenize sentences from
@@ -57,22 +57,26 @@ sub gen_term_frequency
     );
 
     # Sentence count (to give a sense of progress)
-    my $sentence_count = $db->query(
-        "SELECT reltuples
-                                      FROM pg_class
-                                      WHERE relname = 'story_sentences'"
-    )->hash()->{ reltuples };
-    die "Sentence count is 0.\n" unless $sentence_count;
-    printf STDERR "Will go through ~%d sentences.\n", $sentence_count;
+    if ( $sentence_limit == 0 )
+    {
+        my $sentence_limit = $db->query(
+            "SELECT reltuples
+                                          FROM pg_class
+                                          WHERE relname = 'story_sentences'"
+        )->hash()->{ reltuples };
+        die "Sentence count is 0.\n" unless $sentence_limit;
+    }
+    printf STDERR "Will go through ~%d sentences.\n", $sentence_limit;
 
-    # FIXME arbitrary limit
-    my $sentences_rs = $db->query( "SELECT sentence FROM story_sentences ORDER BY story_sentences_id LIMIT 2500" );
-    my $count        = 0;
+    my $sentences_rs =
+      $db->query( "SELECT sentence FROM story_sentences ORDER BY story_sentences_id LIMIT $sentence_limit" );
+    my $count          = 0;
+    my $terms_analysed = 0;
     while ( my $sentence = $sentences_rs->hash() )
     {
         if ( ++$count % 1000 == 0 )
         {
-            printf STDERR "Tokenizing sentence %d out of ~%d...\n", $count, $sentence_count;
+            printf STDERR "Tokenizing sentence %d out of ~%d...\n", $count, $sentence_limit;
         }
 
         my $terms = MediaWords::StoryVectors::tokenize( [ $sentence->{ sentence } ] );
@@ -81,21 +85,20 @@ sub gen_term_frequency
         for ( my $i = 0 ; $i < $#$terms ; $i++ )
         {
             my $term = $terms->[ $i ];
-            if ( length( $term ) > 256 )
-            {
 
-                # Probably not a word anyway.
-                continue;
-            }
+            # Definitely not a stopword and probably not a word anyway.
+            next if ( length( $term ) > 256 );
 
             $db->dbh->pg_putcopydata( encode_utf8( $term ) . "\n" );
-        }
-        $db->dbh->pg_putcopyend();
 
+            # Term limit reached
+            last if ( ++$terms_analysed >= $term_limit );
+        }
+
+        $db->dbh->pg_putcopyend();
     }
 
     # Print term count
-    # FIXME arbitrary limit
     my $term_count_rs = $db->query(
         "SELECT
                                     term,
@@ -103,7 +106,7 @@ sub gen_term_frequency
                                   FROM temp_term_counts
                                   GROUP BY term
                                   ORDER BY term_count DESC
-                                  LIMIT 20"
+                                  LIMIT $stoplist_threshold"
     );
     print STDERR "\nTERM COUNT:\n\tterm\tcount\n";
     binmode( STDERR, ":utf8" );
@@ -145,26 +148,46 @@ sub gen_term_based_sampling
 # FIXME:comment
 sub main
 {
-    my $generation_type = 'tf';                                 # default -- Term frequency (TF)
-    my @valid_types = ( 'tf', 'ntf', 'idf', 'nidf', 'tbrs' );
+    my $generation_type    = 'tf';                                     # which method of stoplist generation should be used
+    my @valid_types        = ( 'tf', 'ntf', 'idf', 'nidf', 'tbrs' );
+    my $term_limit         = 0;                                        # how many terms (words) to take into account
+    my $sentence_limit     = 4000;                                     # how many sentences to take into account
+    my $stoplist_threshold = 20;                                       # how many stopwords to print
 
-    my Readonly $usage = 'USAGE: ./mediawords_generate_stopwords.pl [--type=tf|ntf|idf|nidf|tbrs]';
+    my Readonly $usage =
+      'Usage: ./mediawords_generate_stopwords.pl' . ' [--type=tf|ntf|idf|nidf|tbrs]' . ' [--term_limit=i]' .
+      ' [--sentence_limit=i]' . ' [--stoplist_threshold=i]';
 
-    GetOptions( 'type=s' => \$generation_type ) or die "$usage\n";
-    if ( !grep { $_ eq $generation_type } @valid_types )
-    {
-        die "$usage\n";
-    }
+    GetOptions(
+        'type=s'               => \$generation_type,
+        'term_limit=i'         => \$term_limit,
+        'sentence_limit=i'     => \$sentence_limit,
+        'stoplist_threshold=i' => \$stoplist_threshold,
+    ) or die "$usage\n";
+    die "$usage\n" unless ( grep { $_ eq $generation_type } @valid_types );
+    die "Stoplist threshold can not be 0.\n" unless ( $stoplist_threshold != 0 );
 
     print STDERR "starting --  " . localtime() . "\n";
 
     my $db = MediaWords::DB::connect_to_db() || die DBIx::Simple::MediaWords->error;
 
-    if    ( $generation_type eq 'tf' )   { gen_term_frequency( $db ); }
-    elsif ( $generation_type eq 'ntf' )  { gen_normalised_term_frequency( $db ); }
-    elsif ( $generation_type eq 'idf' )  { gen_inverse_document_frequency( $db ); }
-    elsif ( $generation_type eq 'nidf' ) { gen_normalised_inverse_document_frequency( $db ); }
-    elsif ( $generation_type eq 'tbrs' ) { gen_term_based_sampling( $db ); }
+    if ( $generation_type eq 'tf' ) { gen_term_frequency( $db, $term_limit, $sentence_limit, $stoplist_threshold ); }
+    elsif ( $generation_type eq 'ntf' )
+    {
+        gen_normalised_term_frequency( $db, $term_limit, $sentence_limit, $stoplist_threshold );
+    }
+    elsif ( $generation_type eq 'idf' )
+    {
+        gen_inverse_document_frequency( $db, $term_limit, $sentence_limit, $stoplist_threshold );
+    }
+    elsif ( $generation_type eq 'nidf' )
+    {
+        gen_normalised_inverse_document_frequency( $db, $term_limit, $sentence_limit, $stoplist_threshold );
+    }
+    elsif ( $generation_type eq 'tbrs' )
+    {
+        gen_term_based_sampling( $db, $term_limit, $sentence_limit, $stoplist_threshold );
+    }
 
     print STDERR "finished --  " . localtime() . "\n";
 }
