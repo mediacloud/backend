@@ -50,12 +50,12 @@ This will create a PostgreSQL user called 'mediaclouduser' and two databases own
 
 * Copy mediawords.yml.dist to mediawords.yml.
 
-* SECURITY NOTE: The PostgreSQL user created above has a default PostgreSQL password and will have administrative access to PostgreSQL. These instructions assume that these instructions assume mediacloud is being installed on a system with firewalls that prevent remote access to PostgreSQL and that the local users are trustworthy. If you wish to change the password of the PostgreSQL mediaclouduser in PostgreSQL you will also need to edit mediawords.yml.
+* SECURITY NOTE: The PostgreSQL user created above has a default PostgreSQL password and will have administrative access to PostgreSQL. These instructions assume that mediacloud is being installed on a system with firewalls that prevent remote access to PostgreSQL and that the local users are trustworthy. If you wish to change the password of the PostgreSQL mediaclouduser in PostgreSQL, you will also need to edit mediawords.yml.
 
-* Optional: Update the database section in mediawords.yml. Most users can skip this step and use the defaults. However, if you have changed the password of the PostgreSQL mediaclouduser or if you have a custom database setup you must update mediawords.yml. NOTE: The label field for the test database must be 'test' and the test database must be listed after the main database.
+* Optional: Update the database section in mediawords.yml. Most users can skip this step and use the defaults. However, if you have changed the password of the PostgreSQL mediaclouduser or if you have a custom database setup, you must update mediawords.yml. NOTE: The label field for the test database must be 'test' and the test database must be listed after the main database.
 
-* OPTIONAL: Edit the other sections of mediawords.yml to suit your local
-  configuration.  NOTE THAT if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment 'default_tag_module', you should also uncomment 'mediawords'.
+* OPTIONAL: Edit the other sections of mediawords.yml to suit your local configuration.  
+  NOTE THAT if you uncomment a suboption, you also need to uncomment the parent option.  For example, if you uncomment 'default_tag_module', you should also uncomment 'mediawords'.
   
 * OPTIONAL: If you want to use calais tagging, you'll need to apply for a calais key 
   and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
@@ -69,7 +69,7 @@ This will create a PostgreSQL user called 'mediaclouduser' and two databases own
 
 NOTE this script will fail if you aren't running a 64 bit OS.
 
-* SUGGESTED: Verify that the necessary modules are installed. Run the media cloud coverage test to verify that all required modules have been installed. Run:
+* SUGGESTED: Verify that the necessary modules are installed. Run the media cloud compile test to verify that all required modules have been installed. Run:
 
       ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
 
