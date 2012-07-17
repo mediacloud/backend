@@ -2,7 +2,12 @@
 
 #cmd_str="$1"
 #shift
-#full_path_str=`readlink -m $cmd_str`
+#if [ `uname` == 'Darwin' ]; then
+#	greadlink from coreutils
+#	full_path_str=`greadlink -m $cmd_str`
+#else
+#	full_path_str=`readlink -m $cmd_str`
+#fi
 
 working_dir=`dirname $0`
 
