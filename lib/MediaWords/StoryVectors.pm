@@ -116,7 +116,7 @@ sub _insert_story_sentence
 }
 
 # simple tokenizer
-sub _tokenize
+sub tokenize
 {
     my ( $s ) = @_;
 
@@ -130,7 +130,7 @@ sub _tokenize
 }
 
 #Chinese tokenizer, returns an array of Chinese words
-sub _tokenize_ZH
+sub tokenize_ZH
 {
     my $s         = shift;
     my $segmenter = shift;
@@ -483,7 +483,7 @@ sub update_story_sentence_words
 
         for ( my $sentence_num = 0 ; $sentence_num < $#$sentences ; $sentence_num++ )
         {
-            my $words = _tokenize_ZH( $sentences->[ $sentence_num ], $segmenter );
+            my $words = tokenize_ZH( $sentences->[ $sentence_num ], $segmenter );
 
             #print $sentences[$sentence_num]."\n\n----------\n";
             #print join "\n\n", @words;
@@ -550,7 +550,7 @@ sub _get_stem_word_counts_for_english_sentence
 {
     my ( $stemmer, $sentence, $stop_stems ) = @_;
 
-    my $words = _tokenize( [ $sentence ] );
+    my $words = tokenize( [ $sentence ] );
 
     my $stems = $stemmer->stem( @{ $words } );
 
