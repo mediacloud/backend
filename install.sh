@@ -21,3 +21,7 @@ echo "compile test succeeded"
 echo "creating new database"
 
 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
+
+echo "Media Cloud install succeeded!!!!"
+echo "See doc/ for more information on using Media Cloud"
+echo "Run ./script/run_plackup_with_carton.sh to start the Media Cloud server"
