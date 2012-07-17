@@ -13,7 +13,8 @@
 #   [--type=tf|idf|nidf|tbrs] \
 #   [--term_limit=i] \
 #   [--sentence_limit=i] \
-#   [--stoplist_threshold=i]
+#   [--stoplist_threshold=i] \
+#   [--tbrs_iterations=i]
 #
 # example:
 # FIXME:example
@@ -34,6 +35,13 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use MediaWords::StoryVectors;
 use Encode;
+use Scalar::Util qw(looks_like_number);
+
+sub _log_base
+{
+    my ( $base, $value ) = @_;
+    return log( $value ) / log( $base );
+}
 
 # Term frequency (TF)
 sub gen_term_frequency
@@ -91,7 +99,7 @@ sub gen_term_frequency
             my $term = $terms->[ $i ];
 
             # Definitely not a stopword and probably not a word anyway.
-            next if ( length( $term ) > 256 );
+            next if ( length( $term ) > 256 or looks_like_number( $term ) );
 
             $db->dbh->pg_putcopydata( encode_utf8( $term ) . "\n" );
 
@@ -132,7 +140,7 @@ sub _fill_temp_table_for_idf
 {
     my ( $db, $term_limit, $sentence_limit ) = @_;
 
-        # Temp. table for storing word counts
+    # Temp. table for storing word counts
     $db->query( "DROP TABLE IF EXISTS temp_term_counts" );
     $db->query(
         "CREATE TEMPORARY TABLE temp_term_counts (
@@ -182,7 +190,7 @@ sub _fill_temp_table_for_idf
             $term = $terms->[ $i ];
 
             # Definitely not a stopword and probably not a word anyway.
-            next if ( length( $term ) > 256 );
+            next if ( length( $term ) > 256 or looks_like_number( $term ) );
 
             $unique_terms{ $term } = 1 unless ( exists( $unique_terms{ $term } ) );
 
@@ -203,7 +211,7 @@ sub _fill_temp_table_for_idf
         $db->dbh->pg_putcopyend();
     }
 
-    return $story_count
+    return $story_count;
 }
 
 # Inverse Document Frequency (IDF)
@@ -212,7 +220,7 @@ sub gen_inverse_document_frequency
     my ( $db, $term_limit, $sentence_limit, $stoplist_threshold ) = @_;
 
     # Read stories (documents), generate the temporary term table
-    my $story_count = _fill_temp_table_for_idf($db, $term_limit, $sentence_limit);
+    my $story_count = _fill_temp_table_for_idf( $db, $term_limit, $sentence_limit );
 
     # Print term count
     my $term_count_rs = $db->query(
@@ -240,7 +248,7 @@ sub gen_normalised_inverse_document_frequency
     my ( $db, $term_limit, $sentence_limit, $stoplist_threshold ) = @_;
 
     # Read stories (documents), generate the temporary term table
-    my $story_count = _fill_temp_table_for_idf($db, $term_limit, $sentence_limit);
+    my $story_count = _fill_temp_table_for_idf( $db, $term_limit, $sentence_limit );
 
     # Print term count
     my $term_count_rs = $db->query(
@@ -265,7 +273,122 @@ sub gen_normalised_inverse_document_frequency
 # Term-based Random Sampling
 sub gen_term_based_sampling
 {
-    print "Not implemented.\n";    # FIXME
+    my ( $db, $sentence_limit, $tbrs_iterations ) = @_;
+
+    my %result_terms;
+
+    # "Repeat Y times, where Y is a parameter:"
+    for ( my $i = 0 ; $i < $tbrs_iterations ; $i++ )
+    {
+        print STDERR "Iteration #$i...\n";
+
+        # "Randomly choose a term in the lexicon file, we shall call it omega_{random}"
+        my $random_term = '';
+        while ( $random_term eq '' )    # FIXME might get into a "forever loop" with fishy corpus
+        {
+            my $random_sentence_rs = $db->query(
+                "   SELECT
+                                    story_sentences_id,
+                                    sentence
+                                FROM (
+                                    SELECT
+                                        story_sentences_id,
+                                        sentence
+                                    FROM story_sentences
+                                    ORDER BY story_sentences_id
+                                    LIMIT $sentence_limit
+                                ) AS story_sentences_limited
+                                ORDER BY RANDOM()
+                                LIMIT 1"
+            );
+            my $random_sentence = $random_sentence_rs->hash()->{ sentence };
+            my $random_sentence_terms = MediaWords::StoryVectors::tokenize( [ $random_sentence ] );
+            $random_term = $random_sentence_terms->[ rand( $#$random_sentence_terms ) ];
+            if ( length( $random_term ) > 256 or looks_like_number( $random_term ) )
+            {
+                $random_term = '';
+                next;
+            }
+        }
+
+        # "Retrieve all the documents in the corpus that contains omega_{random}"
+        my $docs_with_random_term_rs = $db->query(
+            "SELECT
+                                story_sentences_id,
+                                sentence
+                            FROM story_sentences
+                            ORDER BY story_sentences_id
+                            LIMIT $sentence_limit"
+        );
+        my $sample_text = '';
+        my $F           = 0;    # "the term frequency of the query term in the whole collection" (read below)
+        my $token_c     = 0;    # "total number of tokens in the whole collection." (read below)
+        while ( my $sentence = $docs_with_random_term_rs->hash() )
+        {
+            $sentence = $sentence->{ sentence };
+
+            $token_c += length( $sentence );
+
+            # Create a sample corpus for the term
+            my $sentence_terms = MediaWords::StoryVectors::tokenize( [ $sentence ] );
+            for ( my $n = 0 ; $n < $#$sentence_terms ; $n++ )
+            {
+                if ( $sentence_terms->[ $n ] eq $random_term )
+                {
+                    $sample_text .= $sentence . ' ';
+                    ++$F;
+                    last;
+                }
+            }
+        }
+
+        my $l_x = length( $sample_text );
+
+        my $sample_text_terms = MediaWords::StoryVectors::tokenize( [ $sample_text ] );
+
+        # "Use the refined Kullback-Leibler divergence measure to assign a weight
+        # to every term in the retrieved documents. The assigned weight will give
+        # us some indication of how important the term is."
+        #   "Using the KL measure, the weight of a term t in the sampled document set is given by:"
+        #       w(t) = P_x * log_2 (P_x / P_c)
+        #   "In the above formula, P_x = tf_x / l_x and P_c = (F / token_c) where tf_x is the
+        #   frequency of the query term in the sampled document set, l_x is the sum of the
+        #   length of the sampled document set, F is the term frequency of the query term in
+        #   the whole collection and token_c is the total number of tokens in the whole collection."
+        my $tf_x = 0;
+        for ( my $n = 0 ; $n < $#$sample_text_terms ; $n++ )
+        {
+            ++$tf_x if ( $sample_text_terms->[ $n ] eq $random_term );
+        }
+
+        die "At least one occurence of randomly chosen term '$random_term' should be present, 0 found.\n" if ( $tf_x == 0 );
+        die "Corpus length is 0.\n"                                             if ( $token_c == 0 );
+        die "Term frequency of the random term in the whole collection is 0.\n" if ( $F == 0 );
+        die "Sample corpus length is 0.\n"                                      if ( $l_x == 0 );
+
+        binmode( STDERR, ":utf8" );
+
+        print STDERR "$random_term\n";
+        print STDERR "\ttf_x = $tf_x, l_x = $l_x, F = $F, token_c = $token_c\n";
+
+        my $P_x = $tf_x / $l_x;
+        my $P_c = $F / $token_c;
+
+        print STDERR "\tP_x = $P_x, P_c = $P_c\n";
+
+        my $w_t = $P_x * _log_base( 2, ( $P_x / $P_c ) );
+
+        print STDERR "\tw_t = $w_t\n";
+
+        # Add to results hash
+        $result_terms{ $random_term } = $w_t;
+    }
+
+    # Sort and print
+    foreach my $term ( sort { $result_terms{ $a } cmp $result_terms{ $b } } keys %result_terms )
+    {
+        print STDERR "$term\t$result_terms{$term}\n";
+    }
 }
 
 # FIXME:comment
@@ -273,22 +396,25 @@ sub main
 {
     my $generation_type    = 'tf';                              # which method of stoplist generation should be used
     my @valid_types        = ( 'tf', 'idf', 'nidf', 'tbrs' );
-    my $term_limit         = 0;                                 # how many terms (words) to take into account
-    my $sentence_limit     = 4000;                              # how many sentences to take into account
+    my $term_limit         = 0;                                 # how many terms (words) to take into account (0 - no limit)
+    my $sentence_limit     = 4000;                              # how many sentences to take into account (0 - no limit)
     my $stoplist_threshold = 20;                                # how many stopwords to print
+    my $tbrs_iterations    = 20;                                # how many times to repeat the TBRS sampling
 
     my Readonly $usage =
       'Usage: ./mediawords_generate_stopwords.pl' . ' [--type=tf|idf|nidf|tbrs]' . ' [--term_limit=i]' .
-      ' [--sentence_limit=i]' . ' [--stoplist_threshold=i]';
+      ' [--sentence_limit=i]' . ' [--stoplist_threshold=i]' . ' [--tbrs_iterations=i]';
 
     GetOptions(
         'type=s'               => \$generation_type,
         'term_limit=i'         => \$term_limit,
         'sentence_limit=i'     => \$sentence_limit,
         'stoplist_threshold=i' => \$stoplist_threshold,
+        'tbrs_iterations=i'    => \$tbrs_iterations,
     ) or die "$usage\n";
     die "$usage\n" unless ( grep { $_ eq $generation_type } @valid_types );
     die "Stoplist threshold can not be 0.\n" unless ( $stoplist_threshold != 0 );
+    die "TBRS iterations can not be 0.\n"    unless ( $tbrs_iterations != 0 );
 
     print STDERR "starting --  " . localtime() . "\n";
 
@@ -305,7 +431,7 @@ sub main
     }
     elsif ( $generation_type eq 'tbrs' )
     {
-        gen_term_based_sampling( $db, $term_limit, $sentence_limit, $stoplist_threshold );
+        gen_term_based_sampling( $db, $sentence_limit, $tbrs_iterations );
     }
 
     print STDERR "finished --  " . localtime() . "\n";
