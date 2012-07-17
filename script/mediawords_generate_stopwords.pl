@@ -49,6 +49,7 @@ sub gen_term_frequency
     #   publish_date
 
     # Temp. table for storing word counts
+    $db->query( "DROP TABLE IF EXISTS temp_term_counts" );
     $db->query(
         "CREATE TEMPORARY TABLE temp_term_counts (
                     term        VARCHAR(256) NOT NULL
@@ -64,7 +65,8 @@ sub gen_term_frequency
     die "Sentence count is 0.\n" unless $sentence_count;
     printf STDERR "Will go through ~%d sentences.\n", $sentence_count;
 
-    my $sentences_rs = $db->query( "SELECT sentence FROM story_sentences LIMIT 2500" );
+    # FIXME arbitrary limit
+    my $sentences_rs = $db->query( "SELECT sentence FROM story_sentences ORDER BY story_sentences_id LIMIT 2500" );
     my $count        = 0;
     while ( my $sentence = $sentences_rs->hash() )
     {
@@ -79,6 +81,13 @@ sub gen_term_frequency
         for ( my $i = 0 ; $i < $#$terms ; $i++ )
         {
             my $term = $terms->[ $i ];
+            if ( length( $term ) > 256 )
+            {
+
+                # Probably not a word anyway.
+                continue;
+            }
+
             $db->dbh->pg_putcopydata( encode_utf8( $term ) . "\n" );
         }
         $db->dbh->pg_putcopyend();
@@ -86,6 +95,7 @@ sub gen_term_frequency
     }
 
     # Print term count
+    # FIXME arbitrary limit
     my $term_count_rs = $db->query(
         "SELECT
                                     term,
