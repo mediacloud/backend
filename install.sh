@@ -6,6 +6,10 @@ set -o errexit
 working_dir=`dirname $0`
 cd $working_dir
 
+if [ `uname -m` != 'x86_64' ]; then
+   echo "Install failed, you must have a 64 bit OS"
+fi
+
 sudo ./install_scripts/install_mediacloud_package_dependencies.sh
 sudo ./install_scripts/create_default_db_user_and_databases.sh 
 cp mediawords.yml.dist mediawords.yml
