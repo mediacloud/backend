@@ -7,7 +7,8 @@ working_dir=`dirname $0`
 cd $working_dir
 
 if [ `uname -m` != 'x86_64' ]; then
-   echo "Install failed, you must have a 64 bit OS"
+   echo "Install failed, you must have a 64 bit OS";
+   exit 1;
 fi
 
 sudo ./install_scripts/install_mediacloud_package_dependencies.sh
