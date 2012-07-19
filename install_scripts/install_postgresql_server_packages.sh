@@ -8,6 +8,12 @@ echo
 
 if [ `uname` == 'Darwin' ]; then
 
+	if [ ! -x /opt/local/bin/port ]; then
+		echo "You'll need MacPorts <http://www.macports.org/> to install the required packages on Mac OS X."
+		echo "It might be possible to do that manually with Fink <http://www.finkproject.org/>, but you're at your own here."
+		exit 1
+	fi
+
     # Mac OS X
     sudo port install \
         postgresql84 +perl \
