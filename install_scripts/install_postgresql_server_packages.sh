@@ -14,6 +14,14 @@ if [ `uname` == 'Darwin' ]; then
 		exit 1
 	fi
 
+    if [ ! -x /usr/bin/gcc ]; then
+        echo "As a dependency to MacPorts, you need to install Xcode (available as a free download from Mac App Store or "
+        echo "from http://developer.apple.com/) and Xcode's \"Command Line Tools\" (open Xcode, go to \"Xcode\" -> \"Preferences...\","
+        echo "select \"Downloads\", choose \"Components\", click \"Install\" near the \"Command Line Tools\" entry, wait "
+        echo "for a while)."
+        exit 1
+    fi
+
     # Mac OS X
     sudo port install \
         postgresql84 +perl \
