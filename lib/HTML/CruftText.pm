@@ -5,7 +5,6 @@ package HTML::CruftText;
 use strict;
 use warnings;
 
-use HTML::Entities;
 use Time::HiRes;
 use List::MoreUtils qw(first_index indexes last_index);
 
