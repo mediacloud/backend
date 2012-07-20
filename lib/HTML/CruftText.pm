@@ -36,7 +36,7 @@ my $_SCRUB_TAGS = [ qw/script style frame applet textarea/ ];
 # TODO rewrite _remove_tags_in_comments using Inline::C to improve performance.
 #
 
-# remove >s from inside comments so the simple line density scorer
+# remove >'s from inside comments so the simple line density scorer
 # doesn't get confused about where tags end
 sub _remove_tags_in_comments
 {
@@ -453,18 +453,18 @@ sub clearCruftText
         $lines = [ split( /[\n\r]+/, $lines ) ];
     }
 
-    print_time( "split_lines" );
+    _print_time( "split_lines" );
 
     _remove_tags_in_comments( $lines );
-    print_time( "remove tags" );
+    _print_time( "remove tags" );
     _fix_multiline_tags( $lines );
-    print_time( "fix multiline" );
+    _print_time( "fix multiline" );
     _remove_script_text( $lines );
-    print_time( "remove scripts" );
+    _print_time( "remove scripts" );
     _remove_nonbody_text( $lines );
-    print_time( "remove nonbody" );
+    _print_time( "remove nonbody" );
     _remove_nonclickprint_text( $lines );
-    print_time( "remove clickprint" );
+    _print_time( "remove clickprint" );
 
     return $lines;
 }
@@ -472,7 +472,7 @@ sub clearCruftText
 my $_start_time;
 my $_last_time;
 
-sub print_time
+sub _print_time
 {
     return;
 
