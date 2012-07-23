@@ -12,8 +12,13 @@ if [ `uname -m` != 'x86_64' ]; then
 fi
 
 sudo ./install_scripts/install_mediacloud_package_dependencies.sh
-sudo ./install_scripts/create_default_db_user_and_databases.sh 
-cp mediawords.yml.dist mediawords.yml
+sudo ./install_scripts/create_default_db_user_and_databases.sh
+
+if [ ! -f mediawords.yml ]; then
+    # Don't overrride the existing configuration (if any)
+    cp mediawords.yml.dist mediawords.yml
+fi
+
 sudo ./install_scripts/install_system_wide_modules_for_plpg_perl.sh
 ./install_mc_perlbrew_and_modules.sh
 
