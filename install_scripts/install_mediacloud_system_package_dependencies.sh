@@ -39,7 +39,7 @@ if [ `uname` == 'Darwin' ]; then
         db44 p5.12-berkeleydb
 
     # Absolute path because we need to use Perl from MacPorts
-    sudo /opt/local/bin/cpan-5.12 App::cpanminus
+    sudo -n -u root -H /opt/local/bin/cpan-5.12 App::cpanminus
     if [ -x /opt/local/bin/cpanm ]; then
         CPANM=/opt/local/bin/cpanm
     elif [ -x /opt/local/libexec/perl5.12/sitebin/cpanm ]; then
@@ -49,10 +49,10 @@ if [ `uname` == 'Darwin' ]; then
         exit 1
     fi
 
-    sudo $CPANM Graph::Writer::GraphViz
-    sudo $CPANM HTML::Entities
-    sudo $CPANM version
-    sudo $CPANM Lingua::Stem::Snowball
+    sudo -n -u root -H $CPANM Graph::Writer::GraphViz
+    sudo -n -u root -H $CPANM HTML::Entities
+    sudo -n -u root -H $CPANM version
+    sudo -n -u root -H $CPANM Lingua::Stem::Snowball
 
 else
 
