@@ -17,8 +17,8 @@ PASSWORD="mediacloud"
 
 echo "Creating postgresql user 'mediaclouduser' with password '$PASSWORD'"
 
-sudo su -c "$PSQL -c \"CREATE USER mediaclouduser WITH SUPERUSER password '$PASSWORD' ; \" " - postgres
+sudo su -l postgres -c "$PSQL -c \"CREATE USER mediaclouduser WITH SUPERUSER password '$PASSWORD' ; \" "
 echo "creating database mediacloud"
-sudo su -c "$CREATEDB --owner mediaclouduser mediacloud" - postgres
+sudo su -l postgres -c "$CREATEDB --owner mediaclouduser mediacloud"
 echo "creating database mediacloud_test"
-sudo su -c "$CREATEDB --owner mediaclouduser mediacloud_test" - postgres
+sudo su -l postgres -c "$CREATEDB --owner mediaclouduser mediacloud_test"

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -u
+set -o errexit
+
 if [ `uname` == 'Darwin' ]; then
     # Mac OS X
     PSQL=/opt/local/lib/postgresql84/bin/psql
@@ -10,6 +13,6 @@ else
     DROPDB="dropdb"
 fi
 
-sudo su -c "$DROPDB mediacloud" - postgres
-sudo su -c "$DROPDB mediacloud_test" - postgres
-sudo su -c "$PSQL -c \"DROP USER IF EXISTS mediaclouduser \" " - postgres
+sudo su -l postgres -c "$DROPDB mediacloud"
+sudo su -l postgres -c "$DROPDB mediacloud_test"
+sudo su -l postgres -c "$PSQL -c \"DROP USER IF EXISTS mediaclouduser \" "
