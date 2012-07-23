@@ -7,9 +7,9 @@ cd $working_dir
 set -u
 set -o  errexit
 
-if [ `uname -m` != 'x86_64' ]; then
-   echo "Install failed, you must have a 64 bit OS"
-   exit 1;
+if [ `getconf LONG_BIT` != '64' ]; then
+   echo "Install failed, you must have a 64 bit OS."
+   exit 1
 fi
 
 TMPDIR="." ./foreign_modules/perlbrew_install.sh
