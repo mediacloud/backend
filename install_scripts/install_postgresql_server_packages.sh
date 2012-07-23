@@ -8,11 +8,13 @@ echo
 
 if [ `uname` == 'Darwin' ]; then
 
-	if [ ! -x /opt/local/bin/port ]; then
-		echo "You'll need MacPorts <http://www.macports.org/> to install the required packages on Mac OS X."
-		echo "It might be possible to do that manually with Fink <http://www.finkproject.org/>, but you're at your own here."
-		exit 1
-	fi
+    # Mac OS X
+
+    if [ ! -x /opt/local/bin/port ]; then
+        echo "You'll need MacPorts <http://www.macports.org/> to install the required packages on Mac OS X."
+        echo "It might be possible to do that manually with Fink <http://www.finkproject.org/>, but you're at your own here."
+        exit 1
+    fi
 
     if [ ! -x /usr/bin/gcc ]; then
         echo "As a dependency to MacPorts, you need to install Xcode (available as a free download from Mac App Store or "
@@ -22,7 +24,6 @@ if [ `uname` == 'Darwin' ]; then
         exit 1
     fi
 
-    # Mac OS X
     sudo port install \
         postgresql84 +perl \
         postgresql84-server \

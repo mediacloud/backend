@@ -8,6 +8,8 @@ echo
 
 if [ `uname` == 'Darwin' ]; then
 
+    # Mac OS X
+
     if [ ! -x /opt/local/bin/port ]; then
         echo "You'll need MacPorts <http://www.macports.org/> to install the required packages on Mac OS X."
         echo "It might be possible to do that manually with Fink <http://www.finkproject.org/>, but you're at your own here."
@@ -22,7 +24,6 @@ if [ `uname` == 'Darwin' ]; then
         exit 1
     fi
 
-    # Mac OS X
     sudo port install \
         coreutils expat p5.12-xml-parser p5.12-xml-sax-expat p5.12-xml-libxml p5.12-xml-libxml-simple \
         p5.12-libxml-perl p5.12-test-www-mechanize p5.12-opengl \
@@ -39,10 +40,19 @@ if [ `uname` == 'Darwin' ]; then
 
     # Absolute path because we need to use Perl from MacPorts
     sudo /opt/local/bin/cpan-5.12 App::cpanminus
-    sudo /opt/local/bin/cpanm Graph::Writer::GraphViz
-    sudo /opt/local/bin/cpanm HTML::Entities
-    sudo /opt/local/bin/cpanm version
-    sudo /opt/local/bin/cpanm Lingua::Stem::Snowball
+    if [ -x /opt/local/bin/cpanm ]; then
+        CPANM=/opt/local/bin/cpanm
+    elif [ -x /opt/local/libexec/perl5.12/sitebin/cpanm ]; then
+        CPANM=/opt/local/libexec/perl5.12/sitebin/cpanm
+    else
+        echo "I have tried to install 'cpanm' (App::cpanminus) previously, but not I am unable to locate it."
+        exit 1
+    fi
+
+    sudo $CPANM Graph::Writer::GraphViz
+    sudo $CPANM HTML::Entities
+    sudo $CPANM version
+    sudo $CPANM Lingua::Stem::Snowball
 
 else
 
