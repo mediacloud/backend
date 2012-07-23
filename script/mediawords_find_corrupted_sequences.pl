@@ -54,6 +54,9 @@ SQL
             next;
         }
 
+	# TEMPORARY HACK 
+	next if "story_similarities_100_short" eq $table->{ table_name };
+
         my $sequence_query =
           'select * from (select max(' . $table->{ id_column } . ' ) as max_id, nextval( ' . "'" .
           $table->{ pg_get_serial_sequence } . "'" . ' ) as sequence_val from  ' . $table->{ tablename } .
