@@ -31,6 +31,7 @@ if [ `uname` == 'Darwin' ]; then
         p5.12-graphviz p5.12-graph \
         postgresql84 +perl \
         postgresql84-server \
+        curl \
         p5.12-dbd-pg +postgresql84 \
         tidy p5.12-perl-tidy p5.12-html-parser \
         libyaml p5.12-yaml p5.12-yaml-libyaml p5.12-yaml-syck \
@@ -61,7 +62,7 @@ else
         expat libexpat1-dev libxml2-dev \
         postgresql-server-dev-8.4 postgresql-client-8.4 libdb-dev libtest-www-mechanize-perl libtidy-dev \
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev \
-        libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl \
+        libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
         build-essential make gcc g++ cpanminus
 
 fi
