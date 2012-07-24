@@ -17,6 +17,8 @@ LOCALINSTALLER="perlbrew-$$"
 echo
 if type curl >/dev/null 2>&1; then
   PERLBREWDOWNLOAD="curl -k -f -sS -Lo $LOCALINSTALLER $PERLBREWURL"
+elif type fetch >/dev/null 2>&1; then
+  PERLBREWDOWNLOAD="fetch -o $LOCALINSTALLER $PERLBREWURL"
 elif type wget >/dev/null 2>&1; then
   PERLBREWDOWNLOAD="wget --no-check-certificate -nv -O $LOCALINSTALLER $PERLBREWURL"
 else
@@ -35,7 +37,7 @@ $PERLBREWDOWNLOAD || clean_exit 1
 echo
 echo "## Installing perlbrew"
 chmod +x $LOCALINSTALLER
-./$LOCALINSTALLER install || clean_exit 1
+./$LOCALINSTALLER self-install || clean_exit 1
 
 echo "## Installing patchperl"
 ./$LOCALINSTALLER -f -q install-patchperl || clean_exit 1
