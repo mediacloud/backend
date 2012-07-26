@@ -1,0 +1,31 @@
+<?xml version=\"1.0\"?>
+<?xml-stylesheet href=\"/css/rss20.xsl\" type=\"text/xsl\"?>
+<rss version=\"2.0\" xmlns:pheedo=\"http://www.pheedo.com/namespace/pheedo\">
+	<channel>
+		<title>Business News, Financial News, Business Headlines &amp; Analysis - The Washington Post</title>
+		<link>http://www.washingtonpost.com/business</link>
+		<description/>
+		<ttl>30</ttl>
+		<language>en</language>
+		<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+		<copyright>Copyright 2011 Washington Post Company</copyright>
+		<image>
+			<title>Business News, Financial News, Business Headlines &amp; Analysis - The Washington Post</title>
+			<width>140</width>
+			<height>20</height>
+			<link>http://www.washingtonpost.com?wprss=rss_Business News, Financial News, Business Headlines &amp; Analysis - The Washington Post</link>
+			<url>http://media3.washingtonpost.com/wp-srv/hp/image/wp_web.gif</url>
+		</image>
+		<item xmlns:atom=\"http://www.w3.org/2005/Atom\">
+			<title><![CDATA[]]></title>
+			<description><![CDATA[<br clear=\"both\" style=\"clear: both;\"/>
+<br clear=\"both\" style=\"clear: both;\"/>
+<a href=\"http://ads.pheedo.com/click.phdo?s=58b5427a2ff761f3f3c2a660c5596062&p=1\"><img alt=\"\" style=\"border: 0;\" border=\"0\" src=\"http://ads.pheedo.com/img.phdo?s=58b5427a2ff761f3f3c2a660c5596062&p=1\"/></a>
+<img alt=\"\" height=\"0\" width=\"0\" border=\"0\" style=\"display:none\" src=\"http://segment-pixel.invitemedia.com/pixel?code=Business&partnerID=167&key=segment\"/><img alt=\"\" height=\"0\" width=\"0\" border=\"0\" style=\"display:none\" src=\"http://pixel.quantserve.com/pixel/p-8bUhLiluj0fAw.gif?labels=pub.30117.rss.Business.40060,cat.Business.rss\"/>]]></description>
+			<link/>
+			<pheedo:origLink></pheedo:origLink>
+			<guid isPermaLink=\"false\"/>
+			<pubDate>Mon, 11 Apr 2011 13:13:48 EST</pubDate>
+		</item>
+	</channel>
+</rss>

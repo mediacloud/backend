@@ -1,0 +1,121 @@
+[% title = 'Topics: List' %]
+[% INCLUDE include/header.tt2 %]
+
+<table>
+
+<tr>
+<th>query</th>
+<th>include tag</th>
+<th>sets</th>
+<th>start_date</th>
+<th>end_date</th>
+<th>creator</th>
+<th>state</th>
+</tr>
+
+[% FOREACH topic IN topics -%]
+
+<tr [% IF even %]id="even"[% END %]>
+
+<td>
+[% IF topic.state == 'completed' -%]
+<a href="[% topic.url %]">[% topic.query %]</a>
+[% ELSE %]
+[% topic.query %]
+[% END %]
+</td>
+
+<td>[% topic.source_tag_name %]</td>
+
+<td>[% topic.set_tag_names %]</td>
+
+<td>[% topic.start_date  %]</td>
+
+<td>[% topic.end_date  %]</td>
+
+<td>[% topic.creator %]</td>
+
+<td>[% topic.state  %]</td>
+
+</tr>
+
+[%  SET even = !even %]
+[% END # FOREACH stories -%]
+
+</table>
+
+<p>
+</p>
+
+<fieldset>
+
+<form action="[% c.uri_for('/topics/create_do') %]" method="post">
+
+<div class="text comment label">
+<label>Creator</label>
+<input name="creator" type="text" size="48" />
+<span class="comment">
+Your name.  As the number of reports grows, it's helpful to know whose report is whose.
+<i>example: hal</i>
+</span>
+</div>
+
+<div class="text comment label">
+<label>Query</label>
+<input name="query" type="text" size="48" />
+<span class="comment">
+The query that defines the topic.  The resulting word clouds will include only stories that match this plain text query.  If the query has more than one word, the topic will include stories that match all of the words individually. <i>example: bailout</i>
+</span>
+</div>
+
+<div class="text comment label">
+<label>Start Date</label>
+<input name="start_date" type="text" size="48" />
+<span class="comment">
+Include stories starting on this date.  Must be after 2008-06-01, since that's when our archive starts.  Will be rounded down to the
+previous start of week to make sure the tool includes at least a week of stories.  
+<i>example: 2008-08-01</i>
+</span>
+</div>
+
+<div class="text comment label">
+<label>End Date</label>
+<input name="end_date" type="text" size="48" />
+<span class="comment">
+Include stories ending on this date.  Will be rounded up to the next start of week to make sure the tool includes at 
+least a week of stories.  
+<i>example: 2008-12-15</i>
+</span>
+</div>
+
+<div class="text comment label">
+<label>Include Tag</label>
+<input name="source_tag_name" type="text" size="48" value="default" />
+<span class="comment">
+Name of word_cloud:* tag marking which media sources an feeds to include in the query.  Leave as 'default' to include the default set.
+To setup a non-default set, add a word_cloud:* tag to all of the media sources and feeds that you want to include and then enter the name of that tag here.
+<i>example: boston</i>
+</span>
+</div>
+
+<div class="text comment label">
+<label>Sets</label>
+<input name="set_tag_names" type="text" size="48" 
+       value="media_type:blogs media_type:newspapers word_cloud:right_blogs word_cloud:left_blogs" />
+<span class="comment">
+Space separated list of tags in [% "<tag set>:<tag>" | html %] format that you want to include in the report as sets.  A set is a tag marking
+a collection of sources as a unit within the report.  So including the media_type:blogs blogs tag as a set will generate a page on 'blogs' and compare each other source to 'blogs' within the report.  Defaults to blogs, newspapers, left blogs, and right blogs.
+<i>example: media_type:blogs media_type:newspapers word_cloud:right_blogs word_cloud:left_blogs</i>
+</span>
+</div>
+
+
+<div class="submit">
+<input type="submit" value="Go" />
+</div>
+
+</form>
+
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]

@@ -1,0 +1,70 @@
+[% title = 'Search' %]
+[% INCLUDE include/header.tt2 %]
+
+<p><b>Serach downloads </b></p>
+
+<div>
+<form action="[% c.uri_for('/search/basic_search') %]" method="post" >
+TSQuery:
+<input type="text" name="tsquery">
+<br/>
+Result List Size: 
+<input type="text" name="num_results_per_page">
+<br/>
+
+<input type="submit" value="Search" />
+
+</form>
+
+</div>
+
+[%  IF match_list %]
+<p>
+Showing top [% displayed_matches | html_entity %] results out of [% total_matches | html_entity %]
+
+<table>
+<tr>
+<th> Story Title</th>
+<th>Source</th>
+<th>Date</th>
+<th> Rank</th>
+<th> Download ID</th>
+<th> Story ID </th>
+<th>Story URL</th>
+<th>Download URL</th>
+<th> Matching Text</th>
+</tr>
+[% match_list %]
+
+[% FOREACH match_info IN match_list -%]
+<tr>
+
+<td> [% match_info.title | html_entity %] </td>
+<td> [% match_info.media_source %] </td>
+<td> [% match_info.date %] </td>
+<td> [% match_info.rank %] </td>
+<td> [% match_info.downloads_id %] </td>
+<td> [% match_info.story_id %] </td>
+<td> [% match_info.story_url %] </td>
+<td> [% match_info.download_url %] </td>
+<td> 
+[% FOREACH text_fragment IN match_info.head_line -%]
+[%- IF text_fragment.high_lighted -%]
+<b>
+[%-ELSE-%]
+[%-END-%]
+[%- text_fragment.text | html_entity -%]
+[%- IF text_fragment.high_lighted -%]
+</b>
+[%-END-%]
+[%- END -%]
+
+</td>
+</tr>
+[%END  %]
+</table>
+
+[%END %]
+
+</p>
+[% INCLUDE include/footer.tt2 %]
