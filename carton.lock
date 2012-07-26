@@ -21417,7 +21417,6 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
-                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -38347,7 +38346,7 @@
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],
@@ -38667,7 +38666,7 @@
                "Tatsuhiko Miyagawa"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
