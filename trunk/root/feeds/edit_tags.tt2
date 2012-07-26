@@ -1,6 +1,0 @@
-[% title = 'Edit Tags' -%]
-[% INCLUDE include/feeds_header.tt2 %]
-
-[% form.render %]
-  
-[% INCLUDE include/footer.tt2 %]

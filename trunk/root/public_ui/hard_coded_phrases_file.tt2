@@ -1,7 +1,0 @@
-[% # This file is intended to contain words and phrases that would not otherwise appear to c.loc(" ")  %]
-[% # For example text that is dynamically added in the controller or elsewhere %]
-[% # By appearing c.loc('') calls,  the text will get added to the generated .po files %]
-
-[% c.loc('all') %]
-
-[% c.loc( '(none)' ) %]

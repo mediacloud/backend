@@ -1,9 +1,0 @@
-</td>
-</tr>
-
-      </table></td>
-    <td bgcolor="#FFFFFF"><img alt="" src="/include/images/spacer.gif" width="10" height="1" /></td>
-    <td bgcolor="#000000"><img alt="" src="/include/images/spacer.gif" width="1" height="1" /></td>
-  </tr>
-
-[% INCLUDE 'public_ui/html_footer.tt2' %]
