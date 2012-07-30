@@ -89,7 +89,7 @@ If there are errors determine which modules are missing and install them by runn
 
 POST INSTALL
   
-* Run ./script/run_plackup_with_carton.sh.  This should start up the web server.
+* Run ./script/start_mediacloud_server.sh.  This should start up the web server.
   If the command line returns no errors, go to http://localhost:5000 
   (or replace localhost with whatever host the system is on) to
   access the server.

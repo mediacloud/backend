@@ -34,4 +34,4 @@ echo "creating new database"
 
 echo "Media Cloud install succeeded!!!!"
 echo "See doc/ for more information on using Media Cloud"
-echo "Run ./script/run_plackup_with_carton.sh to start the Media Cloud server"
+echo "Run ./script/start_mediacloud_server.sh to start the Media Cloud server"
