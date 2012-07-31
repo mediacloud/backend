@@ -13,6 +13,11 @@
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.query-2.1.7.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/scrollTo/jquery.scrollTo.js') %]"></script> 
  <link rel="stylesheet" href="[% c.uri_for('/include/libs/treeview/jquery.treeview.css') %]" /> 
+
+<script src="[% c.uri_for('/include/libs/aehlke-tag-it-d64a794/js/tag-it.js') %]" type="text/javascript" charset="utf-8"></script>
+
+<link href="[% c.uri_for('/include/libs/aehlke-tag-it-d64a794/css/jquery.tagit.css') %]" rel="stylesheet" type="text/css">
+
 <!--
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jsTree/jquery.jstree.js') %]"></script> 
  -->
