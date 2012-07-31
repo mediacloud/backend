@@ -1,5 +1,13 @@
 #!/bin/bash
 
+echo "WARNING: This will delete the media cloud database.  Are you sure you want to do this (y/n)?"
+read REPLY
+
+if [ $REPLY != "y" ]; then
+		echo "Exiting..."
+		exit 1
+fi
+
 if [ `uname` == 'Darwin' ]; then
     # Mac OS X
     PSQL=/opt/local/lib/postgresql84/bin/psql
