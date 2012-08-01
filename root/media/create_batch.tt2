@@ -5,9 +5,17 @@
 
 <form action="[% c.uri_for('/media/create_do') %]" method="post">
 
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#tags").tagit({
+                // availableTags: ["msm", "blogs", "libral", "conservative" ], 
+		 singleFieldDelimiter: ';'
+});
+    });
+</script>
+
 <p>
-Enter up to media source one per line.  The format is: <br/>
-Media_Source_URL tag_set:tag [tag_set:tag;...]
+Enter one media source url one per line. 
 </p>
 
 <textarea name="urls" rows="20" cols="80">
@@ -17,7 +25,9 @@ Media_Source_URL tag_set:tag [tag_set:tag;...]
 Enter tags to apply to all sources.  The format is: <br/>
 tag_set:tag [tag_set:tag;...]
 </p>
-<input name="tags" type="text" size="80" />
+<input id="tags" name="tags" type="text" size="80" />
+
+<ul id="mytags"/>
 
 <p>
 <input type="submit" value="Add Media" />
