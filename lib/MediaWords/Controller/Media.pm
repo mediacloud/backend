@@ -22,6 +22,7 @@ use Data::Dumper;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
+use JSON;
 
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
@@ -306,6 +307,46 @@ sub find_or_create_media_from_urls
     $self->add_media_tags_from_strings( $c, $url_media, $tags_string );
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
+}
+
+sub media_tags_search_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $term = $c->req->param( 'search' ) || 0;
+
+    say STDERR "$term";
+
+    $term = $term . '%';
+
+    my ( $tag_set_part, $tag_part ) = split ':', $term;
+
+    my $terms = [];
+
+    if ( $tag_part eq '' )
+    {
+        $tag_part = $tag_set_part;
+        $terms    = $c->dbis->query(
+"select name ||':' || tag from tag_sets natural join tags where tags_id in ( select distinct(tags_id) from media_tags_map ) "
+              . " and (name like ? or tag like ? ) order by name, tag;",
+            $tag_set_part, $tag_part
+        )->flat;
+    }
+    else
+    {
+        $terms = $c->dbis->query(
+"select name ||':' || tag from tag_sets natural join tags where tags_id in ( select distinct(tags_id) from media_tags_map ) "
+              . " and (name = ? and tag like ? ) order by name, tag;",
+            $tag_set_part, $tag_part
+        )->flat;
+    }
+
+    #say STDERR Dumper( $terms );
+    #say STDERR encode_json($terms);
+
+    $c->res->body( encode_json( $terms ) );
+
+    return;
 }
 
 # create a set of media sources from a list of urls; add any included tags to new or existing media sources
