@@ -1,5 +1,5 @@
 
-CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline' );
+CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
 
 ALTER TABLE downloads ADD COLUMN file_status download_file_status not null default 'tbd';
 
