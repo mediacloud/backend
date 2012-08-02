@@ -217,7 +217,7 @@
                "Ricardo Signes <rjbs@cpan.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "generated_by" : "Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -263,7 +263,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -458,7 +458,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -1126,7 +1126,7 @@
                "Paul Marquess <pmqs@cpan.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -1337,7 +1337,7 @@
                "Tokuhiro Matsuno <tokuhirom@cpan.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -4143,7 +4143,7 @@
                "Copyright (C) 2008 - 2010 Kazuho Oku"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -5172,7 +5172,7 @@
                "Shawn M Moore, C<sartak@gmail.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -5725,7 +5725,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -5800,10 +5800,6 @@
                "file" : "Coro/Debug.pm",
                "version" : "6.08"
             },
-            "Coro::EV" : {
-               "file" : "Coro/EV.pm",
-               "version" : "6.08"
-            },
             "Coro::Handle" : {
                "file" : "Coro/Handle.pm",
                "version" : "6.08"
@@ -5872,84 +5868,6 @@
          },
          "target" : "Coro",
          "version" : "6.08"
-      },
-      "Corona" : {
-         "dist" : "Corona-0.1004",
-         "mymeta" : {
-            "abstract" : "Coro based PSGI web server",
-            "author" : [
-               "Tatsuhiko Miyagawa"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 0.95, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "Corona",
-            "no_index" : {
-               "directory" : [
-                  "inc",
-                  "t",
-                  "xt"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.42",
-                     "Test::More" : 0
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.42"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "Coro" : 0,
-                     "Net::Server::Coro" : "0.5",
-                     "Plack" : "0.99",
-                     "perl" : "5.008001"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "license" : [
-                  "http://dev.perl.org/licenses/"
-               ],
-               "repository" : {
-                  "type" : "git",
-                  "url" : "git://github.com/miyagawa/Corona.git"
-               }
-            },
-            "version" : "0.1004"
-         },
-         "name" : "Corona",
-         "pathname" : "M/MI/MIYAGAWA/Corona-0.1004.tar.gz",
-         "provides" : {
-            "Corona" : {
-               "file" : "Corona.pm",
-               "version" : "0.1004"
-            },
-            "Corona::Server" : {
-               "file" : "Corona/Server.pm"
-            },
-            "Plack::Handler::Corona" : {
-               "file" : "Plack/Handler/Corona.pm"
-            },
-            "Plack::Server::Coro" : {
-               "file" : "Plack/Server/Coro.pm",
-               "version" : "0.1002"
-            }
-         },
-         "target" : "Corona",
-         "version" : "0.1004"
       },
       "Crypt::CBC" : {
          "dist" : "Crypt-CBC-2.30",
@@ -14240,7 +14158,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.3601, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.3601, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -15244,63 +15162,6 @@
          "target" : "Dist::Metadata",
          "version" : "0.922"
       },
-      "EV" : {
-         "dist" : "EV-4.11",
-         "mymeta" : {
-            "abstract" : "unknown",
-            "author" : [
-               "unknown"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.59, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
-            "license" : [
-               "unknown"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "EV",
-            "no_index" : {
-               "directory" : [
-                  "t",
-                  "inc"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : 0
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : 0
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "common::sense" : 0
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "version" : "4.11"
-         },
-         "name" : "EV",
-         "pathname" : "M/ML/MLEHMANN/EV-4.11.tar.gz",
-         "provides" : {
-            "EV" : {
-               "file" : "EV.pm",
-               "version" : "4.11"
-            },
-            "EV::MakeMaker" : {
-               "file" : "EV/MakeMaker.pm"
-            }
-         },
-         "target" : "EV",
-         "version" : "4.11"
-      },
       "Email::Valid" : {
          "dist" : "Email-Valid-0.187",
          "mymeta" : {
@@ -16129,7 +15990,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MakeMaker.pm"
+               "file" : "ExtUtils/MY.pm"
             }
          },
          "target" : "ExtUtils::MakeMaker",
@@ -16204,7 +16065,7 @@
                "Tokuhiro Matsuno <tokuhirom @*(#RJKLFHFSDLJF gmail.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.01, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.01, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -18227,7 +18088,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker::JSONMETA version 7.000, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker::JSONMETA version 7.000, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -18279,7 +18140,7 @@
                "David Larochelle <dlarochelle@cyber.law.harvard.edu>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -20265,7 +20126,7 @@
                "version" : "6.00"
             }
          },
-         "target" : "HTTP::Status",
+         "target" : "HTTP::Headers",
          "version" : "6.02"
       },
       "HTTP::Negotiate" : {
@@ -20523,7 +20384,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.54, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.54, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -20884,7 +20745,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.55_02, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.55_02, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -21026,7 +20887,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -21926,7 +21787,7 @@
                "version" : "6.04"
             }
          },
-         "target" : "LWP",
+         "target" : "LWP::UserAgent",
          "version" : "6.04"
       },
       "LWP::MediaTypes" : {
@@ -27614,7 +27475,7 @@
                "Christian Hansen C<chansen@cpan.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -27969,75 +27830,6 @@
          },
          "target" : "Net::Server",
          "version" : "0.99"
-      },
-      "Net::Server::Coro" : {
-         "dist" : "Net-Server-Coro-1.2",
-         "mymeta" : {
-            "abstract" : "A co-operative multithreaded server using Coro",
-            "author" : [
-               "Alex Vandiver <alexmv@bestpractical.com>"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.01, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
-            "license" : [
-               "mit"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "Net-Server-Coro",
-            "no_index" : {
-               "directory" : [
-                  "inc"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.42"
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.42"
-                  }
-               },
-               "runtime" : {
-                  "recommends" : {
-                     "Net::SSLeay" : 0
-                  },
-                  "requires" : {
-                     "Coro" : 0,
-                     "EV" : 0,
-                     "Net::Server" : 0
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "license" : [
-                  "http://opensource.org/licenses/mit-license.php"
-               ]
-            },
-            "version" : "1.2"
-         },
-         "name" : "Net::Server::Coro",
-         "pathname" : "A/AL/ALEXMV/Net-Server-Coro-1.2.tar.gz",
-         "provides" : {
-            "Net::Server::Coro" : {
-               "file" : "Net/Server/Coro.pm",
-               "version" : "1.2"
-            },
-            "Net::Server::Proto::Coro" : {
-               "file" : "Net/Server/Proto/Coro.pm"
-            },
-            "Net::Server::Proto::Coro::FH" : {
-               "file" : "Net/Server/Proto/Coro.pm"
-            }
-         },
-         "target" : "Net::Server::Coro",
-         "version" : "1.2"
       },
       "Number::Compare" : {
          "dist" : "Number-Compare-0.03",
@@ -28798,7 +28590,7 @@
                "Tatsuhiko Miyagawa <miyagawa@bulknews.net>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -29633,7 +29425,7 @@
                "Kazuho Oku"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -30566,7 +30358,7 @@
                "file" : "Plack/Util.pm"
             }
          },
-         "target" : "Plack::Test",
+         "target" : "Plack",
          "version" : "0.9985"
       },
       "Plack::App::Proxy" : {
@@ -30577,7 +30369,7 @@
                "Lee Aylward"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -30807,7 +30599,7 @@
                "Marcel Grünauer, C<< <marcel@cpan.org> >>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -30919,7 +30711,7 @@
                "Tatsuhiko Miyagawa"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -31127,7 +30919,7 @@
                "Tatsuhiko Miyagawa"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -31278,7 +31070,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.48, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.48, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -31397,7 +31189,7 @@
                "C. Tilmes <curt@tilmes.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -32007,7 +31799,7 @@
                "Kazuho Oku"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -32189,7 +31981,7 @@
                "Kazuho Oku"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -32881,93 +32673,6 @@
          },
          "target" : "Sub::Uplevel",
          "version" : "0.22"
-      },
-      "Task::Plack" : {
-         "dist" : "Task-Plack-0.26",
-         "mymeta" : {
-            "abstract" : "Plack bundle",
-            "author" : [
-               "Tatsuhiko Miyagawa <miyagawa@bulknews.net>"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "Task-Plack",
-            "no_index" : {
-               "directory" : [
-                  "inc",
-                  "t",
-                  "xt"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.59"
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.59"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "CGI::Compile" : "0.15",
-                     "CGI::Emulate::PSGI" : "0.14",
-                     "CGI::PSGI" : "0.15",
-                     "Corona" : "0.1004",
-                     "FCGI" : "0.74",
-                     "FCGI::Client" : "0.08",
-                     "FCGI::ProcManager" : "0.24",
-                     "HTTP::Server::Simple::PSGI" : "0.14",
-                     "IO::Handle::Util" : "0.01",
-                     "Net::FastCGI" : "0.13",
-                     "PSGI" : "1.03",
-                     "Plack" : "0.9985",
-                     "Plack::App::Proxy" : "0.21",
-                     "Plack::Middleware::Auth::Digest" : "0.04",
-                     "Plack::Middleware::ConsoleLogger" : "0.04",
-                     "Plack::Middleware::Debug" : "0.14",
-                     "Plack::Middleware::Deflater" : "0.05",
-                     "Plack::Middleware::Header" : "0.04",
-                     "Plack::Middleware::ReverseProxy" : "0.11",
-                     "Plack::Middleware::Session" : "0.14",
-                     "Starlet" : "0.14",
-                     "Starman" : "0.3000",
-                     "Twiggy" : "0.1020",
-                     "perl" : "5.008001"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "license" : [
-                  "http://dev.perl.org/licenses/"
-               ],
-               "repository" : {
-                  "type" : "git",
-                  "url" : "git://github.com/miyagawa/Task-Plack.git"
-               }
-            },
-            "version" : "0.26"
-         },
-         "name" : "Task::Plack",
-         "pathname" : "M/MI/MIYAGAWA/Task-Plack-0.26.tar.gz",
-         "provides" : {
-            "Task::Plack" : {
-               "file" : "Task/Plack.pm",
-               "version" : "0.26"
-            }
-         },
-         "target" : "Task::Plack",
-         "version" : "0.26"
       },
       "Task::Weaken" : {
          "dist" : "Task-Weaken-1.04",
@@ -34342,7 +34047,7 @@
                "Paul Evans <leonerd@leonerd.org.uk>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -34764,7 +34469,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.30, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.30, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -35731,7 +35436,7 @@
                "Kazuho Oku <kazuhooku gmail.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 0.93, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 0.93, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -36708,7 +36413,7 @@
                "Tatsuhiko Miyagawa"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -37099,7 +36804,7 @@
                "file" : "URI/urn/oid.pm"
             }
          },
-         "target" : "URI::Escape",
+         "target" : "URI",
          "version" : "1.59"
       },
       "Variable::Magic" : {
@@ -38879,7 +38584,7 @@
                "Adam Kennedy <adamk@cpan.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
