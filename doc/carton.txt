@@ -1,0 +1,19 @@
+Adding new modules.
+
+This is a brief description of the best practice method of adding new modules to carton.
+
+Run svn up to make sure you're up to date.
+
+Run ./install_scripts/purge_carton_install.sh
+
+Run ./install_modules_outside_of_carton.sh
+
+Run  ./install_modules_with_carton.sh 
+
+Run ./script/run_carton.sh INSTALL <MODULE_NAME> 
+where <MODULE_NAME> is the module that you want to install.
+
+Make sure that Carton installed the module without error messages.
+
+Run svn diff on carton.lock and make sure the changes make sense. In particular, make sure that no modules were deleted. If there are problems with carton.lock, svn revert it and try again. (You may need the run ./install_scripts/purge_carton_install.sh  and ./install_modules_with_carton.sh before starting over at the beginning of those instructions.) If carton.lock looks okay, svn commit it.
+
