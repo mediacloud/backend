@@ -16,7 +16,6 @@ use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
 use Readonly;
 
-
 # how often to download each feed (seconds)
 use constant STALE_FEED_INTERVAL => 3 * 14400;
 
@@ -277,14 +276,13 @@ sub _add_stale_feeds
     # . "AND " . $constraint . " RETURNING feeds_id, downloads_id")->map();
     #
 
-    Readonly my $feeds_query =>  "SELECT * FROM feeds WHERE " . $constraint ;
+    Readonly my $feeds_query => "SELECT * FROM feeds WHERE " . $constraint;
 
     #say STDERR "$feeds_query";
 
     my @feeds = $dbs->query( $feeds_query )->hashes();
 
     #say STDERR Dumper( [ @feeds ] );
-
 
     #     $dbs->query("UPDATE feeds SET last_download_time=(NOW()"
     # . "+ age(to_timestamp(CAST(random()*"
@@ -296,7 +294,8 @@ sub _add_stale_feeds
     for my $feed ( @feeds )
     {
         ##TODO add a constraint to the fields table in the database to ensure that the URL is valid
-        if ( !$feed->{ url } || substr( $feed->{ url }, 0, 7 ) ne 'http://' )
+        if ( !$feed->{ url }
+            || ( ( substr( $feed->{ url }, 0, 7 ) ne 'http://' ) && ( substr( $feed->{ url }, 0, 8 ) ne 'https://' ) ) )
         {
 
             # TODO: report an error?
