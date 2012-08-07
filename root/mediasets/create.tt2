@@ -1,6 +1,14 @@
 [% title = 'Create Media Set' %]
 [% INCLUDE include/header.tt2 %]
 
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#tag_name").autocomplete({ 
+	  source:  "[% c.uri_for('/media/media_tags_search_json') %]"
+	});
+    });
+</script>
+
 <fieldset>
 [% form.render %]
 </fieldset>

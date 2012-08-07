@@ -17,6 +17,7 @@ elements:
 
   - type: Text
     name: tag_name
+    id: tag_name
     label: Collection Tag
     size: 48
     comment: Name of tag marking which media sources to include in the set. (collection:ap_eng_us_top100_20091015)
