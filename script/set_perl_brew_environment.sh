@@ -5,6 +5,7 @@ export PERLBREW_ROOT=$HOME/perl5/perlbrew
 export PERLBREW_HOME=$HOME/.perlbrew
 #echo source ${PERLBREW_ROOT}/etc/bashrc
 
+unset MANPATH
 source ${PERLBREW_ROOT}/etc/bashrc
 
 set -u
@@ -16,9 +17,12 @@ set -o  errexit
 #   source ~/perl5/perlbrew/etc/bashrc
 #fi
 
-perlbrew use perl-5.14.2
-perlbrew use perl-5.14.2@mediacloud
+#Switch to the right version and filter useless message. 
 
+#Amanda server on 08.04 gives warning if we go directly to  perl-5.14.2@mediacloud 
+perlbrew use perl-5.14.2  2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
+perlbrew use perl-5.14.2@mediacloud   2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
 
-#echo $PATH
+#NOTE: We filter the useless MANPATH warning message this way because there was no good way to get rid of it. perlbrew use will fail unless $MANPATH is set but then it generates this warning.
+
 
