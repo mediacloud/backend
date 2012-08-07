@@ -313,7 +313,7 @@ sub media_tags_search_json : Local
 {
     my ( $self, $c ) = @_;
 
-    my $term = $c->req->param( 'search' ) || 0;
+    my $term = $c->req->param( 'term' ) || 0;
 
     say STDERR "$term";
 

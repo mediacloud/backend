@@ -8,10 +8,10 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $("#tags").tagit({
-	    tagSource: function(search, showChoices) {
+	    tagSource: function(term, showChoices) {
 		$.ajax({
 		    url: "[% c.uri_for('/media/media_tags_search_json') %]",
-		    data: {search: search.term},
+		    data: { term: term.term},
 		    dataType: "json",
 		    success: function(choices) {
 			console.log( choices );
