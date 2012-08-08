@@ -6,6 +6,8 @@ use MediaWords::CommonLibs;
 
 use strict;
 
+use Encode;
+
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_dot vector_normalize);
 use MediaWords::Util::HTML;
 use MediaWords::Tagger;
