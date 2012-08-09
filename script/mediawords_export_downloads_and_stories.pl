@@ -168,8 +168,8 @@ sub export_downloads
         say STDERR "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
 
         my $download = $db->query(
-" SELECT * from downloads where downloads_id >= ?  and type = 'feed' and state = 'success' order by downloads_id asc limit 1 ",
-            $cur_downloads_id
+" SELECT * from downloads where downloads_id >= ?  and downloads_id <= ? and type = 'feed' and state = 'success' order by downloads_id asc limit 1 ",
+            $cur_downloads_id, $end_downloads_id
         )->hash();
 
         last unless $download;
