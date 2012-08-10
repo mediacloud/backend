@@ -23,6 +23,7 @@ use XML::LibXML;
 use MIME::Base64;
 use Encode;
 use List::Util qw (min);
+use Parallel::ForkManager;
 
 sub get_story_downloads
 {
@@ -223,14 +224,26 @@ sub export_all_downloads
 
     my $batch_number = 0;
 
+    my $pm = new Parallel::ForkManager(10);
     while ( $start_downloads_id <= $max_downloads_id )
     {
-        export_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number );
+	unless($pm->start)
+	{
+
+	    export_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number );
+	    $pm->finish; 
+	}
+
         $start_downloads_id += $download_batch_size;
         $batch_number++;
 
         #exit;
     }
+
+    say "Waiting for children";
+
+    $pm->wait_all_children;
+
 }
 
 # fork of $num_processes
