@@ -8,6 +8,47 @@ use File::Path;
 use File::Temp ();
 use Fcntl qw/:flock :seek/;
 use POSIX;
+use Archive::Tar;
+
+sub _dd
+{
+    my ( $tar_file, $starting_block, $num_blocks ) = @_;
+
+    open my $fh, '<', $tar_file;
+
+    seek( $fh, $starting_block * 512, 0 );
+
+    my $ret;
+
+    my $chars_read = read $fh, $ret, $num_blocks * 512;
+
+    die "Read $chars_read expected " . $num_blocks * 512 . ":$!" unless $chars_read = $num_blocks * 512;
+
+    close( $fh );
+
+    return $ret;
+}
+
+sub _get_content_from_tar_pp
+{
+    my ( $tar_file, $file_name, $starting_block, $num_blocks ) = @_;
+
+    my $dd_cmd = "dd if='$tar_file' bs=512 skip=$starting_block count=$num_blocks 2> /dev/null ";
+
+    #    my $tar_content = `$dd_cmd`;
+
+    my $tar_content = _dd( $tar_file, $starting_block, $num_blocks );
+
+    open my $tar_fh, "<", \$tar_content;
+
+    my $tar = Archive::Tar->new( $tar_fh );
+
+    die "Error creating Archive::Tar: $@" unless $tar;
+
+    my $content = $tar->get_content( $file_name );
+
+    return $content;
+}
 
 # read the given file from the given tar file at the given starting block with the given number of blocks
 # return a ref to the file contents.
@@ -15,11 +56,14 @@ sub read_file
 {
     my ( $tar_file, $file_name, $starting_block, $num_blocks ) = @_;
 
-    warn ( "number of blocks cannot be 0. Tar file '$tar_file', file name '$file_name' " ) if $num_blocks == 0;
+    warn( "number of blocks cannot be 0. Tar file '$tar_file', file name '$file_name' " ) if $num_blocks == 0;
 
     my $tar_cmd =
       "dd if='$tar_file' bs=512 skip=$starting_block count=$num_blocks 2> /dev/null | tar -x -O -f - '$file_name'";
-    my $content = `$tar_cmd`;
+
+    # my $content = `$tar_cmd`;
+
+    my $content = _get_content_from_tar_pp( $tar_file, $file_name, $starting_block, $num_blocks );
 
     if ( $content eq '' )
     {
