@@ -224,7 +224,7 @@ sub export_all_downloads
 
     my $batch_number = 0;
 
-    my $pm = new Parallel::ForkManager(10);
+    my $pm = new Parallel::ForkManager(15);
     while ( $start_downloads_id <= $max_downloads_id )
     {
 	unless($pm->start)
