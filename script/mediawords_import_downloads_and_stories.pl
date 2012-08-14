@@ -106,7 +106,7 @@ sub import_downloads
     {
         $feed_downloads_processed++;
 
-        say "Processing download $feed_downloads_processed out of ". scalar ( @root_child_nodes );
+        say "Processing download $feed_downloads_processed out of ". scalar ( @root_child_nodes ) . " in $xml_file_name";
 
         #say STDERR "child_node: " . $child_node->nodeName();
 
@@ -161,6 +161,14 @@ sub import_downloads
 
         #say 'got new stories';
         #say Dumper ( $new_stories );
+
+	if ( scalar( @ { $new_stories } ) == 0 )
+	{
+	    say "No new stories for download $feed_downloads_processed out of ". scalar ( @root_child_nodes ) . " in $xml_file_name";
+	    next;
+	}
+
+	say "Creating new downloads";
 
         my $db_download = $db->create( 'downloads', $download );
 
