@@ -12,8 +12,8 @@ database:
 
     - label : "test"
       type  : "pg"
-      host  : "HOST"
-      db    : "mediacloud_text"
+      host  : "localhost"
+      db    : "mediacloud_test"
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
