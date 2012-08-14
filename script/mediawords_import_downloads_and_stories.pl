@@ -25,6 +25,7 @@ use Data::Dumper;
 use MediaWords::Crawler::Handler;
 use Carp;
 use Try::Tiny;
+use Text::Trim;
 
 sub hash_from_element
 {
@@ -42,6 +43,12 @@ sub hash_from_element
     my $ret;
 
     $ret = { map { $_->nodeName() => $_->textContent() } @childNodes };
+
+    ## Fix for extra white space on forrest.
+    foreach my $key ( keys %{ $ret } )
+    {
+	$ret->{ $key } = trim( $ret->{ $key } );
+    }
 
     #say Dumper ( $ret );
 
