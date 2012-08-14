@@ -106,7 +106,7 @@ sub import_downloads
     {
         $feed_downloads_processed++;
 
-        say "Processing $xml_file_name: download $feed_downloads_processed out of ". scalar ( @root_child_nodes ) .;
+        say "Processing $xml_file_name: download $feed_downloads_processed out of " . scalar ( @root_child_nodes ) ;
 
         #say STDERR "child_node: " . $child_node->nodeName();
 
