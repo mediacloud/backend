@@ -22,7 +22,6 @@ use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
 use MediaWords::Util::Stemmer;
 
-
 use Data::Dumper;
 use Date::Format;
 use Date::Parse;

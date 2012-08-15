@@ -6,17 +6,17 @@ use Modern::Perl '2012';
 use MediaWords::CommonLibs;
 
 has '_fcgi_procmanager' => (
-    is => 'ro',
-    isa => 'FCGI::ProcManager',
+    is      => 'ro',
+    isa     => 'FCGI::ProcManager',
     handles => qr/.*/,
 );
 
 around BUILDARGS => sub {
-    my $orig = shift;
+    my $orig  = shift;
     my $class = shift;
-    my $ret = $class->$orig(_fcgi_procmanager => FCGI::ProcManager->new(@_));
+    my $ret   = $class->$orig( _fcgi_procmanager => FCGI::ProcManager->new( @_ ) );
 
-    $ret->{_fcgi_procmanager}->{die_timeout} = 2;
+    $ret->{ _fcgi_procmanager }->{ die_timeout } = 2;
 
     return $ret;
 };

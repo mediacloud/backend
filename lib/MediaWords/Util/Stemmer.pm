@@ -6,7 +6,6 @@ use Moose;
 use strict;
 use warnings;
 
-
 use Data::Dumper;
 use MediaWords::Pg;
 

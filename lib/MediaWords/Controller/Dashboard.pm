@@ -26,7 +26,6 @@ use MediaWords::Util::Stemmer;
 
 use MediaWords::Util::WordCloud;
 
-
 use Data::Dumper;
 use Date::Format;
 use Date::Parse;

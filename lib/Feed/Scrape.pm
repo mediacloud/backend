@@ -21,7 +21,6 @@ use List::MoreUtils qw(any all none notall true false firstidx first_index
 
 use MediaWords::Util::Web;
 
-
 use Data::Dumper;
 use XML::FeedPP::MediaWords;
 

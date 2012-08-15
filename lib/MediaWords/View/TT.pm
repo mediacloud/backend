@@ -70,8 +70,8 @@ sub new
         ga_account_code => sub {
             my $nr = shift;
 
-            my $config  = MediaWords::Util::Config::get_config;
-            my $ga_code = $config->{ google_analytics }? $config->{ google_analytics }->{ account } : '';
+            my $config = MediaWords::Util::Config::get_config;
+            my $ga_code = $config->{ google_analytics } ? $config->{ google_analytics }->{ account } : '';
 
             $nr = $ga_code;
 
@@ -83,8 +83,8 @@ sub new
         ga_domainname => sub {
             my $nr = shift;
 
-            my $config    = MediaWords::Util::Config::get_config;
-            my $ga_domain =  $config->{ google_analytics }? $config->{ google_analytics }->{ domainname } : '';
+            my $config = MediaWords::Util::Config::get_config;
+            my $ga_domain = $config->{ google_analytics } ? $config->{ google_analytics }->{ domainname } : '';
 
             $nr = $ga_domain;
 

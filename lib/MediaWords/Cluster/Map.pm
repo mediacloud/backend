@@ -534,23 +534,24 @@ sub _get_protovis_json
 sub _store_poles
 {
     my ( $clustering_engine, $cluster_map, $queries, $sim_list ) = @_;
-    
+
     print STDERR "_store_poles\n";
-    
+
     return if ( !$queries || !@{ $queries } );
-    
+
     my $row_labels = $clustering_engine->row_labels;
-    my $db = $clustering_engine->db;
+    my $db         = $clustering_engine->db;
 
     for ( my $i = 0 ; $i < @{ $queries } ; $i++ )
     {
         print STDERR "_store_poles: query $i\n";
         my $query = $queries->[ $i ];
-        
+
         my $existing_map_poles = $db->query(
-            "select * from media_cluster_map_poles " . 
-            "  where media_cluster_maps_id = ? and queries_id = ?",
-            $cluster_map->{ media_cluster_maps_id }, $query->{ queries_id } )->hashes;
+            "select * from media_cluster_map_poles " . "  where media_cluster_maps_id = ? and queries_id = ?",
+            $cluster_map->{ media_cluster_maps_id },
+            $query->{ queries_id }
+        )->hashes;
 
         if ( !@{ $existing_map_poles } )
         {
@@ -566,23 +567,23 @@ sub _store_poles
             );
         }
     }
-        
+
     for my $sim ( @{ $sim_list } )
     {
         my ( $pole_number, $medium_lookup, $similarity ) = @{ $sim };
-        
+
         $pole_number -= $#{ $row_labels } + 1;
         my $media_id = $row_labels->[ $medium_lookup ];
-        
+
         print STDERR "_store_poles: add sim $medium_lookup, $media_id, $pole_number, $similarity\n";
 
-        $db->create( 
+        $db->create(
             'media_cluster_map_pole_similarities',
             {
-                media_id                => $media_id,
-                media_cluster_maps_id   => $cluster_map->{ media_cluster_maps_id },
-                queries_id              => $queries->[ $pole_number ]->{ queries_id },
-                similarity              => int( $similarity * 1000 )
+                media_id              => $media_id,
+                media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id },
+                queries_id            => $queries->[ $pole_number ]->{ queries_id },
+                similarity            => int( $similarity * 1000 )
             }
         );
     }
@@ -595,15 +596,15 @@ sub generate_polar_map_sims
 
     print STDERR "generate_polar_map_sims\n";
 
-    my $sims = $db->query( 
-        "select * from media_cluster_map_pole_similarities where media_cluster_maps_id = ?", $cluster_map->{ media_cluster_maps_id } )->hashes;
-        
+    my $sims = $db->query( "select * from media_cluster_map_pole_similarities where media_cluster_maps_id = ?",
+        $cluster_map->{ media_cluster_maps_id } )->hashes;
+
     return if ( @{ $sims } );
 
     print STDERR "generate_polar_map_sims: no db sims\n";
 
-    my $cluster_run = $db->query(
-        "select * from media_cluster_runs where media_cluster_runs_id = ?", $cluster_map->{ media_cluster_runs_id } )->hash;
+    my $cluster_run = $db->query( "select * from media_cluster_runs where media_cluster_runs_id = ?",
+        $cluster_map->{ media_cluster_runs_id } )->hash;
 
     my $clustering_engine = MediaWords::Cluster->new( $db, $cluster_run, 1 );
 

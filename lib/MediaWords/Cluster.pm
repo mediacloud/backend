@@ -348,7 +348,6 @@ sub _add_descriptions_from_features
     }
 }
 
-
 # add the most common words in each cluster as that cluster's internal features
 sub _add_internal_features
 {
@@ -364,12 +363,14 @@ sub _add_internal_features
             $use_media_sets = 0;
             last if ( $cluster_name_lookup->{ $cluster->{ description } } );
             $cluster_name_lookup->{ $cluster->{ description } } = 1;
-            
-            $cluster->{ media_set } = $self->db->query( 
+
+            $cluster->{ media_set } = $self->db->query(
                 "select ms.* from media_sets ms, queries_media_sets_map qmsm " .
-                "  where ms.media_sets_id = qmsm.media_sets_id and qmsm.queries_id = ? " .
-                "    and ms.name = ?",
-                $self->cluster_run->{ query }->{ queries_id }, $cluster->{ description } )->hash || last;
+                  "  where ms.media_sets_id = qmsm.media_sets_id and qmsm.queries_id = ? " . "    and ms.name = ?",
+                $self->cluster_run->{ query }->{ queries_id },
+                $cluster->{ description }
+              )->hash
+              || last;
             $use_media_sets = 1;
         }
     }
@@ -379,7 +380,8 @@ sub _add_internal_features
         my $cluster_query;
         if ( $use_media_sets )
         {
-            # $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sets_sub_query( 
+
+            # $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sets_sub_query(
             #     $self->db, $self->cluster_run->{ query }, [ $cluster->{ media_set }->{ media_sets_id } ] );
             my $query = $self->cluster_run->{ query };
             $cluster_query = MediaWords::DBI::Queries::find_or_create_query_by_params(
@@ -392,9 +394,13 @@ sub _add_internal_features
                 }
             );
         }
-        else {
-            $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sub_query( 
-                $self->db, $self->cluster_run->{ query }, $cluster->{ media_ids } );
+        else
+        {
+            $cluster_query = MediaWords::DBI::Queries::find_or_create_media_sub_query(
+                $self->db,
+                $self->cluster_run->{ query },
+                $cluster->{ media_ids }
+            );
         }
         my $cluster_words = MediaWords::DBI::Queries::get_top_500_weekly_words( $self->db, $cluster_query );
 
@@ -405,7 +411,7 @@ sub _add_internal_features
     }
 }
 
-# return false if the state is completed and the clustering engine is 'copy' or 'media_sets', 
+# return false if the state is completed and the clustering engine is 'copy' or 'media_sets',
 # since neither of those actually need the vectors
 sub _needs_vectors
 {
@@ -436,8 +442,8 @@ sub new
     # print STDERR "need vector check\n";
     # don't do the expensive vector generation if we're just clustering by media sets
     return $self if ( !$force_vectors && !_needs_vectors( $cluster_run ) );
-    # print STDERR "need vector check PASSED\n";
 
+    # print STDERR "need vector check PASSED\n";
 
     reset_cos_sim_cache();
 

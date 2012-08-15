@@ -10,7 +10,6 @@ use parent 'Catalyst::Controller';
 
 use Data::Dumper;
 
-
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;
 

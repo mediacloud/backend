@@ -114,7 +114,7 @@ sub _set_environment_vars_for_db
     my ( $label ) = @_;
 
     my $connect_settings = connect_settings( $label );
-    
+
     $ENV{ 'PGPASSWORD' } = $connect_settings->{ pass };
     $ENV{ 'PGHOST' }     = $connect_settings->{ host };
     $ENV{ 'PGDATABASE' } = $connect_settings->{ db };
@@ -131,7 +131,6 @@ sub exec_psql_for_db
     die 'exec failed';
 }
 
-
 sub print_shell_env_commands_for_psql
 {
     my ( $label, @ARGS ) = @_;
@@ -140,13 +139,11 @@ sub print_shell_env_commands_for_psql
 
     my $psql_env_vars = [ qw ( PGPASSWORD PGHOST PGDATABASE PGUSER ) ];
 
-    foreach my $psql_env_var ( @ { $psql_env_vars } )
+    foreach my $psql_env_var ( @{ $psql_env_vars } )
     {
-	say "export $psql_env_var=" . $ENV{ $psql_env_var };
+        say "export $psql_env_var=" . $ENV{ $psql_env_var };
     }
 }
-
-
 
 sub authenticate
 {

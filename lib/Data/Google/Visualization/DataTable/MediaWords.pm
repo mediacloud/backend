@@ -6,7 +6,6 @@ use strict;
 
 use Carp;
 
-
 use Data::Dumper;
 
 use base qw(Data::Google::Visualization::DataTable);

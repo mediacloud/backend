@@ -6,7 +6,6 @@ use strict;
 use Data::Dumper;
 use List::Member;
 
-
 use Graph;
 use Graph::Layout::Aesthetic;
 

@@ -107,7 +107,6 @@ sub _setup
     }
 }
 
-
 # delete downloads in fetching mode more than five minutes old.
 # this shouldn't technically happen, but we want to make sure that
 # no hosts get hung b/c a download sits around in the fetching state forever

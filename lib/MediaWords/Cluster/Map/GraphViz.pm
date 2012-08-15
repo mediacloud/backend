@@ -6,7 +6,6 @@ use strict;
 use Data::Dumper;
 use List::Member;
 
-
 use GraphViz;
 
 # add nodes to graphviz graph object.

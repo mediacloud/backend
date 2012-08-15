@@ -100,18 +100,18 @@ sub view : Local
 
     if ( !$content_ref )
     {
-        $content_ref = \ "no content available for this download";
+        $content_ref = \"no content available for this download";
     }
 
     my $encoded_content;
 
-    if ( $$content_ref ) 
+    if ( $$content_ref )
     {
-	$encoded_content = Encode::encode( 'utf-8', $$content_ref );
+        $encoded_content = Encode::encode( 'utf-8', $$content_ref );
     }
     else
     {
-	$encoded_content = $$content_ref;
+        $encoded_content = $$content_ref;
     }
 
     $c->response->content_type( 'text/plain; charset=utf8' );
