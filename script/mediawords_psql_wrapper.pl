@@ -85,7 +85,7 @@ sub main
     }
     elsif ( $dump_env_commands )
     {
-	MediaWords::DB::print_shell_env_commands_for_psql( $db_label );
+        MediaWords::DB::print_shell_env_commands_for_psql( $db_label );
     }
     else
     {

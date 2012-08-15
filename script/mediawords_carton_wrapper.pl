@@ -26,7 +26,7 @@ use Carton::CLI::MediaWords;
 
 sub main
 {
-    Carton::CLI::MediaWords->new->run(@ARGV);
+    Carton::CLI::MediaWords->new->run( @ARGV );
 }
 
 main();

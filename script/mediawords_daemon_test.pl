@@ -29,7 +29,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
 
-
 # fork of $num_processes
 sub main
 {

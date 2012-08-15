@@ -29,7 +29,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
 
-
 # extract, story, and tag downloaded text a slice of downloads.
 # downloads are extracted by a total of num_total_jobs processings
 # a total of num_total_processes, with a unique 1-indexed job_number

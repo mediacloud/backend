@@ -74,11 +74,12 @@ sub process_feed_download
 
     if ( $story_child_count > 0 )
     {
+
         #say Dumper( $download );
     }
     else
     {
-	return;
+        return;
     }
 
     my $download_xml = get_xml_element_for_download( $download );
@@ -92,18 +93,18 @@ sub process_feed_download
         #say STDERR Dumper ( $child_story );
         my $story_downloads = get_story_downloads( $db, $story_child );
 
-	my $story_downloads_xml = XML::LibXML::Element->new( 'story_downloads' );
+        my $story_downloads_xml = XML::LibXML::Element->new( 'story_downloads' );
 
         foreach my $story_download ( @{ $story_downloads } )
         {
             $story_downloads_xml->appendChild( get_xml_element_for_download( $story_download ) );
         }
 
-	$story_xml->appendChild( $story_downloads_xml );
+        $story_xml->appendChild( $story_downloads_xml );
 
         $child_stories_xml->appendChild( $story_xml );
     }
-   
+
     $download_xml->appendChild( $child_stories_xml );
 
     return $download_xml;
@@ -117,7 +118,7 @@ sub _get_base_64_encoded_download_content
     my $download_content = MediaWords::DBI::Downloads::fetch_content( $download );
 
     my $download_content_base64 = encode_base64( encode( "utf8", $$download_content ) );
- 
+
     return $download_content_base64;
 }
 
@@ -179,16 +180,15 @@ sub export_downloads
 
         $cur_downloads_id = $download->{ downloads_id } + 1;
 
+        #$download->{ encoded_download_content_base_64 } = $download_content_base64;
 
-	#$download->{ encoded_download_content_base_64 } = $download_content_base64;
+        my $download_xml = process_feed_download( $db, $download );
 
-	my $download_xml = process_feed_download( $db, $download );
-
-	if ( defined ( $download_xml ) )
-	{
-	    $downloads_added = 1;
-	    $root->appendChild( $download_xml );
-	}
+        if ( defined( $download_xml ) )
+        {
+            $downloads_added = 1;
+            $root->appendChild( $download_xml );
+        }
     }
 
     my $file_number = '';
@@ -202,8 +202,8 @@ sub export_downloads
 
     if ( $downloads_added )
     {
-	open my $OUT, ">", $file || die "$@";
-	print $OUT $doc->toString( 2 ) || die "$@";
+        open my $OUT, ">", $file || die "$@";
+        print $OUT $doc->toString( 2 ) || die "$@";
     }
 }
 
@@ -224,15 +224,15 @@ sub export_all_downloads
 
     my $batch_number = 0;
 
-    my $pm = new Parallel::ForkManager(15);
+    my $pm = new Parallel::ForkManager( 15 );
     while ( $start_downloads_id <= $max_downloads_id )
     {
-	unless($pm->start)
-	{
+        unless ( $pm->start )
+        {
 
-	    export_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number );
-	    $pm->finish; 
-	}
+            export_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number );
+            $pm->finish;
+        }
 
         $start_downloads_id += $download_batch_size;
         $batch_number++;

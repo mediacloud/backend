@@ -24,48 +24,50 @@ sub verify_downloads_files
 
     $db->dbh->{ AutoCommit } = 0;
 
-    my $config   = MediaWords::Util::Config::get_config;
+    my $config = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
-   
 
     while ( 1 )
     {
 
-
         my $num_downloads = 0;
 
-        my $relative_file_paths = $db->query( "select distinct(relative_file_path) from downloads where file_status = 'tbd' and relative_file_path <> 'inline' and relative_file_path <> 'na' and relative_file_path <> 'tbd' limit 10 " );
+        my $relative_file_paths = $db->query(
+"select distinct(relative_file_path) from downloads where file_status = 'tbd' and relative_file_path <> 'inline' and relative_file_path <> 'na' and relative_file_path <> 'tbd' limit 10 "
+        );
 
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
         {
 
-	    my $relative_file_path = $relative_file_path_hash->{ relative_file_path };
-	    say "Checking relative file path: $relative_file_path";
+            my $relative_file_path = $relative_file_path_hash->{ relative_file_path };
+            say "Checking relative file path: $relative_file_path";
 
-	    my $file_path = "$data_dir/content/$relative_file_path";
+            my $file_path = "$data_dir/content/$relative_file_path";
 
-	    if ( -f $file_path )
-	    {
-		say "$file_path exists";
-		$db->query( "UPDATE downloads set file_status = 'present' where relative_file_path = ? " , $relative_file_path );
-	    }
-	    else
-	    {
-		say "$file_path doesn't exist";
-		$db->query( "UPDATE downloads set file_status = 'missing' where relative_file_path = ? " , $relative_file_path );
-	    }
+            if ( -f $file_path )
+            {
+                say "$file_path exists";
+                $db->query( "UPDATE downloads set file_status = 'present' where relative_file_path = ? ",
+                    $relative_file_path );
+            }
+            else
+            {
+                say "$file_path doesn't exist";
+                $db->query( "UPDATE downloads set file_status = 'missing' where relative_file_path = ? ",
+                    $relative_file_path );
+            }
         }
 
         $db->commit;
 
-	return;
+        return;
     }
 }
 
 sub main
 {
 
-     verify_downloads_files( );
+    verify_downloads_files();
 }
 
 main();

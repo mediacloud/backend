@@ -19,7 +19,6 @@ use MediaWords::Tagger;
 use MediaWords::DBI::Downloads;
 use List::Uniq ':all';
 
-
 sub get_media_ids_to_update_by_rss_length_and_similarity
 {
     my ( $dbs ) = @_;

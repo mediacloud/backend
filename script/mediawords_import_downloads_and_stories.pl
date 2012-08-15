@@ -47,7 +47,7 @@ sub hash_from_element
     ## Fix for extra white space on forrest.
     foreach my $key ( keys %{ $ret } )
     {
-	$ret->{ $key } = trim( $ret->{ $key } );
+        $ret->{ $key } = trim( $ret->{ $key } );
     }
 
     #say Dumper ( $ret );
@@ -62,14 +62,14 @@ sub hash_from_element
         }
     }
 
-     foreach my $key ( sort keys %{ $ret } )
-     {
-             if ( !defined( $ret->{ $key } ) ||  $ret->{ $key } eq '' )
-             {
-                 undef($ret->{ $key });
-                 next;
-             }
-     }
+    foreach my $key ( sort keys %{ $ret } )
+    {
+        if ( !defined( $ret->{ $key } ) || $ret->{ $key } eq '' )
+        {
+            undef( $ret->{ $key } );
+            next;
+        }
+    }
 
     return $ret;
 }
@@ -98,7 +98,7 @@ sub import_downloads
 
     my $downloads_processed = 0;
 
-    my @root_child_nodes =  $root->childNodes();
+    my @root_child_nodes = $root->childNodes();
 
     my $feed_downloads_processed = 0;
 
@@ -106,7 +106,7 @@ sub import_downloads
     {
         $feed_downloads_processed++;
 
-        say "Processing $xml_file_name: download $feed_downloads_processed out of " . scalar ( @root_child_nodes ) ;
+        say "Processing $xml_file_name: download $feed_downloads_processed out of " . scalar( @root_child_nodes );
 
         #say STDERR "child_node: " . $child_node->nodeName();
 
@@ -152,6 +152,7 @@ sub import_downloads
 
             if ( MediaWords::DBI::Stories::is_new( $db, $story ) )
             {
+
                 #say 'new story:';
                 #say Dumper( $story );
 
@@ -162,13 +163,14 @@ sub import_downloads
         #say 'got new stories';
         #say Dumper ( $new_stories );
 
-	if ( scalar( @ { $new_stories } ) == 0 )
-	{
-	    say "No new stories for download $feed_downloads_processed out of ". scalar ( @root_child_nodes ) . " in $xml_file_name";
-	    next;
-	}
+        if ( scalar( @{ $new_stories } ) == 0 )
+        {
+            say "No new stories for download $feed_downloads_processed out of " . scalar( @root_child_nodes ) .
+              " in $xml_file_name";
+            next;
+        }
 
-	say "Creating new downloads for $feed_downloads_processed";
+        say "Creating new downloads for $feed_downloads_processed";
 
         my $db_download = $db->create( 'downloads', $download );
 
@@ -222,23 +224,23 @@ sub import_downloads
                 $download_hash->{ extracted }  = 'f';
                 $download_hash->{ path }       = '';
 
-		delete( $download_hash->{ downloads_id } );
+                delete( $download_hash->{ downloads_id } );
 
-		my $story_download_decoded_content = $download_hash->{ encoded_download_content_base_64 }
+                my $story_download_decoded_content = $download_hash->{ encoded_download_content_base_64 }
                   && decode_base64( $download_hash->{ encoded_download_content_base_64 } );
-		delete( $download_hash->{ encoded_download_content_base_64 } );
+                delete( $download_hash->{ encoded_download_content_base_64 } );
 
-		if ( !defined ( $download_hash->{ host } ) )
-		{
-		   $download_hash->{ host } = '';
-		}
+                if ( !defined( $download_hash->{ host } ) )
+                {
+                    $download_hash->{ host } = '';
+                }
 
                 my $db_story_download = $db->create( 'downloads', $download_hash );
 
-		if ( $db_story_download->{ state } eq 'sucess' )
-		{
-		   MediaWords::DBI::Downloads::store_content( $db, $db_story_download, \$story_download_decoded_content );
-		 }
+                if ( $db_story_download->{ state } eq 'sucess' )
+                {
+                    MediaWords::DBI::Downloads::store_content( $db, $db_story_download, \$story_download_decoded_content );
+                }
 
                 $parent = $db_story_download;
             }

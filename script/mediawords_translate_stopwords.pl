@@ -22,7 +22,6 @@ use MediaWords::DB;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-
 use Data::Dumper;
 use LWP::Debug;
 use MediaWords::Util::Translate;
