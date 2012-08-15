@@ -17,7 +17,6 @@ use Test::Differences;
 use Test::Deep;
 require Test::NoWarnings;
 
-
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::MediaSets;
@@ -38,19 +37,18 @@ sub add_test_feed
     my ( $db, $url_to_crawl ) = @_;
 
     Readonly my $sw_data_start_date => '2008-02-03';
-    Readonly my $sw_data_end_date => '2014-02-27';
+    Readonly my $sw_data_end_date   => '2014-02-27';
 
     my $test_medium = $db->query(
-        "insert into media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?, ?) returning *",
-        '_ Crawler Test',
-        $url_to_crawl, 0, 0, $sw_data_start_date, $sw_data_end_date
+"insert into media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?, ?) returning *",
+        '_ Crawler Test', $url_to_crawl, 0, 0, $sw_data_start_date, $sw_data_end_date
     )->hash;
 
-    ok  ( MediaWords::StoryVectors::_medium_has_story_words_start_date($test_medium) );
-    ok  ( MediaWords::StoryVectors::_medium_has_story_words_end_date($test_medium) );
+    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ) );
+    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ) );
 
-    is ( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
-    is ( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ), $sw_data_end_date );
+    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
+    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
 
     my $feed = $db->query(
         "insert into feeds (media_id, name, url) values (?, ?, ?) returning *",
@@ -65,7 +63,6 @@ sub add_test_feed
 
     return $feed;
 }
-
 
 # get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
 sub get_expanded_stories
@@ -85,9 +82,10 @@ sub _purge_story_sentences_id_field
 
     for my $sentence ( @$sentences )
     {
+
         #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
 
-	#die Dumper ($sentence);
+        #die Dumper ($sentence);
 
         $sentence->{ story_sentences_id } = '';
         delete $sentence->{ story_sentences_id };
@@ -103,7 +101,6 @@ sub dump_stories
 
     MediaWords::Test::Data::store_test_data( 'test_feed_download_stories', $stories );
 }
-
 
 # test various results of the crawler
 sub test_stories
@@ -124,8 +121,9 @@ sub test_stories
         my $test_story = $test_story_hash->{ $story->{ title } };
         if ( ok( $test_story, "story match: " . $story->{ title } ) )
         {
-	    #$story->{ extracted_text } =~ s/\n//g;
-	    #$test_story->{ extracted_text } =~ s/\n//g;
+
+            #$story->{ extracted_text } =~ s/\n//g;
+            #$test_story->{ extracted_text } =~ s/\n//g;
 
             for my $field ( qw(publish_date description guid extracted_text) )
             {
@@ -143,13 +141,12 @@ sub test_stories
 
             #is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
 
-	    #is ( scalar( @{ $story->{ story_sentences } } ), scalar( @{ $test_story->{ story_sentences } } ), "story sentence count"  . $story->{ stories_id } );
+#is ( scalar( @{ $story->{ story_sentences } } ), scalar( @{ $test_story->{ story_sentences } } ), "story sentence count"  . $story->{ stories_id } );
 
-	    _purge_story_sentences_id_field (  $story->{ story_sentences } );
-	    _purge_story_sentences_id_field (  $test_story->{ story_sentences } );
+            _purge_story_sentences_id_field( $story->{ story_sentences } );
+            _purge_story_sentences_id_field( $test_story->{ story_sentences } );
 
-	    #cmp_deeply (  $story->{ story_sentences }, $test_story->{ story_sentences } , "story sentences " . $story->{ stories_id } );
-
+#cmp_deeply (  $story->{ story_sentences }, $test_story->{ story_sentences } , "story sentences " . $story->{ stories_id } );
 
           TODO:
             {
@@ -158,7 +155,7 @@ sub test_stories
                 #my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
                 #my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
 
-                #is( $story_sentence_words_count, $test_story_sentence_words_count, "story words count for "  . $story->{ stories_id } );
+    #is( $story_sentence_words_count, $test_story_sentence_words_count, "story words count for "  . $story->{ stories_id } );
             }
         }
 
@@ -215,17 +212,17 @@ sub main
 
             my $feed = add_test_feed( $db, $url_to_crawl );
 
-	    my $download = MediaWords::Crawler::Provider::_create_download_for_feed( $feed, $db ); 
+            my $download = MediaWords::Crawler::Provider::_create_download_for_feed( $feed, $db );
 
-	    my $crawler =  MediaWords::Crawler::Engine::_create_fetcher_engine_for_testing( 1);
+            my $crawler = MediaWords::Crawler::Engine::_create_fetcher_engine_for_testing( 1 );
 
-	    say STDERR "starting fetch_and_handle_single_download";
+            say STDERR "starting fetch_and_handle_single_download";
 
-	    $crawler->fetch_and_handle_single_download( $download );
+            $crawler->fetch_and_handle_single_download( $download );
 
-	    my $redundant_feed_download = MediaWords::Crawler::Provider::_create_download_for_feed( $feed, $db ); 
+            my $redundant_feed_download = MediaWords::Crawler::Provider::_create_download_for_feed( $feed, $db );
 
-	    $crawler->fetch_and_handle_single_download( $redundant_feed_download );
+            $crawler->fetch_and_handle_single_download( $redundant_feed_download );
 
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
@@ -238,7 +235,7 @@ sub main
 
             kill_local_server( $url_to_crawl );
 
-	    Test::NoWarnings::had_no_warnings();
+            Test::NoWarnings::had_no_warnings();
             done_testing();
         }
     );

@@ -20,7 +20,6 @@ use Lingua::Stem;
 use Lingua::Stem::Ru;
 use Data::Dumper;
 
-
 use Lingua::Stem::Snowball;
 use MediaWords::Util::Stemmer;
 

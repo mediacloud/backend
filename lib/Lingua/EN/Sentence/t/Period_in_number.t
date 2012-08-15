@@ -28,13 +28,13 @@ my $test_string = <<'QUOTE';
 Sentence contain version 2.0 of the text. Foo.
 QUOTE
 
-my $expected_sentences =
-[
- 'Sentence contain version 2.0 of the text.',
- "Foo."
-];
+my $expected_sentences = [ 'Sentence contain version 2.0 of the text.', "Foo." ];
 
 {
-    is( join ( '||', @{Lingua::EN::Sentence::MediaWords::get_sentences($test_string)}), join ('||', @{ $expected_sentences} ), "sentence_split" );
+    is(
+        join( '||', @{ Lingua::EN::Sentence::MediaWords::get_sentences( $test_string ) } ),
+        join( '||', @{ $expected_sentences } ),
+        "sentence_split"
+    );
 
 }

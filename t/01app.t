@@ -8,7 +8,7 @@ BEGIN
 
 use warnings;
 use Test::NoWarnings;
-use Test::More tests => 2+1;
+use Test::More tests => 2 + 1;
 
 use Catalyst::Test 'MediaWords';
 

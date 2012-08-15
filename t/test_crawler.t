@@ -20,7 +20,6 @@ use Test::Deep;
 
 require Test::NoWarnings;
 
-
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::MediaSets;
@@ -43,19 +42,18 @@ sub add_test_feed
     my ( $db, $url_to_crawl ) = @_;
 
     Readonly my $sw_data_start_date => '2008-02-03';
-    Readonly my $sw_data_end_date => '2014-02-27';
+    Readonly my $sw_data_end_date   => '2014-02-27';
 
     my $test_medium = $db->query(
-        "insert into media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?, ?) returning *",
-        '_ Crawler Test',
-        $url_to_crawl, 0, 0, $sw_data_start_date, $sw_data_end_date
+"insert into media (name, url, moderated, feeds_added, sw_data_start_date, sw_data_end_date) values (?, ?, ?, ?, ?, ?) returning *",
+        '_ Crawler Test', $url_to_crawl, 0, 0, $sw_data_start_date, $sw_data_end_date
     )->hash;
 
-    ok  ( MediaWords::StoryVectors::_medium_has_story_words_start_date($test_medium) );
-    ok  ( MediaWords::StoryVectors::_medium_has_story_words_end_date($test_medium) );
+    ok( MediaWords::StoryVectors::_medium_has_story_words_start_date( $test_medium ) );
+    ok( MediaWords::StoryVectors::_medium_has_story_words_end_date( $test_medium ) );
 
-    is ( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
-    is ( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ), $sw_data_end_date );
+    is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
+    is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
 
     my $feed = $db->query(
         "insert into feeds (media_id, name, url) values (?, ?, ?) returning *",
@@ -116,7 +114,7 @@ sub update_download_texts
     for my $download_text ( @{ $download_texts } )
     {
         MediaWords::DBI::DownloadTexts::update_text( $db, $download_text );
-    }   
+    }
 }
 
 # run extractor, tagger, and vector on all stories
@@ -156,7 +154,8 @@ sub get_expanded_stories
           $db->query( "select * from story_sentence_words where stories_id = ?", $story->{ stories_id } )->hashes;
 
         $story->{ story_sentences } =
-          $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ", $story->{ stories_id } )->hashes;
+          $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ",
+            $story->{ stories_id } )->hashes;
     }
 
     return $stories;
@@ -168,9 +167,10 @@ sub _purge_story_sentences_id_field
 
     for my $sentence ( @$sentences )
     {
+
         #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
 
-	#die Dumper ($sentence);
+        #die Dumper ($sentence);
 
         $sentence->{ story_sentences_id } = '';
         delete $sentence->{ story_sentences_id };
@@ -196,8 +196,9 @@ sub test_stories
         my $test_story = $test_story_hash->{ $story->{ title } };
         if ( ok( $test_story, "story match: " . $story->{ title } ) )
         {
-	    #$story->{ extracted_text } =~ s/\n//g;
-	    #$test_story->{ extracted_text } =~ s/\n//g;
+
+            #$story->{ extracted_text } =~ s/\n//g;
+            #$test_story->{ extracted_text } =~ s/\n//g;
 
             for my $field ( qw(publish_date description guid extracted_text) )
             {
@@ -215,13 +216,20 @@ sub test_stories
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
 
-	    is ( scalar( @{ $story->{ story_sentences } } ), scalar( @{ $test_story->{ story_sentences } } ), "story sentence count"  . $story->{ stories_id } );
+            is(
+                scalar( @{ $story->{ story_sentences } } ),
+                scalar( @{ $test_story->{ story_sentences } } ),
+                "story sentence count" . $story->{ stories_id }
+            );
 
-	    _purge_story_sentences_id_field (  $story->{ story_sentences } );
-	    _purge_story_sentences_id_field (  $test_story->{ story_sentences } );
+            _purge_story_sentences_id_field( $story->{ story_sentences } );
+            _purge_story_sentences_id_field( $test_story->{ story_sentences } );
 
-	    cmp_deeply (  $story->{ story_sentences }, $test_story->{ story_sentences } , "story sentences " . $story->{ stories_id } );
-
+            cmp_deeply(
+                $story->{ story_sentences },
+                $test_story->{ story_sentences },
+                "story sentences " . $story->{ stories_id }
+            );
 
           TODO:
             {
@@ -230,7 +238,11 @@ sub test_stories
                 my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
                 my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
 
-                is( $story_sentence_words_count, $test_story_sentence_words_count, "story words count for "  . $story->{ stories_id } );
+                is(
+                    $story_sentence_words_count,
+                    $test_story_sentence_words_count,
+                    "story words count for " . $story->{ stories_id }
+                );
             }
         }
 
@@ -244,8 +256,9 @@ sub generate_aggregate_words
     my ( $db, $feed ) = @_;
 
     my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
+
     #( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date)  - interval '1 week' ) from stories" )->flat;
-    my ( $end_date )   = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
+    my ( $end_date ) = $db->query( "select date_trunc( 'day', max(publish_date) ) from stories" )->flat;
 
     #( $end_date )   = $db->query( "select date_trunc( 'day', max(publish_date) + interval '1 month' ) from stories" )->flat;
 
@@ -327,17 +340,17 @@ sub test_top_500_weekly_words
         my $actual_row   = $top_500_weekly_words_actual->[ $i ];
         my $expected_row = $top_500_weekly_words_expected->[ $i ];
 
-	#undef($actual_row->{term});
-	#undef($expected_row->{term});
+        #undef($actual_row->{term});
+        #undef($expected_row->{term});
         cmp_deeply( $actual_row, $expected_row, "top_500_weekly_words row $i comparison" );
-	my @keys = sort (keys %{$expected_row});
+        my @keys = sort ( keys %{ $expected_row } );
 
-	@keys = grep {defined($expected_row->{$_}) } @keys;
+        @keys = grep { defined( $expected_row->{ $_ } ) } @keys;
 
-	my $actual_row_string = join ',', (@{$actual_row}{@keys});
-	my $expected_row_string = join ',', (@{$expected_row}{@keys});
+        my $actual_row_string   = join ',', ( @{ $actual_row }{ @keys } );
+        my $expected_row_string = join ',', ( @{ $expected_row }{ @keys } );
 
-	is ($actual_row_string, $expected_row_string, "top_500_weekly_words row $i string comparison:" . join ",", @keys);
+        is( $actual_row_string, $expected_row_string, "top_500_weekly_words row $i string comparison:" . join ",", @keys );
     }
 }
 
@@ -423,7 +436,7 @@ sub main
             print "Killing server\n";
             kill_local_server( $url_to_crawl );
 
-	    Test::NoWarnings::had_no_warnings();
+            Test::NoWarnings::had_no_warnings();
             done_testing();
         }
     );

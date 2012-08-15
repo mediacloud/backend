@@ -29,7 +29,6 @@ use MIME::Base64;
 use Carp qw (confess);
 use Data::Dumper;
 
-
 Readonly my $output_dir => "$cwd/download_content_test_data";
 
 print "$output_dir\n";
@@ -89,38 +88,41 @@ sub get_value_of_base_64_node
         my $story_title       = get_value_of_base_64_node( $root, 'story_title' );
         my $story_description = get_value_of_base_64_node( $root, 'story_description' );
 
-	MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$download_content, $story_title, $story_description);
+        MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$download_content, $story_title, $story_description );
 
         my $extract_results =
           MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $actual_preprocessed_text_array,
             $story_title, $story_description );
 
-	#$DB::single = 2;
-	MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
+        #$DB::single = 2;
+        MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
 
-	#say Dumper( $extract_results );
+        #say Dumper( $extract_results );
 
-	#exit;
+        #exit;
 
         my $expected_extracted_html = get_value_of_base_64_node( $root, 'extracted_html_base64' );
 
-	my $expected_extracted_html_ignore_sentence_splitting = $expected_extracted_html;
+        my $expected_extracted_html_ignore_sentence_splitting = $expected_extracted_html;
 
-	$expected_extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
+        $expected_extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
 
+        my $extracted_html_ignore_sentence_splitting = $extract_results->{ extracted_html };
+        $extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
 
-	my $extracted_html_ignore_sentence_splitting =  $extract_results->{ extracted_html };
-	$extracted_html_ignore_sentence_splitting =~ s/\n\n//g;
-
-        is( $extracted_html_ignore_sentence_splitting, $expected_extracted_html_ignore_sentence_splitting, "extracted html $xml_file" );
+        is(
+            $extracted_html_ignore_sentence_splitting,
+            $expected_extracted_html_ignore_sentence_splitting,
+            "extracted html $xml_file"
+        );
 
         my $expected_extracted_text = get_value_of_base_64_node( $root, 'extracted_text_base64' );
 
-	my $expected_extract_text_spaces_compressed = $expected_extracted_text;
-	$expected_extract_text_spaces_compressed =~ s/\s+//g;
+        my $expected_extract_text_spaces_compressed = $expected_extracted_text;
+        $expected_extract_text_spaces_compressed =~ s/\s+//g;
 
-	my $actual_extract_text_spaces_compressed = $extract_results->{ extracted_text };
-	$actual_extract_text_spaces_compressed =~ s/\s+//g;
+        my $actual_extract_text_spaces_compressed = $extract_results->{ extracted_text };
+        $actual_extract_text_spaces_compressed =~ s/\s+//g;
 
         is( $actual_extract_text_spaces_compressed, $expected_extract_text_spaces_compressed, "extracted text $xml_file" );
 

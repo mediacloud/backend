@@ -28,13 +28,13 @@ my $test_string = <<'QUOTE';
 Leave the city! [Mega No!], l.
 QUOTE
 
-my $expected_sentences =
-[
-'Leave the city!',
-'[Mega No!], l.',
-];
+my $expected_sentences = [ 'Leave the city!', '[Mega No!], l.', ];
 
 {
-    is( join ( '||', @{Lingua::EN::Sentence::MediaWords::get_sentences($test_string)}), join ('||', @{ $expected_sentences} ), "sentence_split" );
+    is(
+        join( '||', @{ Lingua::EN::Sentence::MediaWords::get_sentences( $test_string ) } ),
+        join( '||', @{ $expected_sentences } ),
+        "sentence_split"
+    );
 
 }

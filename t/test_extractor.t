@@ -35,7 +35,7 @@ use Encode;
 sub extract_and_compare
 {
     my ( $file, $title ) = @_;
-   
+
     my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
 
     my $test_story_hash;
@@ -49,23 +49,28 @@ sub extract_and_compare
 
     if ( !open( FILE, $path ) )
     {
-            return undef;
+        return undef;
     }
 
     my $content;
 
     while ( my $line = <FILE> )
     {
-	$content .= decode( 'utf-8', $line );
+        $content .= decode( 'utf-8', $line );
     }
-    
 
-    my $results = MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $story->{title}, $story->{description} );
- #   my $results = MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $title, '');
+    my $results =
+      MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $story->{ title }, $story->{ description } );
+
+    #   my $results = MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$content, $title, '');
 
     MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $results );
 
-    is ( substr ($results->{extracted_text}, 0, 100 ) , substr ( $story->{extracted_text}, 0, 100) , "Extracted text comparison for $title");
+    is(
+        substr( $results->{ extracted_text }, 0, 100 ),
+        substr( $story->{ extracted_text },   0, 100 ),
+        "Extracted text comparison for $title"
+    );
 
     #say Dumper ( $results );
 
@@ -75,7 +80,7 @@ sub extract_and_compare
 sub main
 {
 
-	my $dump	 = @ARGV;
+    my $dump = @ARGV;
     extract_and_compare( 'index.html.1', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
 
     Test::NoWarnings::had_no_warnings();

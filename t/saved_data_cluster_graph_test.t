@@ -10,8 +10,8 @@ BEGIN
     use lib $FindBin::Bin;
 }
 
-
-my $skip_reason = "Need to update tests after classes were moved and interfaces changes: The relevant classes now live in MediaWords::Cluster::Map ";
+my $skip_reason =
+"Need to update tests after classes were moved and interfaces changes: The relevant classes now live in MediaWords::Cluster::Map ";
 
 use Test::More skip_all => $skip_reason;
 
@@ -29,7 +29,6 @@ use MediaWords::DBI::MediaSets;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
-
 
 sub main
 {

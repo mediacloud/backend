@@ -84,7 +84,7 @@ __END_TEST_CASE__
             }
         ]
     },
-{
+    {
         test_name    => 'no title or time',
         media_id     => 1,
         publish_date => '2012-01-10 06:20:10',
@@ -167,12 +167,12 @@ foreach my $test_case ( @{ $test_cases } )
 {
     my $feed_input = $test_case->{ feed_input };
 
-    say Dumper ( $test_case->{  publish_date } ); 
+    say Dumper ( $test_case->{ publish_date } );
 
     my $stories = MediaWords::Crawler::FeedHandler::_get_stories_from_feed_contents_impl(
         $feed_input,
         $test_case->{ media_id },
-        $test_case->{  publish_date }
+        $test_case->{ publish_date }
     );
 
     foreach my $story ( @$stories )

@@ -28,14 +28,13 @@ my $test_string = <<'QUOTE';
 Sentence ends in May. This is the next sentence. Foo.
 QUOTE
 
-my $expected_sentences =
-[
- 'Sentence ends in May.',
- "This is the next sentence.",
- "Foo."
-];
+my $expected_sentences = [ 'Sentence ends in May.', "This is the next sentence.", "Foo." ];
 
 {
-    is( join ( '||', @{Lingua::EN::Sentence::MediaWords::get_sentences($test_string)}), join ('||', @{ $expected_sentences} ), "sentence_split" );
+    is(
+        join( '||', @{ Lingua::EN::Sentence::MediaWords::get_sentences( $test_string ) } ),
+        join( '||', @{ $expected_sentences } ),
+        "sentence_split"
+    );
 
 }

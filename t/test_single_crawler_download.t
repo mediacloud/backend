@@ -447,31 +447,31 @@ sub main
             extract_downloads( $db );
 
             # my $duplicate_sentence =
-#               $db->query( " SELECT * from story_sentences where sentence = 'Post-Thumbnail'" )->hash();
+            #               $db->query( " SELECT * from story_sentences where sentence = 'Post-Thumbnail'" )->hash();
 
-#             $db->query(
-#                 " DELETE from story_sentences where sentence_number = ? and stories_id = ? ",
-#                 $duplicate_sentence->{ sentence_number },
-#                 $duplicate_sentence->{ stories_id }
-#             );
+            #             $db->query(
+            #                 " DELETE from story_sentences where sentence_number = ? and stories_id = ? ",
+            #                 $duplicate_sentence->{ sentence_number },
+            #                 $duplicate_sentence->{ stories_id }
+            #             );
 
-#             $db->query(
-#                 " DELETE from story_sentence_words where sentence_number  = ? and stories_id = ? ",
-#                 $duplicate_sentence->{ sentence_number },
-#                 $duplicate_sentence->{ stories_id }
-#             );
+            #             $db->query(
+            #                 " DELETE from story_sentence_words where sentence_number  = ? and stories_id = ? ",
+            #                 $duplicate_sentence->{ sentence_number },
+            #                 $duplicate_sentence->{ stories_id }
+            #             );
 
-#             $db->query(
-# " UPDATE story_sentences SET sentence_number = sentence_number - 1  where sentence_number > ? and stories_id = ? ",
-#                 $duplicate_sentence->{ sentence_number },
-#                 $duplicate_sentence->{ stories_id }
-#             );
+        #             $db->query(
+        # " UPDATE story_sentences SET sentence_number = sentence_number - 1  where sentence_number > ? and stories_id = ? ",
+        #                 $duplicate_sentence->{ sentence_number },
+        #                 $duplicate_sentence->{ stories_id }
+        #             );
 
-#             $db->query(
-# " UPDATE story_sentence_words SET sentence_number = sentence_number - 1  where sentence_number > ? and stories_id = ? ",
-#                 $duplicate_sentence->{ sentence_number },
-#                 $duplicate_sentence->{ stories_id }
-#             );
+   #             $db->query(
+   # " UPDATE story_sentence_words SET sentence_number = sentence_number - 1  where sentence_number > ? and stories_id = ? ",
+   #                 $duplicate_sentence->{ sentence_number },
+   #                 $duplicate_sentence->{ stories_id }
+   #             );
 
             process_stories( $db );
 

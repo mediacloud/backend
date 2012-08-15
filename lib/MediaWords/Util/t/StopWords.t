@@ -13,7 +13,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 14 +1;
+use Test::More tests => 14 + 1;
 
 use_ok( 'MediaWords::Util::StopWords' );
 use MediaWords::Util::StopWords;
