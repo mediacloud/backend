@@ -24,7 +24,6 @@ use XML::LibXML;
 use Encode;
 use MIME::Base64;
 
-
 sub main
 {
     my @lines = <>;
