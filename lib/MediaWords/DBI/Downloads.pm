@@ -412,12 +412,21 @@ sub store_content
     if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
     {
         my $state = 'success';
-        my $path  = 'content:' . $$content_ref;
-        $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
-            $state, $path, $download->{ downloads_id } );
+        if ( $download->{ state } eq 'feed_error' )
+        {
+            $state = $download->{ state };
+        }
+        my $path = 'content:' . $$content_ref;
+        $db->query(
+            "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
+            $state, $path,
+            $download->{ error_message },
+            $download->{ downloads_id }
+        );
 
         $download->{ state } = $state;
-        $download->{ path }  = $path;
+
+        $download->{ path } = $path;
         return;
     }
 
@@ -444,10 +453,19 @@ sub store_content
 
     my $tar_id = "tar:$starting_block:$num_blocks:$tar_file:$download_path";
 
-    $db->query( "update downloads set state = ?, path = ? where downloads_id = ?",
-        'success', $tar_id, $download->{ downloads_id } );
+    my $state = 'success';
+    if ( $download->{ state } eq 'feed_error' )
+    {
+        $state = $download->{ state };
+    }
+    $db->query(
+        "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
+        $state, $tar_id,
+        $download->{ error_message },
+        $download->{ downloads_id }
+    );
 
-    $download->{ state } = 'success';
+    $download->{ state } = $state;
     $download->{ path }  = $tar_id;
 }
 

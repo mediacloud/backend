@@ -136,6 +136,9 @@ sub _add_story_using_parent_download
     #say STDERR "starting _add_story_using_parent_download ";
     #say STDERR Dumper( $story );
 
+    ### Extra check to lower the risk of a race condition -- we still might have one though....
+    return unless MediaWords::DBI::Stories::is_new( $dbs, $story );
+
     try
     {
         $story = $dbs->create( "stories", $story );
@@ -227,21 +230,35 @@ sub handle_feed_content
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
-    my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
+    my $content_ref = \$decoded_content;
 
-    my $content_ref;
-    if ( $num_new_stories > 0 )
-    {
-        $content_ref = \$decoded_content;
-    }
-    else
+    try
     {
 
-        #say STDERR "No stories found";
-        $content_ref = \"(redundant feed)";
-    }
+        my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
 
-    MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
+        if ( $num_new_stories > 0 )
+        {
+            $content_ref = \$decoded_content;
+        }
+        else
+        {
+
+            #say STDERR "No stories found";
+            $content_ref = \"(redundant feed)";
+        }
+    }
+    catch
+    {
+        $download->{ state } = 'feed_error';
+        my $error_message = "Error processing feed: $_";
+        say STDERR $error_message;
+        $download->{ error_message } = $error_message;
+    }
+    finally
+    {
+        MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
+    };
 
     return;
 }
