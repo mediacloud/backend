@@ -1,0 +1,1 @@
+ALTER TABLE story_sentence_words ADD FOREIGN KEY ( media_id) references media on DELETE CASCADE;
