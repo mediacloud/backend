@@ -17,26 +17,9 @@ use Test::NoWarnings;
 use Test::More tests => 2 + 1;
 use utf8;
 
-use Lingua::Stem;
-use Lingua::Stem::Ru;
+
 use Data::Dumper;
-
-use Lingua::EN::Sentence::MediaWords;
-use Lingua::Stem::Snowball;
-use MediaWords::Util::Stemmer;
 use MediaWords::StoryVectors;
-
-# $Data::Dumper::Useqq = 1;
-
-# {
-#     no warnings 'redefine';
-
-#     sub Data::Dumper::qquote
-#     {
-#         my $s = shift;
-#         return "'$s'";
-#     }
-# }
 
 sub stem_test
 {
