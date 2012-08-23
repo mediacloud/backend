@@ -17,7 +17,6 @@ use Test::NoWarnings;
 use Test::More tests => 2 + 1;
 use utf8;
 
-
 use Data::Dumper;
 use MediaWords::StoryVectors;
 
