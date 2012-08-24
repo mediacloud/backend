@@ -7,7 +7,6 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use MediaWords::Pg;
 use MediaWords::Languages::Language;
 
 my $_country_name_remapping = {
