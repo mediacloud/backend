@@ -21,8 +21,8 @@ use FindBin;
 my $_functions = [
 
     # [ module name, function name, number of parameters, return_type ]
-    #[ 'MediaWords::Pg::Cleanup', 'remove_duplicate_stories', 2, 'text' ],
-    #[ 'MediaWords::Util::HTML',  'html_strip',               1, 'text' ],
+    [ 'MediaWords::Pg::Cleanup', 'remove_duplicate_stories', 2, 'text' ],
+    [ 'MediaWords::Util::HTML',  'html_strip',               1, 'text' ],
 ];
 
 my $_spi_functions = [
@@ -172,32 +172,29 @@ END
     return $sql;
 }
 
-# get the sql function definitions
-sub get_sql_function_definitions
+sub _get_plperl_sql_function_definition
 {
-    my $sql = '';
+    my ( $module, $function_name, $num_parameters, $return_type ) = @_;
 
-    for my $function ( @{ $_functions } )
+    my $sql;
+
+    my ( $parameters, $args );
+    if ( $return_type eq 'trigger' )
     {
-        my ( $module, $function_name, $num_parameters, $return_type ) = @{ $function };
+        $parameters = '';
+        $args       = '$_TD';
+    }
+    else
+    {
+        $parameters = "TEXT," x $num_parameters;
+        chop( $parameters );
+        $args = '@_';
+    }
 
-        my ( $parameters, $args );
-        if ( $return_type eq 'trigger' )
-        {
-            $parameters = '';
-            $args       = '$_TD';
-        }
-        else
-        {
-            $parameters = "TEXT," x $num_parameters;
-            chop( $parameters );
-            $args = '@_';
-        }
+    my $spi_functions = join( '', map { "    MediaWords::Pg::set_spi('$_', \\&$_);\n" } @{ $_spi_functions } );
+    my $spi_constants = join( '', map { "    MediaWords::Pg::set_spi('$_', $_);\n" } @{ $_spi_constants } );
 
-        my $spi_functions = join( '', map { "    MediaWords::Pg::set_spi('$_', \\&$_);\n" } @{ $_spi_functions } );
-        my $spi_constants = join( '', map { "    MediaWords::Pg::set_spi('$_', $_);\n" } @{ $_spi_constants } );
-
-        my $function_sql = <<END
+    my $function_sql = <<END
 create or replace function $function_name ($parameters) returns $return_type as \$\$
     use lib "$FindBin::Bin/../../";
     use lib "$FindBin::Bin/../lib";
@@ -213,9 +210,22 @@ $spi_constants
     return ${module}::${function_name}($args);
 \$\$ language plperlu;
 END
-          ;
+      ;
 
-        $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
+    $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
+
+    return $sql;
+
+}
+
+# get the sql function definitions
+sub get_sql_function_definitions
+{
+    my $sql = '';
+
+    for my $function ( @{ $_functions } )
+    {
+        $sql .= _get_plperl_sql_function_definition( @{ $function } );
     }
 
     # append is_stop_stem()
