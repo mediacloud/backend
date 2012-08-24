@@ -25,12 +25,6 @@ my $_functions = [
     [ 'MediaWords::Util::HTML',  'html_strip',               1, 'text' ],
 ];
 
-my $_spi_functions = [
-    qw/spi_exec_query spi_query spi_fetchrow spi_prepare spi_exec_prepared
-      spi_query_prepared spi_cursor_close spi_freeplan elog/
-];
-my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
-
 # get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
 sub get_is_stop_stem_function_tables_and_definition
 {
@@ -177,6 +171,13 @@ sub _get_plperl_sql_function_definition
     my ( $module, $function_name, $num_parameters, $return_type ) = @_;
 
     my $sql;
+
+    my $_spi_functions = [
+        qw/spi_exec_query spi_query spi_fetchrow spi_prepare spi_exec_prepared
+          spi_query_prepared spi_cursor_close spi_freeplan elog/
+    ];
+
+    my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
 
     my ( $parameters, $args );
     if ( $return_type eq 'trigger' )
