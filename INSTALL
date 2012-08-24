@@ -31,7 +31,6 @@ We recommend that you read through this entire file. Nevertheless most users wil
      sudo ./install_scripts/install_mediacloud_package_dependencies.sh
      sudo ./install_scripts/create_default_db_user_and_databases.sh 
      cp  mediawords.yml.dist mediawords.yml
-     sudo ./install_scripts/install_system_wide_modules_for_plpg_perl.sh
      ./install_mc_perlbrew_and_modules.sh
      ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
      ./script/run_with_carton.sh ./script/mediawords_create_db.pl
@@ -64,9 +63,6 @@ This will create a PostgreSQL user called 'mediaclouduser' and two databases own
 * OPTIONAL: If you want to use calais tagging, you'll need to apply for a calais key 
   and enter the key into mediawords.yml.  Then change 'NYTTopics' for the
   default_tag_modules setting to 'NYTTopics Calais',
-
-* Install system wide Perl modules that are needed for the pg/plperl stored procedures by CDing to the directory where mediacloud is located and running the following command script:
-     sudo ./install_scripts/install_system_wide_modules_for_plpg_perl.sh 
 
 *  Run the install_mc_perlbrew_and_modules.sh script. This scripts installs Perlbrew, carton and the required modules. I.E. simply CD to the base directory of Media Cloud and run the following. Note that the script will take a long time to complete:
      ./install_mc_perlbrew_and_modules.sh

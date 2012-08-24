@@ -19,7 +19,6 @@ if [ ! -f mediawords.yml ]; then
     cp mediawords.yml.dist mediawords.yml
 fi
 
-sudo ./install_scripts/install_system_wide_modules_for_plpg_perl.sh
 ./install_mc_perlbrew_and_modules.sh
 
 echo "install complete"
