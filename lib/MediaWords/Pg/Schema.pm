@@ -13,18 +13,6 @@ use IPC::Run3;
 use Carp;
 use FindBin;
 
-# to add a new function to the db
-# * write the function in a new or existing MediaWords::Pg module
-# * add the module, function, number of parameters, and return_type to $_functions
-# * run add_functions to reload all functions
-
-my $_functions = [
-
-    # [ module name, function name, number of parameters, return_type ]
-    [ 'MediaWords::Pg::Cleanup', 'remove_duplicate_stories', 2, 'text' ],
-    [ 'MediaWords::Util::HTML',  'html_strip',               1, 'text' ],
-];
-
 # get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
 sub get_is_stop_stem_function_tables_and_definition
 {
@@ -166,68 +154,10 @@ END
     return $sql;
 }
 
-sub _get_plperl_sql_function_definition
-{
-    my ( $module, $function_name, $num_parameters, $return_type ) = @_;
-
-    my $sql;
-
-    my $_spi_functions = [
-        qw/spi_exec_query spi_query spi_fetchrow spi_prepare spi_exec_prepared
-          spi_query_prepared spi_cursor_close spi_freeplan elog/
-    ];
-
-    my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
-
-    my ( $parameters, $args );
-    if ( $return_type eq 'trigger' )
-    {
-        $parameters = '';
-        $args       = '$_TD';
-    }
-    else
-    {
-        $parameters = "TEXT," x $num_parameters;
-        chop( $parameters );
-        $args = '@_';
-    }
-
-    my $spi_functions = join( '', map { "    MediaWords::Pg::set_spi('$_', \\&$_);\n" } @{ $_spi_functions } );
-    my $spi_constants = join( '', map { "    MediaWords::Pg::set_spi('$_', $_);\n" } @{ $_spi_constants } );
-
-    my $function_sql = <<END
-create or replace function $function_name ($parameters) returns $return_type as \$\$
-    use lib "$FindBin::Bin/../../";
-    use lib "$FindBin::Bin/../lib";
-    use MediaWords::Pg;
-
-    \$MediaWords::Pg::in_pl_perl = 1;
-
-    use $module;
-
-$spi_functions
-$spi_constants
-
-    return ${module}::${function_name}($args);
-\$\$ language plperlu;
-END
-      ;
-
-    $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
-
-    return $sql;
-
-}
-
 # get the sql function definitions
 sub get_sql_function_definitions
 {
     my $sql = '';
-
-    for my $function ( @{ $_functions } )
-    {
-        $sql .= _get_plperl_sql_function_definition( @{ $function } );
-    }
 
     # append is_stop_stem()
     $sql .= get_is_stop_stem_function_tables_and_definition();
@@ -366,6 +296,60 @@ sub recreate_db
     my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
 
     return $load_sql_file_result;
+}
+
+## UNUSED function keeping around for now in case we decide to start using pl/perl functions again
+sub _get_plperl_sql_function_definition
+{
+    my ( $module, $function_name, $num_parameters, $return_type ) = @_;
+
+    my $sql;
+
+    my $_spi_functions = [
+        qw/spi_exec_query spi_query spi_fetchrow spi_prepare spi_exec_prepared
+          spi_query_prepared spi_cursor_close spi_freeplan elog/
+    ];
+
+    my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
+
+    my ( $parameters, $args );
+    if ( $return_type eq 'trigger' )
+    {
+        $parameters = '';
+        $args       = '$_TD';
+    }
+    else
+    {
+        $parameters = "TEXT," x $num_parameters;
+        chop( $parameters );
+        $args = '@_';
+    }
+
+    my $spi_functions = join( '', map { "    MediaWords::Pg::set_spi('$_', \\&$_);\n" } @{ $_spi_functions } );
+    my $spi_constants = join( '', map { "    MediaWords::Pg::set_spi('$_', $_);\n" } @{ $_spi_constants } );
+
+    my $function_sql = <<END
+create or replace function $function_name ($parameters) returns $return_type as \$\$
+    use lib "$FindBin::Bin/../../";
+    use lib "$FindBin::Bin/../lib";
+    use MediaWords::Pg;
+
+    \$MediaWords::Pg::in_pl_perl = 1;
+
+    use $module;
+
+$spi_functions
+$spi_constants
+
+    return ${module}::${function_name}($args);
+\$\$ language plperlu;
+END
+      ;
+
+    $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
+
+    return $sql;
+
 }
 
 1;
