@@ -213,7 +213,6 @@ sub _reset_schema
         $SIG{ __WARN__ } = $old_handler;
     }
 
-
     $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE " );
     $db->query( "CREATE LANGUAGE plpgsql" );
     $db->query( "CREATE SCHEMA $schema" );
