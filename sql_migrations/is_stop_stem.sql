@@ -1,3 +1,5 @@
+DROP LANGUAGE IF EXISTS plperlu CASCADE;
+
 
             -- PostgreSQL sends notices about implicit keys that are being created,
             -- and the test suite takes them for warnings.
