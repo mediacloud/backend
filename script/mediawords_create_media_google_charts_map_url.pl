@@ -18,7 +18,7 @@ use MediaWords::CommonLibs;
 use DBI;
 use DBIx::Simple;
 use DBIx::Simple::MediaWords;
-use Locale::Country;
+use MediaWords::Languages::Language;
 use URI::Escape;
 use List::Uniq ':all';
 use List::Util qw (max min reduce sum);
@@ -45,11 +45,14 @@ sub get_country_code_to_tag_count
         return;
     }
 
+    my $lang = MediaWords::Languages::Language::lang();
+    my $lcm  = $lang->get_locale_country_object();
+
     my $country_code_count = {};
 
     for my $tag_count_row ( @{ $tag_counts } )
     {
-        my $country_code = uc( Locale::Country::country2code( $tag_count_row->{ tag } ) );
+        my $country_code = uc( $lcm->country2code( $tag_count_row->{ tag } ) );
 
         die unless $country_code;
 
@@ -506,6 +509,9 @@ sub main
     my $table_name      = "media_google_charts_map_url";
     my $temp_table_name = $table_name . time();
 
+    my $lang = MediaWords::Languages::Language::lang();
+    my $lcm  = $lang->get_locale_country_object();
+
     my $db = TableCreationUtils::get_database_handle();
 
     my @media_ids = $db->query( "select media_id from media order by media_id" )->flat;
@@ -523,19 +529,29 @@ sub main
 
     my $i = 0;
 
-   #TODO this is a hack to make calais happy...
-   #Calais only recognizes iran as 'islamic republic of iran' but Locale::County wants 'iran, islamic republic of' and 'iran;
-    Locale::Country::rename_country( 'ir' => 'Islamic Republic of Iran' );
+  # TODO this is a hack to make calais happy...
+  # Calais only recognizes iran as 'islamic republic of iran' but Locale::County wants 'iran, islamic republic of' and 'iran;
+    $lcm->rename_country( 'ir' => 'Islamic Republic of Iran' );
 
-    #similar issue
-    Locale::Country::rename_country( 'cd' => 'Democratic Republic of Congo' );
+    # similar issue
+    $lcm->rename_country( 'cd' => 'Democratic Republic of Congo' );
 
-    my @all_countries = map { lc } Locale::Country::all_country_names;
+    my @all_countries = map { lc } $lcm->all_country_names;
 
-#handle common country names that are not the default in ISO 3166
-# To regenerate this list grab the data segment from run Locale/Country.pm in cpan source and save it too country_code_list.txt
-#then run:
-#cat country_code_list.txt  | sed -e 's/\w*:\w*:\w*:[^:]*//' | uniq |  tr ':' '\n' | grep -v '^$' | sort | perl -e 'while (<>) { chomp; print "\"$_\",\n"; } ' | tr \" \'
+    # handle common country names that are not the default in ISO 3166
+    # To regenerate this list, grab the data segment from run Locale/Country.pm in CPAN source and
+    # save it too country_code_list.txt.
+    # Then run:
+    #
+    #   cat country_code_list.txt  |\
+    #   sed -e 's/\w*:\w*:\w*:[^:]*//' |\
+    #   uniq |\
+    #   tr ':' '\n' |\
+    #   grep -v '^$' |\
+    #   sort |\
+    #   perl -e 'while (<>) { chomp; print "\"$_\",\n"; } ' |\
+    #   tr \" \'
+    #
     my @alternate_country_names = (
 
         'British Virgin Islands',

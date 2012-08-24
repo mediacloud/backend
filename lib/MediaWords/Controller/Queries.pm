@@ -12,6 +12,7 @@ use Data::Dumper;
 
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;
+use MediaWords::Languages::Language;
 
 sub index : Path : Args(0)
 {
@@ -311,7 +312,8 @@ sub sentences : Local
 
     if ( $term && !$stem )
     {
-        $stem = ( MediaWords::Util::Stemmer->new->stem( $term ) )->[ 0 ];
+        my $lang = MediaWords::Languages::Language::lang();
+        $stem = ( $lang->stem( $term ) )->[ 0 ];
     }
 
     my $stories;

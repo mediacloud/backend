@@ -2,9 +2,12 @@ package MediaWords::Pg::Schema;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
+use MediaWords::Languages::Language;
+
 # import functions into server schema
 
 use strict;
+use warnings;
 
 use IPC::Run3;
 use Carp;
@@ -18,9 +21,8 @@ use FindBin;
 my $_functions = [
 
     # [ module name, function name, number of parameters, return_type ]
-    [ 'MediaWords::Pg::Stopwords', 'is_stop_stem',             2, 'boolean' ],
-    [ 'MediaWords::Pg::Cleanup',   'remove_duplicate_stories', 2, 'text' ],
-    [ 'MediaWords::Util::HTML',    'html_strip',               1, 'text' ],
+    [ 'MediaWords::Pg::Cleanup', 'remove_duplicate_stories', 2, 'text' ],
+    [ 'MediaWords::Util::HTML',  'html_strip',               1, 'text' ],
 ];
 
 my $_spi_functions = [
@@ -28,6 +30,147 @@ my $_spi_functions = [
       spi_query_prepared spi_cursor_close spi_freeplan elog/
 ];
 my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
+
+# get is_stop_stem() stopword + stopword stem tables and a pl/pgsql function definition
+sub get_is_stop_stem_function_tables_and_definition
+{
+    my $sql = '';
+
+    my $lang = MediaWords::Languages::Language::lang();
+
+    my @stoplist_sizes = ( 'tiny', 'short', 'long' );
+
+    for my $stoplist_size ( @stoplist_sizes )
+    {
+
+        # create tables
+        $sql .= <<END
+
+            -- PostgreSQL sends notices about implicit keys that are being created,
+            -- and the test suite takes them for warnings.
+            SET client_min_messages=WARNING;
+
+            -- "Full" stopwords
+            DROP TABLE IF EXISTS stopwords_${stoplist_size};
+            CREATE TABLE stopwords_${stoplist_size} (
+                stopwords_id SERIAL PRIMARY KEY,
+                stopword VARCHAR(256) NOT NULL
+            ) WITH (OIDS=FALSE);
+            CREATE UNIQUE INDEX stopwords_${stoplist_size}_stopword ON stopwords_${stoplist_size}(stopword);
+
+            -- Stopword stems
+            DROP TABLE IF EXISTS stopword_stems_${stoplist_size};
+            CREATE TABLE stopword_stems_${stoplist_size} (
+                stopword_stems_id SERIAL PRIMARY KEY,
+                stopword_stem VARCHAR(256) NOT NULL
+            ) WITH (OIDS=FALSE);
+            CREATE UNIQUE INDEX stopword_stems_${stoplist_size}_stopword_stem ON stopword_stems_${stoplist_size}(stopword_stem);
+
+            -- Reset the message level back to "notice".
+            SET client_min_messages=NOTICE;
+
+END
+          ;
+
+        # collect stopwords
+        my $stopwords_hashref;
+        if ( $stoplist_size eq 'tiny' )
+        {
+            $stopwords_hashref = $lang->get_tiny_stop_words();
+        }
+        elsif ( $stoplist_size eq 'short' )
+        {
+            $stopwords_hashref = $lang->get_short_stop_words();
+        }
+        elsif ( $stoplist_size eq 'long' )
+        {
+            $stopwords_hashref = $lang->get_long_stop_words();
+        }
+        my @stopwords;
+        while ( my ( $stopword, $value ) = each %{ $stopwords_hashref } )
+        {
+            if ( $value == 1 )
+            {
+                $stopword =~ s/'/''/;
+                push( @stopwords, "('$stopword')" );
+            }
+        }
+
+        # collect stopword stems
+        my $stopword_stems_hashref;
+        if ( $stoplist_size eq 'tiny' )
+        {
+            $stopword_stems_hashref = $lang->get_tiny_stop_word_stems();
+        }
+        elsif ( $stoplist_size eq 'short' )
+        {
+            $stopword_stems_hashref = $lang->get_short_stop_word_stems();
+        }
+        elsif ( $stoplist_size eq 'long' )
+        {
+            $stopword_stems_hashref = $lang->get_long_stop_word_stems();
+        }
+        my @stopword_stems;
+        while ( my ( $stopword_stem, $value ) = each %{ $stopword_stems_hashref } )
+        {
+            if ( $value == 1 )
+            {
+                $stopword_stem =~ s/'/''/;
+                push( @stopword_stems, "('$stopword_stem')" );
+            }
+        }
+
+        # insert stopwords and stopword stems
+        $sql .= 'INSERT INTO stopwords_' . $stoplist_size . ' (stopword) VALUES ' . join( ', ', @stopwords ) . ';';
+        $sql .=
+          'INSERT INTO stopword_stems_' . $stoplist_size . ' (stopword_stem) VALUES ' . join( ', ', @stopword_stems ) . ';';
+    }
+
+    # create a function
+    $sql .= <<END
+
+        CREATE OR REPLACE FUNCTION is_stop_stem(size TEXT, stem TEXT)
+            RETURNS BOOLEAN AS \$\$
+        DECLARE
+            result BOOLEAN;
+        BEGIN
+
+            -- Tiny
+            IF size = 'tiny' THEN
+                SELECT 't' INTO result FROM stopword_stems_tiny WHERE stopword_stem = stem;
+                IF NOT FOUND THEN
+                    result := 'f';
+                END IF;
+
+            -- Short
+            ELSIF size = 'short' THEN
+                SELECT 't' INTO result FROM stopword_stems_short WHERE stopword_stem = stem;
+                IF NOT FOUND THEN
+                    result := 'f';
+                END IF;
+
+            -- Long
+            ELSIF size = 'long' THEN
+                SELECT 't' INTO result FROM stopword_stems_long WHERE stopword_stem = stem;
+                IF NOT FOUND THEN
+                    result := 'f';
+                END IF;
+
+            -- unknown size
+            ELSE
+                RAISE EXCEPTION 'Unknown stopword stem size: "%" (expected "tiny", "short" or "long")', size;
+                result := 'f';
+            END IF;
+
+            RETURN result;
+        END;
+        \$\$ LANGUAGE plpgsql;
+
+END
+      ;
+
+    return $sql;
+}
 
 # get the sql function definitions
 sub get_sql_function_definitions
@@ -74,6 +217,9 @@ END
 
         $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
     }
+
+    # append is_stop_stem()
+    $sql .= get_is_stop_stem_function_tables_and_definition();
 
     return $sql;
 }

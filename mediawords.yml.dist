@@ -38,7 +38,7 @@ mail:
 #mediawords:
     ### defaults to http://$hostname:$port/.
     #base_url: "http://your.mediacloud.server/and/path"
-    
+
     ### parent directory of the content/ directory with all downloaded content is stored
     #data_dir: "<bindir>/../data"
 
@@ -54,8 +54,10 @@ mail:
     #fetch_remote_content_password : password
     #fetch_remote_content_url      : "http://admin.mediacloud.org/admin/downloads/view/"
 
-    ### Uncomment to enable experimental support for processing Chinese stories.
-    #enable_chinese_language_support : "yes"
+    ### language of the media that is being analysed, e.g. "en_US"
+    ### (see lib/MediaWords/Languages/*.pm for supported languages)
+    ### (you can add support for your own language -- see doc/README.Languages)
+    #language : "en_US"
 
     #### Defaults to kmeans uncomment to use Cluto
     #clustering_engine: "cluto"

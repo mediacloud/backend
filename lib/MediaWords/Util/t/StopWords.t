@@ -13,39 +13,43 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 14 + 1;
+use Test::More tests => 17;
 
-use_ok( 'MediaWords::Util::StopWords' );
-use MediaWords::Util::StopWords;
+use_ok( 'MediaWords::Languages::en_US' );
+use_ok( 'MediaWords::Languages::ru_RU' );
+use MediaWords::Languages::en_US;
+use MediaWords::Languages::ru_RU;
 
 use Data::Dumper;
 use utf8;
 
+my $lang_en = MediaWords::Languages::en_US->new();
+my $lang_ru = MediaWords::Languages::ru_RU->new();
+
 #<<<
-ok(MediaWords::Util::StopWords::get_tiny_stop_word_lookup, 'get_tiny_stop_word_lookup');
+ok($lang_en->get_tiny_stop_words(), 'lang_en_get_stop_words');
 
-#say Dumper (MediaWords::Util::StopWords::get_tiny_stop_word_lookup);
-my $tiny_stop_words = MediaWords::Util::StopWords::get_tiny_stop_word_lookup;
-ok(scalar(keys(%{$tiny_stop_words})) >= 174, "stop words count is correct");
+# Stop words
+my $stop_words_en = $lang_en->get_tiny_stop_words();
+my $stop_words_ru = $lang_ru->get_tiny_stop_words();
+ok(scalar(keys(%{$stop_words_en})) >= 174, "stop words (en) count is correct");
+ok(scalar(keys(%{$stop_words_ru})) >= 140, "stop words (ru) count is correct");
 
-is ($tiny_stop_words->{the}, 1);
-is ($tiny_stop_words->{a}, 1);
-is ($tiny_stop_words->{is}, 1);
-is ($tiny_stop_words->{и}, 1, "russian test");
-is ($tiny_stop_words->{я}, 1, "russian test");
+is ($stop_words_en->{the}, 1, "English test #1");
+is ($stop_words_en->{a}, 1, "English test #2");
+is ($stop_words_en->{is}, 1, "English test #3");
+is ($stop_words_ru->{и}, 1, "Russian test #1");
+is ($stop_words_ru->{я}, 1, "Russian test #2");
 
-my $tiny_stemmed_stop_words = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup;
+# Stop word stems
+my $stop_word_stems_en = $lang_en->get_tiny_stop_word_stems();
+my $stop_word_stems_ru = $lang_ru->get_tiny_stop_word_stems();
 
-ok(scalar(keys(%{$tiny_stemmed_stop_words})) >= 174, "stop words count is correct");
-is ( $tiny_stemmed_stop_words->{a}, 1 , "Stemmed stop words" );
+ok(scalar(keys(%{$stop_word_stems_en})) >= 154, "stop word stem (en) count is correct");
+ok(scalar(keys(%{$stop_word_stems_ru})) >= 108, "stop word stem (ru) count is correct");
 
-ok(MediaWords::Util::StopWords::get_short_stop_word_lookup, 'get_tiny_stop_word_lookup');
+is ( $stop_word_stems_en->{a}, 1 , "Stemmed stop words" );
 
-ok(MediaWords::Util::StopWords::get_tiny_stop_stem_lookup(), "get_tiny_stop_stem_lookup()");
-ok(MediaWords::Util::StopWords::get_short_stop_stem_lookup(), 'get_short_stop_stem_lookup()');
-ok(MediaWords::Util::StopWords::get_long_stop_stem_lookup(), 'get_long_stop_stem_lookup()');
-
-#say Dumper([MediaWords::Util::StopWords::get_tiny_stop_word_lookup()]);
-#say Dumper([MediaWords::Util::StopWords::get_tiny_stop_stem_lookup()]);
-
-#>>>
+ok($lang_en->get_tiny_stop_word_stems(), "get_tiny_stop_word_stems()");
+ok($lang_en->get_short_stop_word_stems(), 'get_short_stop_word_stems()');
+ok($lang_en->get_long_stop_word_stems(), 'get_long_stop_word_stems()');

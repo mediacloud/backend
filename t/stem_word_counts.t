@@ -23,7 +23,7 @@ use MediaWords::StoryVectors;
 sub stem_test
 {
     my ( $test_string, $expected_stems, $test_name ) = @_;
-    my $stem_word_counts = MediaWords::StoryVectors::get_stem_word_counts_for_english_sentence( $test_string );
+    my $stem_word_counts = MediaWords::StoryVectors::_get_stem_word_counts_for_sentence( $test_string );
 
     #$Data::Dumper::Useqq = 1;
     #say Dumper ( $stem_word_counts );

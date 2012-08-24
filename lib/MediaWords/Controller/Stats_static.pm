@@ -6,7 +6,6 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
-use Locale::Country;
 use URI::Escape;
 use DBIx::Simple;
 

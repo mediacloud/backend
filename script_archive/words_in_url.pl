@@ -21,6 +21,8 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use LWP::Protocol::https;
 
+use MediaWords::Languages::Language;
+
 sub process_url
 {
 
@@ -65,12 +67,13 @@ sub process_url
 
         #say $tree->as_text(skip_dels => 1, extra_chars => '\xA0');
         #say $tree->as_HTML();
-        say "Dumpinging formatted text" if $debug_print;
+        say "Dumping formatted text" if $debug_print;
         my $formatted_text = $tree->format();
 
         say $formatted_text if $debug_print;
 
-        my $words = MediaWords::StoryVectors::_tokenize( [ $formatted_text ] );
+        my $lang  = MediaWords::Languages::Language::lang();
+        my $words = $lang->tokenize( $formatted_text );
 
         my $word_counts = {};
         foreach my $word ( @{ $words } )
@@ -160,13 +163,14 @@ foreach my $file ( @ARGV )
 
         my $word_and_count_list = [];
 
+        my $lang       = MediaWords::Languages::Language::lang();
+        my $stop_words = $lang->get_tiny_stop_words();
+
         if ( defined( $url_info->{ sorted_counts } ) )
         {
             $url_info->{ word_counts } = join ';', map { join ':', @{ $_ } } @{ $url_info->{ sorted_counts } };
 
-            $non_stop_word_counts =
-              [ grep { !MediaWords::Util::StopWords::get_tiny_stop_word_lookup()->{ $_->[ 0 ] } }
-                  @{ $url_info->{ sorted_counts } } ];
+            $non_stop_word_counts = [ grep { !$stop_words->{ $_->[ 0 ] } } @{ $url_info->{ sorted_counts } } ];
 
             $word_and_count_list = [ map { join ':', @{ $_ } } @{ $non_stop_word_counts } ];
             $url_info->{ non_stop_word_counts } = join ';', @{ $word_and_count_list };

@@ -6,12 +6,11 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
-use Locale::Country;
 use URI::Escape;
 use DBIx::Simple;
 use MediaWords::DBI::Stories;
 use Math::Round;
-use Lingua::StopWords qw{ getStopWords };
+use MediaWords::Languages::Language;
 
 ##
 ##  WARNING DEPRECATED CODE.
@@ -133,7 +132,8 @@ sub compare_sources
         }
 
         #clear out stopwords
-        my $stopwords = getStopWords( 'en' );
+        my $lang      = MediaWords::Languages::Language::lang();
+        my $stopwords = $lang->get_tiny_stop_words();
         while ( $stopwords =~ s/(.*?)\s+// )
         {
             if ( $hash->{ $1 } )

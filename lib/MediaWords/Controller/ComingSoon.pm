@@ -20,12 +20,10 @@ use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
-use MediaWords::Util::Stemmer;
 
 use Data::Dumper;
 use Date::Format;
 use Date::Parse;
-use Locale::Country;
 use Date::Calc qw(:all);
 use JSON;
 use Time::HiRes;

@@ -8,9 +8,8 @@ use warnings;
 
 use Data::Dumper;
 use MediaWords::Pg;
-use MediaWords::Util::Stemmer;
+use MediaWords::Languages::Language;
 
-use Locale::Country;
 my $_country_name_remapping = {
 
     # 'afghanistan',
@@ -232,7 +231,7 @@ my $_country_name_remapping = {
     'saint helena, ascension and tristan da cunha' => -1,
     'saint kitts and nevis'                        => -1,
     'saint lucia'                                  => -1,
-    'saint martin (french part)'                   => -1,
+    'saint-martin (french part)'                   => -1,
     'saint pierre and miquelon'                    => -1,
     'saint vincent and the grenadines'             => -1,
 
@@ -312,7 +311,9 @@ my $_country_name_remapping = {
 
 sub _get_non_remapped_names_for_non_banned_countries
 {
-    my $all_countries = [ sort map { lc } Locale::Country::all_country_names ];
+    my $lang          = MediaWords::Languages::Language::lang();
+    my $lcm           = $lang->get_locale_country_object();
+    my $all_countries = [ sort map { lc } $lcm->all_country_names ];
 
     #remove banned country names
     $all_countries =
@@ -362,13 +363,13 @@ sub get_stemmed_country_terms
 {
     my ( $country ) = @_;
 
-    my $stemmer = MediaWords::Util::Stemmer->new;
+    my $lang = MediaWords::Languages::Language::lang();
 
     my @country_split = split ' ', $country;
 
     die( "country has more than two terms: '$country'" ) if ( @country_split > 2 );
 
-    return $stemmer->stem( @country_split );
+    return $lang->stem( @country_split );
 }
 
 sub _get_country_data_base_value
@@ -382,11 +383,14 @@ sub get_country_code_for_stemmed_country_name
 {
     my ( $stemmed_country_name ) = @_;
 
+    my $lang = MediaWords::Languages::Language::lang();
+    my $lcm  = $lang->get_locale_country_object();
+
     if ( !defined( $_country_code_for_stemmed_country_name ) )
     {
         my $non_remapped_names = _get_non_remapped_names_for_non_banned_countries();
         $_country_code_for_stemmed_country_name =
-          { map { _get_country_data_base_value( _get_updated_country_name( $_ ) ) => Locale::Country::country2code( $_ ) }
+          { map { _get_country_data_base_value( _get_updated_country_name( $_ ) ) => $lcm->country2code( $_ ) }
               @$non_remapped_names };
 
         #say STDERR Dumper($_country_code_for_stemmed_country_name);

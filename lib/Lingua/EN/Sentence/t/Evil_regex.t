@@ -16,13 +16,9 @@ use Test::NoWarnings;
 use Test::More tests => 1 + 1;
 use utf8;
 
-use Lingua::Stem;
-use Lingua::Stem::Ru;
 use Data::Dumper;
 
 use Lingua::EN::Sentence::MediaWords;
-use Lingua::Stem::Snowball;
-use MediaWords::Util::Stemmer;
 use Data::Dumper;
 use Encode;
 use MIME::Base64;

@@ -16,13 +16,18 @@ use warnings;
 
 use Data::Dumper;
 use Perl::Tidy 20090616;
+use MediaWords::Util::Paths;
 
 sub main
 {
 
+    my $perltidy_config_file = MediaWords::Util::Paths::mc_script_path() . '/mediawords_perltidy_config_file';
+
+    #say STDERR "Using $perltidy_config_file";
+
     Perl::Tidy::perltidy(
         argv       => \@ARGV,
-        perltidyrc => "$FindBin::Bin/mediawords_perltidy_config_file"
+        perltidyrc => $perltidy_config_file,
     );
 }
 

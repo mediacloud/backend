@@ -16,17 +16,14 @@ use Test::NoWarnings;
 use Test::More tests => 1 + 1;
 use utf8;
 
-use Lingua::Stem;
-use Lingua::Stem::Ru;
 use Data::Dumper;
-
-use Lingua::EN::Sentence::MediaWords;
-use Lingua::Stem::Snowball;
-use MediaWords::Util::Stemmer;
+use MediaWords::Languages::en_US;
 
 my $test_string = <<'QUOTE';
 Sentence ends in May. This is the next sentence. Foo.
 QUOTE
+
+my $lang = MediaWords::Languages::en_US->new();
 
 my $expected_sentences = [ 'Sentence ends in May.', "This is the next sentence.", "Foo." ];
 
@@ -36,5 +33,4 @@ my $expected_sentences = [ 'Sentence ends in May.', "This is the next sentence."
         join( '||', @{ $expected_sentences } ),
         "sentence_split"
     );
-
 }

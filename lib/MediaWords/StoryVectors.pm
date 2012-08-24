@@ -5,22 +5,18 @@ use MediaWords::CommonLibs;
 # methods to generate the story_sentences and story_sentence_words and associated aggregated tables
 
 use strict;
-use Encode;
-use Encode::HanConvert;
+use warnings;
 
-use Lingua::ZH::WordSegmenter;
 use Data::Dumper;
 
-use Lingua::EN::Sentence::MediaWords;
-use Lingua::ZH::MediaWords;
+use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::SQL;
-use MediaWords::Util::Stemmer;
-use MediaWords::Util::StopWords;
 use MediaWords::Util::Countries;
 
 use Date::Format;
 use Date::Parse;
+use Encode;
 use utf8;
 use Readonly;
 
@@ -113,53 +109,6 @@ sub _insert_story_sentence
         $story->{ publish_date },
         $story->{ media_id }
     );
-}
-
-# simple tokenizer
-sub tokenize
-{
-    my ( $s ) = @_;
-
-    my $tokens = [];
-    while ( $s->[ 0 ] =~ m~(\w[\w']*)~g )
-    {
-        push( @{ $tokens }, lc( $1 ) );
-    }
-
-    return $tokens;
-}
-
-#Chinese tokenizer, returns an array of Chinese words
-sub tokenize_ZH
-{
-    my $s         = shift;
-    my $segmenter = shift;
-    my $i;
-    $s = encode( "utf8", $s );
-    my $segs = $segmenter->seg( $s, "utf8" );
-    my $tokens;
-    @$tokens = split( / /, $segs );
-    my $token;
-
-    foreach $token ( @$tokens )
-    {
-        $token =~ s/[\W\d_\s]+//g;
-    }
-
-    for ( $i = 0 ; $i < $#$tokens ; $i++ )
-    {
-        if ( $tokens->[ $i ] eq "" )
-        {
-            splice @$tokens, $i, 1;
-            $i--;
-        }
-    }
-
-    #foreach $token ( @$tokens )
-    #{
-    #    print $token. "\n";
-    #}
-    return $tokens;
 }
 
 # if the length of the string is greater than the given length, cut to that length
@@ -431,6 +380,7 @@ sub update_story_sentence_words
     my ( $db, $story_ref, $no_delete ) = @_;
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
+    my $lang = MediaWords::Languages::Language::lang();
 
     unless ( $no_delete )
     {
@@ -443,82 +393,16 @@ sub update_story_sentence_words
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
-    my $enable_chinese_support = MediaWords::Util::Config::get_config->{ mediawords }->{ enable_chinese_language_support }
-      || 'no';
+    my $sentences = $lang->get_sentences( $story_text ) || return;
+    $sentences = dedup_sentences( $db, $story_ref, $sentences );
 
-    my $is_Chinese = 0;
-
-    if ( $enable_chinese_support eq 'yes' && Lingua::ZH::MediaWords::text_is_Chinese( $story_text ) )
+    for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
     {
-        $is_Chinese = 1;
-    }
+        _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
 
-    #if the text is in Chinese
-    if ( $is_Chinese )
-    {
+        my $word_counts_for_sentence = _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ] );
 
-        my $base_dir;
-
-        #BEGIN
-        {
-            use File::Basename ();
-            use Cwd            ();
-
-            my $relative_path = '../..';    # Path to base of project relative to the current file
-            $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
-        }
-
-        my %par = ();
-        $par{ "dic_encoding" } = "utf8";
-        $par{ "dic" }          = "$base_dir/lib/Lingua/ZH/dict.txt";
-        my $segmenter = Lingua::ZH::WordSegmenter->new( %par );
-
-        #convert traditional characters into simplified characters
-        $story_text = trad_to_simp( $story_text );
-
-        my $sentences = Lingua::ZH::MediaWords::get_sentences( $story_text );
-        $sentences = dedup_sentences( $db, $story_ref, $sentences );
-        my $stop_words = MediaWords::Util::StopWords::get_Chinese_stopwords();
-        my $count      = 0;
-
-        for ( my $sentence_num = 0 ; $sentence_num < $#$sentences ; $sentence_num++ )
-        {
-            my $words = tokenize_ZH( $sentences->[ $sentence_num ], $segmenter );
-
-            #print $sentences[$sentence_num]."\n\n----------\n";
-            #print join "\n\n", @words;
-            for ( my $word_num = 0 ; $word_num < $#$words ; $word_num++ )
-            {
-                my $word = ( $words->[ $word_num ] );
-
-                if ( ( !$$stop_words{ $word } ) )
-                {
-                    $sentence_word_counts->{ $sentence_num }->{ $word }->{ word } ||= $word;
-                    $sentence_word_counts->{ $sentence_num }->{ $word }->{ count }++;
-                }
-            }
-            _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
-        }
-
-    }
-
-    #if the text is in English
-    else
-    {
-        my $stop_stems = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup();
-        my $stemmer    = MediaWords::Util::Stemmer->new;
-        my $sentences  = Lingua::EN::Sentence::MediaWords::get_sentences( $story_text ) || return;
-        $sentences = dedup_sentences( $db, $story_ref, $sentences );
-
-        for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
-        {
-            _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
-
-            my $word_counts_for_sentence =
-              _get_stem_word_counts_for_english_sentence( $stemmer, $sentences->[ $sentence_num ], $stop_stems );
-
-            $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
-        }
+        $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
     }
 
     _insert_story_sentence_words( $db, $story, $sentence_word_counts );
@@ -535,24 +419,15 @@ sub update_story_sentence_words
 	 }};
 }
 
-sub get_stem_word_counts_for_english_sentence
+sub _get_stem_word_counts_for_sentence
 {
     my ( $sentence ) = @_;
+    my $lang = MediaWords::Languages::Language::lang();
 
-    my $stop_stems = MediaWords::Util::StopWords::get_tiny_stop_stem_lookup();
+    my $words      = $lang->tokenize( $sentence );
+    my $stop_stems = $lang->get_tiny_stop_word_stems();
 
-    my $stemmer = MediaWords::Util::Stemmer->new;
-
-    return _get_stem_word_counts_for_english_sentence( $stemmer, $sentence, $stop_stems );
-}
-
-sub _get_stem_word_counts_for_english_sentence
-{
-    my ( $stemmer, $sentence, $stop_stems ) = @_;
-
-    my $words = tokenize( [ $sentence ] );
-
-    my $stems = $stemmer->stem( @{ $words } );
+    my $stems = $lang->stem( @{ $words } );
 
     my $word_counts = {};
 
@@ -560,8 +435,12 @@ sub _get_stem_word_counts_for_english_sentence
     {
         my ( $word, $stem ) = ( $words->[ $word_num ], $stems->[ $word_num ] );
 
-        limit_string_length( $word, 256 );
-        limit_string_length( $stem, 256 );
+        my $word_length_limit = $lang->get_word_length_limit();
+        if ( $word_length_limit > 0 )
+        {
+            limit_string_length( $word, $word_length_limit );
+            limit_string_length( $stem, $word_length_limit );
+        }
 
         if ( _valid_stem( $stem, $word, $stop_stems ) )
         {

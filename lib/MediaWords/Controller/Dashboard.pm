@@ -20,7 +20,7 @@ use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
-use MediaWords::Util::Stemmer;
+use MediaWords::Languages::Language;
 
 #use MediaWords::Util::Translate;
 
@@ -29,7 +29,6 @@ use MediaWords::Util::WordCloud;
 use Data::Dumper;
 use Date::Format;
 use Date::Parse;
-use Locale::Country;
 use Date::Calc qw(:all);
 use JSON;
 use Time::HiRes;
@@ -417,8 +416,10 @@ sub get_country_counts_all_dates : Local
     my ( $self, $c, $dashboards_id ) = @_;
 
     my $dashboard_topic;
-
     my $media_set_num = 1;
+
+    my $lang = MediaWords::Languages::Language::lang();
+    my $lcm  = $lang->get_locale_country_object();
 
     if ( my $id = $c->req->param( "dashboard_topics_id$media_set_num" ) )
     {
@@ -484,7 +485,7 @@ sub get_country_counts_all_dates : Local
           MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country } );
         die unless defined $country_code_2;
 
-        my $country_code_3 = uc( country_code2code( $country_code_2, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 ) );
+        my $country_code_3 = uc( $lcm->country_code2code( $country_code_2, 'LOCALE_CODE_ALPHA_2', 'LOCALE_CODE_ALPHA_3' ) );
 
         $country_count->{ country_code } = $country_code_3;
         $country_count->{ time }         = $country_count->{ publish_day };
@@ -656,8 +657,11 @@ sub _country_counts_to_csv_array
 {
     my ( $self, $country_counts ) = @_;
 
+    my $lang = MediaWords::Languages::Language::lang();
+    my $lcm  = $lang->get_locale_country_object();
+
     my $country_code_3_counts =
-      { map { uc( country_code2code( $_, LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3 ) ) => $country_counts->{ $_ } }
+      { map { uc( $lcm->country_code2code( $_, 'LOCALE_CODE_ALPHA_2', 'LOCALE_CODE_ALPHA_3' ) ) => $country_counts->{ $_ } }
           ( sort keys %{ $country_counts } ) };
 
     my $country_count_csv_array = [
@@ -1855,9 +1859,9 @@ sub get_stems_in_list
 
     my $terms = [ split( ' ', $term_list ) ];
 
-    my $stemmer = MediaWords::Util::Stemmer->new;
+    my $lang = MediaWords::Languages::Language::lang();
 
-    my $stems = $stemmer->stem( @{ $terms } );
+    my $stems = $lang->stem( @{ $terms } );
 
     my $stems_in_list = join( ',', map { "'$_'" } @{ $stems } );
 

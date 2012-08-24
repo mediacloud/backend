@@ -220,7 +220,7 @@ List::MoreUtils
 
 List::Member
 
-Locale::Country
+Locale::Country::Multilingual
 
 LWP::Simple
 

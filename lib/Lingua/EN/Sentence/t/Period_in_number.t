@@ -16,17 +16,14 @@ use Test::NoWarnings;
 use Test::More tests => 1 + 1;
 use utf8;
 
-use Lingua::Stem;
-use Lingua::Stem::Ru;
+use MediaWords::Languages::en_US;
 use Data::Dumper;
-
-use Lingua::EN::Sentence::MediaWords;
-use Lingua::Stem::Snowball;
-use MediaWords::Util::Stemmer;
 
 my $test_string = <<'QUOTE';
 Sentence contain version 2.0 of the text. Foo.
 QUOTE
+
+my $lang = MediaWords::Languages::en_US->new();
 
 my $expected_sentences = [ 'Sentence contain version 2.0 of the text.', "Foo." ];
 
@@ -36,5 +33,4 @@ my $expected_sentences = [ 'Sentence contain version 2.0 of the text.', "Foo." ]
         join( '||', @{ $expected_sentences } ),
         "sentence_split"
     );
-
 }

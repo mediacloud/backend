@@ -15,6 +15,7 @@ use JSON;
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
 use MediaWords::StoryVectors;
+use MediaWords::Languages::Language;
 
 use Readonly;
 
@@ -939,7 +940,8 @@ sub get_term_counts
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'dw' );
     my $date_clause = get_daily_date_clause( $query, 'dw' );
 
-    my $stems = MediaWords::Util::Stemmer->new->stem( @{ $terms } );
+    my $lang       = MediaWords::Languages::Language::lang();
+    my $stems      = $lang->stem( @{ $terms } );
     my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
 
     my $num_term_combinations = @{ $query->{ media_sets } } * @{ $stems };
@@ -1003,7 +1005,8 @@ sub get_max_term_ratios
       $ignore_topics ? "w.dashboard_topics_id is null" : get_dashboard_topics_clause( $query, 'w' );
     my $date_clause = get_weekly_date_clause( $query, 'w' );
 
-    my $stems = MediaWords::Util::Stemmer->new->stem( @{ $terms } );
+    my $lang       = MediaWords::Languages::Language::lang();
+    my $stems      = $lang->stem( @{ $terms } );
     my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
 
     my $max_term_count =

@@ -16,29 +16,12 @@ use Test::NoWarnings;
 use Test::More tests => 7 + 1;
 use utf8;
 
-use Lingua::Stem;
-use Lingua::Stem::Ru;
 use Data::Dumper;
-
-use Lingua::Stem::Snowball;
-use MediaWords::Util::Stemmer;
-
-# simple tokenizer
-sub _tokenize
-{
-    my ( $s ) = @_;
-
-    my $tokens = [];
-    while ( $s->[ 0 ] =~ m~(\w[\w']*)~g )
-    {
-        push( @{ $tokens }, lc( $1 ) );
-    }
-
-    return $tokens;
-}
+use MediaWords::Languages::en_US;
+use MediaWords::Languages::ru_RU;
 
 #From http://en.wikipedia.org/wiki/Stemming
-my $stemmer_test_text = <<'__END_TEST_CASE__';
+my $stemmer_test_en_text = <<'__END_TEST_CASE__';
 In linguistic morphology, stemming is the process for reducing inflected (or sometimes derived) words to their stem, base or root form – generally a written word form. The stem need not be identical to the morphological root of the word; it is usually sufficient that related words map to the same stem, even if this stem is not in itself a valid root. The algorithm has been a long-standing problem in computer science; the first paper on the subject was published in 1968. The process of stemming, often called conflation, is useful in search engines for query expansion or indexing and other natural language processing problems.
 __END_TEST_CASE__
 
@@ -48,21 +31,21 @@ my $stemmer_test_ru_text = <<'__END_TEST_CASE__';
 __END_TEST_CASE__
 
 {
-    my @split_words = @{ _tokenize( [ $stemmer_test_text ] ) };
+    my $lang_en     = MediaWords::Languages::en_US->new();
+    my @split_words = @{ $lang_en->tokenize( $stemmer_test_en_text ) };
 
     #print @split_words;
     #exit;
     my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
 
     my $lingua_stem_result = [ $lingua_stem->stem( \@split_words ) ];
-    my $mw_stemmer         = MediaWords::Util::Stemmer->new;
-    my $mw_stem_result     = $mw_stemmer->stem( @split_words );
+    my $mw_stem_result     = $lang_en->stem( @split_words );
 
     {
         is_deeply( $mw_stem_result, $lingua_stem_result, "Stemmer compare test" );
     }
 
-    isnt( $lingua_stem_result, $stemmer_test_text, "Stemmed text is changed" );
+    isnt( $lingua_stem_result, $stemmer_test_en_text, "Stemmed text is changed" );
     ok( length( $lingua_stem_result ) > 0, "Stemmed text is nonempty" );
 
 }
@@ -70,27 +53,19 @@ __END_TEST_CASE__
 {
     ok( utf8::is_utf8( $stemmer_test_ru_text ), "is_utf8" );
 
-    my @split_words = split /\W/, ( lc $stemmer_test_ru_text );
+    my $lang_ru     = MediaWords::Languages::ru_RU->new();
+    my @split_words = @{ $lang_ru->tokenize( $stemmer_test_ru_text ) };
+
     utf8::upgrade( $stemmer_test_ru_text );
 
     my $temp = $stemmer_test_ru_text;
 
-    #$temp = lc $temp;
-    #say "$temp";
-    #say lc $temp;
+    @split_words = @{ $lang_ru->tokenize( $temp ) };
 
-    @split_words = @{ _tokenize( [ $temp ] ) };
-
-    #print STDERR "stemmer_test_ru_text " . Dumper(utf8::decode($stemmer_test_ru_text));
-    #my @split_words = @{$tokenizer->process([$stemmer_test_ru_text ])};
-
-    #print Dumper(@split_words);
-    #exit;
     my $lingua_stem = Lingua::Stem::Snowball->new( lang => 'ru', encoding => 'UTF-8' );
 
     my $lingua_stem_result = [ ( $lingua_stem->stem( \@split_words ) ) ];
-    my $mw_stemmer         = MediaWords::Util::Stemmer->new;
-    my $mw_stem_result     = $mw_stemmer->stem( @split_words );
+    my $mw_stem_result = $lang_ru->stem( @split_words );
 
     is_deeply( ( join "_", @{ $mw_stem_result } ), ( join "_", @{ $lingua_stem_result } ), "Stemmer compare test" );
 
@@ -98,7 +73,7 @@ __END_TEST_CASE__
 
     isnt(
         join( "_", @$mw_stem_result ),
-        join( "_", @{ _tokenize( [ lc $stemmer_test_ru_text ] ) } ),
+        join( "_", @{ $lang_ru->tokenize( lc $stemmer_test_ru_text ) } ),
         "Stemmer compare with no stemming test"
     );
 

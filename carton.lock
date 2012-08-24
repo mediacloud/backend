@@ -21471,6 +21471,7 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
+                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -22931,6 +22932,60 @@
          },
          "target" : "List::Uniq",
          "version" : "0.20"
+      },
+      "Locale::Country::Multilingual" : {
+         "dist" : "Locale-Country-Multilingual-0.23",
+         "mymeta" : {
+            "abstract" : "mapping ISO codes to localized country names",
+            "author" : [
+               "Bernhard Graf <graf@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 0.75, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Locale-Country-Multilingual",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "Class::Data::Inheritable" : 0,
+                     "ExtUtils::MakeMaker" : "6.62",
+                     "File::Spec" : 0,
+                     "Symbol" : 0,
+                     "Test::More" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.23"
+         },
+         "name" : "Locale::Country::Multilingual",
+         "pathname" : "G/GR/GRAF/Locale-Country-Multilingual-0.23.tar.gz",
+         "provides" : {
+            "Locale::Country::Multilingual" : {
+               "file" : "Locale/Country/Multilingual.pm",
+               "version" : "0.23"
+            }
+         },
+         "target" : "Locale::Country::Multilingual",
+         "version" : "0.23"
       },
       "Locale::Maketext::Lexicon" : {
          "dist" : "Locale-Maketext-Lexicon-0.91",
@@ -38400,7 +38455,7 @@
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],

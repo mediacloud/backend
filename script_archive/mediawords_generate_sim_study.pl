@@ -14,7 +14,7 @@ BEGIN
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::Stemmer;
+use MediaWords::Languages::Language;
 use MediaWords::Util::Web;
 
 use Text::CSV_XS;
@@ -236,11 +236,11 @@ sub filter_for_keywords
 
     return $stories if ( !SAMPLE_KEYWORDS );
 
-    my $stemmer = MediaWords::Util::Stemmer->new;
+    my $lang = MediaWords::Languages::Language::lang();
 
     my $keystem_lookup = {};
     map { print STDERR "keystem: $_ " . lc( $_ ) . "\n"; $keystem_lookup->{ lc( $_ ) } = 1 }
-      @{ $stemmer->stem( SAMPLE_KEYWORDS ) };
+      @{ $lang->stem( SAMPLE_KEYWORDS ) };
 
     my $filtered_stories = [];
     for my $story ( @{ $stories } )

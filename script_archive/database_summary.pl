@@ -12,7 +12,6 @@ use MediaWords::DB;
 use DBI;
 use DBIx::Simple;
 use DBIx::Simple::MediaWords;
-use Locale::Country;
 use URI::Escape;
 use List::Uniq ':all';
 use List::Util qw (max min reduce sum);

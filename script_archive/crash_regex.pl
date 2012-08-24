@@ -18,16 +18,11 @@ use Data::Dumper;
 
 use Encode;
 use MIME::Base64;
-use Lingua::EN::Sentence::MediaWords;
 use utf8;
 
-use Lingua::Stem;
-use Lingua::Stem::Ru;
 use Data::Dumper;
 
 use Lingua::EN::Sentence::MediaWords;
-use Lingua::Stem::Snowball;
-use MediaWords::Util::Stemmer;
 use Data::Dumper;
 use Encode;
 use MIME::Base64;

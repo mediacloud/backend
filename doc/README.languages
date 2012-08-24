@@ -1,0 +1,32 @@
+REQUIREMENTS FOR ADDING A NEW LANGUAGE
+======================================
+
+1. A list of stop words (a stoplist).
+
+    * `Lingua::StopWords` might already support your language. If it does, you're good to go.
+    * If not, get a list of stop words for your language and later configure your language's submodule accordingly.
+    * After running Media Cloud for some time, you might want to generate a new stoplist straight from the data that you've collected. See `./script/mediawords_generate_stopwords.pl` for an example of how to do that.
+
+2. A stemmer.
+
+    * `Lingua::Stem::Snowball` might already support your language. If it does, you're good to go.
+    * If not, find a way to stem words of your language and later configure your language's submodule accordingly.
+
+3. (sometimes) A sentence tokenizer.
+
+    * For some languages, you might need an algorithm that would be able to separate sentences to words.
+
+
+ADDING SUPPORT FOR A NEW LANGUAGE
+=================================
+
+1. Create a subclass of MediaWords::Languages::Language and place it in `lib/MediaWords/Languages/`
+
+    * For example, to add support for French language, create `lib/MediaWords/Languages/fr_FR.pm`
+    * You might want to copy a subclass file of a similar language and modify it to suit your language's requirements. For example, you can copy `lib/MediaWords/Languages/en_US.pm` to `lib/MediaWords/Languages/fr_FR.pm`, and then edit `fr_FR.pm` afterwards.
+
+2. Subclass the required Perl subroutines to do the language-specific actions for the language you're about to add.
+
+    * See the top of the `lib/MediaWords/Languages/Language.pm` file for a list of subroutines you have to override.
+
+3. Set the `mediawords : language` parameter in `mediawords.yml`.

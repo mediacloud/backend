@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
-use MediaWords::Util::Stemmer;
+use MediaWords::Languages::Language;
 
 # list all dashboards
 sub list : Local
@@ -98,8 +98,8 @@ sub create_topic : Local
         return;
     }
 
-    my $stemmer       = MediaWords::Util::Stemmer->new;
-    my $stemmed       = $stemmer->stem( $c->req->param( 'query' ) );
+    my $lang          = MediaWords::Languages::Language::lang();
+    my $stemmed       = $lang->stem( $c->req->param( 'query' ) );
     my $stemmed_query = $stemmed->[ 0 ];
 
     $c->dbis->query(

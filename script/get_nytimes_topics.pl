@@ -11,7 +11,8 @@ BEGIN
 use strict;
 
 use MediaWords::Util::Web;
-use MediaWords::Util::StopWords;
+use MediaWords::Util::Config;
+use MediaWords::Languages::en_US;
 
 #<font []^>]><a href="http://topics.nytimes.com/top/reference/timestopics/people/a/aaliyah/index.html">Aaliyah</a><br></font>
 
@@ -116,7 +117,8 @@ sub main
 
     my $topics = fetch_topics( $all_urls );
 
-    my $stop_word_lookup = MediaWords::Util::StopWords::get_long_stop_word_lookup();
+    my $lang             = MediaWords::Languages::en_US->new();
+    my $stop_word_lookup = $lang->get_long_stop_words();
     $stop_word_lookup->{ homer } = 1;
     $stop_word_lookup->{ queen } = 1;
 

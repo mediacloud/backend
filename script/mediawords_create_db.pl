@@ -44,7 +44,7 @@ sub main
         say '';
         say '';
         say '';
-        say "Database creation successfull.";
+        say "Database creation successful.";
         say '';
     }
 }
