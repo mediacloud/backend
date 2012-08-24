@@ -213,7 +213,6 @@ sub _reset_schema
         $SIG{ __WARN__ } = $old_handler;
     }
 
-    $db->query( "DROP LANGUAGE IF EXISTS plperlu CASCADE" );
 
     $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE " );
     $db->query( "CREATE LANGUAGE plpgsql" );
@@ -298,58 +297,58 @@ sub recreate_db
     return $load_sql_file_result;
 }
 
-## UNUSED function keeping around for now in case we decide to start using pl/perl functions again
-sub _get_plperl_sql_function_definition
-{
-    my ( $module, $function_name, $num_parameters, $return_type ) = @_;
+# ## UNUSED function keeping around for now in case we decide to start using pl/perl functions again
+# sub _get_plperl_sql_function_definition
+# {
+#     my ( $module, $function_name, $num_parameters, $return_type ) = @_;
 
-    my $sql;
+#     my $sql;
 
-    my $_spi_functions = [
-        qw/spi_exec_query spi_query spi_fetchrow spi_prepare spi_exec_prepared
-          spi_query_prepared spi_cursor_close spi_freeplan elog/
-    ];
+#     my $_spi_functions = [
+#         qw/spi_exec_query spi_query spi_fetchrow spi_prepare spi_exec_prepared
+#           spi_query_prepared spi_cursor_close spi_freeplan elog/
+#     ];
 
-    my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
+#     my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
 
-    my ( $parameters, $args );
-    if ( $return_type eq 'trigger' )
-    {
-        $parameters = '';
-        $args       = '$_TD';
-    }
-    else
-    {
-        $parameters = "TEXT," x $num_parameters;
-        chop( $parameters );
-        $args = '@_';
-    }
+#     my ( $parameters, $args );
+#     if ( $return_type eq 'trigger' )
+#     {
+#         $parameters = '';
+#         $args       = '$_TD';
+#     }
+#     else
+#     {
+#         $parameters = "TEXT," x $num_parameters;
+#         chop( $parameters );
+#         $args = '@_';
+#     }
 
-    my $spi_functions = join( '', map { "    MediaWords::Pg::set_spi('$_', \\&$_);\n" } @{ $_spi_functions } );
-    my $spi_constants = join( '', map { "    MediaWords::Pg::set_spi('$_', $_);\n" } @{ $_spi_constants } );
+#     my $spi_functions = join( '', map { "    MediaWords::Pg::set_spi('$_', \\&$_);\n" } @{ $_spi_functions } );
+#     my $spi_constants = join( '', map { "    MediaWords::Pg::set_spi('$_', $_);\n" } @{ $_spi_constants } );
 
-    my $function_sql = <<END
-create or replace function $function_name ($parameters) returns $return_type as \$\$
-    use lib "$FindBin::Bin/../../";
-    use lib "$FindBin::Bin/../lib";
-    use MediaWords::Pg;
+#     my $function_sql = <<END
+# create or replace function $function_name ($parameters) returns $return_type as \$\$
+#     use lib "$FindBin::Bin/../../";
+#     use lib "$FindBin::Bin/../lib";
+#     use MediaWords::Pg;
 
-    \$MediaWords::Pg::in_pl_perl = 1;
+#     \$MediaWords::Pg::in_pl_perl = 1;
 
-    use $module;
+#     use $module;
 
-$spi_functions
-$spi_constants
+# $spi_functions
+# $spi_constants
 
-    return ${module}::${function_name}($args);
-\$\$ language plperlu;
-END
-      ;
+#     return ${module}::${function_name}($args);
+# \$\$ language plperlu;
+# END
+#       ;
 
-    $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
+#     $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
 
-    return $sql;
+#     return $sql;
 
-}
+# }
 
 1;
