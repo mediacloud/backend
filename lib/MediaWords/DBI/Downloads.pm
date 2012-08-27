@@ -450,6 +450,12 @@ sub store_content
     }
 
     my ( $starting_block, $num_blocks ) = Archive::Tar::Indexed::append_file( $tar_path, \$gzipped_content, $download_path );
+    
+    if ( $num_blocks == 0 )
+    {
+        my $lengths = join( '/', map { length( $_ ) } ( $$content_ref, $encoded_content, $gzipped_content ) );
+        print STDERR "store_content: num_blocks = 0: $lengths\n";
+    }
 
     my $tar_id = "tar:$starting_block:$num_blocks:$tar_file:$download_path";
 
@@ -499,7 +505,7 @@ sub get_medium
 
 sub process_download_for_extractor
 {
-    my ( $db, $download, $process_num ) = @_;
+    my ( $db, $download, $process_num, $no_dedup_sentences ) = @_;
 
     print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
@@ -522,13 +528,12 @@ sub process_download_for_extractor
         #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
         # }
 
-        MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
+        MediaWords::StoryVectors::update_story_sentence_words( $db, $story, $no_dedup_sentences );
     }
     else
     {
         print STDERR "[$process_num] pending more downloads ...\n";
     }
-
 }
 
 1;
