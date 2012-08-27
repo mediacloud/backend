@@ -74,6 +74,9 @@ sub set_relative_path_all_downloads
     my $batch_number = 0;
 
     my $pm = new Parallel::ForkManager( 15 );
+
+    my $empty_download_check_frequency = 10;
+
     while ( $start_downloads_id <= $max_downloads_id )
     {
         unless ( $pm->start )
@@ -86,6 +89,14 @@ sub set_relative_path_all_downloads
 
         $start_downloads_id += $download_batch_size;
         $batch_number++;
+
+	## Skip over large ranges of empty downloads_id's
+        if ( ( $batch_number % $empty_download_check_frequency ) == 0 )
+        {
+            ( $start_downloads_id ) =
+              $db->query( " SELECT min( downloads_id) from downloads where downloads_id >= ? ", $start_downloads_id )->flat();
+            my $start_downloads_id = int( $start_downloads_id / 1000 ) * 1000;
+        }
 
         #exit;
     }
