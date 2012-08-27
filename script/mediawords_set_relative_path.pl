@@ -27,7 +27,7 @@ use Parallel::ForkManager;
 
 sub set_relative_path_downloads
 {
-    my ( $start_downloads_id, $end_downloads_id, $batch_number ) = @_;
+    my ( $start_downloads_id, $end_downloads_id, $batch_number, $max_downloads_id ) = @_;
 
     my $db = MediaWords::DB::connect_to_db;
 
@@ -46,11 +46,11 @@ sub set_relative_path_downloads
         $max_downloads_id_message = " max overall downloads_id $max_downloads_id";
     }
 
-    say STDERR "$batch_information downloads_id $cur_downloads_id -- $end_downloads_id  $max_downloads_id_message";
+    say STDERR "$batch_information downloads_id $start_downloads_id -- $end_downloads_id  $max_downloads_id_message";
 
     my $download = $db->query(
 "UPDATE downloads set relative_file_path = get_relative_file_path( path ) where downloads_id >= ?  and downloads_id <= ? ",
-        $cur_downloads_id, $end_downloads_id
+        $start_downloads_id, $end_downloads_id
     )->hash();
 
     return;
@@ -79,7 +79,7 @@ sub set_relative_path_all_downloads
         unless ( $pm->start )
         {
 
-            set_relative_path_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number );
+            set_relative_path_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number, $max_downloads_id );
             $pm->finish;
         }
 
