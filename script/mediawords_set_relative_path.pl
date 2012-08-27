@@ -51,7 +51,7 @@ sub set_relative_path_downloads
     my $download = $db->query(
 "UPDATE downloads set relative_file_path = get_relative_file_path( path ) where downloads_id >= ?  and downloads_id <= ? ",
         $start_downloads_id, $end_downloads_id
-    )->hash();
+    );
 
     return;
 }
@@ -79,7 +79,8 @@ sub set_relative_path_all_downloads
         unless ( $pm->start )
         {
 
-            set_relative_path_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size, $batch_number, $max_downloads_id );
+            set_relative_path_downloads( $start_downloads_id, $start_downloads_id + $download_batch_size,
+                $batch_number, $max_downloads_id );
             $pm->finish;
         }
 
