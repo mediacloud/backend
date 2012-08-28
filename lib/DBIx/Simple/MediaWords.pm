@@ -7,12 +7,16 @@ use strict;
 use Carp;
 use IPC::Run3;
 
+use Modern::Perl '2012';
+use MediaWords::CommonLibs;
+
 use MediaWords::Util::Config;
 use MediaWords::DB;
 
 use Data::Page;
 
 use Data::Dumper;
+use Try::Tiny;
 
 use base qw(DBIx::Simple);
 
@@ -35,48 +39,67 @@ sub new
     return $self;
 }
 
-sub query
+sub _query_impl
 {
     my $self = shift @_;
 
     my $ret = $self->SUPER::query( @_ );
 
     return $ret;
+}
 
+sub query
+{
+    my $self = shift @_;
+
+    my $ret = $self->_query_impl( @_ );
+
+    return $ret;
 }
 
 sub get_current_work_mem
 {
     my $self = shift @_;
 
-    my ($ret) = $self->query( "SHOW work_mem" )->flat();
+    my ( $ret ) = $self->_query_impl( "SHOW work_mem" )->flat();
 
     return $ret;
 }
 
-# sub run_block_with_large_work_mem
-# {
-#     my $self = shift @_;
+sub run_block_with_large_work_mem
+{
+    my $self = shift @_;
 
-#     my $block = shift @_;
+    my $block = shift @_;
 
-#     my $large_work_mem = '1GB';
-    
-#     my $old_work_mem = $self->get_current_work_mem();
+    my $large_work_mem = '1GB';
 
-#     $self->set_work_mem( $large_work_mem );
+    my $old_work_mem = $self->get_current_work_mem();
 
-#     block;
+    $self->_set_work_mem( $large_work_mem );
 
-#     $self->set_work_mem( $old_work_mem );
- 
-# }
+    #say "try";
 
-sub set_work_mem
+    try
+    {
+        $block;
+    }
+    catch
+    {
+        $self->_set_work_mem( $old_work_mem );
+
+        die $_;
+    };
+
+    $self->_set_work_mem( $old_work_mem );
+
+}
+
+sub _set_work_mem
 {
     my ( $self, $new_work_mem ) = @_;
 
-    $self->query( "SET work_mem = ? ", $new_work_mem );
+    $self->_query_impl( "SET work_mem = ? ", $new_work_mem );
 
     return;
 }
@@ -85,15 +108,9 @@ sub query_with_large_work_mem
 {
     my $self = shift @_;
 
-    my $large_work_mem = '1GB';
-    
-    my $old_work_mem = $self->get_current_work_mem();
+    my $ret;
 
-    $self->set_work_mem( $large_work_mem );
-
-    my $ret = $self->query( @_ );
-
-    $self->set_work_mem( $old_work_mem );
+    $self->run_block_with_large_work_mem( { $ret = $self->_query_impl( @_ ) } );
 
     return $ret;
 }
