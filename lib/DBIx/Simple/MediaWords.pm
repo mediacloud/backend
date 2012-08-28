@@ -45,6 +45,59 @@ sub query
 
 }
 
+sub get_current_work_mem
+{
+    my $self = shift @_;
+
+    my ($ret) = $self->query( "SHOW work_mem" )->flat();
+
+    return $ret;
+}
+
+# sub run_block_with_large_work_mem
+# {
+#     my $self = shift @_;
+
+#     my $block = shift @_;
+
+#     my $large_work_mem = '1GB';
+    
+#     my $old_work_mem = $self->get_current_work_mem();
+
+#     $self->set_work_mem( $large_work_mem );
+
+#     block;
+
+#     $self->set_work_mem( $old_work_mem );
+ 
+# }
+
+sub set_work_mem
+{
+    my ( $self, $new_work_mem ) = @_;
+
+    $self->query( "SET work_mem = ? ", $new_work_mem );
+
+    return;
+}
+
+sub query_with_large_work_mem
+{
+    my $self = shift @_;
+
+    my $large_work_mem = '1GB';
+    
+    my $old_work_mem = $self->get_current_work_mem();
+
+    $self->set_work_mem( $large_work_mem );
+
+    my $ret = $self->query( @_ );
+
+    $self->set_work_mem( $old_work_mem );
+
+    return $ret;
+}
+
 sub query_continue_on_error
 {
     my $self = shift @_;
