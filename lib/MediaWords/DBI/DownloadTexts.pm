@@ -214,6 +214,8 @@ sub create_from_download
 {
     my ( $db, $download ) = @_;
 
+    $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
+
     my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
 
     my $included_line_numbers = $extract->{ included_line_numbers };
@@ -251,8 +253,6 @@ sub create_from_download
 #die "Extractor text length mismatch for $download_text->{ download_texts_id } :    " . length($extracted_text) . " != " . length($download_text->{download_text }) unless length($extracted_text) eq length($download_text->{download_text });
 
 #    die "Extractor text mismatch for $download_text->{ download_texts_id } " unless $extracted_text eq $download_text->{download_text };
-
-    $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
 
     return $download_text;
 }
