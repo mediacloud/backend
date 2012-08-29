@@ -228,11 +228,20 @@ sub append_file
     if ( !open( TAR_FILE, '>>', $tar_file ) )
     {
         File::Path::rmtree( $temp_dir );
-        die( "Unable to open ta file '$tar_file': $!" );
+        die( "Unable to open tar file '$tar_file': $!" );
     }
 
     my $tar_cmd    = "tar -c -C '$temp_dir' -f - '$file_name'";
-    my $tar_output = `$tar_cmd`;
+
+    # the tar command fails very occasionally for some reason
+    my $tar_output;
+    for my $i ( 0 .. 4 )
+    {
+        last if ( $tar_output = `$tar_cmd` );
+        sleep( 1 );
+    }
+
+    warn( "append_file: 0 length tar output ( $tar_cmd )" ) unless ( $tar_output );
 
     if ( !( print TAR_FILE $tar_output ) )
     {
