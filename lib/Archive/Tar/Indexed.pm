@@ -58,11 +58,6 @@ sub read_file
 
     warn( "number of blocks cannot be 0. Tar file '$tar_file', file name '$file_name' " ) if $num_blocks == 0;
 
-    my $tar_cmd =
-      "dd if='$tar_file' bs=512 skip=$starting_block count=$num_blocks 2> /dev/null | tar -x -O -f - '$file_name'";
-
-    # my $content = `$tar_cmd`;
-
     my $content = _get_content_from_tar_pp( $tar_file, $file_name, $starting_block, $num_blocks );
 
     if ( $content eq '' )
