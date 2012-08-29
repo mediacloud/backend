@@ -62,7 +62,7 @@ sub read_file
 
     if ( $content eq '' )
     {
-        warn( "Unable to retrieve content from tar with '$tar_cmd'" );
+        warn( "Unable to retrieve content from tar for archive $tar_file and $file_name with blocks $starting_block + $num_blocks " );
     }
 
     return \$content;
@@ -219,12 +219,13 @@ sub append_file
 
     my @pre_tar_stats = stat( $tar_file );
 
-    my $tar_file_mode = ( -f $tar_file ) ? '+<' : '+>';
     if ( !open( TAR_FILE, '>>', $tar_file ) )
     {
         File::Path::rmtree( $temp_dir );
         die( "Unable to open tar file '$tar_file': $!" );
     }
+
+    ##TODO use Archive::Tar instead of calling tar with backticks
 
     my $tar_cmd    = "tar -c -C '$temp_dir' -f - '$file_name'";
 
