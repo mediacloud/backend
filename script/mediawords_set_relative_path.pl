@@ -90,11 +90,12 @@ sub set_relative_path_all_downloads
         $start_downloads_id += $download_batch_size;
         $batch_number++;
 
-	## Skip over large ranges of empty downloads_id's
+        ## Skip over large ranges of empty downloads_id's
         if ( ( $batch_number % $empty_download_check_frequency ) == 0 )
         {
             ( $start_downloads_id ) =
-              $db->query( " SELECT min( downloads_id) from downloads where downloads_id >= ? ", $start_downloads_id )->flat();
+              $db->query( " SELECT min( downloads_id) from downloads where downloads_id >= ? ", $start_downloads_id )
+              ->flat();
             my $start_downloads_id = int( $start_downloads_id / 1000 ) * 1000;
         }
 
