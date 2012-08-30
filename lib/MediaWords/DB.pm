@@ -152,6 +152,15 @@ sub authenticate
     return __PACKAGE__->connect( connect_info( $label ) );
 }
 
+sub run_block_with_large_work_mem( &$ )
+{
+
+    my $block = shift;
+    my $db    = shift;
+
+    DBIx::Simple::MediaWords::run_block_with_large_work_mem { $block->() } $db;
+}
+
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
 
