@@ -66,6 +66,22 @@ sub get_current_work_mem
     return $ret;
 }
 
+sub _get_large_work_mem
+{
+    my $self = shift @_;
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $ret = $config->{ mediawords }->{ large_work_mem };
+
+    if ( ! defined ( $ret ) )
+    {
+	$ret = $self->get_current_work_mem();
+    }
+
+    return $ret;
+}
+
 sub run_block_with_large_work_mem( &$ )
 {
 
@@ -76,7 +92,7 @@ sub run_block_with_large_work_mem( &$ )
 
     #say Dumper( $db );
 
-    my $large_work_mem = '2GB';
+    my $large_work_mem = $db->_get_large_work_mem();
 
     my $old_work_mem = $db->get_current_work_mem();
 
