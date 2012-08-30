@@ -450,7 +450,7 @@ sub store_content
     }
 
     my ( $starting_block, $num_blocks ) = Archive::Tar::Indexed::append_file( $tar_path, \$gzipped_content, $download_path );
-    
+
     if ( $num_blocks == 0 )
     {
         my $lengths = join( '/', map { length( $_ ) } ( $$content_ref, $encoded_content, $gzipped_content ) );
