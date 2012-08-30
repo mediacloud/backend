@@ -145,9 +145,7 @@ sub query_with_large_work_mem
 
     run_block_with_large_work_mem
     {
-        say STDERR "inblock";
         $ret = $self->_query_impl( @args );
-        say STDERR "exiting block";
     }
     $self;
 
