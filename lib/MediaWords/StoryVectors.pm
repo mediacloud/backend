@@ -460,7 +460,7 @@ sub fill_story_sentence_words
     my $block_size = 1;
 
     my $count = 0;
-    while ( my $stories = $db->query( "select * from ssw_queue order by stories_id limit $block_size" )->hashes )
+    while ( my $stories = $db->query_with_large_work_mem( "select * from ssw_queue order by stories_id limit $block_size" )->hashes )
     {
         if ( !@{ $stories } )
         {
@@ -534,7 +534,7 @@ sub _update_total_weekly_words
     $db->query(
         "delete from total_weekly_words where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses" );
 
-    $db->query(
+    $db->query_with_large_work_mem(
 "INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
     );
 }
@@ -555,7 +555,7 @@ sub _sentence_study_update_total_weekly_words
         "delete from $total_weekly_words_table where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses"
     );
 
-    $db->query(
+    $db->query_with_large_work_mem(
 "INSERT INTO $total_weekly_words_table(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from $weekly_words_table where  publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses group by media_sets_id, dashboard_topics_id, publish_week  order by publish_week asc, media_sets_id, dashboard_topics_id "
     );
 }
@@ -585,7 +585,7 @@ sub _sentence_study_update_top_500_weekly_words
 
     # Note in postgresql [:alpha:] doesn't include international characters.
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
-    $db->query(
+    $db->query_with_large_work_mem(
         "insert into $top_500_weekly_words_table (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) "
           . "  select media_sets_id, regexp_replace( term, E'''s?\\\\Z', '' ), "
           . "      stem, stem_count, publish_week, dashboard_topics_id "
@@ -598,7 +598,7 @@ sub _sentence_study_update_top_500_weekly_words
           . "    where stem_rank < 500 "
           . "    order by stem_rank asc " );
 
-    $db->query(
+    $db->query_with_large_work_mem(
         "insert into $total_top_500_weekly_words_table (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
           "  select media_sets_id, publish_week, sum( stem_count ), dashboard_topics_id from $top_500_weekly_words_table " .
           "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
@@ -624,7 +624,7 @@ sub _update_top_500_weekly_words
 
     # Note in postgresql [:alpha:] doesn't include international characters.
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
-    $db->query(
+    $db->query_with_large_work_mem(
         "insert into top_500_weekly_words (media_sets_id, term, stem, stem_count, publish_week, dashboard_topics_id) " .
           "  select media_sets_id, regexp_replace( term, E'''s?\\\\Z', '' ), " .
           "      stem, stem_count, publish_week, dashboard_topics_id " . "    from ( " .
@@ -636,7 +636,7 @@ sub _update_top_500_weekly_words
           . "    where stem_rank < 500 "
           . "    order by stem_rank asc " );
 
-    $db->query( "insert into total_top_500_weekly_words (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
+    $db->query_with_large_work_mem( "insert into total_top_500_weekly_words (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
           "  select media_sets_id, publish_week, sum( stem_count ), dashboard_topics_id from top_500_weekly_words " .
           "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
           "    group by media_sets_id, publish_week, dashboard_topics_id" );
@@ -662,7 +662,7 @@ sub _update_top_500_weekly_author_words
 
     # Note in postgresql [:alpha:] doesn't include international characters.
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
-    $db->query(
+    $db->query_with_large_work_mem(
         "insert into top_500_weekly_author_words (media_sets_id, term, stem, stem_count, publish_week, authors_id) " .
           "  select media_sets_id, regexp_replace( term, E'''s?\\\\Z', '' ), " .
           "      stem, stem_count, publish_week, authors_id " . "    from ( " .
@@ -673,7 +673,7 @@ sub _update_top_500_weekly_author_words
           "        and not is_stop_stem( 'long', stem ) and stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]' ) q " .
           "    where stem_rank < 500 " . "    order by stem_rank asc " );
 
-    $db->query( "insert into total_top_500_weekly_author_words (media_sets_id, publish_week, total_count, authors_id) " .
+    $db->query_with_large_work_mem( "insert into total_top_500_weekly_author_words (media_sets_id, publish_week, total_count, authors_id) " .
           "  select media_sets_id, publish_week, sum( stem_count ), authors_id from top_500_weekly_author_words " .
           "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
           "    group by media_sets_id, publish_week, authors_id" );
@@ -729,7 +729,7 @@ sub _update_daily_words
 
     if ( !$dashboard_topics_id )
     {
-        $db->query( "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
+        $db->query_with_large_work_mem( "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
               "          select media_sets_id, term, stem, sum_stem_counts, publish_day, null from " .
               "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
               "                sum(stem_count_sum) over w as sum_stem_counts  from " .
@@ -770,10 +770,10 @@ sub _update_daily_words
 
         # doing these one by one is the only way I could get the postgres planner to create
         # a sane plan
-        $db->query( $query_2, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date );
+        $db->query_with_large_work_mem( $query_2, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date );
     }
 
-    $db->query( "insert into total_daily_words (media_sets_id, publish_day, total_count, dashboard_topics_id) " .
+    $db->query_with_large_work_mem( "insert into total_daily_words (media_sets_id, publish_day, total_count, dashboard_topics_id) " .
           " select media_sets_id, publish_day, sum(stem_count), dashboard_topics_id " . " from daily_words " .
           " where publish_day = '${sql_date}'::date $update_clauses " .
           " group by media_sets_id, publish_day, dashboard_topics_id " );
@@ -822,11 +822,11 @@ WHERE  term_rank       = 1
 AND    sum_stem_counts > 1
 END_SQL
 
-    $db->query( $query );
+    $db->query_with_large_work_mem( $query );
 
     say STDERR "Completed query $query";
 
-    $db->query( "insert into total_daily_author_words (authors_id, media_sets_id, publish_day, total_count) " .
+    $db->query_with_large_work_mem( "insert into total_daily_author_words (authors_id, media_sets_id, publish_day, total_count) " .
           " select authors_id, media_sets_id, publish_day, sum(stem_count)    " . " from daily_author_words " .
           " where publish_day = '${sql_date}'::date $update_clauses " .
           " group by authors_id, media_sets_id, publish_day " );
@@ -852,7 +852,7 @@ sub _update_daily_country_counts
     my $single_terms_list =
       join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
 
-    $db->query( "insert into daily_country_counts( media_sets_id, publish_day, country, country_count ) " .
+    $db->query_with_large_work_mem( "insert into daily_country_counts( media_sets_id, publish_day, country, country_count ) " .
           "  select media_sets_id, publish_day, stem, stem_count from daily_words " .
           "    where publish_day = '$sql_date'::date and dashboard_topics_id is null and $media_set_clause" .
           "      and stem in ( $single_terms_list )" );
@@ -864,7 +864,7 @@ sub _update_daily_country_counts
         my $country_name = join( " ", @{ $country } );
         my ( $term_a, $term_b ) = map { $db->dbh->quote( $_ ) } @{ $country };
 
-        $db->query(
+        $db->query_with_large_work_mem(
             "insert into daily_country_counts ( media_sets_id, publish_day, country, country_count ) " .
               "  select msmm.media_sets_id, ssw.publish_day, ?, count(*) " .
               "    from story_sentence_words ssw, media_sets_media_map msmm " .
@@ -913,7 +913,7 @@ sub _update_weekly_words
     # between for dates
     my $week_dates = _get_week_dates_list( $sql_date );
 
-    $db->query(
+    $db->query_with_large_work_mem(
 "delete from weekly_words where publish_week = '${ sql_date }'::date and media_sets_id in ( select distinct(media_sets_id) from total_daily_words where week_start_date(publish_day) = '${ sql_date }'::date ) $update_clauses "
     );
 
@@ -930,7 +930,7 @@ sub _update_weekly_words
       "	               )  q                                                         " . "              where term_rank = 1 ";
 
     #say STDERR "query:\n$query";
-    $db->query( $query );
+    $db->query_with_large_work_mem( $query );
 
     return 1;
 }
@@ -994,7 +994,7 @@ sub _update_weekly_author_words
     #TODO get rid of dashboards_id from this query
     my $update_clauses = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
-    $db->query(
+    $db->query_with_large_work_mem(
         "delete from weekly_author_words where publish_week = date_trunc( 'week', '${ sql_date }'::date ) $update_clauses "
     );
 
@@ -1013,7 +1013,7 @@ sub _update_weekly_author_words
 
     say STDERR "running  weekly_author_words query:$query";
 
-    $db->query( $query );
+    $db->query_with_large_work_mem( $query );
 
     return 1;
 }
