@@ -66,33 +66,40 @@ sub get_current_work_mem
     return $ret;
 }
 
-sub run_block_with_large_work_mem
+sub run_block_with_large_work_mem( &$ )
 {
-    my $self = shift @_;
 
-    my $block = shift @_;
+    my $block = shift;
+    my $db    = shift;
 
-    my $large_work_mem = '1GB';
+    #say STDERR "starting run_block_with_large_work_mem ";
 
-    my $old_work_mem = $self->get_current_work_mem();
+    #say Dumper( $db );
 
-    $self->_set_work_mem( $large_work_mem );
+    my $large_work_mem = '2GB';
+
+    my $old_work_mem = $db->get_current_work_mem();
+
+    $db->_set_work_mem( $large_work_mem );
 
     #say "try";
 
+    #say Dumper( $block );
+
     try
     {
-        $block;
+        $block->();
     }
     catch
     {
-        $self->_set_work_mem( $old_work_mem );
+        $db->_set_work_mem( $old_work_mem );
 
         die $_;
     };
 
-    $self->_set_work_mem( $old_work_mem );
+    $db->_set_work_mem( $old_work_mem );
 
+    #say STDERR "exiting run_block_with_large_work_mem ";
 }
 
 sub _set_work_mem
@@ -110,8 +117,25 @@ sub query_with_large_work_mem
 
     my $ret;
 
-    $self->run_block_with_large_work_mem( { $ret = $self->_query_impl( @_ ) } );
+    say STDERR "starting query_with_large_work_mem";
 
+    #say Dumper ( [ @_ ] );
+
+    #    my $block =  { $ret = $self->_query_impl( @_ ) };
+
+    #    say Dumper ( $block );
+
+    my @args = @_;
+
+    run_block_with_large_work_mem
+    {
+        say STDERR "inblock";
+        $ret = $self->_query_impl( @args );
+        say STDERR "exiting block";
+    }
+    $self;
+
+    #say Dumper( $ret );
     return $ret;
 }
 
