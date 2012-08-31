@@ -9,6 +9,11 @@ use File::Temp ();
 use Fcntl qw/:flock :seek/;
 use POSIX;
 use Archive::Tar;
+use Cwd;
+use Try::Tiny;
+use MediaWords::CommonLibs;
+use Modern::Perl '2012';
+use File::Touch;
 
 sub _dd
 {
@@ -219,6 +224,11 @@ sub append_file
 
     flock( LOCK_FILE, LOCK_EX );
 
+    if ( ! ( -x $tar_file ) )
+    {
+	touch ( $tar_file );
+    }
+
     my @pre_tar_stats = stat( $tar_file );
 
     if ( !open( TAR_FILE, '>>', $tar_file ) )
@@ -239,7 +249,41 @@ sub append_file
         sleep( 1 );
     }
 
+    #my $old_cwd = getcwd;
+    #my $tar_output_new = '';
+
+    # try
+    # {
+    #     chdir( $temp_dir );
+    #     my $tar = Archive::Tar->new;
+
+    #     say "Adding file $file_name ";
+    #     $tar->add_files( $file_name );
+    #    # open my $fake_tar_file_handle, '>', \$tar_output;
+
+    #     say STDERR "starting write to fake tar file";
+
+    #     #$tar->write( $fake_tar_file_handle );
+    #     $tar->write( '/tmp/test_write.tar' );
+
+    #     #close( $fake_tar_file_handle );
+
+    #     #say STDERR "Wrote to tar_output:'$tar_output'";
+    #     exit;
+    # }
+    # catch
+    # {
+    #     chdir( $old_cwd );
+    #     die $_;
+    # }
+    # finally
+    # {
+    #     chdir( $old_cwd );
+    # };
+
     warn( "append_file: 0 length tar output ( $tar_cmd )" ) unless ( $tar_output );
+
+    #$tar_output = $tar_output_new;
 
     if ( !( print TAR_FILE $tar_output ) )
     {
