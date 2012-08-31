@@ -62,7 +62,9 @@ sub read_file
 
     if ( $content eq '' )
     {
-        warn( "Unable to retrieve content from tar for archive $tar_file and $file_name with blocks $starting_block + $num_blocks " );
+        warn(
+"Unable to retrieve content from tar for archive $tar_file and $file_name with blocks $starting_block + $num_blocks "
+        );
     }
 
     return \$content;
@@ -227,7 +229,7 @@ sub append_file
 
     ##TODO use Archive::Tar instead of calling tar with backticks
 
-    my $tar_cmd    = "tar -c -C '$temp_dir' -f - '$file_name'";
+    my $tar_cmd = "tar -c -C '$temp_dir' -f - '$file_name'";
 
     # the tar command fails very occasionally for some reason
     my $tar_output;
