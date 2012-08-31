@@ -133,7 +133,7 @@ sub query_with_large_work_mem
 
     my $ret;
 
-    say STDERR "starting query_with_large_work_mem";
+    #say STDERR "starting query_with_large_work_mem";
 
     #say Dumper ( [ @_ ] );
 
