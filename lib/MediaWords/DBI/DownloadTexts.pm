@@ -13,6 +13,7 @@ use Data::Dumper;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::Downloads;
+use Try::Tiny;
 
 #use Regexp::Optimizer;
 
@@ -214,8 +215,6 @@ sub create_from_download
 {
     my ( $db, $download ) = @_;
 
-    $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
-
     my $extract = MediaWords::DBI::Downloads::extractor_results_for_download( $db, $download );
 
     my $included_line_numbers = $extract->{ included_line_numbers };
@@ -247,6 +246,8 @@ sub create_from_download
     }
 
     $db->dbh->pg_putcopyend();
+
+    $db->query( "update downloads set extracted = 't' where downloads_id = ?", $download->{ downloads_id } );
 
     #    update_text( $db, $download_text );
 
