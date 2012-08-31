@@ -22,22 +22,7 @@ my $_block_level_element_tags = [
       address blockquote center div hr ins noscript pre )
 ];
 
-#my $o = Regexp::Optimizer->new;
-
 my $tag_list = join '|', ( map { quotemeta $_ } ( @{ $_block_level_element_tags } ) );
-
-# my $_block_level_start_tag_re = $o->optimize(
-#     qr{
-#                    < (:? $tag_list ) (:? > | \s )
-#            }ix
-# );
-
-# my $_block_level_end_tag_re = $o->optimize(
-#     qr{
-#                    </ (:? $tag_list ) >
-#            }ix
-# )
-#  ;
 
 my $_block_level_start_tag_re = qr{
                    < (:? $tag_list ) (:? > | \s )
