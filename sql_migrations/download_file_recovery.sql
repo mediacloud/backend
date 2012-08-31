@@ -44,3 +44,4 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
+UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';
