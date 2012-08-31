@@ -473,6 +473,11 @@ sub store_content
 
     $download->{ state } = $state;
     $download->{ path }  = $tar_id;
+
+    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+
+    #say 'Saved download results';
+    #say STDERR Dumper ( $download );
 }
 
 # convenience method to get the media_id for the download
