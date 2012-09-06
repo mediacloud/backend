@@ -110,7 +110,7 @@ sub run_block_with_large_work_mem( &$ )
     {
         $db->_set_work_mem( $old_work_mem );
 
-        croak $_;
+        confess $_;
     };
 
     $db->_set_work_mem( $old_work_mem );
