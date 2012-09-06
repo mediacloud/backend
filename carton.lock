@@ -5424,7 +5424,7 @@
                "Lee Dalton <leedalton@gmail.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.50, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.50, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "unknown"
             ],
@@ -17142,6 +17142,58 @@
          },
          "target" : "File::Spec::Native",
          "version" : "1.003"
+      },
+      "File::Touch" : {
+         "dist" : "File-Touch-0.08",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "unknown"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.50, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "File-Touch",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {}
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.08"
+         },
+         "name" : "File::Touch",
+         "pathname" : "N/NW/NWETTERS/File-Touch-0.08.tar.gz",
+         "provides" : {
+            "File::Touch" : {
+               "file" : "File/Touch.pm",
+               "version" : "0.08"
+            }
+         },
+         "target" : "File::Touch",
+         "version" : "0.08"
       },
       "File::Which" : {
          "dist" : "File-Which-1.09",
