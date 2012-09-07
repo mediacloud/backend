@@ -32,7 +32,7 @@ sub _get_local_file_content_path_from_path
     $path =~ s~^.*/(content/.*.gz)$~$1~;
 
     my $config = MediaWords::Util::Config::get_config;
-    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
+     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
 
     $data_dir = "" if ( !$data_dir );
     $path     = "" if ( !$path );
