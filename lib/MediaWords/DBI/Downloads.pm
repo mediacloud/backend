@@ -35,7 +35,7 @@ sub _get_local_file_content_path_from_path
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
 
     $data_dir = "" if ( !$data_dir );
-    $path   = "" if ( !$path );
+    $path     = "" if ( !$path );
     $path     = "$data_dir/$path";
 
     return $path;
@@ -44,7 +44,7 @@ sub _get_local_file_content_path_from_path
 # return a ref to the content associated with the given download, or under if there is none
 sub fetch_content_local_file
 {
-      my ( $download ) = @_;
+    my ( $download ) = @_;
 
     my $path = $download->{ path };
     if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
