@@ -7177,6 +7177,52 @@
          "target" : "Data::Dumper::Concise",
          "version" : "2.020"
       },
+      "Data::Google::Visualization::DataTable" : {
+         "dist" : "Data-Google-Visualization-DataTable-0.09",
+         "mymeta" : {
+            "abstract" : "Easily create Google DataTable objects",
+            "author" : [
+               "Peter Sergeant <pete@clueball.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Data-Google-Visualization-DataTable",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {}
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.31"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "JSON::XS" : "2.0"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.09"
+         },
+         "name" : "Data::Google::Visualization::DataTable",
+         "pathname" : "S/SA/SARGIE/Data-Google-Visualization-DataTable-0.09.tar.gz",
+         "provides" : {
+            "Data::Google::Visualization::DataTable" : {
+               "file" : "Data/Google/Visualization/DataTable.pm",
+               "version" : "0.09"
+            }
+         },
+         "target" : "Data::Google::Visualization::DataTable",
+         "version" : "0.09"
+      },
       "Data::OptList" : {
          "dist" : "Data-OptList-0.107",
          "mymeta" : {
@@ -15990,7 +16036,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MY.pm"
+               "file" : "ExtUtils/MakeMaker.pm"
             }
          },
          "target" : "ExtUtils::MakeMaker",
