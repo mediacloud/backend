@@ -16,11 +16,9 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use DBIx::Simple::MediaWords;
-use XML::LibXML;
 use Getopt::Long;
 use Readonly;
 use Carp;
-use MIME::Base64;
 use Try::Tiny;
 use MediaWords::Util::DatabaseRestore;
 
