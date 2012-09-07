@@ -56,8 +56,6 @@ sub verify_downloads_files
                     $relative_file_path );
             }
         }
-
-        return;
     }
 }
 
