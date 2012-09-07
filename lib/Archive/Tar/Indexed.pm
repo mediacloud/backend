@@ -224,9 +224,9 @@ sub append_file
 
     flock( LOCK_FILE, LOCK_EX );
 
-    if ( ! ( -x $tar_file ) )
+    if ( !( -x $tar_file ) )
     {
-	touch ( $tar_file );
+        touch( $tar_file );
     }
 
     my @pre_tar_stats = stat( $tar_file );

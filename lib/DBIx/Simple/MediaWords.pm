@@ -74,9 +74,9 @@ sub _get_large_work_mem
 
     my $ret = $config->{ mediawords }->{ large_work_mem };
 
-    if ( ! defined ( $ret ) )
+    if ( !defined( $ret ) )
     {
-	$ret = $self->get_current_work_mem();
+        $ret = $self->get_current_work_mem();
     }
 
     return $ret;

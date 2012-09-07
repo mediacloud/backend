@@ -42,12 +42,10 @@ sub test_query_with_large_work_mem
 
     $db->query_with_large_work_mem( " SELECT 'foo' FROM DOWNLOADS where downloads_id > ? LIMIT 1 ", 0 )->flat;
 
-    ( my $result ) = $db->query_with_large_work_mem( " SELECT 'foo' ")->flat;
+    ( my $result ) = $db->query_with_large_work_mem( " SELECT 'foo' " )->flat;
 
-    is ( $result, 'foo' );
+    is( $result, 'foo' );
 }
-
-
 
 sub main
 {
@@ -59,7 +57,7 @@ sub main
             use Encode;
             my ( $db ) = @_;
 
-	    test_query_with_large_work_mem( $db );
+            test_query_with_large_work_mem( $db );
 
             Test::NoWarnings::had_no_warnings();
             done_testing();

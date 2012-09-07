@@ -154,9 +154,11 @@ sub main
     }
     else
     {
-	MediaWords::DB::run_block_with_large_work_mem {
-	    MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, $force );
-	} $db;
+        MediaWords::DB::run_block_with_large_work_mem
+        {
+            MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, $force );
+        }
+        $db;
     }
 }
 

@@ -460,7 +460,8 @@ sub fill_story_sentence_words
     my $block_size = 1;
 
     my $count = 0;
-    while ( my $stories = $db->query_with_large_work_mem( "select * from ssw_queue order by stories_id limit $block_size" )->hashes )
+    while ( my $stories =
+        $db->query_with_large_work_mem( "select * from ssw_queue order by stories_id limit $block_size" )->hashes )
     {
         if ( !@{ $stories } )
         {
@@ -636,7 +637,8 @@ sub _update_top_500_weekly_words
           . "    where stem_rank < 500 "
           . "    order by stem_rank asc " );
 
-    $db->query_with_large_work_mem( "insert into total_top_500_weekly_words (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
+    $db->query_with_large_work_mem(
+        "insert into total_top_500_weekly_words (media_sets_id, publish_week, total_count, dashboard_topics_id) " .
           "  select media_sets_id, publish_week, sum( stem_count ), dashboard_topics_id from top_500_weekly_words " .
           "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
           "    group by media_sets_id, publish_week, dashboard_topics_id" );
@@ -673,7 +675,8 @@ sub _update_top_500_weekly_author_words
           "        and not is_stop_stem( 'long', stem ) and stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]' ) q " .
           "    where stem_rank < 500 " . "    order by stem_rank asc " );
 
-    $db->query_with_large_work_mem( "insert into total_top_500_weekly_author_words (media_sets_id, publish_week, total_count, authors_id) " .
+    $db->query_with_large_work_mem(
+        "insert into total_top_500_weekly_author_words (media_sets_id, publish_week, total_count, authors_id) " .
           "  select media_sets_id, publish_week, sum( stem_count ), authors_id from top_500_weekly_author_words " .
           "    where publish_week = date_trunc( 'week', '$sql_date'::date ) $update_clauses " .
           "    group by media_sets_id, publish_week, authors_id" );
@@ -729,7 +732,8 @@ sub _update_daily_words
 
     if ( !$dashboard_topics_id )
     {
-        $db->query_with_large_work_mem( "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
+        $db->query_with_large_work_mem(
+            "insert into daily_words (media_sets_id, term, stem, stem_count, publish_day, dashboard_topics_id) " .
               "          select media_sets_id, term, stem, sum_stem_counts, publish_day, null from " .
               "               (select  *, rank() over (w order by stem_count_sum desc, term desc) as term_rank, " .
               "                sum(stem_count_sum) over w as sum_stem_counts  from " .
@@ -770,10 +774,15 @@ sub _update_daily_words
 
         # doing these one by one is the only way I could get the postgres planner to create
         # a sane plan
-        $db->query_with_large_work_mem( $query_2, $dashboard_topic->{ dashboard_topics_id }, $dashboard_topic->{ query }, $sql_date );
+        $db->query_with_large_work_mem(
+            $query_2,
+            $dashboard_topic->{ dashboard_topics_id },
+            $dashboard_topic->{ query }, $sql_date
+        );
     }
 
-    $db->query_with_large_work_mem( "insert into total_daily_words (media_sets_id, publish_day, total_count, dashboard_topics_id) " .
+    $db->query_with_large_work_mem(
+        "insert into total_daily_words (media_sets_id, publish_day, total_count, dashboard_topics_id) " .
           " select media_sets_id, publish_day, sum(stem_count), dashboard_topics_id " . " from daily_words " .
           " where publish_day = '${sql_date}'::date $update_clauses " .
           " group by media_sets_id, publish_day, dashboard_topics_id " );
@@ -826,7 +835,8 @@ END_SQL
 
     say STDERR "Completed query $query";
 
-    $db->query_with_large_work_mem( "insert into total_daily_author_words (authors_id, media_sets_id, publish_day, total_count) " .
+    $db->query_with_large_work_mem(
+        "insert into total_daily_author_words (authors_id, media_sets_id, publish_day, total_count) " .
           " select authors_id, media_sets_id, publish_day, sum(stem_count)    " . " from daily_author_words " .
           " where publish_day = '${sql_date}'::date $update_clauses " .
           " group by authors_id, media_sets_id, publish_day " );
@@ -852,7 +862,8 @@ sub _update_daily_country_counts
     my $single_terms_list =
       join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
 
-    $db->query_with_large_work_mem( "insert into daily_country_counts( media_sets_id, publish_day, country, country_count ) " .
+    $db->query_with_large_work_mem(
+        "insert into daily_country_counts( media_sets_id, publish_day, country, country_count ) " .
           "  select media_sets_id, publish_day, stem, stem_count from daily_words " .
           "    where publish_day = '$sql_date'::date and dashboard_topics_id is null and $media_set_clause" .
           "      and stem in ( $single_terms_list )" );
