@@ -46,14 +46,14 @@ sub verify_downloads_files
             if ( -f $file_path )
             {
                 say "$file_path exists";
-                #$db->query( "UPDATE downloads set file_status = 'present' where relative_file_path = ? ",
-                #    $relative_file_path );
+                $db->query( "UPDATE downloads set file_status = 'present' where relative_file_path = ? ",
+                    $relative_file_path );
             }
             else
             {
                 say "$file_path doesn't exist";
-                #$db->query( "UPDATE downloads set file_status = 'missing' where relative_file_path = ? ",
-                #    $relative_file_path );
+                $db->query( "UPDATE downloads set file_status = 'missing' where relative_file_path = ? ",
+                    $relative_file_path );
             }
         }
 
