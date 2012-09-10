@@ -32,7 +32,7 @@ sub verify_downloads_files
 
         my $relative_file_paths =
           $db->query( " select distinct( relative_file_path) from downloads where " .
-" file_status = 'tbd'::download_file_status AND relative_file_path <> 'tbd'::text AND relative_file_path <> 'error'::text limit 1;"
+" file_status = 'tbd'::download_file_status AND relative_file_path <> 'tbd'::text AND relative_file_path <> 'error'::text  AND relative_file_path <> 'na'::text limit 3;"
           );
 
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
