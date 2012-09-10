@@ -61,8 +61,7 @@ sub set_relative_path_all_downloads
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my ( $max_downloads_id ) =
-      $db->query( " SELECT max( downloads_id) from downloads where state = 'success' " )->flat();
+    my ( $max_downloads_id ) = $db->query( " SELECT max( downloads_id) from downloads where state = 'success' " )->flat();
 
     my ( $min_downloads_id ) = $db->query( " SELECT min( downloads_id) from downloads " )->flat();
 
