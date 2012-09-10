@@ -49,7 +49,7 @@ sub set_relative_path_downloads
     say STDERR "$batch_information downloads_id $start_downloads_id -- $end_downloads_id  $max_downloads_id_message";
 
     my $download = $db->query(
-"UPDATE downloads set relative_file_path = get_relative_file_path( path ) where downloads_id >= ?  and downloads_id <= ? ",
+"UPDATE downloads set relative_file_path = get_relative_file_path( path ) where relative_file_path = 'tbd' and downloads_id >= ?  and downloads_id <= ? ",
         $start_downloads_id, $end_downloads_id
     );
 
@@ -62,7 +62,7 @@ sub set_relative_path_all_downloads
     my $db = MediaWords::DB::connect_to_db;
 
     my ( $max_downloads_id ) =
-      $db->query( " SELECT max( downloads_id) from downloads where type = 'feed' and state = 'success' " )->flat();
+      $db->query( " SELECT max( downloads_id) from downloads where state = 'success' " )->flat();
 
     my ( $min_downloads_id ) = $db->query( " SELECT min( downloads_id) from downloads " )->flat();
 
@@ -91,13 +91,13 @@ sub set_relative_path_all_downloads
         $batch_number++;
 
         ## Skip over large ranges of empty downloads_id's
-        if ( ( $batch_number % $empty_download_check_frequency ) == 0 )
-        {
-            ( $start_downloads_id ) =
-              $db->query( " SELECT min( downloads_id) from downloads where downloads_id >= ? ", $start_downloads_id )
-              ->flat();
-            my $start_downloads_id = int( $start_downloads_id / 1000 ) * 1000;
-        }
+        # if ( ( $batch_number % $empty_download_check_frequency ) == 0 )
+        # {
+        #     ( $start_downloads_id ) =
+        #       $db->query( " SELECT min( downloads_id) from downloads where downloads_id >= ? ", $start_downloads_id )
+        #       ->flat();
+        #     my $start_downloads_id = int( $start_downloads_id / 1000 ) * 1000;
+        # }
 
         #exit;
     }
