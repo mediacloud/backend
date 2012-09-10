@@ -159,31 +159,11 @@ sub _add_stale_feeds
       "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " . STALE_FEED_INTERVAL .
       " seconds'))) " . "AND url ~ 'https?://')";
 
-    #     my $downloads_ids = $dbs->query("INSERT INTO downloads "
-    # . "(feeds_id, url, host, type, sequence, state, priority, "
-    # . "download_time, extracted) "
-    # . "SELECT feeds_id, url, "
-    # . "lower(substring(url from '//([^/?#]*)')) AS host, "
-    # . "'feed' AS type, 1 AS sequence, 'queued' AS state, "
-    # . "(CASE WHEN last_download_time IS NULL THEN 10 ELSE 0 END) "
-    # . "AS priority, NOW() AS download_time, 'f' AS extracted "
-    # . "FROM feeds WHERE url IS NOT NULL "
-    # . "AND " . $constraint . " RETURNING feeds_id, downloads_id")->map();
-    #
-
     Readonly my $feeds_query => "SELECT * FROM feeds WHERE " . $constraint;
 
     #say STDERR "$feeds_query";
 
     my @feeds = $dbs->query( $feeds_query )->hashes();
-
-    #say STDERR Dumper( [ @feeds ] );
-
-    #     $dbs->query("UPDATE feeds SET last_download_time=(NOW()"
-    # . "+ age(to_timestamp(CAST(random()*"
-    # . int(STALE_FEED_INTERVAL / 4) . " AS INTEGER)),"
-    # . " timestamp with time zone 'epoch'))"
-    # . "WHERE " . $constraint);
 
   DOWNLOAD:
     for my $feed ( @feeds )
