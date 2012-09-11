@@ -11,6 +11,8 @@ use URI::Split;
 
 use Data::Dumper;
 use Data::Serializer;
+use Data::Random;
+
 use List::MoreUtils;
 use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
@@ -156,9 +158,11 @@ sub _add_stale_feeds
 
     my $dbs = $self->engine->dbs;
 
+    my $last_new_story_time_clause =  " ( now() > last_download_time + ( last_download_time - last_new_story_time ) + interval '5 minutes' ) ";
+
     my $constraint =
       "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " . STALE_FEED_INTERVAL .
-      " seconds'))) " . "AND url ~ 'https?://')";
+      " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
     Readonly my $feeds_query => "SELECT * FROM feeds WHERE " . $constraint;
 
@@ -185,7 +189,8 @@ sub _add_stale_feeds
         $self->{ downloads }->_queue_download( $download );
 
         # add a random skew to each feed so not every feed is downloaded at the same time
-        my $skew = int( rand( STALE_FEED_INTERVAL / 4 ) ) - ( STALE_FEED_INTERVAL / 8 );
+        my $skew = random_uniform_integer( 1, -1 * 5 * ONE_MINUTE, 5 * ONE_MINUTE );
+
         $feed->{ last_download_time } = \"now() + interval '$skew seconds'";
 
         #print STDERR "updating feed: " . $feed->{feeds_id} . "\n";

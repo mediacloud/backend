@@ -240,6 +240,7 @@ sub handle_feed_content
         if ( $num_new_stories > 0 )
         {
             $content_ref = \$decoded_content;
+	    $dbs->query( "UPDATE feeds set last_new_story_time = last_download_time where feeds_id = ? ", $download->{ feeds_id } );
         }
         else
         {
