@@ -133,8 +133,10 @@ sub main
 
     my ( $start_date, $end_date ) = @ARGV;
 
-    die "date '$start_date' must be in the format YYYY-MM-DD" if $start_date && !( $start_date =~ /^[0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2}$/ );
-    die "date '$end_date' must be in the format YYYY-MM-DD" if  $end_date && !( $end_date =~ /^[0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2}$/ );
+    die "date '$start_date' must be in the format YYYY-MM-DD"
+      if $start_date && !( $start_date =~ /^[0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2}$/ );
+    die "date '$end_date' must be in the format YYYY-MM-DD"
+      if $end_date && !( $end_date =~ /^[0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2}$/ );
 
     my $db = MediaWords::DB::connect_to_db;
 
