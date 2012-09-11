@@ -7185,7 +7185,7 @@
                "Peter Sergeant <pete@clueball.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.112150, CPAN::Meta::Converter version 2.120921",
+            "generated_by" : "Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -7531,6 +7531,80 @@
          },
          "target" : "Data::Page",
          "version" : "2.02"
+      },
+      "Data::Random" : {
+         "dist" : "Data-Random-0.07",
+         "mymeta" : {
+            "abstract" : "Perl module to generate random data",
+            "author" : [
+               "Originally written by: Adekunle Olonoh"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06 using Module::Install::JSONMETA version 7.001, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Data-Random",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.36",
+                     "File::Spec" : 0,
+                     "Test" : 0,
+                     "Test::More" : "0.88",
+                     "YAML::Tiny" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.36",
+                     "YAML::Tiny" : 0
+                  }
+               },
+               "runtime" : {
+                  "recommends" : {
+                     "Date::Calc" : 0,
+                     "GD" : 0
+                  },
+                  "requires" : {
+                     "Carp" : 0,
+                     "perl" : "5.00562"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "homepage" : "https://github.com/barefootcoder/Data-Random/tree",
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.07"
+         },
+         "name" : "Data::Random",
+         "pathname" : "B/BA/BAREFOOT/Data-Random-0.07.tar.gz",
+         "provides" : {
+            "Data::Random" : {
+               "file" : "Data/Random.pm",
+               "version" : "0.07"
+            },
+            "Data::Random::WordList" : {
+               "file" : "Data/Random/WordList.pm",
+               "version" : "0.07"
+            }
+         },
+         "target" : "Data::Random",
+         "version" : "0.07"
       },
       "Data::Serializer" : {
          "dist" : "Data-Serializer-0.59",
@@ -16036,7 +16110,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MakeMaker.pm"
+               "file" : "ExtUtils/MY.pm"
             }
          },
          "target" : "ExtUtils::MakeMaker",
@@ -21569,7 +21643,6 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
-                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -38553,7 +38626,7 @@
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],
