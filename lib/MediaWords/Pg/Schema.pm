@@ -230,14 +230,16 @@ sub load_sql_file
     {
         my ( $line ) = @_;
 
+	chomp( $line);
         #say "Got line: '$line'";
-        if ( not $line =~ /^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^psql.*: NOTICE:/ )
+
+        if ( not $line =~ /^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^DROP LANGUAGE|^DROP TABLE|^UPDATE \d+|^DROP TRIGGER|^psql.*: NOTICE:/ )
         {
             carp "Evil line: '$line'";
             die "Evil line: '$line'";
         }
 
-        return $line;
+        return "$line\n";
     }
 
     my $db_settings = MediaWords::DB::connect_settings( $label );
