@@ -158,7 +158,8 @@ sub _add_stale_feeds
 
     my $dbs = $self->engine->dbs;
 
-    my $last_new_story_time_clause =  " ( now() > last_download_time + ( last_download_time - last_new_story_time ) + interval '5 minutes' ) ";
+    my $last_new_story_time_clause =
+      " ( now() > last_download_time + ( last_download_time - last_new_story_time ) + interval '5 minutes' ) ";
 
     my $constraint =
       "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " . STALE_FEED_INTERVAL .
