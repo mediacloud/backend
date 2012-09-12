@@ -118,6 +118,13 @@ sub get_text_for_word_counts
     return get_extracted_text( $db, $story );
 }
 
+sub get_first_download
+{
+    my ( $db, $story ) = @_;
+    
+    return $db->query( "select * from downloads where stories_id = 56688 order by sequence asc limit 1; " )->hash();
+}
+
 # store any content returned by the tagging module in the downloads table
 sub _store_tags_content
 {
