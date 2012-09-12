@@ -5,6 +5,8 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
+use JSON;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 
 =head1 NAME
 
@@ -232,6 +234,56 @@ sub add_do : Local
         )
     );
 }
+
+sub stories_query_json : Local
+{
+    my ( $self, $c ) = @_;
+
+    say STDERR "starting stories_query_json";
+
+    my $last_stories_id = $c->req->param( 'last_stories_id' );
+
+    if ( ! defined ( $last_stories_id ) )
+    {
+
+      ( $last_stories_id ) = $c->dbis->query ( " select stories_id from stories where collect_date < now() - interval '1 days' order by stories_id desc limit 1 " )->flat;
+      $last_stories_id--;
+    }
+
+    say STDERR "Last_stories_id is $last_stories_id";
+
+    Readonly my $stories_to_return => min (  $c->req->param( 'story_count' ) // 25 , 1000);
+
+    my $stories = $c->dbis->query( " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ", $last_stories_id, $stories_to_return )->hashes;
+
+    foreach my $story ( @ { $stories } )
+    {
+    	my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $c->dbis, $story );
+    	$story->{ story_text } = $story_text;
+    }
+
+    foreach my $story ( @ { $stories } )
+    {
+    	my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
+
+	if ( ! defined( $content_ref ) )
+	{
+	   $story->{ first_raw_download_file }->{missing} = 'true';
+	}
+	else
+	{
+	   #say STDERR "got content_ref $$content_ref";
+
+	  $story->{ first_raw_download_file } = $$content_ref;
+	}
+    }
+
+    say STDERR "finished stories_query_json";
+
+    $c->response->content_type( 'application/json' );
+    return $c->res->body( encode_json( $stories ) );
+}
+
 
 # display regenerated tags for story
 sub retag : Local
