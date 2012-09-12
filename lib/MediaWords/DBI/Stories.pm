@@ -121,7 +121,7 @@ sub get_text_for_word_counts
 sub get_first_download
 {
     my ( $db, $story ) = @_;
-    
+
     return $db->query( "select * from downloads where stories_id = 56688 order by sequence asc limit 1; " )->hash();
 }
 
