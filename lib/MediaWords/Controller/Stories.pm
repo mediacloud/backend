@@ -282,6 +282,12 @@ sub stories_query_json : Local
         }
     }
 
+    foreach my $story ( @ { $stories } )
+    {
+    	my $story_sentences = $c->dbis->query( "SELECT * from story_sentences where stories_id = ? ORDER by sentence_number", $story->{ stories_id } )->hashes;
+    	$story->{ story_sentences } = $story_sentences;
+    }
+
     say STDERR "finished stories_query_json";
 
     $c->response->content_type( 'application/json' );
