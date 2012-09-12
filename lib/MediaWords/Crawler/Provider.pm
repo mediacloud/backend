@@ -18,6 +18,7 @@ use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
 use Readonly;
 use Time::Seconds;
+use Math::Random;
 
 # how often to check for feeds to download (seconds)
 use constant STALE_FEED_CHECK_INTERVAL => 10 * ONE_MINUTE;
