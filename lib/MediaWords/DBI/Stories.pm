@@ -108,7 +108,25 @@ sub get_first_download
 {
     my ( $db, $story ) = @_;
 
-    return $db->query( "select * from downloads where stories_id = 56688 order by sequence asc limit 1; " )->hash();
+    return $db->query( "select * from downloads where stories_id = ? order by sequence asc limit 1; ", $story->{ stories_id } )->hash();
+}
+
+sub get_content_for_first_download
+{
+   my ( $db, $story ) = @_;
+
+   my $first_download = get_first_download( $db, $story );
+
+   say STDERR "got first_download " . Dumper ( $first_download );
+
+   if ( $first_download->{ state } ne 'success' )
+   {
+       return;
+   }
+
+   my $content_ref = MediaWords::DBI::Downloads::fetch_content( $first_download );
+
+   return $content_ref;
 }
 
 # store any content returned by the tagging module in the downloads table
