@@ -35,7 +35,7 @@ sub get_is_stop_stem_function_tables_and_definition
             -- "Full" stopwords
             DROP TABLE IF EXISTS stopwords_${stoplist_size};
             CREATE TABLE stopwords_${stoplist_size} (
-                stopwords_id SERIAL PRIMARY KEY,
+                stopwords_${stoplist_size}_id SERIAL PRIMARY KEY,
                 stopword VARCHAR(256) NOT NULL
             ) WITH (OIDS=FALSE);
             CREATE UNIQUE INDEX stopwords_${stoplist_size}_stopword ON stopwords_${stoplist_size}(stopword);
@@ -43,7 +43,7 @@ sub get_is_stop_stem_function_tables_and_definition
             -- Stopword stems
             DROP TABLE IF EXISTS stopword_stems_${stoplist_size};
             CREATE TABLE stopword_stems_${stoplist_size} (
-                stopword_stems_id SERIAL PRIMARY KEY,
+                stopword_stems_${stoplist_size}_id SERIAL PRIMARY KEY,
                 stopword_stem VARCHAR(256) NOT NULL
             ) WITH (OIDS=FALSE);
             CREATE UNIQUE INDEX stopword_stems_${stoplist_size}_stopword_stem ON stopword_stems_${stoplist_size}(stopword_stem);
