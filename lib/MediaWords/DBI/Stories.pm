@@ -112,6 +112,24 @@ sub get_first_download
         $story->{ stories_id } )->hash();
 }
 
+sub is_fully_extracted
+{
+    my ( $db, $story ) = @_;
+
+    my ($bool)  = $db->query( "select bool_and(extracted) from downloads where stories_id = ? ", $story->{ stories_id } )->flat();
+
+    say STDERR "is_fully_extracted query returns $bool";
+
+    if ( defined( $bool ) && $bool )
+    {
+	return 1;
+    }
+    else
+    {
+	return 0;
+    }
+}
+
 sub get_content_for_first_download
 {
     my ( $db, $story ) = @_;
