@@ -255,10 +255,7 @@ sub stories_query_json : Local
     }
     else
     {
-
-        ( $last_stories_id ) = $c->dbis->query(
-" select stories_id from stories where collect_date < now() - interval '1 days' order by stories_id desc limit 1 "
-        )->flat;
+        ( $last_stories_id ) = $c->dbis->query( " select stories_id from stories where collect_date < now() - interval '1 days' order by collect_date desc limit 1 " )->flat;
         $last_stories_id--;
     }
 
