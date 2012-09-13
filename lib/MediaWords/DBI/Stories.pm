@@ -116,17 +116,18 @@ sub is_fully_extracted
 {
     my ( $db, $story ) = @_;
 
-    my ($bool)  = $db->query( "select bool_and(extracted) from downloads where stories_id = ? ", $story->{ stories_id } )->flat();
+    my ( $bool ) =
+      $db->query( "select bool_and(extracted) from downloads where stories_id = ? ", $story->{ stories_id } )->flat();
 
     say STDERR "is_fully_extracted query returns $bool";
 
     if ( defined( $bool ) && $bool )
     {
-	return 1;
+        return 1;
     }
     else
     {
-	return 0;
+        return 0;
     }
 }
 
