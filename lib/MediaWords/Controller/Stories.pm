@@ -243,7 +243,15 @@ sub stories_query_json : Local
 
     my $last_stories_id = $c->req->param( 'last_stories_id' );
 
-    if ( !defined( $last_stories_id ) )
+    my $start_stories_id = $c->req->param( 'start_stories_id' );
+
+    die " Cannot use both last_stories_id and start_stories_id" if defined ( $last_stories_id ) and defined ( $start_stories_id );
+
+    if ( defined ( $start_stories_id ) && ! ( defined ( $last_stories_id ) ) )
+    {
+	$last_stories_id = $start_stories_id - 1;
+    }
+    else
     {
 
         ( $last_stories_id ) = $c->dbis->query(
@@ -263,6 +271,12 @@ sub stories_query_json : Local
     {
         my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $c->dbis, $story );
         $story->{ story_text } = $story_text;
+    }
+
+    foreach my $story ( @{ $stories } )
+    {
+        my $fully_extracted = MediaWords::DBI::Stories::is_fully_extracted( $c->dbis, $story );
+        $story->{ fully_extracted } = $fully_extracted;
     }
 
     foreach my $story ( @{ $stories } )
