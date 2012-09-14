@@ -48,7 +48,7 @@ sub set_relative_path_downloads
 
     say STDERR "$batch_information downloads_id $start_downloads_id -- $end_downloads_id  $max_downloads_id_message";
 
-    my $download = $db->query(
+    my $download = $db->query_with_large_work_mem(
 "UPDATE downloads set relative_file_path = get_relative_file_path( path ) where relative_file_path = 'tbd' and downloads_id >= ?  and downloads_id <= ? ",
         $start_downloads_id, $end_downloads_id
     );
@@ -77,7 +77,7 @@ sub set_relative_path_all_downloads
 
     my $batch_number = 0;
 
-    my $pm = new Parallel::ForkManager( 15 );
+    my $pm = new Parallel::ForkManager( 8 );
 
     my $empty_download_check_frequency = 10;
 
