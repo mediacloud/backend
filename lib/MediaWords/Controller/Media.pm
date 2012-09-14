@@ -156,7 +156,7 @@ sub get_url_medium_index_from_url
     {
 
         #print STDERR "'$url_media->[ $i ]->{ url }' eq '$url'\n";
-        if ( $url_media->[ $i ]->{ url } eq URI->new( $url ) )
+        if ( URI->new( $url_media->[ $i ]->{ url } ) eq URI->new( $url ) )
         {
             return $i;
         }
