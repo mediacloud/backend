@@ -203,6 +203,7 @@ sub add_missing_media_from_urls
         my $url_media_index = $self->get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )
         {
+
             # add message to missing url_media in the loop at the end of this function
             next;
         }
