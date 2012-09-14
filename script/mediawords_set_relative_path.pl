@@ -77,7 +77,7 @@ sub set_relative_path_all_downloads
 
     my $batch_number = 0;
 
-    my $pm = new Parallel::ForkManager( 8 );
+    my $pm = new Parallel::ForkManager( 9 );
 
     my $empty_download_check_frequency = 10;
 
