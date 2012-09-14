@@ -22,7 +22,7 @@ use MediaWords::Util::XML;
 use XML::LibXML;
 use MIME::Base64;
 use Encode;
-use List::Util qw (min);
+use List::Util qw (min max);
 use Parallel::ForkManager;
 
 sub set_relative_path_downloads
@@ -59,11 +59,16 @@ sub set_relative_path_downloads
 sub set_relative_path_all_downloads
 {
 
+    my ( $start_id ) = @_;
+
     my $db = MediaWords::DB::connect_to_db;
 
     my ( $max_downloads_id ) = $db->query( " SELECT max( downloads_id) from downloads where state = 'success' " )->flat();
 
     my ( $min_downloads_id ) = $db->query( " SELECT min( downloads_id) from downloads " )->flat();
+
+    $start_id //= $min_downloads_id;
+    $min_downloads_id = max( $min_downloads_id, $start_id );
 
     #Make sure the file start and end ranges are multiples of 1000
     my $start_downloads_id = int( $min_downloads_id / 1000 ) * 1000;
@@ -110,12 +115,12 @@ sub set_relative_path_all_downloads
 # fork of $num_processes
 sub main
 {
-    my ( $num_processes ) = @ARGV;
+    my ( $start_id ) = @ARGV;
 
     binmode STDOUT, ":utf8";
     binmode STDERR, ":utf8";
 
-    set_relative_path_all_downloads();
+    set_relative_path_all_downloads( $start_id );
 }
 
 main();
