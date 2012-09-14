@@ -23,6 +23,7 @@ use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
 use JSON;
+use URI;
 
 use if $] < 5.014, Switch => 'Perl6';
 use if $] >= 5.014, feature => 'switch';
@@ -155,7 +156,7 @@ sub get_url_medium_index_from_url
     {
 
         #print STDERR "'$url_media->[ $i ]->{ url }' eq '$url'\n";
-        if ( $url_media->[ $i ]->{ url } eq $url )
+        if ( $url_media->[ $i ]->{ url } eq URI->new( $url ) )
         {
             return $i;
         }
@@ -190,7 +191,7 @@ sub add_missing_media_from_urls
 {
     my ( $self, $c, $url_media ) = @_;
 
-    my $fetch_urls = [ map { $_->{ url } } grep { !( $_->{ medium } ) } @{ $url_media } ];
+    my $fetch_urls = [ map { URI->new( $_->{ url } ) } grep { !( $_->{ medium } ) } @{ $url_media } ];
 
     my $responses = MediaWords::Util::Web::ParallelGet( $fetch_urls );
 
@@ -202,7 +203,6 @@ sub add_missing_media_from_urls
         my $url_media_index = $self->get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )
         {
-
             # add message to missing url_media in the loop at the end of this function
             next;
         }
