@@ -33,7 +33,7 @@ else
 
     # assume Ubuntu
     sudo apt-get --assume-yes install \
-        postgresql-8.4 postgresql-client-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4
+        postgresql-8.4 postgresql-client-8.4 postgresql-contrib-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4
 
 fi
 
