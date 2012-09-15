@@ -767,7 +767,10 @@ sub keep_single_feed : Local
         return;
     }
 
-    $c->dbis->query( "delete from feeds where media_id = ? and feeds_id <> ?", $medium->{ media_id }, $feeds_id );
+    # make sure feeds_id is a num
+    $feeds_id += 0;
+    
+    $c->dbis->query( "delete from feeds where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
     my $status_msg = 'Media source feeds deleted.';
     $c->response->redirect(
         $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
