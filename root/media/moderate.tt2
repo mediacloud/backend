@@ -95,7 +95,9 @@ Potential media sources to merge:
 
 [% FOREACH feed IN feeds %]
 <li>[% feed.name | html %] - <a href="[% feed.url %]">[% feed.url | html %]</a> 
-[<a href="[% c.uri_for( '/media/delete_unmoderated_feed/') _ feed.feeds_id | url %]">delete</a>]</li>
+[<a href="[% c.uri_for( '/media/delete_unmoderated_feed/') _ feed.feeds_id | url %]">delete</a>]
+[<a href="[% c.uri_for( '/media/keep_single_feed/') _ feed.feeds_id | url %]">keep single</a>]
+</li>
 [% END #[% FOREACH feed IN feeds %]
 
 </ul>

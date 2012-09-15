@@ -203,8 +203,6 @@ sub add_missing_media_from_urls
         my $url_media_index = $self->get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )
         {
-
-            # add message to missing url_media in the loop at the end of this function
             next;
         }
 
@@ -748,6 +746,29 @@ sub delete_unmoderated_feed : Local
 
     $c->dbis->query( "delete from feeds where feeds_id = ?", $feeds_id );
     my $status_msg = 'Media source feed deleted.';
+    $c->response->redirect(
+        $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
+}
+
+# keep only the one feed for the medium
+sub keep_single_feed : Local
+{
+    my ( $self, $c, $feeds_id ) = @_;
+
+    my $medium =
+      $c->dbis->query( "select m.* from media m, feeds f where f.feeds_id = ? and f.media_id = m.media_id", $feeds_id )
+      ->hash;
+
+    if ( $medium->{ moderated } )
+    {
+        my $error = "You can only delete the feeds of media sources that have not yet been moderated";
+        $c->response->redirect(
+            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
+        return;
+    }
+
+    $c->dbis->query( "delete from feeds where media_id = ? and feeds_id <> ?", $medium->{ media_id }, $feeds_id );
+    my $status_msg = 'Media source feeds deleted.';
     $c->response->redirect(
         $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
 }
