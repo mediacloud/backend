@@ -772,13 +772,13 @@ sub keep_single_feed : Local
 
     $c->dbis->query( "delete from feeds where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
     my $status_msg = 'Media source feeds deleted.';
-    
+
     if ( $c->req->param( 'approve' ) )
     {
         $c->response->redirect( $c->uri_for( "/media/moderate/$medium->{ media_id }?approve=1" ) );
     }
     else
-    {    
+    {
         $c->response->redirect(
             $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
     }
