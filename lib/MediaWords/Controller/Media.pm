@@ -769,7 +769,7 @@ sub keep_single_feed : Local
 
     # make sure feeds_id is a num
     $feeds_id += 0;
-    
+
     $c->dbis->query( "delete from feeds where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
     my $status_msg = 'Media source feeds deleted.';
     $c->response->redirect(
