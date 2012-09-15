@@ -775,7 +775,7 @@ sub keep_single_feed : Local
 
     if ( $c->req->param( 'approve' ) )
     {
-        $c->response->redirect( $c->uri_for( "/media/moderate/$medium->{ media_id }?approve=1" ) );
+        $c->response->redirect( $c->uri_for( "/media/moderate/$medium->{ media_id }", { approve => 1 } ) );
     }
     else
     {
