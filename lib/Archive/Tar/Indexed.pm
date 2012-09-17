@@ -303,6 +303,8 @@ sub append_file
     my $num_blocks     = $tar_file_len / 512;
     my $starting_block = $pre_tar_stats[ 7 ] / 512;
 
+    ## MAYBE we should die even if the tar command filed
+    die "Unexpected zero length output" if ($num_blocks == 0 ) && ($tar_cmd );
     return ( $starting_block, $num_blocks );
 }
 
