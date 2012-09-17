@@ -17,3 +17,39 @@ Make sure that Carton installed the module without error messages.
 
 Run svn diff on carton.lock and make sure the changes make sense. In particular, make sure that no modules were deleted. If there are problems with carton.lock, svn revert it and try again. (You may need the run ./install_scripts/purge_carton_install.sh  and ./install_modules_with_carton.sh before starting over at the beginning of those instructions.) If carton.lock looks okay, svn commit it.
 
+Running Scripts
+
+95% of the time you'll just use the run_with_carton.sh wrapper to run scripts. E.g.:
+
+      ./script/run_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
+
+Note its best to run this script from the base directory of the media cloud install. However, this only matters if the arguments after the script are file paths.
+
+Debugging
+
+To run a script with the debugger under carton use ./script/debug_with_carton.sh e.g.:
+      ./script/debug_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
+
+You can invoke this script with the same arguments you used for run_with_carton.sh
+
+Profiling
+
+To profile execution with Devel::NYTProf use ./script/profile_with_carton.sh e.g.:
+
+      ./script/profile_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
+
+You can invoke this script in the same manner as run_with_carton.sh and debug_with_carton.sh.
+
+The Gory Details
+
+debug_with_carton.sh and run_with_carton.sh work by invoking a special version of Carton that we've modified to examine the environment variable CARTON_EXTRA_PERL5OPT. Everything in this variable is appended to PERL5OPT by our Carton before it executes the given perl script.
+
+You can use this special Carton with ./script/run_wrappered_carton.sh. For example, to have SCRIPT_NAME.pl be invoke with the model Foo::Bar, you would do the following:
+
+     CARTON_EXTRA_PERL5OPT="-mFoo::Bar" ./script/run_wrappered_carton.sh exec  ./script/SCRIPT_NAME.pl ARG1 ARG2
+
+
+
+
+
+
