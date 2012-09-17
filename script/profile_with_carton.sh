@@ -18,6 +18,12 @@ set -o  errexit
 
 cd ..
 
+echo "Starting profiling..."
+echo "Run './script/run_carton.sh exec nytprofhtml' to convert profile output to html after profiling is complete."
+
+echo "Run './script/run_carton.sh exec nytprofcsv' to convert profile output to csv after profiling is complete."
+
 export CARTON_EXTRA_PERL5OPT="-mDevel::NYTProf"
 exec ./script/run_wrappered_carton.sh exec -- "$full_path_str" "$@"
+
 
