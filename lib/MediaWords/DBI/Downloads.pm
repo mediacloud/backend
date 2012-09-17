@@ -19,6 +19,7 @@ use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::StoryVectors;
+use Carp;
 
 use Data::Dumper;
 
@@ -184,6 +185,8 @@ sub fetch_content_remote
 sub fetch_content
 {
     my ( $download ) = @_;
+
+    carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
 
     my $fetch_remote = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content } || 'no';
     if ( $fetch_remote eq 'yes' )
