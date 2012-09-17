@@ -17,8 +17,7 @@ set -u
 set -o  errexit
 
 cd ..
-#echo "$BASHPID"
-#echo ./script/run_carton.sh exec -- "$full_path_str" "$@"
+
 export CARTON_EXTRA_PERL5OPT=-d
 exec ./script/run_wrappered_carton.sh exec -- "$full_path_str" "$@"
 
