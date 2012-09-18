@@ -31,8 +31,6 @@ sub set_relative_path_downloads
 
     my $db = MediaWords::DB::connect_to_db;
 
-    $db->dbh->{ AutoCommit } = 0;
-
     my $batch_information = '';
 
     if ( defined( $batch_number ) )
