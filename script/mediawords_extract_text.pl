@@ -74,11 +74,14 @@ sub extract_text
             {
                 say STDERR "[$process_num] extractor error processing download " . $download->{ downloads_id } . ": $@";
                 $db->rollback;
-                
-                $db->query( "update downloads set state = 'error', error_message = ? where downloads_id = ?", 
-                    "extractor error: $@", $download->{ downloads_id } );
+
+                $db->query(
+                    "update downloads set state = 'error', error_message = ? where downloads_id = ?",
+                    "extractor error: $@",
+                    $download->{ downloads_id }
+                );
             }
-        $db->commit;
+            $db->commit;
         }
 
         if ( !$download_found )
