@@ -1110,11 +1110,16 @@ sub update_aggregate_words
 
         if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
         {
+	    say STDERR "update_aggregate_words: add for  $date ($start_date - $end_date) $days";
             _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             $update_weekly = 1;
         }
+	else
+	{
+	    say STDERR "update_aggregate_words: skipping because data exists for $date ($start_date - $end_date) $days";
+	}
 
         # update weeklies either if there was a daily update for the week and if we are at the end of the date range
         # or the end of a week
