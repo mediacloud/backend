@@ -1062,31 +1062,32 @@ sub _story_data_exists_for_date
     my ( $db, $sql_date, $media_sets_id ) = @_;
 
     print STDERR "starting  _story_data_exists_for_date with date $sql_date ";
-   
+
     if ( $media_sets_id )
     {
-    	say STDERR " and media_sets_id $media_sets_id";
+        say STDERR " and media_sets_id $media_sets_id";
     }
     else
     {
-	say STDERR;
+        say STDERR;
     }
 
     my $media_set_clause = '';
 
     if ( $media_sets_id )
     {
-	$media_set_clause = "media_id in ( select media_id from media_sets_media_map where media_sets_id = 11752 )";
+        $media_set_clause = "media_id in ( select media_id from media_sets_media_map where media_sets_id = 11752 )";
     }
     else
     {
-	$media_set_clause = " 1=1 ";
+        $media_set_clause = " 1=1 ";
     }
-    my $query = "SELECT 1 FROM story_sentences WHERE date_trunc('day', publish_date)  = '$sql_date' AND $media_set_clause LIMIT 1";
+    my $query =
+      "SELECT 1 FROM story_sentences WHERE date_trunc('day', publish_date)  = '$sql_date' AND $media_set_clause LIMIT 1";
 
     say STDERR "query: $query";
 
-    my $ret = $db->query( $query  )->hash;
+    my $ret = $db->query( $query )->hash;
 
     say STDERR Dumper( $ret );
     say STDERR "returning $ret";
@@ -1146,7 +1147,11 @@ sub update_aggregate_words
 
         #_update_daily_stories_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
 
-        if ( $force || (  ( !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) ) &&  _story_data_exists_for_date( $db, $date, $media_sets_id ) ) )
+        if (
+            $force
+            || ( ( !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
+                && _story_data_exists_for_date( $db, $date, $media_sets_id ) )
+          )
         {
             say STDERR "update_aggregate_words: add for  $date ($start_date - $end_date) $days";
             _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
