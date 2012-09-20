@@ -1061,16 +1061,16 @@ sub _story_data_exists_for_date
 {
     my ( $db, $sql_date, $media_sets_id ) = @_;
 
-    print STDERR "starting  _story_data_exists_for_date with date $sql_date ";
+    # print STDERR "starting  _story_data_exists_for_date with date $sql_date ";
 
-    if ( $media_sets_id )
-    {
-        say STDERR " and media_sets_id $media_sets_id";
-    }
-    else
-    {
-        say STDERR;
-    }
+    # if ( $media_sets_id )
+    # {
+    #     say STDERR " and media_sets_id $media_sets_id";
+    # }
+    # else
+    # {
+    #     say STDERR;
+    # }
 
     my $media_set_clause = '';
 
@@ -1085,12 +1085,12 @@ sub _story_data_exists_for_date
     my $query =
       "SELECT 1 FROM story_sentences WHERE date_trunc('day', publish_date)  = '$sql_date' AND $media_set_clause LIMIT 1";
 
-    say STDERR "query: $query";
+    # say STDERR "query: $query";
 
     my $ret = $db->query( $query )->hash;
 
-    say STDERR Dumper( $ret );
-    say STDERR "returning $ret";
+    # say STDERR Dumper( $ret );
+    # say STDERR "returning $ret";
 
     return $ret;
 }
