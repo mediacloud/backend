@@ -731,7 +731,8 @@ sub _get_dashboard_consistent_data
         $_consistent_data_cache->set( $dashboards_id, $ret );
     }
 
-    say STDERR "_get_dashboard_consistent_data - returning: '" . Dumper( $ret ) . "'";
+    # say STDERR "_get_dashboard_consistent_data - returning: '" . Dumper( $ret ) . "'";
+
     return $ret;
 }
 
