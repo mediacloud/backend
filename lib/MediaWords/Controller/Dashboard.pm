@@ -724,7 +724,7 @@ sub _get_dashboard_consistent_data
         $ret->{ dashboard_topics }      = $dashboard_topics;
         $ret->{ dashboard_dates }       = $dashboard_dates;
 
-        say STDERR "_get_dashboard_consistent_data - Storing: " . Dumper( $ret );
+        # say STDERR "_get_dashboard_consistent_data - Storing: " . Dumper( $ret );
 
         #don't store invalid data in the cache
         die "Error getting dashboard_dates " unless ( scalar( @{ $dashboard_dates } ) > 0 );
