@@ -1,11 +1,16 @@
 
 import couchdb
+from pubsub import pub
 
 class StoryDB(object):
     '''
     For now this is CouchDB implementation, but this API should support later extraction
     to allow for multiple backing database technologies
     '''
+
+    # callbacks you can register listeners against
+    EVENT_PRE_STORY_SAVE = "preStorySave"
+    EVENT_POST_STORY_SAVE = "postStorySave"
 
     def __init__(self,db_name):
         '''
@@ -31,9 +36,10 @@ class StoryDB(object):
           'stories_id': story['stories_id'],
           'story_sentences_count': len(story['story_sentences']),
         }
-        # TODO: fire presave event
+        pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_attributes, raw_story=story)
         self._db.save( story_attributes )
-        # TODO: fire postsave event
+        saved_story = self.getStory( str(story['stories_id']) )
+        pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=story_attributes, raw_story=story)
         
     def getStory(self,story_id):
         '''

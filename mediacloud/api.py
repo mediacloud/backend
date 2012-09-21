@@ -57,7 +57,7 @@ class MediaCloud(object):
         Call this to make a JSON query to the MC server and return a python object 
         with results
         '''
-        return self.parse_query_results( self._query(params) )
+        return self._parseJsonResults( self._query(params) )
   
     def _query(self, params):
         '''
