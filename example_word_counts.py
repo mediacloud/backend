@@ -12,7 +12,10 @@ config = ConfigParser.ConfigParser()
 config.read('mc-client.config')
 
 # set up a connection to a local DB
-db = StoryDatabase('mediacloud')
+db = StoryDatabase('mediacloud', 
+  config.get('db','host'),
+  config.get('db','port'),
+  )
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )

@@ -1,3 +1,9 @@
 [api]
 user: username
 pass: password
+
+[db]
+user: username
+pass: password
+host: 127.0.0.1
+post: 5984

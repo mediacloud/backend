@@ -12,8 +12,13 @@ class StoryDatabase(object):
     EVENT_PRE_STORY_SAVE = "preStorySave"
     EVENT_POST_STORY_SAVE = "postStorySave"
 
-    def __init__(self,db_name=None):
-        self._server = couchdb.Server()
+    def __init__(self, db_name=None, host='127.0.0.1', port=5984, username=None, password=None):
+        if (username is not None) and (password is not None):
+            url = "http://"+username+":"+password+"@"
+        else:
+            url = "http://"
+        url = url + host+":"+str(port)
+        self._server = couchdb.Server(url)
         if db_name is not None:
           self.selectDatabase(db_name)
     
@@ -21,7 +26,6 @@ class StoryDatabase(object):
         '''
         Is this story id in the database already?
         '''
-        
         try:
           self._db[story_id]
         except couchdb.ResourceNotFound:
