@@ -9,6 +9,12 @@ from mediacloud.api import MediaCloud
 from mediacloud.storage import StoryDatabase
 import mediacloud.examples
 
+'''
+This example file fetches the latest 25 stories from MediaCloud and saves their metadata 
+to a 'mediacloud' CouchDB database.  It adds in the extracted word count via a pre-save 
+event subscription.
+'''
+
 config = ConfigParser.ConfigParser()
 config.read('mc-client.config')
 
@@ -17,7 +23,6 @@ db = StoryDatabase('mediacloud', config.get('db','host'), config.get('db','port'
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
-#results = mc.storiesSince( db.getMaxStoryId() )
 results = mc.recentStories()
 print "Fetched "+str(len(results))+" stories"
 
