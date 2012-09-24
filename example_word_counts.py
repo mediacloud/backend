@@ -7,15 +7,13 @@ import nltk
 
 from mediacloud.api import MediaCloud
 from mediacloud.storage import StoryDatabase
+import mediacloud.examples
 
 config = ConfigParser.ConfigParser()
 config.read('mc-client.config')
 
 # set up a connection to a local DB
-db = StoryDatabase('mediacloud', 
-  config.get('db','host'),
-  config.get('db','port'),
-  )
+db = StoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
@@ -23,14 +21,8 @@ mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
 results = mc.recentStories()
 print "Fetched "+str(len(results))+" stories"
 
-# This is the callback to run on every story
-def addWordCountToStory(db_story, raw_story):
-    text = nltk.Text(raw_story['story_text'].encode('utf-8'))
-    word_count = len(text)
-    db_story['word_count'] = word_count
-
 # set up my callback function that adds word count to the story
-pub.subscribe(addWordCountToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
+pub.subscribe(mediacloud.examples.addWordCountToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
 # save all the stories in the db (this will fire the callback above)
 saved = 0
