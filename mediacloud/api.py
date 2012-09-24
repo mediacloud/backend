@@ -30,7 +30,7 @@ class MediaCloud(object):
             f = open('mediacloud/test/fixtures/stories_15_since_88848861.json','r');
             content = f.read()
             return self._parseJsonResults(content)
-        return self._queryJson( {'last_stories_id': story_id} )
+        return self._queryJson( {'last_stories_id': story_id, 'story_count':count} )
         
     def recentStories(self, story_count=DEFAULT_STORY_COUNT):
         '''
