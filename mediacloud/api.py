@@ -10,7 +10,7 @@ class MediaCloud(object):
 
     VERSION = "0.0"
 
-    API_URL = "http://amanda.law.harvard.edu/admin/stories/stories_queryJson"
+    API_URL = "http://amanda.law.harvard.edu/admin/stories/stories_query_json"
 
     DEFAULT_STORY_COUNT = 25
 

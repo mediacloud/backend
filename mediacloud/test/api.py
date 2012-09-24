@@ -1,6 +1,6 @@
 
 import unittest
-from mediacloud import MediaCloud
+from mediacloud.api import MediaCloud
 
 class ApiTest(unittest.TestCase):
 
@@ -20,8 +20,8 @@ class ApiTest(unittest.TestCase):
     def testStoryDetail(self):
         story_id = 88848861
         mc = MediaCloud(None,None,True)
-        stories = mc.storyDetail(story_id)
-        self.assertEquals(stories['stories_id'], story_id)
+        story = mc.storyDetail(story_id)
+        self.assertEquals(story['stories_id'], story_id)
   
     def suite():
         return unittest.makeSuite(ApiTest, 'test')

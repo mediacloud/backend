@@ -6,17 +6,17 @@ from pubsub import pub
 import nltk
 
 from mediacloud.api import MediaCloud
-from mediacloud.storage import StoryDB
+from mediacloud.storage import StoryDatabase
 
 config = ConfigParser.ConfigParser()
 config.read('mc-client.config')
 
 # set up a connection to a local DB
-db = StoryDB('mediacloud')
+db = StoryDatabase('mediacloud')
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
-results = mc.storiesSince(88848861)
+results = mc.recentStories()
 
 # This is the callback to run on every story
 def addWordCountToStory(db_story, raw_story):
@@ -25,7 +25,7 @@ def addWordCountToStory(db_story, raw_story):
     db_story['word_count'] = word_count
 
 # set up my callback function that adds word count to the story
-pub.subscribe(addWordCountToStory, StoryDB.EVENT_PRE_STORY_SAVE)
+pub.subscribe(addWordCountToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
 # save all the stories in the db (this will fire the callback above)
 for story in results:

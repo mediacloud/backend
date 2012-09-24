@@ -1,3 +1,3 @@
 
 from api import MediaCloud
-from storage import StoryDB
+from storage import StoryDatabase

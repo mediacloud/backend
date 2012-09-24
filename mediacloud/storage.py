@@ -2,7 +2,7 @@
 import couchdb
 from pubsub import pub
 
-class StoryDB(object):
+class StoryDatabase(object):
     '''
     For now this is CouchDB implementation, but this API should support later extraction
     to allow for multiple backing database technologies
@@ -12,12 +12,10 @@ class StoryDB(object):
     EVENT_PRE_STORY_SAVE = "preStorySave"
     EVENT_POST_STORY_SAVE = "postStorySave"
 
-    def __init__(self,db_name):
-        '''
-        Open a single connection to the database to use for all subsequent calls
-        '''
+    def __init__(self,db_name=None):
         self._server = couchdb.Server()
-        self._db = self._server[db_name]
+        if db_name is not None:
+          self.selectDatabase(db_name)
 
     def addStory(self,story):
         ''' 
@@ -46,3 +44,13 @@ class StoryDB(object):
         Return a story (python object)
         '''
         return self._db[story_id]
+
+    def selectDatabase(self, db_name):
+        self._db = self._server[db_name]
+
+    def createDatabase(self, db_name):
+        self._server.create(db_name)
+        self.selectDatabase(db_name)
+        
+    def deleteDatabase(self, db_name):
+        del self._server[db_name]
