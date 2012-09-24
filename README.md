@@ -9,7 +9,7 @@ database.
 Installation
 ------------
 
-Make sure you have Python > 2.6 and then install the python dependencies:
+Make sure you have Python > 2.6 (and setuptools) and then install the python dependencies:
     
     easy_install -Z pypubsub
     easy_install nltk
@@ -21,6 +21,13 @@ Install and run CouchDB to store article info:
 
 Copy the `mc-client.config.template` to `mc-client.config` and edit it, putting in the 
 API username and password.
+
+### Ubuntu
+
+On Ubuntu, you may need to do this first to get nltk to install:
+
+  sudo aptitude install python-dev
+  
 
 Testing
 -------
