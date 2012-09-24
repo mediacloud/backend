@@ -32,7 +32,7 @@ class StorageTest(unittest.TestCase):
         self.assertFalse(db.storyExists('43223535'))
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testGetMaxId(self):
+    def testGetMaxStoryId(self):
         story1 = self._getFakeStory()
         story1['stories_id'] = "1000"
         story2 = self._getFakeStory()
