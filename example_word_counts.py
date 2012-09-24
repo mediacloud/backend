@@ -18,6 +18,7 @@ db = StoryDatabase('mediacloud')
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
 #results = mc.storiesSince( db.getMaxStoryId() )
 results = mc.recentStories()
+print "Fetched "+str(len(results))+" stories"
 
 # This is the callback to run on every story
 def addWordCountToStory(db_story, raw_story):
@@ -29,5 +30,10 @@ def addWordCountToStory(db_story, raw_story):
 pub.subscribe(addWordCountToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
 # save all the stories in the db (this will fire the callback above)
+saved = 0
 for story in results:
-    db.addStory(story)
+    worked = db.addStory(story)
+    if worked:
+      saved = saved + 1
+
+print "Saved "+str(saved)+" stories"
