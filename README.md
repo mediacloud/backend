@@ -15,7 +15,7 @@ Make sure you have Python > 2.6 (and setuptools) and then install the python dep
     easy_install nltk
     easy_install couchdb
     
-Install and run CouchDB to store article info:
+Install and run CouchDB to store article info (created a 'mediacloud' database):
 
     http://couchdb.apache.org
 
