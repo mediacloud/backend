@@ -12,9 +12,8 @@ class StorageTest(unittest.TestCase):
         db.selectDatabase(self.TEST_DB_NAME)
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testAddStory(self):
+    def testSaveStory(self):
         story = self._getFakeStory()
-        # now save it
         db = StoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
         db.addStory(story)
@@ -22,6 +21,28 @@ class StorageTest(unittest.TestCase):
         self.assertEquals(saved_story['_id'], str(story['stories_id']))
         self.assertEquals(saved_story['story_sentences_count'], 2)
         db.deleteDatabase(self.TEST_DB_NAME)
+
+    def testStoryExists(self):
+        story = self._getFakeStory()
+        db = StoryDatabase()
+        db.createDatabase(self.TEST_DB_NAME)
+        db.addStory(story)
+        saved_story = db.getStory(str(story['stories_id']))
+        self.assertTrue(db.storyExists(str(story['stories_id'])))
+        self.assertFalse(db.storyExists('43223535'))
+        db.deleteDatabase(self.TEST_DB_NAME)
+
+    def testGetMaxId(self):
+        story1 = self._getFakeStory()
+        story1['stories_id'] = "1000"
+        story2 = self._getFakeStory()
+        story1['stories_id'] = "2000"
+        db = StoryDatabase()
+        db.createDatabase(self.TEST_DB_NAME)
+        db.addStory(story1)
+        db.addStory(story2)
+        self.assertEquals(db.getMaxStoryId(),2000)
+        db.deleteDatabase(self.TEST_DB_NAME)        
 
     def _getFakeStory(self):
         story_attributes = {

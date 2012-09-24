@@ -16,6 +16,17 @@ class StoryDatabase(object):
         self._server = couchdb.Server()
         if db_name is not None:
           self.selectDatabase(db_name)
+    
+    def storyExists(self,story_id):
+        '''
+        Is this story id in the database already?
+        '''
+        
+        try:
+          self._db[story_id]
+        except couchdb.ResourceNotFound:
+          return False
+        return True
 
     def addStory(self,story):
         ''' 
@@ -54,3 +65,11 @@ class StoryDatabase(object):
         
     def deleteDatabase(self, db_name):
         del self._server[db_name]
+        
+    def getMaxStoryId(self):
+        map_function = "function(doc) { emit(null, doc._id); }"
+        results = self._db.query(map_function)
+        ids = []
+        for row in results:
+            ids.append(int(row.id))
+        return max(ids)
