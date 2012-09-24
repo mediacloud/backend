@@ -26,7 +26,7 @@ API username and password.
 
 On Ubuntu, you may need to do this first to get nltk to install:
 
-  sudo aptitude install python-dev
+    sudo aptitude install python-dev
   
 
 Testing
