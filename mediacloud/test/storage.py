@@ -39,6 +39,7 @@ class StorageTest(unittest.TestCase):
         story1['stories_id'] = "2000"
         db = StoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
+        self.assertEquals(db.getMaxStoryId(),0)
         db.addStory(story1)
         db.addStory(story2)
         self.assertEquals(db.getMaxStoryId(),2000)

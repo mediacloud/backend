@@ -72,4 +72,6 @@ class StoryDatabase(object):
         ids = []
         for row in results:
             ids.append(int(row.id))
+        if ( len(ids) == 0 ):
+          return 0
         return max(ids)
