@@ -30,8 +30,10 @@ class StoryDatabase(object):
 
     def addStory(self,story):
         ''' 
-        Save a story (python object) to the database
+        Save a story (python object) to the database.  Return success or failure boolean.
         '''
+        if self.storyExists(str(story['stories_id'])):
+            return False
         story_attributes = {
           '_id': str(story['stories_id']),
           'title': story['title'],
@@ -49,6 +51,7 @@ class StoryDatabase(object):
         self._db.save( story_attributes )
         saved_story = self.getStory( str(story['stories_id']) )
         pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=story_attributes, raw_story=story)
+        return True
         
     def getStory(self,story_id):
         '''
