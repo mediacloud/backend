@@ -16,11 +16,12 @@ db = StoryDatabase('mediacloud')
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
+#results = mc.storiesSince( db.getMaxStoryId() )
 results = mc.recentStories()
 
 # This is the callback to run on every story
 def addWordCountToStory(db_story, raw_story):
-    text = nltk.Text(raw_story['story_text'])
+    text = nltk.Text(raw_story['story_text'].encode('utf-8'))
     word_count = len(text)
     db_story['word_count'] = word_count
 
