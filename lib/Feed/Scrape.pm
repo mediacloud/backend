@@ -395,6 +395,11 @@ sub get_valid_feeds_from_html
     return $class->get_valid_feeds_from_urls( $urls, @_ );
 }
 
+# if there's only a single urls and we recognize the url as a bloghost for which feed::find will work,
+# use that (to avoid the very expensive recursion and validation involved below).
+#
+#  Otherwise fallback back on get_valid_feeds_from_index_url below
+#
 sub get_valid_feeds_from_single_index_url
 {
     my $class   = shift( @_ );
@@ -416,10 +421,7 @@ sub get_valid_feeds_from_single_index_url
 # try to find all rss feeds for a site from the home page url of the site.  return a list
 # of urls of found rss feeds.
 #
-# if there's only a single urls and we recognize the url as a bloghost for which feed::find will work,
-# use that (to avoid the very expensive recursion and validation involved below).
-#
-# otherwise, fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
+# fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
 sub get_valid_feeds_from_index_url
 {
@@ -431,16 +433,6 @@ sub get_valid_feeds_from_index_url
     # say Dumper( $urls );
 
     carp '$urls must be a reference ' unless ref( $urls );
-
-    # if ( !ref( $urls ) && _is_feed_find_url( $urls ) )
-    # {
-    #     return $class->get_valid_feeds_from_urls( [ Feed::Find->find( $urls ) ], @_ );
-    # }
-
-    # if ( !ref( $urls ) )
-    # {
-    #     $urls = [ $urls ];
-    # }
 
     $#{ $urls } = List::Util::min( $#{ $urls }, MAX_INDEX_URLS - 1 );
 
