@@ -12,6 +12,7 @@ use Regexp::Common qw /URI/;
 use URI::URL;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use Carp;
 
 #use XML::FeedPP;
 use XML::LibXML;
@@ -394,6 +395,24 @@ sub get_valid_feeds_from_html
     return $class->get_valid_feeds_from_urls( $urls, @_ );
 }
 
+sub get_valid_feeds_from_single_index_url
+{
+    my $class   = shift( @_ );
+    my $url    = shift( @_ );
+    my $recurse = shift( @_ );
+
+    carp '$url must be a string ' unless scalar $url;
+
+    if ( _is_feed_find_url( $url ) )
+    {
+        return $class->get_valid_feeds_from_urls( [ Feed::Find->find( $url ) ], @_ );
+    }
+
+    my $urls = [ $url ];
+
+    return $class->get_valid_feeds_from_index_url ( $urls, $recurse, @_ );
+}
+
 # try to find all rss feeds for a site from the home page url of the site.  return a list
 # of urls of found rss feeds.
 #
@@ -408,18 +427,20 @@ sub get_valid_feeds_from_index_url
     my $urls    = shift( @_ );
     my $recurse = shift( @_ );
 
-    # say STDERR 'get_valid_feeds_from_index_url'
+    # say STDERR 'get_valid_feeds_from_index_url';
     # say Dumper( $urls );
 
-    if ( !ref( $urls ) && _is_feed_find_url( $urls ) )
-    {
-        return $class->get_valid_feeds_from_urls( [ Feed::Find->find( $urls ) ], @_ );
-    }
+    carp '$urls must be a reference ' unless ref( $urls );
 
-    if ( !ref( $urls ) )
-    {
-        $urls = [ $urls ];
-    }
+    # if ( !ref( $urls ) && _is_feed_find_url( $urls ) )
+    # {
+    #     return $class->get_valid_feeds_from_urls( [ Feed::Find->find( $urls ) ], @_ );
+    # }
+
+    # if ( !ref( $urls ) )
+    # {
+    #     $urls = [ $urls ];
+    # }
 
     $#{ $urls } = List::Util::min( $#{ $urls }, MAX_INDEX_URLS - 1 );
 
