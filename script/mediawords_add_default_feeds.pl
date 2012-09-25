@@ -32,7 +32,8 @@ sub main
             my $existing_urls = [];
 
             my $feed_links =
-              Feed::Scrape::MediaWords->get_valid_feeds_from_single_index_url( $medium->{ url }, 1, $db, [], $existing_urls );
+              Feed::Scrape::MediaWords->get_valid_feeds_from_single_index_url( $medium->{ url }, 1, $db, [],
+                $existing_urls );
 
             for my $feed_link ( @{ $feed_links } )
             {
