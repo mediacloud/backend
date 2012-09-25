@@ -398,7 +398,7 @@ sub get_valid_feeds_from_html
 sub get_valid_feeds_from_single_index_url
 {
     my $class   = shift( @_ );
-    my $url    = shift( @_ );
+    my $url     = shift( @_ );
     my $recurse = shift( @_ );
 
     carp '$url must be a string ' unless scalar $url;
@@ -410,7 +410,7 @@ sub get_valid_feeds_from_single_index_url
 
     my $urls = [ $url ];
 
-    return $class->get_valid_feeds_from_index_url ( $urls, $recurse, @_ );
+    return $class->get_valid_feeds_from_index_url( $urls, $recurse, @_ );
 }
 
 # try to find all rss feeds for a site from the home page url of the site.  return a list
