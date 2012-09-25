@@ -10,6 +10,8 @@ use HTML::Entities;
 use List::Util;
 use Regexp::Common qw /URI/;
 use URI::URL;
+use Modern::Perl "2012";
+use MediaWords::CommonLibs;
 
 #use XML::FeedPP;
 use XML::LibXML;
@@ -405,6 +407,9 @@ sub get_valid_feeds_from_index_url
     my $class   = shift( @_ );
     my $urls    = shift( @_ );
     my $recurse = shift( @_ );
+
+    # say STDERR 'get_valid_feeds_from_index_url'
+    # say Dumper( $urls );
 
     if ( !ref( $urls ) && _is_feed_find_url( $urls ) )
     {
