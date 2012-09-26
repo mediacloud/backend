@@ -21,7 +21,7 @@ use List::MoreUtils qw(any all none notall true false firstidx first_index
   lastidx last_index insert_after insert_after_string
   apply after after_incl before before_incl indexes
   firstval first_value lastval last_value each_array
-  each_arrayref pairwise natatime mesh zip uniq minmax);
+  each_arrayref pairwise natatime mesh zip distinct uniq minmax);
 
 use MediaWords::Util::Web;
 
@@ -364,17 +364,14 @@ sub get_feed_urls_from_html
 
     $links = [ grep { $_->{ href }->scheme eq 'http' } @{ $links } ];
 
-    $links = [ map { $_->{ href }->as_string } @{ $links } ];
+    my $link_urls = [ map { $_->{ href } } @ { $links } ];
 
-    # say STDERR "Dumping links";
-    # say STDERR Dumper ( $links );
+    $link_urls = [ grep { $_->as_string =~ /feed|rss|syndication|sitemap|xml|rdf|atom/ } @ { $link_urls } ];
 
-    # exit;
+    # say STDERR "Dumping link_urls";
+    # say STDERR Dumper ( $link_urls );
 
-    # foreach my $link ( @ { $links } )
-    # {
-
-    # }
+    push ( @{ $urls }, @{ $link_urls } );
 
     # look for quoted urls
     while ( $html =~ m~["']([^"']*(?:feed|rss|syndication|sitemap|xml|rdf|atom)[^"']*)["']~gi )
@@ -405,8 +402,8 @@ sub get_feed_urls_from_html
         }
     }
 
-    my $r;
-    return [ grep { !$r->{ $_ }++ } @{ $urls } ];
+    $urls =  [  distinct  @ { $urls }   ];
+    return $urls;
 }
 
 # combination of get_feeds_urls_from_html and get_valid_feeds_from_urls
