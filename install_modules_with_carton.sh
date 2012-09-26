@@ -7,6 +7,11 @@ working_dir=`dirname $0`
 
 cd $working_dir
 
+if pwd | grep ' ' ; then
+    echo "Media Cloud cannot be installed in a file path with spaces in its name"
+    exit 1
+fi
+
 if [ `uname` == 'Darwin' ]; then
 	# On OS X, these modules get lost in the process for some reason
 	./script/run_carton.sh install YAML::Syck
