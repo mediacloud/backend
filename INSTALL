@@ -14,6 +14,8 @@ If you're running Mac OS X, you'll need MacPorts <http://www.macports.org/> to i
 
 NOTE: We recommend you create a new user to run and install Media Cloud. (The new user should have administrator access.) These instructions assume that the user running media cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
+WARNING: The file path of the directory for Media Cloud cannot contain spaces. E.g. use '/home/bob/MySoftware/mediacloud' not '/home/bob/My Software/mediacloud'.
+
 SUPER QUICK START:
 
 We recommend that you first read through this entire file. However, users who are really impatient can just run a single script to execute the necessary commands to install media by running ./install.sh from the Media Cloud root directory:
