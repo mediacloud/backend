@@ -13,6 +13,7 @@ use URI::URL;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use Carp;
+use HTML::LinkExtractor;
 
 #use XML::FeedPP;
 use XML::LibXML;
@@ -107,6 +108,8 @@ sub _validate_and_name_feed_urls
         my $content = $response->decoded_content;
 
         my $url = MediaWords::Util::Web->get_original_request( $response )->url;
+
+	say STDERR "Parsing $url";
 
         if ( my $feed = $class->parse_feed( $content ) )
         {
@@ -274,7 +277,7 @@ sub parse_feed
     $content = _fix_atom_content_element_encoding( $content );
 
     my $feed;
-    $DB::single = 1;
+    #$DB::single = 1;
     eval { $feed = XML::FeedPP::MediaWords->new( { content => $content, type => 'string' } ) };
 
     if ( $@ )
@@ -346,16 +349,39 @@ sub get_feed_urls_from_html
 {
     my ( $class, $base_url, $html ) = @_;
 
+    # say STDERR "get_feed_urls_from_html";
+
     my $url_hash = {};
 
     #_log_message("scrape html: $html");
 
     my $urls = [];
 
+    my $p = HTML::LinkExtractor->new( undef, $base_url );
+    $p->parse( \$html );
+    my $links = [ grep { $_->{ tag } eq 'a' } @{ $p->links } ];
+
+    $links = [ grep { $_->{ href }->scheme eq 'http' } @{ $links } ];
+
+    $links = [ map { $_->{ href }->as_string } @ { $links } ];
+    
+    # say STDERR "Dumping links";
+    # say STDERR Dumper ( $links );
+
+    # exit;
+
+    # foreach my $link ( @ { $links } )
+    # {
+    	
+    # }
+
     # look for quoted urls
     while ( $html =~ m~["']([^"']*(?:feed|rss|syndication|sitemap|xml|rdf|atom)[^"']*)["']~gi )
     {
         my $url = $1;
+
+	#Remove trailing backslash
+	$url =~ s/(.*)\\/\1/;
 
         my $quoted_url = $class->_resolve_relative_url( $base_url, $url );
 
@@ -443,6 +469,8 @@ sub get_valid_feeds_from_index_url
     for my $response ( @{ $responses } )
     {
         my $feed_urls = $class->get_feed_urls_from_html( $response->request->url, $response->decoded_content );
+
+	# say STDERR "Got the following urls from " .  $response->request->url . ":" . Dumper( $feed_urls );
 
         map { $scraped_url_lookup->{ $_ }++ } @{ $feed_urls };
     }
