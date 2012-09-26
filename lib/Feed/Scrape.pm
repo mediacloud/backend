@@ -447,6 +447,12 @@ sub get_valid_feeds_from_single_index_url
 #
 # fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
 # urls scraped from that page.
+#
+# TODO: Refactor and clean up this function so it's more readable. It's only called in a couple of places so changing it should be relatively safe
+#  Variables such as $recurse should have consistent type, and not be used for multiple purposes. (Currently $recurse can be either a boolean or a reference to an array of strings.
+# Ideally there would be a private implementation function that does the actual recursion that is called by a short non-recurvsive public function
+# 
+#
 sub get_valid_feeds_from_index_url
 {
     my $class   = shift( @_ );
