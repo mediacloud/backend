@@ -364,14 +364,14 @@ sub get_feed_urls_from_html
 
     $links = [ grep { $_->{ href }->scheme eq 'http' } @{ $links } ];
 
-    my $link_urls = [ map { $_->{ href } } @ { $links } ];
+    my $link_urls = [ map { $_->{ href } } @{ $links } ];
 
-    $link_urls = [ grep { $_->as_string =~ /feed|rss|syndication|sitemap|xml|rdf|atom/ } @ { $link_urls } ];
+    $link_urls = [ grep { $_->as_string =~ /feed|rss|syndication|sitemap|xml|rdf|atom/ } @{ $link_urls } ];
 
     # say STDERR "Dumping link_urls";
     # say STDERR Dumper ( $link_urls );
 
-    push ( @{ $urls }, @{ $link_urls } );
+    push( @{ $urls }, @{ $link_urls } );
 
     # look for quoted urls
     while ( $html =~ m~["']([^"']*(?:feed|rss|syndication|sitemap|xml|rdf|atom)[^"']*)["']~gi )
@@ -402,7 +402,7 @@ sub get_feed_urls_from_html
         }
     }
 
-    $urls =  [  distinct  @ { $urls }   ];
+    $urls = [ distinct @{ $urls } ];
     return $urls;
 }
 
