@@ -37,9 +37,24 @@ class ApiTest(unittest.TestCase):
         for story in stories:
           self.assertTrue( int(story['stories_id']) > story_id)
 
+    def testStoriesSinceForReal(self):
+        mc = MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+        story_id = 88848861
+        stories = mc.storiesSince(story_id)
+        self.assertEquals(len(stories), mc.DEFAULT_STORY_COUNT)
+        for story in stories:
+            self.assertTrue(int(story['stories_id'])>story_id)
+            self.assertTrue(int(story['stories_id'])-story_id <= mc.DEFAULT_STORY_COUNT)
+
     def testStoryDetail(self):
         story_id = 88848861
         mc = MediaCloud(None,None,True)
+        story = mc.storyDetail(story_id)
+        self.assertEquals(story['stories_id'], story_id)
+
+    def testStoryDetailForReal(self):
+        mc = MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+        story_id = 88848861
         story = mc.storyDetail(story_id)
         self.assertEquals(story['stories_id'], story_id)
   
