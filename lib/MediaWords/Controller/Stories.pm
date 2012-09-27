@@ -257,7 +257,7 @@ sub stories_query_json : Local
     {
         $last_stories_id = $start_stories_id - 1;
     }
-    else
+    elsif ( !( defined( $last_stories_id ) ) )
     {
         ( $last_stories_id ) = $c->dbis->query(
 " select stories_id from stories where collect_date < now() - interval '1 days' order by collect_date desc limit 1 "
@@ -269,7 +269,11 @@ sub stories_query_json : Local
 
     Readonly my $stories_to_return => min( $c->req->param( 'story_count' ) // 25, 1000 );
 
-    my $stories = $c->dbis->query( " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ",
+    my $query =  " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ";
+
+    # say STDERR "Running query '$query' with $last_stories_id, $stories_to_return ";
+
+    my $stories = $c->dbis->query( $query ,
         $last_stories_id, $stories_to_return )->hashes;
 
     foreach my $story ( @{ $stories } )
