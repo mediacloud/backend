@@ -74,11 +74,4 @@ class StoryDatabase(object):
         del self._server[db_name]
         
     def getMaxStoryId(self):
-        map_function = "function(doc) { emit(null, doc._id); }"
-        results = self._db.query(map_function)
-        ids = []
-        for row in results:
-            ids.append(int(row.id))
-        if ( len(ids) == 0 ):
-          return 0
-        return max(ids)
+        return self._db.view('examples/max_story_id').rows[0].value
