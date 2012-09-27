@@ -17,6 +17,10 @@ $options['port'] = 5984;
 $couch = new CouchSimple($options);
 
 // total article count
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/max_story_id") ); 
+$maxStoryId = $results->rows[0]->value;
+
+// total article count
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/total_articles") ); 
 $articleCount = $results->rows[0]->value;
 
@@ -49,7 +53,7 @@ foreach ($results->rows as $row){
 <h1>MediaCloud API Client Examples</h1>
 
 <p>
-<?=$articleCount?> stories in the database</b>
+<?=$articleCount?> stories in the database. The max story id is <?=$maxStoryId?>.
 </p>
 
 <h2>Story Length</h2>
