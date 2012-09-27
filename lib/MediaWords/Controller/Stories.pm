@@ -245,6 +245,10 @@ sub stories_query_json : Local
 
     my $start_stories_id = $c->req->param( 'start_stories_id' );
 
+    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
+
+    $show_raw_1st_download //= 1;
+
     die " Cannot use both last_stories_id and start_stories_id"
       if defined( $last_stories_id )
           and defined( $start_stories_id );
@@ -280,20 +284,23 @@ sub stories_query_json : Local
         $story->{ fully_extracted } = $fully_extracted;
     }
 
-    foreach my $story ( @{ $stories } )
+    if ( $show_raw_1st_download )
     {
-        my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
-
-        if ( !defined( $content_ref ) )
+        foreach my $story ( @{ $stories } )
         {
-            $story->{ first_raw_download_file }->{ missing } = 'true';
-        }
-        else
-        {
+            my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
 
-            #say STDERR "got content_ref $$content_ref";
+            if ( !defined( $content_ref ) )
+            {
+                $story->{ first_raw_download_file }->{ missing } = 'true';
+            }
+            else
+            {
 
-            $story->{ first_raw_download_file } = $$content_ref;
+                #say STDERR "got content_ref $$content_ref";
+
+                $story->{ first_raw_download_file } = $$content_ref;
+            }
         }
     }
 
