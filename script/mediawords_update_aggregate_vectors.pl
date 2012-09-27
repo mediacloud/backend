@@ -16,6 +16,7 @@ BEGIN
 use MediaWords::DB;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use Parallel::ForkManager;
 
 use MediaWords::StoryVectors;
 
@@ -101,25 +102,34 @@ sub run_daemon
             }
         }
 
+        my $pm = new Parallel::ForkManager( 5 );
         my $dashboard_topics =
           $db->query( "select * from dashboard_topics where vectors_added = false order by dashboard_topics_id" )->hashes;
         for my $dashboard_topic ( @{ $dashboard_topics } )
         {
-            print STDERR "update_aggregate_vectors: dashboard_topic $dashboard_topic->{ dashboard_topics_id }\n";
 
-            my ( $start_date, $end_date ) =
-              map { substr( $_, 0, 10 ) } ( $dashboard_topic->{ start_date }, $dashboard_topic->{ end_date } );
-            if ( $end_date gt $yesterday )
+            unless ( $pm->start )
             {
-                $end_date = $yesterday;
+                print STDERR "update_aggregate_vectors: dashboard_topic $dashboard_topic->{ dashboard_topics_id }\n";
+
+                my ( $start_date, $end_date ) =
+                  map { substr( $_, 0, 10 ) } ( $dashboard_topic->{ start_date }, $dashboard_topic->{ end_date } );
+                if ( $end_date gt $yesterday )
+                {
+                    $end_date = $yesterday;
+                }
+
+                MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 1,
+                    $dashboard_topic->{ dashboard_topics_id } );
+
+                $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
+                    $dashboard_topic->{ dashboard_topics_id } );
+
+                $pm->finish;
             }
-
-            MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 1,
-                $dashboard_topic->{ dashboard_topics_id } );
-
-            $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
-                $dashboard_topic->{ dashboard_topics_id } );
         }
+
+        $pm->wait_all_children;
 
         sleep( 60 );
     }
