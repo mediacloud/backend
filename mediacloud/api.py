@@ -8,7 +8,7 @@ class MediaCloud(object):
     Simple client library for the nascent MediaCloud story feed API
     '''
 
-    VERSION = "0.0"
+    VERSION = "0.1"
 
     API_URL = "http://amanda.law.harvard.edu/admin/stories/stories_query_json"
 
@@ -22,7 +22,7 @@ class MediaCloud(object):
         self._api_pass = api_pass
         self._debug_mode = debug_mode
         
-    def storiesSince(self, story_id, count=DEFAULT_STORY_COUNT):
+    def storiesSince(self, story_id, count=DEFAULT_STORY_COUNT, include_raw_text=False):
         '''
         Return of list of stories with ids greater than the one specified
         '''
@@ -30,9 +30,9 @@ class MediaCloud(object):
             f = open('mediacloud/test/fixtures/stories_15_since_88848861.json','r');
             content = f.read()
             return self._parseJsonResults(content)
-        return self._queryJson( {'last_stories_id': story_id, 'story_count':count} )
+        return self._queryJson( {'last_stories_id': story_id, 'story_count':count, 'raw_1st_download':include_raw_text} )
         
-    def recentStories(self, story_count=DEFAULT_STORY_COUNT):
+    def recentStories(self, story_count=DEFAULT_STORY_COUNT,  include_raw_text=False):
         '''
         Return of list of stories 
         '''
@@ -40,9 +40,9 @@ class MediaCloud(object):
             f = open('mediacloud/test/fixtures/stories_30_within_last_day.json','r');
             content = f.read()
             return self._parseJsonResults(content)
-        return self._queryJson( {'story_count': story_count} )
+        return self._queryJson( {'story_count': story_count, 'raw_1st_download':include_raw_text} )
 
-    def storyDetail(self, story_id):
+    def storyDetail(self, story_id,  include_raw_text=False):
         '''
         Return the details about one story, by id
         '''
@@ -50,13 +50,17 @@ class MediaCloud(object):
             f = open('mediacloud/test/fixtures/story_88848861.json','r');
             content = f.read()
             return self._parseJsonResults(content)[0]
-        return self._queryJson( {'start_stories_id': story_id, 'story_count': 1} )[0]
+        return self._queryJson( {'start_stories_id': story_id, 'story_count': 1, 'raw_1st_download':include_raw_text} )[0]
   
     def _queryJson(self, params):
         '''
         Call this to make a JSON query to the MC server and return a python object 
         with results
         '''
+        if params['raw_1st_download']==True:
+            params['raw_1st_download'] = 1
+        else:
+            params['raw_1st_download'] = 0
         return self._parseJsonResults( self._query(params) )
   
     def _query(self, params):
