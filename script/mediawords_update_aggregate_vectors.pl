@@ -112,6 +112,8 @@ sub run_daemon
             {
                 print STDERR "update_aggregate_vectors: dashboard_topic $dashboard_topic->{ dashboard_topics_id }\n";
 
+		my $db = MediaWords::DB::connect_to_db;
+
                 my ( $start_date, $end_date ) =
                   map { substr( $_, 0, 10 ) } ( $dashboard_topic->{ start_date }, $dashboard_topic->{ end_date } );
                 if ( $end_date gt $yesterday )
