@@ -269,12 +269,11 @@ sub stories_query_json : Local
 
     Readonly my $stories_to_return => min( $c->req->param( 'story_count' ) // 25, 1000 );
 
-    my $query =  " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ";
+    my $query = " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ";
 
     # say STDERR "Running query '$query' with $last_stories_id, $stories_to_return ";
 
-    my $stories = $c->dbis->query( $query ,
-        $last_stories_id, $stories_to_return )->hashes;
+    my $stories = $c->dbis->query( $query, $last_stories_id, $stories_to_return )->hashes;
 
     foreach my $story ( @{ $stories } )
     {
