@@ -1,2 +1,3 @@
 mc-client.config
 *.pyc
+*.log
