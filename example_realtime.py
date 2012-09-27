@@ -46,7 +46,7 @@ for story in results:
     if worked:
       saved = saved + 1
     else:
-      log.warning("  unable to save story "+str(story._stories_id))
+      log.warning("  unable to save story "+str(story['_stories_id']))
 
 max_story_id = db.getMaxStoryId()
 log.info("Saved "+str(saved)+" stories - new max id "+str(max_story_id))
