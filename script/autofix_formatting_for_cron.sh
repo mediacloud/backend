@@ -10,5 +10,6 @@ set -o  errexit
 
 svn up > /dev/null
 svn status | grep '^M' && echo "Unchecked in changes aborting" && exit
-./script/mediawords_reformat_all_code.sh
+#Temporarily hide error messages
+./script/mediawords_reformat_all_code.sh 2> /dev/null
 svn commit -m "Auto formatting fix script"
