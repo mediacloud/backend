@@ -6,10 +6,28 @@ class StorageTest(unittest.TestCase):
 
     TEST_DB_NAME = 'mediacloud-test'
 
+    def _getMaxStoryIdView(self):
+        return {
+          "_id": "_design/examples",
+          "language": "javascript",
+          "views": {
+              "max_story_id": {
+                  "map": "function(doc) { emit(doc._id,doc._id);}",
+                  "reduce": "function(keys, values) { var ids = [];  values.forEach(function(id) {if (!isNaN(id)) ids.push(id); }); return Math.max.apply(Math, ids); }"
+              }
+          }
+        }
+
+    def testCreateMaxIdView(self):
+        db = StoryDatabase()
+        db.createDatabase(self.TEST_DB_NAME)
+        db._db.save(self._getMaxStoryIdView())
+        self.assertEquals(db.getMaxStoryId(),0)
+        db.deleteDatabase(self.TEST_DB_NAME)        
+
     def testManageDatabase(self):
         db = StoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
-        db.selectDatabase(self.TEST_DB_NAME)
         db.deleteDatabase(self.TEST_DB_NAME)
 
     def testAddStory(self):
@@ -42,6 +60,7 @@ class StorageTest(unittest.TestCase):
         story1['stories_id'] = "2000"
         db = StoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
+        db._db.save(self._getMaxStoryIdView())
         self.assertEquals(db.getMaxStoryId(),0)
         db.addStory(story1)
         db.addStory(story2)
@@ -60,8 +79,8 @@ class StorageTest(unittest.TestCase):
           'guid': '23445654634615',
           'fully_extracted': 1,
           'story_sentences': [
-            'sentence',
-            'sentence',
+            'sentence1',
+            'sentence2',
            ],
         }
         return story_attributes
