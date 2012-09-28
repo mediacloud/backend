@@ -2,8 +2,9 @@
 <html>
   <head>
     <title>MediaCloud API Client Examples</title>
-    <script type="text/javascript" src="js/d3.v2.min.js"></script>
     <link href="css/mediacloud.css" rel="stylesheet" type="text/css"/>
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="js/d3.v2.min.js"></script>
   </head>
 
   <body>
@@ -49,20 +50,31 @@ foreach ($results->rows as $row){
     $excludedStories+=$row->value;
   }
 }
+
+$includedStoriesPct = $includedStories/($includedStories+$excludedStories);
 ?>
-<h1>MediaCloud API Client Examples</h1>
 
-<p>
-<?=$articleCount?> stories in the database. The max story id is <?=$maxStoryId?>.
-</p>
-
-<h2>Story Length</h2>
-<p>
-Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
-The vertical axis is the number of stories have that many words.  This graph includes 
-<?=$includedStories?> stories shorter than <?=$maxStoryLengthToShow?> words (excluding the
-<?=$excludedStories?> stories longer than that).
-</p>
+<div class="container"> 
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+        <h1>MediaCloud API Client <small>Examples</small></h1>
+      </div>
+      <div class="well">
+      <?=$articleCount?> stories in the database. The max story id is <?=$maxStoryId?>.
+      </div>
+    </div>
+    <div class="span12" id="mcStoryLength">
+      <h2>Story Length</h2>
+      <p>
+      Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
+      The vertical axis is the number of stories that have that many words.  This graph includes 
+      <?=round($includedStoriesPct*100)?>% of the stories (excluding the
+      <?=$excludedStories?> stories longer than <?=$maxStoryLengthToShow?> words).
+      </p>
+    </div>
+  </div>
+</div>
 
 <script type="text/javascript">
 var datasetKeys = [
@@ -96,7 +108,7 @@ var y = d3.scale.linear()
 var x = d3.scale.linear()
      .domain([0,maxStoryLenth])
      .range([0, chartWidth]);
-var chart = d3.select("body").append("svg")
+var chart = d3.select("#mcStoryLength").append("svg")
      .attr("class", "chart")
      .attr("width", barWidth*barsToShow+50)
      .attr("height", chartHeight+25)
