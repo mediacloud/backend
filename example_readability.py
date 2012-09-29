@@ -17,7 +17,7 @@ pre-save event subscription.
 To Install:
 >>> import nltk
 >>> nltk.download()
-select the corpora tab and download stopwords
+[select stopwords option from corpora]
 '''
 
 config = ConfigParser.ConfigParser()
