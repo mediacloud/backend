@@ -27,13 +27,14 @@ class textanalyzer(object):
         syllablesCount = self.countSyllables(words)
         complexwordsCount = self.countComplexWords(text)
         averageWordsPerSentence = wordCount/sentenceCount
-        print ' Language: ' + self.lang
-        print ' Number of characters: ' + str(charCount)
-        print ' Number of words: ' + str(wordCount)
-        print ' Number of sentences: ' + str(sentenceCount)
-        print ' Number of syllables: ' + str(syllablesCount)
-        print ' Number of complex words: ' + str(complexwordsCount)
-        print ' Average words per sentence: ' + str(averageWordsPerSentence)
+        # RB: comment out all these lines
+        #print ' Language: ' + self.lang
+        #print ' Number of characters: ' + str(charCount)
+        #print ' Number of words: ' + str(wordCount)
+        #print ' Number of sentences: ' + str(sentenceCount)
+        #print ' Number of syllables: ' + str(syllablesCount)
+        #print ' Number of complex words: ' + str(complexwordsCount)
+        #print ' Average words per sentence: ' + str(averageWordsPerSentence)
     #analyzeText = classmethod(analyzeText)  
         
 
@@ -72,7 +73,8 @@ class textanalyzer(object):
 #            self.lang = NaiveBayes().classifyText(" " .join(words))
             
         if self.lang == "unknown":
-            print "WARNING: Unknown language, using English\n"
+            # RB: don't print this out
+            #print "WARNING: Unknown language, using English\n"
             self.lang = "eng"    
         
         syllableCount = 0
