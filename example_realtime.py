@@ -39,6 +39,9 @@ log.info("Fetched "+str(len(results))+" stories (after "+str(max_story_id)+")")
 # set up my callback function that adds word count to the story
 pub.subscribe(mediacloud.examples.addWordCountToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
+# set up my callback function that adds the reading grade level to the story
+pub.subscribe(mediacloud.examples.addFleshKincaidGradeLevelToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
+
 # save all the stories in the db
 saved = 0
 for story in results:
@@ -46,7 +49,7 @@ for story in results:
     if worked:
       saved = saved + 1
     else:
-      log.warning("  unable to save story "+str(story['_stories_id']))
+      log.warning("  unable to save story "+str(story['stories_id']))
 
 max_story_id = db.getMaxStoryId()
 log.info("Saved "+str(saved)+" stories - new max id "+str(max_story_id))
