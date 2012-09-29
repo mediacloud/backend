@@ -15,22 +15,33 @@ def addWordCountToStory(db_story, raw_story):
     Simple hook to add the extracted text word count to the database.
     Use this in a pre-save callback to get the new "word_count" column.
     '''
-    text = nltk.Text(raw_story['story_text'].encode('utf-8'))
-    word_count = len(text)
-    db_story['word_count'] = word_count
-    
+    db_story['word_count'] = _getWordCount(raw_story['story_text'])
+
+def _getWordCount(text):
+    '''
+    Count the number of words in a body of text
+    '''
+    text_list = nltk.Text(text.encode('utf-8'))
+    word_count = len(text_list)
+    return word_count
+        
 def addFleshKincaidGradeLevelToStory(db_story, raw_story):
     '''
     Simple hook to add the Flesch-Kincaid Grade to the database.  This uses a pre-save
-    callback to add a new 'fk_grade_level' column.  This relies on patched ntlk_contrib
+    callback to add a new 'fk_grade_level' column. 
+    '''
+    db_story['fk_grade_level'] = _getFleshKincaidGradeLevel( raw_story['story_text'] )
+
+def _getFleshKincaidGradeLevel(text):
+    '''
+    Get the grade reading level of a piece of text.  This relies on patched ntlk_contrib
     code, stored in the mediacloud.readability module (cause the published code don't
     work!).
     '''
-    text = raw_story['story_text'].encode('utf-8')
     r = ReadabilityTool()
     gradeLevel = None
     try:
-      gradeLevel = r.FleschKincaidGradeLevel(text)
+      gradeLevel = r.FleschKincaidGradeLevel(text.encode('utf-8'))
     except KeyError:
       pass
-    db_story['fk_grade_level'] = gradeLevel
+    return gradeLevel

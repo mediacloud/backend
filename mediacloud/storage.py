@@ -22,17 +22,17 @@ class StoryDatabase(object):
         if db_name is not None:
           self.selectDatabase(db_name)
     
-    def storyExists(self,story_id):
+    def storyExists(self, story_id):
         '''
         Is this story id in the database already?
         '''
         try:
-          self._db[story_id]
+            self._db[story_id]
         except couchdb.ResourceNotFound:
-          return False
+            return False
         return True
 
-    def addStory(self,story):
+    def addStory(self, story, save_extracted_text=False, save_raw_download=False, save_story_sentences=False):
         ''' 
         Save a story (python object) to the database.  Return success or failure boolean.
         '''
@@ -49,15 +49,22 @@ class StoryDatabase(object):
           'guid': story['guid'],
           'fully_extracted': story['fully_extracted'],
           'stories_id': story['stories_id'],
-          'story_sentences_count': len(story['story_sentences']),
         }
+        if( (save_extracted_text==True) and ('story_text' in story) ):
+            story_attributes['story_text'] = story['story_text']
+        if( (save_raw_download==True) and ('first_raw_download_file' in story) ):
+            story_attributes['first_raw_download_file'] = story['first_raw_download_file']
+        if('story_sentences' in story):
+            story_attributes['story_sentences_count'] = len(story['story_sentences'])
+            if( save_story_sentences==True ):
+                story_attributes['story_sentences'] = story['story_sentences']
         pub.sendMessage(self.EVENT_PRE_STORY_SAVE, db_story=story_attributes, raw_story=story)
         self._db.save( story_attributes )
         saved_story = self.getStory( str(story['stories_id']) )
         pub.sendMessage(self.EVENT_POST_STORY_SAVE, db_story=story_attributes, raw_story=story)
         return True
         
-    def getStory(self,story_id):
+    def getStory(self, story_id):
         '''
         Return a story (python object)
         '''
@@ -74,4 +81,8 @@ class StoryDatabase(object):
         del self._server[db_name]
         
     def getMaxStoryId(self):
-        return self._db.view('examples/max_story_id').rows[0].value
+        results = self._db.view('examples/max_story_id')
+        max_story_id = 0
+        if( len(results.rows)==1 ):
+            max_story_id = results.rows[0].value
+        return max_story_id
