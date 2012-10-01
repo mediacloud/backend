@@ -17,7 +17,9 @@ pre-save event subscription.
 To Install:
 >>> import nltk
 >>> nltk.download()
-[select stopwords option from corpora]
+[ select d for Download ]
+[ enter "stopwords" as the identifier ]
+[ enter "punkt" as the identifier ]
 '''
 
 config = ConfigParser.ConfigParser()
