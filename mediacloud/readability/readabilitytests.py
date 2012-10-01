@@ -79,18 +79,18 @@ class ReadabilityTool:
         self.__analyzeText(text)
         score = 0.0
         analyzedVars = self.analyzedVars        
-        #RB: make sure word count is greater than zero
-        if (analyzedVars['syllableCount'] > 0) and (analyzedVars['wordCount'] > 0) :
-            score = 206.835 - (1.015 * (analyzedVars['averageWordsPerSentence'])) - (84.6 * (analyzedVars['syllableCount']/ analyzedVars['wordCount']))
-        else:
-            score = None
+        score = 206.835 - (1.015 * (analyzedVars['averageWordsPerSentence'])) - (84.6 * (analyzedVars['syllableCount']/ analyzedVars['wordCount']))
         return score
     
     def FleschKincaidGradeLevel(self, text = ''):
         self.__analyzeText(text)
         score = 0.0
         analyzedVars = self.analyzedVars
-        score = 0.39 * (analyzedVars['averageWordsPerSentence']) + 11.8 * (analyzedVars['syllableCount']/ analyzedVars['wordCount']) - 15.59
+        #RB: make sure word count is greater than zero
+        if (analyzedVars['syllableCount'] > 0) and (analyzedVars['wordCount'] > 0) :
+            score = 0.39 * (analyzedVars['averageWordsPerSentence']) + 11.8 * (analyzedVars['syllableCount']/ analyzedVars['wordCount']) - 15.59
+        else:
+            score = None
         return score
     
     def GunningFogIndex(self, text = ''):
