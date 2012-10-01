@@ -80,7 +80,7 @@ class ReadabilityTool:
         score = 0.0
         analyzedVars = self.analyzedVars        
         #RB: make sure word count is greater than zero
-        if (analyzedVars['wordCount'] > 0) :
+        if (analyzedVars['syllableCount'] > 0) and (analyzedVars['wordCount'] > 0) :
             score = 206.835 - (1.015 * (analyzedVars['averageWordsPerSentence'])) - (84.6 * (analyzedVars['syllableCount']/ analyzedVars['wordCount']))
         else:
             score = None
