@@ -41,7 +41,8 @@ def _getFleshKincaidGradeLevel(text):
     r = ReadabilityTool()
     gradeLevel = None
     try:
-      gradeLevel = r.FleschKincaidGradeLevel(text.encode('utf-8'))
+        if (text!=None) and (len(text)>0) :
+            gradeLevel = r.FleschKincaidGradeLevel(text.encode('utf-8'))
     except KeyError:
-      pass
+        pass
     return gradeLevel

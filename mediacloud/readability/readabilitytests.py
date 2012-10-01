@@ -79,7 +79,11 @@ class ReadabilityTool:
         self.__analyzeText(text)
         score = 0.0
         analyzedVars = self.analyzedVars        
-        score = 206.835 - (1.015 * (analyzedVars['averageWordsPerSentence'])) - (84.6 * (analyzedVars['syllableCount']/ analyzedVars['wordCount']))
+        #RB: make sure word count is greater than zero
+        if (analyzedVars['wordCount'] > 0) :
+            score = 206.835 - (1.015 * (analyzedVars['averageWordsPerSentence'])) - (84.6 * (analyzedVars['syllableCount']/ analyzedVars['wordCount']))
+        else:
+            score = None
         return score
     
     def FleschKincaidGradeLevel(self, text = ''):
