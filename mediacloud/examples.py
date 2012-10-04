@@ -30,7 +30,9 @@ def addFleshKincaidGradeLevelToStory(db_story, raw_story):
     Simple hook to add the Flesch-Kincaid Grade to the database.  This uses a pre-save
     callback to add a new 'fk_grade_level' column. 
     '''
-    db_story['fk_grade_level'] = _getFleshKincaidGradeLevel( raw_story['story_text'] )
+    gradeLevel = _getFleshKincaidGradeLevel( raw_story['story_text'] )
+    if (gradeLevel != None):
+        db_story['fk_grade_level'] = gradeLevel
 
 def _getFleshKincaidGradeLevel(text):
     '''
@@ -43,6 +45,6 @@ def _getFleshKincaidGradeLevel(text):
     try:
         if (text!=None) and (len(text)>0) :
             gradeLevel = r.FleschKincaidGradeLevel(text.encode('utf-8'))
-    except KeyError:
+    except KeyError, UnicodeDecodeError:
         pass
     return gradeLevel
