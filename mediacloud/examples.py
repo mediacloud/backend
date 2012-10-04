@@ -45,6 +45,6 @@ def _getFleshKincaidGradeLevel(text):
     try:
         if (text!=None) and (len(text)>0) :
             gradeLevel = r.FleschKincaidGradeLevel(text.encode('utf-8'))
-    except KeyError, UnicodeDecodeError:
+    except (KeyError, UnicodeDecodeError):
         pass
     return gradeLevel
