@@ -29,6 +29,16 @@ if [ `uname` == 'Darwin' ]; then
         postgresql84-server \
         p5.12-dbd-pg +postgresql84
 
+    # Initialize PostgreSQL if installing for the first time
+    if [ ! -d /opt/local/var/db/postgresql84/defaultdb ]; then
+        sudo mkdir -p /opt/local/var/db/postgresql84/defaultdb
+        sudo chown postgres:postgres /opt/local/var/db/postgresql84/defaultdb
+        sudo su postgres -c '/opt/local/lib/postgresql84/bin/initdb -D /opt/local/var/db/postgresql84/defaultdb'
+    fi
+
+    # Start PostgreSQL
+    sudo port load postgresql84-server
+
 else
 
     # assume Ubuntu
