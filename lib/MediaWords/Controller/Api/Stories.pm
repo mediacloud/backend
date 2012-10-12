@@ -242,7 +242,7 @@ sub add_do : Local
 sub _add_data_to_stories
 {
 
-    my (  $self, $db, $stories, $show_raw_1st_download ) = @_;
+    my ( $self, $db, $stories, $show_raw_1st_download ) = @_;
 
     foreach my $story ( @{ $stories } )
     {
@@ -278,15 +278,19 @@ sub _add_data_to_stories
 
     foreach my $story ( @{ $stories } )
     {
-        my $story_sentences = $db->query( "SELECT * from story_sentences where stories_id = ? ORDER by sentence_number",
-            $story->{ stories_id } )->hashes;
+        my $story_sentences =
+          $db->query( "SELECT * from story_sentences where stories_id = ? ORDER by sentence_number", $story->{ stories_id } )
+          ->hashes;
         $story->{ story_sentences } = $story_sentences;
     }
 
     return $stories;
 }
 
-sub stories_query : Local : ActionClass('REST') { }
+sub stories_query : Local : ActionClass('REST')
+{
+}
+
 sub stories_query_GET : Local
 {
     my ( $self, $c ) = @_;
@@ -330,10 +334,8 @@ sub stories_query_GET : Local
     $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
 
     say STDERR "finished stories_query_json";
-    $self->status_ok(
-            $c,
-            entity => $stories
-       );
+    $self->status_ok( $c, entity => $stories );
+
     #$c->response->content_type( 'application/json' );
     #return $c->res->body( encode_json( $stories ) );
 }
