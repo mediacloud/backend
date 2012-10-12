@@ -7,6 +7,8 @@ use warnings;
 use base 'Catalyst::Controller';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use Moose;
+use namespace::autoclean;
 
 =head1 NAME
 
@@ -237,7 +239,55 @@ sub add_do : Local
     );
 }
 
-sub stories_query_json : Local
+sub _add_data_to_stories
+{
+
+    my (  $self, $db, $stories, $show_raw_1st_download ) = @_;
+
+    foreach my $story ( @{ $stories } )
+    {
+        my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
+        $story->{ story_text } = $story_text;
+    }
+
+    foreach my $story ( @{ $stories } )
+    {
+        my $fully_extracted = MediaWords::DBI::Stories::is_fully_extracted( $db, $story );
+        $story->{ fully_extracted } = $fully_extracted;
+    }
+
+    if ( $show_raw_1st_download )
+    {
+        foreach my $story ( @{ $stories } )
+        {
+            my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story );
+
+            if ( !defined( $content_ref ) )
+            {
+                $story->{ first_raw_download_file }->{ missing } = 'true';
+            }
+            else
+            {
+
+                #say STDERR "got content_ref $$content_ref";
+
+                $story->{ first_raw_download_file } = $$content_ref;
+            }
+        }
+    }
+
+    foreach my $story ( @{ $stories } )
+    {
+        my $story_sentences = $db->query( "SELECT * from story_sentences where stories_id = ? ORDER by sentence_number",
+            $story->{ stories_id } )->hashes;
+        $story->{ story_sentences } = $story_sentences;
+    }
+
+    return $stories;
+}
+
+sub stories_query : Local : ActionClass('REST') { }
+sub stories_query_GET : Local
 {
     my ( $self, $c ) = @_;
 
@@ -277,49 +327,15 @@ sub stories_query_json : Local
 
     my $stories = $c->dbis->query( $query, $last_stories_id, $stories_to_return )->hashes;
 
-    foreach my $story ( @{ $stories } )
-    {
-        my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $c->dbis, $story );
-        $story->{ story_text } = $story_text;
-    }
-
-    foreach my $story ( @{ $stories } )
-    {
-        my $fully_extracted = MediaWords::DBI::Stories::is_fully_extracted( $c->dbis, $story );
-        $story->{ fully_extracted } = $fully_extracted;
-    }
-
-    if ( $show_raw_1st_download )
-    {
-        foreach my $story ( @{ $stories } )
-        {
-            my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
-
-            if ( !defined( $content_ref ) )
-            {
-                $story->{ first_raw_download_file }->{ missing } = 'true';
-            }
-            else
-            {
-
-                #say STDERR "got content_ref $$content_ref";
-
-                $story->{ first_raw_download_file } = $$content_ref;
-            }
-        }
-    }
-
-    foreach my $story ( @{ $stories } )
-    {
-        my $story_sentences = $c->dbis->query( "SELECT * from story_sentences where stories_id = ? ORDER by sentence_number",
-            $story->{ stories_id } )->hashes;
-        $story->{ story_sentences } = $story_sentences;
-    }
+    $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
 
     say STDERR "finished stories_query_json";
-
-    $c->response->content_type( 'application/json' );
-    return $c->res->body( encode_json( $stories ) );
+    $self->status_ok(
+            $c,
+            entity => $stories
+       );
+    #$c->response->content_type( 'application/json' );
+    #return $c->res->body( encode_json( $stories ) );
 }
 
 # display regenerated tags for story
