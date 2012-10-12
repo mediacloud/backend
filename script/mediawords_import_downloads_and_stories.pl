@@ -130,8 +130,13 @@ sub import_downloads
         next if ( '(redundant feed)' eq $decoded_content );    # The download contains no content so don't add it.
 
         # make sure we don't error out if a feed has been deleted from the production crawler
-        my $feed_exists = $db->query( "SELECT 1 from feeds where feeds_id = ? ", $download->{ feeds_id } )->flat()[ 0 ];
-        next if !$feed_exists;
+
+
+        my $feed_exists;
+
+	$feed_exists = ($db->query( "SELECT 1 from feeds where feeds_id = ? ", $download->{ feeds_id } )->flat())[ 0 ];
+
+        next if ! ( $feed_exists );
 
         my @child_stories_list = $child_node->getElementsByTagName( "child_stories" );
 
