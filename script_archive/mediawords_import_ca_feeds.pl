@@ -37,12 +37,12 @@ sub add_tag
 sub get_twitter_feed
 {
     my ( $url ) = @_;
-    
+
     if ( $url =~ /twitter.com\/([^\/]+)$/ )
     {
         my $esc_name = URI::Escape::uri_escape( $1 );
         return "http://api.twitter.com/1/statuses/user_timeline.rss?screen_name=$esc_name";
-    } 
+    }
     elsif ( $url =~ /twitter.com\/#!\/([^\/]+)\/([^\/]+)/ )
     {
         my $esc_user = URI::Escape::uri_escape( $1 );
@@ -68,7 +68,7 @@ sub create_medium
     }
 
     my $url = $source->{ url } || $source->{ rss } || $source->{ twitter } || $source->{ url };
-    
+
     return unless ( $url );
 
     if ( my ( $media_id ) = $db->query( "select * from media where url = ?", $url )->flat )
@@ -85,17 +85,26 @@ sub create_medium
 
     my $feeds = [];
     push( @{ $feeds }, { type => 'syndicated', url => $source->{ rss } } ) if ( $source->{ rss } );
-    push( @{ $feeds }, { type => 'syndicated', url => get_twitter_feed( $source->{ twitter } ) } ) if ( $source->{ twitter } );  
-    push( @{ $feeds }, { type => 'web_page', url => $source->{ url } } ) if ( !@{ $feeds } && $source->{ url } );    
+    push( @{ $feeds }, { type => 'syndicated', url => get_twitter_feed( $source->{ twitter } ) } )
+      if ( $source->{ twitter } );
+    push( @{ $feeds }, { type => 'web_page', url => $source->{ url } } ) if ( !@{ $feeds } && $source->{ url } );
     push( @{ $feeds }, { type => 'web_page', url => $source->{ facebook } } ) if ( $source->{ facebook } );
-        
-    my $medium = $db->create( 'media', { name => $source->{ name }, url => $url, moderated => 'true', feeds_added => 'true' } );
+
+    my $medium =
+      $db->create( 'media', { name => $source->{ name }, url => $url, moderated => 'true', feeds_added => 'true' } );
     print STDERR "added medium: $medium->{ name } $medium->{ url }\n";
 
     for my $feed ( @{ $feeds } )
     {
-        my $feed = $db->create( 'feeds', 
-            { name => $source->{ name }, url => $feed->{ url }, feed_type => $feed->{ type }, media_id => $medium->{ media_id } } );
+        my $feed = $db->create(
+            'feeds',
+            {
+                name      => $source->{ name },
+                url       => $feed->{ url },
+                feed_type => $feed->{ type },
+                media_id  => $medium->{ media_id }
+            }
+        );
         print STDERR "\tfeed: $feed->{ name } $feed->{ type } $feed->{ url }\n";
     }
 
