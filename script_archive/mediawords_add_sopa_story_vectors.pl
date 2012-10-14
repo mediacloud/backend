@@ -16,13 +16,11 @@ use MediaWords::StoryVectors;
 sub main
 {
     my $db = MediaWords::DB::connect_to_db;
-    
-    my $wordless_stories = $db->query( 
-        "select s.* " . 
-        "  from stories s, sopa_stories ss ".
-        "  where s.stories_id = ss.stories_id and " . 
-        "    not exists ( select 1 from story_sentence_words ssw where ssw.stories_id = s.stories_id ) " )->hashes;
-        
+
+    my $wordless_stories =
+      $db->query( "select s.* " . "  from stories s, sopa_stories ss " . "  where s.stories_id = ss.stories_id and " .
+          "    not exists ( select 1 from story_sentence_words ssw where ssw.stories_id = s.stories_id ) " )->hashes;
+
     for my $story ( @{ $wordless_stories } )
     {
         print STDERR "fix $story->{ title } [ $story->{ stories_id } ]\n";
