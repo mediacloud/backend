@@ -48,14 +48,12 @@ sub dedup_stories
         $source_medium->{ media_id },
         $target_medium->{ media_id }
     )->hashes;
-    
+
     for my $dup_story ( @{ $dup_stories } )
     {
         print "deleting duplicate story '$dup_story->{ title }' ...\n";
-        
-        $db->query( 
-            "delete from controversy_stories where stories_id = ?", 
-            $dup_story->{ stories_id } );
+
+        $db->query( "delete from controversy_stories where stories_id = ?", $dup_story->{ stories_id } );
         $db->query(
             "delete from controversy_links where stories_id = ? or ref_stories_id = ?",
             $dup_story->{ stories_id },
@@ -63,7 +61,7 @@ sub dedup_stories
         );
         $db->query( "delete from story_sentences where stories_id = ?",      $dup_story->{ stories_id } );
         $db->query( "delete from story_sentence_words where stories_id = ?", $dup_story->{ stories_id } );
-        $db->query( "delete from stories where stories_id = ?",      $dup_story->{ stories_id } );
+        $db->query( "delete from stories where stories_id = ?",              $dup_story->{ stories_id } );
     }
 
 }
@@ -178,19 +176,20 @@ sub main
     binmode( STDERR, 'utf8' );
 
     my ( $resume_media_id, $controversies_id );
-    
+
     Getopt::Long::GetOptions(
         "resume=s"      => \$resume_media_id,
-        "controversy=s" => \$controversies_id ) || return;
+        "controversy=s" => \$controversies_id
+    ) || return;
 
     my $db = MediaWords::DB::connect_to_db;
     $db->dbh->{ AutoCommit } = 0;
-    
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) ||
-        die( "Unable to find controversy '$controversies_id'" );
 
-    my $spidered_tag = MediaWords::Util::Tags::lookup_tag( $db, 'spidered:spidered' ) ||
-        die( "Unable to find spidered:spidered tag" );
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
+      || die( "Unable to find controversy '$controversies_id'" );
+
+    my $spidered_tag = MediaWords::Util::Tags::lookup_tag( $db, 'spidered:spidered' )
+      || die( "Unable to find spidered:spidered tag" );
 
     my $query = <<END;
 select m.*, mtm.tags_id is_spidered
