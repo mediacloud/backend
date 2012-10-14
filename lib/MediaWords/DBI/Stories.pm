@@ -406,9 +406,9 @@ sub add_word_vectors
     my ( $db, $stories, $keep_words, $num_words, $stopword_length ) = @_;
 
     $num_words ||= 100;
-    
+
     $stopword_length ||= 'short';
-    
+
     die( "unknown stopword_length '$stopword_length'" ) unless ( grep { $_ eq $stopword_length } qw(tiny short long) );
 
     my $word_hash;
@@ -418,23 +418,24 @@ sub add_word_vectors
     for my $story ( @{ $stories } )
     {
         print STDERR "add_word_vectors: " . $i++ . "[ $story->{ stories_id } ]\n" unless ( $i % 100 );
-        
+
         my $sw_check;
         if ( $stopword_length eq 'tiny' )
         {
             $sw_check = '';
         }
-        else {
+        else
+        {
             $sw_check = "and not is_stop_stem( '$stopword_length', ssw.stem )";
         }
-        
-        my $words = $story->{ words } || 
-            $db->query(
-                "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
-                "  where ssw.stories_id = ? " . " $sw_check " .
-                "  group by ssw.stem order by sum( stem_count ) desc limit ? ",
-                $story->{ stories_id }, $num_words
-            )->hashes;
+
+        my $words = $story->{ words }
+          || $db->query(
+            "select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count from story_sentence_words ssw " .
+              "  where ssw.stories_id = ? " . " $sw_check " . "  group by ssw.stem order by sum( stem_count ) desc limit ? ",
+            $story->{ stories_id },
+            $num_words
+          )->hashes;
 
         $story->{ vector } = [ 0 ];
 
@@ -512,7 +513,7 @@ sub add_cos_similarities
 
         print STDERR "\n";
     }
-    
+
     map { $_->{ pdl_norm_vector } = undef } @{ $stories };
 }
 
