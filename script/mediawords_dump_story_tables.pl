@@ -88,16 +88,16 @@ sub isNonnegativeInteger
 sub get_dashboards_clause
 {
     my ( $table_name ) = @_;
-    
+
     return '' unless ( @{ $_dump_dashboards } );
-    
+
     my $dashboards_list = join( ',', @{ $_dump_dashboards } );
-    
-    my $clause = 
-        "and ${ table_name }.media_id in " . 
-        "  ( select msmm.media_id from media_sets_media_map msmm, dashboard_media_sets dms " . 
-        "      where msmm.media_sets_id = dms.media_sets_id and dms.dashboards_id in ( $dashboards_list ) )";
-        
+
+    my $clause =
+      "and ${ table_name }.media_id in " .
+      "  ( select msmm.media_id from media_sets_media_map msmm, dashboard_media_sets dms " .
+      "      where msmm.media_sets_id = dms.media_sets_id and dms.dashboards_id in ( $dashboards_list ) )";
+
     return $clause;
 }
 
@@ -176,14 +176,14 @@ sub dump_weekly_words
     open my $output_file, ">", "$file_name"
       or die "Can't open $file_name: $@";
 
-    my $dashboards_clause = get_dashboards_clause( 'weekly_words' );
+    my $dashboards_clause         = get_dashboards_clause( 'weekly_words' );
     my $stories_dashboards_clause = get_dashboards_clause( 'stories' );
 
     $dbh->query_csv_dump(
         $output_file,
         " select * from weekly_words where publish_week in                                    " .
           " (select distinct (date_trunc('week', publish_date)::date ) as publish_week from stories" .
-          " where stories_id >= ? and stories_id <=? $stories_dashboards_clause order by publish_week) " . 
+          " where stories_id >= ? and stories_id <=? $stories_dashboards_clause order by publish_week) " .
           "    $dashboards_clause order by weekly_words_id ",
         [ $first_dumped_id, $last_dumped_id ],
         1
@@ -198,14 +198,14 @@ sub dump_total_weekly_words
     open my $output_file, ">", "$file_name"
       or die "Can't open $file_name: $@";
 
-    my $dashboards_clause = get_dashboards_clause( 'total_weekly_words' );
+    my $dashboards_clause         = get_dashboards_clause( 'total_weekly_words' );
     my $stories_dashboards_clause = get_dashboards_clause( 'stories' );
 
     $dbh->query_csv_dump(
         $output_file,
         " select * from total_weekly_words where publish_week in                                    " .
           " (select distinct (date_trunc('week', publish_date)::date ) as publish_week from stories" .
-          " where stories_id >= ? and stories_id <=? $stories_dashboards_clause order by publish_week) " . 
+          " where stories_id >= ? and stories_id <=? $stories_dashboards_clause order by publish_week) " .
           "   $dashboards_clause order by total_weekly_words_id ",
         [ $first_dumped_id, $last_dumped_id ],
         1
@@ -222,7 +222,9 @@ sub dump_media
 
     my $dashboards_clause = get_dashboards_clause( 'media' );
 
-    $dbh->query_csv_dump( $output_file, " select media_id, url, name from media where 1=1 $dashboards_clause order by media_id", [], 1 );
+    $dbh->query_csv_dump( $output_file,
+        " select media_id, url, name from media where 1=1 $dashboards_clause order by media_id",
+        [], 1 );
 }
 
 sub dump_media_sets
@@ -282,10 +284,10 @@ sub main
 
     my $usage = "mediawprds_dump_story_tables.pl <--incremental| | --full> [ --dashboard ]";
     GetOptions(
-        'incremental'   => \$incremental,
-        'full'          => \$full,
-        'dashboard=s@'  => \$dashboards,
-        'dumpdir=s'     => \$dumpdir
+        'incremental'  => \$incremental,
+        'full'         => \$full,
+        'dashboard=s@' => \$dashboards,
+        'dumpdir=s'    => \$dumpdir
     ) or die "$usage\n";
 
     die $usage unless $incremental || $full;
@@ -394,7 +396,7 @@ sub main
     # Save the Zip file
 
     my $dump_zip_file_name = $dump_name . '_' . $dumped_stories->[ 0 ] . '_' . $dumped_stories->[ 1 ];
-    
+
     $dump_zip_file_name .= '_' . join( '-', @{ $_dump_dashboards } ) if ( @{ $_dump_dashboards } );
 
     my $tmp_zip_file_path = "/$data_dir/tmp_$dump_zip_file_name" . ".zip";
