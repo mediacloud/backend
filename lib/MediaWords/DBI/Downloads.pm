@@ -536,7 +536,7 @@ sub process_download_for_extractor
         #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
         # }
 
-        MediaWords::StoryVectors::update_story_sentence_words( $db, $story, $no_dedup_sentences );
+        MediaWords::StoryVectors::update_story_sentence_words( $db, $story, 0, $no_dedup_sentences );
     }
     else
     {
