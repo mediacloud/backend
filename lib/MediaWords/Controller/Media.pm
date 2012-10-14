@@ -527,14 +527,14 @@ sub moderate : Local
     my $media;
 
     my $media_set_clause = "1=1";
-    if ( defined( $media_sets_id )  )
+    if ( defined( $media_sets_id ) )
     {
         $media_sets_id += 0;
         $media_set_clause = "media_id in ( select media_id from media_sets_media_map where media_sets_id = $media_sets_id )";
     }
 
     $media = $c->dbis->query(
-        "select * from media where moderated = 'f' and feeds_added = 't' and media_id > ? and $media_set_clause order by media_id",
+"select * from media where moderated = 'f' and feeds_added = 't' and media_id > ? and $media_set_clause order by media_id",
         $media_sets_id, $prev_media_id
     )->hashes;
 
