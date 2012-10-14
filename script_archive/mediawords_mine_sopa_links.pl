@@ -444,6 +444,7 @@ sub get_spider_feed
 # parse the content for tags that might indicate the story's title
 sub get_story_title_from_content
 {
+
     # my ( $content, $url ) = @_;
 
     if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
@@ -469,6 +470,7 @@ sub valid_date_parts
 # date of the linking story
 sub guess_publish_date
 {
+
     #my ( $db, $link, $html ) = @_;
     my ( $db, $link ) = @_;
 
@@ -930,11 +932,10 @@ sub update_story_tags
     );
 
     my $q_tagset_name = $db->dbh->quote( SOPA_KEYWORD_TAGSET );
-    $db->query( 
-        "delete from stories_tags_map using tags t, tag_sets ts " . 
-        "  where stories_tags_map.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and " .
-        "    ts.name = $q_tagset_name and stories_tags_map.stories_id not in ( select stories_id from sopa_stories )" );
-    
+    $db->query( "delete from stories_tags_map using tags t, tag_sets ts " .
+          "  where stories_tags_map.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and " .
+          "    ts.name = $q_tagset_name and stories_tags_map.stories_id not in ( select stories_id from sopa_stories )" );
+
 }
 
 # increase the link_weight of each story to which this story links and recurse along links from those stories.
@@ -1026,35 +1027,40 @@ sub fix_publish_dates
 
 }
 
-# for each cross media sopa link, add a text similarity score that is the cos sim 
+# for each cross media sopa link, add a text similarity score that is the cos sim
 # of the text of the source and ref stories.  assumes the $stories argument comes
 # with each story with a { source_stories } field that includes all of the source
 # stories for that ref story
 sub generate_link_text_similarities
 {
     my ( $db, $stories ) = @_;
-    
+
     for my $story ( @{ $stories } )
     {
         for my $source_story ( @{ $story->{ source_stories } } )
         {
-            my $has_sim = $db->query( 
-                "select 1 from sopa_links where stories_id = ? and ref_stories_id = ? and text_similarity > 0", 
-                $source_story->{ stories_id }, $story->{ stories_id } )->list;
+            my $has_sim = $db->query(
+                "select 1 from sopa_links where stories_id = ? and ref_stories_id = ? and text_similarity > 0",
+                $source_story->{ stories_id },
+                $story->{ stories_id }
+            )->list;
             next if ( $has_sim );
-            
+
             MediaWords::DBI::Stories::add_word_vectors( $db, [ $story, $source_story ], 1 );
             MediaWords::DBI::Stories::add_cos_similarities( $db, [ $story, $source_story ] );
 
             my $sim = $story->{ similarities }->[ 1 ];
-            
-            print STDERR "link sim:\n\t$story->{ title } [ $story->{ stories_id } ]\n" . 
-                "\t$source_story->{ title } [ $source_story->{ stories_id } ]\n\t$sim\n\n";
-            
-            $db->query( 
+
+            print STDERR "link sim:\n\t$story->{ title } [ $story->{ stories_id } ]\n" .
+              "\t$source_story->{ title } [ $source_story->{ stories_id } ]\n\t$sim\n\n";
+
+            $db->query(
                 "update sopa_links set text_similarity = ? where stories_id = ? and ref_stories_id = ?",
-                $sim, $source_story->{ stories_id }, $story->{ stories_id } );
-                
+                $sim,
+                $source_story->{ stories_id },
+                $story->{ stories_id }
+            );
+
             map { $_->{ similarities } = undef } ( $story, $source_story );
         }
     }
@@ -1092,12 +1098,12 @@ sub generate_link_weights
 
 # generate similarity matrix of all stories.  count how many stories are above SIMILARITY_COUNT_THRESHOLD for
 # each story that are after that story's publish date.  as a crude form of clustering, find the single story
-# with the highest sim stories count, then eliminate all counted stories from consideration, then repeat, 
+# with the highest sim stories count, then eliminate all counted stories from consideration, then repeat,
 # so that each story is only included in the sim stories count of one story.
 sub generate_similar_stories_count
 {
     my ( $db, $stories ) = @_;
-    
+
     MediaWords::DBI::Stories::add_cos_similarities( $db, $stories );
 }
 
@@ -1137,14 +1143,14 @@ sub main
     # print STDERR "updating story_tags ...\n";
     # update_story_tags( $db );
 
-    my $stories = get_stories_with_sources( $db );        
+    my $stories = get_stories_with_sources( $db );
 
     print STDERR "generating link weights ...\n";
     generate_link_weights( $db, $stories );
-    
+
     # print STDERR "generating link text similarities ...\n";
     # generate_link_text_similarities( $db, $stories );
-    
+
     # print STDERR "fix publish dates ...\n";
     # fix_publish_dates( $db, $stories );
 }
