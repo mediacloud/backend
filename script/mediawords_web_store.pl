@@ -24,8 +24,8 @@ use Storable;
 
 use MediaWords::Util::Web;
 
-use constant NUM_PARALLEL      => 10;
-use constant TIMEOUT           => 20;
+use constant NUM_PARALLEL => 10;
+use constant TIMEOUT      => 20;
 
 sub main
 {

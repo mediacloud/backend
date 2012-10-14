@@ -60,37 +60,36 @@ my $_media_url_lookup;
 sub store_download_content
 {
     my ( $db, $download, $story_content ) = @_;
-    
+
     MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
-    extract_download( $db, $download );    
+    extract_download( $db, $download );
 }
 
 # check to see whether the given download is broken
 sub download_is_broken
 {
     my ( $db, $download ) = @_;
-    
+
     my $content_ref;
     eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $download ); };
-    
+
     return 0 if ( $content_ref && ( length( $$content_ref ) > 0 ) );
 
     return 1;
 }
-
 
 # if there are multiple pages for the download, fix the remaining pages
 # after the first one
 sub fix_multiple_page_downloads
 {
     my ( $db, $downloads ) = @_;
-    
+
     my $broken_downloads = [ grep { download_is_broken( $_ ) } @{ $downloads } ];
-    
+
     return unless ( @{ $broken_downloads } );
-    
-    my $downloads = $broken_downloads;    
-    
+
+    my $downloads = $broken_downloads;
+
     my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $downloads } ];
 
     my $responses = MediaWords::Util::Web::ParallelGet( $urls );
@@ -102,7 +101,7 @@ sub fix_multiple_page_downloads
     {
         my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
         my $final_url    = $response->request->uri->as_string;
-        my $download = $download_lookup->{ $original_url };
+        my $download     = $download_lookup->{ $original_url };
 
         store_download_content( $db, $download, $response->decoded_content );
     }
@@ -114,15 +113,16 @@ sub fix_story_download_if_needed
 {
     my ( $db, $story, $first_response ) = @_;
 
-    my $downloads = $db->query( "select * from downloads where stories_id = ? order by downloads_id", $story->{ stories_id } )->hashes;
-    
+    my $downloads =
+      $db->query( "select * from downloads where stories_id = ? order by downloads_id", $story->{ stories_id } )->hashes;
+
     my $first_download = shift( @{ $downloads } ) || return;
-    
+
     if ( download_is_broken( $first_download ) )
     {
         store_download_content( $db, $first_download, $first_response->decoded_content );
     }
-    
+
     return unless ( @{ $downloads } );
 
     fix_multiple_page_downloads( $db, $downloads );
@@ -145,9 +145,9 @@ sub add_redirect_links
     {
         my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
         my $final_url    = $response->request->uri->as_string;
-        my $link = $link_lookup->{ $original_url };
+        my $link         = $link_lookup->{ $original_url };
         $link->{ redirect_url } = $final_url;
-        
+
         fix_story_download_if_needed( $db, $link, $response );
     }
 }
@@ -292,7 +292,9 @@ sub generate_controversy_links
         {
             my $link_exists = $db->query(
                 "select * from controversy_links where stories_id = ? and url = ? and controversies_id = ?",
-                $story->{ stories_id }, encode( 'utf8', $link->{ url } ), $controversy->{ controversies_id }
+                $story->{ stories_id },
+                encode( 'utf8', $link->{ url } ),
+                $controversy->{ controversies_id }
             )->hash;
             if ( $link_exists )
             {
@@ -304,16 +306,19 @@ sub generate_controversy_links
                 $db->create(
                     "controversy_links",
                     {
-                        stories_id          => $story->{ stories_id },
-                        url                 => encode( 'utf8', $link->{ url } ),
-                        controversies_id    => $controversy->{ controversies_id }                        
+                        stories_id       => $story->{ stories_id },
+                        url              => encode( 'utf8', $link->{ url } ),
+                        controversies_id => $controversy->{ controversies_id }
                     }
                 );
             }
         }
 
-        $db->query( "update controversy_stories set link_mined = true where stories_id = ? and controversies_id = ?", 
-            $story->{ stories_id }, $controversy->{ controversies_id } );
+        $db->query(
+            "update controversy_stories set link_mined = true where stories_id = ? and controversies_id = ?",
+            $story->{ stories_id },
+            $controversy->{ controversies_id }
+        );
     }
 }
 
@@ -497,7 +502,7 @@ sub get_spider_feed
     my $feed_query = "select * from feeds where media_id = ? and url = ?";
 
     my $feed = $db->query( $feed_query, $medium->{ media_id }, $medium->{ url } )->hash;
-    
+
     return $feed if ( $feed );
 
     $db->query(
@@ -513,6 +518,7 @@ sub get_spider_feed
 # parse the content for tags that might indicate the story's title
 sub get_story_title_from_content
 {
+
     # my ( $content, $url ) = @_;
 
     if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
@@ -538,6 +544,7 @@ sub valid_date_parts
 # date of the linking story
 sub guess_publish_date
 {
+
     #my ( $db, $link, $html ) = @_;
     my ( $db, $link ) = @_;
 
@@ -647,8 +654,7 @@ sub story_matches_controversy_pattern
     return 0 if ( $metadata_only );
 
     my $query =
-      "select 1 from story_sentences ss where ss.stories_id = $story->{ stories_id } and " .
-      "    lower( ss.sentence ) ~ ?";
+      "select 1 from story_sentences ss where ss.stories_id = $story->{ stories_id } and " . "    lower( ss.sentence ) ~ ?";
 
     # print STDERR "match query: $query\n";
 
@@ -665,8 +671,11 @@ sub add_to_controversy_stories_and_links
     my ( $db, $controversy, $story, $iteration ) = @_;
 
     $db->query(
-        "insert into controversy_stories ( controversies_id, stories_id, iteration, redirect_url ) " . "  values ( ?, ?, ?, ? )",
-        $controversy->{ controversies_id }, $story->{ stories_id }, $iteration, $story->{ url }
+        "insert into controversy_stories ( controversies_id, stories_id, iteration, redirect_url ) " .
+          "  values ( ?, ?, ?, ? )",
+        $controversy->{ controversies_id },
+        $story->{ stories_id },
+        $iteration, $story->{ url }
     );
 
     generate_controversy_links( $db, $controversy, [ $story ] );
@@ -690,7 +699,9 @@ sub update_other_matching_links
             $link->{ ref_stories_id } = $story->{ stories_id };
             $db->query(
                 "update controversy_links set ref_stories_id = ? where controversy_links_id = ? and controversies_id = ?",
-                $story->{ stories_id }, $link->{ controversy_links_id }, $controversy->{ controversies_id }
+                $story->{ stories_id },
+                $link->{ controversy_links_id },
+                $controversy->{ controversies_id }
             );
         }
     }
@@ -726,8 +737,11 @@ sub story_is_controversy_story
 {
     my ( $db, $controversy, $story ) = @_;
 
-    my ( $is_old ) = $db->query( "select 1 from controversy_stories where stories_id = ? and controversies_id = ?", 
-        $story->{ stories_id }, $controversy->{ controversies_id } )->flat;
+    my ( $is_old ) = $db->query(
+        "select 1 from controversy_stories where stories_id = ? and controversies_id = ?",
+        $story->{ stories_id },
+        $controversy->{ controversies_id }
+    )->flat;
 
     print STDERR "EXISTING CONTROVERSY STORY\n" if ( $is_old );
 
@@ -743,7 +757,8 @@ sub add_redirect_url_to_link
 
     $db->query(
         "update controversy_links set redirect_url = ? where controversy_links_id = ?",
-        encode( 'utf8', $link->{ redirect_url } ), $link->{ controversy_links_id }
+        encode( 'utf8', $link->{ redirect_url } ),
+        $link->{ controversy_links_id }
     );
 }
 
@@ -752,7 +767,8 @@ sub add_to_controversy_stories_and_links_if_match
 {
     my ( $db, $controversy, $story, $link ) = @_;
 
-    if ( !story_is_controversy_story( $db, $controversy, $story ) && story_matches_controversy_pattern( $db, $controversy, $story ) )
+    if (  !story_is_controversy_story( $db, $controversy, $story )
+        && story_matches_controversy_pattern( $db, $controversy, $story ) )
     {
         print STDERR "CONTROVERSY MATCH: $link->{ url }\n";
         add_to_controversy_stories_and_links( $db, $controversy, $story, $link->{ iteration } + 1 );
@@ -772,9 +788,11 @@ sub spider_new_links
 
     my $new_links = $db->query(
         "select distinct cs.iteration, cl.* from controversy_links cl, controversy_stories cs " .
-          "  where cl.ref_stories_id is null and cl.stories_id = cs.stories_id and cs.iteration < ? and " . 
+          "  where cl.ref_stories_id is null and cl.stories_id = cs.stories_id and cs.iteration < ? and " .
           "    cs.controversies_id = ? and cl.controversies_id = ? ",
-        $iteration, $controversy->{ controversies_id }, $controversy->{ controversies_id }
+        $iteration,
+        $controversy->{ controversies_id },
+        $controversy->{ controversies_id }
     )->hashes;
 
     # find all the links that we can find existing stories for without having to fetch anything
@@ -827,20 +845,21 @@ sub delete_duplicate_controversy_links
 {
     my ( $db, $controversy ) = @_;
 
-    my $duplicate_links =
-      $db->query( 
-          "select count(*), stories_id, ref_stories_id from controversy_links " .
+    my $duplicate_links = $db->query(
+        "select count(*), stories_id, ref_stories_id from controversy_links " .
           "  where ref_stories_id is not null and controversies_id = ? " .
           "  group by stories_id, ref_stories_id having count(*) > 1",
-          $controversy->{ controversies_id } )->hashes;
+        $controversy->{ controversies_id }
+    )->hashes;
 
     for my $duplicate_link ( @{ $duplicate_links } )
     {
+
         # print STDERR "duplicate: " . Dumper( $duplicate_link );
         my $ids = [
             $db->query(
                 "select controversy_links_id from controversy_links " .
-                "  where stories_id = ? and ref_stories_id = ? and controversies_id = ?",
+                  "  where stories_id = ? and ref_stories_id = ? and controversies_id = ?",
                 $duplicate_link->{ stories_id },
                 $duplicate_link->{ ref_stories_id },
                 $controversy->{ controversies_id }
@@ -857,10 +876,11 @@ sub add_redirect_urls_to_controversy_stories
 {
     my ( $db, $controversy ) = @_;
 
-    my $stories = $db->query( 
+    my $stories = $db->query(
         "select distinct s.* from stories s, controversy_stories cs " .
-        "  where s.stories_id = cs.stories_id and cs.redirect_url is null and cs.controversies_id = ?",
-        $controversy->{ controversies_id } )->hashes;
+          "  where s.stories_id = cs.stories_id and cs.redirect_url is null and cs.controversies_id = ?",
+        $controversy->{ controversies_id }
+    )->hashes;
 
     add_redirect_links( $db, $stories );
     for my $story ( @{ $stories } )
@@ -879,24 +899,23 @@ sub mine_controversy_stories
 {
     my ( $db, $controversy ) = @_;
 
-    my $stories =
-      $db->query( 
-          "select distinct s.*, cs.link_mined, cs.redirect_url from stories s, controversy_stories cs " . 
+    my $stories = $db->query(
+        "select distinct s.*, cs.link_mined, cs.redirect_url from stories s, controversy_stories cs " .
           "  where s.stories_id = cs.stories_id and cs.link_mined = 'f' and cs.controversies_id = ? " .
           "  order by s.publish_date",
-          $controversy->{ controversies_id } )->hashes;
+        $controversy->{ controversies_id }
+    )->hashes;
 
     generate_controversy_links( $db, $controversy, $stories );
 }
 
-# hit every pending controversy link.  this can be useful to get a caching proxy to cache 
+# hit every pending controversy link.  this can be useful to get a caching proxy to cache
 # all of the links.
 sub cache_all_link_urls
 {
     my ( $db, $controversy ) = @_;
 
-    my $links = $db->query( 
-        "select url from controversy_links where ref_stories_id is null order by controversy_links_id",
+    my $links = $db->query( "select url from controversy_links where ref_stories_id is null order by controversy_links_id",
         $controversy->{ controversies_id } )->hashes;
 
     my $urls = [ map { $_->{ url } } @{ $links } ];
@@ -911,30 +930,33 @@ sub update_controversy_tags
 
     my $tagset_name = "Controversy $controversy->{ name }";
 
-    my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" ) ||
-        die( "Can't find or create all_tag" );
+    my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" )
+      || die( "Can't find or create all_tag" );
 
     $db->query(
-        "delete from stories_tags_map where tags_id = ? and stories_id not in " . 
-        "      ( select stories_id from controversy_stories where controversies_id = ? )",
-        $all_tag->{ tags_id }, $controversy->{ controversies_id } );
+        "delete from stories_tags_map where tags_id = ? and stories_id not in " .
+          "      ( select stories_id from controversy_stories where controversies_id = ? )",
+        $all_tag->{ tags_id },
+        $controversy->{ controversies_id }
+    );
 
     $db->query(
         "insert into stories_tags_map ( stories_id, tags_id ) " .
           "  select distinct stories_id, $all_tag->{ tags_id } from controversy_stories " .
-          "    where controversies_id = ? and " . 
+          "    where controversies_id = ? and " .
           "      stories_id not in ( select stories_id from stories_tags_map where tags_id = ? )",
-          $controversy->{ controversies_id },
-          $all_tag->{ tags_id }
+        $controversy->{ controversies_id },
+        $all_tag->{ tags_id }
     );
 
     my $q_tagset_name = $db->dbh->quote( $tagset_name );
-    $db->query( 
-        "delete from stories_tags_map using tags t, tag_sets ts " . 
-        "  where stories_tags_map.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and " .
-        "    ts.name = $q_tagset_name and stories_tags_map.stories_id not in " . 
-        "      ( select stories_id from controversy_stories where controversies_id = ? )",
-        $controversy->{ controversies_id } );    
+    $db->query(
+        "delete from stories_tags_map using tags t, tag_sets ts " .
+          "  where stories_tags_map.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and " .
+          "    ts.name = $q_tagset_name and stories_tags_map.stories_id not in " .
+          "      ( select stories_id from controversy_stories where controversies_id = ? )",
+        $controversy->{ controversies_id }
+    );
 }
 
 # increase the link_weight of each story to which this story links and recurse along links from those stories.
@@ -965,13 +987,13 @@ sub get_stories_with_sources
 {
     my ( $db, $controversy ) = @_;
 
-    my $links   = $db->query( 
-        "select * from controversy_links_cross_media where controversies_id = ?",
+    my $links = $db->query( "select * from controversy_links_cross_media where controversies_id = ?",
         $controversy->{ controversies_id } )->hashes;
-    my $stories = $db->query( 
-        "select s.* from controversy_stories cs, stories s " . 
-        "  where s.stories_id = cs.stories_id and cs.controversies_id = ?", 
-        $controversy->{ controversies_id } )->hashes;
+    my $stories = $db->query(
+        "select s.* from controversy_stories cs, stories s " .
+          "  where s.stories_id = cs.stories_id and cs.controversies_id = ?",
+        $controversy->{ controversies_id }
+    )->hashes;
 
     my $stories_lookup = {};
     map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
@@ -1006,37 +1028,44 @@ sub get_min_source_publish_date
     return $min;
 }
 
-# for each cross media controversy link, add a text similarity score that is the cos sim 
+# for each cross media controversy link, add a text similarity score that is the cos sim
 # of the text of the source and ref stories.  assumes the $stories argument comes
 # with each story with a { source_stories } field that includes all of the source
 # stories for that ref story
 sub generate_link_text_similarities
 {
     my ( $db, $controversy, $stories ) = @_;
-    
+
     for my $story ( @{ $stories } )
     {
         for my $source_story ( @{ $story->{ source_stories } } )
         {
-            my $has_sim = $db->query( 
-                "select 1 from controversy_links " . 
-                "  where stories_id = ? and ref_stories_id = ? and text_similarity > 0 and controversies_id = ?", 
-                $source_story->{ stories_id }, $story->{ stories_id }, $controversy->{ controversies_id } )->list;
+            my $has_sim = $db->query(
+                "select 1 from controversy_links " .
+                  "  where stories_id = ? and ref_stories_id = ? and text_similarity > 0 and controversies_id = ?",
+                $source_story->{ stories_id },
+                $story->{ stories_id },
+                $controversy->{ controversies_id }
+            )->list;
             next if ( $has_sim );
-            
+
             MediaWords::DBI::Stories::add_word_vectors( $db, [ $story, $source_story ], 1 );
             MediaWords::DBI::Stories::add_cos_similarities( $db, [ $story, $source_story ] );
 
             my $sim = $story->{ similarities }->[ 1 ];
-            
-            print STDERR "link sim:\n\t$story->{ title } [ $story->{ stories_id } ]\n" . 
-                "\t$source_story->{ title } [ $source_story->{ stories_id } ]\n\t$sim\n\n";
-            
-            $db->query( 
-                "update controversy_links set text_similarity = ? " . 
-                "  where stories_id = ? and ref_stories_id = ? and controversies_id = ?",
-                $sim, $source_story->{ stories_id }, $story->{ stories_id }, $controversy->{ controversies_id } );
-                
+
+            print STDERR "link sim:\n\t$story->{ title } [ $story->{ stories_id } ]\n" .
+              "\t$source_story->{ title } [ $source_story->{ stories_id } ]\n\t$sim\n\n";
+
+            $db->query(
+                "update controversy_links set text_similarity = ? " .
+                  "  where stories_id = ? and ref_stories_id = ? and controversies_id = ?",
+                $sim,
+                $source_story->{ stories_id },
+                $story->{ stories_id },
+                $controversy->{ controversies_id }
+            );
+
             map { $_->{ similarities } = undef } ( $story, $source_story );
         }
     }
@@ -1084,9 +1113,9 @@ sub main
 
     die( "usage: $0 < controversies_id >" ) unless ( $controversies_id );
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) ||
-        die( "Unable to find controversy '$controversies_id'" );
-    
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
+      || die( "Unable to find controversy '$controversies_id'" );
+
     # cache_all_link_urls( $db, $controversy );
     # return;
 
@@ -1108,11 +1137,11 @@ sub main
     print STDERR "updating story_tags ...\n";
     update_controversy_tags( $db, $controversy );
 
-    my $stories = get_stories_with_sources( $db, $controversy );        
+    my $stories = get_stories_with_sources( $db, $controversy );
 
     print STDERR "generating link weights ...\n";
     generate_link_weights( $db, $controversy, $stories );
-    
+
     # print STDERR "generating link text similarities ...\n";
     # generate_link_text_similarities( $db, $stories );
 }
