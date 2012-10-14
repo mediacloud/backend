@@ -13,16 +13,19 @@
 
 use strict;
 
-use LWP::UserAgent;
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+}
+
 use Parallel::ForkManager;
 use Storable;
 
+use MediaWords::Util::Web;
+
 use constant NUM_PARALLEL      => 10;
-use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
 use constant TIMEOUT           => 20;
-use constant MAX_REDIRECT      => 15;
-use constant BOT_FROM          => 'mediacloud@cyber.law.harvard.edu';
-use constant BOT_AGENT         => 'mediacloud bot (http://mediacloud.org)';
 
 sub main
 {
@@ -49,14 +52,7 @@ sub main
 
     my $pm = new Parallel::ForkManager( NUM_PARALLEL );
 
-    my $ua = LWP::UserAgent->new();
-
-    $ua->from( BOT_FROM );
-    $ua->agent( BOT_AGENT );
-
-    $ua->timeout( TIMEOUT );
-    $ua->max_size( MAX_DOWNLOAD_SIZE );
-    $ua->max_redirect( MAX_REDIRECT );
+    my $ua = MediaWords::Util::Web::UserAgent();
 
     my $i     = 0;
     my $total = scalar( @{ $requests } );
