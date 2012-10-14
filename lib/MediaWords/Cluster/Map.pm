@@ -452,24 +452,26 @@ sub _get_media_set_shape_lookup
 sub _get_dashboard_media_set_cluster_color_lookup
 {
     my ( $db, $media_clusters, $media_sets ) = @_;
-    
+
     my $cluster_run = $db->find_by_id( 'media_cluster_runs', $media_clusters->[ 0 ]->{ media_cluster_runs_id } );
-    
+
     return unless ( $cluster_run->{ clustering_engine } eq 'media_sets' );
-    
+
     my $query = $db->find_by_id( 'queries', $cluster_run->{ queries_id } );
-    
+
     return unless ( $query->{ dashboards_id } );
-        
+
     my $lookup;
     for my $media_cluster ( @{ $media_clusters } )
     {
-        my $dashboard_media_set = $db->query( 
+        my $dashboard_media_set = $db->query(
             "select * from dashboard_media_sets where media_sets_id = ? and dashboards_id = ?",
-            $media_cluster->{ media_sets_id }, $query->{ dashboards_id } )->hash;
+            $media_cluster->{ media_sets_id },
+            $query->{ dashboards_id }
+        )->hash;
         my $color = MediaWords::DBI::DashboardMediaSets::get_color( $db, $dashboard_media_set );
-        $lookup->{ $media_cluster->{ media_clusters_id } } = 
-            MediaWords::Util::Colors::get_rgbp_format( $dashboard_media_set->{ color } );
+        $lookup->{ $media_cluster->{ media_clusters_id } } =
+          MediaWords::Util::Colors::get_rgbp_format( $dashboard_media_set->{ color } );
     }
 }
 
@@ -480,13 +482,13 @@ sub _get_cluster_color_lookup
 
     my $lookup;
 
-    return $lookup if ( $lookup = _get_dashboard_media_set_cluster_color_lookup( $db, $clusters, $media_sets  ) );
+    return $lookup if ( $lookup = _get_dashboard_media_set_cluster_color_lookup( $db, $clusters, $media_sets ) );
 
     $lookup = {};
-        
+
     my $colors = MediaWords::Util::get_colors( scalar( @{ $clusters } ), 'rgb()' );
 
-    for my $cluster( @{ $clusters } )
+    for my $cluster ( @{ $clusters } )
     {
         $lookup->{ $cluster->{ media_clusters_id } } = pop( @{ $colors } );
     }
