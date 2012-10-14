@@ -15,6 +15,8 @@ use MediaWords::DB;
 
 use Data::Page;
 
+use Encode;
+
 use Data::Dumper;
 use Try::Tiny;
 
@@ -372,7 +374,7 @@ sub query_csv_dump
     $self->dbh->do( $copy_statement, {}, @$params );
     while ( $self->dbh->pg_getcopydata( $line ) >= 0 )
     {
-        print $output_file $line;
+        print $output_file encode( 'utf8', $line );
     }
 
 }
