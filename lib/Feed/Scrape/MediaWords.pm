@@ -18,11 +18,9 @@ sub get_valid_feeds_from_urls
     for my $url ( @{ $urls } )
     {
         my $existing_url =
-          $db->query( "select f.url, m.name from feeds f, media m " . "  where f.media_id = m.media_id and f.url = ?", $url )
-          ->hash;
+          $db->query( "select f.url, m.name from feeds f, media m " . "  where f.media_id = m.media_id and f.url = ?", $url )->hash;
         if ( $existing_url )
         {
-
             #print STDERR "EXISTING URL: $existing_url->{ url } [$existing_url->{ name }]\n";
             push( @{ $existing_urls }, "$existing_url->{ url } [$existing_url->{ name }]" );
             next;
