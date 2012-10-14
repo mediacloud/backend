@@ -374,10 +374,11 @@ sub purge_daily_words_data_for_unretained_dates
 
 # update story vectors for the given story, updating story_sentences and story_sentence_words
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones (useful for optimization
-# if you are very sure no story vectors exist for this story).
+# if you are very sure no story vectors exist for this story).  If $no_dedup_sentences is true, do not
+# perform sentence deduplication (useful if you are reprocessing a small set of stories)
 sub update_story_sentence_words
 {
-    my ( $db, $story_ref, $no_delete ) = @_;
+    my ( $db, $story_ref, $no_delete, $no_dedup_sentences ) = @_;
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
     my $lang = MediaWords::Languages::Language::lang();
@@ -394,7 +395,7 @@ sub update_story_sentence_words
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
     my $sentences = $lang->get_sentences( $story_text ) || return;
-    $sentences = dedup_sentences( $db, $story_ref, $sentences );
+    $sentences = dedup_sentences( $db, $story_ref, $sentences ) unless ( $no_dedup_sentences );
 
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
     {
