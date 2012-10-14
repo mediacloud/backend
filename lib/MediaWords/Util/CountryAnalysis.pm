@@ -134,9 +134,9 @@ sub get_overall_query_no_topic
     return MediaWords::DBI::Queries::find_or_create_query_by_params(
         $db,
         {
-            start_date           => $start_date,
-            end_date             => $end_date,
-            media_sets_ids       => get_all_media_sets_ids()
+            start_date     => $start_date,
+            end_date       => $end_date,
+            media_sets_ids => get_all_media_sets_ids()
         }
     );
 }
@@ -564,7 +564,7 @@ sub get_topic_results
             $pole_media_set->{ nickname }
         );
     }
-    
+
     my $media_set_groups = get_all_media_sets_as_groups();
     for my $media_set_group ( @{ $media_set_groups } )
     {
@@ -573,7 +573,7 @@ sub get_topic_results
             $media_set_group->{ nickname },
             $media_set_group->{ media_sets }
         );
-    
+
         for my $pole_media_set ( @{ $_pole_media_sets } )
         {
             my $label = "$media_set_group->{ nickname }_$pole_media_set->{ nickname }_pole";
@@ -584,7 +584,7 @@ sub get_topic_results
             );
         }
     }
-    
+
     my $media_set_pairs = get_media_set_comparison_pairs();
     for my $media_set_pair ( @{ $media_set_pairs } )
     {
