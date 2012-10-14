@@ -124,6 +124,23 @@ sub get_topic_dates
     return ( $start_date, $end_date );
 }
 
+# get the query corresponding to all media sets with no topic
+sub get_overall_query_no_topic
+{
+    my ( $db, $topic ) = @_;
+
+    my ( $start_date, $end_date ) = get_topic_dates( $topic );
+
+    return MediaWords::DBI::Queries::find_or_create_query_by_params(
+        $db,
+        {
+            start_date           => $start_date,
+            end_date             => $end_date,
+            media_sets_ids       => get_all_media_sets_ids()
+        }
+    );
+}
+
 # get the query corresponding to all media sets for the given topic
 sub get_overall_query
 {
@@ -278,7 +295,7 @@ sub get_term_freq_url
 {
     my ( $db, $topic ) = @_;
 
-    my $query = get_overall_query( $db, $topic );
+    my $query = get_overall_query_no_topic( $db, $topic );
 
     my $esc_term = URI::Escape::uri_escape_utf8( $topic->{ query } );
 
@@ -547,7 +564,7 @@ sub get_topic_results
             $pole_media_set->{ nickname }
         );
     }
-
+    
     my $media_set_groups = get_all_media_sets_as_groups();
     for my $media_set_group ( @{ $media_set_groups } )
     {
@@ -556,7 +573,7 @@ sub get_topic_results
             $media_set_group->{ nickname },
             $media_set_group->{ media_sets }
         );
-
+    
         for my $pole_media_set ( @{ $_pole_media_sets } )
         {
             my $label = "$media_set_group->{ nickname }_$pole_media_set->{ nickname }_pole";
@@ -567,7 +584,7 @@ sub get_topic_results
             );
         }
     }
-
+    
     my $media_set_pairs = get_media_set_comparison_pairs();
     for my $media_set_pair ( @{ $media_set_pairs } )
     {
