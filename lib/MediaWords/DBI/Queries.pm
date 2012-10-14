@@ -8,6 +8,7 @@ use MediaWords::CommonLibs;
 use strict;
 
 use Data::Dumper;
+use Digest::MD5;
 use JSON;
 
 #use Data::Compare;
@@ -30,11 +31,17 @@ sub _get_description
 
     my $description;
 
+    my $dashboard        = $query->{ dashboard };
     my $media_sets       = $query->{ media_sets };
     my $dashboard_topics = $query->{ dashboard_topics };
     my $start_date       = substr( $query->{ start_date }, 0, 12 );
     my $end_date         = substr( $query->{ end_date }, 0, 12 ) if ( $query->{ end_date } );
 
+
+    if ( $dashboard )
+    {
+        $description = "in the $dashboard->{ name } Dashboard";
+    }
     if ( @{ $media_sets } > 2 )
     {
         $description =
@@ -81,22 +88,19 @@ sub _create_query
         die( "no media_sets_ids" );
     }
 
-    _add_mapped_table_fields( $db, $query_params );
+    _normalize_date_params( $db, $query_params );
+    
+    my $in_transaction = !$db->dbh->{ AutoCommit };
 
-    $query_params->{ description } = _get_description( $query_params );
-    if ( !$query_params->{ end_date } || ( $query_params->{ end_date } lt $query_params->{ start_date } ) )
-    {
-        $query_params->{ end_date } = $query_params->{ start_date };
-    }
-
-    $db->begin_work();
+    $db->begin_work() unless ( $in_transaction );    
 
     $db->query(
-        "insert into queries ( start_date, end_date, description ) " .
-          "  values( date_trunc( 'week', ?::date ), date_trunc( 'week', ?::date ), ? )",
+        "insert into queries ( start_date, end_date, md5_signature, dashboards_id ) " .
+          "  values( date_trunc( 'week', ?::date ), date_trunc( 'week', ?::date ), ?, ? )",
         $query_params->{ start_date },
         $query_params->{ end_date },
-        $query_params->{ description }
+        $query_params->{ md5_signature },
+        $query_params->{ dashboards_id } || undef 
     );
 
     my $queries_id = $db->last_insert_id( undef, undef, 'queries', undef );
@@ -108,10 +112,15 @@ sub _create_query
             $db->query( "insert into queries_${table}_map ( queries_id, ${table}_id ) values ( ?, ? ) ", $queries_id, $id );
         }
     }
+    
+    my $query = find_query_by_id( $db, $queries_id );
+    
+    $query->{ description } = _get_description( $query );
+    $db->query( "update queries set description = ? where queries_id = ?", $query->{ description }, $query->{ queries_id } );
 
-    $db->commit;
-
-    return find_query_by_id( $db, $queries_id );
+    $db->commit unless ( $in_transaction );
+    
+    return $query;
 }
 
 # add dashboard_topics and media_sets fields corresponding to the existing dashboard_topics_ids
@@ -142,19 +151,68 @@ sub _add_mapped_table_fields
     }
 }
 
-# find a query whose description (based on dates, media sets, and dashboard_topics)
-# matches the query params
+# set the end date to be the start date if the end date does not exist or is before the start date
+sub _normalize_date_params
+{
+    my ( $db, $query_params ) = @_;
+    
+    if ( !$query_params->{ end_date } || ( $query_params->{ end_date } lt $query_params->{ start_date } ) )
+    {
+        $query_params->{ end_date } = $query_params->{ start_date };
+    }
+
+    ( $query_params->{ start_date } ) = $db->query( "select date_trunc( 'week', ?::date )", $query_params->{ start_date } )->flat;
+    ( $query_params->{ end_date } ) = $db->query( "select date_trunc( 'week', ?::date )", $query_params->{ end_date } )->flat;
+}
+
+# get an md5 hash signature of all the distinguishing fields in the query
+sub get_md5_signature
+{
+    my ( $db, $query_params ) = @_;
+    
+    _normalize_date_params( $db, $query_params );
+    
+    my $vals = [];
+
+    push( @{ $vals }, substr( $query_params->{ start_date }, 0, 10 ) );
+    push( @{ $vals }, substr( $query_params->{ end_date }, 0, 10 ) );
+    push( @{ $vals }, $query_params->{ dashboards_id } || 'none' );
+    push( @{ $vals }, join( ',', sort { $a <=> $b } @{ $query_params->{ media_sets_ids } } ) );
+    push( @{ $vals }, join( ',', sort { $a <=> $b } @{ $query_params->{ dashboard_topics_ids } || [] } ) );
+    
+    # print STDERR "query signature vals: " . join( '|', @{ $vals } ) . "\n";
+    
+    my $md5_signature = Digest::MD5::md5_hex( join( '|', @{ $vals } ) );
+
+    # print STDERR "query md5 signature: $md5_signature\n";
+
+    return $md5_signature;
+}
+
+# find a query whose signature matches the query params
 sub find_query_by_params
 {
     my ( $db, $query_params ) = @_;
 
-    _add_mapped_table_fields( $db, $query_params );
+    if ( my $dashboards_id = $query_params->{ dashboards_id } )
+    {
+        $query_params->{ media_sets_ids } = $db->query(
+            "select dms.media_sets_id from dashboard_media_sets dms, media_sets ms " .
+            "  where dms.media_sets_id = ms.media_sets_id and ms.set_type = 'collection' and " .
+            "    dms.dashboards_id = ?",
+            $dashboards_id )->flat;
+    }        
 
-    my $description = _get_description( $query_params );
+    die( "No start_date or media set" ) 
+        unless ( $query_params->{ start_date } && ( scalar( @{ $query_params->{ media_sets_ids } } ) ) );
+
+    my $md5_signature = get_md5_signature( $db, $query_params );
+    
+    $query_params->{ md5_signature } = $md5_signature;
 
     my ( $queries_id ) = $db->query(
-        "select queries_id from queries where description = ? and query_version = enum_last (null::query_version_enum ) ",
-        $description )->flat;
+        "select queries_id from queries where md5_signature = ? and query_version = enum_last (null::query_version_enum ) ",
+        $md5_signature )->flat;
 
     return find_query_by_id( $db, $queries_id );
 }
@@ -162,9 +220,8 @@ sub find_query_by_params
 # find a query that exactly matches all of the query params or
 # create one if one does not already exist.
 # query params should be in the form
-# { start_date => $start_date, end_date => $end_date, media_sets_ids => [ $m, $m ], dashboard_sets_ids => [ $d, $d ] }.
-# if no dashboard_topicss_ids are included, then return only a query that
-# has no dashboard_topics_ids associated with it.
+# { start_date => $start_date, end_date => $end_date, media_sets_ids => [ $m, $m ], dashboard_topics_ids => [ $d, $d ], dashboards_id => $d }.
+# if no dashboard_topics_ids are included, then return only a query that has no dashboard_topics_ids associated with it.
 sub find_or_create_query_by_params
 {
     my ( $db, $query_params ) = @_;
@@ -237,8 +294,6 @@ sub find_or_create_query_by_request
     my $media_sets_ids = _get_media_sets_ids_from_request( $db, $req, $param_suffix );
     my $start_date = $req->param( 'start_date' . $param_suffix );
 
-    die( "No start_date or media set" ) if ( !$start_date || ( scalar( @{ $media_sets_ids } ) == 0 ) );
-
     my $dashboard_topics_ids = [ $req->param( 'dashboard_topics_ids' . $param_suffix ) ];
     $dashboard_topics_ids = [] if ( ( @{ $dashboard_topics_ids } == 1 ) && !$dashboard_topics_ids->[ 0 ] );
 
@@ -248,7 +303,8 @@ sub find_or_create_query_by_request
             start_date           => $req->param( 'start_date' . $param_suffix ),
             end_date             => $req->param( 'end_date' . $param_suffix ),
             media_sets_ids       => $media_sets_ids,
-            dashboard_topics_ids => $dashboard_topics_ids
+            dashboard_topics_ids => $dashboard_topics_ids,
+            dashboards_id         => $req->param( 'dashboards_id' . $param_suffix ),
         }
     );
 
@@ -261,6 +317,7 @@ sub find_or_create_query_by_request
 # media_sets_ids => <associated media set ids >
 # dashboards_topics => <associated dashboard topics>
 # dashboard_topics_ids => <assocaited dashboard topic ids>
+# dashboard => <associated dashboard if any>
 sub find_query_by_id
 {
     my ( $db, $queries_id ) = @_;
@@ -282,6 +339,11 @@ sub find_query_by_id
         ];
         $query->{ $table . "_names" } = [ map { $_->{ name } } @{ $query->{ $table } } ];
         $query->{ $table . "_ids" }   = [ map { $_->{ $table . "_id" } } @{ $query->{ $table } } ];
+    }
+    
+    if ( $query->{ dashboards_id } )
+    {
+        $query->{ dashboard } = $db->find_by_id( 'dashboards', $query->{ dashboards_id } );
     }
 
     return $query;
@@ -323,7 +385,6 @@ sub get_dashboard_topic_names
 
     my $ret;
 
-    say STDERR Dumper( $query );
     $query->{ dashboard_topics_ids } ||= [];
 
     if ( !$query->{ dashboard_topics_ids } || !@{ $query->{ dashboard_topics_ids } } )
@@ -987,7 +1048,6 @@ sub get_term_counts
         }
     }
 
-    #print STDERR Dumper( $date_term_counts );
     return $date_term_counts;
 }
 
@@ -1078,7 +1138,7 @@ sub get_media_with_sub_queries
                 start_date           => $query->{ start_date },
                 end_date             => $query->{ end_date },
                 dashboard_topics_ids => $query->{ dashboard_topics_ids },
-                media_sets_ids       => [ $medium->{ media_sets_id } ]
+                media_sets_ids       => [ $medium->{ media_sets_id } ],
             }
         );
     }
@@ -1268,6 +1328,32 @@ sub get_country_counts
     return $ret;
 }
 
+# given a list of stories with story_text fields sorted by stories_id, merge all stories
+# by stories_id and concatenate the story_text fields of merged stories
+sub _concatenate_story_texts
+{
+    my ( $stories ) = @_;
+    
+    my $concatenated_stories = [ $stories->[ 0 ] ];
+    my $prev_story           = shift( @{ $stories } );
+
+    for my $story ( @{ $stories } )
+    {
+        if (   ( $story->{ stories_id } == $prev_story->{ stories_id } )
+            && ( $story->{ media_set_name } eq $prev_story->{ media_set_name } ) )
+        {
+            $prev_story->{ story_text } .= "\n" . $story->{ story_text };
+        }
+        else
+        {
+            $prev_story = $story;
+            push( @{ $concatenated_stories }, $story );
+        }
+    }
+
+    return $concatenated_stories;
+}
+
 # get a list of all stories matching the query with download texts
 sub get_stories_with_text
 {
@@ -1290,7 +1376,6 @@ sub get_stories_with_text
               . "( select distinct ssw.stories_id, msmm.media_sets_id "
               . "    from story_sentence_words ssw, media_sets_media_map msmm "
               . "    where $date_clause and ssw.media_id = msmm.media_id "
-              . "      and ssw.media_id = msmm.media_id "
               . "      and ssw.stem in ( $topics ) "
               . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
               . "  ) q "
@@ -1307,7 +1392,6 @@ sub get_stories_with_text
               . "( select distinct ssw.stories_id, msmm.media_sets_id "
               . "    from story_sentence_words ssw, media_sets_media_map msmm "
               . "    where $date_clause and ssw.media_id = msmm.media_id "
-              . "      and ssw.media_id = msmm.media_id "
               . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
               . "  ) q "
               . "  where q.stories_id = d.stories_id and d.downloads_id = dt.downloads_id "
@@ -1319,24 +1403,7 @@ sub get_stories_with_text
 
     map { delete( $_->{ downloads_id } ) } @{ $stories };
 
-    my $concatenated_stories = [ $stories->[ 0 ] ];
-    my $prev_story           = shift( @{ $stories } );
-
-    for my $story ( @{ $stories } )
-    {
-        if (   ( $story->{ stories_id } == $prev_story->{ stories_id } )
-            && ( $story->{ media_set_name } == $prev_story->{ media_set_name } ) )
-        {
-            $prev_story->{ story_text } .= "\n" . $story->{ story_text };
-        }
-        else
-        {
-            $prev_story = $story;
-            push( @{ $concatenated_stories }, $story );
-        }
-    }
-
-    return $concatenated_stories;
+    return _concatenate_story_texts( $stories );
 }
 
 # get a list of all stories matching the query with download texts
@@ -1377,6 +1444,59 @@ sub query_has_sw_data
     }
 
     return $ret;
+}
+
+# search all of the sentences within the query to find all stories matching the given pattern
+sub search_stories
+{
+    my ( $db, $query, $query_story_search ) = @_;
+    
+    my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
+
+    my $stories = [];
+    if ( @{ $query->{ dashboard_topics_ids } } )
+    {
+        my $date_clause = get_daily_date_clause( $query, 'ssw' );
+        my $topics = join( ',', map { $db->{ dbh }->quote( $_->{ query } ) } @{ $query->{ dashboard_topics } } );
+
+        # I think download_texts in the distinct is slowing this down.  try a subquery for the distinct stories_id and
+        # joining everything else to that
+        $stories = $db->query(
+            "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, "
+              . "    ms.name as media_set_name "
+              . "  from stories s, media m, media_sets ms, "
+              . "( select distinct ssw.stories_id, msmm.media_sets_id "
+              . "    from story_sentence_words ssw, media_sets_media_map msmm, story_sentences ss, query_story_searches qss "
+              . "    where $date_clause and ssw.media_id = msmm.media_id "
+              . "      and ssw.stem in ( $topics ) "
+              . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
+              . "      and ss.sentence ~* qss.pattern and ss.stories_id = ssw.stories_id "
+              . "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } "
+              . "  ) q "
+              . "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id "
+              . "  order by ms.name, s.publish_date, s.stories_id asc limit 100000" )->hashes;
+    }
+    else
+    {
+        my $date_clause = get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "date_trunc( 'day', ss.publish_date )" );
+        $stories = $db->query(
+            "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, "
+              . "    ms.name as media_set_name "
+              . "  from stories s, media m, media_sets ms, "
+              . "( select distinct ss.stories_id, msmm.media_sets_id "
+              . "    from story_sentences ss, media_sets_media_map msmm, query_story_searches qss, queries q "
+              . "    where ss.media_id = msmm.media_id "
+              . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
+              . "      and ss.sentence ~* qss.pattern "
+              . "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } "
+              . "      and qss.queries_id = q.queries_id " 
+              . "      and $date_clause "
+              . "  ) q "
+              . "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id "
+              . "  order by ms.name, s.publish_date, s.stories_id asc limit 100000" )->hashes;
+    }
+
+    return $stories;
 }
 
 1;
