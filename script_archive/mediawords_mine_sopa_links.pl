@@ -156,7 +156,13 @@ sub get_links_from_story
 
     print STDERR "mining $story->{ title } [$story->{ url }] ...\n";
 
-    my $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story );
+    my $extracted_html;
+    eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
+    if ( $@ )
+    {
+        warn( "Unable to get extracted html" );
+        return [];
+    }
 
     my $links = get_links_from_html( $extracted_html );
 
@@ -189,7 +195,6 @@ sub get_links_from_story
 sub sanitize_url
 {
     my ( $url ) = @_;
-
     $url = lc( $url );
 
     $url =~ s/www.//g;
@@ -351,7 +356,7 @@ sub lookup_medium_by_url
 
     if ( !$_media_url_lookup )
     {
-        my $media = $db->query( "select * from media" );
+        my $media = $db->query( "select * from media" )->hashes;
         map { $_media_url_lookup->{ sanitize_url( $_->{ url } ) } } @{ $media };
     }
 
@@ -363,7 +368,7 @@ sub add_medium_to_url_lookup
 {
     my ( $medium ) = @_;
 
-    $_media_url_lookup->{ sanitize_url->{ $medium->{ url } } } = $medium;
+    $_media_url_lookup->{ sanitize_url( $medium->{ url } ) } = $medium;
 }
 
 # return a spider specific media_id for each story.  create a new spider specific medium
@@ -439,7 +444,6 @@ sub get_spider_feed
 # parse the content for tags that might indicate the story's title
 sub get_story_title_from_content
 {
-
     # my ( $content, $url ) = @_;
 
     if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
@@ -465,6 +469,7 @@ sub valid_date_parts
 # date of the linking story
 sub guess_publish_date
 {
+    #my ( $db, $link, $html ) = @_;
     my ( $db, $link ) = @_;
 
     if ( $_[ 2 ] =~ m~<time \s+datetime=\"([^\"]+)\"\s+pubdate~is ) { return $1; }
@@ -490,7 +495,7 @@ sub extract_download
 
     return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4$/i );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "sopa" ); };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "sopa", 1 ); };
     warn "extract error processing download $download->{ downloads_id }" if ( $@ );
 }
 
@@ -562,7 +567,7 @@ sub story_matches_sopa_keywords
     my ( $db, $story, $metadata_only ) = @_;
 
     my $keyword_pattern =
-      '[[:<:]]sopa[[:>:]]|stop[[:space:]]+online[[:space:]]+privacy[[:space:]]+act|' .
+      '[[:<:]]sopa[[:>:]]|stop[[:space:]]+online[[:space:]]+piracy[[:space:]]+act|' .
       '[[:<:]]acta[[:>:]]|anti-counterfeiting[[:space:]]+trade[[:space:]]+agreement|' .
 '[[:<:]]coica[[:>:]]|combating[[:space:]]+online[[:space:]]+infringement[[:space:]]+and[[:space:]]+counterfeits[[:space:]]+act|'
       . '[[:<:]]pipa[[:>:]]|protect[[:space:]]+ip[[:space:]]+act';
@@ -924,13 +929,12 @@ sub update_story_tags
         $all_tag->{ tags_id }
     );
 
-    $db->query(
-        "delete from stories_tags_map using tags t, tag_sets ts " .
-          "  where stories_tags_map.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and " .
-          "    ts.name = ? and stories_tags_map.stories_id not in ( select stories_id from sopa_stories )",
-        SOPA_KEYWORD_TAGSET
-    );
-
+    my $q_tagset_name = $db->dbh->quote( SOPA_KEYWORD_TAGSET );
+    $db->query( 
+        "delete from stories_tags_map using tags t, tag_sets ts " . 
+        "  where stories_tags_map.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and " .
+        "    ts.name = $q_tagset_name and stories_tags_map.stories_id not in ( select stories_id from sopa_stories )" );
+    
 }
 
 # increase the link_weight of each story to which this story links and recurse along links from those stories.
@@ -1022,6 +1026,40 @@ sub fix_publish_dates
 
 }
 
+# for each cross media sopa link, add a text similarity score that is the cos sim 
+# of the text of the source and ref stories.  assumes the $stories argument comes
+# with each story with a { source_stories } field that includes all of the source
+# stories for that ref story
+sub generate_link_text_similarities
+{
+    my ( $db, $stories ) = @_;
+    
+    for my $story ( @{ $stories } )
+    {
+        for my $source_story ( @{ $story->{ source_stories } } )
+        {
+            my $has_sim = $db->query( 
+                "select 1 from sopa_links where stories_id = ? and ref_stories_id = ? and text_similarity > 0", 
+                $source_story->{ stories_id }, $story->{ stories_id } )->list;
+            next if ( $has_sim );
+            
+            MediaWords::DBI::Stories::add_word_vectors( $db, [ $story, $source_story ], 1 );
+            MediaWords::DBI::Stories::add_cos_similarities( $db, [ $story, $source_story ] );
+
+            my $sim = $story->{ similarities }->[ 1 ];
+            
+            print STDERR "link sim:\n\t$story->{ title } [ $story->{ stories_id } ]\n" . 
+                "\t$source_story->{ title } [ $source_story->{ stories_id } ]\n\t$sim\n\n";
+            
+            $db->query( 
+                "update sopa_links set text_similarity = ? where stories_id = ? and ref_stories_id = ?",
+                $sim, $source_story->{ stories_id }, $story->{ stories_id } );
+                
+            map { $_->{ similarities } = undef } ( $story, $source_story );
+        }
+    }
+}
+
 # generate a link weight score for each cross media sopa_link
 # by adding a point for each incoming link, then adding the some of the
 # link weights of each link source divided by the ( iteration * 10 ) of the recursive
@@ -1050,6 +1088,17 @@ sub generate_link_weights
             $story->{ stories_id }
         );
     }
+}
+
+# generate similarity matrix of all stories.  count how many stories are above SIMILARITY_COUNT_THRESHOLD for
+# each story that are after that story's publish date.  as a crude form of clustering, find the single story
+# with the highest sim stories count, then eliminate all counted stories from consideration, then repeat, 
+# so that each story is only included in the sim stories count of one story.
+sub generate_similar_stories_count
+{
+    my ( $db, $stories ) = @_;
+    
+    MediaWords::DBI::Stories::add_cos_similarities( $db, $stories );
 }
 
 sub main
@@ -1085,13 +1134,17 @@ sub main
     print STDERR "deleting duplicate sopa links ...\n";
     delete_duplicate_sopa_links( $db );
 
-    print STDERR "updating story_tags ...\n";
-    update_story_tags( $db );
+    # print STDERR "updating story_tags ...\n";
+    # update_story_tags( $db );
+
+    my $stories = get_stories_with_sources( $db );        
 
     print STDERR "generating link weights ...\n";
-    my $stories = get_stories_with_sources( $db );
     generate_link_weights( $db, $stories );
-
+    
+    # print STDERR "generating link text similarities ...\n";
+    # generate_link_text_similarities( $db, $stories );
+    
     # print STDERR "fix publish dates ...\n";
     # fix_publish_dates( $db, $stories );
 }
