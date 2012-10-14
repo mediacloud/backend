@@ -261,12 +261,14 @@ sub parse_feed
     # make sure that there's some sort of feed id in the first chunk of the file
     if ( $chunk =~ /<html/i )
     {
+
         # warn "Feed not parsed -- contains '<html'";
         return undef;
     }
 
     if ( $chunk !~ /<(?:rss|feed|rdf)/i )
     {
+
         # warn "Feed not parsed -- missing feed tag in first 1024 characters";
         return undef;
     }
@@ -345,35 +347,38 @@ sub get_feed_urls_from_html_links
     return [ grep { !$r->{ $_ }++ } @{ $urls } ];
 }
 
-# look for a valid feed that is either a <link> tag or one of a 
+# look for a valid feed that is either a <link> tag or one of a
 # set of standard feed urls based on the blog url
 sub get_main_feed_urls_from_url
 {
     my ( $class, $url ) = @_;
-    
+
     my $response = MediaWords::Util::Web::ParallelGet( [ $url ] )->[ 0 ];
-    
+
     return [] unless ( $response->is_success );
-    
+
     my $html = $response->decoded_content;
-    
+
     my $link_feed_urls = $class->get_feed_urls_from_html_links( $url, $html );
-    
+
     return $link_feed_urls if ( @{ $link_feed_urls } );
-    
-    my $suffixes = [ 
-        'index.xml', 'atom.xml', 'feeds', 'feeds/default', 'feed', 'feed/default', 'feeds/posts/default/', 
-        '?feed=rss', '?feed=atom', '?feed=rss2', '?feed=rdf', 'rss', 'atom', 'rdf' ];
+
+    my $suffixes = [
+        'index.xml',  'atom.xml',     'feeds',                'feeds/default',
+        'feed',       'feed/default', 'feeds/posts/default/', '?feed=rss',
+        '?feed=atom', '?feed=rss2',   '?feed=rdf',            'rss',
+        'atom',       'rdf'
+    ];
 
     my $chopped_url = $url;
     chop( $chopped_url ) if ( $url =~ /\/$/ );
-    
+
     my $standard_urls = [ map { "${ chopped_url }/$_" } @{ $suffixes } ];
-    
+
     my $valid_feed_urls = $class->get_valid_feeds_from_urls( $standard_urls );
 
     $valid_feed_urls = [ $valid_feed_urls->[ 0 ] ] if ( @{ $valid_feed_urls } );
-    
+
     return $valid_feed_urls;
 
 }
