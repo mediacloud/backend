@@ -526,21 +526,17 @@ sub moderate : Local
 
     my $media;
 
-    say STDERR "Media sets id $media_sets_id";
+    my $media_set_clause = "1=1";
+    if ( defined( $media_sets_id )  )
+    {
+        $media_sets_id += 0;
+        $media_set_clause = "media_id in ( select media_id from media_sets_media_map where media_sets_id = $media_sets_id )";
+    }
 
-    if ( defined( $media_sets_id ) )
-    {
-        $media = $c->dbis->query(
-"select * from media where moderated = 'f' and media_id in (select media_id from media_sets_media_map where media_sets_id = ?) and media_id > ? "
-              . "  order by media_id",
-            $media_sets_id, $prev_media_id
-        )->hashes;
-    }
-    else
-    {
-        $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " . "  order by media_id",
-            $prev_media_id )->hashes;
-    }
+    $media = $c->dbis->query(
+        "select * from media where moderated = 'f' and feeds_added = 't' and media_id > ? and $media_set_clause order by media_id",
+        $media_sets_id, $prev_media_id
+    )->hashes;
 
     my ( $medium, $tag_names, $feeds, $merge_media );
 
