@@ -27,7 +27,7 @@ sub get_ids_in_list
 sub get_epoch_from_sql_date
 {
     my ( $date ) = @_;
-    
+
     my $year  = substr( $date, 0, 4 );
     my $month = substr( $date, 5, 2 );
     my $day   = substr( $date, 8, 2 );
