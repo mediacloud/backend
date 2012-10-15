@@ -111,6 +111,8 @@ Potential media sources to merge:
 
 <p>There are no more media sources in the moderation queue.</p>
 
+<p>The system is still looking for feeds for [% num_media_pending_feeds %] media sources (which will appear in the moderation queue when feed detection is done).</p>
+
 </fieldset>
 
 [% END #[% IF medium %]
