@@ -554,17 +554,18 @@ sub moderate : Local
 
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
-    
-    my ( $num_media_pending_feeds ) = $c->dbis->query( "select count(*) from media where feeds_added = 'f' and moderated = 'f'" )->flat;
 
-    $c->stash->{ media_sets_id } = $media_sets_id;
-    $c->stash->{ medium }        = $medium;
-    $c->stash->{ tag_names }     = $tag_names;
-    $c->stash->{ feeds }         = $feeds;
-    $c->stash->{ queue_size }    = scalar( @{ $media } );
-    $c->stash->{ merge_media }   = $merge_media;
+    my ( $num_media_pending_feeds ) =
+      $c->dbis->query( "select count(*) from media where feeds_added = 'f' and moderated = 'f'" )->flat;
+
+    $c->stash->{ media_sets_id }           = $media_sets_id;
+    $c->stash->{ medium }                  = $medium;
+    $c->stash->{ tag_names }               = $tag_names;
+    $c->stash->{ feeds }                   = $feeds;
+    $c->stash->{ queue_size }              = scalar( @{ $media } );
+    $c->stash->{ merge_media }             = $merge_media;
     $c->stash->{ num_media_pending_feeds } = $num_media_pending_feeds;
-    $c->stash->{ template }      = 'media/moderate.tt2';
+    $c->stash->{ template }                = 'media/moderate.tt2';
 }
 
 # display search form, and results of a query was submitted.
