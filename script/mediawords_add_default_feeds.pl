@@ -46,9 +46,9 @@ sub main
             if ( !@{ $default_feed_links } )
             {
                 $need_to_moderate = 1;
-                $feed_links =
-                    Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, $db, [], $existing_urls );
-                    
+                $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $medium->{ url } ],
+                    1, $db, [], $existing_urls );
+
                 # look through all feeds found for those with the host name in them and if found
                 # treat them as default feeds
                 my $medium_host = lc( URI->new( $medium->{ url } )->host );
@@ -78,7 +78,7 @@ sub main
                     $medium->{ moderation_notes } .= $error;
                     print $error;
                     next;
-                }   
+                }
             }
 
             if ( @{ $existing_urls } )
