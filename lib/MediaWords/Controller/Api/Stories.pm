@@ -9,6 +9,8 @@ use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
+use List::Compare;
+
 
 =head1 NAME
 
@@ -339,6 +341,96 @@ sub stories_query_GET : Local
     #$c->response->content_type( 'application/json' );
     #return $c->res->body( encode_json( $stories ) );
 }
+
+sub all_processed : Local : ActionClass('REST') { }
+sub all_processed_GET : Local
+{
+    my ( $self, $c ) = @_;
+
+    say STDERR "starting stories_query_json";
+
+    my $page  = $c->req->param( 'page' ) // 1;
+
+    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
+
+    $show_raw_1st_download //= 0;
+
+    
+    my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
+	"select s.* from stories s, processed_stories ps where s.stories_id = ps.stories_id " .
+	"order by processed_stories_id  asc",
+	$page, ROWS_PER_PAGE
+        );    
+
+    $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
+
+    $self->status_ok( $c, entity => $stories );
+}
+
+sub subset :  Local : ActionClass('REST') { }
+sub subset_PUT: Local
+{
+    my ( $self, $c ) = @_;
+    my $subset = $c->req->data;
+
+    my $story_subset = $c->dbis->create( 'story_subsets', $subset );
+
+    $self->status_created (
+	$c,
+	location => $c->req->uri->as_string,
+	entity   => $story_subset,
+	);
+
+    process_subset( $c->dbis, $story_subset );
+}
+
+
+sub process_subset
+{
+    my ( $db, $st_subset ) = @_;
+
+    #build query
+
+    my $where_clause = " WHERE ";
+
+    my $query_map = 
+    { 
+	'start_date'      => 'publish_date >= ?',
+	'end_date'       => 'publish_date <= ?',
+	'media_sets_id'  => ' media_id in ( select media_id from media_sets_media_map where media_sets_id = ? ) ',
+    };
+
+    my $defined_clauses  =   [ grep { defined ( $st_subset->{ $_ } ) } ( keys  % { $st_subset } ) ];
+
+    my $non_query_clauses =  [ qw ( story_subsets_id ready last_process_stories_id ) ];
+
+    my $lc = List::Compare->new( $non_query_clauses, $defined_clauses );
+
+    my $subset_clauses = [ sort $lc->get_Ronly ];
+
+    my $where_clause = ' 1 = 1 ';
+    
+    my $query_params = [];
+
+    push @ { $query_params }, $st_subset->{story_subsets_id };
+
+    foreach my $clause ( @ { $subset_clauses } )
+    {
+	$where_clause .= 'and';
+	$where_clause .= $query_map->{ $clause };
+	push  @ { $query_params }, $st_subset->{ $clause };
+    }
+
+    my $query =  " INSERT INTO story_subsets_processed_stories_map( processed_stories_id , story_subsets_id ) SELECT processed_stories_id, ? from processed_stories natural join stories WHERE $where_clause ";
+
+    say STDERR $query;
+
+    $db->query( $query, @ { $query_params } );
+
+    $db->query(" UPDATE story_subsets set ready = 'true' where story_subsets_id = ?  " , $st_subset->{ story_subsets_id } );
+
+}
+
 
 # display regenerated tags for story
 sub retag : Local
