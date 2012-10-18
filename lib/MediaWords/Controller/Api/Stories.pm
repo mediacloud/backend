@@ -395,8 +395,6 @@ sub subset_GET : Local
 
     my $story_subset = $c->dbis->query( 'SELECT * from story_subsets where story_subsets_id = ? ', $id );
 
-    
-
     $self->status_created(
         $c,
         location => $c->req->uri->as_string,
