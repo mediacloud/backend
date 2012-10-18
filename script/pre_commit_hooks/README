@@ -13,7 +13,7 @@ Attaching pre-commit hooks to a Git's local copy
 ------------------------------------------------
 
     cd .git/hooks/
-    ln -s ../../script/git_hooks/pre-commit .
+    ln -s ../../script/pre_commit_hooks/pre-commit .
     chmod +x pre-commit     # Make sure it's executable
 
 
