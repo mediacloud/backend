@@ -388,6 +388,23 @@ sub subset_PUT : Local
     process_subset( $c->dbis, $story_subset );
 }
 
+sub subset_GET : Local
+{
+    my ( $self, $c, $id ) = @_;
+    my $subset = $c->req->data;
+
+    my $story_subset = $c->dbis->query( 'SELECT * from story_subsets where story_subsets_id = ? ', $id );
+
+    
+
+    $self->status_created(
+        $c,
+        location => $c->req->uri->as_string,
+        entity   => $story_subset,
+    );
+
+}
+
 sub process_subset
 {
     my ( $db, $st_subset ) = @_;
