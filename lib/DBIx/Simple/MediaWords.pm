@@ -309,7 +309,7 @@ sub query_paged_hashes
 
     $query .= " limit ( $rows_per_page + 1 ) offset $offset";
 
-    my $rs = $self->query( $query , @ { $query_params } );
+    my $rs = $self->query( $query, @{ $query_params } );
 
     my $list = [];
     my $i    = 0;

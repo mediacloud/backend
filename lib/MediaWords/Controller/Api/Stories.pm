@@ -368,8 +368,7 @@ sub all_processed_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub subset_processed
- : Local : ActionClass('REST')
+sub subset_processed : Local : ActionClass('REST')
 {
 }
 
@@ -384,9 +383,9 @@ sub subset_processed_GET : Local
     $show_raw_1st_download //= 0;
 
     my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
-        "select s.* from stories s, processed_stories ps, story_subsets_processed_stories_map sspsm  where s.stories_id = ps.stories_id and ps.processed_stories_id = sspsm.processed_stories_id and sspsm.story_subsets_id = ? " .
-          "order by ps.processed_stories_id  asc", [ $story_subsets_id ],
-        $page, ROWS_PER_PAGE
+"select s.* from stories s, processed_stories ps, story_subsets_processed_stories_map sspsm  where s.stories_id = ps.stories_id and ps.processed_stories_id = sspsm.processed_stories_id and sspsm.story_subsets_id = ? "
+          . "order by ps.processed_stories_id  asc",
+        [ $story_subsets_id ], $page, ROWS_PER_PAGE
     );
 
     $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
