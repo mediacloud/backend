@@ -23400,6 +23400,60 @@
          "target" : "Locale::Country::Multilingual",
          "version" : "0.23"
       },
+      "Locale::Maketext::AutoTranslate" : {
+         "dist" : "Locale-Maketext-AutoTranslate-0.1",
+         "mymeta" : {
+            "abstract" : "Translate L10N messages automatically",
+            "author" : [
+               "Yung-chung Lin (henearkrxern@gmail.com)"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 0.71, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Locale-Maketext-AutoTranslate",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.62",
+                     "HTML::Entities" : 0,
+                     "Locale::Maketext::Extract" : 0,
+                     "Locale::Maketext::Lexicon" : 0,
+                     "Moose" : 0,
+                     "REST::Google::Translate" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.1"
+         },
+         "name" : "Locale::Maketext::AutoTranslate",
+         "pathname" : "X/XE/XERN/Locale-Maketext-AutoTranslate-0.1.tar.gz",
+         "provides" : {
+            "Locale::Maketext::AutoTranslate" : {
+               "file" : "Locale/Maketext/AutoTranslate.pm",
+               "version" : "0.1"
+            }
+         },
+         "target" : "Locale::Maketext::AutoTranslate",
+         "version" : "0.1"
+      },
       "Locale::Maketext::Lexicon" : {
          "dist" : "Locale-Maketext-Lexicon-0.91",
          "mymeta" : {
@@ -31800,6 +31854,150 @@
          },
          "target" : "RDF::Simple",
          "version" : "1.004"
+      },
+      "REST::Google" : {
+         "dist" : "REST-Google-1.0.8",
+         "mymeta" : {
+            "abstract" : "access Google REST (aka AJAX) API from Perl",
+            "author" : [
+               "Eugen Sobchenko <ejs@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "REST-Google",
+            "prereqs" : {
+               "runtime" : {
+                  "requires" : {
+                     "Class::Accessor" : "0.31",
+                     "Class::Data::Inheritable" : "0.06",
+                     "JSON::Any" : "1.16",
+                     "LWP::UserAgent" : "2.033",
+                     "Test::More" : "0.47",
+                     "URI" : "1.35",
+                     "perl" : "v5.6.1",
+                     "version" : "0.50"
+                  }
+               }
+            },
+            "provides" : {
+               "REST::Google" : {
+                  "file" : "lib/REST/Google.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Feeds" : {
+                  "file" : "lib/REST/Google/Feeds.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search" : {
+                  "file" : "lib/REST/Google/Search.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Blogs" : {
+                  "file" : "lib/REST/Google/Search/Blogs.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Books" : {
+                  "file" : "lib/REST/Google/Search/Books.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Images" : {
+                  "file" : "lib/REST/Google/Search/Images.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Local" : {
+                  "file" : "lib/REST/Google/Search/Local.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::News" : {
+                  "file" : "lib/REST/Google/Search/News.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Patent" : {
+                  "file" : "lib/REST/Google/Search/Patent.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Video" : {
+                  "file" : "lib/REST/Google/Search/Video.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Web" : {
+                  "file" : "lib/REST/Google/Search/Web.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Translate" : {
+                  "file" : "lib/REST/Google/Translate.pm",
+                  "version" : "v1.0.8"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "1.0.8"
+         },
+         "name" : "REST::Google",
+         "pathname" : "E/EJ/EJS/REST-Google-1.0.8.tar.gz",
+         "provides" : {
+            "REST::Google" : {
+               "file" : "REST/Google.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Feeds" : {
+               "file" : "REST/Google/Feeds.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search" : {
+               "file" : "REST/Google/Search.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Blogs" : {
+               "file" : "REST/Google/Search/Blogs.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Books" : {
+               "file" : "REST/Google/Search/Books.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Images" : {
+               "file" : "REST/Google/Search/Images.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Local" : {
+               "file" : "REST/Google/Search/Local.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::News" : {
+               "file" : "REST/Google/Search/News.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Patent" : {
+               "file" : "REST/Google/Search/Patent.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Video" : {
+               "file" : "REST/Google/Search/Video.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Web" : {
+               "file" : "REST/Google/Search/Web.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Translate" : {
+               "file" : "REST/Google/Translate.pm",
+               "version" : "v1.0.8"
+            }
+         },
+         "target" : "REST::Google::Translate",
+         "version" : "v1.0.8"
       },
       "Readonly" : {
          "dist" : "Readonly-1.03",
