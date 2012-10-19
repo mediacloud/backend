@@ -54,7 +54,7 @@ sub list : Local
     my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
         "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
           "and fsm.feeds_id = $feeds_id " . "and publish_date > now() - interval '30 days' " . "order by publish_date desc",
-        $p, ROWS_PER_PAGE
+        [], $p, ROWS_PER_PAGE
     );
 
     if ( @{ $stories } < ROWS_PER_PAGE )
@@ -62,7 +62,7 @@ sub list : Local
         ( $stories, $pager ) = $c->dbis->query_paged_hashes(
             "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
               "and fsm.feeds_id = $feeds_id " . "order by publish_date desc",
-            $p, ROWS_PER_PAGE
+            [], $p, ROWS_PER_PAGE
         );
     }
 
@@ -360,6 +360,32 @@ sub all_processed_GET : Local
     my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
         "select s.* from stories s, processed_stories ps where s.stories_id = ps.stories_id " .
           "order by processed_stories_id  asc",
+        [], $page, ROWS_PER_PAGE
+    );
+
+    $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
+
+    $self->status_ok( $c, entity => $stories );
+}
+
+sub subset_processed
+ : Local : ActionClass('REST')
+{
+}
+
+sub subset_processed_GET : Local
+{
+    my ( $self, $c, $story_subsets_id ) = @_;
+
+    my $page = $c->req->param( 'page' ) // 1;
+
+    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
+
+    $show_raw_1st_download //= 0;
+
+    my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
+        "select s.* from stories s, processed_stories ps, story_subsets_processed_stories_map sspsm  where s.stories_id = ps.stories_id and ps.processed_stories_id = sspsm.processed_stories_id and sspsm.story_subsets_id = ? " .
+          "order by ps.processed_stories_id  asc", [ $story_subsets_id ],
         $page, ROWS_PER_PAGE
     );
 
