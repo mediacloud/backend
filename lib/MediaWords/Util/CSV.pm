@@ -21,7 +21,7 @@ sub get_hashes_as_encoded_csv
     my $output = '';
     if ( @{ $hashes } )
     {
-        my $csv = Text::CSV_XS->new;
+        my $csv = Text::CSV_XS->new( { binary => 1 } );
 
         my $keys = $fields || [ keys( %{ $hashes->[ 0 ] } ) ];
         $csv->combine( @{ $keys } );
