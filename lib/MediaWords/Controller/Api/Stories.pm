@@ -2,7 +2,6 @@ package MediaWords::Controller::Api::Stories;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-
 use MediaWords::DBI::StorySubsets;
 
 use strict;
