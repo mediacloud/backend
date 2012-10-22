@@ -45,11 +45,12 @@ sub main
     my $topic_days =
       $db->query( "select ms.name, publish_day from  total_daily_words tdw, media_sets ms " .
           "  where  ms.set_type = 'collection' and ms.media_sets_id = tdw.media_sets_id " .
-          "    and not ( dashboard_topics_id is null ) and publish_day > now() - interval '1 month' and publish_day < now() " . 
-          "except " .
-          "select ms.name, publish_day from  total_daily_words tdw, media_sets ms " .
-          "  where tdw.media_sets_id = ms.media_sets_id and ms.set_type = 'collection' " .
-          "    and ( dashboard_topics_id is null ) " . "  order by publish_day, name" )->hashes;
+          "    and not ( dashboard_topics_id is null ) and publish_day > now() - interval '1 month' and publish_day < now() "
+          . "except "
+          . "select ms.name, publish_day from  total_daily_words tdw, media_sets ms "
+          . "  where tdw.media_sets_id = ms.media_sets_id and ms.set_type = 'collection' "
+          . "    and ( dashboard_topics_id is null ) "
+          . "  order by publish_day, name" )->hashes;
 
     for my $day ( @{ $topic_days } )
     {
