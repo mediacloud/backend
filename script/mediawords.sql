@@ -1092,11 +1092,6 @@ create table sopa_stories (
     link_weight             real
 );
 
-create table controversy_merged_media (
-    source_media_id         int not null,
-    target_media_id         int not null
-);
-    
 create table story_similarities (
     story_similarities_id   serial primary key,
     stories_id_a            int,
@@ -1123,6 +1118,19 @@ create table controversies (
 );
 
 create unique index controversies_name on controversies( name );
+
+
+create table controversy_media_codes (
+    controversies_id        int not null references controversies on delete cascade,
+    media_id                int not null references media on delete cascade,
+    code_type               text,
+    code                    text
+);
+    
+create table controversy_merged_media (
+    source_media_id         int not null,
+    target_media_id         int not null
+);
 
 create table controversy_links (
     controversy_links_id        serial primary key,
