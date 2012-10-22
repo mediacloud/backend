@@ -11,6 +11,7 @@ BEGIN
 }
 
 use Color::Mix;
+use Data::Dumper;
 use Date::Format;
 use Encode;
 use File::Path;
@@ -28,13 +29,13 @@ my $_media_type_color_map;
 my $_dump_version;
 my $_dump_label;
 
+my $_dump_media;
+
 my $_media_static_gexf_attribute_types = {
-    url                 => 'string',
-    media_type          => 'string',
-    link_weight         => 'float',
-    link_count          => 'integer',
-    story_count         => 'integer',
-    sentiment_58billion => 'integer',
+    url => 'string',
+    link_weight => 'float', 
+    link_count => 'integer',
+    story_count => 'integer',
 };
 
 sub set_dump_label
@@ -57,7 +58,7 @@ sub write_dump_file
     my $controversy_name = $controversy->{ name };
     $controversy_name =~ s/\//_/g;
 
-    my $parent_dump_dir = "controversy_dumps/$controversy_name";
+    my $parent_dump_dir = "controversy_dumps/${ controversy_name }_dumps_" . Date::Format::time2str( '%Y%m%d', time );
     File::Path::mkpath( $parent_dump_dir ) unless ( -d $parent_dump_dir );
 
     my $dump_dir = "$parent_dump_dir/controversy_dump_${ dump_label }";
@@ -71,13 +72,11 @@ sub write_dump_file
 
 }
 
-# write the results of the query as a csv
-sub write_dump_as_csv
+# write the dump table as a csv
+sub write_table_as_csv
 {
     my ( $db, $controversy, $table, $query ) = @_;
-
-    replace_table_contents( $db, $table, $query );
-
+        
     my $dump_version = get_dump_version( $db );
 
     my $res = $db->query( "select * from ${ table }_${ dump_version }" );
@@ -91,15 +90,37 @@ sub write_dump_as_csv
     write_dump_file( $controversy, $table, 'csv', $csv_string );
 }
 
+# write the results of the query as a csv
+sub write_dump_as_csv
+{
+    my ( $db, $controversy, $table, $query ) = @_;
+    
+    replace_table_contents( $db, $table, $query );
+    
+    write_table_as_csv( $db, $controversy, $table, $query );
+}
+
 sub write_link_counts
 {
     my ( $db, $controversy, $start_date, $end_date ) = @_;
+    
+    replace_table_contents( $db, 'controversy_story_link_counts_dump', 
+        "select count(*) link_count, ref_stories_id " . 
+        "  from controversy_links_cross_media cl, stories s, stories r " . 
+        "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
+        "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+        "    s.publish_date > r.publish_date - interval '1 day' and " .
+        "    controversies_id = $controversy->{ controversies_id } " .
+        "  group by ref_stories_id" );
 
-    replace_table_contents( $db, 'controversy_story_link_counts_dump',
-        "select count(*) link_count, ref_stories_id " . "  from controversy_links_cross_media cl, stories s, stories r " .
-          "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
-          "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
-          "    controversies_id = $controversy->{ controversies_id } " . "  group by ref_stories_id" );
+    replace_table_contents( $db, 'controversy_story_outlink_counts_dump', 
+        "select count(*) outlink_count, cl.stories_id " . 
+        "  from controversy_links_cross_media cl, stories s, stories r " . 
+        "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
+        "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+        "    s.publish_date > r.publish_date - interval '1 day' and " .
+        "    cl.controversies_id = $controversy->{ controversies_id } " .
+        "  group by cl.stories_id" );
 
     replace_table_contents( $db, 'controversy_story_outlink_counts_dump',
         "select count(*) outlink_count, cl.stories_id " . "  from controversy_links_cross_media cl, stories s, stories r " .
@@ -136,9 +157,9 @@ sub write_controversy_stories_dump
     $tag_clause_list = ", $tag_clause_list" if ( $tag_clause_list );
 
     my $dump_version = get_dump_version( $db );
-
+    
     my $cid = $controversy->{ controversies_id };
-
+    
     write_dump_as_csv( $db, $controversy, 'controversy_stories_dump', <<END );
 select distinct s.stories_id, s.title, s.url, s.publish_date, 
         m.name media_name, m.url media_url, m.media_id, cs.link_weight, 
@@ -166,45 +187,103 @@ select distinct cl.stories_id source_stories_id, ss.title source_title, ss.url s
 		cl.ref_stories_id ref_stories_id, rs.title ref_title, rs.url ref_url, rm.name ref_media_name, rm.url ref_media_url, 
 		rm.media_id ref_media_id
 	from controversy_links_cross_media cl, stories ss, media sm, stories rs, media rm
-	where cl.stories_id = ss.stories_id and ss.media_id = sm.media_id and cl.ref_stories_id = rs.stories_id and rs.media_id = rm.media_id
-	  and ( ss.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and
+	where cl.stories_id = ss.stories_id and ss.media_id = sm.media_id and cl.ref_stories_id = rs.stories_id and rs.media_id = rm.media_id and 
+	  ( ss.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and
+      ss.publish_date > rs.publish_date - interval '1 day' and
 	  cl.controversies_id = $controversy->{ controversies_id }
 END
+}
+
+sub add_tags_to_dump_media
+{
+    my ( $db, $controversy, $media ) = @_;
+
+    my $tagset_name = "controversy_$controversy->{ name }";
+
+    my $tags = $db->query(
+        "select * from tags t, tag_sets ts " .
+        "  where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all' and " . 
+        "    exists ( select 1 from stories_tags_map stm where stm.tags_id = t.tags_id )", 
+        $tagset_name )->hashes;
+        
+    my $tag_fields = [];
+    for my $tag ( @{ $tags } )
+    {
+        my $label = "tagged_" . lc( $tag->{ tag } );
+        $label =~ s/\W/_/g;
+        
+        push( @{ $tag_fields }, $label );
+
+        my $media_tags = $db->query( 
+            "select s.media_id, stm.* from stories s, stories_tags_map stm where s.stories_id = stm.stories_id and stm.tags_id = ?",
+            $tag->{ tags_id } )->hashes;
+
+        my $media_tags_map = {};
+        map { $media_tags_map->{ $_->{ media_id } } += 1 } @{ $media_tags };
+
+        map { $_->{ $label } = $media_tags_map->{ $_->{ media_id } } || 0 } @{ $media };
+    }  
+    
+    return $tag_fields;
+}
+
+sub add_codes_to_dump_media
+{
+    my ( $db, $controversy, $media ) = @_;
+    
+    my $code_types = $db->query( "select distinct code_type from controversy_media_codes where controversies_id = ?",
+        $controversy->{ controversies_id } )->flat;
+        
+    my $code_fields = [];
+    for my $code_type ( @{ $code_types } )
+    {
+        my $label = "code_" . lc( $code_type );
+        $label =~ s/[^[[:alnum:]]]/_/g;
+        
+        push( @{ $code_fields }, $label );
+        
+        my $media_codes = $db->query( "select * from controversy_media_codes where controversies_id = ? and code_type = ?",
+                $controversy->{ controversies_id }, $code_type )->hashes;
+
+        my $media_codes_map = {};
+        map { $media_codes_map->{ $_->{ media_id } } = $_->{ code } } @{ $media_codes };
+
+        map { $_->{ $label } = $media_codes_map->{ $_->{ media_id } } || 'null' } @{ $media };
+    }
+
+    return $code_fields;
 }
 
 sub write_controversy_media_dump
 {
     my ( $db, $controversy ) = @_;
 
-    my $tagset_name = "Controversy $controversy->{ name }";
-
-    my $tags = $db->query(
-        "select * from tags t, tag_sets ts " . "  where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'",
-        $tagset_name )->hashes;
-
-    my $tag_fields = [];
-    for my $tag ( @{ $tags } )
-    {
-        my $label = "tagged_" . lc( $tag->{ tag } );
-        $label =~ s/[^[[:alnum:]]]/_/g;
-
-        push( @{ $tag_fields }, "bool_or( $label ) $label" );
-    }
-
-    my $tag_fields_list = join( ',', @{ $tag_fields } );
-
     my $dump_version = get_dump_version( $db );
 
-    write_dump_as_csv( $db, $controversy, 'controversy_media_dump', <<END );
+    my $res = $db->query( <<END );
 select m.media_id, m.name, m.url, min( ssd.publish_date ) start_date, max( ssd.publish_date ) end_date,
         sum( ssd.link_count) link_count, sum( ssd.outlink_count) outlink_count,
         sum( ssd.total_link_count ) total_link_count, sum( ssd.link_weight ) link_weight, 
-        count(*) story_count, smt.media_type
+        count(*) story_count
   from media m join controversy_stories_dump_${ dump_version } ssd on ( ssd.media_id = m.media_id )
-    left join sopa_media_types smt on ( m.media_id = smt.media_id )
-  group by m.media_id, m.name, m.url, smt.media_type
+  group by m.media_id, m.name, m.url
   order by sum( ssd.link_weight );    
 END
+
+    my $fields = $res->columns;
+    my $media = $res->hashes;
+        
+    my $code_fields = add_codes_to_dump_media( $db, $controversy, $media );
+    my $tag_fields = add_tags_to_dump_media( $db, $controversy, $media );   
+    
+    push( @{ $fields }, @{ $code_fields } );
+    push( @{ $fields }, @{ $tag_fields } ); 
+
+    my $csv_string = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
+    
+    write_dump_file( $controversy, 'controversy_media_dump', 'csv', $csv_string );
+    
+    $_dump_media = $media;
 }
 
 sub write_controversy_media_links_dump
@@ -223,7 +302,7 @@ sub write_controversy_date_counts_dump
 {
     my ( $db, $controversy, $start_date, $end_date ) = @_;
 
-    my $tagset_name = "Controversy $controversy->{ name }";
+    my $tagset_name = "controversy_$controversy->{ name }";
 
     my $tags =
       $db->query( "select * from tags t, tag_sets ts " . "  where t.tag_sets_id = ts.tag_sets_id and ts.name = ?",
@@ -234,7 +313,7 @@ sub write_controversy_date_counts_dump
     for my $tag ( @{ $tags } )
     {
         my $label = "count_" . lc( $tag->{ tag } );
-        $label =~ s/[^[[:alnum:]]]/_/g;
+        $label =~ s/\W/_/g;
 
         push( @{ $tag_fields }, "coalesce( $label.week_count, 0 ) week_$label" );
 
@@ -247,14 +326,16 @@ sub write_controversy_date_counts_dump
               "  as $label on ( all_weeks.publish_week = $label.publish_week )"
         );
     }
-
-    my $tag_fields_list  = join( ', ', @{ $tag_fields } );
-    my $tag_queries_list = join( ' ',  @{ $tag_queries } );
-
+    
+    my $tag_fields_list = join( ', ', @{ $tag_fields } );
+    $tag_fields_list = ", $tag_fields_list" if ( $tag_fields_list );
+        
+    my $tag_queries_list = join( ' ', @{ $tag_queries } );
+    
     my $cid = $controversy->{ controversies_id };
 
     write_dump_as_csv( $db, $controversy, 'controversy_date_counts_dump', <<END );
-select all_weeks.publish_week, $tag_fields_list
+select all_weeks.publish_week $tag_fields_list
     from ( select distinct date_trunc( 'week', s.publish_date ) publish_week
              from stories s join controversy_stories cs on ( s.stories_id = cs.stories_id and controversies_id = $cid ) ) all_weeks
          $tag_queries_list
@@ -315,13 +396,23 @@ sub add_tags_to_gexf_attribute_types
 {
     my ( $db, $controversy ) = @_;
 
-    my $tagset_name = "Controversy $controversy->{ name }";
+    my $tagset_name = "controversy_$controversy->{ name }";
 
     my $tags = $db->query(
         "select * from tags t, tag_sets ts " . "  where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'",
         $tagset_name )->hashes;
 
     map { $_media_static_gexf_attribute_types->{ "tagged_" . $_->{ tag } } = 'integer' } @{ $tags };
+}
+
+sub add_codes_to_gexf_attribute_types
+{
+    my ( $db, $controversy ) = @_;
+        
+    my $code_types = $db->query( "select distinct code_type from controversy_media_codes where controversies_id = ?",
+        $controversy->{ controversies_id } )->flat;
+        
+    map { $_media_static_gexf_attribute_types->{ "code_" . $_ } = 'string' } @{ $code_types };
 }
 
 sub get_link_weighted_edges
@@ -378,15 +469,17 @@ sub get_color_hash_from_hex
 
 sub get_media_type_color
 {
-    my ( $db, $media_type ) = @_;
+    my ( $db, $controversy, $media_type ) = @_;
 
-    $media_type ||= 'none';
-
-    return $_media_type_color_map->{ $media_type } if ( $_media_type_color_map );
-
-    my $all_media_types =
-      $db->query( "select distinct media_type from controversy_media_types order by media_type" )->hashes;
-
+    if ( $_media_type_color_map ) 
+    {
+        return $_media_type_color_map->{ $media_type } || get_color_hash_from_hex( 'BBBBBB' );
+    }
+    
+    my $all_media_types = $db->query( 
+        "select distinct code from controversy_media_codes where controversies_id = ? and code_type = 'media_type'" ,
+        $controversy->{ controversies_id } )->flat;
+    
     my $num_colors = scalar( @{ $all_media_types } ) + 1;
 
     my $color_mix = Color::Mix->new;
@@ -395,10 +488,8 @@ sub get_media_type_color
     $_media_type_color_map = {};
     for my $media_type ( @{ $all_media_types } )
     {
-        $_media_type_color_map->{ $media_type->{ media_type } } = pop( @{ $color_list } );
+        $_media_type_color_map->{ $media_type } = pop( @{ $color_list } );
     }
-
-    $_media_type_color_map->{ none } = pop( @{ $color_list } );
 
     return $_media_type_color_map->{ $media_type };
 }
@@ -419,14 +510,13 @@ sub write_gexf_dump
     my $dump_version = get_dump_version( $db );
 
     add_tags_to_gexf_attribute_types( $db, $controversy );
-
-    my $media =
-      $db->query( "select smd.* from controversy_media_dump_${ dump_version } smd order by link_count desc" )->hashes;
-    my $stories = $db->query(
-        "select ssd.media_id, min( ssd.publish_date ) publish_date from controversy_stories_dump_${ dump_version } ssd " .
-"  group by media_id, date_trunc( 'day', ssd.publish_date ) order by media_id, date_trunc( 'day', ssd.publish_date )"
-    )->hashes;
-
+    add_codes_to_gexf_attribute_types( $db, $controversy );
+    
+    my $media = $_dump_media;
+    my $stories = $db->query( 
+        "select ssd.media_id, min( ssd.publish_date ) publish_date from controversy_stories_dump_${ dump_version } ssd " . 
+        "  group by media_id, date_trunc( 'day', ssd.publish_date ) order by media_id, date_trunc( 'day', ssd.publish_date )" )->hashes;
+        
     attach_stories_to_media( $stories, $media );
 
     my $gexf = {
@@ -492,7 +582,7 @@ sub write_gexf_dump
             push( @{ $node->{ spells }->{ spell } }, { start => $story_date, end => $story_date } );
         }
 
-        # $node->{ 'viz:color' } = [ get_media_type_color( $db, $medium->{ media_type } ) ];
+        $node->{ 'viz:color' } = [ get_media_type_color( $db, $controversy, $medium->{ code_media_type } ) ];
 
         push( @{ $graph->{ nodes }->{ node } }, $node );
     }
@@ -504,7 +594,7 @@ sub write_gexf_dump
 
 sub generate_period_dump
 {
-    my ( $controversies_id, $start_date, $end_date, $period, $weightings ) = @_;
+    my ( $db, $controversies_id, $start_date, $end_date, $period, $weightings ) = @_;
 
     my $dump_label = "${ period }_${ start_date }_${ end_date }";
     set_dump_label( $dump_label );
@@ -560,11 +650,11 @@ sub truncate_to_start_of_month
 
 sub generate_all_period_dumps
 {
-    my ( $controversies_id, $start_date, $end_date, $period, $weightings ) = @_;
+    my ( $db, $controversies_id, $start_date, $end_date, $period, $weightings ) = @_;
 
     if ( $period eq 'overall' )
     {
-        generate_period_dump( $controversies_id, $start_date, $end_date, $period, $weightings );
+        generate_period_dump( $db, $controversies_id, $start_date, $end_date, $period, $weightings );
     }
     elsif ( $period eq 'weekly' )
     {
@@ -573,7 +663,7 @@ sub generate_all_period_dumps
         {
             my $w_end_date = MediaWords::Util::SQL::increment_day( $w_start_date, 7 );
 
-            generate_period_dump( $controversies_id, $w_start_date, $w_end_date, $period, $weightings );
+            generate_period_dump( $db, $controversies_id, $w_start_date, $w_end_date, $period, $weightings );
 
             $w_start_date = $w_end_date;
         }
@@ -586,7 +676,7 @@ sub generate_all_period_dumps
             my $m_end_date = MediaWords::Util::SQL::increment_day( $m_start_date, 32 );
             $m_end_date = truncate_to_start_of_month( $m_end_date );
 
-            generate_period_dump( $controversies_id, $m_start_date, $m_end_date, $period, $weightings );
+            generate_period_dump( $db, $controversies_id, $m_start_date, $m_end_date, $period, $weightings );
 
             $m_start_date = $m_end_date;
         }
@@ -599,24 +689,22 @@ sub generate_all_period_dumps
 
 sub main
 {
-    my ( $start_date, $end_date, $period, $weighting, $controversies_id );
+    my ( $start_date, $end_date, $period, $weighting, $controversy_name );
 
     $period = 'all';
 
     Getopt::Long::GetOptions(
-        "start_date=s"  => \$start_date,
-        "end_date=s"    => \$end_date,
-        "period=s"      => \$period,
-        "controversy=s" => \$controversies_id
-    ) || return;
+        "start_date=s" => \$start_date,
+        "end_date=s" => \$end_date,
+        "period=s" => \$period,
+        "controversy=s" => \$controversy_name ) || return;
 
     $weighting = 'link';
-
-    die(
-"Usage: $0 --start_date < start date > --end_date < end date > --period < overall|weekly|monthly|all > --controversy < id > >"
-    ) unless ( $start_date && $end_date && $period && $weighting && $controversies_id );
-
-    my $all_periods    = [ qw(overall weekly monthly) ];
+        
+    die( "Usage: $0 --start_date < start date > --end_date < end date > --period < overall|weekly|monthly|all > --controversy < id > >" )
+        unless ( $start_date && $end_date && $period && $weighting && $controversy_name );
+    
+    my $all_periods = [ qw(overall weekly monthly) ];
     my $all_weightings = [ qw(link text text+link) ];
 
     die( "period must be all, overall, weekly, or monthly" )
@@ -625,12 +713,19 @@ sub main
     die( "weighting must be all, link, text, or text+link" )
       if ( !grep { $_ eq $weighting } ( 'all', @{ $all_weightings } ) );
 
+    my $db = MediaWords::DB::connect_to_db;
+    
+    my $controversy = $db->query( "select * from controversies where name = ?", $controversy_name )->hash
+        || die( "Unable to find controversy '$controversy_name'" );
+        
+    my $controversies_id = $controversy->{ controversies_id };
+    
     my $periods = ( $period eq 'all' ) ? $all_periods : [ $period ];
 
     for my $p ( @{ $periods } )
     {
         my $weightings = ( $weighting eq 'all' ) ? $all_weightings : [ $weighting ];
-        generate_all_period_dumps( $controversies_id, $start_date, $end_date, $p, $weightings );
+        generate_all_period_dumps( $db, $controversies_id, $start_date, $end_date, $p, $weightings );
     }
 }
 

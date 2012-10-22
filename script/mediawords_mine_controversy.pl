@@ -928,7 +928,7 @@ sub update_controversy_tags
 {
     my ( $db, $controversy ) = @_;
 
-    my $tagset_name = "Controversy $controversy->{ name }";
+    my $tagset_name = "controversy_controversy->{ name }";
 
     my $all_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tagset_name:all" )
       || die( "Can't find or create all_tag" );
