@@ -35,7 +35,7 @@ sub get_medium_domain
     {
         $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
     }
-    
+
     return lc( $domain );
 }
 

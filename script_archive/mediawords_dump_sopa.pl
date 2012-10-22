@@ -57,8 +57,8 @@ sub write_dump_file
 
     my $parent_dump_dir = "sopa_dumps/sopa_dumps_" . Date::Format::time2str( '%Y-%m-%d', time );
     File::Path::mkpath( $parent_dump_dir ) unless ( -d $parent_dump_dir );
-    
-    my $dump_dir = "$parent_dump_dir/sopa_dump_${ dump_label }";    
+
+    my $dump_dir = "$parent_dump_dir/sopa_dump_${ dump_label }";
     mkdir( $dump_dir ) unless ( -d $dump_dir );
 
     open( FILE, ">$dump_dir/${ file_name }_${ dump_label }.${ extension }" ) || die( "Unable to open dump file: $!" );
@@ -138,23 +138,19 @@ sub write_media_text_links
 sub write_link_counts
 {
     my ( $db, $start_date, $end_date ) = @_;
-    
-    replace_table_contents( $db, 'sopa_story_link_counts_dump', 
-        "select count(*) link_count, ref_stories_id " . 
-        "  from sopa_links_cross_media sl, stories s, stories r " . 
-        "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
-        "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
-        "    s.publish_date > r.publish_date - interval '1 day'" .
-        "  group by ref_stories_id" );
 
-    replace_table_contents( $db, 'sopa_story_outlink_counts_dump', 
-        "select count(*) outlink_count, sl.stories_id " . 
-        "  from sopa_links_cross_media sl, stories s, stories r " . 
-        "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
-        "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
-        "    s.publish_date > r.publish_date - interval '1 day'".
-        "  group by sl.stories_id" );
-        
+    replace_table_contents( $db, 'sopa_story_link_counts_dump',
+        "select count(*) link_count, ref_stories_id " . "  from sopa_links_cross_media sl, stories s, stories r " .
+          "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
+          "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+          "    s.publish_date > r.publish_date - interval '1 day'" . "  group by ref_stories_id" );
+
+    replace_table_contents( $db, 'sopa_story_outlink_counts_dump',
+        "select count(*) outlink_count, sl.stories_id " . "  from sopa_links_cross_media sl, stories s, stories r " .
+          "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
+          "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+          "    s.publish_date > r.publish_date - interval '1 day'" . "  group by sl.stories_id" );
+
     replace_table_contents( $db, 'sopa_story_outlink_counts_dump',
         "select count(*) outlink_count, sl.stories_id " . "  from sopa_links_cross_media sl, stories s, stories r " .
           "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
@@ -504,10 +500,10 @@ sub get_media_type_color
 
     my $num_colors = scalar( @{ $all_media_types } ) + 1;
 
-    # my $color_mix = Color::Mix->new;
-    # my $color_list = [ map { get_color_hash_from_hex( $_ ) } $color_mix->analogous( '0000ff',  $num_colors, $num_colors ) ];
+   # my $color_mix = Color::Mix->new;
+   # my $color_list = [ map { get_color_hash_from_hex( $_ ) } $color_mix->analogous( '0000ff',  $num_colors, $num_colors ) ];
     my $color_list = MediaWords::Util::Colors::get_colors( $num_colors, 'rgb()' );
-    
+
     $_media_type_color_map = {};
     for my $media_type ( @{ $all_media_types } )
     {
