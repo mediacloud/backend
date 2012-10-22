@@ -55,18 +55,22 @@ sub add_test_feed
     is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
     is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
 
-    my $feed = $db->query(
-        "insert into feeds (media_id, name, url) values (?, ?, ?) returning *",
-        $test_medium->{ media_id },
-        '_ Crawler Test',
-        "$url_to_crawl" . "gv/test.rss"
-    )->hash;
+    my $syndicated_feed = $db->create( 'feeds',
+        { media_id => $test_medium->{ media_id },
+          name => '_ Crawler Test - Syndicated Feed',
+          url => "${ url_to_crawl }gv/test.rss" } );
+    my $web_page_feed = $db->create( 'feeds',
+        { media_id => $test_medium->{ media_id },
+          name => '_ Crawler Test - Web Page Feed',
+          url => "${ url_to_crawl }gv/gv_home.html",
+          feed_type => 'web_page' } );
 
     MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
-    ok( $feed->{ feeds_id }, "test feed created" );
+    ok( $syndicated_feed->{ feeds_id }, "test syndicated feed created" );
+    ok( $web_page_feed->{ feeds_id }, "test web page feed created" );
 
-    return $feed;
+    return $syndicated_feed;
 }
 
 Readonly my $crawler_timeout => 60;
@@ -138,11 +142,11 @@ sub process_stories
 # get stories from database, including content, text, tags, sentences, sentence_words, and story_sentence_words
 sub get_expanded_stories
 {
-    my ( $db, $feed ) = @_;
+    my ( $db ) = @_;
 
-    my $stories = $db->query(
-        "select s.* from stories s, feeds_stories_map fsm " . "  where s.stories_id = fsm.stories_id and fsm.feeds_id = ?",
-        $feed->{ feeds_id } )->hashes;
+    my $stories = $db->query( 
+        "select s.*, f.feed_type from stories s, feeds_stories_map fsm, feeds f " .
+        "  where s.stories_id = fsm.stories_id and fsm.feeds_id = f.feeds_id" )->hashes;
 
     for my $story ( @{ $stories } )
     {
@@ -156,6 +160,7 @@ sub get_expanded_stories
         $story->{ story_sentences } =
           $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ",
             $story->{ stories_id } )->hashes;
+        
     }
 
     return $stories;
@@ -180,11 +185,16 @@ sub _purge_story_sentences_id_field
 # test various results of the crawler
 sub test_stories
 {
-    my ( $db, $feed ) = @_;
+    my ( $db ) = @_;
 
-    my $stories = get_expanded_stories( $db, $feed );
+    my $download_errors = $db->query( "select * from downloads where state = 'error'" )->hashes;
+    is ( scalar( @{ $download_errors } ), 0, "download errors" );
+    die( "errors: " . Dumper( $download_errors ) ) if ( @{ $download_errors } );
 
-    is( @{ $stories }, 15, "story count" );
+
+    my $stories = get_expanded_stories( $db );
+
+    is( @{ $stories }, 16, "story count" );
 
     my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
 
@@ -200,10 +210,16 @@ sub test_stories
             #$story->{ extracted_text } =~ s/\n//g;
             #$test_story->{ extracted_text } =~ s/\n//g;
 
-            for my $field ( qw(publish_date description guid extracted_text) )
+            my $fields = [ qw(description extracted_text)  ];
+            
+            # can't test web_page story dates against historical data b/c they are supposed to have 
+            # the current date
+            push( @{ $fields }, qw(publish_date guid) ) unless ( $story->{ feed_type } eq 'web_page' );
+
+            for my $field ( @{ $fields } )
             {
                 oldstyle_diff;
-
+                
               TODO:
                 {
                     my $fake_var;    #silence warnings
@@ -225,6 +241,11 @@ sub test_stories
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
 
+            # as above, don't compare dates for web_page stories
+            if ( $story->{ feed_type } eq 'web_page' )
+            {
+                map { delete( $_->{ publish_date } ) } ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
+            }
             cmp_deeply(
                 $story->{ story_sentences },
                 $test_story->{ story_sentences },
@@ -253,7 +274,7 @@ sub test_stories
 
 sub generate_aggregate_words
 {
-    my ( $db, $feed ) = @_;
+    my ( $db ) = @_;
 
     my ( $start_date ) = $db->query( "select date_trunc( 'day', min(publish_date) ) from stories" )->flat;
 
@@ -291,7 +312,7 @@ sub _process_top_500_weekly_words_for_testing
 
 sub dump_top_500_weekly_words
 {
-    my ( $db, $feed ) = @_;
+    my ( $db ) = @_;
 
     my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
     _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
@@ -316,7 +337,7 @@ sub sort_top_500_weekly_words
 
 sub test_top_500_weekly_words
 {
-    my ( $db, $feed ) = @_;
+    my ( $db ) = @_;
 
     my $top_500_weekly_words_actual =
       $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term' )->hashes;
@@ -357,9 +378,9 @@ sub test_top_500_weekly_words
 # store the stories as test data to compare against in subsequent runs
 sub dump_stories
 {
-    my ( $db, $feed ) = @_;
+    my ( $db ) = @_;
 
-    my $stories = get_expanded_stories( $db, $feed );
+    my $stories = get_expanded_stories( $db );
 
     MediaWords::Test::Data::store_test_data( 'crawler_stories', $stories );
 }
@@ -410,7 +431,7 @@ sub main
 
             my $url_to_crawl = MediaWords::Test::LocalServer::start_server( $crawler_data_location );
 
-            my $feed = add_test_feed( $db, $url_to_crawl );
+            add_test_feed( $db, $url_to_crawl );
 
             run_crawler();
 
@@ -420,18 +441,18 @@ sub main
 
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
-                dump_stories( $db, $feed );
+                dump_stories( $db );
             }
 
-            test_stories( $db, $feed );
+            test_stories( $db );
 
-            generate_aggregate_words( $db, $feed );
+            generate_aggregate_words( $db );
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
-                dump_top_500_weekly_words( $db, $feed );
+                dump_top_500_weekly_words( $db );
             }
 
-            test_top_500_weekly_words( $db, $feed );
+            test_top_500_weekly_words( $db );
 
             print "Killing server\n";
             kill_local_server( $url_to_crawl );
