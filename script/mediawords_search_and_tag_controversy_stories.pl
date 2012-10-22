@@ -30,12 +30,12 @@ sub get_patterns_from_input
     while ( my $line = <STDIN> )
     {
         chomp( $line );
-        
+
         my $regex = $line;
-        
+
         my $tag_name = $regex;
         $tag_name =~ s/[^\w]/_/g;
-        
+
         next unless ( $regex && ( $regex =~ /\S/ ) );
 
         my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "${ tag_set_name }:${ tag_name }" );
@@ -59,9 +59,8 @@ sub search_and_tag_stories
 
         # gotta do this weird sub-sub-query to get the planner not to seq scan story_sentences
         my $clause =
-          "( s.url ~* '$pattern->{ regex }' or s.title ~* '$pattern->{ regex }' or " . 
-          "  s.description ~* '$pattern->{ regex }' or " . 
-          "  exists ( select 1 " .
+          "( s.url ~* '$pattern->{ regex }' or s.title ~* '$pattern->{ regex }' or " .
+          "  s.description ~* '$pattern->{ regex }' or " . "  exists ( select 1 " .
           "             from ( select * from story_sentences ssa_$i where s.stories_id = ssa_$i.stories_id ) as ss_$i " .
           "             where ss_$i.sentence ~* '$pattern->{ regex }' ) ) match_$i";
         push( @{ $match_columns }, $clause );
@@ -69,8 +68,9 @@ sub search_and_tag_stories
 
     my $match_columns_list = join( ", ", @{ $match_columns } );
 
-    my $query = "select s.stories_id, s.title, $match_columns_list from stories s, controversy_stories cs " .
-          "  where s.stories_id = cs.stories_id and cs.controversies_id = ?";
+    my $query =
+      "select s.stories_id, s.title, $match_columns_list from stories s, controversy_stories cs " .
+      "  where s.stories_id = cs.stories_id and cs.controversies_id = ?";
     print STDERR "query: $query\n";
     my $story_matches = $db->query( $query, $controversy->{ controversies_id } )->hashes;
 
@@ -122,7 +122,7 @@ sub main
     my $db = MediaWords::DB::connect_to_db;
 
     my $controversy = $db->query( "select * from controversies where name = ?", $controversy_name )->hash
-        || die( "Unable to find controversy '$controversy_name'" );
+      || die( "Unable to find controversy '$controversy_name'" );
 
     my $patterns = get_patterns_from_input( $db, $controversy );
 

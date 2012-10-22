@@ -38,30 +38,31 @@ sub get_csv_dates
     while ( my $csv_date = $csv->getline_hr( $fh ) )
     {
         push( @{ $csv_dates }, $csv_date );
+
         # print STDERR "$csv_date->{ stories_id } $csv_date->{ publish_date}\n";
     }
-    
+
     die( "no rows found in csv" ) unless ( @{ $csv_dates } );
-    
+
     die( "no stories_id column in csv" ) unless ( $csv_dates->[ 0 ]->{ stories_id } );
 
     die( "no publish_date column in csv" ) unless ( $csv_dates->[ 0 ]->{ publish_date } );
-    
+
     return $csv_dates;
 }
 
-# if the date in the csv_date is different from the date in the databse, set the 
+# if the date in the csv_date is different from the date in the databse, set the
 # date in the database
 sub fix_date
 {
     my ( $db, $csv_date ) = @_;
-    
-    return unless( $csv_date->{ stories_id } ); 
-    
+
+    return unless ( $csv_date->{ stories_id } );
+
     return if ( $_fixed_stories_map->{ $csv_date->{ stories_id } } );
-    
+
     my $story = $db->find_by_id( 'stories', $csv_date->{ stories_id } );
-    
+
     if ( !$story )
     {
         warn( "Unable to find story '$csv_date->{ stories_id }'" );
@@ -69,29 +70,30 @@ sub fix_date
     }
 
     my $epoch_csv_date = Date::Parse::str2time( $csv_date->{ publish_date } );
-    my $epoch_db_date = Date::Parse::str2time( $story->{ publish_date } );
-    
+    my $epoch_db_date  = Date::Parse::str2time( $story->{ publish_date } );
+
     if ( abs( $epoch_csv_date - $epoch_db_date ) > 60 )
     {
         my $sql_date = DateTime->from_epoch( epoch => ( $epoch_csv_date - ( 4 * 3600 ) ) )->datetime;
-        
-        print STDERR "$story->{ stories_id }: $story->{ publish_date } [ $epoch_db_date ] -> $sql_date / $csv_date->{ publish_date } [ $epoch_csv_date ]\n";
+
+        print STDERR
+"$story->{ stories_id }: $story->{ publish_date } [ $epoch_db_date ] -> $sql_date / $csv_date->{ publish_date } [ $epoch_csv_date ]\n";
         $db->query( "update stories set publish_date = ? where stories_id = ?", $sql_date, $story->{ stories_id } );
-        
+
         $_fixed_stories_map->{ $csv_date->{ stories_id } } = 1;
-    }    
+    }
 }
 
 sub main
 {
     my ( $csv_file ) = @ARGV;
-    
+
     die( "usage: $0 <csv file>" ) unless ( $csv_file );
-    
+
     my $db = MediaWords::DB::connect_to_db;
-    
+
     my $csv_dates = get_csv_dates( $csv_file );
-    
+
     map { fix_date( $db, $_ ) } @{ $csv_dates };
 }
 
