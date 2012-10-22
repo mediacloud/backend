@@ -10,6 +10,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use List::Compare;
+use Carp;
 
 =head1 NAME
 
@@ -404,13 +405,22 @@ sub subset_PUT : Local
 
     my $story_subset = $c->dbis->create( 'story_subsets', $subset );
 
+    die unless defined( $story_subset );
+ 
+    $story_subset = $c->dbis->find_by_id ( 'story_subsets', $story_subset->{ story_subsets_id } );
+
+    die unless defined( $story_subset );
+ 
+    process_subset( $c->dbis, $story_subset );
+
+    $story_subset = $c->dbis->find_by_id ( 'story_subsets', $story_subset->{ story_subsets_id } );
+
     $self->status_created(
         $c,
         location => $c->req->uri->as_string,
         entity   => $story_subset,
     );
 
-    process_subset( $c->dbis, $story_subset );
 }
 
 sub subset_GET : Local
@@ -432,9 +442,12 @@ sub process_subset
 {
     my ( $db, $st_subset ) = @_;
 
-    #build query
+    croak "story_subset not present " unless defined ( $st_subset );
 
-    my $where_clause = " WHERE ";
+    my  $story_subsets_id = $st_subset->{ story_subsets_id } ;
+    croak "story_subsets_id not defined " unless defined ( $story_subsets_id );
+
+    #build query
 
     my $query_map = {
         'start_date'    => 'publish_date >= ?',
@@ -450,28 +463,42 @@ sub process_subset
 
     my $subset_clauses = [ sort $lc->get_Ronly ];
 
-    my $where_clause = ' 1 = 1 ';
+    my $where_clause .= ' 1 = 1 ';
 
     my $query_params = [];
 
-    push @{ $query_params }, $st_subset->{ story_subsets_id };
+    push $query_params, $story_subsets_id ;
+    say STDERR Dumper( $query_params );
 
     foreach my $clause ( @{ $subset_clauses } )
     {
         $where_clause .= 'and';
         $where_clause .= $query_map->{ $clause };
-        push @{ $query_params }, $st_subset->{ $clause };
+        push $query_params, $st_subset->{ $clause };
     }
 
+    say STDERR Dumper( $query_params );
+    my ( $max_processed_stories_id ) = $db->query( " SELECT max( processed_stories_id ) from processed_stories " )->flat;
+
+    say STDERR "max_prcessed_stories_id = $max_processed_stories_id";
+
+    $db->begin_work;
+
     my $query =
-" INSERT INTO story_subsets_processed_stories_map( processed_stories_id , story_subsets_id ) SELECT processed_stories_id, ? from processed_stories natural join stories WHERE $where_clause ";
+" INSERT INTO story_subsets_processed_stories_map( processed_stories_id , story_subsets_id ) SELECT processed_stories_id, ? from processed_stories natural join stories WHERE $where_clause AND processed_stories_id <= ? ORDER by processed_stories_id ASC";
+
+    push @{ $query_params }, $max_processed_stories_id;
 
     say STDERR $query;
+    say STDERR Dumper( $query_params );
 
     $db->query( $query, @{ $query_params } );
 
-    $db->query( " UPDATE story_subsets set ready = 'true' where story_subsets_id = ?  ", $st_subset->{ story_subsets_id } );
+    $db->query( " UPDATE story_subsets set ready = 'true', last_processed_stories_id = ? where story_subsets_id = ?  ", $max_processed_stories_id, $st_subset->{ story_subsets_id } );
 
+    $db->commit;
+
+    return;
 }
 
 # display regenerated tags for story
