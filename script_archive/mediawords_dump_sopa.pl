@@ -13,11 +13,13 @@ BEGIN
 use Color::Mix;
 use Date::Format;
 use Encode;
+use File::Path;
 use Getopt::Long;
 use XML::Simple;
 
 use MediaWords::DB;
 use MediaWords::Util::CSV;
+use MediaWords::Util::Colors;
 use MediaWords::Util::SQL;
 
 my $_num_similar_stories_per_story = 10;
@@ -53,10 +55,10 @@ sub write_dump_file
 
     my $dump_label = get_dump_label();
 
-    my $parent_dump_dir = "sopa_dumps";
-    mkdir( $parent_dump_dir ) unless ( -d $parent_dump_dir );
-
-    my $dump_dir = "$parent_dump_dir/sopa_dump_${ dump_label }";
+    my $parent_dump_dir = "sopa_dumps/sopa_dumps_" . Date::Format::time2str( '%Y-%m-%d', time );
+    File::Path::mkpath( $parent_dump_dir ) unless ( -d $parent_dump_dir );
+    
+    my $dump_dir = "$parent_dump_dir/sopa_dump_${ dump_label }";    
     mkdir( $dump_dir ) unless ( -d $dump_dir );
 
     open( FILE, ">$dump_dir/${ file_name }_${ dump_label }.${ extension }" ) || die( "Unable to open dump file: $!" );
@@ -93,12 +95,14 @@ sub write_story_text_links
 
     my $sopa_links_sub_query = <<END;
     select distinct stories_id from 
-            ( ( select distinct sl.stories_id from sopa_links_cross_media sl, stories s 
-                    where sl.stories_id = s.stories_id and
-                        s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) union
-              ( select distinct sl.ref_stories_id from sopa_links_cross_media sl, stories s 
-                    where sl.ref_stories_id = s.stories_id and
-                        s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) ) slsq
+            ( ( select distinct sl.stories_id from sopa_links_cross_media sl, stories s, stories r 
+                    where sl.stories_id = s.stories_id and r.stories_id = sl.ref_stories_id and 
+                        s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' and 
+                        s.publish_date > r.publish_date - interval '1 day' ) union
+              ( select distinct sl.ref_stories_id from sopa_links_cross_media sl, stories s, stories r 
+                    where sl.ref_stories_id = r.stories_id and sl.stories_id = s.stories_id and 
+                        r.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' and 
+                        s.publish_date > r.publish_date - interval '1 day' ) ) slsq
 END
 
     write_dump_as_csv( $db, 'sopa_story_text_links_dump', <<END );
@@ -134,13 +138,23 @@ sub write_media_text_links
 sub write_link_counts
 {
     my ( $db, $start_date, $end_date ) = @_;
+    
+    replace_table_contents( $db, 'sopa_story_link_counts_dump', 
+        "select count(*) link_count, ref_stories_id " . 
+        "  from sopa_links_cross_media sl, stories s, stories r " . 
+        "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
+        "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+        "    s.publish_date > r.publish_date - interval '1 day'" .
+        "  group by ref_stories_id" );
 
-    replace_table_contents( $db, 'sopa_story_link_counts_dump',
-        "select count(*) link_count, ref_stories_id " . "  from sopa_links_cross_media sl, stories s, stories r " .
-          "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
-          "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) " .
-          "  group by ref_stories_id" );
-
+    replace_table_contents( $db, 'sopa_story_outlink_counts_dump', 
+        "select count(*) outlink_count, sl.stories_id " . 
+        "  from sopa_links_cross_media sl, stories s, stories r " . 
+        "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
+        "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+        "    s.publish_date > r.publish_date - interval '1 day'".
+        "  group by sl.stories_id" );
+        
     replace_table_contents( $db, 'sopa_story_outlink_counts_dump',
         "select count(*) outlink_count, sl.stories_id " . "  from sopa_links_cross_media sl, stories s, stories r " .
           "  where sl.stories_id = s.stories_id and sl.ref_stories_id = r.stories_id and " .
@@ -201,7 +215,8 @@ select distinct sl.stories_id source_stories_id, ss.title source_title, ss.url s
 		rm.media_id ref_media_id
 	from sopa_links_cross_media sl, stories ss, media sm, stories rs, media rm
 	where sl.stories_id = ss.stories_id and ss.media_id = sm.media_id and sl.ref_stories_id = rs.stories_id and rs.media_id = rm.media_id
-	  and ( ss.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' )
+	  and ( ss.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and
+      ss.publish_date > rs.publish_date - interval '1 day'
 END
 }
 
@@ -489,9 +504,10 @@ sub get_media_type_color
 
     my $num_colors = scalar( @{ $all_media_types } ) + 1;
 
-    my $color_mix = Color::Mix->new;
-    my $color_list = [ map { get_color_hash_from_hex( $_ ) } $color_mix->analogous( '0000ff', $num_colors, $num_colors ) ];
-
+    # my $color_mix = Color::Mix->new;
+    # my $color_list = [ map { get_color_hash_from_hex( $_ ) } $color_mix->analogous( '0000ff',  $num_colors, $num_colors ) ];
+    my $color_list = MediaWords::Util::Colors::get_colors( $num_colors, 'rgb()' );
+    
     $_media_type_color_map = {};
     for my $media_type ( @{ $all_media_types } )
     {
@@ -683,8 +699,8 @@ sub generate_all_period_dumps
         my $m_start_date = truncate_to_start_of_month( $start_date );
         while ( $m_start_date lt $end_date )
         {
-            my $m_end_date = MediaWords::Util::SQL::increment_day( $m_start_date, 31 );
-            $m_end_date = MediaWords::Util::SQL::increment_day( truncate_to_start_of_month( $m_end_date ) );
+            my $m_end_date = MediaWords::Util::SQL::increment_day( $m_start_date, 32 );
+            $m_end_date = truncate_to_start_of_month( $m_end_date );
 
             generate_period_dump( $m_start_date, $m_end_date, $period, $weightings );
 
