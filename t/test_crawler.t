@@ -55,20 +55,28 @@ sub add_test_feed
     is( MediaWords::StoryVectors::_get_story_words_start_date_for_medium( $test_medium ), $sw_data_start_date );
     is( MediaWords::StoryVectors::_get_story_words_end_date_for_medium( $test_medium ),   $sw_data_end_date );
 
-    my $syndicated_feed = $db->create( 'feeds',
-        { media_id => $test_medium->{ media_id },
-          name => '_ Crawler Test - Syndicated Feed',
-          url => "${ url_to_crawl }gv/test.rss" } );
-    my $web_page_feed = $db->create( 'feeds',
-        { media_id => $test_medium->{ media_id },
-          name => '_ Crawler Test - Web Page Feed',
-          url => "${ url_to_crawl }gv/gv_home.html",
-          feed_type => 'web_page' } );
+    my $syndicated_feed = $db->create(
+        'feeds',
+        {
+            media_id => $test_medium->{ media_id },
+            name     => '_ Crawler Test - Syndicated Feed',
+            url      => "${ url_to_crawl }gv/test.rss"
+        }
+    );
+    my $web_page_feed = $db->create(
+        'feeds',
+        {
+            media_id  => $test_medium->{ media_id },
+            name      => '_ Crawler Test - Web Page Feed',
+            url       => "${ url_to_crawl }gv/gv_home.html",
+            feed_type => 'web_page'
+        }
+    );
 
     MediaWords::DBI::MediaSets::create_for_medium( $db, $test_medium );
 
     ok( $syndicated_feed->{ feeds_id }, "test syndicated feed created" );
-    ok( $web_page_feed->{ feeds_id }, "test web page feed created" );
+    ok( $web_page_feed->{ feeds_id },   "test web page feed created" );
 
     return $syndicated_feed;
 }
@@ -144,9 +152,8 @@ sub get_expanded_stories
 {
     my ( $db ) = @_;
 
-    my $stories = $db->query( 
-        "select s.*, f.feed_type from stories s, feeds_stories_map fsm, feeds f " .
-        "  where s.stories_id = fsm.stories_id and fsm.feeds_id = f.feeds_id" )->hashes;
+    my $stories = $db->query( "select s.*, f.feed_type from stories s, feeds_stories_map fsm, feeds f " .
+          "  where s.stories_id = fsm.stories_id and fsm.feeds_id = f.feeds_id" )->hashes;
 
     for my $story ( @{ $stories } )
     {
@@ -160,7 +167,7 @@ sub get_expanded_stories
         $story->{ story_sentences } =
           $db->query( "select * from story_sentences where stories_id = ? order by stories_id, sentence_number ",
             $story->{ stories_id } )->hashes;
-        
+
     }
 
     return $stories;
@@ -188,9 +195,8 @@ sub test_stories
     my ( $db ) = @_;
 
     my $download_errors = $db->query( "select * from downloads where state = 'error'" )->hashes;
-    is ( scalar( @{ $download_errors } ), 0, "download errors" );
+    is( scalar( @{ $download_errors } ), 0, "download errors" );
     die( "errors: " . Dumper( $download_errors ) ) if ( @{ $download_errors } );
-
 
     my $stories = get_expanded_stories( $db );
 
@@ -210,16 +216,16 @@ sub test_stories
             #$story->{ extracted_text } =~ s/\n//g;
             #$test_story->{ extracted_text } =~ s/\n//g;
 
-            my $fields = [ qw(description extracted_text)  ];
-            
-            # can't test web_page story dates against historical data b/c they are supposed to have 
+            my $fields = [ qw(description extracted_text) ];
+
+            # can't test web_page story dates against historical data b/c they are supposed to have
             # the current date
             push( @{ $fields }, qw(publish_date guid) ) unless ( $story->{ feed_type } eq 'web_page' );
 
             for my $field ( @{ $fields } )
             {
                 oldstyle_diff;
-                
+
               TODO:
                 {
                     my $fake_var;    #silence warnings
@@ -244,7 +250,8 @@ sub test_stories
             # as above, don't compare dates for web_page stories
             if ( $story->{ feed_type } eq 'web_page' )
             {
-                map { delete( $_->{ publish_date } ) } ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
+                map { delete( $_->{ publish_date } ) }
+                  ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
             }
             cmp_deeply(
                 $story->{ story_sentences },
