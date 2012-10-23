@@ -8,13 +8,13 @@ SCHEMA_FILE="script/mediawords.sql"
 if [ -d .svn ]; then
     #echo "This is a Subversion repository."
     ADDED_MODIFIED_FILES=`svn status -q | grep "^[M|A]" | awk '{ print $2}'`
-    SCHEMA_DIFF=`svn diff $SCHEMA_FILE |  grep "^[+|-]"`
+    SCHEMA_DIFF=`svn diff $SCHEMA_FILE`
 
 elif [ -d .git ]; then
     #echo "This is a Git repository."
     # FIXME the version of a file that is staged might be different from the file that exists in the filesystem
     ADDED_MODIFIED_FILES=`git diff --staged --name-status |  grep "^[M|A]" | awk '{ print $2}'`
-    SCHEMA_DIFF=`git diff --staged $SCHEMA_FILE |  grep "^[+|-]"`
+    SCHEMA_DIFF=`git diff --staged $SCHEMA_FILE`
 
 else
     echo "Unknown repository."
@@ -97,32 +97,33 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
     fi
 
     # Database schema revisions
-    OLD_DB_VERSION=`echo "$SCHEMA_DIFF"  \
+    OLD_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
         | perl -lne 'print if /\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
         | perl -lpe 's/\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
-    NEW_DB_VERSION=`echo "$SCHEMA_DIFF"  \
+    NEW_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
         | perl -lne 'print if /\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
         | perl -lpe 's/\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
-    if [ -z "$OLD_DB_VERSION" ]; then
+    if [ -z "$OLD_SCHEMA_VERSION" ]; then
         echo "Unable to determine old database schema version number from the version control diff."
         exit 1
     fi
-    if [ -z "$NEW_DB_VERSION" ]; then
+    if [ -z "$NEW_SCHEMA_VERSION" ]; then
         echo "Unable to determine new database schema version number from the version control diff."
         exit 1
     fi
 
     # Check if version number has been changed
-    if [ ! "$NEW_DB_VERSION" -gt "$OLD_DB_VERSION" ]; then
-        helpIncreaseSchemaVersion "$OLD_DB_VERSION" "$NEW_DB_VERSION"
+    if [ ! "$NEW_SCHEMA_VERSION" -gt "$OLD_SCHEMA_VERSION" ]; then
+        helpIncreaseSchemaVersion "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
         echo "Also, don't forget to create a database schema diff SQL file if you haven't done so already."
-        helpSchemaDiff "$OLD_DB_VERSION" "$NEW_DB_VERSION"
+        helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
 
         exit 1
     fi
 
     # Check if the SQL migration is being committed too
-    SCHEMA_MIGR_FILE_EXISTS=""
+    SCHEMA_MIGR_FILE="sql_migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
+    SCHEMA_MIGR_FILE_EXISTS=""  # non-empty for true
     for filepath in $ADDED_MODIFIED_FILES; do
         if [ "$filepath" == "$SCHEMA_MIGR_FILE" ]; then
             SCHEMA_MIGR_FILE_EXISTS="yes"
@@ -131,7 +132,7 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
     if [ -z "$SCHEMA_MIGR_FILE_EXISTS" ]; then
         echo "You have changed the database schema (${SCHEMA_FILE}) but haven't added the database schema "
         echo "diff file (${SCHEMA_MIGR_FILE}) to this commit."
-        helpSchemaDiff "$OLD_DB_VERSION" "$NEW_DB_VERSION"
+        helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
 
         exit 1
     fi
