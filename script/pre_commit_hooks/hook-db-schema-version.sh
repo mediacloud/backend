@@ -71,13 +71,13 @@ helpSchemaDiff()
     # Destination file
     SCHEMA_MIGR_FILE="sql_migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
 
-    echo "You can generate a database schema diff automatically using the 'agpdiff' tool:"
+    echo "You have to generate a SQL schema diff between the current database schema and the schema "
+    echo "that is being committed, and place it to ${SCHEMA_MIGR_FILE}."
     echo
-    echo "    java -jar ./script/pre_commit_hooks/apgdiff-2.4.jar --add-transaction old.sql new.sql > ${SCHEMA_MIGR_FILE}"
-    echo "    # Re-set the database schema version"
-    echo "    echo SELECT set_database_schema_version(); >> ${SCHEMA_MIGR_FILE}"
+    echo "You can create a database schema diff automatically using the 'agpdiff' tool. Run:"
     echo
-    echo "Place the schema diff into ${SCHEMA_MIGR_FILE}."
+    echo "    ./script/pre_commit_hooks/postgres-diff.sh > ${SCHEMA_MIGR_FILE}"
+    echo
 }
 
 
@@ -131,7 +131,7 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
     done
     if [ -z "$SCHEMA_MIGR_FILE_EXISTS" ]; then
         echo "You have changed the database schema (${SCHEMA_FILE}) but haven't added the database schema "
-        echo "diff file (${SCHEMA_MIGR_FILE}) to this commit."
+        echo "diff file to this commit."
         helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
 
         exit 1

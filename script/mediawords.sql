@@ -14,8 +14,8 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes; for example, if you're currently at
-    -- SVN revision 4379, set it to 4380 (which would be the SVN revision when committed)
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4379;
+    -- SVN revision 4379, set it to 4380 (which would be the future SVN revision when committed)
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4388;
     
 BEGIN
 
@@ -31,6 +31,15 @@ LANGUAGE 'plpgsql';
 
 -- Set the version number right away
 SELECT set_database_schema_version();
+
+
+-- This is an example table that is used to test the agpdiff tool.
+-- It is not used for anything.
+create table example (
+    one                varchar(512)    not null,        
+    two                varchar(512)    not null,
+    three              varchar(512)    not null
+);
 
 
 -- This function is needed because date_trunc('week', date) is not consider immutable 
