@@ -4,6 +4,8 @@ from pubsub import pub
 import nltk
 from mediacloud.readability.readabilitytests import ReadabilityTool
 
+ENGLISH_STOPWORDS = set(nltk.corpus.stopwords.words('english'))
+
 '''
 This file holds some simple example functions that process a story and add some piece
 of metadata to it, for saving into the database.  You can base your (hopefully more 
@@ -15,9 +17,9 @@ def addWordCountToStory(db_story, raw_story):
     Simple hook to add the extracted text word count to the database.
     Use this in a pre-save callback to get the new "word_count" column.
     '''
-    db_story['word_count'] = _getWordCount(raw_story['story_text'])
+    db_story['word_count'] = getWordCount(raw_story['story_text'])
 
-def _getWordCount(text):
+def getWordCount(text):
     '''
     Count the number of words in a body of text
     '''
@@ -30,11 +32,11 @@ def addFleshKincaidGradeLevelToStory(db_story, raw_story):
     Simple hook to add the Flesch-Kincaid Grade to the database.  This uses a pre-save
     callback to add a new 'fk_grade_level' column. 
     '''
-    gradeLevel = _getFleshKincaidGradeLevel( raw_story['story_text'] )
+    gradeLevel = getFleshKincaidGradeLevel( raw_story['story_text'] )
     if (gradeLevel != None):
         db_story['fk_grade_level'] = gradeLevel
 
-def _getFleshKincaidGradeLevel(text):
+def getFleshKincaidGradeLevel(text):
     '''
     Get the grade reading level of a piece of text.  This relies on patched ntlk_contrib
     code, stored in the mediacloud.readability module (cause the published code don't
@@ -48,3 +50,19 @@ def _getFleshKincaidGradeLevel(text):
     except (KeyError, UnicodeDecodeError):
         pass
     return gradeLevel
+
+def addLanguageToStory(db_story, raw_story):
+    '''
+    Simple hook to add a value that guesses if this article is in english or not
+    '''
+    isEnglish = isEnglish( raw_story['story_text'] )
+    db_story['is_english'] = isEnglish
+
+def isEnglish(text):
+    '''
+    A simple hack to detect if an article is in english or not.
+    See http://www.algorithm.co.il/blogs/programming/python/cheap-language-detection-nltk/
+    '''
+    text = text.lower()
+    words = set(nltk.wordpunct_tokenize(text))
+    return len(words & ENGLISH_STOPWORDS) > 0

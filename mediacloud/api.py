@@ -27,7 +27,7 @@ class MediaCloud(object):
         Return of list of stories with ids greater than the one specified
         '''
         if(self._debug_mode):
-            f = open('mediacloud/test/fixtures/stories_15_since_88848861.json','r');
+            f = open('mediacloud/test/fixtures/stories_15_since_'+str(story_id)+'.json','r');
             content = f.read()
             return self._parseJsonResults(content)
         return self._queryJson( {'last_stories_id': story_id, 'story_count':count, 'raw_1st_download':fetch_raw_text} )
@@ -47,7 +47,7 @@ class MediaCloud(object):
         Return the details about one story, by id
         '''
         if(self._debug_mode):
-            f = open('mediacloud/test/fixtures/story_88848861.json','r');
+            f = open('mediacloud/test/fixtures/story_'+str(story_id)+'.json','r');
             content = f.read()
             return self._parseJsonResults(content)[0]
         return self._queryJson( {'start_stories_id': story_id, 'story_count': 1, 'raw_1st_download':fetch_raw_text} )[0]
