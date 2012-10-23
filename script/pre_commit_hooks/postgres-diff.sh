@@ -56,6 +56,12 @@ patch --quiet --reverse "$TEMP_DIR/mediawords-old.sql" "$TEMP_DIR/mediawords.dif
 POSTGRES_DIFF=`java -jar ${PATH_TO_AGPDIFF} --add-transaction \
 	"$TEMP_DIR/mediawords-old.sql" "$TEMP_DIR/mediawords-new.sql"`
 
+# Check for DROPs
+if [[ ! "$POSTGRES_DIFF" == "*DROP TABLE*" ]]; then
+	# to STDERR
+	echo "PostgreSQL diff contains DROP TABLE clauses. Make sure to revise the diff before committing!" 1>&2
+fi
+
 # Print everything out
 echo "--"
 echo "-- This is a Media Cloud PostgreSQL schema difference file (a \"diff\") between schema"
