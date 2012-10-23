@@ -21,59 +21,118 @@ else
     exit 1
 fi
 
+
+# Prints out instructions to increase schema's version number
+helpIncreaseSchemaVersion()
+{
+    OLD_SCHEMA_VERSION="$1"
+    NEW_SCHEMA_VERSION="$2"
+
+    echo "You have changed the database schema (${SCHEMA_FILE}) but haven't increased the schema version "
+    echo "number (MEDIACLOUD_DATABASE_SCHEMA_VERSION constant) at the top of that file."
+    echo
+
+    if [[ ! -z "$OLD_SCHEMA_VERSION" || ! -z "$NEW_SCHEMA_VERSION" ]]; then
+        echo "The old version and new version numbers currently are ${OLD_SCHEMA_VERSION} and "
+        echo "${NEW_SCHEMA_VERSION} respectively."
+        echo
+    fi
+
+    echo "Increase the following number in ${SCHEMA_FILE}:"
+    echo
+    echo "    CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS \$\$"
+    echo "    DECLARE"
+    echo "    "
+    echo "        <...>"
+    echo "        MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4379; <--------- This one."
+    echo "        <...>"
+    echo "    END;"
+    echo "    \$\$"
+    echo "    LANGUAGE 'plpgsql';"
+    echo
+    echo "and then try committing again."
+    echo
+}
+
+
+# Prints out instructions to make a schema diff
+helpSchemaDiff()
+{
+    OLD_SCHEMA_VERSION="$1"
+    NEW_SCHEMA_VERSION="$2"
+
+    if [ -z "$OLD_SCHEMA_VERSION" ]; then
+        OLD_SCHEMA_VERSION="OLD_SCHEMA_VERSION"
+    fi
+    if [ -z "$NEW_SCHEMA_VERSION" ]; then
+        NEW_SCHEMA_VERSION="NEW_SCHEMA_VERSION"
+    fi
+
+    # Destination file
+    SCHEMA_MIGR_FILE="sql_migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
+
+    echo "You can generate a database schema diff automatically using the 'agpdiff' tool:"
+    echo
+    echo "    java -jar ./script/pre_commit_hooks/apgdiff-2.4.jar --add-transaction old.sql new.sql > ${SCHEMA_MIGR_FILE}"
+    echo "    # Re-set the database schema version"
+    echo "    echo SELECT set_database_schema_version(); >> ${SCHEMA_MIGR_FILE}"
+    echo
+    echo "Place the schema diff into ${SCHEMA_MIGR_FILE}."
+}
+
+
 # If the schema has been changed
 if [ ! -z "$SCHEMA_DIFF" ]; then
 
-    if [[ "$SCHEMA_DIFF" == *MEDIACLOUD_DATABASE_SCHEMA_VERSION* ]]; then
+    # Check if there are any changes in the diff that look like the database schema version
+    if [[ ! "$SCHEMA_DIFF" == *MEDIACLOUD_DATABASE_SCHEMA_VERSION* ]]; then
 
-        # Database schema revisions
-        OLD_DB_VERSION=`echo "$SCHEMA_DIFF"  \
-            | perl -lne 'print if /\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
-            | perl -lpe 's/\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
-        NEW_DB_VERSION=`echo "$SCHEMA_DIFF"  \
-            | perl -lne 'print if /\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
-            | perl -lpe 's/\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
-        if [ -z "$OLD_DB_VERSION" ]; then
-            echo "Unable to determine old database schema version number."
-            exit 1
-        fi
-        if [ -z "$NEW_DB_VERSION" ]; then
-            echo "Unable to determine new database schema version number."
-            exit 1
-        fi
+        helpIncreaseSchemaVersion "" ""
+        echo "---------"
+        echo
+        echo "Additionaly, create a database schema diff SQL file if you haven't done so already."
+        helpSchemaDiff "" ""
 
-    else
-
-        OLD_DB_VERSION=0
-        NEW_DB_VERSION=0
-
+        exit 1
     fi
 
-    ERR=""
+    # Database schema revisions
+    OLD_DB_VERSION=`echo "$SCHEMA_DIFF"  \
+        | perl -lne 'print if /\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
+        | perl -lpe 's/\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
+    NEW_DB_VERSION=`echo "$SCHEMA_DIFF"  \
+        | perl -lne 'print if /\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
+        | perl -lpe 's/\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
+    if [ -z "$OLD_DB_VERSION" ]; then
+        echo "Unable to determine old database schema version number from the version control diff."
+        exit 1
+    fi
+    if [ -z "$NEW_DB_VERSION" ]; then
+        echo "Unable to determine new database schema version number from the version control diff."
+        exit 1
+    fi
 
     # Check if version number has been changed
     if [ ! "$NEW_DB_VERSION" -gt "$OLD_DB_VERSION" ]; then
-        ERR="${ERR}You have changed the database schema ($SCHEMA_FILE) but haven't increased the schema version "
-        ERR="${ERR}number (MEDIACLOUD_DATABASE_SCHEMA_VERSION) at the top of that file. The old version and new "
-        ERR="${ERR}version numbers currently are ${OLD_DB_VERSION} and ${NEW_DB_VERSION} respectively.\n"
+        helpIncreaseSchemaVersion "$OLD_DB_VERSION" "$NEW_DB_VERSION"
+        echo "Also, don't forget to create a database schema diff SQL file if you haven't done so already."
+        helpSchemaDiff "$OLD_DB_VERSION" "$NEW_DB_VERSION"
+
+        exit 1
     fi
 
     # Check if the SQL migration is being committed too
     SCHEMA_MIGR_FILE_EXISTS=""
-    SCHEMA_MIGR_FILE="sql_migrations/mediawords-${OLD_DB_VERSION}-${NEW_DB_VERSION}.sql"
     for filepath in $ADDED_MODIFIED_FILES; do
         if [ "$filepath" == "$SCHEMA_MIGR_FILE" ]; then
             SCHEMA_MIGR_FILE_EXISTS="yes"
         fi
     done
     if [ -z "$SCHEMA_MIGR_FILE_EXISTS" ]; then
-        ERR="${ERR}You have changed the database schema ($SCHEMA_FILE) but haven't added the schema migration "
-        ERR="${ERR}file ($SCHEMA_MIGR_FILE) to this commit."
-    fi
+        echo "You have changed the database schema (${SCHEMA_FILE}) but haven't added the database schema "
+        echo "diff file (${SCHEMA_MIGR_FILE}) to this commit."
+        helpSchemaDiff "$OLD_DB_VERSION" "$NEW_DB_VERSION"
 
-    # If there are errors
-    if [ ! -z "$ERR" ]; then
-        echo $ERR
         exit 1
     fi
         
