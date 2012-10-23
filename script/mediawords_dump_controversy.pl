@@ -115,13 +115,6 @@ sub write_link_counts
         "select count(*) outlink_count, cl.stories_id " . "  from controversy_links_cross_media cl, stories s, stories r " .
           "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
           "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
-          "    s.publish_date > r.publish_date - interval '1 day' and " .
-          "    cl.controversies_id = $controversy->{ controversies_id } " . "  group by cl.stories_id" );
-
-    replace_table_contents( $db, 'controversy_story_outlink_counts_dump',
-        "select count(*) outlink_count, cl.stories_id " . "  from controversy_links_cross_media cl, stories s, stories r " .
-          "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
-          "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
           "    cl.controversies_id = $controversy->{ controversies_id } " . "  group by cl.stories_id" );
 
 }
@@ -139,8 +132,7 @@ sub write_controversy_stories_dump
     my $tag_clauses = [];
     for my $tag ( @{ $tags } )
     {
-        my $label = "tagged_" . lc( $tag->{ tag } );
-        $label =~ s/[^[[:alnum:]]]/_/g;
+        my $label = "tagged_" . $tag->{ tag };
 
         push(
             @{ $tag_clauses },
@@ -206,8 +198,7 @@ sub add_tags_to_dump_media
     my $tag_fields = [];
     for my $tag ( @{ $tags } )
     {
-        my $label = "tagged_" . lc( $tag->{ tag } );
-        $label =~ s/\W/_/g;
+        my $label = "tagged_" . $tag->{ tag };
 
         push( @{ $tag_fields }, $label );
 
@@ -235,8 +226,7 @@ sub add_codes_to_dump_media
     my $code_fields = [];
     for my $code_type ( @{ $code_types } )
     {
-        my $label = "code_" . lc( $code_type );
-        $label =~ s/[^[[:alnum:]]]/_/g;
+        my $label = "code_" . $code_type;
 
         push( @{ $code_fields }, $label );
 
@@ -310,8 +300,7 @@ sub write_controversy_date_counts_dump
     my $tag_queries = [];
     for my $tag ( @{ $tags } )
     {
-        my $label = "count_" . lc( $tag->{ tag } );
-        $label =~ s/\W/_/g;
+        my $label = "count_" . $tag->{ tag };
 
         push( @{ $tag_fields }, "coalesce( $label.week_count, 0 ) week_$label" );
 
