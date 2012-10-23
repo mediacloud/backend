@@ -2,9 +2,9 @@
 -- Schema for MediaWords database
 --
 
--- Settings table
-create table settings (
-    settings_id         serial          primary key,
+-- Database properties (variables) table
+create table database_variables (
+    variables_id        serial          primary key,
     name                varchar(512)    not null,        
     value               varchar(1024)   not null
 );
@@ -20,8 +20,8 @@ DECLARE
 BEGIN
 
     -- Update / set database schema version
-    DELETE FROM settings WHERE name = 'database-schema-version';
-    INSERT INTO settings (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
+    DELETE FROM database_variables WHERE name = 'database-schema-version';
+    INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
 
     return true;
     
