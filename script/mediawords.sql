@@ -1,5 +1,36 @@
 /* schema for MediaWords database */
 
+-- Settings table
+create table settings (
+    settings_id         serial          primary key,
+    name                varchar(512)    not null,        
+    value               varchar(1024)   not null
+);
+
+CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
+DECLARE
+    
+    -- Database schema version number (same as a SVN revision number)
+    -- Increase it by 1 if you make major database schema changes; for example, if you're currently at
+    -- SVN revision 4379, set it to 4380 (which would be the SVN revision when committed)
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4379;
+    
+BEGIN
+
+    -- Update / set database schema version
+    DELETE FROM settings WHERE name = 'database-schema-version';
+    INSERT INTO settings (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
+
+    return true;
+    
+END;
+$$
+LANGUAGE 'plpgsql';
+
+-- Set the version number right away
+SELECT set_database_schema_version();
+
+
 -- This function is needed because date_trunc('week', date) is not consider immutable 
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
 --
