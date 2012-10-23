@@ -181,9 +181,14 @@ create table feeds (
     name                varchar(512)    not null,        
     url                 varchar(1024)   not null,
     reparse             boolean         null,
-    last_download_time  timestamp       null, 
-    feed_type           feed_feed_type  not null default 'syndicated'
+    feed_type           feed_feed_type  not null default 'syndicated',
+
+    -- Add column to allow more active feeds to be downloaded more frequently.
+    last_download_time  timestamp with time zone,
+    last_new_story_time timestamp with time zone
 );
+
+UPDATE feeds SET last_new_story_time = greatest( last_download_time, last_new_story_time );
 
 create index feeds_media on feeds(media_id);
 create index feeds_name on feeds(name);
@@ -259,12 +264,12 @@ create table queries (
     creation_date           timestamp           not null default now(),
     description             text                null,
     dashboards_id           int                 null references dashboards,
-    md5_signature           varchar(32)         not null
+    md5_signature           varchar(32)         not null,
+    query_version           query_version_enum  NOT NULL DEFAULT enum_last (null::query_version_enum )
 );
 
 
 create index queries_creation_date on queries (creation_date);
-ALTER TABLE queries ADD COLUMN query_version query_version_enum DEFAULT enum_last (null::query_version_enum ) NOT NULL;
 create unique index queries_signature_version on queries ( md5_signature, query_version );
 create unique index queries_signature on queries (md5_signature);
 
@@ -556,6 +561,8 @@ create index stories_md on stories(media_id, date_trunc('day'::text, publish_dat
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
 
+CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
+
 create table downloads (
     downloads_id        serial          primary key,
     feeds_id            int             null references feeds,
@@ -570,8 +577,18 @@ create table downloads (
     error_message       text            null,
     priority            int             not null,
     sequence            int             not null,
-    extracted           boolean         not null default 'f'
+    extracted           boolean         not null default 'f',
+    file_status         download_file_status not null default 'tbd',
+    relative_file_path  text            not null default 'tbd',
+    old_download_time   timestamp without time zone,
+    old_state           download_state
 );
+
+UPDATE downloads set old_download_time = download_time, old_state = state;
+
+CREATE UNIQUE INDEX downloads_file_status on downloads(file_status, downloads_id);
+CREATE UNIQUE INDEX downloads_relative_path on downloads( relative_file_path, downloads_id);
+
 
 alter table downloads add constraint downloads_parent_fkey 
     foreign key (parent) references downloads on delete set null;
@@ -676,7 +693,7 @@ CREATE TABLE download_texts (
     download_texts_id integer NOT NULL,
     downloads_id integer NOT NULL,
     download_text text NOT NULL,
-    download_text_length int not null
+    download_text_length int NOT NULL
 );
 
 CREATE SEQUENCE download_texts_download_texts_id_seq
@@ -694,8 +711,6 @@ ALTER TABLE ONLY download_texts
 
 ALTER TABLE ONLY download_texts
     ADD CONSTRAINT download_texts_downloads_id_fkey FOREIGN KEY (downloads_id) REFERENCES downloads(downloads_id) ON DELETE CASCADE;
-
-ALTER TABLE download_texts ALTER COLUMN download_text_length set NOT NULL;
 
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
@@ -837,7 +852,7 @@ create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id
 CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
-       weekly_words_id              serial          primary key,
+       weekly_words_id              bigint          primary key,
        media_sets_id                int             not null, -- references media_sets,
        dashboard_topics_id          int             null,     -- references dashboard_topics,
        term                         varchar(256)    not null,
@@ -1347,21 +1362,6 @@ INSERT INTO stopwords_long (stopword) VALUES ('issue'), ('мог'), ('supplied')
         $$ LANGUAGE plpgsql;
 
 
-
-CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
-
-ALTER TABLE downloads ADD COLUMN file_status download_file_status not null default 'tbd';
-
-ALTER TABLE downloads ADD COLUMN relative_file_path text not null default 'tbd';
-
-
-ALTER TABLE downloads ADD COLUMN old_download_time timestamp without time zone;
-ALTER TABLE downloads ADD COLUMN old_state download_state;
-UPDATE downloads set old_download_time = download_time, old_state = state;
-
-CREATE UNIQUE INDEX downloads_file_status on downloads(file_status, downloads_id);
-CREATE UNIQUE INDEX downloads_relative_path on downloads( relative_file_path, downloads_id);
-
 CREATE OR REPLACE FUNCTION get_relative_file_path(path text)
     RETURNS text AS
 $$
@@ -1393,8 +1393,9 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
-UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS 
-$$
+UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';
+
+CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS $$
    DECLARE
       path_change boolean;
    BEGIN
@@ -1435,7 +1436,7 @@ END;
 $$
 LANGUAGE 'plpgsql'
 ;
-alter table weekly_words alter column weekly_words_id type bigint;
+
 CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS 
 $$
    DECLARE
@@ -1471,13 +1472,3 @@ $$
    END;
 $$ 
 LANGUAGE 'plpgsql';
-
---DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
---CREATE TRIGGER download_relative_file_path_trigger BEFORE INSERT OR UPDATE ON downloads FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
-
--- Add column to allow more active feeds to be downloaded more frequently.
-ALTER TABLE feeds ADD COLUMN last_new_story_time timestamp without time zone;
-UPDATE feeds SET last_new_story_time = greatest( last_download_time, last_new_story_time );
-ALTER TABLE feeds ALTER COLUMN last_download_time TYPE timestamp with time zone;
-ALTER TABLE feeds ALTER COLUMN last_new_story_time TYPE timestamp with time zone;
-
