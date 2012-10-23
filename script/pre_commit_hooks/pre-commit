@@ -12,9 +12,6 @@ else
     against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
 
-# If you want to allow non-ascii filenames set this variable to true.
-allownonascii=$(git config hooks.allownonascii)
-
 # Redirect output to stderr.
 exec 1>&2
 
