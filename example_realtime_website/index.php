@@ -17,41 +17,18 @@ $options['port'] = 5984;
 
 $couch = new CouchSimple($options);
 
-// total article count
+// max story id
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/max_story_id") ); 
 $maxStoryId = $results->rows[0]->value;
 
-// total article count
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/total_articles") ); 
-$articleCount = $results->rows[0]->value;
+// total story count
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/total_stories") ); 
+$storyCount = $results->rows[0]->value;
 
-// article count by length
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true") ); 
+// english story count
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/is_english?group=true") ); 
+$englishStoryCount = $results->rows[0]->value;
 
-$wordCounts = array();
-$barsToShow = 40;
-$bucketSize = 200;  // must match view
-$maxStoryLengthToShow = ($barsToShow)*$bucketSize;
-$includedStories = 0;
-$excludedStories = 0;
-// prefill array
-$i = 0;
-for($i=0;$i<$barsToShow;$i++){
-  $wordCounts[$i*$bucketSize] = 0;
-}
-// 
-$maxIncludedStoryCount = 0;
-foreach ($results->rows as $row){
-  if (array_key_exists($row->key,$wordCounts)) {
-    $wordCounts[$row->key] = $row->value;
-    $maxIncludedStoryCount = max($maxIncludedStoryCount,$row->value);
-    $includedStories+=$row->value;
-  } else {
-    $excludedStories+=$row->value;
-  }
-}
-
-$includedStoriesPct = $includedStories/($includedStories+$excludedStories);
 ?>
 
 <div class="container"> 
@@ -61,33 +38,97 @@ $includedStoriesPct = $includedStories/($includedStories+$excludedStories);
         <h1>MediaCloud API Client <small>Examples</small></h1>
       </div>
       <div class="well">
-      <?=$articleCount?> stories in the database. The max story id is <?=$maxStoryId?>.
+      <?=$storyCount?> stories in the database (<?=round(100*$englishStoryCount/$storyCount)?>% in english). The max story id is <?=$maxStoryId?>.
       </div>
     </div>
+ 
+ 
+<?php
+// story count by length
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true") ); 
+$wcResults = array();
+$wcBarsToShow = 40;
+$wcBucketSize = 200;  // must match view
+$wcMaxStoryLengthToShow = ($wcBarsToShow)*$wcBucketSize;
+$wcIncludedStories = 0;
+$wcExcludedStories = 0;
+$i = 0;   // prefill array
+for($i=0;$i<$wcBarsToShow;$i++){
+  $wcResults[$i*$wcBucketSize] = 0;
+}
+$wcMaxIncludedStoryCount = 0;
+foreach ($results->rows as $row){
+  if (array_key_exists($row->key,$wcResults)) {
+    $wcResults[$row->key] = $row->value;
+    $wcMaxIncludedStoryCount = max($wcMaxIncludedStoryCount,$row->value);
+    $wcIncludedStories+=$row->value;
+  } else {
+    $wcExcludedStories+=$row->value;
+  }
+}
+$wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStories);
+?>
     <div class="span12" id="mcStoryLength">
       <h2>Story Length</h2>
       <p>
       Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
       The vertical axis is the number of stories that have that many words.  This graph includes 
-      <?=round($includedStoriesPct*100)?>% of the stories (excluding the
-      <?=$excludedStories?> stories longer than <?=$maxStoryLengthToShow?> words).
+      <?=round($wcIncludedStoriesPct*100)?>% of the stories (excluding the
+      <?=$wcExcludedStories?> stories longer than <?=$wcMaxStoryLengthToShow?> words).
       </p>
     </div>
+ 
+ <?php
+// story count by reading level
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true") ); 
+$rlResults = array();
+$rlBarsToShow = count($results->rows);
+$rlIncludedStories = 0;
+$rlExcludedStories = 0;
+$rlMaxIncludedStoryCount = 0;
+$rlMaxReadingLevelToShow = 20;
+for($i=0;$i<$rlMaxReadingLevelToShow;$i++) {  // prefill array
+  $rlResults[$i] = 0;
+}
+foreach ($results->rows as $row){
+  if (array_key_exists($row->key,$rlResults)) {
+    $rlResults[$row->key] = $row->value;
+    $rlMaxIncludedStoryCount = max($rlMaxIncludedStoryCount,$row->value);
+    $rlIncludedStories+=$row->value;
+  } else {
+    $rlExcludedStories+=$row->value;
+  }
+}
+$rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStories);
+?>
+     <div class="span12" id="mcReadability">
+      <h2>Story Reading Grade Level</h2>
+      <p>
+      Here is a histogram of story reading grade level.  The horizontal axis is grade level 
+      the story is written at. The vertical axis is the number of stories scored at that grade level. 
+      This graph includes <?=round($wcIncludedStoriesPct*100)?>% of the stories (excluding
+      <?=$wcExcludedStories?> stories).
+      </p>
+      <p>
+      </p>
+    </div>
+ 
+ 
   </div>
 </div>
 
 <script type="text/javascript">
-var datasetKeys = [
+var wcDataset = [
 <?php
-foreach ($wordCounts as $wordCount=>$storyCount){
-?> <?=$wordCount?>,
+foreach ($wcResults as $wordCount=>$storyCount){
+?> <?=$storyCount?>,
 <?php
 }
 ?>
-]
-var dataset = [
+];
+var rlDataset = [
 <?php
-foreach ($wordCounts as $wordCount=>$storyCount){
+foreach ($rlResults as $wordCount=>$storyCount){
 ?> <?=$storyCount?>,
 <?php
 }
@@ -96,46 +137,48 @@ foreach ($wordCounts as $wordCount=>$storyCount){
 </script>
 
 <script type="text/javascript">
-var chartHeight = 200;
-var chartWidth = 800;
-var barWidth = 20;
-var maxStoryLenth = <?=$maxStoryLengthToShow?>;
-var barsToShow = <?=$barsToShow?>;
-var maxIncludedStoryCount = <?=$maxIncludedStoryCount?>;
-var y = d3.scale.linear()
-     .domain([0, maxIncludedStoryCount])
-     .range([0, chartHeight]);
-var x = d3.scale.linear()
-     .domain([0,maxStoryLenth])
-     .range([0, chartWidth]);
-var chart = d3.select("#mcStoryLength").append("svg")
-     .attr("class", "chart")
-     .attr("width", barWidth*barsToShow+50)
-     .attr("height", chartHeight+25)
-     .append("g")
-     .attr("transform", "translate(10,0)");
-chart.selectAll("rect")
-     .data(dataset)
-     .enter().append("rect")
-     .attr("x", function(d,i) { return i*barWidth; })
-     .attr("y", function(d) {return chartHeight - y(d);} )
-     .attr("height", y)
-     .attr("width", barWidth);
-chart.selectAll(".rule")
-     .data(x.ticks(barsToShow/4))
-     .enter().append("text")
-     .attr("class", "rule")
-     .attr("x", x)
-     .attr("y", chartHeight)
-     .attr("dy", 15)
-     .attr("text-anchor", "middle")
-     .text(String);
-chart.append("line")
-     .attr("x1", 0)
-     .attr("x2", chartWidth)
-     .attr("y1", chartHeight)
-     .attr("y2", chartHeight)
-     .style("stroke", "#666");
+
+function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, maxXValue,barsToShow, maxY) {
+  var y = d3.scale.linear()
+       .domain([0, maxY])
+       .range([0, chartHeight]);
+  var x = d3.scale.linear()
+       .domain([0,maxXValue])
+       .range([0, chartWidth]);
+  var chart = d3.select(container).append("svg")
+       .attr("class", "chart")
+       .attr("width", barWidth*barsToShow+50)
+       .attr("height", chartHeight+25)
+       .append("g")
+       .attr("transform", "translate(10,0)");
+  chart.selectAll("rect")
+       .data(dataset)
+       .enter().append("rect")
+       .attr("x", function(d,i) { return i*barWidth; })
+       .attr("y", function(d) {return chartHeight - y(d);} )
+       .attr("height", y)
+       .attr("width", barWidth);
+  chart.selectAll(".rule")
+       .data(x.ticks(barsToShow/4))
+       .enter().append("text")
+       .attr("class", "rule")
+       .attr("x", x)
+       .attr("y", chartHeight)
+       .attr("dy", 15)
+       .attr("text-anchor", "middle")
+       .text(String);
+  chart.append("line")
+       .attr("x1", 0)
+       .attr("x2", chartWidth)
+       .attr("y1", chartHeight)
+       .attr("y2", chartHeight)
+       .style("stroke", "#666");
+}
+
+histogramChart("#mcStoryLength",wcDataset,800,200,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>);
+
+histogramChart("#mcReadability",rlDataset,800,200,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>);
+
 </script>
 
   </body>

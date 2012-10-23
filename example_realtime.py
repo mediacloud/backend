@@ -39,6 +39,9 @@ log.info("Fetched "+str(len(results))+" stories (after "+str(max_story_id)+")")
 # set up my callback function that adds word count to the story
 pub.subscribe(mediacloud.examples.addWordCountToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
+# set up my callback function that adds the language guess to the story
+pub.subscribe(mediacloud.examples.addIsEnglishToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
+
 # set up my callback function that adds the reading grade level to the story
 pub.subscribe(mediacloud.examples.addFleshKincaidGradeLevelToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 

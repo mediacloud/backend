@@ -11,15 +11,8 @@ import mediacloud.examples
 
 '''
 This example file fetches the latest 25 stories from MediaCloud and saves their metadata 
-to a 'mediacloud' CouchDB database.  It adds in the extracted text readability via a 
-pre-save event subscription.
-
-To Install:
->>> import nltk
->>> nltk.download()
-[ select d for Download ]
-[ enter "stopwords" as the identifier ]
-[ enter "punkt" as the identifier ]
+to a 'mediacloud' CouchDB database.  It adds in the extracted word count via a pre-save 
+event subscription.
 '''
 
 config = ConfigParser.ConfigParser()
@@ -30,17 +23,17 @@ db = StoryDatabase('mediacloud', config.get('db','host'), config.get('db','port'
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
-results = mc.recentStories()
+results = mc.recentStories(1)
 print "Fetched "+str(len(results))+" stories"
 
-# set up my callback function that adds readability score to the story
-pub.subscribe(mediacloud.examples.addFleshKincaidGradeLevelToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
+# set up my callback function that adds word count to the story
+pub.subscribe(mediacloud.examples.addIsEnglishToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
 # save all the stories in the db (this will fire the callback above)
 saved = 0
 for story in results:
     worked = db.addStory(story)
     if worked:
-        saved = saved + 1
+      saved = saved + 1
 
 print "Saved "+str(saved)+" stories"

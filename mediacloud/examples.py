@@ -44,25 +44,57 @@ def getFleshKincaidGradeLevel(text):
     '''
     r = ReadabilityTool()
     gradeLevel = None
-    try:
-        if (text!=None) and (len(text)>0) :
-            gradeLevel = r.FleschKincaidGradeLevel(text.encode('utf-8'))
-    except (KeyError, UnicodeDecodeError):
-        pass
+    if isEnglish(text):
+        try:
+            if (text!=None) and (len(text)>0) :
+                gradeLevel = r.FleschKincaidGradeLevel(text.encode('utf-8'))
+        except (KeyError, UnicodeDecodeError):
+            pass
     return gradeLevel
 
-def addLanguageToStory(db_story, raw_story):
+def addIsEnglishToStory(db_story, raw_story):
     '''
     Simple hook to add a value that guesses if this article is in english or not
     '''
-    isEnglish = isEnglish( raw_story['story_text'] )
-    db_story['is_english'] = isEnglish
+    matchesEnglish = isEnglish( raw_story['story_text'] )
+    db_story['is_english'] = matchesEnglish
 
 def isEnglish(text):
     '''
     A simple hack to detect if an article is in english or not.
     See http://www.algorithm.co.il/blogs/programming/python/cheap-language-detection-nltk/
     '''
-    text = text.lower()
-    words = set(nltk.wordpunct_tokenize(text))
-    return len(words & ENGLISH_STOPWORDS) > 0
+    matchesEnglish = False
+    if (text!=None) and (len(text)>0) :
+        text = text.lower()
+        words = set(nltk.wordpunct_tokenize(text))
+        matchesEnglish = len(words & ENGLISH_STOPWORDS) > 0
+    return matchesEnglish
+
+def getAllExampleViews():
+    return {
+      "_id": "_design/examples",
+      "language": "javascript",
+      "views": {
+            "max_story_id": {
+                "map": "function(doc) { emit(doc._id,doc._id);}",
+                "reduce": "function(keys, values) { var ids = [];  values.forEach(function(id) {if (!isNaN(id)) ids.push(id); }); return Math.max.apply(Math, ids); }"
+            },
+            "total_stories": {
+                "map": "function(doc) { emit(null,1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
+            },
+            "word_counts": {
+                "map": "function(doc) { emit(200*Math.floor(doc.word_count/200),1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
+            },
+            "is_english": {
+                "map": "function(doc) { emit(doc.is_english,1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
+            },
+            "reading_grade_counts": {
+                "map": "function(doc) { emit(Math.round(doc.fk_grade_level),1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
+            }
+      }
+    }
