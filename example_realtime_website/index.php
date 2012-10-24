@@ -38,8 +38,13 @@ $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/
 $storyCount = $results->rows[0]->value;
 
 // english story count
+$englishStoryCount = null;
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/is_english?group=true") ); 
-$englishStoryCount = $results->rows[0]->value;
+foreach ($results->rows as $row){
+  if($row->key==true) {
+    $englishStoryCount = $row->value;
+  }
+}
 ?>
 
   <div class="row">
