@@ -20,7 +20,8 @@ Install and run CouchDB to store article info (created a 'mediacloud' database):
     http://couchdb.apache.org
 
 Copy the `mc-client.config.template` to `mc-client.config` and edit it, putting in the 
-API username and password.
+API username and password.  Then run the `example_create_views.py` script to create the 
+views that the various scripts and webpages use.
 
 ### Ubuntu
 
@@ -102,3 +103,4 @@ stories from MediaCloud and save them to your database (with an extracted text w
 
 The website in `example_realtime_website` gives you a view of the word count data saved 
 by the `example_realtime.py` script.
+
