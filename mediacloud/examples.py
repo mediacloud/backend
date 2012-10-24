@@ -88,12 +88,20 @@ def getAllExampleViews():
                 "map": "function(doc) { emit(200*Math.floor(doc.word_count/200),1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
             },
+            "source_word_counts": {
+                "map": "function(doc) { var wc = 200*Math.floor(doc.word_count/200); var host = doc.guid.match(/:\\/\\/(www\\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+wc, 1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
+            },
             "is_english": {
                 "map": "function(doc) { emit(doc.is_english,1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "reading_grade_counts": {
                 "map": "function(doc) { emit(Math.round(doc.fk_grade_level),1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
+            },
+            "source_reading_grade_counts": {
+                "map": "function(doc) { var rgl = Math.round(doc.fk_grade_level); var host = doc.guid.match(/:\\/\\/(www\\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+rgl, 1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "domain_three_part": {
