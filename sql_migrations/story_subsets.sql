@@ -2,6 +2,7 @@ create table story_subsets (
     story_subsets_id        serial          primary key,
     start_date              timestamp with time zone,
     end_date                timestamp with time zone,
+    media_id                int references media_sets null,
     media_sets_id           int references media_sets null,
     ready                   boolean default 'false',
     last_processed_stories_id int references processed_stories(processed_stories_id)
