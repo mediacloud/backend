@@ -99,6 +99,10 @@ def getAllExampleViews():
             "domain_three_part": {
                 "map": "function(doc) { var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,3)).join('.'); emit(domain, 1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
+            },
+            "domain_two_part": {
+                "map": "function(doc) { var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain, 1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
             }
       }
     }

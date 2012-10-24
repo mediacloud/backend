@@ -139,7 +139,7 @@ $rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStorie
 <?php
 // sources
 function compareRowValue($a,$b){ return $b->value > $a->value; }
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_three_part?group=true") ); 
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true") ); 
 uasort($results->rows,'compareRowValue');
 $topTwentyDomains = array_slice($results->rows, 0,10);
 foreach($topTwentyDomains as $row){
