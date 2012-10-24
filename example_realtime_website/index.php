@@ -58,13 +58,12 @@ foreach ($results->rows as $row){
 
 <?php
 // story count by length
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true") ); 
-$wcResults = array();
 $wcBarsToShow = 40;
 $wcBucketSize = 200;  // must match view
 $wcMaxStoryLengthToShow = ($wcBarsToShow)*$wcBucketSize;
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true&startkey=0&keyend=".$wcMaxStoryLengthToShow) ); 
+$wcResults = array();
 $wcIncludedStories = 0;
-$wcExcludedStories = 0;
 $i = 0;   // prefill array
 for($i=0;$i<$wcBarsToShow;$i++){
   $wcResults[$i*$wcBucketSize] = 0;
@@ -75,11 +74,9 @@ foreach ($results->rows as $row){
     $wcResults[$row->key] = $row->value;
     $wcMaxIncludedStoryCount = max($wcMaxIncludedStoryCount,$row->value);
     $wcIncludedStories+=$row->value;
-  } else {
-    $wcExcludedStories+=$row->value;
   }
 }
-$wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStories);
+$wcIncludedStoriesPct = $wcIncludedStories/$storyCount;
 ?>
 
   <div class="row">
@@ -89,7 +86,7 @@ $wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStorie
       Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
       The vertical axis is the number of stories that have that many words.  This graph includes 
       <?=round($wcIncludedStoriesPct*100)?>% of the stories (excluding the
-      <?=$wcExcludedStories?> stories longer than <?=$wcMaxStoryLengthToShow?> words).
+      <?=$storyCount-$wcIncludedStories?> stories longer than <?=$wcMaxStoryLengthToShow?> words).
       </p>
     </div>
   </div>
@@ -97,11 +94,10 @@ $wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStorie
 
  <?php
 // story count by reading level
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true&startkey=0&endkey=20") ); 
-$rlResults = array();
 $rlBarsToShow = 20;
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true&startkey=0&endkey=".$rlBarsToShow) ); 
+$rlResults = array();
 $rlIncludedStories = 0;
-$rlExcludedStories = 0;
 $rlMaxIncludedStoryCount = 0;
 $rlMaxReadingLevelToShow = 20;
 for($i=0;$i<$rlMaxReadingLevelToShow;$i++) {  // prefill array
@@ -112,11 +108,9 @@ foreach ($results->rows as $row){
     $rlResults[$row->key] = $row->value;
     $rlMaxIncludedStoryCount = max($rlMaxIncludedStoryCount,$row->value);
     $rlIncludedStories+=$row->value;
-  } else {
-    $rlExcludedStories+=$row->value;
   }
 }
-$rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStories);
+$rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
 ?>
 
   <div class="row">
@@ -126,7 +120,7 @@ $rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStorie
       Here is a histogram of story reading grade level.  The horizontal axis is grade level 
       the story is written at. The vertical axis is the number of stories scored at that grade level. 
       This graph includes <?=round($rlIncludedStoriesPct*100)?>% of the stories (excluding
-      <?=$rlExcludedStories?> stories).
+      <?=$storyCount-$rlIncludedStories?> stories).
       </p>
     </div>
   </div>
