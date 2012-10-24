@@ -82,7 +82,7 @@ $wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStorie
 // story count by reading level
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true") ); 
 $rlResults = array();
-$rlBarsToShow = count($results->rows);
+$rlBarsToShow = 20;
 $rlIncludedStories = 0;
 $rlExcludedStories = 0;
 $rlMaxIncludedStoryCount = 0;
@@ -138,7 +138,7 @@ foreach ($rlResults as $wordCount=>$storyCount){
 
 <script type="text/javascript">
 
-function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, maxXValue,barsToShow, maxY) {
+function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, maxXValue,barsToShow, maxY, xTickCount) {
   var y = d3.scale.linear()
        .domain([0, maxY])
        .range([0, chartHeight]);
@@ -159,7 +159,7 @@ function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, m
        .attr("height", y)
        .attr("width", barWidth);
   chart.selectAll(".rule")
-       .data(x.ticks(barsToShow/4))
+       .data(x.ticks(xTickCount))
        .enter().append("text")
        .attr("class", "rule")
        .attr("x", x)
@@ -175,9 +175,9 @@ function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, m
        .style("stroke", "#666");
 }
 
-histogramChart("#mcStoryLength",wcDataset,800,200,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>);
+histogramChart("#mcStoryLength",wcDataset,800,200,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
 
-histogramChart("#mcReadability",rlDataset,800,200,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>);
+histogramChart("#mcReadability",rlDataset,800,200,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,<?=$rlBarsToShow?>);
 
 </script>
 
