@@ -32,7 +32,7 @@ Catalyst Controller.
 
 BEGIN { extends 'Catalyst::Controller::REST' }
 
-use constant ROWS_PER_PAGE => 100;
+use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
@@ -413,10 +413,6 @@ sub subset_PUT : Local
 
     die unless defined( $story_subset );
 
-    MediaWords::DBI::StorySubsets::process( $c->dbis, $story_subset );
-
-    $story_subset = $c->dbis->find_by_id( 'story_subsets', $story_subset->{ story_subsets_id } );
-
     $self->status_created(
         $c,
         location => $c->req->uri->as_string,
@@ -430,7 +426,7 @@ sub subset_GET : Local
     my ( $self, $c, $id ) = @_;
     my $subset = $c->req->data;
 
-    my $story_subset = $c->dbis->query( 'SELECT * from story_subsets where story_subsets_id = ? ', $id );
+    my $story_subset =  $c->dbis->find_by_id( 'story_subsets', $id );
 
     $self->status_created(
         $c,
