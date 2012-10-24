@@ -3,6 +3,14 @@
 require_once('./lib/CouchSimple.php');
 $options = parse_ini_file("config.ini");
 $couch = new CouchSimple($options);
+
+// query for list of two-part domains
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true") ); 
+$domains = array();
+foreach( $results->rows as $row ) {
+  array_push($domains, $row->key);
+}
+sort($domains);
 ?>
 
 <!DOCTYPE html>
@@ -181,11 +189,7 @@ function updateFilterResults(domain){
   });
 }
 $('#mcPickDomain').typeahead({
-    source: function (query, process) {
-        return $.get('domains.json.php', { query: query }, function (data) {
-            return process(data.options);
-        });
-    },
+    source: <?= json_encode($domains) ?>,
     updater: function(item){
         updateFilterResults(item);
     }
