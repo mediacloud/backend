@@ -137,11 +137,12 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
       </div>
       <div class="span6">
         <h3>Reading Level</h3>
-        <div id="mcFilterReadability"></div>
+        <div id="mcFilteredReadability"></div>
       </div>
     </div>
   </div>
 
+  <br /><br />
 
   <div class="row">
     <div class="span12">
@@ -167,9 +168,15 @@ foreach($topTwentyDomains as $row){
 function updateFilterResults(domain){
   $('#mcFilteredResults').hide();
   $('#mcFilteredWordCounts').empty();
+  $('#mcFilteredReadability').empty();
   $.ajax({
     type: "GET",
     url:"wordcount.js.php?domain="+domain,
+    dataType: 'script'
+  });
+  $.ajax({
+    type: "GET",
+    url:"readability.js.php?domain="+domain,
     dataType: 'script'
   });
 }
