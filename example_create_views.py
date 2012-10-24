@@ -13,10 +13,10 @@ to initialize the design document used by all the other examples.
 config = ConfigParser.ConfigParser()
 config.read('mc-client.config')
 
-# set up a connection to a local DB
+# set up a connection to the DB
 db = StoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
 
-# creat the views
+# create the views
 db._db.save(mediacloud.examples.getAllExampleViews())
 
 print "Created the views"
