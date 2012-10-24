@@ -1,3 +1,10 @@
+<?php
+// initialization
+require_once('./lib/CouchSimple.php');
+$options = parse_ini_file("config.ini");
+$couch = new CouchSimple($options);
+?>
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,14 +16,19 @@
 
   <body>
 
+<div class="container"> 
+  
+
+  <div class="row">
+    <div class="span12">
+      <div class="page-header">
+        <h1>MediaCloud API Client <small>Examples</small></h1>
+      </div>
+    </div>
+  </div>
+
+  
 <?php
-require_once('./lib/CouchSimple.php');
-
-$options['host'] = "localhost"; 
-$options['port'] = 5984;
-
-$couch = new CouchSimple($options);
-
 // max story id
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/max_story_id") ); 
 $maxStoryId = $results->rows[0]->value;
@@ -28,21 +40,17 @@ $storyCount = $results->rows[0]->value;
 // english story count
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/is_english?group=true") ); 
 $englishStoryCount = $results->rows[0]->value;
-
 ?>
 
-<div class="container"> 
   <div class="row">
     <div class="span12">
-      <div class="page-header">
-        <h1>MediaCloud API Client <small>Examples</small></h1>
-      </div>
-      <div class="well">
+      <p><i>
       <?=$storyCount?> stories in the database (<?=round(100*$englishStoryCount/$storyCount)?>% in english). The max story id is <?=$maxStoryId?>.
-      </div>
+      </i></p>
     </div>
- 
- 
+  </div>
+
+
 <?php
 // story count by length
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true") ); 
@@ -68,6 +76,8 @@ foreach ($results->rows as $row){
 }
 $wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStories);
 ?>
+
+  <div class="row">
     <div class="span12" id="mcStoryLength">
       <h2>Story Length</h2>
       <p>
@@ -77,7 +87,9 @@ $wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStorie
       <?=$wcExcludedStories?> stories longer than <?=$wcMaxStoryLengthToShow?> words).
       </p>
     </div>
- 
+  </div>
+
+
  <?php
 // story count by reading level
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true") ); 
@@ -101,6 +113,8 @@ foreach ($results->rows as $row){
 }
 $rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStories);
 ?>
+
+  <div class="row">
      <div class="span12" id="mcReadability">
       <h2>Story Reading Grade Level</h2>
       <p>
@@ -109,12 +123,9 @@ $rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStorie
       This graph includes <?=round($wcIncludedStoriesPct*100)?>% of the stories (excluding
       <?=$wcExcludedStories?> stories).
       </p>
-      <p>
-      </p>
     </div>
- 
- 
   </div>
+ 
 </div>
 
 <script type="text/javascript">
@@ -175,9 +186,9 @@ function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, m
        .style("stroke", "#666");
 }
 
-histogramChart("#mcStoryLength",wcDataset,800,200,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
+histogramChart("#mcStoryLength",wcDataset,800,100,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
 
-histogramChart("#mcReadability",rlDataset,800,200,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,<?=$rlBarsToShow?>);
+histogramChart("#mcReadability",rlDataset,400,50,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,10);
 
 </script>
 

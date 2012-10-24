@@ -1,3 +1,4 @@
 mc-client.config
 *.pyc
 *.log
+example_realtime_website/config.ini
