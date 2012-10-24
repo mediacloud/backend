@@ -17,7 +17,7 @@ $couch = new CouchSimple($options);
   <body>
 
 <div class="container"> 
-  
+
 
   <div class="row">
     <div class="span12">
@@ -27,7 +27,7 @@ $couch = new CouchSimple($options);
     </div>
   </div>
 
-  
+
 <?php
 // max story id
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/max_story_id") ); 
@@ -130,7 +130,29 @@ $rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStorie
       </p>
     </div>
   </div>
- 
+
+  
+  <div class="row">
+    <div class="span12">
+      <h2>Top 10 Sources</h2>
+      <ul>
+<?php
+// sources
+function compareRowValue($a,$b){ return $b->value > $a->value; }
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_three_part?group=true") ); 
+uasort($results->rows,'compareRowValue');
+$topTwentyDomains = array_slice($results->rows, 0,10);
+foreach($topTwentyDomains as $row){
+?>
+        <li><a href="http://<?=$row->key?>"><?=$row->key?></a>: <?=$row->value?></li>
+<?php
+}
+?>
+      </ul>
+    </div>
+  </div>
+
+
 </div>
 
 <script type="text/javascript">

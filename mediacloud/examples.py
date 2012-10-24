@@ -95,6 +95,10 @@ def getAllExampleViews():
             "reading_grade_counts": {
                 "map": "function(doc) { emit(Math.round(doc.fk_grade_level),1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
+            },
+            "domain_three_part": {
+                "map": "function(doc) { var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,3)).join('.'); emit(domain, 1); }",
+                "reduce": "function(keys, values) { return sum(values); }"
             }
       }
     }
