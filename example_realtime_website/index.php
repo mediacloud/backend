@@ -97,7 +97,7 @@ $wcIncludedStoriesPct = $wcIncludedStories/($wcIncludedStories+$wcExcludedStorie
 
  <?php
 // story count by reading level
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true") ); 
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true&startkey=0&endkey=20") ); 
 $rlResults = array();
 $rlBarsToShow = 20;
 $rlIncludedStories = 0;
