@@ -1,6 +1,11 @@
 #!/bin/sh
 #
 # Create a PostgreSQL diff between two SQL dumps before a SVN / Git commit.
+#
+# Usage:
+# 1) Do some changes in Media Cloud's code under version control (SVN or Git) involving script/mediawords.sql.
+# 2) Run ./script/pre_commit_hooks/postgres-diff.sh before committing.
+# 3) The script will print out SQL diff to STDOUT and (optionally) some warnings to STDERR.
 
 PATH_TO_AGPDIFF="./script/pre_commit_hooks/apgdiff-2.4.jar"
 SCHEMA_FILE="script/mediawords.sql"
@@ -59,7 +64,7 @@ POSTGRES_DIFF=`java -jar ${PATH_TO_AGPDIFF} --add-transaction \
 # Check for DROPs
 if [[ ! "$POSTGRES_DIFF" == "*DROP TABLE*" ]]; then
 	# to STDERR
-	echo "PostgreSQL diff contains DROP TABLE clauses. Make sure to revise the diff before committing!" 1>&2
+	echo "WARNING: PostgreSQL diff contains DROP TABLE clauses. Make sure to revise the diff manually before committing!" 1>&2
 fi
 
 # Print everything out

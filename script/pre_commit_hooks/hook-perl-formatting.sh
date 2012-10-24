@@ -1,6 +1,12 @@
 #!/bin/sh
 #
 # Check if Perl source files that are being committed are formatted properly.
+#
+# Usage:
+# 1) Do some changes in Media Cloud's code under version control (SVN or Git) adding / changing Perl files or modules.
+# 2) Run ./script/pre_commit_hooks/hook-perl-formatting.sh before committing.
+# 3) The script will exit with a non-zero exit status if there are some additional modifications that you have
+#    to do before committing.
 
 if [ -d .svn ]; then
     #echo "This is a Subversion repository."
