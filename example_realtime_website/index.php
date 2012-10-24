@@ -125,8 +125,8 @@ $rlIncludedStoriesPct = $rlIncludedStories/($rlIncludedStories+$rlExcludedStorie
       <p>
       Here is a histogram of story reading grade level.  The horizontal axis is grade level 
       the story is written at. The vertical axis is the number of stories scored at that grade level. 
-      This graph includes <?=round($wcIncludedStoriesPct*100)?>% of the stories (excluding
-      <?=$wcExcludedStories?> stories).
+      This graph includes <?=round($rlIncludedStoriesPct*100)?>% of the stories (excluding
+      <?=$rlExcludedStories?> stories).
       </p>
     </div>
   </div>
