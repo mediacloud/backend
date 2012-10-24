@@ -146,13 +146,13 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
 
   <div class="row">
     <div class="span12">
-      <p><b>Top 10 Sources:</b>
+      <p><b>Top Sources:</b>
 <?php
 // sources
 function compareRowValue($a,$b){ return $b->value > $a->value; }
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true") ); 
 uasort($results->rows,'compareRowValue');
-$topTwentyDomains = array_slice($results->rows, 0,10);
+$topTwentyDomains = array_slice($results->rows, 0,20);
 foreach($topTwentyDomains as $row){
 ?>  <a href="http://<?=$row->key?>"><?=$row->key?></a> <span class="badge"><?=$row->value?></span>
 <?php
