@@ -11,6 +11,8 @@ $couch = new CouchSimple($options);
     <title>MediaCloud API Client Examples</title>
     <link href="css/mediacloud.css" rel="stylesheet" type="text/css"/>
     <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/d3.v2.min.js"></script>
   </head>
 
@@ -55,10 +57,11 @@ foreach ($results->rows as $row){
     </div>
   </div>
 
+  <div class="row">
 
 <?php
 // story count by length
-$wcBarsToShow = 40;
+$wcBarsToShow = 20;
 $wcBucketSize = 200;  // must match view
 $wcMaxStoryLengthToShow = ($wcBarsToShow)*$wcBucketSize;
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true&startkey=0&keyend=".$wcMaxStoryLengthToShow) ); 
@@ -79,8 +82,7 @@ foreach ($results->rows as $row){
 $wcIncludedStoriesPct = $wcIncludedStories/$storyCount;
 ?>
 
-  <div class="row">
-    <div class="span12" id="mcStoryLength">
+    <div class="span6" id="mcStoryLength">
       <h2>Story Length</h2>
       <p>
       Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
@@ -89,7 +91,6 @@ $wcIncludedStoriesPct = $wcIncludedStories/$storyCount;
       <?=$storyCount-$wcIncludedStories?> stories longer than <?=$wcMaxStoryLengthToShow?> words).
       </p>
     </div>
-  </div>
 
 
  <?php
@@ -113,9 +114,8 @@ foreach ($results->rows as $row){
 $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
 ?>
 
-  <div class="row">
-     <div class="span12" id="mcReadability">
-      <h2>Story Reading Grade Level</h2>
+     <div class="span6" id="mcReadability">
+      <h2>Story Reading Level</h2>
       <p>
       Here is a histogram of story reading grade level.  The horizontal axis is grade level 
       the story is written at. The vertical axis is the number of stories scored at that grade level. 
@@ -128,8 +128,24 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
   
   <div class="row">
     <div class="span12">
-      <h2>Top 10 Sources</h2>
-      <ul>
+      <h2>Filter For <input type="text" data-provide="typeahead" id="mcPickDomain" placeholder="somenews.com"></h2>
+    </div>
+    <div id="mcFilteredResults" style="display:none">
+      <div class="span6">
+        <h3>Word Count</h3>
+        <div id="mcFilteredWordCounts"></div>
+      </div>
+      <div class="span6">
+        <h3>Reading Level</h3>
+        <div id="mcFilterReadability"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="row">
+    <div class="span12">
+      <p><b>Top 10 Sources:</b>
 <?php
 // sources
 function compareRowValue($a,$b){ return $b->value > $a->value; }
@@ -137,17 +153,37 @@ $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/
 uasort($results->rows,'compareRowValue');
 $topTwentyDomains = array_slice($results->rows, 0,10);
 foreach($topTwentyDomains as $row){
-?>
-        <li><a href="http://<?=$row->key?>"><?=$row->key?></a>: <?=$row->value?></li>
+?>  <a href="http://<?=$row->key?>"><?=$row->key?></a> <span class="badge"><?=$row->value?></span>
 <?php
 }
 ?>
-      </ul>
+      </p>
     </div>
-  </div>
-
+  </div >
 
 </div>
+
+<script type="text/javascript">
+function updateFilterResults(domain){
+  $('#mcFilteredResults').hide();
+  $('#mcFilteredWordCounts').empty();
+  $.ajax({
+    type: "GET",
+    url:"wordcount.js.php?domain="+domain,
+    dataType: 'script'
+  });
+}
+$('#mcPickDomain').typeahead({
+    source: function (query, process) {
+        return $.get('domains.json.php', { query: query }, function (data) {
+            return process(data.options);
+        });
+    },
+    updater: function(item){
+        updateFilterResults(item);
+    }
+});
+</script>
 
 <script type="text/javascript">
 var wcDataset = [
@@ -207,7 +243,7 @@ function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, m
        .style("stroke", "#666");
 }
 
-histogramChart("#mcStoryLength",wcDataset,800,100,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
+histogramChart("#mcStoryLength",wcDataset,400,100,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
 
 histogramChart("#mcReadability",rlDataset,400,50,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,10);
 
