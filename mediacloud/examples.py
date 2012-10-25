@@ -89,7 +89,7 @@ def getAllExampleViews():
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "source_word_counts": {
-                "map": "function(doc) { var wc = 200*Math.floor(doc.word_count/200); var host = doc.guid.match(/:\\/\\/(www\\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+wc, 1); }",
+                "map": "function(doc) { var wc = 200*Math.floor(doc.word_count/200); var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+wc, 1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "is_english": {
@@ -101,7 +101,7 @@ def getAllExampleViews():
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "source_reading_grade_counts": {
-                "map": "function(doc) { var rgl = Math.round(doc.fk_grade_level); var host = doc.guid.match(/:\\/\\/(www\\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+rgl, 1); }",
+                "map": "function(doc) { var rgl = Math.round(doc.fk_grade_level); var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+rgl, 1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "domain_three_part": {
@@ -111,6 +111,13 @@ def getAllExampleViews():
             "domain_two_part": {
                 "map": "function(doc) { var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain, 1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
-            }
+            },
+            "source_stories": {
+                "map": "function(doc) { var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain, doc); }"
+            },
+           "source_story_counts": {
+               "map": "function(doc) { var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain, 1); }",
+               "reduce": "function(keys, values) { return sum(values); }"
+           }
       }
     }

@@ -91,7 +91,7 @@ $wcIncludedStoriesPct = $wcIncludedStories/$storyCount;
 ?>
 
     <div class="span6" id="mcStoryLength">
-      <h2>Story Length</h2>
+      <h3>Story Length</h3>
       <p>
       Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
       The vertical axis is the number of stories that have that many words.  This graph includes 
@@ -123,7 +123,7 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
 ?>
 
      <div class="span6" id="mcReadability">
-      <h2>Story Reading Level</h2>
+      <h3>Story Reading Level</h3>
       <p>
       Here is a histogram of story reading grade level.  The horizontal axis is grade level 
       the story is written at. The vertical axis is the number of stories scored at that grade level. 
@@ -133,12 +133,23 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
     </div>
   </div>
 
+
+  <div class="row">
+    <div class="span12">
+      <hr/>
+    </div>
+  </div>
+
   
   <div class="row">
     <div class="span12">
       <h2>Filter For <input type="text" data-provide="typeahead" id="mcPickDomain" placeholder="somenews.com"></h2>
     </div>
     <div id="mcFilteredResults" style="display:none">
+      <div class="span12">
+        <p id="mcFilteredInfo">
+        </p>
+      </div>
       <div class="span6">
         <h3>Word Count</h3>
         <div id="mcFilteredWordCounts"></div>
@@ -150,7 +161,13 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
     </div>
   </div>
 
-  <br /><br />
+
+  <div class="row">
+    <div class="span12">
+      <hr/>
+    </div>
+  </div>
+  
 
   <div class="row">
     <div class="span12">
@@ -173,18 +190,17 @@ foreach($topTwentyDomains as $row){
 </div>
 
 <script type="text/javascript">
+function updateFilteredInfo(domain, storyCount){
+  $('#mcFilteredInfo').html("We know about "+storyCount+" articles from "+domain);
+}
 function updateFilterResults(domain){
   $('#mcFilteredResults').hide();
+  $('#mcFilteredInfo').empty();
   $('#mcFilteredWordCounts').empty();
   $('#mcFilteredReadability').empty();
   $.ajax({
     type: "GET",
-    url:"wordcount.js.php?domain="+domain,
-    dataType: 'script'
-  });
-  $.ajax({
-    type: "GET",
-    url:"readability.js.php?domain="+domain,
+    url:"data.js.php?domain="+domain,
     dataType: 'script'
   });
 }
