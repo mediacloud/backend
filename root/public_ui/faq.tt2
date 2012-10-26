@@ -44,6 +44,20 @@
 [% c.loc('A similarity score is included in the legend at the bottom of each comparative word cloud.  The similarity score is the <a href="https://secure.wikimedia.org/wikipedia/en/wiki/Cosine_similarity">cosine similarity</a> of the word counts of the 500 most common stopworded words within each of the two queries.  A score of 0 indicates no similarity at all and a score of 1 indicates that the list of word counts is exactly the same.  This similarity score can be used to quantitatively assess the degree to which two queries differ, and to compare differences between various comparisons (to ask, for instance, whether news coverage differed more between two media sources in the past two weeks than the previous two weeks, or to ask whether the content of mainstream media coverage of the economy is more similar to content of the whitehouse feeds than the content of blog coverage).') %]
 </p>
 
+<a name="cosine"></a>
+<p><i>[% c.loc('What exactly is cosine similarity?') %]</i></p>
+
+<p>[% c.loc('The following is adapted from a <a href="http://www.ethanzuckerman.com/blog/2011/03/28/how-restless-a-searchlight-using-media-cloud-to-measure-the-change-in-media-cycles/">longer blog post</a> by Ethan Zuckerman.') %]
+
+<p>
+[% c.loc('Cosine similarity is a technique computer scientists use to detect a type of similarity between documents. Basically, a computer program counts the appearances of words in a document (in our case, a week’s worth of media coverage) and compares that frequency list to that of another document. If those documents are identical in word frequency – both mention Obama 23 times, Libya 5 times and basketball twice – they score a 1. If they’ve got no words in common, they score a zero.') %]
+</p>
+
+<p>
+[% c.loc('The actual math behind this is wonderfully cool, if slightly mind-bending. Imagine a set of documents with only two words in them – “Obama” and “NCAA”. In source A, Obama is mentioned 8 times, NCAA 2 times. Put a point on a graph at (8,2) – Obama’s our X axis, NCAA our Y axis, and draw a line that passes through 0,0 and 8,2 – that’s the vector that represents set A. In source B, Obama gets mentioned twice, NCAA 8 times – put the point at 2,8 and draw the vector for source B. The angle between vectors A and B is a measure of how similar the sets are, and taking the cosine of that angle is a simple way to scale the value to be between 0 and 1 for angles between 0 and 90 degrees. The trick, of course, is that documents contain words other than Obama and NCAA, and cosine similarity adds a new dimension to our graph for each new term. So the vectors we’re measuring when we compare all the words in a set of media sources over a week to another comparable week exist in 1000-dimensional space. Don’t bother imagining 1000-dimensional space – it will make your head hurt. Just imagine three dimensional space and think about two vectors that each emerge from 0,0,0 and each pass through an arbitrary point in positive x,y,z space – it’s easy enough to imagine measuring the angle between those two vectors. Then take it on faith that, mathematically, you can do the same thing in many-dimensional space.') %]
+</p>
+
+
 <a name="code"></a>
 <p><i>[% c.loc('Is the source code for Media Cloud available?') %]</i></p>
 
