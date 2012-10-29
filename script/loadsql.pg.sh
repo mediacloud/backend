@@ -1,5 +1,13 @@
 #!/bin/sh
 
+if [ `uname` == 'Darwin' ]; then
+    # Mac OS X
+    PSQL=/opt/local/lib/postgresql84/bin/psql
+else
+    # assume Ubuntu
+    PSQL=psql
+fi
+
 read PGPASSWORD
 export PGPASSWORD
 
@@ -14,4 +22,4 @@ export PGDATABASE
 PGUSER=$4
 export PGUSER
 
-psql  -v 'ON_ERROR_STOP=on' --single-transaction -f "$FILE"
+$PSQL  -v 'ON_ERROR_STOP=on' --single-transaction -f "$FILE"
