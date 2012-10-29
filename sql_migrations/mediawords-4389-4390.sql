@@ -15,7 +15,25 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
--- no-op
+CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
+DECLARE
+    
+    -- Database schema version number (same as a SVN revision number)
+    -- Increase it by 1 if you make major database schema changes; for example, if you're currently at
+    -- SVN revision 4379, set it to 4380 (which would be the future SVN revision when committed)
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4390;
+    
+BEGIN
+
+    -- Update / set database schema version
+    DELETE FROM database_variables WHERE name = 'database-schema-version';
+    INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
+
+    return true;
+    
+END;
+$$
+LANGUAGE 'plpgsql';
 
 --
 -- 2 of 2. Reset the database version.
