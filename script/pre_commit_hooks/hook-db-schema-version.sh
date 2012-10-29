@@ -102,7 +102,7 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
         exit 1
     fi
 
-    # Database schema revisions
+    # Database schema versions
     OLD_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
         | grep "^-" \
         | ./script/database_schema_version.pl -`

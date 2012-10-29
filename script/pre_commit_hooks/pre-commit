@@ -42,6 +42,14 @@ for hook in `ls $DIR/hook-*.sh`; do
         $hook
         if [ $? -ne 0 ]; then
             # Hook failed
+            
+            echo
+            echo "One of the pre-commit hooks failed. You have to make "
+            echo "some additional fixes before your changes can be committed."
+            echo "If you're using Git (git-svn) and you are absolutely sure "
+            echo "that your commit is fine as-is, repeat the commit with the "
+            echo "--no-verify option."
+
             exit 1
         fi
 
