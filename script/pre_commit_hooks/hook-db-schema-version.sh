@@ -104,11 +104,11 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
 
     # Database schema revisions
     OLD_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
-        | perl -lne 'print if /\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
-        | perl -lpe 's/\-.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
+        | grep "^-" \
+        | ./script/database_schema_version.pl -`
     NEW_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
-        | perl -lne 'print if /\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
-        | perl -lpe 's/\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
+        | grep "^+" \
+        | ./script/database_schema_version.pl -`
     if [ -z "$OLD_SCHEMA_VERSION" ]; then
         echo "Unable to determine old database schema version number from the version control diff."
         exit 1
@@ -142,7 +142,7 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
 
         exit 1
     fi
-        
+    
 fi
 
 # Things are fine.
