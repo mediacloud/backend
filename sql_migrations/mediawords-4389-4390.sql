@@ -12,13 +12,10 @@
 --
 
 --
--- 1 of 2. Import the output of 'apgdiff' with a single transaction:
+-- 1 of 2. Import the output of 'apgdiff':
 --
-START TRANSACTION;
 
 -- no-op
-
-COMMIT TRANSACTION;
 
 --
 -- 2 of 2. Reset the database version.

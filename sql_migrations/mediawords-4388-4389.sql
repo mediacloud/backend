@@ -12,10 +12,8 @@
 --
 
 --
--- 1 of 2. Import the output of 'apgdiff' with a single transaction:
+-- 1 of 2. Import the output of 'apgdiff':
 --
-START TRANSACTION;
-
 SET search_path = public, pg_catalog;
 
 DROP TABLE example;
@@ -75,8 +73,6 @@ $$
    END;
 $$ 
 LANGUAGE 'plpgsql';
-
-COMMIT TRANSACTION;
 
 --
 -- 2 of 2. Reset the database version.
