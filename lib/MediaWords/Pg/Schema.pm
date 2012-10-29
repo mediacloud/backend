@@ -345,7 +345,8 @@ sub upgrade_db
         return 1;
     }
 
-    # Find all the SQL diff files between two versions
+    # Check if the SQL diff files that are needed for upgrade are present before doing anything else
+    my @sql_diff_files;
     for ( my $version = $current_schema_version ; $version < $target_schema_version ; ++$version )
     {
         my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
@@ -355,6 +356,12 @@ sub upgrade_db
             return 1;
         }
 
+        push( @sql_diff_files, $diff_filename );
+    }
+
+    # Import diff files one-by-one
+    foreach my $diff_filename ( @sql_diff_files )
+    {
         say STDERR "Importing $diff_filename...";
         my $load_sql_file_result = load_sql_file( $label, $diff_filename );
 
