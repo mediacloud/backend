@@ -3,6 +3,7 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
+use MediaWords::Util::SchemaVersion;
 
 # import functions into server schema
 
@@ -295,6 +296,83 @@ sub recreate_db
     my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
 
     return $load_sql_file_result;
+}
+
+# Upgrade database schema to the latest version
+# (returns 0 on success, >0 on failure)
+sub upgrade_db
+{
+    my ( $label ) = @_;
+
+    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    say STDERR "script_dir: $script_dir";
+
+    my $db = MediaWords::DB::connect_to_db( $label );
+
+    # Current schema version
+    my $schema_version_query =
+      "SELECT value AS schema_version FROM database_variables WHERE name = 'database-schema-version' LIMIT 1";
+    my @schema_versions        = $db->query( $schema_version_query )->flat();
+    my $current_schema_version = $schema_versions[ 0 ] + 0;
+    unless ( $current_schema_version )
+    {
+        say STDERR "Invalid current schema version.";
+        return 1;
+    }
+    say STDERR "Current schema version: $current_schema_version";
+
+    # Target schema version
+    open SQLFILE, "$script_dir/mediawords.sql" or die $!;
+    my @sql = <SQLFILE>;
+    close SQLFILE;
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    unless ( $target_schema_version )
+    {
+        say STDERR "Invalid target schema version.";
+        return 1;
+    }
+
+    say STDERR "Target schema version: $target_schema_version";
+
+    if ( $current_schema_version == $target_schema_version )
+    {
+        say STDERR "Schema is up-to-date, nothing to upgrade.";
+        return 0;
+    }
+    if ( $current_schema_version > $target_schema_version )
+    {
+        say STDERR "Current schema version is newer than the target schema version, please update the source code.";
+        return 1;
+    }
+
+    # Find all the SQL diff files between two versions
+    for ( my $version = $current_schema_version ; $version < $target_schema_version ; ++$version )
+    {
+        my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
+        unless ( -e $diff_filename )
+        {
+            say STDERR "SQL diff file '$diff_filename' does not exist.";
+            return 1;
+        }
+
+        say STDERR "Importing $diff_filename...";
+        my $load_sql_file_result = load_sql_file( $label, $diff_filename );
+
+        if ( $load_sql_file_result )
+        {
+            say STDERR "Executing SQL diff file '$diff_filename' failed.";
+            return $load_sql_file_result;
+        }
+    }
+
+    say STDERR "(Re-)adding functions...";
+    MediaWords::Pg::Schema::add_functions( $db );
+
+    $db->disconnect;
+
+    say STDERR "Done!";
+
+    return 0;
 }
 
 1;
