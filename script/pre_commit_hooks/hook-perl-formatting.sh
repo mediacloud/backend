@@ -68,7 +68,7 @@ if [ ${#FILES_THAT_HAVE_TO_BE_TIDIED[@]} -gt 0 ]; then
     echo
     echo "Also, you can run:"
     echo
-    echo "./script/run_with_carton.sh ./script/mediawords_reformat_code.pl"
+    echo "./script/run_with_carton.sh ./script/mediawords_reformat_all_code.pl"
     echo
     echo "to reformat all Perl files that are placed in this repository."
     exit 1
