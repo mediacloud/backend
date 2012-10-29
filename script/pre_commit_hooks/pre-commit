@@ -39,7 +39,12 @@ for hook in `ls $DIR/hook-*.sh`; do
     if [ ! -x $hook ]; then
         echo "Skipping hook '$hook' because it is not executable."
     else
-        exec $hook
+        $hook
+        if [ $? -ne 0 ]; then
+            # Hook failed
+            exit 1
+        fi
+
     fi
 done
 
