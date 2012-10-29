@@ -33,9 +33,9 @@ EOF
     $warning_message =~ s/\s+$//;
     $warning_message =~ s/\n/ /g;
 
-    #my $continue_and_reset_db = &prompt( 'y', $warning_message, '', 'n' );
+    my $continue_and_reset_db = &prompt( 'y', $warning_message, '', 'n' );
 
-    #exit if !$continue_and_reset_db;
+    exit if !$continue_and_reset_db;
 
     my $result = MediaWords::Pg::Schema::upgrade_db();
 
