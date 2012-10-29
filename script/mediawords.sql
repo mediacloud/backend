@@ -2,6 +2,57 @@
 -- Schema for MediaWords database
 --
 
+-- CREATE LANGUAGE IF NOT EXISTS plpgsql
+CREATE OR REPLACE FUNCTION create_language_plpgsql()
+RETURNS BOOLEAN AS $$
+    CREATE LANGUAGE plpgsql;
+    SELECT TRUE;
+$$ LANGUAGE SQL;
+
+SELECT CASE WHEN NOT
+    (
+        SELECT  TRUE AS exists
+        FROM    pg_language
+        WHERE   lanname = 'plpgsql'
+        UNION
+        SELECT  FALSE AS exists
+        ORDER BY exists DESC
+        LIMIT 1
+    )
+THEN
+    create_language_plpgsql()
+ELSE
+    FALSE
+END AS plpgsql_created;
+
+DROP FUNCTION create_language_plpgsql();
+
+-- CREATE LANGUAGE IF NOT EXISTS plperlu
+CREATE OR REPLACE FUNCTION create_language_plperlu()
+RETURNS BOOLEAN AS $$
+    CREATE LANGUAGE plperlu;
+    SELECT TRUE;
+$$ LANGUAGE SQL;
+
+SELECT CASE WHEN NOT
+    (
+        SELECT  TRUE AS exists
+        FROM    pg_language
+        WHERE   lanname = 'plperlu'
+        UNION
+        SELECT  FALSE AS exists
+        ORDER BY exists DESC
+        LIMIT 1
+    )
+THEN
+    create_language_plperlu()
+ELSE
+    FALSE
+END AS plperlu_created;
+
+DROP FUNCTION create_language_plperlu();
+
+
 -- Database properties (variables) table
 create table database_variables (
     variables_id        serial          primary key,
@@ -55,7 +106,7 @@ BEGIN
     );
 END;
 $body$
-    LANGUAGE plpgsql;
+    LANGUAGE 'plpgsql';
 
 -- Definition for function enum_del (OID = 24592)
 CREATE FUNCTION enum.enum_del (enum_name character varying, enum_elem character varying) RETURNS void
@@ -129,7 +180,7 @@ BEGIN
     DELETE FROM pg_enum WHERE enumtypid = type_oid AND enumlabel = enum_elem;
 END;
 $body$
-    LANGUAGE plpgsql;
+    LANGUAGE 'plpgsql';
 
 -- Comments
 COMMENT ON FUNCTION enum.enum_add (enum_name character varying, enum_elem character varying)
@@ -1351,7 +1402,7 @@ DROP TYPE old_query_version_enum ;
 
 END;
 $body$
-    LANGUAGE plpgsql;
+    LANGUAGE 'plpgsql';
 --
 
 select enum.enum_add( 'download_state', 'feed_error' );
@@ -1465,7 +1516,7 @@ INSERT INTO stopwords_long (stopword) VALUES ('issue'), ('мог'), ('supplied')
 
             RETURN result;
         END;
-        $$ LANGUAGE plpgsql;
+        $$ LANGUAGE 'plpgsql';
 
 
 CREATE OR REPLACE FUNCTION get_relative_file_path(path text)
