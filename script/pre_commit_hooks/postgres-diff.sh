@@ -58,7 +58,7 @@ echo "$SCHEMA_DIFF" > "$TEMP_DIR/mediawords.diff"
 patch --quiet --reverse "$TEMP_DIR/mediawords-old.sql" "$TEMP_DIR/mediawords.diff"
 
 # Run PostgreSQL diff
-POSTGRES_DIFF=`java -jar ${PATH_TO_AGPDIFF} --add-transaction \
+POSTGRES_DIFF=`java -jar ${PATH_TO_AGPDIFF} \
 	"$TEMP_DIR/mediawords-old.sql" "$TEMP_DIR/mediawords-new.sql"`
 
 # Check for DROPs
@@ -82,7 +82,7 @@ echo "-- You might need to import some additional schema diff files to reach the
 echo "--"
 echo
 echo "--"
-echo "-- 1 of 2. Import the output of 'apgdiff' with a single transaction:"
+echo "-- 1 of 2. Import the output of 'apgdiff':"
 echo "--"
 echo "$POSTGRES_DIFF"
 echo
