@@ -41,6 +41,83 @@ sub new
     return $self;
 }
 
+sub connect
+{
+    my $self = shift @_;
+
+    my $ret = $self->SUPER::connect( @_ );
+
+    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+
+    # Current schema version
+    my $schema_version_query =
+      "SELECT value AS schema_version FROM database_variables WHERE name = 'database-schema-version' LIMIT 1";
+    my @schema_versions        = $ret->query( $schema_version_query )->flat();
+    my $current_schema_version = $schema_versions[ 0 ] + 0;
+    die "Invalid current schema version.\n" unless ( $current_schema_version );
+
+    # Target schema version
+    open SQLFILE, "$script_dir/mediawords.sql" or die $!;
+    my @sql = <SQLFILE>;
+    close SQLFILE;
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    die "Invalid target schema version.\n" unless ( $target_schema_version );
+
+    # Check if the current schema is up-to-date
+    my Readonly $ignore_schema_version_env_variable = 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
+    if ( $current_schema_version < $target_schema_version )
+    {
+        if ( exists $ENV{ $ignore_schema_version_env_variable } )
+        {
+            say STDERR "The current Media Cloud database schema is older than the schema present in mediawords.sql \n" .
+              "but $ignore_schema_version_env_variable is set so continuing anyway.";
+
+        }
+        else
+        {
+            die "The current Media Cloud database schema is older than the schema present in mediawords.sql.\n" .
+              "The database schema currently running in the database is $current_schema_version, " .
+              "and the schema version in the mediawords.sql is $target_schema_version.\n" . "Please run:\n" .
+              "    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl\n" .
+              "to automatically upgrade the database schema to the latest version.\n" .
+              "If you want to connect to the Media Cloud database anyway (ignoring the schema version),\n" .
+              "set the $ignore_schema_version_env_variable environment variable as such:\n" .
+              "    $ignore_schema_version_env_variable=1 ./script/run_with_carton.sh ./script/hello.pl\n";
+
+        }
+
+    }
+    elsif ( $current_schema_version > $target_schema_version )
+    {
+        if ( exists $ENV{ $ignore_schema_version_env_variable } )
+        {
+            say STDERR "Current Media Cloud database schema is newer than the schema present in mediawords.sql \n" .
+              "but $ignore_schema_version_env_variable is set so continuing anyway.";
+
+        }
+        else
+        {
+            die "The current Media Cloud database schema is newer than the schema present in mediawords.sql.\n" .
+              "The database schema currently running in the database is $current_schema_version, " .
+              "and the schema version in the mediawords.sql is $target_schema_version.\n" .
+              "Please update your Media Cloud's source code to the latest available version.\n" .
+              "If you want to connect to the Media Cloud database anyway (ignoring the schema version),\n" .
+              "set the $ignore_schema_version_env_variable environment variable as such:\n" .
+              "    $ignore_schema_version_env_variable=1 ./script/run_with_carton.sh ./script/hello.pl\n";
+
+        }
+
+    }
+    else
+    {
+
+        # Things are fine.
+
+    }
+
+    return $ret;
+}
+
 sub _query_impl
 {
     my $self = shift @_;
