@@ -22,4 +22,10 @@ export PGDATABASE
 PGUSER=$4
 export PGUSER
 
-$PSQL  -v 'ON_ERROR_STOP=on' --single-transaction -f "$FILE"
+$PSQL -v 'ON_ERROR_STOP=on' --single-transaction -f "$FILE" 2>&1
+if [ $? -ne 0 ]; then
+	echo "$PSQL failed"
+	exit 1
+fi
+
+exit 0
