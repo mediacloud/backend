@@ -294,7 +294,7 @@ sub main
     die $usage if $incremental && $full;
 
     $full = !$incremental;
-    $_dump_dashboards = $dashboards if ( @{ $dashboards } );
+    $_dump_dashboards = $dashboards if ( $dashboards && @{ $dashboards } );
 
     my $config = MediaWords::Util::Config::get_config;
 
