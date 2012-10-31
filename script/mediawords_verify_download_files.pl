@@ -45,6 +45,8 @@ sub verify_downloads_files
 
 	    $pm->start and next;
 
+	    my $db = MediaWords::DB::connect_to_db;
+
             my $relative_file_path = $relative_file_path_hash->{ relative_file_path };
             say "Checking relative file path: $relative_file_path";
 
