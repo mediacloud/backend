@@ -31,10 +31,9 @@ use Mail::SpamAssassin::Plugin::TextCat;
 
 # Candidate 4 -- Compact Language Detector (C++)
 # http://code.google.com/p/chromium-compact-language-detector/
+# https://github.com/ambs/Lingua-Identify-CLD
 # http://www.swig.org/
-use lib '/Users/pypt/Dropbox/etc-MediaCloud/lang-ident/chromium-compact-language-detector/bindings/swig';
-use lib '/Users/pypt/Dropbox/etc-MediaCloud/lang-ident/chromium-compact-language-detector/bindings/swig/blib/arch/auto/cld';
-use cld;
+use Lingua::Identify::CLD;
 
 # Candidate 5 -- LingPipe (Java)
 # http://alias-i.com/lingpipe/demos/tutorial/langid/read-me.html
