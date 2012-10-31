@@ -32,9 +32,10 @@ sub verify_downloads_files
         my $num_downloads = 0;
 
         my $relative_file_paths =
-          $db->query( " select distinct( relative_file_path) from downloads where " .
-		      "  file_status = 'tbd'::download_file_status AND relative_file_path <> 'tbd'::text AND relative_file_path <> 'error'::text AND " .
-		      " relative_file_path <> 'na'::text AND relative_file_path <> 'inline'::text limit 10;"
+          $db->query( " select distinct(relative_file_path) from   " . 
+		      "     ( select relative_file_path from downloads where  file_status = 'tbd'::download_file_status AND relative_file_path <> 'tbd'::text AND " . 
+		      "       relative_file_path <> 'error'::text AND relative_file_path <> 'na'::text AND relative_file_path <> 'inline'::text  limit 100 ) as foo " .
+		      "  limit 10; "
           );
 
 	my $pm =  new Parallel::ForkManager( 10 );
