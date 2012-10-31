@@ -64,6 +64,8 @@ sub verify_downloads_files
                 $db->query( "UPDATE downloads set file_status = 'missing' where relative_file_path = ? ",
                     $relative_file_path );
             }
+
+	    $pm->finish;
         }
 
 	$pm->wait_all_children;
