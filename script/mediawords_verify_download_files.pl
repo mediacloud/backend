@@ -34,7 +34,7 @@ sub verify_downloads_files
          my $relative_file_paths =
           $db->query( " select distinct(relative_file_path) from   " . 
 		      "     ( select relative_file_path from downloads where  file_status = 'tbd'::download_file_status AND relative_file_path <> 'tbd'::text AND " . 
-		      "       relative_file_path <> 'error'::text AND relative_file_path <> 'na'::text AND relative_file_path <> 'inline'::text  limit 100 ) as foo " .
+		      "       relative_file_path <> 'error'::text AND relative_file_path <> 'na'::text AND relative_file_path <> 'inline'::text  limit 1000 ) as foo " .
 		      "  limit 100; "
           );
 
