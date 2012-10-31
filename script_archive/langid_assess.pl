@@ -74,6 +74,205 @@ sub candidate_lingua_identify_identify
     return Lingua::Identify::langof($text);
 }
 
+#
+# CLD
+#
+sub candidate_cld_needs_teaching
+{
+    return 0;
+}
+
+#sub candidate_cld_teach
+#{
+#    my ($language_code, $text) = @_;
+#}
+
+{
+    my $cld = Lingua::Identify::CLD->new();
+    my %language_names_to_codes = (
+        "english" => "en",
+        "danish" => "da",
+        "dutch" => "nl",
+        "finnish" => "fi",
+        "french" => "fr",
+        "german" => "de",
+        "hebrew" => "he",
+        "italian" => "it",
+        "japanese" => "ja",
+        "korean" => "ko",
+        "norwegian" => "nb",
+        "polish" => "pl",
+        "portuguese" => "pt",
+        "russian" => "ru",
+        "spanish" => "es",
+        "swedish" => "sv",
+        "chinese" => "zh",
+        "czech" => "cs",
+        "greek" => "el",
+        "icelandic" => "is",
+        "latvian" => "lv",
+        "lithuanian" => "lt",
+        "romanian" => "ro",
+        "hungarian" => "hu",
+        "estonian" => "et",
+        "bulgarian" => "bg",
+        "croatian" => "hr",
+        "serbian" => "sr",
+        "irish" => "ga",
+        "galician" => "gl",
+        "tagalog" => "tl",
+        "turkish" => "tr",
+        "ukrainian" => "uk",
+        "hindi" => "hi",
+        "macedonian" => "mk",
+        "bengali" => "bn",
+        "indonesian" => "id",
+        "latin" => "la",
+        "malay" => "ms",
+        "malayalam" => "ml",
+        "welsh" => "cy",
+        "nepali" => "ne",
+        "telugu" => "te",
+        "albanian" => "sq",
+        "tamil" => "ta",
+        "belarusian" => "be",
+        "javanese" => "jw",
+        "occitan" => "oc",
+        "urdu" => "ur",
+        "bihari" => "bh",
+        "gujarati" => "gu",
+        "thai" => "th",
+        "arabic" => "ar",
+        "catalan" => "ca",
+        "esperanto" => "eo",
+        "basque" => "eu",
+        "interlingua" => "ia",
+        "kannada" => "kn",
+        "punjabi" => "pa",
+        "scots_gaelic" => "gd",
+        "swahili" => "sw",
+        "slovenian" => "sl",
+        "marathi" => "mr",
+        "maltese" => "mt",
+        "vietnamese" => "vi",
+        "frisian" => "fy",
+        "slovak" => "sk",
+        "chineset" => "zh",
+        "faroese" => "fo",
+        "sundanese" => "su",
+        "uzbek" => "uz",
+        "amharic" => "am",
+        "azerbaijani" => "az",
+        "georgian" => "ka",
+        "tigrinya" => "ti",
+        "persian" => "fa",
+        "bosnian" => "bs",
+        "sinhalese" => "si",
+        "norwegian_n" => "nn",
+        "portuguese_p" => "pt",
+        "portuguese_b" => "pt",
+        "xhosa" => "xh",
+        "zulu" => "zu",
+        "guarani" => "gn",
+        "sesotho" => "st",
+        "turkmen" => "tk",
+        "kyrgyz" => "ky",
+        "breton" => "br",
+        "twi" => "tw",
+        "yiddish" => "yi",
+        "serbo_croatian" => "sh",
+        "somali" => "so",
+        "uighur" => "ug",
+        "kurdish" => "ku",
+        "mongolian" => "mn",
+        "armenian" => "hy",
+        "laothian" => "lo",
+        "sindhi" => "sd",
+        "rhaeto_romance" => "rm",
+        "afrikaans" => "af",
+        "luxembourgish" => "lb",
+        "burmese" => "my",
+        "khmer" => "km",
+        "tibetan" => "bo",
+        "dhivehi" => "dv",
+        "cherokee" => "chr",
+        "syriac" => "syc",
+        "limbu" => "lif",
+        "oriya" => "or",
+        "assamese" => "as",
+        "corsican" => "co",
+        "interlingue" => "ie",
+        "kazakh" => "kk",
+        "lingala" => "ln",
+        "moldavian" => "mo",
+        "pashto" => "ps",
+        "quechua" => "qu",
+        "shona" => "sn",
+        "tajik" => "tg",
+        "tatar" => "tt",
+        "tonga" => "to",
+        "yoruba" => "yo",
+        "creoles_and_pidgins_english_based" => "cpe",
+        "creoles_and_pidgins_french_based" => "cpf",
+        "creoles_and_pidgins_portuguese_based" => "cpp",
+        "creoles_and_pidgins_other" => "crp",
+        "maori" => "mi",
+        "wolof" => "wo",
+        "abkhazian" => "ab",
+        "afar" => "aa",
+        "aymara" => "ay",
+        "bashkir" => "ba",
+        "bislama" => "bi",
+        "dzongkha" => "dz",
+        "fijian" => "fj",
+        "greenlandic" => "kl",
+        "hausa" => "ha",
+        "haitian_creole" => "ht",
+        "inupiak" => "ik",
+        "inuktitut" => "iu",
+        "kashmiri" => "ks",
+        "kinyarwanda" => "rw",
+        "malagasy" => "mg",
+        "nauru" => "na",
+        "oromo" => "om",
+        "rundi" => "rn",
+        "samoan" => "sm",
+        "sango" => "sg",
+        "sanskrit" => "sa",
+        "siswant" => "ss",
+        "tsonga" => "ts",
+        "tswana" => "tn",
+        "volapuk" => "vo",
+        "zhuang" => "za",
+        "khasi" => "kha",
+        "scots" => "sco",
+        "ganda" => "lg",
+        "manx" => "gv",
+        "montenegrin" => "srp"
+    );
+
+    sub candidate_cld_identify
+    {
+        my $text = shift;
+
+        my $language_name = lc($cld->identify($text, isPlainText=>1, allowExtendedLanguages=>0));
+        my $language_id = '';
+        if ($language_name eq 'unknown' || $language_name eq 'tg_unknown_language') {
+            # Oh well.
+            return '';
+
+        } else {
+            die "Language name '$language_name' is not mapped.\n" unless exists($language_names_to_codes{$language_name});
+            return $language_names_to_codes{$language_name};
+
+        }
+
+        return ;
+    }
+
+}
+
+
 sub _language_code_from_filename
 {
     my $filepath = shift;
@@ -104,7 +303,7 @@ sub langid_assess
 
     # Identification candidates
     #my @candidates = ('lingua_identify', 'lingua_ident', 'textcat', 'cld', 'lingpipe', 'nltk');
-    my @candidates = ('lingua_identify');
+    my @candidates = ('cld');
 
     # Teach
     print STDERR "Teaching modules to recognize languages...\n";
