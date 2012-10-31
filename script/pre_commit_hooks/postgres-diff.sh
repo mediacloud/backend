@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Create a PostgreSQL diff between two SQL dumps before a SVN / Git commit.
 #

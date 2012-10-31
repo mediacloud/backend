@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Check if Perl source files that are being committed are formatted properly.
 #

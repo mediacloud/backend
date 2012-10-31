@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Check if database schema has been changed, and if so, has the database schema version number been
 # updated and the diff has been created.
