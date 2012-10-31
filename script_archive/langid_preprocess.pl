@@ -21,6 +21,8 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 
 use HTML::FormatText;
+use HTML::CruftText;
+use MediaWords::Util::HTML;
 use LWP::UserAgent;    # HTTP::Message does the character encoding to UTF-8 for us via decoded_content()
 use File::Basename;
 
@@ -38,13 +40,19 @@ sub _strip_html
     $html =~ s|<script.+?</script>||gsi;
     $html =~ s|<noscript.+?</noscript>||gsi;
     $html =~ s|<style.+?</style>||gsi;
+    $html =~ s|<input.+?>||gsi;
 
-    # Format HTML as text
-    $html = HTML::FormatText->format_string( $html, leftmargin => 0, rightmargin => 80 );
+    # Remove "cruft" (leave everything between <body> and </body>, remove <script>s, <style>s, etc.)
+    $html = HTML::CruftText::clearCruftText($html);
+    $html = join("\n", @{$html});
+    #die "File is empty after clearing cruft text.\n" unless $html ne '';
 
-    # Remove "[IMAGE]" remarks inserted by the formatter
-    $html =~ s|\[IMAGE\]||gsi;
-    $html =~ s|\n\n+|\n|gs;
+    # Strip HTML tags
+    $html = MediaWords::Util::HTML::html_strip($html);
+    #die "File is empty after stripping HTML tags.\n" unless $html ne '';
+
+    # Space cleanup
+    $html =~ s/\s\s*/ /gs;
 
     return $html;
 }
@@ -70,17 +78,23 @@ sub convert_html_files_to_txt
 
         # Fetch file content via LWP, decode too
         my $response = $ua->get( 'file://' . $filepath );
-        unless ( $response->is_success )
+        unless ( $response->is_success && $response->decoded_content )
         {
             print STDERR "Unable to fetch file at path '$filepath' ({$response->status_line}), skipping...\n";
             next;
         }
         my $content = $response->decoded_content;
-        die "File at path '$filepath' is empty.\n" unless $content ne '';
+        unless ($content) {
+            print STDERR "File at path '$filepath' is empty.\n";
+            next;
+        }
 
         # Strip HTML
         $content = _strip_html( $content );
-        die "File at path '$filepath' is empty after stripping HTML.\n" unless $content ne '';
+        unless ($content) {
+            print STDERR "File at path '$filepath' is empty after stripping HTML.\n";
+            next;
+        }
 
         # Write
         my ( $filename, $directories, $suffix ) = fileparse( $filepath, qr/\.[^.]*/ );
