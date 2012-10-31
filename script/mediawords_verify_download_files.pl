@@ -21,8 +21,6 @@ use Parallel::ForkManager;
 
 sub verify_downloads_files
 {
-    my $db = MediaWords::DB::connect_to_db;
-
     my $config = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
 
@@ -30,6 +28,8 @@ sub verify_downloads_files
     {
 
         my $num_downloads = 0;
+
+	my $db = MediaWords::DB::connect_to_db;
 
         my $relative_file_paths =
           $db->query( " select distinct(relative_file_path) from   " . 
