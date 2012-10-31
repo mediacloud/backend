@@ -303,7 +303,7 @@ sub langid_assess
 
     # Identification candidates
     #my @candidates = ('lingua_identify', 'lingua_ident', 'textcat', 'cld', 'lingpipe', 'nltk');
-    my @candidates = ('cld');
+    my @candidates = ('lingua_identify', 'cld');
 
     # Teach
     print STDERR "Teaching modules to recognize languages...\n";
