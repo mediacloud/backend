@@ -64,8 +64,10 @@ if [ ${#FILES_THAT_HAVE_TO_BE_TIDIED[@]} -gt 0 ]; then
     echo
     for filename in "${FILES_THAT_HAVE_TO_BE_TIDIED[@]}"; do
         echo "./script/run_with_carton.sh ./script/mediawords_reformat_code.pl $filename"
+        echo "# And if you're using Git, re-add the reformatted script:"
+        echo "git add $filename"
+        echo
     done
-    echo
     echo "Also, you can run:"
     echo
     echo "./script/run_with_carton.sh ./script/mediawords_reformat_all_code.pl"
