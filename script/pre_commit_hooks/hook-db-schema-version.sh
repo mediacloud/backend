@@ -105,10 +105,10 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
     # Database schema versions
     OLD_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
         | grep "^-" \
-        | ./script/database_schema_version.pl -`
+        | ./script/run_with_carton.sh ./script/database_schema_version.pl -`
     NEW_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
         | grep "^+" \
-        | ./script/database_schema_version.pl -`
+        | ./script/run_with_carton.sh ./script/database_schema_version.pl -`
     if [ -z "$OLD_SCHEMA_VERSION" ]; then
         echo "Unable to determine old database schema version number from the version control diff."
         exit 1
