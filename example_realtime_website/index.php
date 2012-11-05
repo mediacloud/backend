@@ -8,7 +8,7 @@ $couch = new CouchSimple($options);
 $t1 = microtime();
 // update cached list of (two-part) domain names
 $updatedDomainCache = false;
-define('CACHED_DOMAIN_LIST', 'cache/domain_two_part.json');
+define('CACHED_DOMAIN_LIST', 'cache/'.$options['host'].'_domain_two_part.json');
 if(!file_exists(CACHED_DOMAIN_LIST) || (microtime()-filemtime(CACHED_DOMAIN_LIST))>(24*60*60) ){
   $domainListJson = $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true");
   file_put_contents(CACHED_DOMAIN_LIST,$domainListJson);
@@ -243,22 +243,8 @@ $('#mcPickDomain').typeahead({
 </script>
 
 <script type="text/javascript">
-var wcDataset = [
-<?php
-foreach ($wcResults as $wordCount=>$storyCount){
-?> <?=$storyCount?>,
-<?php
-}
-?>
-];
-var rlDataset = [
-<?php
-foreach ($rlResults as $wordCount=>$storyCount){
-?> <?=$storyCount?>,
-<?php
-}
-?>
-];
+var wcDataset = [ <?= implode(',',$wcResults); ?> ];
+var rlDataset = [ <?= implode(',',$rlResults); ?> ];
 </script>
 
 <script type="text/javascript">
