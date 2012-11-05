@@ -100,6 +100,7 @@ if($updatedDomainCache){
       Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
       The vertical axis is the number of stories that have that many words.  
       </p>
+          <!-- chart will be filled in by ajax call -->
     </div>
 
      <div class="span6" id="mcReadability">
@@ -108,6 +109,7 @@ if($updatedDomainCache){
       Here is a histogram of story reading grade level.  The horizontal axis is grade level 
       the story is written at. The vertical axis is the number of stories scored at that grade level. 
       </p>
+          <!-- chart will be filled in by ajax call -->
     </div>
   </div>
 
@@ -130,11 +132,15 @@ if($updatedDomainCache){
       </div>
       <div class="span6">
         <h3>Word Count</h3>
-        <div id="mcFilteredWordCounts"></div>
+        <div id="mcFilteredWordCounts">
+          <!-- chart will be filled in by ajax call -->
+        </div>
       </div>
       <div class="span6">
         <h3>Reading Level</h3>
-        <div id="mcFilteredReadability"></div>
+        <div id="mcFilteredReadability">
+          <!-- chart will be filled in by ajax call -->
+        </div>
       </div>
     </div>
   </div>
