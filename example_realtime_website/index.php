@@ -1,24 +1,27 @@
 <?php
+$t0 = microtime();  // do some performance monitoring, old school
 // initialization
 require_once('./lib/CouchSimple.php');
 $options = parse_ini_file("config.ini");
 $couch = new CouchSimple($options);
 
+$t1 = microtime();
 // update cached list of (two-part) domain names
 $updatedDomainCache = false;
 define('CACHED_DOMAIN_LIST', 'cache/domain_two_part.json');
-if(!file_exists(CACHED_DOMAIN_LIST) || (time()-filemtime(CACHED_DOMAIN_LIST))>(24*60*60) ){
+if(!file_exists(CACHED_DOMAIN_LIST) || (microtime()-filemtime(CACHED_DOMAIN_LIST))>(24*60*60) ){
   $domainListJson = $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true");
   file_put_contents(CACHED_DOMAIN_LIST,$domainListJson);
   $updatedDomainCache = true;
 }
 // load from cached file
-$results = json_decode(file_get_contents(CACHED_DOMAIN_LIST));
+$domainTwoPart = json_decode(file_get_contents(CACHED_DOMAIN_LIST));
 $domainList = array();
-foreach( $results->rows as $row ) {
+foreach( $domainTwoPart->rows as $row ) {
   array_push($domainList, $row->key);
 }
 sort($domainList);
+$t2 = microtime();
 ?>
 
 <!DOCTYPE html>
@@ -50,10 +53,12 @@ sort($domainList);
 // max story id
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/max_story_id") ); 
 $maxStoryId = $results->rows[0]->value;
+$t3 = microtime();
 
 // total story count
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/total_stories") ); 
 $storyCount = $results->rows[0]->value;
+$t4 = microtime();
 
 // english story count
 $englishStoryCount = null;
@@ -63,6 +68,8 @@ foreach ($results->rows as $row){
     $englishStoryCount = $row->value;
   }
 }
+$t5 = microtime();
+
 ?>
 
   <div class="row">
@@ -108,6 +115,8 @@ foreach ($results->rows as $row){
   }
 }
 $wcIncludedStoriesPct = $wcIncludedStories/$storyCount;
+$t6 = microtime();
+
 ?>
 
     <div class="span6" id="mcStoryLength">
@@ -140,6 +149,7 @@ foreach ($results->rows as $row){
   }
 }
 $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
+$t7 = microtime();
 ?>
 
      <div class="span6" id="mcReadability">
@@ -195,13 +205,13 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
 <?php
 // sources
 function compareRowValue($a,$b){ return $b->value > $a->value; }
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true") ); 
-uasort($results->rows,'compareRowValue');
-$topTwentydomainList = array_slice($results->rows, 0,20);
+uasort($domainTwoPart->rows,'compareRowValue');
+$topTwentydomainList = array_slice($domainTwoPart->rows, 0,20);
 foreach($topTwentydomainList as $row){
 ?>  <a href="http://<?=$row->key?>"><?=$row->key?></a> <span class="badge"><?=$row->value?></span>
 <?php
 }
+$t8 = microtime();
 ?>
       </p>
     </div>
@@ -295,6 +305,20 @@ histogramChart("#mcStoryLength",wcDataset,400,100,20,<?=$wcMaxStoryLengthToShow?
 histogramChart("#mcReadability",rlDataset,400,50,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,10);
 
 </script>
+
+<!--
+<?php
+// print out performance of each section
+print "1: ".round($t1-$t0,4)."<br/>";
+print "2: ".round($t2-$t1,4)."<br/>";
+print "3: ".round($t3-$t2,4)."<br/>";
+print "4: ".round($t4-$t3,4)."<br/>";
+print "5: ".round($t5-$t4,4)."<br/>";
+print "6: ".round($t6-$t5,4)."<br/>";
+print "7: ".round($t7-$t6,4)."<br/>";
+print "8: ".round($t8-$t7,4)."<br/>";
+?>
+-->
 
   </body>
 
