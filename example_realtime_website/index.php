@@ -94,71 +94,19 @@ if($updatedDomainCache){
 
   <div class="row">
 
-<?php
-// story count by length
-$wcBarsToShow = 20;
-$wcBucketSize = 200;  // must match view
-$wcMaxStoryLengthToShow = ($wcBarsToShow)*$wcBucketSize;
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true&startkey=0&endkey=".$wcMaxStoryLengthToShow) ); 
-$wcResults = array();
-$wcIncludedStories = 0;
-$i = 0;   // prefill array
-for($i=0;$i<$wcBarsToShow;$i++){
-  $wcResults[$i*$wcBucketSize] = 0;
-}
-$wcMaxIncludedStoryCount = 0;
-foreach ($results->rows as $row){
-  if (array_key_exists($row->key,$wcResults)) {
-    $wcResults[$row->key] = $row->value;
-    $wcMaxIncludedStoryCount = max($wcMaxIncludedStoryCount,$row->value);
-    $wcIncludedStories+=$row->value;
-  }
-}
-$wcIncludedStoriesPct = $wcIncludedStories/$storyCount;
-$t6 = microtime();
-
-?>
-
-    <div class="span6" id="mcStoryLength">
+    <div class="span6" id="mcWordCounts">
       <h3>Story Length</h3>
       <p>
       Here is a histogram of story length.  The horizontal axis is word length (0-200, 200-400, etc). 
-      The vertical axis is the number of stories that have that many words.  This graph includes 
-      <?=round($wcIncludedStoriesPct*100)?>% of the stories (excluding the
-      <?=$storyCount-$wcIncludedStories?> stories longer than <?=$wcMaxStoryLengthToShow?> words).
+      The vertical axis is the number of stories that have that many words.  
       </p>
     </div>
-
-
- <?php
-// story count by reading level
-$rlBarsToShow = 20;
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/reading_grade_counts?group=true&startkey=0&endkey=".$rlBarsToShow) ); 
-$rlResults = array();
-$rlIncludedStories = 0;
-$rlMaxIncludedStoryCount = 0;
-$rlMaxReadingLevelToShow = 20;
-for($i=0;$i<$rlMaxReadingLevelToShow;$i++) {  // prefill array
-  $rlResults[$i] = 0;
-}
-foreach ($results->rows as $row){
-  if (array_key_exists($row->key,$rlResults)) {
-    $rlResults[$row->key] = $row->value;
-    $rlMaxIncludedStoryCount = max($rlMaxIncludedStoryCount,$row->value);
-    $rlIncludedStories+=$row->value;
-  }
-}
-$rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
-$t7 = microtime();
-?>
 
      <div class="span6" id="mcReadability">
       <h3>Story Reading Level</h3>
       <p>
       Here is a histogram of story reading grade level.  The horizontal axis is grade level 
       the story is written at. The vertical axis is the number of stories scored at that grade level. 
-      This graph includes <?=round($rlIncludedStoriesPct*100)?>% of the stories (excluding
-      <?=$storyCount-$rlIncludedStories?> stories).
       </p>
     </div>
   </div>
@@ -243,12 +191,8 @@ $('#mcPickDomain').typeahead({
 </script>
 
 <script type="text/javascript">
-var wcDataset = [ <?= implode(',',$wcResults); ?> ];
-var rlDataset = [ <?= implode(',',$rlResults); ?> ];
-</script>
 
-<script type="text/javascript">
-
+// helper function to draw a standard histogram chart
 function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, maxXValue,barsToShow, maxY, xTickCount) {
   var y = d3.scale.linear()
        .domain([0, maxY])
@@ -286,9 +230,14 @@ function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, m
        .style("stroke", "#666");
 }
 
-histogramChart("#mcStoryLength",wcDataset,400,100,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
-
-histogramChart("#mcReadability",rlDataset,400,50,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,10);
+// load up the aggregate charts
+$(function(){
+  $.ajax({
+      type: "GET",
+      url:"data.js.php",
+      dataType: 'script'
+    });
+});
 
 </script>
 

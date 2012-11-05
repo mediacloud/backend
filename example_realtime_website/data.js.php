@@ -17,14 +17,22 @@ if(array_key_exists('domain',$_GET)) $domain = $_GET['domain'];
 
 if($domain==null){
   $queryUrl = "/mediacloud/_design/examples/_view/total_stories";
+  $destDivWc = "mcWordCounts";
+  $destDivRl = "mcReadability";
 } else {
   $queryUrl = "/mediacloud/_design/examples/_view/source_story_counts?group=true&key=\"".$domain."\"";
+  $destDivWc = "mcFilteredWordCounts";
+  $destDivRl = "mcFilteredReadability";
 }
 $results = json_decode( $couch->send("GET", $queryUrl) ); 
 $storyCount = $results->rows[0]->value;
-?>
-updateFilteredInfo("<?=$domain?>",<?=$storyCount?>);
 
+if($domain!=null){
+?>
+  updateFilteredInfo("<?=$domain?>",<?=$storyCount?>);
+<?php
+}
+?>
 
 <?php
 /****************************************************************************************/
@@ -65,7 +73,7 @@ foreach ($results->rows as $row){
 ?>
 // word count info
 var wcDataset = [<?=implode(",",$wcResults); ?>];
-histogramChart("#mcFilteredWordCounts",wcDataset,400,100,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
+histogramChart("#<?=$destDivWc?>",wcDataset,400,100,20,<?=$wcMaxStoryLengthToShow?>,<?=$wcBarsToShow?>, <?=$wcMaxIncludedStoryCount?>,<?=$wcBarsToShow/4?>);
 
 
 <?php 
@@ -102,14 +110,18 @@ foreach ($results->rows as $row){
 ?>
 // readability info
 var rlDataset = [<?=implode(",",$rlResults); ?>];
-histogramChart("#mcFilteredReadability",rlDataset,400,50,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,10);
+histogramChart("#<?=$destDivRl?>",rlDataset,400,50,20,<?=$rlMaxReadingLevelToShow?>,<?=$rlBarsToShow?>, <?=$rlMaxIncludedStoryCount?>,10);
 
 
 <?php 
 /****************************************************************************************/
 /** Cleanup ** /
 /****************************************************************************************/
-?>
 
-// show results
-$('#mcFilteredResults').show();
+if($domain!=null){
+?>
+  // show results
+  $('#mcFilteredResults').show();
+<?php
+}
+?>
