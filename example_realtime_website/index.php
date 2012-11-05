@@ -165,7 +165,7 @@ foreach($topTwentydomainList as $row){
 ?>  <a href="http://<?=$row->key?>"><?=$row->key?></a> <span class="badge"><?=$row->value?></span>
 <?php
 }
-$t8 = microtime();
+$t6 = microtime();
 ?>
       </p>
     </div>
@@ -259,8 +259,6 @@ print "3: ".round($t3-$t2,4)."<br/>";
 print "4: ".round($t4-$t3,4)."<br/>";
 print "5: ".round($t5-$t4,4)."<br/>";
 print "6: ".round($t6-$t5,4)."<br/>";
-print "7: ".round($t7-$t6,4)."<br/>";
-print "8: ".round($t8-$t7,4)."<br/>";
 ?>
 -->
 

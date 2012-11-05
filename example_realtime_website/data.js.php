@@ -99,6 +99,7 @@ for($i=0;$i<$rlMaxReadingLevelToShow;$i++) {  // prefill array
 foreach ($results->rows as $row){
   if($domain) {
     $key = str_replace($domain."_","",$row->key);
+    $key = intval($key);
   } else {
     $key = $row->key;
   }
@@ -107,6 +108,7 @@ foreach ($results->rows as $row){
     $rlMaxIncludedStoryCount = max($rlMaxIncludedStoryCount,$row->value);
   }
 }
+
 ?>
 // readability info
 var rlDataset = [<?=implode(",",$rlResults); ?>];

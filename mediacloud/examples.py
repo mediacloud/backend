@@ -101,7 +101,7 @@ def getAllExampleViews():
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "source_reading_grade_counts": {
-                "map": "function(doc) { var rgl = Math.round(doc.fk_grade_level); var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+rgl, 1); }",
+                "map": "function(doc) { var rgl = Math.round(doc.fk_grade_level); rgl = (rgl<10 && rgl>=0) ? '0'+rgl : rgl; var host = doc.guid.match(/:\/\/(www\.)?(.[^/:]+)/)[2]; var hostParts = host.split('.'); var domain = hostParts.slice(hostParts.length-Math.min(hostParts.length,2)).join('.'); emit(domain+'_'+rgl, 1); }",
                 "reduce": "function(keys, values) { return sum(values); }"
             },
             "domain_three_part": {
