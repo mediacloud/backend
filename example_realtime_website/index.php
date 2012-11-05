@@ -174,9 +174,11 @@ $t8 = microtime();
 </div>
 
 <script type="text/javascript">
+// called by returned JS
 function updateFilteredInfo(domain, storyCount){
   $('#mcFilteredInfo').html("We know about "+storyCount+" articles from "+domain);
 }
+// called by returned JS
 function updateFilterResults(domain){
   $('#mcFilteredResults').hide();
   $('#mcFilteredInfo').empty();
@@ -188,6 +190,7 @@ function updateFilterResults(domain){
     dataType: 'script'
   });
 }
+// fire ajax request when user filters by news source
 $('#mcPickDomain').typeahead({
     source: <?= json_encode($domainList) ?>,
     updater: function(item){
