@@ -4,13 +4,19 @@ require_once('./lib/CouchSimple.php');
 $options = parse_ini_file("config.ini");
 $couch = new CouchSimple($options);
 
-// query for list of two-part domains
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true") ); 
-$domains = array();
-foreach( $results->rows as $row ) {
-  array_push($domains, $row->key);
+// update cached list of (two-part) domain names
+define('CACHED_DOMAIN_LIST', 'cache/domain_two_part.json');
+if(!file_exists(CACHED_DOMAIN_LIST) || (time()-filemtime(CACHED_DOMAIN_LIST))>600 ){
+  $domainListJson = $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true");
+  file_put_contents(CACHED_DOMAIN_LIST,$domainListJson);
 }
-sort($domains);
+// load from cached file
+$results = json_decode(file_get_contents(CACHED_DOMAIN_LIST));
+$domainList = array();
+foreach( $results->rows as $row ) {
+  array_push($domainList, $row->key);
+}
+sort($domainList);
 ?>
 
 <!DOCTYPE html>
@@ -177,8 +183,8 @@ $rlIncludedStoriesPct = $rlIncludedStories/$storyCount;
 function compareRowValue($a,$b){ return $b->value > $a->value; }
 $results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true") ); 
 uasort($results->rows,'compareRowValue');
-$topTwentyDomains = array_slice($results->rows, 0,20);
-foreach($topTwentyDomains as $row){
+$topTwentydomainList = array_slice($results->rows, 0,20);
+foreach($topTwentydomainList as $row){
 ?>  <a href="http://<?=$row->key?>"><?=$row->key?></a> <span class="badge"><?=$row->value?></span>
 <?php
 }
@@ -205,7 +211,7 @@ function updateFilterResults(domain){
   });
 }
 $('#mcPickDomain').typeahead({
-    source: <?= json_encode($domains) ?>,
+    source: <?= json_encode($domainList) ?>,
     updater: function(item){
         updateFilterResults(item);
     }
