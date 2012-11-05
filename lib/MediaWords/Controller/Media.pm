@@ -363,9 +363,9 @@ sub create_do : Local
             "Errors adding some media sources, see below.  Any urls not mentioned below were added successfully.",
             @{ $error_messages } );
             
-        if ( length( $status_msg ) > 1024)
+        if ( length( $status_msg ) > 1024 )
         {
-            $status_msg = substr( $status_msg, 0, 975 ) . "\nAdditional errors not listed.".
+            $status_msg = substr( $status_msg, 0, 975 ) . "\nAdditional errors not listed.";
         }
     }
     else
