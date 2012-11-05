@@ -5,10 +5,12 @@ $options = parse_ini_file("config.ini");
 $couch = new CouchSimple($options);
 
 // update cached list of (two-part) domain names
+$updatedDomainCache = false;
 define('CACHED_DOMAIN_LIST', 'cache/domain_two_part.json');
-if(!file_exists(CACHED_DOMAIN_LIST) || (time()-filemtime(CACHED_DOMAIN_LIST))>600 ){
+if(!file_exists(CACHED_DOMAIN_LIST) || (time()-filemtime(CACHED_DOMAIN_LIST))>(24*60*60) ){
   $domainListJson = $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true");
   file_put_contents(CACHED_DOMAIN_LIST,$domainListJson);
+  $updatedDomainCache = true;
 }
 // load from cached file
 $results = json_decode(file_get_contents(CACHED_DOMAIN_LIST));
@@ -65,6 +67,18 @@ foreach ($results->rows as $row){
 
   <div class="row">
     <div class="span12">
+
+<?php
+if($updatedDomainCache){
+?>
+  <div class="alert alert-info">
+    <button type="button" class="close" data-dismiss="alert"></button> 
+    <strong>FYI:</strong> just updated the cached list of domains
+  </div>
+<?php
+}
+?>
+
       <p><i>
       <?=$storyCount?> stories in the database (<?=round(100*$englishStoryCount/$storyCount)?>% in english). The max story id is <?=$maxStoryId?>.
       </i></p>
