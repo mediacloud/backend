@@ -72,7 +72,7 @@ foreach ($results->rows as $row){
 $wcBarsToShow = 20;
 $wcBucketSize = 200;  // must match view
 $wcMaxStoryLengthToShow = ($wcBarsToShow)*$wcBucketSize;
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true&startkey=0&keyend=".$wcMaxStoryLengthToShow) ); 
+$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/word_counts?group=true&startkey=0&endkey=".$wcMaxStoryLengthToShow) ); 
 $wcResults = array();
 $wcIncludedStories = 0;
 $i = 0;   // prefill array
