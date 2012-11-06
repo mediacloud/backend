@@ -5743,6 +5743,62 @@
          "target" : "Config::Any",
          "version" : "0.23"
       },
+      "Config::AutoConf" : {
+         "dist" : "Config-AutoConf-0.19",
+         "mymeta" : {
+            "abstract" : "A module to implement some of AutoConf macros in pure perl.",
+            "author" : [
+               "Alberto Simoes <ambs@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120351, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Config-AutoConf",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Capture::Tiny" : 0,
+                     "ExtUtils::CBuilder" : "0.23",
+                     "Test::More" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.19"
+         },
+         "name" : "Config::AutoConf",
+         "pathname" : "A/AM/AMBS/Config/Config-AutoConf-0.19.tar.gz",
+         "provides" : {
+            "Config::AutoConf" : {
+               "file" : "Config/AutoConf.pm",
+               "version" : "0.19"
+            }
+         },
+         "target" : "Config::AutoConf",
+         "version" : "0.19"
+      },
       "Config::General" : {
          "dist" : "Config-General-2.50",
          "mymeta" : {
@@ -16174,6 +16230,63 @@
          "target" : "Exporter::Lite",
          "version" : "0.02"
       },
+      "ExtUtils::LibBuilder" : {
+         "dist" : "ExtUtils-LibBuilder-0.04",
+         "mymeta" : {
+            "abstract" : "A tool to build C libraries.",
+            "author" : [
+               "Alberto Simoes <ambs@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "ExtUtils-LibBuilder",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::CBuilder" : "0.23",
+                     "File::Spec" : 0,
+                     "File::Temp" : 0,
+                     "Test::More" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "Module::Build" : "0.36"
+                  }
+               }
+            },
+            "provides" : {
+               "ExtUtils::LibBuilder" : {
+                  "file" : "lib/ExtUtils/LibBuilder.pm",
+                  "version" : "0.04"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.04"
+         },
+         "name" : "ExtUtils::LibBuilder",
+         "pathname" : "A/AM/AMBS/ExtUtils/ExtUtils-LibBuilder-0.04.tar.gz",
+         "provides" : {
+            "ExtUtils::LibBuilder" : {
+               "file" : "ExtUtils/LibBuilder.pm",
+               "version" : "0.04"
+            }
+         },
+         "target" : "ExtUtils::LibBuilder",
+         "version" : "0.04"
+      },
       "ExtUtils::MakeMaker" : {
          "dist" : "ExtUtils-MakeMaker-6.62",
          "mymeta" : {
@@ -16352,7 +16465,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MY.pm"
+               "file" : "ExtUtils/MakeMaker.pm"
             }
          },
          "target" : "ExtUtils::MakeMaker",
@@ -21885,6 +21998,7 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
+                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -22382,6 +22496,72 @@
          },
          "target" : "Lingua::EN::Sentence",
          "version" : "0.25"
+      },
+      "Lingua::Identify::CLD" : {
+         "dist" : "Lingua-Identify-CLD-0.05",
+         "mymeta" : {
+            "abstract" : "Interface to Chrome language detection library.",
+            "author" : [
+               "Alberto Simões <ambs@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "bsd"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Lingua-Identify-CLD",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Config::AutoConf" : "0.17",
+                     "ExtUtils::CBuilder" : "0.27",
+                     "ExtUtils::LibBuilder" : "0.04",
+                     "ExtUtils::ParseXS" : 0,
+                     "Test::More" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "Config::AutoConf" : "0.16",
+                     "ExtUtils::LibBuilder" : "0.04",
+                     "Module::Build" : "0.38"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "XSLoader" : "0.10",
+                     "perl" : "5.008"
+                  }
+               }
+            },
+            "provides" : {
+               "Lingua::Identify::CLD" : {
+                  "file" : "lib/Lingua/Identify/CLD.pm",
+                  "version" : "0.05"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://opensource.org/licenses/bsd-license.php"
+               ]
+            },
+            "version" : "0.05"
+         },
+         "name" : "Lingua::Identify::CLD",
+         "pathname" : "A/AM/AMBS/Lingua/Lingua-Identify-CLD-0.05.tar.gz",
+         "provides" : {
+            "Lingua::Identify::CLD" : {
+               "file" : "Lingua/Identify/CLD.pm",
+               "version" : "0.05"
+            }
+         },
+         "target" : "Lingua::Identify::CLD",
+         "version" : "0.05"
       },
       "Lingua::PT::Stemmer" : {
          "dist" : "Lingua-PT-Stemmer-0.01",
@@ -39435,7 +39615,7 @@
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],
