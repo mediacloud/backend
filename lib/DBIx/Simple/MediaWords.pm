@@ -46,7 +46,27 @@ sub schema_is_up_to_date
 {
     my $self = shift;
 
+    die "Database schema is not up-to-date.\n" unless $ret->schema_is_up_to_date();
+
+    return $ret;
+}
+
+# Checks if the database schema is up-to-date
+sub schema_is_up_to_date
+{
+    my $self = shift @_;
+
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+
+    # Check if the database is empty
+    my $db_vars_table_exists_query =
+      "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name='database_variables')";
+    my @db_vars_table_exists = $self->query( $db_vars_table_exists_query )->flat();
+    if ( $#db_vars_table_exists )
+    {
+        say STDERR "Database table 'database_variables' does not exist, probably the database is empty at this point.";
+        return 1;
+    }
 
     # Current schema version
     my $schema_version_query =
