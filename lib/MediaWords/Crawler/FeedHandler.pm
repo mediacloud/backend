@@ -226,29 +226,90 @@ sub add_feed_stories_and_downloads
     return $num_new_stories;
 }
 
+# parse the content for tags that might indicate the story's title
+sub get_story_title_from_content
+{
+
+    # my ( $content, $url ) = @_;
+
+    if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
+
+    if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si ) { return $1; }
+
+    if ( $_[ 0 ] =~ m~<title>([^<]+)</title>~si ) { return $1; }
+
+    return $_[ 1 ];
+}
+
+# handle feeds of type 'web_page' by just creating a story to associate
+# with the content
+sub handle_web_page_content
+{
+    my ( $dbs, $download, $decoded_content, $feed ) = @_;
+
+    my $title = get_story_title_from_content( $decoded_content );
+    my $guid  = time . ":" . $download->{ url };
+
+    my $story = $dbs->create(
+        'stories',
+        {
+            url          => $download->{ url },
+            guid         => $guid,
+            media_id     => $feed->{ media_id },
+            publish_date => DateTime->now->datetime,
+            collect_date => DateTime->now->datetime,
+            title        => $title
+        }
+    );
+
+    $dbs->query(
+        "insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )",
+        $feed->{ feeds_id },
+        $story->{ stories_id }
+    );
+
+    $dbs->query(
+        "update downloads set stories_id = ?, type = 'content' where downloads_id = ?",
+        $story->{ stories_id },
+        $download->{ downloads_id }
+    );
+
+    return \$decoded_content;
+}
+
+# handle feeds of type 'syndicated', which are rss / atom / rdf feeds
+sub handle_syndicated_content
+{
+    my ( $dbs, $download, $decoded_content ) = @_;
+
+    my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
+
+    if ( $num_new_stories > 0 )
+    {
+        $dbs->query( "UPDATE feeds set last_new_story_time = last_download_time where feeds_id = ? ",
+            $download->{ feeds_id } );
+    }
+
+    return ( $num_new_stories > 0 ) ? \$decoded_content : \"(redundant feed)";
+}
+
 sub handle_feed_content
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
     my $content_ref = \$decoded_content;
 
+    my $feed = $dbs->find_by_id( 'feeds', $download->{ feeds_id } );
+
     try
     {
-
-        my $num_new_stories = add_feed_stories_and_downloads( $dbs, $download, $decoded_content );
-
-        if ( $num_new_stories > 0 )
+        given ( $feed->{ feed_type } )
         {
-            $content_ref = \$decoded_content;
-            $dbs->query( "UPDATE feeds set last_new_story_time = last_download_time where feeds_id = ? ",
-                $download->{ feeds_id } );
+            when ( 'syndicated' ) { $content_ref = handle_syndicated_content( $dbs, $download, $decoded_content ) }
+            when ( 'web_page' ) { $content_ref = handle_web_page_content( $dbs, $download, $decoded_content, $feed ) }
+            default { die( "Unknown feed type '$feed->{ feed_type }'" ) }
         }
-        else
-        {
 
-            #say STDERR "No stories found";
-            $content_ref = \"(redundant feed)";
-        }
     }
     catch
     {

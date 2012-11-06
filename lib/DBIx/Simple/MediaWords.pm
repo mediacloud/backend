@@ -15,6 +15,8 @@ use MediaWords::DB;
 
 use Data::Page;
 
+use Encode;
+
 use Data::Dumper;
 use Try::Tiny;
 
@@ -299,7 +301,7 @@ sub find_or_create
 # execute the query and return a list of pages hashes
 sub query_paged_hashes
 {
-    my ( $self, $query, $page, $rows_per_page ) = @_;
+    my ( $self, $query, $query_params, $page, $rows_per_page ) = @_;
 
     $page ||= 1;
 
@@ -307,7 +309,7 @@ sub query_paged_hashes
 
     $query .= " limit ( $rows_per_page + 1 ) offset $offset";
 
-    my $rs = $self->query( $query );
+    my $rs = $self->query( $query, @{ $query_params } );
 
     my $list = [];
     my $i    = 0;
@@ -372,7 +374,7 @@ sub query_csv_dump
     $self->dbh->do( $copy_statement, {}, @$params );
     while ( $self->dbh->pg_getcopydata( $line ) >= 0 )
     {
-        print $output_file $line;
+        print $output_file encode( 'utf8', $line );
     }
 
 }

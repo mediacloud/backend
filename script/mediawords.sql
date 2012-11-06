@@ -129,7 +129,7 @@ create table media (
     moderated           boolean         not null,
     feeds_added         boolean         not null,
     moderation_notes    text            null,       
-    full_text_rss       boolean         ,
+    full_text_rss       boolean,
     extract_author      boolean         default(false),
     sw_data_start_date  date            default(null),
     sw_data_end_date    date            default(null),
@@ -140,13 +140,16 @@ create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 
+create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
+
 create table feeds (
-    feeds_id            serial            primary key,
-    media_id            int                not null references media on delete cascade,
+    feeds_id            serial          primary key,
+    media_id            int             not null references media on delete cascade,
     name                varchar(512)    not null,        
-    url                       varchar(1024)    not null,
+    url                 varchar(1024)   not null,
     reparse             boolean         null,
-    last_download_time  timestamp       null    
+    last_download_time  timestamp       null, 
+    feed_type           feed_feed_type  not null default 'syndicated'
 );
 
 create index feeds_media on feeds(media_id);
@@ -200,6 +203,22 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
+/*
+A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
+
+For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
+to generate a dashboard for those collections, and a set of topics to use for specific dates for all media
+sets within the collection
+*/
+create table dashboards (
+    dashboards_id               serial          primary key,
+    name                        varchar(1024)   not null,
+    start_date                  timestamp       not null,
+    end_date                    timestamp       not null
+);
+
+create unique index dashboards_name on dashboards ( name );
+
 CREATE TYPE query_version_enum AS ENUM ('1.0');
 
 create table queries (
@@ -208,21 +227,23 @@ create table queries (
     end_date                date                not null,
     generate_page           boolean             not null default false,
     creation_date           timestamp           not null default now(),
-    description             text                null
+    description             text                null,
+    dashboards_id           int                 null references dashboards,
+    md5_signature           varchar(32)         not null
 );
 
 
 create index queries_creation_date on queries (creation_date);
-create index queries_hash on queries ( md5( description ) );
 ALTER TABLE queries ADD COLUMN query_version query_version_enum DEFAULT enum_last (null::query_version_enum ) NOT NULL;
-create unique index queries_hash_version on queries ( md5( description ), query_version );
-CREATE INDEX queries_description ON queries USING btree (description);
+create unique index queries_signature_version on queries ( md5_signature, query_version );
+create unique index queries_signature on queries (md5_signature);
 
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
 	queries_id              int             not null references queries,
 	num_clusters			int			    not null,
-	state                   varchar(32)     not null default 'pending'
+	state                   varchar(32)     not null default 'pending',
+    clustering_engine       varchar(256)    not null
 );
 
 alter table media_cluster_runs add constraint media_cluster_runs_state check (state in ('pending', 'executing', 'completed'));
@@ -457,22 +478,6 @@ LANGUAGE 'plpgsql'
  ;
 
 /*
-A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
-
-For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
-to generate a dashboard for those collections, and a set of topics to use for specific dates for all media
-sets within the collection
-*/
-create table dashboards (
-    dashboards_id               serial          primary key,
-    name                        varchar(1024)   not null,
-    start_date                  timestamp       not null,
-    end_date                    timestamp       not null
-);
-
-create unique index dashboards_name on dashboards ( name );
-
-/*
 dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.  Those assocaited media_sets will
 appear on the dashboard page, and the media associated with the collections will be available from autocomplete box.
 
@@ -483,10 +488,10 @@ create table dashboard_media_sets (
     dashboard_media_sets_id     serial          primary key,
     dashboards_id               int             not null references dashboards on delete cascade,
     media_sets_id               int             not null references media_sets on delete cascade,
-    media_cluster_runs_id       int             null references media_cluster_runs on delete set null
+    media_cluster_runs_id       int             null references media_cluster_runs on delete set null,
+    color                       text            null
 );
 
-create unique index dashboard_media_sets_media_set on dashboard_media_sets( media_sets_id );
 CREATE UNIQUE INDEX dashboard_media_sets_media_set_dashboard on dashboard_media_sets(media_sets_id, dashboards_id);
 create index dashboard_media_sets_dashboard on dashboard_media_sets( dashboards_id );
 
@@ -1051,6 +1056,113 @@ CREATE UNIQUE INDEX popular_queries_da_up ON popular_queries(dashboard_action, u
 CREATE UNIQUE INDEX popular_queries_query_ids ON popular_queries( queries_id_0,  queries_id_1);
 CREATE INDEX popular_queries_dashboards_id_count on popular_queries(dashboards_id, count);
 
+create table query_story_searches (
+    query_story_searches_id     serial primary key,
+    queries_id                  int not null references queries,
+    pattern                     text,
+    search_completed            boolean default false,
+    csv_text                    text
+);
+
+create unique index query_story_searches_query_pattern on query_story_searches( queries_id, pattern );
+  
+create table query_story_searches_stories_map (
+    query_story_searches_id     int,
+    stories_id                  int
+);
+
+create unique index query_story_searches_stories_map_u on query_story_searches_stories_map ( query_story_searches_id, stories_id );
+    
+create table sopa_links (
+    sopa_links_id       serial primary key,
+    stories_id          int not null references stories,
+    url                 text not null,
+    redirect_url        text,
+    ref_stories_id      int references stories,
+    link_spidered       boolean default 'f'
+);
+
+create index sopa_links_story on sopa_links (stories_id);
+    
+create table sopa_stories (
+    sopa_stories_id         serial primary key,
+    stories_id              int not null references stories,
+    link_mined              boolean default 'f',
+    iteration               int default 0,
+    link_weight             real
+);
+
+create table story_similarities (
+    story_similarities_id   serial primary key,
+    stories_id_a            int,
+    publish_day_a           date,
+    stories_id_b            int,
+    publish_day_b           date,
+    similarity              int
+);
+
+create index story_similarities_a_b on story_similarities ( stories_id_a, stories_id_b );
+create index story_similarities_a_s on story_similarities ( stories_id_a, similarity, publish_day_b );
+create index story_similarities_b_s on story_similarities ( stories_id_b, similarity, publish_day_a );
+create index story_similarities_day on story_similarities ( publish_day_a, publish_day_b ); 
+     
+create view story_similarities_transitive as
+    ( select story_similarities_id, stories_id_a, publish_day_a, stories_id_b, publish_day_b, similarity from story_similarities ) union 
+        ( select story_similarities_id, stories_id_b as stories_id_a, publish_day_b as publish_day_a,
+            stories_id_a as stories_id_b, publish_day_a as publish_day_b, similarity from story_similarities );
+            
+create table controversies (
+    controversies_id        serial primary key,
+    name                    varchar(1024) not null,
+    query_story_searches_id int not null
+);
+
+create unique index controversies_name on controversies( name );
+
+
+create table controversy_media_codes (
+    controversies_id        int not null references controversies on delete cascade,
+    media_id                int not null references media on delete cascade,
+    code_type               text,
+    code                    text
+);
+    
+create table controversy_merged_media (
+    source_media_id         int not null,
+    target_media_id         int not null
+);
+
+create table controversy_links (
+    controversy_links_id        serial primary key,
+    controversies_id            int not null references controversies on delete cascade,
+    stories_id                  int not null references stories on delete cascade,
+    url                         text not null,
+    redirect_url                text,
+    ref_stories_id              int references stories on delete cascade,
+    link_spidered               boolean default 'f'
+);
+
+create index controversy_links_story on controversy_links (stories_id, controversies_id );
+    
+create table controversy_stories (
+    controversy_stories_id          serial primary key,
+    controversies_id                int not null references controversies on delete cascade,
+    stories_id                      int not null references stories on delete cascade,
+    link_mined                      boolean default 'f',
+    iteration                       int default 0,
+    link_weight                     real,
+    redirect_url                    text
+);
+
+create view controversy_links_cross_media as
+  select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, 
+      substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id
+    from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs
+    where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and 
+      cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and 
+      sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and
+      cs.controversies_id = cl.controversies_id;
+    
 CREATE VIEW stories_collected_in_past_day as select * from stories where collect_date > now() - interval '1 day';
 
 CREATE VIEW downloads_to_be_extracted as select * from downloads where extracted = 'f' and state = 'success' and type = 'content';

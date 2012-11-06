@@ -49,7 +49,7 @@ sub list : Local
     my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
         "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
           "and fsm.feeds_id = $feeds_id " . "and publish_date > now() - interval '30 days' " . "order by publish_date desc",
-        $p, ROWS_PER_PAGE
+        [], $p, ROWS_PER_PAGE
     );
 
     if ( @{ $stories } < ROWS_PER_PAGE )
@@ -57,7 +57,7 @@ sub list : Local
         ( $stories, $pager ) = $c->dbis->query_paged_hashes(
             "select s.* from stories s, feeds_stories_map fsm where s.stories_id = fsm.stories_id " .
               "and fsm.feeds_id = $feeds_id " . "order by publish_date desc",
-            $p, ROWS_PER_PAGE
+            [], $p, ROWS_PER_PAGE
         );
     }
 

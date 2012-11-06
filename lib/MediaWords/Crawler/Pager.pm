@@ -58,7 +58,8 @@ sub _link_is_next_page
             my $alt           = $2;
 
             $regex_match_count++;
-            say "Slow regex matched. match_count $regex_match_count / $regex_tried_count. text length: " . length( $text );
+
+            # say "Slow regex matched. match_count $regex_match_count / $regex_tried_count. text length: " . length( $text );
 
             if ( $stripped_text !~ /\w/ )
             {

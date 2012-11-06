@@ -18,9 +18,13 @@ elements:
         - Required
 
   - type: Select
+    name: dashboards_id
+    label: Dashboard
+    comment: select either a single dashboard OR a single media source OR one or more media sets    
+
+  - type: Select
     name: media_id
     label: Media Source
-    comment: select either a single media source OR one or more media sets    
         
   - type: Select
     name: media_sets_ids

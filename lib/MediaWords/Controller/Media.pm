@@ -362,6 +362,11 @@ sub create_do : Local
         $status_msg = join( "\n",
             "Errors adding some media sources, see below.  Any urls not mentioned below were added successfully.",
             @{ $error_messages } );
+            
+        if ( length( $status_msg ) > 2048 )
+        {
+            $status_msg = substr( $status_msg, 0, 2000 ) . "...\nAdditional errors not listed.";
+        }
     }
     else
     {
@@ -526,21 +531,17 @@ sub moderate : Local
 
     my $media;
 
-    say STDERR "Media sets id $media_sets_id";
-
+    my $media_set_clause = "1=1";
     if ( defined( $media_sets_id ) )
     {
-        $media = $c->dbis->query(
-"select * from media where moderated = 'f' and media_id in (select media_id from media_sets_media_map where media_sets_id = ?) and media_id > ? "
-              . "  order by media_id",
-            $media_sets_id, $prev_media_id
-        )->hashes;
+        $media_sets_id += 0;
+        $media_set_clause = "media_id in ( select media_id from media_sets_media_map where media_sets_id = $media_sets_id )";
     }
-    else
-    {
-        $media = $c->dbis->query( "select * from media where moderated = 'f' and media_id > ? " . "  order by media_id",
-            $prev_media_id )->hashes;
-    }
+
+    $media = $c->dbis->query(
+"select * from media where moderated = 'f' and feeds_added = 't' and media_id > ? and $media_set_clause order by media_id",
+        $prev_media_id
+    )->hashes;
 
     my ( $medium, $tag_names, $feeds, $merge_media );
 
@@ -559,13 +560,17 @@ sub moderate : Local
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
 
-    $c->stash->{ media_sets_id } = $media_sets_id;
-    $c->stash->{ medium }        = $medium;
-    $c->stash->{ tag_names }     = $tag_names;
-    $c->stash->{ feeds }         = $feeds;
-    $c->stash->{ queue_size }    = scalar( @{ $media } );
-    $c->stash->{ merge_media }   = $merge_media;
-    $c->stash->{ template }      = 'media/moderate.tt2';
+    my ( $num_media_pending_feeds ) =
+      $c->dbis->query( "select count(*) from media where feeds_added = 'f' and moderated = 'f'" )->flat;
+
+    $c->stash->{ media_sets_id }           = $media_sets_id;
+    $c->stash->{ medium }                  = $medium;
+    $c->stash->{ tag_names }               = $tag_names;
+    $c->stash->{ feeds }                   = $feeds;
+    $c->stash->{ queue_size }              = scalar( @{ $media } );
+    $c->stash->{ merge_media }             = $merge_media;
+    $c->stash->{ num_media_pending_feeds } = $num_media_pending_feeds;
+    $c->stash->{ template }                = 'media/moderate.tt2';
 }
 
 # display search form, and results of a query was submitted.

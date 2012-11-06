@@ -58,6 +58,10 @@ sub get_query_form
     my $media_options = [ [ 0, '(none)' ], map { [ $_->{ media_id }, $_->{ name } ] } @{ $media } ];
     $form->get_field( 'media_id' )->options( $media_options );
 
+    my $dashboards = $c->dbis->query( "select * from dashboards order by name" )->hashes;
+    my $dashboard_options = [ [ 0, '(none)' ], map { [ $_->{ dashboards_id }, $_->{ name } ] } @{ $dashboards } ];
+    $form->get_field( 'dashboards_id' )->options( $dashboard_options );
+
     if ( $query )
     {
         map { $form->get_field( $_ )->default( $query->{ $_ } ) }
@@ -418,6 +422,78 @@ sub stories : Local
     my $stories = MediaWords::DBI::Queries::get_stories_with_text( $c->dbis, $query );
 
     MediaWords::Util::CSV::send_hashes_as_csv_page( $c, $stories, "stories.csv" );
+}
+
+sub queue_story_search : Local
+{
+    my ( $self, $c, $queries_id ) = @_;
+
+    my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id )
+      || die( "Unable to find query $queries_id" );
+
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/queue_story_search.yml',
+            method           => 'post',
+        }
+    );
+
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid() )
+    {
+        my $searches =
+          $c->dbis->query( "select * from query_story_searches where queries_id = ? order by query_story_searches_id asc",
+            $queries_id )->hashes;
+
+        $c->stash->{ query }    = $query;
+        $c->stash->{ searches } = $searches;
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'queries/queue_story_search.tt2';
+        return;
+    }
+
+    my $pattern = $c->req->param( 'pattern' );
+
+    my $existing_search =
+      $c->dbis->query( "select * from query_story_searches where queries_id = ? and pattern = ?", $queries_id, $pattern )
+      ->hash;
+
+    if ( $existing_search )
+    {
+        $c->response->redirect(
+            $c->uri_for(
+                "/queries/queue_story_search/$query->{ queries_id }",
+                { status_msg => 'Story search already exists.' }
+            )
+        );
+        return;
+    }
+
+    $c->dbis->create(
+        'query_story_searches',
+        {
+            queries_id => $queries_id,
+            pattern    => $c->req->param( 'pattern' ),
+        }
+    );
+
+    $c->response->redirect(
+        $c->uri_for( "/queries/queue_story_search/$query->{ queries_id }", { status_msg => 'Story search queued.' } ) );
+}
+
+sub story_search_csv : Local
+{
+    my ( $self, $c, $query_story_searches_id ) = @_;
+
+    my $query_story_search = $c->dbis->find_by_id( 'query_story_searches', $query_story_searches_id )
+      || die( "Unable to find query_story_search '$query_story_searches_id'" );
+
+    $c->res->header( 'Content-Disposition', qq[attachment; filename="query_story_searches.csv"] );
+    $c->res->header( 'Content-Length',      length( $query_story_search->{ csv_text } ) );
+    $c->res->content_type( 'text/csv' );
+    $c->res->body( $query_story_search->{ csv_text } );
+
 }
 
 1;

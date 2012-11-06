@@ -32,7 +32,7 @@ sub main
           . "    and cur.dashboard_topics_id is null and prev.dashboard_topics_id is null "
           . "    and cur.publish_day = prev.publish_day + interval '1 day' "
           . "    and prev.total_count > 0 and ( cur.total_count::float / prev.total_count::float ) < 0.1 "
-          . "    and ms.set_type = 'collection' and cur.publish_day > now() - interval '1 month' "
+          . "    and ms.set_type = 'collection' and ( cur.publish_day > ( now() - interval '3 month' ) ) and cur.publish_day < now() "
           . "    and prev.total_count > 10000 "
           . "  order by cur.publish_day, ms.media_sets_id" )->hashes;
 
@@ -45,10 +45,12 @@ sub main
     my $topic_days =
       $db->query( "select ms.name, publish_day from  total_daily_words tdw, media_sets ms " .
           "  where  ms.set_type = 'collection' and ms.media_sets_id = tdw.media_sets_id " .
-          "    and not ( dashboard_topics_id is null ) and publish_day > now() - interval '1 month'" . "except " .
-          "select ms.name, publish_day from  total_daily_words tdw, media_sets ms " .
-          "  where tdw.media_sets_id = ms.media_sets_id and ms.set_type = 'collection' " .
-          "    and ( dashboard_topics_id is null ) " . "  order by publish_day, name" )->hashes;
+          "    and not ( dashboard_topics_id is null ) and publish_day > now() - interval '3 month' and publish_day < now() "
+          . "except "
+          . "select ms.name, publish_day from  total_daily_words tdw, media_sets ms "
+          . "  where tdw.media_sets_id = ms.media_sets_id and ms.set_type = 'collection' "
+          . "    and ( dashboard_topics_id is null ) "
+          . "  order by publish_day, name" )->hashes;
 
     for my $day ( @{ $topic_days } )
     {

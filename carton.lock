@@ -2667,6 +2667,193 @@
          "target" : "Carp::Clan",
          "version" : "6.04"
       },
+      "Catalyst::Action::REST" : {
+         "dist" : "Catalyst-Action-REST-1.05",
+         "mymeta" : {
+            "abstract" : "Automated REST Method Dispatching",
+            "author" : [
+               "Adam Jacob <adam@stalecoffee.org>, with lots of help from mst and jrockway"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Catalyst-Action-REST",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t",
+                  "xt"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59",
+                     "Test::More" : "0.88"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Catalyst::Runtime" : "5.80030",
+                     "Class::Inspector" : "1.13",
+                     "Config::General" : 0,
+                     "Data::Serializer" : "0.36",
+                     "HTML::Parser" : 0,
+                     "JSON" : "2.12",
+                     "JSON::XS" : "2.2222",
+                     "LWP::UserAgent" : "2.033",
+                     "MRO::Compat" : "0.10",
+                     "Module::Pluggable::Object" : 0,
+                     "Moose" : "1.03",
+                     "Params::Validate" : "0.76",
+                     "Test::More" : "0.88",
+                     "URI::Find" : 0,
+                     "XML::Simple" : 0,
+                     "YAML::Syck" : "0.67",
+                     "namespace::autoclean" : 0,
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://git.shadowcat.co.uk/catagits/Catalyst-Action-REST.git"
+               }
+            },
+            "version" : "1.05",
+            "x_authority" : "cpan:BOBTFISH"
+         },
+         "name" : "Catalyst::Action::REST",
+         "pathname" : "B/BO/BOBTFISH/Catalyst-Action-REST-1.05.tar.gz",
+         "provides" : {
+            "Catalyst::Action::Deserialize" : {
+               "file" : "Catalyst/Action/Deserialize.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Deserialize::Callback" : {
+               "file" : "Catalyst/Action/Deserialize/Callback.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Deserialize::Data::Serializer" : {
+               "file" : "Catalyst/Action/Deserialize/Data/Serializer.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Deserialize::JSON" : {
+               "file" : "Catalyst/Action/Deserialize/JSON.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Deserialize::JSON::XS" : {
+               "file" : "Catalyst/Action/Deserialize/JSON/XS.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Deserialize::View" : {
+               "file" : "Catalyst/Action/Deserialize/View.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Deserialize::XML::Simple" : {
+               "file" : "Catalyst/Action/Deserialize/XML/Simple.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Deserialize::YAML" : {
+               "file" : "Catalyst/Action/Deserialize/YAML.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::DeserializeMultiPart" : {
+               "file" : "Catalyst/Action/DeserializeMultiPart.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::REST" : {
+               "file" : "Catalyst/Action/REST.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::REST::ForBrowsers" : {
+               "file" : "Catalyst/Action/REST/ForBrowsers.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize" : {
+               "file" : "Catalyst/Action/Serialize.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::Callback" : {
+               "file" : "Catalyst/Action/Serialize/Callback.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::Data::Serializer" : {
+               "file" : "Catalyst/Action/Serialize/Data/Serializer.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::JSON" : {
+               "file" : "Catalyst/Action/Serialize/JSON.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::JSON::XS" : {
+               "file" : "Catalyst/Action/Serialize/JSON/XS.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::JSONP" : {
+               "file" : "Catalyst/Action/Serialize/JSONP.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::View" : {
+               "file" : "Catalyst/Action/Serialize/View.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::XML::Simple" : {
+               "file" : "Catalyst/Action/Serialize/XML/Simple.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::YAML" : {
+               "file" : "Catalyst/Action/Serialize/YAML.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::Serialize::YAML::HTML" : {
+               "file" : "Catalyst/Action/Serialize/YAML/HTML.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Action::SerializeBase" : {
+               "file" : "Catalyst/Action/SerializeBase.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Controller::REST" : {
+               "file" : "Catalyst/Controller/REST.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Request::REST" : {
+               "file" : "Catalyst/Request/REST.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::Request::REST::ForBrowsers" : {
+               "file" : "Catalyst/Request/REST/ForBrowsers.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::TraitFor::Request::REST" : {
+               "file" : "Catalyst/TraitFor/Request/REST.pm",
+               "version" : "1.05"
+            },
+            "Catalyst::TraitFor::Request::REST::ForBrowsers" : {
+               "file" : "Catalyst/TraitFor/Request/REST/ForBrowsers.pm",
+               "version" : "1.05"
+            }
+         },
+         "target" : "Catalyst::Controller::REST",
+         "version" : "1.05"
+      },
       "Catalyst::Action::RenderView" : {
          "dist" : "Catalyst-Action-RenderView-0.16",
          "mymeta" : {
@@ -7531,6 +7718,61 @@
          },
          "target" : "Data::Page",
          "version" : "2.02"
+      },
+      "Data::Pageset" : {
+         "dist" : "Data-Pageset-1.06",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "unknown"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.56, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Data-Pageset",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Data::Page" : "2",
+                     "Test::More" : "0.1"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "1.06"
+         },
+         "name" : "Data::Pageset",
+         "pathname" : "L/LL/LLAP/Data-Pageset-1.06.tar.gz",
+         "provides" : {
+            "Data::Pageset" : {
+               "file" : "Data/Pageset.pm",
+               "version" : "1.06"
+            }
+         },
+         "target" : "Data::Pageset",
+         "version" : "1.06"
       },
       "Data::Random" : {
          "dist" : "Data-Random-0.07",
@@ -23158,6 +23400,60 @@
          "target" : "Locale::Country::Multilingual",
          "version" : "0.23"
       },
+      "Locale::Maketext::AutoTranslate" : {
+         "dist" : "Locale-Maketext-AutoTranslate-0.1",
+         "mymeta" : {
+            "abstract" : "Translate L10N messages automatically",
+            "author" : [
+               "Yung-chung Lin (henearkrxern@gmail.com)"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 0.71, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Locale-Maketext-AutoTranslate",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.62",
+                     "HTML::Entities" : 0,
+                     "Locale::Maketext::Extract" : 0,
+                     "Locale::Maketext::Lexicon" : 0,
+                     "Moose" : 0,
+                     "REST::Google::Translate" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.1"
+         },
+         "name" : "Locale::Maketext::AutoTranslate",
+         "pathname" : "X/XE/XERN/Locale-Maketext-AutoTranslate-0.1.tar.gz",
+         "provides" : {
+            "Locale::Maketext::AutoTranslate" : {
+               "file" : "Locale/Maketext/AutoTranslate.pm",
+               "version" : "0.1"
+            }
+         },
+         "target" : "Locale::Maketext::AutoTranslate",
+         "version" : "0.1"
+      },
       "Locale::Maketext::Lexicon" : {
          "dist" : "Locale-Maketext-Lexicon-0.91",
          "mymeta" : {
@@ -31559,6 +31855,150 @@
          "target" : "RDF::Simple",
          "version" : "1.004"
       },
+      "REST::Google" : {
+         "dist" : "REST-Google-1.0.8",
+         "mymeta" : {
+            "abstract" : "access Google REST (aka AJAX) API from Perl",
+            "author" : [
+               "Eugen Sobchenko <ejs@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "REST-Google",
+            "prereqs" : {
+               "runtime" : {
+                  "requires" : {
+                     "Class::Accessor" : "0.31",
+                     "Class::Data::Inheritable" : "0.06",
+                     "JSON::Any" : "1.16",
+                     "LWP::UserAgent" : "2.033",
+                     "Test::More" : "0.47",
+                     "URI" : "1.35",
+                     "perl" : "v5.6.1",
+                     "version" : "0.50"
+                  }
+               }
+            },
+            "provides" : {
+               "REST::Google" : {
+                  "file" : "lib/REST/Google.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Feeds" : {
+                  "file" : "lib/REST/Google/Feeds.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search" : {
+                  "file" : "lib/REST/Google/Search.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Blogs" : {
+                  "file" : "lib/REST/Google/Search/Blogs.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Books" : {
+                  "file" : "lib/REST/Google/Search/Books.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Images" : {
+                  "file" : "lib/REST/Google/Search/Images.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Local" : {
+                  "file" : "lib/REST/Google/Search/Local.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::News" : {
+                  "file" : "lib/REST/Google/Search/News.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Patent" : {
+                  "file" : "lib/REST/Google/Search/Patent.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Video" : {
+                  "file" : "lib/REST/Google/Search/Video.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Search::Web" : {
+                  "file" : "lib/REST/Google/Search/Web.pm",
+                  "version" : "v1.0.8"
+               },
+               "REST::Google::Translate" : {
+                  "file" : "lib/REST/Google/Translate.pm",
+                  "version" : "v1.0.8"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "1.0.8"
+         },
+         "name" : "REST::Google",
+         "pathname" : "E/EJ/EJS/REST-Google-1.0.8.tar.gz",
+         "provides" : {
+            "REST::Google" : {
+               "file" : "REST/Google.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Feeds" : {
+               "file" : "REST/Google/Feeds.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search" : {
+               "file" : "REST/Google/Search.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Blogs" : {
+               "file" : "REST/Google/Search/Blogs.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Books" : {
+               "file" : "REST/Google/Search/Books.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Images" : {
+               "file" : "REST/Google/Search/Images.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Local" : {
+               "file" : "REST/Google/Search/Local.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::News" : {
+               "file" : "REST/Google/Search/News.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Patent" : {
+               "file" : "REST/Google/Search/Patent.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Video" : {
+               "file" : "REST/Google/Search/Video.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Search::Web" : {
+               "file" : "REST/Google/Search/Web.pm",
+               "version" : "v1.0.8"
+            },
+            "REST::Google::Translate" : {
+               "file" : "REST/Google/Translate.pm",
+               "version" : "v1.0.8"
+            }
+         },
+         "target" : "REST::Google::Translate",
+         "version" : "v1.0.8"
+      },
       "Readonly" : {
          "dist" : "Readonly-1.03",
          "mymeta" : {
@@ -34430,6 +34870,85 @@
          "target" : "Test::Manifest",
          "version" : "1.23"
       },
+      "Test::Mock::LWP" : {
+         "dist" : "Test-Mock-LWP-0.06",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "Luke Closs <test-mock-lwp@awesnob.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.57_05, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Test-Mock-LWP",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Test::MockObject" : "1.08",
+                     "Test::More" : "0.42"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.06"
+         },
+         "name" : "Test::Mock::LWP",
+         "pathname" : "L/LU/LUKEC/Test-Mock-LWP-0.06.tar.gz",
+         "provides" : {
+            "HTTP::Request" : {
+               "file" : "Test/Mock/HTTP/Request.pm",
+               "version" : "0"
+            },
+            "HTTP::Response" : {
+               "file" : "Test/Mock/HTTP/Response.pm",
+               "version" : "0"
+            },
+            "LWP::UserAgent" : {
+               "file" : "Test/Mock/LWP/UserAgent.pm",
+               "version" : "0"
+            },
+            "Test::Mock::HTTP::Request" : {
+               "file" : "Test/Mock/HTTP/Request.pm",
+               "version" : "0.01"
+            },
+            "Test::Mock::HTTP::Response" : {
+               "file" : "Test/Mock/HTTP/Response.pm",
+               "version" : "0.01"
+            },
+            "Test::Mock::LWP" : {
+               "file" : "Test/Mock/LWP.pm",
+               "version" : "0.06"
+            },
+            "Test::Mock::LWP::UserAgent" : {
+               "file" : "Test/Mock/LWP/UserAgent.pm",
+               "version" : "0.01"
+            }
+         },
+         "target" : "Test::Mock::LWP",
+         "version" : "0.06"
+      },
       "Test::MockObject" : {
          "dist" : "Test-MockObject-1.20120301",
          "mymeta" : {
@@ -37033,6 +37552,83 @@
          "target" : "URI",
          "version" : "1.59"
       },
+      "URI::Find" : {
+         "dist" : "URI-Find-20111103",
+         "mymeta" : {
+            "abstract" : "Find URIs in arbitrary text",
+            "author" : [
+               "Michael G Schwern <schwern@pobox.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "URI-Find",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Module::Build" : "0.30",
+                     "Test::More" : "0.88"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "Module::Build" : "0.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "URI" : "1.00",
+                     "URI::URL" : "5.00",
+                     "perl" : "v5.6.0"
+                  }
+               }
+            },
+            "provides" : {
+               "URI::Find" : {
+                  "file" : "lib/URI/Find.pm",
+                  "version" : "20111103"
+               },
+               "URI::Find::Schemeless" : {
+                  "file" : "lib/URI/Find/Schemeless.pm",
+                  "version" : "20111103"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=URI-Find"
+               },
+               "homepage" : "http://search.cpan.org/dist/URI-Find",
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/schwern/uri-find/tree/master"
+               }
+            },
+            "version" : "20111103"
+         },
+         "name" : "URI::Find",
+         "pathname" : "M/MS/MSCHWERN/URI-Find-20111103.tar.gz",
+         "provides" : {
+            "URI::Find" : {
+               "file" : "URI/Find.pm",
+               "version" : "20111103"
+            },
+            "URI::Find::Schemeless" : {
+               "file" : "URI/Find/Schemeless.pm",
+               "version" : "20111103"
+            }
+         },
+         "target" : "URI::Find",
+         "version" : "20111103"
+      },
       "Variable::Magic" : {
          "dist" : "Variable-Magic-0.47",
          "mymeta" : {
@@ -37343,6 +37939,219 @@
          },
          "target" : "WebService::Google::Language",
          "version" : "0.14"
+      },
+      "WebService::Solr" : {
+         "dist" : "WebService-Solr-0.19",
+         "mymeta" : {
+            "abstract" : "Module to interface with the Solr (Lucene) webservice",
+            "author" : [
+               "Brian Cassidy <bricas@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "WebService-Solr",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59",
+                     "Test::Mock::LWP" : "0.05",
+                     "Test::More" : 0,
+                     "XML::Simple" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Any::Moose" : "0.16",
+                     "Data::Page" : 0,
+                     "Data::Pageset" : 0,
+                     "Encode" : 0,
+                     "JSON::XS" : 0,
+                     "LWP::UserAgent" : 0,
+                     "URI" : "1.28",
+                     "XML::Easy" : 0,
+                     "perl" : "5.008"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/bricas/webservice-solr"
+               }
+            },
+            "version" : "0.19"
+         },
+         "name" : "WebService::Solr",
+         "pathname" : "B/BR/BRICAS/WebService-Solr-0.19.tar.gz",
+         "provides" : {
+            "WebService::Solr" : {
+               "file" : "WebService/Solr.pm",
+               "version" : "0.19"
+            },
+            "WebService::Solr::Document" : {
+               "file" : "WebService/Solr/Document.pm"
+            },
+            "WebService::Solr::Field" : {
+               "file" : "WebService/Solr/Field.pm"
+            },
+            "WebService::Solr::Query" : {
+               "file" : "WebService/Solr/Query.pm"
+            },
+            "WebService::Solr::Response" : {
+               "file" : "WebService/Solr/Response.pm"
+            }
+         },
+         "target" : "WebService::Solr",
+         "version" : "0.19"
+      },
+      "XML::Easy" : {
+         "dist" : "XML-Easy-0.009",
+         "mymeta" : {
+            "abstract" : "XML processing with a clean interface",
+            "author" : [
+               "Andrew Main (Zefram) <zefram@fysh.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "XML-Easy",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Encode" : 0,
+                     "IO::File" : 0,
+                     "Module::Build" : 0,
+                     "Params::Classify" : 0,
+                     "Scalar::Util" : 0,
+                     "Test::More" : 0,
+                     "perl" : "5.008",
+                     "strict" : 0,
+                     "utf8" : 0,
+                     "warnings" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "Module::Build" : 0,
+                     "perl" : "5.008",
+                     "strict" : 0,
+                     "warnings" : 0
+                  }
+               },
+               "runtime" : {
+                  "recommends" : {
+                     "Internals" : 0,
+                     "XSLoader" : 0
+                  },
+                  "requires" : {
+                     "Exporter" : 0,
+                     "Params::Classify" : 0,
+                     "parent" : 0,
+                     "perl" : "5.008",
+                     "strict" : 0,
+                     "warnings" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "XML::Easy" : {
+                  "file" : "lib/XML/Easy.pm",
+                  "version" : "0.009"
+               },
+               "XML::Easy::Classify" : {
+                  "file" : "lib/XML/Easy/Classify.pm",
+                  "version" : "0.009"
+               },
+               "XML::Easy::Content" : {
+                  "file" : "lib/XML/Easy/Content.pm",
+                  "version" : "0.009"
+               },
+               "XML::Easy::Element" : {
+                  "file" : "lib/XML/Easy/Element.pm",
+                  "version" : "0.009"
+               },
+               "XML::Easy::NodeBasics" : {
+                  "file" : "lib/XML/Easy/NodeBasics.pm",
+                  "version" : "0.009"
+               },
+               "XML::Easy::Syntax" : {
+                  "file" : "lib/XML/Easy/Syntax.pm",
+                  "version" : "0.009"
+               },
+               "XML::Easy::Text" : {
+                  "file" : "lib/XML/Easy/Text.pm",
+                  "version" : "0.009"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.009"
+         },
+         "name" : "XML::Easy",
+         "pathname" : "Z/ZE/ZEFRAM/XML-Easy-0.009.tar.gz",
+         "provides" : {
+            "XML::Easy" : {
+               "file" : "XML/Easy.pm",
+               "version" : "0.009"
+            },
+            "XML::Easy::Classify" : {
+               "file" : "XML/Easy/Classify.pm",
+               "version" : "0.009"
+            },
+            "XML::Easy::Content" : {
+               "file" : "XML/Easy/Content.pm",
+               "version" : "0.009"
+            },
+            "XML::Easy::Element" : {
+               "file" : "XML/Easy/Element.pm",
+               "version" : "0.009"
+            },
+            "XML::Easy::NodeBasics" : {
+               "file" : "XML/Easy/NodeBasics.pm",
+               "version" : "0.009"
+            },
+            "XML::Easy::Syntax" : {
+               "file" : "XML/Easy/Syntax.pm",
+               "version" : "0.009"
+            },
+            "XML::Easy::Text" : {
+               "file" : "XML/Easy/Text.pm",
+               "version" : "0.009"
+            }
+         },
+         "target" : "XML::Easy",
+         "version" : "0.009"
       },
       "XML::FeedPP" : {
          "dist" : "XML-FeedPP-0.43",

@@ -37,7 +37,9 @@ use Math::Random;
 use MediaWords::Cluster;
 use MediaWords::Cluster::Map::GraphLayoutAesthetic;
 use MediaWords::Cluster::Map::GraphViz;
+use MediaWords::DBI::DashboardMediaSets;
 use MediaWords::DBI::Queries;
+use MediaWords::Util::Colors;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 use MediaWords::Util::BigPDLVector qw( vector_new vector_cos_sim vector_normalize vector_set vector_cos_sim_cached );
@@ -444,26 +446,51 @@ sub _get_media_set_shape_lookup
     return $lookup;
 }
 
-# get a table that associates each media_sets_id in media_sets with a shape
+# if the clusters are from a media_sets cluster run and the query
+# has a dahsboards_id, then assign consistent colors from the
+# dashboard_media_sets table
+sub _get_dashboard_media_set_cluster_color_lookup
+{
+    my ( $db, $media_clusters, $media_sets ) = @_;
+
+    my $cluster_run = $db->find_by_id( 'media_cluster_runs', $media_clusters->[ 0 ]->{ media_cluster_runs_id } );
+
+    return unless ( $cluster_run->{ clustering_engine } eq 'media_sets' );
+
+    my $query = $db->find_by_id( 'queries', $cluster_run->{ queries_id } );
+
+    return unless ( $query->{ dashboards_id } );
+
+    my $lookup;
+    for my $media_cluster ( @{ $media_clusters } )
+    {
+        my $dashboard_media_set = $db->query(
+            "select * from dashboard_media_sets where media_sets_id = ? and dashboards_id = ?",
+            $media_cluster->{ media_sets_id },
+            $query->{ dashboards_id }
+        )->hash;
+        my $color = MediaWords::DBI::DashboardMediaSets::get_color( $db, $dashboard_media_set );
+        $lookup->{ $media_cluster->{ media_clusters_id } } =
+          MediaWords::Util::Colors::get_rgbp_format( $dashboard_media_set->{ color } );
+    }
+}
+
+# get a hash that associates each cluster with a color
 sub _get_cluster_color_lookup
 {
-    my ( $clusters ) = @_;
+    my ( $db, $clusters, $media_sets ) = @_;
 
-    my $lookup = {};
+    my $lookup;
 
-    my $colors = [
-        "rgb(31,119,180)",  "rgb(174,199,232)", "rgb(255,127,14)",  "rgb(255,187,120)",
-        "rgb(44,160,44)",   "rgb(152,223,138)", "rgb(214,39,40)",   "rgb(255,152,150)",
-        "rgb(148,103,189)", "rgb(197,176,213)", "rgb(140,86,75)",   "rgb(196,156,148)",
-        "rgb(227,119,194)", "rgb(247,182,210)", "rgb(127,127,127)", "rgb(199,199,199)",
-        "rgb(188,189,34)",  "rgb(219,219,141)", "rgb(23,190,207)",  "rgb(158,218,229)",
-        "rgb(132,196,206)", "rgb(255,167,121)", "rgb(204,90,206)",  "rgb(111,17,201)",
-        "rgb(111,62,93)"
-    ];
+    return $lookup if ( $lookup = _get_dashboard_media_set_cluster_color_lookup( $db, $clusters, $media_sets ) );
 
-    for my $c ( 0 .. $#{ $clusters } )
+    $lookup = {};
+
+    my $colors = MediaWords::Util::get_colors( scalar( @{ $clusters } ), 'rgb()' );
+
+    for my $cluster ( @{ $clusters } )
     {
-        $lookup->{ $clusters->[ $c ]->{ media_clusters_id } } = $colors->[ $c ] || "rgb(0,0,0)";
+        $lookup->{ $cluster->{ media_clusters_id } } = pop( @{ $colors } );
     }
 
     return $lookup;
@@ -509,11 +536,11 @@ sub _normalize_coordinates
 # suitable for assigning to the data variable in 'root/clusters/protovis_transform.tt2'
 sub _get_protovis_json
 {
-    my ( $nodes, $media_clusters, $media_sets ) = @_;
+    my ( $db, $nodes, $media_clusters, $media_sets ) = @_;
 
     my $centroids = _get_centroids_from_plotted_nodes( $media_clusters, $nodes );
 
-    my $color_lookup = _get_cluster_color_lookup( $media_clusters );
+    my $color_lookup = _get_cluster_color_lookup( $db, $media_clusters, $media_sets );
 
     for my $n ( @{ $nodes }, @{ $centroids } )
     {
@@ -658,7 +685,7 @@ sub generate_cluster_map
 
     _plot_nodes( $method, $nodes );
 
-    my $json_string = _get_protovis_json( $nodes, $media_clusters, $media_sets );
+    my $json_string = _get_protovis_json( $db, $nodes, $media_clusters, $media_sets );
 
     my $stats = _get_stats( $nodes );
 

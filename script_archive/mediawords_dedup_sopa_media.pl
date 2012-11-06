@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # dedup sopa spidered media sources
 
@@ -26,12 +26,17 @@ sub get_medium_domain
 
     my $n = @{ $name_parts } - 1;
 
+    my $domain;
     if ( $host =~ /\.co.uk$/ )
     {
-        return join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+    }
+    else
+    {
+        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
     }
 
-    return join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
+    return lc( $domain );
 }
 
 # search for stories with duplicate guids in the media and delete them manually to avoid guid conflicts

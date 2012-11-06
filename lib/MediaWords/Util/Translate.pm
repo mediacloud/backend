@@ -18,20 +18,13 @@ use Text::Trim;
 use CHI;
 use MediaWords::Util::Config;
 
-my $media_cloud_root_dir;
-
-BEGIN
-{
-    use FindBin;
-    my $source_file_dir = "$FindBin::Bin";
-    $media_cloud_root_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ script_dir } . "/..";
-}
+my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
 
 my $cache = CHI->new(
     driver           => 'FastMmap',
     expires_in       => '1 week',
     expires_variance => '0.1',
-    root_dir         => "$media_cloud_root_dir/cache/translate",
+    root_dir         => "${ mediacloud_data_dir }/cache/translate",
     cache_size       => '3m'
 );
 

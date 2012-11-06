@@ -1122,8 +1122,11 @@ Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
 
 sub get_data_dump_file_list
 {
+    my ( $dir ) = @_;
 
-    opendir( DIR, $dump_dir ) || die "Error opening directory $dump_dir: $@";
+    $dir ||= $dump_dir;
+
+    opendir( DIR, $dir ) || die "Error opening directory $dir: $!";
     my @files = readdir( DIR );
     closedir( DIR );
 

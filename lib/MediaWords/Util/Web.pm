@@ -8,8 +8,31 @@ use strict;
 
 use File::Temp;
 use FindBin;
+use LWP::UserAgent;
 use Storable;
+
 use MediaWords::Util::Paths;
+
+use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
+use constant TIMEOUT           => 20;
+use constant MAX_REDIRECT      => 15;
+use constant BOT_FROM          => 'mediacloud@cyber.law.harvard.edu';
+use constant BOT_AGENT         => 'mediacloud bot (http://mediacloud.org)';
+
+# return a user agent with media cloud default settings (
+sub UserAgent
+{
+    my $ua = LWP::UserAgent->new();
+
+    $ua->from( BOT_FROM );
+    $ua->agent( BOT_AGENT );
+
+    $ua->timeout( TIMEOUT );
+    $ua->max_size( MAX_DOWNLOAD_SIZE );
+    $ua->max_redirect( MAX_REDIRECT );
+
+    return $ua;
+}
 
 # get urls in parallel
 sub ParallelGet
