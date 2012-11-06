@@ -62,7 +62,8 @@ sub schema_is_up_to_date
     my $db_vars_table_exists_query =
       "SELECT EXISTS(SELECT * FROM information_schema.tables WHERE table_name='database_variables')";
     my @db_vars_table_exists = $self->query( $db_vars_table_exists_query )->flat();
-    if ( $#db_vars_table_exists )
+    my $db_vars_table        = $db_vars_table_exists[ 0 ] + 0;
+    if ( !$db_vars_table )
     {
         say STDERR "Database table 'database_variables' does not exist, probably the database is empty at this point.";
         return 1;
