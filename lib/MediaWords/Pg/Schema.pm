@@ -235,13 +235,19 @@ sub load_sql_file
 
         #say "Got line: '$line'";
 
+        # Die on unexpected SQL (e.g. DROP TABLE)
         if (
             not $line =~
 /^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^DROP LANGUAGE|^DROP TABLE|^UPDATE \d+|^DROP TRIGGER|^psql.*: NOTICE:/
           )
         {
-            carp "Evil line: '$line'";
-            die "Evil line: '$line'";
+
+            # Make an exception for the fancy way of creating Pg languages
+            if ( not $line =~ /^DROP FUNCTION/ )
+            {
+                carp "Evil line: '$line'";
+                die "Evil line: '$line'";
+            }
         }
 
         return "$line\n";
