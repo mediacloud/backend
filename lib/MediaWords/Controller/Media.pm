@@ -362,6 +362,11 @@ sub create_do : Local
         $status_msg = join( "\n",
             "Errors adding some media sources, see below.  Any urls not mentioned below were added successfully.",
             @{ $error_messages } );
+            
+        if ( length( $status_msg ) > 2048 )
+        {
+            $status_msg = substr( $status_msg, 0, 2000 ) . "...\nAdditional errors not listed.";
+        }
     }
     else
     {
@@ -488,7 +493,7 @@ sub search_paged_media
 
     return $c->dbis->query_paged_hashes(
 "select distinct m.media_id as media_id, m.name as name, m.url as url from media m left join ( media_tags_map mtm join (tags t join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id) ) on ( mtm.tags_id = t.tags_id) ) on (m.media_id = mtm.media_id) where (m.name ilike $q or m.url ilike $q or lower(ts.name||':'||t.tag) ilike $q) order by m.name",
-        [], $page, $rows_per_page
+        $page, $rows_per_page
     );
 }
 
@@ -599,7 +604,7 @@ sub search : Local
         ( $media, $pager ) = $c->dbis->query_paged_hashes(
             "select * from media m " . "where not exists (select 1 from feeds f where f.media_id = m.media_id) " .
               "order by media_id desc",
-            [], $p, ROWS_PER_PAGE
+            $p, ROWS_PER_PAGE
         );
     }
     elsif ( @m )
@@ -608,7 +613,7 @@ sub search : Local
     }
     else
     {
-        ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by name", [], $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by name", $p, ROWS_PER_PAGE );
     }
 
     for my $m ( @{ $media } )
