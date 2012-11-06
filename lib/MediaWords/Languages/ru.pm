@@ -1,4 +1,4 @@
-package MediaWords::Languages::en_US;
+package MediaWords::Languages::ru;
 use Moose;
 with 'MediaWords::Languages::Language';
 
@@ -11,31 +11,31 @@ use Lingua::EN::Sentence::MediaWords;
 
 sub get_language_code
 {
-    return 'en_US';
+    return 'ru';
 }
 
 sub fetch_and_return_tiny_stop_words
 {
     my $self = shift;
-    return $self->_get_stop_words_with_lingua_stopwords( 'en', 'UTF-8' );
+    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/ru_stoplist_tiny.txt' );
 }
 
 sub fetch_and_return_short_stop_words
 {
     my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/en_US_stoplist_short.txt' );
+    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/ru_stoplist_short.txt' );
 }
 
 sub fetch_and_return_long_stop_words
 {
     my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/en_US_stoplist_long.txt' );
+    return $self->get_short_stop_words();
 }
 
 sub stem
 {
     my $self = shift;
-    return $self->_stem_with_lingua_stem_snowball( 'en', 'UTF-8', \@_ );
+    return $self->_stem_with_lingua_stem_snowball( 'ru', 'UTF-8', \@_ );
 }
 
 sub get_word_length_limit
@@ -47,6 +47,8 @@ sub get_word_length_limit
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
+
+    # FIXME
     return Lingua::EN::Sentence::MediaWords::get_sentences( $story_text );
 }
 

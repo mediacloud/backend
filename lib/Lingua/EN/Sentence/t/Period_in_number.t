@@ -16,14 +16,14 @@ use Test::NoWarnings;
 use Test::More tests => 1 + 1;
 use utf8;
 
-use MediaWords::Languages::en_US;
+use MediaWords::Languages::en;
 use Data::Dumper;
 
 my $test_string = <<'QUOTE';
 Sentence contain version 2.0 of the text. Foo.
 QUOTE
 
-my $lang = MediaWords::Languages::en_US->new();
+my $lang = MediaWords::Languages::en->new();
 
 my $expected_sentences = [ 'Sentence contain version 2.0 of the text.', "Foo." ];
 

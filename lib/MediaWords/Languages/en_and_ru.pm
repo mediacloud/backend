@@ -1,4 +1,4 @@
-package MediaWords::Languages::en_US_and_ru_RU;
+package MediaWords::Languages::en_and_ru;
 use Moose;
 with 'MediaWords::Languages::Language';
 
@@ -13,12 +13,12 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use Lingua::EN::Sentence::MediaWords;
 
-use MediaWords::Languages::en_US;
-use MediaWords::Languages::ru_RU;
+use MediaWords::Languages::en;
+use MediaWords::Languages::ru;
 
 # Language plug-ins
-my $lang_en = MediaWords::Languages::en_US->new();
-my $lang_ru = MediaWords::Languages::ru_RU->new();
+my $lang_en = MediaWords::Languages::en->new();
+my $lang_ru = MediaWords::Languages::ru->new();
 
 # Stemmers
 my $stemmer_en = Lingua::Stem::Snowball->new( lang => 'en', encoding => 'UTF-8' );
@@ -26,7 +26,7 @@ my $stemmer_ru = Lingua::Stem::Snowball->new( lang => 'ru', encoding => 'UTF-8' 
 
 sub get_language_code
 {
-    return 'en_US_and_ru_RU';
+    return 'en_and_ru';
 }
 
 sub fetch_and_return_tiny_stop_words

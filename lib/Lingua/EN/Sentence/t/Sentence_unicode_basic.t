@@ -17,13 +17,13 @@ use Test::More tests => 1 + 1;
 use utf8;
 
 use Data::Dumper;
-use MediaWords::Languages::en_US;
+use MediaWords::Languages::en;
 
 my $test_string = <<'QUOTE';
 Non Mega Não.
 QUOTE
 
-my $lang = MediaWords::Languages::en_US->new();
+my $lang = MediaWords::Languages::en->new();
 
 my $expected_sentences = [ 'Non Mega Não.', ];
 

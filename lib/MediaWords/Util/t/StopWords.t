@@ -15,16 +15,16 @@ use Readonly;
 use Test::NoWarnings;
 use Test::More tests => 17;
 
-use_ok( 'MediaWords::Languages::en_US' );
-use_ok( 'MediaWords::Languages::ru_RU' );
-use MediaWords::Languages::en_US;
-use MediaWords::Languages::ru_RU;
+use_ok( 'MediaWords::Languages::en' );
+use_ok( 'MediaWords::Languages::ru' );
+use MediaWords::Languages::en;
+use MediaWords::Languages::ru;
 
 use Data::Dumper;
 use utf8;
 
-my $lang_en = MediaWords::Languages::en_US->new();
-my $lang_ru = MediaWords::Languages::ru_RU->new();
+my $lang_en = MediaWords::Languages::en->new();
+my $lang_ru = MediaWords::Languages::ru->new();
 
 #<<<
 ok($lang_en->get_tiny_stop_words(), 'lang_en_get_stop_words');

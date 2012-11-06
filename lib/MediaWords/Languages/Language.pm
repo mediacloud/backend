@@ -29,7 +29,7 @@ use Cwd            ();
 # START OF THE SUBCLASS INTERFACE
 #
 
-# Returns a string language code (e.g. 'en_US')
+# Returns a string ISO 639-1 language code (e.g. 'en')
 requires 'get_language_code';
 
 # Returns a hashref to a "tiny" (~200 entries) list of stop words for the language
@@ -48,7 +48,7 @@ requires 'get_language_code';
 #   sub fetch_and_return_tiny_stop_words
 #   {
 #       my $self = shift;
-#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/en_US_stoplist_tiny.txt' );
+#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/en_stoplist_tiny.txt' );
 #   }
 #
 requires 'fetch_and_return_tiny_stop_words';
@@ -153,7 +153,7 @@ has 'cached_long_stop_word_stems' => (
     default => 0,
 );
 
-# Instance of a configured language (e.g. MediaWords::Languages::en_US), lazy-initialized in lang()
+# Instance of a configured language (e.g. MediaWords::Languages::en), lazy-initialized in lang()
 my $_instance = 0;
 
 # Returns a (singleton) instance of a particular configured language
