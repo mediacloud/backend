@@ -214,6 +214,8 @@ Lingua::Stem::En
 
 Lingua::ZH::WordSegmenter
 
+Lingua::Identify::CLD
+
 List::Compare
 
 List::MoreUtils
