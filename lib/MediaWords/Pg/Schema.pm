@@ -298,6 +298,11 @@ sub recreate_db
 
     say STDERR "script_dir: $script_dir";
 
+    say STDERR "add enum functions ...";
+    my $load_dklab_postgresql_enum_result = load_sql_file( $label, "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );
+
+    die "Error adding dklab_postgresql_enum procecures" if ( $load_dklab_postgresql_enum_result );
+
     say STDERR "add mediacloud schema ...";
     my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
 
