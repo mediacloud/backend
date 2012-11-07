@@ -1121,7 +1121,6 @@ create view daily_words_with_totals
         ( ( d.dashboard_topics_id = t.dashboard_topics_id ) or
           ( d.dashboard_topics_id is null and t.dashboard_topics_id is null ) );
              
-DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE;
 create schema stories_tags_map_media_sub_tables;
 
 create table ssw_queue (
