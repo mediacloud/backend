@@ -208,13 +208,12 @@ sub _reset_schema
         #removes schema used by dklab enum procedures
         #schema will be re-added in dklab sqlfile
         $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
-
+        $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE" );
         $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
 
         $SIG{ __WARN__ } = $old_handler;
     }
 
-    $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE " );
     $db->query( "CREATE LANGUAGE plpgsql" );
     $db->query( "CREATE SCHEMA $schema" );
 
