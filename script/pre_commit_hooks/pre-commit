@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Called by "git commit" with no arguments.  The hook should
 # exit with non-zero status after issuing an appropriate message if
