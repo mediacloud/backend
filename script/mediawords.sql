@@ -1299,7 +1299,6 @@ $body$
 --
 
 select enum.enum_add( 'download_state', 'feed_error' );
-DROP LANGUAGE IF EXISTS plperlu CASCADE;
 
 
             -- PostgreSQL sends notices about implicit keys that are being created,
