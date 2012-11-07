@@ -41,10 +41,11 @@ sub new
     return $self;
 }
 
-# Checks if the database schema is up-to-date
-sub schema_is_up_to_date
+sub connect
 {
-    my $self = shift;
+    my $self = shift @_;
+
+    my $ret = $self->SUPER::connect( @_ );
 
     die "Database schema is not up-to-date.\n" unless $ret->schema_is_up_to_date();
 
