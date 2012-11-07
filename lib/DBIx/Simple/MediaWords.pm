@@ -11,6 +11,7 @@ use Modern::Perl '2012';
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
+use MediaWords::Util::SchemaVersion;
 use MediaWords::DB;
 
 use Data::Page;
