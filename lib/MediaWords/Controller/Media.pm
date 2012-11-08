@@ -613,7 +613,7 @@ sub search : Local
     }
     else
     {
-        ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by name", $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $c->dbis->query_paged_hashes( "select * from media order by name", [], $p, ROWS_PER_PAGE );
     }
 
     for my $m ( @{ $media } )
