@@ -23,7 +23,7 @@ for filepath in $ADDED_MODIFIED_FILES; do
     filename=$(basename "$filepath")
     extension=`echo "${filename##*.}" | tr '[A-Z]' '[a-z]'`
 
-    if [[ "$extension" == "pl" || "$extension" == "pm" ]]; then
+    if [[ "$extension" == "pl" || "$extension" == "pm" || "$extension" == "t" ]]; then
         #echo "File '$filepath' is Perl source."
 
         # Copy file to the temp. location, tidy it and see if it differs from what we're trying to commit
