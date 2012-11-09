@@ -1,14 +1,22 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Check if Perl source files that are being committed are formatted properly.
+#
+# Usage:
+# 1) Do some changes in Media Cloud's code under version control (SVN or Git) adding / changing Perl files or modules.
+# 2) Run ./script/pre_commit_hooks/hook-perl-formatting.sh before committing.
+# 3) The script will exit with a non-zero exit status if there are some additional modifications that you have
+#    to do before committing.
 
 if [ -d .svn ]; then
     #echo "This is a Subversion repository."
+    REPOSITORY="svn"
     ADDED_MODIFIED_FILES=`svn status -q | grep "^[M|A]" | awk '{ print $2}'`
 
 elif [ -d .git ]; then
     #echo "This is a Git repository."
     # FIXME the version of a file that is staged might be different from the file that exists in the filesystem
+    REPOSITORY="git"
     ADDED_MODIFIED_FILES=`git diff --staged --name-status |  grep "^[M|A]" | awk '{ print $2}'`
 
 else
@@ -23,7 +31,7 @@ for filepath in $ADDED_MODIFIED_FILES; do
     filename=$(basename "$filepath")
     extension=`echo "${filename##*.}" | tr '[A-Z]' '[a-z]'`
 
-    if [[ "$extension" == "pl" || "$extension" == "pm" ]]; then
+    if [[ "$extension" == "pl" || "$extension" == "pm" || "$extension" == "t" ]]; then
         #echo "File '$filepath' is Perl source."
 
         # Copy file to the temp. location, tidy it and see if it differs from what we're trying to commit
@@ -58,11 +66,17 @@ if [ ${#FILES_THAT_HAVE_TO_BE_TIDIED[@]} -gt 0 ]; then
     echo
     for filename in "${FILES_THAT_HAVE_TO_BE_TIDIED[@]}"; do
         echo "./script/run_with_carton.sh ./script/mediawords_reformat_code.pl $filename"
+        if [ "$REPOSITORY" == "git" ]; then
+            echo "git add $filename"
+        fi
+        echo
     done
+    echo "Alternatively, you can run:"
     echo
-    echo "Also, you can run:"
-    echo
-    echo "./script/run_with_carton.sh ./script/mediawords_reformat_code.pl"
+    echo "./script/mediawords_reformat_all_code.sh"
+    if [ "$REPOSITORY" == "git" ]; then
+        echo "git add -A"
+    fi
     echo
     echo "to reformat all Perl files that are placed in this repository."
     exit 1
