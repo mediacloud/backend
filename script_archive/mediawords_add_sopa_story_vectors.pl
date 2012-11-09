@@ -24,7 +24,7 @@ sub main
     for my $story ( @{ $wordless_stories } )
     {
         print STDERR "fix $story->{ title } [ $story->{ stories_id } ]\n";
-        MediaWords::StoryVectors::update_story_sentence_words( $db, $story, 1, 1 );
+        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 1, 1 );
     }
 }
 

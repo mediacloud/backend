@@ -377,7 +377,7 @@ sub purge_daily_words_data_for_unretained_dates
 # if no_delete is true, do not try to delete existing entries in the above table before creating new ones (useful for optimization
 # if you are very sure no story vectors exist for this story).  If $no_dedup_sentences is true, do not
 # perform sentence deduplication (useful if you are reprocessing a small set of stories)
-sub update_story_sentence_words
+sub update_story_sentence_words_and_language
 {
     my ( $db, $story_ref, $no_delete, $no_dedup_sentences ) = @_;
     my $sentence_word_counts;
@@ -485,7 +485,7 @@ sub fill_story_sentence_words
         {
             say STDERR "story [ $story->{ stories_id } ] " . ++$count . " ...";
 
-            update_story_sentence_words( $db, $story, 0 );
+            update_story_sentence_words_and_language( $db, $story, 0 );
 
             $db->query( "delete from ssw_queue where stories_id = ?", $story->{ stories_id } );
         }

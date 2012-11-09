@@ -20,10 +20,9 @@ Media Cloud makes available the following sorts of word vector data:
 
 All of the vectoring code is in MediaWords::StoryVectors.  The relevant MediaWords::StoryVectors functions are:
 
-* update_story_sentence_words( $db, $stories_id ) - Given a single story, fill in the story vectors for that story.  This is called
-  from mediawords_extract_and_vector.pl via MediaWords::DBI::Stories::add_vectors() for each story immediately after it is
-  extracted.  This is where the guts of the vectoring system are -- if you want to know the details of the sentence parsing, 
-  tokenizing, stemming, etc, look here.  This gets called automatically every time a story is extracted via
+* update_story_sentence_words_and_language( $db, $stories_id ) - Given a single story, fill in the story vectors for that story
+  and identify a language for the whole story and separate sentences.
+  This is called from mediawords_extract_and_vector.pl via MediaWords::DBI::Stories::add_vectors() for each story immediately after it is extracted.  This is where the guts of the vectoring system are -- if you want to know the details of the sentence parsing, tokenizing, stemming, etc, look here.  This gets called automatically every time a story is extracted via
   script/mediawords_extract_and_vector.pl.
 
 * update_aggregate_words( $db ) - Update all of the aggregate vector tables for all days up to but not including the current

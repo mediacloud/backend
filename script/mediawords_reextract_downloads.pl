@@ -120,7 +120,7 @@ sub regenerate_download_texts_for_downloads
 
             say "Updating story sentence words ";
 
-            MediaWords::StoryVectors::update_story_sentence_words( $dbs, $story );
+            MediaWords::StoryVectors::update_story_sentence_words_and_language( $dbs, $story );
         }
         else
         {
