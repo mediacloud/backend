@@ -525,7 +525,8 @@ create table stories (
     description                 text            null,
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
-    full_text_rss               boolean         not null default 'f'
+    full_text_rss               boolean         not null default 'f',
+    language                    varchar(3)      not null default ''   /* 2- or 3-character ISO 690 language code; empty if unknown */
 );
 
 /*create index stories_media on stories (media_id, guid);*/
@@ -762,7 +763,8 @@ create table story_sentences (
        sentence_number              int             not null,
        sentence                     text            not null,
        media_id                     int             not null, /* references media on delete cascade, */
-       publish_date                 timestamp       not null
+       publish_date                 timestamp       not null,
+       language                     varchar(3)      not null default ''   /* 2- or 3-character ISO 690 language code; empty if unknown */
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);

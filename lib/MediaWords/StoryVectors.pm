@@ -13,6 +13,7 @@ use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Countries;
+use MediaWords::Util::IdentifyLanguage;
 
 use Date::Format;
 use Date::Parse;
@@ -99,13 +100,13 @@ sub _valid_stem
 # insert the story sentence into the db
 sub _insert_story_sentence
 {
-    my ( $db, $story, $sentence_num, $sentence ) = @_;
+    my ( $db, $story, $sentence_num, $sentence, $sentence_lang ) = @_;
 
     $db->query(
-        "insert into story_sentences (stories_id, sentence_number, sentence, publish_date, media_id) " .
-          "  values (?,?,?,?,?)",
+        "insert into story_sentences (stories_id, sentence_number, sentence, language, publish_date, media_id) " .
+          "  values (?,?,?,?,?,?)",
         $story->{ stories_id },
-        $sentence_num, $sentence,
+        $sentence_num, $sentence, $sentence_lang,
         $story->{ publish_date },
         $story->{ media_id }
     );
@@ -394,12 +395,19 @@ sub update_story_sentence_words
 
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
+    # Tokenize into sentences
     my $sentences = $lang->get_sentences( $story_text ) || return;
     $sentences = dedup_sentences( $db, $story_ref, $sentences ) unless ( $no_dedup_sentences );
 
     for ( my $sentence_num = 0 ; $sentence_num < @{ $sentences } ; $sentence_num++ )
     {
-        _insert_story_sentence( $db, $story, $sentence_num, $sentences->[ $sentence_num ] );
+        my $sentence = $sentences->[ $sentence_num ];
+
+        # Identify the language of each of the sentences
+        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
+
+        # Insert the sentence into the database
+        _insert_story_sentence( $db, $story, $sentence_num, $sentence, $sentence_lang );
 
         my $word_counts_for_sentence = _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ] );
 
@@ -407,6 +415,10 @@ sub update_story_sentence_words
     }
 
     _insert_story_sentence_words( $db, $story, $sentence_word_counts );
+
+    # Identify the language of the full story
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
+    $db->query( "update stories set language = ? where stories_id = ?", $story_lang, $story->{ stories_id } );
 
     #testing print
     q{while ( my ($key, $value) = each(%$sentence_word_counts) ) {
