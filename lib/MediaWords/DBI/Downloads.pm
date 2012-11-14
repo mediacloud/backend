@@ -123,11 +123,11 @@ sub fetch_content_local
         my $content = $1;
         return \$content;
     }
-    if( $download->{ path } =~ /^gridfs:(.*)/ )
+    if ( $download->{ path } =~ /^gridfs:(.*)/ )
     {
-	return _fetch_content_from_gridfs( $download );
-    } 
-    elsif ( $download->{ path } !~ /^tar:/ ) 
+        return _fetch_content_from_gridfs( $download );
+    }
+    elsif ( $download->{ path } !~ /^tar:/ )
     {
         return fetch_content_local_file( $download );
     }
@@ -430,7 +430,7 @@ sub _store_content_grid_fs
 
     my $grid = MediaWords::GridFS::get_gridfs();
     my $gridfs_id = MediaWords::GridFS::store_download_content_ref( $grid, $content_ref, $download->{ downloads_id } );
-    
+
     my $new_path = "gridfs:$gridfs_id";
 
     $db->query(
@@ -443,7 +443,7 @@ sub _store_content_grid_fs
     $download->{ state } = $new_state;
     $download->{ path }  = $new_path;
 
-    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );        
+    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
 }
 
 # store the download content in the file system
@@ -456,7 +456,7 @@ sub store_content
     my $new_state = 'success';
     if ( $download->{ state } eq 'feed_error' )
     {
-	$new_state = $download->{ state };
+        $new_state = $download->{ state };
     }
 
     if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
@@ -477,10 +477,10 @@ sub store_content
 
     my $config = MediaWords::Util::Config::get_config;
 
-    if(  defined ( $config->{ mediawords }->{ download_storage_location } ) && 
-	 ( $config->{ mediawords }->{ download_storage_location } eq 'gridfs' ) )
+    if ( defined( $config->{ mediawords }->{ download_storage_location } )
+        && ( $config->{ mediawords }->{ download_storage_location } eq 'gridfs' ) )
     {
-	return _store_content_grid_fs(  $db, $download, $content_ref, $new_state  );
+        return _store_content_grid_fs( $db, $download, $content_ref, $new_state );
     }
 
     my $download_path = _get_download_path( $db, $download );
@@ -583,8 +583,8 @@ sub process_download_for_extractor
 
         MediaWords::StoryVectors::update_story_sentence_words( $db, $story, 0, $no_dedup_sentences );
 
-	# Temporarily commenting this out until we're ready to push it to Amanda.
-	# $db->query( " INSERT INTO processed_stories ( stories_id ) VALUES ( ? ) " , $download->{ stories_id }  );
+        # Temporarily commenting this out until we're ready to push it to Amanda.
+        # $db->query( " INSERT INTO processed_stories ( stories_id ) VALUES ( ? ) " , $download->{ stories_id }  );
     }
     else
     {
