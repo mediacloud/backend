@@ -90,6 +90,33 @@ sub fetch_content_local_file
     return \$content;
 }
 
+sub _fetch_content_from_gridfs
+{
+    my ( $download ) = @_;
+
+    my $path = $download->{ path };
+
+    my $grid_id = $path;
+    $grid_id =~ s/^gridfs\://;
+
+    my $gridfs = _get_gridfs();
+
+    my $file = $gridfs->get( $grid_id );
+
+    my $gzipped_content = $file->slurp;
+
+    my $content;
+
+    if ( !( IO::Uncompress::Gunzip::gunzip \$gzipped_content => \$content ) )
+    {
+        warn( "Error gunzipping content for download $download->{ downloads_id }: $IO::Uncompress::Gunzip::GunzipError" );
+    }
+
+    my $decoded_content = decode( 'utf-8', $content );
+
+    return \$decoded_content;    
+}
+
 # return a ref to the content associated with the given download, or under if there is none
 sub fetch_content_local
 {
@@ -106,7 +133,11 @@ sub fetch_content_local
         my $content = $1;
         return \$content;
     }
-    elsif ( $download->{ path } !~ /^tar:/ )
+    if( $download->{ path } =~ /^gridfs:(.*)/ )
+    {
+	return _fetch_content_from_gridfs( $download );
+    } 
+    elsif ( $download->{ path } !~ /^tar:/ ) 
     {
         return fetch_content_local_file( $download );
     }
@@ -403,6 +434,57 @@ sub _get_tar_file
     return $file;
 }
 
+sub _get_gridfs
+{
+    my $conn = MongoDB::Connection->new;
+    my $mongo_db   = $conn->grid_fs_file_write_test;
+    my $gridfs = $mongo_db->get_gridfs;
+
+    return $gridfs;
+}
+
+sub _store_content_grid_fs
+{
+    my ( $db, $download, $content_ref ) = @_;
+    
+    my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
+
+    my $gzipped_content;
+
+    if ( !( IO::Compress::Gzip::gzip \$encoded_content => \$gzipped_content ) )
+    {
+        my $error = "Unable to gzip and store content: $IO::Compress::Gzip::GzipError";
+        $db->query( "update downloads set state = ?, error_message = ? where downloads_id = ?",
+            'error', $error, $download->{ downloads_id } );
+    	die;
+    }
+
+    my $grid = _get_grid_fs();
+
+    my $basic_fh;
+    open($basic_fh, '<', \$gzipped_content);
+    my $gridfs_id = $grid->put( $basic_fh, { "filename" => $download->{ downloads_id } } );
+    
+    my $new_path = "gridfs:$gridfs_id";
+
+    my $state = 'success';
+    if ( $download->{ state } eq 'feed_error' )
+    {
+        $state = $download->{ state };
+    }
+    $db->query(
+        "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
+        $state, $new_path,
+        $download->{ error_message },
+        $download->{ downloads_id }
+    );
+
+    $download->{ state } = $state;
+    $download->{ path }  = $new_path;
+
+    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );        
+}
+
 # store the download content in the file system
 sub store_content
 {
@@ -432,6 +514,8 @@ sub store_content
         $download->{ path } = $path;
         return;
     }
+
+    #return _store_content_grid_fs(  $db, $download, $content_ref  );
 
     my $download_path = _get_download_path( $db, $download );
 
