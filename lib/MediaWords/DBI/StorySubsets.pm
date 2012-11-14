@@ -29,6 +29,7 @@ sub process
     my $query_map = {
         'start_date'    => 'publish_date >= ?',
         'end_date'      => 'publish_date <= ?',
+        'media_id'      => ' media_id = ?',
         'media_sets_id' => ' media_id in ( select media_id from media_sets_media_map where media_sets_id = ? ) ',
     };
 

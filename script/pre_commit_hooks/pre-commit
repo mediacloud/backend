@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Called by "git commit" with no arguments.  The hook should
 # exit with non-zero status after issuing an appropriate message if
@@ -11,9 +11,6 @@ else
     # Initial commit: diff against an empty tree object
     against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
-
-# If you want to allow non-ascii filenames set this variable to true.
-allownonascii=$(git config hooks.allownonascii)
 
 # Redirect output to stderr.
 exec 1>&2
@@ -42,7 +39,20 @@ for hook in `ls $DIR/hook-*.sh`; do
     if [ ! -x $hook ]; then
         echo "Skipping hook '$hook' because it is not executable."
     else
-        exec $hook
+        $hook
+        if [ $? -ne 0 ]; then
+            # Hook failed
+            
+            echo
+            echo "One of the pre-commit hooks failed. You have to make "
+            echo "some additional fixes before your changes can be committed."
+            echo "If you're using Git (git-svn) and you are absolutely sure "
+            echo "that your commit is fine as-is, repeat the commit with the "
+            echo "--no-verify option."
+
+            exit 1
+        fi
+
     fi
 done
 
