@@ -458,24 +458,23 @@ sub store_content
 
     #say STDERR "starting store_content for download $download->{ downloads_id } ";
 
-    #TODO refactor to eliminate common code.
+    my $new_state = 'success';
+    if ( $download->{ state } eq 'feed_error' )
+    {
+	$new_state = $download->{ state };
+    }
 
     if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
     {
-        my $state = 'success';
-        if ( $download->{ state } eq 'feed_error' )
-        {
-            $state = $download->{ state };
-        }
         my $path = 'content:' . $$content_ref;
         $db->query(
             "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-            $state, $path,
+            $new_state, $path,
             $download->{ error_message },
             $download->{ downloads_id }
         );
 
-        $download->{ state } = $state;
+        $download->{ state } = $new_state;
 
         $download->{ path } = $path;
         return;
@@ -512,19 +511,14 @@ sub store_content
 
     my $tar_id = "tar:$starting_block:$num_blocks:$tar_file:$download_path";
 
-    my $state = 'success';
-    if ( $download->{ state } eq 'feed_error' )
-    {
-        $state = $download->{ state };
-    }
     $db->query(
         "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-        $state, $tar_id,
+        $new_state, $tar_id,
         $download->{ error_message },
         $download->{ downloads_id }
     );
 
-    $download->{ state } = $state;
+    $download->{ state } = $new_state;
     $download->{ path }  = $tar_id;
 
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
