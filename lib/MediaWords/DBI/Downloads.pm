@@ -449,7 +449,7 @@ sub _store_content_grid_fs
 sub _store_content_archive_tar_indexed
 {
     my ( $db, $download, $content_ref, $new_state ) = @_;
-   
+
     my $download_path = _get_download_path( $db, $download );
 
     my $config = MediaWords::Util::Config::get_config;
