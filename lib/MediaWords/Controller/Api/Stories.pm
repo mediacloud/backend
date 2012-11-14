@@ -426,7 +426,7 @@ sub subset_GET : Local
     my ( $self, $c, $id ) = @_;
     my $subset = $c->req->data;
 
-    my $story_subset =  $c->dbis->find_by_id( 'story_subsets', $id );
+    my $story_subset = $c->dbis->find_by_id( 'story_subsets', $id );
 
     $self->status_created(
         $c,

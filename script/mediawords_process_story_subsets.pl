@@ -74,40 +74,39 @@ sub run_daemon
 {
     while ( 1 )
     {
-       
+
         my $pm = new Parallel::ForkManager( 1 );
 
-	my $db = MediaWords::DB::connect_to_db;
+        my $db = MediaWords::DB::connect_to_db;
 
         my $unprocessed_subsets =
           $db->query( "SELECT * FROM story_subsets WHERE not ready ORDER BY story_subsets_id ASC" )->hashes;
 
         for my $unprocessed_subset ( @{ $unprocessed_subsets } )
         {
+
             #unless ( $pm->start )
             {
                 say STDERR "process_story_subset: $unprocessed_subset->{ story_subsets_id }";
 
                 my $db = MediaWords::DB::connect_to_db;
 
-		
-		
-		MediaWords::DBI::StorySubsets::process( $db, $unprocessed_subset );
+                MediaWords::DBI::StorySubsets::process( $db, $unprocessed_subset );
 
-             #   $pm->finish;
+                #   $pm->finish;
             }
         }
 
-       # $pm->wait_all_children;
+        # $pm->wait_all_children;
 
-	say STDERR "Sleeping ... ";
+        say STDERR "Sleeping ... ";
         sleep( 60 );
     }
 }
 
 sub main
 {
-    run_daemon( );
+    run_daemon();
 }
 
 main();

@@ -28,7 +28,7 @@ use MediaWords::Util::Web;
 use constant NUM_PARALLEL => 10;
 
 # timeout any given request after this many seconds
-use constant TIMEOUT      => 90;
+use constant TIMEOUT => 90;
 
 # number of seconds to wait before sending a new request to a given domain
 use constant PER_DOMAIN_TIMEOUT => 3;
@@ -54,7 +54,7 @@ sub get_request_domain
     {
         $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
     }
-    
+
     return lc( $domain );
 }
 
@@ -63,9 +63,9 @@ sub get_request_domain
 sub get_scheduled_requests
 {
     my ( $requests ) = @_;
-    
+
     my $domain_requests = {};
-        
+
     for my $request ( @{ $requests } )
     {
         my $domain = get_request_domain( $request );
@@ -73,7 +73,7 @@ sub get_scheduled_requests
     }
 
     my $scheduled_requests = [];
-    
+
     while ( my ( $domain, $domain_requests ) = each( %{ $domain_requests } ) )
     {
         my $time = 0;
@@ -84,7 +84,7 @@ sub get_scheduled_requests
             $time += PER_DOMAIN_TIMEOUT;
         }
     }
-    
+
     return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
 }
 
@@ -115,18 +115,18 @@ sub main
 
     my $ua = MediaWords::Util::Web::UserAgent();
 
-    my $requests = get_scheduled_requests( $requests );
+    my $requests   = get_scheduled_requests( $requests );
     my $start_time = time;
 
     my $i     = 0;
     my $total = scalar( @{ $requests } );
-        
+
     for my $request ( @{ $requests } )
     {
         my $time_increment = time - $start_time;
         $i++;
 
-        if ( $time_increment < $request->{ time })
+        if ( $time_increment < $request->{ time } )
         {
             sleep( $request->{ time } - $time_increment );
         }

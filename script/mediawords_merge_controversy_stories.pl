@@ -79,7 +79,7 @@ sub main
 {
     my ( $controversy_name ) = @ARGV;
 
-    binmode( STDOUT,      'utf8' );
+    binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
     my $db = MediaWords::DB::connect_to_db;

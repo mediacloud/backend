@@ -191,7 +191,6 @@ sub _purge_stories_id_field
     }
 }
 
-
 # test various results of the crawler
 sub test_stories
 {
@@ -240,7 +239,7 @@ sub test_stories
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
 
-	    #HACK so that feedless media doesn't break things.
+            #HACK so that feedless media doesn't break things.
             _purge_stories_id_field( $story->{ story_sentences } );
             _purge_stories_id_field( $test_story->{ story_sentences } );
 
