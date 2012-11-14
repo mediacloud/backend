@@ -475,7 +475,13 @@ sub store_content
         return;
     }
 
-    return _store_content_grid_fs(  $db, $download, $content_ref, $new_state  );
+    my $config = MediaWords::Util::Config::get_config;
+
+    if(  defined ( $config->{ mediawords }->{ download_storage_location } ) && 
+	 ( $config->{ mediawords }->{ download_storage_location } eq 'gridfs' ) )
+    {
+	return _store_content_grid_fs(  $db, $download, $content_ref, $new_state  );
+    }
 
     my $download_path = _get_download_path( $db, $download );
 
