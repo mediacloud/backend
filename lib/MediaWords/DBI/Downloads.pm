@@ -426,26 +426,21 @@ sub _get_tar_file
 
 sub _store_content_grid_fs
 {
-    my ( $db, $download, $content_ref ) = @_;
+    my ( $db, $download, $content_ref, $new_state ) = @_;
 
     my $grid = MediaWords::GridFS::get_gridfs();
     my $gridfs_id = MediaWords::GridFS::store_download_content_ref( $grid, $content_ref, $download->{ downloads_id } );
     
     my $new_path = "gridfs:$gridfs_id";
 
-    my $state = 'success';
-    if ( $download->{ state } eq 'feed_error' )
-    {
-        $state = $download->{ state };
-    }
     $db->query(
         "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-        $state, $new_path,
+        $new_state, $new_path,
         $download->{ error_message },
         $download->{ downloads_id }
     );
 
-    $download->{ state } = $state;
+    $download->{ state } = $new_state;
     $download->{ path }  = $new_path;
 
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );        
@@ -480,7 +475,7 @@ sub store_content
         return;
     }
 
-    #return _store_content_grid_fs(  $db, $download, $content_ref  );
+    return _store_content_grid_fs(  $db, $download, $content_ref, $new_state  );
 
     my $download_path = _get_download_path( $db, $download );
 
