@@ -30,7 +30,7 @@ sub main
 
     my $lorem = Text::Lorem::More->new;
 
-    srand ( 12345 );
+    srand( 12345 );
 
     # foreach my $iteration ( 0 .. 1000 )
     # {
@@ -43,22 +43,23 @@ sub main
 
     # exit;
 
-    srand ( 12345 );
+    srand( 12345 );
 
     foreach my $iteration ( 0 .. 1_000 )
     {
-	my $expected_text = $lorem->paragraphs ( 10 );
+        my $expected_text = $lorem->paragraphs( 10 );
 
-	my $object = $db->query( " SELECT * from downloaded_content where downloads_id = ? LIMIT 1 ", $iteration )->hash();
-	#$downloaded_content->remove ( { "downloads_id" => $iteration } );
-	#$downloaded_content->insert ( { "downloads_id" => $iteration, "content" => $text } );
+        my $object = $db->query( " SELECT * from downloaded_content where downloads_id = ? LIMIT 1 ", $iteration )->hash();
 
-	#say Dumper ( $object );
-	die "Text mismatch:\nGot:\n$expected_text\nExpected:\n$object->{content}" unless $expected_text eq $object->{ content };
+        #$downloaded_content->remove ( { "downloads_id" => $iteration } );
+        #$downloaded_content->insert ( { "downloads_id" => $iteration, "content" => $text } );
 
-	say $iteration . " text length " . length( $expected_text ) . ' ' if $iteration % 1000 == 0;
+        #say Dumper ( $object );
+        die "Text mismatch:\nGot:\n$expected_text\nExpected:\n$object->{content}"
+          unless $expected_text eq $object->{ content };
+
+        say $iteration . " text length " . length( $expected_text ) . ' ' if $iteration % 1000 == 0;
     }
-
 
 }
 

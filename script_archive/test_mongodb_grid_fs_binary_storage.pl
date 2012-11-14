@@ -36,53 +36,58 @@ sub main
 
     my $grid = $db->get_gridfs;
 
-
     my $lorem = Text::Lorem::More->new;
 
-
-    srand ( 12345 );
+    srand( 12345 );
 
     my $iterations = 10;
 
     say STDERR "starting add";
 
-    foreach my $iteration ( 0 .. $iterations  )
+    my $ids = [];
+
+    foreach my $iteration ( 0 .. $iterations )
     {
 
-	say STDERR "adding";
-     	my $text = $lorem->paragraphs ( 10 );
-    	# $db->query( "DELETE FROM downloaded_content where downloads_id = ? ", $iteration );
-    	# $db->query( "INSERT INTO downloaded_content ( downloads_id, content) VALUES ( ?,  ? ) ", $iteration, $text );
+        say STDERR "adding";
+        my $text = $lorem->paragraphs( 10 );
 
-	my $basic_fh;
-	open($basic_fh, '<', \$text);
+        # $db->query( "DELETE FROM downloaded_content where downloads_id = ? ", $iteration );
+        # $db->query( "INSERT INTO downloaded_content ( downloads_id, content) VALUES ( ?,  ? ) ", $iteration, $text );
 
-	$grid->put( $basic_fh, { "filename" => $iteration } );	
+        my $basic_fh;
+        open( $basic_fh, '<', \$text );
 
-    	say STDERR $iteration . " text length " . length( $text ) . ' ' ; # if $iteration % 1000 == 0;
+        my $id = $grid->put( $basic_fh, { "filename" => $iteration } );
+
+        say "Grid_id: '$id'";
+
+        push $ids, $id;
+        say STDERR $iteration . " text length " . length( $text ) . ' ';    # if $iteration % 1000 == 0;
     }
 
-    srand ( 12345 );
+    srand( 12345 );
 
-    say STDERR Dumper( $grid->all );
+    #say STDERR Dumper( $grid->all );
 
     say STDERR "starting retrieving";
 
     foreach my $iteration ( 0 .. $iterations )
     {
-	say STDERR "retrieving $iteration";
-	my $expected_text = $lorem->paragraphs ( 10 );
+        say STDERR "retrieving $iteration";
+        my $expected_text = $lorem->paragraphs( 10 );
 
-	my $file = $grid->find_one( { 'filename' => $iteration } );
+        #my $file = $grid->find_one( { 'filename' => $iteration } );
 
-	die "failed to get file for $iteration" unless defined ( $file );
+        my $id   = $ids->[ $iteration ];
+        my $file = $grid->get( $id );
+        die "failed to get file for $iteration" unless defined( $file );
 
-	die "Text mismatch" unless $expected_text eq $file->slurp;
+        die "Text mismatch" unless $expected_text eq $file->slurp;
 
-	say $iteration . " text length " . length( $expected_text ) . ' ' ; # if $iteration % 1000 == 0;
+        say $iteration . " text length " . length( $expected_text ) . ' ';    # if $iteration % 1000 == 0;
     }
 
-    
 }
 
 main();

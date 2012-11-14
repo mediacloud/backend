@@ -39,8 +39,7 @@ sub main
 
     my $lorem = Text::Lorem::More->new;
 
-
-    srand ( 12345 );
+    srand( 12345 );
 
     # foreach my $iteration ( 0 .. 100_000_000 )
     # {
@@ -54,22 +53,22 @@ sub main
     # 	say $iteration . " text length " . length( $text ) . ' ' if $iteration % 1000 == 0;
     # }
 
-    srand ( 12345 );
+    srand( 12345 );
 
     foreach my $iteration ( 0 .. 100_000_000 )
     {
-	my $expected_text = $lorem->paragraphs ( 10 );
+        my $expected_text = $lorem->paragraphs( 10 );
 
-	my $object = $downloaded_content->find_one({ "downloads_id" => $iteration });
-	#$downloaded_content->remove ( { "downloads_id" => $iteration } );
-	#$downloaded_content->insert ( { "downloads_id" => $iteration, "content" => $text } );
+        my $object = $downloaded_content->find_one( { "downloads_id" => $iteration } );
 
-	die "Text mismatch" unless $expected_text eq $object->{ content };
+        #$downloaded_content->remove ( { "downloads_id" => $iteration } );
+        #$downloaded_content->insert ( { "downloads_id" => $iteration, "content" => $text } );
 
-	say $iteration . " text length " . length( $expected_text ) . ' ' if $iteration % 1000 == 0;
+        die "Text mismatch" unless $expected_text eq $object->{ content };
+
+        say $iteration . " text length " . length( $expected_text ) . ' ' if $iteration % 1000 == 0;
     }
 
-    
 }
 
 main();
