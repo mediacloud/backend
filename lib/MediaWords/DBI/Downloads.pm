@@ -20,6 +20,9 @@ use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::StoryVectors;
 use Carp;
+use MongoDB;
+use MongoDB::GridFS;
+use MediaWords::GridFS;
 
 use Data::Dumper;
 
@@ -96,25 +99,12 @@ sub _fetch_content_from_gridfs
 
     my $path = $download->{ path };
 
-    my $grid_id = $path;
-    $grid_id =~ s/^gridfs\://;
+    my $grid_id_str = $path;
+    $grid_id_str =~ s/^gridfs\://;
 
-    my $gridfs = _get_gridfs();
+    my $gridfs = MediaWords::GridFS::get_gridfs();
 
-    my $file = $gridfs->get( $grid_id );
-
-    my $gzipped_content = $file->slurp;
-
-    my $content;
-
-    if ( !( IO::Uncompress::Gunzip::gunzip \$gzipped_content => \$content ) )
-    {
-        warn( "Error gunzipping content for download $download->{ downloads_id }: $IO::Uncompress::Gunzip::GunzipError" );
-    }
-
-    my $decoded_content = decode( 'utf-8', $content );
-
-    return \$decoded_content;    
+    return MediaWords::GridFS::get_download_content_ref( $gridfs, $grid_id_str );
 }
 
 # return a ref to the content associated with the given download, or under if there is none
@@ -434,36 +424,12 @@ sub _get_tar_file
     return $file;
 }
 
-sub _get_gridfs
-{
-    my $conn = MongoDB::Connection->new;
-    my $mongo_db   = $conn->grid_fs_file_write_test;
-    my $gridfs = $mongo_db->get_gridfs;
-
-    return $gridfs;
-}
-
 sub _store_content_grid_fs
 {
     my ( $db, $download, $content_ref ) = @_;
-    
-    my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
 
-    my $gzipped_content;
-
-    if ( !( IO::Compress::Gzip::gzip \$encoded_content => \$gzipped_content ) )
-    {
-        my $error = "Unable to gzip and store content: $IO::Compress::Gzip::GzipError";
-        $db->query( "update downloads set state = ?, error_message = ? where downloads_id = ?",
-            'error', $error, $download->{ downloads_id } );
-    	die;
-    }
-
-    my $grid = _get_grid_fs();
-
-    my $basic_fh;
-    open($basic_fh, '<', \$gzipped_content);
-    my $gridfs_id = $grid->put( $basic_fh, { "filename" => $download->{ downloads_id } } );
+    my $grid = MediaWords::GridFS::get_gridfs();
+    my $gridfs_id = MediaWords::GridFS::store_download_content_ref( $grid, $content_ref, $download->{ downloads_id } );
     
     my $new_path = "gridfs:$gridfs_id";
 
