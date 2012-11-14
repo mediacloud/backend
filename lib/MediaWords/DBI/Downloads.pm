@@ -446,43 +446,10 @@ sub _store_content_grid_fs
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
 }
 
-# store the download content in the file system
-sub store_content
+sub _store_content_archive_tar_indexed
 {
-    my ( $db, $download, $content_ref ) = @_;
-
-    #say STDERR "starting store_content for download $download->{ downloads_id } ";
-
-    my $new_state = 'success';
-    if ( $download->{ state } eq 'feed_error' )
-    {
-        $new_state = $download->{ state };
-    }
-
-    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
-    {
-        my $path = 'content:' . $$content_ref;
-        $db->query(
-            "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-            $new_state, $path,
-            $download->{ error_message },
-            $download->{ downloads_id }
-        );
-
-        $download->{ state } = $new_state;
-
-        $download->{ path } = $path;
-        return;
-    }
-
-    my $config = MediaWords::Util::Config::get_config;
-
-    if ( defined( $config->{ mediawords }->{ download_storage_location } )
-        && ( $config->{ mediawords }->{ download_storage_location } eq 'gridfs' ) )
-    {
-        return _store_content_grid_fs( $db, $download, $content_ref, $new_state );
-    }
-
+    my ( $db, $download, $content_ref, $new_state ) = @_;
+   
     my $download_path = _get_download_path( $db, $download );
 
     my $config = MediaWords::Util::Config::get_config;
@@ -526,6 +493,46 @@ sub store_content
 
     #say 'Saved download results';
     #say STDERR Dumper ( $download );
+}
+
+# store the download content in the file system
+sub store_content
+{
+    my ( $db, $download, $content_ref ) = @_;
+
+    #say STDERR "starting store_content for download $download->{ downloads_id } ";
+
+    my $new_state = 'success';
+    if ( $download->{ state } eq 'feed_error' )
+    {
+        $new_state = $download->{ state };
+    }
+
+    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
+    {
+        my $path = 'content:' . $$content_ref;
+        $db->query(
+            "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
+            $new_state, $path,
+            $download->{ error_message },
+            $download->{ downloads_id }
+        );
+
+        $download->{ state } = $new_state;
+
+        $download->{ path } = $path;
+        return;
+    }
+
+    my $config = MediaWords::Util::Config::get_config;
+
+    if ( defined( $config->{ mediawords }->{ download_storage_location } )
+        && ( $config->{ mediawords }->{ download_storage_location } eq 'gridfs' ) )
+    {
+        return _store_content_grid_fs( $db, $download, $content_ref, $new_state );
+    }
+
+    return _store_content_archive_tar_indexed( $db, $download, $content_ref, $new_state );
 }
 
 # convenience method to get the media_id for the download
