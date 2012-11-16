@@ -18,7 +18,8 @@ sub _apply_dangerous_regex
 
     if ( $output_detailed_debug_info )
     {
-        print "starting _apply_dangerous_regex\n";
+
+        # print "starting _apply_dangerous_regex\n";
         eval {
 
             #utf8::upgrade( $text );
@@ -44,7 +45,7 @@ sub _apply_dangerous_regex
         print "\n";
     }
 
-    print "starting _apply_dangerous_regex \n";
+    # print "starting _apply_dangerous_regex \n";
 
     $text =~ s/([^-\w]\w[\.!?])\001/$1/sgo;
 
