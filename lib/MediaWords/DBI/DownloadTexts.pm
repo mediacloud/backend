@@ -212,11 +212,6 @@ sub create_from_download
 
     my $extracted_text = html_strip( $extracted_html );
 
-    # Remove soft hyphen (&shy; or 0xAD) character from text
-    # (some news websites hyphenate their stories using this character so that the browser can lay it out more nicely)
-    my $soft_hyphen = chr( 0xAD );
-    $extracted_text =~ s/$soft_hyphen//gs;
-
     # print "EXTRACT\n**\n$text\n**\n";
 
     my $download_text = $db->create(
