@@ -16,6 +16,8 @@ use warnings;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
+use utf8;
+
 use Lingua::Identify::CLD;
 
 use Readonly;
@@ -228,6 +230,41 @@ use Readonly;
         }
 
         return $language_names_to_codes{ $language_name };
+    }
+
+    # Returns 1 if the language identification for the text passed as a parameter is likely to be reliable; 0 otherwise
+    # Parameters:
+    #  * Text that should be identified (required)
+    # Returns: 1 if language identification is likely to be reliable; 0 otherwise
+    sub identification_would_be_reliable($)
+    {
+        my $text = shift;
+
+        # No text at all?
+        if ( !$text )
+        {
+            return 0;
+        }
+
+        # Too short?
+        if ( length( $text ) < 10 )
+        {
+            return 0;
+        }
+
+        # Not enough letters as opposed to non-letters?
+        my $letter_count     = 0;
+        my $underscore_count = 0;    # Count underscores (_) because \w matches those too
+        $letter_count++ while ( $text =~ m/\w/g );      # 'use utf8' ensures that UTF-8 characters are matched correctly
+        $underscore_count++ while ( $text =~ m/_/g );
+        if ( ( $letter_count - $underscore_count ) < 10 )
+        {
+            return 0;
+        }
+
+        # FIXME how much confident the CLD is about the decision
+
+        return 1;
     }
 
 }
