@@ -175,6 +175,22 @@ sub _purge_story_sentences_id_field
     }
 }
 
+sub _purge_stories_id_field
+{
+    my ( $sentences ) = @_;
+
+    for my $sentence ( @$sentences )
+    {
+
+        #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
+
+        #die Dumper ($sentence);
+
+        $sentence->{ stories_id } = '';
+        delete $sentence->{ stories_id };
+    }
+}
+
 # test various results of the crawler
 sub test_stories
 {
@@ -222,6 +238,10 @@ sub test_stories
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
+
+            #HACK so that feedless media doesn't break things.
+            _purge_stories_id_field( $story->{ story_sentences } );
+            _purge_stories_id_field( $test_story->{ story_sentences } );
 
             cmp_deeply(
                 $story->{ story_sentences },

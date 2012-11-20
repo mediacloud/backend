@@ -456,7 +456,7 @@ sub main
             generate_aggregate_words( $db );
 
             ## Temporary hack to get the test suite working again.
-            $db->query( "DELETE from top_500_weekly_words where publish_week > now() - interval '1 week' "  );
+            $db->query( "DELETE from top_500_weekly_words where publish_week > now() - interval '1 week' " );
 
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {

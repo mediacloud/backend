@@ -17,6 +17,11 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+mongodb_gridfs:
+    - host      : "localhost" 
+      port      : "27017" 
+      database  : "mediacloud_downloads_gridfs"
+
 mail:
     - smtp_server : "SMTP_SERVER"
       bug_email : "EMAIL_ADDRESS_TO_RECEIVE_BUG_REPORT_EMAILS"
@@ -47,6 +52,9 @@ mail:
 
     ## media_sets_id of the media set to display on the Dashboard home page
     ##default_media_set: 1
+
+    #uncomment to enable storage of download in mongo/gridfs server defined above
+    #download_storage_location: "gridfs"
 
     ### fetch content from another instance of MediaCloud?
     #fetch_remote_content          : "yes"
