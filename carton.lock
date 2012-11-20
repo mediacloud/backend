@@ -8142,6 +8142,73 @@
          "target" : "Data::Sorting",
          "version" : "0.9"
       },
+      "Data::Types" : {
+         "dist" : "Data-Types-0.09",
+         "mymeta" : {
+            "abstract" : "Validate and convert data types.",
+            "author" : [
+               "David E. Wheeler <david@justatheory.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Data-Types",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Module::Build" : "0.2701",
+                     "Test::More" : "0.17"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "Module::Build" : "0.2701"
+                  }
+               },
+               "runtime" : {
+                  "recommends" : {
+                     "Test::Pod" : "1.41"
+                  }
+               }
+            },
+            "provides" : {
+               "Data::Types" : {
+                  "file" : "lib/Data/Types.pm",
+                  "version" : "0.09"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://github.com/theory/data-types/issues/"
+               },
+               "homepage" : "http://search.cpan.org/dist/Data-Types/",
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/theory/data-types/"
+               }
+            },
+            "version" : "0.09"
+         },
+         "name" : "Data::Types",
+         "pathname" : "D/DW/DWHEELER/Data-Types-0.09.tar.gz",
+         "provides" : {
+            "Data::Types" : {
+               "file" : "Data/Types.pm",
+               "version" : "0.09"
+            }
+         },
+         "target" : "Data::Types",
+         "version" : "0.09"
+      },
       "Data::UUID" : {
          "dist" : "Data-UUID-1.217",
          "mymeta" : {
@@ -15701,6 +15768,61 @@
          "target" : "Encode::Locale",
          "version" : "1.02"
       },
+      "Encoding::FixLatin" : {
+         "dist" : "Encoding-FixLatin-1.02",
+         "mymeta" : {
+            "abstract" : "takes mixed encoding input and produces UTF-8 output",
+            "author" : [
+               "Grant McLean <grantm@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 0.77, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Encoding-FixLatin",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.62",
+                     "Test::More" : "0.45"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "1.02"
+         },
+         "name" : "Encoding::FixLatin",
+         "pathname" : "G/GR/GRANTM/Encoding-FixLatin-1.02.tar.gz",
+         "provides" : {
+            "Encoding::FixLatin" : {
+               "file" : "Encoding/FixLatin.pm",
+               "version" : "1.02"
+            }
+         },
+         "target" : "Encoding::FixLatin",
+         "version" : "1.02"
+      },
       "Error" : {
          "dist" : "Error-0.17017",
          "mymeta" : {
@@ -21885,6 +22007,7 @@
                   "requires" : {
                      "Carp" : 0,
                      "JSON" : "2.02",
+                     "JSON::Syck" : 0,
                      "JSON::XS" : "2.3",
                      "Test::More" : "0.42"
                   }
@@ -24160,6 +24283,314 @@
          "target" : "Modern::Perl",
          "version" : "1.20120130"
       },
+      "Module::Build" : {
+         "dist" : "Module-Build-0.4003",
+         "mymeta" : {
+            "abstract" : "Build and install Perl modules",
+            "author" : [
+               "Ken Williams <kwilliams@cpan.org>",
+               "Module-Build mailing list at <module-build@perl.org>."
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Module-Build",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "CPAN::Meta::YAML" : "0.003",
+                     "File::Temp" : "0.15",
+                     "Parse::CPAN::Meta" : "1.4401",
+                     "Test::Harness" : "3.16",
+                     "Test::More" : "0.49"
+                  }
+               },
+               "runtime" : {
+                  "recommends" : {
+                     "ExtUtils::Install" : "0.3",
+                     "ExtUtils::Manifest" : "1.54"
+                  },
+                  "requires" : {
+                     "CPAN::Meta" : "2.110420",
+                     "Cwd" : 0,
+                     "Data::Dumper" : 0,
+                     "ExtUtils::CBuilder" : "0.27",
+                     "ExtUtils::Install" : 0,
+                     "ExtUtils::Manifest" : 0,
+                     "ExtUtils::Mkbootstrap" : 0,
+                     "ExtUtils::ParseXS" : "2.21",
+                     "File::Basename" : 0,
+                     "File::Compare" : 0,
+                     "File::Copy" : 0,
+                     "File::Find" : 0,
+                     "File::Path" : 0,
+                     "File::Spec" : "0.82",
+                     "Getopt::Long" : 0,
+                     "IO::File" : 0,
+                     "Module::Metadata" : "1.000002",
+                     "Perl::OSType" : "1",
+                     "Test::Harness" : 0,
+                     "Text::Abbrev" : 0,
+                     "Text::ParseWords" : 0,
+                     "perl" : "5.006001",
+                     "version" : "0.87"
+                  }
+               }
+            },
+            "provides" : {
+               "Module::Build" : {
+                  "file" : "lib/Module/Build.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Base" : {
+                  "file" : "lib/Module/Build/Base.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Compat" : {
+                  "file" : "lib/Module/Build/Compat.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Config" : {
+                  "file" : "lib/Module/Build/Config.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Cookbook" : {
+                  "file" : "lib/Module/Build/Cookbook.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Dumper" : {
+                  "file" : "lib/Module/Build/Dumper.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::ModuleInfo" : {
+                  "file" : "lib/Module/Build/ModuleInfo.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Notes" : {
+                  "file" : "lib/Module/Build/Notes.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::PPMMaker" : {
+                  "file" : "lib/Module/Build/PPMMaker.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::Amiga" : {
+                  "file" : "lib/Module/Build/Platform/Amiga.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::Default" : {
+                  "file" : "lib/Module/Build/Platform/Default.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::EBCDIC" : {
+                  "file" : "lib/Module/Build/Platform/EBCDIC.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::MPEiX" : {
+                  "file" : "lib/Module/Build/Platform/MPEiX.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::MacOS" : {
+                  "file" : "lib/Module/Build/Platform/MacOS.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::RiscOS" : {
+                  "file" : "lib/Module/Build/Platform/RiscOS.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::Unix" : {
+                  "file" : "lib/Module/Build/Platform/Unix.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::VMS" : {
+                  "file" : "lib/Module/Build/Platform/VMS.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::VOS" : {
+                  "file" : "lib/Module/Build/Platform/VOS.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::Windows" : {
+                  "file" : "lib/Module/Build/Platform/Windows.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::aix" : {
+                  "file" : "lib/Module/Build/Platform/aix.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::cygwin" : {
+                  "file" : "lib/Module/Build/Platform/cygwin.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::darwin" : {
+                  "file" : "lib/Module/Build/Platform/darwin.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Platform::os2" : {
+                  "file" : "lib/Module/Build/Platform/os2.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::PodParser" : {
+                  "file" : "lib/Module/Build/PodParser.pm",
+                  "version" : "0.4003"
+               },
+               "Module::Build::Version" : {
+                  "file" : "lib/Module/Build/Version.pm",
+                  "version" : "0.87"
+               },
+               "Module::Build::YAML" : {
+                  "file" : "lib/Module/Build/YAML.pm",
+                  "version" : "1.41"
+               },
+               "inc::latest" : {
+                  "file" : "lib/inc/latest.pm",
+                  "version" : "0.4003"
+               },
+               "inc::latest::private" : {
+                  "file" : "lib/inc/latest/private.pm",
+                  "version" : "0.4003"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "url" : "https://github.com/Perl-Toolchain-Gang/Module-Build"
+               },
+               "x_MailingList" : "mailto:module-build@perl.org"
+            },
+            "version" : "0.4003"
+         },
+         "name" : "Module::Build",
+         "pathname" : "L/LE/LEONT/Module-Build-0.4003.tar.gz",
+         "provides" : {
+            "Module::Build" : {
+               "file" : "Module/Build.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Base" : {
+               "file" : "Module/Build/Base.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Compat" : {
+               "file" : "Module/Build/Compat.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Config" : {
+               "file" : "Module/Build/Config.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::ConfigData" : {
+               "file" : "Module/Build/ConfigData.pm"
+            },
+            "Module::Build::Cookbook" : {
+               "file" : "Module/Build/Cookbook.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Dumper" : {
+               "file" : "Module/Build/Dumper.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::ModuleInfo" : {
+               "file" : "Module/Build/ModuleInfo.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Notes" : {
+               "file" : "Module/Build/Notes.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::PPMMaker" : {
+               "file" : "Module/Build/PPMMaker.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::Amiga" : {
+               "file" : "Module/Build/Platform/Amiga.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::Default" : {
+               "file" : "Module/Build/Platform/Default.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::EBCDIC" : {
+               "file" : "Module/Build/Platform/EBCDIC.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::MPEiX" : {
+               "file" : "Module/Build/Platform/MPEiX.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::MacOS" : {
+               "file" : "Module/Build/Platform/MacOS.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::RiscOS" : {
+               "file" : "Module/Build/Platform/RiscOS.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::Unix" : {
+               "file" : "Module/Build/Platform/Unix.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::VMS" : {
+               "file" : "Module/Build/Platform/VMS.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::VOS" : {
+               "file" : "Module/Build/Platform/VOS.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::Windows" : {
+               "file" : "Module/Build/Platform/Windows.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::aix" : {
+               "file" : "Module/Build/Platform/aix.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::cygwin" : {
+               "file" : "Module/Build/Platform/cygwin.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::darwin" : {
+               "file" : "Module/Build/Platform/darwin.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Platform::os2" : {
+               "file" : "Module/Build/Platform/os2.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::PodParser" : {
+               "file" : "Module/Build/PodParser.pm",
+               "version" : "0.4003"
+            },
+            "Module::Build::Version" : {
+               "file" : "Module/Build/Version.pm",
+               "version" : "0.87"
+            },
+            "Module::Build::YAML" : {
+               "file" : "Module/Build/YAML.pm",
+               "version" : "1.41"
+            },
+            "inc::latest" : {
+               "file" : "inc/latest.pm",
+               "version" : "0.4003"
+            },
+            "inc::latest::private" : {
+               "file" : "inc/latest/private.pm",
+               "version" : "0.4003"
+            }
+         },
+         "target" : "Module::Build",
+         "version" : "0.4003"
+      },
       "Module::Find" : {
          "dist" : "Module-Find-0.10",
          "mymeta" : {
@@ -24648,6 +25079,128 @@
          },
          "target" : "Module::Util",
          "version" : "1.07"
+      },
+      "MongoDB" : {
+         "dist" : "MongoDB-0.45",
+         "mymeta" : {
+            "abstract" : "Mongo Driver for Perl",
+            "author" : [
+               "Florian Ragwitz <rafl@debian.org>",
+               "Kristina Chodorow <kristina@10gen.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.01, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "apache_2_0"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "MongoDB",
+            "no_index" : {
+               "directory" : [
+                  "ext",
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Data::Types" : 0,
+                     "DateTime" : 0,
+                     "ExtUtils::MakeMaker" : "6.42",
+                     "File::Slurp" : 0,
+                     "File::Temp" : "0.17",
+                     "FileHandle" : 0,
+                     "JSON" : 0,
+                     "Test::Exception" : 0,
+                     "Tie::IxHash" : 0,
+                     "Try::Tiny" : 0,
+                     "boolean" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Any::Moose" : 0,
+                     "Class::Method::Modifiers" : 0,
+                     "DateTime" : 0,
+                     "Digest::MD5" : 0,
+                     "Tie::IxHash" : 0,
+                     "XSLoader" : 0,
+                     "boolean" : 0,
+                     "perl" : "5.008004"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://apache.org/licenses/LICENSE-2.0"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://github.com/mongodb/mongo-perl-driver.git"
+               }
+            },
+            "version" : "0.45"
+         },
+         "name" : "MongoDB",
+         "pathname" : "K/KR/KRISTINA/MongoDB-0.45.tar.gz",
+         "provides" : {
+            "MongoDB" : {
+               "file" : "MongoDB.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::BSON" : {
+               "file" : "MongoDB/BSON.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::Code" : {
+               "file" : "MongoDB/Code.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::Collection" : {
+               "file" : "MongoDB/Collection.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::Connection" : {
+               "file" : "MongoDB/Connection.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::Cursor" : {
+               "file" : "MongoDB/Cursor.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::Database" : {
+               "file" : "MongoDB/Database.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::GridFS" : {
+               "file" : "MongoDB/GridFS.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::GridFS::File" : {
+               "file" : "MongoDB/GridFS/File.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::OID" : {
+               "file" : "MongoDB/OID.pm",
+               "version" : "0.45"
+            },
+            "MongoDB::Timestamp" : {
+               "file" : "MongoDB/Timestamp.pm",
+               "version" : "0.45"
+            }
+         },
+         "target" : "MongoDB",
+         "version" : "0.45"
       },
       "Moose" : {
          "dist" : "Moose-2.0401",
@@ -32801,6 +33354,66 @@
          "target" : "Starman",
          "version" : "0.2014"
       },
+      "Store::CouchDB" : {
+         "dist" : "Store-CouchDB-2.3",
+         "mymeta" : {
+            "abstract" : "a simple CouchDB driver",
+            "author" : [
+               "Lenz Gschwendtner, C<< <norbu09 at cpan.org> >>, Lenz Gschwendtner <norbu09@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Store-CouchDB",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.36",
+                     "Test::More" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Any::Moose" : 0,
+                     "Encoding::FixLatin" : 0,
+                     "JSON" : 0,
+                     "LWP::UserAgent" : 0,
+                     "Test::More" : 0,
+                     "URI" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "2.3"
+         },
+         "name" : "Store::CouchDB",
+         "pathname" : "N/NO/NORBU/Store-CouchDB-2.3.tar.gz",
+         "provides" : {
+            "Store::CouchDB" : {
+               "file" : "Store/CouchDB.pm",
+               "version" : "2.3"
+            }
+         },
+         "target" : "Store::CouchDB",
+         "version" : "2.3"
+      },
       "String::RewritePrefix" : {
          "dist" : "String-RewritePrefix-0.006",
          "mymeta" : {
@@ -35070,6 +35683,81 @@
          "target" : "Test::MockTime",
          "version" : "0.12"
       },
+      "Test::Most" : {
+         "dist" : "Test-Most-0.31",
+         "mymeta" : {
+            "abstract" : "Most commonly needed test functions and features.",
+            "author" : [
+               "Curtis \"Ovid\" Poe <ovid@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Test-Most",
+            "prereqs" : {
+               "configure" : {
+                  "requires" : {
+                     "Module::Build" : "0.4"
+                  }
+               },
+               "runtime" : {
+                  "recommends" : {
+                     "Data::Dumper::Names" : "0.03"
+                  },
+                  "requires" : {
+                     "Exception::Class" : "1.14",
+                     "Test::Deep" : "0.106",
+                     "Test::Differences" : "0.61",
+                     "Test::Exception" : "0.31",
+                     "Test::Harness" : "3.21",
+                     "Test::More" : "0.88",
+                     "Test::Warn" : "0.23",
+                     "perl" : "5.006"
+                  }
+               }
+            },
+            "provides" : {
+               "Test::Most" : {
+                  "file" : "lib/Test/Most.pm",
+                  "version" : "0.31"
+               },
+               "Test::Most::Exception" : {
+                  "file" : "lib/Test/Most/Exception.pm",
+                  "version" : "0.31"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/Ovid/test--most"
+               }
+            },
+            "version" : "0.31"
+         },
+         "name" : "Test::Most",
+         "pathname" : "O/OV/OVID/Test-Most-0.31.tar.gz",
+         "provides" : {
+            "Test::Most" : {
+               "file" : "Test/Most.pm",
+               "version" : "0.31"
+            },
+            "Test::Most::Exception" : {
+               "file" : "Test/Most/Exception.pm",
+               "version" : "0.31"
+            }
+         },
+         "target" : "Test::Most",
+         "version" : "0.31"
+      },
       "Test::NoWarnings" : {
          "dist" : "Test-NoWarnings-1.04",
          "mymeta" : {
@@ -36172,6 +36860,69 @@
          },
          "target" : "Text::Glob",
          "version" : "0.09"
+      },
+      "Text::Lorem::More" : {
+         "dist" : "Text-Lorem-More-0.13",
+         "mymeta" : {
+            "abstract" : "Generate formatted nonsense using random Latin words.",
+            "author" : [
+               "Robert Krimen, C<< <robertkrimen at gmail.com> >>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 0.760, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Text-Lorem-More",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.62",
+                     "Parse::RecDescent" : 0,
+                     "Test::More" : 0,
+                     "Test::Most" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/robertkrimen/text-lorem-more/tree/master"
+               }
+            },
+            "version" : "0.13"
+         },
+         "name" : "Text::Lorem::More",
+         "pathname" : "R/RK/RKRIMEN/Text-Lorem-More-0.13.tar.gz",
+         "provides" : {
+            "Text::Lorem::More" : {
+               "file" : "Text/Lorem/More.pm",
+               "version" : "0.13"
+            },
+            "Text::Lorem::More::Source" : {
+               "file" : "Text/Lorem/More/Source.pm"
+            }
+         },
+         "target" : "Text::Lorem::More",
+         "version" : "0.13"
       },
       "Text::MicroTemplate" : {
          "dist" : "Text-MicroTemplate-0.18",
@@ -39435,7 +40186,7 @@
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],

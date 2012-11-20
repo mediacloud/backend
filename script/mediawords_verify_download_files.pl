@@ -29,24 +29,24 @@ sub verify_downloads_files
 
         my $num_downloads = 0;
 
-	my $db = MediaWords::DB::connect_to_db;
+        my $db = MediaWords::DB::connect_to_db;
 
-         my $relative_file_paths =
-          $db->query( " select distinct(relative_file_path) from   " . 
-		      "     ( select relative_file_path from downloads where  file_status = 'tbd'::download_file_status AND relative_file_path <> 'tbd'::text AND " . 
-		      "       relative_file_path <> 'error'::text AND relative_file_path <> 'na'::text AND relative_file_path <> 'inline'::text  AND " . 
-		      "      (not (relative_file_path like 'mediacloud-%' ) ) ) as foo                    " .
-		      "  limit 100; "
-          );
+        my $relative_file_paths =
+          $db->query( " select distinct(relative_file_path) from   " .
+"     ( select relative_file_path from downloads where  file_status = 'tbd'::download_file_status AND relative_file_path <> 'tbd'::text AND "
+              . "       relative_file_path <> 'error'::text AND relative_file_path <> 'na'::text AND relative_file_path <> 'inline'::text  AND "
+              . "      (not (relative_file_path like 'mediacloud-%' ) ) ) as foo                    "
+              . "  limit 100; " );
 
-	my $pm =  new Parallel::ForkManager( 10 );
+        my $pm = new Parallel::ForkManager( 10 );
+
+        my $pm = new Parallel::ForkManager( 10 );
 
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
         {
+            $pm->start and next;
 
-	    $pm->start and next;
-
-	    my $db = MediaWords::DB::connect_to_db;
+            my $db = MediaWords::DB::connect_to_db;
 
             my $relative_file_path = $relative_file_path_hash->{ relative_file_path };
             say "Checking relative file path: $relative_file_path";
@@ -66,10 +66,10 @@ sub verify_downloads_files
                     $relative_file_path );
             }
 
-	    $pm->finish;
+            $pm->finish;
         }
 
-	$pm->wait_all_children;
+        $pm->wait_all_children;
     }
 }
 

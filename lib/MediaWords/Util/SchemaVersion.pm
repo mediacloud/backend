@@ -9,7 +9,7 @@ use warnings;
 
 sub schema_version_from_lines
 {
-    my @input = @_; # a bunch of SQL strings
+    my @input = @_;    # a bunch of SQL strings
 
     foreach ( @input )
     {
@@ -17,7 +17,7 @@ sub schema_version_from_lines
         {
             s/[\+\-]*\s*MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/;
             die "Unable to parse the database schema version number.\n" unless $_;
-            return $_+0;
+            return $_ + 0;
         }
     }
 

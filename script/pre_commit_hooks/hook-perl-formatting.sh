@@ -10,11 +10,13 @@
 
 if [ -d .svn ]; then
     #echo "This is a Subversion repository."
+    REPOSITORY="svn"
     ADDED_MODIFIED_FILES=`svn status -q | grep "^[M|A]" | awk '{ print $2}'`
 
 elif [ -d .git ]; then
     #echo "This is a Git repository."
     # FIXME the version of a file that is staged might be different from the file that exists in the filesystem
+    REPOSITORY="git"
     ADDED_MODIFIED_FILES=`git diff --staged --name-status |  grep "^[M|A]" | awk '{ print $2}'`
 
 else
@@ -29,7 +31,7 @@ for filepath in $ADDED_MODIFIED_FILES; do
     filename=$(basename "$filepath")
     extension=`echo "${filename##*.}" | tr '[A-Z]' '[a-z]'`
 
-    if [[ "$extension" == "pl" || "$extension" == "pm" ]]; then
+    if [[ "$extension" == "pl" || "$extension" == "pm" || "$extension" == "t" ]]; then
         #echo "File '$filepath' is Perl source."
 
         # Copy file to the temp. location, tidy it and see if it differs from what we're trying to commit
@@ -64,13 +66,17 @@ if [ ${#FILES_THAT_HAVE_TO_BE_TIDIED[@]} -gt 0 ]; then
     echo
     for filename in "${FILES_THAT_HAVE_TO_BE_TIDIED[@]}"; do
         echo "./script/run_with_carton.sh ./script/mediawords_reformat_code.pl $filename"
-        echo "# And if you're using Git, re-add the reformatted script:"
-        echo "git add $filename"
+        if [ "$REPOSITORY" == "git" ]; then
+            echo "git add $filename"
+        fi
         echo
     done
-    echo "Also, you can run:"
+    echo "Alternatively, you can run:"
     echo
-    echo "./script/run_with_carton.sh ./script/mediawords_reformat_all_code.pl"
+    echo "./script/mediawords_reformat_all_code.sh"
+    if [ "$REPOSITORY" == "git" ]; then
+        echo "git add -A"
+    fi
     echo
     echo "to reformat all Perl files that are placed in this repository."
     exit 1
