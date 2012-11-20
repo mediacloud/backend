@@ -20,12 +20,19 @@ use utf8;
 
 use Lingua::Identify::CLD;
 
+# URL -> TLD
+use Domain::PublicSuffix;
+use URI;
+
 use Readonly;
 
 {
 
     # CLD instance
     my $cld = Lingua::Identify::CLD->new();
+
+    # Domain::PublicSuffix instance
+    my $dps = Domain::PublicSuffix->new();
 
     # Language name -> ISO 690 code mappings
     my Readonly %language_names_to_codes = (
@@ -201,7 +208,7 @@ use Readonly;
 
         my $language_name;
 
-        if ( defined $tld )
+        if ( defined $tld and $tld ne '' )
         {
             $tld = lc( $tld );
             $language_name = $cld->identify( $text, tld => $tld, isPlainText => 1, allowExtendedLanguages => 0 );
@@ -265,6 +272,30 @@ use Readonly;
         # FIXME how much confident the CLD is about the decision
 
         return 1;
+    }
+
+# Returns TLD (top-level domain) of the URL passed as a parameter
+# (http://stackoverflow.com/questions/8031620/extraction-of-tld-from-urls-and-sorting-domains-and-subdomains-for-each-tld-file)
+# Parameters:
+#  * URL
+# Returns: TLD of the URL or empty string in case of an error
+    sub tld_from_url($)
+    {
+        my $url = shift;
+
+        # Treat relative URLs as absolute URLs with missing http://.
+        $url = "http://$url" if $url !~ /^\w+:/;
+
+        my $host = URI->new( $url )->host();
+        $host =~ s/\.\z//;    # D::PS doesn't handle "domain.com.".
+
+        if ( !$dps->get_root_domain( $host ) )
+        {
+            say STDERR "Unable to get root domain for host '$host'.";
+            return '';
+        }
+
+        return $dps->tld();
     }
 
 }

@@ -38,7 +38,8 @@ sub _get_story
     }
     else
     {
-        return $db->query( "select stories_id, publish_date, media_id from stories where stories_id = ?", $story )->hash;
+        return $db->query( "select stories_id, publish_date, media_id, url from stories where stories_id = ?", $story )
+          ->hash;
     }
 }
 
@@ -393,10 +394,23 @@ sub update_story_sentence_words_and_language
 
     return if ( !_story_within_media_source_story_words_date_range( $db, $story ) );
 
+    # Get story text
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
 
+    # Determine TLD
+    my $story_tld = '';
+    if ( defined( $story->{ url } ) )
+    {
+        my $story_url = $story->{ url };
+        my $story_tld = MediaWords::Util::IdentifyLanguage::tld_from_url( $story_url );
+    }
+    else
+    {
+        say STDERR "Story's URL is not defined.";
+    }
+
     # Identify the language of the full story
-    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text );
+    my $story_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $story_text, $story_tld );
     $db->query( "update stories set language = ? where stories_id = ?", $story_lang, $story->{ stories_id } );
 
     # Tokenize into sentences
@@ -408,7 +422,7 @@ sub update_story_sentence_words_and_language
         my $sentence = $sentences->[ $sentence_num ];
 
         # Identify the language of each of the sentences
-        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence );
+        my $sentence_lang = MediaWords::Util::IdentifyLanguage::language_code_for_text( $sentence, $story_tld );
         if ( $sentence_lang ne $story_lang )
         {
 
