@@ -63,6 +63,7 @@ sub get_request_domain
 sub get_scheduled_requests
 {
     my ( $requests ) = @_;
+
     my $domain_requests = {};
 
     for my $request ( @{ $requests } )
@@ -72,6 +73,7 @@ sub get_scheduled_requests
     }
 
     my $scheduled_requests = [];
+
     while ( my ( $domain, $domain_requests ) = each( %{ $domain_requests } ) )
     {
         my $time = 0;
