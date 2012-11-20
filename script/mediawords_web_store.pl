@@ -88,64 +88,6 @@ sub get_scheduled_requests
     return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
 }
 
-# number of seconds to wait before sending a new request to a given domain
-use constant PER_DOMAIN_TIMEOUT => 3;
-
-sub get_request_domain
-{
-    my ( $request ) = @_;
-
-    $request->{ url } =~ m~https?://([^/]*)~ || return $request;
-
-    my $host = $1;
-
-    my $name_parts = [ split( /\./, $host ) ];
-
-    my $n = @{ $name_parts } - 1;
-
-    my $domain;
-    if ( $host =~ /\.co.uk$/ )
-    {
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
-    }
-    else
-    {
-        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
-    }
-
-    return lc( $domain );
-}
-
-# schedule the requests by adding a { time => $time } field to each request
-# to make sure we obey the PER_DOMAIN_TIMEOUT.  sort requests by ascending time.
-sub get_scheduled_requests
-{
-    my ( $requests ) = @_;
-
-    my $domain_requests = {};
-
-    for my $request ( @{ $requests } )
-    {
-        my $domain = get_request_domain( $request );
-        push( @{ $domain_requests->{ $domain } }, $request );
-    }
-
-    my $scheduled_requests = [];
-
-    while ( my ( $domain, $domain_requests ) = each( %{ $domain_requests } ) )
-    {
-        my $time = 0;
-        for my $domain_request ( @{ $domain_requests } )
-        {
-            $domain_request->{ time } = $time;
-            push( @{ $scheduled_requests }, $domain_request );
-            $time += PER_DOMAIN_TIMEOUT;
-        }
-    }
-
-    return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
-}
-
 sub main
 {
     my $requests;
