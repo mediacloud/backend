@@ -22677,6 +22677,69 @@
          "target" : "Lingua::PT::Stemmer",
          "version" : "0.01"
       },
+      "Lingua::Sentence" : {
+         "dist" : "Lingua-Sentence-1.03",
+         "mymeta" : {
+            "abstract" : "Perl extension for breaking text paragraphs into sentences",
+            "author" : [
+               "Achim Ruopp, <achimru@gmail.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.00, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Lingua-Sentence",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "share",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42",
+                     "Test::More" : "0.47"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "File::ShareDir" : "1.02",
+                     "perl" : "5.008008"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "1.03"
+         },
+         "name" : "Lingua::Sentence",
+         "pathname" : "A/AC/ACHIMRU/Lingua-Sentence-1.03.tar.gz",
+         "provides" : {
+            "Lingua::Sentence" : {
+               "file" : "Lingua/Sentence.pm",
+               "version" : "1.03"
+            }
+         },
+         "target" : "Lingua::Sentence",
+         "version" : "1.03"
+      },
       "Lingua::Stem" : {
          "dist" : "Lingua-Stem-0.84",
          "mymeta" : {
