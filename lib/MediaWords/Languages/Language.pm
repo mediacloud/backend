@@ -355,6 +355,11 @@ sub _tokenize_text_with_lingua_sentence
         $self->sentence_tokenizer( Lingua::Sentence->new( $language, $nonbreaking_prefixes_file ) );
     }
 
+    # Lingua::Sentence thinks that end-of-line character means the end of the sentence, so
+    # replace \n with a space
+    $text =~ s/\n/ /gs;
+    $text =~ s/  */ /gs;
+
     my @sentences = $self->sentence_tokenizer->split_array( $text );
 
     return \@sentences;

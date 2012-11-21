@@ -537,7 +537,6 @@ zool
 årh
 
 # Month names like "januar" that should not be considered a sentence boundary in string like "13. januar".
-# (FIXME might not work as expected because of how Lingua::Sentence searches this prefix list)
 1. januar
 2. januar
 3. januar
