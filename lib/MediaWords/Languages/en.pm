@@ -7,7 +7,6 @@ use warnings;
 
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
-use Lingua::EN::Sentence::MediaWords;
 
 sub get_language_code
 {
@@ -47,7 +46,8 @@ sub get_word_length_limit
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
-    return Lingua::EN::Sentence::MediaWords::get_sentences( $story_text );
+    return $self->_tokenize_text_with_lingua_sentence( 'en', 'lib/MediaWords/Languages/en_nonbreaking_prefixes.txt',
+        $story_text );
 }
 
 sub tokenize

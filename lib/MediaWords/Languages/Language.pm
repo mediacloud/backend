@@ -19,6 +19,7 @@ use MediaWords::CommonLibs;
 use Moose::Role;
 use Lingua::Stem::Snowball;
 use Lingua::StopWords;
+use Lingua::Sentence;
 use Locale::Country::Multilingual { use_io_layer => 1 };
 use MediaWords::Util::Config;
 
@@ -79,7 +80,7 @@ requires 'stem';
 # Returns a word length limit of a language (0 -- no limit)
 requires 'get_word_length_limit';
 
-# Returns a list of sentences from a story text
+# Returns a list of sentences from a story text (tokenizes text into sentences)
 requires 'get_sentences';
 
 # Returns a reference to an array with a tokenized sentence for the language
@@ -115,6 +116,18 @@ has 'stemmer_language' => (
     default => 0,
 );
 has 'stemmer_encoding' => (
+    is      => 'rw',
+    default => 0,
+);
+
+# Lingua::Sentence instance (if needed), lazy-initialized in _tokenize_text_with_lingua_sentence()
+has 'sentence_tokenizer' => (
+    is      => 'rw',
+    default => 0,
+);
+
+# Lingua::Sentence language
+has 'sentence_tokenizer_language' => (
     is      => 'rw',
     default => 0,
 );
@@ -329,6 +342,22 @@ sub _get_stop_words_with_lingua_stopwords
     my ( $self, $language, $encoding ) = @_;
 
     return Lingua::StopWords::getStopWords( $language, $encoding );
+}
+
+# Lingua::Sentence helper
+sub _tokenize_text_with_lingua_sentence
+{
+    my ( $self, $language, $nonbreaking_prefixes_file, $text ) = @_;
+
+    # (Re-)initialize stemmer if needed
+    if ( $self->sentence_tokenizer == 0 or $self->sentence_tokenizer ne $language )
+    {
+        $self->sentence_tokenizer( Lingua::Sentence->new( $language, $nonbreaking_prefixes_file ) );
+    }
+
+    my @sentences = $self->sentence_tokenizer->split_array( $text );
+
+    return \@sentences;
 }
 
 # Returns stopwords read from a file
