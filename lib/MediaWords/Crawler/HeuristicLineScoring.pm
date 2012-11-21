@@ -19,7 +19,6 @@ use List::MoreUtils qw(any first_index indexes last_index none);
 
 use Array::Compare;
 use Carp qw (confess);
-use Lingua::ZH::MediaWords;
 
 # lines with less than this discounted html density are extracted
 use constant MAX_HTML_DENSITY => .1;

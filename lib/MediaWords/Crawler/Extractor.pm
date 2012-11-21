@@ -18,7 +18,6 @@ use List::MoreUtils qw(first_index indexes last_index);
 use Array::Compare;
 use HTML::CruftText;
 use Carp qw (confess);
-use Lingua::ZH::MediaWords;
 
 # CONSTANTS
 

@@ -25,9 +25,6 @@ use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 # only apply similarity test to this many characters of the story text and desciption
 use constant MAX_SIMILARITY_LENGTH => 8192;
 
-# Chinese sentences have few characters than English so count Chinese characters more
-use constant CHINESE_CHARACTER_LENGTH_BONUS => 0;
-
 # count these words as html, since they generally indicate noise words
 my $_NOISE_WORDS = [
     qw/comment advertise advertisement advertising classified subscribe subscription please
@@ -88,19 +85,7 @@ sub get_html_density
         }
     }
 
-    my $chinese_character_adjustment;
-
-    #Minor optimization -- only calculate the number of chinese character if it will affect the html density
-    if ( CHINESE_CHARACTER_LENGTH_BONUS != 0 )
-    {
-        my $chinese_character_count = Lingua::ZH::MediaWords::number_of_Chinese_characters( $line );
-        $chinese_character_adjustment = $chinese_character_count * CHINESE_CHARACTER_LENGTH_BONUS;
-    }
-    else
-    {
-        $chinese_character_adjustment = 0;
-    }
-    return ( $html_length / ( length( $line ) + ( $chinese_character_adjustment ) ) );
+    return ( $html_length / ( length( $line ) ) );
 }
 
 sub lineStartsWithTitleText

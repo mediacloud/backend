@@ -21,7 +21,7 @@ sub write_to_dict
     my $line;
 
     #location of the dictionary
-    my $dict = "lib/Lingua/ZH/dict.txt";
+    my $dict = 'lib/MediaWords/Languages/zh_dict.txt';
 
     open $FH, $dict or die "Cant open file dict\n";
     while ( my $line = <$FH> )

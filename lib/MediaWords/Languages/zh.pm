@@ -2,6 +2,46 @@ package MediaWords::Languages::zh;
 use Moose;
 with 'MediaWords::Languages::Language';
 
+# (was: lib/Lingua/ZH/Chinese_version_functionalities.txt)
+#
+# ---
+# Chinese version Functionalities
+#
+# 1. Word Segmenter For the word segmenter, I have used the Lingua::ZH::WordSegmenter module.
+#    This class segment a Chinese sentences into words. I have modified the existing
+#    MediaWords::StoryVectors module so that once the language of article is detected as Chinese,
+#    word segmenter will be used to get a list of Chinese words.
+#
+# 2. Dictionary updating the word segmenter uses a dictionary stored in the folder lib/Lingua/ZH/.
+#    One problem about the CPAN WordSegmenter module is that all the possible Chinese words are
+#    refined by the dictionary. If some new words come into the language, the segmenter is not able
+#    to detect. For example, foreign politicians' name might be separated into single characters.
+#    To address this issue, I have written a method under the "script" folder, write_to_dict_ZH.
+#    This method allows users to add a list of new words into the existing dictionary. Future work
+#    could be down to automatically crawl a list of words on the websites, such as Wikipedia, to
+#    add them into the dictionary.
+#
+# 3. Language Detection
+#    In the module Lingua::ZH::MediaWords, there was a method to judge if a given text is Chinese.
+#    If more than 25% of the characters are Chinese characters, the text will be processed as Chinese.
+#    In this module, there are also methods to count Chinese characters and Latin letters.
+#
+# 4. Stop words
+#    A list of 1600 stop words are selected from the most commonly used 6000 words from collected data.
+#    These stop words are stored in the file MediaWords/Util/StopWords.pm.
+#
+# 5. Translation
+#    The translate module is modified so that it automatically detects the source language and
+#    translate it into English.  The module using Google Translate is utilized in this function.
+#
+# 6. Extractor
+#    The Density function in MediaWords/Crawler/Extractor is modified to add into consideration that
+#    Chinese sentences are generally shorter than English ones. Chinese characters are added more
+#    weights in the calculation.
+#    I have been working on this during summer 2010 under the framework of Google Summer of Code.
+#    If there are questions, please contact at mico.lmg at gmal
+# ---
+
 use strict;
 use warnings;
 
@@ -10,8 +50,15 @@ use MediaWords::CommonLibs;
 
 use Encode;
 use Encode::HanConvert;
+use Unicode::UCD 'charinfo';
+use Unicode::UCD 'general_categories';
+use utf8;
 use Lingua::ZH::WordSegmenter;
-use Lingua::ZH::MediaWords;
+
+my $EOS = "\001";
+my $P   = q/[。？！]/;                            ## PUNCTUATION
+my $AP  = q/(？：‘|“|》|\）|\]|』|\})?/;    ## AFTER PUNCTUATION
+my $PAP = $P . $AP;
 
 # Chinese segmenter, lazy-initialized in tokenize()
 has 'segmenter' => (
@@ -63,7 +110,14 @@ sub get_sentences
     # convert traditional characters into simplified characters
     $story_text = Encode::HanConvert::trad_to_simp( $story_text );
 
-    return Lingua::ZH::MediaWords::get_sentences( $story_text );
+    $story_text =~ s/\n\s*\n/$EOS/gso;     ## double new-line means a different sentence.
+    $story_text =~ s/($PAP)/$1$EOS/gso;
+    $story_text =~ s/(\s$P)/$1$EOS/gso;    # breake also when single letter comes before punc.
+    $story_text =~ s/\s/$EOS/gso;
+    $story_text =~ s/$EOS+/$EOS/gso;
+
+    my @sentences = split( /$EOS/, $story_text );
+    return \@sentences;
 }
 
 sub tokenize
@@ -75,7 +129,7 @@ sub tokenize
     {
         my %par = ();
         $par{ 'dic_encoding' } = 'utf8';
-        $par{ 'dic' }          = "$FindBin::Bin/../lib/Lingua/ZH/dict.txt";
+        $par{ 'dic' }          = "$FindBin::Bin/../lib/MediaWords/Languages/zh_dict.txt";
         $self->segmenter( Lingua::ZH::WordSegmenter->new( %par ) );
     }
 
