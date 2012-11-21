@@ -19,7 +19,6 @@ use Encode;
 use FileHandle;
 use HTML::Entities;
 use HTML::TagCloud;
-use Lingua::EN::Sentence;
 use Lingua::Stem::En;
 use List::Util;
 use URI::Escape;

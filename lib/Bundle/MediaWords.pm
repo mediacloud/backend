@@ -96,9 +96,9 @@ Math::Round
 
 Math::Random
 
-Lingua::EN::Sentence
-
 Lingua::StopWords
+
+Lingua::Sentence
 
 List::Compare::Functional
 List::Pairwise

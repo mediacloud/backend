@@ -12,6 +12,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use HTML::Strip;
 use MediaWords::Util::HTML;
 use MediaWords::Crawler::AnalyzeLines;
+use MediaWords::Languages::en;
 
 sub get_lines_that_should_be_in_story
 {
@@ -141,6 +142,7 @@ sub get_sentence_info_for_lines
     my $sentences_dedupped     = 0;
     my $sentences_not_dedupped = 0;
     my $sentences_missing      = 0;
+    my $lang                   = MediaWords::Languages::en->new();
 
     for my $line_number ( @{ $line_numbers } )
     {
@@ -152,7 +154,7 @@ sub get_sentence_info_for_lines
 
         say "Line text no html: $line_text";
 
-        my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $line_text );
+        my $sentences = $lang->get_sentences( $line_text );
 
         foreach my $sentence ( @{ $sentences } )
         {
