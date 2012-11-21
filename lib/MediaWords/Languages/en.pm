@@ -2,6 +2,10 @@ package MediaWords::Languages::en;
 use Moose;
 with 'MediaWords::Languages::Language';
 
+#
+# English
+#
+
 use strict;
 use warnings;
 

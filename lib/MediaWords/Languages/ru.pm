@@ -2,6 +2,10 @@ package MediaWords::Languages::ru;
 use Moose;
 with 'MediaWords::Languages::Language';
 
+#
+# Russian
+#
+
 use strict;
 use warnings;
 

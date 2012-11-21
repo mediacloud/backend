@@ -2,6 +2,10 @@ package MediaWords::Languages::zh;
 use Moose;
 with 'MediaWords::Languages::Language';
 
+#
+# Chinese
+#
+
 # (was: lib/Lingua/ZH/Chinese_version_functionalities.txt)
 #
 # ---
