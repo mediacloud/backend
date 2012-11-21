@@ -15,6 +15,12 @@ use Test::NoWarnings;
 use Test::More tests => 5 + 1;
 use utf8;
 
+# Test::More UTF-8 output
+my $builder = Test::More->builder;
+binmode $builder->output,         ":utf8";
+binmode $builder->failure_output, ":utf8";
+binmode $builder->todo_output,    ":utf8";
+
 use MediaWords::Languages::en;
 use Data::Dumper;
 
