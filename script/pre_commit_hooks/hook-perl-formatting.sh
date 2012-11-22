@@ -60,7 +60,9 @@ done
 if [ ${#FILES_THAT_HAVE_TO_BE_TIDIED[@]} -gt 0 ]; then
     echo "Some Perl files have to be reformatted (tidied) before they can be committed to the repository:"
     echo
-    echo "$FILES_THAT_HAVE_TO_BE_TIDIED"
+    for filename in "${FILES_THAT_HAVE_TO_BE_TIDIED[@]}"; do
+        echo "$filename"
+    done
     echo
     echo "You can tidy the files listed above by running:"
     echo
