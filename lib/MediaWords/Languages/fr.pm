@@ -54,8 +54,8 @@ sub get_word_length_limit
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
-    return $self->_tokenize_text_with_lingua_sentence( 'fr', 'lib/MediaWords/Languages/fr_nonbreaking_prefixes.txt',
-        $story_text );
+    return $self->_tokenize_text_with_lingua_sentence( 'fr',
+        'lib/MediaWords/Languages/resources/fr_nonbreaking_prefixes.txt', $story_text );
 }
 
 sub tokenize

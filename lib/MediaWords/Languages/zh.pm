@@ -78,7 +78,7 @@ sub get_language_code
 sub fetch_and_return_tiny_stop_words
 {
     my $self = shift;
-    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/zh_stoplist_tiny.txt' );
+    return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/zh_stoplist_tiny.txt' );
 }
 
 sub fetch_and_return_short_stop_words
@@ -139,7 +139,7 @@ sub tokenize
     {
         my %par = ();
         $par{ 'dic_encoding' } = 'utf8';
-        $par{ 'dic' }          = _base_dir() . '/lib/MediaWords/Languages/zh_dict.txt';
+        $par{ 'dic' }          = _base_dir() . '/lib/MediaWords/Languages/resources/zh_dict.txt';
         $self->segmenter( Lingua::ZH::WordSegmenter->new( %par ) );
     }
 
