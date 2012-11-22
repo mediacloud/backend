@@ -74,12 +74,8 @@ Corp
 Co
 
 # http://en.wiktionary.org/wiki/Category:Norwegian_abbreviations
-A/S
-ANS
-AS
 bl.a
 bm
-BNP
 bto
 d.d
 d.m
@@ -90,8 +86,6 @@ e.Kr
 e.l
 eg
 el
-IL
-KNM
 m.a.o
 m.m
 ma
@@ -107,7 +101,6 @@ nyno
 osv
 pga
 rv
-VG
 
 # http://norwegianlanguage.info/grammar/abbrev.html
 # (refers to http://www.sprakrad.no/nb-NO/Sprakhjelp/Skriveregler_og_grammatikk/Forkortinger/,
@@ -251,8 +244,8 @@ ug
 
 # Number indicators
 # add #NUMERIC_ONLY# after the word if it should ONLY be non-breaking when a 0-9 digit follows it
-Nem
-nem
+nei
+Nei
 
 # Ordinals are (apparently) done with . in Norwegian - "1." = "1st" in English
 0
