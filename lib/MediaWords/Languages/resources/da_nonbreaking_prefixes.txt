@@ -1,5 +1,5 @@
 #
-# This is a non-breaking prefix list for the English language.
+# This is a non-breaking prefix list for the Danish language.
 # The file is used for sentence tokenization (text -> sentence splitting).
 #
 # The encoding of this file is UTF-8.
