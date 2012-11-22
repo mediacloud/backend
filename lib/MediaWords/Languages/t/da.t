@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+#
+# Some test strings copied from Wikipedia (CC-BY-SA, http://creativecommons.org/licenses/by-sa/3.0/).
+#
 
 use strict;
 use warnings;

@@ -1,10 +1,29 @@
 #!/usr/bin/perl
-
 #
-# Some tests copied from languagetool's:
-#     ./src/test/java/org/languagetool/tokenizers/zh/ChineseSentenceTokenizerTest.java
+# Some tests ported from languagetool's 'ChineseSentenceTokenizerTest.java':
+#
+#   LanguageTool, a natural language style checker
+#   Copyright (C) 2005 Daniel Naber (http://www.danielnaber.de)
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU Lesser General Public
+#   License as published by the Free Software Foundation; either
+#   version 2.1 of the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#   Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; if not, write to the Free Software
+#   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301
+#   USA
+#
+# Some test strings copied from Wikipedia (CC-BY-SA, http://creativecommons.org/licenses/by-sa/3.0/).
 #
 # FIXME: word tokenizer test needed
+#
 
 use strict;
 use warnings;
@@ -18,7 +37,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 15 + 15 + 1 + 1 + 1;
+use Test::More tests => 15 + 15 + 1 + 1;
 use utf8;
 
 # Test::More UTF-8 output
