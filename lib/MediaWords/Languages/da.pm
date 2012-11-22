@@ -44,7 +44,14 @@ sub stem
 sub get_word_length_limit
 {
     my $self = shift;
-    return 256;
+
+    # Speciallægepraksisplanlægningsstabiliseringsperiode, which is 51 letters, is the longest Danish
+    # word that has been used in an official context. It means "Period of plan stabilising for a
+    # specialist doctor's practice," and was used during negotiations with the local government.[citation needed]
+    # Konstantinopolitanerinde, meaning female inhabitant of Constantinople, is often mentioned as the
+    # longest non-compound word.[citation needed]
+    # (http://en.wikipedia.org/wiki/Longest_words#Danish)
+    return 51;
 }
 
 sub get_sentences

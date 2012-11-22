@@ -104,7 +104,13 @@ sub stem
 sub get_word_length_limit
 {
     my $self = shift;
-    return 0;    # No limit
+
+    # In terms of pronunciation, Chinese characters (Mandarin) are strictly monosyllabic. As such,
+    # words are limited to a length of five phonemes. In Romanized spelling, no more than six letters
+    # are needed for any single Chinese character in standard pronunciation, being the likes of 双,
+    # which is spelled "shuang" in pinyin.
+    # (http://en.wikipedia.org/wiki/Longest_words#Chinese)
+    return 0;    # So, no limit.
 }
 
 sub get_sentences
