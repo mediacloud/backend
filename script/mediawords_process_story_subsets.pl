@@ -74,6 +74,7 @@ sub run_daemon
 {
     while ( 1 )
     {
+
         my $pm = new Parallel::ForkManager( 1 );
 
         my $db = MediaWords::DB::connect_to_db;

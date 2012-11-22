@@ -40,8 +40,6 @@ sub verify_downloads_files
 
         my $pm = new Parallel::ForkManager( 10 );
 
-        my $pm = new Parallel::ForkManager( 10 );
-
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
         {
             $pm->start and next;
