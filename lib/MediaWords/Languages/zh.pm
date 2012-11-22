@@ -139,7 +139,7 @@ sub tokenize
     {
         my %par = ();
         $par{ 'dic_encoding' } = 'utf8';
-        $par{ 'dic' }          = "$FindBin::Bin/../lib/MediaWords/Languages/zh_dict.txt";
+        $par{ 'dic' }          = _base_dir() . '/lib/MediaWords/Languages/zh_dict.txt';
         $self->segmenter( Lingua::ZH::WordSegmenter->new( %par ) );
     }
 
@@ -165,6 +165,9 @@ sub tokenize
             $i--;
         }
     }
+
+    # Remove empty / whitespace lines (might happen because of the Chinese period)
+    @$tokens = grep( /\S/, @$tokens );
 
     return $tokens;
 }

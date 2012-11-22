@@ -365,14 +365,20 @@ sub _tokenize_text_with_lingua_sentence
     return \@sentences;
 }
 
+# Returns the root directory
+sub _base_dir
+{
+    my $relative_path = '../../../';    # Path to base of project relative to the current file
+    my $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
+    return $base_dir;
+}
+
 # Returns stopwords read from a file
 sub _get_stop_words_from_file
 {
     my ( $self, $filename ) = @_;
 
-    my $relative_path = '../../../';    # Path to base of project relative to the current file
-    my $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
-    $filename = $base_dir . '/' . $filename;
+    $filename = _base_dir() . '/' . $filename;
 
     my %stopwords;
 
