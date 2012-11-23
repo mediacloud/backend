@@ -58,10 +58,8 @@ sub get_word_length_limit
 sub get_sentences
 {
     my ( $self, $story_text ) = @_;
-
-    # English sentence tokenizer appears to work fine.
-    return $self->_tokenize_text_with_lingua_sentence( 'en',
-        'lib/MediaWords/Languages/resources/en_nonbreaking_prefixes.txt', $story_text );
+    return $self->_tokenize_text_with_lingua_sentence( 'ru',
+        'lib/MediaWords/Languages/resources/ru_nonbreaking_prefixes.txt', $story_text );
 }
 
 sub tokenize
