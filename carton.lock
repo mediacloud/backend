@@ -23027,7 +23027,7 @@
          "version" : "0.01"
       },
       "Lingua::Stem::Snowball" : {
-         "dist" : "Lingua-Stem-Snowball-0.952",
+         "dist" : "Lingua-Stem-Snowball-0.96",
          "mymeta" : {
             "abstract" : "Perl interface to Snowball stemmers.",
             "author" : [
@@ -23060,7 +23060,7 @@
             "provides" : {
                "Lingua::Stem::Snowball" : {
                   "file" : "lib/Lingua/Stem/Snowball.pm",
-                  "version" : "0.952"
+                  "version" : "0.96"
                }
             },
             "release_status" : "stable",
@@ -23069,18 +23069,18 @@
                   "http://dev.perl.org/licenses/"
                ]
             },
-            "version" : "0.952"
+            "version" : "0.96"
          },
          "name" : "Lingua::Stem::Snowball",
-         "pathname" : "C/CR/CREAMYG/Lingua-Stem-Snowball-0.952.tar.gz",
+         "pathname" : "C/CR/CREAMYG/Lingua-Stem-Snowball-0.96.tar.gz",
          "provides" : {
             "Lingua::Stem::Snowball" : {
                "file" : "Lingua/Stem/Snowball.pm",
-               "version" : "0.952"
+               "version" : "0.96"
             }
          },
          "target" : "Lingua::Stem::Snowball",
-         "version" : "0.952"
+         "version" : "0.96"
       },
       "Lingua::Stem::Snowball::Da" : {
          "dist" : "Lingua-Stem-Snowball-Da-1.01",
