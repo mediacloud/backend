@@ -22503,6 +22503,58 @@
          "target" : "LWP::Protocol::https",
          "version" : "6.03"
       },
+      "Lingua::EN::Sentence" : {
+         "dist" : "Lingua-EN-Sentence-0.25",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "unknown"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Lingua-EN-Sentence",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {}
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.25"
+         },
+         "name" : "Lingua::EN::Sentence",
+         "pathname" : "S/SH/SHLOMOY/Lingua-EN-Sentence-0.25.tar.gz",
+         "provides" : {
+            "Lingua::EN::Sentence" : {
+               "file" : "Lingua/EN/Sentence.pm",
+               "version" : "0.25"
+            }
+         },
+         "target" : "Lingua::EN::Sentence",
+         "version" : "0.25"
+      },
       "Lingua::Identify::CLD" : {
          "dist" : "Lingua-Identify-CLD-0.05",
          "mymeta" : {
