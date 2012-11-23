@@ -6,6 +6,9 @@
 #
 # The file is home-made by a programmer (not a linguist) who doesn't even speak Russian so it surely can be improved.
 #
+#
+# There could be quite a lot of Russian abbreviations, see http://www.sokr.ru/.
+#
 
 #Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
 #Special cases are included for prefixes that ONLY appear before 0-9 numbers.
