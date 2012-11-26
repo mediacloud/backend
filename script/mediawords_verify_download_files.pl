@@ -24,7 +24,7 @@ sub verify_downloads_files
     my $config = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
 
-    my $pm =  new Parallel::ForkManager( 15 );
+    my $pm = new Parallel::ForkManager( 15 );
 
     while ( 1 )
     {
@@ -39,7 +39,6 @@ sub verify_downloads_files
               . "       relative_file_path <> 'error'::text AND relative_file_path <> 'na'::text AND relative_file_path <> 'inline'::text  AND "
               . "      (not (relative_file_path like 'mediacloud-%' ) ) ) as foo                    "
               . "  limit 100; " );
-
 
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
         {
