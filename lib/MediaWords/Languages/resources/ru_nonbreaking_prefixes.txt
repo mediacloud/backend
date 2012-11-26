@@ -10,11 +10,13 @@
 # There could be quite a lot of Russian abbreviations, see http://www.sokr.ru/.
 #
 
-#Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
-#Special cases are included for prefixes that ONLY appear before 0-9 numbers.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
+# Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-#any single upper case letter  followed by a period is not a sentence ender (excluding I occasionally, but we leave it in)
-#usually upper case letters are initials in a name
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
 A
 B
 C
@@ -76,6 +78,28 @@ Z
 Э
 Ю
 Я
+
+# Roman Numerals
+I
+II
+III
+IV
+V
+VI
+VII
+VIII
+IX
+X
+XI
+XII
+XIII
+XIV
+XV
+XVI
+XVII
+XVIII
+XIX
+XX
 
 # English -- but these work globally for all languages:
 Mr

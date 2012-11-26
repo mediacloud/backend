@@ -7,10 +7,42 @@
 # The file is home-made by a programmer (not a linguist) who doesn't even speak Norwegian so it surely can be improved.
 #
 
-# Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
 # Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-# Roman Numerals (sans 'I', just in case).
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+L
+M
+N
+O
+P
+Q
+R
+S
+T
+U
+V
+W
+X
+Y
+Z
+
+# Roman Numerals
+I
 II
 III
 IV
@@ -31,7 +63,7 @@ XVIII
 XIX
 XX
 
-# English -- but these work globally for all languages:
+# English -- but these work globally for all languages
 Mr
 Mrs
 No

@@ -7,11 +7,13 @@
 # The file is home-made by a programmer (not a linguist) so it surely can be improved.
 #
 
-#Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
-#Special cases are included for prefixes that ONLY appear before 0-9 numbers.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
+# Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-#any single upper case letter  followed by a period is not a sentence ender (excluding I occasionally, but we leave it in)
-#usually upper case letters are initials in a name
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
 A
 B
 C
@@ -38,6 +40,8 @@ W
 X
 Y
 Z
+
+# No Lithuanian words end in single lower-case letters, so we throw those in too?
 a
 b
 c
@@ -85,7 +89,7 @@ z
 ū
 ž
 
-#Roman Numerals. A dot after one of these is not a sentence break in German.
+# Roman Numerals
 I
 II
 III
@@ -106,28 +110,8 @@ XVII
 XVIII
 XIX
 XX
-i
-ii
-iii
-iv
-v
-vi
-vii
-viii
-ix
-x
-xi
-xii
-xiii
-xiv
-xv
-xvi
-xvii
-xviii
-xix
-xx
 
-# English -- but these work globally for all languages:
+# English -- but these work globally for all languages
 Mr
 Mrs
 No
@@ -169,7 +153,8 @@ Dr
 Corp
 Co
 
-#List of English titles. These are often followed by upper-case names, but do not indicate sentence breaks
+# List of English titles
+# These are often followed by upper-case names, but do not indicate sentence breaks.
 Adj
 Adm
 Adv
@@ -228,7 +213,9 @@ St
 Supt
 Surg
 
-# English misc - odd period-ending items that NEVER indicate breaks (p.m. does NOT fall into this category - it sometimes ends a sentence)
+# English misc.
+# Odd period-ending items that NEVER indicate breaks (p.m. does NOT fall into this
+# category - it sometimes ends a sentence).
 v
 vs
 i.e
@@ -1435,9 +1422,9 @@ zootech
 žodž
 žurn
 
-#Numbers only. These should only induce breaks when followed by a numeric sequence
-# add NUMERIC_ONLY after the word for this function
-#This case is mostly for the english "No." which can either be a sentence of its own, or
-#if followed by a number, a non-breaking prefix
+# Numbers only. These should only induce breaks when followed by a numeric sequence
+# Add NUMERIC_ONLY after the word for this function.
+# This case is mostly for the english "No." which can either be a sentence of its own,
+# or, if followed by a number, a non-breaking prefix.
 nr. #NUMERIC_ONLY# 
 Nr. #NUMERIC_ONLY# 

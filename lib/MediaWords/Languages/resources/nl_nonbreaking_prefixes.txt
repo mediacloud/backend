@@ -8,13 +8,17 @@
 #     http://search.cpan.org/~achimru/Lingua-Sentence-1.03/lib/Lingua/Sentence.pm
 #
 
-#Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
-#Special cases are included for prefixes that ONLY appear before 0-9 numbers.
-#Sources: http://nl.wikipedia.org/wiki/Lijst_van_afkortingen 
-#         http://nl.wikipedia.org/wiki/Aanspreekvorm
-#         http://nl.wikipedia.org/wiki/Titulatuur_in_het_Nederlands_hoger_onderwijs
-#any single upper case letter  followed by a period is not a sentence ender (excluding I occasionally, but we leave it in)
-#usually upper case letters are initials in a name
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
+# Special cases are included for prefixes that ONLY appear before 0-9 numbers.
+
+# Sources: http://nl.wikipedia.org/wiki/Lijst_van_afkortingen 
+#          http://nl.wikipedia.org/wiki/Aanspreekvorm
+#          http://nl.wikipedia.org/wiki/Titulatuur_in_het_Nederlands_hoger_onderwijs
+
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
 A
 B
 C
@@ -42,7 +46,7 @@ X
 Y
 Z
 
-# English -- but these work globally for all languages:
+# English -- but these work globally for all languages
 Mr
 Mrs
 No
@@ -84,7 +88,8 @@ Dr
 Corp
 Co
 
-#List of titles. These are often followed by upper-case names, but do not indicate sentence breaks
+# List of titles
+# These are often followed by upper-case names, but do not indicate sentence breaks.
 bacc
 bc
 bgen
@@ -134,8 +139,11 @@ Z.K.M
 Z.M
 z.v
 
-#misc - odd period-ending items that NEVER indicate breaks (p.m. does NOT fall into this category - it sometimes ends a sentence)
-#we seem to have a lot of these in dutch i.e.: i.p.v - in plaats van (in stead of) never ends a sentence
+# Misc.
+# Odd period-ending items that NEVER indicate breaks (p.m. does NOT fall into this
+# category - it sometimes ends a sentence).
+# We seem to have a lot of these in dutch i.e.: i.p.v - "in plaats van" ("instead of")
+# never ends a sentence.
 a.g.v
 bijv
 bijz
@@ -157,10 +165,10 @@ m.i
 m.i.v
 v.w.t
 
-#Numbers only. These should only induce breaks when followed by a numeric sequence
-# add NUMERIC_ONLY after the word for this function
-#This case is mostly for the english "No." which can either be a sentence of its own, or
-#if followed by a number, a non-breaking prefix
+# Numbers only. These should only induce breaks when followed by a numeric sequence
+# Add NUMERIC_ONLY after the word for this function.
+# This case is mostly for the english "No." which can either be a sentence of its own, or
+# if followed by a number, a non-breaking prefix.
 Nr #NUMERIC_ONLY# 
 Nrs 
 nrs

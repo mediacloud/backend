@@ -8,11 +8,13 @@
 #     http://search.cpan.org/~achimru/Lingua-Sentence-1.03/lib/Lingua/Sentence.pm
 #
 
-#Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
-#Special cases are included for prefixes that ONLY appear before 0-9 numbers.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
+# Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-#any single upper case letter  followed by a period is not a sentence ender (excluding I occasionally, but we leave it in)
-#usually upper case letters are initials in a name
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
 A
 B
 C
@@ -39,6 +41,9 @@ W
 X
 Y
 Z
+
+# Usually upper case letters are initials in a name (Spanish alphabet)
+Ñ
 
 # English -- but these work globally for all languages:
 Mr
@@ -82,7 +87,7 @@ Dr
 Corp
 Co
 
-#Abbreviations
+# Abbreviations
 a.c
 aa.rr
 abrev

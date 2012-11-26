@@ -8,12 +8,12 @@
 #     http://search.cpan.org/~achimru/Lingua-Sentence-1.03/lib/Lingua/Sentence.pm
 #
 
-#Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
-#Special cases are included for prefixes that ONLY appear before 0-9 numbers.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
+# Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-#any single upper case letter  followed by a period is not a sentence ender
-#usually upper case letters are initials in a name
-#no Italian words end in single lower-case letters, so we throw those in too?
+# Any single upper case letter followed by a period is not a sentence ender
+# Nsually upper case letters are initials in a name.
 A
 B
 C
@@ -40,6 +40,8 @@ W
 X
 Y
 Z
+
+# No Italian words end in single lower-case letters, so we throw those in too?
 a
 b
 c
@@ -67,7 +69,7 @@ x
 y
 z
 
-# English -- but these work globally for all languages:
+# English -- but these work globally for all languages
 Mr
 Mrs
 No
@@ -109,7 +111,7 @@ Dr
 Corp
 Co
 
-# Period-final abbreviation list from http://www.chass.utoronto.ca/~ngargano/corsi/corrisp/abbreviazioni.html
+# http://www.chass.utoronto.ca/~ngargano/corsi/corrisp/abbreviazioni.html
 a.c 
 es 
 all 

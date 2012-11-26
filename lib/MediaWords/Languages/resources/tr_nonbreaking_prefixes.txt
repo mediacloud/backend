@@ -7,10 +7,49 @@
 # The file is home-made by a programmer (not a linguist) who doesn't even speak Romanian so it surely can be improved.
 #
 
-# Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
 # Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-# Roman Numerals.
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+L
+M
+N
+O
+P
+Q
+R
+S
+T
+U
+V
+W
+X
+Y
+Z
+
+# Usually upper case letters are initials in a name (Turkish alphabet)
+Ç
+Ğ
+İ
+Ö
+Ş
+Ü
+
+# Roman Numerals
 I
 II
 III

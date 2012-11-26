@@ -7,11 +7,13 @@
 # The file is home-made by a programmer (not a linguist) who doesn't even speak Finnish so it surely can be improved.
 #
 
-# Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
 # Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-# any single upper case letter followed by a period is not a sentence ender (excluding I occasionally, but we leave it in)
-# usually upper case letters are initials in a name
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
 A
 B
 C
@@ -39,7 +41,12 @@ X
 Y
 Z
 
-# English -- but these work globally for all languages:
+# Usually upper case letters are initials in a name (Finnish alphabet)
+Å
+Ä
+Ö
+
+# English -- but these work globally for all languages
 Mr
 Mrs
 No
@@ -81,7 +88,7 @@ Dr
 Corp
 Co
 
-# Roman Numerals.
+# Roman Numerals
 I
 II
 III
@@ -102,26 +109,6 @@ XVII
 XVIII
 XIX
 XX
-i
-ii
-iii
-iv
-v
-vi
-vii
-viii
-ix
-x
-xi
-xii
-xiii
-xiv
-xv
-xvi
-xvii
-xviii
-xix
-xx
 
 # http://en.wiktionary.org/wiki/Category:Finnish_abbreviations
 A
@@ -205,7 +192,8 @@ yms
 yt
 
 # Number indicators
-# add #NUMERIC_ONLY# after the word if it should ONLY be non-breaking when a 0-9 digit follows it
+# Add #NUMERIC_ONLY# after the word if it should ONLY be non-breaking when
+# a 0-9 digit follows it.
 No
 no
 

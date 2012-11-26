@@ -8,12 +8,13 @@
 #     http://search.cpan.org/~achimru/Lingua-Sentence-1.03/lib/Lingua/Sentence.pm
 #
 
-#Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
-#Special cases are included for prefixes that ONLY appear before 0-9 numbers.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
+# Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-#any single upper case letter  followed by a period is not a sentence ender (excluding I occasionally, but we leave it in)
-#usually upper case letters are initials in a name
-#no german words end in single lower-case letters, so we throw those in too.
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
 A
 B
 C
@@ -40,6 +41,8 @@ W
 X
 Y
 Z
+
+# No German words end in single lower-case letters, so we throw those in too?
 a
 b
 c
@@ -67,7 +70,12 @@ x
 y
 z
 
-# English -- but these work globally for all languages:
+# Usually upper case letters are initials in a name (German umlauts)
+Ä
+Ö
+Ü
+
+# English -- but these work globally for all languages
 Mr
 Mrs
 No
@@ -109,7 +117,7 @@ Dr
 Corp
 Co
 
-#Roman Numerals. A dot after one of these is not a sentence break in German.
+# Roman Numerals
 I
 II
 III
@@ -151,7 +159,7 @@ xviii
 xix
 xx
 
-#Titles and Honorifics
+# Titles and Honorifics
 Adj
 Adm
 Adv
@@ -208,7 +216,7 @@ St
 Supt
 Surg
 
-#Misc symbols
+# Misc. symbols
 Mio
 Mrd
 bzw
@@ -264,8 +272,8 @@ Corp
 bzgl
 BSE
 
-#Number indicators
-# add #NUMERIC_ONLY# after the word if it should ONLY be non-breaking when a 0-9 digit follows it
+# Number indicators
+# add #NUMERIC_ONLY# after the word if it should ONLY be non-breaking when a 0-9 digit follows it.
 No
 Nos
 Art
@@ -274,7 +282,7 @@ pp
 ca
 Ca
 
-#Ordinals are done with . in German - "1." = "1st" in English
+# Ordinals are done with . in German - "1." = "1st" in English
 1
 2
 3

@@ -7,11 +7,13 @@
 # The file is home-made by a programmer (not a linguist) who doesn't even speak Swedish so it surely can be improved.
 #
 
-# Anything in this file, followed by a period (and an upper-case word), does NOT indicate an end-of-sentence marker.
+# Anything in this file, followed by a period (and an upper-case word), does NOT
+# indicate an end-of-sentence marker.
 # Special cases are included for prefixes that ONLY appear before 0-9 numbers.
 
-#any single upper case letter  followed by a period is not a sentence ender (excluding I occasionally, but we leave it in)
-#usually upper case letters are initials in a name
+# Any single upper case letter followed by a period is not a sentence ender
+# (excluding I occasionally, but we leave it in).
+# Usually upper case letters are initials in a name.
 A
 B
 C
@@ -39,7 +41,19 @@ X
 Y
 Z
 
-# Roman Numerals (sans 'I', just in case).
+# Usually upper case letters are initials in a name (Slovene alphabet)
+Č
+Š
+Ž
+Ć
+Đ
+Ä
+Ë
+Ö
+Ü
+
+# Roman Numerals
+I
 II
 III
 IV
@@ -60,7 +74,7 @@ XVIII
 XIX
 XX
 
-# English -- but these work globally for all languages:
+# English -- but these work globally for all languages
 Mr
 Mrs
 No
@@ -327,6 +341,7 @@ utg
 vanl
 
 # Number indicators
-# add #NUMERIC_ONLY# after the word if it should ONLY be non-breaking when a 0-9 digit follows it
+# add #NUMERIC_ONLY# after the word if it should ONLY be non-breaking when a
+# 0-9 digit follows it
 Nej
 nej
