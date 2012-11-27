@@ -198,7 +198,7 @@ sub language_is_enabled($)
     }
 }
 
-# (static) Returns reference to a language module instance for the language code, 0 on error
+# (static) Returns language module instance for the language code, 0 on error
 sub language_for_code($)
 {
     my $language_code = shift;
@@ -208,10 +208,10 @@ sub language_for_code($)
         return 0;
     }
 
-    return \$_lang_instances{ $language_code };
+    return $_lang_instances{ $language_code };
 }
 
-# (static) Returns reference to a default language module instance (English)
+# (static) Returns default language module instance (English)
 sub default_language
 {
     my $language = language_for_code { default_language_code() };
@@ -220,7 +220,7 @@ sub default_language
         die "Default language 'en' is not enabled.";
     }
 
-    return \$language;
+    return $language;
 }
 
 # (static) Returns default language code ('en' for English)

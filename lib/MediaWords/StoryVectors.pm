@@ -464,23 +464,24 @@ sub update_story_sentence_words_and_language
 
 sub _get_stem_word_counts_for_sentence($$;$)
 {
-    my ( $sentence, $language, $fallback_language ) = @_;
+    my ( $sentence, $sentence_lang, $fallback_lang ) = @_;
 
     # Determined sentence language
-    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
+    my $lang = MediaWords::Languages::Language::language_for_code( $sentence_lang );
     if ( !$lang )
     {
 
         # Story language instead of the sentence language
-        say STDERR "Language '$story_lang' for sentence '$sentence' is not configured, using fallback (story) language '" .
-          $fallback_language . "'.";
-        $lang = MediaWords::Languages::Language::language_for_code( $fallback_language );
+        say STDERR
+          "Language '$sentence_lang' for sentence '$sentence' is not configured, using fallback (story) language '" .
+          $fallback_lang . "'.";
+        $lang = MediaWords::Languages::Language::language_for_code( $fallback_lang );
 
         if ( !$lang )
         {
 
             # Default language instead of story / sentence language
-            say STDERR "Fallback (story) language '$fallback_language' is not configured either, using default language '" .
+            say STDERR "Fallback (story) language '$fallback_lang' is not configured either, using default language '" .
               MediaWords::Languages::Language::default_language_code() . "'.";
             $lang = MediaWords::Languages::Language::default_language();
         }
