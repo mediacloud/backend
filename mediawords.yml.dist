@@ -62,11 +62,6 @@ mail:
     #fetch_remote_content_password : password
     #fetch_remote_content_url      : "http://admin.mediacloud.org/admin/downloads/view/"
 
-    ### ISO 639-1 language code of the media that is being analysed, e.g. "en"
-    ### (see lib/MediaWords/Languages/*.pm for supported languages)
-    ### (you can add support for your own language -- see doc/README.Languages)
-    #language : "en"
-
     #### Defaults to kmeans uncomment to use Cluto
     #clustering_engine: "cluto"
     #cluto_binary: "/usr/local/cluto/bin/vcluster"
