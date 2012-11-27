@@ -28,7 +28,7 @@ use Cwd            ();
 #
 # LIST OF ENABLED LANGUAGES
 #
-my Readonly @enabled_languages = (
+my Readonly @_enabled_languages = (
     'da',                                  # Danish
     'de',                                  # German
     'en',                                  # English
@@ -156,7 +156,7 @@ has 'cached_long_stop_word_stems'  => ( is => 'rw', default => 0 );
 my %_lang_instances;
 
 # Load enabled language modules
-foreach my $language_to_load ( @enabled_languages )
+foreach my $language_to_load ( @_enabled_languages )
 {
 
     # Check if the language is supported by the language identifier
@@ -227,6 +227,12 @@ sub default_language
 sub default_language_code
 {
     return 'en';
+}
+
+# (static) Get an array of enabled languages
+sub enabled_languages
+{
+    return @_enabled_languages;
 }
 
 # Cached stop words

@@ -18,8 +18,6 @@ sub get_is_stop_stem_function_tables_and_definition
 {
     my $sql = '';
 
-    my $lang = MediaWords::Languages::Language::lang();
-
     my @stoplist_sizes = ( 'tiny', 'short', 'long' );
 
     for my $stoplist_size ( @stoplist_sizes )
@@ -36,17 +34,21 @@ sub get_is_stop_stem_function_tables_and_definition
             DROP TABLE IF EXISTS stopwords_${stoplist_size};
             CREATE TABLE stopwords_${stoplist_size} (
                 stopwords_${stoplist_size}_id SERIAL PRIMARY KEY,
-                stopword VARCHAR(256) NOT NULL
+                stopword VARCHAR(256) NOT NULL,
+                language VARCHAR(3) NOT NULL /* 2- or 3-character ISO 690 language code */
             ) WITH (OIDS=FALSE);
-            CREATE UNIQUE INDEX stopwords_${stoplist_size}_stopword ON stopwords_${stoplist_size}(stopword);
+            CREATE UNIQUE INDEX stopwords_${stoplist_size}_stopword
+                ON stopwords_${stoplist_size}(stopword, language);
 
             -- Stopword stems
             DROP TABLE IF EXISTS stopword_stems_${stoplist_size};
             CREATE TABLE stopword_stems_${stoplist_size} (
                 stopword_stems_${stoplist_size}_id SERIAL PRIMARY KEY,
-                stopword_stem VARCHAR(256) NOT NULL
+                stopword_stem VARCHAR(256) NOT NULL,
+                language VARCHAR(3) NOT NULL /* 2- or 3-character ISO 690 language code */
             ) WITH (OIDS=FALSE);
-            CREATE UNIQUE INDEX stopword_stems_${stoplist_size}_stopword_stem ON stopword_stems_${stoplist_size}(stopword_stem);
+            CREATE UNIQUE INDEX stopword_stems_${stoplist_size}_stopword_stem
+                ON stopword_stems_${stoplist_size}(stopword_stem, language);
 
             -- Reset the message level back to "notice".
             SET client_min_messages=NOTICE;
@@ -54,93 +56,109 @@ sub get_is_stop_stem_function_tables_and_definition
 END
           ;
 
-        # collect stopwords
-        my $stopwords_hashref;
-        if ( $stoplist_size eq 'tiny' )
+        # For every language
+        my @enabled_languages = MediaWords::Languages::Language::enabled_languages();
+        foreach my $language_code ( @enabled_languages )
         {
-            $stopwords_hashref = $lang->get_tiny_stop_words();
-        }
-        elsif ( $stoplist_size eq 'short' )
-        {
-            $stopwords_hashref = $lang->get_short_stop_words();
-        }
-        elsif ( $stoplist_size eq 'long' )
-        {
-            $stopwords_hashref = $lang->get_long_stop_words();
-        }
-        my @stopwords;
-        while ( my ( $stopword, $value ) = each %{ $stopwords_hashref } )
-        {
-            if ( $value == 1 )
+            my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
+            if ( !$lang )
             {
-                $stopword =~ s/'/''/;
-                push( @stopwords, "('$stopword')" );
+                die "Language '$language_code' is not enabled.";
             }
+
+            # collect stopwords
+            my $stopwords_hashref;
+            if ( $stoplist_size eq 'tiny' )
+            {
+                $stopwords_hashref = $lang->get_tiny_stop_words();
+            }
+            elsif ( $stoplist_size eq 'short' )
+            {
+                $stopwords_hashref = $lang->get_short_stop_words();
+            }
+            elsif ( $stoplist_size eq 'long' )
+            {
+                $stopwords_hashref = $lang->get_long_stop_words();
+            }
+            my @stopwords;
+            while ( my ( $stopword, $value ) = each %{ $stopwords_hashref } )
+            {
+                if ( $value == 1 )
+                {
+                    $stopword =~ s/'/''/;
+                    push( @stopwords, "('$stopword', '$language_code')" );
+                }
+            }
+
+            # collect stopword stems
+            my $stopword_stems_hashref;
+            if ( $stoplist_size eq 'tiny' )
+            {
+                $stopword_stems_hashref = $lang->get_tiny_stop_word_stems();
+            }
+            elsif ( $stoplist_size eq 'short' )
+            {
+                $stopword_stems_hashref = $lang->get_short_stop_word_stems();
+            }
+            elsif ( $stoplist_size eq 'long' )
+            {
+                $stopword_stems_hashref = $lang->get_long_stop_word_stems();
+            }
+            my @stopword_stems;
+            while ( my ( $stopword_stem, $value ) = each %{ $stopword_stems_hashref } )
+            {
+                if ( $value == 1 )
+                {
+                    $stopword_stem =~ s/'/''/;
+                    push( @stopword_stems, "('$stopword_stem', '$language_code')" );
+                }
+            }
+
+            # insert stopwords and stopword stems
+            $sql .=
+              'INSERT INTO stopwords_' . $stoplist_size . ' (stopword, language) VALUES ' . join( ', ', @stopwords ) . ';';
+            $sql .= 'INSERT INTO stopword_stems_' . $stoplist_size . ' (stopword_stem, language) VALUES ' .
+              join( ', ', @stopword_stems ) . ';';
         }
 
-        # collect stopword stems
-        my $stopword_stems_hashref;
-        if ( $stoplist_size eq 'tiny' )
-        {
-            $stopword_stems_hashref = $lang->get_tiny_stop_word_stems();
-        }
-        elsif ( $stoplist_size eq 'short' )
-        {
-            $stopword_stems_hashref = $lang->get_short_stop_word_stems();
-        }
-        elsif ( $stoplist_size eq 'long' )
-        {
-            $stopword_stems_hashref = $lang->get_long_stop_word_stems();
-        }
-        my @stopword_stems;
-        while ( my ( $stopword_stem, $value ) = each %{ $stopword_stems_hashref } )
-        {
-            if ( $value == 1 )
-            {
-                $stopword_stem =~ s/'/''/;
-                push( @stopword_stems, "('$stopword_stem')" );
-            }
-        }
-
-        # insert stopwords and stopword stems
-        $sql .= 'INSERT INTO stopwords_' . $stoplist_size . ' (stopword) VALUES ' . join( ', ', @stopwords ) . ';';
-        $sql .=
-          'INSERT INTO stopword_stems_' . $stoplist_size . ' (stopword_stem) VALUES ' . join( ', ', @stopword_stems ) . ';';
     }
 
     # create a function
     $sql .= <<END
 
-        CREATE OR REPLACE FUNCTION is_stop_stem(size TEXT, stem TEXT)
+        CREATE OR REPLACE FUNCTION is_stop_stem(p_size TEXT, p_stem TEXT, p_language TEXT)
             RETURNS BOOLEAN AS \$\$
         DECLARE
             result BOOLEAN;
         BEGIN
 
             -- Tiny
-            IF size = 'tiny' THEN
-                SELECT 't' INTO result FROM stopword_stems_tiny WHERE stopword_stem = stem;
+            IF p_size = 'tiny' THEN
+                SELECT 't' INTO result FROM stopword_stems_tiny
+                    WHERE stopword_stem = p_stem AND language = p_language;
                 IF NOT FOUND THEN
                     result := 'f';
                 END IF;
 
             -- Short
-            ELSIF size = 'short' THEN
-                SELECT 't' INTO result FROM stopword_stems_short WHERE stopword_stem = stem;
+            ELSIF p_size = 'short' THEN
+                SELECT 't' INTO result FROM stopword_stems_short
+                    WHERE stopword_stem = p_stem AND language = p_language;
                 IF NOT FOUND THEN
                     result := 'f';
                 END IF;
 
             -- Long
-            ELSIF size = 'long' THEN
-                SELECT 't' INTO result FROM stopword_stems_long WHERE stopword_stem = stem;
+            ELSIF p_size = 'long' THEN
+                SELECT 't' INTO result FROM stopword_stems_long
+                    WHERE stopword_stem = p_stem AND language = p_language;
                 IF NOT FOUND THEN
                     result := 'f';
                 END IF;
 
             -- unknown size
             ELSE
-                RAISE EXCEPTION 'Unknown stopword stem size: "%" (expected "tiny", "short" or "long")', size;
+                RAISE EXCEPTION 'Unknown stopword stem size: "%" (expected "tiny", "short" or "long")', p_size;
                 result := 'f';
             END IF;
 

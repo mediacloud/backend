@@ -43,7 +43,7 @@ Adding support for a new language
 	#
 	# LIST OF ENABLED LANGUAGES
 	#
-	my Readonly @enabled_languages = (
+	my Readonly @_enabled_languages = (
 		...
 		'xx',	# Your language here
 	);
