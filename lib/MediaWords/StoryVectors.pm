@@ -383,7 +383,6 @@ sub update_story_sentence_words_and_language
     my ( $db, $story_ref, $no_delete, $no_dedup_sentences ) = @_;
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
-    my $lang = MediaWords::Languages::Language::lang();
 
     unless ( $no_delete )
     {
@@ -406,7 +405,7 @@ sub update_story_sentence_words_and_language
     }
     else
     {
-        say STDERR "Story's URL is not defined.";
+        say STDERR "Story's URL for story ID " . $story->{ stories_id } . " is not defined.";
     }
 
     # Identify the language of the full story
@@ -414,6 +413,13 @@ sub update_story_sentence_words_and_language
     $db->query( "update stories set language = ? where stories_id = ?", $story_lang, $story->{ stories_id } );
 
     # Tokenize into sentences
+    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
+    if ( !$lang )
+    {
+        say STDERR "Language '$story_lang' for story ID " . $story->{ stories_id } .
+          " is not configured, using default language '" . MediaWords::Languages::Language::default_language_code() . "'.";
+        $lang = MediaWords::Languages::Language::default_language();
+    }
     my $sentences = $lang->get_sentences( $story_text ) || return;
     $sentences = dedup_sentences( $db, $story_ref, $sentences ) unless ( $no_dedup_sentences );
 
@@ -436,7 +442,8 @@ sub update_story_sentence_words_and_language
         # Insert the sentence into the database
         _insert_story_sentence( $db, $story, $sentence_num, $sentence, $sentence_lang );
 
-        my $word_counts_for_sentence = _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ] );
+        my $word_counts_for_sentence =
+          _get_stem_word_counts_for_sentence( $sentences->[ $sentence_num ], $sentence_lang, $story_lang );
 
         $sentence_word_counts->{ $sentence_num } = $word_counts_for_sentence;
     }
@@ -455,10 +462,29 @@ sub update_story_sentence_words_and_language
 	 }};
 }
 
-sub _get_stem_word_counts_for_sentence
+sub _get_stem_word_counts_for_sentence($$;$)
 {
-    my ( $sentence ) = @_;
-    my $lang = MediaWords::Languages::Language::lang();
+    my ( $sentence, $language, $fallback_language ) = @_;
+
+    # Determined sentence language
+    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
+    if ( !$lang )
+    {
+
+        # Story language instead of the sentence language
+        say STDERR "Language '$story_lang' for sentence '$sentence' is not configured, using fallback (story) language '" .
+          $fallback_language . "'.";
+        $lang = MediaWords::Languages::Language::language_for_code( $fallback_language );
+
+        if ( !$lang )
+        {
+
+            # Default language instead of story / sentence language
+            say STDERR "Fallback (story) language '$fallback_language' is not configured either, using default language '" .
+              MediaWords::Languages::Language::default_language_code() . "'.";
+            $lang = MediaWords::Languages::Language::default_language();
+        }
+    }
 
     my $words      = $lang->tokenize( $sentence );
     my $stop_stems = $lang->get_tiny_stop_word_stems();

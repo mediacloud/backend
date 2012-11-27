@@ -9,6 +9,7 @@ BEGIN
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 }
+use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use Readonly;
@@ -22,8 +23,8 @@ use MediaWords::StoryVectors;
 
 sub stem_test
 {
-    my ( $test_string, $expected_stems, $test_name ) = @_;
-    my $stem_word_counts = MediaWords::StoryVectors::_get_stem_word_counts_for_sentence( $test_string );
+    my ( $test_string, $expected_stems, $language, $test_name ) = @_;
+    my $stem_word_counts = MediaWords::StoryVectors::_get_stem_word_counts_for_sentence( $test_string, $language );
 
     #$Data::Dumper::Useqq = 1;
     #say Dumper ( $stem_word_counts );
@@ -87,10 +88,10 @@ my $foreign_expected_stems = {
 };
 
 binmode STDOUT, ':encoding(UTF-8)';
-stem_test( $english_test_string, $english_expected_stems, 'english test' );
+stem_test( $english_test_string, $english_expected_stems, 'en', 'English test' );
 
 my $foreign_test_string = <<'QUOTE';
  Não автомобиль агентства александр американских владимир военных газета 
 QUOTE
 
-stem_test( $foreign_test_string, $foreign_expected_stems, 'foreign test' );
+stem_test( $foreign_test_string, $foreign_expected_stems, 'ru', 'Russian test' );
