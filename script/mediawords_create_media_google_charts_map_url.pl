@@ -46,7 +46,7 @@ sub get_country_code_to_tag_count
     }
 
     my $lang = MediaWords::Languages::Language::lang();
-    my $lcm  = $lang->get_locale_country_object();
+    my $lcm  = $lang->get_locale_codes_api_object();
 
     my $country_code_count = {};
 
@@ -510,7 +510,7 @@ sub main
     my $temp_table_name = $table_name . time();
 
     my $lang = MediaWords::Languages::Language::lang();
-    my $lcm  = $lang->get_locale_country_object();
+    my $lcm  = $lang->get_locale_codes_api_object();
 
     my $db = TableCreationUtils::get_database_handle();
 

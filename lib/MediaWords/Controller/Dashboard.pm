@@ -419,7 +419,7 @@ sub get_country_counts_all_dates : Local
     my $media_set_num = 1;
 
     my $lang = MediaWords::Languages::Language::lang();
-    my $lcm  = $lang->get_locale_country_object();
+    my $lcm  = $lang->get_locale_codes_api_object();
 
     if ( my $id = $c->req->param( "dashboard_topics_id$media_set_num" ) )
     {
@@ -658,7 +658,7 @@ sub _country_counts_to_csv_array
     my ( $self, $country_counts ) = @_;
 
     my $lang = MediaWords::Languages::Language::lang();
-    my $lcm  = $lang->get_locale_country_object();
+    my $lcm  = $lang->get_locale_codes_api_object();
 
     my $country_code_3_counts =
       { map { uc( $lcm->country_code2code( $_, 'LOCALE_CODE_ALPHA_2', 'LOCALE_CODE_ALPHA_3' ) ) => $country_counts->{ $_ } }

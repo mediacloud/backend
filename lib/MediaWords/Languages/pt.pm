@@ -69,4 +69,10 @@ sub tokenize
     return $self->_tokenize_with_spaces( $sentence );
 }
 
+sub get_locale_codes_api_object
+{
+    my $self = shift;
+    return $self->_get_locale_country_multilingual_object( 'pt' );
+}
+
 1;

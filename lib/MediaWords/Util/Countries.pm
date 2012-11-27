@@ -311,7 +311,7 @@ my $_country_name_remapping = {
 sub _get_non_remapped_names_for_non_banned_countries
 {
     my $lang          = MediaWords::Languages::Language::lang();
-    my $lcm           = $lang->get_locale_country_object();
+    my $lcm           = $lang->get_locale_codes_api_object();
     my $all_countries = [ sort map { lc } $lcm->all_country_names ];
 
     #remove banned country names
@@ -383,7 +383,7 @@ sub get_country_code_for_stemmed_country_name
     my ( $stemmed_country_name ) = @_;
 
     my $lang = MediaWords::Languages::Language::lang();
-    my $lcm  = $lang->get_locale_country_object();
+    my $lcm  = $lang->get_locale_codes_api_object();
 
     if ( !defined( $_country_code_for_stemmed_country_name ) )
     {

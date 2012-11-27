@@ -118,9 +118,9 @@ requires 'get_sentences';
 #
 requires 'tokenize';
 
-# Also, you might want to override 'get_locale_country_object' (see below) to implement your own
-# way to fetch a list of country codes and countries. Do that only if you have problems with
-# country detection.
+# Returns an object complying with Locale::Codes::API "protocol" (e.g. an instance of
+# Locale::Country::Multilingual) for fetching a list of country codes and countries.
+requires 'get_locale_codes_api_object';
 
 #
 # END OF THE SUBCLASS INTERFACE
@@ -139,8 +139,8 @@ has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
 # Lingua::Sentence language
 has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
 
-# Instance of Locale::Country::Multilingual (if needed), lazy-initialized in get_locale_country_object()
-has 'locale_country_object' => ( is => 'rw', default => 0 );
+# Instance of Locale::Country::Multilingual (if needed), lazy-initialized in _get_locale_country_multilingual_object()
+has 'locale_country_multilingual_object' => ( is => 'rw', default => 0 );
 
 # Cached stopwords
 has 'cached_tiny_stop_words'  => ( is => 'rw', default => 0 );
@@ -315,21 +315,18 @@ sub get_long_stop_word_stems
     return $self->cached_long_stop_word_stems;
 }
 
-# Returns an object complying with Locale::Codes::API "protocol" (e.g. an instance of
-# Locale::Country::Multilingual) for fetching a list of country codes and countries.
-# Might be overriden; the default implementation returns an instance of
-# Locale::Country::Multilingual initialized with whatever is returned by 'get_language_code'.
-sub get_locale_country_object
+# Returns an instance of Locale::Country::Multilingual for the language code
+sub _get_locale_country_multilingual_object
 {
-    my $self = shift;
+    my ( $self, $language ) = @_;
 
-    if ( $self->locale_country_object == 0 )
+    if ( $self->locale_country_multilingual_object == 0 )
     {
-        $self->locale_country_object( Locale::Country::Multilingual->new() );
-        $self->locale_country_object->set_lang( $self->get_language_code() );
+        $self->locale_country_multilingual_object( Locale::Country::Multilingual->new() );
+        $self->locale_country_multilingual_object->set_lang( $language );
     }
 
-    return $self->locale_country_object;
+    return $self->locale_country_multilingual_object;
 }
 
 # Lingua::Stem::Snowball helper
@@ -357,7 +354,6 @@ sub _stem_with_lingua_stem_snowball
 sub _get_stop_words_with_lingua_stopwords
 {
     my ( $self, $language, $encoding ) = @_;
-
     return Lingua::StopWords::getStopWords( $language, $encoding );
 }
 
