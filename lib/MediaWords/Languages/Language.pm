@@ -5,9 +5,7 @@ package MediaWords::Languages::Language;
 #
 # Has to be overloaded by a specific language plugin (think of this as an abstract class).
 #
-# Also, use this to get an instance of a currently configured language, e.g.:
-#   my $lang = MediaWords::Languages::Language::lang();
-#   my $stopwords = $lang->get_tiny_stop_words();
+# See doc/README.languages for instructions.
 #
 
 use strict;
@@ -15,16 +13,40 @@ use warnings;
 
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use utf8;
 
 use Moose::Role;
 use Lingua::Stem::Snowball;
 use Lingua::StopWords;
 use Lingua::Sentence;
 use Locale::Country::Multilingual { use_io_layer => 1 };
-use MediaWords::Util::Config;
+use MediaWords::Util::IdentifyLanguage;    # to check if the language can be identified
 
 use File::Basename ();
 use Cwd            ();
+
+#
+# LIST OF ENABLED LANGUAGES
+#
+my Readonly @enabled_languages = (
+    'da',                                  # Danish
+    'de',                                  # German
+    'en',                                  # English
+    'es',                                  # Spanish
+    'fi',                                  # Finnish
+    'fr',                                  # French
+    'hu',                                  # Hungarian
+    'it',                                  # Italian
+    'lt',                                  # Lithuanian
+    'nl',                                  # Dutch
+    'no',                                  # Norwegian
+    'pt',                                  # Portuguese
+    'ro',                                  # Romanian
+    'ru',                                  # Russian
+    'sv',                                  # Swedish
+    'tr',                                  # Turkish
+    'zh',                                  # Chinese
+);
 
 #
 # START OF THE SUBCLASS INTERFACE
@@ -49,7 +71,7 @@ requires 'get_language_code';
 #   sub fetch_and_return_tiny_stop_words
 #   {
 #       my $self = shift;
-#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/en_stoplist_tiny.txt' );
+#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stoplist_tiny.txt' );
 #   }
 #
 requires 'fetch_and_return_tiny_stop_words';
@@ -105,93 +127,88 @@ requires 'tokenize';
 #
 
 # Lingua::Stem::Snowball instance (if needed), lazy-initialized in _stem_with_lingua_stem_snowball()
-has 'stemmer' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'stemmer' => ( is => 'rw', default => 0 );
 
 # Lingua::Stem::Snowball language and encoding
-has 'stemmer_language' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'stemmer_encoding' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'stemmer_language' => ( is => 'rw', default => 0 );
+has 'stemmer_encoding' => ( is => 'rw', default => 0 );
 
 # Lingua::Sentence instance (if needed), lazy-initialized in _tokenize_text_with_lingua_sentence()
-has 'sentence_tokenizer' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
 
 # Lingua::Sentence language
-has 'sentence_tokenizer_language' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
 
 # Instance of Locale::Country::Multilingual (if needed), lazy-initialized in get_locale_country_object()
-has 'locale_country_object' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'locale_country_object' => ( is => 'rw', default => 0 );
 
 # Cached stopwords
-has 'cached_tiny_stop_words' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_short_stop_words' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_long_stop_words' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'cached_tiny_stop_words'  => ( is => 'rw', default => 0 );
+has 'cached_short_stop_words' => ( is => 'rw', default => 0 );
+has 'cached_long_stop_words'  => ( is => 'rw', default => 0 );
 
 # Cached stopword stems
-has 'cached_tiny_stop_word_stems' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_short_stop_word_stems' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_long_stop_word_stems' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'cached_tiny_stop_word_stems'  => ( is => 'rw', default => 0 );
+has 'cached_short_stop_word_stems' => ( is => 'rw', default => 0 );
+has 'cached_long_stop_word_stems'  => ( is => 'rw', default => 0 );
 
-# Instance of a configured language (e.g. MediaWords::Languages::en), lazy-initialized in lang()
-my $_instance = 0;
+# Instances of each of the enabled languages (e.g. MediaWords::Languages::en, MediaWords::Languages::lt, ...)
+my %_lang_instances;
 
-# Returns a (singleton) instance of a particular configured language
-sub lang
+# Load enabled language modules
+foreach my $language_to_load ( @enabled_languages )
 {
-    if ( $_instance == 0 )
+
+    # Check if the language is supported by the language identifier
+    if ( !MediaWords::Util::IdentifyLanguage::language_is_supported( $language_to_load ) )
     {
-
-        # Load a module of a configured language
-        my $module = 'MediaWords::Languages::' . MediaWords::Util::Config::get_config->{ mediawords }->{ language };
-        eval {
-            ( my $file = $module ) =~ s|::|/|g;
-            require $file . '.pm';
-            $module->import();
-            1;
-        } or do
-        {
-            my $error = $@;
-            die( "Error while loading module: $error" );
-        };
-
-        $_instance = $module->new();
+        die(
+            "Language module '$language_to_load' is enabled but the language is not supported by the language identifier." );
     }
 
-    return $_instance;
+    # Load module
+    my $module = 'MediaWords::Languages::' . $language_to_load;
+    eval {
+        ( my $file = $module ) =~ s|::|/|g;
+        require $file . '.pm';
+        $module->import();
+        1;
+    } or do
+    {
+        my $error = $@;
+        die( "Error while loading module for language '$language_to_load': $error" );
+    };
+
+    # Initialize an instance of the particular language module
+    $_lang_instances{ $language_to_load } = $module->new();
+}
+
+# (static) Returns 1 if language is enabled, 0 if not
+sub language_is_enabled($)
+{
+    my $language_code = shift;
+
+    if ( exists $_lang_instances{ $language_code } )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+# (static) Returns reference to a language instance for the language code, 0 on error
+sub language_for_code($)
+{
+    my $language_code = shift;
+
+    if ( !language_is_enabled( $language_code ) )
+    {
+        return 0;
+    }
+
+    return \$_lang_instances{ $language_code };
 }
 
 # Cached stop words

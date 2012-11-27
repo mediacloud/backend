@@ -46,7 +46,7 @@ use Readonly;
         "italian"                              => "it",
         "japanese"                             => "ja",
         "korean"                               => "ko",
-        "norwegian"                            => "nb",
+        "norwegian"                            => "no",    # was "nb" (for Bokmål), changed to generic "no"
         "polish"                               => "pl",
         "portuguese"                           => "pt",
         "russian"                              => "ru",
@@ -114,7 +114,7 @@ use Readonly;
         "persian"                              => "fa",
         "bosnian"                              => "bs",
         "sinhalese"                            => "si",
-        "norwegian_n"                          => "nn",
+        "norwegian_n"                          => "no",    # was "nn" (for Nynorsk), changed to generic "no"
         "portuguese_p"                         => "pt",
         "portuguese_b"                         => "pt",
         "xhosa"                                => "xh",
@@ -197,6 +197,9 @@ use Readonly;
         "montenegrin"                          => "srp"
     );
 
+    # Vice-versa
+    my Readonly %language_codes_to_names = reverse %language_names_to_codes;
+
     # Returns an ISO 690 language code for the plain text passed as a parameter
     # Parameters:
     #  * Text that should be identified (required)
@@ -269,8 +272,6 @@ use Readonly;
             return 0;
         }
 
-        # FIXME how much confident the CLD is about the decision
-
         return 1;
     }
 
@@ -296,6 +297,24 @@ use Readonly;
         }
 
         return $dps->tld();
+    }
+
+    # Returns 1 if the language code if supported by the identifier, 0 otherwise
+    # Parameters:
+    #  * ISO 639-1 language code
+    # Returns: 1 if the language can be identified, 0 if it can not
+    sub language_is_supported($)
+    {
+        my $language_id = shift;
+
+        if ( exists $language_codes_to_names{ $language_id } )
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
     }
 
 }
