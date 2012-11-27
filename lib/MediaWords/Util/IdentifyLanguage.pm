@@ -46,7 +46,7 @@ use Readonly;
         "italian"                              => "it",
         "japanese"                             => "ja",
         "korean"                               => "ko",
-        "norwegian"                            => "no",    # was "nb" (for Bokmål), changed to generic "no"
+        "norwegian"                            => "no",    # was "nb" (for Bokmål), changed to generic ISO 690-1 "no"
         "polish"                               => "pl",
         "portuguese"                           => "pt",
         "russian"                              => "ru",
@@ -114,7 +114,7 @@ use Readonly;
         "persian"                              => "fa",
         "bosnian"                              => "bs",
         "sinhalese"                            => "si",
-        "norwegian_n"                          => "no",    # was "nn" (for Nynorsk), changed to generic "no"
+        "norwegian_n"                          => "nn",
         "portuguese_p"                         => "pt",
         "portuguese_b"                         => "pt",
         "xhosa"                                => "xh",

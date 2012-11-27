@@ -3,7 +3,7 @@ use Moose;
 with 'MediaWords::Languages::Language';
 
 #
-# Norwegian
+# Norwegian (Bokmål)
 #
 
 use strict;

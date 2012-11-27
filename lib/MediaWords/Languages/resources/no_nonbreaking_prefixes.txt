@@ -1,10 +1,10 @@
 #
-# This is a non-breaking prefix list for the Norwegian language.
+# This is a non-breaking prefix list for the Norwegian (Bokmål) language.
 # The file is used for sentence tokenization (text -> sentence splitting).
 #
 # The encoding of this file is UTF-8.
 #
-# The file is home-made by a programmer (not a linguist) who doesn't even speak Norwegian so it surely can be improved.
+# The file is home-made by a programmer (not a linguist) who doesn't even speak Norwegian (Bokmål) so it surely can be improved.
 #
 
 # Anything in this file, followed by a period (and an upper-case word), does NOT
