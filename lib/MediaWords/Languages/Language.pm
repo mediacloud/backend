@@ -1,7 +1,7 @@
 package MediaWords::Languages::Language;
 
 #
-# Generic language plug-in for Media Words, also a singleton to a configured language.
+# Generic language plug-in for Media Words, also a factory of configured + enabled languages.
 #
 # Has to be overloaded by a specific language plugin (think of this as an abstract class).
 #
