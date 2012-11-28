@@ -97,7 +97,7 @@ sub crawler_google_data_table : Local : FormConfig
 
     $c->res->body( $json_output );
 
-    #$c->res->content_type( "application/json" );
+    #$c->res->content_type( "application/json; charset=UTF-8" );
 
     $c->stash->{ download_day_counts } = $download_day_counts;
 

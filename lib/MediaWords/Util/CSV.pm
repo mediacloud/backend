@@ -49,8 +49,8 @@ sub send_hashes_as_csv_page
     my $encoded_output = get_hashes_as_encoded_csv( $hashes );
 
     $c->res->header( 'Content-Disposition', qq[attachment; filename="$title"] );
-    $c->res->header( 'Content-Length',      length( $encoded_output ) );
-    $c->res->content_type( 'text/csv' );
+    $c->res->header( 'Content-Length',      bytes::length( $encoded_output ) );
+    $c->res->content_type( 'text/csv; charset=UTF-8' );
     $c->res->body( $encoded_output );
 }
 
