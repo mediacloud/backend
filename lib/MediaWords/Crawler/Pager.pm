@@ -113,7 +113,7 @@ sub get_next_page_url
 
     my $url;
 
-    my $content_length = length( $$content_ref );
+    my $content_length = bytes::length( $$content_ref );
 
     say STDERR "Starting get_next_page_url content_length: $content_length";
 

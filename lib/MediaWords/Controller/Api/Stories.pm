@@ -340,7 +340,7 @@ sub stories_query_GET : Local
     say STDERR "finished stories_query_json";
     $self->status_ok( $c, entity => $stories );
 
-    #$c->response->content_type( 'application/json' );
+    #$c->response->content_type( 'application/json; charset=UTF-8' );
     #return $c->res->body( encode_json( $stories ) );
 }
 

@@ -485,8 +485,8 @@ sub story_search_csv : Local
       || die( "Unable to find query_story_search '$query_story_searches_id'" );
 
     $c->res->header( 'Content-Disposition', qq[attachment; filename="query_story_searches.csv"] );
-    $c->res->header( 'Content-Length',      length( $query_story_search->{ csv_text } ) );
-    $c->res->content_type( 'text/csv' );
+    $c->res->header( 'Content-Length',      bytes::length( $query_story_search->{ csv_text } ) );
+    $c->res->content_type( 'text/csv; charset=UTF-8' );
     $c->res->body( $query_story_search->{ csv_text } );
 
 }

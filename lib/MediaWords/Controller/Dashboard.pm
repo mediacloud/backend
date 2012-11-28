@@ -365,7 +365,7 @@ sub get_word_list : Local
         $response_body = $xml;
 
         $c->response->header( "Content-Disposition" => "attachment;filename=word_list.xml" );
-        $c->response->content_type( 'text/xml' );
+        $c->response->content_type( 'text/xml; charset=UTF-8' );
     }
     else
     {
@@ -382,10 +382,10 @@ sub get_word_list : Local
 
         $response_body = $csv->string;
         $c->response->header( "Content-Disposition" => "attachment;filename=word_list.csv" );
-        $c->response->content_type( 'text/csv' );
+        $c->response->content_type( 'text/csv; charset=UTF-8' );
     }
 
-    $c->response->content_length( length( $response_body ) );
+    $c->response->content_length( bytes::length( $response_body ) );
     $c->response->body( $response_body );
 
     return;
@@ -404,8 +404,8 @@ sub country_counts_csv : Local
 
     my $response_body = join "\n", ( 'country_code,value', @{ $country_count_csv_array } );
     $c->response->header( "Content-Disposition" => "attachment;filename=country_list.csv" );
-    $c->response->content_type( 'text/csv' );
-    $c->response->content_length( length( $response_body ) );
+    $c->response->content_type( 'text/csv; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $response_body ) );
     $c->response->body( $response_body );
 
     return;
@@ -596,9 +596,9 @@ sub get_country_counts_all_dates : Local
     my $csv_string    = $csv->string;
     my $response_body = $csv_string;
     $c->response->header( "Content-Disposition" => "attachment;filename=word_list.csv" );
-    $c->response->content_type( 'text/csv' );
+    $c->response->content_type( 'text/csv; charset=UTF-8' );
 
-    $c->response->content_length( length( $response_body ) );
+    $c->response->content_length( bytes::length( $response_body ) );
     $c->response->body( $response_body );
 
     #say STDERR Dumper( $country_counts );
@@ -1947,7 +1947,7 @@ sub compare_media_set_terms : Local
     }
 
     $c->res->header( 'Content-Disposition', qq[attachment; filename="term_counts.csv"] );
-    $c->res->content_type( 'text/csv' );
+    $c->res->content_type( 'text/csv; charset=UTF-8' );
     $c->res->body( $output );
 }
 
