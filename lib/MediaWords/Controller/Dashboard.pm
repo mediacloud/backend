@@ -71,7 +71,39 @@ sub very_slow_query : Local
     say STDERR " Starting super slow query...";
 
     my $hashes = $dbis->query(
-" select * from story_sentence_words , ( select  md5( md5(url || downloads_id) || description || random()) as foo,  md5(description || host || downloads_id) from downloads natural join stories natural join story_sentence_words natural join story_sentences natural join download_texts where md5 ( ( md5(md5(term) || stem ) || download_text ) ) = md5( md5(url || downloads_id) || description || random())  or ( md5(sentence) = md5(url || random()  ) or ( sentence like '%xxx%' or download_text like '%fooss%'  ) ) )   as inner_query where term = foo limit 10000 "
+        <<"EOF"
+
+        SELECT
+            *
+        FROM
+            story_sentence_words,
+            (
+                SELECT
+                    MD5( MD5(url || downloads_id) || description || RANDOM()) AS foo,
+                    MD5(description || host || downloads_id)
+                FROM downloads
+                    NATURAL JOIN stories
+                    NATURAL JOIN story_sentence_words
+                    NATURAL JOIN story_sentences
+                    NATURAL JOIN download_texts
+                WHERE
+                    (
+                        MD5 ( ( MD5(MD5(term) || stem ) || download_text ) )
+                        =
+                        MD5( MD5(url || downloads_id) || description || RANDOM())
+                    ) OR (
+                        MD5(sentence) = MD5(url || RANDOM() )
+                        OR (
+                            sentence LIKE '%xxx%'
+                            OR download_text LIKE '%fooss%'
+                        )
+                    )
+            ) AS inner_query
+        WHERE
+            term = foo
+        LIMIT 10000
+
+EOF
     )->hashes;
 
     say STDERR "finished super slow query...";
@@ -91,7 +123,16 @@ sub get_default_dashboards_id
 {
     my ( $dbis ) = @_;
 
-    my ( $dashboards_id ) = $dbis->query( "select dashboards_id from dashboards order by dashboards_id limit 1" )->flat;
+    my ( $dashboards_id ) = $dbis->query(
+        <<"EOF"
+
+        SELECT dashboards_id
+        FROM dashboards
+        ORDER BY dashboards_id
+        LIMIT 1
+
+EOF
+    )->flat;
 
     say STDERR Dumper( $dashboards_id );
     return $dashboards_id;
@@ -107,7 +148,7 @@ sub _default_dashboards_id
 sub _yesterday_date_string
 {
     my ( $self, $c ) = @_;
-    my ( $yesterday ) = $c->dbis->query( "select (now()::date - interval '1 day')::date" )->flat;
+    my ( $yesterday ) = $c->dbis->query( "SELECT (NOW()::date - INTERVAL '1 day')::date" )->flat;
     return $yesterday;
 }
 
@@ -127,29 +168,78 @@ sub _redirect_to_default_page
 
     my $media_sets_id_in_dashboard = scalar(
         @{
-            $c->dbis->query( "SELECT * from dashboard_media_sets where media_sets_id = ? and dashboards_id = ? ",
-                $media_sets_id, $dashboard->{ dashboards_id } )->hashes
+            $c->dbis->query(
+                <<"EOF",
+
+                SELECT
+                    dashboard_media_sets_id,
+                    dashboards_id,
+                    media_sets_id,
+                    media_cluster_runs_id,
+                    color
+                FROM dashboard_media_sets
+                WHERE
+                    media_sets_id = ?
+                    AND dashboards_id = ?
+
+EOF
+                $media_sets_id, $dashboard->{ dashboards_id }
+              )->hashes
           }
     );
 
     if ( !$media_sets_id_in_dashboard )
     {
         $media_sets_id = $c->dbis->query(
-            "SELECT media_sets_id from dashboard_media_sets where dashboards_id = ? order by media_sets_id asc limit 1 ",
-            $dashboard->{ dashboards_id } )->hash->{ media_sets_id };
+            <<"EOF",
+
+            SELECT media_sets_id
+            FROM dashboard_media_sets
+            WHERE dashboards_id = ?
+            ORDER BY media_sets_id ASC
+            LIMIT 1
+
+EOF
+            $dashboard->{ dashboards_id }
+        )->hash->{ media_sets_id };
     }
 
     my ( $max_date ) = $c->dbis->query(
-        " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " .
-          "   group by publish_week::date order by publish_week::date desc limit 1 offset 1",
+        <<"EOF",
+
+        SELECT
+            publish_week::date
+        FROM total_top_500_weekly_words
+        WHERE
+            media_sets_id = ?
+        GROUP BY
+            publish_week::date
+        ORDER BY
+            publish_week::date DESC
+        LIMIT 1
+        OFFSET 1
+
+EOF
         $media_sets_id
     )->flat();
 
     if ( !$max_date )
     {
         ( $max_date ) = $c->dbis->query(
-            " SELECT publish_week::date FROM total_top_500_weekly_words where media_sets_id = ?  " .
-              "   group by publish_week::date order by publish_week::date desc limit 1",
+            <<"EOF",
+
+            SELECT
+                publish_week::date
+            FROM total_top_500_weekly_words
+            WHERE
+                media_sets_id = ?
+            GROUP BY
+                publish_week::date
+            ORDER BY
+                publish_week::date DESC
+            LIMIT 1
+
+EOF
             $media_sets_id
         )->flat();
     }
@@ -265,10 +355,19 @@ sub _get_dashboard_dates
 
     my $end_date = minstr( $dashboard->{ end_date }, $yesterday );
 
-    my $date_exists_query =
-      "select 1 from total_top_500_weekly_words t, dashboard_media_sets dms " .
-      "  where t.publish_week = ? and dms.dashboards_id = $dashboard->{ dashboards_id } " .
-      "    and dms.media_sets_id = t.media_sets_id limit 1";
+    my $date_exists_query = <<"EOF";
+
+        SELECT 1
+        FROM
+            total_top_500_weekly_words AS t,
+            dashboard_media_sets AS dms
+        WHERE
+            t.publish_week = ?
+            AND dms.dashboards_id = $dashboard->{ dashboards_id }
+            AND dms.media_sets_id = t.media_sets_id
+        LIMIT 1"
+
+EOF
 
     my $start_date;
     for ( my $d = $dashboard->{ start_date } ; $d le $end_date ; $d = MediaWords::Util::SQL::increment_day( $d, 1 ) )
@@ -305,11 +404,28 @@ sub _get_author_words
 
     $authors_id += 0;
 
+    my $num_word_cloud_words = MediaWords::Util::WordCloud::NUM_WORD_CLOUD_WORDS;
+
     return $c->dbis->query(
-        "select stem, min(term) as term, sum( stem_count ) as stem_count from top_500_weekly_author_words " .
-          "  where not is_stop_stem( 'long', stem ) and authors_id = $authors_id " .
-          "    and publish_week = date_trunc('week', '$date'::date) " . "  group by stem " .
-          "  order by stem_count desc limit " . MediaWords::Util::WordCloud::NUM_WORD_CLOUD_WORDS )->hashes;
+        <<"EOF"
+
+        SELECT
+            stem,
+            MIN(term) AS term,
+            SUM( stem_count ) AS stem_count
+        FROM top_500_weekly_author_words
+        WHERE
+            NOT is_stop_stem( 'long', stem )
+            AND authors_id = $authors_id
+            AND publish_week = DATE_TRUNC('week', '$date'::date)
+        GROUP BY
+            stem
+        ORDER BY
+            stem_count DESC
+        LIMIT $num_word_cloud_words
+
+EOF
+    )->hashes;
 }
 
 sub _get_country_counts
@@ -447,11 +563,30 @@ sub get_country_counts_all_dates : Local
 
     if ( $start_date && $end_date )
     {
-        my $country_count_query =
-"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
-          . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
-          . " AND  publish_day >= ? AND publish_day <= ?                                        "
-          . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
+        my $country_count_query = <<"EOF";
+
+            SELECT
+                media_sets_id,
+                dashboard_topics_id,
+                country,
+                SUM(country_count) AS country_count,
+                publish_day
+            FROM daily_country_counts
+            WHERE
+                media_sets_id = $media_set->{ media_sets_id }
+                AND $dashboard_topic_clause
+                AND publish_day >= ?
+                AND publish_day <= ?
+            GROUP BY
+                publish_day,
+                media_sets_id,
+                dashboard_topics_id,
+                country
+            ORDER BY
+                publish_day,
+                country
+
+EOF
 
         #say STDERR "SQL query: '$country_count_query'";
 
@@ -461,10 +596,28 @@ sub get_country_counts_all_dates : Local
     }
     else
     {
-        my $country_count_query =
-"SELECT   media_sets_id, dashboard_topics_id, country, SUM(country_count) as country_count, publish_day FROM daily_country_counts "
-          . "WHERE  media_sets_id = $media_set->{ media_sets_id }  and $dashboard_topic_clause  "
-          . "GROUP BY publish_day, media_sets_id, dashboard_topics_id, country order by publish_day, country;";
+        my $country_count_query = <<"EOF";
+
+            SELECT
+                media_sets_id,
+                dashboard_topics_id,
+                country,
+                SUM(country_count) AS country_count,
+                publish_day
+            FROM daily_country_counts
+            WHERE
+                media_sets_id = $media_set->{ media_sets_id }
+                AND $dashboard_topic_clause
+            GROUP BY
+                publish_day,
+                media_sets_id,
+                dashboard_topics_id,
+                country
+            ORDER BY
+                publish_day,
+                country
+
+EOF
 
         #say STDERR "SQL query: '$country_count_query'";
 
@@ -706,14 +859,52 @@ sub _get_dashboard_consistent_data
         my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
         my $collection_media_sets = $c->dbis->query(
-            "select ms.* from media_sets ms, dashboard_media_sets dms " .
-              "  where ms.set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and dms.dashboards_id = ?" .
-              "  order by ms.name",
+            <<"EOF",
+
+            SELECT
+                ms.media_sets_id,
+                ms.name,
+                ms.description,
+                ms.set_type,
+                ms.media_id,
+                ms.tags_id,
+                ms.media_clusters_id,
+                ms.creation_date,
+                ms.vectors_added,
+                ms.include_in_dump
+            FROM
+                media_sets AS ms,
+                dashboard_media_sets AS dms
+            WHERE
+                ms.set_type = 'collection'
+                AND ms.media_sets_id = dms.media_sets_id
+                AND dms.dashboards_id = ?
+            ORDER BY
+                ms.name
+
+EOF
             $dashboard->{ dashboards_id }
         )->hashes;
 
-        my $dashboard_topics = $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc",
-            $dashboard->{ dashboards_id } )->hashes;
+        my $dashboard_topics = $c->dbis->query(
+            <<"EOF",
+
+            SELECT
+                dashboard_topics_id,
+                name,
+                query,
+                dashboards_id,
+                start_date,
+                end_date,
+                vectors_added
+            FROM dashboard_topics
+            WHERE
+                dashboards_id = ?
+            ORDER BY name ASC
+
+EOF
+            $dashboard->{ dashboards_id }
+        )->hashes;
 
         MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );
 
@@ -1286,9 +1477,29 @@ sub json_popular_queries : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $popular_queries =
-      $c->dbis->query( "select * from popular_queries where dashboards_id= ? order by dashboards_id, count desc limit 5 ",
-        $dashboards_id )->hashes;
+    my $popular_queries = $c->dbis->query(
+        <<"EOF",
+
+        SELECT
+            popular_queries_id,
+            queries_id_0,
+            queries_id_1,
+            query_0_description,
+            query_1_description,
+            dashboard_action,
+            url_params,
+            count,
+            dashboards_id
+        FROM popular_queries
+        WHERE dashboards_id = ?
+        ORDER BY
+            dashboards_id,
+            count DESC
+        LIMIT 5
+
+EOF
+        $dashboards_id
+    )->hashes;
 
     foreach my $popular_query ( @$popular_queries )
     {
@@ -1341,12 +1552,23 @@ sub author_search_json : Local
 
     $term = $term . '%';
 
-    my $terms =
-      $c->dbis->query( "select authors_id, author_name as label from authors where author_name like lower(?) OR " .
-          "  lower(split_part(author_name, ' ', 1)) like lower(?)   OR       " .
-          "  lower(split_part(author_name, ' ', 2)) like lower(?)   OR       " .
-          "  lower(split_part(author_name, ' ', 3)) like lower(?)    LIMIT 100     ",
-        $term, $term, $term, $term )->hashes;
+    my $terms = $c->dbis->query(
+        <<"EOF",
+
+        SELECT
+            authors_id,
+            author_name AS label
+        FROM authors
+        WHERE
+            author_name LIKE LOWER(?)
+            OR LOWER(SPLIT_PART(author_name, ' ', 1)) LIKE LOWER(?)
+            OR LOWER(SPLIT_PART(author_name, ' ', 2)) LIKE LOWER(?)
+            OR LOWER(SPLIT_PART(author_name, ' ', 3)) LIKE LOWER(?)
+        LIMIT 100
+
+EOF
+        $term, $term, $term, $term
+    )->hashes;
 
     #print encode_json($terms);
 
@@ -1360,9 +1582,31 @@ sub dashboard_media_source_names_json : Local
     my ( $self, $c, $dashboards_id ) = @_;
 
     my $media = $c->dbis->query(
-        "select distinct m.* from media m, media_sets_media_map msmm, dashboard_media_sets dms " .
-          "  where m.media_id = msmm.media_id and dms.media_sets_id = msmm.media_sets_id and dms.dashboards_id = ?" .
-          "  order by m.name",
+        <<"EOF",
+
+        SELECT DISTINCT
+            m.media_id,
+            m.url,
+            m.name,
+            m.moderated,
+            m.feeds_added,
+            m.moderation_notes,
+            m.full_text_rss,
+            m.extract_author,
+            m.sw_data_start_date,
+            m.sw_data_end_date
+        FROM
+            media AS m,
+            media_sets_media_map AS msmm,
+            dashboard_media_sets AS dms
+        WHERE
+            m.media_id = msmm.media_id
+            AND dms.media_sets_id = msmm.media_sets_id
+            AND dms.dashboards_id = ?
+        ORDER BY
+            m.name
+
+EOF
         $dashboards_id
     )->hashes;
 
@@ -1381,8 +1625,17 @@ sub author_publish_weeks_json : Local
 
     my $publish_weeks = [
         $c->dbis->query(
-            "select DISTINCT (publish_week) from top_500_weekly_author_words where authors_id = ? order by publish_week",
-            $authors_id )->flat
+            <<"EOF",
+
+            SELECT DISTINCT
+                publish_week
+            FROM top_500_weekly_author_words
+            WHERE authors_id = ?
+            ORDER BY publish_week
+
+EOF
+            $authors_id
+          )->flat
     ];
 
     #say STDERR Dumper( $publish_weeks );
@@ -1407,8 +1660,8 @@ sub author_query : Local : FormConfig
 
     my $dashboard_dates = $self->_get_dashboard_dates( $c, $dashboard );
 
-    my ( $min_author_words_date ) = $c->dbis->query( 'select min(publish_week) from top_500_weekly_author_words;' )->flat();
-    my ( $max_author_words_date ) = $c->dbis->query( 'select max(publish_week) from top_500_weekly_author_words;' )->flat();
+    my ( $min_author_words_date ) = $c->dbis->query( 'SELECT MIN(publish_week) FROM top_500_weekly_author_words' )->flat();
+    my ( $max_author_words_date ) = $c->dbis->query( 'SELECT MAX(publish_week) FROM top_500_weekly_author_words' )->flat();
 
     $dashboard_dates = [ grep { $_ ge $min_author_words_date } @$dashboard_dates ];
     $dashboard_dates = [ grep { $_ le $max_author_words_date } @$dashboard_dates ];
@@ -1476,7 +1729,7 @@ sub get_start_of_week
 
     $date || die( 'no date' );
 
-    my ( $start_date ) = $c->dbis->query( "select date_trunc( 'week', ?::date )", $date )->flat;
+    my ( $start_date ) = $c->dbis->query( "SELECT DATE_TRUNC( 'week', ?::date )", $date )->flat;
 
     return substr( $start_date, 0, 10 );
 }
@@ -1499,19 +1752,78 @@ sub get_media_set_from_params
     }
     elsif ( my $media_id = $c->req->param( 'media_id' . $media_set_num ) )
     {
-        return $c->dbis->query( "select * from media_sets where media_id = ?", $media_id )->hash
+        return $c->dbis->query(
+            <<"EOF",
+
+            SELECT
+                media_sets_id,
+                name,
+                description,
+                set_type,
+                media_id,
+                tags_id,
+                media_clusters_id,
+                creation_date,
+                vectors_added,
+                include_in_dump
+            FROM media_sets
+            WHERE media_id = ?
+
+EOF
+            $media_id
+          )->hash
           || die( "no media_set for media_id '$media_id'" );
     }
     elsif ( my $medium_name = $c->req->param( 'medium_name' . $media_set_num ) )
     {
         return $c->dbis->query(
-            "select ms.* from media_sets ms, media m " . "  where ms.media_id = m.media_id and m.name = ?", $medium_name )
-          ->hash
+            <<"EOF",
+
+            SELECT
+                ms.media_sets_id,
+                ms.name,
+                ms.description,
+                ms.set_type,
+                ms.media_id,
+                ms.tags_id,
+                ms.media_clusters_id,
+                ms.creation_date,
+                ms.vectors_added,
+                ms.include_in_dump
+            FROM
+                media_sets AS ms,
+                media AS m
+            WHERE
+                ms.media_id = m.media_id
+                AND m.name = ?
+
+EOF
+            $medium_name
+          )->hash
           || die( "no media_set for medium_name '$medium_name'" );
     }
     elsif ( my $media_clusters_id = $c->req->param( 'media_clusters_id' . $media_set_num ) )
     {
-        return $c->dbis->query( "select * from media_sets where media_clusters_id = ?", $media_clusters_id )->hash
+        return $c->dbis->query(
+            <<"EOF",
+
+            SELECT
+                media_sets_id,
+                name,
+                description,
+                set_type,
+                media_id,
+                tags_id,
+                media_clusters_id,
+                creation_date,
+                vectors_added,
+                include_in_dump
+            FROM media_sets
+            WHERE media_clusters_id = ?
+
+EOF
+            $media_clusters_id
+          )->hash
           || die( "no media_set for media_clusters_id '$media_clusters_id'" );
     }
     else
@@ -1533,7 +1845,7 @@ sub get_dashboard_topic_clause
     }
     else
     {
-        return "dashboard_topics_id is null";
+        return "dashboard_topics_id IS NULL";
     }
 }
 
@@ -1636,20 +1948,61 @@ sub sentences_author : Local
 
     my $quoted_stem = $c->dbis->dbh->quote( $stem );
 
-    my $sentences =
-      $c->dbis->query( "select distinct ss.* " .
-          "  from story_sentences ss, story_sentence_words ssw, stories s, authors_stories_map asm " .
-          "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-          "    and s.stories_id = ssw.stories_id and ssw.stories_id = asm.stories_id " .
-          "    and asm.authors_id = $authors_id and ssw.stem = $quoted_stem " .
-          "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit 500" )->hashes;
+    my $sentences = $c->dbis->query(
+        <<"EOF"
+
+        SELECT DISTINCT
+            ss.story_sentences_id,
+            ss.stories_id,
+            ss.sentence_number,
+            ss.sentence,
+            ss.media_id,
+            ss.publish_date
+        FROM
+            story_sentences AS ss,
+            story_sentence_words AS ssw,
+            stories AS s,
+            authors_stories_map AS asm
+        WHERE
+            ss.stories_id = ssw.stories_id
+            AND ss.sentence_number = ssw.sentence_number
+            AND s.stories_id = ssw.stories_id
+            AND ssw.stories_id = asm.stories_id
+            AND asm.authors_id = $authors_id
+            AND ssw.stem = $quoted_stem
+        ORDER BY
+            ss.publish_date,
+            ss.stories_id,
+            ss.sentence ASC
+        LIMIT 500
+
+EOF
+    )->hashes;
 
     my $stories_ids_hash;
     map { $stories_ids_hash->{ $_->{ stories_id } } = 1 } @{ $sentences };
     my $stories_ids_list = MediaWords::Util::SQL::get_ids_in_list( [ keys( %{ $stories_ids_hash } ) ] );
 
-    my $stories =
-      $c->dbis->query( "select * from stories where stories_id in ( $stories_ids_list ) order by publish_date" )->hashes;
+    my $stories = $c->dbis->query(
+        <<"EOF"
+
+        SELECT
+            stories_id,
+            media_id,
+            url,
+            guid,
+            title,
+            description,
+            publish_date,
+            collect_date,
+            full_text_rss
+        FROM stories
+        WHERE
+            stories_id IN ( $stories_ids_list )
+        ORDER BY publish_date
+
+EOF
+    )->hashes;
 
     my $stories_hash;
     map { $stories_hash->{ $_->{ stories_id } } = $_ } @{ $stories };
@@ -1757,23 +2110,74 @@ sub page_count_increment : Local
 
     if ( $queries_id_1 )
     {
-        $popular_query = $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? and queries_id_1 = ?',
-            $queries_id_0, $queries_id_1 )->hash;
+        $popular_query = $c->dbis->query(
+            <<"EOF",
+
+            SELECT
+                popular_queries_id,
+                queries_id_0,
+                queries_id_1,
+                query_0_description,
+                query_1_description,
+                dashboard_action,
+                url_params,
+                count,
+                dashboards_id
+            FROM popular_queries
+            WHERE
+                queries_id_0 = ?
+                AND queries_id_1 = ?
+
+EOF
+            $queries_id_0, $queries_id_1
+        )->hash;
 
     }
     else
     {
-        $popular_query =
-          $c->dbis->query( 'SELECT * from popular_queries where queries_id_0 = ? and queries_id_1 is null', $queries_id_0 )
-          ->hash;
+        $popular_query = $c->dbis->query(
+            <<"EOF",
+
+            SELECT
+                popular_queries_id,
+                queries_id_0,
+                queries_id_1,
+                query_0_description,
+                query_1_description,
+                dashboard_action,
+                url_params,
+                count,
+                dashboards_id            
+            FROM popular_queries
+            WHERE
+                queries_id_0 = ?
+                AND queries_id_1 IS NULL
+
+EOF
+            $queries_id_0
+        )->hash;
     }
 
     if ( !$popular_query )
     {
         $popular_query = $c->dbis->query(
-"INSERT INTO popular_queries ( dashboard_action, url_params, query_0_description, query_1_description, queries_id_0, queries_id_1, dashboards_id) VALUES ( ?, ?, ?, ?, ?, ?, ?) RETURNING *",
+            <<"EOF",
+
+            INSERT INTO popular_queries (
+                dashboard_action,
+                url_params,
+                query_0_description,
+                query_1_description,
+                queries_id_0,
+                queries_id_1,
+                dashboards_id
+            ) VALUES ( ?, ?, ?, ?, ?, ?, ?)
+            RETURNING *
+
+EOF
             $dashboard_action, $url_params, $query_description_0, $query_description_1, $queries_id_0, $queries_id_1,
-            $dashboards_id )->hash;
+            $dashboards_id
+        )->hash;
 
     }
 
@@ -1915,23 +2319,69 @@ sub compare_media_set_terms : Local
 
     my $stems_in_list = $self->get_stems_in_list( $c, $term_list );
 
-    my $collection_term_counts =
-      $c->dbis->query( "select ms.name, ms.set_type, publish_day, stem_count, stem, term " .
-          "  from daily_words dw, media_sets ms, dashboard_media_sets dms " .
-          "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " .
-          "    dms.media_sets_id = ms.media_sets_id and " .
-          "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
-          "    dw.stem in ( $stems_in_list )and dw.dashboard_topics_id is null " .
-          "  order by ms.set_type, ms.name, publish_day, stem" )->hashes;
+    my $collection_term_counts = $c->dbis->query(
+        <<"EOF",
 
-    my $media_term_counts =
-      $c->dbis->query( "select ms.name, ms.set_type, publish_day, stem_count, stem, term " .
-          "  from daily_words dw, media_sets ms, dashboard_media_sets dms, media_sets_media_map msmm " .
-          "  where dw.media_sets_id = ms.media_sets_id and dms.dashboards_id = $dashboards_id and " .
-          "    dms.media_sets_id = msmm.media_sets_id and msmm.media_id = ms.media_id and " .
-          "    dw.publish_day >= '$start_date'::date and dw.publish_day <= '$end_date'::date and " .
-          "    dw.stem in ( $stems_in_list ) and dw.dashboard_topics_id is null " .
-          "  order by ms.set_type, ms.name, publish_day, stem" )->hashes;
+        SELECT
+            ms.name,
+            ms.set_type,
+            publish_day,
+            stem_count,
+            stem,
+            term
+        FROM
+            daily_words AS dw,
+            media_sets AS ms,
+            dashboard_media_sets AS dms
+        WHERE
+            dw.media_sets_id = ms.media_sets_id
+            AND dms.dashboards_id = $dashboards_id
+            AND dms.media_sets_id = ms.media_sets_id
+            AND dw.publish_day >= '$start_date'::date
+            AND dw.publish_day <= '$end_date'::date
+            AND dw.stem IN ( $stems_in_list )
+            AND dw.dashboard_topics_id IS NULL
+        ORDER BY
+            ms.set_type,
+            ms.name,
+            publish_day,
+            stem
+
+EOF
+    )->hashes;
+
+    my $media_term_counts = $c->dbis->query(
+        <<"EOF"
+
+        SELECT
+            ms.name,
+            ms.set_type,
+            publish_day,
+            stem_count,
+            stem,
+            term
+        FROM
+            daily_words AS dw,
+            media_sets AS ms,
+            dashboard_media_sets AS dms,
+            media_sets_media_map AS msmm
+        WHERE
+            dw.media_sets_id = ms.media_sets_id
+            AND dms.dashboards_id = $dashboards_id
+            AND dms.media_sets_id = msmm.media_sets_id
+            AND msmm.media_id = ms.media_id
+            AND dw.publish_day >= '$start_date'::date
+            AND dw.publish_day <= '$end_date'::date
+            AND dw.stem IN ( $stems_in_list )
+            AND dw.dashboard_topics_id IS NULL
+        ORDER BY
+            ms.set_type,
+            ms.name,
+            publish_day,
+            stem
+
+EOF
+    )->hashes;
 
     my $csv = Text::CSV_XS->new;
     my $output;
@@ -2000,9 +2450,21 @@ sub media_sets : Local
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
     my $media_sets = $c->dbis->query(
-        "select ms.* from media_sets ms, dashboard_media_sets dms " . "  where ms.media_sets_id = dms.media_sets_id " .
-          "    and dashboards_id = $dashboard->{ dashboards_id } " . "    and ms.set_type = 'collection' " .
-          "  order by ms.name " )->hashes;
+        <<"EOF"
+
+        SELECT
+            ms.*
+        FROM
+            media_sets AS ms,
+            dashboard_media_sets AS dms
+        WHERE
+            ms.media_sets_id = dms.media_sets_id
+            AND dashboards_id = $dashboard->{ dashboards_id }
+            AND ms.set_type = 'collection'
+        ORDER BY ms.name
+
+EOF
+    )->hashes;
 
     $c->stash->{ dashboard }  = $dashboard;
     $c->stash->{ media_sets } = $media_sets;
@@ -2017,17 +2479,38 @@ sub media : Local
 
     my $media_sets_id = $c->req->param( 'media_sets_id' ) || die( 'no media_sets_id' );
     my $media_set = $c->dbis->query(
-        "select ms.* from media_sets ms, dashboard_media_sets dms " . "  where ms.media_sets_id = dms.media_sets_id " .
-          "    and dashboards_id = $dashboard->{ dashboards_id } " . "    and ms.set_type = 'collection' " .
-          "    and ms.media_sets_id = ?",
+        <<"EOF",
+
+        SELECT
+            ms.*
+        FROM
+            media_sets AS ms,
+            dashboard_media_sets AS dms
+        WHERE
+            ms.media_sets_id = dms.media_sets_id
+            AND dashboards_id = $dashboard->{ dashboards_id }
+            AND ms.set_type = 'collection'
+            AND ms.media_sets_id = ?
+
+EOF
         $media_sets_id
       )->hash
       || die( 'media_set $media_sets_id not found' );
 
-    my $media =
-      $c->dbis->query( "select * from media m, media_sets_media_map msmm " .
-          "  where m.media_id = msmm.media_id and msmm.media_sets_id = $media_set->{ media_sets_id } " .
-          "  order by name " )->hashes;
+    my $media = $c->dbis->query(
+        <<"EOF"
+
+        SELECT *
+        FROM
+            media AS m,
+            media_sets_media_map AS msmm
+        WHERE
+            m.media_id = msmm.media_id
+            AND msmm.media_sets_id = $media_set->{ media_sets_id }
+        ORDER BY name
+
+EOF
+    )->hashes;
 
     $c->stash->{ dashboard } = $dashboard;
     $c->stash->{ media_set } = $media_set;
