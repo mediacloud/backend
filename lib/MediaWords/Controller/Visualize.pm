@@ -515,7 +515,7 @@ sub query_top_terms_in_media
         $from = $params->{ 'from' };
         $to   = $params->{ 'to' };
         push @{ $conditions }, " $table.publish_week between ? and ? ";
-        push @{ $conditions }, " not is_stop_stem( 'long', stem) ";
+        push @{ $conditions }, " NOT is_stop_stem( 'long', stem, language) ";
     }
     else
     {

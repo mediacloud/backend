@@ -795,6 +795,7 @@ create table story_sentence_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   smallint        not null,
+       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
        sentence_number              smallint        not null,
        media_id                     int             not null, /* references media on delete cascade, */
        publish_day                  date            not null
@@ -814,6 +815,7 @@ create table daily_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
+       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
        publish_day                  date            not null
 );
 
@@ -831,6 +833,7 @@ create table weekly_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
+       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
        publish_week                 date            not null
 );
 
@@ -846,6 +849,7 @@ create table top_500_weekly_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
+       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
        publish_week                 date            not null
 );
 
@@ -859,7 +863,6 @@ create table total_top_500_weekly_words (
        dashboard_topics_id          int             null references dashboard_topics,
        publish_week                 date            not null,
        total_count                  int             not null
-       
 );
 ALTER TABLE total_top_500_weekly_words ADD CONSTRAINT total_top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
@@ -974,13 +977,14 @@ create index queries_dashboard_topics_map_query on queries_dashboard_topics_map 
 create index queries_dashboard_topics_map_dashboard_topic on queries_dashboard_topics_map ( dashboard_topics_id );
 
 CREATE TABLE daily_author_words (
-    daily_author_words_id serial primary key,
-    authors_id integer not null references authors on delete cascade,
-    media_sets_id integer not null references media_sets on delete cascade,
-    term character varying(256) not null,
-    stem character varying(256) not null,
-    stem_count int not null,
-    publish_day date not null
+    daily_author_words_id           serial                  primary key,
+    authors_id                      integer                 not null references authors on delete cascade,
+    media_sets_id                   integer                 not null references media_sets on delete cascade,
+    term                            character varying(256)  not null,
+    stem                            character varying(256)  not null,
+    stem_count                      int                     not null,
+    language                        varchar(3)              not null, /* 2- or 3-character ISO 690 language code */
+    publish_day                     date                    not null
 );
 
 create UNIQUE index daily_author_words_media on daily_author_words(publish_day, authors_id, media_sets_id, stem);
@@ -1004,6 +1008,7 @@ create table weekly_author_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
+       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
        publish_week                 date            not null
 );
 
@@ -1019,6 +1024,7 @@ create table top_500_weekly_author_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
+       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
        publish_week                 date            not null
 );
 
@@ -1034,7 +1040,6 @@ create table total_top_500_weekly_author_words (
        authors_id                   int             not null references authors on delete cascade,
        publish_week                 date            not null,
        total_count                  int             not null
-       
 );
 
 create UNIQUE index total_top_500_weekly_author_words_media 

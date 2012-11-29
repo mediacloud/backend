@@ -659,7 +659,7 @@ sub add_word_vectors
         }
         else
         {
-            $sw_check = "AND NOT is_stop_stem( '$stopword_length', ssw.stem )";
+            $sw_check = "AND NOT is_stop_stem( '$stopword_length', ssw.stem, ssw.language )";
         }
 
         my $words = $story->{ words } || $db->query(
@@ -827,7 +827,7 @@ EOF
 
         $db_story = $dbs->query(
             <<"EOF",
-            
+
             SELECT
                 stories_id,
                 media_id,

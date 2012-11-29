@@ -840,6 +840,7 @@ EOF
             term,
             stem,
             stem_count,
+            language,
             publish_week,
             dashboard_topics_id
         )
@@ -848,6 +849,7 @@ EOF
                 REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
                 stem,
                 stem_count,
+                language,
                 publish_week,
                 dashboard_topics_id
             FROM (
@@ -856,6 +858,7 @@ EOF
                     term,
                     stem,
                     stem_count,
+                    language,
                     publish_week,
                     dashboard_topics_id,
                     RANK() OVER (
@@ -866,7 +869,7 @@ EOF
                 WHERE
                     publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
                     $update_clauses
-                    AND NOT is_stop_stem( 'long', stem )
+                    AND NOT is_stop_stem( 'long', stem, language )
                     AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
             ) AS q
             WHERE
@@ -946,6 +949,7 @@ EOF
             term,
             stem,
             stem_count,
+            language,
             publish_week,
             dashboard_topics_id
         )
@@ -954,6 +958,7 @@ EOF
                 REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
                 stem,
                 stem_count,
+                language,
                 publish_week,
                 dashboard_topics_id
             FROM (
@@ -962,6 +967,7 @@ EOF
                     term,
                     stem,
                     stem_count,
+                    language,
                     publish_week,
                     dashboard_topics_id,
                     RANK() OVER (
@@ -972,7 +978,7 @@ EOF
                 WHERE
                     publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
                     $update_clauses
-                    AND NOT is_stop_stem( 'long', stem )
+                    AND NOT is_stop_stem( 'long', stem, language )
                     AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
             ) AS q
             WHERE
@@ -1052,6 +1058,7 @@ EOF
             term,
             stem,
             stem_count,
+            language,
             publish_week,
             authors_id
         )
@@ -1060,6 +1067,7 @@ EOF
                 REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
                 stem,
                 stem_count,
+                language,
                 publish_week,
                 authors_id
             FROM (
@@ -1068,6 +1076,7 @@ EOF
                     term,
                     stem,
                     stem_count,
+                    language,
                     publish_week,
                     authors_id,
                     RANK() OVER (
@@ -1078,7 +1087,7 @@ EOF
                 WHERE
                     publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
                     $update_clauses
-                    AND NOT is_stop_stem( 'long', stem )
+                    AND NOT is_stop_stem( 'long', stem, language )
                     AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
             ) AS q 
             WHERE

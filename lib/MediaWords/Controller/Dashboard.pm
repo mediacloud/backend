@@ -415,7 +415,7 @@ sub _get_author_words
             SUM( stem_count ) AS stem_count
         FROM top_500_weekly_author_words
         WHERE
-            NOT is_stop_stem( 'long', stem )
+            NOT is_stop_stem( 'long', stem, language )
             AND authors_id = $authors_id
             AND publish_week = DATE_TRUNC('week', '$date'::date)
         GROUP BY
@@ -1957,7 +1957,8 @@ sub sentences_author : Local
             ss.sentence_number,
             ss.sentence,
             ss.media_id,
-            ss.publish_date
+            ss.publish_date,
+            ss.language
         FROM
             story_sentences AS ss,
             story_sentence_words AS ssw,
@@ -1995,7 +1996,8 @@ EOF
             description,
             publish_date,
             collect_date,
-            full_text_rss
+            full_text_rss,
+            language
         FROM stories
         WHERE
             stories_id IN ( $stories_ids_list )
