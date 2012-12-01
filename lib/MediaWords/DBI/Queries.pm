@@ -94,8 +94,10 @@ sub _create_query
     $db->begin_work() unless ( $in_transaction );
 
     $db->query(
-        "insert into queries ( start_date, end_date, md5_signature, dashboards_id ) " .
-          "  values( date_trunc( 'week', ?::date ), date_trunc( 'week', ?::date ), ?, ? )",
+        <<"EOF",
+        INSERT INTO queries (start_date, end_date, md5_signature, dashboards_id)
+        VALUES ( DATE_TRUNC( 'week', ?::date ), DATE_TRUNC( 'week', ?::date ), ?, ?)
+EOF
         $query_params->{ start_date },
         $query_params->{ end_date },
         $query_params->{ md5_signature },
@@ -108,14 +110,27 @@ sub _create_query
     {
         for my $id ( @{ $query_params->{ $table . "_ids" } } )
         {
-            $db->query( "insert into queries_${table}_map ( queries_id, ${table}_id ) values ( ?, ? ) ", $queries_id, $id );
+            $db->query(
+                <<"EOF",
+                INSERT INTO queries_${table}_map (queries_id, ${table}_id)
+                VALUES ( ?, ? )
+EOF
+                $queries_id, $id
+            );
         }
     }
 
     my $query = find_query_by_id( $db, $queries_id );
 
     $query->{ description } = _get_description( $query );
-    $db->query( "update queries set description = ? where queries_id = ?", $query->{ description }, $query->{ queries_id } );
+    $db->query(
+        <<"EOF",
+        UPDATE queries
+        SET description = ?
+        WHERE queries_id = ?
+EOF
+        $query->{ description }, $query->{ queries_id }
+    );
 
     $db->commit unless ( $in_transaction );
 
@@ -144,8 +159,16 @@ sub _add_mapped_table_fields
         else
         {
             my $ids_list = join( ',', @{ $query->{ $ids_field } } );
-            $query->{ $table } =
-              [ $db->query( "select * from $table where ${table}_id in ( $ids_list ) order by ${table}_id" )->hashes ];
+            $query->{ $table } = [
+                $db->query(
+                    <<"EOF"
+                SELECT *
+                FROM $table
+                WHERE ${table}_id IN ( $ids_list )
+                ORDER BY ${table}_id
+EOF
+                  )->hashes
+            ];
         }
     }
 }
@@ -161,9 +184,9 @@ sub _normalize_date_params
     }
 
     ( $query_params->{ start_date } ) =
-      $db->query( "select date_trunc( 'week', ?::date )", $query_params->{ start_date } )->flat;
+      $db->query( "SELECT DATE_TRUNC( 'week', ?::date )", $query_params->{ start_date } )->flat;
     ( $query_params->{ end_date } ) =
-      $db->query( "select date_trunc( 'week', ?::date )", $query_params->{ end_date } )->flat;
+      $db->query( "SELECT DATE_TRUNC( 'week', ?::date )", $query_params->{ end_date } )->flat;
 }
 
 # get an md5 hash signature of all the distinguishing fields in the query
@@ -198,9 +221,14 @@ sub find_query_by_params
     if ( my $dashboards_id = $query_params->{ dashboards_id } )
     {
         $query_params->{ media_sets_ids } = $db->query(
-            "select dms.media_sets_id from dashboard_media_sets dms, media_sets ms " .
-              "  where dms.media_sets_id = ms.media_sets_id and ms.set_type = 'collection' and " .
-              "    dms.dashboards_id = ?",
+            <<"EOF",
+            SELECT dms.media_sets_id
+            FROM dashboard_media_sets AS dms,
+                 media_sets AS ms
+            WHERE dms.media_sets_id = ms.media_sets_id
+                  AND ms.set_type = 'collection'
+                  AND dms.dashboards_id = ?
+EOF
             $dashboards_id
         )->flat;
     }
@@ -213,7 +241,12 @@ sub find_query_by_params
     $query_params->{ md5_signature } = $md5_signature;
 
     my ( $queries_id ) = $db->query(
-        "select queries_id from queries where md5_signature = ? and query_version = enum_last (null::query_version_enum ) ",
+        <<"EOF",
+        SELECT queries_id
+        FROM queries
+        WHERE md5_signature = ?
+              AND query_version = enum_last (null::query_version_enum)
+EOF
         $md5_signature
     )->flat;
 
@@ -223,8 +256,15 @@ sub find_query_by_params
 # find a query that exactly matches all of the query params or
 # create one if one does not already exist.
 # query params should be in the form
-# { start_date => $start_date, end_date => $end_date, media_sets_ids => [ $m, $m ], dashboard_topics_ids => [ $d, $d ], dashboards_id => $d }.
-# if no dashboard_topics_ids are included, then return only a query that has no dashboard_topics_ids associated with it.
+# {
+#    start_date => $start_date,
+#    end_date => $end_date,
+#    media_sets_ids => [ $m, $m ],
+#    dashboard_topics_ids => [ $d, $d ],
+#    dashboards_id => $d
+# }
+# if no dashboard_topics_ids are included, then return only a query that has no
+# dashboard_topics_ids associated with it.
 sub find_or_create_query_by_params
 {
     my ( $db, $query_params ) = @_;
@@ -251,14 +291,28 @@ sub _get_media_sets_ids_from_request
     my $ret;
     if ( my $media_id = $req->param( 'media_id' . $param_suffix ) )
     {
-        my ( $media_set_id ) = $db->query( "select media_sets_id from media_sets where media_id = ?", $media_id )->flat;
+        my ( $media_set_id ) = $db->query(
+            <<"EOF",
+            SELECT media_sets_id
+            FROM media_sets
+            WHERE media_id = ?
+EOF
+            $media_id
+        )->flat;
         $ret = [ $media_set_id ];
     }
     elsif ( my $medium_name = $req->param( 'medium_name' . $param_suffix ) )
     {
         my $quoted_name = $db->dbh->quote( $medium_name );
-        my ( $media_set_id ) = $db->query( "select media_sets_id from media_sets ms, media m " .
-              "  where m.media_id = ms.media_id and m.name = $quoted_name" )->flat;
+        my ( $media_set_id ) = $db->query(
+            <<"EOF"
+            SELECT media_sets_id
+            FROM media_sets AS ms,
+                 media AS m
+            WHERE m.media_id = ms.media_id
+                  AND m.name = $quoted_name
+EOF
+        )->flat;
         $ret = [ $media_set_id ];
     }
     else
@@ -336,8 +390,14 @@ sub find_query_by_id
     {
         $query->{ $table } = [
             $db->query(
-                "select distinct m.* from $table m, queries_${table}_map qm " .
-                  "  where m.${table}_id = qm.${table}_id and qm.queries_id = $queries_id order by m.${table}_id"
+                <<"EOF"
+                SELECT DISTINCT m.*
+                FROM $table AS m,
+                     queries_${table}_map AS qm
+                WHERE m.${table}_id = qm.${table}_id
+                      AND qm.queries_id = $queries_id
+                ORDER BY m.${table}_id
+EOF
               )->hashes
         ];
         $query->{ $table . "_names" } = [ map { $_->{ name } } @{ $query->{ $table } } ];
@@ -371,12 +431,12 @@ sub get_dashboard_topics_clause
     $query->{ dashboard_topics_ids } ||= [];
     if ( !$query->{ dashboard_topics_ids } || !@{ $query->{ dashboard_topics_ids } } )
     {
-        $dashboard_topic_clause = "${ prefix }" . "dashboard_topics_id is null";
+        $dashboard_topic_clause = "${ prefix }" . "dashboard_topics_id IS NULL";
     }
     else
     {
         my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
-        $dashboard_topic_clause = "${ prefix }" . "dashboard_topics_id in ( $dashboard_topics_ids_list )";
+        $dashboard_topic_clause = "${ prefix }" . "dashboard_topics_id IN ( $dashboard_topics_ids_list )";
     }
 
     return $dashboard_topic_clause;
@@ -397,8 +457,13 @@ sub get_dashboard_topic_names
     else
     {
         my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
-        my $topic_names = $db->query( "select name from dashboard_topics                                        " .
-              " where dashboard_topics_id in ( $dashboard_topics_ids_list )        " )->flat;
+        my $topic_names               = $db->query(
+            <<"EOF"
+            SELECT name
+            FROM dashboard_topics
+            WHERE dashboard_topics_id IN ( $dashboard_topics_ids_list )
+EOF
+        )->flat;
 
         $ret = join ", ", @{ $topic_names };
     }
@@ -417,7 +482,13 @@ sub get_media_set_names
 
     my $media_sets_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
 
-    my $media_set_names = $db->query( "select name from media_sets where media_sets_id in ( $media_sets_ids_list ) " )->flat;
+    my $media_set_names = $db->query(
+        <<"EOF"
+        SELECT name
+        FROM media_sets
+        WHERE media_sets_id IN ( $media_sets_ids_list )
+EOF
+    )->flat;
 
     return $media_set_names;
 }
@@ -460,7 +531,7 @@ sub get_date_clause
         push( @{ $dates }, $d );
     }
 
-    return "${ date_field } in ( " . join( ',', map { "'$_'" } @{ $dates } ) . " )";
+    return "${ date_field } IN ( " . join( ',', map { "'$_'" } @{ $dates } ) . " )";
 }
 
 # get clause restricting dates all weekly dates within the query's dates.
@@ -540,16 +611,27 @@ sub _get_top_500_weekly_words_impl
     my $total_top_500_weekly_words_table = $table_prefix . 'total_top_500_weekly_words' . $table_suffix;
 
     my $words = $db->query(
-        "select w.stem, min( w.term ) as term, " .
-          "    sum( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float as stem_count " .
-          ",    sum( w.stem_count::float) as raw_stem_count, sum (tw.total_count::float ) as total_words,              " .
-          "    ${ stem_count_factor }::float as stem_count_factor                                                      " .
-          "  from $top_500_weekly_words_table w, $total_top_500_weekly_words_table tw " .
-          "  where w.media_sets_id in ( $media_sets_ids_list )  and " .
-          "    w.media_sets_id = tw.media_sets_id and w.publish_week = tw.publish_week and $date_clause and " .
-          "    tw.media_sets_id in ( $media_sets_ids_list ) and $tw_date_clause and " .
-          "    $dashboard_topics_clause and coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
-          "  group by w.stem order by sum( w.stem_count::float / tw.total_count::float )::float desc " . "  limit 500",
+        <<"EOF"
+        SELECT w.stem,
+               MIN( w.term ) AS term,
+               SUM( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float AS stem_count,
+               SUM( w.stem_count::float) AS raw_stem_count,
+               SUM( tw.total_count::float ) AS total_words,
+               ${ stem_count_factor }::float AS stem_count_factor
+        FROM $top_500_weekly_words_table AS w,
+             $total_top_500_weekly_words_table AS tw
+        WHERE w.media_sets_id IN ( $media_sets_ids_list )
+              AND w.media_sets_id = tw.media_sets_id
+              AND w.publish_week = tw.publish_week
+              AND $date_clause
+              AND tw.media_sets_id IN ( $media_sets_ids_list )
+              AND $tw_date_clause
+              AND $dashboard_topics_clause
+              AND COALESCE( w.dashboard_topics_id, 0 ) = COALESCE( tw.dashboard_topics_id, 0 )
+        GROUP BY w.stem
+        ORDER BY SUM( w.stem_count::float / tw.total_count::float )::float DESC
+        LIMIT 500
+EOF
     )->hashes;
 
     return $words;
@@ -559,10 +641,20 @@ sub _get_json_top_500_weekly_words_for_query
 {
     my ( $db, $query ) = @_;
 
-#    ( my $words_json ) = $db->query( "SELECT decode(top_weekly_words_json, 'base64' ) FROM queries_top_weekly_words_json where queries_id = ? ",
+    #     ( my $words_json ) = $db->query(<<"EOF",
+    #         SELECT DECODE(top_weekly_words_json, 'base64' )
+    #         FROM queries_top_weekly_words_json
+    #         WHERE queries_id = ?
+    # EOF
 
-    ( my $words_json ) = $db->query( "SELECT top_weekly_words_json FROM queries_top_weekly_words_json where queries_id = ? ",
-        $query->{ queries_id } )->flat;
+    ( my $words_json ) = $db->query(
+        <<"EOF",
+        SELECT top_weekly_words_json
+        FROM queries_top_weekly_words_json
+        WHERE queries_id = ?
+EOF
+        $query->{ queries_id }
+    )->flat;
 
     if ( $words_json )
     {
@@ -599,13 +691,16 @@ sub _store_top_500_weekly_words_for_query
         # print MYOUTFILE $words_json;
         # close(MYOUTFILE);
 
-        $db->query( "DELETE FROM queries_top_weekly_words_json  where queries_id = ? ", $query->{ queries_id } );
+        $db->query( "DELETE FROM queries_top_weekly_words_json WHERE queries_id = ? ", $query->{ queries_id } );
 
-        $db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , ? ) ",
+        $db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ?, ? ) ",
             $query->{ queries_id }, $words_json );
 
-#$db->query( "INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json) VALUES ( ? , encode(?, 'base64') ) ",
-#     $query->{ queries_id }, $words_json );
+        #     $db->query(<<"EOF",
+        #         INSERT INTO queries_top_weekly_words_json (queries_id, top_weekly_words_json)
+        #         VALUES ( ? , ENCODE(?, 'base64') )
+        # EOF
+        #         $query->{ queries_id }, $words_json );
 
     };
 
@@ -658,15 +753,28 @@ sub _get_media_matching_stems_single_query
     my $date_clause             = get_daily_date_clause( $query, 'tw' );
     my $quoted_stem             = $db->dbh->quote( $stem );
 
-    my $sql_query =
-      "select ( sum(w.stem_count)::float / sum(tw.total_count)::float ) as stem_percentage, " . "    m.media_id, m.name " .
-      "  from daily_words w, total_daily_words tw, media m, media_sets_media_map msmm, media_sets medium_ms " .
-      "  where w.media_sets_id = tw.media_sets_id and w.publish_day = tw.publish_day and " .
-      "    w.stem = $quoted_stem and $dashboard_topics_clause and " .
-      "    coalesce( w.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) and " .
-      "    w.media_sets_id = medium_ms.media_sets_id and medium_ms.media_id = msmm.media_id and " .
-      "    msmm.media_sets_id in ( $media_sets_ids_list ) and m.media_id = medium_ms.media_id and " . "    $date_clause " .
-      "  group by m.media_id, m.name " . "  order by stem_percentage desc ";
+    my $sql_query = <<"EOF";
+        SELECT ( SUM(w.stem_count)::float / SUM(tw.total_count)::float ) AS stem_percentage,
+               m.media_id,
+               m.name
+        FROM daily_words AS w,
+             total_daily_words AS tw,
+             media AS m,
+             media_sets_media_map AS msmm,
+             media_sets AS medium_ms
+        WHERE w.media_sets_id = tw.media_sets_id
+              AND w.publish_day = tw.publish_day
+              AND w.stem = $quoted_stem
+              AND $dashboard_topics_clause
+              AND COALESCE( w.dashboard_topics_id, 0 ) = COALESCE( tw.dashboard_topics_id, 0 )
+              AND w.media_sets_id = medium_ms.media_sets_id
+              AND medium_ms.media_id = msmm.media_id
+              AND msmm.media_sets_id IN ( $media_sets_ids_list )
+              AND m.media_id = medium_ms.media_id
+              AND $date_clause
+        GROUP BY m.media_id, m.name
+        ORDER BY stem_percentage DESC
+EOF
 
     eval {
 
@@ -736,7 +844,13 @@ sub _get_stories_from_sentences
     my $stories_ids_list = MediaWords::Util::SQL::get_ids_in_list( [ keys( %{ $stories_ids_hash } ) ] );
 
     my $stories = $db->query(
-        "select * from stories where stories_id in ( $stories_ids_list ) " . "  order by publish_date, stories_id" )->hashes;
+        <<"EOF"
+        SELECT *
+        FROM stories
+        WHERE stories_id IN ( $stories_ids_list )
+        ORDER BY publish_date, stories_id
+EOF
+    )->hashes;
 
     my $stories_hash;
     map { $stories_hash->{ $_->{ stories_id } } = $_ } @{ $stories };
@@ -820,25 +934,42 @@ sub _get_medium_stem_sentences_day
         my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
 
         $query_sentences = $db->query(
-            "select distinct ss.* " . "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, " .
-              "    dashboard_topics dt " .
-              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and ssw.media_id = $medium->{ media_id } " . "    and ssw.stem = $quoted_stem " .
-              "    and ssw.publish_day = '$day'::date " .
-              "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
-              "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence asc " .
-              "  limit $max_sentences" )->hashes;
+            <<"EOF"
+            SELECT DISTINCT ss.*
+            FROM story_sentences AS ss,
+                 story_sentence_words AS ssw,
+                 story_sentence_words AS sswq,
+                 dashboard_topics AS dt
+            WHERE ss.stories_id = ssw.stories_id
+                  AND ss.sentence_number = ssw.sentence_number
+                  AND ssw.media_id = $medium->{ media_id }
+                  AND ssw.stem = $quoted_stem
+                  AND ssw.publish_day = '$day'::date
+                  AND ssw.stories_id = sswq.stories_id
+                  AND ssw.sentence_number = sswq.sentence_number
+                  AND sswq.stem = dt.query
+                  AND dt.dashboard_topics_id IN ( $dashboard_topics_ids_list )
+            ORDER BY ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence ASC
+            LIMIT $max_sentences
+EOF
+        )->hashes;
     }
     else
     {
-        $query_sentences =
-          $db->query( "select distinct ss.* " . "  from story_sentences ss, story_sentence_words ssw " .
-              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and ssw.media_id = $medium->{ media_id } " . "    and ssw.stem = $quoted_stem " .
-              "    and ssw.publish_day = '$day'::date " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence asc " .
-              "  limit $max_sentences" )->hashes;
+        $query_sentences = $db->query(
+            <<"EOF"
+            SELECT DISTINCT ss.*
+            FROM story_sentences AS ss,
+                 story_sentence_words AS ssw
+            WHERE ss.stories_id = ssw.stories_id
+                  AND ss.sentence_number = ssw.sentence_number
+                  AND ssw.media_id = $medium->{ media_id }
+                  AND ssw.stem = $quoted_stem
+                  AND ssw.publish_day = '$day'::date
+            ORDER BY ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence ASC
+            LIMIT $max_sentences
+EOF
+        )->hashes;
     }
 
     map { $_->{ id } = $_->{ story_sentences_id } } @{ $query_sentences };
@@ -874,24 +1005,46 @@ sub _get_stem_sentences_day
         my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
 
         $query_sentences = $db->query(
-            "select distinct ss.* " . "  from story_sentences ss, story_sentence_words ssw, story_sentence_words sswq, " .
-              "    dashboard_topics dt, media_sets_media_map msmm " .
-              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
-              "    and ssw.publish_day = '$day'::date " .
-              "    and ssw.stories_id = sswq.stories_id and ssw.sentence_number = sswq.sentence_number " .
-              "    and sswq.stem = dt.query and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $max_sentences" )->hashes;
+            <<"EOF"
+            SELECT DISTINCT ss.*
+            FROM story_sentences AS ss,
+                 story_sentence_words AS ssw,
+                 story_sentence_words AS sswq,
+                 dashboard_topics AS dt,
+                 media_sets_media_map AS msmm
+            WHERE ss.stories_id = ssw.stories_id
+                  AND ss.sentence_number = ssw.sentence_number
+                  AND ssw.media_id = msmm.media_id
+                  AND ssw.stem = $quoted_stem
+                  AND ssw.publish_day = '$day'::date
+                  AND ssw.stories_id = sswq.stories_id
+                  AND ssw.sentence_number = sswq.sentence_number
+                  AND sswq.stem = dt.query
+                  AND dt.dashboard_topics_id IN ( $dashboard_topics_ids_list )
+                  AND msmm.media_sets_id IN ( $media_sets_ids_list )
+            ORDER BY ss.publish_date, ss.stories_id, ss.sentence ASC
+            LIMIT $max_sentences
+EOF
+        )->hashes;
     }
     else
     {
         $query_sentences = $db->query(
-            "select distinct ss.* " . "  from story_sentences ss, story_sentence_words ssw, media_sets_media_map msmm " .
-              "  where ss.stories_id = ssw.stories_id and ss.sentence_number = ssw.sentence_number " .
-              "    and ssw.media_id = msmm.media_id and ssw.stem = $quoted_stem " .
-              "    and ssw.publish_day = '$day'::date " . "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence asc " . "  limit $max_sentences" )->hashes;
+            <<"EOF"
+            SELECT DISTINCT ss.*
+            FROM story_sentences AS ss,
+                 story_sentence_words AS ssw,
+                 media_sets_media_map AS msmm
+            WHERE ss.stories_id = ssw.stories_id
+                  AND ss.sentence_number = ssw.sentence_number
+                  AND ssw.media_id = msmm.media_id
+                  AND ssw.stem = $quoted_stem
+                  AND ssw.publish_day = '$day'::date
+                  AND msmm.media_sets_id IN ( $media_sets_ids_list )
+            ORDER BY ss.publish_date, ss.stories_id, ss.sentence ASC
+            LIMIT $max_sentences
+EOF
+        )->hashes;
     }
 
     map { $_->{ id } = $_->{ story_sentences_id } } @{ $query_sentences };
@@ -923,22 +1076,39 @@ sub _get_sentences_day
     {
         my $dashboard_topics_ids_list = MediaWords::Util::SQL::get_ids_in_list( $query->{ dashboard_topics_ids } );
 
-        $query_sentences =
-          $db->query( "select distinct ss.* " .
-              "  from story_sentences ss, story_sentence_words ssw, dashboard_topics dt, media_sets_media_map msmm " .
-              " where ssw.publish_day = '$day'::date " . "  and ssw.media_id = msmm.media_id and ssw.stem = dt.query " .
-              "  and ssw.stories_id = ss.stories_id and ssw.sentence_number = ss.sentence_number " .
-              "  and dt.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-              "  and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence_number asc " . "  limit $max_sentences" )->hashes;
+        $query_sentences = $db->query(
+            <<"EOF"
+            SELECT DISTINCT ss.*
+            FROM story_sentences AS ss,
+                 story_sentence_words AS ssw,
+                 dashboard_topics AS dt,
+                 media_sets_media_map AS msmm
+            WHERE ssw.publish_day = '$day'::date
+                  AND ssw.media_id = msmm.media_id
+                  AND ssw.stem = dt.query
+                  AND ssw.stories_id = ss.stories_id
+                  AND ssw.sentence_number = ss.sentence_number
+                  AND dt.dashboard_topics_id IN ( $dashboard_topics_ids_list )
+                  AND msmm.media_sets_id IN ( $media_sets_ids_list )
+            ORDER BY ss.publish_date, ss.stories_id, ss.sentence_number ASC
+            LIMIT $max_sentences
+EOF
+        )->hashes;
     }
     else
     {
-        $query_sentences =
-          $db->query( "select distinct ss.* from story_sentences ss, media_sets_media_map msmm " .
-              "  where ss.media_id = msmm.media_id " . "    and date_trunc( 'day', ss.publish_date )  = '$day'::date " .
-              "    and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "  order by ss.publish_date, ss.stories_id, ss.sentence_number asc " . "  limit $max_sentences" )->hashes;
+        $query_sentences = $db->query(
+            <<"EOF"
+            SELECT DISTINCT ss.*
+            FROM story_sentences AS ss,
+                 media_sets_media_map AS msmm
+            WHERE ss.media_id = msmm.media_id
+                  AND DATE_TRUNC( 'day', ss.publish_date )  = '$day'::date
+                  AND msmm.media_sets_id IN ( $media_sets_ids_list )
+            ORDER BY ss.publish_date, ss.stories_id, ss.sentence_number ASC
+            LIMIT $max_sentences
+EOF
+        )->hashes;
     }
 
     map { $_->{ id } = $_->{ story_sentences_id } } @{ $query_sentences };
@@ -974,8 +1144,12 @@ sub get_number_of_media_sources
     my $media_set_in_list = join( ',', @{ $query->{ media_sets_ids } } );
 
     my ( $num_media_sources ) = $db->query(
-        "select count(distinct media_id) from media_sets_media_map " . "  where media_sets_id in ( $media_set_in_list )" )
-      ->flat;
+        <<"EOF"
+        SELECT COUNT(distinct media_id)
+        FROM media_sets_media_map
+        WHERE media_sets_id IN ( $media_set_in_list )
+EOF
+    )->flat;
 
     return $num_media_sources;
 }
@@ -987,8 +1161,15 @@ sub get_media
 
     my $media_set_in_list = join( ',', @{ $query->{ media_sets_ids } } );
 
-    my $media = $db->query( "select distinct( m.* ) from media m, media_sets_media_map msmm " .
-          "  where m.media_id = msmm.media_id and msmm.media_sets_id in ( $media_set_in_list )" )->hashes;
+    my $media = $db->query(
+        <<"EOF"
+        SELECT DISTINCT( m.* )
+        FROM media AS m,
+             media_sets_media_map AS msmm
+        WHERE m.media_id = msmm.media_id
+              AND msmm.media_sets_id IN ( $media_set_in_list )
+EOF
+    )->hashes;
 
     return $media;
 }
@@ -1013,7 +1194,7 @@ sub get_term_counts
     if ( $num_term_combinations < 6 )
     {
         $media_set_group  = ', ms.media_sets_id';
-        $media_set_legend = " || ' - ' || min( ms.name )";
+        $media_set_legend = " || ' - ' || MIN( ms.name )";
     }
     else
     {
@@ -1022,15 +1203,24 @@ sub get_term_counts
 
     my $date_term_counts = [
         $db->query(
-            "select dw.publish_day, dw.stem $media_set_legend as term, " .
-              "      sum( dw.stem_count::float / tw.total_count::float )::float as count " .
-              "  from daily_words dw, total_daily_words tw, media_sets ms " .
-              "  where dw.media_sets_id in ( $media_sets_ids_list ) and dw.media_sets_id = tw.media_sets_id " .
-              "    and $dashboard_topics_clause " .
-              "    and coalesce( tw.dashboard_topics_id, 0 ) = coalesce( dw.dashboard_topics_id, 0 ) " .
-              "    and $date_clause " . "    and dw.publish_day = tw.publish_day " . "    and dw.stem in ( $stems_list ) " .
-              "    and ms.media_sets_id = dw.media_sets_id " . "  group by dw.publish_day, dw.stem $media_set_group " .
-              "  order by dw.publish_day, dw.stem "
+            <<"EOF"
+        SELECT dw.publish_day,
+               dw.stem $media_set_legend AS term,
+               SUM( dw.stem_count::float / tw.total_count::float )::float AS count
+        FROM daily_words AS dw,
+             total_daily_words AS tw,
+             media_sets AS ms
+        WHERE dw.media_sets_id IN ( $media_sets_ids_list )
+              AND dw.media_sets_id = tw.media_sets_id
+              AND $dashboard_topics_clause
+              AND COALESCE( tw.dashboard_topics_id, 0 ) = COALESCE( dw.dashboard_topics_id, 0 )
+              AND $date_clause
+              AND dw.publish_day = tw.publish_day
+              AND dw.stem IN ( $stems_list )
+              AND ms.media_sets_id = dw.media_sets_id
+        GROUP BY dw.publish_day, dw.stem $media_set_group
+        ORDER BY dw.publish_day, dw.stem
+EOF
           )->arrays
     ];
 
@@ -1072,16 +1262,35 @@ sub get_max_term_ratios
     my $stems      = $lang->stem( @{ $terms } );
     my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
 
-    my $max_term_count =
-      $db->query( "select stem, min( term ) as term, sum( stem_count ) as stem_count, 1 as max_term_ratio " .
-          "  from top_500_weekly_words w " .
-          "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause and $date_clause " .
-          "  group by stem order by sum(stem_count) desc limit 1" )->hash;
+    my $max_term_count = $db->query(
+        <<"EOF"
+        SELECT stem,
+               MIN( term ) AS term,
+               SUM( stem_count ) AS stem_count,
+               1 AS max_term_ratio
+        FROM top_500_weekly_words AS w
+        WHERE media_sets_id IN ( $media_sets_ids_list )
+              AND $dashboard_topics_clause
+              AND $date_clause
+        GROUP BY stem
+        ORDER BY SUM(stem_count) DESC
+        LIMIT 1
+EOF
+    )->hash;
 
-    my $term_counts =
-      $db->query( "select stem, sum( stem_count ) as stem_count from weekly_words w " .
-          "  where media_sets_id in ( $media_sets_ids_list ) and $dashboard_topics_clause " .
-          "    and stem in ( $stems_list ) and $date_clause " . "  group by stem order by stem_count desc" )->hashes;
+    my $term_counts = $db->query(
+        <<"EOF"
+        SELECT stem,
+               SUM( stem_count ) AS stem_count
+        FROM weekly_words AS w
+        WHERE media_sets_id IN ( $media_sets_ids_list )
+              AND $dashboard_topics_clause
+              AND stem IN ( $stems_list )
+              AND $date_clause
+        GROUP BY stem
+        ORDER BY stem_count DESC
+EOF
+    )->hashes;
 
     my $term_lookup = {};
     map { $term_lookup->{ $stems->[ $_ ] } = $terms->[ $_ ] } ( 0 .. $#{ $stems } );
@@ -1105,8 +1314,15 @@ sub find_or_create_media_sub_query
 
     my $media_ids_list = join( ',', @{ $media_ids } );
 
-    my $media_sets_ids =
-      [ $db->query( "select media_sets_id from media_sets " . "  where media_id in ( $media_ids_list ) " )->flat ];
+    my $media_sets_ids = [
+        $db->query(
+            <<"EOF"
+        SELECT media_sets_id
+        FROM media_sets
+        WHERE media_id IN ( $media_ids_list )
+EOF
+          )->flat
+    ];
 
     return MediaWords::DBI::Queries::find_or_create_query_by_params(
         $db,
@@ -1127,11 +1343,21 @@ sub get_media_with_sub_queries
 {
     my ( $db, $query ) = @_;
 
-    my $media =
-      $db->query( "select m.*, ms.media_sets_id " .
-          "  from media m, media_sets_media_map msmm, queries_media_sets_map qmsm, media_sets ms " .
-          "  where m.media_id = msmm.media_id and msmm.media_sets_id = qmsm.media_sets_id " .
-          "    and qmsm.queries_id = $query->{ queries_id } and ms.media_id = m.media_id " . "  order by m.name" )->hashes;
+    my $media = $db->query(
+        <<"EOF"
+        SELECT m.*,
+               ms.media_sets_id
+        FROM media AS m,
+             media_sets_media_map AS msmm,
+             queries_media_sets_map AS qmsm,
+             media_sets AS ms
+        WHERE m.media_id = msmm.media_id
+              AND msmm.media_sets_id = qmsm.media_sets_id
+              AND qmsm.queries_id = $query->{ queries_id }
+              AND ms.media_id = m.media_id
+        ORDER BY m.name
+EOF
+    )->hashes;
 
     for my $medium ( @{ $media } )
     {
@@ -1217,9 +1443,18 @@ sub get_media_set_options
     my ( $db ) = @_;
 
     my $media_sets = $db->query(
-        "select ms.*, d.name as dashboard_name " . "  from media_sets ms, dashboard_media_sets dms, dashboards d " .
-          "  where set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and " .
-          "    dms.dashboards_id = d.dashboards_id " . "  order by d.name, ms.name" )->hashes;
+        <<"EOF"
+        SELECT ms.*,
+               d.name AS dashboard_name
+        FROM media_sets AS ms,
+             dashboard_media_sets AS dms,
+             dashboards AS d
+        WHERE set_type = 'collection'
+              AND ms.media_sets_id = dms.media_sets_id
+              AND dms.dashboards_id = d.dashboards_id
+        ORDER BY d.name, ms.name
+EOF
+    )->hashes;
     my $media_set_options = [ map { [ $_->{ media_sets_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $media_sets } ];
 
     return $media_set_options;
@@ -1230,9 +1465,16 @@ sub get_dashboard_topic_options
 {
     my ( $db ) = @_;
 
-    my $dashboard_topics =
-      $db->query( "select dt.*, d.name as dashboard_name " . "  from dashboard_topics dt, dashboards d " .
-          "  where dt.dashboards_id = d.dashboards_id " . "  order by d.name, dt.name" )->hashes;
+    my $dashboard_topics = $db->query(
+        <<"EOF"
+        SELECT dt.*,
+               d.name AS dashboard_name
+        FROM dashboard_topics AS dt,
+             dashboards AS d
+        WHERE dt.dashboards_id = d.dashboards_id
+        ORDER BY d.name, dt.name
+EOF
+    )->hashes;
     my $dashboard_topic_options =
       [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $dashboard_topics } ];
 
@@ -1243,9 +1485,14 @@ sub _get_json_country_counts_for_query
 {
     my ( $db, $query ) = @_;
 
-    ( my $country_counts_json ) =
-      $db->query( "SELECT country_counts_json FROM queries_country_counts_json where queries_id = ? ",
-        $query->{ queries_id } )->flat;
+    ( my $country_counts_json ) = $db->query(
+        <<"EOF",
+        SELECT country_counts_json
+        FROM queries_country_counts_json
+        WHERE queries_id = ?
+EOF
+        $query->{ queries_id }
+    )->flat;
 
     if ( $country_counts_json )
     {
@@ -1276,9 +1523,18 @@ sub _store_country_counts_for_query
 
     utf8::upgrade( $country_counts_json );
 
-    $db->query( "DELETE FROM queries_country_counts_json where queries_id = ? ", $query->{ queries_id } );
     $db->query(
-        "INSERT INTO queries_country_counts_json (queries_id, country_counts_json) VALUES ( ? , ? ) ",
+        <<"EOF",
+        DELETE FROM queries_country_counts_json
+        WHERE queries_id = ?
+EOF
+        $query->{ queries_id }
+    );
+    $db->query(
+        <<"EOF",
+        INSERT INTO queries_country_counts_json (queries_id, country_counts_json)
+        VALUES ( ? , ? )
+EOF
         $query->{ queries_id },
         $country_counts_json
     );
@@ -1299,15 +1555,24 @@ sub _get_country_counts_impl
     my $date_clause_2             = get_daily_date_clause( $query );
 
     my $shared_where_clauses =
-      " $dashboard_topics_clause_2 and $date_clause_2 and media_sets_id in ( $media_sets_ids_list )";
+      " $dashboard_topics_clause_2" . " AND $date_clause_2" . " AND media_sets_id IN ( $media_sets_ids_list )";
 
-    my $new_sql = <<"SQL";
-SELECT dcc.country, SUM(dcc.country_count :: FLOAT) / total_count :: FLOAT AS country_count,
-       SUM(dcc.country_count) AS country_count_raw, total_count AS total_count
-FROM   (SELECT * FROM   daily_country_counts WHERE  $shared_where_clauses )  AS dcc,
-       (SELECT SUM(total_count) AS total_count FROM   total_daily_words WHERE  $shared_where_clauses ) as  tdw
-GROUP  BY dcc.country, tdw.total_count ORDER  BY dcc.country;  
-SQL
+    my $new_sql = <<"EOF";
+        SELECT dcc.country,
+               SUM(dcc.country_count :: float) / total_count :: float AS country_count,
+               SUM(dcc.country_count) AS country_count_raw,
+               total_count AS total_count
+        FROM (SELECT *
+              FROM daily_country_counts
+              WHERE $shared_where_clauses
+        ) AS dcc,
+             (SELECT SUM(total_count) AS total_count
+              FROM total_daily_words
+              WHERE $shared_where_clauses
+        ) AS tdw
+        GROUP BY dcc.country, tdw.total_count
+        ORDER BY dcc.country
+EOF
 
     #say STDERR $new_sql;
 
@@ -1373,33 +1638,75 @@ sub get_stories_with_text
         # I think download_texts in the distinct is slowing this down.  try a subquery for the distinct stories_id and
         # joining everything else to that
         $stories = $db->query(
-"select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, ms.name as media_set_name, "
-              . "    d.downloads_id, dt.download_text as story_text "
-              . "  from stories s, media m, media_sets ms, downloads d, download_texts dt, "
-              . "( select distinct ssw.stories_id, msmm.media_sets_id "
-              . "    from story_sentence_words ssw, media_sets_media_map msmm "
-              . "    where $date_clause and ssw.media_id = msmm.media_id "
-              . "      and ssw.stem in ( $topics ) "
-              . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
-              . "  ) q "
-              . "  where q.stories_id = d.stories_id and d.downloads_id = dt.downloads_id "
-              . "    and q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id "
-              . "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 100000" )->hashes;
+            <<"EOF"
+            SELECT q.stories_id,
+                   s.url,
+                   s.title,
+                   s.publish_date,
+                   m.media_id,
+                   m.name AS media_name,
+                   ms.name AS media_set_name,
+                   d.downloads_id,
+                   dt.download_text AS story_text
+            FROM stories AS s,
+                 media AS m,
+                 media_sets AS ms,
+                 downloads AS d,
+                 download_texts AS dt,
+                 (SELECT DISTINCT ssw.stories_id,
+                                  msmm.media_sets_id
+                  FROM story_sentence_words AS ssw,
+                       media_sets_media_map AS msmm
+                  WHERE $date_clause
+                        AND ssw.media_id = msmm.media_id
+                        AND ssw.stem IN ( $topics )
+                        AND msmm.media_sets_id IN ( $media_sets_ids_list )
+                 ) AS q
+            WHERE q.stories_id = d.stories_id
+                  AND d.downloads_id = dt.downloads_id
+                  AND q.stories_id = s.stories_id
+                  AND s.media_id = m.media_id
+                  AND q.media_sets_id = ms.media_sets_id
+            ORDER BY ms.name, s.publish_date, s.stories_id, d.downloads_id asc
+            LIMIT 100000
+EOF
+        )->hashes;
     }
     else
     {
         $stories = $db->query(
-"select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, ms.name as media_set_name, "
-              . "    d.downloads_id, dt.download_text as story_text "
-              . "  from stories s, media m, media_sets ms, downloads d, download_texts dt, "
-              . "( select distinct ssw.stories_id, msmm.media_sets_id "
-              . "    from story_sentence_words ssw, media_sets_media_map msmm "
-              . "    where $date_clause and ssw.media_id = msmm.media_id "
-              . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
-              . "  ) q "
-              . "  where q.stories_id = d.stories_id and d.downloads_id = dt.downloads_id "
-              . "    and q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id "
-              . "  order by ms.name, s.publish_date, s.stories_id, d.downloads_id asc limit 100000" )->hashes;
+            <<"EOF"
+            SELECT q.stories_id,
+                   s.url,
+                   s.title,
+                   s.publish_date,
+                   m.media_id,
+                   m.name AS media_name,
+                   ms.name AS media_set_name,
+                   d.downloads_id,
+                   dt.download_text AS story_text
+            FROM stories AS s,
+                 media AS m,
+                 media_sets AS ms,
+                 downloads AS d,
+                 download_texts AS dt,
+                 (SELECT DISTINCT ssw.stories_id,
+                                  msmm.media_sets_id
+                  FROM story_sentence_words AS ssw,
+                       media_sets_media_map AS msmm
+                  WHERE $date_clause
+                        AND ssw.media_id = msmm.media_id
+                        AND msmm.media_sets_id IN ( $media_sets_ids_list )
+                 ) AS q
+            WHERE q.stories_id = d.stories_id
+                  AND d.downloads_id = dt.downloads_id
+                  AND q.stories_id = s.stories_id
+                  AND s.media_id = m.media_id
+                  AND q.media_sets_id = ms.media_sets_id
+            ORDER BY ms.name, s.publish_date, s.stories_id, d.downloads_id ASC
+            LIMIT 100000
+EOF
+        )->hashes;
     }
 
     @{ $stories } || return [];
@@ -1414,7 +1721,7 @@ sub query_is_old_version
 {
     my ( $db, $query ) = @_;
 
-    my $results = $db->query( " SELECT  enum_last (null::query_version_enum ) <> ? ", $query->{ query_version } )->flat;
+    my $results = $db->query( "SELECT enum_last (null::query_version_enum ) <> ? ", $query->{ query_version } )->flat;
 
     my $ret = $results->[ 0 ];
     return $ret;
@@ -1436,7 +1743,7 @@ sub query_has_sw_data
         my $start_date = MediaWords::StoryVectors::get_default_story_words_start_date();
 
         my $results = $db->query(
-            " SELECT media_set_retains_sw_data_for_date( ?, ?, ?, ?) ",
+            "SELECT media_set_retains_sw_data_for_date( ?, ?, ?, ?) ",
             $media_sets_id, $query->{ start_date },
             $start_date, $end_date
         )->flat;
@@ -1465,32 +1772,77 @@ sub search_stories
         # I think download_texts in the distinct is slowing this down.  try a subquery for the distinct stories_id and
         # joining everything else to that
         $stories = $db->query(
-            "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, " .
-              "    ms.name as media_set_name " . "  from stories s, media m, media_sets ms, " .
-              "( select distinct ssw.stories_id, msmm.media_sets_id " .
-              "    from story_sentence_words ssw, media_sets_media_map msmm, story_sentences ss, query_story_searches qss " .
-              "    where $date_clause and ssw.media_id = msmm.media_id " . "      and ssw.stem in ( $topics ) " .
-              "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "      and ss.sentence ~* qss.pattern and ss.stories_id = ssw.stories_id " .
-              "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } " . "  ) q " .
-              "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id " .
-              "  order by ms.name, s.publish_date, s.stories_id asc limit 100000" )->hashes;
+            <<"EOF"
+            SELECT q.stories_id,
+                   s.url,
+                   s.title,
+                   s.publish_date,
+                   m.media_id,
+                   m.name AS media_name,
+                   m.url AS media_url,
+                   ms.name AS media_set_name
+            FROM stories AS s,
+                 media AS m,
+                 media_sets AS ms,
+                 (SELECT DISTINCT ssw.stories_id,
+                                  msmm.media_sets_id
+                  FROM story_sentence_words AS ssw,
+                       media_sets_media_map AS msmm,
+                       story_sentences AS ss,
+                       query_story_searches AS qss
+                  WHERE $date_clause
+                        AND ssw.media_id = msmm.media_id
+                        AND ssw.stem IN ( $topics )
+                        AND msmm.media_sets_id IN ( $media_sets_ids_list )
+                        AND ss.sentence ~* qss.pattern
+                        AND ss.stories_id = ssw.stories_id
+                        AND qss.query_story_searches_id = $query_story_search->{ query_story_searches_id }
+                 ) AS q
+            WHERE q.stories_id = s.stories_id
+                  AND s.media_id = m.media_id
+                  AND q.media_sets_id = ms.media_sets_id
+            ORDER BY ms.name, s.publish_date, s.stories_id ASC
+            LIMIT 100000
+EOF
+        )->hashes;
     }
     else
     {
         my $date_clause =
-          get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "date_trunc( 'day', ss.publish_date )" );
+          get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
         $stories = $db->query(
-            "select q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, " .
-              "    ms.name as media_set_name " . "  from stories s, media m, media_sets ms, " .
-              "( select distinct ss.stories_id, msmm.media_sets_id " .
-              "    from story_sentences ss, media_sets_media_map msmm, query_story_searches qss, queries q " .
-              "    where ss.media_id = msmm.media_id " . "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "      and ss.sentence ~* qss.pattern " .
-              "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } " .
-              "      and qss.queries_id = q.queries_id " . "      and $date_clause " . "  ) q " .
-              "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id " .
-              "  order by ms.name, s.publish_date, s.stories_id asc limit 100000" )->hashes;
+            <<"EOF"
+            SELECT q.stories_id,
+                   s.url,
+                   s.title,
+                   s.publish_date,
+                   m.media_id,
+                   m.name AS media_name,
+                   m.url AS media_url,
+                   ms.name AS media_set_name
+            FROM stories AS s,
+                 media AS m,
+                 media_sets AS ms,
+                 (SELECT DISTINCT ss.stories_id,
+                                  msmm.media_sets_id
+                  FROM story_sentences AS ss,
+                       media_sets_media_map AS msmm,
+                       query_story_searches AS qss,
+                       queries AS q
+                  WHERE ss.media_id = msmm.media_id
+                        AND msmm.media_sets_id IN ( $media_sets_ids_list )
+                        AND ss.sentence ~* qss.pattern
+                        AND qss.query_story_searches_id = $query_story_search->{ query_story_searches_id }
+                        AND qss.queries_id = q.queries_id
+                        AND $date_clause
+                 ) AS q
+            WHERE q.stories_id = s.stories_id
+                  AND s.media_id = m.media_id
+                  AND q.media_sets_id = ms.media_sets_id
+            ORDER BY ms.name, s.publish_date, s.stories_id ASC
+            LIMIT 100000
+EOF
+        )->hashes;
     }
 
     return $stories;
