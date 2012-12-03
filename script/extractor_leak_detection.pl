@@ -13,7 +13,6 @@ BEGIN
     $cwd = "$FindBin::Bin";
 }
 
-
 use Devel::SizeMe qw ( :all );
 use Devel::SizeMe;
 
@@ -70,15 +69,14 @@ use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 sub get_description_similarity_discount
 {
     my ( $line, $description ) = @_;
- 
-    
+
     my $stripped_line        = html_strip( $line );
     my $stripped_description = html_strip( $description );
 
     my $score =
-	Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
-	->getSimilarityStrings( $stripped_line, $stripped_description );
-    
+      Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
+      ->getSimilarityStrings( $stripped_line, $stripped_description );
+
     my $power = 1 / DESCRIPTION_SIMILARITY_DISCOUNT;
 
     # 1 means complete similarity and 0 means none
@@ -94,7 +92,7 @@ sub _do_extraction_from_content_ref
 
     my $lines = MediaWords::Crawler::Extractor::preprocess( \@lines );
 
-    my $ret =  MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $lines, $title, $description );
+    my $ret = MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $lines, $title, $description );
 
     return $ret;
 }
@@ -123,7 +121,7 @@ sub my_extract_preprocessed_lines_for_story
 
 sub _wrappered_extract_preprocessed_lines_for_story
 {
-    my (  $lines, $title, $description ) = @_;
+    my ( $lines, $title, $description ) = @_;
 
     my $ret = my_extract_preprocessed_lines_for_story( $lines, $title, $description );
 
@@ -148,7 +146,7 @@ sub _heuristically_scored_lines_impl
 
     #my $info_for_lines = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $title, $description );
     my $info_for_lines = get_info_for_lines( $lines, $title, $description );
-    
+
     #MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $title, $description );
 
     #my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $info_for_lines );
@@ -160,14 +158,16 @@ sub _heuristically_scored_lines_impl
 
 sub get_info_for_lines_inner_loop
 {
-    my ( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint,  $auto_excluded_lines, $markers  ) = @_;
+    my ( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint, $auto_excluded_lines, $markers )
+      = @_;
 
     my $line = defined( $lines->[ 0 ] ) ? $lines->[ 0 ] : '';
 
-    my $line_info = MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, 0, $title_text, $description, $sphereit_map, $has_clickprint,
-            $auto_excluded_lines, $markers );
+    my $line_info =
+      MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, 0, $title_text, $description, $sphereit_map,
+        $has_clickprint, $auto_excluded_lines, $markers );
 
-   # $info_for_lines->[ 0 ] = $line_info;
+    # $info_for_lines->[ 0 ] = $line_info;
 
     # for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     # {
@@ -183,14 +183,13 @@ sub get_info_for_lines_inner_loop
 
     #     my ( $html_density, $discounted_html_density, $explanation );
 
-    #     my $line_info = MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, $i, $title_text, $description, $sphereit_map, $has_clickprint,
-    #         $auto_excluded_lines, $markers );
+#     my $line_info = MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, $i, $title_text, $description, $sphereit_map, $has_clickprint,
+#         $auto_excluded_lines, $markers );
 
     #     $info_for_lines->[ $i ] = $line_info;
 
     # 	last;
     # }
-
 
 }
 
@@ -198,16 +197,17 @@ sub get_info_for_lines
 {
     my ( $lines, $title, $description ) = @_;
 
-   my $auto_excluded_lines = 
+    my $auto_excluded_lines =
 
-       MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
+      MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
 
     my $info_for_lines = [];
 
     #my $title_text = html_strip( $title );
 
-    my $title_text =  $title;
+    my $title_text = $title;
     $title_text =~ s/^\s*//;
+
     #$title_text =~ s/\s*$//;
     #$title_text =~ s/\s+/ /;
 
@@ -219,18 +219,19 @@ sub get_info_for_lines
 
     while ( 1 )
     {
-	get_info_for_lines_inner_loop ( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint,  $auto_excluded_lines, $markers  );
+        get_info_for_lines_inner_loop( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint,
+            $auto_excluded_lines, $markers );
 
     }
 
     undef( $markers );
-    undef ( $has_clickprint);
-    undef ( $sphereit_map );
+    undef( $has_clickprint );
+    undef( $sphereit_map );
 
     my $auto_excluded_lines = 0;
+
     #return $info_for_lines;
 }
-
 
 my $iterations = 0;
 
@@ -238,23 +239,20 @@ my $stripped_line = "foo";
 
 my $stripped_description = "bar";
 
-
 # while( 1)
 # {
 #     my $score = get_description_similarity_discount( "$stripped_line $iterations", "$stripped_description $iterations" );
 
 #     $iterations++;
-    
+
 #     say STDERR "Iteration $iterations";
-    
+
 #     last if ( $iterations >= 1_000_000 );
 # }
 
 # say STDERR "calling perl_size";
 # perl_size();
 # exit;
-
-
 
 {
 
@@ -286,71 +284,69 @@ my $stripped_description = "bar";
         my $story_title       = get_value_of_base_64_node( $root, 'story_title' );
         my $story_description = get_value_of_base_64_node( $root, 'story_description' );
 
-	 my @lines = split( /[\n\r]+/, \$download_content );
+        my @lines = split( /[\n\r]+/, \$download_content );
 
-	    my $lines = MediaWords::Crawler::Extractor::preprocess( \@lines );
-	    
-	    my $title = $story_title;
-	    my $description = $story_description;
+        my $lines = MediaWords::Crawler::Extractor::preprocess( \@lines );
 
+        my $title       = $story_title;
+        my $description = $story_description;
 
-	my $auto_excluded_lines =  MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
+        my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
 
-	my $info_for_lines = [];
+        my $info_for_lines = [];
 
-	#my $title_text = html_strip( $title );
-	
-	my $title_text =  $title;
-	$title_text =~ s/^\s*//;
-    #$title_text =~ s/\s*$//;
-	#$title_text =~ s/\s+/ /;
-	
-	my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines );
-	my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
-	my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers );
+        #my $title_text = html_strip( $title );
 
-	#MediaWords::Crawler::Extractor::print_time( "find_markers" );
+        my $title_text = $title;
+        $title_text =~ s/^\s*//;
 
-	my $line = defined( $lines->[ 0 ] ) ? $lines->[ 0 ] : '';
+        #$title_text =~ s/\s*$//;
+        #$title_text =~ s/\s+/ /;
 
-	while( 1)
-	{
-	   
-	    
-	    #MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $lines, $title, $description );
+        my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines );
+        my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
+        my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers );
 
-	    #MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$download_content, $story_title, $story_description );
+        #MediaWords::Crawler::Extractor::print_time( "find_markers" );
 
-	    #my_extract_preprocessed_lines_for_story( $lines, $title, $description );
+        my $line = defined( $lines->[ 0 ] ) ? $lines->[ 0 ] : '';
 
-	    #MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $title, $description );
-	    #_heuristically_scored_lines_impl( $lines, $title, $description );
+        while ( 1 )
+        {
 
-	    #get_info_for_lines( $lines, $title, $description );
+            #MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $lines, $title, $description );
 
+        #MediaWords::DBI::Downloads::_do_extraction_from_content_ref( \$download_content, $story_title, $story_description );
 
-	    my $line_info = MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, 0, $title_text, $description, $sphereit_map, $has_clickprint,
-            $auto_excluded_lines, $markers );
+            #my_extract_preprocessed_lines_for_story( $lines, $title, $description );
 
-	    #while ( 1 )
-	    #{
-	#	get_info_for_lines_inner_loop ( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint,  $auto_excluded_lines, $markers  );
+            #MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $title, $description );
+            #_heuristically_scored_lines_impl( $lines, $title, $description );
 
-	    #}
+            #get_info_for_lines( $lines, $title, $description );
 
+            my $line_info =
+              MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, 0, $title_text, $description,
+                $sphereit_map, $has_clickprint, $auto_excluded_lines, $markers );
 
-	    #my $info_for_lines = get_info_for_lines( $lines, $title, $description );
-	    #MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
-	    #_do_extraction_from_content_ref( \$download_content, $story_title, $story_description );
+#while ( 1 )
+#{
+#	get_info_for_lines_inner_loop ( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint,  $auto_excluded_lines, $markers  );
 
-	    $iterations++;
+            #}
 
-	    say STDERR "Iteration $iterations";
+            #my $info_for_lines = get_info_for_lines( $lines, $title, $description );
+            #MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
+            #_do_extraction_from_content_ref( \$download_content, $story_title, $story_description );
 
-	    last if ( $iterations >= 10_000_000 );
-	}
+            $iterations++;
 
-	last;
+            say STDERR "Iteration $iterations";
+
+            last if ( $iterations >= 10_000_000 );
+        }
+
+        last;
 
         # my $extract_results =
         #   MediaWords::DBI::Downloads::extract_preprocessed_lines_for_story( $actual_preprocessed_text_array,
@@ -406,7 +402,6 @@ my $stripped_description = "bar";
 say STDERR "calling perl_size";
 perl_size();
 exit;
-
 
 #Test::NoWarnings::had_no_warnings();
 
