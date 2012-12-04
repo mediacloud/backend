@@ -151,9 +151,14 @@ sub get_description_similarity_discount
     my $stripped_line        = html_strip( $line );
     my $stripped_description = html_strip( $description );
 
-    my $score =
-      Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
-      ->getSimilarityStrings( $stripped_line, $stripped_description );
+    ##
+    ## WARNING the Text::Similarity::Overlaps object MUST be assigned to a temporary variable
+    ## calling getSimilarityStrings directly on the result of Text::Similarity::Overlaps->new( ) results in a memory leak.
+    ##  This leak only occurs under certain so it won't show up in toy test programs. However, it consistently occured 
+    ## in the MediaWords::DBI::Downloads::extractor_results_for_download() call chain until this fix.
+    ##
+    my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
+    my $score = $sim->getSimilarityStrings( $stripped_line, $stripped_description );
 
     if (   ( DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
         || ( DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
