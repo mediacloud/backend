@@ -64,24 +64,41 @@ sub get_value_of_base_64_node
     return $ret;
 }
 
+use constant LEAK => 0;
+
 use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
+
 
 sub get_description_similarity_discount
 {
     my ( $line, $description ) = @_;
 
-    my $stripped_line        = html_strip( $line );
-    my $stripped_description = html_strip( $description );
+    # my $stripped_line        = html_strip( $line );
+    # my $stripped_description = html_strip( $description );
 
-    my $score =
-      Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
-      ->getSimilarityStrings( $stripped_line, $stripped_description );
+    my $stripped_line        = "$line ";
+    my $stripped_description = " $description ";
+
+    my $score;
+
+    if ( LEAK )
+    {
+        $score =
+          Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
+          ->getSimilarityStrings( $stripped_line, $stripped_description );
+    }
+    else
+    {
+        my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
+
+        $score = $sim->getSimilarityStrings( $stripped_line, $stripped_description );
+    }
 
     my $power = 1 / DESCRIPTION_SIMILARITY_DISCOUNT;
 
     # 1 means complete similarity and 0 means none
     # so invert it
-    return ( ( 1 - $score ) )**$power;
+    return ( ( ( 1 - $score ) )**$power ) + 0.0;
 }
 
 sub _do_extraction_from_content_ref
@@ -233,6 +250,96 @@ sub get_info_for_lines
     #return $info_for_lines;
 }
 
+sub calculate_full_line_metrics
+{
+    my ( $line, $line_number, $title_text, $description, $sphereit_map, $has_clickprint, $auto_excluded_lines, $markers ) =
+      @_;
+
+    my $line_info = {};
+
+    $line_info->{ line_number } = $line_number;
+
+    # if (   $markers->{ comment }
+    #     && $markers->{ comment }->[ 0 ]
+    #     && ( $markers->{ comment }->[ 0 ] == $line_number ) )
+    # {
+    #     shift( @{ $markers->{ comment } } );
+    #     $line_info->{ has_comment } = 1;
+    # }
+    # else
+    # {
+    #     $line_info->{ has_comment } = 0;
+    # }
+
+    my $line_text = html_strip( $line );
+
+    $line_info->{ html_stripped_text_length } = length( $line_text );
+
+    # if ( $auto_excluded_lines->[ $line_number ]->[ 0 ] )
+    # {
+    #     my $auto_exclude_explanation = $auto_excluded_lines->[ $line_number ]->[ 1 ];
+
+    #     $line_info->{ auto_excluded }            = 1;
+    #     $line_info->{ auto_exclude_explanation } = $auto_exclude_explanation;
+
+    #     return $line_info;
+    # }
+
+    # $line_info->{ html_density } = MediaWords::Crawler::AnalyzeLines::get_html_density( $line );
+
+    # $line_text =~ s/^\s*//;
+    # $line_text =~ s/\s*$//;
+    # $line_text =~ s/\s+/ /;
+
+    $line_info->{ auto_excluded } = 0;
+
+    # my ( $line_length, $line_starts_with_title_text ) =
+    #   MediaWords::Crawler::AnalyzeLines::calculate_line_extraction_metrics_2( $line_text, $line, $title_text );
+
+    # my ( $copyright_count ) = MediaWords::Crawler::AnalyzeLines::get_copyright_count( $line );
+
+    my ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount, $sphereit_map_includes_line )
+      = calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint );
+
+    # $line_info->{ line_length }                     = $line_length;
+    # $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
+    # $line_info->{ copyright_copy }                  = $copyright_count;
+    # $line_info->{ article_has_clickprint }          = $article_has_clickprint;
+    # $line_info->{ article_has_sphereit_map }        = $article_has_sphereit_map;
+    # $line_info->{ description_similarity_discount } = $description_similarity_discount;
+    # $line_info->{ sphereit_map_includes_line }      = $sphereit_map_includes_line;
+
+    return $line_info;
+}
+
+sub calculate_line_extraction_metrics
+{
+    my $i              = shift;
+    my $description    = shift;
+    my $line           = shift;
+    my $sphereit_map   = shift;
+    my $has_clickprint = shift;
+
+   # Readonly my $article_has_clickprint => $has_clickprint;    #<--- syntax error at (eval 980) line 11, near "Readonly my "
+
+    # Readonly my $article_has_sphereit_map        => defined( $sphereit_map );
+    # Readonly my $sphereit_map_includes_line      => ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
+
+    my ( $article_has_clickprint, $article_has_sphereit_map, $sphereit_map_includes_line );
+
+    Readonly my $description_similarity_discount => get_description_similarity_discount( $line, $description );
+
+    #my $description_similarity_discount = get_description_similarity_discount( $line, $description );
+
+    my @ret =
+      ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount, $sphereit_map_includes_line );
+
+    return @ret;
+
+    #    return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
+    #        $sphereit_map_includes_line );
+}    #<--- syntax error at (eval 980) line 18, near ";
+
 my $iterations = 0;
 
 my $stripped_line = "foo";
@@ -325,9 +432,8 @@ my $stripped_description = "bar";
 
             #get_info_for_lines( $lines, $title, $description );
 
-            my $line_info =
-              MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, 0, $title_text, $description,
-                $sphereit_map, $has_clickprint, $auto_excluded_lines, $markers );
+            my $line_info = calculate_full_line_metrics( $line, 0, $title_text, $description, $sphereit_map, $has_clickprint,
+                $auto_excluded_lines, $markers );
 
 #while ( 1 )
 #{
