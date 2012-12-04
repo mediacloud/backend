@@ -154,7 +154,7 @@ sub get_description_similarity_discount
     ##
     ## WARNING the Text::Similarity::Overlaps object MUST be assigned to a temporary variable
     ## calling getSimilarityStrings directly on the result of Text::Similarity::Overlaps->new( ) results in a memory leak.
-    ##  This leak only occurs under certain so it won't show up in toy test programs. However, it consistently occured 
+    ##  This leak only occurs under certain so it won't show up in toy test programs. However, it consistently occured
     ## in the MediaWords::DBI::Downloads::extractor_results_for_download() call chain until this fix.
     ##
     my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
