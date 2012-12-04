@@ -68,7 +68,6 @@ use constant LEAK => 0;
 
 use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 
-
 sub get_description_similarity_discount
 {
     my ( $line, $description ) = @_;
