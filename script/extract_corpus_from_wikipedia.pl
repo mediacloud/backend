@@ -154,17 +154,8 @@ my $output_handle = 0;
         # Article text is located at mediawiki/page/revision/text
         if ( lc( $element ) eq 'text' )
         {
-            if ( !$first_article_started )
-            {
-                $first_article_started = 1;
-            }
-            else
-            {
-                print "\n$global_story_separator\n\n";
-            }
-
-            $inside_article_text = 1;
             $article_text        = '';
+            $inside_article_text = 1;
         }
     }
 
@@ -178,6 +169,16 @@ my $output_handle = 0;
         if ( lc( $element ) eq 'text' )
         {
             $inside_article_text = 0;
+
+            # Add separator unless it is the very first article
+            if ( !$first_article_started )
+            {
+                $first_article_started = 1;
+            }
+            else
+            {
+                print $output_handle "\n$global_story_separator\n\n";
+            }
 
             # End of text
             $article_text = _strip_mediawiki_formatting( $article_text );
