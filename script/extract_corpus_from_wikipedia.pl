@@ -37,6 +37,10 @@ use HTML::FormatText;
 use Text::Balanced qw (extract_bracketed extract_multiple);
 use Regexp::Common qw /URI/;
 
+# Global story separator (to be shared by the XML parser handlers;
+# will be set to the value passed as a parameter)
+my $global_story_separator = '----------------';
+
 sub _wp_link
 {
     my $link = shift;
@@ -114,6 +118,11 @@ sub _strip_mediawiki_formatting($)
     $text =~ s/ +/ /gs;
     $text =~ s/\n\n+/\n\n/gs;
 
+    # Remove separator if it is a part of the text
+    $text =~ s/\n$global_story_separator\n//gs;
+    $text =~ s/^$global_story_separator\n//gs;
+    $text =~ s/\n$global_story_separator$//gs;
+
     return $text;
 }
 
@@ -123,7 +132,11 @@ my $output_handle = 0;
 # XML parser routines
 {
 
-    # Global variable used by the XML parser to figure out whether or not the current
+    # Semi-global variable to note the start of the very first article
+    # (so the script knows where to put story separators)
+    my $first_article_started = 0;
+
+    # Semi-global variable used by the XML parser to figure out whether or not the current
     # character data is part of the article text
     my $inside_article_text = 0;
 
@@ -141,6 +154,15 @@ my $output_handle = 0;
         # Article text is located at mediawiki/page/revision/text
         if ( lc( $element ) eq 'text' )
         {
+            if ( !$first_article_started )
+            {
+                $first_article_started = 1;
+            }
+            else
+            {
+                print "\n$global_story_separator\n\n";
+            }
+
             $inside_article_text = 1;
             $article_text        = '';
         }
@@ -193,9 +215,9 @@ my $output_handle = 0;
 }
 
 # Extract plain text corpus from a Wikipedia XML dump
-sub extract_corpus_from_wikipedia($$)
+sub extract_corpus_from_wikipedia($$$)
 {
-    my ( $input_file, $output_file ) = @_;
+    my ( $input_file, $output_file, $story_separator ) = @_;
 
     # Input file or STDIN
     if ( $input_file ne '-' )
@@ -219,7 +241,8 @@ sub extract_corpus_from_wikipedia($$)
 
     binmode( OUTPUT, ":utf8" );
 
-    $output_handle = \*OUTPUT;
+    $output_handle          = \*OUTPUT;
+    $global_story_separator = $story_separator;
 
     # Parse XML
     my $xml = new XML::Parser(
@@ -245,20 +268,23 @@ sub main
     binmode( STDOUT, ":utf8" );
     binmode( STDERR, ":utf8" );
 
-    my $input_file  = '-';    # Wikipedia XML dump file; default is STDIN
-    my $output_file = '-';    # Corpus output file; default is STDOUT
+    my $input_file      = '-';                   # Wikipedia XML dump file; default is STDIN
+    my $output_file     = '-';                   # Corpus output file; default is STDOUT
+    my $story_separator = '----------------';    # Delimiter to separate one story (article) from another
 
-    my Readonly $usage = "Usage: $0" . ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]';
+    my Readonly $usage =
+      "Usage: $0" . ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' . '[--story_separator=----------------]';
 
     GetOptions(
-        'input_file=s'  => \$input_file,
-        'output_file=s' => \$output_file,
+        'input_file=s'      => \$input_file,
+        'output_file=s'     => \$output_file,
+        'story_separator=s' => \$story_separator
     ) or die "$usage\n";
     die "$usage\n" unless ( $input_file and $output_file );
 
     say STDERR "starting --  " . localtime();
 
-    extract_corpus_from_wikipedia( $input_file, $output_file );
+    extract_corpus_from_wikipedia( $input_file, $output_file, $story_separator );
 
     say STDERR "finished --  " . localtime();
 }
