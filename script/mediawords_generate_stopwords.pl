@@ -214,7 +214,7 @@ sub gen_term_frequency($$$$$$$)
     my $x = 0;
 
     # Print out header
-    print _stoplist_header( $corpus_name, $language_code, 'Term Frequency (TF)' );
+    print $output_handle _stoplist_header( $corpus_name, $language_code, 'Term Frequency (TF)' );
 
     # Print out the final results
     my $term_count = 0;
@@ -225,7 +225,7 @@ sub gen_term_frequency($$$$$$$)
         $status = $db_file_counts->seq( $term_count, $term, R_NEXT )
       )
     {
-        print "$term\t# term count -- $term_count\n";
+        print $output_handle "$term\t# term count -- $term_count\n";
 
         ++$x;
         if ( $x >= $stoplist_threshold )
@@ -260,25 +260,10 @@ sub _unique_terms_in_story($$)
     return keys( %unique_terms );
 }
 
-# Inverse Document Frequency (IDF)
-# (note: term limit actually limits the number of unique terms in a story, not the number of all terms)
-sub gen_inverse_document_frequency($$$$$$$$)
+# Create and return story count and reference to 'term' => 'number_of_stories_term_appears_in' hash
+sub _count_number_or_stories_terms_appear_in($$$$)
 {
-
-    #
-    # "Inverse Document Frequency (IDF) [12]: Using the term frequency distribution in the collection
-    # itself where the IDF value of a given term k is given by:
-    #     idf_k = log (NDoc / D_k)
-    # where NDoc is the total number of documents in the corpus and D_k is the number of documents
-    # containing term k.
-    # In other words, infrequently occurring terms have a greater probability of occurring in relevant
-    # documents and should be considered as more informative and therefore of more importance in these
-    # documents."
-    #
-
-    my ( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $story_separator, $term_limit,
-        $stoplist_threshold )
-      = @_;
+    my ( $lang, $input_handle, $story_separator, $term_limit ) = @_;
 
     # Create a temporary disk storage for keeping 'term' => 'number_of_stories_term_appears_in' pairs
     my %db_terms;
@@ -350,6 +335,33 @@ sub gen_inverse_document_frequency($$$$$$$$)
         ++$db_terms{ $term };
     }
 
+    return ( $story_count, \%db_terms );
+}
+
+# Inverse Document Frequency (IDF)
+# (note: term limit actually limits the number of unique terms in a story, not the number of all terms)
+sub gen_inverse_document_frequency($$$$$$$$)
+{
+
+    #
+    # "Inverse Document Frequency (IDF) [12]: Using the term frequency distribution in the collection
+    # itself where the IDF value of a given term k is given by:
+    #     idf_k = log (NDoc / D_k)
+    # where NDoc is the total number of documents in the corpus and D_k is the number of documents
+    # containing term k.
+    # In other words, infrequently occurring terms have a greater probability of occurring in relevant
+    # documents and should be considered as more informative and therefore of more importance in these
+    # documents."
+    #
+
+    my ( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $story_separator, $term_limit,
+        $stoplist_threshold )
+      = @_;
+
+    # Get story count, reference to 'term' => 'number_of_stories_term_appears_in' hash
+    my ( $story_count, $db_terms ) =
+      _count_number_or_stories_terms_appear_in( $lang, $input_handle, $story_separator, $term_limit );
+
     # Will allow duplicate records (duplicate keys -- term IDFs)
     $DB_BTREE->{ 'flags' } = R_DUP;
 
@@ -358,7 +370,7 @@ sub gen_inverse_document_frequency($$$$$$$$)
 
     # Create a temporary disk storage for keeping 'term_idf' => 'term' pairs
     my %db_idfs;
-    $temp_storage = _get_temp_file();
+    my $temp_storage = _get_temp_file();
     my $db_file_idfs = tie %db_idfs, "DB_File", $temp_storage, O_RDWR | O_CREAT, 0666, $DB_BTREE
       or die "Cannot open file '$temp_storage': $!\n";
     $db_file_idfs->Filter_Push( 'utf8' );
@@ -366,7 +378,7 @@ sub gen_inverse_document_frequency($$$$$$$$)
     say STDERR "Sorting terms by IDF...";
 
     # Copy the term IFDs to the new database while also sorting them
-    while ( my ( $term, $number_of_stories_term_appears_in ) = each %db_terms )
+    while ( my ( $term, $number_of_stories_term_appears_in ) = each %{ $db_terms } )
     {
         my $idf = log( $story_count / $number_of_stories_term_appears_in );
 
@@ -378,7 +390,7 @@ sub gen_inverse_document_frequency($$$$$$$$)
     my $x = 0;
 
     # Print out header
-    print _stoplist_header( $corpus_name, $language_code, 'Inverse Document Frequency (IDF)' );
+    print $output_handle _stoplist_header( $corpus_name, $language_code, 'Inverse Document Frequency (IDF)' );
 
     # Print out the final results
     my $term_idf = 0;
@@ -389,7 +401,7 @@ sub gen_inverse_document_frequency($$$$$$$$)
         $status = $db_file_idfs->seq( $term_idf, $term, R_NEXT )
       )
     {
-        printf "%s\t# term IDF -- %f\n", $term, $term_idf;
+        printf $output_handle "%s\t# term IDF -- %f\n", $term, $term_idf;
 
         ++$x;
         if ( $x >= $stoplist_threshold )
