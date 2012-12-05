@@ -34,6 +34,7 @@
 #
 # TODO:
 #   http://en.wikipedia.org/wiki/Tf*idf
+#   Normalized TF
 
 use strict;
 use warnings;
@@ -99,6 +100,13 @@ sub _get_temp_file
     return $filename;
 }
 
+# Helper to sort keys in the ascending order
+sub _sort_ascending
+{
+    my ( $key1, $key2 ) = @_;
+    $key1 <=> $key2;
+}
+
 # Helper to sort keys in the descending order
 sub _sort_descending
 {
@@ -109,6 +117,12 @@ sub _sort_descending
 # Term frequency (TF)
 sub gen_term_frequency($$$$$$$)
 {
+
+    #
+    # "Term frequency (TF) of the terms in the corpus: In other words, the number of
+    # times a certain term appears throughout a specific collection."
+    #
+
     my ( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $term_limit, $stoplist_threshold ) = @_;
 
     say STDERR "Creating term -> term_count storage...";
@@ -128,6 +142,8 @@ sub gen_term_frequency($$$$$$$)
     # Create a temporary data store with term counts ('term' => 'term_count')
     while ( <$input_handle> )
     {
+        chomp();
+
         my $line  = decode_utf8( $_ );
         my $terms = $lang->tokenize( $line );
 
@@ -221,6 +237,170 @@ sub gen_term_frequency($$$$$$$)
     say STDERR "Done.";
 }
 
+# Create and return a unique terms array for the story
+sub _unique_terms_in_story($$)
+{
+    my ( $story, $lang ) = @_;
+
+    my %unique_terms;
+
+    my $terms = $lang->tokenize( $story );
+
+    for ( my $i = 0 ; $i <= $#$terms ; $i++ )
+    {
+        my $term = $terms->[ $i ];
+        if ( length( $term ) == 0 or length( $term ) > $lang->get_word_length_limit() or looks_like_number( $term ) )
+        {
+            next;
+        }
+
+        $unique_terms{ $term } = 1;
+    }
+
+    return keys( %unique_terms );
+}
+
+# Inverse Document Frequency (IDF)
+# (note: term limit actually limits the number of unique terms in a story, not the number of all terms)
+sub gen_inverse_document_frequency($$$$$$$$)
+{
+
+    #
+    # "Inverse Document Frequency (IDF) [12]: Using the term frequency distribution in the collection
+    # itself where the IDF value of a given term k is given by:
+    #     idf_k = log (NDoc / D_k)
+    # where NDoc is the total number of documents in the corpus and D_k is the number of documents
+    # containing term k.
+    # In other words, infrequently occurring terms have a greater probability of occurring in relevant
+    # documents and should be considered as more informative and therefore of more importance in these
+    # documents."
+    #
+
+    my ( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $story_separator, $term_limit,
+        $stoplist_threshold )
+      = @_;
+
+    # Create a temporary disk storage for keeping 'term' => 'number_of_stories_term_appears_in' pairs
+    my %db_terms;
+    my $temp_storage = _get_temp_file();
+    my $db_file_terms = tie %db_terms, "DB_File", $temp_storage, O_RDWR | O_CREAT, 0666, $DB_BTREE
+      or die "Cannot open file '$temp_storage': $!\n";
+    $db_file_terms->Filter_Push( 'utf8' );
+
+    # Variable for concatenating a story
+    my $story = '';
+
+    # Total number of documents (stories)
+    my $story_count = 0;
+
+    # Number of analysed unique terms
+    my $analysed_terms   = 0;
+    my $progress_modulus = 1000;
+
+    # Count the stories, create the 'term' => 'number_of_stories_term_appears_in' hash
+    while ( <$input_handle> )
+    {
+        chomp;
+        my $line = decode_utf8( $_ );
+
+        if ( $analysed_terms != 0 and ( $analysed_terms % 1000 < $progress_modulus ) )
+        {
+            if ( $term_limit != 0 )
+            {
+                say STDERR 'Adding term ' . $analysed_terms . '/' . $term_limit . '...';
+            }
+            else
+            {
+                say STDERR 'Adding term ' . $analysed_terms . '...';
+            }
+        }
+
+        $progress_modulus = $analysed_terms % 1000;
+
+        if ( $line ne $story_separator )
+        {
+            $story .= $line . ' ';
+        }
+        else
+        {
+
+            # We have concatenated a full story
+            ++$story_count;
+            my @unique_terms = _unique_terms_in_story( $story, $lang );
+            $analysed_terms += $#unique_terms + 1;
+            foreach my $term ( @unique_terms )
+            {
+                ++$db_terms{ $term };
+            }
+
+            $story = '';
+        }
+
+        if ( $term_limit != 0 )
+        {
+            last if ( $analysed_terms >= $term_limit );
+        }
+    }
+
+    # Add the last story
+    ++$story_count;
+    my @unique_terms = _unique_terms_in_story( $story, $lang );
+    foreach my $term ( @unique_terms )
+    {
+        ++$db_terms{ $term };
+    }
+
+    # Will allow duplicate records (duplicate keys -- term IDFs)
+    $DB_BTREE->{ 'flags' } = R_DUP;
+
+    # Will sort in the descending order (biggest term IDF goes first)
+    $DB_BTREE->{ 'compare' } = \&_sort_ascending;
+
+    # Create a temporary disk storage for keeping 'term_idf' => 'term' pairs
+    my %db_idfs;
+    $temp_storage = _get_temp_file();
+    my $db_file_idfs = tie %db_idfs, "DB_File", $temp_storage, O_RDWR | O_CREAT, 0666, $DB_BTREE
+      or die "Cannot open file '$temp_storage': $!\n";
+    $db_file_idfs->Filter_Push( 'utf8' );
+
+    say STDERR "Sorting terms by IDF...";
+
+    # Copy the term IFDs to the new database while also sorting them
+    while ( my ( $term, $number_of_stories_term_appears_in ) = each %db_terms )
+    {
+        my $idf = log( $story_count / $number_of_stories_term_appears_in );
+
+        $db_idfs{ $idf } = $term;
+    }
+
+    say STDERR "Printing out first $stoplist_threshold terms as a stoplist...";
+
+    my $x = 0;
+
+    # Print out header
+    print _stoplist_header( $corpus_name, $language_code, 'Inverse Document Frequency (IDF)' );
+
+    # Print out the final results
+    my $term_idf = 0;
+    my $term     = 0;
+    for (
+        my $status = $db_file_idfs->seq( $term_idf, $term, R_FIRST ) ;
+        $status == 0 ;
+        $status = $db_file_idfs->seq( $term_idf, $term, R_NEXT )
+      )
+    {
+        printf "%s\t# term IDF -- %f\n", $term, $term_idf;
+
+        ++$x;
+        if ( $x >= $stoplist_threshold )
+        {
+            last;
+        }
+    }
+
+    say STDERR "Done.";
+}
+
 # SIGINT (Ctrl+C) handler -- prints out stopwords collected so far
 sub INT_handler
 {
@@ -244,14 +424,15 @@ sub main
     my @valid_types        = ( 'tf', 'idf', 'nidf', 'tbrs' );    # Valid (implemented and enabled) stoplist generation types
     my $input_file         = '-';                                # Input file to read corpus from ('-' for STDIN)
     my $output_file        = '-';                                # Output file to write stopwords to ('-' for STDOUT)
+    my $story_separator    = '----------------';                 # Delimiter to separate one story (article) from another
     my $term_limit         = 0;                                  # How many terms (words) to take into account (0 - no limit)
-    my $stoplist_threshold = 20;                                 # How many stopwords to print
+    my $stoplist_threshold = 1000;                               # How many stopwords to print
     my $tbrs_iterations    = 20;                                 # How many times to repeat the TBRS sampling
 
     my Readonly $usage =
       "Usage: $0" . ' --corpus_name=corpus-simplewiki-20121129' . ' --language=lt' . ' --type=tf|idf|nidf|tbrs' .
-      ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' . ' [--term_limit=i]' . ' [--stoplist_threshold=i]' .
-      ' [--tbrs_iterations=i]';
+      ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' . '[--story_separator=----------------]' .
+      ' [--term_limit=i]' . ' [--stoplist_threshold=i]' . ' [--tbrs_iterations=i]';
 
     GetOptions(
         'corpus_name=s'        => \$corpus_name,
@@ -259,6 +440,7 @@ sub main
         'type=s'               => \$generation_type,
         'input_file'           => \$input_file,
         'output_file'          => \$output_file,
+        'story_separator=s'    => \$story_separator,
         'term_limit=i'         => \$term_limit,
         'stoplist_threshold=i' => \$stoplist_threshold,
         'tbrs_iterations=i'    => \$tbrs_iterations,
@@ -310,6 +492,13 @@ sub main
     {
         gen_term_frequency( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $term_limit,
             $stoplist_threshold );
+    }
+    elsif ( $generation_type eq 'idf' )
+    {
+        die "Story separator can't be empty.\n" unless ( $story_separator ne '' );
+
+        gen_inverse_document_frequency( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $story_separator,
+            $term_limit, $stoplist_threshold );
     }
 
     # Cleanup
