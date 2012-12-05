@@ -413,6 +413,81 @@ sub gen_inverse_document_frequency($$$$$$$$)
     say STDERR "Done.";
 }
 
+# Normalised Inverse Document Frequency (NIDF)
+# (note: term limit actually limits the number of unique terms in a story, not the number of all terms)
+sub gen_normalised_inverse_document_frequency($$$$$$$$)
+{
+
+    #
+    # "Normalised IDF: The most common form of IDF weighting is the one used by Robertson and
+    # Sparck-Jones [14], which normalises with respect to the number of documents not containing
+    # the term (N Doc − D_k) and adds a constant of 0.5 to both numerator and denominator to
+    # moderate extreme values:
+    #     idf_kNorm = log ( ( (NDoc - D_k ) + 0.5 ) / ( D_k + 0.5 ) )
+    # where NDoc is the total number of documents in the collection and D_k is the number of
+    # documents containing term k."
+    #
+
+    my ( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $story_separator, $term_limit,
+        $stoplist_threshold )
+      = @_;
+
+    # Get story count, reference to 'term' => 'number_of_stories_term_appears_in' hash
+    my ( $story_count, $db_terms ) =
+      _count_number_or_stories_terms_appear_in( $lang, $input_handle, $story_separator, $term_limit );
+
+    # Will allow duplicate records (duplicate keys -- term NIDFs)
+    $DB_BTREE->{ 'flags' } = R_DUP;
+
+    # Will sort in the descending order (biggest term NIDF goes first)
+    $DB_BTREE->{ 'compare' } = \&_sort_ascending;
+
+    # Create a temporary disk storage for keeping 'term_idf' => 'term' pairs
+    my %db_nidfs;
+    my $temp_storage = _get_temp_file();
+    my $db_file_nidfs = tie %db_nidfs, "DB_File", $temp_storage, O_RDWR | O_CREAT, 0666, $DB_BTREE
+      or die "Cannot open file '$temp_storage': $!\n";
+    $db_file_nidfs->Filter_Push( 'utf8' );
+
+    say STDERR "Sorting terms by NIDF...";
+
+    # Copy the term NIFDs to the new database while also sorting them
+    while ( my ( $term, $number_of_stories_term_appears_in ) = each %{ $db_terms } )
+    {
+        my $nidf = log(
+            ( ( $story_count - $number_of_stories_term_appears_in ) + 0.5 ) / ( $number_of_stories_term_appears_in + 0.5 ) );
+
+        $db_nidfs{ $nidf } = $term;
+    }
+
+    say STDERR "Printing out first $stoplist_threshold terms as a stoplist...";
+
+    my $x = 0;
+
+    # Print out header
+    print $output_handle _stoplist_header( $corpus_name, $language_code, 'Normalised Inverse Document Frequency (NIDF)' );
+
+    # Print out the final results
+    my $term_nidf = 0;
+    my $term      = 0;
+    for (
+        my $status = $db_file_nidfs->seq( $term_nidf, $term, R_FIRST ) ;
+        $status == 0 ;
+        $status = $db_file_nidfs->seq( $term_nidf, $term, R_NEXT )
+      )
+    {
+        printf $output_handle "%s\t# term NIDF -- %f\n", $term, $term_nidf;
+
+        ++$x;
+        if ( $x >= $stoplist_threshold )
+        {
+            last;
+        }
+    }
+
+    say STDERR "Done.";
+}
+
 # SIGINT (Ctrl+C) handler -- prints out stopwords collected so far
 sub INT_handler
 {
@@ -511,6 +586,13 @@ sub main
 
         gen_inverse_document_frequency( $corpus_name, $language_code, $lang, $input_handle, $output_handle, $story_separator,
             $term_limit, $stoplist_threshold );
+    }
+    elsif ( $generation_type eq 'nidf' )
+    {
+        die "Story separator can't be empty.\n" unless ( $story_separator ne '' );
+
+        gen_normalised_inverse_document_frequency( $corpus_name, $language_code, $lang, $input_handle, $output_handle,
+            $story_separator, $term_limit, $stoplist_threshold );
     }
 
     # Cleanup
