@@ -305,6 +305,9 @@ sub _count_number_or_stories_terms_appear_in($$$$)
         if ( $line ne $story_separator )
         {
             $story .= $line . ' ';
+
+            die "Story is 1 MB long, maybe the corpus does not contain separators ($story_separator).\n"
+              if ( bytes::length( $story ) > ( 1024 * 1024 ) );
         }
         else
         {
