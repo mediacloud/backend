@@ -19,18 +19,15 @@
 #       * tf -- Term frequency (TF)
 #       * idf -- Inverse Document Frequency (IDF)
 #       * nidf -- Normalised Inverse Document Frequency (normalised IDF)
-#       * tbrs -- Term-based Random Sampling
 #   * --term_limit -- how many terms (words) to analyze
 #   * --stoplist_threshold -- how many suspected stop words to output
-#   * --tbrs_iterations -- when using the Term Based Random Sampling, how many iterations of the algorithm to execute
 #
 # Usage:
 #
 #   ./script/run_with_carton.sh ./script/mediawords_generate_stopwords.pl \
-#       [--type=tf|idf|nidf|tbrs] \
+#       [--type=tf|idf|nidf] \
 #       [--term_limit=i] \
-#       [--stoplist_threshold=i] \
-#       [--tbrs_iterations=i] > ./lib/MediaWords/Languages/resources/custom_stoplist.txt
+#       [--stoplist_threshold=i] > ./lib/MediaWords/Languages/resources/custom_stoplist.txt
 #
 # TODO:
 #   http://en.wikipedia.org/wiki/Tf*idf
@@ -508,21 +505,20 @@ sub main
     binmode( STDOUT, ":utf8" );
     binmode( STDERR, ":utf8" );
 
-    my $corpus_name        = '';                                 # Corpus name (to be used in the header)
-    my $language_code      = '';                                 # Corpus language (to split sentences into words)
-    my $generation_type    = '';                                 # Which method of stoplist generation should be used
-    my @valid_types        = ( 'tf', 'idf', 'nidf', 'tbrs' );    # Valid (implemented and enabled) stoplist generation types
-    my $input_file         = '-';                                # Input file to read corpus from ('-' for STDIN)
-    my $output_file        = '-';                                # Output file to write stopwords to ('-' for STDOUT)
-    my $story_separator    = '----------------';                 # Delimiter to separate one story (article) from another
-    my $term_limit         = 0;                                  # How many terms (words) to take into account (0 - no limit)
-    my $stoplist_threshold = 1000;                               # How many stopwords to print
-    my $tbrs_iterations    = 20;                                 # How many times to repeat the TBRS sampling
+    my $corpus_name        = '';                         # Corpus name (to be used in the header)
+    my $language_code      = '';                         # Corpus language (to split sentences into words)
+    my $generation_type    = '';                         # Which method of stoplist generation should be used
+    my @valid_types        = ( 'tf', 'idf', 'nidf' );    # Valid (implemented and enabled) stoplist generation types
+    my $input_file         = '-';                        # Input file to read corpus from ('-' for STDIN)
+    my $output_file        = '-';                        # Output file to write stopwords to ('-' for STDOUT)
+    my $story_separator    = '----------------';         # Delimiter to separate one story (article) from another
+    my $term_limit         = 0;                          # How many terms (words) to take into account (0 - no limit)
+    my $stoplist_threshold = 1000;                       # How many stopwords to print
 
     my Readonly $usage =
-      "Usage: $0" . ' --corpus_name=corpus-simplewiki-20121129' . ' --language=lt' . ' --type=tf|idf|nidf|tbrs' .
+      "Usage: $0" . ' --corpus_name=corpus-simplewiki-20121129' . ' --language=lt' . ' --type=tf|idf|nidf' .
       ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' . '[--story_separator=----------------]' .
-      ' [--term_limit=i]' . ' [--stoplist_threshold=i]' . ' [--tbrs_iterations=i]';
+      ' [--term_limit=i]' . ' [--stoplist_threshold=i]';
 
     GetOptions(
         'corpus_name=s'        => \$corpus_name,
@@ -533,7 +529,6 @@ sub main
         'story_separator=s'    => \$story_separator,
         'term_limit=i'         => \$term_limit,
         'stoplist_threshold=i' => \$stoplist_threshold,
-        'tbrs_iterations=i'    => \$tbrs_iterations,
     ) or die "$usage\n";
 
     die "$usage\n"
@@ -544,7 +539,6 @@ sub main
         and $output_file
         and ( grep { $_ eq $generation_type } @valid_types ) );
     die "Stoplist threshold can't be 0.\n" unless ( $stoplist_threshold != 0 );
-    die "TBRS iterations can't be 0.\n"    unless ( $tbrs_iterations != 0 );
 
     say STDERR "starting --  " . localtime();
 
