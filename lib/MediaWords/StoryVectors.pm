@@ -40,15 +40,12 @@ sub _get_story
     {
         return $db->query(
             <<"EOF",
-
-            SELECT
-                stories_id,
-                publish_date,
-                media_id,
-                url
+            SELECT stories_id,
+                   publish_date,
+                   media_id,
+                   url
             FROM stories
             WHERE stories_id = ?
-
 EOF
             $story
         )->hash;
@@ -65,7 +62,6 @@ sub _insert_story_sentence_words
         eval {
             $db->dbh->do(
                 <<"EOF"
-
                 COPY story_sentence_words (
                     stories_id,
                     stem_count,
@@ -76,7 +72,6 @@ sub _insert_story_sentence_words
                     media_id
                 )
                 FROM STDIN
-
 EOF
             );
             while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
@@ -137,7 +132,6 @@ sub _insert_story_sentence
 
     $db->query(
         <<"EOF",
-
         INSERT INTO story_sentences (
             stories_id,
             sentence_number,
@@ -146,7 +140,6 @@ sub _insert_story_sentence
             publish_date,
             media_id
         ) VALUES (?,?,?,?,?,?)
-
 EOF
         $story->{ stories_id },
         $sentence_num, $sentence, $sentence_lang,
@@ -185,24 +178,13 @@ sub count_duplicate_sentences
 
     my $dup_sentence = $db->query(
         <<"EOF",
-
-        SELECT
-            story_sentence_counts_id,
-            sentence_md5,
-            media_id,
-            publish_week,
-            sentence_count,
-            first_stories_id,
-            first_sentence_number
+        SELECT *
         FROM story_sentence_counts
-        WHERE
-            sentence_md5 = MD5( ? )
-            AND media_id = ?
-            AND publish_week = DATE_TRUNC( 'week', ?::date )
-        ORDER BY
-            story_sentence_counts_id
+        WHERE sentence_md5 = MD5( ? )
+              AND media_id = ?
+              AND publish_week = DATE_TRUNC( 'week', ?::date )
+        ORDER BY story_sentence_counts_id
         LIMIT 1
-
 EOF
         $sentence,
         $story->{ media_id },
@@ -213,11 +195,9 @@ EOF
     {
         $db->query(
             <<"EOF",
-
             UPDATE story_sentence_counts
             SET sentence_count = sentence_count + 1
             WHERE story_sentence_counts_id = ?
-
 EOF
             $dup_sentence->{ story_sentence_counts_id }
         );
@@ -227,7 +207,6 @@ EOF
     {
         $db->query(
             <<"EOF",
-
             INSERT INTO story_sentence_counts (
                 sentence_md5,
                 media_id,
@@ -235,15 +214,7 @@ EOF
                 first_stories_id,
                 first_sentence_number,
                 sentence_count
-            ) VALUES (
-                MD5( ? ),
-                ?,
-                DATE_TRUNC( 'week', ?::date ),
-                ?,
-                ?,
-                1
-            )
-
+            ) VALUES (MD5( ? ), ?, DATE_TRUNC( 'week', ?::date ), ?, ?, 1)
 EOF
             $sentence,
             $story->{ media_id },
@@ -448,12 +419,9 @@ sub purge_daily_words_data_for_unretained_dates
 
     $db->query(
         <<"EOF",
-
-        SELECT
-            purge_daily_words_for_media_set( media_sets_id, ?::date, ?::date)
+        SELECT purge_daily_words_for_media_set( media_sets_id, ?::date, ?::date)
         FROM media_sets
         ORDER BY media_sets_id
-
 EOF
         $default_story_words_start_date,
         $default_story_words_end_date
@@ -615,15 +583,12 @@ sub fill_story_sentence_words
     while (
         my $stories = $db->query_with_large_work_mem(
             <<"EOF"
-
-            SELECT
-                stories_id,
-                publish_date,
-                media_id
+            SELECT stories_id,
+                   publish_date,
+                   media_id
             FROM ssw_queue
             ORDER BY stories_id
             LIMIT $block_size
-
 EOF
         )->hashes
       )
@@ -699,42 +664,33 @@ sub _update_total_weekly_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM total_weekly_words
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO total_weekly_words (
             media_sets_id,
             dashboard_topics_id,
             publish_week,
             total_count
         )
-            SELECT
-                media_sets_id,
-                dashboard_topics_id,
-                publish_week,
-                SUM(stem_count) AS total_count
+            SELECT media_sets_id,
+                   dashboard_topics_id,
+                   publish_week,
+                   SUM(stem_count) AS total_count
             FROM weekly_words
-            WHERE
-                publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                $update_clauses
-            GROUP BY
-                media_sets_id,
-                dashboard_topics_id,
-                publish_week
-            ORDER BY
-                publish_week ASC,
-                media_sets_id,
-                dashboard_topics_id
-
+            WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                  $update_clauses
+            GROUP BY media_sets_id,
+                     dashboard_topics_id,
+                     publish_week
+            ORDER BY publish_week ASC,
+                     media_sets_id,
+                     dashboard_topics_id
 EOF
     );
 }
@@ -753,42 +709,33 @@ sub _sentence_study_update_total_weekly_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM $total_weekly_words_table
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO $total_weekly_words_table (
             media_sets_id,
             dashboard_topics_id,
             publish_week,
             total_count
         )
-            SELECT
-                media_sets_id,
-                dashboard_topics_id,
-                publish_week,
-                SUM(stem_count) AS total_count
+            SELECT media_sets_id,
+                   dashboard_topics_id,
+                   publish_week,
+                   SUM(stem_count) AS total_count
             FROM $weekly_words_table
-            WHERE
-                publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                $update_clauses
-            GROUP BY
-                media_sets_id,
-                dashboard_topics_id,
-                publish_week
-            ORDER BY
-                publish_week ASC,
-                media_sets_id,
-                dashboard_topics_id
-
+            WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                  $update_clauses
+            GROUP BY media_sets_id,
+                     dashboard_topics_id,
+                     publish_week
+            ORDER BY publish_week ASC,
+                     media_sets_id,
+                     dashboard_topics_id
 EOF
     );
 }
@@ -809,22 +756,16 @@ sub _sentence_study_update_top_500_weekly_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM $top_500_weekly_words_table
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
     $db->query(
         <<"EOF"
-
         DELETE FROM $total_top_500_weekly_words_table
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
 
@@ -834,7 +775,6 @@ EOF
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO $top_500_weekly_words_table (
             media_sets_id,
             term,
@@ -844,65 +784,53 @@ EOF
             publish_week,
             dashboard_topics_id
         )
-            SELECT
-                media_sets_id,
-                REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
-                stem,
-                stem_count,
-                language,
-                publish_week,
-                dashboard_topics_id
-            FROM (
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    stem_count,
-                    language,
-                    publish_week,
-                    dashboard_topics_id,
-                    RANK() OVER (
-                        PARTITION BY media_sets_id, dashboard_topics_id
-                        ORDER BY stem_count desc
-                    ) AS stem_rank
-                FROM $weekly_words_table
-                WHERE
-                    publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                    $update_clauses
-                    AND NOT is_stop_stem( 'long', stem, language )
-                    AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
+            SELECT media_sets_id,
+                   REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
+                   stem,
+                   stem_count,
+                   language,
+                   publish_week,
+                   dashboard_topics_id
+            FROM (SELECT media_sets_id,
+                         term,
+                         stem,
+                         stem_count,
+                         language,
+                         publish_week,
+                         dashboard_topics_id,
+                         RANK() OVER (
+                             PARTITION BY media_sets_id, dashboard_topics_id
+                             ORDER BY stem_count desc
+                         ) AS stem_rank
+                  FROM $weekly_words_table
+                  WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                        $update_clauses
+                        AND NOT is_stop_stem( 'long', stem, language )
+                        AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
             ) AS q
-            WHERE
-                stem_rank < 500
-            ORDER BY
-                stem_rank ASC
-
+            WHERE stem_rank < 500
+            ORDER BY stem_rank ASC
 EOF
     );
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO $total_top_500_weekly_words_table (
             media_sets_id,
             publish_week,
             total_count,
             dashboard_topics_id
         )
-            SELECT
-                media_sets_id,
-                publish_week,
-                SUM( stem_count ),
-                dashboard_topics_id
+            SELECT media_sets_id,
+                   publish_week,
+                   SUM( stem_count ),
+                   dashboard_topics_id
             FROM $top_500_weekly_words_table
-            WHERE
-                publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                $update_clauses
-            GROUP BY
-                media_sets_id,
-                publish_week,
-                dashboard_topics_id
-
+            WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                  $update_clauses
+            GROUP BY media_sets_id,
+                     publish_week,
+                     dashboard_topics_id
 EOF
     );
 }
@@ -918,22 +846,16 @@ sub _update_top_500_weekly_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM top_500_weekly_words
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
     $db->query(
         <<"EOF"
-
         DELETE FROM total_top_500_weekly_words
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
 
@@ -943,7 +865,6 @@ EOF
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO top_500_weekly_words (
             media_sets_id,
             term,
@@ -953,65 +874,53 @@ EOF
             publish_week,
             dashboard_topics_id
         )
-            SELECT
-                media_sets_id,
-                REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
-                stem,
-                stem_count,
-                language,
-                publish_week,
-                dashboard_topics_id
-            FROM (
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    stem_count,
-                    language,
-                    publish_week,
-                    dashboard_topics_id,
-                    RANK() OVER (
-                        PARTITION BY media_sets_id, dashboard_topics_id
-                        ORDER BY stem_count DESC
-                    ) AS stem_rank
-                FROM weekly_words
-                WHERE
-                    publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                    $update_clauses
-                    AND NOT is_stop_stem( 'long', stem, language )
-                    AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
+            SELECT media_sets_id,
+                   REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
+                   stem,
+                   stem_count,
+                   language,
+                   publish_week,
+                   dashboard_topics_id
+            FROM (SELECT media_sets_id,
+                         term,
+                         stem,
+                         stem_count,
+                         language,
+                         publish_week,
+                         dashboard_topics_id,
+                         RANK() OVER (
+                             PARTITION BY media_sets_id, dashboard_topics_id
+                             ORDER BY stem_count DESC
+                         ) AS stem_rank
+                  FROM weekly_words
+                  WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                        $update_clauses
+                        AND NOT is_stop_stem( 'long', stem, language )
+                        AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
             ) AS q
-            WHERE
-                stem_rank < 500
-            ORDER BY
-                stem_rank ASC
-
+            WHERE stem_rank < 500
+            ORDER BY stem_rank ASC
 EOF
     );
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO total_top_500_weekly_words (
             media_sets_id,
             publish_week,
             total_count,
             dashboard_topics_id
         )
-            SELECT
-                media_sets_id,
-                publish_week,
-                SUM( stem_count ),
-                dashboard_topics_id
+            SELECT media_sets_id,
+                   publish_week,
+                   SUM( stem_count ),
+                   dashboard_topics_id
             FROM top_500_weekly_words
-            WHERE
-                publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                $update_clauses
-            GROUP BY
-                media_sets_id,
-                publish_week,
-                dashboard_topics_id
-
+            WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                  $update_clauses
+            GROUP BY media_sets_id,
+                     publish_week,
+                     dashboard_topics_id
 EOF
     );
 }
@@ -1029,22 +938,16 @@ sub _update_top_500_weekly_author_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM top_500_weekly_author_words
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
     $db->query(
         <<"EOF"
-
         DELETE FROM total_top_500_weekly_author_words
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+              $update_clauses
 EOF
     );
 
@@ -1052,7 +955,6 @@ EOF
     # [^[:digit:][:punct:][:cntrl:][:space:]] is the closest equivalent to [:alpha:] to include international characters
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO top_500_weekly_author_words (
             media_sets_id,
             term,
@@ -1062,65 +964,53 @@ EOF
             publish_week,
             authors_id
         )
-            SELECT
-                media_sets_id,
-                REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
-                stem,
-                stem_count,
-                language,
-                publish_week,
-                authors_id
-            FROM (
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    stem_count,
-                    language,
-                    publish_week,
-                    authors_id,
-                    RANK() OVER (
-                        PARTITION BY media_sets_id, authors_id
-                        ORDER BY stem_count DESC
-                    ) AS stem_rank
-                FROM weekly_author_words
-                WHERE
-                    publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                    $update_clauses
-                    AND NOT is_stop_stem( 'long', stem, language )
-                    AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
+            SELECT media_sets_id,
+                   REGEXP_REPLACE( term, E'''s?\\\\Z', '' ),
+                   stem,
+                   stem_count,
+                   language,
+                   publish_week,
+                   authors_id
+            FROM (SELECT media_sets_id,
+                         term,
+                         stem,
+                         stem_count,
+                         language,
+                         publish_week,
+                         authors_id,
+                         RANK() OVER (
+                             PARTITION BY media_sets_id, authors_id
+                             ORDER BY stem_count DESC
+                         ) AS stem_rank
+                  FROM weekly_author_words
+                  WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                        $update_clauses
+                        AND NOT is_stop_stem( 'long', stem, language )
+                        AND stem ~ '[^[:digit:][:punct:][:cntrl:][:space:]]'
             ) AS q 
-            WHERE
-                stem_rank < 500
-            ORDER BY
-                stem_rank ASC
-
+            WHERE stem_rank < 500
+            ORDER BY stem_rank ASC
 EOF
     );
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO total_top_500_weekly_author_words (
             media_sets_id,
             publish_week,
             total_count,
             authors_id
         )
-            SELECT
-                media_sets_id,
-                publish_week,
-                SUM( stem_count ),
-                authors_id
+            SELECT media_sets_id,
+                   publish_week,
+                   SUM( stem_count ),
+                   authors_id
             FROM top_500_weekly_author_words
-            WHERE
-                publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
-                $update_clauses
-            GROUP BY
-                media_sets_id,
-                publish_week,
-                authors_id
-
+            WHERE publish_week = DATE_TRUNC( 'week', '$sql_date'::date )
+                  $update_clauses
+            GROUP BY media_sets_id,
+                     publish_week,
+                     authors_id
 EOF
     );
 }
@@ -1135,23 +1025,29 @@ EOF
 #     my $media_set_clause       = _get_media_set_clause( $media_sets_id );
 #     my $update_clauses         = _get_update_clauses( $dashboard_topics_id, $media_sets_id );
 
-#     $db->query( "delete from daily_story_count where publish_day = '${ sql_date }'::date $update_clauses" );
+#     $db->query( "DELETE FROM daily_story_count WHERE publish_day = '${ sql_date }'::date $update_clauses" );
 
-#     #$db->query( "delete from daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
+#     #$db->query( "DELETE FROM daily_words WHERE publish_day = '${ sql_date }'::date $update_clauses" );
 #     #$db->query(
-#     #    "delete from total_daily_words where publish_day = '${ sql_date }'::date $update_clauses" );
+#     #    "DELETE FROM total_daily_words WHERE publish_day = '${ sql_date }'::date $update_clauses" );
 
 #     if ( !$dashboard_topics_id )
 #     {
 
-#         my $sql =
-#           "insert into daily_story_count (media_sets_id, dashboard_topics_id, publish_day, story_count) " .
-#           "                     select media_sets_id, null as dashboard_topics_id,  " .
-#           "                      min(publish_day) as publish_day, count(*) as story_count" .
-#           "                      from story_sentence_words ssw, media_sets_media_map msmm  " .
-#           "                      where ssw.publish_day = '${sql_date}'::date and " .
-#           "                      ssw.media_id = msmm.media_id and  $media_set_clause " .
-#           "                      group by msmm.media_sets_id, ssw.publish_day ";
+#         my $sql = <<"EOF";
+# INSERT INTO daily_story_count (media_sets_id, dashboard_topics_id, publish_day, story_count)
+#     SELECT media_sets_id,
+#            NULL AS dashboard_topics_id,
+#            MIN(publish_day) AS publish_day,
+#            COUNT(*) AS story_count
+#     FROM story_sentence_words AS ssw,
+#          media_sets_media_map AS msmm
+#     WHERE ssw.publish_day = '${sql_date}'::date
+#           AND ssw.media_id = msmm.media_id
+#           AND $media_set_clause
+#     GROUP BY msmm.media_sets_id,
+#              ssw.publish_day
+# EOF
 
 #         $db->query( $sql );
 
@@ -1172,22 +1068,16 @@ sub _update_daily_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM daily_words
-        WHERE
-            publish_day = '${ sql_date }'::date
-            $update_clauses
-
+        WHERE publish_day = '${ sql_date }'::date
+              $update_clauses
 EOF
     );
     $db->query(
         <<"EOF"
-
         DELETE FROM total_daily_words
-        WHERE
-            publish_day = '${ sql_date }'::date
-            $update_clauses
-
+        WHERE publish_day = '${ sql_date }'::date
+              $update_clauses
 EOF
     );
 
@@ -1195,7 +1085,6 @@ EOF
     {
         $db->query_with_large_work_mem(
             <<"EOF"
-
             INSERT INTO daily_words (
                 media_sets_id,
                 term,
@@ -1204,75 +1093,52 @@ EOF
                 publish_day,
                 dashboard_topics_id
             )
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    sum_stem_counts,
-                    publish_day,
-                    NULL AS dashboard_topics_id
-                FROM (
-                    SELECT
-                        media_sets_id,
-                        term,
-                        stem,
-                        stem_count_sum,
-                        publish_day,
-                        this_is_null,
-                        RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
-                        SUM(stem_count_sum) OVER w AS sum_stem_counts
-                    FROM (
-                        SELECT
-                            media_sets_id,
-                            term,
-                            stem,
-                            SUM(stem_count) AS stem_count_sum,
-                            MIN(publish_day) AS publish_day,
-                            NULL AS this_is_null
-                        FROM
-                            story_sentence_words AS ssw,
-                            media_sets_media_map AS msmm
-                        WHERE
-                            ssw.publish_day = '${sql_date}'::date
-                            AND ssw.media_id = msmm.media_id
-                            AND $media_set_clause
-                        GROUP BY
-                            msmm.media_sets_id,
-                            ssw.stem,
-                            ssw.term
-                    ) AS foo
-                        WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
+                SELECT media_sets_id,
+                       term,
+                       stem,
+                       sum_stem_counts,
+                       publish_day,
+                       NULL AS dashboard_topics_id
+                FROM (SELECT media_sets_id,
+                             term,
+                             stem,
+                             stem_count_sum,
+                             publish_day,
+                             NULL,
+                             RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
+                             SUM(stem_count_sum) OVER w AS sum_stem_counts
+                      FROM (SELECT media_sets_id,
+                                   term,
+                                   stem,
+                                   SUM(stem_count) AS stem_count_sum,
+                                   MIN(publish_day) AS publish_day,
+                                   NULL
+                            FROM story_sentence_words AS ssw,
+                                 media_sets_media_map AS msmm
+                            WHERE ssw.publish_day = '${sql_date}'::date
+                                  AND ssw.media_id = msmm.media_id
+                                  AND $media_set_clause
+                            GROUP BY msmm.media_sets_id,
+                                     ssw.stem,
+                                     ssw.term
+                      ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
                 ) AS q
-                WHERE
-                    term_rank = 1
-
+                WHERE term_rank = 1
 EOF
         );
     }
 
     my $dashboard_topics = $db->query(
         <<"EOF"
-
-        SELECT
-            dashboard_topics_id,
-            name,
-            query,
-            dashboards_id,
-            start_date,
-            end_date,
-            vectors_added
+        SELECT *
         FROM dashboard_topics
-        WHERE
-            1=1
-            AND $dashboard_topic_clause
-
+        WHERE 1=1 AND $dashboard_topic_clause
 EOF
     )->hashes;
 
     for my $dashboard_topic ( @{ $dashboard_topics } )
     {
         my $query_2 = <<"EOF";
-
             INSERT INTO daily_words (
                 media_sets_id,
                 term,
@@ -1281,64 +1147,48 @@ EOF
                 publish_day,
                 dashboard_topics_id
             )
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    sum_stem_counts,
-                    publish_day,
-                    dashboard_topics_id
-                FROM (
-                    SELECT
-                        media_sets_id,
-                        term,
-                        stem,
-                        stem_count_sum,
-                        publish_day,
-                        dashboard_topics_id,
-                        RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
-                        SUM(stem_count_sum) OVER w AS sum_stem_counts
-                    FROM (
-                        SELECT
-                            media_sets_id,
-                            ssw.term AS term,
-                            ssw.stem AS stem,
-                            SUM(ssw.stem_count) AS stem_count_sum,
-                            MIN(ssw.publish_day) AS publish_day,
-                            ?::integer AS dashboard_topics_id
-                        FROM
-                            story_sentence_words AS ssw,
-                            (
-                                SELECT
-                                    media_sets_id,
-                                    stories_id,
-                                    sentence_number
-                                FROM
-                                    story_sentence_words AS sswq,
-                                    media_sets_media_map AS msmm
-                                WHERE
-                                    sswq.media_id = msmm.media_id
-                                    AND sswq.stem = ?
-                                    AND sswq.publish_day = ?
-                                    AND $media_set_clause
-                                GROUP BY
-                                    msmm.media_sets_id,
-                                    stories_id,
-                                    sentence_number
-                            ) AS ssw_sentences_for_query
-                        WHERE
-                            ssw.stories_id=ssw_sentences_for_query.stories_id
-                            AND ssw.sentence_number=ssw_sentences_for_query.sentence_number
-                        GROUP BY
-                            media_sets_id,
-                            ssw.stem,
-                            term
-                    ) AS foo
-                        WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
-                ) AS q
-                WHERE
-                    term_rank = 1
-
+                SELECT media_sets_id,
+                       term,
+                       stem,
+                       sum_stem_counts,
+                       publish_day,
+                       dashboard_topics_id
+                FROM (SELECT media_sets_id,
+                             term,
+                             stem,
+                             stem_count_sum,
+                             publish_day,
+                             dashboard_topics_id,
+                             RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
+                             SUM(stem_count_sum) OVER w AS sum_stem_counts
+                      FROM (SELECT media_sets_id,
+                                   ssw.term AS term,
+                                   ssw.stem AS stem,
+                                   SUM(ssw.stem_count) AS stem_count_sum,
+                                   MIN(ssw.publish_day) AS publish_day,
+                                   ?::integer AS dashboard_topics_id
+                            FROM story_sentence_words AS ssw,
+                                 (SELECT media_sets_id,
+                                         stories_id,
+                                         sentence_number
+                                  FROM story_sentence_words AS sswq,
+                                       media_sets_media_map AS msmm
+                                  WHERE sswq.media_id = msmm.media_id
+                                        AND sswq.stem = ?
+                                        AND sswq.publish_day = ?
+                                        AND $media_set_clause
+                                  GROUP BY msmm.media_sets_id,
+                                           stories_id,
+                                           sentence_number
+                                 ) AS ssw_sentences_for_query
+                            WHERE ssw.stories_id=ssw_sentences_for_query.stories_id
+                                  AND ssw.sentence_number=ssw_sentences_for_query.sentence_number
+                            GROUP BY media_sets_id,
+                                     ssw.stem,
+                                     term
+                           ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
+                     ) AS q
+                WHERE term_rank = 1
 EOF
 
         # doing these one by one is the only way I could get the postgres planner to create
@@ -1352,27 +1202,22 @@ EOF
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO total_daily_words (
             media_sets_id,
             publish_day,
             total_count,
             dashboard_topics_id
         )
-            SELECT
-                media_sets_id,
-                publish_day,
-                SUM(stem_count),
-                dashboard_topics_id
+            SELECT media_sets_id,
+                   publish_day,
+                   SUM(stem_count),
+                   dashboard_topics_id
             FROM daily_words
-            WHERE
-                publish_day = '${sql_date}'::date
-                $update_clauses
-            GROUP BY
-                media_sets_id,
-                publish_day,
-                dashboard_topics_id
-
+            WHERE publish_day = '${sql_date}'::date
+                  $update_clauses
+            GROUP BY media_sets_id,
+                     publish_day,
+                     dashboard_topics_id
 EOF
     );
 
@@ -1396,23 +1241,17 @@ sub _update_daily_author_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM daily_author_words
-        WHERE
-            publish_day = DATE_TRUNC( 'day', '${ sql_date }'::date )
-            $update_clauses
-
+        WHERE publish_day = DATE_TRUNC( 'day', '${ sql_date }'::date )
+              $update_clauses
 EOF
     );
 
     $db->query(
         <<"EOF"
-
         DELETE FROM total_daily_author_words
-        WHERE
-            publish_day = DATE_TRUNC( 'day', '${ sql_date }'::date )
-            $update_clauses
-
+        WHERE publish_day = DATE_TRUNC( 'day', '${ sql_date }'::date )
+              $update_clauses
 EOF
     );
 
@@ -1426,53 +1265,42 @@ EOF
             stem_count,
             publish_day
         )
-            SELECT
-                authors_id,
-                media_sets_id,
-                term,
-                stem,
-                sum_stem_counts,
-                publish_day
-            FROM (
-                SELECT
-                    authors_id,
-                    media_sets_id,
-                    term,
-                    stem,
-                    stem_count_sum,
-                    publish_day,
-                    this_is_null,
-                    RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
-                    SUM(stem_count_sum) OVER w AS sum_stem_counts
-                FROM (
-                    SELECT
-                        authors_id,
-                        media_sets_id,
-                        term,
-                        stem,
-                        SUM(stem_count) AS stem_count_sum,
-                        MIN(publish_day) AS publish_day,
-                        NULL AS this_is_null
-                    FROM
-                        story_sentence_words AS ssw,
-                        media_sets_media_map AS msmm,
-                        authors_stories_map
-                    WHERE
-                        ssw.publish_day = '${sql_date}'::date
-                        AND ssw.stories_id = authors_stories_map.stories_id
-                        AND ssw.media_id = msmm.media_id
-                    GROUP BY
-                        msmm.media_sets_id,
-                        ssw.stem,
-                        ssw.term,
-                        authors_id
-                ) AS foo
-                    WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
-            ) AS query
-            WHERE
-                term_rank = 1
-                AND sum_stem_counts > 1
-
+            SELECT authors_id,
+                   media_sets_id,
+                   term,
+                   stem,
+                   sum_stem_counts,
+                   publish_day
+            FROM (SELECT authors_id,
+                         media_sets_id,
+                         term,
+                         stem,
+                         stem_count_sum,
+                         publish_day,
+                         NULL,
+                         RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
+                         SUM(stem_count_sum) OVER w AS sum_stem_counts
+                  FROM (SELECT authors_id,
+                               media_sets_id,
+                               term,
+                               stem,
+                               SUM(stem_count) AS stem_count_sum,
+                               MIN(publish_day) AS publish_day,
+                               NULL
+                        FROM story_sentence_words AS ssw,
+                             media_sets_media_map AS msmm,
+                             authors_stories_map
+                        WHERE ssw.publish_day = '${sql_date}'::date
+                              AND ssw.stories_id = authors_stories_map.stories_id
+                              AND ssw.media_id = msmm.media_id
+                        GROUP BY msmm.media_sets_id,
+                                 ssw.stem,
+                                 ssw.term,
+                                 authors_id
+                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
+                 ) AS query
+            WHERE term_rank = 1
+                  AND sum_stem_counts > 1
 EOF
 
     $db->query_with_large_work_mem( $query );
@@ -1481,27 +1309,22 @@ EOF
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO total_daily_author_words (
             authors_id,
             media_sets_id,
             publish_day,
             total_count
         )
-            SELECT
-                authors_id,
-                media_sets_id,
-                publish_day,
-                SUM(stem_count) AS total_count
+            SELECT authors_id,
+                   media_sets_id,
+                   publish_day,
+                   SUM(stem_count) AS total_count
             FROM daily_author_words
-            WHERE
-                publish_day = '${sql_date}'::date
-                $update_clauses
-            GROUP BY
-                authors_id,
-                media_sets_id,
-                publish_day
-
+            WHERE publish_day = '${sql_date}'::date
+                  $update_clauses
+            GROUP BY authors_id,
+                     media_sets_id,
+                     publish_day
 EOF
     );
 
@@ -1519,12 +1342,9 @@ sub _update_daily_country_counts
 
     $db->query(
         <<"EOF"
-
         DELETE FROM daily_country_counts
-        WHERE
-            publish_day = '${ sql_date }'::date
-            AND $media_set_clause
-
+        WHERE publish_day = '${ sql_date }'::date
+              AND $media_set_clause
 EOF
     );
 
@@ -1537,25 +1357,21 @@ EOF
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         INSERT INTO daily_country_counts (
             media_sets_id,
             publish_day,
             country,
             country_count
         )
-            SELECT
-                media_sets_id,
-                publish_day,
-                stem,
-                stem_count
+            SELECT media_sets_id,
+                   publish_day,
+                   stem,
+                   stem_count
             FROM daily_words
-            WHERE
-                publish_day = '$sql_date'::date
-                AND dashboard_topics_id IS NULL
-                AND $media_set_clause
-                AND stem IN ( $single_terms_list )
-
+            WHERE publish_day = '$sql_date'::date
+                  AND dashboard_topics_id IS NULL
+                  AND $media_set_clause
+                  AND stem IN ( $single_terms_list )
 EOF
     );
 
@@ -1568,39 +1384,31 @@ EOF
 
         $db->query_with_large_work_mem(
             <<"EOF",
-
             INSERT INTO daily_country_counts (
                 media_sets_id,
                 publish_day,
                 country,
                 country_count
             )
-                SELECT
-                    msmm.media_sets_id,
-                    ssw.publish_day,
-                    ?,
-                    COUNT(*)
-                FROM
-                    story_sentence_words AS ssw,
-                    media_sets_media_map AS msmm
-                WHERE
-                    ssw.media_id = msmm.media_id
-                    AND ssw.publish_day = '$sql_date'::date
-                    AND stem = $term_a
-                    AND EXISTS (
-                        SELECT 1
-                        FROM story_sentence_words AS sswb
-                        WHERE
-                            ssw.publish_day = sswb.publish_day
-                            AND ssw.media_id = sswb.media_id
-                            AND sswb.stem = $term_b
-                            AND ssw.stories_id = sswb.stories_id
-                            AND ssw.sentence_number = sswb.sentence_number
-                    )
-                GROUP BY
-                    msmm.media_sets_id,
-                    ssw.publish_day
-
+                SELECT msmm.media_sets_id,
+                       ssw.publish_day,
+                       ?,
+                       COUNT(*)
+                FROM story_sentence_words AS ssw,
+                     media_sets_media_map AS msmm
+                WHERE ssw.media_id = msmm.media_id
+                      AND ssw.publish_day = '$sql_date'::date
+                      AND stem = $term_a
+                      AND EXISTS (SELECT 1
+                                  FROM story_sentence_words AS sswb
+                                  WHERE ssw.publish_day = sswb.publish_day
+                                        AND ssw.media_id = sswb.media_id
+                                        AND sswb.stem = $term_b
+                                        AND ssw.stories_id = sswb.stories_id
+                                        AND ssw.sentence_number = sswb.sentence_number
+                                 )
+                GROUP BY msmm.media_sets_id,
+                         ssw.publish_day
 EOF
             $country_name
         );
@@ -1643,24 +1451,17 @@ sub _update_weekly_words
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         DELETE FROM weekly_words
-        WHERE
-            publish_week = '${ sql_date }'::date
-            AND media_sets_id IN (
-                SELECT
-                    DISTINCT(media_sets_id)
-                FROM total_daily_words
-                WHERE
-                    week_start_date(publish_day) = '${ sql_date }'::date
-            )
-            $update_clauses
-
+        WHERE publish_week = '${ sql_date }'::date
+              AND media_sets_id IN (SELECT DISTINCT(media_sets_id)
+                                    FROM total_daily_words
+                                    WHERE week_start_date(publish_day) = '${ sql_date }'::date
+                                   )
+              $update_clauses
 EOF
     );
 
     my $query = <<"EOF";
-
         INSERT INTO weekly_words (
             media_sets_id,
             term,
@@ -1669,46 +1470,36 @@ EOF
             publish_week,
             dashboard_topics_id
         )
-            SELECT
-                media_sets_id,
-                term,
-                stem,
-                sum_stem_counts,
-                publish_week,
-                dashboard_topics_id
-            FROM (
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    stem_count_sum,
-                    publish_week,
-                    dashboard_topics_id,
-                    RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
-                    SUM(stem_count_sum) OVER w AS sum_stem_counts
-                FROM (
-                    SELECT
-                        media_sets_id,
-                        term,
-                        stem,
-                        SUM(stem_count) AS stem_count_sum,
-                        '${ sql_date }'::date AS publish_week,
-                        dashboard_topics_id
-                    FROM daily_words
-                    WHERE
-                        week_start_date(publish_day) = '${ sql_date }'::date
-                        $update_clauses
-                    GROUP BY
-                        media_sets_id,
-                        stem,
-                        term,
-                        dashboard_topics_id
-                ) AS foo
-                    WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
-            ) AS q
-            WHERE
-                term_rank = 1
-
+            SELECT media_sets_id,
+                   term,
+                   stem,
+                   sum_stem_counts,
+                   publish_week,
+                   dashboard_topics_id
+            FROM (SELECT media_sets_id,
+                         term,
+                         stem,
+                         stem_count_sum,
+                         publish_week,
+                         dashboard_topics_id,
+                         RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
+                         SUM(stem_count_sum) OVER w AS sum_stem_counts
+                  FROM (SELECT media_sets_id,
+                               term,
+                               stem,
+                               SUM(stem_count) AS stem_count_sum,
+                               '${ sql_date }'::date AS publish_week,
+                               dashboard_topics_id
+                        FROM daily_words
+                        WHERE week_start_date(publish_day) = '${ sql_date }'::date
+                              $update_clauses
+                        GROUP BY media_sets_id,
+                                 stem,
+                                 term,
+                                 dashboard_topics_id
+                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
+                 ) AS q
+            WHERE term_rank = 1
 EOF
 
     #say STDERR "query:\n$query";
@@ -1744,16 +1535,13 @@ sub _sentence_study_update_weekly_words
 
     $db->query(
         <<"EOF"
-
         DELETE FROM $weekly_words_table
-        WHERE
-            publish_week = '${ sql_date }'::date
-            $update_clauses
+        WHERE publish_week = '${ sql_date }'::date
+              $update_clauses
 EOF
     );
 
     my $query = <<"EOF";
-
         INSERT INTO $weekly_words_table (
             media_sets_id,
             term,
@@ -1762,46 +1550,36 @@ EOF
             publish_week,
             dashboard_topics_id
         )
-            SELECT
-                media_sets_id,
-                term,
-                stem,
-                sum_stem_counts,
-                publish_week,
-                dashboard_topics_id
-            FROM (
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    stem_count_sum,
-                    publish_week,
-                    dashboard_topics_id,
-                    RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
-                    SUM(stem_count_sum) OVER w AS sum_stem_counts
-                FROM (
-                    SELECT
-                        media_sets_id,
-                        term,
-                        stem,
-                        SUM(stem_count) AS stem_count_sum,
-                        '${ sql_date }'::date AS publish_week,
-                        dashboard_topics_id
-                    FROM $daily_words_table
-                    WHERE
-                        week_start_date(publish_day) = '${ sql_date }'::date
-                        $update_clauses
-                    GROUP BY
-                        media_sets_id,
-                        stem,
-                        term,
-                        dashboard_topics_id
-                ) AS foo
-                    WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
-            ) AS q
-            WHERE
-                term_rank = 1
-
+            SELECT media_sets_id,
+                   term,
+                   stem,
+                   sum_stem_counts,
+                   publish_week,
+                   dashboard_topics_id
+            FROM (SELECT media_sets_id,
+                         term,
+                         stem,
+                         stem_count_sum,
+                         publish_week,
+                         dashboard_topics_id,
+                         RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
+                         SUM(stem_count_sum) OVER w AS sum_stem_counts
+                  FROM (SELECT media_sets_id,
+                             term,
+                             stem,
+                             SUM(stem_count) AS stem_count_sum,
+                             '${ sql_date }'::date AS publish_week,
+                             dashboard_topics_id
+                      FROM $daily_words_table
+                      WHERE week_start_date(publish_day) = '${ sql_date }'::date
+                            $update_clauses
+                      GROUP BY media_sets_id,
+                               stem,
+                               term,
+                               dashboard_topics_id
+                     ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
+                 ) AS q
+            WHERE term_rank = 1
 EOF
 
     say STDERR "insert_query: '$query'";
@@ -1826,17 +1604,13 @@ sub _update_weekly_author_words
 
     $db->query_with_large_work_mem(
         <<"EOF"
-
         DELETE FROM weekly_author_words
-        WHERE
-            publish_week = DATE_TRUNC( 'week', '${ sql_date }'::date )
-            $update_clauses
-
+        WHERE publish_week = DATE_TRUNC( 'week', '${ sql_date }'::date )
+              $update_clauses
 EOF
     );
 
     my $query = <<"EOF";
-
         INSERT INTO weekly_author_words (
             authors_id,
             media_sets_id,
@@ -1845,48 +1619,36 @@ EOF
             stem_count,
             publish_week
         )
-            SELECT
-                authors_id,
-                media_sets_id,
-                term,
-                stem,
-                sum_stem_counts,
-                publish_week
-            FROM (
-                SELECT
-                    media_sets_id,
-                    term,
-                    stem,
-                    stem_count_sum,
-                    publish_week,
-                    authors_id,
-                    RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
-                    SUM(stem_count_sum) OVER w AS sum_stem_counts
-                FROM (
-                    SELECT
-                        media_sets_id,
-                        term,
-                        stem,
-                        SUM(stem_count) AS stem_count_sum,
-                        DATE_TRUNC('week', MIN(publish_day)) AS publish_week,
-                        authors_id
-                    FROM daily_author_words
-                    WHERE
-                        publish_day BETWEEN
-                            DATE_TRUNC('week', '${sql_date}'::date) AND
-                            DATE_TRUNC('week', '${sql_date}'::date ) + INTERVAL '6 days'
-                        $update_clauses
-                    GROUP BY
-                        media_sets_id,
-                        stem,
-                        term,
-                        authors_id
-                ) AS foo
-                    WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, authors_id )
-            ) AS q
-            WHERE
-                term_rank = 1
-
+            SELECT authors_id,
+                   media_sets_id,
+                   term,
+                   stem,
+                   sum_stem_counts,
+                   publish_week
+            FROM (SELECT media_sets_id,
+                         term,
+                         stem,
+                         stem_count_sum,
+                         publish_week,
+                         authors_id,
+                         RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
+                         SUM(stem_count_sum) OVER w AS sum_stem_counts
+                  FROM (SELECT media_sets_id,
+                               term,
+                               stem,
+                               SUM(stem_count) AS stem_count_sum,
+                               DATE_TRUNC('week', MIN(publish_day)) AS publish_week,
+                               authors_id
+                        FROM daily_author_words
+                        WHERE publish_day BETWEEN DATE_TRUNC('week', '${sql_date}'::date) AND DATE_TRUNC('week', '${sql_date}'::date ) + INTERVAL '6 days'
+                              $update_clauses
+                        GROUP BY media_sets_id,
+                                 stem,
+                                 term,
+                                 authors_id
+                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, authors_id )
+                 ) AS q
+            WHERE term_rank = 1
 EOF
 
     say STDERR "running weekly_author_words query:$query";
@@ -1921,14 +1683,11 @@ sub _aggregate_data_exists_for_date
 
     return $db->query(
         <<"EOF"
-
         SELECT 1 AS c
         FROM daily_words
-        WHERE
-            publish_day = DATE_TRUNC( 'day', DATE '$sql_date' )
-            $update_clauses
+        WHERE publish_day = DATE_TRUNC( 'day', DATE '$sql_date' )
+              $update_clauses
         LIMIT 1
-
 EOF
     )->hash;
 }
@@ -1954,13 +1713,11 @@ sub _story_data_exists_for_date
     if ( $media_sets_id )
     {
         $media_set_clause = <<"EOF";
-
             media_id IN (
                 SELECT media_id
                 FROM media_sets_media_map
                 WHERE media_sets_id = 11752 
             )
-
 EOF
     }
     else
@@ -1968,14 +1725,11 @@ EOF
         $media_set_clause = " 1=1 ";
     }
     my $query = <<"EOF";
-
         SELECT 1
         FROM story_sentences
-        WHERE
-            DATE_TRUNC('day', publish_date)  = '$sql_date'
-            AND $media_set_clause
+        WHERE DATE_TRUNC('day', publish_date)  = '$sql_date'
+              AND $media_set_clause
         LIMIT 1
-        
 EOF
 
     # say STDERR "query: $query";

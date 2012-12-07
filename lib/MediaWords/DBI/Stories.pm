@@ -74,33 +74,23 @@ sub get_text
 
     my $download_texts = $db->query(
         <<"EOF",
-
-        SELECT
-            download_text
-        FROM
-            download_texts AS dt,
-            downloads AS d
-        WHERE
-            d.downloads_id = dt.downloads_id
-            AND d.stories_id = ?
-        ORDER BY
-            d.downloads_id ASC
-
+        SELECT download_text
+        FROM download_texts AS dt,
+             downloads AS d
+        WHERE d.downloads_id = dt.downloads_id
+              AND d.stories_id = ?
+        ORDER BY d.downloads_id ASC
 EOF
         $story->{ stories_id }
     )->flat;
 
     my $pending_download = $db->query(
         <<"EOF",
-
-        SELECT
-            downloads_id
+        SELECT downloads_id
         FROM downloads
-        WHERE
-            extracted = 'f'
-            AND stories_id = ?
-            AND type = 'content'
-
+        WHERE extracted = 'f'
+              AND stories_id = ?
+              AND type = 'content'
 EOF
         $story->{ stories_id }
     )->hash;
@@ -134,33 +124,11 @@ sub get_first_download
 
     return $db->query(
         <<"EOF",
-
-        SELECT
-            downloads_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type,
-            state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted,
-            file_status,
-            relative_file_path,
-            old_download_time,
-            old_state
+        SELECT *
         FROM downloads
-            WHERE
-                stories_id = ?
-            ORDER BY
-                sequence ASC
-            LIMIT 1
-
+        WHERE stories_id = ?
+        ORDER BY sequence ASC
+        LIMIT 1
 EOF
         $story->{ stories_id }
     )->hash();
@@ -172,13 +140,9 @@ sub is_fully_extracted
 
     my ( $bool ) = $db->query(
         <<"EOF",
-
-        SELECT
-            BOOL_AND(extracted)
+        SELECT BOOL_AND(extracted)
         FROM downloads
-        WHERE
-            stories_id = ?
-
+        WHERE stories_id = ?
 EOF
         $story->{ stories_id }
     )->flat();
@@ -225,34 +189,12 @@ sub _store_tags_content
 
     my $download = $db->query(
         <<"EOF",
-
-        SELECT
-            downloads_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type,
-            state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted,
-            file_status,
-            relative_file_path,
-            old_download_time,
-            old_state
+        SELECT *
         FROM downloads
-        WHERE
-            stories_id = ?
-            AND type = 'content'
-        ORDER BY
-            downloads_id ASC
+        WHERE stories_id = ?
+              AND type = 'content'
+        ORDER BY downloads_id ASC
         LIMIT 1
-
 EOF
         $story->{ stories_id }
     )->hash;
@@ -265,7 +207,7 @@ EOF
             parent        => $download->{ downloads_id },
             url           => $download->{ url },
             host          => $download->{ host },
-            download_time => 'now()',
+            download_time => 'NOW()',
             type          => $module,
             state         => 'pending',
             priority      => 10,
@@ -286,17 +228,12 @@ sub get_existing_tags
 
     my $ret = $db->query(
         <<"EOF",
-
-        SELECT
-            stm.tags_id
-        FROM
-            stories_tags_map AS stm,
-            tags
-        WHERE
-            stories_id = ?
-            AND stm.tags_id = tags.tags_id
-            AND tags.tag_sets_id = ?
-
+        SELECT stm.tags_id
+        FROM stories_tags_map AS stm,
+             tags
+        WHERE stories_id = ?
+              AND stm.tags_id = tags.tags_id
+              AND tags.tag_sets_id = ?
 EOF
         $story->{ stories_id },
         $tag_set->{ tag_sets_id }
@@ -322,13 +259,10 @@ sub _add_module_tags
 
     $db->query(
         <<"EOF",
-
         DELETE FROM stories_tags_map AS stm USING tags AS t
-        WHERE
-            stm.tags_id = t.tags_id
-            AND t.tag_sets_id = ?
-            AND stm.stories_id = ?
-
+        WHERE stm.tags_id = t.tags_id
+              AND t.tag_sets_id = ?
+              AND stm.stories_id = ?
 EOF
         $tag_set->{ tag_sets_id },
         $story->{ stories_id }
@@ -358,13 +292,10 @@ EOF
 
     $db->query(
         <<"EOF",
-
         DELETE FROM $subtable_name AS stm USING tags AS t
-        WHERE
-            stm.tags_id = t.tags_id
-            AND t.tag_sets_id = ?
-            AND stm.stories_id = ?
-
+        WHERE stm.tags_id = t.tags_id
+              AND t.tag_sets_id = ?
+              AND stm.stories_id = ?
 EOF
         $tag_set->{ tag_sets_id },
         $story->{ stories_id }
@@ -412,22 +343,9 @@ sub get_media_source_for_story
 
     my $medium = $db->query(
         <<"EOF",
-
-        SELECT
-            media_id,
-            url,
-            name,
-            moderated,
-            feeds_added,
-            moderation_notes,
-            full_text_rss,
-            extract_author,
-            sw_data_start_date,
-            sw_data_end_date
+        SELECT *
         FROM media
-        WHERE
-            media_id = ?
-
+        WHERE media_id = ?
 EOF
         $story->{ media_id }
     )->hash;
@@ -460,12 +378,9 @@ sub update_rss_full_text_field
         $story->{ full_text_rss } = $full_text_in_rss;
         $db->query(
             <<"EOF",
-
             UPDATE stories
             SET full_text_rss = ?
-            WHERE
-                stories_id = ?
-
+            WHERE stories_id = ?
 EOF
             $full_text_in_rss, $story->{ stories_id }
         );
@@ -488,30 +403,9 @@ sub fetch_content
 
     my $download = $db->query(
         <<"EOF",
-
-        SELECT
-            downloads_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type,
-            state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted,
-            file_status,
-            relative_file_path,
-            old_download_time,
-            old_state
+        SELECT *
         FROM downloads
-        WHERE
-            stories_id = ?
-
+        WHERE stories_id = ?
 EOF
         $story->{ stories_id }
     )->hash;
@@ -527,21 +421,16 @@ sub get_db_module_tags
 
     return $db->query(
         <<"EOF",
-
-        SELECT
-            t.tags_id AS tags_id,
-            t.tag_sets_id AS tag_sets_id,
-            t.tag AS tag
-        FROM
-            stories_tags_map AS stm,
-            tags AS t,
-            tag_sets AS ts
-        WHERE
-            stm.stories_id = ?
-            AND stm.tags_id = t.tags_id
-            AND t.tag_sets_id = ts.tag_sets_id
-            AND ts.name = ?
-
+        SELECT t.tags_id AS tags_id,
+               t.tag_sets_id AS tag_sets_id,
+               t.tag AS tag
+        FROM stories_tags_map AS stm,
+             tags AS t,
+             tag_sets AS ts
+        WHERE stm.stories_id = ?
+              AND stm.tags_id = t.tags_id
+              AND t.tag_sets_id = ts.tag_sets_id
+              AND ts.name = ?
 EOF
         $story->{ stories_id },
         $module
@@ -554,18 +443,12 @@ sub get_extracted_text
 
     my $download_texts = $db->query(
         <<"EOF",
-
-        SELECT
-            dt.download_text
-        FROM
-            downloads AS d,
-            download_texts AS dt
-        WHERE
-            dt.downloads_id = d.downloads_id
-            AND d.stories_id = ?
-        ORDER BY
-            d.downloads_id
-
+        SELECT dt.download_text
+        FROM downloads AS d,
+             download_texts AS dt
+        WHERE dt.downloads_id = d.downloads_id
+              AND d.stories_id = ?
+        ORDER BY d.downloads_id
 EOF
         $story->{ stories_id }
     )->hashes;
@@ -579,33 +462,11 @@ sub get_first_download_for_story
 
     my $download = $db->query(
         <<"EOF",
-
-        SELECT
-            downloads_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type,
-            state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted,
-            file_status,
-            relative_file_path,
-            old_download_time,
-            old_state
+        SELECT *
         FROM downloads
-        WHERE
-            stories_id = ?
-        ORDER BY
-            downloads_id ASC
+        WHERE stories_id = ?
+        ORDER BY downloads_id ASC
         LIMIT 1
-
 EOF
         $story->{ stories_id }
     )->hash;
@@ -664,21 +525,15 @@ sub add_word_vectors
 
         my $words = $story->{ words } || $db->query(
             <<"EOF",
-
-            SELECT
-                ssw.stem,
-                MIN(ssw.term) AS term,
-                SUM(stem_count) AS stem_count
+            SELECT ssw.stem,
+                   MIN(ssw.term) AS term,
+                   SUM(stem_count) AS stem_count
             FROM story_sentence_words AS ssw
-            WHERE
-                ssw.stories_id = ?
-                $sw_check
-            GROUP BY
-                ssw.stem
-            ORDER BY
-                SUM(stem_count) DESC
+            WHERE ssw.stories_id = ?
+                  $sw_check
+            GROUP BY ssw.stem
+            ORDER BY SUM(stem_count) DESC
             LIMIT ?
-
 EOF
             $story->{ stories_id },
             $num_words
@@ -772,22 +627,10 @@ sub is_new
 
     my $db_story = $dbs->query(
         <<"EOF",
-
-        SELECT
-            stories_id,
-            media_id,
-            url,
-            guid,
-            title,
-            description,
-            publish_date,
-            collect_date,
-            full_text_rss
+        SELECT *
         FROM stories
-        WHERE
-            guid = ?
-            AND media_id = ?
-
+        WHERE guid = ?
+              AND media_id = ?
 EOF
         $story->{ guid }, $story->{ media_id }
     )->hash;
@@ -827,23 +670,11 @@ EOF
 
         $db_story = $dbs->query(
             <<"EOF",
-
-            SELECT
-                stories_id,
-                media_id,
-                url,
-                guid,
-                title,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss
+            SELECT *
             FROM stories
-            WHERE
-                title = ?
-                AND media_id = ?
-                AND publish_date BETWEEN DATE '$start_date' AND DATE '$end_date' FOR UPDATE
-
+            WHERE title = ?
+                  AND media_id = ?
+                  AND publish_date BETWEEN DATE '$start_date' AND DATE '$end_date' FOR UPDATE
 EOF
             $title,
             $story->{ media_id }
