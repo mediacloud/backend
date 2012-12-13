@@ -70,4 +70,11 @@ sub get_locale_codes_api_object
     return $self->_get_locale_country_multilingual_object( 'tr' );
 }
 
+sub get_country_name_remapping
+{
+    my $self = shift;
+
+    return {};
+}
+
 1;

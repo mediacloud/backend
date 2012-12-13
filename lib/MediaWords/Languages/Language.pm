@@ -122,6 +122,9 @@ requires 'tokenize';
 # Locale::Country::Multilingual) for fetching a list of country codes and countries.
 requires 'get_locale_codes_api_object';
 
+# Gets country name remapping for MediaWords::Util::Countries
+requires 'get_country_name_remapping';
+
 #
 # END OF THE SUBCLASS INTERFACE
 #

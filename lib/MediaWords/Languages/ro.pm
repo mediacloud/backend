@@ -8,6 +8,7 @@ with 'MediaWords::Languages::Language';
 
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
@@ -67,6 +68,13 @@ sub get_locale_codes_api_object
 {
     my $self = shift;
     return $self->_get_locale_country_multilingual_object( 'ro' );
+}
+
+sub get_country_name_remapping
+{
+    my $self = shift;
+
+    return {};
 }
 
 1;
