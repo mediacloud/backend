@@ -91,6 +91,24 @@ sub create_topic : Local
         return;
     }
 
+    my $language_code = $c->req->param( 'language' );
+    if ( $language_code =~ /\W/ or bytes::length( $language_code ) < 2 or bytes::length( $language_code ) > 3 )
+    {
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'dashboards/create_topic.tt2';
+        $c->stash->{ error_msg } =
+          'Language code must only include letters and numbers, and it should ' . 'be between 2 and 3 letters.';
+        return;
+    }
+    my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
+    if ( !$lang )
+    {
+        $c->stash->{ form }      = $form;
+        $c->stash->{ template }  = 'dashboards/create_topic.tt2';
+        $c->stash->{ error_msg } = 'Language "' . $language_code . '" is not available.';
+        return;
+    }
+
     if ( !$form->submitted_and_valid() )
     {
         $c->stash->{ form }     = $form;
@@ -98,16 +116,24 @@ sub create_topic : Local
         return;
     }
 
-    my $lang          = MediaWords::Languages::Language::lang();
     my $stemmed       = $lang->stem( $c->req->param( 'query' ) );
     my $stemmed_query = $stemmed->[ 0 ];
 
     $c->dbis->query(
-        "insert into dashboard_topics ( name, query, start_date, end_date, dashboards_id ) " .
-          " values( substring( ?, 0, 256 ), substring( ?, 0, 1024) , " .
-          "   date_trunc( 'week', ?::date ), date_trunc( 'week', ?::date ) + interval '1 week', ? ) ",
+        <<EOF,
+        INSERT INTO dashboard_topics ( name, query, language, start_date, end_date, dashboards_id )
+        VALUES (
+            SUBSTRING( ?, 0, 256 ),
+            SUBSTRING( ?, 0, 1024),
+            ?,
+            DATE_TRUNC( 'week', ?::date ),
+            DATE_TRUNC( 'week', ?::date ) + INTERVAL '1 week',
+            ?
+        )
+EOF
         $c->req->param( 'name' ),
         $stemmed_query,
+        $language_code,
         $c->req->param( 'start_date' ),
         $c->req->param( 'end_date' ),
         $dashboards_id

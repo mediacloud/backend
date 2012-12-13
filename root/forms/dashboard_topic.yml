@@ -16,6 +16,13 @@ elements:
         - Required
 
   - type: Text
+    name: language
+    label: Language
+    comment: ISO 639-1 language code
+    constraints:
+        - Required
+
+  - type: Text
     name: start_date
     label: Start Date
     comment: (2008-09-01)

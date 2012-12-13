@@ -16,6 +16,7 @@
 <tr>
 <th>name</th>
 <th>query</th>
+<th>language</th>
 <th>start date</th>
 <th>end date</th>
 <th>vectors added</th>
@@ -28,6 +29,8 @@
 <td>[% dashboard_topic.name | html %]</td>
 
 <td>[% dashboard_topic.query | html %]</td>
+
+<td>[% dashboard_topic.language | html %]</td>
 
 <td>[% dashboard_topic.start_date | html %]</td>
 
