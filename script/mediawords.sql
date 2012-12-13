@@ -505,6 +505,7 @@ create table dashboard_topics (
     dashboard_topics_id         serial          primary key,
     name                        varchar(256)    not null,
     query                       varchar(1024)   not null,
+    language                    varchar(3)      not null,   /* 2- or 3-character ISO 690 language code */
     dashboards_id               int             not null references dashboards on delete cascade,
     start_date                  timestamp       not null,
     end_date                    timestamp       not null,
@@ -537,6 +538,7 @@ create index stories_publish_date on stories (publish_date);
 create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
+create index stories_language on stories(language);
 
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
@@ -769,6 +771,7 @@ create table story_sentences (
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
 create index story_sentences_publish_day on story_sentences( date_trunc( 'day', publish_date ), media_id );
+create index story_sentences_language on story_sentences(language);
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
     
