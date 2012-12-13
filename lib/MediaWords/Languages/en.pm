@@ -338,7 +338,7 @@ sub get_country_name_remapping
         'taiwan, province of china' => 'taiwan',
 
         # 'tajikistan',
-        'tanzania, united republic of' => 'tanznia',
+        'tanzania, united republic of' => 'tanznia',    # FIXME typo?
 
         # 'thailand',
         # 'timor-leste' => -1,
