@@ -30,28 +30,50 @@ sub get_media_set_date_range
     if ( $media_set->{ set_type } eq 'collection' )
     {
         ( $start_date, $end_date ) = $db->query(
-            "select min(d.start_date), max(d.end_date) from dashboard_media_sets dms, dashboards d " .
-              "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = ?",
+            <<"EOF",
+            SELECT MIN(d.start_date),
+                   MAX(d.end_date)
+            FROM dashboard_media_sets AS dms,
+                 dashboards AS d
+            WHERE dms.dashboards_id = d.dashboards_id
+                  AND dms.media_sets_id = ?
+EOF
             $media_set->{ media_sets_id }
         )->flat;
     }
     elsif ( $media_set->{ set_type } eq 'medium' )
     {
         ( $start_date, $end_date ) = $db->query(
-            "select min(d.start_date), max(d.end_date) " .
-              "  from dashboard_media_sets dms, dashboards d, media_sets_media_map msmm, media_sets ms " .
-              "  where dms.dashboards_id = d.dashboards_id and dms.media_sets_id = msmm.media_sets_id and " .
-              "  msmm.media_id = ms.media_id and ms.media_sets_id = ?",
+            <<"EOF",
+            SELECT MIN(d.start_date),
+                   MAX(d.end_date)
+            FROM dashboard_media_sets AS dms,
+                 dashboards AS d,
+                 media_sets_media_map AS msmm,
+                 media_sets AS ms
+            WHERE dms.dashboards_id = d.dashboards_id
+                  AND dms.media_sets_id = msmm.media_sets_id
+                  AND msmm.media_id = ms.media_id
+                  AND ms.media_sets_id = ?
+EOF
             $media_set->{ media_sets_id }
         )->flat;
     }
     elsif ( $media_set->{ set_type } eq 'cluster' )
     {
         ( $start_date, $end_date ) = $db->query(
-            "select min(d.start_date), max(d.end_date) " .
-              "  from dashboard_media_sets dms, dashboards d, media_clusters mc, media_sets ms " .
-              "  where ms.media_sets_id = ? and ms.media_clusters_id = mc.media_clusters_id and " .
-              "    mc.media_cluster_runs_id = dms.media_cluster_runs_id and " . "    dms.dashboards_id = d.dashboards_id",
+            <<"EOF",
+            SELECT MIN(d.start_date),
+                   MAX(d.end_date)
+            FROM dashboard_media_sets AS dms,
+                 dashboards AS d,
+                 media_clusters AS mc,
+                 media_sets AS ms
+            WHERE ms.media_sets_id = ?
+                  AND ms.media_clusters_id = mc.media_clusters_id
+                  AND mc.media_cluster_runs_id = dms.media_cluster_runs_id
+                  AND dms.dashboards_id = d.dashboards_id
+EOF
             $media_set->{ media_sets_id }
         )->flat;
     }
@@ -75,16 +97,22 @@ sub run_daemon
 
     while ( 1 )
     {
-        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '12 hours' )::date" )->flat;
+        my ( $yesterday ) = $db->query( "SELECT DATE_TRUNC( 'day', NOW() - INTERVAL '12 hours' )::date" )->flat;
 
-        my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )::date" )->flat;
+        my ( $one_month_ago ) = $db->query( "SELECT DATE_TRUNC( 'day', NOW() - INTERVAL '1 month' )::date" )->flat;
         ( $yesterday, $one_month_ago ) = map { substr( $_, 0, 10 ) } ( $yesterday, $one_month_ago );
 
         MediaWords::StoryVectors::update_aggregate_words( $db, $one_month_ago, $yesterday );
 
         # this is almost as slow as just revectoring everthing, so I'm commenting out for now
-        my $media_sets =
-          $db->query( "select ms.* from media_sets ms where ms.vectors_added = false order by ms.media_sets_id" )->hashes;
+        my $media_sets = $db->query(
+            <<"EOF"
+            SELECT ms.*
+            FROM media_sets AS ms
+            WHERE ms.vectors_added = false
+            ORDER BY ms.media_sets_id
+EOF
+        )->hashes;
         for my $media_set ( @{ $media_sets } )
         {
             my ( $start_date, $end_date ) = get_media_set_date_range( $db, $media_set );
@@ -98,14 +126,20 @@ sub run_daemon
                 print STDERR "update_aggregate_vectors: media_set $media_set->{ media_sets_id }\n";
                 MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 0, undef,
                     $media_set->{ media_sets_id } );
-                $db->query( "update media_sets set vectors_added = true where media_sets_id = ?",
+                $db->query( "UPDATE media_sets SET vectors_added = true WHERE media_sets_id = ?",
                     $media_set->{ media_sets_id } );
             }
         }
 
-        my $pm = new Parallel::ForkManager( 5 );
-        my $dashboard_topics =
-          $db->query( "select * from dashboard_topics where vectors_added = false order by dashboard_topics_id" )->hashes;
+        my $pm               = new Parallel::ForkManager( 5 );
+        my $dashboard_topics = $db->query(
+            <<"EOF"
+            SELECT *
+            FROM dashboard_topics
+            WHERE vectors_added = false
+            ORDER BY dashboard_topics_id
+EOF
+        )->hashes;
         for my $dashboard_topic ( @{ $dashboard_topics } )
         {
 
@@ -125,7 +159,7 @@ sub run_daemon
                 MediaWords::StoryVectors::update_aggregate_words( $db, $start_date, $end_date, 1,
                     $dashboard_topic->{ dashboard_topics_id } );
 
-                $db->query( "update dashboard_topics set vectors_added = true where dashboard_topics_id = ?",
+                $db->query( "UPDATE dashboard_topics SET vectors_added = true WHERE dashboard_topics_id = ?",
                     $dashboard_topic->{ dashboard_topics_id } );
 
                 $pm->finish;
