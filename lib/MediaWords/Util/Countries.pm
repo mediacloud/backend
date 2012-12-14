@@ -210,7 +210,7 @@ my $_country_name_remapping = {
     'palestinian territory, occupied' => 'palestine',
 
     # 'panama',
-    'papua new guinea' => 'papua guina',
+    'papua new guinea' => 'papua guinea',
 
     # 'paraguay',
     # 'peru',
@@ -270,7 +270,7 @@ my $_country_name_remapping = {
     'taiwan, province of china' => 'taiwan',
 
     # 'tajikistan',
-    'tanzania, united republic of' => 'tanznia',
+    'tanzania, united republic of' => 'tanzania',
 
     # 'thailand',
     # 'timor-leste' => -1,
