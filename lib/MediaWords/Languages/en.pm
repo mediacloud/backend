@@ -137,7 +137,7 @@ sub get_country_name_remapping
         # 'colombia',
         # 'comoros',
         # 'congo',
-        'congo, the democratic republic of the' => 'congo republic',
+        'congo, the democratic republic of the' => 'congo-kinshasa',
 
         'cook islands' => -1,
 
