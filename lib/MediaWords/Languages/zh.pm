@@ -57,7 +57,6 @@ use Encode;
 use Encode::HanConvert;
 use Unicode::UCD 'charinfo';
 use Unicode::UCD 'general_categories';
-use utf8;
 use Lingua::ZH::WordSegmenter;
 
 my $EOS = "\001";
