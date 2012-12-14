@@ -24,6 +24,8 @@ sub verify_downloads_files
     my $config = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
 
+    my $pm = new Parallel::ForkManager( 15 );
+
     while ( 1 )
     {
 
@@ -42,6 +44,8 @@ sub verify_downloads_files
 
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
         {
+            $pm->start and next;
+
             $pm->start and next;
 
             my $db = MediaWords::DB::connect_to_db;
@@ -69,6 +73,8 @@ sub verify_downloads_files
 
         $pm->wait_all_children;
     }
+
+    $pm->wait_all_children;
 }
 
 sub main

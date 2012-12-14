@@ -53,11 +53,6 @@ sub get_query_form
       [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $dashboard_topics } ];
     $form->get_field( 'dashboard_topics_ids' )->options( $dashboard_topic_options );
 
-    my $media = $c->dbis->query( "select distinct( m.* ) from media m, media_sets_media_map msmm " .
-          "  where m.media_id = msmm.media_id order by m.name" )->hashes;
-    my $media_options = [ [ 0, '(none)' ], map { [ $_->{ media_id }, $_->{ name } ] } @{ $media } ];
-    $form->get_field( 'media_id' )->options( $media_options );
-
     my $dashboards = $c->dbis->query( "select * from dashboards order by name" )->hashes;
     my $dashboard_options = [ [ 0, '(none)' ], map { [ $_->{ dashboards_id }, $_->{ name } ] } @{ $dashboards } ];
     $form->get_field( 'dashboards_id' )->options( $dashboard_options );
@@ -490,8 +485,8 @@ sub story_search_csv : Local
       || die( "Unable to find query_story_search '$query_story_searches_id'" );
 
     $c->res->header( 'Content-Disposition', qq[attachment; filename="query_story_searches.csv"] );
-    $c->res->header( 'Content-Length',      length( $query_story_search->{ csv_text } ) );
-    $c->res->content_type( 'text/csv' );
+    $c->res->header( 'Content-Length',      bytes::length( $query_story_search->{ csv_text } ) );
+    $c->res->content_type( 'text/csv; charset=UTF-8' );
     $c->res->body( $query_story_search->{ csv_text } );
 
 }

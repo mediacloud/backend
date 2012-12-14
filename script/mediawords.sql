@@ -216,12 +216,23 @@ create table media (
     extract_author      boolean         default(false),
     sw_data_start_date  date            default(null),
     sw_data_end_date    date            default(null),
-    CONSTRAINT media_name_not_empty CHECK (((name)::text <> ''::text))
+    foreign_rss_links   boolean         not null default( false ),
+    main_media_id       int             null references media on delete set null,
+    is_dup              boolean         null,
+    CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
+    CONSTRAINT media_dup CHECK ( ( ( is_dup is null or is_dup = false ) and main_media_id is null ) 
+        or ( is_dup = true and main_media_id is not null ) )
 );
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
+
+-- allow easy querying of all duplicates, regardless of order
+create view media_dups_transitive as 
+    select distinct media_id, main_media_id from 
+        ( ( select media_id, main_media_id from media where main_media_id is not null ) union 
+          ( select main_media_id as media_id, media_id as main_media_id from media where main_media_id is not null ) ) q;
 
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
 
@@ -608,7 +619,7 @@ create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 
-CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success');    
+CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
 
 CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
@@ -1298,7 +1309,6 @@ $body$
     LANGUAGE 'plpgsql';
 --
 
-select enum.enum_add( 'download_state', 'feed_error' );
 
 
             -- PostgreSQL sends notices about implicit keys that are being created,

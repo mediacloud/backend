@@ -216,6 +216,14 @@ sub fetch_content
     }
     elsif ( my $content_ref = fetch_content_local( $download ) )
     {
+
+        # horrible hack to fix old content that is not stored in unicode
+        my $ascii_hack_downloads_id = MediaWords::Util::Config::get_config->{ mediawords }->{ ascii_hack_downloads_id };
+        if ( $ascii_hack_downloads_id && ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
+        {
+            $$content_ref =~ s/[^[:ascii:]]/ /g;
+        }
+
         return $content_ref;
     }
     else

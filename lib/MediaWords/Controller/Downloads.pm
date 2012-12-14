@@ -114,8 +114,8 @@ sub view : Local
         $encoded_content = $$content_ref;
     }
 
-    $c->response->content_type( 'text/plain; charset=utf8' );
-    $c->response->content_length( length( $encoded_content ) );
+    $c->response->content_type( 'text/plain; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $encoded_content ) );
     $c->response->body( $encoded_content );
 }
 
@@ -136,10 +136,9 @@ sub view_extracted : Local
         die( "No such download" );
     }
 
-    $c->response->content_type( 'text/plain' );
-    $c->response->content_length( 2 * length( $download_text->{ download_text } ) );
+    $c->response->content_type( 'text/plain; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $download_text->{ download_text } ) );
 
-    #    $c->response->content_length( 10 * length(decode("utf8", $download_text->{download_text}) ));
     $c->response->body( $download_text->{ download_text } );
 }
 
