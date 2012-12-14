@@ -182,6 +182,9 @@ sub get_country_name_remapping
 {
     my $self = shift;
 
+    # Current Chinese word tokenizer (as of Dec 14, 2012) does not manage to figure out that, say,
+    # '博茨瓦纳' ('Botswana') is a single word.
+
     return {};
 }
 
