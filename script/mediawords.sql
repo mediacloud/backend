@@ -902,7 +902,7 @@ create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id
 CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
-       weekly_words_id              bigint          primary key,
+       weekly_words_id              serial          primary key,
        media_sets_id                int             not null, -- references media_sets,
        dashboard_topics_id          int             null,     -- references dashboard_topics,
        term                         varchar(256)    not null,
