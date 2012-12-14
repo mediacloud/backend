@@ -278,7 +278,7 @@ sub get_country_name_remapping
         'palestinian territory, occupied' => 'palestine',
 
         # 'panama',
-        'papua new guinea' => 'papua guina',    # FIXME typo?
+        'papua new guinea' => 'papua guinea',
 
         # 'paraguay',
         # 'peru',
@@ -338,7 +338,7 @@ sub get_country_name_remapping
         'taiwan, province of china' => 'taiwan',
 
         # 'tajikistan',
-        'tanzania, united republic of' => 'tanznia',    # FIXME typo?
+        'tanzania, united republic of' => 'tanzania',
 
         # 'thailand',
         # 'timor-leste' => -1,
