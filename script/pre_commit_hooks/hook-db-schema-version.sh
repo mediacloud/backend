@@ -13,12 +13,14 @@ SCHEMA_FILE="script/mediawords.sql"
 
 if [ -d .svn ]; then
     #echo "This is a Subversion repository."
+    REPOSITORY="svn"
     ADDED_MODIFIED_FILES=`svn status -q | grep "^[M|A]" | awk '{ print $2}'`
     SCHEMA_DIFF=`svn diff $SCHEMA_FILE`
 
 elif [ -d .git ]; then
     #echo "This is a Git repository."
     # FIXME the version of a file that is staged might be different from the file that exists in the filesystem
+    REPOSITORY="git"
     ADDED_MODIFIED_FILES=`git diff --staged --name-status |  grep "^[M|A]" | awk '{ print $2}'`
     SCHEMA_DIFF=`git diff --staged $SCHEMA_FILE`
 
@@ -84,7 +86,16 @@ helpSchemaDiff()
     echo
     echo "    ./script/pre_commit_hooks/postgres-diff.sh > ${SCHEMA_MIGRATION_FILE}"
     echo
-    echo "You should then add this file to the repository in the same commit as the schema file."
+    echo "You should then add this file to the repository in the same commit as the schema file:"
+    echo
+    if [ "$REPOSITORY" == "git" ]; then
+        echo "    git add ${SCHEMA_MIGRATION_FILE}"
+    elif [ "$REPOSITORY" == "svn" ]; then
+        echo "    svn add ${SCHEMA_MIGRATION_FILE}"
+    else
+        echo "Unknown repository."
+        exit 1
+    fi
 }
 
 
@@ -139,32 +150,30 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
 
     SCHEMA_MIGRATION_FILE_EXISTS=""
     if [ -e $SCHEMA_MIGRATION_FILE ]; then
-	#echo " $SCHEMA_MIGRATION_FILE exists"
-	SCHEMA_MIGRATION_FILE_EXISTS="true";
-	#echo "File exist: $SCHEMA_MIGRA_FILE_EXISTS"
+        #echo " $SCHEMA_MIGRATION_FILE exists"
+    SCHEMA_MIGRATION_FILE_EXISTS="true";
+        #echo "File exists: $SCHEMA_MIGRA_FILE_EXISTS"
     else
-	#echo " $SCHEMA_MIGRATION_FILE does not exist"
-	:
+        #echo "$SCHEMA_MIGRATION_FILE does not exist."
+    :
     fi
 
     if [ -z "$SCHEMA_MIGRATION_FILE_COMMITTED" ]; then
-	if [ -z "$SCHEMA_MIGRATION_FILE_EXISTS" ]; then
-            echo "You have changed the database schema (${SCHEMA_FILE}) but haven't added the database schema "
-            echo "diff file to this commit."
-            helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
-	    
-            exit 1
-        else
-	   
-            echo "You have changed the database schema (${SCHEMA_FILE}) and created a database schema "
-            echo "diff file  ( $SCHEMA_MIGRATION_FILE  ). "
-	    echo ""
-            echo "However you haven't marked the file to be added to sourse control."
-	    echo ""
-            helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
-	    echo ""
-            exit 1
-	fi
+        if [ -z "$SCHEMA_MIGRATION_FILE_EXISTS" ]; then
+                echo "You have changed the database schema (${SCHEMA_FILE})."
+                echo "However, you haven't created and added the database schema diff file to this commit."
+                echo
+                helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
+                exit 1
+            else
+           
+                echo "You have changed the database schema (${SCHEMA_FILE}) and created a database schema "
+                echo "diff file (${SCHEMA_MIGRATION_FILE})."
+                echo "However, you haven't added the schema diff file to this commit."
+                echo
+                helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
+                exit 1
+        fi
     fi
     
 fi
