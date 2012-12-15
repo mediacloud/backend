@@ -322,7 +322,7 @@ sub _get_dashboard_dates
         WHERE t.publish_week = ?
               AND dms.dashboards_id = $dashboard->{ dashboards_id }
               AND dms.media_sets_id = t.media_sets_id
-        LIMIT 1"
+        LIMIT 1
 EOF
 
     my $start_date;
@@ -378,17 +378,18 @@ EOF
     )->hashes;
 }
 
-sub _get_country_counts
+sub _get_country_counts($$$$)
 {
-    my ( $self, $c, $query ) = @_;
+    my ( $self, $c, $query, $language_code ) = @_;
 
-    my $country_counts = MediaWords::DBI::Queries::get_country_counts( $c->dbis, $query );
+    my $country_counts = MediaWords::DBI::Queries::get_country_counts( $c->dbis, $query, $language_code );
 
     my $ret;
     foreach my $country_count ( @$country_counts )
     {
         my $country_code =
-          MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country } );
+          MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country },
+            $language_code );
 
         die Dumper( $country_count ) unless defined $country_code && $country_count->{ country_count };
 
@@ -460,12 +461,12 @@ sub get_word_list : Local
 # get an xml or csv list of the top 500 words for the given set of queries
 sub country_counts_csv : Local
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $language_code ) = @_;
 
     my $queries_id = $c->req->param( 'queries_id' );
 
     my $query = $self->get_query_by_id( $c, $queries_id );
-    my $country_counts = $self->_get_country_counts( $c, $query );
+    my $country_counts = $self->_get_country_counts( $c, $query, $language_code );
     my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
 
     my $response_body = join "\n", ( 'country_code,value', @{ $country_count_csv_array } );
@@ -515,11 +516,14 @@ sub get_country_counts_all_dates : Local
     {
         my $country_count_query = <<"EOF";
             SELECT media_sets_id,
-                   dashboard_topics_id,
+                   daily_country_counts.dashboard_topics_id,
                    country,
                    SUM(country_count) AS country_count,
-                   publish_day
+                   publish_day,
+                   dashboard_topics.language
             FROM daily_country_counts
+                INNER JOIN dashboard_topics
+                    ON daily_country_counts.dashboard_topics_id = dashboard_topics.dashboard_topics_id
             WHERE media_sets_id = $media_set->{ media_sets_id }
                   AND $dashboard_topic_clause
                   AND publish_day >= ?
@@ -527,9 +531,11 @@ sub get_country_counts_all_dates : Local
             GROUP BY publish_day,
                      media_sets_id,
                      dashboard_topics_id,
-                     country
+                     country,
+                     dashboard_topics.language
             ORDER BY publish_day,
-                     country
+                     country,
+                     dashboard_topics.language
 EOF
 
         #say STDERR "SQL query: '$country_count_query'";
@@ -542,19 +548,24 @@ EOF
     {
         my $country_count_query = <<"EOF";
             SELECT media_sets_id,
-                   dashboard_topics_id,
+                   daily_country_counts.dashboard_topics_id,
                    country,
                    SUM(country_count) AS country_count,
-                   publish_day
+                   publish_day,
+                   dashboard_topics.language
             FROM daily_country_counts
+                INNER JOIN dashboard_topics
+                    ON daily_country_counts.dashboard_topics_id = dashboard_topics.dashboard_topics_id
             WHERE media_sets_id = $media_set->{ media_sets_id }
                   AND $dashboard_topic_clause
             GROUP BY publish_day,
                      media_sets_id,
                      dashboard_topics_id,
-                     country
+                     country,
+                     dashboard_topics.language
             ORDER BY publish_day,
-                     country
+                     country,
+                     dashboard_topics.language
 EOF
 
         #say STDERR "SQL query: '$country_count_query'";
@@ -573,7 +584,8 @@ EOF
     foreach my $country_count ( @$country_counts )
     {
         my $country_code_2 =
-          MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country } );
+          MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country },
+            $country_count->{ language } );
         die unless defined $country_code_2;
 
         my $country_code_3 = uc( $lcm->country_code2code( $country_code_2, 'LOCALE_CODE_ALPHA_2', 'LOCALE_CODE_ALPHA_3' ) );
