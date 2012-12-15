@@ -129,6 +129,17 @@ $expected_words = [ '主任', '强调', '指出', '错误', '的', '地方' ];
 }
 
 #
+# Word tokenizer: 'Botswana' (FIXME fails)
+#
+# $test_string = '博茨瓦纳';
+# $expected_words = [
+#    '博茨瓦纳'
+# ];
+# {
+#    is( join( '||', @{ $lang->tokenize( $test_string ) } ), join( '||', @{ $expected_words } ), "word_split" );
+# }
+
+#
 # Word tokenizer: test 2 (FIXME fails)
 #
 # $test_string = '她胸前挂着一块碧绿的玉。';
