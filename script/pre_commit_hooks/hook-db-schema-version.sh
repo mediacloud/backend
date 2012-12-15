@@ -84,6 +84,7 @@ helpSchemaDiff()
     echo
     echo "    ./script/pre_commit_hooks/postgres-diff.sh > ${SCHEMA_MIGR_FILE}"
     echo
+    echo "You should then add this file to the repository in the same commit as the schema file."
 }
 
 
@@ -129,18 +130,41 @@ if [ ! -z "$SCHEMA_DIFF" ]; then
 
     # Check if the SQL migration is being committed too
     SCHEMA_MIGR_FILE="sql_migrations/mediawords-${OLD_SCHEMA_VERSION}-${NEW_SCHEMA_VERSION}.sql"
-    SCHEMA_MIGR_FILE_EXISTS=""  # non-empty for true
+    SCHEMA_MIGR_FILE_COMMITTED=""  # non-empty for true
     for filepath in $ADDED_MODIFIED_FILES; do
         if [ "$filepath" == "$SCHEMA_MIGR_FILE" ]; then
-            SCHEMA_MIGR_FILE_EXISTS="yes"
+            SCHEMA_MIGR_FILE_COMMITTED="yes"
         fi
     done
-    if [ -z "$SCHEMA_MIGR_FILE_EXISTS" ]; then
-        echo "You have changed the database schema (${SCHEMA_FILE}) but haven't added the database schema "
-        echo "diff file to this commit."
-        helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
 
-        exit 1
+    SCHEMA_MIGR_FILE_EXISTS=""
+    if [ -e $SCHEMA_MIGR_FILE ]; then
+	#echo " $SCHEMA_MIGR_FILE exists"
+	SCHEMA_MIGRA_FILE_EXISTS="true";
+	#echo "File exist: $SCHEMA_MIGRA_FILE_EXISTS"
+    else
+	#echo " $SCHEMA_MIGR_FILE does not exist"
+	:
+    fi
+
+    if [ -z "$SCHEMA_MIGR_FILE_COMMITTED" ]; then
+	if [ -z "$SCHEMA_MIGRA_FILE_EXISTS" ]; then
+            echo "You have changed the database schema (${SCHEMA_FILE}) but haven't added the database schema "
+            echo "diff file to this commit."
+            helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
+	    
+            exit 1
+        else
+	   
+            echo "You have changed the database schema (${SCHEMA_FILE}) and created a database schema "
+            echo "diff file  ( $SCHEMA_MIGR_FILE  ). "
+	    echo ""
+            echo "However you haven't marked the file to be added to sourse control."
+	    echo ""
+            helpSchemaDiff "$OLD_SCHEMA_VERSION" "$NEW_SCHEMA_VERSION"
+	    echo ""
+            exit 1
+	fi
     fi
     
 fi
