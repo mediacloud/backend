@@ -142,7 +142,9 @@ sub _insert_story_sentence
         ) VALUES (?,?,?,?,?,?)
 EOF
         $story->{ stories_id },
-        $sentence_num, $sentence, $sentence_lang,
+        $sentence_num,
+        $sentence,
+        $sentence_lang,
         $story->{ publish_date },
         $story->{ media_id }
     );
@@ -1090,6 +1092,7 @@ EOF
                 term,
                 stem,
                 stem_count,
+                language,
                 publish_day,
                 dashboard_topics_id
             )
@@ -1097,12 +1100,14 @@ EOF
                        term,
                        stem,
                        sum_stem_counts,
+                       language,
                        publish_day,
                        NULL AS dashboard_topics_id
                 FROM (SELECT media_sets_id,
                              term,
                              stem,
                              stem_count_sum,
+                             language,
                              publish_day,
                              NULL,
                              RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
@@ -1111,17 +1116,21 @@ EOF
                                    term,
                                    stem,
                                    SUM(stem_count) AS stem_count_sum,
+                                   ss.language,
                                    MIN(publish_day) AS publish_day,
                                    NULL
-                            FROM story_sentence_words AS ssw,
+                            FROM story_sentence_words AS ssw
+                                    INNER JOIN story_sentences AS ss
+                                        ON ssw.stories_id = ss.stories_id AND ssw.sentence_number = ss.sentence_number,
                                  media_sets_media_map AS msmm
                             WHERE ssw.publish_day = '${sql_date}'::date
                                   AND ssw.media_id = msmm.media_id
                                   AND $media_set_clause
                             GROUP BY msmm.media_sets_id,
                                      ssw.stem,
-                                     ssw.term
-                      ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
+                                     ssw.term,
+                                     ss.language
+                      ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, language, publish_day )
                 ) AS q
                 WHERE term_rank = 1
 EOF
@@ -1144,6 +1153,7 @@ EOF
                 term,
                 stem,
                 stem_count,
+                language,
                 publish_day,
                 dashboard_topics_id
             )
@@ -1151,12 +1161,14 @@ EOF
                        term,
                        stem,
                        sum_stem_counts,
+                       language,
                        publish_day,
                        dashboard_topics_id
                 FROM (SELECT media_sets_id,
                              term,
                              stem,
                              stem_count_sum,
+                             language,
                              publish_day,
                              dashboard_topics_id,
                              RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
@@ -1165,9 +1177,12 @@ EOF
                                    ssw.term AS term,
                                    ssw.stem AS stem,
                                    SUM(ssw.stem_count) AS stem_count_sum,
+                                   ss.language,
                                    MIN(ssw.publish_day) AS publish_day,
                                    ?::integer AS dashboard_topics_id
-                            FROM story_sentence_words AS ssw,
+                            FROM story_sentence_words AS ssw
+                                    INNER JOIN story_sentences AS ss
+                                        ON ssw.stories_id = ss.stories_id AND ssw.sentence_number = ss.sentence_number,
                                  (SELECT media_sets_id,
                                          stories_id,
                                          sentence_number
@@ -1185,7 +1200,8 @@ EOF
                                   AND ssw.sentence_number=ssw_sentences_for_query.sentence_number
                             GROUP BY media_sets_id,
                                      ssw.stem,
-                                     term
+                                     term,
+                                     ss.language
                            ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
                      ) AS q
                 WHERE term_rank = 1
@@ -1263,6 +1279,7 @@ EOF
             term,
             stem,
             stem_count,
+            language,
             publish_day
         )
             SELECT authors_id,
@@ -1270,12 +1287,14 @@ EOF
                    term,
                    stem,
                    sum_stem_counts,
+                   language,
                    publish_day
             FROM (SELECT authors_id,
                          media_sets_id,
                          term,
                          stem,
                          stem_count_sum,
+                         language,
                          publish_day,
                          NULL,
                          RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
@@ -1285,9 +1304,12 @@ EOF
                                term,
                                stem,
                                SUM(stem_count) AS stem_count_sum,
+                               ss.language,
                                MIN(publish_day) AS publish_day,
                                NULL
-                        FROM story_sentence_words AS ssw,
+                        FROM story_sentence_words AS ssw
+                                    INNER JOIN story_sentences AS ss
+                                        ON ssw.stories_id = ss.stories_id AND ssw.sentence_number = ss.sentence_number,
                              media_sets_media_map AS msmm,
                              authors_stories_map
                         WHERE ssw.publish_day = '${sql_date}'::date
@@ -1296,6 +1318,7 @@ EOF
                         GROUP BY msmm.media_sets_id,
                                  ssw.stem,
                                  ssw.term,
+                                 ss.language,
                                  authors_id
                        ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
                  ) AS query
@@ -1348,70 +1371,81 @@ sub _update_daily_country_counts
 EOF
     );
 
-    my $all_countries = MediaWords::Util::Countries::get_countries_for_counts();
-
-    my $stemmed_country_terms = [ map { MediaWords::Util::Countries::get_stemmed_country_terms( $_ ) } @{ $all_countries } ];
-
-    my $single_terms_list =
-      join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
-
-    $db->query_with_large_work_mem(
-        <<"EOF"
-        INSERT INTO daily_country_counts (
-            media_sets_id,
-            publish_day,
-            country,
-            country_count
-        )
-            SELECT media_sets_id,
-                   publish_day,
-                   stem,
-                   stem_count
-            FROM daily_words
-            WHERE publish_day = '$sql_date'::date
-                  AND dashboard_topics_id IS NULL
-                  AND $media_set_clause
-                  AND stem IN ( $single_terms_list )
-EOF
-    );
-
-    my $double_country_terms = [ grep { @{ $_ } == 2 } @{ $stemmed_country_terms } ];
-
-    for my $country ( @{ $double_country_terms } )
+    # For all configured languages
+    my @enabled_languages = MediaWords::Languages::Language::enabled_languages();
+    foreach my $language_code ( @enabled_languages )
     {
-        my $country_name = join( " ", @{ $country } );
-        my ( $term_a, $term_b ) = map { $db->dbh->quote( $_ ) } @{ $country };
+        my $all_countries = MediaWords::Util::Countries::get_countries_for_counts( $language_code );
+
+        my $stemmed_country_terms =
+          [ map { MediaWords::Util::Countries::get_stemmed_country_terms( $_, $language_code ) } @{ $all_countries } ];
+
+        my $single_terms_list =
+          join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
 
         $db->query_with_large_work_mem(
-            <<"EOF",
+            <<"EOF"
             INSERT INTO daily_country_counts (
                 media_sets_id,
+                language,
                 publish_day,
                 country,
                 country_count
             )
-                SELECT msmm.media_sets_id,
-                       ssw.publish_day,
-                       ?,
-                       COUNT(*)
-                FROM story_sentence_words AS ssw,
-                     media_sets_media_map AS msmm
-                WHERE ssw.media_id = msmm.media_id
-                      AND ssw.publish_day = '$sql_date'::date
-                      AND stem = $term_a
-                      AND EXISTS (SELECT 1
-                                  FROM story_sentence_words AS sswb
-                                  WHERE ssw.publish_day = sswb.publish_day
-                                        AND ssw.media_id = sswb.media_id
-                                        AND sswb.stem = $term_b
-                                        AND ssw.stories_id = sswb.stories_id
-                                        AND ssw.sentence_number = sswb.sentence_number
-                                 )
-                GROUP BY msmm.media_sets_id,
-                         ssw.publish_day
+                SELECT media_sets_id,
+                       '$language_code',
+                       publish_day,
+                       stem,
+                       stem_count
+                FROM daily_words
+                WHERE publish_day = '$sql_date'::date
+                      AND dashboard_topics_id IS NULL
+                      AND $media_set_clause
+                      AND stem IN ( $single_terms_list )
 EOF
-            $country_name
         );
+
+        my $double_country_terms = [ grep { @{ $_ } == 2 } @{ $stemmed_country_terms } ];
+
+        for my $country ( @{ $double_country_terms } )
+        {
+            my $country_name = join( " ", @{ $country } );
+            my ( $term_a, $term_b ) = map { $db->dbh->quote( $_ ) } @{ $country };
+
+            $db->query_with_large_work_mem(
+                <<"EOF",
+                INSERT INTO daily_country_counts (
+                    media_sets_id,
+                    language,
+                    publish_day,
+                    country,
+                    country_count
+                )
+                    SELECT msmm.media_sets_id,
+                           '$language_code',
+                           ssw.publish_day,
+                           ?,
+                           COUNT(*)
+                    FROM story_sentence_words AS ssw,
+                         media_sets_media_map AS msmm
+                    WHERE ssw.media_id = msmm.media_id
+                          AND ssw.publish_day = '$sql_date'::date
+                          AND stem = $term_a
+                          AND EXISTS (SELECT 1
+                                      FROM story_sentence_words AS sswb
+                                      WHERE ssw.publish_day = sswb.publish_day
+                                            AND ssw.media_id = sswb.media_id
+                                            AND sswb.stem = $term_b
+                                            AND ssw.stories_id = sswb.stories_id
+                                            AND ssw.sentence_number = sswb.sentence_number
+                                     )
+                    GROUP BY msmm.media_sets_id,
+                             ssw.publish_day
+EOF
+                $country_name
+            );
+        }
+
     }
 
     return 1;
@@ -1467,6 +1501,7 @@ EOF
             term,
             stem,
             stem_count,
+            language,
             publish_week,
             dashboard_topics_id
         )
@@ -1474,12 +1509,14 @@ EOF
                    term,
                    stem,
                    sum_stem_counts,
+                   language,
                    publish_week,
                    dashboard_topics_id
             FROM (SELECT media_sets_id,
                          term,
                          stem,
                          stem_count_sum,
+                         language,
                          publish_week,
                          dashboard_topics_id,
                          RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
@@ -1488,6 +1525,7 @@ EOF
                                term,
                                stem,
                                SUM(stem_count) AS stem_count_sum,
+                               language,
                                '${ sql_date }'::date AS publish_week,
                                dashboard_topics_id
                         FROM daily_words
@@ -1496,6 +1534,7 @@ EOF
                         GROUP BY media_sets_id,
                                  stem,
                                  term,
+                                 language,
                                  dashboard_topics_id
                        ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
                  ) AS q
@@ -1547,6 +1586,7 @@ EOF
             term,
             stem,
             stem_count,
+            language,
             publish_week,
             dashboard_topics_id
         )
@@ -1554,12 +1594,14 @@ EOF
                    term,
                    stem,
                    sum_stem_counts,
+                   language,
                    publish_week,
                    dashboard_topics_id
             FROM (SELECT media_sets_id,
                          term,
                          stem,
                          stem_count_sum,
+                         language,
                          publish_week,
                          dashboard_topics_id,
                          RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
@@ -1568,6 +1610,7 @@ EOF
                              term,
                              stem,
                              SUM(stem_count) AS stem_count_sum,
+                             language,
                              '${ sql_date }'::date AS publish_week,
                              dashboard_topics_id
                       FROM $daily_words_table
@@ -1576,6 +1619,7 @@ EOF
                       GROUP BY media_sets_id,
                                stem,
                                term,
+                               language,
                                dashboard_topics_id
                      ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
                  ) AS q
@@ -1617,6 +1661,7 @@ EOF
             term,
             stem,
             stem_count,
+            language,
             publish_week
         )
             SELECT authors_id,
@@ -1624,11 +1669,13 @@ EOF
                    term,
                    stem,
                    sum_stem_counts,
+                   language,
                    publish_week
             FROM (SELECT media_sets_id,
                          term,
                          stem,
                          stem_count_sum,
+                         language,
                          publish_week,
                          authors_id,
                          RANK() OVER (w ORDER BY stem_count_sum DESC, term DESC) AS term_rank,
@@ -1637,6 +1684,7 @@ EOF
                                term,
                                stem,
                                SUM(stem_count) AS stem_count_sum,
+                               language,
                                DATE_TRUNC('week', MIN(publish_day)) AS publish_week,
                                authors_id
                         FROM daily_author_words
@@ -1645,6 +1693,7 @@ EOF
                         GROUP BY media_sets_id,
                                  stem,
                                  term,
+                                 language,
                                  authors_id
                        ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, authors_id )
                  ) AS q
@@ -1773,7 +1822,7 @@ sub _date_is_sunday
 #
 # if dashbaord_topics_id or media_sets_id are specified, only update for the given
 # dashboard_topic or media_set
-sub update_aggregate_words
+sub update_aggregate_words($$$;$$$)
 {
     my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
 
