@@ -45,7 +45,9 @@ my Readonly @_enabled_languages = (
     'ru',                                  # Russian
     'sv',                                  # Swedish
     'tr',                                  # Turkish
-    'zh',                                  # Chinese
+
+    # Chinese disabled because of poor word segmentation
+    #'zh',                                  # Chinese
 );
 
 #
