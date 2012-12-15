@@ -798,7 +798,6 @@ create table story_sentence_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   smallint        not null,
-       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
        sentence_number              smallint        not null,
        media_id                     int             not null, /* references media on delete cascade, */
        publish_day                  date            not null
@@ -937,6 +936,7 @@ CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM f
 
 CREATE TABLE daily_country_counts (
     media_sets_id integer  not null references media_sets on delete cascade,
+    language varchar(3) not null, /* 2- or 3-character ISO 690 language code */
     publish_day date not null,
     country character varying not null,
     country_count bigint not null,
