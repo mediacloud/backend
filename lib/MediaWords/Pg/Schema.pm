@@ -316,9 +316,14 @@ sub upgrade_db
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
     say STDERR "script_dir: $script_dir";
-
-    my $db = MediaWords::DB::connect_to_db( $label );
-
+    my $db;
+    {
+	#TODO THIS is a hack so that the DATABASE schema can be upgraded without us Dying because the schema is out of date
+	local %ENV = %ENV;
+	$ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
+	$db = MediaWords::DB::connect_to_db( $label );
+    }
+    
     # Current schema version
     my $schema_version_query =
       "SELECT value AS schema_version FROM database_variables WHERE name = 'database-schema-version' LIMIT 1";
