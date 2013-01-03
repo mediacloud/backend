@@ -8,9 +8,6 @@ export PERLBREW_HOME=$HOME/.perlbrew
 unset MANPATH
 source ${PERLBREW_ROOT}/etc/bashrc
 
-set -u
-set -o  errexit
-
 #if [[ -z "$PERLBREW_BASHRD_VERSION" ]]
 # then
 #   echo "if branch taken"
@@ -21,8 +18,17 @@ set -o  errexit
 
 #Amanda server on 08.04 gives warning if we go directly to  perl-5.14.2@mediacloud 
 perlbrew use perl-5.14.2  2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
+if [ $? -ne 0 ]; then
+    echo "Unable to run 'perlbrew use perl-5.14.2'"
+    exit 1
+fi
+
 perlbrew use perl-5.14.2@mediacloud   2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
+if [ $? -ne 0 ]; then
+    echo "Unable to run 'perlbrew use perl-5.14.2@mediacloud'"
+    exit 1
+fi
 
-#NOTE: We filter the useless MANPATH warning message this way because there was no good way to get rid of it. perlbrew use will fail unless $MANPATH is set but then it generates this warning.
-
+# NOTE: We filter the useless MANPATH warning message this way because there was no good way to get rid of it.
+# perlbrew use will fail unless $MANPATH is set but then it generates this warning.
 

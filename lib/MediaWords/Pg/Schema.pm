@@ -3,6 +3,7 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
+use MediaWords::Util::SchemaVersion;
 
 # import functions into server schema
 
@@ -207,13 +208,12 @@ sub _reset_schema
         #removes schema used by dklab enum procedures
         #schema will be re-added in dklab sqlfile
         $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
-
+        $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE" );
         $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
 
         $SIG{ __WARN__ } = $old_handler;
     }
 
-    $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE " );
     $db->query( "CREATE LANGUAGE plpgsql" );
     $db->query( "CREATE SCHEMA $schema" );
 
@@ -234,13 +234,19 @@ sub load_sql_file
 
         #say "Got line: '$line'";
 
+        # Die on unexpected SQL (e.g. DROP TABLE)
         if (
             not $line =~
 /^NOTICE:|^CREATE|^ALTER|^\SET|^COMMENT|^INSERT|^ enum_add.*|^----------.*|^\s+|^\(\d+ rows?\)|^$|^DROP LANGUAGE|^DROP TABLE|^UPDATE \d+|^DROP TRIGGER|^psql.*: NOTICE:/
           )
         {
-            carp "Evil line: '$line'";
-            die "Evil line: '$line'";
+
+            # Make an exception for the fancy way of creating Pg languages
+            if ( not $line =~ /^DROP FUNCTION/ )
+            {
+                carp "Evil line: '$line'";
+                die "Evil line: '$line'";
+            }
         }
 
         return "$line\n";
@@ -276,11 +282,15 @@ sub recreate_db
     my ( $label ) = @_;
 
     {
+
+        #TODO THIS is a hack -- if we're recreating the entire db anyway we shouldn't care if the schema doesn't match.
+        local %ENV = %ENV;
+        $ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
         my $db = MediaWords::DB::connect_to_db( $label );
 
         say STDERR "reset schema ...";
-        _reset_schema( $db );
 
+        _reset_schema( $db );
         say STDERR "add functions ...";
         MediaWords::Pg::Schema::add_functions( $db );
 
@@ -302,58 +312,94 @@ sub recreate_db
     return $load_sql_file_result;
 }
 
-# ## UNUSED function keeping around for now in case we decide to start using pl/perl functions again
-# sub _get_plperl_sql_function_definition
-# {
-#     my ( $module, $function_name, $num_parameters, $return_type ) = @_;
+# Upgrade database schema to the latest version
+# (returns 0 on success, >0 on failure)
+sub upgrade_db
+{
+    my ( $label ) = @_;
 
-#     my $sql;
+    my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
+    say STDERR "script_dir: $script_dir";
+    my $db;
+    {
 
-#     my $_spi_functions = [
-#         qw/spi_exec_query spi_query spi_fetchrow spi_prepare spi_exec_prepared
-#           spi_query_prepared spi_cursor_close spi_freeplan elog/
-#     ];
+        #TODO THIS is a hack so that the DATABASE schema can be upgraded without us Dying because the schema is out of date
+        local %ENV = %ENV;
+        $ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
+        $db = MediaWords::DB::connect_to_db( $label );
+    }
 
-#     my $_spi_constants = [ qw/DEBUG LOG INFO NOTICE WARNING ERROR/ ];
+    # Current schema version
+    my $schema_version_query =
+      "SELECT value AS schema_version FROM database_variables WHERE name = 'database-schema-version' LIMIT 1";
+    my @schema_versions        = $db->query( $schema_version_query )->flat();
+    my $current_schema_version = $schema_versions[ 0 ] + 0;
+    unless ( $current_schema_version )
+    {
+        say STDERR "Invalid current schema version.";
+        return 1;
+    }
+    say STDERR "Current schema version: $current_schema_version";
 
-#     my ( $parameters, $args );
-#     if ( $return_type eq 'trigger' )
-#     {
-#         $parameters = '';
-#         $args       = '$_TD';
-#     }
-#     else
-#     {
-#         $parameters = "TEXT," x $num_parameters;
-#         chop( $parameters );
-#         $args = '@_';
-#     }
+    # Target schema version
+    open SQLFILE, "$script_dir/mediawords.sql" or die $!;
+    my @sql = <SQLFILE>;
+    close SQLFILE;
+    my $target_schema_version = MediaWords::Util::SchemaVersion::schema_version_from_lines( @sql );
+    unless ( $target_schema_version )
+    {
+        say STDERR "Invalid target schema version.";
+        return 1;
+    }
 
-#     my $spi_functions = join( '', map { "    MediaWords::Pg::set_spi('$_', \\&$_);\n" } @{ $_spi_functions } );
-#     my $spi_constants = join( '', map { "    MediaWords::Pg::set_spi('$_', $_);\n" } @{ $_spi_constants } );
+    say STDERR "Target schema version: $target_schema_version";
 
-#     my $function_sql = <<END
-# create or replace function $function_name ($parameters) returns $return_type as \$\$
-#     use lib "$FindBin::Bin/../../";
-#     use lib "$FindBin::Bin/../lib";
-#     use MediaWords::Pg;
+    if ( $current_schema_version == $target_schema_version )
+    {
+        say STDERR "Schema is up-to-date, nothing to upgrade.";
+        return 0;
+    }
+    if ( $current_schema_version > $target_schema_version )
+    {
+        say STDERR "Current schema version is newer than the target schema version, please update the source code.";
+        return 1;
+    }
 
-#     \$MediaWords::Pg::in_pl_perl = 1;
+    # Check if the SQL diff files that are needed for upgrade are present before doing anything else
+    my @sql_diff_files;
+    for ( my $version = $current_schema_version ; $version < $target_schema_version ; ++$version )
+    {
+        my $diff_filename = './sql_migrations/mediawords-' . $version . '-' . ( $version + 1 ) . '.sql';
+        unless ( -e $diff_filename )
+        {
+            say STDERR "SQL diff file '$diff_filename' does not exist.";
+            return 1;
+        }
 
-#     use $module;
+        push( @sql_diff_files, $diff_filename );
+    }
 
-# $spi_functions
-# $spi_constants
+    # Import diff files one-by-one
+    foreach my $diff_filename ( @sql_diff_files )
+    {
+        say STDERR "Importing $diff_filename...";
+        my $load_sql_file_result = load_sql_file( $label, $diff_filename );
 
-#     return ${module}::${function_name}($args);
-# \$\$ language plperlu;
-# END
-#       ;
+        if ( $load_sql_file_result )
+        {
+            say STDERR "Executing SQL diff file '$diff_filename' failed.";
+            return $load_sql_file_result;
+        }
+    }
 
-#     $sql .= "/* ${module}::${function_name}(${parameters}) */\n$function_sql\n\n";
+    say STDERR "(Re-)adding functions...";
+    MediaWords::Pg::Schema::add_functions( $db );
 
-#     return $sql;
+    $db->disconnect;
 
-# }
+    say STDERR "Done!";
+
+    return 0;
+}
 
 1;
