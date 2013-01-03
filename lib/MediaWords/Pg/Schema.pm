@@ -282,11 +282,15 @@ sub recreate_db
     my ( $label ) = @_;
 
     {
+
+        #TODO THIS is a hack -- if we're recreating the entire db anyway we shouldn't care if the schema doesn't match.
+        local %ENV = %ENV;
+        $ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
         my $db = MediaWords::DB::connect_to_db( $label );
 
         say STDERR "reset schema ...";
-        _reset_schema( $db );
 
+        _reset_schema( $db );
         say STDERR "add functions ...";
         MediaWords::Pg::Schema::add_functions( $db );
 
@@ -318,12 +322,13 @@ sub upgrade_db
     say STDERR "script_dir: $script_dir";
     my $db;
     {
-	#TODO THIS is a hack so that the DATABASE schema can be upgraded without us Dying because the schema is out of date
-	local %ENV = %ENV;
-	$ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
-	$db = MediaWords::DB::connect_to_db( $label );
+
+        #TODO THIS is a hack so that the DATABASE schema can be upgraded without us Dying because the schema is out of date
+        local %ENV = %ENV;
+        $ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
+        $db = MediaWords::DB::connect_to_db( $label );
     }
-    
+
     # Current schema version
     my $schema_version_query =
       "SELECT value AS schema_version FROM database_variables WHERE name = 'database-schema-version' LIMIT 1";
