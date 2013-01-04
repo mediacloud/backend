@@ -44,13 +44,7 @@ my $_dump_training_data_csv;
 # do a test run of the text extractor
 sub main
 {
-
-    my $db = MediaWords::DB->authenticate();
-
-    my $dbs = MediaWords::DB::connect_to_db();
-
     my $file;
-    my @download_ids;
 
     GetOptions(
         'file|f=s' => \$file,
