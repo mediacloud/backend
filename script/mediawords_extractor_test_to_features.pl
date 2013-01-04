@@ -40,6 +40,46 @@ my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
 my $_dump_training_data_csv;
 
+sub get_word_counts
+{
+    my ( $downloads ) = @_;
+
+    my $word_counts = {};
+
+    foreach my $download ( @{ $downloads } )
+    {
+        my $line_count = scalar( @{ $download->{ line_info } } );
+
+        die unless scalar( @{ $download->{ line_info } } ) == scalar( @{ $download->{ preprocessed_lines } } );
+
+        my $line_infos         = $download->{ line_info };
+        my $preprocessed_lines = $download->{ preprocessed_lines };
+
+        for ( my $i = 0 ; $i < $line_count ; $i++ )
+        {
+            if ( $line_infos->[ $i ]->{ auto_excluded } )
+            {
+                my $preprocessed_line = $download->{ preprocessed_lines }->[ $i ];
+
+                next if $preprocessed_line eq '';
+                next if $preprocessed_line eq ' ';
+
+                #say Dumper($preprocessed_line );
+
+                my @words = split /\s+/, $preprocessed_line;
+
+                foreach my $word ( @words )
+                {
+                    $word_counts->{ $word } //= 0;
+                    $word_counts->{ $word }++;
+                }
+            }
+        }
+    }
+
+    return $word_counts;
+
+}
 
 # do a test run of the text extractor
 sub main
@@ -63,7 +103,6 @@ sub main
 
     say STDERR "retrieved file";
 
-
     my $word_counts = {};
 
     foreach my $download ( @{ $downloads } )
@@ -71,15 +110,12 @@ sub main
         foreach my $preprocessed_line ( @{ $download->{ preprocessed_lines } } )
         {
 
+            next if $preprocessed_line eq '';
+            next if $preprocessed_line eq ' ';
 
-	    next if $preprocessed_line eq '';
-	    next if $preprocessed_line eq ' ';
-
-	    #say Dumper($preprocessed_line );
+            #say Dumper($preprocessed_line );
 
             my @words = split /\s+/, $preprocessed_line;
-
-	    
 
             foreach my $word ( @words )
             {
@@ -88,22 +124,22 @@ sub main
             }
         }
 
-	#last;
+        #last;
 
     }
 
-    my @words = keys % { $word_counts } ;
+    $word_counts = get_word_counts(  $downloads );
 
-    @words = sort  { $word_counts->{ $b} <=> $word_counts->{ $a } } @words;
+    my @words = keys %{ $word_counts };
 
-    
-    foreach my $word (  @words[ 0 .. 100] )
+    @words = sort { $word_counts->{ $b } <=> $word_counts->{ $a } } @words;
+
+    foreach my $word ( @words[ 0 .. 10 ] )
     {
-	say "$word " . $word_counts->{ $word };
+        say "$word " . $word_counts->{ $word };
     }
 
     exit;
-
 
     foreach my $download ( @{ $downloads } )
     {
@@ -121,6 +157,7 @@ sub main
 
             if ( !$line->{ auto_excluded } )
             {
+
                 #say STDERR Dumper( $line );
 
                 #exit;
