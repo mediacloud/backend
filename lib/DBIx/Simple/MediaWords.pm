@@ -42,11 +42,11 @@ sub new
     return $self;
 }
 
-sub connect($$;$)
+sub connect($$$$$;$)
 {
-    my ( $self, $label, $do_not_check_schema_version ) = @_;
+    my ( $self, $dsn, $user, $pass, $options, $do_not_check_schema_version ) = @_;
 
-    my $ret = $self->SUPER::connect( $label );
+    my $ret = $self->SUPER::connect( $dsn, $user, $pass, $options );
 
     if ( !$do_not_check_schema_version )
     {
