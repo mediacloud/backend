@@ -60,7 +60,7 @@ sub get_query_form
     if ( $query )
     {
         map { $form->get_field( $_ )->default( $query->{ $_ } ) }
-          ( qw/start_date end_date media_id media_sets_ids dashboard_topics_ids/ );
+          ( qw/start_date end_date media_sets_ids dashboard_topics_ids/ );
     }
 
     return $form;
