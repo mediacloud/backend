@@ -22,8 +22,10 @@ use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use List::MoreUtils qw( uniq distinct :all );
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use Lingua::EN::Sentence::MediaWords;
+use Text::Trim;
 
 use Data::Dumper;
 use MediaWords::Util::HTML;
@@ -39,6 +41,24 @@ my $_download_data_load_file;
 my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
 my $_dump_training_data_csv;
+
+sub words_on_line
+{
+    my ( $line ) = @_;
+
+    my $ret = [];
+
+    trim( $line );
+
+    return $ret if $line eq '';
+    return $ret if $line eq ' ';
+
+    my @words = split /\s+/, $line;
+
+    $ret = [ uniq( @words ) ];
+
+    return $ret;
+}
 
 sub get_word_counts
 {
@@ -66,7 +86,7 @@ sub get_word_counts
 
                 #say Dumper($preprocessed_line );
 
-                my @words = split /\s+/, $preprocessed_line;
+                my @words = @{ words_on_line( $preprocessed_line ) };
 
                 foreach my $word ( @words )
                 {
@@ -128,7 +148,7 @@ sub main
 
     }
 
-    $word_counts = get_word_counts(  $downloads );
+    $word_counts = get_word_counts( $downloads );
 
     my @words = keys %{ $word_counts };
 
