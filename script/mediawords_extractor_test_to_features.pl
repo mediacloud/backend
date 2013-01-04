@@ -75,12 +75,12 @@ sub get_word_counts
         my $line_infos         = $download->{ line_info };
         my $preprocessed_lines = $download->{ preprocessed_lines };
 
-        for ( my $i = 0 ; $i < $line_count ; $i++ )
-        {
-            if ( $line_infos->[ $i ]->{ auto_excluded } )
-            {
-                my $preprocessed_line = $download->{ preprocessed_lines }->[ $i ];
+        my $ea =  each_arrayref ( $line_infos, $preprocessed_lines );
 
+	while ( my ( $line_info, $preprocessed_line ) = $ea->() )
+        {
+            if ( $line_info->{ auto_excluded } )
+            {
                 next if $preprocessed_line eq '';
                 next if $preprocessed_line eq ' ';
 
@@ -160,7 +160,8 @@ sub main
     }
 
     exit;
-
+    my %top_words = map { $_ => 1 }  @words[ 0 .. 500 ];
+    
     foreach my $download ( @{ $downloads } )
     {
 
