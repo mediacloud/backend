@@ -42,13 +42,21 @@ sub new
     return $self;
 }
 
-sub connect
+sub connect($$;$)
 {
-    my $self = shift @_;
+    my ( $self, $label, $do_not_check_schema_version ) = @_;
 
-    my $ret = $self->SUPER::connect( @_ );
+    my $ret = $self->SUPER::connect( $label );
 
-    die "Database schema is not up-to-date.\n" unless $ret->schema_is_up_to_date();
+    if ( !$do_not_check_schema_version )
+    {
+
+        # It would make sense to check the MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION environment variable
+        # at this particular point too, but schema_is_up_to_date() warns the user about schema being
+        # too old on every run, and that's supposedly a good thing.
+
+        die "Database schema is not up-to-date.\n" unless $ret->schema_is_up_to_date();
+    }
 
     return $ret;
 }

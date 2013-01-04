@@ -58,11 +58,11 @@ sub connect_info
     return _create_connect_info_from_settings( $settings );
 }
 
-sub connect_to_db
+sub connect_to_db(;$$)
 {
-    my ( $label ) = @_;
+    my ( $label, $do_not_check_schema_version ) = @_;
 
-    my $ret = DBIx::Simple::MediaWords->connect( connect_info( $label ) );
+    my $ret = DBIx::Simple::MediaWords->connect( connect_info( $label ), $do_not_check_schema_version );
 
     die "Error in connect_to_db $@" unless defined( $ret );
 

@@ -282,11 +282,8 @@ sub recreate_db
     my ( $label ) = @_;
 
     {
-
-        #TODO THIS is a hack -- if we're recreating the entire db anyway we shouldn't care if the schema doesn't match.
-        local %ENV = %ENV;
-        $ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
-        my $db = MediaWords::DB::connect_to_db( $label );
+        my $do_not_check_schema_version = 1;
+        my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
         say STDERR "reset schema ...";
 
@@ -323,10 +320,8 @@ sub upgrade_db
     my $db;
     {
 
-        #TODO THIS is a hack so that the DATABASE schema can be upgraded without us Dying because the schema is out of date
-        local %ENV = %ENV;
-        $ENV{ MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION } = 1;
-        $db = MediaWords::DB::connect_to_db( $label );
+        my $do_not_check_schema_version = 1;
+        $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
     }
 
     # Current schema version
