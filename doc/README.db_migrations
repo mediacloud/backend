@@ -3,14 +3,14 @@
 
 What follows is an imaginary tale of a Media Cloud developer who's trying to change the database schema and update the schema version appropriately.
 
-1. Checkout the db_migrations branch first:
--------------------------------------------
+1. Checkout the code from the repository:
+-----------------------------------------
 
-    svn co https://mediacloud.svn.sourceforge.net/svnroot/mediacloud/branches/db_migrations/ db_migrations
+    svn co https://mediacloud.svn.sourceforge.net/svnroot/mediacloud/trunk mediacloud
 
 1.1. I'm one of the Git fanboys so I use Git with a Subversion backend.
 
-In this case Git has a particular advantage -- it would automatically run pre-commit hooks for the developer (Subversion can only do that server-side, and Sourceforge doesn't support custom pre-commit hooks).
+In this case, Git has a particular advantage -- it would automatically run pre-commit hooks for the developer (Subversion can only do that server-side, and Sourceforge doesn't support custom pre-commit hooks).
 
 If you want to try Git out, install git-svn first (`sudo apt-get install git-core git-svn`) and then run:
 
@@ -18,9 +18,8 @@ If you want to try Git out, install git-svn first (`sudo apt-get install git-cor
     git svn clone -s https://mediacloud.svn.sourceforge.net/svnroot/mediacloud mediacloud
     cd mediacloud/
 
-    # Create a *local* branch called "local/db_migrations" from the *remote* SVN branch
-    # "db_migrations" while also checking it out
-    git checkout -b local/db_migrations db_migrations
+    # Export a list of ignored files from SVN to Git
+    git svn show-ignore >> .git/info/exclude
 
     # Set up a symlink to the pre-commit hook that would run each and every time a commit by the
     # developer is attempted
