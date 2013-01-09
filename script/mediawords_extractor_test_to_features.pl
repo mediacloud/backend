@@ -18,6 +18,7 @@ use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use MediaWords::Util::HTML;
 
 use MediaWords::DBI::Downloads;
 use Readonly;
@@ -101,7 +102,103 @@ sub get_word_counts
 
 }
 
-# do a test run of the text extractor
+sub add_distance_from_previous_line
+{
+    my ( $downloads ) = @_;
+
+    foreach my $download ( @{ $downloads } )
+    {
+
+        #say Dumper( keys %{ $download } );
+
+        #say Dumper ( $download->{ line_should_be_in_story } );
+
+        my $last_in_story_line;
+
+        my $line_num = 0;
+
+        foreach my $line ( @{ $download->{ line_info } } )
+        {
+
+            my $line_number = $line->{ line_number };
+
+            if ( defined( $last_in_story_line ) )
+            {
+                $line->{ distance_from_previous_in_story_line } = $line_number - $last_in_story_line;
+            }
+
+            $line->{ class } = $download->{ line_should_be_in_story }->{ $line_number } // 'excluded';
+
+            if ( $line->{ class } ne 'excluded' )
+            {
+                $last_in_story_line = $line_number;
+            }
+        }
+
+        #say Dumper ( $download->{ line_info } );
+
+        #last;
+    }
+    
+    return;
+
+}
+
+sub add_additional_features
+{
+    my ( $downloads ) = @_;
+
+    foreach my $download ( @{ $downloads } )
+    {
+
+        #say Dumper( keys %{ $download } );
+
+        #say Dumper ( $download->{ line_should_be_in_story } );
+
+        my $last_in_story_line;
+
+        my $line_num = 0;
+
+	my $ea = each_arrayref( $download->{ line_info } , $download->{ preprocessed_lines } );
+
+	while ( my ( $line_info, $line_text ) = $ea->() )
+        {
+
+	    my $plain_text = html_strip( $line_text );
+	    my $words = [ split /\s+/, $plain_text ];
+
+	    my $num_words =  scalar( @ { $words } );
+
+	    next if $num_words == 0;
+
+	    my $num_links = ( $line_text =~ /<a / );
+
+	    $line_info->{ links } = $num_links;
+	    if ( $num_links > 0 )
+	    {
+		$line_info->{ link_word_ratio } = $num_words / $num_links;
+	    }
+
+	    $line_info->{ num_words } = $num_words;
+
+	    my $word_characters_total_length = sum ( map { length( $_ ) } @ { $words } );
+
+	    $line_info->{ avg_word_length } = $word_characters_total_length / $num_words;
+
+	    my $upper_case_words = [ grep { ucfirst( $_ ) eq $_ } @ { $words }];
+
+	    my $num_uppercase = scalar( @ { $upper_case_words } );
+
+	    my $uppercase_ratio = $num_uppercase / $num_words;
+
+	    $line_info->{ num_uppercase }   = $num_uppercase;
+	    $line_info->{ uppercase_ratio } = $uppercase_ratio;
+        }
+    }
+    
+    return;
+}
+
 sub main
 {
     my $file;
@@ -148,62 +245,24 @@ sub main
 
     }
 
+    add_distance_from_previous_line( $downloads );
+
+    add_additional_features( $downloads );
+
     $word_counts = get_word_counts( $downloads );
 
     my @words = keys %{ $word_counts };
 
     @words = sort { $word_counts->{ $b } <=> $word_counts->{ $a } } @words;
 
-    foreach my $word ( @words[ 0 .. 10 ] )
-    {
-        say "$word " . $word_counts->{ $word };
-    }
+    # foreach my $word ( @words[ 0 .. 10 ] )
+    # {
+    #     say "$word " . $word_counts->{ $word };
+    # }
 
-    exit;
-    my %top_words = map { $_ => 1 } @words[ 0 .. 500 ];
-
-    foreach my $download ( @{ $downloads } )
-    {
-
-        #say Dumper( keys %{ $download } );
-
-        #say Dumper ( $download->{ line_should_be_in_story } );
-
-        my $last_in_story_line;
-
-        my $line_num = 0;
-
-        foreach my $line ( @{ $download->{ line_info } } )
-        {
-
-            if ( !$line->{ auto_excluded } )
-            {
-
-                #say STDERR Dumper( $line );
-
-                #exit;
-            }
-
-            my $line_number = $line->{ line_number };
-
-            if ( defined( $last_in_story_line ) )
-            {
-                $line->{ distance_from_previous_in_story_line } = $line_number - $last_in_story_line;
-            }
-
-            $line->{ class } = $download->{ line_should_be_in_story }->{ $line_number } // 'excluded';
-
-            if ( $line->{ class } ne 'excluded' )
-            {
-                $last_in_story_line = $line_number;
-            }
-        }
-
-        #say Dumper ( $download->{ line_info } );
-
-        #last;
-    }
-
+    #exit;
+    my %top_words = map { $_ => 1 }  @words[ 0 .. 1000 ];
+    
     my $banned_fields = {};
 
     {
@@ -217,14 +276,16 @@ sub main
 
     foreach my $download ( @{ $downloads } )
     {
-        foreach my $line ( @{ $download->{ line_info } } )
+	my $ea = each_arrayref ( $download->{ line_info }, $download->{ preprocessed_lines } );
+
+	while (my ($line_info, $line_text ) = $ea->() )
         {
 
-            next if $line->{ auto_excluded } == 1;
+            next if $line_info->{ auto_excluded } == 1;
 
-            my @feature_fields = sort ( keys %{ $line } );
+            my @feature_fields = sort ( keys %{ $line_info } );
 
-            #say join "\n", @feature_fields;
+            #say STDERR join "\n", @feature_fields;
 
             foreach my $feature_field ( @feature_fields )
             {
@@ -232,11 +293,11 @@ sub main
 
                 next if $feature_field eq 'class';
 
-                next if ( !defined( $line->{ $feature_field } ) );
-                next if ( $line->{ $feature_field } eq '0' );
-                next if ( $line->{ $feature_field } eq '' );
+                next if ( !defined( $line_info->{ $feature_field } ) );
+                next if ( $line_info->{ $feature_field } eq '0' );
+                next if ( $line_info->{ $feature_field } eq '' );
 
-                my $field_value = $line->{ $feature_field };
+                my $field_value = $line_info->{ $feature_field };
 
                 #next if ($field_valuene '1' &&$field_valuene '0' );
 
@@ -251,31 +312,41 @@ sub main
                     my $val = 1.0;
 
                     #say STDERR $field_value;
+
+		    my $last_feature = '';
                     while ( $field_value < $val )
-                    {
-                        print "$feature_field" . "_lt_" . $val;
-                        print " ";
+                   {
+		       $last_feature = "$feature_field" . "_lt_" . $val;
                         $val /= 2;
                     }
 
-                    # print "$feature_field";
-                    # print "=" . $field_value; # || 0;
-                    # print " ";
 
-                    #exit ;
                     $val = 1.0;
 
                     while ( $field_value > $val )
                     {
-                        print "$feature_field" . "_gt_" . $val;
-                        print " ";
+                        $last_feature = "$feature_field" . "_gt_" . $val;
                         $val *= 2;
                     }
+
+		    die if $last_feature eq '';
+		    print "$last_feature ";
                 }
 
             }
 
-            say $line->{ class };
+	    my $words = words_on_line( $line_text );
+
+	    foreach my $word ( @ { $words } )
+	    {
+		last;
+		if ( $top_words{ $word } )
+		{
+		    print "unigram_$word ";
+		}
+	    }
+
+            say $line_info->{ class };
 
             #exit;
 
