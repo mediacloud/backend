@@ -75,9 +75,9 @@ sub get_word_counts
         my $line_infos         = $download->{ line_info };
         my $preprocessed_lines = $download->{ preprocessed_lines };
 
-        my $ea =  each_arrayref ( $line_infos, $preprocessed_lines );
+        my $ea = each_arrayref( $line_infos, $preprocessed_lines );
 
-	while ( my ( $line_info, $preprocessed_line ) = $ea->() )
+        while ( my ( $line_info, $preprocessed_line ) = $ea->() )
         {
             if ( $line_info->{ auto_excluded } )
             {
@@ -160,8 +160,8 @@ sub main
     }
 
     exit;
-    my %top_words = map { $_ => 1 }  @words[ 0 .. 500 ];
-    
+    my %top_words = map { $_ => 1 } @words[ 0 .. 500 ];
+
     foreach my $download ( @{ $downloads } )
     {
 
