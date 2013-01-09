@@ -139,7 +139,7 @@ sub add_distance_from_previous_line
 
         #last;
     }
-    
+
     return;
 
 }
@@ -159,43 +159,43 @@ sub add_additional_features
 
         my $line_num = 0;
 
-	my $ea = each_arrayref( $download->{ line_info } , $download->{ preprocessed_lines } );
+        my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
 
-	while ( my ( $line_info, $line_text ) = $ea->() )
+        while ( my ( $line_info, $line_text ) = $ea->() )
         {
 
-	    my $plain_text = html_strip( $line_text );
-	    my $words = [ split /\s+/, $plain_text ];
+            my $plain_text = html_strip( $line_text );
+            my $words = [ split /\s+/, $plain_text ];
 
-	    my $num_words =  scalar( @ { $words } );
+            my $num_words = scalar( @{ $words } );
 
-	    next if $num_words == 0;
+            next if $num_words == 0;
 
-	    my $num_links = ( $line_text =~ /<a / );
+            my $num_links = ( $line_text =~ /<a / );
 
-	    $line_info->{ links } = $num_links;
-	    if ( $num_links > 0 )
-	    {
-		$line_info->{ link_word_ratio } = $num_words / $num_links;
-	    }
+            $line_info->{ links } = $num_links;
+            if ( $num_links > 0 )
+            {
+                $line_info->{ link_word_ratio } = $num_words / $num_links;
+            }
 
-	    $line_info->{ num_words } = $num_words;
+            $line_info->{ num_words } = $num_words;
 
-	    my $word_characters_total_length = sum ( map { length( $_ ) } @ { $words } );
+            my $word_characters_total_length = sum( map { length( $_ ) } @{ $words } );
 
-	    $line_info->{ avg_word_length } = $word_characters_total_length / $num_words;
+            $line_info->{ avg_word_length } = $word_characters_total_length / $num_words;
 
-	    my $upper_case_words = [ grep { ucfirst( $_ ) eq $_ } @ { $words }];
+            my $upper_case_words = [ grep { ucfirst( $_ ) eq $_ } @{ $words } ];
 
-	    my $num_uppercase = scalar( @ { $upper_case_words } );
+            my $num_uppercase = scalar( @{ $upper_case_words } );
 
-	    my $uppercase_ratio = $num_uppercase / $num_words;
+            my $uppercase_ratio = $num_uppercase / $num_words;
 
-	    $line_info->{ num_uppercase }   = $num_uppercase;
-	    $line_info->{ uppercase_ratio } = $uppercase_ratio;
+            $line_info->{ num_uppercase }   = $num_uppercase;
+            $line_info->{ uppercase_ratio } = $uppercase_ratio;
         }
     }
-    
+
     return;
 }
 
@@ -261,8 +261,8 @@ sub main
     # }
 
     #exit;
-    my %top_words = map { $_ => 1 }  @words[ 0 .. 1000 ];
-    
+    my %top_words = map { $_ => 1 } @words[ 0 .. 1000 ];
+
     my $banned_fields = {};
 
     {
@@ -276,9 +276,9 @@ sub main
 
     foreach my $download ( @{ $downloads } )
     {
-	my $ea = each_arrayref ( $download->{ line_info }, $download->{ preprocessed_lines } );
+        my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
 
-	while (my ($line_info, $line_text ) = $ea->() )
+        while ( my ( $line_info, $line_text ) = $ea->() )
         {
 
             next if $line_info->{ auto_excluded } == 1;
@@ -313,13 +313,12 @@ sub main
 
                     #say STDERR $field_value;
 
-		    my $last_feature = '';
+                    my $last_feature = '';
                     while ( $field_value < $val )
-                   {
-		       $last_feature = "$feature_field" . "_lt_" . $val;
+                    {
+                        $last_feature = "$feature_field" . "_lt_" . $val;
                         $val /= 2;
                     }
-
 
                     $val = 1.0;
 
@@ -329,22 +328,22 @@ sub main
                         $val *= 2;
                     }
 
-		    die if $last_feature eq '';
-		    print "$last_feature ";
+                    die if $last_feature eq '';
+                    print "$last_feature ";
                 }
 
             }
 
-	    my $words = words_on_line( $line_text );
+            my $words = words_on_line( $line_text );
 
-	    foreach my $word ( @ { $words } )
-	    {
-		last;
-		if ( $top_words{ $word } )
-		{
-		    print "unigram_$word ";
-		}
-	    }
+            foreach my $word ( @{ $words } )
+            {
+                last;
+                if ( $top_words{ $word } )
+                {
+                    print "unigram_$word ";
+                }
+            }
 
             say $line_info->{ class };
 
