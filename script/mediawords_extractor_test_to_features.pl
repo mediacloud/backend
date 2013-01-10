@@ -131,10 +131,6 @@ sub add_distance_from_previous_line
     foreach my $download ( @{ $downloads } )
     {
 
-        #say Dumper( keys %{ $download } );
-
-        #say Dumper ( $download->{ line_should_be_in_story } );
-
         my $last_in_story_line;
 
         my $line_num = 0;
@@ -157,9 +153,6 @@ sub add_distance_from_previous_line
             }
         }
 
-        #say Dumper ( $download->{ line_info } );
-
-        #last;
     }
 
     return;
