@@ -285,8 +285,8 @@ sub main
     {
         my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
 
-	MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info },
-								    $download->{ preprocessed_lines } );
+        MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info },
+            $download->{ preprocessed_lines } );
 
         while ( my ( $line_info, $line_text ) = $ea->() )
         {
