@@ -224,6 +224,93 @@ sub sort_pmi
     return $ret;
 }
 
+my $banned_fields;
+
+sub get_feature_string_from_line_info
+{
+
+    my ( $line_info, $line_text, $top_words ) = @_;
+
+    my @feature_fields = sort ( keys %{ $line_info } );
+
+    my $ret = '';
+
+    #say STDERR join "\n", @feature_fields;
+
+    if ( !defined( $banned_fields ) )
+    {
+        my @banned_fields = qw ( line_number auto_excluded auto_exclude_explanation copyright_copy );
+
+	$banned_fields = {};
+
+        foreach my $banned_field ( @banned_fields )
+        {
+            $banned_fields->{ $banned_field } = 1;
+        }
+    }
+
+    foreach my $feature_field ( @feature_fields )
+    {
+        next if defined( $banned_fields->{ $feature_field } );
+
+        next if $feature_field eq 'class';
+
+        next if ( !defined( $line_info->{ $feature_field } ) );
+        next if ( $line_info->{ $feature_field } eq '0' );
+        next if ( $line_info->{ $feature_field } eq '' );
+
+        my $field_value = $line_info->{ $feature_field };
+
+        #next if ($field_valuene '1' &&$field_valuene '0' );
+
+        if ( $field_value eq '1' )
+        {
+            $ret .= "$feature_field";
+            $ret .= "=" . $field_value;    # || 0;
+            $ret .= " ";
+        }
+        else
+        {
+            my $val = 1.0;
+
+            #say STDERR $field_value;
+
+            my $last_feature = '';
+            while ( $field_value < $val )
+            {
+                $last_feature = "$feature_field" . "_lt_" . $val;
+                $val /= 2;
+            }
+
+            $val = 1.0;
+
+            while ( $field_value > $val )
+            {
+                $last_feature = "$feature_field" . "_gt_" . $val;
+                $val *= 2;
+            }
+
+            die if $last_feature eq '';
+            $ret .= "$last_feature ";
+        }
+
+    }
+
+    my $words = words_on_line( $line_text );
+
+    foreach my $word ( @{ $words } )
+    {
+
+        next if ( defined( $top_words) && ( ! $top_words->{ $word } ) );
+
+	$ret .= "unigram_$word ";
+    }
+
+    $ret .= $line_info->{ class };
+
+    #exit;
+}
+
 sub main
 {
     my $file;
@@ -333,17 +420,6 @@ sub main
     }
 
     #    exit;
-    my $banned_fields = {};
-
-    {
-        my @banned_fields = qw ( line_number auto_excluded auto_exclude_explanation copyright_copy );
-
-        foreach my $banned_field ( @banned_fields )
-        {
-            $banned_fields->{ $banned_field } = 1;
-        }
-    }
-
     foreach my $download ( @{ $downloads } )
     {
         my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
@@ -352,78 +428,9 @@ sub main
         {
 
             next if $line_info->{ auto_excluded } == 1;
-
-            my @feature_fields = sort ( keys %{ $line_info } );
-
-            #say STDERR join "\n", @feature_fields;
-
-            foreach my $feature_field ( @feature_fields )
-            {
-                next if defined( $banned_fields->{ $feature_field } );
-
-                next if $feature_field eq 'class';
-
-                next if ( !defined( $line_info->{ $feature_field } ) );
-                next if ( $line_info->{ $feature_field } eq '0' );
-                next if ( $line_info->{ $feature_field } eq '' );
-
-                my $field_value = $line_info->{ $feature_field };
-
-                #next if ($field_valuene '1' &&$field_valuene '0' );
-
-                if ( $field_value eq '1' )
-                {
-                    print "$feature_field";
-                    print "=" . $field_value;    # || 0;
-                    print " ";
-                }
-                else
-                {
-                    my $val = 1.0;
-
-                    #say STDERR $field_value;
-
-                    my $last_feature = '';
-                    while ( $field_value < $val )
-                    {
-                        $last_feature = "$feature_field" . "_lt_" . $val;
-                        $val /= 2;
-                    }
-
-                    $val = 1.0;
-
-                    while ( $field_value > $val )
-                    {
-                        $last_feature = "$feature_field" . "_gt_" . $val;
-                        $val *= 2;
-                    }
-
-                    die if $last_feature eq '';
-                    print "$last_feature ";
-                }
-
-            }
-
-            my $words = words_on_line( $line_text );
-
-            foreach my $word ( @{ $words } )
-            {
-
-                #last;
-                if ( $top_words{ $word } )
-                {
-                    print "unigram_$word ";
-                }
-            }
-
-            say $line_info->{ class };
-
-            #exit;
-
+            my $feature_string = get_feature_string_from_line_info( $line_info, $line_text, \%top_words );
+            say $feature_string;
         }
-
-        #exit;
-
     }
 }
 
