@@ -166,26 +166,6 @@ sub add_distance_from_previous_line
 
 }
 
-sub add_additional_features
-{
-    my ( $downloads ) = @_;
-
-    say STDERR "start add_additonal_features";
-
-    foreach my $download ( @{ $downloads } )
-    {
-
-        #say STDERR "Foo";
-
-        MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info },
-            $download->{ preprocessed_lines } );
-    }
-
-    #say STDERR "Foo";
-
-    return;
-}
-
 sub sort_pmi
 {
     my ( $pmi ) = @_;
@@ -209,8 +189,6 @@ sub sort_pmi
 sub get_top_words
 {
     my ( $downloads ) = @_;
-
-    my %top_words;
 
     my $word_counts = get_word_counts( $downloads );
 
@@ -295,13 +273,11 @@ sub main
 
     add_distance_from_previous_line( $downloads );
 
-    say STDERR "About to call add_additional_features";
+    # say STDERR "About to call add_additional_features";
 
-    add_additional_features( $downloads );
+    # add_additional_features( $downloads );
 
-    say STDERR "Returned from call to add_additional_features";
-
-    #    exit;
+    # say STDERR "Returned from call to add_additional_features";
 
     my $top_words = get_top_words( $downloads );
 
@@ -309,10 +285,14 @@ sub main
     {
         my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
 
+	MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info },
+								    $download->{ preprocessed_lines } );
+
         while ( my ( $line_info, $line_text ) = $ea->() )
         {
 
             next if $line_info->{ auto_excluded } == 1;
+
             my $feature_string =
               MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );
             say $feature_string;
