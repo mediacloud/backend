@@ -6,7 +6,7 @@ from pubsub import pub
 import nltk
 
 from mediacloud.api import MediaCloud
-from mediacloud.storage import StoryDatabase
+from mediacloud.storage import *
 import mediacloud.examples
 
 '''
@@ -19,7 +19,7 @@ config = ConfigParser.ConfigParser()
 config.read('mc-client.config')
 
 # set up a connection to a local DB
-db = StoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
+db = CouchStoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )

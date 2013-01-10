@@ -7,7 +7,7 @@ import nltk
 import logging
 
 from mediacloud.api import MediaCloud
-from mediacloud.storage import StoryDatabase
+from mediacloud.storage import *
 import mediacloud.examples
 
 '''
@@ -27,7 +27,7 @@ log = logging.getLogger('mc-realtime')
 log.info("---------------------------------------------------------------------------")
 
 # setup a connection to a local DB
-db = StoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
+db = CouchStoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
 
 # setup the mediacloud connection
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )

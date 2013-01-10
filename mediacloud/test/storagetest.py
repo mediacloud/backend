@@ -1,27 +1,27 @@
 
 import unittest
 import mediacloud.examples
-from mediacloud.storage import StoryDatabase
+from mediacloud.storage import CouchStoryDatabase
 
 class StorageTest(unittest.TestCase):
 
     TEST_DB_NAME = 'mediacloud-test'
 
-    def testCreateMaxIdView(self):
-        db = StoryDatabase()
+    def testCouchCreateMaxIdView(self):
+        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
-        db._db.save(mediacloud.examples.getAllExampleViews())
+        db.insertExampleViews()
         self.assertEquals(db.getMaxStoryId(),0)
         db.deleteDatabase(self.TEST_DB_NAME)        
 
-    def testManageDatabase(self):
-        db = StoryDatabase()
+    def testCouchManageDatabase(self):
+        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testAddStory(self):
+    def testCouchAddStory(self):
         story = self._getFakeStory()
-        db = StoryDatabase()
+        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
         worked = db.addStory(story)
         self.assertTrue(worked)
@@ -32,9 +32,9 @@ class StorageTest(unittest.TestCase):
         self.assertEquals(saved_story['story_sentences_count'], 2)
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testStoryExists(self):
+    def testCouchStoryExists(self):
         story = self._getFakeStory()
-        db = StoryDatabase()
+        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
         db.addStory(story)
         saved_story = db.getStory(str(story['stories_id']))
@@ -42,14 +42,14 @@ class StorageTest(unittest.TestCase):
         self.assertFalse(db.storyExists('43223535'))
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testGetMaxStoryId(self):
+    def testCouchGetMaxStoryId(self):
         story1 = self._getFakeStory()
         story1['stories_id'] = "1000"
         story2 = self._getFakeStory()
         story1['stories_id'] = "2000"
-        db = StoryDatabase()
+        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
-        db._db.save(mediacloud.examples.getAllExampleViews())
+        db.insertExampleViews()
         self.assertEquals(db.getMaxStoryId(),0)
         db.addStory(story1)
         db.addStory(story2)
