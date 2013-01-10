@@ -132,8 +132,8 @@ sub get_word_counts_by_class
 
                 foreach my $word ( @words )
                 {
-                    $word_counts->{$line_info->{class}}->{ $word } //= 0;
-                    $word_counts->{$line_info->{class}}->{ $word }++;
+                    $word_counts->{ $line_info->{ class } }->{ $word } //= 0;
+                    $word_counts->{ $line_info->{ class } }->{ $word }++;
                 }
             }
         }
@@ -141,7 +141,6 @@ sub get_word_counts_by_class
 
     return $word_counts;
 }
-
 
 sub add_distance_from_previous_line
 {
@@ -193,13 +192,14 @@ sub add_additional_features
 
     foreach my $download ( @{ $downloads } )
     {
-	#say STDERR "Foo";
 
-	MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info }, $download->{ preprocessed_lines } );
+        #say STDERR "Foo";
+
+        MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info },
+            $download->{ preprocessed_lines } );
     }
 
     #say STDERR "Foo";
-
 
     return;
 }
@@ -210,16 +210,17 @@ sub sort_pmi
 
     my $ret = {};
 
-    foreach my $class ( keys % { $pmi } ) {
-	my $class_pmi = $pmi->{ $class };
+    foreach my $class ( keys %{ $pmi } )
+    {
+        my $class_pmi = $pmi->{ $class };
 
-	my @features = keys { % $class_pmi };
+        my @features = keys { %$class_pmi };
 
-	my $sorted_features = [ sort { $class_pmi->{ $b } <=> $class_pmi->{ $a } } @features ];
+        my $sorted_features = [ sort { $class_pmi->{ $b } <=> $class_pmi->{ $a } } @features ];
 
-	$ret->{ $class } = $sorted_features;
+        $ret->{ $class } = $sorted_features;
     }
-    
+
     return $ret;
 }
 
@@ -256,24 +257,23 @@ sub main
 
     $word_counts = get_word_counts( $downloads );
 
-    my $word_counts_by_class = get_word_counts_by_class ( $downloads );
+    my $word_counts_by_class = get_word_counts_by_class( $downloads );
 
     #say Dumper( $word_counts_by_class );
 
-    use  Algorithm::FeatureSelection;
+    use Algorithm::FeatureSelection;
 
     my $fs = Algorithm::FeatureSelection->new();
 
     my $ig = $fs->information_gain( $word_counts_by_class );
 
- #   say Dumper( $ig );
+    #   say Dumper( $ig );
 
     my $igr = $fs->information_gain_ratio( $word_counts_by_class );
 
- #   say Dumper( $igr );
+    #   say Dumper( $igr );
 
     my $pmi = $fs->pairwise_mutual_information( $word_counts_by_class );
-
 
     my $pmi_sorted = sort_pmi( $pmi );
 
@@ -281,23 +281,23 @@ sub main
 
     my $high_pmi_words = [];
 
-    
-    foreach my $class ( keys % $pmi_sorted )
+    foreach my $class ( keys %$pmi_sorted )
     {
 
-#	say "class : $class";
-#	say Dumper( $pmi_sorted->{ $class } );
+        #	say "class : $class";
+        #	say Dumper( $pmi_sorted->{ $class } );
 
-	my $list =  $pmi_sorted->{ $class };
+        my $list = $pmi_sorted->{ $class };
 
-	#say Dumper( $list );
+        #say Dumper( $list );
 
-	my @top_15 = @{$list}[ 0 ... 10 ];
+        my @top_15 = @{ $list }[ 0 ... 10 ];
 
-	#say Dumper ( [ @top_15 ] );	
+        #say Dumper ( [ @top_15 ] );
 
-	push $high_pmi_words, @top_15;
-	#say Dumper( $high_pmi_words );
+        push $high_pmi_words, @top_15;
+
+        #say Dumper( $high_pmi_words );
     }
 
     #say Dumper ( $high_pmi_words );
@@ -316,21 +316,23 @@ sub main
     #exit;
     my %top_words = map { $_ => 1 } @words[ 0 .. 1000 ];
 
-    foreach my $high_pmi_word ( @ { $high_pmi_words } )
+    foreach my $high_pmi_word ( @{ $high_pmi_words } )
     {
-	if ( defined ( $top_words{ $high_pmi_word } ) )
-	{
-	    #say "$high_pmi_word is in top words";
-	}
-	else
-	{
-	    #say "$high_pmi_word is NOT in top words";
-	}
+        if ( defined( $top_words{ $high_pmi_word } ) )
+        {
 
-	 # $top_words{ $high_pmi_word } = 1;
+            #say "$high_pmi_word is in top words";
+        }
+        else
+        {
+
+            #say "$high_pmi_word is NOT in top words";
+        }
+
+        # $top_words{ $high_pmi_word } = 1;
     }
 
-#    exit;
+    #    exit;
     my $banned_fields = {};
 
     {
@@ -406,6 +408,7 @@ sub main
 
             foreach my $word ( @{ $words } )
             {
+
                 #last;
                 if ( $top_words{ $word } )
                 {
