@@ -102,6 +102,47 @@ sub get_word_counts
 
 }
 
+sub get_word_counts_by_class
+{
+    my ( $downloads ) = @_;
+
+    my $word_counts = {};
+
+    foreach my $download ( @{ $downloads } )
+    {
+        my $line_count = scalar( @{ $download->{ line_info } } );
+
+        die unless scalar( @{ $download->{ line_info } } ) == scalar( @{ $download->{ preprocessed_lines } } );
+
+        my $line_infos         = $download->{ line_info };
+        my $preprocessed_lines = $download->{ preprocessed_lines };
+
+        my $ea = each_arrayref( $line_infos, $preprocessed_lines );
+
+        while ( my ( $line_info, $preprocessed_line ) = $ea->() )
+        {
+            if ( $line_info->{ auto_excluded } )
+            {
+                next if $preprocessed_line eq '';
+                next if $preprocessed_line eq ' ';
+
+                #say Dumper($preprocessed_line );
+
+                my @words = @{ words_on_line( $preprocessed_line ) };
+
+                foreach my $word ( @words )
+                {
+                    $word_counts->{$line_info->{class}}->{ $word } //= 0;
+                    $word_counts->{$line_info->{class}}->{ $word }++;
+                }
+            }
+        }
+    }
+
+    return $word_counts;
+}
+
+
 sub add_distance_from_previous_line
 {
     my ( $downloads ) = @_;
@@ -148,55 +189,38 @@ sub add_additional_features
 {
     my ( $downloads ) = @_;
 
+    say STDERR "start add_additonal_features";
+
     foreach my $download ( @{ $downloads } )
     {
+	#say STDERR "Foo";
 
-        #say Dumper( keys %{ $download } );
-
-        #say Dumper ( $download->{ line_should_be_in_story } );
-
-        my $last_in_story_line;
-
-        my $line_num = 0;
-
-        my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
-
-        while ( my ( $line_info, $line_text ) = $ea->() )
-        {
-
-            my $plain_text = html_strip( $line_text );
-            my $words = [ split /\s+/, $plain_text ];
-
-            my $num_words = scalar( @{ $words } );
-
-            next if $num_words == 0;
-
-            my $num_links = ( $line_text =~ /<a / );
-
-            $line_info->{ links } = $num_links;
-            if ( $num_links > 0 )
-            {
-                $line_info->{ link_word_ratio } = $num_words / $num_links;
-            }
-
-            $line_info->{ num_words } = $num_words;
-
-            my $word_characters_total_length = sum( map { length( $_ ) } @{ $words } );
-
-            $line_info->{ avg_word_length } = $word_characters_total_length / $num_words;
-
-            my $upper_case_words = [ grep { ucfirst( $_ ) eq $_ } @{ $words } ];
-
-            my $num_uppercase = scalar( @{ $upper_case_words } );
-
-            my $uppercase_ratio = $num_uppercase / $num_words;
-
-            $line_info->{ num_uppercase }   = $num_uppercase;
-            $line_info->{ uppercase_ratio } = $uppercase_ratio;
-        }
+	MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info }, $download->{ preprocessed_lines } );
     }
 
+    #say STDERR "Foo";
+
+
     return;
+}
+
+sub sort_pmi
+{
+    my ( $pmi ) = @_;
+
+    my $ret = {};
+
+    foreach my $class ( keys % { $pmi } ) {
+	my $class_pmi = $pmi->{ $class };
+
+	my @features = keys { % $class_pmi };
+
+	my $sorted_features = [ sort { $class_pmi->{ $b } <=> $class_pmi->{ $a } } @features ];
+
+	$ret->{ $class } = $sorted_features;
+    }
+    
+    return $ret;
 }
 
 sub main
@@ -222,34 +246,63 @@ sub main
 
     my $word_counts = {};
 
-    foreach my $download ( @{ $downloads } )
-    {
-        foreach my $preprocessed_line ( @{ $download->{ preprocessed_lines } } )
-        {
-
-            next if $preprocessed_line eq '';
-            next if $preprocessed_line eq ' ';
-
-            #say Dumper($preprocessed_line );
-
-            my @words = split /\s+/, $preprocessed_line;
-
-            foreach my $word ( @words )
-            {
-                $word_counts->{ $word } //= 0;
-                $word_counts->{ $word }++;
-            }
-        }
-
-        #last;
-
-    }
-
     add_distance_from_previous_line( $downloads );
+
+    say STDERR "About to call add_additional_features";
 
     add_additional_features( $downloads );
 
+    say STDERR "Returned from call to add_additional_features";
+
     $word_counts = get_word_counts( $downloads );
+
+    my $word_counts_by_class = get_word_counts_by_class ( $downloads );
+
+    #say Dumper( $word_counts_by_class );
+
+    use  Algorithm::FeatureSelection;
+
+    my $fs = Algorithm::FeatureSelection->new();
+
+    my $ig = $fs->information_gain( $word_counts_by_class );
+
+ #   say Dumper( $ig );
+
+    my $igr = $fs->information_gain_ratio( $word_counts_by_class );
+
+ #   say Dumper( $igr );
+
+    my $pmi = $fs->pairwise_mutual_information( $word_counts_by_class );
+
+
+    my $pmi_sorted = sort_pmi( $pmi );
+
+    #say Dumper( $pmi_sorted );
+
+    my $high_pmi_words = [];
+
+    
+    foreach my $class ( keys % $pmi_sorted )
+    {
+
+#	say "class : $class";
+#	say Dumper( $pmi_sorted->{ $class } );
+
+	my $list =  $pmi_sorted->{ $class };
+
+	#say Dumper( $list );
+
+	my @top_15 = @{$list}[ 0 ... 10 ];
+
+	#say Dumper ( [ @top_15 ] );	
+
+	push $high_pmi_words, @top_15;
+	#say Dumper( $high_pmi_words );
+    }
+
+    #say Dumper ( $high_pmi_words );
+
+    #exit;
 
     my @words = keys %{ $word_counts };
 
@@ -263,6 +316,21 @@ sub main
     #exit;
     my %top_words = map { $_ => 1 } @words[ 0 .. 1000 ];
 
+    foreach my $high_pmi_word ( @ { $high_pmi_words } )
+    {
+	if ( defined ( $top_words{ $high_pmi_word } ) )
+	{
+	    #say "$high_pmi_word is in top words";
+	}
+	else
+	{
+	    #say "$high_pmi_word is NOT in top words";
+	}
+
+	 # $top_words{ $high_pmi_word } = 1;
+    }
+
+#    exit;
     my $banned_fields = {};
 
     {
@@ -338,7 +406,7 @@ sub main
 
             foreach my $word ( @{ $words } )
             {
-                last;
+                #last;
                 if ( $top_words{ $word } )
                 {
                     print "unigram_$word ";
