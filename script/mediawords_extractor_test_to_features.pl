@@ -43,24 +43,6 @@ my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
 my $_dump_training_data_csv;
 
-sub words_on_line
-{
-    my ( $line ) = @_;
-
-    my $ret = [];
-
-    trim( $line );
-
-    return $ret if $line eq '';
-    return $ret if $line eq ' ';
-
-    my @words = split /\s+/, $line;
-
-    $ret = [ uniq( @words ) ];
-
-    return $ret;
-}
-
 sub get_word_counts
 {
     my ( $downloads ) = @_;
@@ -87,7 +69,7 @@ sub get_word_counts
 
                 #say Dumper($preprocessed_line );
 
-                my @words = @{ words_on_line( $preprocessed_line ) };
+                my @words = @{ MediaWords::Crawler::AnalyzeLines::words_on_line( $preprocessed_line ) };
 
                 foreach my $word ( @words )
                 {
@@ -128,7 +110,7 @@ sub get_word_counts_by_class
 
                 #say Dumper($preprocessed_line );
 
-                my @words = @{ words_on_line( $preprocessed_line ) };
+                my @words = @{ MediaWords::Crawler::AnalyzeLines::words_on_line( $preprocessed_line ) };
 
                 foreach my $word ( @words )
                 {
@@ -222,93 +204,6 @@ sub sort_pmi
     }
 
     return $ret;
-}
-
-my $banned_fields;
-
-sub get_feature_string_from_line_info
-{
-
-    my ( $line_info, $line_text, $top_words ) = @_;
-
-    my @feature_fields = sort ( keys %{ $line_info } );
-
-    my $ret = '';
-
-    #say STDERR join "\n", @feature_fields;
-
-    if ( !defined( $banned_fields ) )
-    {
-        my @banned_fields = qw ( line_number auto_excluded auto_exclude_explanation copyright_copy );
-
-        $banned_fields = {};
-
-        foreach my $banned_field ( @banned_fields )
-        {
-            $banned_fields->{ $banned_field } = 1;
-        }
-    }
-
-    foreach my $feature_field ( @feature_fields )
-    {
-        next if defined( $banned_fields->{ $feature_field } );
-
-        next if $feature_field eq 'class';
-
-        next if ( !defined( $line_info->{ $feature_field } ) );
-        next if ( $line_info->{ $feature_field } eq '0' );
-        next if ( $line_info->{ $feature_field } eq '' );
-
-        my $field_value = $line_info->{ $feature_field };
-
-        #next if ($field_valuene '1' &&$field_valuene '0' );
-
-        if ( $field_value eq '1' )
-        {
-            $ret .= "$feature_field";
-            $ret .= "=" . $field_value;    # || 0;
-            $ret .= " ";
-        }
-        else
-        {
-            my $val = 1.0;
-
-            #say STDERR $field_value;
-
-            my $last_feature = '';
-            while ( $field_value < $val )
-            {
-                $last_feature = "$feature_field" . "_lt_" . $val;
-                $val /= 2;
-            }
-
-            $val = 1.0;
-
-            while ( $field_value > $val )
-            {
-                $last_feature = "$feature_field" . "_gt_" . $val;
-                $val *= 2;
-            }
-
-            die if $last_feature eq '';
-            $ret .= "$last_feature ";
-        }
-
-    }
-
-    my $words = words_on_line( $line_text );
-
-    foreach my $word ( @{ $words } )
-    {
-
-        next if ( defined( $top_words ) && ( !$top_words->{ $word } ) );
-
-        $ret .= "unigram_$word ";
-    }
-
-    $ret .= $line_info->{ class };
-
-    #exit;
 }
 
 sub main
@@ -428,7 +323,8 @@ sub main
         {
 
             next if $line_info->{ auto_excluded } == 1;
-            my $feature_string = get_feature_string_from_line_info( $line_info, $line_text, \%top_words );
+            my $feature_string =
+              MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, \%top_words );
             say $feature_string;
         }
     }
