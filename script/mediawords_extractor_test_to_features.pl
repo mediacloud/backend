@@ -241,7 +241,7 @@ sub get_feature_string_from_line_info
     {
         my @banned_fields = qw ( line_number auto_excluded auto_exclude_explanation copyright_copy );
 
-	$banned_fields = {};
+        $banned_fields = {};
 
         foreach my $banned_field ( @banned_fields )
         {
@@ -301,9 +301,9 @@ sub get_feature_string_from_line_info
     foreach my $word ( @{ $words } )
     {
 
-        next if ( defined( $top_words) && ( ! $top_words->{ $word } ) );
+        next if ( defined( $top_words ) && ( !$top_words->{ $word } ) );
 
-	$ret .= "unigram_$word ";
+        $ret .= "unigram_$word ";
     }
 
     $ret .= $line_info->{ class };
