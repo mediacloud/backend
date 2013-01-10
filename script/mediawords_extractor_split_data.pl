@@ -1,0 +1,245 @@
+#!/usr/bin/env perl
+
+# test MediaWords::Crawler::Extractor against manually extracted downloads
+
+use strict;
+use warnings;
+
+BEGIN
+{
+    use FindBin;
+    use lib "$FindBin::Bin/../lib";
+}
+
+use MediaWords::Crawler::Extractor;
+use Getopt::Long;
+use HTML::Strip;
+use DBIx::Simple::MediaWords;
+use MediaWords::DB;
+use Modern::Perl "2012";
+use MediaWords::CommonLibs;
+
+use MediaWords::DBI::Downloads;
+use Readonly;
+use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use List::Compare::Functional qw (get_unique get_complement get_union_ref );
+use Lingua::EN::Sentence::MediaWords;
+
+use Data::Dumper;
+use MediaWords::Util::HTML;
+use MediaWords::Util::ExtractorTest;
+use Data::Compare;
+use Storable;
+use 5.14.2;
+
+my $_re_generate_cache = 0;
+my $_test_sentences    = 0;
+
+my $_download_data_load_file;
+my $_download_data_store_file;
+my $_dont_store_preprocessed_lines;
+my $_dump_training_data_csv;
+
+# do a test run of the text extractor
+sub main
+{
+    my $full_data_file;
+
+    my $test_file;
+    my $hold_out_data_file;
+
+    GetOptions(
+        'full_data_file|f=s'     => \$full_data_file,
+        'test_data_file|f=s'     => \$test_file,
+        'hold_out_data_file|f=s' => \$hold_out_data_file,
+    ) or die;
+
+    die unless $full_data_file && $test_file && $hold_out_data_file;
+
+    my $downloads = retrieve( $full_data_file );
+
+    srand( 12345 );
+
+    $downloads = [ shuffle @{ $downloads } ];
+
+    my $total_downloads = scalar( @{ $downloads } );
+
+    my $test_downloads = [ @{ $downloads }[ 0 ... int( $total_downloads * 0.8 ) ] ];
+    my $heldout_downloads = [ @{ $downloads }[ ( int( $total_downloads * 0.8 ) + 1 ) ... int( $total_downloads - 1 ) ] ];
+
+    die unless $total_downloads == scalar( @{ $test_downloads } ) + scalar( @{ $heldout_downloads } );
+
+    say "Total_downloads: $total_downloads";
+    say "Test_downloads: " . scalar( @$test_downloads );
+    say "heldout downloads : " . scalar( @$heldout_downloads );
+
+    store( $test_downloads,    $test_file )          or die "$!";
+    store( $heldout_downloads, $hold_out_data_file ) or die "$!";
+
+    exit;
+
+    #say Dumper( $downloads );
+
+    say STDERR "retrieved file";
+
+    my $word_counts = {};
+
+    foreach my $download ( @{ $downloads } )
+    {
+        foreach my $preprocessed_line ( @{ $download->{ preprocessed_lines } } )
+        {
+
+            next if $preprocessed_line eq '';
+            next if $preprocessed_line eq ' ';
+
+            #say Dumper($preprocessed_line );
+
+            my @words = split /\s+/, $preprocessed_line;
+
+            foreach my $word ( @words )
+            {
+                $word_counts->{ $word } //= 0;
+                $word_counts->{ $word }++;
+            }
+        }
+
+        #last;
+
+    }
+
+    my @words = keys %{ $word_counts };
+
+    @words = sort { $word_counts->{ $b } <=> $word_counts->{ $a } } @words;
+
+    foreach my $word ( @words[ 0 .. 100 ] )
+    {
+        say "$word " . $word_counts->{ $word };
+    }
+
+    exit;
+
+    foreach my $download ( @{ $downloads } )
+    {
+
+        #say Dumper( keys %{ $download } );
+
+        #say Dumper ( $download->{ line_should_be_in_story } );
+
+        my $last_in_story_line;
+
+        my $line_num = 0;
+
+        foreach my $line ( @{ $download->{ line_info } } )
+        {
+
+            if ( !$line->{ auto_excluded } )
+            {
+
+                #say STDERR Dumper( $line );
+
+                #exit;
+            }
+
+            my $line_number = $line->{ line_number };
+
+            if ( defined( $last_in_story_line ) )
+            {
+                $line->{ distance_from_previous_in_story_line } = $line_number - $last_in_story_line;
+            }
+
+            $line->{ class } = $download->{ line_should_be_in_story }->{ $line_number } // 'excluded';
+
+            if ( $line->{ class } ne 'excluded' )
+            {
+                $last_in_story_line = $line_number;
+            }
+        }
+
+        #say Dumper ( $download->{ line_info } );
+
+        #last;
+    }
+
+    my $banned_fields = {};
+
+    {
+        my @banned_fields = qw ( line_number auto_excluded auto_exclude_explanation copyright_copy );
+
+        foreach my $banned_field ( @banned_fields )
+        {
+            $banned_fields->{ $banned_field } = 1;
+        }
+    }
+
+    foreach my $download ( @{ $downloads } )
+    {
+        foreach my $line ( @{ $download->{ line_info } } )
+        {
+
+            next if $line->{ auto_excluded } == 1;
+
+            my @feature_fields = sort ( keys %{ $line } );
+
+            #say join "\n", @feature_fields;
+
+            foreach my $feature_field ( @feature_fields )
+            {
+                next if defined( $banned_fields->{ $feature_field } );
+
+                next if $feature_field eq 'class';
+
+                next if ( !defined( $line->{ $feature_field } ) );
+                next if ( $line->{ $feature_field } eq '0' );
+                next if ( $line->{ $feature_field } eq '' );
+
+                my $field_value = $line->{ $feature_field };
+
+                #next if ($field_valuene '1' &&$field_valuene '0' );
+
+                if ( $field_value eq '1' )
+                {
+                    print "$feature_field";
+                    print "=" . $field_value;    # || 0;
+                    print " ";
+                }
+                else
+                {
+                    my $val = 1.0;
+
+                    #say STDERR $field_value;
+                    while ( $field_value < $val )
+                    {
+                        print "$feature_field" . "_lt_" . $val;
+                        print " ";
+                        $val /= 2;
+                    }
+
+                    # print "$feature_field";
+                    # print "=" . $field_value; # || 0;
+                    # print " ";
+
+                    #exit ;
+                    $val = 1.0;
+
+                    while ( $field_value > $val )
+                    {
+                        print "$feature_field" . "_gt_" . $val;
+                        print " ";
+                        $val *= 2;
+                    }
+                }
+
+            }
+
+            say $line->{ class };
+
+            #exit;
+
+        }
+
+        #exit;
+
+    }
+}
+
+main();
