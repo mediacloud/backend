@@ -378,11 +378,9 @@ sub main
 
         #say Dumper( $list );
 
-        my @top_15 = @{ $list }[ 0 ... 10 ];
+        my @top = @{ $list }[ 0 ... min(10, scalar( @ { $list } ) - 1 ) ];
 
-        #say Dumper ( [ @top_15 ] );
-
-        push $high_pmi_words, @top_15;
+        push $high_pmi_words, @top;
 
         #say Dumper( $high_pmi_words );
     }
@@ -405,6 +403,8 @@ sub main
 
     foreach my $high_pmi_word ( @{ $high_pmi_words } )
     {
+	die Dumper( $high_pmi_words ) unless defined( $high_pmi_word );
+
         if ( defined( $top_words{ $high_pmi_word } ) )
         {
 
