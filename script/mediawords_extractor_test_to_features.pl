@@ -206,38 +206,13 @@ sub sort_pmi
     return $ret;
 }
 
-sub main
+sub get_top_words
 {
-    my $file;
+    my ( $downloads ) = @_;
 
-    GetOptions(
-        'file|f=s' => \$file,
+    my %top_words;
 
-        # 'download_data_load_file=s'     => \$_download_data_load_file,
-        # 'download_data_store_file=s'    => \$_download_data_store_file,
-        # 'dont_store_preprocessed_lines' => \$_dont_store_preprocessed_lines,
-        # 'dump_training_data_csv'        => \$_dump_training_data_csv,
-    ) or die;
-
-    die unless $file;
-
-    my $downloads = retrieve( $file );
-
-    #say Dumper( $downloads );
-
-    say STDERR "retrieved file";
-
-    my $word_counts = {};
-
-    add_distance_from_previous_line( $downloads );
-
-    say STDERR "About to call add_additional_features";
-
-    add_additional_features( $downloads );
-
-    say STDERR "Returned from call to add_additional_features";
-
-    $word_counts = get_word_counts( $downloads );
+    my $word_counts = get_word_counts( $downloads );
 
     my $word_counts_by_class = get_word_counts_by_class( $downloads );
 
@@ -314,7 +289,42 @@ sub main
         # $top_words{ $high_pmi_word } = 1;
     }
 
+    return \%top_words;
+}
+
+sub main
+{
+    my $file;
+
+    GetOptions(
+        'file|f=s' => \$file,
+
+        # 'download_data_load_file=s'     => \$_download_data_load_file,
+        # 'download_data_store_file=s'    => \$_download_data_store_file,
+        # 'dont_store_preprocessed_lines' => \$_dont_store_preprocessed_lines,
+        # 'dump_training_data_csv'        => \$_dump_training_data_csv,
+    ) or die;
+
+    die unless $file;
+
+    my $downloads = retrieve( $file );
+
+    #say Dumper( $downloads );
+
+    say STDERR "retrieved file";
+
+    add_distance_from_previous_line( $downloads );
+
+    say STDERR "About to call add_additional_features";
+
+    add_additional_features( $downloads );
+
+    say STDERR "Returned from call to add_additional_features";
+
     #    exit;
+
+    my $top_words = get_top_words( $downloads );
+
     foreach my $download ( @{ $downloads } )
     {
         my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
@@ -324,7 +334,7 @@ sub main
 
             next if $line_info->{ auto_excluded } == 1;
             my $feature_string =
-              MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, \%top_words );
+              MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );
             say $feature_string;
         }
     }
