@@ -285,13 +285,12 @@ sub main
     {
         my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
 
-        MediaWords::Crawler::AnalyzeLines::add_additional_features( $download->{ line_info },
-            $download->{ preprocessed_lines } );
-
         while ( my ( $line_info, $line_text ) = $ea->() )
         {
 
             next if $line_info->{ auto_excluded } == 1;
+
+            MediaWords::Crawler::AnalyzeLines::add_additional_features( $line_info, $line_text );
 
             my $feature_string =
               MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );

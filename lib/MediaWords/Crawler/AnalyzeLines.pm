@@ -355,49 +355,37 @@ sub words_on_line
 
 sub add_additional_features
 {
-    my ( $line_infos, $lines ) = @_;
+    my ( $line_info, $line_text ) = @_;
 
-    #say STDERR " started: MediaWords::Crawler::AnalyzeLines::add_additional_features";
+    my $plain_text = html_strip( $line_text );
+    my $words = [ split /\s+/, $plain_text ];
 
-    my $ea = each_arrayref( $line_infos, $lines );
+    my $num_words = scalar( @{ $words } );
 
-    while ( my ( $line_info, $line_text ) = $ea->() )
+    return if $num_words == 0;
+
+    my $num_links = ( $line_text =~ /<a / );
+
+    $line_info->{ links } = $num_links;
+    if ( $num_links > 0 )
     {
-
-        #say STDERR " In loop";
-
-        my $plain_text = html_strip( $line_text );
-        my $words = [ split /\s+/, $plain_text ];
-
-        my $num_words = scalar( @{ $words } );
-
-        next if $num_words == 0;
-
-        my $num_links = ( $line_text =~ /<a / );
-
-        $line_info->{ links } = $num_links;
-        if ( $num_links > 0 )
-        {
-            $line_info->{ link_word_ratio } = $num_words / $num_links;
-        }
-
-        $line_info->{ num_words } = $num_words;
-
-        my $word_characters_total_length = sum( map { length( $_ ) } @{ $words } );
-
-        $line_info->{ avg_word_length } = $word_characters_total_length / $num_words;
-
-        my $upper_case_words = [ grep { ucfirst( $_ ) eq $_ } @{ $words } ];
-
-        my $num_uppercase = scalar( @{ $upper_case_words } );
-
-        my $uppercase_ratio = $num_uppercase / $num_words;
-
-        $line_info->{ num_uppercase }   = $num_uppercase;
-        $line_info->{ uppercase_ratio } = $uppercase_ratio;
+        $line_info->{ link_word_ratio } = $num_words / $num_links;
     }
 
-    #say STDERR " Done with loop";
+    $line_info->{ num_words } = $num_words;
+
+    my $word_characters_total_length = sum( map { length( $_ ) } @{ $words } );
+
+    $line_info->{ avg_word_length } = $word_characters_total_length / $num_words;
+
+    my $upper_case_words = [ grep { ucfirst( $_ ) eq $_ } @{ $words } ];
+
+    my $num_uppercase = scalar( @{ $upper_case_words } );
+
+    my $uppercase_ratio = $num_uppercase / $num_words;
+
+    $line_info->{ num_uppercase }   = $num_uppercase;
+    $line_info->{ uppercase_ratio } = $uppercase_ratio;
 
     return;
 }
