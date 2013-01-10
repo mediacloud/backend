@@ -224,8 +224,6 @@ sub get_top_words
 
     my $ig = $fs->information_gain( $word_counts_by_class );
 
-    #   say Dumper( $ig );
-
     my $igr = $fs->information_gain_ratio( $word_counts_by_class );
 
     #   say Dumper( $igr );
@@ -234,19 +232,11 @@ sub get_top_words
 
     my $pmi_sorted = sort_pmi( $pmi );
 
-    #say Dumper( $pmi_sorted );
-
     my $high_pmi_words = [];
 
     foreach my $class ( keys %$pmi_sorted )
     {
-
-        #	say "class : $class";
-        #	say Dumper( $pmi_sorted->{ $class } );
-
         my $list = $pmi_sorted->{ $class };
-
-        #say Dumper( $list );
 
         my @top = @{ $list }[ 0 ... min( 10, scalar( @{ $list } ) - 1 ) ];
 
@@ -255,20 +245,10 @@ sub get_top_words
         #say Dumper( $high_pmi_words );
     }
 
-    #say Dumper ( $high_pmi_words );
-
-    #exit;
-
     my @words = keys %{ $word_counts };
 
     @words = sort { $word_counts->{ $b } <=> $word_counts->{ $a } } @words;
 
-    # foreach my $word ( @words[ 0 .. 10 ] )
-    # {
-    #     say "$word " . $word_counts->{ $word };
-    # }
-
-    #exit;
     my %top_words = map { $_ => 1 } @words[ 0 .. 1000 ];
 
     foreach my $high_pmi_word ( @{ $high_pmi_words } )
