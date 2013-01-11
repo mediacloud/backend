@@ -78,18 +78,6 @@ EOF
       [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $dashboard_topics } ];
     $form->get_field( 'dashboard_topics_ids' )->options( $dashboard_topic_options );
 
-    my $media = $c->dbis->query(
-        <<"EOF"
-        SELECT DISTINCT ( m.* )
-        FROM media AS m,
-             media_sets_media_map AS msmm
-        WHERE m.media_id = msmm.media_id
-        ORDER BY m.name
-EOF
-    )->hashes;
-    my $media_options = [ [ 0, '(none)' ], map { [ $_->{ media_id }, $_->{ name } ] } @{ $media } ];
-    $form->get_field( 'media_id' )->options( $media_options );
-
     my $dashboards = $c->dbis->query( "SELECT * FROM dashboards ORDER BY name" )->hashes;
     my $dashboard_options = [ [ 0, '(none)' ], map { [ $_->{ dashboards_id }, $_->{ name } ] } @{ $dashboards } ];
     $form->get_field( 'dashboards_id' )->options( $dashboard_options );
@@ -97,7 +85,7 @@ EOF
     if ( $query )
     {
         map { $form->get_field( $_ )->default( $query->{ $_ } ) }
-          ( qw/start_date end_date media_id media_sets_ids dashboard_topics_ids/ );
+          ( qw/start_date end_date media_sets_ids dashboard_topics_ids/ );
     }
 
     return $form;

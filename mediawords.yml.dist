@@ -102,3 +102,7 @@ mail:
 
     #uncomment to make the public homepage the default start page    
     #default_home_page: "dashboard/view"
+    
+    # downloads id under which to strip all non-ascii characters
+    #ascii_hack_downloads_id: 123456789
+

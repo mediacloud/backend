@@ -1,4 +1,87 @@
-/* schema for MediaWords database */
+--
+-- Schema for MediaWords database
+--
+
+-- CREATE LANGUAGE IF NOT EXISTS plpgsql
+CREATE OR REPLACE FUNCTION create_language_plpgsql()
+RETURNS BOOLEAN AS $$
+    CREATE LANGUAGE plpgsql;
+    SELECT TRUE;
+$$ LANGUAGE SQL;
+
+SELECT CASE WHEN NOT
+    (
+        SELECT  TRUE AS exists
+        FROM    pg_language
+        WHERE   lanname = 'plpgsql'
+        UNION
+        SELECT  FALSE AS exists
+        ORDER BY exists DESC
+        LIMIT 1
+    )
+THEN
+    create_language_plpgsql()
+ELSE
+    FALSE
+END AS plpgsql_created;
+
+DROP FUNCTION create_language_plpgsql();
+
+-- CREATE LANGUAGE IF NOT EXISTS plperlu
+CREATE OR REPLACE FUNCTION create_language_plperlu()
+RETURNS BOOLEAN AS $$
+    CREATE LANGUAGE plperlu;
+    SELECT TRUE;
+$$ LANGUAGE SQL;
+
+SELECT CASE WHEN NOT
+    (
+        SELECT  TRUE AS exists
+        FROM    pg_language
+        WHERE   lanname = 'plperlu'
+        UNION
+        SELECT  FALSE AS exists
+        ORDER BY exists DESC
+        LIMIT 1
+    )
+THEN
+    create_language_plperlu()
+ELSE
+    FALSE
+END AS plperlu_created;
+
+DROP FUNCTION create_language_plperlu();
+
+
+-- Database properties (variables) table
+create table database_variables (
+    variables_id        serial          primary key,
+    name                varchar(512)    not null,        
+    value               varchar(1024)   not null
+);
+
+CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
+DECLARE
+    
+    -- Database schema version number (same as a SVN revision number)
+    -- Increase it by 1 if you make major database schema changes.
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4391;
+    
+BEGIN
+
+    -- Update / set database schema version
+    DELETE FROM database_variables WHERE name = 'database-schema-version';
+    INSERT INTO database_variables (name, value) VALUES ('database-schema-version', MEDIACLOUD_DATABASE_SCHEMA_VERSION::int);
+
+    return true;
+    
+END;
+$$
+LANGUAGE 'plpgsql';
+
+-- Set the version number right away
+SELECT set_database_schema_version();
+
 
 -- This function is needed because date_trunc('week', date) is not consider immutable 
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
@@ -133,12 +216,23 @@ create table media (
     extract_author      boolean         default(false),
     sw_data_start_date  date            default(null),
     sw_data_end_date    date            default(null),
-    CONSTRAINT media_name_not_empty CHECK (((name)::text <> ''::text))
+    foreign_rss_links   boolean         not null default( false ),
+    main_media_id       int             null references media on delete set null,
+    is_dup              boolean         null,
+    CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
+    CONSTRAINT media_dup CHECK ( ( ( is_dup is null or is_dup = false ) and main_media_id is null ) 
+        or ( is_dup = true and main_media_id is not null ) )
 );
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
+
+-- allow easy querying of all duplicates, regardless of order
+create view media_dups_transitive as 
+    select distinct media_id, main_media_id from 
+        ( ( select media_id, main_media_id from media where main_media_id is not null ) union 
+          ( select main_media_id as media_id, media_id as main_media_id from media where main_media_id is not null ) ) q;
 
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
 
@@ -148,9 +242,14 @@ create table feeds (
     name                varchar(512)    not null,        
     url                 varchar(1024)   not null,
     reparse             boolean         null,
-    last_download_time  timestamp       null, 
-    feed_type           feed_feed_type  not null default 'syndicated'
+    feed_type           feed_feed_type  not null default 'syndicated',
+
+    -- Add column to allow more active feeds to be downloaded more frequently.
+    last_download_time  timestamp with time zone,
+    last_new_story_time timestamp with time zone
 );
+
+UPDATE feeds SET last_new_story_time = greatest( last_download_time, last_new_story_time );
 
 create index feeds_media on feeds(media_id);
 create index feeds_name on feeds(name);
@@ -203,13 +302,10 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
-/*
-A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
-
-For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
-to generate a dashboard for those collections, and a set of topics to use for specific dates for all media
-sets within the collection
-*/
+-- A dashboard defines which collections, dates, and topics appear together within a given dashboard screen.
+-- For example, a dashboard might include three media_sets for russian collections, a set of dates for which 
+-- to generate a dashboard for those collections, and a set of topics to use for specific dates for all media
+-- sets within the collection
 create table dashboards (
     dashboards_id               serial          primary key,
     name                        varchar(1024)   not null,
@@ -229,12 +325,12 @@ create table queries (
     creation_date           timestamp           not null default now(),
     description             text                null,
     dashboards_id           int                 null references dashboards,
-    md5_signature           varchar(32)         not null
+    md5_signature           varchar(32)         not null,
+    query_version           query_version_enum  NOT NULL DEFAULT enum_last (null::query_version_enum )
 );
 
 
 create index queries_creation_date on queries (creation_date);
-ALTER TABLE queries ADD COLUMN query_version query_version_enum DEFAULT enum_last (null::query_version_enum ) NOT NULL;
 create unique index queries_signature_version on queries ( md5_signature, query_version );
 create unique index queries_signature on queries (md5_signature);
 
@@ -256,16 +352,12 @@ create table media_clusters (
 );
 CREATE INDEX media_clusters_runs_id on media_clusters(media_cluster_runs_id);
    
-/* 
-sets of media sources that should appear in the dashboard
-
-the contents of the row depend on the set_type, which can be one of:
-medium -- a single medium (media_id)
-collection -- all media associated with the given tag (tags_id)
-cluster -- all media within the given clusters (clusters_id)
-
-see the check constraint for the definition of which set_type has which rows set
-*/
+-- Sets of media sources that should appear in the dashboard
+-- The contents of the row depend on the set_type, which can be one of:
+--  medium -- a single medium (media_id)
+--  collection -- all media associated with the given tag (tags_id)
+--  cluster -- all media within the given clusters (clusters_id)
+-- see the check constraint for the definition of which set_type has which rows set
 create table media_sets (
     media_sets_id               serial      primary key,
     name                        text        not null,
@@ -336,11 +428,8 @@ create table media_cluster_words (
 
 create index media_cluster_words_cluster on media_cluster_words (media_clusters_id);
 
-/****************************************************** 
- * Jon's table for storing links between media sources
- *  -> Used in Protovis' force visualization. 
- ******************************************************/
-
+-- Jon's table for storing links between media sources
+-- -> Used in Protovis' force visualization. 
 create table media_cluster_links (
   media_cluster_links_id    serial  primary key,
   media_cluster_runs_id	    int	    not null     references media_cluster_runs on delete cascade,
@@ -349,13 +438,10 @@ create table media_cluster_links (
   weight                    float   not null
 );
 
-/****************************************************** 
- * A table to store the internal/external zscores for
- *   every source analyzed by Cluto
- *   (the external/internal similarity scores for
- *     clusters will be stored in media_clusters, if at all)
- ******************************************************/
-
+-- A table to store the internal/external zscores for
+-- every source analyzed by Cluto
+-- (the external/internal similarity scores for
+-- clusters will be stored in media_clusters, if at all)
 create table media_cluster_zscores (
   media_cluster_zscores_id  serial primary key,
 	media_cluster_runs_id	    int 	 not null     references media_cluster_runs on delete cascade,
@@ -477,13 +563,11 @@ $$
 LANGUAGE 'plpgsql' 
  ;
 
-/*
-dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.  Those assocaited media_sets will
-appear on the dashboard page, and the media associated with the collections will be available from autocomplete box.
-
-this table is also used to determine for which dates to create [daily|weekly|top_500_weekly]_words entries for which 
-media_sets / topics
-*/
+-- dashboard_media_sets associates certain 'collection' type media_sets with a given dashboard.
+-- Those assocaited media_sets will appear on the dashboard page, and the media associated with
+-- the collections will be available from autocomplete box.
+-- This table is also used to determine for which dates to create [daily|weekly|top_500_weekly]_words
+-- entries for which media_sets / topics
 create table dashboard_media_sets (
     dashboard_media_sets_id     serial          primary key,
     dashboards_id               int             not null references dashboards on delete cascade,
@@ -495,17 +579,15 @@ create table dashboard_media_sets (
 CREATE UNIQUE INDEX dashboard_media_sets_media_set_dashboard on dashboard_media_sets(media_sets_id, dashboards_id);
 create index dashboard_media_sets_dashboard on dashboard_media_sets( dashboards_id );
 
-/*
-a topic is a query used to generate dashboard results for a subset of matching stories.  for instance,
-a topic with a query of 'health' would generate dashboard results for only stories that include
-the word 'health'.  a given topic is confined to a given dashbaord and optionally to date range
-within the date range of the dashboard.
-*/
+-- A topic is a query used to generate dashboard results for a subset of matching stories.
+-- For instance, a topic with a query of 'health' would generate dashboard results for only stories that
+-- include the word 'health'.  a given topic is confined to a given dashbaord and optionally to date range
+-- within the date range of the dashboard.
 create table dashboard_topics (
     dashboard_topics_id         serial          primary key,
     name                        varchar(256)    not null,
     query                       varchar(1024)   not null,
-    language                    varchar(3)      not null,   /* 2- or 3-character ISO 690 language code */
+    language                    varchar(3)      not null,   -- 2- or 3-character ISO 690 language code
     dashboards_id               int             not null references dashboards on delete cascade,
     start_date                  timestamp       not null,
     end_date                    timestamp       not null,
@@ -527,10 +609,10 @@ create table stories (
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
-    language                    varchar(3)      null   /* 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset */
+    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
-/*create index stories_media on stories (media_id, guid);*/
+-- create index stories_media on stories (media_id, guid);
 create index stories_media_id on stories (media_id);
 create unique index stories_guid on stories(guid, media_id);
 create index stories_url on stories (url);
@@ -540,8 +622,10 @@ create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 create index stories_language on stories(language);
 
-CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success');    
+CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
+
+CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
 
 create table downloads (
     downloads_id        serial          primary key,
@@ -557,8 +641,18 @@ create table downloads (
     error_message       text            null,
     priority            int             not null,
     sequence            int             not null,
-    extracted           boolean         not null default 'f'
+    extracted           boolean         not null default 'f',
+    file_status         download_file_status not null default 'tbd',
+    relative_file_path  text            not null default 'tbd',
+    old_download_time   timestamp without time zone,
+    old_state           download_state
 );
+
+UPDATE downloads set old_download_time = download_time, old_state = state;
+
+CREATE UNIQUE INDEX downloads_file_status on downloads(file_status, downloads_id);
+CREATE UNIQUE INDEX downloads_relative_path on downloads( relative_file_path, downloads_id);
+
 
 alter table downloads add constraint downloads_parent_fkey 
     foreign key (parent) references downloads on delete set null;
@@ -580,7 +674,7 @@ create index downloads_parent on downloads (parent);
 --     on downloads(host, (case when state='fetching' then 1 else null end));
 create index downloads_time on downloads (download_time);
 
-/*create index downloads_sequence on downloads (sequence);*/
+-- create index downloads_sequence on downloads (sequence);
 create index downloads_type on downloads (type);
 create index downloads_host_state_priority on downloads (host, state, priority);
 create index downloads_feed_state on downloads(feeds_id, state);
@@ -608,9 +702,7 @@ CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'q
 
 CREATE INDEX downloads_sites_downloads_id_pending ON downloads USING btree (regexp_replace((host)::text, E'^(.)*?([^.]+)\\.([^.]+)$'::text, E'\\2.\\3'::text), downloads_id) WHERE (state = 'pending'::download_state);
 
-/*
-CREATE INDEX downloads_sites_index_downloads_id on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id);
-*/
+-- CREATE INDEX downloads_sites_index_downloads_id on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id);
 
 CREATE VIEW downloads_sites as select regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3') as site, * from downloads_media;
 
@@ -665,7 +757,7 @@ CREATE TABLE download_texts (
     download_texts_id integer NOT NULL,
     downloads_id integer NOT NULL,
     download_text text NOT NULL,
-    download_text_length int not null
+    download_text_length int NOT NULL
 );
 
 CREATE SEQUENCE download_texts_download_texts_id_seq
@@ -683,8 +775,6 @@ ALTER TABLE ONLY download_texts
 
 ALTER TABLE ONLY download_texts
     ADD CONSTRAINT download_texts_downloads_id_fkey FOREIGN KEY (downloads_id) REFERENCES downloads(downloads_id) ON DELETE CASCADE;
-
-ALTER TABLE download_texts ALTER COLUMN download_text_length set NOT NULL;
 
 ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
 
@@ -722,7 +812,7 @@ create table word_cloud_topics (
 alter table word_cloud_topics add constraint word_cloud_topics_type check (type in ('words', 'phrases'));
 alter table word_cloud_topics add constraint word_cloud_topics_state check (state in ('pending', 'generating', 'completed'));
 
-/* VIEWS */
+-- VIEWS
 
 CREATE VIEW media_extractor_training_downloads_count AS
     SELECT media.media_id, COALESCE(foo.extractor_training_downloads_for_media_id, (0)::bigint) AS extractor_training_download_count FROM (media LEFT JOIN (SELECT stories.media_id, count(stories.media_id) AS extractor_training_downloads_for_media_id FROM extractor_training_lines, downloads, stories WHERE ((extractor_training_lines.downloads_id = downloads.downloads_id) AND (downloads.stories_id = stories.stories_id)) GROUP BY stories.media_id ORDER BY stories.media_id) foo ON ((media.media_id = foo.media_id)));
@@ -761,12 +851,12 @@ CREATE INDEX extractor_results_cache_downloads_id_index ON extractor_results_cac
 
 create table story_sentences (
        story_sentences_id           bigserial       primary key,
-       stories_id                   int             not null, /* references stories on delete cascade, */
+       stories_id                   int             not null, -- references stories on delete cascade,
        sentence_number              int             not null,
        sentence                     text            not null,
-       media_id                     int             not null, /* references media on delete cascade, */
+       media_id                     int             not null, -- references media on delete cascade,
        publish_date                 timestamp       not null,
-       language                     varchar(3)      null      /* 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset */
+       language                     varchar(3)      null      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
@@ -778,7 +868,7 @@ ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FORE
 create table story_sentence_counts (
        story_sentence_counts_id     bigserial       primary key,
        sentence_md5                 varchar(64)     not null,
-       media_id                     int             not null, /* references media */
+       media_id                     int             not null, -- references media,
        publish_week                 timestamp       not null,
        sentence_count               int             not null,
        first_stories_id             int             not null,
@@ -794,12 +884,12 @@ create index story_sentence_counts_md5 on story_sentence_counts( media_id, publi
 create index story_sentence_counts_first_stories_id on story_sentence_counts( first_stories_id );
 
 create table story_sentence_words (
-       stories_id                   int             not null, /* references stories on delete cascade, */
+       stories_id                   int             not null, -- references stories on delete cascade,
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   smallint        not null,
        sentence_number              smallint        not null,
-       media_id                     int             not null, /* references media on delete cascade, */
+       media_id                     int             not null, -- references media on delete cascade,
        publish_day                  date            not null
 );
 
@@ -812,12 +902,12 @@ create index story_sentence_words_media_day on story_sentence_words (media_id, p
 
 create table daily_words (
        daily_words_id               serial          primary key,
-       media_sets_id                int             not null, /* references media_sets */
-       dashboard_topics_id          int             null, /* references dashboard_topics */
+       media_sets_id                int             not null, -- references media_sets,
+       dashboard_topics_id          int             null,     -- references dashboard_topics,
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
+       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_day                  date            not null
 );
 
@@ -830,12 +920,12 @@ CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dash
 
 create table weekly_words (
        weekly_words_id              serial          primary key,
-       media_sets_id                int             not null, /* references media_sets */
-       dashboard_topics_id          int             null, /* references dashboard_topics */
+       media_sets_id                int             not null, -- references media_sets,
+       dashboard_topics_id          int             null,     -- references dashboard_topics,
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
+       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -846,12 +936,12 @@ ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHE
 
 create table top_500_weekly_words (
        top_500_weekly_words_id      serial          primary key,
-       media_sets_id                int             not null, /* references media_sets on delete cascade, */
-       dashboard_topics_id          int             null, /* references dashboard_topics */
+       media_sets_id                int             not null, -- references media_sets on delete cascade,
+       dashboard_topics_id          int             null,     -- references dashboard_topics,
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
+       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -886,8 +976,8 @@ create view top_500_weekly_words_normalized
     
 create table total_daily_words (
        total_daily_words_id         serial          primary key,
-       media_sets_id                int             not null, /* references media_sets on delete cascade, */
-       dashboard_topics_id           int            null, /* references dashboard_topics, */
+       media_sets_id                int             not null, -- references media_sets on delete cascade,
+       dashboard_topics_id           int            null,     -- references dashboard_topics,
        publish_day                  date            not null,
        total_count                  int             not null
 );
@@ -936,7 +1026,7 @@ CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM f
 
 CREATE TABLE daily_country_counts (
     media_sets_id integer  not null references media_sets on delete cascade,
-    language varchar(3) not null, /* 2- or 3-character ISO 690 language code */
+    language varchar(3) not null, -- 2- or 3-character ISO 690 language code
     publish_day date not null,
     country character varying not null,
     country_count bigint not null,
@@ -986,7 +1076,7 @@ CREATE TABLE daily_author_words (
     term                            character varying(256)  not null,
     stem                            character varying(256)  not null,
     stem_count                      int                     not null,
-    language                        varchar(3)              not null, /* 2- or 3-character ISO 690 language code */
+    language                        varchar(3)              not null, -- 2- or 3-character ISO 690 language code
     publish_day                     date                    not null
 );
 
@@ -1011,7 +1101,7 @@ create table weekly_author_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
+       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -1027,7 +1117,7 @@ create table top_500_weekly_author_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, /* 2- or 3-character ISO 690 language code */
+       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -1226,25 +1316,10 @@ DROP TYPE old_query_version_enum ;
 
 END;
 $body$
-    LANGUAGE plpgsql;
+    LANGUAGE 'plpgsql';
 --
 
-select enum.enum_add( 'download_state', 'feed_error' );
-DROP LANGUAGE IF EXISTS plperlu CASCADE;
 
-CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
-
-ALTER TABLE downloads ADD COLUMN file_status download_file_status not null default 'tbd';
-
-ALTER TABLE downloads ADD COLUMN relative_file_path text not null default 'tbd';
-
-
-ALTER TABLE downloads ADD COLUMN old_download_time timestamp without time zone;
-ALTER TABLE downloads ADD COLUMN old_state download_state;
-UPDATE downloads set old_download_time = download_time, old_state = state;
-
-CREATE UNIQUE INDEX downloads_file_status on downloads(file_status, downloads_id);
-CREATE UNIQUE INDEX downloads_relative_path on downloads( relative_file_path, downloads_id);
 
 CREATE OR REPLACE FUNCTION get_relative_file_path(path text)
     RETURNS text AS
@@ -1277,49 +1352,8 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
-UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS 
-$$
-   DECLARE
-      path_change boolean;
-   BEGIN
-      -- RAISE NOTICE 'BEGIN ';
-      IF TG_OP = 'UPDATE' then
-          -- RAISE NOTICE 'UPDATE ';
+UPDATE downloads set relative_file_path = get_relative_file_path(path) where relative_file_path = 'tbd';
 
-	  -- The second part is needed because of the way comparisons with null are handled.
-	  path_change := ( OLD.path <> NEW.path )  AND (  ( OLD.path is not null) <> (NEW.path is not null) ) ;
-	  -- RAISE NOTICE 'test result % ', path_change; 
-	  
-          IF path_change is null THEN
-	       -- RAISE NOTICE 'Path change % != %', OLD.path, NEW.path;
-               NEW.relative_file_path = get_relative_file_path(NEW.path);
-	  ELSE
-               -- RAISE NOTICE 'NO path change % = %', OLD.path, NEW.path;
-          END IF;
-      ELSIF TG_OP = 'INSERT' then
-	  NEW.relative_file_path = get_relative_file_path(NEW.path);
-      END IF;
-
-      RETURN NEW;
-   END;
-$$ 
-LANGUAGE 'plpgsql';
-
-DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
-CREATE TRIGGER download_relative_file_path_trigger BEFORE INSERT OR UPDATE ON downloads FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
-CREATE INDEX relative_file_paths_to_verify on downloads( relative_file_path ) where file_status = 'tbd' and relative_file_path <> 'tbd' and relative_file_path <> 'error';
-CREATE OR REPLACE FUNCTION show_stat_activity()
- RETURNS SETOF  pg_stat_activity  AS
-$$
-DECLARE
-BEGIN
-    RETURN QUERY select * from pg_stat_activity;
-    RETURN;
-END;
-$$
-LANGUAGE 'plpgsql'
-;
-alter table weekly_words alter column weekly_words_id type bigint;
 CREATE OR REPLACE FUNCTION download_relative_file_path_trigger() RETURNS trigger AS 
 $$
    DECLARE
@@ -1356,12 +1390,19 @@ $$
 $$ 
 LANGUAGE 'plpgsql';
 
---DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
---CREATE TRIGGER download_relative_file_path_trigger BEFORE INSERT OR UPDATE ON downloads FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
+DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
+CREATE TRIGGER download_relative_file_path_trigger BEFORE INSERT OR UPDATE ON downloads FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
+CREATE INDEX relative_file_paths_to_verify on downloads( relative_file_path ) where file_status = 'tbd' and relative_file_path <> 'tbd' and relative_file_path <> 'error';
+CREATE OR REPLACE FUNCTION show_stat_activity()
+ RETURNS SETOF  pg_stat_activity  AS
+$$
+DECLARE
+BEGIN
+    RETURN QUERY select * from pg_stat_activity;
+    RETURN;
+END;
+$$
+LANGUAGE 'plpgsql'
+;
 
--- Add column to allow more active feeds to be downloaded more frequently.
-ALTER TABLE feeds ADD COLUMN last_new_story_time timestamp without time zone;
-UPDATE feeds SET last_new_story_time = greatest( last_download_time, last_new_story_time );
-ALTER TABLE feeds ALTER COLUMN last_download_time TYPE timestamp with time zone;
-ALTER TABLE feeds ALTER COLUMN last_new_story_time TYPE timestamp with time zone;
 

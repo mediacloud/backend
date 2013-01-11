@@ -24,6 +24,8 @@ sub verify_downloads_files
     my $config = MediaWords::Util::Config::get_config;
     my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
 
+    my $pm = new Parallel::ForkManager( 15 );
+
     while ( 1 )
     {
 
@@ -38,10 +40,12 @@ sub verify_downloads_files
               . "      (not (relative_file_path like 'mediacloud-%' ) ) ) as foo                    "
               . "  limit 100; " );
 
-        my $pm = new Parallel::ForkManager( 10 );
-
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
         {
+            $pm->start and next;
+
+            my $db = MediaWords::DB::connect_to_db;
+
             $pm->start and next;
 
             my $db = MediaWords::DB::connect_to_db;
@@ -69,6 +73,8 @@ sub verify_downloads_files
 
         $pm->wait_all_children;
     }
+
+    $pm->wait_all_children;
 }
 
 sub main

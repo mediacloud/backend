@@ -246,7 +246,7 @@ sub add_missing_media_from_urls
     {
         if ( !$url_medium->{ medium } )
         {
-            $url_medium->{ message } = "Unable to find medium for url '$url_medium->{ url }'";
+            $url_medium->{ message } ||= "Unable to find medium for url '$url_medium->{ url }'";
         }
     }
 }

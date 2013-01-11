@@ -23,10 +23,6 @@ elements:
     comment: select either a single dashboard OR a single media source OR one or more media sets    
 
   - type: Select
-    name: media_id
-    label: Media Source
-        
-  - type: Select
     name: media_sets_ids
     label: Media Sets
     comment: ctl-click (win) or cmd-click (mac) to select multiple

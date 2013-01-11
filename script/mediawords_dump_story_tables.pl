@@ -89,7 +89,7 @@ sub get_dashboards_clause
 {
     my ( $table_name ) = @_;
 
-    return '' unless ( @{ $_dump_dashboards } );
+    return '' unless ( defined( $_dump_dashboards ) && @{ $_dump_dashboards } );
 
     my $dashboards_list = join( ',', @{ $_dump_dashboards } );
 

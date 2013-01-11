@@ -1,4 +1,9 @@
 package MediaWords::Crawler::AnalyzeLines;
+
+use List::MoreUtils qw( uniq distinct :all );
+use List::Util qw( sum  );
+use Text::Trim;
+
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
@@ -136,9 +141,14 @@ sub get_description_similarity_discount
     my $stripped_line        = html_strip( $line );
     my $stripped_description = html_strip( $description );
 
-    my $score =
-      Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } )
-      ->getSimilarityStrings( $stripped_line, $stripped_description );
+    ##
+    ## WARNING the Text::Similarity::Overlaps object MUST be assigned to a temporary variable
+    ## calling getSimilarityStrings directly on the result of Text::Similarity::Overlaps->new( ) results in a memory leak.
+    ##  This leak only occurs under certain so it won't show up in toy test programs. However, it consistently occured
+    ## in the MediaWords::DBI::Downloads::extractor_results_for_download() call chain until this fix.
+    ##
+    my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
+    my $score = $sim->getSimilarityStrings( $stripped_line, $stripped_description );
 
     if (   ( DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
         || ( DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
@@ -308,6 +318,148 @@ sub get_info_for_lines
     }
 
     return $info_for_lines;
+}
+
+sub words_on_line
+{
+    my ( $line ) = @_;
+
+    my $ret = [];
+
+    trim( $line );
+
+    return $ret if $line eq '';
+    return $ret if $line eq ' ';
+
+    my @words = split /\s+/, $line;
+
+    $ret = [ uniq( @words ) ];
+
+    return $ret;
+}
+
+sub add_additional_features
+{
+    my ( $line_info, $line_text ) = @_;
+
+    my $plain_text = html_strip( $line_text );
+    my $words = [ split /\s+/, $plain_text ];
+
+    my $num_words = scalar( @{ $words } );
+
+    return if $num_words == 0;
+
+    my $num_links = ( $line_text =~ /<a / );
+
+    $line_info->{ links } = $num_links;
+    if ( $num_links > 0 )
+    {
+        $line_info->{ link_word_ratio } = $num_words / $num_links;
+    }
+
+    $line_info->{ num_words } = $num_words;
+
+    my $word_characters_total_length = sum( map { length( $_ ) } @{ $words } );
+
+    $line_info->{ avg_word_length } = $word_characters_total_length / $num_words;
+
+    my $upper_case_words = [ grep { ucfirst( $_ ) eq $_ } @{ $words } ];
+
+    my $num_uppercase = scalar( @{ $upper_case_words } );
+
+    my $uppercase_ratio = $num_uppercase / $num_words;
+
+    $line_info->{ num_uppercase }   = $num_uppercase;
+    $line_info->{ uppercase_ratio } = $uppercase_ratio;
+
+    return;
+}
+
+my $banned_fields;
+
+sub get_feature_string_from_line_info
+{
+
+    my ( $line_info, $line_text, $top_words ) = @_;
+
+    my @feature_fields = sort ( keys %{ $line_info } );
+
+    my $ret = '';
+
+    #say STDERR join "\n", @feature_fields;
+
+    if ( !defined( $banned_fields ) )
+    {
+        my @banned_fields = qw ( line_number auto_excluded auto_exclude_explanation copyright_copy );
+
+        $banned_fields = {};
+
+        foreach my $banned_field ( @banned_fields )
+        {
+            $banned_fields->{ $banned_field } = 1;
+        }
+    }
+
+    foreach my $feature_field ( @feature_fields )
+    {
+        next if defined( $banned_fields->{ $feature_field } );
+
+        next if $feature_field eq 'class';
+
+        next if ( !defined( $line_info->{ $feature_field } ) );
+        next if ( $line_info->{ $feature_field } eq '0' );
+        next if ( $line_info->{ $feature_field } eq '' );
+
+        my $field_value = $line_info->{ $feature_field };
+
+        #next if ($field_valuene '1' &&$field_valuene '0' );
+
+        if ( $field_value eq '1' )
+        {
+            $ret .= "$feature_field";
+            $ret .= "=" . $field_value;    # || 0;
+            $ret .= " ";
+        }
+        else
+        {
+            my $val = 1.0;
+
+            #say STDERR $field_value;
+
+            my $last_feature = '';
+            while ( $field_value < $val )
+            {
+                $last_feature = "$feature_field" . "_lt_" . $val;
+                $val /= 2;
+            }
+
+            $val = 1.0;
+
+            while ( $field_value > $val )
+            {
+                $last_feature = "$feature_field" . "_gt_" . $val;
+                $val *= 2;
+            }
+
+            die if $last_feature eq '';
+            $ret .= "$last_feature ";
+        }
+
+    }
+
+    my $words = words_on_line( $line_text );
+
+    foreach my $word ( @{ $words } )
+    {
+
+        next if ( defined( $top_words ) && ( !$top_words->{ $word } ) );
+
+        $ret .= "unigram_$word ";
+    }
+
+    $ret .= $line_info->{ class };
+
+    #exit;
 }
 
 1;
