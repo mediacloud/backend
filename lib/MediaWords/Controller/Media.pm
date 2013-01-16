@@ -68,7 +68,7 @@ sub create_batch : Local
 # find the media source by the url or the url with/without the trailing slash
 sub _find_medium_by_url
 {
-    my ( $self, $c, $url ) = @_;
+    my ( $dbis, $url ) = @_;
 
     my $base_url = $url;
 
@@ -82,7 +82,7 @@ sub _find_medium_by_url
       [ "$protocol://$base_url", "$protocol://www.$base_url", "$protocol://$base_url/", "$protocol://www.$base_url/" ];
 
     my $medium =
-      $c->dbis->query( "select * from media where url in (?, ?, ?, ?) order by length(url) desc", @{ $url_permutations } )
+      $dbis->query( "select * from media where url in (?, ?, ?, ?) order by length(url) desc", @{ $url_permutations } )
       ->hash;
 
     return $medium;
@@ -97,7 +97,7 @@ sub _find_medium_by_response
     my $r = $response;
 
     my $medium;
-    while ( $r && !( $medium = $self->_find_medium_by_url( $c, decode( 'utf8', $r->request->url ) ) ) )
+    while ( $r && !( $medium = _find_medium_by_url( $c->dbis, decode( 'utf8', $r->request->url ) ) ) )
     {
         $r = $r->previous;
     }
@@ -136,7 +136,7 @@ sub _find_media_from_urls
             $medium->{ message } = "'$url' is not a valid url";
         }
 
-        $medium->{ medium } = $self->_find_medium_by_url( $c, $url );
+        $medium->{ medium } = _find_medium_by_url( $c->dbis, $url );
 
         push( @{ $url_media }, $medium );
     }
