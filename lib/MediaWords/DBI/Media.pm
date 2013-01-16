@@ -21,7 +21,7 @@ sub find_or_create_media_from_urls
 {
     my ( $dbis, $urls_string, $tags_string ) = @_;
 
-    my $url_media = MediaWords::DBI::Media::find_media_from_urls( $dbis, $urls_string );
+    my $url_media = _find_media_from_urls( $dbis, $urls_string );
 
     _add_missing_media_from_urls( $dbis, $url_media );
 
@@ -174,22 +174,25 @@ sub _add_media_tags_from_strings
             }
         }
 
-        for my $tag_string ( split( /;/, $url_medium->{ tags_string } ) )
-        {
-            my ( $tag_set_name, $tag_name ) = split( ':', lc( $tag_string ) );
-
-            my $tag_sets_id = $dbis->query( "select tag_sets_id from tag_sets where name = ?", lc( $tag_set_name ) )->list;
-            if ( !$tag_sets_id )
-            {
-                $url_medium->{ message } .= " Unable to find tag set '$tag_set_name'";
-                next;
-            }
-
-            my $tags_id = $dbis->find_or_create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } )->{ tags_id };
-            my $media_id = $url_medium->{ medium }->{ media_id };
-
-            $dbis->find_or_create( 'media_tags_map', { tags_id => $tags_id, media_id => $media_id } );
-        }
+	if ( defined ( $url_medium->{ tags_string } ) )
+	{
+	    for my $tag_string ( split( /;/, $url_medium->{ tags_string } ) )
+	    {
+		my ( $tag_set_name, $tag_name ) = split( ':', lc( $tag_string ) );
+		
+		my $tag_sets_id = $dbis->query( "select tag_sets_id from tag_sets where name = ?", lc( $tag_set_name ) )->list;
+		if ( !$tag_sets_id )
+		{
+		    $url_medium->{ message } .= " Unable to find tag set '$tag_set_name'";
+		    next;
+		}
+		
+		my $tags_id = $dbis->find_or_create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } )->{ tags_id };
+		my $media_id = $url_medium->{ medium }->{ media_id };
+		
+		$dbis->find_or_create( 'media_tags_map', { tags_id => $tags_id, media_id => $media_id } );
+	    }
+	}
     }
 }
 
@@ -220,7 +223,7 @@ sub _find_medium_by_url
 # { medium => $medium_hash, url => $url, tags_string => $tags_string, message => $error_message }
 # the $medium_hash is the existing media source with the given url, or undef if no existing media source is found.
 # the tags_string is everything after a space on a line, to be used to add tags to the media source later.
-sub find_media_from_urls
+sub _find_media_from_urls
 {
     my ( $dbis, $urls_string ) = @_;
 
