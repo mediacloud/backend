@@ -109,7 +109,7 @@ sub find_medium_by_response
 # { medium => $medium_hash, url => $url, tags_string => $tags_string, message => $error_message }
 # the $medium_hash is the existing media source with the given url, or undef if no existing media source is found.
 # the tags_string is everything after a space on a line, to be used to add tags to the media source later.
-sub find_media_from_urls
+sub _find_media_from_urls
 {
     my ( $self, $c, $urls_string ) = @_;
 
@@ -144,7 +144,7 @@ sub find_media_from_urls
     return $url_media;
 }
 
-# given a set of url media (as returned by find_media_from_urls) and a url
+# given a set of url media (as returned by _find_media_from_urls) and a url
 # return the index of the media source in the list whose url is the same as the url fetched the response.
 # note that the url should be the original url and not any redirected urls (such as might be stored in
 # response->request->url).
@@ -251,7 +251,7 @@ sub add_missing_media_from_urls
     }
 }
 
-# given a list of media sources as returned by find_media_from_urls, add the tags
+# given a list of media sources as returned by _find_media_from_urls, add the tags
 # in the tags_string of each medium to that medium
 sub add_media_tags_from_strings
 {
@@ -299,7 +299,7 @@ sub find_or_create_media_from_urls
 {
     my ( $self, $c, $urls_string, $tags_string ) = @_;
 
-    my $url_media = $self->find_media_from_urls( $c, $urls_string );
+    my $url_media = $self->_find_media_from_urls( $c, $urls_string );
 
     $self->add_missing_media_from_urls( $c, $url_media );
 
