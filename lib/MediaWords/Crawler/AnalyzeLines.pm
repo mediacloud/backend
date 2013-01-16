@@ -474,9 +474,9 @@ sub get_feature_string_from_line_info
         $ret .= "unigram_$word ";
     }
 
-    if ( defined ( $line_info->{ class } ) )
+    if ( defined( $line_info->{ class } ) )
     {
-	$ret .= $line_info->{ class };
+        $ret .= $line_info->{ class };
     }
 
     return $ret;
