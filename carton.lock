@@ -38031,6 +38031,83 @@
          "target" : "Text::Lorem::More",
          "version" : "0.13"
       },
+      "Text::MediawikiFormat" : {
+         "dist" : "Text-MediawikiFormat-v1.0",
+         "mymeta" : {
+            "abstract" : "Translate Wiki markup into other text formats",
+            "author" : [
+               "unknown"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Text-MediawikiFormat",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : "0.3",
+                     "Test::NoWarnings" : 0,
+                     "Test::Warn" : 0
+                  }
+               },
+               "runtime" : {
+                  "recommends" : {
+                     "HTML::Parser" : 0,
+                     "HTML::Tagset" : 0
+                  },
+                  "requires" : {
+                     "Scalar::Util" : "1.14",
+                     "URI" : 0,
+                     "URI::Escape" : 0,
+                     "version" : "0.74"
+                  }
+               }
+            },
+            "provides" : {
+               "Text::MediawikiFormat" : {
+                  "file" : "lib/Text/MediawikiFormat.pm",
+                  "version" : "v1.0.0"
+               },
+               "Text::MediawikiFormat::Block" : {
+                  "file" : "lib/Text/MediawikiFormat/Blocks.pm",
+                  "version" : 0
+               },
+               "Text::MediawikiFormat::Blocks" : {
+                  "file" : "lib/Text/MediawikiFormat/Blocks.pm",
+                  "version" : 0
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "v1.0"
+         },
+         "name" : "Text::MediawikiFormat",
+         "pathname" : "D/DP/DPRICE/Text-MediawikiFormat-v1.0.tar.gz",
+         "provides" : {
+            "Text::MediawikiFormat" : {
+               "file" : "Text/MediawikiFormat.pm",
+               "version" : "v1.0.0"
+            },
+            "Text::MediawikiFormat::Block" : {
+               "file" : "Text/MediawikiFormat/Blocks.pm"
+            },
+            "Text::MediawikiFormat::Blocks" : {
+               "file" : "Text/MediawikiFormat/Blocks.pm"
+            }
+         },
+         "target" : "Text::MediawikiFormat",
+         "version" : "v1.0.0"
+      },
       "Text::MicroTemplate" : {
          "dist" : "Text-MicroTemplate-0.18",
          "mymeta" : {
