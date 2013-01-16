@@ -397,6 +397,8 @@ sub get_feature_string_from_line_info
 
     my ( $line_info, $line_text, $top_words ) = @_;
 
+    #say Dumper( $line_info );
+
     my @feature_fields = sort ( keys %{ $line_info } );
 
     my $ret = '';
@@ -472,9 +474,12 @@ sub get_feature_string_from_line_info
         $ret .= "unigram_$word ";
     }
 
-    $ret .= $line_info->{ class };
+    if ( defined ( $line_info->{ class } ) )
+    {
+	$ret .= $line_info->{ class };
+    }
 
-    #exit;
+    return $ret;
 }
 
 1;
