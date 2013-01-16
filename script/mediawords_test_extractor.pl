@@ -326,30 +326,32 @@ my $chldout;
 my $chldin;
 my $pid;
 use IPC::Open2;
+
 sub pipe_to_streaming_model
 {
-    my ($feature_string ) = @_;
+    my ( $feature_string ) = @_;
 
     die unless $feature_string;
 
-    if ( ! defined( $chldout ) )
+    if ( !defined( $chldout ) )
     {
-	my $script_path = '~/ML_code/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports_dev/run_predict_stream_input.sh';
-	my $model_path = 'training_data_features_top_1000_unigrams_2_prior_states_MaxEntModel_Iterations_1500.txt';
-	
-	my $cmd = "$script_path $model_path";
+        my $script_path =
+          '~/ML_code/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports_dev/run_predict_stream_input.sh';
+        my $model_path = 'training_data_features_top_1000_unigrams_2_prior_states_MaxEntModel_Iterations_1500.txt';
 
-	say STDERR "Starting cmd:\n$cmd";
+        my $cmd = "$script_path $model_path";
 
-	$pid = open2($chldout, $chldin, "$cmd");
+        say STDERR "Starting cmd:\n$cmd";
 
-	use POSIX ":sys_wait_h";
+        $pid = open2( $chldout, $chldin, "$cmd" );
 
-	sleep 2;
+        use POSIX ":sys_wait_h";
 
-	my $reaped_pid = waitpid( $pid, WNOHANG);
+        sleep 2;
 
-	die if ( $reaped_pid == $pid );
+        my $reaped_pid = waitpid( $pid, WNOHANG );
+
+        die if ( $reaped_pid == $pid );
     }
 
     #say STDERR "sending '$feature_string'";
@@ -358,7 +360,7 @@ sub pipe_to_streaming_model
 
     my $string = <$chldout>;
 
-    my $reaped_pid = waitpid( $pid, WNOHANG);
+    my $reaped_pid = waitpid( $pid, WNOHANG );
 
     die $string if ( $reaped_pid == $pid );
 
@@ -368,13 +370,13 @@ sub pipe_to_streaming_model
 
     my $prob_hash = {};
 
-    foreach my $prob_string ( @ { $ prob_strings } )
+    foreach my $prob_string ( @{ $prob_strings } )
     {
-	$prob_string =~ /([a-z]+)\[([0-9.]+)\]/;
+        $prob_string =~ /([a-z]+)\[([0-9.]+)\]/;
 
-	die "Invalid prob string '$prob_string' from '$string'"  unless defined ( $1) && defined ( $2 );
+        die "Invalid prob string '$prob_string' from '$string'" unless defined( $1 ) && defined( $2 );
 
-	$prob_hash->{ $1 } = $2;
+        $prob_hash->{ $1 } = $2;
 
     }
 
@@ -399,56 +401,56 @@ sub get_extracted_line_with_maxent
     while ( my ( $line_info, $line_text ) = $ea->() )
     {
 
-	my $prior_state_string = join '_', @$previous_states;
-	$line_info->{ "priors_$prior_state_string" } = 1;
-	if ( $previous_states->[ 1] eq 'auto_excluded' )
-	{
-	    $line_info->{ previous_line_auto_excluded } = 1;
-	}
+        my $prior_state_string = join '_', @$previous_states;
+        $line_info->{ "priors_$prior_state_string" } = 1;
+        if ( $previous_states->[ 1 ] eq 'auto_excluded' )
+        {
+            $line_info->{ previous_line_auto_excluded } = 1;
+        }
 
-	shift $previous_states;
+        shift $previous_states;
 
-	if ( $line_info->{ auto_excluded } == 1 )
-	{
-	    push $previous_states, 'auto_excluded';
-	    next if $line_info->{ auto_excluded } == 1;
-	}
+        if ( $line_info->{ auto_excluded } == 1 )
+        {
+            push $previous_states, 'auto_excluded';
+            next if $line_info->{ auto_excluded } == 1;
+        }
 
-	my $line_number = $line_info->{ line_number };
+        my $line_number = $line_info->{ line_number };
 
-	if ( defined( $last_in_story_line ) )
-	{
-	    $line_info->{ distance_from_previous_in_story_line } = $line_number - $last_in_story_line;
-	}
+        if ( defined( $last_in_story_line ) )
+        {
+            $line_info->{ distance_from_previous_in_story_line } = $line_number - $last_in_story_line;
+        }
 
-	MediaWords::Crawler::AnalyzeLines::add_additional_features( $line_info, $line_text );
+        MediaWords::Crawler::AnalyzeLines::add_additional_features( $line_info, $line_text );
 
-	my $feature_string =
-	    MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text );
+        my $feature_string = MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text );
 
-	#say STDERR "got feature_string: $feature_string";
+        #say STDERR "got feature_string: $feature_string";
 
-	my $model_result = pipe_to_streaming_model( $feature_string );
+        my $model_result = pipe_to_streaming_model( $feature_string );
 
+        #say STDERR Dumper( $model_result );
 
-	#say STDERR Dumper( $model_result );
+        my $prediction = reduce { $model_result->{ $a } > $model_result->{ $b } ? $a : $b } keys %{ $model_result };
 
-	my $prediction = reduce { $model_result->{$a} > $model_result->{$b} ? $a : $b } keys % { $model_result };
+        if ( $model_result->{ excluded } < 0.95 )
+        {
+            push $extracted_lines, $line_info->{ line_number };
+            $last_in_story_line = $line_number;
 
-	if ( $model_result->{ excluded } < 0.95 )
-	{
-	    push $extracted_lines, $line_info->{ line_number };
-	    $last_in_story_line = $line_number;
-	    #say STDERR "including line because of exclude prob:  $model_result->{ excluded } ";
-	}
-	else
-	{
-	    #say STDERR "Excluded line because of exclude prob:  $model_result->{ excluded } ";
-	}
+            #say STDERR "including line because of exclude prob:  $model_result->{ excluded } ";
+        }
+        else
+        {
 
-	push $previous_states, $prediction;
+            #say STDERR "Excluded line because of exclude prob:  $model_result->{ excluded } ";
+        }
 
-	#say Dumper( $model_result );
+        push $previous_states, $prediction;
+
+        #say Dumper( $model_result );
     }
 
     return $extracted_lines;
@@ -757,9 +759,9 @@ sub main
     if ( !$_download_data_load_file )
     {
 
-	my $db = MediaWords::DB->authenticate();
+        my $db = MediaWords::DB->authenticate();
 
-	my $dbs = MediaWords::DB::connect_to_db();
+        my $dbs = MediaWords::DB::connect_to_db();
 
         if ( @download_ids )
         {
