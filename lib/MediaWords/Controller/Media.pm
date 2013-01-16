@@ -83,45 +83,6 @@ sub _find_medium_by_response
     return $medium;
 }
 
-# given a newline separated list of media urls, return a list of hashes in the form of
-# { medium => $medium_hash, url => $url, tags_string => $tags_string, message => $error_message }
-# the $medium_hash is the existing media source with the given url, or undef if no existing media source is found.
-# the tags_string is everything after a space on a line, to be used to add tags to the media source later.
-sub _find_media_from_urls
-{
-    my ( $dbis, $urls_string ) = @_;
-
-    my $url_media = [];
-
-    my $urls = [ split( "\n", $urls_string ) ];
-
-    for my $tagged_url ( @{ $urls } )
-    {
-        my $medium;
-
-        my ( $url, $tags_string ) = ( $tagged_url =~ /^\r*\s*([^\s]*)(?:\s+(.*))?/ );
-
-        if ( $url !~ m~^[a-z]+://~ )
-        {
-            $url = "http://$url";
-        }
-
-        $medium->{ url }         = $url;
-        $medium->{ tags_string } = $tags_string;
-
-        if ( $url !~ /$RE{URI}/ )
-        {
-            $medium->{ message } = "'$url' is not a valid url";
-        }
-
-        $medium->{ medium } = MediaWords::DBI::Media::find_medium_by_url( $dbis, $url );
-
-        push( @{ $url_media }, $medium );
-    }
-
-    return $url_media;
-}
-
 # given a set of url media (as returned by _find_media_from_urls) and a url
 # return the index of the media source in the list whose url is the same as the url fetched the response.
 # note that the url should be the original url and not any redirected urls (such as might be stored in
@@ -277,7 +238,7 @@ sub _find_or_create_media_from_urls
 {
     my ( $self, $c, $urls_string, $tags_string ) = @_;
 
-    my $url_media = _find_media_from_urls( $c->dbis, $urls_string );
+    my $url_media = MediaWords::DBI::Media::find_media_from_urls( $c->dbis, $urls_string );
 
     $self->_add_missing_media_from_urls( $c, $url_media );
 
