@@ -66,7 +66,7 @@ sub create_batch : Local
 }
 
 # find the media source by the url or the url with/without the trailing slash
-sub find_medium_by_url
+sub _find_medium_by_url
 {
     my ( $self, $c, $url ) = @_;
 
@@ -90,14 +90,14 @@ sub find_medium_by_url
 
 # find the media source by the reseponse.  recurse back along the response to all of the chained redirects
 # to see if we can find the media source by any of those urls.
-sub find_medium_by_response
+sub _find_medium_by_response
 {
     my ( $self, $c, $response ) = @_;
 
     my $r = $response;
 
     my $medium;
-    while ( $r && !( $medium = $self->find_medium_by_url( $c, decode( 'utf8', $r->request->url ) ) ) )
+    while ( $r && !( $medium = $self->_find_medium_by_url( $c, decode( 'utf8', $r->request->url ) ) ) )
     {
         $r = $r->previous;
     }
@@ -136,7 +136,7 @@ sub _find_media_from_urls
             $medium->{ message } = "'$url' is not a valid url";
         }
 
-        $medium->{ medium } = $self->find_medium_by_url( $c, $url );
+        $medium->{ medium } = $self->_find_medium_by_url( $c, $url );
 
         push( @{ $url_media }, $medium );
     }
@@ -148,7 +148,7 @@ sub _find_media_from_urls
 # return the index of the media source in the list whose url is the same as the url fetched the response.
 # note that the url should be the original url and not any redirected urls (such as might be stored in
 # response->request->url).
-sub get_url_medium_index_from_url
+sub _get_url_medium_index_from_url
 {
     my ( $self, $url_media, $url ) = @_;
 
@@ -167,7 +167,7 @@ sub get_url_medium_index_from_url
 }
 
 # given an lwp response, grab the title of the media source as the <title> content or missing that the response url
-sub get_medium_title_from_response
+sub _get_medium_title_from_response
 {
     my ( $self, $response ) = @_;
 
@@ -200,7 +200,7 @@ sub _add_missing_media_from_urls
         my $original_request = MediaWords::Util::Web->get_original_request( $response );
         my $url              = $original_request->url;
 
-        my $url_media_index = $self->get_url_medium_index_from_url( $url_media, $url );
+        my $url_media_index = $self->_get_url_medium_index_from_url( $url_media, $url );
         if ( !defined( $url_media_index ) )
         {
             next;
@@ -212,9 +212,9 @@ sub _add_missing_media_from_urls
             next;
         }
 
-        my $title = $self->get_medium_title_from_response( $response );
+        my $title = $self->_get_medium_title_from_response( $response );
 
-        my $medium = $self->find_medium_by_response( $c, $response );
+        my $medium = $self->_find_medium_by_response( $c, $response );
 
         if ( !$medium )
         {
@@ -481,7 +481,7 @@ sub delete : Local
 # search for media matching search for the given keyword
 # return the matching media from the given page along with a
 # Data::Page object for the results
-sub search_paged_media
+sub _search_paged_media
 {
     my ( $self, $c, $q, $page, $rows_per_page ) = @_;
 
@@ -498,7 +498,7 @@ sub search_paged_media
 }
 
 # return any media that might be a candidate for merging with the given media source
-sub get_potential_merge_media
+sub _get_potential_merge_media
 {
     my ( $self, $c, $medium ) = @_;
 
@@ -555,7 +555,7 @@ sub moderate : Local
         )->flat;
         $feeds = $c->dbis->query( "select * from feeds where media_id = ? order by name", $medium->{ media_id } )->hashes;
 
-        $merge_media = $self->get_potential_merge_media( $c, $medium );
+        $merge_media = $self->_get_potential_merge_media( $c, $medium );
 
         $#{ $merge_media } = List::Util::min( $#{ $merge_media }, 2 );
     }
@@ -597,7 +597,7 @@ sub search : Local
 
     if ( $q )
     {
-        ( $media, $pager ) = $self->search_paged_media( $c, $q, $p, ROWS_PER_PAGE );
+        ( $media, $pager ) = $self->_search_paged_media( $c, $q, $p, ROWS_PER_PAGE );
     }
     elsif ( $f )
     {
@@ -790,7 +790,7 @@ sub keep_single_feed : Local
 }
 
 # merge the tags of medium_a into medium_b
-sub merge_media_tags
+sub _merge_media_tags
 {
     my ( $self, $c, $medium_a, $medium_b ) = @_;
 
@@ -815,7 +815,7 @@ sub merge : Local
 
     if ( !$medium_a->{ moderated } && ( $confirm eq 'yes' ) )
     {
-        $self->merge_media_tags( $c, $medium_a, $medium_b );
+        $self->_merge_media_tags( $c, $medium_a, $medium_b );
 
         $c->dbis->delete_by_id( 'media', $medium_a->{ media_id } );
 
