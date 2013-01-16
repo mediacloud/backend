@@ -187,7 +187,7 @@ sub get_medium_title_from_response
 }
 
 # fetch the url of all missing media and add those media with the titles from the fetched urls
-sub add_missing_media_from_urls
+sub _add_missing_media_from_urls
 {
     my ( $self, $c, $url_media ) = @_;
 
@@ -253,7 +253,7 @@ sub add_missing_media_from_urls
 
 # given a list of media sources as returned by _find_media_from_urls, add the tags
 # in the tags_string of each medium to that medium
-sub add_media_tags_from_strings
+sub _add_media_tags_from_strings
 {
     my ( $self, $c, $url_media, $global_tags_string ) = @_;
 
@@ -295,15 +295,15 @@ sub add_media_tags_from_strings
 # url or the medium assocaited with the title from the given url or,
 # if no medium is found, a newly created medium.  Return the list of
 # all found or created media along with a list of error messages for the process.
-sub find_or_create_media_from_urls
+sub _find_or_create_media_from_urls
 {
     my ( $self, $c, $urls_string, $tags_string ) = @_;
 
     my $url_media = $self->_find_media_from_urls( $c, $urls_string );
 
-    $self->add_missing_media_from_urls( $c, $url_media );
+    $self->_add_missing_media_from_urls( $c, $url_media );
 
-    $self->add_media_tags_from_strings( $c, $url_media, $tags_string );
+    $self->_add_media_tags_from_strings( $c, $url_media, $tags_string );
 
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
 }
@@ -354,7 +354,7 @@ sub create_do : Local
     my ( $self, $c ) = @_;
 
     my $error_messages =
-      $self->find_or_create_media_from_urls( $c, $c->request->param( 'urls' ), $c->request->param( 'tags' ) );
+      $self->_find_or_create_media_from_urls( $c, $c->request->param( 'urls' ), $c->request->param( 'tags' ) );
 
     my $status_msg;
     if ( @{ $error_messages } )
