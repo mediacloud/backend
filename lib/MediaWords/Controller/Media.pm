@@ -30,7 +30,7 @@ use if $] >= 5.014, feature => 'switch';
 
 use constant ROWS_PER_PAGE => 25;
 
-sub make_edit_form
+sub _make_edit_form
 {
     my ( $self, $c, $action ) = @_;
 
@@ -382,7 +382,7 @@ sub edit : Local
 
     $id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
+    my $form = $self->_make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
 
     my $medium = $c->dbis->find_by_id( 'media', $id );
 
@@ -399,7 +399,7 @@ sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
+    my $form = $self->_make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
     my $medium = $c->dbis->find_by_id( 'media', $id );
 
     if ( !$form->submitted_and_valid )
