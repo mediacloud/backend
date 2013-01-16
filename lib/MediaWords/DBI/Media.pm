@@ -9,7 +9,6 @@ use Encode;
 
 use Data::Dumper;
 
-
 # find the media source by the url or the url with/without the trailing slash
 sub find_medium_by_url
 {
@@ -32,6 +31,5 @@ sub find_medium_by_url
 
     return $medium;
 }
-
 
 1;
