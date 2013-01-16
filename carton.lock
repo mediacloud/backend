@@ -18261,6 +18261,83 @@
          "target" : "Filesys::Notify::Simple",
          "version" : "0.08"
       },
+      "Font::AFM" : {
+         "dist" : "Font-AFM-1.20",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "unknown"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.42_01, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Font-AFM",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {}
+               }
+            },
+            "release_status" : "stable",
+            "version" : "1.20"
+         },
+         "name" : "Font::AFM",
+         "pathname" : "G/GA/GAAS/Font-AFM-1.20.tar.gz",
+         "provides" : {
+            "Font::AFM" : {
+               "file" : "Font/AFM.pm",
+               "version" : "1.20"
+            },
+            "Font::Metrics::Courier" : {
+               "file" : "Font/Metrics/Courier.pm"
+            },
+            "Font::Metrics::CourierBold" : {
+               "file" : "Font/Metrics/CourierBold.pm"
+            },
+            "Font::Metrics::CourierBoldOblique" : {
+               "file" : "Font/Metrics/CourierBoldOblique.pm"
+            },
+            "Font::Metrics::CourierOblique" : {
+               "file" : "Font/Metrics/CourierOblique.pm"
+            },
+            "Font::Metrics::Helvetica" : {
+               "file" : "Font/Metrics/Helvetica.pm"
+            },
+            "Font::Metrics::HelveticaBold" : {
+               "file" : "Font/Metrics/HelveticaBold.pm"
+            },
+            "Font::Metrics::HelveticaBoldOblique" : {
+               "file" : "Font/Metrics/HelveticaBoldOblique.pm"
+            },
+            "Font::Metrics::HelveticaOblique" : {
+               "file" : "Font/Metrics/HelveticaOblique.pm"
+            },
+            "Font::Metrics::TimesBold" : {
+               "file" : "Font/Metrics/TimesBold.pm"
+            },
+            "Font::Metrics::TimesBoldItalic" : {
+               "file" : "Font/Metrics/TimesBoldItalic.pm"
+            },
+            "Font::Metrics::TimesItalic" : {
+               "file" : "Font/Metrics/TimesItalic.pm"
+            },
+            "Font::Metrics::TimesRoman" : {
+               "file" : "Font/Metrics/TimesRoman.pm"
+            }
+         },
+         "target" : "Font::Metrics::CourierOblique",
+         "version" : "1.20"
+      },
       "Getopt::Long::Descriptive" : {
          "dist" : "Getopt-Long-Descriptive-0.090",
          "mymeta" : {
@@ -19587,6 +19664,403 @@
          },
          "target" : "HTML::FormFu",
          "version" : "0.09007"
+      },
+      "HTML::Format" : {
+         "dist" : "HTML-Format-2.10",
+         "mymeta" : {
+            "abstract" : "Base class for HTML formatters",
+            "author" : [
+               "Nigel Metheringham <nigelm@cpan.org>",
+               "Sean M Burke <sburke@cpan.org>",
+               "Gisle Aas <gisle@ActiveState.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "HTML-Format",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "English" : 0,
+                     "File::Find" : 0,
+                     "File::Slurp" : 0,
+                     "File::Spec" : 0,
+                     "File::Temp" : 0,
+                     "Module::Build" : "0.3601",
+                     "Scalar::Util" : 0,
+                     "Test::More" : "0.96",
+                     "bytes" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "Module::Build" : "0.3601"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "Data::Dumper" : 0,
+                     "Encode" : 0,
+                     "Font::Metrics::Courier" : 0,
+                     "Font::Metrics::CourierBold" : 0,
+                     "Font::Metrics::CourierBoldOblique" : 0,
+                     "Font::Metrics::CourierOblique" : 0,
+                     "Font::Metrics::Helvetica" : 0,
+                     "Font::Metrics::HelveticaBold" : 0,
+                     "Font::Metrics::HelveticaBoldOblique" : 0,
+                     "Font::Metrics::HelveticaOblique" : 0,
+                     "Font::Metrics::TimesBold" : 0,
+                     "Font::Metrics::TimesBoldItalic" : 0,
+                     "Font::Metrics::TimesItalic" : 0,
+                     "Font::Metrics::TimesRoman" : 0,
+                     "HTML::Element" : "3.15",
+                     "HTML::TreeBuilder" : 0,
+                     "IO::File" : 0,
+                     "integer" : 0,
+                     "perl" : "5.008",
+                     "utf8" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "HTML::FormatPS" : {
+                  "file" : "lib/HTML/FormatPS.pm",
+                  "version" : "2.10"
+               },
+               "HTML::FormatRTF" : {
+                  "file" : "lib/HTML/FormatRTF.pm",
+                  "version" : "2.10"
+               },
+               "HTML::FormatText" : {
+                  "file" : "lib/HTML/FormatText.pm",
+                  "version" : "2.10"
+               },
+               "HTML::Formatter" : {
+                  "file" : "lib/HTML/Formatter.pm",
+                  "version" : "2.10"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=HTML-Format"
+               },
+               "homepage" : "http://search.cpan.org/dist/HTML-Format",
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://github.com/nigelm/html-format.git"
+               }
+            },
+            "version" : "2.10",
+            "x_Dist_Zilla" : {
+               "plugins" : [
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::NextVersion",
+                     "name" : "@NIGELM/Git::NextVersion",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Check",
+                     "name" : "@NIGELM/Git::Check",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::GatherDir",
+                     "name" : "@NIGELM/GatherDir",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CompileTests",
+                     "name" : "@NIGELM/CompileTests",
+                     "version" : "1.110930"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CriticTests",
+                     "name" : "@NIGELM/CriticTests",
+                     "version" : "1.111450"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaTests",
+                     "name" : "@NIGELM/MetaTests",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodSyntaxTests",
+                     "name" : "@NIGELM/PodSyntaxTests",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodSpellingTests",
+                     "name" : "@NIGELM/PodSpellingTests",
+                     "version" : "1.111520"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PortabilityTests",
+                     "name" : "@NIGELM/PortabilityTests",
+                     "version" : "1.111840"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::SynopsisTests",
+                     "name" : "@NIGELM/SynopsisTests",
+                     "version" : "1.101420"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MinimumVersionTests",
+                     "name" : "@NIGELM/MinimumVersionTests",
+                     "version" : "1.101421"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::HasVersionTests",
+                     "name" : "@NIGELM/HasVersionTests",
+                     "version" : "1.101420"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::DistManifestTests",
+                     "name" : "@NIGELM/DistManifestTests",
+                     "version" : "1.101420"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::UnusedVarsTests",
+                     "name" : "@NIGELM/UnusedVarsTests",
+                     "version" : "1.100860"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::NoTabsTests",
+                     "name" : "@NIGELM/NoTabsTests",
+                     "version" : "0.01"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::EOLTests",
+                     "name" : "@NIGELM/EOLTests",
+                     "version" : "0.02"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::InlineFiles",
+                     "name" : "@NIGELM/InlineFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ReportVersions",
+                     "name" : "@NIGELM/ReportVersions",
+                     "version" : "1.110730"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneCruft",
+                     "name" : "@NIGELM/PruneCruft",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PruneFiles",
+                     "name" : "@NIGELM/PruneFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ManifestSkip",
+                     "name" : "@NIGELM/ManifestSkip",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::AutoPrereqs",
+                     "name" : "@NIGELM/AutoPrereqs",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaConfig",
+                     "name" : "@NIGELM/MetaConfig",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaProvides::Class",
+                     "name" : "@NIGELM/MetaProvides::Class",
+                     "version" : "1.12060501"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaProvides::Package",
+                     "name" : "@NIGELM/MetaProvides::Package",
+                     "version" : "1.12060501"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaResources",
+                     "name" : "@NIGELM/MetaResources",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Authority",
+                     "name" : "@NIGELM/Authority",
+                     "version" : "1.005"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ExtraTests",
+                     "name" : "@NIGELM/ExtraTests",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::NextRelease",
+                     "name" : "@NIGELM/NextRelease",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::OurPkgVersion",
+                     "name" : "@NIGELM/OurPkgVersion",
+                     "version" : "0.1.8"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::PodWeaver",
+                     "name" : "@NIGELM/PodWeaver",
+                     "version" : "3.101641"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::License",
+                     "name" : "@NIGELM/License",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ModuleBuild",
+                     "name" : "@NIGELM/ModuleBuild",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaYAML",
+                     "name" : "@NIGELM/MetaYAML",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::MetaJSON",
+                     "name" : "@NIGELM/MetaJSON",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ReadmeAnyFromPod",
+                     "name" : "@NIGELM/ReadmeAnyFromPod",
+                     "version" : "0.103522"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::ReadmeAnyFromPod",
+                     "name" : "@NIGELM/ReadmePodInRoot",
+                     "version" : "0.103522"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::InstallGuide",
+                     "name" : "@NIGELM/InstallGuide",
+                     "version" : "1.101461"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Manifest",
+                     "name" : "@NIGELM/Manifest",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Commit",
+                     "name" : "@NIGELM/Git::Commit",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Tag",
+                     "name" : "@NIGELM/Git::Tag",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::CommitBuild",
+                     "name" : "@NIGELM/Git::CommitBuild",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Git::Push",
+                     "name" : "@NIGELM/Git::Push",
+                     "version" : "1.111590"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::CheckChangeLog",
+                     "name" : "@NIGELM/CheckChangeLog",
+                     "version" : "0.01"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::UploadToCPAN",
+                     "name" : "@NIGELM/UploadToCPAN",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::Prereqs",
+                     "config" : {
+                        "Dist::Zilla::Plugin::Prereqs" : {
+                           "phase" : "runtime",
+                           "type" : "requires"
+                        }
+                     },
+                     "name" : "Prereqs",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":InstallModules",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":IncModules",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":TestFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":ExecFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":ShareFiles",
+                     "version" : "4.200009"
+                  },
+                  {
+                     "class" : "Dist::Zilla::Plugin::FinderCode",
+                     "name" : ":MainModule",
+                     "version" : "4.200009"
+                  }
+               ],
+               "zilla" : {
+                  "class" : "Dist::Zilla::Dist::Builder",
+                  "config" : {
+                     "is_trial" : "0"
+                  },
+                  "version" : "4.200009"
+               }
+            },
+            "x_authority" : "cpan:NIGELM"
+         },
+         "name" : "HTML::Format",
+         "pathname" : "N/NI/NIGELM/HTML-Format-2.10.tar.gz",
+         "provides" : {
+            "HTML::Format" : {},
+            "HTML::FormatPS" : {
+               "file" : "HTML/FormatPS.pm",
+               "version" : "2.10"
+            },
+            "HTML::FormatRTF" : {
+               "file" : "HTML/FormatRTF.pm",
+               "version" : "2.10"
+            },
+            "HTML::FormatText" : {
+               "file" : "HTML/FormatText.pm",
+               "version" : "2.10"
+            },
+            "HTML::Formatter" : {
+               "file" : "HTML/Formatter.pm",
+               "version" : "2.10"
+            }
+         },
+         "target" : "HTML::FormatText",
+         "version" : "2.10"
       },
       "HTML::LinkExtractor" : {
          "dist" : "HTML-LinkExtractor-0.13",
