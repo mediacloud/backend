@@ -81,7 +81,7 @@ sub _find_medium_by_response
     my $r = $response;
 
     my $medium;
-    while ( $r && !( $medium = MediaWords::DBI::Media::find_medium_by_url( $dbis, decode( 'utf8', $r->request->url ) ) ) )
+    while ( $r && !( $medium = _find_medium_by_url( $dbis, decode( 'utf8', $r->request->url ) ) ) )
     {
         $r = $r->previous;
     }
@@ -194,7 +194,7 @@ sub _add_media_tags_from_strings
 }
 
 # find the media source by the url or the url with/without the trailing slash
-sub find_medium_by_url
+sub _find_medium_by_url
 {
     my ( $dbis, $url ) = @_;
 
@@ -247,7 +247,7 @@ sub find_media_from_urls
             $medium->{ message } = "'$url' is not a valid url";
         }
 
-        $medium->{ medium } = MediaWords::DBI::Media::find_medium_by_url( $dbis, $url );
+        $medium->{ medium } = _find_medium_by_url( $dbis, $url );
 
         push( @{ $url_media }, $medium );
     }
