@@ -68,10 +68,11 @@ sub set_defaults
 {
     my ( $config ) = @_;
 
-    $config->{ mediawords }->{ script_dir }               ||= "$_base_dir/script";
-    $config->{ mediawords }->{ data_dir }                 ||= "$_base_dir/data";
-    $config->{ mediawords }->{ always_show_stack_traces } ||= "no";
-    $config->{ session }->{ storage }                     ||= "$ENV{HOME}/tmp/mediacloud-session";
+    $config->{ mediawords }->{ script_dir }                       ||= "$_base_dir/script";
+    $config->{ mediawords }->{ data_dir }                         ||= "$_base_dir/data";
+    $config->{ mediawords }->{ always_show_stack_traces }         ||= "no";
+    $config->{ mediawords }->{ disable_json_top_500_words_cache } ||= "yes";
+    $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
 
     return $config;
 }
