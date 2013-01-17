@@ -1176,20 +1176,49 @@ EOF
 
 # return list of term counts for the given terms within the given query in the following form:
 # [ [ < date >, < term >, < count > ], ... ]
-
+# '$terms_languages' is an arrayref of hashes of the following form:
+#     [
+#         {
+#             \'language\' => \'en\',
+#             \'term\' => \'health\'
+#             },
+#         {
+#             \'language\' => \'en\',
+#             \'term\' => \'tax\'
+#         },
+#         {
+#             \'language\' => \'en\',
+#             \'term\' => \'economy\'
+#         }
+#     ];
 sub get_term_counts
 {
-    my ( $db, $query, $terms ) = @_;
+    my ( $db, $query, $terms_languages ) = @_;
 
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'dw' );
     my $date_clause = get_daily_date_clause( $query, 'dw' );
 
-    my $lang       = MediaWords::Languages::Language::lang();
-    my $stems      = $lang->stem( @{ $terms } );
-    my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
+    my @stems_clauses;    # "(stem = 'x1' AND language = 'y1') OR (stem = 'x2' AND language = 'y2') OR ..."
+    my $term_lookup = {}; # 'stem [language]' => 'term [language]', 'stem [language]' => 'term [language]', ...
 
-    my $num_term_combinations = @{ $query->{ media_sets } } * @{ $stems };
+    for my $term_language ( @{ $terms_languages } )
+    {
+        my @term      = ( $term_language->{ term } );
+        my $lang_code = $term_language->{ language };
+        my $lang      = MediaWords::Languages::Language::language_for_code( $lang_code );
+        my $stem      = $lang->stem( @term );
+        $stem = @{ $stem }[ 0 ];
+
+        # "term [language_code]"
+        $term_lookup->{ $stem } = $term[ 0 ] . ' [' . $lang_code . ']';
+
+        push( @stems_clauses,
+            '(dw.stem = ' . $db->dbh->quote( $stem ) . ' AND dw.language = ' . $db->dbh->quote( $lang_code ) . ')' );
+    }
+    my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
+
+    my $num_term_combinations = @{ $query->{ media_sets } } * @stems_clauses;
     my ( $media_set_group, $media_set_legend );
     if ( $num_term_combinations < 6 )
     {
@@ -1206,6 +1235,7 @@ sub get_term_counts
             <<"EOF"
         SELECT dw.publish_day,
                dw.stem $media_set_legend AS term,
+               dw.language,
                SUM( dw.stem_count::float / tw.total_count::float )::float AS count
         FROM daily_words AS dw,
              total_daily_words AS tw,
@@ -1216,28 +1246,29 @@ sub get_term_counts
               AND COALESCE( tw.dashboard_topics_id, 0 ) = COALESCE( dw.dashboard_topics_id, 0 )
               AND $date_clause
               AND dw.publish_day = tw.publish_day
-              AND dw.stem IN ( $stems_list )
+              AND $stems_clause
               AND ms.media_sets_id = dw.media_sets_id
-        GROUP BY dw.publish_day, dw.stem $media_set_group
+        GROUP BY dw.publish_day, dw.stem, dw.language $media_set_group
         ORDER BY dw.publish_day, dw.stem
 EOF
           )->arrays
     ];
 
-    my $term_lookup = {};
-    map { $term_lookup->{ $stems->[ $_ ] } = $terms->[ $_ ] } ( 0 .. $#{ $stems } );
-
     for my $d ( @{ $date_term_counts } )
     {
+
+        # "term [language_code]"
+        my $term_plus_language = $d->[ 1 ] . ' [' . $d->[ 2 ] . ']';
+
         if ( $media_set_legend )
         {
-            $d->[ 1 ] =~ $term_lookup->{ $d->[ 1 ] };
+            $d->[ 1 ] =~ $term_lookup->{ $term_plus_language };
         }
         else
         {
             $d->[ 1 ] =~ /([^-]*) - (.*)/;
             my ( $stem, $media_set_label ) = ( $1, $2 );
-            $d->[ 1 ] = $term_lookup->{ $d->[ 1 ] } . " - $media_set_label";
+            $d->[ 1 ] = $term_lookup->{ $term_plus_language } . " - $media_set_label";
         }
     }
 

@@ -284,11 +284,20 @@ sub terms : Local
 
     my $terms_string = $c->req->param( 'terms' ) || die( "no terms" );
 
-    my $terms = [ split( /[,\s]+/, $terms_string ) ];
+    #my $terms = [ split( /[,\s]+/, $terms_string ) ];
+    chomp( $terms_string );
+    my $terms = [ split( /\n/, $terms_string ) ];
+    my $terms_languages = [];
+
+    foreach my $term_language ( @{ $terms } )
+    {
+        my ( $term, $language ) = split( ' ', $term_language );
+        push( $terms_languages, { 'term' => $term, 'language' => $language } );
+    }
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
 
-    my $date_term_counts = MediaWords::DBI::Queries::get_term_counts( $c->dbis, $query, $terms );
+    my $date_term_counts = MediaWords::DBI::Queries::get_term_counts( $c->dbis, $query, $terms_languages );
 
     if ( $c->req->param( 'csv' ) )
     {
@@ -312,22 +321,30 @@ sub terms : Local
 
         $c->res->body( $json_output );
         return;
+
     }
+    else
+    {
 
-    my $max_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, $terms );
+        my $max_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, $terms_languages );
 
-    my $term_chart_url = MediaWords::Util::Chart::generate_line_chart_url_from_dates(
-        $date_term_counts,
-        $query->{ start_date },
-        MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 )
-    );
+        print STDERR "DATE TERM COUNTS:\n";
+        print STDERR Dumper( $date_term_counts );
 
-    $c->stash->{ query }           = $query;
-    $c->stash->{ term_chart_url }  = $term_chart_url;
-    $c->stash->{ terms }           = $terms;
-    $c->stash->{ terms_string }    = $terms_string;
-    $c->stash->{ max_term_ratios } = $max_term_ratios;
-    $c->stash->{ template }        = 'queries/terms.tt2';
+        my $term_chart_url = MediaWords::Util::Chart::generate_line_chart_url_from_dates(
+            $date_term_counts,
+            $query->{ start_date },
+            MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 )
+        );
+
+        $c->stash->{ query }           = $query;
+        $c->stash->{ term_chart_url }  = $term_chart_url;
+        $c->stash->{ terms }           = $terms;
+        $c->stash->{ terms_string }    = $terms_string;
+        $c->stash->{ max_term_ratios } = $max_term_ratios;
+        $c->stash->{ template }        = 'queries/terms.tt2';
+        return;
+    }
 }
 
 sub sentences : Local

@@ -110,7 +110,19 @@ This is a chart of the relative frequency of the terms included in the topic for
 [% terms_form.render %]
 
 <p>
-Use this form to generate a line chart of the frequency of any set of terms within this query.  For instance, enter 'health, tax, economy' to get a chart of the frequency of those terms within the query.
+Use this form to generate a line chart of the frequency of any set of terms within this query.
+Enter one <code>term language_code</code> pair per line.
+For instance, enter:
+</p>
+
+<pre>
+health en
+tax en
+economy en
+</pre>
+
+<p>
+to get a chart of the frequency of those terms within the query.
 </p>
 
 </fieldset>
