@@ -1249,30 +1249,51 @@ EOF
 # { stem => $s, term => $t, stem_count => $sc, max_term_ratio => $m }.
 # The list will be sorted in descending order of the stem_count of each term, and
 # an entry for the the most common term will be inserted as the first member of the list.
-sub get_max_term_ratios
+# (Topic) terms are located in $query->{ dashboard_topics }[...]->{ query }
+sub get_max_term_ratios($$;$)
 {
-    my ( $db, $query, $terms, $ignore_topics ) = @_;
+    my ( $db, $query, $ignore_topics ) = @_;
+
+    # my $terms = [ map { $_->{ query } } @{ $query->{ dashboard_topics } } ];
+
+    my @stems_clauses;    # "(stem = 'x1' AND language = 'y1') OR (stem = 'x2' AND language = 'y2') OR ..."
+    my $term_lookup = {}; # 'stem [language]' => 'term [language]', 'stem [language]' => 'term [language]', ...
+    foreach my $dashboard_topic ( @{ $query->{ dashboard_topics } } )
+    {
+        my $lang_code = $dashboard_topic->{ language };
+        my $lang      = MediaWords::Languages::Language::language_for_code( $lang_code );
+        my @term      = ( $dashboard_topic->{ query } );
+        my $stem      = $lang->stem( @term );
+        $stem = @{ $stem }[ 0 ];
+
+        $term_lookup->{ $stem } = $term[ 0 ] . ' [' . $lang_code . ']';
+
+        push( @stems_clauses,
+            '(stem = ' . $db->dbh->quote( $stem ) . ' AND language = ' . $db->dbh->quote( $lang_code ) . ')' );
+    }
+    my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
+
+    print STDERR Dumper( $query );
+    print STDERR Dumper( $stems_clause );
+    print STDERR Dumper( $ignore_topics );
 
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause =
-      $ignore_topics ? "w.dashboard_topics_id is null" : get_dashboard_topics_clause( $query, 'w' );
+      $ignore_topics ? "w.dashboard_topics_id IS NULL" : get_dashboard_topics_clause( $query, 'w' );
     my $date_clause = get_weekly_date_clause( $query, 'w' );
-
-    my $lang       = MediaWords::Languages::Language::lang();
-    my $stems      = $lang->stem( @{ $terms } );
-    my $stems_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $stems } );
 
     my $max_term_count = $db->query(
         <<"EOF"
         SELECT stem,
                MIN( term ) AS term,
                SUM( stem_count ) AS stem_count,
+               language,
                1 AS max_term_ratio
         FROM top_500_weekly_words AS w
         WHERE media_sets_id IN ( $media_sets_ids_list )
               AND $dashboard_topics_clause
               AND $date_clause
-        GROUP BY stem
+        GROUP BY stem, language
         ORDER BY SUM(stem_count) DESC
         LIMIT 1
 EOF
@@ -1281,28 +1302,30 @@ EOF
     my $term_counts = $db->query(
         <<"EOF"
         SELECT stem,
-               SUM( stem_count ) AS stem_count
+               SUM( stem_count ) AS stem_count,
+               language
         FROM weekly_words AS w
         WHERE media_sets_id IN ( $media_sets_ids_list )
               AND $dashboard_topics_clause
-              AND stem IN ( $stems_list )
+              AND $stems_clause
               AND $date_clause
-        GROUP BY stem
+        GROUP BY stem, language
         ORDER BY stem_count DESC
 EOF
     )->hashes;
 
-    my $term_lookup = {};
-    map { $term_lookup->{ $stems->[ $_ ] } = $terms->[ $_ ] } ( 0 .. $#{ $stems } );
-
     for my $i ( 0 .. $#{ $term_counts } )
     {
         my $term_count = $term_counts->[ $i ];
-        $term_count->{ term }           = $term_lookup->{ $term_count->{ stem } };
+        $term_count->{ term }           = $term_lookup->{ $term_count->{ stem } . ' [' . $term_count->{ language } . ']' };
         $term_count->{ max_term_ratio } = $term_count->{ stem_count } / $max_term_count->{ stem_count };
     }
 
-    unshift( @{ $term_counts }, $max_term_count ) unless ( $term_counts->[ 0 ]->{ stem } eq $max_term_count->{ stem } );
+    unless ($term_counts->[ 0 ]->{ stem } eq $max_term_count->{ stem }
+        and $term_counts->[ 0 ]->{ language } eq $max_term_count->{ language } )
+    {
+        unshift( @{ $term_counts }, $max_term_count );
+    }
 
     return $term_counts;
 }

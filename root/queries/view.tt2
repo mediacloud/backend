@@ -37,7 +37,13 @@ $(document).ready(function()
 
 <td>[% query.media_sets_names.join('; ') %]</td>
 
-<td>[% query.dashboard_topics_names.join('; ') %]</td>
+<td>
+	[% FOREACH dashboard_topic IN query.dashboard_topics -%]
+		[% IF not_first %];[% END %]
+		[% dashboard_topic.name %] [[% dashboard_topic.language %]]
+		[% SET not_first = 1 %]
+	[% END # FOREACH dashboard_topic -%]
+</td>
 
 </tr>
 

@@ -37,6 +37,8 @@ EOF
 
     my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];
 
+    print STDERR Dumper( $queries );
+
     $c->stash->{ queries }  = $queries;
     $c->stash->{ template } = 'queries/list.tt2';
 }
@@ -75,7 +77,8 @@ EOF
 EOF
     )->hashes;
     my $dashboard_topic_options =
-      [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $dashboard_topics } ];
+      [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } [$_->{ language }] ($_->{ dashboard_name })" ] }
+          @{ $dashboard_topics } ];
     $form->get_field( 'dashboard_topics_ids' )->options( $dashboard_topic_options );
 
     my $dashboards = $c->dbis->query( "SELECT * FROM dashboards ORDER BY name" )->hashes;
@@ -111,7 +114,7 @@ sub create : Local
 
     die( 'Unable to create query' ) if ( !$query );
 
-    $c->dbis->query( "update queries set generate_page = 't' where queries_id = ?", $query->{ queries_id } );
+    $c->dbis->query( "UPDATE QUERIES SET generate_page = 't' WHERE queries_id = ?", $query->{ queries_id } );
 
     $c->response->redirect( $c->uri_for( "/queries/view/$query->{ queries_id }", { status_msg => 'Query created.' } ) );
 }
@@ -243,8 +246,7 @@ sub view : Local
     if ( @{ $query->{ dashboard_topics } } )
     {
         $topic_chart_url = $self->_get_topic_chart_url( $c, $query );
-        my $topic_terms = [ map { $_->{ query } } @{ $query->{ dashboard_topics } } ];
-        $max_topic_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, $topic_terms, 1 );
+        $max_topic_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, 1 );
     }
 
     say STDERR "load template";
