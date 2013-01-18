@@ -744,14 +744,15 @@ sub get_top_500_weekly_words
 }
 
 # get the list of media that include the given stem within the given single query
-sub _get_media_matching_stems_single_query
+sub _get_media_matching_stems_single_query($$$$)
 {
-    my ( $db, $stem, $query ) = @_;
+    my ( $db, $stem, $lang_code, $query ) = @_;
 
     my $media_sets_ids_list     = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
     my $date_clause             = get_daily_date_clause( $query, 'tw' );
     my $quoted_stem             = $db->dbh->quote( $stem );
+    my $quoted_lang_code        = $db->dbh->quote( $lang_code );
 
     my $sql_query = <<"EOF";
         SELECT ( SUM(w.stem_count)::float / SUM(tw.total_count)::float ) AS stem_percentage,
@@ -765,6 +766,7 @@ sub _get_media_matching_stems_single_query
         WHERE w.media_sets_id = tw.media_sets_id
               AND w.publish_day = tw.publish_day
               AND w.stem = $quoted_stem
+              AND w.language = $quoted_lang_code
               AND $dashboard_topics_clause
               AND COALESCE( w.dashboard_topics_id, 0 ) = COALESCE( tw.dashboard_topics_id, 0 )
               AND w.media_sets_id = medium_ms.media_sets_id
@@ -793,14 +795,14 @@ EOF
 #   queries => <list of matching queries >
 #   stem_percentage => < average percentage of stem out of total top 500 words for all matching queries >
 # }
-sub get_media_matching_stems
+sub get_media_matching_stems($$$$)
 {
-    my ( $db, $stem, $queries ) = @_;
+    my ( $db, $stem, $lang_code, $queries ) = @_;
 
     my $media_hash;
     for my $query ( @{ $queries } )
     {
-        my $query_media = _get_media_matching_stems_single_query( $db, $stem, $query );
+        my $query_media = _get_media_matching_stems_single_query( $db, $stem, $lang_code, $query );
 
         for my $qm ( @{ $query_media } )
         {

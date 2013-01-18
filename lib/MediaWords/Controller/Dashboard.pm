@@ -1806,12 +1806,13 @@ sub sentences : Local
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    my $stem = $c->req->param( 'stem' ) || die( 'no stem' );
-    my $term = $c->req->param( 'term' ) || die( 'no term' );
+    my $stem      = $c->req->param( 'stem' )     || die( 'no stem' );
+    my $term      = $c->req->param( 'term' )     || die( 'no term' );
+    my $lang_code = $c->req->param( 'language' ) || die( 'no language code' );
 
     my $queries = [ map { $self->get_query_by_id( $c, $_ ) } $c->req->param( 'queries_ids' ) ];
     my $queries_description = join( " or ", map { $_->{ description } } @{ $queries } );
-    my $media = MediaWords::DBI::Queries::get_media_matching_stems( $c->dbis, $stem, $queries );
+    my $media = MediaWords::DBI::Queries::get_media_matching_stems( $c->dbis, $stem, $lang_code, $queries );
 
     $c->stash->{ dashboard }           = $dashboard;
     $c->stash->{ stem }                = $stem;
