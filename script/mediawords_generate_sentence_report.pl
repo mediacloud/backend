@@ -19,7 +19,7 @@ use Encode;
 use FileHandle;
 use HTML::Entities;
 use HTML::TagCloud;
-use Lingua::Stem::En;
+use MediaWords::Languages::Language;
 use List::Util;
 use URI::Escape;
 
@@ -101,13 +101,9 @@ sub get_stem
 {
     my ( $query ) = @_;
 
-    Lingua::Stem::En::stem_caching( { -level => 1 } );
-    my $stems = Lingua::Stem::En::stem(
-        {
-            -words  => [ $query ],
-            -locale => 'en'
-        }
-    );
+    my $lang  = MediaWords::Languages::Language::language_for_code( 'en' );
+    my $words = [ $query ];
+    my $stems = $lang->stem( $words );
     if ( !@{ $stems } )
     {
         die( "failed to find a stem for $query" );
