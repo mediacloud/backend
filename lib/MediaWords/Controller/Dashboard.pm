@@ -436,7 +436,8 @@ sub get_word_list : Local
     }
     else
     {
-        my $fields = [ qw ( stem term stem_count raw_stem_count stem_count_factor total_words query_id query_description ) ];
+        my $fields =
+          [ qw ( stem term language stem_count raw_stem_count stem_count_factor total_words query_id query_description ) ];
 
         my $csv = Class::CSV->new( fields => $fields );
 
