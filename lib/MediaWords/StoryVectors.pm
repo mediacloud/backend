@@ -1190,6 +1190,7 @@ EOF
                                        media_sets_media_map AS msmm
                                   WHERE sswq.media_id = msmm.media_id
                                         AND sswq.stem = ?
+                                        AND sswq.language = ?
                                         AND sswq.publish_day = ?
                                         AND $media_set_clause
                                   GROUP BY msmm.media_sets_id,
@@ -1212,7 +1213,8 @@ EOF
         $db->query_with_large_work_mem(
             $query_2,
             $dashboard_topic->{ dashboard_topics_id },
-            $dashboard_topic->{ query }, $sql_date
+            $dashboard_topic->{ query },
+            $dashboard_topic->{ language }, $sql_date
         );
     }
 
@@ -1431,11 +1433,13 @@ EOF
                     WHERE ssw.media_id = msmm.media_id
                           AND ssw.publish_day = '$sql_date'::date
                           AND stem = $term_a
+                          AND language = $language_code
                           AND EXISTS (SELECT 1
                                       FROM story_sentence_words AS sswb
                                       WHERE ssw.publish_day = sswb.publish_day
                                             AND ssw.media_id = sswb.media_id
                                             AND sswb.stem = $term_b
+                                            AND sswb.language = $language_code
                                             AND ssw.stories_id = sswb.stories_id
                                             AND ssw.sentence_number = sswb.sentence_number
                                      )
