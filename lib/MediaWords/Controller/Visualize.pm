@@ -244,15 +244,17 @@ sub query_term_in_media
         $from     = $params->{ 'from' };
         $to       = $params->{ 'to' };
         $num_days = $c->dbis->query(
-            "select extract('days' from (now() - ?) ) - extract('days' from (now() - ?) ) as days",
+            <<EOF,
+            SELECT EXTRACT('days' FROM (NOW() - ?) ) - EXTRACT('days' FROM (NOW() - ?) ) AS days
+EOF
             $params->{ 'from' },
             $params->{ 'to' }
         )->flat->[ 0 ];
 
-        push @{ $conditions }, " $table.publish_day between ? and ? ";
+        push @{ $conditions }, " $table.publish_day BETWEEN ? AND ? ";
 
         push @{ $columns },
-          " extract('days' from (now() - ?) ) - extract('days' from (now() - $table.publish_day) ) as days ";
+          " EXTRACT('days' FROM (NOW() - ?) ) - EXTRACT('days' FROM (NOW() - $table.publish_day) ) AS days ";
     }
     else
     {
@@ -266,9 +268,9 @@ sub query_term_in_media
         ( $yyyy, $mm, $dd ) = ( $year + 1900, $mon + 1, $mday );
         $from = $yyyy . "-" . $mm . "-" . $dd;
 
-        push @{ $conditions }, " $table.publish_day between ? and ? ";
+        push @{ $conditions }, " $table.publish_day BETWEEN ? AND ? ";
 
-        push @{ $columns }, " ? - extract('days' from (now() - $table.publish_day) ) as days ";
+        push @{ $columns }, " ? - EXTRACT('days' FROM (NOW() - $table.publish_day) ) AS days ";
     }
 
     $title .= "$from - $to )";
@@ -277,25 +279,26 @@ sub query_term_in_media
 
     if ( @{ $stems } == 1 )
     {
-        push @{ $columns }, " stem_count*1000/cast(total_count as float) as count ";
+        push @{ $columns }, " stem_count*1000/CAST(total_count AS float) AS count ";
 
-        $table =
-          " daily_media_words inner join total_daily_media_words on " .
-          " (daily_media_words.publish_day = total_daily_media_words.publish_day " .
-          " and daily_media_words.media_id = total_daily_media_words.media_id) ";
+        $table = <<EOF;
+            daily_media_words INNER JOIN total_daily_media_words ON (
+                daily_media_words.publish_day = total_daily_media_words.publish_day
+                AND daily_media_words.media_id = total_daily_media_words.media_id)
+EOF
 
         my ( $media_id_name_map, $media );
         my $list;
 
         if ( @{ $params->{ 'media_type' } } > 0 )
         {
-            push @{ $conditions }, " daily_media_words.media_id in (select media_id from media_tags_map where tags_id = ?) ";
+            push @{ $conditions }, " daily_media_words.media_id IN (SELECT media_id FROM media_tags_map WHERE tags_id = ?) ";
             push @{ $conditions },
-              " total_daily_media_words.media_id in (select media_id from media_tags_map where tags_id = ?) ";
+              " total_daily_media_words.media_id IN (SELECT media_id FROM media_tags_map WHERE tags_id = ?) ";
 
-            my $condition = " tags_id in ( " . join( ',', map( '?', @{ $params->{ 'media_type' } } ) ) . " ) ";
+            my $condition = " tags_id IN ( " . join( ',', map( '?', @{ $params->{ 'media_type' } } ) ) . " ) ";
             my $media_id_name_array =
-              $c->dbis->query( "select tags_id, tag from tags where " . $condition, @{ $params->{ 'media_type' } } )->hashes;
+              $c->dbis->query( "SELECT tags_id, tag FROM tags WHERE " . $condition, @{ $params->{ 'media_type' } } )->hashes;
 
             foreach my $map ( @{ $media_id_name_array } )
             {
@@ -306,7 +309,7 @@ sub query_term_in_media
             for ( my $i = 0 ; $i < @{ $list } ; $i++ )
             {
                 my $query =
-                  " select " . join( ' , ', @{ $columns } ) . " from $table where " . join( ' and ', @{ $conditions } );
+                  " SELECT " . join( ' , ', @{ $columns } ) . " FROM $table WHERE " . join( ' AND ', @{ $conditions } );
                 print STDERR $query, "\n";
 
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
@@ -328,9 +331,9 @@ sub query_term_in_media
         {
             push @{ $conditions }, " daily_media_words.media_id = ? ";
 
-            my $condition = " media_id in ( " . join( ',', map( '?', @{ $params->{ 'media' } } ) ) . " ) ";
+            my $condition = " media_id IN ( " . join( ',', map( '?', @{ $params->{ 'media' } } ) ) . " ) ";
             my $media_id_name_array =
-              $c->dbis->query( "select name, media_id from media where " . $condition, @{ $params->{ 'media' } } )->hashes;
+              $c->dbis->query( "SELECT name, media_id FROM media WHERE " . $condition, @{ $params->{ 'media' } } )->hashes;
 
             foreach my $map ( @{ $media_id_name_array } )
             {
@@ -342,7 +345,7 @@ sub query_term_in_media
             for ( my $i = 0 ; $i < @{ $list } ; $i++ )
             {
                 my $query =
-                  " select " . join( ' , ', @{ $columns } ) . " from $table where " . join( ' and ', @{ $conditions } );
+                  " SELECT " . join( ' , ', @{ $columns } ) . " FROM $table WHERE " . join( ' AND ', @{ $conditions } );
                 print STDERR $query, "\n";
 
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
@@ -361,12 +364,13 @@ sub query_term_in_media
         }
         else
         {
-            $table =
-              " daily_mc_words inner join total_daily_mc_words on " .
-              " (daily_mc_words.publish_day = total_daily_mc_words.publish_day ) ";
+            $table = <<EOF;
+                daily_mc_words INNER JOIN total_daily_mc_words ON (
+                    daily_mc_words.publish_day = total_daily_mc_words.publish_day)
+EOF
 
             my $query =
-              " select " . join( ' , ', @{ $columns } ) . " from $table where " . join( ' and ', @{ $conditions } );
+              " SELECT " . join( ' , ', @{ $columns } ) . " FROM $table where " . join( ' AND ', @{ $conditions } );
             print STDERR $query, "\n";
 
             if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
@@ -395,7 +399,7 @@ sub query_term_in_media
     }
     else
     {
-        push @{ $columns }, " stem_count*1000/cast(total_count as float) as count ";
+        push @{ $columns }, " stem_count*1000/CAST(total_count AS float) AS count ";
 
         my $media;
 
@@ -404,7 +408,7 @@ sub query_term_in_media
         if ( @{ $params->{ 'media_type' } } > 0 )
         {
             $media = $c->dbis->query(
-                " select  media_id from media_tags_map where tags_id in ( " .
+                " SELECT media_id FROM media_tags_map WHERE tags_id IN ( " .
                   join( ',', map( '?', @{ $params->{ 'media_type' } } ) ) . " ) ",
                 @{ $params->{ 'media_type' } }
             )->flat;
@@ -416,18 +420,19 @@ sub query_term_in_media
 
         if ( defined $media && @{ $media } > 0 )
         {
-            push @{ $conditions }, " $table.media_id in ( " . join( ',', map( $_, @{ $media } ) ) . " ) ";
-            push @{ $conditions }, " total_daily_media_words.media_id in ( " . join( ',', map( $_, @{ $media } ) ) . " ) ";
+            push @{ $conditions }, " $table.media_id IN ( " . join( ',', map( $_, @{ $media } ) ) . " ) ";
+            push @{ $conditions }, " total_daily_media_words.media_id IN ( " . join( ',', map( $_, @{ $media } ) ) . " ) ";
 
-            $table =
-              " daily_media_words inner join total_daily_media_words on " .
-              " (daily_media_words.publish_day = total_daily_media_words.publish_day " .
-              " and daily_media_words.media_id = total_daily_media_words.media_id) ";
+            $table = <<EOF;
+                daily_media_words INNER JOIN total_daily_media_words ON (
+                    daily_media_words.publish_day = total_daily_media_words.publish_day
+                    AND daily_media_words.media_id = total_daily_media_words.media_id)
+EOF
 
             for ( my $i = 0 ; $i < @{ $stems } ; $i++ )
             {
                 my $query =
-                  " select " . join( ' , ', @{ $columns } ) . " from $table where " . join( ' and ', @{ $conditions } );
+                  " SELECT " . join( ' , ', @{ $columns } ) . " FROM $table where " . join( ' AND ', @{ $conditions } );
                 print STDERR $query, "\n";
 
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
@@ -443,14 +448,15 @@ sub query_term_in_media
         }
         else
         {
-            $table =
-              " daily_mc_words inner join total_daily_mc_words on " .
-              " (daily_mc_words.publish_day = total_daily_mc_words.publish_day ) ";
+            $table = <<EOF;
+                daily_mc_words INNER JOIN total_daily_mc_words ON (
+                    daily_mc_words.publish_day = total_daily_mc_words.publish_day )
+EOF
 
             for ( my $i = 0 ; $i < @{ $stems } ; $i++ )
             {
                 my $query =
-                  " select " . join( ' , ', @{ $columns } ) . " from $table where " . join( ' and ', @{ $conditions } );
+                  " SELECT " . join( ' , ', @{ $columns } ) . " FROM $table WHERE " . join( ' AND ', @{ $conditions } );
                 print STDERR $query, "\n";
 
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
@@ -497,8 +503,8 @@ sub query_top_terms_in_media
     my $url;
 
     push @{ $columns }, " stem ";
-    push @{ $columns }, " max(term) as term ";
-    push @{ $columns }, " sum(stem_count) as count ";
+    push @{ $columns }, " MAX(term) AS term ";
+    push @{ $columns }, " SUM(stem_count) AS count ";
 
     if ( @{ $params->{ 'media' } } > 0 || @{ $params->{ 'media_type' } } > 0 )
     {
@@ -514,14 +520,14 @@ sub query_top_terms_in_media
     {
         $from = $params->{ 'from' };
         $to   = $params->{ 'to' };
-        push @{ $conditions }, " $table.publish_week between ? and ? ";
+        push @{ $conditions }, " $table.publish_week BETWEEN ? AND ? ";
         push @{ $conditions }, " NOT is_stop_stem( 'long', stem, language) ";
     }
     else
     {
         $from = 0;
         $to = $params->{ 'preset' } || 7;
-        push @{ $conditions }, " $table.publish_week between now() - interval '$to days' and now() ";
+        push @{ $conditions }, " $table.publish_week BETWEEN NOW() - INTERVAL '$to days' AND NOW() ";
     }
 
     my $media;
@@ -529,7 +535,7 @@ sub query_top_terms_in_media
     if ( @{ $params->{ 'media_type' } } > 0 )
     {
         $media = $c->dbis->query(
-            " select media_id from media_tags_map where tags_id in ( " .
+            " SELECT media_id FROM media_tags_map WHERE tags_id IN ( " .
               join( ',', map( '?', @{ $params->{ 'media_type' } } ) ) . " ) ",
             @{ $params->{ 'media_type' } }
         )->flat;
@@ -539,17 +545,15 @@ sub query_top_terms_in_media
         $media = $params->{ 'media' };
     }
 
-    push @{ $conditions }, " $table.media_id in ( " . join( ',', map( '?', @{ $media } ) ) . " ) "
+    push @{ $conditions }, " $table.media_id IN ( " . join( ',', map( '?', @{ $media } ) ) . " ) "
       if ( @{ $media } > 0 );
 
-    $group = " group by stem ";
-    $order = " order by count desc ";
-    $limit = " limit 10 ";
+    $group = " GROUP BY stem ";
+    $order = " ORDER BY count DESC ";
+    $limit = " LIMIT 10 ";
 
-    my $query =
-      " select " .
-      join( ' , ',   @{ $columns } ) . " from $table where " .
-      join( ' and ', @{ $conditions } ) . $group . $order . $limit;
+    my $query = " SELECT " .
+      join( ' , ', @{ $columns } ) . " FROM $table WHERE " . JOIN( ' AND ', @{ $conditions } ) . $group . $order . $limit;
     print STDERR $query, "\n";
 
     if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
@@ -596,7 +600,7 @@ sub home : Local
     $form->process( $c->request );
 
     # list of media to populate the drop-down menu in the form
-    my $m = $c->dbis->query( "select media_id, name from media" )->hashes;
+    my $m = $c->dbis->query( "SELECT media_id, name FROM media" )->hashes;
 
     foreach ( @{ $m } )
     {
@@ -615,16 +619,23 @@ sub home : Local
     my $select = $form->get_element( { name => 'media' } );
     $select->options( \@media );
 
-# list of media types to populate the drop-down menu in the form
-# my $mt = $c->dbis->query("select tags.tags_id, tags.tag from tags inner join tag_sets on (tags.tag_sets_id = tag_sets.tag_sets_id) where tag_sets.name = 'media_type'")->hashes;
-# my @media_type;
-# foreach ( sort { $a->{'tag'} gt $b->{'tag'} } @{$mt} )
-# {
-#     push( @media_type, [ $_->{'tags_id'}, $_->{'tag'} ] );
-# }
-#
-# $select = $form->get_element( { name => 'media_type' } );
-# $select->options( \@media_type );
+    # list of media types to populate the drop-down menu in the form
+    # my $mt = $c->dbis->query(<<EOF
+    #     SELECT tags.tags_id,
+    #            tags.tag
+    #     FROM tags
+    #         INNER JOIN tag_sets ON (tags.tag_sets_id = tag_sets.tag_sets_id)
+    #     WHERE tag_sets.name = 'media_type'
+    # EOF
+    #     )->hashes;
+    # my @media_type;
+    # foreach ( sort { $a->{'tag'} gt $b->{'tag'} } @{$mt} )
+    # {
+    #     push( @media_type, [ $_->{'tags_id'}, $_->{'tag'} ] );
+    # }
+    #
+    # $select = $form->get_element( { name => 'media_type' } );
+    # $select->options( \@media_type );
 
     # form parameters
     my $params;
