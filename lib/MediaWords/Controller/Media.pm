@@ -52,13 +52,6 @@ sub _make_edit_form
     return $form;
 }
 
-sub create : Local
-{
-    my ( $self, $c ) = @_;
-
-    $c->stash->{ template } = 'media/create.tt2';
-}
-
 sub create_batch : Local
 {
     my ( $self, $c ) = @_;
