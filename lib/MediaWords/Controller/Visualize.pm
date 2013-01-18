@@ -245,7 +245,7 @@ sub query_term_in_media
 
         push( @stems_languages, $stem . ' [' . $lang_code . ']' );
         push( @stems_clauses,
-            '(stem = ' . $db->dbh->quote( $stem ) . ' AND language = ' . $db->dbh->quote( $lang_code ) . ')' );
+            '(stem = ' . $c->dbis->dbh->quote( $stem ) . ' AND language = ' . $c->dbis->dbh->quote( $lang_code ) . ')' );
     }
     my $stems_clause = ' (' . join( ' OR ', @stems_clauses ) . ') ';
     push @{ $conditions }, $stems_clause;
@@ -500,7 +500,7 @@ EOF
             $time_slice = 1;
         }
 
-        $url = generate_line_chart_url( $stems_languages, $title, $num_days, $slice_counts, $time_slice );
+        $url = generate_line_chart_url( \@stems_languages, $title, $num_days, $slice_counts, $time_slice );
     }
 
     print STDERR "chart_url: $url\n";

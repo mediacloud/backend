@@ -1564,7 +1564,7 @@ sub sentences_author : Local
     my $author = $c->dbis->find_by_id( 'authors', $authors_id ) || die( "can't find author $authors_id" );
 
     my $quoted_stem      = $c->dbis->dbh->quote( $stem );
-    my $quoted_lang_code = $db->dbh->quote( $lang_code );
+    my $quoted_lang_code = $c->dbis->dbh->quote( $lang_code );
 
     my $sentences = $c->dbis->query(
         <<"EOF"
@@ -1896,7 +1896,8 @@ sub compare_media_set_terms : Local
         $stem = @{ $stem }[ 0 ];
 
         push( @stems_clauses,
-            '(dw.stem = ' . $db->dbh->quote( $stem ) . ' AND dw.language = ' . $db->dbh->quote( $lang_code ) . ')' );
+            '(dw.stem = ' . $c->dbis->dbh->quote( $stem ) . ' AND dw.language = ' . $c->dbis->dbh->quote( $lang_code ) .
+              ')' );
     }
     my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
 

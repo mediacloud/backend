@@ -352,9 +352,7 @@ sub sentences : Local
     my ( $self, $c ) = @_;
 
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
-
     die( "no queries_ids" ) if ( !defined( $queries_ids->[ 0 ] ) );
-    die( "no queries_ids" ) if ( !defined( $lang_code ) );
 
     my $queries =
       [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) || die( "no query $_" ) } @{ $queries_ids } ];
@@ -362,6 +360,7 @@ sub sentences : Local
     my $stem      = $c->req->param( 'stem' );
     my $term      = $c->req->param( 'term' );
     my $lang_code = $c->req->param( 'language' );
+    die( "no language code" ) if ( !$lang_code );
 
     if ( $term && !$stem )
     {
