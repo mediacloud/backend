@@ -2062,24 +2062,6 @@ sub sentences : Local
 
 }
 
-# given a list of terms, return a quoted, comma-separated list of stems
-sub get_stems_in_list
-{
-    my ( $self, $c, $term_list ) = @_;
-
-    $term_list =~ s/[^\w ]//g;
-
-    my $terms = [ split( ' ', $term_list ) ];
-
-    my $lang = MediaWords::Languages::Language::lang();
-
-    my $stems = $lang->stem( @{ $terms } );
-
-    my $stems_in_list = join( ',', map { "'$_'" } @{ $stems } );
-
-    return $stems_in_list;
-}
-
 # accept a dashboard id, a set of terms, and a date range and return a csv of the frequency with which each term
 # appears for the media_set / date.  Include both the collection media_sets in aggregate and each individual media source
 sub compare_media_set_terms : Local
@@ -2121,7 +2103,31 @@ sub compare_media_set_terms : Local
         die( "start_date is not in YYYY-MM-DD format" );
     }
 
-    my $stems_in_list = $self->get_stems_in_list( $c, $term_list );
+    # Split term+language pairs into array
+    chomp( $term_list );
+    my $terms = [ split( /\n/, $term_list ) ];
+    my $terms_languages = [];
+
+    foreach my $term_language ( @{ $terms } )
+    {
+        my ( $term, $language ) = split( ' ', $term_language );
+        push( $terms_languages, { 'term' => $term, 'language' => $language } );
+    }
+
+    # Create a stems clause
+    my @stems_clauses;    # "(stem = 'x1' AND language = 'y1') OR (stem = 'x2' AND language = 'y2') OR ..."
+    for my $term_language ( @{ $terms_languages } )
+    {
+        my @term      = ( $term_language->{ term } );
+        my $lang_code = $term_language->{ language };
+        my $lang      = MediaWords::Languages::Language::language_for_code( $lang_code );
+        my $stem      = $lang->stem( @term );
+        $stem = @{ $stem }[ 0 ];
+
+        push( @stems_clauses,
+            '(dw.stem = ' . $db->dbh->quote( $stem ) . ' AND dw.language = ' . $db->dbh->quote( $lang_code ) . ')' );
+    }
+    my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
 
     my $collection_term_counts = $c->dbis->query(
         <<"EOF",
@@ -2139,7 +2145,7 @@ sub compare_media_set_terms : Local
               AND dms.media_sets_id = ms.media_sets_id
               AND dw.publish_day >= '$start_date'::date
               AND dw.publish_day <= '$end_date'::date
-              AND dw.stem IN ( $stems_in_list )
+              AND $stems_clause
               AND dw.dashboard_topics_id IS NULL
         ORDER BY ms.set_type,
                  ms.name,
@@ -2167,7 +2173,7 @@ EOF
               AND msmm.media_id = ms.media_id
               AND dw.publish_day >= '$start_date'::date
               AND dw.publish_day <= '$end_date'::date
-              AND dw.stem IN ( $stems_in_list )
+              AND $stems_clause
               AND dw.dashboard_topics_id IS NULL
         ORDER BY ms.set_type,
                  ms.name,
