@@ -17,7 +17,7 @@ use Regexp::Common qw /URI/;
 #use YAML::Syck;
 use URI::Escape;
 
-use Lingua::Stem;
+use MediaWords::Languages::Language;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -207,6 +207,7 @@ sub trim($)
 }
 
 # generate line-graph for the terms in the media
+# ($params->{ 'terms' } is an array of terms in the form of 'term1 language_code1', 'term2 language_code2', etc.)
 sub query_term_in_media
 {
     my ( $self, $c, $params ) = @_;
@@ -223,9 +224,31 @@ sub query_term_in_media
     # url
     my $url;
 
-    # stemming
-    my $stemmer = Lingua::Stem->new;
-    my $stems   = $stemmer->stem( @{ $params->{ 'terms' } } );
+    # terms and languages
+    my $terms_languages = [];
+    foreach my $term_language ( @{ $params->{ 'terms' } } )
+    {
+        my ( $term, $language ) = split( ' ', $term_language );
+        push( $terms_languages, { 'term' => $term, 'language' => $language } );
+    }
+
+    # Create a stems clause
+    my @stems_clauses;      # "(stem = 'x1' AND language = 'y1') OR (stem = 'x2' AND language = 'y2') OR ..."
+    my @stems_languages;    # 'stem1 [language1]', 'stem2 [language2]', ...
+    for my $term_language ( @{ $terms_languages } )
+    {
+        my @term      = ( $term_language->{ term } );
+        my $lang_code = $term_language->{ language };
+        my $lang      = MediaWords::Languages::Language::language_for_code( $lang_code );
+        my $stem      = $lang->stem( @term );
+        $stem = @{ $stem }[ 0 ];
+
+        push( @stems_languages, $stem . ' [' . $lang_code . ']' );
+        push( @stems_clauses,
+            '(stem = ' . $db->dbh->quote( $stem ) . ' AND language = ' . $db->dbh->quote( $lang_code ) . ')' );
+    }
+    my $stems_clause = ' (' . join( ' OR ', @stems_clauses ) . ') ';
+    push @{ $conditions }, $stems_clause;
 
     if ( @{ $params->{ 'media' } } > 0 || @{ $params->{ 'media_type' } } > 0 )
     {
@@ -235,8 +258,6 @@ sub query_term_in_media
     {
         $table = " daily_mc_words ";
     }
-
-    push @{ $conditions }, " stem = ? ";
 
     my ( $from, $to, $num_days );
     if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
@@ -277,7 +298,7 @@ EOF
 
     $time_slice *= $num_days;
 
-    if ( @{ $stems } == 1 )
+    if ( @stems_languages == 1 )
     {
         push @{ $columns }, " stem_count*1000/CAST(total_count AS float) AS count ";
 
@@ -315,12 +336,12 @@ EOF
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
                 {
                     $slice_counts->{ $media_id_name_map->{ $list->[ $i ] } } =
-                      $c->dbis->query( $query, $from, $stems->[ 0 ], $from, $to, $list->[ $i ], $list->[ $i ] )->hashes;
+                      $c->dbis->query( $query, $from, $from, $to, $list->[ $i ], $list->[ $i ] )->hashes;
                 }
                 else
                 {
                     $slice_counts->{ $media_id_name_map->{ $list->[ $i ] } } =
-                      $c->dbis->query( $query, $num_days, $stems->[ 0 ], $from, $to, $list->[ $i ], $list->[ $i ] )->hashes;
+                      $c->dbis->query( $query, $num_days, $from, $to, $list->[ $i ], $list->[ $i ] )->hashes;
                 }
 
                 push @{ $media }, $media_id_name_map->{ $list->[ $i ] };
@@ -351,12 +372,12 @@ EOF
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
                 {
                     $slice_counts->{ $media_id_name_map->{ $list->[ $i ] } } =
-                      $c->dbis->query( $query, $from, $stems->[ 0 ], $from, $to, $list->[ $i ] )->hashes;
+                      $c->dbis->query( $query, $from, $from, $to, $list->[ $i ] )->hashes;
                 }
                 else
                 {
                     $slice_counts->{ $media_id_name_map->{ $list->[ $i ] } } =
-                      $c->dbis->query( $query, $num_days, $stems->[ 0 ], $from, $to, $list->[ $i ] )->hashes;
+                      $c->dbis->query( $query, $num_days, $from, $to, $list->[ $i ] )->hashes;
                 }
 
                 push @{ $media }, $media_id_name_map->{ $list->[ $i ] };
@@ -375,14 +396,14 @@ EOF
 
             if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
             {
-                $slice_counts->{ $stems->[ 0 ] } = $c->dbis->query( $query, $from, $stems->[ 0 ], $from, $to )->hashes;
+                $slice_counts->{ $stems_languages[ 0 ] } = $c->dbis->query( $query, $from, $from, $to )->hashes;
             }
             else
             {
-                $slice_counts->{ $stems->[ 0 ] } = $c->dbis->query( $query, $num_days, $stems->[ 0 ], $from, $to )->hashes;
+                $slice_counts->{ $stems_languages[ 0 ] } = $c->dbis->query( $query, $num_days, $from, $to )->hashes;
             }
 
-            push @{ $media }, $stems->[ 0 ];
+            push @{ $media }, $stems_languages[ 0 ];
         }
 
         if ( $time_slice > 800 )
@@ -403,7 +424,7 @@ EOF
 
         my $media;
 
-        $time_slice *= @{ $stems };
+        $time_slice *= @stems_languages;
 
         if ( @{ $params->{ 'media_type' } } > 0 )
         {
@@ -429,7 +450,7 @@ EOF
                     AND daily_media_words.media_id = total_daily_media_words.media_id)
 EOF
 
-            for ( my $i = 0 ; $i < @{ $stems } ; $i++ )
+            for ( my $i = 0 ; $i < @stems_languages ; $i++ )
             {
                 my $query =
                   " SELECT " . join( ' , ', @{ $columns } ) . " FROM $table where " . join( ' AND ', @{ $conditions } );
@@ -437,12 +458,11 @@ EOF
 
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
                 {
-                    $slice_counts->{ $stems->[ $i ] } = $c->dbis->query( $query, $from, $stems->[ $i ], $from, $to )->hashes;
+                    $slice_counts->{ $stems_languages[ $i ] } = $c->dbis->query( $query, $from, $from, $to )->hashes;
                 }
                 else
                 {
-                    $slice_counts->{ $stems->[ $i ] } =
-                      $c->dbis->query( $query, $num_days, $stems->[ $i ], $from, $to )->hashes;
+                    $slice_counts->{ $stems_languages[ $i ] } = $c->dbis->query( $query, $num_days, $from, $to )->hashes;
                 }
             }
         }
@@ -453,7 +473,7 @@ EOF
                     daily_mc_words.publish_day = total_daily_mc_words.publish_day )
 EOF
 
-            for ( my $i = 0 ; $i < @{ $stems } ; $i++ )
+            for ( my $i = 0 ; $i < @stems_languages ; $i++ )
             {
                 my $query =
                   " SELECT " . join( ' , ', @{ $columns } ) . " FROM $table WHERE " . join( ' AND ', @{ $conditions } );
@@ -461,12 +481,11 @@ EOF
 
                 if ( $params->{ 'from' } ne "" && defined $params->{ 'to' } ne "" )
                 {
-                    $slice_counts->{ $stems->[ $i ] } = $c->dbis->query( $query, $from, $stems->[ $i ], $from, $to )->hashes;
+                    $slice_counts->{ $stems_languages[ $i ] } = $c->dbis->query( $query, $from, $from, $to )->hashes;
                 }
                 else
                 {
-                    $slice_counts->{ $stems->[ $i ] } =
-                      $c->dbis->query( $query, $num_days, $stems->[ $i ], $from, $to )->hashes;
+                    $slice_counts->{ $stems_languages[ $i ] } = $c->dbis->query( $query, $num_days, $from, $to )->hashes;
                 }
             }
         }
@@ -481,7 +500,7 @@ EOF
             $time_slice = 1;
         }
 
-        $url = generate_line_chart_url( $stems, $title, $num_days, $slice_counts, $time_slice );
+        $url = generate_line_chart_url( $stems_languages, $title, $num_days, $slice_counts, $time_slice );
     }
 
     print STDERR "chart_url: $url\n";

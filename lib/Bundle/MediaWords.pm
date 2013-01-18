@@ -72,8 +72,6 @@ Tie::Cache::LRU
 
 CHI
 
-Lingua::Stem
-
 Lingua::Stem::Snowball
 
 HTML::TagCloud
@@ -209,8 +207,6 @@ IO::Select
 IO::Socket
 
 IO::Uncompress::Gunzip
-
-Lingua::Stem::En
 
 Lingua::ZH::WordSegmenter
 
