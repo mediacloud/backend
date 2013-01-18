@@ -1558,11 +1558,13 @@ sub sentences_author : Local
     my $authors_id = $c->req->param( 'authors_id' ) || die( 'no authors_id' );
     my $stem       = $c->req->param( 'stem' )       || die( 'no stem' );
     my $term       = $c->req->param( 'term' )       || die( 'no term' );
+    my $lang_code  = $c->req->param( 'language' )   || die( 'no language code' );
 
     $authors_id += 0;
     my $author = $c->dbis->find_by_id( 'authors', $authors_id ) || die( "can't find author $authors_id" );
 
-    my $quoted_stem = $c->dbis->dbh->quote( $stem );
+    my $quoted_stem      = $c->dbis->dbh->quote( $stem );
+    my $quoted_lang_code = $db->dbh->quote( $lang_code );
 
     my $sentences = $c->dbis->query(
         <<"EOF"
@@ -1577,6 +1579,7 @@ sub sentences_author : Local
               AND ssw.stories_id = asm.stories_id
               AND asm.authors_id = $authors_id
               AND ssw.stem = $quoted_stem
+              AND ssw.language = $quoted_lang_code
         ORDER BY ss.publish_date,
                  ss.stories_id,
                  ss.sentence ASC
