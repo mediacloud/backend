@@ -572,7 +572,7 @@ sub get_daily_date_clause
 # If no dashboard_topics_id is specified, the query requires a null dashboard_topics_id.
 # start_date and end_date are rounded down to the beginning of the week.
 #
-# Returns a list of words in the form { stem => $s, term => $s, stem_count => $c }.
+# Returns a list of words in the form { stem => $s, term => $s, language = $s, stem_count => $c }.
 # The stem_count is normalized each week against the total counts of all top 500 words for that week
 # and is averaged over the number of weeks, media sets, and dashboard topics queried.
 sub _get_top_500_weekly_words_impl
@@ -614,6 +614,7 @@ sub _get_top_500_weekly_words_impl
         <<"EOF"
         SELECT w.stem,
                MIN( w.term ) AS term,
+               w.language AS language,
                SUM( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float AS stem_count,
                SUM( w.stem_count::float) AS raw_stem_count,
                SUM( tw.total_count::float ) AS total_words,
@@ -628,7 +629,7 @@ sub _get_top_500_weekly_words_impl
               AND $tw_date_clause
               AND $dashboard_topics_clause
               AND COALESCE( w.dashboard_topics_id, 0 ) = COALESCE( tw.dashboard_topics_id, 0 )
-        GROUP BY w.stem
+        GROUP BY w.stem, w.language
         ORDER BY SUM( w.stem_count::float / tw.total_count::float )::float DESC
         LIMIT 500
 EOF
@@ -925,11 +926,13 @@ sub _get_daily_results
 }
 
 # get all story_sentences that match the given stem and media within the given query dashboard topic and date.
-sub _get_medium_stem_sentences_day
+sub _get_medium_stem_sentences_day($$$$$$$)
 {
-    my ( $db, $query, $day, $max_sentences, $stem, $medium ) = @_;
+    my ( $db, $query, $day, $max_sentences, $stem, $lang_code, $medium ) = @_;
 
-    my $quoted_stem = $db->dbh->quote( $stem );
+    my $quoted_stem      = $db->dbh->quote( $stem );
+    my $quoted_lang_code = $db->dbh->quote( $lang_code );
+
     my $query_sentences;
     if ( @{ $query->{ dashboard_topics_ids } } )
     {
@@ -946,6 +949,7 @@ sub _get_medium_stem_sentences_day
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = $medium->{ media_id }
                   AND ssw.stem = $quoted_stem
+                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
                   AND ssw.stories_id = sswq.stories_id
                   AND ssw.sentence_number = sswq.sentence_number
@@ -967,6 +971,7 @@ EOF
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = $medium->{ media_id }
                   AND ssw.stem = $quoted_stem
+                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
             ORDER BY ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence ASC
             LIMIT $max_sentences
@@ -982,22 +987,23 @@ EOF
 # get all stories and sentences that match the given stem and media within the given query dashboard topic and date.
 # return a list of stories sorted by publish date and with each story the list of matching
 # sentences within the { sentences } field of each story
-sub get_medium_stem_stories_with_sentences
+sub get_medium_stem_stories_with_sentences($$$$$)
 {
-    my ( $db, $stem, $medium, $queries ) = @_;
+    my ( $db, $stem, $lang_code, $medium, $queries ) = @_;
 
     my $sentences =
-      _get_daily_results( $db, $queries, \&_get_medium_stem_sentences_day, MAX_QUERY_SENTENCES, $stem, $medium );
+      _get_daily_results( $db, $queries, \&_get_medium_stem_sentences_day, MAX_QUERY_SENTENCES, $stem, $lang_code, $medium );
 
     return _get_stories_from_sentences( $db, $sentences );
 }
 
 # get all story_sentences within the given queries, dup to MAX_QUERY_SENTENCES for each query
-sub _get_stem_sentences_day
+sub _get_stem_sentences_day($$$$$$)
 {
-    my ( $db, $query, $day, $max_sentences, $stem ) = @_;
+    my ( $db, $query, $day, $max_sentences, $stem, $lang_code ) = @_;
 
-    my $quoted_stem = $db->dbh->quote( $stem );
+    my $quoted_stem      = $db->dbh->quote( $stem );
+    my $quoted_lang_code = $db->dbh->quote( $lang_code );
 
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
 
@@ -1018,10 +1024,12 @@ sub _get_stem_sentences_day
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = msmm.media_id
                   AND ssw.stem = $quoted_stem
+                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
                   AND ssw.stories_id = sswq.stories_id
                   AND ssw.sentence_number = sswq.sentence_number
                   AND sswq.stem = dt.query
+                  AND sswq.language = dt.language
                   AND dt.dashboard_topics_id IN ( $dashboard_topics_ids_list )
                   AND msmm.media_sets_id IN ( $media_sets_ids_list )
             ORDER BY ss.publish_date, ss.stories_id, ss.sentence ASC
@@ -1041,6 +1049,7 @@ EOF
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = msmm.media_id
                   AND ssw.stem = $quoted_stem
+                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
                   AND msmm.media_sets_id IN ( $media_sets_ids_list )
             ORDER BY ss.publish_date, ss.stories_id, ss.sentence ASC
@@ -1057,11 +1066,11 @@ EOF
 # get all stories and sentences that match the given stem within the given queries.
 # return a list of stories sorted by publish date and with each story the list of matching
 # sentences within the { sentences } field of each story
-sub get_stem_stories_with_sentences
+sub get_stem_stories_with_sentences($$$$)
 {
-    my ( $db, $stem, $queries ) = @_;
+    my ( $db, $stem, $lang_code, $queries ) = @_;
 
-    my $sentences = _get_daily_results( $db, $queries, \&_get_stem_sentences_day, MAX_QUERY_SENTENCES, $stem );
+    my $sentences = _get_daily_results( $db, $queries, \&_get_stem_sentences_day, MAX_QUERY_SENTENCES, $stem, $lang_code );
 
     return _get_stories_from_sentences( $db, $sentences );
 }
@@ -1088,6 +1097,7 @@ sub _get_sentences_day
             WHERE ssw.publish_day = '$day'::date
                   AND ssw.media_id = msmm.media_id
                   AND ssw.stem = dt.query
+                  AND ssw.language = dt.language
                   AND ssw.stories_id = ss.stories_id
                   AND ssw.sentence_number = ss.sentence_number
                   AND dt.dashboard_topics_id IN ( $dashboard_topics_ids_list )

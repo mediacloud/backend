@@ -1622,9 +1622,10 @@ sub sentences_medium : Local
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    my $media_id = $c->req->param( 'media_id' ) || die( 'no media_id' );
-    my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
-    my $term     = $c->req->param( 'term' )     || die( 'no term' );
+    my $media_id  = $c->req->param( 'media_id' ) || die( 'no media_id' );
+    my $stem      = $c->req->param( 'stem' )     || die( 'no stem' );
+    my $term      = $c->req->param( 'term' )     || die( 'no term' );
+    my $lang_code = $c->req->param( 'language' ) || die( 'no language code' );
 
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
 
@@ -1638,7 +1639,8 @@ sub sentences_medium : Local
 
     my $queries = [ map { $self->get_query_by_id( $c, $_ ) } @{ $queries_ids } ];
 
-    my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
+    my $stories =
+      MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $lang_code, $medium, $queries );
 
     my $queries_description = join( " or ", map { $_->{ description } } @{ $queries } );
 
@@ -1658,8 +1660,9 @@ sub sentences_medium_json : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $media_id = $c->req->param( 'media_id' ) || die( 'no media_id' );
-    my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
+    my $media_id  = $c->req->param( 'media_id' ) || die( 'no media_id' );
+    my $stem      = $c->req->param( 'stem' )     || die( 'no stem' );
+    my $lang_code = $c->req->param( 'language' ) || die( 'no language code' );
 
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
 
@@ -1671,7 +1674,8 @@ sub sentences_medium_json : Local
 
     my $queries = [ map { $self->get_query_by_id( $c, $_ ) } @{ $queries_ids } ];
 
-    my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
+    my $stories =
+      MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $lang_code, $medium, $queries );
 
     return $c->res->body( encode_json( $stories ) );
 }

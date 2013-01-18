@@ -372,7 +372,7 @@ sub sentences : Local
     my $stories;
     if ( $stem )
     {
-        $stories = MediaWords::DBI::Queries::get_stem_stories_with_sentences( $c->dbis, $stem, $queries );
+        $stories = MediaWords::DBI::Queries::get_stem_stories_with_sentences( $c->dbis, $stem, $lang_code, $queries );
     }
     else
     {
