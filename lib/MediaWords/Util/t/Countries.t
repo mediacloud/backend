@@ -16,8 +16,6 @@ use Test::NoWarnings;
 use Test::More tests => 438 + 1;
 use utf8;
 
-use Lingua::Stem;
-use Lingua::Stem::Ru;
 use Data::Dumper;
 
 use MediaWords::Util::Countries;
