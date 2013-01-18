@@ -237,6 +237,8 @@ sub _find_media_from_urls
     {
         my $medium;
 
+	trim( $tagged_url );
+
         my ( $url, $tags_string ) = ( $tagged_url =~ /^\r*\s*([^\s]*)(?:\s+(.*))?/ );
 
         if ( $url !~ m~^[a-z]+://~ )
