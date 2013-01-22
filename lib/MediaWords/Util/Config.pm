@@ -71,7 +71,7 @@ sub set_defaults
     $config->{ mediawords }->{ script_dir }                       ||= "$_base_dir/script";
     $config->{ mediawords }->{ data_dir }                         ||= "$_base_dir/data";
     $config->{ mediawords }->{ always_show_stack_traces }         ||= "no";
-    $config->{ mediawords }->{ disable_json_top_500_words_cache } ||= "yes";
+    $config->{ mediawords }->{ disable_json_top_500_words_cache } ||= "no";
     $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
 
     return $config;
