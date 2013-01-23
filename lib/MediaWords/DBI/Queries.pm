@@ -1435,13 +1435,19 @@ sub query_has_sw_data
         my $end_date   = MediaWords::StoryVectors::get_default_story_words_end_date();
         my $start_date = MediaWords::StoryVectors::get_default_story_words_start_date();
 
+	my $sql = " SELECT media_set_retains_sw_data_for_date( ?, ?, ?, ?) ";
+
         my $results = $db->query(
-            " SELECT media_set_retains_sw_data_for_date( ?, ?, ?, ?) ",
+            $sql, 
             $media_sets_id, $query->{ start_date },
             $start_date, $end_date
         )->flat;
 
-        say STDERR Dumper( $results );
+	# say STDERR "query: '$sql'";
+	# say Dumper( [ $media_sets_id, $query->{ start_date },
+	# 	      $start_date, $end_date ] );
+
+        # say STDERR Dumper( $results );
 
         $ret &&= $results->[ 0 ];
     }
