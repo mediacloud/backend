@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4391;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4392;
     
 BEGIN
 
@@ -527,7 +527,7 @@ BEGIN
     -- RAISE NOTICE 'start date - %', start_date;
     -- RAISE NOTICE 'end date - %', end_date;
 
-    return  ( start_date <= test_date ) and ( end_date >= test_date );    
+    return  ( ( start_date is null )  OR ( start_date <= test_date ) ) AND ( (end_date is null ) OR ( end_date >= test_date ) );
 END;
 $$
 LANGUAGE 'plpgsql' STABLE
