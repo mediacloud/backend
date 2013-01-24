@@ -802,6 +802,7 @@ create table word_cloud_topics (
         set_tag_names           text        not null,
         creator                 text        not null,
         query                   text        not null,
+        language                varchar(3)  not null,   -- 2- or 3-character ISO 690 language code
         type                    text        not null,
         start_date              date        not null,
         end_date                date        not null,
