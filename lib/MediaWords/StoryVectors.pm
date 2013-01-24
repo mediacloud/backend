@@ -1826,7 +1826,7 @@ sub _date_is_sunday
 #
 # if dashbaord_topics_id or media_sets_id are specified, only update for the given
 # dashboard_topic or media_set
-sub update_aggregate_words($$$;$$$)
+sub update_aggregate_words($;$$$$$)
 {
     my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
 
