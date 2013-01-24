@@ -20,10 +20,16 @@ sub list : Local
 {
     my ( $self, $c ) = @_;
 
-    my $topics =
-      $c->dbis->query( "select w.*, t.tag as source_tag_name " .
-          "  from word_cloud_topics w left join tags t on w.source_tags_id = t.tags_id " .
-          "    where w.type = 'words' order by w.word_cloud_topics_id" )->hashes;
+    my $topics = $c->dbis->query(
+        <<EOF
+        SELECT w.*,
+               t.tag AS source_tag_name
+        FROM word_cloud_topics AS w
+            LEFT JOIN tags AS t ON w.source_tags_id = t.tags_id
+        WHERE w.type = 'words'
+        ORDER BY w.word_cloud_topics_id
+EOF
+    )->hashes;
 
     $c->stash->{ topics }   = $topics;
     $c->stash->{ template } = 'topics/list.tt2';
@@ -62,8 +68,14 @@ sub create_do : Local
     }
 
     my ( $source_tags_id ) = $c->dbis->query(
-        "select t.tags_id from tags t, tag_sets ts " . "  where t.tag_sets_id = ts.tag_sets_id " .
-          "    and t.tag = ? and ts.name = 'word_cloud'",
+        <<EOF,
+        SELECT t.tags_id
+        FROM tags AS t,
+             tag_sets AS ts
+        WHERE t.tag_sets_id = ts.tag_sets_id
+              AND t.tag = ?
+              AND ts.name = 'word_cloud'
+EOF
         $source_tag_name
     )->flat;
     if ( !$source_tags_id )
@@ -76,7 +88,14 @@ sub create_do : Local
     {
         my ( $tag_set, $tag ) = split( ':', $set_tag_name );
         my $tag_exists = $c->dbis->query(
-            "select 1 from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id " . "    and t.tag = ? and ts.name = ?",
+            <<EOF,
+            SELECT 1
+            FROM tags AS t,
+                 tag_sets AS ts
+            WHERE t.tag_sets_id = ts.tag_sets_id
+                  AND t.tag = ?
+                  AND ts.name = ?
+EOF
             $tag, $tag_set
         )->hash;
         if ( !$tag_exists )
@@ -89,10 +108,29 @@ sub create_do : Local
     }
 
     $c->dbis->query(
-        "insert into word_cloud_topics " .
-          "  (query, type, start_date, end_date, state, url, source_tags_id, set_tag_names, creator) " .
-          "  values (?, ?, date_trunc('week', cast(? as date)), " .
-          "    date_trunc('week', cast(? as date)) + interval '1 week', ?, ?, ?, ?, ?)",
+        <<EOF,
+        INSERT INTO word_cloud_topics (
+            query,
+            type,
+            start_date,
+            end_date,
+            state,
+            url,
+            source_tags_id,
+            set_tag_names,
+            creator
+        ) VALUES (
+            ?,
+            ?,
+            DATE_TRUNC('week', CAST(? AS DATE)),
+            DATE_TRUNC('week', CAST(? AS DATE)) + INTERVAL '1 week',
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+EOF
         $query,
         'words',
         $start_date,
