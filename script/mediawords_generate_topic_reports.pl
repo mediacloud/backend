@@ -88,8 +88,16 @@ sub get_tag
     my ( $tag_set_name, $tag_name ) = @_;
 
     my $tag = $_db->query(
-        "select t.* from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id and " . "    t.tag = ? and ts.name = ?",
-        $tag_name, $tag_set_name )->hash;
+        <<EOF,
+        SELECT t.*
+        FROM tags AS t,
+             tag_sets AS ts
+        WHERE t.tag_sets_id = ts.tag_sets_id
+              AND t.tag = ?
+              AND ts.name = ?
+EOF
+        $tag_name, $tag_set_name
+    )->hash;
     if ( !$tag )
     {
         die( "unknown tag $tag_set_name:$tag_name" );
@@ -117,8 +125,17 @@ sub get_sources
     if ( ( $type eq 'feeds' ) || ( $type eq 'media' ) )
     {
         return $_db->query(
-            "select ?::text as type, name, ${type}_id as id " . "  from ${type} where ${type}_id in " .
-              "    (select ${type}_id from ${type}_tags_map " . "      where tags_id = ?)",
+            <<EOF,
+            SELECT ?::text AS type,
+                   name,
+                   ${type}_id AS id
+            FROM ${type}
+            WHERE ${type}_id IN (
+                SELECT ${type}_id
+                FROM ${type}_tags_map
+                WHERE tags_id = ?
+            )
+EOF
             $type, $id
         )->hashes;
     }
@@ -131,8 +148,16 @@ sub get_sources
             push(
                 @{ $sources },
                 $_db->query(
-                    "select 'tags' as type, t.tag as name, t.tags_id as id from tags t, tag_sets ts " .
-                      "  where ts.tag_sets_id = t.tag_sets_id and ts.name = ? and t.tag = ?",
+                    <<EOF,
+                    SELECT 'tags' AS type,
+                           t.tag AS name,
+                           t.tags_id AS id
+                    FROM tags AS t,
+                         tag_sets AS ts
+                    WHERE ts.tag_sets_id = t.tag_sets_id
+                          AND ts.name = ?
+                          AND t.tag = ?
+EOF
                     $tag_set_name, $tag_name
                   )->hash
             );
@@ -156,14 +181,25 @@ sub get_story_where_and_join
 
     if ( $type eq 'media' )
     {
-        $type_clause = "s.media_id in (select media_id from media_tags_map where tags_id = $tags_id)";
-        $type_join   = "fsm.feeds_id = -1";
+        $type_clause = <<EOF;
+            s.media_id IN (
+                SELECT media_id
+                FROM media_tags_map
+                WHERE tags_id = $tags_id
+            )
+EOF
+        $type_join = "fsm.feeds_id = -1";
     }
     elsif ( $type eq 'feeds' )
     {
-        $type_clause =
-          "fsm.stories_id = fsm.stories_id and fsm.feeds_id in " .
-          "(select feeds_id from feeds_tags_map where tags_id = $tags_id)";
+        $type_clause = <<EOF;
+            fsm.stories_id = fsm.stories_id
+            AND fsm.feeds_id IN (
+                SELECT feeds_id
+                FROM feeds_tags_map
+                WHERE tags_id = $tags_id
+            )
+EOF
         $type_join = "s.stories_id = fsm.stories_id";
     }
     else
@@ -214,9 +250,26 @@ sub get_source_clause
     }
     elsif ( $source->{ type } eq 'tags' )
     {
-        return "( ( ( media_id in ( select media_id from media_tags_map mtm where tags_id = $source->{id} ) ) and " .
-          "    ( feeds_id is null ) ) or " .
-          "  ( feeds_id in ( select feeds_id from feeds_tags_map ftm where tags_id = $source->{id} ) ) )";
+        return <<EOF;
+            (
+                (
+                    ( media_id IN (
+                        SELECT media_id
+                        FROM media_tags_map AS mtm
+                        WHERE tags_id = $source->{id}
+                    )
+                ) AND (
+                    feeds_id IS NULL
+                )
+            ) OR (
+                feeds_id IN (
+                    SELECT feeds_id
+                    FROM feeds_tags_map AS ftm
+                    WHERE tags_id = $source->{id}
+                )
+            )
+        )
+EOF
     }
     elsif ( ( $source->{ type } eq 'media' ) || ( $source->{ type } eq 'feeds' ) )
     {
@@ -247,25 +300,47 @@ sub get_term_stories
 {
     my ( $source_tags_id, $stem, $term, $start_date, $end_date ) = @_;
 
-    my ( $type_clause, $type_join ) = get_story_where_and_join( 'media', $source_tags_id );
+    my ( $media_type_clause, $media_type_join ) = get_story_where_and_join( 'media', $source_tags_id );
 
-    my $media_query =
-      "select m.name, s.title, s.url, " . "    cast( date_trunc('day', s.publish_date) as date ) as time_slice " .
-      "  from stories s left join feeds_stories_map fsm on ($type_join), story_vectors sv, media m " .
-      "  where s.stories_id = sv.stories_id " . "    and sv.vector @@ plainto_tsquery('english', '$_query $term') " .
-      "    and s.publish_date >= date '$start_date' and s.publish_date <= date '$end_date' " .
-      "    and $type_clause and s.media_id = m.media_id";
+    my $media_query = <<EOF;
+        SELECT m.name,
+               s.title,
+               s.url,
+               CAST( DATE_TRUNC('day', s.publish_date) AS date ) AS time_slice
+        FROM
+            stories AS s
+                LEFT JOIN feeds_stories_map AS fsm ON ($media_type_join),
+            story_vectors AS sv,
+            media AS m
+        WHERE s.stories_id = sv.stories_id
+              AND sv.vector @@ PLAINTO_TSQUERY('english', '$_query $term')
+              AND s.publish_date >= date '$start_date'
+              AND s.publish_date <= date '$end_date'
+              AND $media_type_clause
+              AND s.media_id = m.media_id
+EOF
 
-    my ( $type_clause, $type_join ) = get_story_where_and_join( 'feeds', $source_tags_id );
+    my ( $feeds_type_clause, $feeds_type_join ) = get_story_where_and_join( 'feeds', $source_tags_id );
 
-    my $feeds_query =
-      "select f.name, s.title, s.url, " . "    cast( date_trunc('day', s.publish_date) as date ) as time_slice " .
-      "  from stories s left join feeds_stories_map fsm on ($type_join), feeds f, story_vectors sv " .
-      "  where s.stories_id = sv.stories_id " . "    and sv.vector @@ plainto_tsquery('english', '$_query $term') " .
-      "    and s.publish_date >= date '$start_date' and s.publish_date <= date '$end_date' " .
-      "    and $type_clause and f.feeds_id = fsm.feeds_id";
+    my $feeds_query = <<EOF;
+        SELECT f.name,
+               s.title,
+               s.url,
+               CAST( DATE_TRUNC('day', s.publish_date) AS date ) AS time_slice
+        FROM
+            stories AS s
+                LEFT JOIN feeds_stories_map AS fsm ON ($feeds_type_join),
+            feeds AS f,
+            story_vectors AS sv
+        WHERE s.stories_id = sv.stories_id 
+              AND sv.vector @@ PLAINTO_TSQUERY('english', '$_query $term')
+              AND s.publish_date >= date '$start_date'
+              AND s.publish_date <= date '$end_date'
+              AND $feeds_type_clause
+              AND f.feeds_id = fsm.feeds_id
+EOF
 
-    return $_db->query( "($feeds_query) union all ($media_query) order by time_slice" )->hashes;
+    return $_db->query( "($feeds_query) UNION ALL ($media_query) ORDER BY time_slice" )->hashes;
 }
 
 # generate html list of stories about the term
@@ -339,7 +414,7 @@ sub generate_term_timeline
 
     if ( !$_time_slices )
     {
-        $_time_slices = $_db->query( "select distinct time_slice from query_words order by time_slice asc" )->flat;
+        $_time_slices = $_db->query( "SELECT DISTINCT time_slice FROM query_words ORDER BY time_slice ASC" )->flat;
     }
 
     my $story_counts;
@@ -504,7 +579,7 @@ sub get_pr
     {
         $time_slice_field   = ', time_slice';
         $a_time_slice_field = ', a.time_slice';
-        $time_slice_join    = 'and a.time_slice = b.time_slice';
+        $time_slice_join    = 'AND a.time_slice = b.time_slice';
         $time_slice_group   = 'time_slice, ';
     }
 
@@ -516,16 +591,44 @@ sub get_pr
 
     #my $pr_equation = "( ( log(a.p) * a.p ) / coalesce(b.p, 1) )";
 
-    my $pr_equation = "( ( a.p::numeric * a.p::numeric)::numeric  / coalesce(b.p, 1)::numeric )::numeric";
+    my $pr_equation = "( ( a.p::numeric * a.p::numeric)::numeric / COALESCE(b.p, 1)::numeric )::numeric";
 
-    my $words =
-      $_db->query( "select $pr_equation as term_count, a.term, a.stem $a_time_slice_field " .
-          "from (select sum(term_count * query_rank) as p, min(term) as term, stem $time_slice_field " .
-          "    from query_words where $a_m and $stem_clause group by $time_slice_group stem) a " .
-          "left join (select sum(term_count * query_rank) as p, min(term) as term, stem $time_slice_field " .
-          "    from query_words where $b_m /*and not $a_m*/ and $stem_clause group by $time_slice_group stem) b " .
-          "    on a.stem = b.stem $time_slice_join " . "where $pr_equation >= 1 " .
-          "order by $time_slice_group term_count desc $time_slice_field limit $num" )->hashes;
+    my $words = $_db->query(
+        <<EOF
+        SELECT $pr_equation AS term_count,
+               a.term,
+               a.stem
+               $a_time_slice_field
+        FROM
+            (
+                SELECT SUM(term_count * query_rank) AS p,
+                       MIN(term) AS term,
+                       stem
+                       $time_slice_field
+                FROM query_words
+                WHERE $a_m
+                      AND $stem_clause
+                GROUP BY $time_slice_group stem
+            ) AS a
+                LEFT JOIN
+                    (
+                        SELECT SUM(term_count * query_rank) AS p,
+                               MIN(term) AS term,
+                               stem
+                               $time_slice_field
+                        FROM query_words
+                        WHERE $b_m /*and not $a_m*/
+                              AND $stem_clause
+                        GROUP BY $time_slice_group stem
+                    ) AS b
+                    ON a.stem = b.stem $time_slice_join
+        WHERE $pr_equation >= 1
+        ORDER BY $time_slice_group
+                 term_count DESC
+                 $time_slice_field
+        LIMIT $num
+EOF
+    )->hashes;
 
     set_cached_p( $words, @_ );
 
@@ -557,10 +660,22 @@ sub get_p
         $time_slice_field = ', time_slice';
     }
 
-    my $words =
-      $_db->query( "select sum(term_count * query_rank)::numeric as term_count, stem, " .
-          "    min(term) as term $time_slice_field from query_words " . "  where $source_clause and $stem_clause " .
-          "  group by stem $time_slice_field order by term_count desc $time_slice_field limit $num" )->hashes;
+    my $words = $_db->query(
+        <<EOF
+        SELECT SUM(term_count * query_rank)::numeric AS term_count,
+               stem,
+               MIN(term) AS term
+               $time_slice_field
+        FROM query_words
+        WHERE $source_clause
+              AND $stem_clause
+        GROUP BY stem
+                 $time_slice_field
+        ORDER BY term_count DESC
+                 $time_slice_field
+        LIMIT $num
+EOF
+    )->hashes;
 
     set_cached_p( $words, @_ );
 
@@ -729,7 +844,7 @@ sub generate_p_timeline
 
     if ( !$_time_slices )
     {
-        $_time_slices = $_db->query( "select distinct time_slice from query_words order by time_slice asc" )->flat;
+        $_time_slices = $_db->query( "SELECT DISTINCT time_slice FROM query_words ORDER BY time_slice ASC" )->flat;
     }
 
     my $time_slicely_data = [];
@@ -1032,14 +1147,34 @@ sub insert_query_words
     my ( $type_clause, $type_join ) = get_story_where_and_join( $type, $type_tags_id );
 
     $_db->query(
-        "insert into query_words " . "  select min(sw.term) as term, sw.stem, sum(stem_count) as term_count_raw, 0, 0, " .
-          "    s.media_id, fsm.feeds_id, cast(date_trunc('day', s.publish_date) as date) as time_slice, " .
-          "    sum(ts_rank(sv.vector, plainto_tsquery('english', '$query'), 1)) as query_rank  " .
-          "  from stories s left join feeds_stories_map fsm on ($type_join), story_vectors sv, $term_table sw " .
-          "  where s.stories_id = sv.stories_id and s.stories_id = sw.stories_id and " .
-          "    s.publish_date >= date '$start_date' and s.publish_date <= date '$end_date' and " .
-          "    sv.vector @@ plainto_tsquery('english', '$query') and " . "    $type_clause " .
-          "  group by s.media_id, fsm.feeds_id, time_slice, sw.stem" );
+        <<EOF
+        INSERT INTO query_words
+            SELECT MIN(sw.term) AS term,
+                   sw.stem,
+                   SUM(stem_count) AS term_count_raw,
+                   0,
+                   0,
+                   s.media_id,
+                   fsm.feeds_id,
+                   CAST(DATE_TRUNC('day', s.publish_date) AS date) AS time_slice,
+                   SUM(TS_RANK(sv.vector, PLAINTO_TSQUERY('english', '$query'), 1)) AS query_rank
+            FROM
+                stories AS s
+                    LEFT JOIN feeds_stories_map AS fsm ON ($type_join),
+                story_vectors AS sv,
+                $term_table AS sw
+            WHERE s.stories_id = sv.stories_id
+                  AND s.stories_id = sw.stories_id
+                  AND s.publish_date >= date '$start_date'
+                  AND s.publish_date <= date '$end_date'
+                  AND sv.vector @@ PLAINTO_TSQUERY('english', '$query')
+                  AND $type_clause
+            GROUP BY s.media_id,
+                     fsm.feeds_id,
+                     time_slice,
+                     sw.stem
+EOF
+    );
 }
 
 # generate a temporary table to hold the word counts for stories that match the query by media_id and time_slice
@@ -1055,36 +1190,58 @@ sub generate_query_words_table
         die( "no query" );
     }
 
-    $_db->query( "create temporary table query_words (" .
-          "    term text, stem text, term_count_raw int, term_count_norm int, term_count int, " .
-          "    media_id int, feeds_id int, time_slice date, query_rank float)" );
+    $_db->query(
+        <<EOF
+        CREATE TEMPORARY TABLE query_words (
+            term TEXT,
+            stem TEXT,
+            term_count_raw INT,
+            term_count_norm INT,
+            term_count INT,
+            media_id INT,
+            feeds_id INT,
+            time_slice DATE,
+            query_rank FLOAT
+        )
+EOF
+    );
 
-    # $_db->query("truncate table query_words");
+    # $_db->query("TRUNCATE TABLE query_words");
     # eval {
-    #     $_db->query("drop index query_words_mw");
-    #     $_db->query("drop index query_words_t");
+    #     $_db->query("DROP INDEX query_words_mw");
+    #     $_db->query("DROP INDEX query_words_t");
     # };
 
     insert_query_words( $term_table, 'media', $source_tags_id, $query, $start_date, $end_date );
     insert_query_words( $term_table, 'feeds', $source_tags_id, $query, $start_date, $end_date );
 
-    $_db->query( "create index query_words_mw on query_words(media_id, time_slice)" );
-    $_db->query( "create index query_words_t on query_words(media_id, stem)" );
+    $_db->query( "CREATE INDEX query_words_mw ON query_words(media_id, time_slice)" );
+    $_db->query( "CREATE INDEX query_words_t ON query_words(media_id, stem)" );
 
     #set normalized term_count
-    $_db->query( "update query_words as qw " .
-          "  set term_count_norm = greatest ( 1, term_count_raw * ( 2000000000 / q.source_term_count ) ) " .
-          "  from (select time_slice, media_id, feeds_id, greatest(500, sum(term_count_raw)) as source_term_count " .
-          "      from query_words group by media_id, feeds_id, time_slice) q " .
-          "  where q.time_slice = qw.time_slice and q.media_id = qw.media_id " .
-          "    and coalesce(-1, q.feeds_id) = coalesce(-1, qw.feeds_id)" );
+    $_db->query(
+        <<EOF
+        UPDATE query_words AS qw
+        SET term_count_norm = GREATEST ( 1, term_count_raw * ( 2000000000 / q.source_term_count ) )
+        FROM (SELECT time_slice,
+                     media_id,
+                     feeds_id,
+                     GREATEST(500, SUM(term_count_raw)) AS source_term_count
+              FROM query_words
+              GROUP BY media_id, feeds_id, time_slice
+             ) AS q
+        WHERE q.time_slice = qw.time_slice
+              AND q.media_id = qw.media_id
+              AND COALESCE(-1, q.feeds_id) = COALESCE(-1, qw.feeds_id)
+EOF
+    );
 
     # marke query_rank be between 0 and 1
-    $_db->query( "update query_words set query_rank = ( query_rank / ( query_rank + 1 ) )" );
+    $_db->query( "UPDATE query_words SET query_rank = ( query_rank / ( query_rank + 1 ) )" );
 
-    $_db->query( "update query_words set term_count = term_count_norm" );
+    $_db->query( "UPDATE query_words SET term_count = term_count_norm" );
 
-    $_db->query( "analyze query_words" );
+    $_db->query( "ANALYZE query_words" );
 
 }
 
@@ -1142,12 +1299,24 @@ sub generate_reports_from_db
     {
         reconnect_to_db();
 
-        my $topics =
-          $_db->query( "select * from word_cloud_topics where state = 'pending' order by word_cloud_topics_id" )->hashes;
+        my $topics = $_db->query(
+            <<EOF
+            SELECT *
+            FROM word_cloud_topics
+            WHERE state = 'pending'
+            ORDER BY word_cloud_topics_id
+EOF
+        )->hashes;
         for my $topic ( @{ $topics } )
         {
-            $_db->query( "update word_cloud_topics set state = 'generating' where word_cloud_topics_id = ?",
-                $topic->{ word_cloud_topics_id } );
+            $_db->query(
+                <<EOF,
+                UPDATE word_cloud_topics
+                SET state = 'generating'
+                WHERE word_cloud_topics_id = ?
+EOF
+                $topic->{ word_cloud_topics_id }
+            );
 
             my $topic_dir = "$base_directory/" . $topic->{ word_cloud_topics_id };
 
@@ -1162,8 +1331,15 @@ sub generate_reports_from_db
             );
 
             my $topic_url = "$base_url/" . $topic->{ word_cloud_topics_id };
-            $_db->query( "update word_cloud_topics set state = 'completed', url = ? where word_cloud_topics_id = ?",
-                $topic_url, $topic->{ word_cloud_topics_id } );
+            $_db->query(
+                <<EOF,
+                UPDATE word_cloud_topics
+                SET state = 'completed',
+                    url = ?
+                WHERE word_cloud_topics_id = ?
+EOF
+                $topic_url, $topic->{ word_cloud_topics_id }
+            );
 
             reconnect_to_db();
         }
@@ -1189,8 +1365,8 @@ sub main
     }
     else
     {
-        print( "usage: mediawords_generate_topic_reports.pl " .
-              "<directory> ( ( <url> ) | ( <term__type> <source_tags_id> <set_tags> <query> <start_date> <end_date> ) )\n" );
+        print( "usage: $0 <directory> ( ( <url> ) | " .
+              "( <term__type> <source_tags_id> <set_tags> <query> <start_date> <end_date> ) )\n" );
         exit 1;
     }
 }
