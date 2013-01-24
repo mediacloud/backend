@@ -397,11 +397,30 @@ sub _tokenize_text_with_lingua_sentence
         $self->sentence_tokenizer( Lingua::Sentence->new( $language, $nonbreaking_prefixes_file ) );
     }
 
-    # Lingua::Sentence thinks that end-of-line character means the end of the sentence, so
-    # replace \n with a space
-    $text =~ s/\n/ /gs;
+    return [] unless defined $text;
+
+    # Only "\n\n" (not a single "\n") denotes the end of sentence, so remove single line breaks
+    $text =~ s/([^\n])\n([^\n])/$1 $2/gs;
+
+    # Remove asterisks from lists
     $text =~ s/  */ /gs;
 
+    $text =~ s/\n\s*\n/\n\n/gso;
+    $text =~ s/\n\n\n*/\n\n/gso;
+    $text =~ s/\n\n/\n/gso;
+
+    # The above regexp and html stripping often leave a space before the period at the end of a sentence
+    $text =~ s/ +\./\./g;
+
+    # we see lots of cases of missing spaces after sentence ending periods
+    # (commented out before it breaks Portuguese "a.C.." abbreviations and such)
+    #$text =~ s/([[:lower:]])\.([[:upper:]])/$1. $2/g;
+
+    # Trim string
+    $text =~ s/^\s+//;
+    $text =~ s/\s+$//;
+
+    # Split to sentences
     my @sentences = $self->sentence_tokenizer->split_array( $text );
 
     return \@sentences;
