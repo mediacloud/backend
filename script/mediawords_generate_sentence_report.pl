@@ -118,8 +118,16 @@ sub get_tag
     my ( $tag_set_name, $tag_name ) = @_;
 
     my $tag = $_db->query(
-        "select t.* from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id and " . "    t.tag = ? and ts.name = ?",
-        $tag_name, $tag_set_name )->hash;
+        <<EOF,
+        SELECT t.*
+        FROM tags AS t,
+             tag_sets AS ts
+        WHERE t.tag_sets_id = ts.tag_sets_id
+              AND t.tag = ?
+              AND ts.name = ?
+EOF
+        $tag_name, $tag_set_name
+    )->hash;
     if ( !$tag )
     {
         die( "unknown tag $tag_set_name:$tag_name" );
@@ -147,8 +155,17 @@ sub get_sources
     if ( ( $type eq 'feeds' ) || ( $type eq 'media' ) )
     {
         return $_db->query(
-            "select ?::text as type, name, ${type}_id as id " . "  from ${type} where ${type}_id in " .
-              "    (select ${type}_id from ${type}_tags_map " . "      where tags_id = ?)",
+            <<EOF,
+            SELECT ?::text AS type,
+                   name,
+                   ${type}_id AS id
+            FROM ${type}
+            WHERE ${type}_id IN (
+                SELECT ${type}_id
+                FROM ${type}_tags_map
+                WHERE tags_id = ?
+            )
+EOF
             $type, $id
         )->hashes;
     }
@@ -161,8 +178,16 @@ sub get_sources
             push(
                 @{ $sources },
                 $_db->query(
-                    "select 'tags' as type, t.tag as name, t.tags_id as id from tags t, tag_sets ts " .
-                      "  where ts.tag_sets_id = t.tag_sets_id and ts.name = ? and t.tag = ?",
+                    <<EOF,
+                    SELECT 'tags' AS type,
+                           t.tag AS name,
+                           t.tags_id AS id
+                    FROM tags AS t,
+                         tag_sets AS ts
+                    WHERE ts.tag_sets_id = t.tag_sets_id
+                          AND ts.name = ?
+                          AND t.tag = ?
+EOF
                     $tag_set_name, $tag_name
                   )->hash
             );
@@ -186,14 +211,18 @@ sub get_story_where_and_join
 
     if ( $type eq 'media' )
     {
-        $type_clause = "s.media_id in (select media_id from media_tags_map where tags_id = $tags_id)";
+        $type_clause = "s.media_id IN (SELECT media_id FROM media_tags_map WHERE tags_id = $tags_id)";
         $type_join   = "fsm.feeds_id = -1";
     }
     elsif ( $type eq 'feeds' )
     {
-        $type_clause =
-          "fsm.stories_id = fsm.stories_id and fsm.feeds_id in " .
-          "(select feeds_id from feeds_tags_map where tags_id = $tags_id)";
+        $type_clause = <<EOF;
+            fsm.stories_id = fsm.stories_id
+            AND fsm.feeds_id IN (
+                SELECT feeds_id
+                FROM feeds_tags_map
+                WHERE tags_id = $tags_id
+EOF
         $type_join = "s.stories_id = fsm.stories_id";
     }
     else
@@ -247,10 +276,25 @@ sub get_source_clause
     }
     elsif ( $source->{ type } eq 'tags' )
     {
-        return
-          "( ( ( ${m_a}media_id in ( select mtm.media_id from media_tags_map mtm where tags_id = $source->{id} ) ) and " .
-          "    ( ${f_a}feeds_id is null ) ) or " .
-          "  ( ${f_a}feeds_id in ( select ftm.feeds_id from feeds_tags_map ftm where tags_id = $source->{id} ) ) )";
+        return <<EOF;
+            (
+                (
+                    ( ${m_a}media_id IN
+                        (
+                            SELECT mtm.media_id
+                            FROM media_tags_map AS mtm
+                            WHERE tags_id = $source->{id}
+                        )
+                    ) AND ( ${f_a}feeds_id IS NULL )
+                ) OR ( ${f_a}feeds_id in
+                    (
+                        SELECT ftm.feeds_id
+                        FROM feeds_tags_map AS ftm
+                        WHERE tags_id = $source->{id}
+                    )
+                )
+            )
+EOF
     }
     elsif ( $source->{ type } eq 'media' )
     {
@@ -287,15 +331,27 @@ sub get_term_sentences
 
     my $quoted_term_stem = $_db->dbh->quote( $stem );
 
-    my $query =
-      "select distinct s.*, coalesce(m.name, f.name) as name, qs.sentence_number, ss.sentence, " .
-      "    cast( date_trunc('day', s.publish_date) as date ) as time_slice " .
-      "  from stories s, query_sentences qs left join feeds f on (qs.feeds_id = f.feeds_id), " .
-      "    story_sentence_words terms, media m, story_sentences ss " .
-      "  where s.stories_id = qs.stories_id and terms.stories_id = qs.stories_id " .
-      "    and terms.stem = $quoted_term_stem and qs.sentence_number = terms.sentence_number " .
-      "    and ss.stories_id = terms.stories_id and ss.sentence_number = terms.sentence_number " .
-      "    and s.media_id = m.media_id order by time_slice";
+    my $query = <<EOF;
+        SELECT DISTINCT s.*,
+               COALESCE(m.name, f.name) AS name,
+               qs.sentence_number,
+               ss.sentence,
+               CAST( DATE_TRUNC('day', s.publish_date) AS date ) AS time_slice
+        FROM stories AS s,
+             query_sentences AS qs
+                LEFT JOIN feeds AS f ON (qs.feeds_id = f.feeds_id),
+             story_sentence_words AS terms,
+             media AS m,
+             story_sentences AS ss
+        WHERE s.stories_id = qs.stories_id
+              AND terms.stories_id = qs.stories_id
+              AND terms.stem = $quoted_term_stem
+              AND qs.sentence_number = terms.sentence_number
+              AND ss.stories_id = terms.stories_id
+              AND ss.sentence_number = terms.sentence_number
+              AND s.media_id = m.media_id
+        ORDER BY time_slice
+EOF
 
     return $_db->query( $query )->hashes;
 }
@@ -384,7 +440,7 @@ sub generate_term_timeline
 
     if ( !$_time_slices )
     {
-        $_time_slices = $_db->query( "select distinct time_slice from query_words order by time_slice asc" )->flat;
+        $_time_slices = $_db->query( "SELECT DISTINCT time_slice FROM query_words ORDER BY time_slice ASC" )->flat;
     }
 
     my $story_counts;
@@ -523,13 +579,24 @@ sub get_source_sentences
 
     my $source_clause = get_source_clause( $source, 'm', 'f' );
 
-    my $query =
-      "select distinct s.*, coalesce(m.name, f.name) as name, qs.sentence_number, ss.sentence, " .
-      "    cast( date_trunc('day', s.publish_date) as date ) as time_slice " .
-      "  from stories s, query_sentences qs left join feeds f on (qs.feeds_id = f.feeds_id), " .
-      "    media m, story_sentences ss " .
-      "  where s.stories_id = qs.stories_id and ss.stories_id = qs.stories_id and ss.sentence_number = qs.sentence_number " .
-      "    and ($source_clause) and s.media_id = m.media_id order by time_slice";
+    my $query = <<EOF;
+        SELECT DISTINCT s.*,
+                        COALESCE(m.name, f.name) AS name,
+                        qs.sentence_number,
+                        ss.sentence,
+                        CAST( DATE_TRUNC('day', s.publish_date) AS date ) AS time_slice
+        FROM stories AS s,
+             query_sentences AS qs
+                LEFT JOIN feeds AS f ON (qs.feeds_id = f.feeds_id),
+             media AS m,
+             story_sentences AS ss
+        WHERE s.stories_id = qs.stories_id
+              AND ss.stories_id = qs.stories_id
+              AND ss.sentence_number = qs.sentence_number
+              AND ($source_clause)
+              AND s.media_id = m.media_id
+        ORDER BY time_slice
+EOF
 
     return $_db->query( $query )->hashes;
 }
@@ -655,33 +722,58 @@ sub get_pr
     {
         $time_slice_field   = ', time_slice';
         $a_time_slice_field = ', a.time_slice';
-        $time_slice_join    = 'and a.time_slice = b.time_slice';
+        $time_slice_join    = 'AND a.time_slice = b.time_slice';
         $time_slice_group   = 'time_slice, ';
         $table              = 'query_words';
     }
 
     # exclude source a from source b only if source a does not wholly include source b
-    my ( $exclude_source_from_pr ) = $_db->query( "select 1 from query_words where $b_m and not $a_m limit 1" )->flat;
+    my ( $exclude_source_from_pr ) = $_db->query( "SELECT 1 FROM query_words WHERE $b_m AND NOT $a_m LIMIT 1" )->flat;
     if ( $exclude_source_from_pr )
     {
-        $b_m .= " and not ( $a_m ) ";
+        $b_m .= " AND NOT ( $a_m ) ";
     }
 
-    my $pr_equation = "( ( a.p * sqrt(a.p) ) / b.p )";
+    my $pr_equation = "( ( a.p * SQRT(a.p) ) / b.p )";
 
     my $max_p = MAX_P;
 
-    my $words =
-      $_db->query( "select $pr_equation as p, a.term, a.stem $a_time_slice_field, a.p as a_p, b.p as b_p " .
-          "  from (select least( $max_p, avg(term_count / source_sentence_count) ) as p, " .
-          "        min(term) as term, stem $time_slice_field " .
-          "      from $table where $a_m and $stem_clause group by $time_slice_group stem " .
-          "        having avg(term_count) > 0 ) a " .
-          "  left join (select least( $max_p, avg(greatest(.1, term_count) / source_sentence_count) ) as p, " .
-          "        min(term) as term, stem $time_slice_field " .
-          "      from $table where $b_m and $stem_clause group by $time_slice_group stem) b " .
-          "      on (a.stem = b.stem $time_slice_join) " .
-          "  order by $time_slice_group p desc $time_slice_field limit $num" )->hashes;
+    my $words = $_db->query(
+        <<EOF
+        SELECT $pr_equation AS p,
+               a.term,
+               a.stem
+               $a_time_slice_field,
+               a.p AS a_p,
+               b.p AS b_p
+        FROM
+            (
+                SELECT LEAST( $max_p, AVG(term_count / source_sentence_count) ) AS p,
+                       MIN(term) AS term,
+                       stem
+                       $time_slice_field
+                FROM $table
+                WHERE $a_m
+                      AND $stem_clause
+                GROUP BY $time_slice_group stem
+                HAVING AVG(term_count) > 0
+            ) AS a
+                LEFT JOIN (
+                    SELECT LEAST( $max_p, avg(greatest(.1, term_count) / source_sentence_count) ) AS p,
+                           MIN(term) AS term,
+                           stem
+                           $time_slice_field
+                    FROM $table
+                    WHERE $b_m
+                          AND $stem_clause
+                    GROUP BY $time_slice_group stem
+                ) AS b ON (a.stem = b.stem $time_slice_join)
+        ORDER BY $time_slice_group
+                 p DESC
+                 $time_slice_field
+        LIMIT $num
+EOF
+    )->hashes;
 
     set_cached_p( $words, @_ );
 
@@ -717,11 +809,23 @@ sub get_p
 
     my $max_p = MAX_P;
 
-    my $words =
-      $_db->query( "select least( $max_p, avg(term_count / source_sentence_count) ) as p, stem, " .
-          "    min(term) as term $time_slice_field from $table " . "  where $source_clause and $stem_clause " .
-          "  group by stem $time_slice_field having avg(term_count) > 0 " .
-          "  order by p desc $time_slice_field limit $num" )->hashes;
+    my $words = $_db->query(
+        <<EOF
+        SELECT LEAST( $max_p, AVG(term_count / source_sentence_count) ) AS p,
+               stem,
+               MIN(term) AS term
+               $time_slice_field
+        FROM $table
+        WHERE $source_clause
+              AND $stem_clause
+        GROUP BY stem
+                 $time_slice_field
+        HAVING AVG(term_count) > 0
+        ORDER BY p DESC
+                 $time_slice_field
+        LIMIT $num
+EOF
+    )->hashes;
 
     set_cached_p( $words, @_ );
 
@@ -906,7 +1010,7 @@ sub generate_p_timeline
 
     if ( !$_time_slices )
     {
-        $_time_slices = $_db->query( "select distinct time_slice from query_words order by time_slice asc" )->flat;
+        $_time_slices = $_db->query( "SELECT DISTINCT time_slice FROM query_words ORDER BY time_slice ASC" )->flat;
     }
 
     my $time_slicely_data = [];
@@ -1213,11 +1317,29 @@ sub insert_query_sentences
     my $stem = get_stem( $query );
 
     $_db->query(
-        "insert into query_sentences " . "  (stories_id, sentence_number, media_id, feeds_id, time_slice) " .
-          "  select distinct stories_id, sentence_number, media_id, null::int,  " .
-          "    cast(date_trunc('day', publish_date) as date) as time_slice " . "  from story_sentence_words " .
-"  where date_trunc('day', publish_date) >= date '$start_date' and date_trunc('day', publish_date) <= date '$end_date' "
-          . "    and stem = lower(?)  and media_id in (select media_id from media_tags_map where tags_id = $type_tags_id)",
+        <<EOF,
+        INSERT INTO query_sentences (
+            stories_id,
+            sentence_number,
+            media_id,
+            feeds_id,
+            time_slice
+        )
+            SELECT DISTINCT stories_id,
+                            sentence_number,
+                            media_id,
+                            null::int,
+                            CAST(DATE_TRUNC('day', publish_date) AS date) AS time_slice
+            FROM story_sentence_words
+            WHERE DATE_TRUNC('day', publish_date) >= date '$start_date'
+                  AND DATE_TRUNC('day', publish_date) <= date '$end_date'
+                  AND stem = LOWER(?)
+                  AND media_id IN (
+                    SELECT media_id
+                    FROM media_tags_map
+                    WHERE tags_id = $type_tags_id
+                  )
+EOF
         $stem
     );
     $_db->query( "analyze query_sentences" );
@@ -1235,13 +1357,26 @@ sub insert_query_words
     my $stem = get_stem( $query );
 
     $_db->query(
-        "insert into query_words " .
-          "  select distinct min(sw.term) as term, sw.stem, count(sw.stem_count) as term_count, " . "    " .
-          MIN_SOURCE_SENTENCES . "::numeric as source_sentence_count, " . "    qs.media_id, qs.feeds_id, qs.time_slice " .
-          "  from query_sentences qs, story_sentence_words sw " .
-          "  where qs.stories_id = sw.stories_id and qs.sentence_number = sw.sentence_number and sw.stem <> ? " .
-          "  group by qs.media_id, qs.feeds_id, time_slice, sw.stem",
-        $stem
+        <<EOF,
+        INSERT INTO query_words
+            SELECT DISTINCT MIN(sw.term) AS term,
+                            sw.stem,
+                            COUNT(sw.stem_count) AS term_count,
+                            ?::numeric AS source_sentence_count,
+                            qs.media_id,
+                            qs.feeds_id,
+                            qs.time_slice
+            FROM query_sentences AS qs,
+                 story_sentence_words AS sw
+            WHERE qs.stories_id = sw.stories_id
+                  AND qs.sentence_number = sw.sentence_number
+                  AND sw.stem <> ?
+            GROUP BY qs.media_id,
+                     qs.feeds_id,
+                     time_slice,
+                     sw.stem
+EOF
+        MIN_SOURCE_SENTENCES, $stem
     );
 }
 
@@ -1253,31 +1388,84 @@ sub insert_query_words
 sub create_query_words_source_table
 {
     $_db->query(
-        "create temporary table all_query_words " . "  as select stem, min(term) as term from query_words group by stem" );
-    $_db->query( "create temporary table all_query_sources " .
-          "  as select media_id, feeds_id from query_words group by media_id, feeds_id" );
+        <<EOF
+        CREATE TEMPORARY TABLE all_query_words AS
+            SELECT stem,
+                   MIN(term) AS term
+            FROM query_words
+            GROUP BY stem
+EOF
+    );
+    $_db->query(
+        <<EOF
+        CREATE TEMPORARY TABLE all_query_sources AS
+            SELECT media_id,
+                   feeds_id
+            FROM query_words
+            GROUP BY media_id,
+                     feeds_id
+EOF
+    );
 
     $_db->query(
-        "create temporary table query_words_source as " . "  select term, stem, 0::numeric as term_count, " . "      " .
-          MIN_SOURCE_SENTENCES . "::numeric as source_sentence_count, " . "      media_id, feeds_id " .
-          "    from all_query_words, all_query_sources" );
+        <<EOF,
+        CREATE TEMPORARY TABLE query_words_source AS
+            SELECT term,
+                   stem,
+                   0::numeric AS term_count,
+                   ?::numeric AS source_sentence_count,
+                   media_id,
+                   feeds_id
+            FROM all_query_words,
+                 all_query_sources
+EOF
+        MIN_SOURCE_SENTENCES
+    );
 
-    $_db->query( "update query_words_source as qws " . "  set term_count = q.sum_term_count " .
-          "  from (select sum(term_count) as sum_term_count, media_id, feeds_id, stem " .
-          "      from query_words group by media_id, feeds_id, stem) q " .
-          "  where qws.media_id = q.media_id and coalesce(-1, qws.feeds_id) = coalesce(-1, q.feeds_id) " .
-          "    and qws.stem = q.stem" );
+    $_db->query(
+        <<EOF
+        UPDATE query_words_source AS qws
+        SET term_count = q.sum_term_count
+        FROM (
+            SELECT SUM(term_count) AS sum_term_count,
+                   media_id,
+                   feeds_id,
+                   stem
+            FROM query_words
+            GROUP BY media_id,
+            feeds_id,
+            stem
+        ) AS q
+        WHERE qws.media_id = q.media_id
+              AND COALESCE(-1, qws.feeds_id) = COALESCE(-1, q.feeds_id)
+              AND qws.stem = q.stem
+EOF
+    );
 
-    $_db->query( "update query_words_source as qw set source_sentence_count = q.sum_sentence_count " .
-          "  from (select qs.media_id, qs.feeds_id, " . "        greatest( " . MIN_SOURCE_SENTENCES . ", " .
-          "                  count(distinct qs.stories_id::text || 'Z' || qs.sentence_number::text) ) " .
-          "          as sum_sentence_count " . "      from query_sentences qs " .
-          "      group by qs.media_id, qs.feeds_id) q " .
-          "  where qw.media_id = q.media_id and coalesce(-1, qw.feeds_id) = coalesce(-1, q.feeds_id)" );
+    $_db->query(
+        <<EOF,
+        UPDATE query_words_source AS qw
+        SET source_sentence_count = q.sum_sentence_count
+        FROM (
+            SELECT qs.media_id,
+                   qs.feeds_id,
+                   GREATEST(
+                       ?,
+                       COUNT(DISTINCT qs.stories_id::text || 'Z' || qs.sentence_number::text)
+                   ) AS sum_sentence_count
+            FROM query_sentences AS qs
+            GROUP BY qs.media_id,
+                     qs.feeds_id
+        ) AS q
+        WHERE qw.media_id = q.media_id
+              AND COALESCE(-1, qw.feeds_id) = COALESCE(-1, q.feeds_id)
+EOF
+        MIN_SOURCE_SENTENCES
+    );
 
-    $_db->query( "create index query_words_agg_mfs on query_words_source(media_id, feeds_id, stem)" );
-    $_db->query( "create index query_words_agg_ms on query_words_source(media_id, stem)" );
-    $_db->query( "analyze query_words_source" );
+    $_db->query( "CREATE INDEX query_words_agg_mfs ON query_words_source(media_id, feeds_id, stem)" );
+    $_db->query( "CREATE INDEX query_words_agg_ms ON query_words_source(media_id, stem)" );
+    $_db->query( "ANALYZE query_words_source" );
 }
 
 # generate a temporary table to hold the word counts for stories that match the query by media_id and time_slice
@@ -1293,32 +1481,65 @@ sub generate_query_words_table
         die( "no query" );
     }
 
-    $_db->query( "create temporary table query_sentences " .
-          "  (stories_id int, sentence_number int, media_id int, feeds_id int, time_slice timestamp)" );
-    $_db->query( "create temporary table query_words (" .
-          "    term text, stem text, term_count numeric, source_sentence_count numeric, " .
-          "    media_id int, feeds_id int, time_slice date )" );
+    $_db->query(
+        <<EOF
+        CREATE TEMPORARY TABLE query_sentences (
+            stories_id INT,
+            sentence_number INT,
+            media_id INT,
+            feeds_id INT,
+            time_slice TIMESTAMP
+        )
+EOF
+    );
+    $_db->query(
+        <<EOF
+        CREATE TEMPORARY TABLE query_words (
+            term TEXT,
+            stem TEXT,
+            term_count NUMERIC,
+            source_sentence_count NUMERIC,
+            media_id INT,
+            feeds_id INT,
+            time_slice DATE
+        )
+EOF
+    );
 
     # $_db->query("truncate table query_words");
     # eval {
-    #     $_db->query("drop index query_words_mw");
-    #     $_db->query("drop index query_words_t");
+    #     $_db->query("DROP INDEX query_words_mw");
+    #     $_db->query("DROP INDEX query_words_t");
     # };
 
     insert_query_words( $term_table, 'media', $source_tags_id, $query, $start_date, $end_date );
 
     # insert_query_words($term_table, 'feeds', $source_tags_id, $query, $start_date, $end_date);
 
-    $_db->query( "create index query_words_mfs on query_words(media_id, feeds_id, stem)" );
-    $_db->query( "create index query_words_ms on query_words(media_id, stem)" );
-    $_db->query( "analyze query_words" );
+    $_db->query( "CREATE INDEX query_words_mfs ON query_words(media_id, feeds_id, stem)" );
+    $_db->query( "CREATE INDEX query_words_ms ON query_words(media_id, stem)" );
+    $_db->query( "ANALYZE query_words" );
 
-    $_db->query( "update query_words as qw set source_sentence_count = q.sum_sentence_count " .
-          "  from (select qs.media_id, qs.feeds_id, " . "        greatest( " . MIN_SOURCE_SENTENCES . ", " .
-          "                  count(distinct qs.stories_id::text || 'Z' || qs.sentence_number::text) ) " .
-          "          as sum_sentence_count " . "      from query_sentences qs " .
-          "      group by qs.media_id, qs.feeds_id) q " .
-          "  where qw.media_id = q.media_id and coalesce(-1, qw.feeds_id) = coalesce(-1, q.feeds_id)" );
+    $_db->query(
+        <<EOF,
+        UPDATE query_words AS qw
+        SET source_sentence_count = q.sum_sentence_count
+        FROM (
+            SELECT qs.media_id,
+                   qs.feeds_id,
+                   GREATEST(
+                       ?,
+                       COUNT(DISTINCT qs.stories_id::text || 'Z' || qs.sentence_number::text)
+                   ) AS sum_sentence_count
+            FROM query_sentences AS qs
+            GROUP BY qs.media_id,
+                     qs.feeds_id
+        ) AS q
+        WHERE qw.media_id = q.media_id
+              AND COALESCE(-1, qw.feeds_id) = COALESCE(-1, q.feeds_id)
+EOF
+        MIN_SOURCE_SENTENCES
+    );
 
     create_query_words_source_table();
 }
@@ -1378,10 +1599,10 @@ sub generate_reports_from_db
         reconnect_to_db();
 
         my $topics =
-          $_db->query( "select * from word_cloud_topics where state = 'pending' order by word_cloud_topics_id" )->hashes;
+          $_db->query( "SELECT * FROM word_cloud_topics WHERE state = 'pending' ORDER BY word_cloud_topics_id" )->hashes;
         for my $topic ( @{ $topics } )
         {
-            $_db->query( "update word_cloud_topics set state = 'generating' where word_cloud_topics_id = ?",
+            $_db->query( "UPDATE word_cloud_topics SET state = 'generating' WHERE word_cloud_topics_id = ?",
                 $topic->{ word_cloud_topics_id } );
 
             my $topic_dir = "$base_directory/" . $topic->{ word_cloud_topics_id };
@@ -1397,7 +1618,7 @@ sub generate_reports_from_db
             );
 
             my $topic_url = "$base_url/" . $topic->{ word_cloud_topics_id };
-            $_db->query( "update word_cloud_topics set state = 'completed', url = ? where word_cloud_topics_id = ?",
+            $_db->query( "UPDATE word_cloud_topics SET state = 'completed', url = ? WHERE word_cloud_topics_id = ?",
                 $topic_url, $topic->{ word_cloud_topics_id } );
 
             reconnect_to_db();
@@ -1424,7 +1645,7 @@ sub main
     }
     else
     {
-        print( "usage: mediawords_generate_sentence_report.pl " .
+        print( "usage: $0 " .
               "<directory> ( ( <url> ) | ( <term_type> <source_tags_id> <set_tags> <query> <start_date> <end_date> ) )\n" );
         exit 1;
     }
