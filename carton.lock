@@ -111,6 +111,67 @@
          "target" : "Algorithm::Diff",
          "version" : "1.1902"
       },
+      "Algorithm::FeatureSelection" : {
+         "dist" : "Algorithm-FeatureSelection-0.02",
+         "mymeta" : {
+            "abstract" : "unknown",
+            "author" : [
+               "Takeshi Miki <miki@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.05, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Algorithm-FeatureSelection",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t",
+                  "xt"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.36",
+                     "Test::More" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.36"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "List::Util" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.02"
+         },
+         "name" : "Algorithm::FeatureSelection",
+         "pathname" : "M/MI/MIKI/Algorithm-FeatureSelection-0.02.tar.gz",
+         "provides" : {
+            "Algorithm::FeatureSelection" : {
+               "file" : "Algorithm/FeatureSelection.pm",
+               "version" : "0.02"
+            }
+         },
+         "target" : "Algorithm::FeatureSelection",
+         "version" : "0.02"
+      },
       "Alien::Tidyp" : {
          "dist" : "Alien-Tidyp-v1.4.7",
          "mymeta" : {
