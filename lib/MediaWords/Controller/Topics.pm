@@ -48,7 +48,7 @@ sub create_do : Local
     my $set_tag_names   = $c->request->param( 'set_tag_names' );
     my $creator         = $c->request->param( 'creator' );
 
-    if ( !( $query && $language && $start_date && $end_date && $source_tag_name && $set_tag_names && $creator ) )
+    if ( !( $query && $language_code && $start_date && $end_date && $source_tag_name && $set_tag_names && $creator ) )
     {
         my $msg = 'query, language, start_date, end_date, source_tag_name, set_tag_names, and creator are all required.';
         $c->response->redirect( $c->uri_for( "/topics/list/", { error_msg => $msg } ) );
@@ -135,7 +135,7 @@ EOF
         )
 EOF
         $query,
-        $language,
+        $language_code,
         'words',
         $start_date,
         $end_date,
