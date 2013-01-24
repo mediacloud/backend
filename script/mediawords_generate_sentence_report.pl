@@ -321,7 +321,7 @@ sub get_term_file($$;$)
 {
     my ( $stem, $language_code, $term ) = @_;
 
-    $_term_pages->{ $stem . '[' . $language_code . ']' } = $term;
+    $_term_pages->{ $stem . ' [' . $language_code . ']' } = $term;
 
     $stem =~ s~/~~g;
 
@@ -561,8 +561,13 @@ $_links_html
 sub generate_term_pages()
 {
 
-    while ( my ( $stem, $term, $language_code ) = each( %{ $_term_pages } ) )
+    while ( my ( $stem, $term ) = each( %{ $_term_pages } ) )
     {
+        my $language_code;
+
+        # "stem [language_code]" => ("stem", "language_code")
+        ( $stem, $language_code ) = split( / \[/, $stem );
+        $language_code =~ s/\]//;
         generate_term_page( $stem, $term, $language_code );
     }
 
@@ -1504,7 +1509,7 @@ EOF
 
 # generate a temporary table to hold the word counts for stories that match the query by media_id and time_slice
 # this intermediate table is used to generate all of the p and pr counts above
-sub generate_query_words_table
+sub generate_query_words_table($$$$$$)
 {
     my ( $term_table, $source_tags_id, $query, $language_code, $start_date, $end_date ) = @_;
 
@@ -1580,7 +1585,7 @@ EOF
 }
 
 # generate a report for the given query
-sub generate_report
+sub generate_report($$$$$$$$)
 {
     my ( $topic_dir, $term_table, $source_tags_id, $set_tags, $query, $language_code, $start_date, $end_date ) = @_;
 
@@ -1620,13 +1625,13 @@ sub generate_report
 }
 
 # (re)connect to db
-sub reconnect_to_db
+sub reconnect_to_db()
 {
     $_db = MediaWords::DB::connect_to_db();
 }
 
 # start a polling daemon, generating reports from word_cloud_topics as they appear in the db
-sub generate_reports_from_db
+sub generate_reports_from_db($$)
 {
     my ( $base_directory, $base_url ) = @_;
 
@@ -1673,12 +1678,12 @@ sub main
 
     if ( @ARGV == 2 )
     {
-        generate_reports_from_db( @ARGV );
+        generate_reports_from_db( $ARGV[ 0 ], $ARGV[ 1 ] );
     }
     elsif ( @ARGV == 8 )
     {
         reconnect_to_db();
-        generate_report( @ARGV );
+        generate_report( $ARGV[ 0 ], $ARGV[ 1 ], $ARGV[ 2 ], $ARGV[ 3 ], $ARGV[ 4 ], $ARGV[ 5 ], $ARGV[ 6 ], $ARGV[ 7 ] );
     }
     else
     {
