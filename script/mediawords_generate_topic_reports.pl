@@ -1148,9 +1148,21 @@ sub insert_query_words
 
     $_db->query(
         <<EOF
-        INSERT INTO query_words
+        INSERT INTO query_words (
+                term,
+                stem,
+                language,
+                term_count_raw,
+                term_count_norm,
+                term_count,
+                media_id,
+                feeds_id,
+                time_slice,
+                query_rank
+            )
             SELECT MIN(sw.term) AS term,
                    sw.stem,
+                   sw.language,
                    SUM(stem_count) AS term_count_raw,
                    0,
                    0,
@@ -1172,7 +1184,8 @@ sub insert_query_words
             GROUP BY s.media_id,
                      fsm.feeds_id,
                      time_slice,
-                     sw.stem
+                     sw.stem,
+                     sw.language
 EOF
     );
 }
@@ -1195,6 +1208,7 @@ sub generate_query_words_table
         CREATE TEMPORARY TABLE query_words (
             term TEXT,
             stem TEXT,
+            language TEXT,
             term_count_raw INT,
             term_count_norm INT,
             term_count INT,
@@ -1216,7 +1230,7 @@ EOF
     insert_query_words( $term_table, 'feeds', $source_tags_id, $query, $start_date, $end_date );
 
     $_db->query( "CREATE INDEX query_words_mw ON query_words(media_id, time_slice)" );
-    $_db->query( "CREATE INDEX query_words_t ON query_words(media_id, stem)" );
+    $_db->query( "CREATE INDEX query_words_t ON query_words(media_id, stem, language)" );
 
     #set normalized term_count
     $_db->query(
