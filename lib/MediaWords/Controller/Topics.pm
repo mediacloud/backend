@@ -41,15 +41,16 @@ sub create_do : Local
     my ( $self, $c ) = @_;
 
     my $query           = $c->request->param( 'query' );
+    my $language_code   = $c->request->param( 'language' );
     my $start_date      = $c->request->param( 'start_date' );
     my $end_date        = $c->request->param( 'end_date' );
     my $source_tag_name = $c->request->param( 'source_tag_name' );
     my $set_tag_names   = $c->request->param( 'set_tag_names' );
     my $creator         = $c->request->param( 'creator' );
 
-    if ( !( $query && $start_date && $end_date && $source_tag_name && $set_tag_names && $creator ) )
+    if ( !( $query && $language && $start_date && $end_date && $source_tag_name && $set_tag_names && $creator ) )
     {
-        my $msg = 'query, start_date, end_date, source_tag_name, set_tag_names, and creator are all required.';
+        my $msg = 'query, language, start_date, end_date, source_tag_name, set_tag_names, and creator are all required.';
         $c->response->redirect( $c->uri_for( "/topics/list/", { error_msg => $msg } ) );
         return;
     }
@@ -111,6 +112,7 @@ EOF
         <<EOF,
         INSERT INTO word_cloud_topics (
             query,
+            language,
             type,
             start_date,
             end_date,
@@ -120,6 +122,7 @@ EOF
             set_tag_names,
             creator
         ) VALUES (
+            ?,
             ?,
             ?,
             DATE_TRUNC('week', CAST(? AS DATE)),
@@ -132,6 +135,7 @@ EOF
         )
 EOF
         $query,
+        $language,
         'words',
         $start_date,
         $end_date,

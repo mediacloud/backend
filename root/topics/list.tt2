@@ -4,7 +4,7 @@
 <table>
 
 <tr>
-<th>query</th>
+<th>query [language]</th>
 <th>include tag</th>
 <th>sets</th>
 <th>start_date</th>
@@ -19,9 +19,9 @@
 
 <td>
 [% IF topic.state == 'completed' -%]
-<a href="[% topic.url %]">[% topic.query %]</a>
+<a href="[% topic.url %]">[% topic.query %] [[% topic.language %]]</a>
 [% ELSE %]
-[% topic.query %]
+[% topic.query %] [[% topic.query %]]
 [% END %]
 </td>
 
@@ -65,6 +65,14 @@ Your name.  As the number of reports grows, it's helpful to know whose report is
 <input name="query" type="text" size="48" />
 <span class="comment">
 The query that defines the topic.  The resulting word clouds will include only stories that match this plain text query.  If the query has more than one word, the topic will include stories that match all of the words individually. <i>example: bailout</i>
+</span>
+</div>
+
+<div class="text comment label">
+<label>Language code</label>
+<input name="language" type="text" size="48" />
+<span class="comment">
+ISO 639-1 language code for the query. <i>example: en</i>
 </span>
 </div>
 
