@@ -15,7 +15,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 3 + 1;
+use Test::More tests => 4 + 1;
 use utf8;
 
 # Test::More UTF-8 output
@@ -92,13 +92,26 @@ $expected_sentences = [
 }
 
 #
-# Abbreviation ("a.C.")
+# Abbreviation ("a.C.") with an end-of-sentence period
 #
 $test_string = <<'QUOTE';
 Segundo a lenda, Rômulo e Remo fundaram Roma em 753 a.C..
 QUOTE
 
 $expected_sentences = [ 'Segundo a lenda, Rômulo e Remo fundaram Roma em 753 a.C..' ];
+
+{
+    is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
+}
+
+#
+# Abbreviation ("a.C.") with an end-of-sentence period, plus another sentence
+#
+$test_string = <<'QUOTE';
+Segundo a lenda, Rômulo e Remo fundaram Roma em 753 a.C.. This is a test.
+QUOTE
+
+$expected_sentences = [ 'Segundo a lenda, Rômulo e Remo fundaram Roma em 753 a.C..', 'This is a test.' ];
 
 {
     is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
