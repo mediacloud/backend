@@ -23,7 +23,6 @@ use MediaWords::DBI::Downloads;
 use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
-use Lingua::EN::Sentence::MediaWords;
 
 use Data::Dumper;
 use MediaWords::Util::HTML;
