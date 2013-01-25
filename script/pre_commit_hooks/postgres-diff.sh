@@ -39,10 +39,12 @@ NEW_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
     | perl -lpe 's/\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
 if [ -z "$OLD_SCHEMA_VERSION" ]; then
     echo "Unable to determine old database schema version number from the version control diff."
+    echo "Maybe you forgot to stage ('git add ...') the schema file?"
     exit 1
 fi
 if [ -z "$NEW_SCHEMA_VERSION" ]; then
     echo "Unable to determine new database schema version number from the version control diff."
+    echo "Maybe you forgot to stage ('git add ...') the schema file?"
     exit 1
 fi
 
