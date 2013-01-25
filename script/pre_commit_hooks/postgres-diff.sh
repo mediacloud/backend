@@ -14,6 +14,7 @@ SCHEMA_FILE="script/mediawords.sql"
 # Exit on error
 set -u
 set -o errexit
+set -e
 
 # Version control
 if [ -d .svn ]; then
@@ -26,7 +27,7 @@ elif [ -d .git ]; then
     SCHEMA_DIFF=`git diff --staged ${SCHEMA_FILE}`
 
 else
-    echo "Unknown repository."
+    echo "Unknown repository." 1>&2
     exit 1
 fi
 
@@ -38,13 +39,13 @@ NEW_SCHEMA_VERSION=`echo "$SCHEMA_DIFF"  \
     | perl -lne 'print if /\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT/'   \
     | perl -lpe 's/\+.+?MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);/$1/'`
 if [ -z "$OLD_SCHEMA_VERSION" ]; then
-    echo "Unable to determine old database schema version number from the version control diff."
-    echo "Maybe you forgot to stage ('git add ...') the schema file?"
+    echo "Unable to determine old database schema version number from the version control diff." 1>&2
+    echo "Maybe you forgot to stage ('git add ...') the schema file?" 1>&2
     exit 1
 fi
 if [ -z "$NEW_SCHEMA_VERSION" ]; then
-    echo "Unable to determine new database schema version number from the version control diff."
-    echo "Maybe you forgot to stage ('git add ...') the schema file?"
+    echo "Unable to determine new database schema version number from the version control diff." 1>&2
+    echo "Maybe you forgot to stage ('git add ...') the schema file?" 1>&2
     exit 1
 fi
 
