@@ -1433,13 +1433,13 @@ EOF
                     WHERE ssw.media_id = msmm.media_id
                           AND ssw.publish_day = '$sql_date'::date
                           AND stem = $term_a
-                          AND language = $language_code
+                          AND language = '$language_code'
                           AND EXISTS (SELECT 1
                                       FROM story_sentence_words AS sswb
                                       WHERE ssw.publish_day = sswb.publish_day
                                             AND ssw.media_id = sswb.media_id
                                             AND sswb.stem = $term_b
-                                            AND sswb.language = $language_code
+                                            AND sswb.language = '$language_code'
                                             AND ssw.stories_id = sswb.stories_id
                                             AND ssw.sentence_number = sswb.sentence_number
                                      )
