@@ -299,6 +299,7 @@ sub generate_aggregate_words
             dashboards_id => $dashboard->{ dashboards_id },
             name          => 'obama_topic',
             query         => 'obama',
+            language      => 'en',
             start_date    => $start_date,
             end_date      => $end_date
         }
