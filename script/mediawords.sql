@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4393;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4394;
     
 BEGIN
 
@@ -1268,6 +1268,12 @@ CREATE TABLE queries_top_weekly_words_json (
    top_weekly_words_json text not null 
 );
 
+CREATE TABLE feedless_stories (
+        stories_id integer,
+        media_id integer
+);
+CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
+
 CREATE TABLE queries_country_counts_json (
    queries_country_counts_json_id serial primary key,
    queries_id integer references queries on delete cascade not null unique,
@@ -1556,4 +1562,12 @@ CREATE INDEX top_500_weekly_author_words_publish_week ON top_500_weekly_author_w
 CREATE INDEX top_500_weekly_words_dmds ON top_500_weekly_words USING btree (publish_week, media_sets_id, dashboard_topics_id, stem);
 
 CREATE INDEX weekly_words_topic ON weekly_words USING btree (publish_week, dashboard_topics_id);
+
+CREATE OR REPLACE FUNCTION cancel_pg_process(cancel_pid integer) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+return pg_cancel_backend(cancel_pid);
+END;
+$$;
 
