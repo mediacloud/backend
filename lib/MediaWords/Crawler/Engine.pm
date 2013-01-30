@@ -240,6 +240,8 @@ sub crawl
 
     $self->spawn_fetchers();
 
+    sleep( 1 ); # Sleep to avoid race conditions causing the skipping fetcher errors.
+
     my $socket_select = IO::Select->new();
 
     for my $fetcher ( @{ $self->fetchers } )
