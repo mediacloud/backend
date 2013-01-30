@@ -203,7 +203,7 @@ sub spawn_fetchers
         else
         {
             $parent_socket->close();
-	    $in_parent = 0;
+            $in_parent = 0;
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
             $self->reconnect_db;
@@ -219,9 +219,9 @@ sub spawn_fetchers
 
     if ( $in_parent )
     {
-	## Give children a catch to initialize to avoid race conditions
+        ## Give children a catch to initialize to avoid race conditions
 
-	sleep( 1 );
+        sleep( 1 );
     }
 }
 
