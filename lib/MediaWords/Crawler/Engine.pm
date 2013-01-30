@@ -183,6 +183,8 @@ sub spawn_fetchers
 {
     my ( $self ) = @_;
 
+    my $in_parent = 1;
+
     for ( my $i = 0 ; $i < $self->processes ; $i++ )
     {
         my ( $parent_socket, $child_socket ) = IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
@@ -201,6 +203,7 @@ sub spawn_fetchers
         else
         {
             $parent_socket->close();
+	    $in_parent = 0;
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
             $self->reconnect_db;
@@ -212,6 +215,13 @@ sub spawn_fetchers
                 die "Error in _run_fetcher for fetcher $i: $@";
             }
         }
+    }
+
+    if ( $in_parent )
+    {
+	## Give children a catch to initialize to avoid race conditions
+
+	sleep( 1 );
     }
 }
 
@@ -239,8 +249,6 @@ sub crawl
     my ( $self ) = @_;
 
     $self->spawn_fetchers();
-
-    sleep( 1 );    # Sleep to avoid race conditions causing the skipping fetcher errors.
 
     my $socket_select = IO::Select->new();
 
