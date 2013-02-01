@@ -3333,6 +3333,196 @@
          "target" : "Catalyst::Devel",
          "version" : "1.36"
       },
+      "Catalyst::Plugin::Authentication" : {
+         "dist" : "Catalyst-Plugin-Authentication-0.10022",
+         "mymeta" : {
+            "abstract" : "Infrastructure plugin for the Catalyst authentication framework.",
+            "author" : [
+               "Yuval Kogman, C<nothingmuch@woobling.org> - original author"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Catalyst-Plugin-Authentication",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Class::MOP" : 0,
+                     "ExtUtils::MakeMaker" : "6.59",
+                     "Moose" : 0,
+                     "Test::Exception" : 0,
+                     "Test::More" : "0.88"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Catalyst::Plugin::Session" : "0.10",
+                     "Catalyst::Runtime" : 0,
+                     "Class::Inspector" : 0,
+                     "Class::MOP" : 0,
+                     "MRO::Compat" : 0,
+                     "Moose" : 0,
+                     "MooseX::Emulate::Class::Accessor::Fast" : 0,
+                     "String::RewritePrefix" : 0,
+                     "Test::Exception" : 0,
+                     "Test::More" : "0.88",
+                     "Try::Tiny" : 0,
+                     "namespace::autoclean" : 0,
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://git.shadowcat.co.uk/catagits/Catalyst-Plugin-Authentication.git"
+               }
+            },
+            "version" : "0.10022",
+            "x_authority" : "BOBTFISH"
+         },
+         "name" : "Catalyst::Plugin::Authentication",
+         "pathname" : "B/BO/BOBTFISH/Catalyst-Plugin-Authentication-0.10022.tar.gz",
+         "provides" : {
+            "Catalyst::Authentication::Credential::NoPassword" : {
+               "file" : "Catalyst/Authentication/Credential/NoPassword.pm"
+            },
+            "Catalyst::Authentication::Credential::Password" : {
+               "file" : "Catalyst/Authentication/Credential/Password.pm"
+            },
+            "Catalyst::Authentication::Credential::Remote" : {
+               "file" : "Catalyst/Authentication/Credential/Remote.pm"
+            },
+            "Catalyst::Authentication::Realm" : {
+               "file" : "Catalyst/Authentication/Realm.pm"
+            },
+            "Catalyst::Authentication::Realm::Compatibility" : {
+               "file" : "Catalyst/Authentication/Realm/Compatibility.pm"
+            },
+            "Catalyst::Authentication::Realm::Progressive" : {
+               "file" : "Catalyst/Authentication/Realm/Progressive.pm"
+            },
+            "Catalyst::Authentication::Store::Minimal" : {
+               "file" : "Catalyst/Authentication/Store/Minimal.pm"
+            },
+            "Catalyst::Authentication::Store::Null" : {
+               "file" : "Catalyst/Authentication/Store/Null.pm"
+            },
+            "Catalyst::Authentication::User" : {
+               "file" : "Catalyst/Authentication/User.pm"
+            },
+            "Catalyst::Authentication::User::Hash" : {
+               "file" : "Catalyst/Authentication/User/Hash.pm"
+            },
+            "Catalyst::Plugin::Authentication" : {
+               "file" : "Catalyst/Plugin/Authentication.pm",
+               "version" : "0.10022"
+            },
+            "Catalyst::Plugin::Authentication::Credential::Password" : {
+               "file" : "Catalyst/Plugin/Authentication/Credential/Password.pm"
+            },
+            "Catalyst::Plugin::Authentication::Store::Minimal" : {
+               "file" : "Catalyst/Plugin/Authentication/Store/Minimal.pm"
+            },
+            "Catalyst::Plugin::Authentication::User" : {
+               "file" : "Catalyst/Plugin/Authentication/User.pm"
+            },
+            "Catalyst::Plugin::Authentication::User::Hash" : {
+               "file" : "Catalyst/Plugin/Authentication/User/Hash.pm"
+            }
+         },
+         "target" : "Catalyst::Plugin::Authentication",
+         "version" : "0.10022"
+      },
+      "Catalyst::Plugin::Authorization::Roles" : {
+         "dist" : "Catalyst-Plugin-Authorization-Roles-0.09",
+         "mymeta" : {
+            "abstract" : "Role based authorization for Catalyst based on Catalyst::Plugin::Authentication",
+            "author" : [
+               "Yuval Kogman <nothingmuch@woobling.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 0.99, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Catalyst-Plugin-Authorization-Roles",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42",
+                     "Test::Exception" : 0,
+                     "Test::More" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Catalyst::Plugin::Authentication" : "0.10003",
+                     "Catalyst::Runtime" : "5.7",
+                     "Set::Object" : "1.14",
+                     "UNIVERSAL::isa" : "0.05",
+                     "perl" : "5.008"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "url" : "http://dev.catalyst.perl.org/repos/Catalyst/Catalyst-Plugin-Authorization-Roles/"
+               }
+            },
+            "version" : "0.09"
+         },
+         "name" : "Catalyst::Plugin::Authorization::Roles",
+         "pathname" : "B/BO/BOBTFISH/Catalyst-Plugin-Authorization-Roles-0.09.tar.gz",
+         "provides" : {
+            "Catalyst::Plugin::Authorization::Roles" : {
+               "file" : "Catalyst/Plugin/Authorization/Roles.pm",
+               "version" : "0.09"
+            }
+         },
+         "target" : "Catalyst::Plugin::Authorization::Roles",
+         "version" : "0.09"
+      },
       "Catalyst::Plugin::ConfigLoader" : {
          "dist" : "Catalyst-Plugin-ConfigLoader-0.30",
          "mymeta" : {
@@ -34656,6 +34846,69 @@
          "target" : "Server::Starter",
          "version" : "0.11"
       },
+      "Set::Object" : {
+         "dist" : "Set-Object-1.28",
+         "mymeta" : {
+            "abstract" : "Unordered collections (sets) of Perl Objects",
+            "author" : [
+               "Jean-Louis Leroy and Sam Vilain"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.55_02, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "artistic_1"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Set-Object",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Scalar::Util" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "1.28"
+         },
+         "name" : "Set::Object",
+         "pathname" : "S/SA/SAMV/Set-Object-1.28.tar.gz",
+         "provides" : {
+            "Set::Object" : {
+               "file" : "Set/Object.pm",
+               "version" : "1.28"
+            },
+            "Set::Object::TieArray" : {
+               "file" : "Set/Object.pm"
+            },
+            "Set::Object::TieHash" : {
+               "file" : "Set/Object.pm"
+            },
+            "Set::Object::Weak" : {
+               "file" : "Set/Object/Weak.pm"
+            }
+         },
+         "target" : "Set::Object",
+         "version" : "1.28"
+      },
       "Smart::Comments" : {
          "dist" : "Smart-Comments-1.0.4",
          "mymeta" : {
@@ -35533,6 +35786,93 @@
          },
          "target" : "Sub::Uplevel",
          "version" : "0.22"
+      },
+      "Task::Plack" : {
+         "dist" : "Task-Plack-0.26",
+         "mymeta" : {
+            "abstract" : "Plack bundle",
+            "author" : [
+               "Tatsuhiko Miyagawa <miyagawa@bulknews.net>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Task-Plack",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t",
+                  "xt"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "CGI::Compile" : "0.15",
+                     "CGI::Emulate::PSGI" : "0.14",
+                     "CGI::PSGI" : "0.15",
+                     "Corona" : "0.1004",
+                     "FCGI" : "0.74",
+                     "FCGI::Client" : "0.08",
+                     "FCGI::ProcManager" : "0.24",
+                     "HTTP::Server::Simple::PSGI" : "0.14",
+                     "IO::Handle::Util" : "0.01",
+                     "Net::FastCGI" : "0.13",
+                     "PSGI" : "1.03",
+                     "Plack" : "0.9985",
+                     "Plack::App::Proxy" : "0.21",
+                     "Plack::Middleware::Auth::Digest" : "0.04",
+                     "Plack::Middleware::ConsoleLogger" : "0.04",
+                     "Plack::Middleware::Debug" : "0.14",
+                     "Plack::Middleware::Deflater" : "0.05",
+                     "Plack::Middleware::Header" : "0.04",
+                     "Plack::Middleware::ReverseProxy" : "0.11",
+                     "Plack::Middleware::Session" : "0.14",
+                     "Starlet" : "0.14",
+                     "Starman" : "0.3000",
+                     "Twiggy" : "0.1020",
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://github.com/miyagawa/Task-Plack.git"
+               }
+            },
+            "version" : "0.26"
+         },
+         "name" : "Task::Plack",
+         "pathname" : "M/MI/MIYAGAWA/Task-Plack-0.26.tar.gz",
+         "provides" : {
+            "Task::Plack" : {
+               "file" : "Task/Plack.pm",
+               "version" : "0.26"
+            }
+         },
+         "target" : "Task::Plack",
+         "version" : "0.26"
       },
       "Task::Weaken" : {
          "dist" : "Task-Weaken-1.04",

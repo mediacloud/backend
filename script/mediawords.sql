@@ -1506,3 +1506,41 @@ LANGUAGE 'plpgsql'
 ;
 
 
+--
+-- Authentication
+--
+
+-- List of users
+CREATE TABLE auth_users (
+    users_id        SERIAL  PRIMARY KEY,
+    email           TEXT    UNIQUE NOT NULL,
+    password        TEXT    NOT NULL,
+    full_name       TEXT    NOT NULL,
+    notes           TEXT    NULL,
+    active          BOOLEAN NOT NULL DEFAULT true
+);
+
+-- List of roles the users can perform
+CREATE TABLE auth_roles (
+    roles_id        SERIAL  PRIMARY KEY,
+    role            TEXT    UNIQUE NOT NULL,
+    description     TEXT    NOT NULL
+);
+
+-- Map of user IDs and roles that are allowed to each of the user
+CREATE TABLE auth_users_roles_map (
+    auth_users_roles_map    SERIAL      PRIMARY KEY,
+    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT no_duplicate_entries UNIQUE (users_id, roles_id)
+);
+CREATE INDEX auth_users_roles_map_users_id_roles_id
+    ON auth_users_roles_map (users_id, roles_id);
+
+-- Roles
+INSERT INTO auth_roles (role, description) VALUES
+    ('admin', 'Do everything, including editing users.'),
+    ('admin-readonly', 'Read access to admin interface.'),
+    ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
+    ('media-edit', 'Add / edit media; includes feeds.'),
+    ('stories-edit', 'Add / edit stories.');

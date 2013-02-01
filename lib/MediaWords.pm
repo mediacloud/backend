@@ -27,15 +27,31 @@ use Catalyst qw/
   ConfigLoader
   ConfigDefaults
   Static::Simple
-  Session
-  Session::Store::FastMmap
-  Session::State::Cookie
   Unicode
   StackTrace
   I18N
+  Authentication
+  Authorization::Roles
+  Session
+  Session::Store::FastMmap
+  Session::State::Cookie
   /;
 
 our $VERSION = '0.01';
+
+__PACKAGE__->config(
+    'Plugin::Authentication' => {
+        default_realm => 'users',
+        users         => {
+            credential => {
+                class          => 'Password',
+                password_field => 'password',
+                password_type  => 'clear'
+            },
+            store => { class => 'MediaWords' }
+        }
+    }
+);
 
 use HTML::FormFu;
 use HTML::FormFu::Unicode;
