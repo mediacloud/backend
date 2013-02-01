@@ -30,6 +30,19 @@ MediaWords::Controller::Root - Root Controller for MediaWords
 
 =cut
 
+sub begin : Private
+{
+    my ( $self, $c ) = @_;
+
+    my $locale = $c->request->param( 'locale' );
+
+    $c->response->headers->push_header( 'Vary' => 'Accept-Language' );    # hmm vary and param?
+    $c->languages( $locale ? [ $locale ] : undef );
+
+    #switch to english if locale param is not explicitly specified.
+    $c->languages( $locale ? [ $locale ] : [ 'en' ] );
+}
+
 sub default : Private
 {
     my ( $self, $c ) = @_;
