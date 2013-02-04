@@ -196,27 +196,27 @@ sub spawn_fetchers
 
         if ( $pid )
         {
-	    say STDERR "in parent after spawning fecther $i";
+            say STDERR "in parent after spawning fecther $i";
             $child_socket->close();
             $self->fetchers->[ $i ] = { pid => $pid, socket => $parent_socket };
-	    say STDERR "in parent after spawning fecther $i db reconnect starting";
+            say STDERR "in parent after spawning fecther $i db reconnect starting";
             eval { $self->reconnect_db; };
-	    if ( $@ )
-	    {
-		die "Error in reconnect_db in paranet after spawning fetcher $i";
-	    }
-	    say STDERR "in parent after spawning fecther $i db reconnect done";
+            if ( $@ )
+            {
+                die "Error in reconnect_db in paranet after spawning fetcher $i";
+            }
+            say STDERR "in parent after spawning fecther $i db reconnect done";
         }
         else
         {
-	    say STDERR "in child $i ";
+            say STDERR "in child $i ";
             $parent_socket->close();
             $in_parent = 0;
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
             $self->reconnect_db;
 
-	    say STDERR "in child $i calling run_fetcher";
+            say STDERR "in child $i calling run_fetcher";
             eval { $self->_run_fetcher(); };
 
             if ( $@ )
@@ -230,9 +230,9 @@ sub spawn_fetchers
     {
         ## Give children a catch to initialize to avoid race conditions
 
-	say STDERR "Sleeping in parent";
+        say STDERR "Sleeping in parent";
         sleep( 1 );
-	say STDERR "continuing in parent";
+        say STDERR "continuing in parent";
 
     }
 }
