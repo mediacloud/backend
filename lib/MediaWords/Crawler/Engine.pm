@@ -511,8 +511,9 @@ sub reconnect_db
     if ( $self->{ dbs } )
     {
         $self->dbs->disconnect;
-	# This line was necessary for things to work on EC2
-	$self->{ dbs } = 0;   
+
+        # This line was necessary for things to work on EC2
+        $self->{ dbs } = 0;
     }
 
     $self->{ dbs } = MediaWords::DB::connect_to_db;
