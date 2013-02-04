@@ -192,6 +192,9 @@ sub spawn_fetchers
         die "Could not create socket for fetcher $i" unless $parent_socket && $child_socket;
 
         print STDERR "spawn fetcher $i ...\n";
+
+        $self->_close_db_connection();
+
         my $pid = mc_fork();
 
         if ( $pid )
@@ -516,7 +519,7 @@ sub dbs
     return $self->{ dbs };
 }
 
-sub reconnect_db
+sub _close_db_connection
 {
     my ( $self ) = @_;
 
@@ -524,8 +527,19 @@ sub reconnect_db
     {
         $self->dbs->disconnect;
 
-        # This line was necessary for things to work on EC2
         $self->{ dbs } = 0;
+    }
+
+    return;
+}
+
+sub reconnect_db
+{
+    my ( $self ) = @_;
+
+    if ( $self->{ dbs } )
+    {
+        $self->_close_db_connection();
     }
 
     $self->{ dbs } = MediaWords::DB::connect_to_db;
