@@ -151,21 +151,20 @@ sub export_downloads
 
     my $downloads_added = 0;
 
-        my $batch_information = '';
-        if ( defined( $batch_number ) )
-        {
-            $batch_information = "Batch $batch_number";
+    my $batch_information = '';
+    if ( defined( $batch_number ) )
+    {
+        $batch_information = "Batch $batch_number";
 
-        }
+    }
 
-        my $max_downloads_id_message = '';
-        if ( defined( $max_downloads_id ) )
-        {
-            $max_downloads_id_message = " max overall downloads_id $max_downloads_id";
-        }
+    my $max_downloads_id_message = '';
+    if ( defined( $max_downloads_id ) )
+    {
+        $max_downloads_id_message = " max overall downloads_id $max_downloads_id";
+    }
 
-        say STDERR "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
-
+    say STDERR "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
 
     while ( $cur_downloads_id <= $end_downloads_id )
     {
