@@ -37,7 +37,7 @@ sub find_user
 
     my $user = $dbis->query(
         <<"EOF",
-        SELECT users_id, email, password
+        SELECT users_id, email, password_hash
         FROM auth_users
         WHERE email = ?
         ORDER BY users_id
@@ -48,16 +48,14 @@ EOF
 
     if ( ref( $user ) eq 'HASH' and $user->{ users_id } )
     {
-        say 'User found';
         return Catalyst::Authentication::User::Hash->new(
             'id'       => $user->{ users_id },
             'username' => $user->{ email },
-            'password' => $user->{ password }
+            'password' => $user->{ password_hash }
         );
     }
     else
     {
-        say 'User not found';
         return 0;
     }
 

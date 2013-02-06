@@ -105,6 +105,14 @@ mail:
     # NOTE: may leak DB passwords and is not to be use in production
     #always_show_stack_traces: "yes"
 
+    # Password pre-salt -- put any random value here before adding any users for increased security, e.g.:
+    # dd if=/dev/urandom bs=1m count=1 | shasum -a 256
+    #password_pre_salt: "f8400dc05aed78f7c96e4a7d8b261b2b917e1b25a1ede23e6f68871060fe4ced"
+
+    # Password post-salt -- put any random value here before adding any users for increased security, e.g.:
+    # dd if=/dev/urandom bs=1m count=1 | shasum -a 256
+    #password_post_salt: "7c0ecaf2be160a9f0195b7777e15e453cefe2749dc1d8ceced4672322016fb65"
+
     #uncomment to make the public homepage the default start page    
     #default_home_page: "dashboard/view"
     

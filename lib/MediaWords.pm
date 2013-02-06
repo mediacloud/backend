@@ -39,20 +39,6 @@ use Catalyst qw/
 
 our $VERSION = '0.01';
 
-__PACKAGE__->config(
-    'Plugin::Authentication' => {
-        default_realm => 'users',
-        users         => {
-            credential => {
-                class          => 'Password',
-                password_field => 'password',
-                password_type  => 'clear'
-            },
-            store => { class => 'MediaWords' }
-        }
-    }
-);
-
 use HTML::FormFu;
 use HTML::FormFu::Unicode;
 
@@ -66,6 +52,25 @@ use HTML::FormFu::Unicode;
 # local deployment.
 
 my $config = __PACKAGE__->config( -name => 'MediaWords' );
+
+# Configure authentication scheme
+__PACKAGE__->config(
+    'Plugin::Authentication' => {
+        default_realm => 'users',
+        users         => {
+            credential => {
+                class              => 'Password',
+                password_field     => 'password',
+                password_type      => 'salted_hash',
+                password_hash_type => 'SHA-256',
+                password_pre_salt  => $config->{ mediawords }->{ password_pre_salt },
+                password_post_salt => $config->{ mediawords }->{ password_post_salt },
+                password_salt_len  => 64
+            },
+            store => { class => 'MediaWords' }
+        }
+    }
+);
 
 # Start the application
 __PACKAGE__->setup;

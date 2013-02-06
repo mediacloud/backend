@@ -1514,7 +1514,11 @@ LANGUAGE 'plpgsql'
 CREATE TABLE auth_users (
     users_id        SERIAL  PRIMARY KEY,
     email           TEXT    UNIQUE NOT NULL,
-    password        TEXT    NOT NULL,
+
+    -- password_hash is salted hash of password (with Crypt::SaltedHash,
+    -- algorithm => 'SHA-256', salt_len=>64, pre- and post-salts are configured in mediawords.yml)
+    password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
+
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
     active          BOOLEAN NOT NULL DEFAULT true

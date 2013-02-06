@@ -73,7 +73,9 @@ sub set_defaults
     $config->{ mediawords }->{ language }                         ||= "en_US_and_ru_RU";
     $config->{ mediawords }->{ always_show_stack_traces }         ||= "no";
     $config->{ mediawords }->{ disable_json_top_500_words_cache } ||= "no";
-    $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
+    $config->{ mediawords }->{ password_pre_salt }  ||= "f8400dc05aed78f7c96e4a7d8b261b2b917e1b25a1ede23e6f68871060fe4ced";
+    $config->{ mediawords }->{ password_post_salt } ||= "7c0ecaf2be160a9f0195b7777e15e453cefe2749dc1d8ceced4672322016fb65";
+    $config->{ session }->{ storage }               ||= "$ENV{HOME}/tmp/mediacloud-session";
 
     return $config;
 }
