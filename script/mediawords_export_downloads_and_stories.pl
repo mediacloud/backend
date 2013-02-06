@@ -151,9 +151,6 @@ sub export_downloads
 
     my $downloads_added = 0;
 
-    while ( $cur_downloads_id <= $end_downloads_id )
-    {
-
         my $batch_information = '';
         if ( defined( $batch_number ) )
         {
@@ -168,6 +165,10 @@ sub export_downloads
         }
 
         say STDERR "$batch_information Downloads_id $cur_downloads_id (end: $end_downloads_id) $max_downloads_id_message";
+
+
+    while ( $cur_downloads_id <= $end_downloads_id )
+    {
 
         my $download = $db->query(
 " SELECT * from downloads where downloads_id >= ?  and downloads_id <= ? and type = 'feed' and state = 'success' order by downloads_id asc limit 1 ",
