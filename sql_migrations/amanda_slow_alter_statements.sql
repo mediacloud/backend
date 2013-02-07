@@ -1,4 +1,5 @@
-UPDATE downloads set extracted = false where extracted is null;
+set work_mem='6GB';
+UPDATE downloads set extracted = false where extracted is null and type='Calais'
 
 ALTER TABLE downloads
         ALTER COLUMN extracted SET DEFAULT false,
@@ -11,14 +12,14 @@ ALTER TABLE daily_words
         ALTER COLUMN stem_count SET NOT NULL,
         ALTER COLUMN publish_day SET NOT NULL;
 
-ALTER TABLE story_sentence_words
-        ALTER COLUMN stories_id SET NOT NULL,
-        ALTER COLUMN term SET NOT NULL,
-        ALTER COLUMN stem SET NOT NULL,
-        ALTER COLUMN stem_count SET NOT NULL,
-        ALTER COLUMN sentence_number SET NOT NULL,
-        ALTER COLUMN media_id SET NOT NULL,
-        ALTER COLUMN publish_day SET NOT NULL;
+-- ALTER TABLE story_sentence_words
+--         ALTER COLUMN stories_id SET NOT NULL,
+--         ALTER COLUMN term SET NOT NULL,
+--         ALTER COLUMN stem SET NOT NULL,
+--         ALTER COLUMN stem_count SET NOT NULL,
+--         ALTER COLUMN sentence_number SET NOT NULL,
+--         ALTER COLUMN media_id SET NOT NULL,
+--         ALTER COLUMN publish_day SET NOT NULL;
 
 ALTER TABLE story_sentences
         ALTER COLUMN story_sentences_id TYPE bigint /* TYPE change - table: story_sentences original: integer new: bigint */,
