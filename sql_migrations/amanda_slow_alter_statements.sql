@@ -1,5 +1,5 @@
 set work_mem='6GB';
-UPDATE downloads set extracted = false where extracted is null and type='Calais'
+UPDATE downloads set extracted = false where extracted is null and type='Calais';
 
 ALTER TABLE downloads
         ALTER COLUMN extracted SET DEFAULT false,
