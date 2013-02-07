@@ -1,3 +1,5 @@
+UPDATE downloads set extracted = false where extracted is null;
+
 ALTER TABLE downloads
         ALTER COLUMN extracted SET DEFAULT false,
         ALTER COLUMN extracted SET NOT NULL;
