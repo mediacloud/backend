@@ -50,6 +50,12 @@
     <h1>
       [% title | html %]
     </h1>
+    [% IF c.user %]
+    <div id="user">
+      Logged in as <code>[% c.user.username | html %]</code>.<br />
+      <a href="[% c.uri_for('/logout') %]">Logout</a>
+    </div>
+    [% END -%]
     <div id="menu">
       <ul>
         <li>

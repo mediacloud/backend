@@ -26,45 +26,44 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    # Get the username and password from form
-    my $email    = $c->request->params->{ email };
-    my $password = $c->request->params->{ password };
+    my $form_was_submitted = $c->request->params->{ submit };
 
-    # If the username and password values were found in form
-    if ( $email && $password )
+    if ( $form_was_submitted )
     {
+        my $email    = $c->request->params->{ email };
+        my $password = $c->request->params->{ password };
 
-        # Attempt to log the user in
-        if (
-            $c->authenticate(
-                {
-                    username => $email,
-                    password => $password
-                }
-            )
-          )
+        if ( $email && $password )
         {
 
-            # If successful, then let them use the application
-            $c->response->redirect( $c->uri_for( $c->controller( 'Media' )->action_for( 'list' ) ) );
-            return;
+            # Attempt to log the user in
+            if ( $c->authenticate( { username => $email, password => $password } ) )
+            {
+
+                # If successful, redirect to default homepage
+                my $config            = MediaWords::Util::Config::get_config;
+                my $default_home_page = $config->{ mediawords }->{ default_home_page };
+                $c->response->redirect( $c->uri_for( $default_home_page ) );
+
+                return;
+            }
+            else
+            {
+
+                # Set an error message
+                $c->stash( error_msg => "Bad email and / or password." );
+            }
         }
         else
         {
 
             # Set an error message
-            $c->stash( error_msg => "Bad email and / or password." );
+            $c->stash( error_msg => "Empty email and / or password." )
+              unless ( $c->user_exists );
         }
     }
-    else
-    {
 
-        # Set an error message
-        $c->stash( error_msg => "Empty email and / or password." )
-          unless ( $c->user_exists );
-    }
-
-    # If either of above don't work out, send to the login page
+    $c->stash->{ c } = $c;
     $c->stash( template => 'auth/login.tt2' );
 }
 

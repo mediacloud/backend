@@ -1,30 +1,52 @@
-[% META title = 'Login' %]
+[% title = 'Login to Media Cloud' %]
 
-<!-- Login form -->
-<form method="post" action=" [% Catalyst.uri_for('/login') %] ">
-    <table>
-        <tr>
-            <td>Email:</td>
-            <td><input type="text" name="email" size="40" /></td>
-        </tr>
-        <tr>
-            <td>Password:</td>
-            <td><input type="password" name="password" size="40" /></td>
-        </tr>
-        <tr>
-            <td colspan="2"><input type="submit" name="submit" value="Submit" /></td>
-        </tr>
-    </table>
-</form>
-
-<p>
-[%
-   # Only certain parts of the TT template will only be shown to users who have logged in
-%]
-[% IF Catalyst.user %]
-    Please note: You are already logged in as '[% Catalyst.user.username %]'.
-    You can <a href="[% Catalyst.uri_for('/logout') %]">logout</a> here.
+[% IF c.user %]
+    [% # no-op %]
 [% ELSE %]
-    You need to log in to use this application.
-[% END %]
-</p>
+    [% status_msg = 'You need to login to use this application.' %]
+[% END #[% IF c.user -%]
+
+
+[% INCLUDE include/header.tt2 %]
+
+[% IF c.user %]
+
+    You are already logged in as <code>[% c.user.username | html %]</code>.
+    You can <a href="[% c.uri_for('/logout') %]">logout</a> here.
+
+[% ELSE %]
+
+    <!-- Login form -->
+    <form method="post" id="loginForm" action="[% c.uri_for('/login') %]">
+
+    <div>
+        <label for="email">Email:</label>
+
+        [% # 'onfocus="this.value = this.value"' puts cursor at the end of the input field %]
+        <input type="email" name="email" id="email" value="[% c.request.params.email | html %]" size="40" onfocus="this.value = this.value" class="required email" /><br />
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" value="" size="40" class="required" /><br />
+
+        <input type="submit" name="submit" value="Submit" />
+    </div>
+
+    </form>
+
+    <script type="text/javascript"><!--
+
+        // Validate login form -- select empty form fields
+        $(document).ready(function(){
+            $("#loginForm").validate();
+        });
+
+        // Focus email field on load
+        $(function() {
+            $("#email").focus();
+        });
+
+    --></script>
+
+[% END #[% IF c.user -%]
+  
+[% INCLUDE include/footer.tt2 %]
