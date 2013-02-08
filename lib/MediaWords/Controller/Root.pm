@@ -89,12 +89,9 @@ sub default : Private
 {
     my ( $self, $c ) = @_;
 
-    # Hello World
-    my $config = MediaWords::Util::Config::get_config;
-
+    # Redirect to default homepage
+    my $config            = MediaWords::Util::Config::get_config;
     my $default_home_page = $config->{ mediawords }->{ default_home_page };
-
-    $default_home_page //= 'media/list';
     $c->response->redirect( $c->uri_for( $default_home_page ) );
 }
 
