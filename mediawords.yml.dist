@@ -105,6 +105,8 @@ mail:
     # NOTE: may leak DB passwords and is not to be use in production
     #always_show_stack_traces: "yes"
 
+    # "From:" email address that is being set in emails sent by Media Cloud
+    #email_from_address: "noreply@mediacloud.org"
 
     #uncomment to make the public homepage the default start page    
     #default_home_page: "dashboard/view"

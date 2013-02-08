@@ -141,17 +141,17 @@ div#error {
     border: 1px solid silver;
 }
 
-/* Login form */
-form#loginForm {
+/* Login form, change password form (either <form> or <div>) */
+.formNameValue {
 }
 
-form#loginForm label {
+.formNameValue label {
     float: left;
-    width: 80px;
+    width: 120px;
     clear: both;
 }
 
-label.error {
+.formNameValue label.error {
     width: 10em !important;
     float: none !important;
     color: red;

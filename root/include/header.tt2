@@ -53,7 +53,7 @@
     [% IF c.user %]
     <div id="user">
       Logged in as <code>[% c.user.username | html %]</code>.<br />
-      <a href="[% c.uri_for('/logout') %]">Logout</a>
+      <a href="[% c.uri_for('/logout') %]">Logout</a> | <a href="[% c.uri_for('/profile') %]">Profile</a>
     </div>
     [% END -%]
     <div id="menu">

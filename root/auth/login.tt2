@@ -19,7 +19,7 @@
     <!-- Login form -->
     <form method="post" id="loginForm" action="[% c.uri_for('/login') %]">
 
-    <div>
+    <div class="formNameValue">
         <label for="email">Email:</label>
 
         [% # 'onfocus="this.value = this.value"' puts cursor at the end of the input field %]

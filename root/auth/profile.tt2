@@ -1,0 +1,78 @@
+[% title = 'User profile' %]
+
+[% INCLUDE include/header.tt2 %]
+
+<h2>User information</h2>
+
+<div class="formNameValue">
+    <label for="email">Email:</label>
+    <input type="email" name="email" id="email" value="[% email | html %]" size="40" readonly="readonly" /><br />
+
+    <label for="full_name">Full name:</label>
+    <input type="text" name="full_name" id="full_name" value="[% full_name | html %]" size="40" readonly="readonly" /><br />
+
+    <label for="notes">Notes:</label>
+    <textarea name="notes" id="notes" cols="30" rows="10" readonly="readonly">[% notes | html %]</textarea><br />
+</div>
+
+
+<h2>Change password</h2>
+
+<!-- Change password form -->
+<form method="post" id="changePasswordForm" action="[% c.uri_for('/profile') %]">
+
+<div class="formNameValue">
+    <label for="password_old">Old password:</label>
+    <input type="password" name="password_old" id="password_old" value="" size="40" class="required" /><br />
+
+    <label for="password_new">New password:</label>
+    <input type="password" name="password_new" id="password_new" value="" size="40" class="required" /><br />
+
+    <label for="password_new">Repeat password:</label>
+    <input type="password" name="password_new_repeat" id="password_new_repeat" value="" size="40" class="required" /><br />
+
+    <input type="submit" name="submit" id="changePasswordForm_submit" value="Submit" />
+</div>
+
+</form>
+
+<script type="text/javascript"><!--
+
+    // Check if passwords are entered and match
+    jQuery(function()
+    {
+        $("#changePasswordForm_submit").click(function()
+        {
+            $(".error").hide();
+
+            var hasError = false;
+
+            var password_old = $("#password_old").val();
+            var password_new = $("#password_new").val();
+            var password_new_repeat = $("#password_new_repeat").val();
+
+            if (! password_old) {
+                $("#password_old").after('<label for="password_old" class="error">Please enter an old password.</label>');
+                hasError = true;
+            }
+            if (! password_new) {
+                $("#password_new").after('<label for="password_new" class="error">Please enter a new password.</label>');
+                hasError = true;
+            }
+            if (! password_new_repeat) {
+                $("#password_new_repeat").after('<label for="password_new_repeat" class="error">Please re-enter a new password.</label>');
+                hasError = true;
+            }
+            if ((! hasError) && (password_new != password_new_repeat)) {
+                $("#password_new_repeat").after('<label for="password_new_repeat" class="error">Passwords do not match.</label>');
+                hasError = true;
+            }
+            if (hasError == true) {
+                return false;
+            }
+        });
+    });
+
+--></script>
+  
+[% INCLUDE include/footer.tt2 %]
