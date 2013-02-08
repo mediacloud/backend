@@ -63,8 +63,6 @@ __PACKAGE__->config(
                 password_field     => 'password',
                 password_type      => 'salted_hash',
                 password_hash_type => 'SHA-256',
-                password_pre_salt  => $config->{ mediawords }->{ password_pre_salt },
-                password_post_salt => $config->{ mediawords }->{ password_post_salt },
                 password_salt_len  => 64
             },
             store => { class => 'MediaWords' }
