@@ -1530,7 +1530,7 @@ CREATE TABLE auth_users (
 -- List of roles the users can perform
 CREATE TABLE auth_roles (
     roles_id        SERIAL  PRIMARY KEY,
-    role            TEXT    UNIQUE NOT NULL,
+    role            TEXT    UNIQUE NOT NULL CONSTRAINT role_name_can_not_contain_spaces CHECK(role NOT LIKE '% %'),
     description     TEXT    NOT NULL
 );
 

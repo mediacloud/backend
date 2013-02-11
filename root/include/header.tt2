@@ -76,6 +76,11 @@
         <li>
           <a href="[% c.uri_for('/admin/dashboards/list') %]">Dashboards</a>
         </li>
+        [% IF c.check_user_roles('admin') %]
+          <li>
+            <a href="[% c.uri_for('/admin/users/list') %]">Users</a>
+          </li>
+        [% END %]
         [% IF submenu_items -%]
         <li style="list-style: none">
         </li>

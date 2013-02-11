@@ -1,0 +1,53 @@
+[% title = 'Users: List' %]
+[% INCLUDE include/header.tt2 %]
+
+<table id="users">
+
+<tr>
+    <th>ID</th>
+    <th>Email</th>
+    <th>Full name</th>
+    <th>Notes</th>
+    <th>Active?</th>
+    <th>Roles</th>
+    <th>Actions</th>
+</tr>
+
+[% FOREACH user IN users -%]
+
+    <tr [% IF even %]id="even"[% END %]>
+
+        <td>[% user.users_id %]</td>
+
+        <td><code>[% user.email %]</code></td>
+
+        <td>[% user.full_name %]</td>
+
+        <td>[% user.notes %]</td>
+
+        <td>[% user.active %]</td>
+
+        <td>
+            <ul>
+                [% FOREACH role IN user.roles.keys.sort -%]
+                    <li><code>[% role %]</code> = [% user.roles.$role %]</li>
+                [% END # FOREACH user.roles -%]
+            </ul>
+        </td>
+
+        <td>
+            <ul>
+                <li><a href="#">Delete</a></li>
+                <li><a href="#">Deactivate</a></li>
+
+            </ul>
+        </td>
+
+    </tr>
+
+    [%  SET even = !even %]
+    [% END # FOREACH users -%]
+
+</table>
+
+[% INCLUDE include/footer.tt2 %]
