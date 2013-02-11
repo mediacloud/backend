@@ -64,7 +64,8 @@ sub index : Path : Args(0)
     my $password_new        = $form->param_value( 'password_new' );
     my $password_new_repeat = $form->param_value( 'password_new_repeat' );
 
-    my $error_message = MediaWords::DBI::Auth::change_password( $c->dbis, $c->user->username, $password_old, $password_new,
+    my $error_message =
+      MediaWords::DBI::Auth::change_password_via_profile( $c->dbis, $c->user->username, $password_old, $password_new,
         $password_new_repeat );
     if ( $error_message ne '' )
     {

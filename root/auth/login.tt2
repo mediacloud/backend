@@ -1,12 +1,5 @@
 [% title = 'Login to Media Cloud' %]
 
-[% IF c.user %]
-    [% # no-op %]
-[% ELSE %]
-    [% status_msg = 'You need to login to use this application.' %]
-[% END #[% IF c.user -%]
-
-
 [% INCLUDE include/header.tt2 %]
 
 [% IF c.user %]
@@ -15,6 +8,10 @@
     You can <a href="[% c.uri_for('/logout') %]">logout</a> here.
 
 [% ELSE %]
+
+    <p>
+        You need to login to use this application.
+    </p>
 
     <!-- Login form -->
     <fieldset id="login" class="formNameValue">

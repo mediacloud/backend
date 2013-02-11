@@ -1,6 +1,7 @@
 package MediaWords::Controller::Login;
 use Moose;
 use namespace::autoclean;
+use MediaWords::DBI::Auth;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -70,15 +71,8 @@ sub index : Path : Args(0)
         return;
     }
 
-    # Reset the password reset token (if any)
-    $c->dbis->query(
-        <<"EOF",
-        UPDATE auth_users
-        SET password_reset_token = NULL
-        WHERE email = ?
-EOF
-        $email
-    );
+    # Run post-successful login tasks
+    MediaWords::DBI::Auth::post_successful_login( $c->dbis, $email );
 
     # If successful, redirect to default homepage
     my $config            = MediaWords::Util::Config::get_config;
@@ -86,27 +80,150 @@ EOF
     $c->response->redirect( $c->uri_for( $default_home_page ) );
 }
 
+# "Forgot password" form
+sub forgot : Local
+{
+    my ( $self, $c ) = @_;
 
-                return;
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/auth/forgot.yml',
+            method           => 'POST',
+            action           => $c->uri_for( '/login/forgot' ),
+            default_values   => {
+                'email' => $c->request->param( 'email' )    # in case 'email' was passed as a parameter
             }
-            else
-            {
+        }
+    );
 
-                # Set an error message
-                $c->stash( error_msg => "Bad email and / or password." );
-            }
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid() )
+    {
+        $c->stash->{ form } = $form;
+        $c->stash->{ c }    = $c;
+        $c->stash( template => 'auth/forgot.tt2' );
+        return;
+    }
+
+    my $email = $form->param_value( 'email' );
+    if ( !$email )
+    {
+        $c->stash->{ c }    = $c;
+        $c->stash->{ form } = $form;
+        $c->stash( template  => 'auth/forgot.tt2' );
+        $c->stash( error_msg => "Empty email address." );
+        return;
+    }
+
+    my $error_message = MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $email, $c->uri_for( '/login/reset' ) );
+    if ( $error_message ne '' )
+    {
+        $c->stash->{ c }    = $c;
+        $c->stash->{ form } = $form;
+        $c->stash( template  => 'auth/forgot.tt2' );
+        $c->stash( error_msg => $error_message );
+    }
+    else
+    {
+        $c->stash->{ c } = $c;
+
+        # Do not stash the form because the link has already been sent
+        $c->stash( template => 'auth/forgot.tt2' );
+        $c->stash( status_msg => "The password reset link was sent to email address '" . $email .
+              "' (given that such user exists in the user database)." );
+    }
+
+}
+
+# "Reset password" form
+sub reset : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/auth/reset.yml',
+            method           => 'POST',
+            action           => $c->uri_for( '/login/reset' )
+        }
+    );
+
+    $form->process( $c->request );
+
+    my $email                = $c->request->param( 'email' );
+    my $password_reset_token = $c->request->param( 'token' );
+
+    # Check if the password token (a required parameter in all cases for this action) exists
+    my $token_is_valid = MediaWords::DBI::Auth::validate_password_reset_token( $c->dbis, $email, $password_reset_token );
+
+    if ( !$form->submitted_and_valid() )
+    {
+        if ( $token_is_valid )
+        {
+
+            # Pass the parameters further
+            $form->default_values(
+                {
+                    email => $email,
+                    token => $password_reset_token
+                }
+            );
+
+            $c->stash->{ email } = $email;
+            $c->stash->{ form }  = $form;
         }
         else
         {
 
-            # Set an error message
-            $c->stash( error_msg => "Empty email and / or password." )
-              unless ( $c->user_exists );
+            # Don't stash form (because the token is invalid)
+            $c->stash( error_msg => "Password reset token is invalid." );
         }
+        $c->stash->{ c } = $c;
+        $c->stash( template => 'auth/reset.tt2' );
+
+        return;
     }
 
-    $c->stash->{ c } = $c;
-    $c->stash( template => 'auth/login.tt2' );
+    # At this point the token has been validated and the form has been submitted.
+
+    # Change the password
+    my $password_new        = $form->param_value( 'password_new' );
+    my $password_new_repeat = $form->param_value( 'password_new_repeat' );
+
+    my $error_message =
+      MediaWords::DBI::Auth::change_password_via_token( $c->dbis, $email, $password_reset_token, $password_new,
+        $password_new_repeat );
+    if ( $error_message ne '' )
+    {
+
+        # Pass the parameters further
+        $form->default_values(
+            {
+                email => $email,
+                token => $password_reset_token
+            }
+        );
+
+        $c->stash->{ email } = $email;
+        $c->stash->{ form }  = $form;
+        $c->stash->{ c }     = $c;
+        $c->stash( template  => 'auth/reset.tt2' );
+        $c->stash( error_msg => $error_message );
+    }
+    else
+    {
+        $c->response->redirect(
+            $c->uri_for(
+                '/login',
+                {
+                    status_msg => "Your password has been changed. An email was sent to " . "'" . $email .
+                      "' to inform you about this change."
+                }
+            )
+        );
+    }
+
 }
 
 =head1 AUTHOR

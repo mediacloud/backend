@@ -1515,13 +1515,16 @@ CREATE TABLE auth_users (
     users_id        SERIAL  PRIMARY KEY,
     email           TEXT    UNIQUE NOT NULL,
 
-    -- password_hash is salted hash of password (with Crypt::SaltedHash,
-    -- algorithm => 'SHA-256', salt_len=>64, pre- and post-salts are configured in mediawords.yml)
+    -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
     password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
 
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
-    active          BOOLEAN NOT NULL DEFAULT true
+    active          BOOLEAN NOT NULL DEFAULT true,
+
+    -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
+    -- salt_len=>64) or NULL
+    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL)
 );
 
 -- List of roles the users can perform
