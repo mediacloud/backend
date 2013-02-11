@@ -4,10 +4,10 @@
 <fieldset>
 
 <p>
-<a href="[% c.uri_for( '/mediasets/create/' _ dashboards_id )%]">Create New Media Set</a>
+<a href="[% c.uri_for( '/admin/mediasets/create/' _ dashboards_id )%]">Create New Media Set</a>
 </p>
 <p>
-<a href="[% c.uri_for( '/dashboards/list' )%]">Return to Dashboards List</a>
+<a href="[% c.uri_for( '/admin/dashboards/list' )%]">Return to Dashboards List</a>
 </p>
 
 
@@ -36,7 +36,7 @@
 <td>[% set.tag_name | html %]</td>
 
 <td>[% set.cluster_run_name %] 
-(<a href="[% c.uri_for( '/mediasets/edit_cluster_run/' ) _ set.dashboard_media_sets_id %]">edit</a>)</td>
+(<a href="[% c.uri_for( '/admin/mediasets/edit_cluster_run/' ) _ set.dashboard_media_sets_id %]">edit</a>)</td>
 
 <td>[% set.creation_date.substr(0, 10) %]</td>
 

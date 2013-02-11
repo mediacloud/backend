@@ -4,7 +4,7 @@
 <p><b>Media Tag Counts for </b></p>
 
 <div>
-<form action="[% c.uri_for('/stats_static/media_tag_counts') %]" method="GET" >
+<form action="[% c.uri_for('/admin/stats_static/media_tag_counts') %]" method="GET" >
 [% FOREACH media_num IN [ 1 .. 3 ] -%]
  
 <select name="media_id_[% media_num %]">

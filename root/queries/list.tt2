@@ -11,7 +11,7 @@ This is an internal tool because many of the background database searches requir
 </p> 
 
 <p>
-<a href="[% c.uri_for( '/queries/create' )%]">Create New Query</a>
+<a href="[% c.uri_for( '/admin/queries/create' )%]">Create New Query</a>
 </p>
 
 </fieldset>
@@ -40,7 +40,7 @@ This is an internal tool because many of the background database searches requir
 
 <td>[% query.dashboard_topics_names.join('; ') %]</td>
 
-<td><a href='[% c.uri_for( '/queries/view/' )  _ query.queries_id %]'>view</a></td>
+<td><a href='[% c.uri_for( '/admin/queries/view/' )  _ query.queries_id %]'>view</a></td>
 
 </tr>
 

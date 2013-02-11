@@ -31,7 +31,7 @@
   <th>Feeds:</th>
   <td>
   [% FOREACH f IN feeds -%]
-  <a href="[% c.uri_for('/stories/list/')  _ f.feeds_id %]">[% f.name | html %]</a><br/>
+  <a href="[% c.uri_for('/admin/stories/list/')  _ f.feeds_id %]">[% f.name | html %]</a><br/>
   [% END # FOREACH feeds -%]
   </td>
 
@@ -44,8 +44,8 @@
   [% FOREACH d IN downloads -%]
   [% IF (d.state == 'success') -%]
   [% d.downloads_id %]:
-  <a href="[% c.uri_for('/downloads/view/')  _  d.downloads_id %]">view download</a> |
-  <a href="[% c.uri_for('/downloads/mextract/')  _  d.downloads_id _ "?developer_ui=1" %]">review download extraction</a>
+  <a href="[% c.uri_for('/admin/downloads/view/')  _  d.downloads_id %]">view download</a> |
+  <a href="[% c.uri_for('/admin/downloads/mextract/')  _  d.downloads_id _ "?developer_ui=1" %]">review download extraction</a>
   [% ELSE -%]
   ([% d.state %])
   [% END -%]
@@ -60,11 +60,11 @@
   <th>Tags:</th>
   <td>
   [% FOREACH t IN tags -%]
-    [% t.tag_set_name _ ':' _ t.tag | html %] <a href="[% c.uri_for('/stories/delete/') _ 
+    [% t.tag_set_name _ ':' _ t.tag | html %] <a href="[% c.uri_for('/admin/stories/delete/') _ 
     stories_id _ '/' _ t.tags_id %]">delete</a><br/>
   [% END # FOREACH tags -%]
-  <a href="[% c.uri_for('/stories/add/') _ stories_id %]">add manual tag</a> |
-  <a href="[% c.uri_for('/stories/retag/') _ stories_id %]">extract / tag all sets now</a><br />
+  <a href="[% c.uri_for('/admin/stories/add/') _ stories_id %]">add manual tag</a> |
+  <a href="[% c.uri_for('/admin/stories/retag/') _ stories_id %]">extract / tag all sets now</a><br />
   </td>
 
 </tr>

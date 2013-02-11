@@ -28,7 +28,7 @@ The following feed urls already exist:
 
 [%- IF links -%]
 
-<form action="[% c.uri_for('/feeds/scrape_import/' _ medium.media_id) | url %]" method="post" >
+<form action="[% c.uri_for('/admin/feeds/scrape_import/' _ medium.media_id) | url %]" method="post" >
 
 <table>
 

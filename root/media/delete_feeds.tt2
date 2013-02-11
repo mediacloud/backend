@@ -6,7 +6,7 @@
 Are you sure you want to delete all of the feeds from the '[% medium.name | html %]' media source?
 </p>
 
-<form action="[% c.uri_for('/media/delete_feeds/') _ medium.media_id _ '/' _ 'yes' %]">
+<form action="[% c.uri_for('/admin/media/delete_feeds/') _ medium.media_id _ '/' _ 'yes' %]">
 <input type="submit" value="Delete" />
 </form>
 

@@ -53,28 +53,28 @@
     [% IF c.user %]
     <div id="user">
       Logged in as <code>[% c.user.username | html %]</code>.<br />
-      <a href="[% c.uri_for('/logout') %]">Logout</a> | <a href="[% c.uri_for('/profile') %]">Profile</a>
+      <a href="[% c.uri_for('/logout') %]">Logout</a> | <a href="[% c.uri_for('/admin/profile') %]">Profile</a>
     </div>
     [% END -%]
     <div id="menu">
       <ul>
         <li>
-          <a href="[% c.uri_for('/media/list') %]">Home</a>
+          <a href="[% c.uri_for('/admin/media/list') %]">Home</a>
         </li>
         <li>
-          <a href="[% c.uri_for('/media/create_batch') %]">Add Media</a>
+          <a href="[% c.uri_for('/admin/media/create_batch') %]">Add Media</a>
         </li>
         <li>
-          <a href="[% c.uri_for('/media/moderate') %]">Moderate Media</a>
+          <a href="[% c.uri_for('/admin/media/moderate') %]">Moderate Media</a>
         </li>
         <li>
-          <a href="[% c.uri_for('/downloads/list') %]">All Downloads</a>
+          <a href="[% c.uri_for('/admin/downloads/list') %]">All Downloads</a>
         </li>
         <li>
-          <a href="[% c.uri_for('/queries/list') %]">Queries</a>
+          <a href="[% c.uri_for('/admin/queries/list') %]">Queries</a>
         </li>
         <li>
-          <a href="[% c.uri_for('/dashboards/list') %]">Dashboards</a>
+          <a href="[% c.uri_for('/admin/dashboards/list') %]">Dashboards</a>
         </li>
         [% IF submenu_items -%]
         <li style="list-style: none">

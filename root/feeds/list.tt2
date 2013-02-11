@@ -16,18 +16,18 @@
 
 <tr [% IF even %]id="even"[% END %]>
 
-<td><a href="[% c.uri_for('/stories/list/') _ feed.feeds_id %]">[% feed.name | html %]</a></td>
+<td><a href="[% c.uri_for('/admin/stories/list/') _ feed.feeds_id %]">[% feed.name | html %]</a></td>
 
 <td><a href="[% feed.url %]">view&nbsp;live</a></td>
 
 <td><div style="font-size: 80%;">[% feed.tag_names.join(', ') | html %]
-(<a href="[% c.uri_for('/feeds/edit_tags/') _ feed.feeds_id %]">edit</a>)</div></td>
+(<a href="[% c.uri_for('/admin/feeds/edit_tags/') _ feed.feeds_id %]">edit</a>)</div></td>
 
-<td><a href="[% c.uri_for('/feeds/edit/') _ feed.feeds_id %]">edit</a></td>
+<td><a href="[% c.uri_for('/admin/feeds/edit/') _ feed.feeds_id %]">edit</a></td>
 
-<td><a href="[% c.uri_for('/feeds/delete/') _ feed.feeds_id %]">delete</a></td>
+<td><a href="[% c.uri_for('/admin/feeds/delete/') _ feed.feeds_id %]">delete</a></td>
 
-<td><a href="[% c.uri_for('/downloads/list') %]?f=[% feed.feeds_id %]">view</a></td>
+<td><a href="[% c.uri_for('/admin/downloads/list') %]?f=[% feed.feeds_id %]">view</a></td>
 
 </tr>
 

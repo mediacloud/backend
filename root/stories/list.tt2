@@ -13,7 +13,7 @@
 
 <tr [% IF even %]id="even"[% END %]>
 
-<td><a href="[% c.uri_for('/stories/view/') _ story.stories_id %]">[% story.title | html %]</a></td>
+<td><a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">[% story.title | html %]</a></td>
 
 <td><a href="[% story.url %]">view&nbsp;live</a></td>
 

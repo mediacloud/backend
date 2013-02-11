@@ -4,7 +4,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $("#tag_name").autocomplete({ 
-	  source:  "[% c.uri_for('/media/media_tags_search_json') %]"
+	  source:  "[% c.uri_for('/admin/media/media_tags_search_json') %]"
 	});
     });
 </script>

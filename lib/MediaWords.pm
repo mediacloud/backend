@@ -32,6 +32,7 @@ use Catalyst qw/
   I18N
   Authentication
   Authorization::Roles
+  Authorization::ACL
   Session
   Session::Store::FastMmap
   Session::State::Cookie
@@ -73,6 +74,13 @@ __PACKAGE__->config(
 # Start the application
 __PACKAGE__->setup;
 
+# Access rules
+# https://metacpan.org/module/Catalyst::Plugin::Authorization::ACL
+__PACKAGE__->deny_access_unless_any( "/admin", [ qw/admin/ ] );
+__PACKAGE__->allow_access( "/dashboard" );
+__PACKAGE__->allow_access( "/login" );
+__PACKAGE__->allow_access( "/logout" );
+
 sub uri_for
 {
     my ( $self, $path, $args ) = @_;
@@ -100,6 +108,21 @@ sub create_form
     my $ret = HTML::FormFu::Unicode->new( $args );
 
     return $ret;
+}
+
+# Redirect unauthenticated users to login page
+sub acl_access_denied
+{
+    my ( $c, $class, $action, $err ) = @_;
+
+    # Dump a log message to the development server debug output
+    $c->log->debug( '***Root::auto User not found, forwarding to /login' );
+
+    # Redirect the user to the login page
+    $c->response->redirect( $c->uri_for( '/login' ) );
+
+    # Continue denying access
+    return 0;
 }
 
 # shortcut to dbis model

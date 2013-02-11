@@ -1,4 +1,4 @@
-package MediaWords::Controller::Monitor;
+package MediaWords::Controller::Admin::Monitor;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -15,7 +15,7 @@ use URI::Escape;
 use List::Util qw (max min maxstr minstr reduce sum);
 use List::MoreUtils qw/:all/;
 
-use MediaWords::Controller::Visualize;
+use MediaWords::Controller::Admin::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Countries;

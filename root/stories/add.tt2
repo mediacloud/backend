@@ -6,7 +6,7 @@
 
 <fieldset>
 
-<form name="input" action="[% c.uri_for('/stories/add_do/') _ 
+<form name="input" action="[% c.uri_for('/admin/stories/add_do/') _ 
 story.stories_id %]" method="post">
 
 <p>Tag name:</p>
@@ -30,7 +30,7 @@ story.stories_id %]" method="post">
 
 
   [% FOREACH t IN tags -%]
-    [% t.tag | html %] <a href="[% c.uri_for('/stories/delete/') _ 
+    [% t.tag | html %] <a href="[% c.uri_for('/admin/stories/delete/') _ 
     story.stories_id _ '/' _ t.tags_id %]">delete</a><br/>
   [% END # FOREACH tags -%]
   
@@ -42,7 +42,7 @@ story.stories_id %]" method="post">
   
 <br/>
 <p>
-<a href="[% c.uri_for('/stories/view/') _ story.stories_id %]">Back to 
+<a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">Back to 
 story</a>
 </p>
  

@@ -4,7 +4,7 @@
 <fieldset>
 
 <p>
-<a href="[% c.uri_for( '/dashboards/create_topic/' _ dashboards_id )%]">Create New Dashboard Topic</a>
+<a href="[% c.uri_for( '/admin/dashboards/create_topic/' _ dashboards_id )%]">Create New Dashboard Topic</a>
 </p>
 
 </fieldset>

@@ -5,7 +5,7 @@
 
 <div>
 
-<form action="[% c.uri_for('/stats/media_tag_counts') %]" method="GET" >
+<form action="[% c.uri_for('/admin/stats/media_tag_counts') %]" method="GET" >
 
 <p>
 generate a country map: <input type="checkbox" name="use_countries" /> <br />

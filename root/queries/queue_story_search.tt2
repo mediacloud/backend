@@ -30,7 +30,7 @@ This form will only queue up a job to do the search in the background, since the
 
 <td>[% search.pattern | html %]</td>
 [% IF search.search_completed %]
-<td>completed</td><td><a href='[% c.uri_for( "/queries/story_search_csv/" _ search.query_story_searches_id ) %]'>csv</a></td>
+<td>completed</td><td><a href='[% c.uri_for( "/admin/queries/story_search_csv/" _ search.query_story_searches_id ) %]'>csv</a></td>
 [% ELSE %]
 <td>processing</td><td>not available yet</td>
 [% END %]

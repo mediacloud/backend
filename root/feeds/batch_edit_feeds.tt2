@@ -20,7 +20,7 @@ function toggleForm(box) {
 }
 </script>
 
-<form action="[% c.uri_for('/feeds/batch_edit/') _ medium.media_id %]" method="post" >
+<form action="[% c.uri_for('/admin/feeds/batch_edit/') _ medium.media_id %]" method="post" >
 
 <fieldset>
 <p>

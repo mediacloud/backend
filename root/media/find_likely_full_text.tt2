@@ -1,7 +1,7 @@
 [% title = 'Mark likely full text sources' %]
 [% INCLUDE include/header.tt2 %]
 
-<form action="[% c.uri_for('/media/do_find_likely_full_text_rss') %]" method="post">
+<form action="[% c.uri_for('/admin/media/do_find_likely_full_text_rss') %]" method="post">
 
 <table>
 
@@ -27,7 +27,7 @@
 <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
 
 <td>
-<a href="[% c.uri_for('/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
+<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
 </td>
 
 <td>
@@ -73,7 +73,7 @@ checked="checked"
 <td> 
 [% FILTER format('%02.2f');  %] [% medium.avg_similarity %] [% END %]
 </td>
-<td><a href="[% c.uri_for('/media/eval_rss_full_text/') _ medium.media_id | url %]">eval<br/>source</a></td>
+<td><a href="[% c.uri_for('/admin/media/eval_rss_full_text/') _ medium.media_id | url %]">eval<br/>source</a></td>
 
 </tr>
 

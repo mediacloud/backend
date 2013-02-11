@@ -5,7 +5,7 @@
 
 <div>
 
-<form action="[% c.uri_for('/cosine/index') %]" method="GET" >
+<form action="[% c.uri_for('/admin/cosine/index') %]" method="GET" >
 
 [% FOREACH media_num IN [ 1 .. 3 ] -%]
  

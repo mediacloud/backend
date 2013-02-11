@@ -6,12 +6,12 @@
 <fieldset>
 
 <p>
-<a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, 'stand_alone' => 1 } ) %]">view cluster run as stand alone page</a>
+<a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, 'stand_alone' => 1 } ) %]">view cluster run as stand alone page</a>
 </p>
 
 <p>generate a cluster map: 
-<a href="[% c.uri_for( '/clusters/create_cluster_map/' _ cluster_run.media_cluster_runs_id ) %]">cluster map</a> |
-<a href="[% c.uri_for( '/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id ) %]">polar map</a>
+<a href="[% c.uri_for( '/admin/clusters/create_cluster_map/' _ cluster_run.media_cluster_runs_id ) %]">cluster map</a> |
+<a href="[% c.uri_for( '/admin/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id ) %]">polar map</a>
 </p>
 
 [% IF cluster_maps %]
@@ -36,7 +36,7 @@
 <td>[% cm.nodes_total %]</td>
 <td>[% cm.nodes_rendered %]</td>
 <td>[% cm.links_rendered %]</td>
-<td><a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cm.media_cluster_maps_id } ) %]">view</a></td>
+<td><a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cm.media_cluster_maps_id } ) %]">view</a></td>
 </tr>
 [% END #FOREACH cluster_map IN cluster_maps %]
 
@@ -59,7 +59,7 @@
     </table>
     
     <p>
-    <a href="[% c.uri_for( '/clusters/view_time_slice_map/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id } ) %]">view cluster map over time</a>
+    <a href="[% c.uri_for( '/admin/clusters/view_time_slice_map/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id } ) %]">view cluster map over time</a>
     </p>
 
     
@@ -88,9 +88,9 @@ The word cloud within each box is the word cloud for that particular cluster wit
     [% FOREACH cluster IN clusters %]
       <fieldset>
         <p>
-          <b><a href="[% c.uri_for( '/queries/view/' _ cluster.query.queries_id ) %]">[% cluster.description %] ([% cluster.media.size %])</a></b>: 
+          <b><a href="[% c.uri_for( '/admin/queries/view/' _ cluster.query.queries_id ) %]">[% cluster.description %] ([% cluster.media.size %])</a></b>: 
           [% FOREACH medium IN cluster.media %]
-            [ <a href='[% c.uri_for('/queries/view/') _ medium.query.queries_id %]'>[% medium.name %]</a> <a href='[% medium.url %]'>&gt;</a> ]
+            [ <a href='[% c.uri_for('/admin/queries/view/') _ medium.query.queries_id %]'>[% medium.name %]</a> <a href='[% medium.url %]'>&gt;</a> ]
           [% END #[% FOREACH medium IN cluster.media %]
         </p>
         <fieldset>[% cluster.word_cloud %]</fieldset>

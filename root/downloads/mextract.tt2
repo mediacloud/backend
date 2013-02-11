@@ -30,7 +30,7 @@ Exclude address of publication.</li>
 Exclude ads, navigation, related links, and other ancillary content.</li>
 <li>Skip stories that are classifieds.</li>
 </ul>
-<a href="[% c.uri_for('/downloads/view/') _ download.downloads_id -%]">view raw html</a>
+<a href="[% c.uri_for('/admin/downloads/view/') _ download.downloads_id -%]">view raw html</a>
 
 <p>
 
@@ -42,50 +42,50 @@ Exclude ads, navigation, related links, and other ancillary content.</li>
 <b>
 Next:
 
-<a href="[% c.uri_for('/downloads/mextract' , { dashboards_id => dashboards_id } ) -%]">next high priority download</a>
+<a href="[% c.uri_for('/admin/downloads/mextract' , { dashboards_id => dashboards_id } ) -%]">next high priority download</a>
 </b>
 </font>
 </p>
 
 <p>
 Next:
-<a href="[% c.uri_for('/downloads/mextract_random/') -%]">next random download</a> 
+<a href="[% c.uri_for('/admin/downloads/mextract_random/') -%]">next random download</a> 
 </p>
 
 [% IF next_training_download -%]
 <font size="2">
 Next:
-<a href="[% c.uri_for('/downloads/mextract/' _ next_training_download.downloads_id ,  { dashboards_id => dashboards_id } ) -%]">next training download</a> 
+<a href="[% c.uri_for('/admin/downloads/mextract/' _ next_training_download.downloads_id ,  { dashboards_id => dashboards_id } ) -%]">next training download</a> 
 </font>
 [% END #IF next_training_download -%]
 
 <p>
 [% IF c.flash.developer_ui %]
-<a href="[% c.uri_for('/downloads/useTrainerUI/') _ download.downloads_id -%]">Use trainer UI</a>
+<a href="[% c.uri_for('/admin/downloads/useTrainerUI/') _ download.downloads_id -%]">Use trainer UI</a>
 [% ELSE %]
-<a href="[% c.uri_for('/downloads/useDeveloperUI/') _ download.downloads_id -%]">Use developer UI</a>
+<a href="[% c.uri_for('/admin/downloads/useDeveloperUI/') _ download.downloads_id -%]">Use developer UI</a>
 [% END %]
 </p>
 
 <p>
 [% IF c.flash.translation %]
-<a href="[% c.uri_for('/downloads/disable_translation/') _ download.downloads_id -%]">Hide Translations</a>
+<a href="[% c.uri_for('/admin/downloads/disable_translation/') _ download.downloads_id -%]">Hide Translations</a>
 [% ELSE %]
-<a href="[% c.uri_for('/downloads/enable_translation/') _ download.downloads_id -%]">Show English Translation</a>
+<a href="[% c.uri_for('/admin/downloads/enable_translation/') _ download.downloads_id -%]">Show English Translation</a>
 [% END %]
 </p>
 
 <p>
 [% IF !c.flash.no_autoexclude %]
-<a href="[% c.uri_for('/downloads/disable_autoexclude/') _ download.downloads_id -%]">Show Autoexcluded Lines</a>
+<a href="[% c.uri_for('/admin/downloads/disable_autoexclude/') _ download.downloads_id -%]">Show Autoexcluded Lines</a>
 [% ELSE %]
-<a href="[% c.uri_for('/downloads/enable_autoexclude/') _ download.downloads_id -%]">Autoexclude Lines</a>
+<a href="[% c.uri_for('/admin/downloads/enable_autoexclude/') _ download.downloads_id -%]">Autoexclude Lines</a>
 [% END %]
 </p>
 
 </fieldset>
 
-<form action="[% c.uri_for('/downloads/mextract_do/' _ download.downloads_id , { dashboards_id => dashboards_id } ) %]" method="post">
+<form action="[% c.uri_for('/admin/downloads/mextract_do/' _ download.downloads_id , { dashboards_id => dashboards_id } ) %]" method="post">
 <fieldset>
 <b>Enter your name</b> 
 <input type="text" name="submitter_name" value="[% c.flash.submitter_name | html_entity %]"/>

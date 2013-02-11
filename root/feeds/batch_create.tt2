@@ -3,7 +3,7 @@
 
 <fieldset>
 
-<form action="[% c.uri_for('/feeds/batch_create_do/' _ medium.media_id) %]" method="post" >
+<form action="[% c.uri_for('/admin/feeds/batch_create_do/' _ medium.media_id) %]" method="post" >
 
 <p>Enter one feed url per line:</p>
 

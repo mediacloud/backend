@@ -4,7 +4,7 @@
 <fieldset>
 
 <p>
-<a href="[% c.uri_for( '/dashboards/create' )%]">Create New Dashboard</a>
+<a href="[% c.uri_for( '/admin/dashboards/create' )%]">Create New Dashboard</a>
 </p>
 
 </fieldset>
@@ -32,9 +32,9 @@
 
 <td>[% dashboard.end_date | html %]</td>
 
-<td><a href='[% c.uri_for( '/dashboards/list_topics/' _ dashboard.dashboards_id ) %]'>topics</a></td>
+<td><a href='[% c.uri_for( '/admin/dashboards/list_topics/' _ dashboard.dashboards_id ) %]'>topics</a></td>
 
-<td><a href='[% c.uri_for( '/mediasets/list/' ) _ dashboard.dashboards_id %]'>media sets</a></td>
+<td><a href='[% c.uri_for( '/admin/mediasets/list/' ) _ dashboard.dashboards_id %]'>media sets</a></td>
 
 <td><a href='[% c.uri_for( '/dashboard/view/' )  _ dashboard.dashboards_id %]'>view</a></td>
 

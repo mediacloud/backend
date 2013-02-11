@@ -3,7 +3,7 @@
 
 <fieldset>
 
-<form action="[% c.uri_for( '/mediasets/edit_cluster_run_do/' ) _ dashboard_media_set.dashboard_media_sets_id %]" method="POST">
+<form action="[% c.uri_for( '/admin/mediasets/edit_cluster_run_do/' ) _ dashboard_media_set.dashboard_media_sets_id %]" method="POST">
 
 <div class="text label">
 <label>Cluster Run</label>

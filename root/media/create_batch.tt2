@@ -3,14 +3,14 @@
 
 <fieldset>
 
-<form action="[% c.uri_for('/media/create_do') %]" method="post">
+<form action="[% c.uri_for('/admin/media/create_do') %]" method="post">
 
 <script type="text/javascript">
     $(document).ready(function() {
         $("#tags").tagit({
 	    tagSource: function(term, showChoices) {
 		$.ajax({
-		    url: "[% c.uri_for('/media/media_tags_search_json') %]",
+		    url: "[% c.uri_for('/admin/media/media_tags_search_json') %]",
 		    data: { term: term.term},
 		    dataType: "json",
 		    success: function(choices) {

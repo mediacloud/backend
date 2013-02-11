@@ -1,4 +1,4 @@
-package MediaWords::Controller::Queries;
+package MediaWords::Controller::Admin::Queries;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -88,7 +88,8 @@ sub create : Local
 
     $c->dbis->query( "update queries set generate_page = 't' where queries_id = ?", $query->{ queries_id } );
 
-    $c->response->redirect( $c->uri_for( "/queries/view/$query->{ queries_id }", { status_msg => 'Query created.' } ) );
+    $c->response->redirect(
+        $c->uri_for( "/admin/queries/view/$query->{ queries_id }", { status_msg => 'Query created.' } ) );
 }
 
 # return url for a chart of the daily terms in the dashboard topics vs. all words for each day in the date range
@@ -166,7 +167,7 @@ sub view : Local
         {
             load_config_file => $c->path_to() . '/root/forms/term.yml',
             method           => 'get',
-            action           => $c->uri_for( '/queries/sentences/' )
+            action           => $c->uri_for( '/admin/queries/sentences/' )
         }
     );
     $sentences_form->get_fields( { name => 'queries_ids' } )->[ 0 ]->value( $query->{ queries_id } );
@@ -175,7 +176,7 @@ sub view : Local
         {
             load_config_file => $c->path_to() . '/root/forms/terms.yml',
             method           => 'get',
-            action           => $c->uri_for( '/queries/terms/' . $query->{ queries_id } )
+            action           => $c->uri_for( '/admin/queries/terms/' . $query->{ queries_id } )
         }
     );
 
@@ -375,7 +376,8 @@ sub compare : Local
 
         my $query_b = MediaWords::DBI::Queries::find_or_create_query_by_request( $c->dbis, $c->req );
         $c->response->redirect(
-            $c->uri_for( "/queries/compare", { queries_id => $queries_id, queries_id_2 => $query_b->{ queries_id } } ) );
+            $c->uri_for( "/admin/queries/compare", { queries_id => $queries_id, queries_id_2 => $query_b->{ queries_id } } )
+        );
         return;
     }
 
@@ -458,7 +460,7 @@ sub queue_story_search : Local
     {
         $c->response->redirect(
             $c->uri_for(
-                "/queries/queue_story_search/$query->{ queries_id }",
+                "/admin/queries/queue_story_search/$query->{ queries_id }",
                 { status_msg => 'Story search already exists.' }
             )
         );
@@ -474,7 +476,8 @@ sub queue_story_search : Local
     );
 
     $c->response->redirect(
-        $c->uri_for( "/queries/queue_story_search/$query->{ queries_id }", { status_msg => 'Story search queued.' } ) );
+        $c->uri_for( "/admin/queries/queue_story_search/$query->{ queries_id }", { status_msg => 'Story search queued.' } )
+    );
 }
 
 sub story_search_csv : Local

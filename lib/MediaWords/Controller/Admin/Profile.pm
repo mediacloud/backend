@@ -1,4 +1,4 @@
-package MediaWords::Controller::Profile;
+package MediaWords::Controller::Admin::Profile;
 use Moose;
 use namespace::autoclean;
 use MediaWords::DBI::Auth;
@@ -46,7 +46,7 @@ sub index : Path : Args(0)
         {
             load_config_file => $c->path_to() . '/root/forms/auth/changepass.yml',
             method           => 'POST',
-            action           => $c->uri_for( '/profile' ),
+            action           => $c->uri_for( '/admin/profile' ),
         }
     );
 

@@ -1,4 +1,4 @@
-package MediaWords::Controller::Clusters;
+package MediaWords::Controller::Admin::Clusters;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -39,7 +39,7 @@ sub create : Local
         {
             load_config_file => $c->path_to() . '/root/forms/cluster.yml',
             method           => 'post',
-            action           => $c->uri_for( "/clusters/create/$queries_id" ),
+            action           => $c->uri_for( "/admin/clusters/create/$queries_id" ),
         }
     );
 
@@ -70,7 +70,7 @@ sub create : Local
 
     $clustering_engine->execute_and_store_media_cluster_run();
 
-    $c->response->redirect( $c->uri_for( '/clusters/view/' . $cluster_run->{ media_cluster_runs_id } ) );
+    $c->response->redirect( $c->uri_for( '/admin/clusters/view/' . $cluster_run->{ media_cluster_runs_id } ) );
 }
 
 sub _get_media_query
@@ -197,7 +197,7 @@ sub create_polar_map : Local
         {
             load_config_file => $c->path_to() . '/root/forms/' . $form_config,
             method           => 'post',
-            action           => $c->uri_for( "/clusters/create_polar_map/$cluster_runs_id" ),
+            action           => $c->uri_for( "/admin/clusters/create_polar_map/$cluster_runs_id" ),
         }
     );
 
@@ -235,7 +235,7 @@ sub create_polar_map : Local
 
     $c->response->redirect(
         $c->uri_for(
-            '/clusters/view/' . $cluster_run->{ media_cluster_runs_id },
+            '/admin/clusters/view/' . $cluster_run->{ media_cluster_runs_id },
             { media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id } }
         )
     );
@@ -275,7 +275,7 @@ sub create_cluster_map : Local
 
     $c->response->redirect(
         $c->uri_for(
-            '/clusters/view/' . $cluster_run->{ media_cluster_runs_id },
+            '/admin/clusters/view/' . $cluster_run->{ media_cluster_runs_id },
             { media_cluster_maps_id => $cluster_map->{ media_cluster_maps_id } }
         )
     );

@@ -1,4 +1,4 @@
-package MediaWords::Controller::MediaSets;
+package MediaWords::Controller::Admin::MediaSets;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -140,7 +140,7 @@ sub create : Local
         {
             load_config_file => $c->path_to() . '/root/forms/mediaset.yml',
             method           => 'post',
-            action           => $c->uri_for( "/mediasets/create/$dashboards_id" ),
+            action           => $c->uri_for( "/admin/mediasets/create/$dashboards_id" ),
         }
     );
 
@@ -174,7 +174,7 @@ sub create : Local
 
     $c->dbis->commit;
 
-    $c->response->redirect( $c->uri_for( "/mediasets/list/$dashboards_id", { status_msg => 'media set created.' } ) );
+    $c->response->redirect( $c->uri_for( "/admin/mediasets/list/$dashboards_id", { status_msg => 'media set created.' } ) );
 }
 
 # edit the media_cluster_run selection for the dashboad_media_set
@@ -222,7 +222,7 @@ sub edit_cluster_run_do : Local
 
     $c->response->redirect(
         $c->uri_for(
-            "/mediasets/list/$dashboard_media_set->{ dashboards_id }",
+            "/admin/mediasets/list/$dashboard_media_set->{ dashboards_id }",
             { status_msg => 'Media Set Cluster Run added.' }
         )
     );

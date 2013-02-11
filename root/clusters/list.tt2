@@ -4,7 +4,7 @@
 <fieldset>
 
 <p>
-<a href="[% c.uri_for( '/clusters/create' )%]">Create New Cluster Run</a>
+<a href="[% c.uri_for( '/admin/clusters/create' )%]">Create New Cluster Run</a>
 </p>
 
 </fieldset>
@@ -36,7 +36,7 @@
 
 <td>[% run.description | html %]</td>
 
-<td><a href="[% c.uri_for('/clusters/view/' _ run.media_cluster_runs_id) %]">view</a></td>
+<td><a href="[% c.uri_for('/admin/clusters/view/' _ run.media_cluster_runs_id) %]">view</a></td>
 
 </tr>
 

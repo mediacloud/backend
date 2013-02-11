@@ -53,9 +53,9 @@ This page lists every sentence matching the query given above, up to a max of [%
 </p>
 
 [% IF ! c.flash.translate %]
-<p> <a href="[% c.uri_for( '/queries/sentences/', { queries_ids => queries_ids, translate => 1 } ) %]">Show translated sentences</a> </p>
+<p> <a href="[% c.uri_for( '/admin/queries/sentences/', { queries_ids => queries_ids, translate => 1 } ) %]">Show translated sentences</a> </p>
 [% ELSE %]
-<p> <a href="[% c.uri_for( '/queries/sentences/', { queries_ids => $queries_ids, translate => 0 } ) %]">Hide translated sentences</a> </p>
+<p> <a href="[% c.uri_for( '/admin/queries/sentences/', { queries_ids => $queries_ids, translate => 0 } ) %]">Hide translated sentences</a> </p>
 [% END %]
 
 

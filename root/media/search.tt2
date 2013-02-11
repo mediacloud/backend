@@ -21,13 +21,13 @@
 <td>[% medium.name | html %]</td>
 <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
 <td><div style="font-size: 80%;">[% medium.tag_names.join(', ') | html %]
-(<a href="[% c.uri_for('/media/edit_tags/') _ medium.media_id | url %]">edit</a>)</div></td>
+(<a href="[% c.uri_for('/admin/media/edit_tags/') _ medium.media_id | url %]">edit</a>)</div></td>
 <td>
-<a href="[% c.uri_for('/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
+<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
 </td>
-<td><a href="[% c.uri_for('/media/edit/') _ medium.media_id | url %]">edit</a></td>
-<td><a href="[% c.uri_for('/media/delete/') _ medium.media_id | url %]">delete</a></td>
-<td><a href="[% c.uri_for('/downloads/list') | url %]?m=[% medium.media_id | uri %]">view dls</a></td>
+<td><a href="[% c.uri_for('/admin/media/edit/') _ medium.media_id | url %]">edit</a></td>
+<td><a href="[% c.uri_for('/admin/media/delete/') _ medium.media_id | url %]">delete</a></td>
+<td><a href="[% c.uri_for('/admin/downloads/list') | url %]?m=[% medium.media_id | uri %]">view dls</a></td>
 </tr>
 
 [%  SET even = !even %]

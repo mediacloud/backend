@@ -10,7 +10,7 @@ $(document).ready(function()
 [% IF query.dashboard_topics.size > 0 %]
 	var an_time =  $('#annotated_time_line');
 
-      	annotatedTimeLineChart( an_time, '[% c.uri_for( '/queries/view/' _ query.queries_id, { 'google_table' => 1 } ) %]' );
+      	annotatedTimeLineChart( an_time, '[% c.uri_for( '/admin/queries/view/' _ query.queries_id, { 'google_table' => 1 } ) %]' );
 
 [% END %]
 }
@@ -44,8 +44,8 @@ $(document).ready(function()
 </table>
 
 <p>
-<a href="[% c.uri_for( '/queries/view_media/' _ query.queries_id ) %]">view individual media sources</a> |
-<a href="[% c.uri_for( '/queries/stories/' _ query.queries_id ) %]">download matching stories with text (max 10000) </a>
+<a href="[% c.uri_for( '/admin/queries/view_media/' _ query.queries_id ) %]">view individual media sources</a> |
+<a href="[% c.uri_for( '/admin/queries/stories/' _ query.queries_id ) %]">download matching stories with text (max 10000) </a>
 
 </p>
 
@@ -66,7 +66,7 @@ $(document).ready(function()
 <p>
 <a href="[% c.uri_for( '/dashboard/get_word_list',{ format => 'csv', queries_ids => query.queries_id } ) %]">download csv</a> |
 <a href="[% c.uri_for( '/dashboard/get_word_list',{ format => 'xml', queries_ids => query.queries_id } ) %]">download xml</a> |
-<a href="[% c.uri_for( '/queries/compare',{ queries_id => query.queries_id } ) %]">compare to another query</a>
+<a href="[% c.uri_for( '/admin/queries/compare',{ queries_id => query.queries_id } ) %]">compare to another query</a>
 </p>
 
 <p>
@@ -115,7 +115,7 @@ Use this form to generate a line chart of the frequency of any set of terms with
 
 <fieldset>
 
-<p><a href="[% c.uri_for( '/queries/sentences/', { queries_ids => query.queries_id } ) %]">view all sentences within this query</a><p>
+<p><a href="[% c.uri_for( '/admin/queries/sentences/', { queries_ids => query.queries_id } ) %]">view all sentences within this query</a><p>
 
 <p>or</p>
 
@@ -133,7 +133,7 @@ Use this to get a list of either all sentences within this query or all sentence
 
 <fieldset>
 
-<p><a href="[% c.uri_for( '/clusters/create/' _ query.queries_id ) %]">generate new cluster run</a></p>
+<p><a href="[% c.uri_for( '/admin/clusters/create/' _ query.queries_id ) %]">generate new cluster run</a></p>
 
 [% IF cluster_runs %]
 
@@ -153,7 +153,7 @@ Use this to get a list of either all sentences within this query or all sentence
 <td>[% cluster_run.clustering_engine %]</td>
 <td>[% cluster_run.num_clusters %]</td>
 <td>[% cluster_run.state | html %]</td>
-<td><a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id ) %]">view</a></td>
+<td><a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id ) %]">view</a></td>
 
 </tr>
 

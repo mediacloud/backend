@@ -1,4 +1,4 @@
-package MediaWords::Controller::Topics;
+package MediaWords::Controller::Admin::Topics;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -44,20 +44,21 @@ sub create_do : Local
     if ( !( $query && $start_date && $end_date && $source_tag_name && $set_tag_names && $creator ) )
     {
         my $msg = 'query, start_date, end_date, source_tag_name, set_tag_names, and creator are all required.';
-        $c->response->redirect( $c->uri_for( "/topics/list/", { error_msg => $msg } ) );
+        $c->response->redirect( $c->uri_for( "/admin/topics/list/", { error_msg => $msg } ) );
         return;
     }
 
     if ( $start_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
     {
         $c->response->redirect(
-            $c->uri_for( "/topics/list/", { error_msg => 'start_date must be in the form YYYY-MM-DD' } ) );
+            $c->uri_for( "/admin/topics/list/", { error_msg => 'start_date must be in the form YYYY-MM-DD' } ) );
         return;
     }
 
     if ( $end_date !~ /^\d\d\d\d-\d\d-\d\d$/ )
     {
-        $c->response->redirect( $c->uri_for( "/topics/list/", { error_msg => 'end_date must be in the form YYYY-MM-DD' } ) );
+        $c->response->redirect(
+            $c->uri_for( "/admin/topics/list/", { error_msg => 'end_date must be in the form YYYY-MM-DD' } ) );
         return;
     }
 
@@ -68,7 +69,8 @@ sub create_do : Local
     )->flat;
     if ( !$source_tags_id )
     {
-        $c->response->redirect( $c->uri_for( "/topics/list/", { error_msg => "source tag '$source_tag_name' not found" } ) );
+        $c->response->redirect(
+            $c->uri_for( "/admin/topics/list/", { error_msg => "source tag '$source_tag_name' not found" } ) );
         return;
     }
 
@@ -82,7 +84,7 @@ sub create_do : Local
         if ( !$tag_exists )
         {
             $c->response->redirect(
-                $c->uri_for( "/topics/list/", { error_msg => "set tag $set_tag_name does not exist" } ) );
+                $c->uri_for( "/admin/topics/list/", { error_msg => "set tag $set_tag_name does not exist" } ) );
             return;
         }
 
@@ -98,13 +100,13 @@ sub create_do : Local
         $start_date,
         $end_date,
         'pending',
-        $c->uri_for( '/topics/' ),
+        $c->uri_for( '/admin/topics/' ),
         $source_tags_id,
         $set_tag_names,
         $creator
     );
 
-    $c->response->redirect( $c->uri_for( "/topics/list/", { status_msg => 'The topic request has been created.' } ) );
+    $c->response->redirect( $c->uri_for( "/admin/topics/list/", { status_msg => 'The topic request has been created.' } ) );
 }
 
 1;
