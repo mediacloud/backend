@@ -18,30 +18,17 @@
 
 <h2>Change password</h2>
 
-<!-- Change password form -->
-<form method="post" id="changePasswordForm" action="[% c.uri_for('/profile') %]">
-
-<div class="formNameValue">
-    <label for="password_old">Old password:</label>
-    <input type="password" name="password_old" id="password_old" value="" size="40" class="required" /><br />
-
-    <label for="password_new">New password:</label>
-    <input type="password" name="password_new" id="password_new" value="" size="40" class="required" /><br />
-
-    <label for="password_new">Repeat password:</label>
-    <input type="password" name="password_new_repeat" id="password_new_repeat" value="" size="40" class="required" /><br />
-
-    <input type="submit" name="submit" id="changePasswordForm_submit" value="Submit" />
-</div>
-
-</form>
+<!-- Login form -->
+<fieldset id="changePassword" class="formNameValue">
+    [% form.render %]
+</fieldset>
 
 <script type="text/javascript"><!--
 
     // Check if passwords are entered and match
     jQuery(function()
     {
-        $("#changePasswordForm_submit").click(function()
+        $("fieldset#changePassword div.submit input").click(function()
         {
             $(".error").hide();
 

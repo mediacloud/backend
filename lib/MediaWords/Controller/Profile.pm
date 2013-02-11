@@ -138,7 +138,8 @@ Your Media Cloud password has been changed.
 
 If you made this change, no need to reply - you're all set.
 
-If you did not request this change, please contact Media Cloud support at www.mediacloud.org.
+If you did not request this change, please contact Media Cloud support at
+www.mediacloud.org.
 
 EOF
     );
@@ -154,27 +155,7 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my $form_was_submitted = $c->request->params->{ submit };
-
-    if ( $form_was_submitted )
-    {
-        my $password_old        = $c->request->params->{ password_old };
-        my $password_new        = $c->request->params->{ password_new };
-        my $password_new_repeat = $c->request->params->{ password_new_repeat };
-
-        my $error_message = $self->_change_password( $c, $password_old, $password_new, $password_new_repeat );
-        if ( $error_message ne '' )
-        {
-            $c->stash( error_msg => $error_message );
-        }
-        else
-        {
-            $c->stash( status_msg => "Your password has been changed. An email was sent to " . "'" . $c->user->username .
-                  "' to inform you about this change." );
-        }
-    }
-
-    # Fetch additional information about the user
+    # Fetch readonly information about the user
     my $dbis     = $c->dbis;
     my $userinfo = $dbis->query(
         <<"EOF",
@@ -190,15 +171,51 @@ EOF
     )->hash;
     if ( !( ref( $userinfo ) eq 'HASH' and $userinfo->{ users_id } ) )
     {
-        return 'Unable to find the user in the database.';
+        die 'Unable to find the user in the database.';
     }
 
-    # Render the page
+    # Prepare the template
     $c->stash->{ c }         = $c;
     $c->stash->{ email }     = $c->user->username;
     $c->stash->{ full_name } = $userinfo->{ full_name };
     $c->stash->{ notes }     = $userinfo->{ notes };
     $c->stash( template => 'auth/profile.tt2' );
+
+    # Prepare the "change password" form
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/auth/changepass.yml',
+            method           => 'POST',
+            action           => $c->uri_for( '/profile' ),
+        }
+    );
+
+    $form->process( $c->request );
+    if ( !$form->submitted_and_valid() )
+    {
+
+        # No change password attempt
+        $c->stash->{ form } = $form;
+        return;
+    }
+
+    # Change the password
+    my $password_old        = $form->param_value( 'password_old' );
+    my $password_new        = $form->param_value( 'password_new' );
+    my $password_new_repeat = $form->param_value( 'password_new_repeat' );
+
+    my $error_message = $self->_change_password( $c, $password_old, $password_new, $password_new_repeat );
+    if ( $error_message ne '' )
+    {
+        $c->stash->{ form } = $form;
+        $c->stash( error_msg => $error_message );
+    }
+    else
+    {
+        $c->stash->{ form } = $form;
+        $c->stash( status_msg => "Your password has been changed. An email was sent to " . "'" . $c->user->username .
+              "' to inform you about this change." );
+    }
 }
 
 =head1 AUTHOR
