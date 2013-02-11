@@ -136,7 +136,13 @@ sub _redirect_to_default_page
     {
         $media_sets_id = $c->dbis->query(
             "SELECT media_sets_id from dashboard_media_sets where dashboards_id = ? order by media_sets_id asc limit 1 ",
-            $dashboard->{ dashboards_id } )->hash->{ media_sets_id };
+            $dashboard->{ dashboards_id } )->hash;
+        if ( !( ref( $media_sets_id ) eq 'HASH' and $media_sets_id->{ media_sets_id } ) )
+        {
+            die "Unable to find media set's ID for dashboard ID " . $dashboard->{ dashboards_id } .
+              ", maybe there are no media sets added to the dashboard?";
+        }
+        $media_sets_id = $media_sets_id->{ media_sets_id };
     }
 
     my ( $max_date ) = $c->dbis->query(
