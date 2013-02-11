@@ -10,7 +10,6 @@ use parent 'Catalyst::Controller::HTML::FormFu';
 
 use HTML::TagCloud;
 use List::Util;
-use Net::SMTP;
 use Number::Format qw(:subs);
 use URI::Escape;
 use List::Util qw (max min maxstr minstr reduce sum);

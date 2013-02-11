@@ -10,8 +10,7 @@ use strict;
 use warnings;
 
 use Crypt::SaltedHash;
-use Email::MIME;
-use Email::Sender::Simple qw(sendmail);
+use MediaWords::Util::Mail;
 use POSIX qw(strftime);
 
 use Data::Dumper;
@@ -73,8 +72,6 @@ sub change_password($$$$$)
         return 'New password is your email address; don\'t cheat!';
     }
 
-    my $config = MediaWords::Util::Config::get_config;
-
     # Validate old password (password hash is located in $c->user->password, but fetch
     # the hash from the database again because that hash might be outdated (e.g. if the
     # password has been changed already))
@@ -95,6 +92,9 @@ EOF
         return 'Unable to find the user in the database.';
     }
     $db_password_old = $db_password_old->{ password_hash };
+
+    # Determine salt and hash type
+    my $config = MediaWords::Util::Config::get_config;
 
     my $salt_len = $config->{ 'Plugin::Authentication' }->{ 'users' }->{ 'credential' }->{ 'password_salt_len' };
     if ( !$salt_len )
@@ -137,32 +137,21 @@ EOF
     );
 
     # Send email
-    my $now = strftime( "%a, %d %b %Y %H:%M:%S %z", localtime( time() ) );
-    my $message = Email::MIME->create(
-        header_str => [
-            From    => $config->{ mediawords }->{ email_from_address },
-            To      => $email,
-            Subject => '[Media Cloud] Your password has been changed',
-        ],
-        attributes => {
-            encoding => 'quoted-printable',
-            charset  => 'UTF-8',
-        },
-        body_str => <<"EOF"
-Hello,
-
+    my $now           = strftime( "%a, %d %b %Y %H:%M:%S %z", localtime( time() ) );
+    my $email_subject = 'Your password has been changed';
+    my $email_message = <<"EOF";
 Your Media Cloud password has been changed on $now.
 
 If you made this change, no need to reply - you're all set.
 
 If you did not request this change, please contact Media Cloud support at
 www.mediacloud.org.
-
 EOF
-    );
 
-    # send the message
-    sendmail( $message );
+    if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+    {
+        return 'The password has been changed, but I was unable to send an email notifying you about the change.';
+    }
 
     # Success
     return '';

@@ -10,7 +10,6 @@ use parent 'Catalyst::Controller::HTML::FormFu';
 
 use HTML::TagCloud;
 use List::Util;
-use Net::SMTP;
 use Number::Format qw(:subs);
 use URI::Escape;
 use List::Util qw (max min maxstr minstr reduce sum);
@@ -20,6 +19,7 @@ use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
+use MediaWords::Util::Mail;
 use MediaWords::Languages::Language;
 
 #use MediaWords::Util::Translate;
@@ -1972,24 +1972,38 @@ sub report_bug : Local
         return;
     }
 
-    my $config      = MediaWords::Util::Config::get_config;
-    my $smtp_server = $config->{ mail }->{ smtp_server } || die( 'no mail:smtp_server in mediawords.yml' );
-    my $bug_email   = $config->{ mail }->{ bug_email } || die( 'no mail:bug_email in mediawords.yml' );
+    # Send bug report
+    my $config = MediaWords::Util::Config::get_config;
 
-    my $email = $c->req->param( 'email' ) || $bug_email;
+    my $bug_email = $config->{ mail }->{ bug_email };
+    if ( !$bug_email )
+    {
+        die "No bug report email is configured in mediawords.yml";
+    }
+
+    my $reporter_email = $c->req->param( 'email' );
+    if ( !$reporter_email )
+    {
+        $reporter_email = $bug_email;
+    }
+
     my $description = $c->req->param( 'description' );
 
-    my $smtp = Net::SMTP->new( $smtp_server ) || die;
+    my @lt            = localtime( time );
+    my $now           = strftime( "%a, %d %b %Y %H:%M:%S %z", @lt );
+    my $email_subject = 'Bug Report';
+    my $email_message = <<"EOF";
+Media Cloud error was reported on $now.
 
-    $smtp->mail( $email )   || die;
-    $smtp->to( $bug_email ) || die;
+* Reporter's email: $reporter_email
+* URL: $url
+* Description: $description
+EOF
 
-    $smtp->data()                                                                          || die;
-    $smtp->datasend( "To: $bug_email\nFrom: $email\nSubject: Media Cloud Bug Report\n\n" ) || die;
-    $smtp->datasend( "Url: $url\n\nDescription: $description\n\n" )                        || die;
-    $smtp->dataend()                                                                       || die;
-
-    $smtp->quit || die;
+    if ( !MediaWords::Util::Mail::send( $bug_email, $email_subject, $email_message, $reporter_email ) )
+    {
+        die "Unable to send bug report email to address $bug_email";
+    }
 
     my $redirect =
       $c->uri_for( '/dashboard/list/' . $dashboard->{ dashboards_id }, { status_msg => 'Bug report filed.  Thanks!' } );

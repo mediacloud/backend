@@ -74,7 +74,8 @@ sub set_defaults
     $config->{ mediawords }->{ always_show_stack_traces }         ||= "no";
     $config->{ mediawords }->{ disable_json_top_500_words_cache } ||= "no";
     $config->{ mediawords }->{ default_home_page }                ||= "media/list";
-    $config->{ mediawords }->{ email_from_address }               ||= "noreply\@mediacloud.org";
+    $config->{ mail }->{ from_address }                           ||= "noreply\@mediacloud.org";
+    $config->{ mail }->{ bug_email }                              ||= "";
     $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
 
     return $config;
