@@ -17,27 +17,19 @@
 [% ELSE %]
 
     <!-- Login form -->
-    <form method="post" id="loginForm" action="[% c.uri_for('/login') %]">
+    <fieldset id="login" class="formNameValue">
+        [% form.render %]
+    </fieldset>
 
-    <div class="formNameValue">
-        <label for="email">Email:</label>
-
-        [% # 'onfocus="this.value = this.value"' puts cursor at the end of the input field %]
-        <input type="email" name="email" id="email" value="[% c.request.params.email | html %]" size="40" onfocus="this.value = this.value" class="required email" /><br />
-
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" value="" size="40" class="required" /><br />
-
-        <input type="submit" name="submit" value="Submit" />
-    </div>
-
-    </form>
+    <p>
+        <a href="[% c.uri_for('/login/forgot') %]?email=[% c.request.params.email | html %]">Forgot your password?</a>
+    </p>
 
     <script type="text/javascript"><!--
 
         // Validate login form -- select empty form fields
         $(document).ready(function(){
-            $("#loginForm").validate();
+            $("fieldset#login form").validate();
         });
 
         // Focus email field on load

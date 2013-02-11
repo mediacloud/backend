@@ -141,17 +141,12 @@ div#error {
     border: 1px solid silver;
 }
 
-/* Login form, change password form (either <form> or <div>) */
-.formNameValue {
+/* Login form or change password form */
+fieldset.formNameValue {
 }
 
-.formNameValue label {
-    float: left;
-    width: 120px;
-    clear: both;
-}
-
-.formNameValue label.error {
+/* jQuery form validation errors */
+fieldset.formNameValue label.error {
     width: 10em !important;
     float: none !important;
     color: red;
