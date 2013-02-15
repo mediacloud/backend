@@ -18,6 +18,7 @@ elements:
     attributes:
       # jQuery validator classes
       class: email required
+      placeholder: jdoe@cyber.law.harvard.edu
 
   - type: Password
     id: password
@@ -29,6 +30,7 @@ elements:
     attributes:
       # jQuery validator classes
       class: required
+      placeholder: correct horse battery staple
 
   - type: Submit
     name: submit

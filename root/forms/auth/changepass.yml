@@ -17,6 +17,7 @@ elements:
     attributes:
       # jQuery validator classes
       class: required
+      placeholder: "Tr0ub4dor&3"
 
   - type: Password
     id: password_new
@@ -28,6 +29,7 @@ elements:
     attributes:
       # jQuery validator classes
       class: required
+      placeholder: correct horse battery staple
 
   - type: Password
     id: password_new_repeat
@@ -39,6 +41,7 @@ elements:
     attributes:
       # jQuery validator classes
       class: required
+      placeholder: correct horse battery staple
 
   - type: Submit
     name: submit
