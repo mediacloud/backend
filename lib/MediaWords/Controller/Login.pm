@@ -107,17 +107,8 @@ sub forgot : Local
     }
 
     my $email = $form->param_value( 'email' );
-    if ( !$email )
-    {
-        $c->stash->{ c }    = $c;
-        $c->stash->{ form } = $form;
-        $c->stash( template  => 'auth/forgot.tt2' );
-        $c->stash( error_msg => "Empty email address." );
-        return;
-    }
-
     my $error_message = MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $email, $c->uri_for( '/login/reset' ) );
-    if ( $error_message ne '' )
+    if ( $error_message )
     {
         $c->stash->{ c }    = $c;
         $c->stash->{ form } = $form;
