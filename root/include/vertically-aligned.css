@@ -59,6 +59,7 @@ fieldset .number.label,
 fieldset .textarea.label
 {
     margin-left: 1px;
+    clear: both;
 }
 
 fieldset .error.label {

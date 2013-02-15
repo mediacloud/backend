@@ -18,7 +18,7 @@ use URI::Escape;
 use Data::Dumper;
 
 # Generate random alphanumeric string (password or token) of the specified length
-sub _random_string($)
+sub random_string($)
 {
     my ( $num_bytes ) = @_;
     return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ rand( 10 + 26 * 2 ) ], 1 .. $num_bytes;
@@ -50,7 +50,7 @@ sub _validate_hash($$)
 }
 
 # Hash a password / password token with Crypt::SaltedHash; return hash on success, empty string on error
-sub _generate_hash($)
+sub generate_hash($)
 {
     my ( $secret ) = @_;
 
@@ -86,6 +86,22 @@ sub _generate_hash($)
     }
 
     return $secret_hash;
+}
+
+# Fetch a list of available user roles
+sub all_roles($)
+{
+    my ( $db ) = @_;
+
+    my $roles = $db->query(
+        <<"EOF"
+        SELECT roles_id, role, description
+        FROM auth_roles
+        ORDER BY roles_id
+EOF
+    )->hashes;
+
+    return $roles;
 }
 
 # Fetch a hash of basic user information (email, full name, notes)
@@ -173,33 +189,52 @@ EOF
     }
 }
 
+# Check if password fits the requirements; returns empty string on valid password, error message on invalid password
+sub password_fits_requirements($$$)
+{
+    my ( $email, $password, $password_repeat ) = @_;
+
+    if ( !$email )
+    {
+        return 'Email address is empty.';
+    }
+
+    if ( !( $password && $password_repeat ) )
+    {
+        return 'To set the password, please repeat the new password twice.';
+    }
+
+    if ( $password ne $password_repeat )
+    {
+        return 'Passwords do not match.';
+    }
+
+    if ( length( $password ) < 8 or length( $password ) > 120 )
+    {
+        return 'Password must be 8 to 120 characters in length.';
+    }
+
+    if ( $password eq $email )
+    {
+        return 'New password is your email address; don\'t cheat!';
+    }
+
+    return '';
+}
+
 # Change password; returns error message on failure, empty string on success
 sub _change_password($$$$)
 {
     my ( $db, $email, $password_new, $password_new_repeat ) = @_;
 
-    if ( !( $password_new && $password_new_repeat ) )
+    my $password_validation_message = password_fits_requirements( $email, $password_new, $password_new_repeat );
+    if ( $password_validation_message )
     {
-        return 'To change the password, please repeat the new password twice.';
-    }
-
-    if ( $password_new ne $password_new_repeat )
-    {
-        return 'Passwords do not match.';
-    }
-
-    if ( length( $password_new ) < 8 or length( $password_new ) > 120 )
-    {
-        return 'Password must be 8 to 120 characters in length.';
-    }
-
-    if ( $password_new eq $email )
-    {
-        return 'New password is your email address; don\'t cheat!';
+        return $password_validation_message;
     }
 
     # Hash + validate the password
-    my $password_new_hash = _generate_hash( $password_new );
+    my $password_new_hash = generate_hash( $password_new );
     if ( !$password_new_hash )
     {
         return 'Unable to hash a new password.';
@@ -311,6 +346,67 @@ sub change_password_via_token($$$$$)
     return $error_message;
 }
 
+# Add new user; returns error message on error, empty string on success
+sub add_user($$$$$$$)
+{
+    my ( $db, $email, $password, $password_repeat, $full_name, $notes, $roles ) = @_;
+
+    my $password_validation_message = password_fits_requirements( $email, $password, $password_repeat );
+    if ( $password_validation_message )
+    {
+        return $password_validation_message;
+    }
+
+    # Check if user already exists
+    my $userinfo = user_info( $db, $email );
+    if ( $userinfo )
+    {
+        return "User with email address '$email' already exists.";
+    }
+
+    # Hash + validate the password
+    my $password_hash = generate_hash( $password );
+    if ( !$password_hash )
+    {
+        return 'Unable to hash a new password.';
+    }
+
+    # Begin transaction
+    $db->dbh->{ AutoCommit } = 0;
+
+    # Create the user
+    $db->query(
+        <<"EOF",
+        INSERT INTO auth_users (email, password_hash, full_name, notes)
+        VALUES (?, ?, ?, ?)
+EOF
+        $email, $password_hash, $full_name, $notes
+    );
+
+    # Fetch the user's ID
+    $userinfo = user_info( $db, $email );
+    if ( !$userinfo )
+    {
+        return "I've attempted to create the user but it doesn't exist.";
+    }
+    my $users_id = $userinfo->{ users_id };
+
+    # Create roles
+    my $sql = 'INSERT INTO auth_users_roles_map (users_id, roles_id) VALUES (?, ?)';
+    my $sth = $db->dbh->prepare_cached( $sql );
+    for my $roles_id ( @{ $roles } )
+    {
+        $sth->execute( $users_id, $roles_id );
+    }
+    $sth->finish;
+
+    # End transaction
+    $db->dbh->{ AutoCommit } = 1;
+
+    # Success
+    return '';
+}
+
 # Prepare for password reset by emailing the password reset token; returns error message on failure, empty string on success
 sub send_password_reset_token($$$)
 {
@@ -353,14 +449,14 @@ EOF
     }
 
     # Generate the password reset token
-    my $password_reset_token = _random_string( 64 );
+    my $password_reset_token = random_string( 64 );
     if ( !length( $password_reset_token ) )
     {
         return 'Unable to generate a password reset token.';
     }
 
     # Hash + validate the password reset token
-    my $password_reset_token_hash = _generate_hash( $password_reset_token );
+    my $password_reset_token_hash = generate_hash( $password_reset_token );
     if ( !$password_reset_token_hash )
     {
         return 'Unable to hash a password reset token.';

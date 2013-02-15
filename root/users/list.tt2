@@ -1,6 +1,16 @@
 [% title = 'Users: List' %]
 [% INCLUDE include/header.tt2 %]
 
+<fieldset>
+
+    <p>
+        <a href="[% c.uri_for( '/admin/users/create' )%]">Create New User</a>
+    </p>
+
+</fieldset>
+
+<p />
+
 <table id="users">
 
 <tr>
@@ -37,9 +47,7 @@
 
         <td>
             <ul>
-                <li><a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | html %]">Delete</a></li>
-                <li><a href="#">Deactivate</a></li>
-
+                <li><a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a></li>
             </ul>
         </td>
 

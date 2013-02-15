@@ -164,3 +164,9 @@ div#user {
     text-align: right;
     font-size: smaller;
 }
+
+/* Checkboxgroup options */
+fieldset.checkboxgroup span {
+    display: block;
+    clear: both;
+}
