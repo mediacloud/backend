@@ -1,6 +1,7 @@
 package MediaWords::Controller::Admin::Users;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use MediaWords::DBI::Auth;
 
 use strict;
 use warnings;
@@ -11,7 +12,7 @@ sub index : Path : Args(0)
     return list( @_ );
 }
 
-# list the possible word cloud topics
+# list users
 sub list : Local
 {
     my ( $self, $c ) = @_;
@@ -19,6 +20,7 @@ sub list : Local
     # List a full list of roles near each user because (presumably) one can then find out
     # whether or not a particular user has a specific role faster.
 
+    # FIXME move to model
     my $users = $c->dbis->query(
         <<"EOF"
         SELECT
@@ -76,7 +78,78 @@ EOF
     }
 
     $c->stash->{ users }    = $users;
+    $c->stash->{ c }        = $c;
     $c->stash->{ template } = 'users/list.tt2';
+}
+
+# confirm if the user has to be deleted
+sub delete : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
+    {
+        $c->stash( error_msg => "Empty email." );
+        $c->stash->{ c }        = $c;
+        $c->stash->{ template } = 'users/delete.tt2';
+        return;
+    }
+
+    # Fetch readonly information about the user
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $email );
+    if ( !$userinfo )
+    {
+        die 'Unable to find currently logged in user in the database.';
+    }
+
+    $c->stash->{ users_id }  = $userinfo->{ users_id };
+    $c->stash->{ email }     = $userinfo->{ email };
+    $c->stash->{ full_name } = $userinfo->{ full_name };
+    $c->stash->{ c }         = $c;
+    $c->stash->{ template }  = 'users/delete.tt2';
+}
+
+# delete user
+sub delete_do : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
+    {
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => "Empty email address." } ) );
+        return;
+    }
+
+    # Check if user exists
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $email );
+    if ( !$userinfo )
+    {
+        $c->response->redirect(
+            $c->uri_for( '/admin/users/list', { error_msg => "User with email address '$email' does not exist." } ) );
+        return;
+    }
+
+    # Delete the user (PostgreSQL's relation will take care of 'auth_users_roles_map')
+    $c->dbis->query(
+        <<"EOF",
+        DELETE FROM auth_users
+        WHERE email = ?
+EOF
+        $email
+    );
+
+    # Catalyst::Authentication::Store::MediaWords checks if the user's email exists in the
+    # database each and every time a page is accessed, so no need to invalidate a list of
+    # user's current sessions (if any).
+
+    $c->response->redirect(
+        $c->uri_for(
+            '/admin/users/list', { status_msg => "User with email address '$email' has been logged out and deleted." }
+        )
+    );
+
 }
 
 1;

@@ -108,7 +108,6 @@ EOF
     )->hash;
     if ( !( ref( $userinfo ) eq 'HASH' and $userinfo->{ users_id } ) )
     {
-        say STDERR 'Unable to find user ' . $email . ' in the database.';
         return 0;
     }
 

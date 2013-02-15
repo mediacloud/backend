@@ -31,12 +31,10 @@ sub find_user
 {
     my ( $self, $userinfo, $c ) = @_;
 
-    my $dbis = $c->dbis;
-
     my $username = $userinfo->{ 'username' } || '';
 
     # Check if user exists; if so, fetch user info, password hash and list of roles
-    my $user = $dbis->query(
+    my $user = $c->dbis->query(
         <<"EOF",
         SELECT auth_users.users_id,
                auth_users.email,
@@ -83,8 +81,19 @@ sub from_session
 {
     my ( $self, $c, $user ) = @_;
 
-    return $user if ref $user;
-    return $self->find_user( { id => $user } );
+    if ( ref $user )
+    {
+
+        # Check the database for the user each and every time a page is opened because
+        # the user might have been removed from the user list
+        return $self->find_user( $user, $c );
+    }
+    else
+    {
+        return $self->find_user( { username => $user }, $c );
+    }
+
+    return $user;
 }
 
 # provides information about what the user object supports
