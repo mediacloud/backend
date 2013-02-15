@@ -41,9 +41,9 @@ sub find_user
                auth_users.password_hash,
                ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
         FROM auth_users
-            INNER JOIN auth_users_roles_map
+            LEFT JOIN auth_users_roles_map
                 ON auth_users.users_id = auth_users_roles_map.users_id
-            INNER JOIN auth_roles
+            LEFT JOIN auth_roles
                 ON auth_users_roles_map.roles_id = auth_roles.roles_id
         WHERE auth_users.email = ?
         GROUP BY auth_users.users_id,
