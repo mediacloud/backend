@@ -48,6 +48,11 @@
         <td>
             <ul>
                 <li><a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a></li>
+                [% IF user.active %]
+                    <li><a href="[% c.uri_for('/admin/users/deactivate') %]?email=[% user.email | uri %]">Deactivate</a></li>
+                [% ELSE %]
+                    <li><a href="[% c.uri_for('/admin/users/activate') %]?email=[% user.email | uri %]">Activate</a></li>
+                [% END %]
             </ul>
         </td>
 

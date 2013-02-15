@@ -67,7 +67,7 @@ sub index : Path : Args(0)
         $c->stash->{ form } = $form;
         $c->stash->{ c }    = $c;
         $c->stash( template  => 'auth/login.tt2' );
-        $c->stash( error_msg => "Incorrect email address and / or password." );
+        $c->stash( error_msg => "Incorrect email address and / or password, or your account is not active." );
         return;
     }
 

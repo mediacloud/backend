@@ -110,6 +110,67 @@ sub delete : Local
     $c->stash->{ template }  = 'users/delete.tt2';
 }
 
+# activate user
+sub activate : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
+    {
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => "Empty email address." } ) );
+        return;
+    }
+
+    my $activate_user_error_message = MediaWords::DBI::Auth::make_user_active( $c->dbis, $email, 1 );
+    if ( $activate_user_error_message )
+    {
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $activate_user_error_message } ) );
+        return;
+    }
+
+    $c->response->redirect(
+        $c->uri_for(
+            '/admin/users/list',
+            { status_msg => "User with email address '$email' has been activated and " . "now is able to login again." }
+        )
+    );
+}
+
+# deactivate user
+sub deactivate : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
+    {
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => "Empty email address." } ) );
+        return;
+    }
+
+    if ( $email eq $c->user->username )
+    {
+        $c->response->redirect(
+            $c->uri_for( '/admin/users/list', { error_msg => "You are trying to deactivate yourself." } ) );
+        return;
+    }
+
+    my $deactivate_user_error_message = MediaWords::DBI::Auth::make_user_active( $c->dbis, $email, 0 );
+    if ( $deactivate_user_error_message )
+    {
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $deactivate_user_error_message } ) );
+        return;
+    }
+
+    $c->response->redirect(
+        $c->uri_for(
+            '/admin/users/list',
+            { status_msg => "User with email address '$email' has been deactivated and " . "now will be unable to login." }
+        )
+    );
+}
+
 # delete user
 sub delete_do : Local
 {

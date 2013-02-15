@@ -346,6 +346,41 @@ sub change_password_via_token($$$$$)
     return $error_message;
 }
 
+# Activate / deactivate user; returns error message on error, empty string on success
+sub make_user_active($$$)
+{
+    my ( $db, $email, $active ) = @_;
+
+    # Check if user exists
+    my $userinfo = user_info( $db, $email );
+    if ( !$userinfo )
+    {
+        return "User with email address '$email' does not exist.";
+    }
+
+    my $sql = '';
+    if ( $active )
+    {
+        $sql = <<"EOF";
+            UPDATE auth_users
+            SET active = true
+            WHERE email = ?
+EOF
+    }
+    else
+    {
+        $sql = <<"EOF";
+            UPDATE auth_users
+            SET active = false
+            WHERE email = ?
+EOF
+    }
+
+    $db->query( $sql, $email );
+
+    return '';
+}
+
 # Add new user; returns error message on error, empty string on success
 sub add_user($$$$$$$)
 {

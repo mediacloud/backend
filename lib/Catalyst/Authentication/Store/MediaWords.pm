@@ -33,7 +33,8 @@ sub find_user
 
     my $username = $userinfo->{ 'username' } || '';
 
-    # Check if user exists; if so, fetch user info, password hash and list of roles
+    # Check if user exists and is active; if so, fetch user info,
+    # password hash and a list of roles
     my $user = $c->dbis->query(
         <<"EOF",
         SELECT auth_users.users_id,
@@ -46,6 +47,7 @@ sub find_user
             LEFT JOIN auth_roles
                 ON auth_users_roles_map.roles_id = auth_roles.roles_id
         WHERE auth_users.email = ?
+              AND auth_users.active = true
         GROUP BY auth_users.users_id,
                  auth_users.email,
                  auth_users.password_hash
