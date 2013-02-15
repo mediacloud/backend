@@ -12,6 +12,7 @@ with 'MooseX::Emulate::Class::Accessor::Fast';
 use Modern::Perl '2012';
 use MediaWords::CommonLibs;
 use MediaWords::DB;
+use MediaWords::DBI::Auth;
 use Catalyst::Authentication::User::Hash;
 use Scalar::Util qw( blessed );
 
@@ -35,39 +36,18 @@ sub find_user
 
     # Check if user exists and is active; if so, fetch user info,
     # password hash and a list of roles
-    my $user = $c->dbis->query(
-        <<"EOF",
-        SELECT auth_users.users_id,
-               auth_users.email,
-               auth_users.password_hash,
-               ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
-        FROM auth_users
-            LEFT JOIN auth_users_roles_map
-                ON auth_users.users_id = auth_users_roles_map.users_id
-            LEFT JOIN auth_roles
-                ON auth_users_roles_map.roles_id = auth_roles.roles_id
-        WHERE auth_users.email = ?
-              AND auth_users.active = true
-        GROUP BY auth_users.users_id,
-                 auth_users.email,
-                 auth_users.password_hash
-        ORDER BY auth_users.users_id
-        LIMIT 1
-EOF
-        $username
-    )->hash;
-
-    if ( ref( $user ) eq 'HASH' and $user->{ users_id } )
+    my $user = MediaWords::DBI::Auth::user_auth( $c->dbis, $username );
+    if ( $user )
     {
         return Catalyst::Authentication::User::Hash->new(
             'id'       => $user->{ users_id },
             'username' => $user->{ email },
             'password' => $user->{ password_hash },
 
-            # List of roles get hashed into the user object; if the role list changes
-            # (e.g. admin adds or removes some roles), the user's session (if any) is thrown out.
-            # Possible improvement would be implementing a custom Catalyst::Authentication::User::MediaWords
-            # and checking a roles each and every time a resource is accessed.
+            # List of roles get hashed into the user object and are refetched from the
+            # database each and every time the user tries to access a page (via the
+            # from_session() subroutine). This is done because a list of roles might
+            # change while the user is still logged in.
             'roles' => [ split( ' ', $user->{ roles } ) ]
         );
     }
