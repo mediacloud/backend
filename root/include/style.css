@@ -46,6 +46,10 @@ img {
     margin: 20px;
 }
 
+abbr {
+    border-bottom: 1px dotted;
+}
+
 div#menu ul {
     margin: 0em;
     margin-bottom: 1em;

@@ -17,12 +17,17 @@ sub list : Local
 {
     my ( $self, $c ) = @_;
 
-    # Fetch list of users and roles
+    # Fetch list of users and their roles
     my $users = MediaWords::DBI::Auth::list_of_users( $c->dbis );
 
-    $c->stash->{ users }    = $users;
-    $c->stash->{ c }        = $c;
-    $c->stash->{ template } = 'users/list.tt2';
+    # Fetch role descriptions
+    my $roles = MediaWords::DBI::Auth::all_roles( $c->dbis );
+    my %role_descriptions = map { $_->{ role } => $_->{ description } } @{ $roles };
+
+    $c->stash->{ users }             = $users;
+    $c->stash->{ role_descriptions } = \%role_descriptions;
+    $c->stash->{ c }                 = $c;
+    $c->stash->{ template }          = 'users/list.tt2';
 }
 
 # confirm if the user has to be deleted

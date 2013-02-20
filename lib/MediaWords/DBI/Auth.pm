@@ -95,7 +95,9 @@ sub all_roles($)
 
     my $roles = $db->query(
         <<"EOF"
-        SELECT roles_id, role, description
+        SELECT roles_id,
+               role,
+               description
         FROM auth_roles
         ORDER BY roles_id
 EOF

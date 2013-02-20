@@ -40,7 +40,11 @@
         <td>
             <ul>
                 [% FOREACH role IN user.roles.keys.sort -%]
-                    <li><code>[% role | html %]</code> = [% user.roles.$role | html %]</li>
+                    <li>
+                        <abbr title="[% role_descriptions.$role | html %]"><code>[% role | html %]</code></abbr>
+                        =
+                        [% user.roles.$role | html %]
+                    </li>
                 [% END # FOREACH user.roles -%]
             </ul>
         </td>
