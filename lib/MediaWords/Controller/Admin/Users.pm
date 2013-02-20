@@ -154,6 +154,21 @@ sub edit : Local
     my $user_password        = $form->param_value( 'password' );           # Might be empty
     my $user_password_repeat = $form->param_value( 'password_repeat' );    # Might be empty
 
+    # Check if user is trying to deactivate oneself
+    if ( $userinfo->{ email } eq $c->user->username and ( !$user_is_active ) )
+    {
+        $c->stash->{ users_id }  = $userinfo->{ users_id };
+        $c->stash->{ email }     = $userinfo->{ email };
+        $c->stash->{ full_name } = $userinfo->{ full_name };
+        $c->stash->{ notes }     = $userinfo->{ notes };
+        $c->stash->{ active }    = $userinfo->{ active };
+        $c->stash->{ c }         = $c;
+        $c->stash->{ form }      = $form;
+        $c->stash->{ template }  = 'users/edit.tt2';
+        $c->stash( error_msg => "You're trying to deactivate yourself!" );
+        return;
+    }
+
     # Update user
     my $update_user_error_message =
       MediaWords::DBI::Auth::update_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
