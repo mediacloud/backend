@@ -115,7 +115,8 @@ sub user_info($$)
         SELECT users_id,
                email,
                full_name,
-               notes
+               notes,
+               active
         FROM auth_users
         WHERE email = ?
         LIMIT 1
@@ -135,13 +136,14 @@ sub user_auth($$)
 {
     my ( $db, $email ) = @_;
 
-    # Check if user exists and is active; if so, fetch user info,
-    # password hash and a list of roles
+    # Check if user exists; if so, fetch user info, password hash and a list of roles.
+    # Checking whether or not the user is active is left to the controller.
     my $user = $db->query(
         <<"EOF",
         SELECT auth_users.users_id,
                auth_users.email,
                auth_users.password_hash,
+               auth_users.active,
                ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
         FROM auth_users
             LEFT JOIN auth_users_roles_map
@@ -149,10 +151,10 @@ sub user_auth($$)
             LEFT JOIN auth_roles
                 ON auth_users_roles_map.roles_id = auth_roles.roles_id
         WHERE auth_users.email = ?
-              AND auth_users.active = true
         GROUP BY auth_users.users_id,
                  auth_users.email,
-                 auth_users.password_hash
+                 auth_users.password_hash,
+                 auth_users.active
         ORDER BY auth_users.users_id
         LIMIT 1
 EOF
@@ -297,12 +299,12 @@ EOF
         my $now           = strftime( "%a, %d %b %Y %H:%M:%S %z", localtime( time() ) );
         my $email_subject = 'Your password has been changed';
         my $email_message = <<"EOF";
-    Your Media Cloud password has been changed on $now.
+Your Media Cloud password has been changed on $now.
 
-    If you made this change, no need to reply - you're all set.
+If you made this change, no need to reply - you're all set.
 
-    If you did not request this change, please contact Media Cloud support at
-    www.mediacloud.org.
+If you did not request this change, please contact Media Cloud support at
+www.mediacloud.org.
 EOF
 
         if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
@@ -456,46 +458,11 @@ EOF
     return $users;
 }
 
-# Activate / deactivate user; returns error message on error, empty string on success
-sub make_user_active($$$)
-{
-    my ( $db, $email, $active ) = @_;
-
-    # Check if user exists
-    my $userinfo = user_info( $db, $email );
-    if ( !$userinfo )
-    {
-        return "User with email address '$email' does not exist.";
-    }
-
-    my $sql = '';
-    if ( $active )
-    {
-        $sql = <<"EOF";
-            UPDATE auth_users
-            SET active = true
-            WHERE email = ?
-EOF
-    }
-    else
-    {
-        $sql = <<"EOF";
-            UPDATE auth_users
-            SET active = false
-            WHERE email = ?
-EOF
-    }
-
-    $db->query( $sql, $email );
-
-    return '';
-}
-
 # Update an existing user; returns error message on error, empty string on success
 # ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user($$$$$;$$)
+sub update_user($$$$$$;$$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $password, $password_repeat ) = @_;
+    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
 
     # Check if user exists
     my $userinfo = user_info( $db, $email );
@@ -512,10 +479,11 @@ sub update_user($$$$$;$$)
         <<"EOF",
         UPDATE auth_users
         SET full_name = ?,
-            notes = ?
+            notes = ?,
+            active = ?
         WHERE email = ?
 EOF
-        $full_name, $notes, $email
+        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
     );
 
     if ( $password )
@@ -551,9 +519,12 @@ EOF
 }
 
 # Add new user; returns error message on error, empty string on success
-sub add_user($$$$$$$)
+sub add_user($$$$$$$$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $password, $password_repeat ) = @_;
+    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
+
+    say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, roles: " . Dumper( $roles ) .
+      ", is active: $is_active";
 
     my $password_validation_message = password_fits_requirements( $email, $password, $password_repeat );
     if ( $password_validation_message )
@@ -581,10 +552,10 @@ sub add_user($$$$$$$)
     # Create the user
     $db->query(
         <<"EOF",
-        INSERT INTO auth_users (email, password_hash, full_name, notes)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO auth_users (email, password_hash, full_name, notes, active)
+        VALUES (?, ?, ?, ?, ?)
 EOF
-        $email, $password_hash, $full_name, $notes
+        $email, $password_hash, $full_name, $notes, ( $is_active ? 'true' : 'false' )
     );
 
     # Fetch the user's ID
@@ -636,7 +607,8 @@ EOF
     return '';
 }
 
-# Prepare for password reset by emailing the password reset token; returns error message on failure, empty string on success
+# Prepare for password reset by emailing the password reset token; returns error
+# message on failure, empty string on success
 sub send_password_reset_token($$$)
 {
     my ( $db, $email, $password_reset_link ) = @_;

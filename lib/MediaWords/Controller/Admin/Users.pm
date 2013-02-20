@@ -119,7 +119,8 @@ sub edit : Local
             {
                 email     => $user_email,
                 full_name => $userinfo->{ full_name },
-                notes     => $userinfo->{ notes }
+                notes     => $userinfo->{ notes },
+                active    => $userinfo->{ active }
             }
         );
 
@@ -131,6 +132,7 @@ sub edit : Local
         $c->stash->{ email }     = $userinfo->{ email };
         $c->stash->{ full_name } = $userinfo->{ full_name };
         $c->stash->{ notes }     = $userinfo->{ notes };
+        $c->stash->{ active }    = $userinfo->{ active };
         $c->stash->{ c }         = $c;
         $c->stash->{ form }      = $form;
         $c->stash->{ template }  = 'users/edit.tt2';
@@ -143,19 +145,21 @@ sub edit : Local
     my $user_full_name       = $form->param_value( 'full_name' );
     my $user_notes           = $form->param_value( 'notes' );
     my $user_roles           = $form->param_array( 'roles' );
+    my $user_is_active       = $form->param_value( 'active' );
     my $user_password        = $form->param_value( 'password' );           # Might be empty
     my $user_password_repeat = $form->param_value( 'password_repeat' );    # Might be empty
 
     # Update user
     my $update_user_error_message =
-      MediaWords::DBI::Auth::update_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_password,
-        $user_password_repeat );
+      MediaWords::DBI::Auth::update_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
+        $user_password, $user_password_repeat );
     if ( $update_user_error_message )
     {
         $c->stash->{ users_id }  = $userinfo->{ users_id };
         $c->stash->{ email }     = $userinfo->{ email };
         $c->stash->{ full_name } = $userinfo->{ full_name };
         $c->stash->{ notes }     = $userinfo->{ notes };
+        $c->stash->{ active }    = $userinfo->{ active };
         $c->stash->{ c }         = $c;
         $c->stash->{ form }      = $form;
         $c->stash->{ template }  = 'users/edit.tt2';
@@ -171,67 +175,6 @@ sub edit : Local
 
     $c->response->redirect( $c->uri_for( '/admin/users/list', { status_msg => $status_msg } ) );
 
-}
-
-# activate user
-sub activate : Local
-{
-    my ( $self, $c ) = @_;
-
-    my $email = $c->request->param( 'email' );
-    if ( !$email )
-    {
-        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => "Empty email address." } ) );
-        return;
-    }
-
-    my $activate_user_error_message = MediaWords::DBI::Auth::make_user_active( $c->dbis, $email, 1 );
-    if ( $activate_user_error_message )
-    {
-        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $activate_user_error_message } ) );
-        return;
-    }
-
-    $c->response->redirect(
-        $c->uri_for(
-            '/admin/users/list',
-            { status_msg => "User with email address '$email' has been activated and " . "now is able to login again." }
-        )
-    );
-}
-
-# deactivate user
-sub deactivate : Local
-{
-    my ( $self, $c ) = @_;
-
-    my $email = $c->request->param( 'email' );
-    if ( !$email )
-    {
-        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => "Empty email address." } ) );
-        return;
-    }
-
-    if ( $email eq $c->user->username )
-    {
-        $c->response->redirect(
-            $c->uri_for( '/admin/users/list', { error_msg => "You are trying to deactivate yourself." } ) );
-        return;
-    }
-
-    my $deactivate_user_error_message = MediaWords::DBI::Auth::make_user_active( $c->dbis, $email, 0 );
-    if ( $deactivate_user_error_message )
-    {
-        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $deactivate_user_error_message } ) );
-        return;
-    }
-
-    $c->response->redirect(
-        $c->uri_for(
-            '/admin/users/list',
-            { status_msg => "User with email address '$email' has been deactivated and " . "now will be unable to login." }
-        )
-    );
 }
 
 # delete user
@@ -314,6 +257,7 @@ sub create : Local
     my $user_email                        = $form->param_value( 'email' );
     my $user_full_name                    = $form->param_value( 'full_name' );
     my $user_notes                        = $form->param_value( 'notes' );
+    my $user_is_active                    = $form->param_value( 'active' );
     my $user_roles                        = $form->param_array( 'roles' );
     my $user_password                     = '';
     my $user_password_repeat              = '';
@@ -334,8 +278,8 @@ sub create : Local
 
     # Add user
     my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_password,
-        $user_password_repeat );
+      MediaWords::DBI::Auth::add_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
+        $user_password, $user_password_repeat );
     if ( $add_user_error_message )
     {
         $c->stash->{ c }    = $c;
@@ -360,8 +304,15 @@ sub create : Local
         }
     }
 
-    # Reset the form except for the "user will choose his / her own password" field
-    $form->default_values( { password_chosen_by_user => $user_will_choose_password_himself } );
+    # Reset the form except for the roles, active / passive user and the "user will choose his /
+    # her own password" field because those might be reused for creating another user
+    $form->default_values(
+        {
+            roles                   => $user_roles,
+            active                  => $user_is_active,
+            password_chosen_by_user => $user_will_choose_password_himself
+        }
+    );
     $form->process( {} );
 
     my $status_msg = '';

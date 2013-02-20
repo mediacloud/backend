@@ -39,6 +39,12 @@ elements:
     cols: 30
     rows: 10
 
+  - type: Checkbox
+    id: active
+    name: active
+    label: User is active
+    default: 1
+
   - type: Checkboxgroup
     id: roles
     name: roles
