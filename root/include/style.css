@@ -170,3 +170,13 @@ fieldset.checkboxgroup span {
     display: block;
     clear: both;
 }
+
+/* User table */
+table#users ul.user_actions li {
+    margin-bottom: 1em;
+}
+
+/* Delete action */
+table#users ul.user_actions li.user_action_delete a {
+    color: #a00;
+}

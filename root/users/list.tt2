@@ -46,9 +46,9 @@
         </td>
 
         <td>
-            <ul>
+            <ul class="user_actions">
                 <li><a href="[% c.uri_for('/admin/users/edit') %]?email=[% user.email | uri %]">Edit</a></li>
-                <li><a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a></li>
+                <li class="user_action_delete"><a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a></li>
             </ul>
         </td>
 
