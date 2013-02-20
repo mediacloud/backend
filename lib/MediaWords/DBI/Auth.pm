@@ -130,7 +130,7 @@ EOF
     return $userinfo;
 }
 
-# Fetch a hash of basic user information, password hash and assigned roles; returns 0 on error
+# Fetch a hash of basic user information, password hash and an array of assigned roles; returns 0 on error
 sub user_auth($$)
 {
     my ( $db, $email ) = @_;
@@ -163,6 +163,9 @@ EOF
     {
         return 0;
     }
+
+    # Make an array out of list of roles
+    $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
 
     return $user;
 }
@@ -260,9 +263,9 @@ sub password_fits_requirements($$$)
 }
 
 # Change password; returns error message on failure, empty string on success
-sub _change_password($$$$)
+sub _change_password($$$$;$)
 {
-    my ( $db, $email, $password_new, $password_new_repeat ) = @_;
+    my ( $db, $email, $password_new, $password_new_repeat, $do_not_inform_via_email ) = @_;
 
     my $password_validation_message = password_fits_requirements( $email, $password_new, $password_new_repeat );
     if ( $password_validation_message )
@@ -287,21 +290,25 @@ EOF
         $password_new_hash, $email
     );
 
-    # Send email
-    my $now           = strftime( "%a, %d %b %Y %H:%M:%S %z", localtime( time() ) );
-    my $email_subject = 'Your password has been changed';
-    my $email_message = <<"EOF";
-Your Media Cloud password has been changed on $now.
+    if ( !$do_not_inform_via_email )
+    {
 
-If you made this change, no need to reply - you're all set.
+        # Send email
+        my $now           = strftime( "%a, %d %b %Y %H:%M:%S %z", localtime( time() ) );
+        my $email_subject = 'Your password has been changed';
+        my $email_message = <<"EOF";
+    Your Media Cloud password has been changed on $now.
 
-If you did not request this change, please contact Media Cloud support at
-www.mediacloud.org.
+    If you made this change, no need to reply - you're all set.
+
+    If you did not request this change, please contact Media Cloud support at
+    www.mediacloud.org.
 EOF
 
-    if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
-    {
-        return 'The password has been changed, but I was unable to send an email notifying you about the change.';
+        if ( !MediaWords::Util::Mail::send( $email, $email_subject, $email_message ) )
+        {
+            return 'The password has been changed, but I was unable to send an email notifying you about the change.';
+        }
     }
 
     # Success
@@ -484,10 +491,69 @@ EOF
     return '';
 }
 
+# Update an existing user; returns error message on error, empty string on success
+# ($password and $password_repeat are optional; if not provided, the password will not be changed)
+sub update_user($$$$$;$$)
+{
+    my ( $db, $email, $full_name, $notes, $roles, $password, $password_repeat ) = @_;
+
+    # Check if user exists
+    my $userinfo = user_info( $db, $email );
+    if ( !$userinfo )
+    {
+        return "User with email address '$email' does not exist.";
+    }
+
+    # Begin transaction
+    $db->dbh->begin_work;
+
+    # Update the user
+    $db->query(
+        <<"EOF",
+        UPDATE auth_users
+        SET full_name = ?,
+            notes = ?
+        WHERE email = ?
+EOF
+        $full_name, $notes, $email
+    );
+
+    if ( $password )
+    {
+        my $password_change_error_message = _change_password( $db, $email, $password, $password_repeat, 1 );
+        if ( $password_change_error_message )
+        {
+            $db->dbh->rollback;
+            return $password_change_error_message;
+        }
+    }
+
+    # Update roles
+    $db->query(
+        <<"EOF",
+        DELETE FROM auth_users_roles_map
+        WHERE users_id = ?
+EOF
+        $userinfo->{ users_id }
+    );
+    my $sql = 'INSERT INTO auth_users_roles_map (users_id, roles_id) VALUES (?, ?)';
+    my $sth = $db->dbh->prepare_cached( $sql );
+    for my $roles_id ( @{ $roles } )
+    {
+        $sth->execute( $userinfo->{ users_id }, $roles_id );
+    }
+    $sth->finish;
+
+    # End transaction
+    $db->dbh->commit;
+
+    return '';
+}
+
 # Add new user; returns error message on error, empty string on success
 sub add_user($$$$$$$)
 {
-    my ( $db, $email, $password, $password_repeat, $full_name, $notes, $roles ) = @_;
+    my ( $db, $email, $full_name, $notes, $roles, $password, $password_repeat ) = @_;
 
     my $password_validation_message = password_fits_requirements( $email, $password, $password_repeat );
     if ( $password_validation_message )
@@ -510,7 +576,7 @@ sub add_user($$$$$$$)
     }
 
     # Begin transaction
-    $db->dbh->{ AutoCommit } = 0;
+    $db->dbh->begin_work;
 
     # Create the user
     $db->query(
@@ -525,6 +591,7 @@ EOF
     $userinfo = user_info( $db, $email );
     if ( !$userinfo )
     {
+        $db->dbh->rollback;
         return "I've attempted to create the user but it doesn't exist.";
     }
     my $users_id = $userinfo->{ users_id };
@@ -539,7 +606,7 @@ EOF
     $sth->finish;
 
     # End transaction
-    $db->dbh->{ AutoCommit } = 1;
+    $db->dbh->commit;
 
     # Success
     return '';

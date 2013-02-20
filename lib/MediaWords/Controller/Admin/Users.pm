@@ -53,6 +53,126 @@ sub delete : Local
     $c->stash->{ template }  = 'users/delete.tt2';
 }
 
+# show the user edit form
+sub edit : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $form = $c->create_form(
+        {
+            load_config_file => $c->path_to() . '/root/forms/users/edit.yml',
+            method           => 'POST',
+            action           => $c->uri_for( '/admin/users/edit' )
+        }
+    );
+
+    my $user_email = $c->request->param( 'email' );
+    if ( !$user_email )
+    {
+        $c->stash( error_msg => "Empty email." );
+        $c->stash->{ c }        = $c;
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'users/edit.tt2';
+        return;
+    }
+
+    # Fetch information about the user and roles
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $user_email );
+    my $roles = MediaWords::DBI::Auth::user_auth( $c->dbis, $user_email );
+    unless ( $userinfo and $roles )
+    {
+        die "Unable to find user '$user_email' in the database.";
+    }
+
+    my %user_roles = map { $_ => 1 } @{ $roles->{ roles } };
+
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid() )
+    {
+
+        # Fetch list of available roles
+        my $available_roles = MediaWords::DBI::Auth::all_roles( $c->dbis );
+        my @roles_options;
+        for my $role ( @{ $available_roles } )
+        {
+            my $html_role_attributes = {};
+            if ( exists( $user_roles{ $role->{ role } } ) )
+            {
+                $html_role_attributes = { checked => 'checked' };
+            }
+
+            push(
+                @roles_options,
+                {
+                    value      => $role->{ roles_id },
+                    label      => $role->{ role } . ': ' . $role->{ description },
+                    attributes => $html_role_attributes
+                }
+            );
+        }
+
+        my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
+        $el_roles->options( \@roles_options );
+
+        $form->default_values(
+            {
+                email     => $user_email,
+                full_name => $userinfo->{ full_name },
+                notes     => $userinfo->{ notes }
+            }
+        );
+
+        # Re-process the form
+        $form->process( $c->request );
+
+        # Show the form
+        $c->stash->{ users_id }  = $userinfo->{ users_id };
+        $c->stash->{ email }     = $userinfo->{ email };
+        $c->stash->{ full_name } = $userinfo->{ full_name };
+        $c->stash->{ notes }     = $userinfo->{ notes };
+        $c->stash->{ c }         = $c;
+        $c->stash->{ form }      = $form;
+        $c->stash->{ template }  = 'users/edit.tt2';
+
+        return;
+    }
+
+    # Form has been submitted
+
+    my $user_full_name       = $form->param_value( 'full_name' );
+    my $user_notes           = $form->param_value( 'notes' );
+    my $user_roles           = $form->param_array( 'roles' );
+    my $user_password        = $form->param_value( 'password' );           # Might be empty
+    my $user_password_repeat = $form->param_value( 'password_repeat' );    # Might be empty
+
+    # Update user
+    my $update_user_error_message =
+      MediaWords::DBI::Auth::update_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_password,
+        $user_password_repeat );
+    if ( $update_user_error_message )
+    {
+        $c->stash->{ users_id }  = $userinfo->{ users_id };
+        $c->stash->{ email }     = $userinfo->{ email };
+        $c->stash->{ full_name } = $userinfo->{ full_name };
+        $c->stash->{ notes }     = $userinfo->{ notes };
+        $c->stash->{ c }         = $c;
+        $c->stash->{ form }      = $form;
+        $c->stash->{ template }  = 'users/edit.tt2';
+        $c->stash( error_msg => $update_user_error_message );
+        return;
+    }
+
+    my $status_msg = "User information for user '$user_email' has been saved.";
+    if ( $user_password )
+    {
+        $status_msg .= " Additionaly, the user's password has been changed.";
+    }
+
+    $c->response->redirect( $c->uri_for( '/admin/users/list', { status_msg => $status_msg } ) );
+
+}
+
 # activate user
 sub activate : Local
 {
@@ -189,6 +309,8 @@ sub create : Local
         return;
     }
 
+    # Form has been submitted
+
     my $user_email                        = $form->param_value( 'email' );
     my $user_full_name                    = $form->param_value( 'full_name' );
     my $user_notes                        = $form->param_value( 'notes' );
@@ -212,8 +334,8 @@ sub create : Local
 
     # Add user
     my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user( $c->dbis, $user_email, $user_password, $user_password_repeat, $user_full_name,
-        $user_notes, $user_roles );
+      MediaWords::DBI::Auth::add_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_password,
+        $user_password_repeat );
     if ( $add_user_error_message )
     {
         $c->stash->{ c }    = $c;

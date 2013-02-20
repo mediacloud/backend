@@ -48,7 +48,7 @@ sub find_user
             # database each and every time the user tries to access a page (via the
             # from_session() subroutine). This is done because a list of roles might
             # change while the user is still logged in.
-            'roles' => [ split( ' ', $user->{ roles } ) ]
+            'roles' => $user->{ roles }
         );
     }
     else
