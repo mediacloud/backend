@@ -261,6 +261,34 @@ sub setup_acl()
 
 setup_acl();
 
+# Checks if current user can visit a specified action
+# (similar to can_visit() from Catalyst::ActionRole::ACL)
+sub acl_user_can_visit
+{
+    my ( $self, $path ) = @_;
+
+    my $action = $self->dispatcher->get_action_by_path( $path );
+
+    if (    Scalar::Util::blessed( $action )
+        and $action->name ne "access_denied"
+        and $action->name ne "ACL error rethrower" )
+    {
+        eval { $self->_acl_engine->check_action_rules( $self, $action ) };
+
+        if ( my $err = $@ )
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    # Fallback
+    return 0;
+}
+
 sub uri_for
 {
     my ( $self, $path, $args ) = @_;
