@@ -20,6 +20,10 @@ elements:
       class: email required
       placeholder: jdoe@cyber.law.harvard.edu
 
+  - type: reCAPTCHA
+    label: CAPTCHA
+    name: recaptcha
+
   - type: Submit
     name: submit
     value: Send password reset link

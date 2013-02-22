@@ -99,6 +99,12 @@ sub forgot : Local
         }
     );
 
+    # Set reCAPTCHA API keys
+    my $config = MediaWords::Util::Config::get_config;
+    my $el_recaptcha = $form->get_element( { name => 'recaptcha', type => 'reCAPTCHA' } );
+    $el_recaptcha->public_key( $config->{ mediawords }->{ recaptcha_public_key } );
+    $el_recaptcha->private_key( $config->{ mediawords }->{ recaptcha_private_key } );
+
     $form->process( $c->request );
 
     if ( !$form->submitted_and_valid() )

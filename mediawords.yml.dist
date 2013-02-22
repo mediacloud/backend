@@ -108,6 +108,14 @@ mongodb_gridfs:
     # NOTE: may leak DB passwords and is not to be use in production
     #always_show_stack_traces: "yes"
 
+    # reCAPTCHA public key (used to prevent brute-force in the password reset form)
+    # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
+    #recaptcha_public_key: "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_"
+
+    # reCAPTCHA private key (used to prevent brute-force in the password reset form)
+    # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
+    #recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
+
     #uncomment to make the public homepage the default start page    
     #default_home_page: "dashboard/view"
     
