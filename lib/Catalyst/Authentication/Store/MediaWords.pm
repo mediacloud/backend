@@ -34,6 +34,14 @@ sub find_user
 
     my $username = $userinfo->{ 'username' } || '';
 
+    # Check if user has tried to log in unsuccessfully before and now is trying
+    # again too fast
+    if ( MediaWords::DBI::Auth::user_is_trying_to_login_too_soon( $c->dbis, $username ) )
+    {
+        print STDERR "User '$username' is trying to log in too soon after the last unsuccessful attempt.\n";
+        return 0;
+    }
+
     # Check if user exists and is active; if so, fetch user info,
     # password hash and a list of roles
     my $user = MediaWords::DBI::Auth::user_auth( $c->dbis, $username );

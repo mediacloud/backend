@@ -65,22 +65,30 @@ sub index : Path : Args(0)
     }
 
     # Attempt to log the user in
-    if ( !$c->authenticate( { username => $email, password => $password } ) )
+    if ( $c->authenticate( { username => $email, password => $password } ) )
     {
+
+        # Run post-successful login tasks
+        MediaWords::DBI::Auth::post_successful_login( $c->dbis, $email );
+
+        # Redirect to default homepage
+        my $config            = MediaWords::Util::Config::get_config;
+        my $default_home_page = $config->{ mediawords }->{ default_home_page };
+        $c->response->redirect( $c->uri_for( $default_home_page ) );
+    }
+    else
+    {
+
+        # Run post-unsuccessful login tasks
+        MediaWords::DBI::Auth::post_unsuccessful_login( $c->dbis, $email );
+
+        # Show form again
         $c->stash->{ form } = $form;
         $c->stash->{ c }    = $c;
         $c->stash( template  => 'auth/login.tt2' );
         $c->stash( error_msg => "Incorrect email address and / or password, or your account is not active." );
-        return;
     }
 
-    # Run post-successful login tasks
-    MediaWords::DBI::Auth::post_successful_login( $c->dbis, $email );
-
-    # If successful, redirect to default homepage
-    my $config            = MediaWords::Util::Config::get_config;
-    my $default_home_page = $config->{ mediawords }->{ default_home_page };
-    $c->response->redirect( $c->uri_for( $default_home_page ) );
 }
 
 # "Forgot password" form

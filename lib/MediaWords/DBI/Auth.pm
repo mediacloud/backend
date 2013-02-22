@@ -9,6 +9,9 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
+# Post-unsuccessful login delay (in seconds)
+use constant POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
+
 use Digest::SHA qw/sha256_hex/;
 use Crypt::SaltedHash;
 use MediaWords::Util::Mail;
@@ -135,6 +138,37 @@ EOF
     return $userinfo;
 }
 
+# Check if user is trying to log in too soon after last unsuccessful attempt to do that
+# Returns 1 if too soon, 0 otherwise
+sub user_is_trying_to_login_too_soon($$)
+{
+    my ( $db, $email ) = @_;
+
+    my $interval = POST_UNSUCCESSFUL_LOGIN_DELAY . ' seconds';
+
+    my $user = $db->query(
+        <<"EOF",
+        SELECT users_id,
+               email
+        FROM auth_users
+        WHERE email = ?
+              AND last_unsuccessful_login_attempt >= LOCALTIMESTAMP - INTERVAL '$interval'
+        ORDER BY users_id
+        LIMIT 1
+EOF
+        $email
+    )->hash;
+
+    if ( ref( $user ) eq 'HASH' and $user->{ users_id } )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # Fetch a hash of basic user information, password hash and an array of assigned roles; returns 0 on error
 sub user_auth($$)
 {
@@ -190,6 +224,35 @@ sub post_successful_login($$)
 EOF
         $email
     );
+
+    return 1;
+}
+
+# Post-unsuccessful login database tasks
+sub post_unsuccessful_login($$)
+{
+    my ( $db, $email ) = @_;
+
+    say STDERR "Login failed for $email, will delay any successive login attempt for " . POST_UNSUCCESSFUL_LOGIN_DELAY .
+      " seconds.";
+
+    # Set the unsuccessful login timestamp
+    # (TIMESTAMP 'now' returns "current transaction's start time", so using LOCALTIMESTAMP instead)
+    $db->query(
+        <<"EOF",
+        UPDATE auth_users
+        SET last_unsuccessful_login_attempt = LOCALTIMESTAMP
+        WHERE email = ?
+EOF
+        $email
+    );
+
+    # It might make sense to sleep() here for the duration of POST_UNSUCCESSFUL_LOGIN_DELAY seconds
+    # to prevent legitimate users from trying to log in too fast.
+    # However, when being actually brute-forced through multiple HTTP connections, this approach might
+    # end up creating a lot of processes that would sleep() and take up memory.
+    # So, let's return the error page ASAP and hope that a legitimate user won't be able to reenter
+    # his / her password before the POST_UNSUCCESSFUL_LOGIN_DELAY amount of seconds pass.
 
     return 1;
 }
@@ -690,7 +753,7 @@ EOF
 
     $password_reset_link =
       $password_reset_link . '?email=' . uri_escape( $email ) . '&token=' . uri_escape( $password_reset_token );
-    print STDERR "Full password reset link: $password_reset_link\n";
+    say STDERR "Full password reset link: $password_reset_link";
 
     # Send email
     my $email_subject = 'Password reset link';
