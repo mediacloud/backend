@@ -17,13 +17,6 @@ use URI::Escape;
 
 use Data::Dumper;
 
-# Generate random alphanumeric string (password or token) of the specified length
-sub random_string($)
-{
-    my ( $num_bytes ) = @_;
-    return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ rand( 10 + 26 * 2 ) ], 1 .. $num_bytes;
-}
-
 # Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
 sub _validate_hash($$)
 {
@@ -47,6 +40,13 @@ sub _validate_hash($$)
     {
         return 0;
     }
+}
+
+# Generate random alphanumeric string (password or token) of the specified length
+sub random_string($)
+{
+    my ( $num_bytes ) = @_;
+    return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ rand( 10 + 26 * 2 ) ], 1 .. $num_bytes;
 }
 
 # Hash a password / password token with Crypt::SaltedHash; return hash on success, empty string on error
@@ -460,66 +460,6 @@ EOF
     return $users;
 }
 
-# Update an existing user; returns error message on error, empty string on success
-# ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user($$$$$$;$$)
-{
-    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
-
-    # Check if user exists
-    my $userinfo = user_info( $db, $email );
-    if ( !$userinfo )
-    {
-        return "User with email address '$email' does not exist.";
-    }
-
-    # Begin transaction
-    $db->dbh->begin_work;
-
-    # Update the user
-    $db->query(
-        <<"EOF",
-        UPDATE auth_users
-        SET full_name = ?,
-            notes = ?,
-            active = ?
-        WHERE email = ?
-EOF
-        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
-    );
-
-    if ( $password )
-    {
-        my $password_change_error_message = _change_password( $db, $email, $password, $password_repeat, 1 );
-        if ( $password_change_error_message )
-        {
-            $db->dbh->rollback;
-            return $password_change_error_message;
-        }
-    }
-
-    # Update roles
-    $db->query(
-        <<"EOF",
-        DELETE FROM auth_users_roles_map
-        WHERE users_id = ?
-EOF
-        $userinfo->{ users_id }
-    );
-    my $sql = 'INSERT INTO auth_users_roles_map (users_id, roles_id) VALUES (?, ?)';
-    my $sth = $db->dbh->prepare_cached( $sql );
-    for my $roles_id ( @{ $roles } )
-    {
-        $sth->execute( $userinfo->{ users_id }, $roles_id );
-    }
-    $sth->finish;
-
-    # End transaction
-    $db->dbh->commit;
-
-    return '';
-}
-
 # Add new user; returns error message on error, empty string on success
 sub add_user($$$$$$$$)
 {
@@ -582,6 +522,66 @@ EOF
     $db->dbh->commit;
 
     # Success
+    return '';
+}
+
+# Update an existing user; returns error message on error, empty string on success
+# ($password and $password_repeat are optional; if not provided, the password will not be changed)
+sub update_user($$$$$$;$$)
+{
+    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
+
+    # Check if user exists
+    my $userinfo = user_info( $db, $email );
+    if ( !$userinfo )
+    {
+        return "User with email address '$email' does not exist.";
+    }
+
+    # Begin transaction
+    $db->dbh->begin_work;
+
+    # Update the user
+    $db->query(
+        <<"EOF",
+        UPDATE auth_users
+        SET full_name = ?,
+            notes = ?,
+            active = ?
+        WHERE email = ?
+EOF
+        $full_name, $notes, ( $is_active ? 'true' : 'false' ), $email
+    );
+
+    if ( $password )
+    {
+        my $password_change_error_message = _change_password( $db, $email, $password, $password_repeat, 1 );
+        if ( $password_change_error_message )
+        {
+            $db->dbh->rollback;
+            return $password_change_error_message;
+        }
+    }
+
+    # Update roles
+    $db->query(
+        <<"EOF",
+        DELETE FROM auth_users_roles_map
+        WHERE users_id = ?
+EOF
+        $userinfo->{ users_id }
+    );
+    my $sql = 'INSERT INTO auth_users_roles_map (users_id, roles_id) VALUES (?, ?)';
+    my $sth = $db->dbh->prepare_cached( $sql );
+    for my $roles_id ( @{ $roles } )
+    {
+        $sth->execute( $userinfo->{ users_id }, $roles_id );
+    }
+    $sth->finish;
+
+    # End transaction
+    $db->dbh->commit;
+
     return '';
 }
 
