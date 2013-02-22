@@ -29,9 +29,13 @@
             $("fieldset#login form").validate();
         });
 
-        // Focus email field on load
+        // Focus email or password field on load
         $(function() {
-            $("#email").focus();
+            if ($("#email").val()) {
+                $("#password").focus();
+            } else {
+                $("#email").focus();
+            }
         });
 
     --></script>

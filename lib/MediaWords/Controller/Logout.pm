@@ -1,6 +1,7 @@
 package MediaWords::Controller::Logout;
 use Moose;
 use namespace::autoclean;
+use URI::Escape;
 
 BEGIN { extends 'Catalyst::Controller'; }
 
@@ -26,11 +27,13 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
+    my $email = $c->user->username;
+
     # Clear the user's state
     $c->logout;
 
     # Send the user to the starting point
-    $c->response->redirect( $c->uri_for( '/' ) );
+    $c->response->redirect( $c->uri_for( '/login' ) . '?email=' . uri_escape( $email ) );
 }
 
 =head1 AUTHOR

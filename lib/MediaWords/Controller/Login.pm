@@ -33,6 +33,9 @@ sub index : Path : Args(0)
             load_config_file => $c->path_to() . '/root/forms/auth/login.yml',
             method           => 'POST',
             action           => $c->uri_for( '/login' ),
+            default_values   => {
+                'email' => $c->request->param( 'email' )    # in case 'email' was passed as a parameter from '/logout'
+            }
         }
     );
 
@@ -46,7 +49,7 @@ sub index : Path : Args(0)
         return;
     }
 
-    my $email    = $form->param_value( 'email' );
+    my $email = $form->param_value( 'email' ) || $c->request->param( 'email' );
     my $password = $form->param_value( 'password' );
 
     if ( !( $email && $password ) )
