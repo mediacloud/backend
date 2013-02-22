@@ -74,12 +74,192 @@ __PACKAGE__->config(
 # Start the application
 __PACKAGE__->setup;
 
-# Access rules
-# https://metacpan.org/module/Catalyst::Plugin::Authorization::ACL
-__PACKAGE__->deny_access_unless_any( "/admin", [ qw/admin/ ] );
-__PACKAGE__->allow_access( "/dashboard" );
-__PACKAGE__->allow_access( "/login" );
-__PACKAGE__->allow_access( "/logout" );
+# Access rules; created on the "disallow everything but explicitly allow this" basis
+# (https://metacpan.org/module/Catalyst::Plugin::Authorization::ACL)
+sub setup_acl()
+{
+
+    # Admin read-only interface
+    my @acl_admin_readonly = qw|
+      /admin/api/stories/all_processed
+      /admin/api/stories/all_processed_GET
+      /admin/api/stories/list
+      /admin/api/stories/retag
+      /admin/api/stories/stories_query
+      /admin/api/stories/stories_query_GET
+      /admin/api/stories/subset
+      /admin/api/stories/subset_GET
+      /admin/api/stories/subset_processed
+      /admin/api/stories/subset_processed_GET
+      /admin/api/stories/tag
+      /admin/api/stories/view
+      /admin/clusters/index
+      /admin/clusters/view
+      /admin/clusters/view_time_slice_map
+      /admin/dashboards/list
+      /admin/dashboards/list_topics
+      /admin/downloads/list
+      /admin/downloads/view
+      /admin/downloads/view_extracted
+      /admin/feeds/list
+      /admin/media/do_eval_rss_full_text
+      /admin/media/do_find_likely_full_text_rss
+      /admin/media/eval_rss_full_text
+      /admin/media/find_likely_full_text_rss
+      /admin/media/list
+      /admin/media/media_tags_search_json
+      /admin/media/search
+      /admin/mediasets/list
+      /admin/monitor/crawler_google_data_table
+      /admin/monitor/index
+      /admin/monitor/view
+      /admin/queries/compare
+      /admin/queries/index
+      /admin/queries/list
+      /admin/queries/sentences
+      /admin/queries/stories
+      /admin/queries/terms
+      /admin/queries/view
+      /admin/queries/view_media
+      /admin/stats/index
+      /admin/stats/media_tag_counts
+      /admin/stories/list
+      /admin/stories/retag
+      /admin/stories/stories_query_json
+      /admin/stories/tag
+      /admin/stories/view
+      /admin/topics/index
+      /admin/topics/list
+      /admin/users/list
+      /admin/visualize
+      |;
+
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/admin-readonly/ ] );
+    }
+
+    # query-create role; can do everything admin-readonly can + create queries, dashboards,
+    # dashboard topics, media sets
+    my @acl_query_create = qw|
+      /admin/clusters/create
+      /admin/clusters/create_cluster_map
+      /admin/clusters/create_polar_map
+      /admin/dashboards/create
+      /admin/dashboards/create_topic
+      /admin/mediasets/create
+      /admin/mediasets/edit_cluster_run
+      /admin/mediasets/edit_cluster_run_do
+      /admin/queries/create
+      /admin/topics/create_do
+      |;
+
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
+    }
+    foreach my $path ( @acl_query_create )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
+    }
+
+    # media-edit role; can do everything admin-readonly can + add / edit media / feeds
+    my @acl_media_edit = qw|
+      /admin/downloads/disable_autoexclude
+      /admin/downloads/disable_translation
+      /admin/downloads/enable_autoexclude
+      /admin/downloads/enable_translation
+      /admin/downloads/mextract
+      /admin/downloads/mextract_do
+      /admin/downloads/mextract_random
+      /admin/downloads/redownload
+      /admin/downloads/useDeveloperUI
+      /admin/downloads/useTrainerUI
+      /admin/extractor_stats/index
+      /admin/extractor_stats/list
+      /admin/feeds/batch_create
+      /admin/feeds/batch_create_do
+      /admin/feeds/create
+      /admin/feeds/create_do
+      /admin/feeds/delete
+      /admin/feeds/edit
+      /admin/feeds/edit_do
+      /admin/feeds/edit_tags
+      /admin/feeds/edit_tags_do
+      /admin/feeds/scrape
+      /admin/feeds/scrape_import
+      /admin/media/create_batch
+      /admin/media/create_do
+      /admin/media/delete
+      /admin/media/delete_feeds
+      /admin/media/delete_unmoderated_feed
+      /admin/media/edit
+      /admin/media/edit_do
+      /admin/media/edit_tags
+      /admin/media/edit_tags_do
+      /admin/media/keep_single_feed
+      /admin/media/merge
+      /admin/media/moderate
+      /admin/mediasets/create
+      /admin/mediasets/edit_cluster_run
+      /admin/mediasets/edit_cluster_run_do
+      |;
+
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit/ ] );
+    }
+    foreach my $path ( @acl_media_edit )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit/ ] );
+    }
+
+    # stories-edit role; can do everything admin-readonly can + add / edit stories
+    my @acl_stories_edit = qw|
+      /admin/api/stories/add
+      /admin/api/stories/add_do
+      /admin/api/stories/delete
+      /admin/api/stories/subset_PUT
+      /admin/stories/add
+      /admin/stories/add_do
+      /admin/stories/delete
+      |;
+
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit/ ] );
+    }
+    foreach my $path ( @acl_stories_edit )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit/ ] );
+    }
+
+    # ---
+
+    # All roles can access their profile
+    __PACKAGE__->allow_access_if_any(
+        "/admin/profile",
+        [
+            qw/
+              admin
+              admin-readonly
+              query-create
+              media-edit
+              stories-edit
+              /
+        ]
+    );
+
+    # Blanket rule for the rest of the administration controllers
+    __PACKAGE__->deny_access_unless_any( "/admin", [ qw/admin/ ] );
+
+    # Public interface
+    __PACKAGE__->allow_access( "/dashboard" );
+    __PACKAGE__->allow_access( "/login" );
+    __PACKAGE__->allow_access( "/logout" );
+}
+
+setup_acl();
 
 sub uri_for
 {
