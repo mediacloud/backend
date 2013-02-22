@@ -107,7 +107,9 @@ sub forgot : Local
     }
 
     my $email = $form->param_value( 'email' );
-    my $error_message = MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $email, $c->uri_for( '/login/reset' ) );
+    my $error_message =
+      MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $email,
+        $c->uri_for( '/login/reset' ) );
     if ( $error_message )
     {
         $c->stash->{ c }    = $c;
@@ -183,8 +185,8 @@ sub reset : Local
     my $password_new_repeat = $form->param_value( 'password_new_repeat' );
 
     my $error_message =
-      MediaWords::DBI::Auth::change_password_via_token( $c->dbis, $email, $password_reset_token, $password_new,
-        $password_new_repeat );
+      MediaWords::DBI::Auth::change_password_via_token_or_return_error_message( $c->dbis, $email, $password_reset_token,
+        $password_new, $password_new_repeat );
     if ( $error_message ne '' )
     {
 

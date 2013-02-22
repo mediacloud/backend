@@ -18,7 +18,7 @@ use URI::Escape;
 use Data::Dumper;
 
 # Validate a password / password token with Crypt::SaltedHash; return 1 on success, 0 on error
-sub _validate_hash($$)
+sub _password_hash_is_valid($$)
 {
     my ( $secret_hash, $secret ) = @_;
 
@@ -49,8 +49,9 @@ sub random_string($)
     return join '', map +( 0 .. 9, 'a' .. 'z', 'A' .. 'Z' )[ rand( 10 + 26 * 2 ) ], 1 .. $num_bytes;
 }
 
-# Hash a password / password token with Crypt::SaltedHash; return hash on success, empty string on error
-sub generate_hash($)
+# Hash a secure hash (password / password reset token) with Crypt::SaltedHash;
+# return hash on success, empty string on error
+sub generate_secure_hash($)
 {
     my ( $secret ) = @_;
 
@@ -68,7 +69,7 @@ sub generate_hash($)
     if ( !$hash_type )
     {
         say STDERR "Unable to determine the password hashing algorithm";
-        return 0;
+        return '';
     }
 
     # Hash the password
@@ -78,18 +79,19 @@ sub generate_hash($)
     if ( !$secret_hash )
     {
         die "Unable to hash a secret.";
+        return '';
     }
-    if ( !_validate_hash( $secret_hash, $secret ) )
+    if ( !_password_hash_is_valid( $secret_hash, $secret ) )
     {
         say STDERR "Secret hash has been generated, but it does not validate.";
-        return 0;
+        return '';
     }
 
     return $secret_hash;
 }
 
 # Fetch a list of available user roles
-sub all_roles($)
+sub all_user_roles($)
 {
     my ( $db ) = @_;
 
@@ -223,7 +225,7 @@ EOF
 
     $password_reset_token_hash = $password_reset_token_hash->{ password_reset_token_hash };
 
-    if ( _validate_hash( $password_reset_token_hash, $password_reset_token ) )
+    if ( _password_hash_is_valid( $password_reset_token_hash, $password_reset_token ) )
     {
         return 1;
     }
@@ -234,7 +236,7 @@ EOF
 }
 
 # Check if password fits the requirements; returns empty string on valid password, error message on invalid password
-sub password_fits_requirements($$$)
+sub validate_password_requirements_or_return_error_message($$$)
 {
     my ( $email, $password, $password_repeat ) = @_;
 
@@ -267,18 +269,19 @@ sub password_fits_requirements($$$)
 }
 
 # Change password; returns error message on failure, empty string on success
-sub _change_password($$$$;$)
+sub _change_password_or_return_error_message($$$$;$)
 {
     my ( $db, $email, $password_new, $password_new_repeat, $do_not_inform_via_email ) = @_;
 
-    my $password_validation_message = password_fits_requirements( $email, $password_new, $password_new_repeat );
+    my $password_validation_message =
+      validate_password_requirements_or_return_error_message( $email, $password_new, $password_new_repeat );
     if ( $password_validation_message )
     {
         return $password_validation_message;
     }
 
     # Hash + validate the password
-    my $password_new_hash = generate_hash( $password_new );
+    my $password_new_hash = generate_secure_hash( $password_new );
     if ( !$password_new_hash )
     {
         return 'Unable to hash a new password.';
@@ -320,7 +323,7 @@ EOF
 }
 
 # Change password by entering old password; returns error message on failure, empty string on success
-sub change_password_via_profile($$$$$)
+sub change_password_via_profile_or_return_error_message($$$$$)
 {
     my ( $db, $email, $password_old, $password_new, $password_new_repeat ) = @_;
 
@@ -356,17 +359,17 @@ EOF
     $db_password_old = $db_password_old->{ password_hash };
 
     # Validate the password
-    if ( !_validate_hash( $db_password_old, $password_old ) )
+    if ( !_password_hash_is_valid( $db_password_old, $password_old ) )
     {
         return 'Old password is incorrect.';
     }
 
     # Execute the change
-    return _change_password( $db, $email, $password_new, $password_new_repeat );
+    return _change_password_or_return_error_message( $db, $email, $password_new, $password_new_repeat );
 }
 
 # Change password with a password token sent by email; returns error message on failure, empty string on success
-sub change_password_via_token($$$$$)
+sub change_password_via_token_or_return_error_message($$$$$)
 {
     my ( $db, $email, $password_reset_token, $password_new, $password_new_repeat ) = @_;
 
@@ -382,7 +385,7 @@ sub change_password_via_token($$$$$)
     }
 
     # Execute the change
-    my $error_message = _change_password( $db, $email, $password_new, $password_new_repeat );
+    my $error_message = _change_password_or_return_error_message( $db, $email, $password_new, $password_new_repeat );
     if ( $error_message )
     {
         return $error_message;
@@ -395,7 +398,7 @@ sub change_password_via_token($$$$$)
 }
 
 # Fetch and return a list of users and their roles; returns an arrayref
-sub list_of_users($)
+sub all_users($)
 {
     my ( $db ) = @_;
 
@@ -411,7 +414,7 @@ sub list_of_users($)
             auth_users.active,
 
             -- Role from a list of all roles
-            all_roles.role,
+            all_user_roles.role,
 
             -- Boolean denoting whether the user has that particular role
             ARRAY(     
@@ -422,10 +425,10 @@ sub list_of_users($)
                     INNER JOIN auth_roles AS r_auth_roles
                         ON r_auth_users_roles_map.roles_id = r_auth_roles.roles_id
                 WHERE auth_users.users_id = r_auth_users.users_id
-            ) @> ARRAY[all_roles.role] AS user_has_that_role
+            ) @> ARRAY[all_user_roles.role] AS user_has_that_role
 
         FROM auth_users,
-             (SELECT role FROM auth_roles ORDER BY roles_id) AS all_roles
+             (SELECT role FROM auth_roles ORDER BY roles_id) AS all_user_roles
 
         ORDER BY auth_users.users_id
 EOF
@@ -461,14 +464,15 @@ EOF
 }
 
 # Add new user; returns error message on error, empty string on success
-sub add_user($$$$$$$$)
+sub add_user_or_return_error_message($$$$$$$$)
 {
     my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
 
     say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, roles: " . Dumper( $roles ) .
       ", is active: $is_active";
 
-    my $password_validation_message = password_fits_requirements( $email, $password, $password_repeat );
+    my $password_validation_message =
+      validate_password_requirements_or_return_error_message( $email, $password, $password_repeat );
     if ( $password_validation_message )
     {
         return $password_validation_message;
@@ -482,7 +486,7 @@ sub add_user($$$$$$$$)
     }
 
     # Hash + validate the password
-    my $password_hash = generate_hash( $password );
+    my $password_hash = generate_secure_hash( $password );
     if ( !$password_hash )
     {
         return 'Unable to hash a new password.';
@@ -527,7 +531,7 @@ EOF
 
 # Update an existing user; returns error message on error, empty string on success
 # ($password and $password_repeat are optional; if not provided, the password will not be changed)
-sub update_user($$$$$$;$$)
+sub update_user_or_return_error_message($$$$$$;$$)
 {
     my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
 
@@ -555,7 +559,8 @@ EOF
 
     if ( $password )
     {
-        my $password_change_error_message = _change_password( $db, $email, $password, $password_repeat, 1 );
+        my $password_change_error_message =
+          _change_password_or_return_error_message( $db, $email, $password, $password_repeat, 1 );
         if ( $password_change_error_message )
         {
             $db->dbh->rollback;
@@ -586,7 +591,7 @@ EOF
 }
 
 # Delete user; returns error message on error, empty string on success
-sub delete_user($$)
+sub delete_user_or_return_error_message($$)
 {
     my ( $db, $email ) = @_;
 
@@ -611,7 +616,7 @@ EOF
 
 # Prepare for password reset by emailing the password reset token; returns error
 # message on failure, empty string on success
-sub send_password_reset_token($$$)
+sub send_password_reset_token_or_return_error_message($$$)
 {
     my ( $db, $email, $password_reset_link ) = @_;
 
@@ -659,7 +664,7 @@ EOF
     }
 
     # Hash + validate the password reset token
-    my $password_reset_token_hash = generate_hash( $password_reset_token );
+    my $password_reset_token_hash = generate_secure_hash( $password_reset_token );
     if ( !$password_reset_token_hash )
     {
         return 'Unable to hash a password reset token.';

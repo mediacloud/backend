@@ -18,10 +18,10 @@ sub list : Local
     my ( $self, $c ) = @_;
 
     # Fetch list of users and their roles
-    my $users = MediaWords::DBI::Auth::list_of_users( $c->dbis );
+    my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
 
     # Fetch role descriptions
-    my $roles = MediaWords::DBI::Auth::all_roles( $c->dbis );
+    my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
     my %role_descriptions = map { $_->{ role } => $_->{ description } } @{ $roles };
 
     $c->stash->{ users }             = $users;
@@ -71,7 +71,7 @@ sub delete_do : Local
     }
 
     # Delete user
-    my $delete_user_error_message = MediaWords::DBI::Auth::delete_user( $c->dbis, $email );
+    my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $c->dbis, $email );
     if ( $delete_user_error_message )
     {
         $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => $delete_user_error_message } ) );
@@ -104,7 +104,7 @@ sub create : Local
     );
 
     # Set list of roles
-    my $available_roles = MediaWords::DBI::Auth::all_roles( $c->dbis );
+    my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
     my @roles_options;
     for my $role ( @{ $available_roles } )
     {
@@ -159,8 +159,8 @@ sub create : Local
 
     # Add user
     my $add_user_error_message =
-      MediaWords::DBI::Auth::add_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
-        $user_password, $user_password_repeat );
+      MediaWords::DBI::Auth::add_user_or_return_error_message( $c->dbis, $user_email, $user_full_name, $user_notes,
+        $user_roles, $user_is_active, $user_password, $user_password_repeat );
     if ( $add_user_error_message )
     {
         $c->stash->{ c }    = $c;
@@ -174,7 +174,8 @@ sub create : Local
     if ( $user_will_choose_password_himself )
     {
         my $reset_password_error_message =
-          MediaWords::DBI::Auth::send_password_reset_token( $c->dbis, $user_email, $c->uri_for( '/login/reset' ) );
+          MediaWords::DBI::Auth::send_password_reset_token_or_return_error_message( $c->dbis, $user_email,
+            $c->uri_for( '/login/reset' ) );
         if ( $reset_password_error_message )
         {
             $c->stash->{ c }    = $c;
@@ -256,7 +257,7 @@ sub edit : Local
     {
 
         # Fetch list of available roles
-        my $available_roles = MediaWords::DBI::Auth::all_roles( $c->dbis );
+        my $available_roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
         my @roles_options;
         for my $role ( @{ $available_roles } )
         {
@@ -330,8 +331,8 @@ sub edit : Local
 
     # Update user
     my $update_user_error_message =
-      MediaWords::DBI::Auth::update_user( $c->dbis, $user_email, $user_full_name, $user_notes, $user_roles, $user_is_active,
-        $user_password, $user_password_repeat );
+      MediaWords::DBI::Auth::update_user_or_return_error_message( $c->dbis, $user_email, $user_full_name, $user_notes,
+        $user_roles, $user_is_active, $user_password, $user_password_repeat );
     if ( $update_user_error_message )
     {
         $c->stash->{ users_id }  = $userinfo->{ users_id };
