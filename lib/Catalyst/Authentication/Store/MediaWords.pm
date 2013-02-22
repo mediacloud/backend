@@ -34,6 +34,13 @@ sub find_user
 
     my $username = $userinfo->{ 'username' } || '';
 
+    # Check if user is trying to authenticate too fast
+    if ( MediaWords::DBI::Auth::user_is_trying_to_authenticate_too_fast( $c->dbis, $username ) )
+    {
+        say STDERR "User with email '" . $username . "' is trying to authenticate too fast.";
+        return 0;
+    }
+
     # Check if user exists and is active; if so, fetch user info,
     # password hash and a list of roles
     my $user = MediaWords::DBI::Auth::user_auth( $c->dbis, $username );

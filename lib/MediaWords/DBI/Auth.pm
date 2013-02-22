@@ -135,6 +135,34 @@ EOF
     return $userinfo;
 }
 
+# Check if user is trying to authenticate too fast; return 1 if so, 0 if not
+sub user_is_trying_to_authenticate_too_fast($$)
+{
+    my ( $db, $email ) = @_;
+
+    # Check if user's last unsuccessful attempt to login was less than 2 seconds ago
+    my $user = $db->query(
+        <<"EOF",
+        SELECT users_id,
+               email
+        FROM auth_users
+        WHERE email = ?
+              AND last_unsuccessful_login_attempt >= TIMESTAMP 'now' - INTERVAL '30 seconds'
+        LIMIT 1
+EOF
+        $email
+    )->hash;
+
+    if ( !( ref( $user ) eq 'HASH' and $user->{ users_id } ) )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 # Fetch a hash of basic user information, password hash and an array of assigned roles; returns 0 on error
 sub user_auth($$)
 {
@@ -186,6 +214,24 @@ sub post_successful_login($$)
         <<"EOF",
         UPDATE auth_users
         SET password_reset_token_hash = NULL
+        WHERE email = ?
+EOF
+        $email
+    );
+
+    return 1;
+}
+
+# Post-unsuccessful login database tasks
+sub post_unsuccessful_login($$)
+{
+    my ( $db, $email ) = @_;
+
+    # Set the last unsuccessful database login timestamp
+    $db->query(
+        <<"EOF",
+        UPDATE auth_users
+        SET last_unsuccessful_login_attempt = 'now'
         WHERE email = ?
 EOF
         $email
