@@ -310,10 +310,10 @@ sub recreate_db
 }
 
 # Upgrade database schema to the latest version
-# (returns 0 on success, >0 on failure)
-sub upgrade_db
+# (returns 1 on success, 0 on failure)
+sub upgrade_db($;$)
 {
-    my ( $label ) = @_;
+    my ( $label, $echo_instead_of_executing ) = @_;
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
     say STDERR "script_dir: $script_dir";
@@ -332,7 +332,7 @@ sub upgrade_db
     unless ( $current_schema_version )
     {
         say STDERR "Invalid current schema version.";
-        return 1;
+        return 0;
     }
     say STDERR "Current schema version: $current_schema_version";
 
@@ -344,7 +344,7 @@ sub upgrade_db
     unless ( $target_schema_version )
     {
         say STDERR "Invalid target schema version.";
-        return 1;
+        return 0;
     }
 
     say STDERR "Target schema version: $target_schema_version";
@@ -352,12 +352,12 @@ sub upgrade_db
     if ( $current_schema_version == $target_schema_version )
     {
         say STDERR "Schema is up-to-date, nothing to upgrade.";
-        return 0;
+        return 1;
     }
     if ( $current_schema_version > $target_schema_version )
     {
         say STDERR "Current schema version is newer than the target schema version, please update the source code.";
-        return 1;
+        return 0;
     }
 
     # Check if the SQL diff files that are needed for upgrade are present before doing anything else
@@ -368,7 +368,7 @@ sub upgrade_db
         unless ( -e $diff_filename )
         {
             say STDERR "SQL diff file '$diff_filename' does not exist.";
-            return 1;
+            return 0;
         }
 
         push( @sql_diff_files, $diff_filename );
@@ -377,24 +377,51 @@ sub upgrade_db
     # Import diff files one-by-one
     foreach my $diff_filename ( @sql_diff_files )
     {
-        say STDERR "Importing $diff_filename...";
-        my $load_sql_file_result = load_sql_file( $label, $diff_filename );
-
-        if ( $load_sql_file_result )
+        if ( $echo_instead_of_executing )
         {
-            say STDERR "Executing SQL diff file '$diff_filename' failed.";
-            return $load_sql_file_result;
+            say STDERR "Echoing out $diff_filename to STDOUT...";
+
+            print "-- --------------------------------\n";
+            print "-- This is a concatenated schema diff between versions " .
+              "$current_schema_version and $target_schema_version.\n";
+            print "-- Please review this schema diff and import it manually.\n";
+            print "-- --------------------------------\n\n\n";
+
+            open DIFF, "< $diff_filename" or die "Can't open $diff_filename : $!\n";
+            while ( <DIFF> )
+            {
+                print;
+            }
+            close DIFF;
+
+            print "\n-- --------------------------------\n\n\n";
+
         }
+        else
+        {
+            say STDERR "Importing $diff_filename...";
+
+            my $load_sql_file_result = load_sql_file( $label, $diff_filename );
+            if ( $load_sql_file_result )
+            {
+                say STDERR "Executing SQL diff file '$diff_filename' failed.";
+                return 1;
+            }
+        }
+
     }
 
-    say STDERR "(Re-)adding functions...";
-    MediaWords::Pg::Schema::add_functions( $db );
+    if ( !$echo_instead_of_executing )
+    {
+        say STDERR "(Re-)adding functions...";
+        MediaWords::Pg::Schema::add_functions( $db );
+    }
 
     $db->disconnect;
 
-    say STDERR "Done!";
+    say STDERR "Done.";
 
-    return 0;
+    return 1;
 }
 
 1;
