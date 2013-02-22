@@ -1,20 +1,24 @@
 [% title = 'Batch Create Feeds' -%]
 [% INCLUDE include/feeds_header.tt2 -%]
 
-<fieldset>
+[% IF c.acl_user_can_visit('/admin/feeds/batch_create_do') %]
 
-<form action="[% c.uri_for('/admin/feeds/batch_create_do/' _ medium.media_id) %]" method="post" >
+    <fieldset>
 
-<p>Enter one feed url per line:</p>
+    <form action="[% c.uri_for('/admin/feeds/batch_create_do/' _ medium.media_id) %]" method="post" >
 
-<textarea name="urls" rows="10" cols="80"></textarea>
+    <p>Enter one feed url per line:</p>
 
-<p>
-<input type="submit" value="Add Feeds" />
-</p>
+    <textarea name="urls" rows="10" cols="80"></textarea>
 
-</form> 
+    <p>
+    <input type="submit" value="Add Feeds" />
+    </p>
 
-</fieldset>
+    </form> 
+
+    </fieldset>
+
+[% END # [% IF c.acl_user_can_visit('/admin/feeds/batch_create_do') %]
  
 [% INCLUDE include/footer.tt2 -%]

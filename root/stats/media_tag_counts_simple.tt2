@@ -3,28 +3,30 @@
 
 <p><b>Media Tag Counts for </b></p>
 
-<div>
-    <form action="[% c.uri_for('/admin/stats_static/media_tag_counts') %]" method="GET" >
+[% IF c.acl_user_can_visit('/admin/stats_static/media_tag_counts') %]
+    <div>
+        <form action="[% c.uri_for('/admin/stats_static/media_tag_counts') %]" method="GET" >
 
-    [% FOREACH media_num IN [ 1 .. 3 ] -%]     
-        <select name="media_id_[% media_num %]">
+        [% FOREACH media_num IN [ 1 .. 3 ] -%]     
+            <select name="media_id_[% media_num %]">
 
-            <option value="">(no media)</option>
+                <option value="">(no media)</option>
 
-            [% IF  media_id.$media_num -%]
-                <option value="[%  media_id.$media_num %]" selected="selected">[%  media_name.$media_num | html %]</option>
-            [%END # IF  media_id.$media_num -%]
+                [% IF  media_id.$media_num -%]
+                    <option value="[%  media_id.$media_num %]" selected="selected">[%  media_name.$media_num | html %]</option>
+                [%END # IF  media_id.$media_num -%]
 
-            [% INSERT include/media_source_list %]
-        </select>
-    [% END # FOREACH media_num IN [ 1 .. 3 ] -%]
+                [% INSERT include/media_source_list %]
+            </select>
+        [% END # FOREACH media_num IN [ 1 .. 3 ] -%]
 
-    <br />
-    <input type="submit" value="Go" />
+        <br />
+        <input type="submit" value="Go" />
 
-    </form>
+        </form>
 
-</div>
+    </div>
+[% END # [% IF c.acl_user_can_visit('/admin/stats_static/media_tag_counts') %]
 
 <div>
 

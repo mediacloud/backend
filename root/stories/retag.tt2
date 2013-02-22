@@ -1,7 +1,9 @@
 [% title = 'Stories: Retag: ' _ story.title %]
 [% INCLUDE include/header.tt2 %]
 
-<p><b><a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">[% story.title | html %]</a></b></p>
+[% IF c.acl_user_can_visit('/admin/stories/view') %]
+    <p><b><a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">[% story.title | html %]</a></b></p>
+[% END -%]
 
 <p><b>Story Text</b></p>
 
@@ -11,10 +13,14 @@
 
 <p>
     [% FOREACH download IN story.downloads -%]
-    download [% download.downloads_id %]: 
+        download [% download.downloads_id %]: 
         <a href="[% download.url %]">view live</a> |
-        <a href="[% c.uri_for('/admin/downloads/view/') _ download.downloads_id %]">view download</a> |
-        <a href="[% c.uri_for('/admin/downloads/mextract/') _ download.downloads_id %]">review extraction</a><br />
+        [% IF c.acl_user_can_visit('/admin/downloads/view') %]
+            | <a href="[% c.uri_for('/admin/downloads/view/') _ download.downloads_id %]">view download</a>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/downloads/mextract') %]
+            | <a href="[% c.uri_for('/admin/downloads/mextract/') _ download.downloads_id %]">review extraction</a><br />
+        [% END -%]
     [% END -%]
 </p>
 

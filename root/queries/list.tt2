@@ -10,9 +10,11 @@
     This is an internal tool because many of the background database searches required to generate results are expensive and slow.  Please be patient while using the tool and expect many queries to take a few minutes to complete.  Please <a href="mailto:hroberts@cyber.law.harvard.edu">let Hal know</a> if the system is specially slow for a particular query.
     </p> 
 
-    <p>
-        <a href="[% c.uri_for( '/admin/queries/create' )%]">Create New Query</a>
-    </p>
+    [% IF c.acl_user_can_visit('/admin/queries/create') %]
+        <p>
+            <a href="[% c.uri_for( '/admin/queries/create' )%]">Create New Query</a>
+        </p>
+    [% END -%]
 
 </fieldset>
 
@@ -25,7 +27,10 @@
         <th>end date</th>
         <th>media sets</th>
         <th>dashboard topics</th>
-        <th>view query</th>
+
+        [% IF c.acl_user_can_visit('/admin/queries/view') %]
+            <th>view query</th>
+        [% END -%]
     </tr>
 
     [% FOREACH query IN queries -%]
@@ -40,7 +45,9 @@
 
         <td>[% query.dashboard_topics_names.join('; ') %]</td>
 
-        <td><a href='[% c.uri_for( '/admin/queries/view/' )  _ query.queries_id %]'>view</a></td>
+        [% IF c.acl_user_can_visit('/admin/queries/view') %]
+            <td><a href="[% c.uri_for( '/admin/queries/view/' )  _ query.queries_id %]">view</a></td>
+        [% END -%]    
 
     </tr>
 

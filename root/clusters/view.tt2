@@ -5,15 +5,22 @@
 
 <fieldset>
 
-    <p>
-        <a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, 'stand_alone' => 1 } ) %]">view cluster run as stand alone page</a>
-    </p>
+    [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+        <p>
+            <a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, 'stand_alone' => 1 } ) %]">view cluster run as stand alone page</a>
+        </p>
+    [% END -%]
 
-    <p>generate a cluster map: 
-        <a href="[% c.uri_for( '/admin/clusters/create_cluster_map/' _ cluster_run.media_cluster_runs_id ) %]">cluster map</a>
-        |
-        <a href="[% c.uri_for( '/admin/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id ) %]">polar map</a>
-    </p>
+    [% IF c.acl_user_can_visit('/admin/clusters/create_cluster_map') OR c.acl_user_can_visit('/admin/clusters/create_polar_map') %]
+        <p>generate a cluster map: 
+            [% IF c.acl_user_can_visit('/admin/clusters/create_cluster_map') %]
+                <a href="[% c.uri_for( '/admin/clusters/create_cluster_map/' _ cluster_run.media_cluster_runs_id ) %]">cluster map</a> |
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/clusters/create_polar_map') %]
+                <a href="[% c.uri_for( '/admin/clusters/create_polar_map/' _ cluster_run.media_cluster_runs_id ) %]">polar map</a>
+            [% END -%]
+        </p>
+    [% END -%]
 
     [% IF cluster_maps %]
 
@@ -26,7 +33,9 @@
                 <th>Nodes Total</th>
                 <th>Nodes Rendered</th>
                 <th>Links Rendered</th>
-                <th>View Map</th>
+                [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+                    <th>View Map</th>
+                [% END -%]
             </tr>
 
             [% FOREACH cm IN cluster_maps %]
@@ -37,7 +46,9 @@
                 <td>[% cm.nodes_total %]</td>
                 <td>[% cm.nodes_rendered %]</td>
                 <td>[% cm.links_rendered %]</td>
-                <td><a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cm.media_cluster_maps_id } ) %]">view</a></td>
+                [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+                    <td><a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cm.media_cluster_maps_id } ) %]">view</a></td>
+                [% END -%]
             </tr>
             [% END #FOREACH cluster_map IN cluster_maps %]
 
@@ -59,9 +70,11 @@
             </tr>
         </table>
         
-        <p>
-            <a href="[% c.uri_for( '/admin/clusters/view_time_slice_map/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id } ) %]">view cluster map over time</a>
-        </p>
+        [% IF c.acl_user_can_visit('/admin/clusters/view_time_slice_map') %]
+            <p>
+                <a href="[% c.uri_for( '/admin/clusters/view_time_slice_map/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id } ) %]">view cluster map over time</a>
+            </p>
+        [% END -%]
 
     [% END #IF cluster_map %]
 
@@ -84,20 +97,22 @@
 
 <p />
     
-<div id='clusters'>
-[% FOREACH cluster IN clusters %]
-    <fieldset>
-        <p>
-            <b><a href="[% c.uri_for( '/admin/queries/view/' _ cluster.query.queries_id ) %]">[% cluster.description %] ([% cluster.media.size %])</a></b>: 
-            [% FOREACH medium IN cluster.media %]
-                [ <a href='[% c.uri_for('/admin/queries/view/') _ medium.query.queries_id %]'>[% medium.name %]</a> <a href='[% medium.url %]'>&gt;</a> ]
-            [% END #[% FOREACH medium IN cluster.media %]
-        </p>
-        <fieldset>[% cluster.word_cloud %]</fieldset>
-    </fieldset>
-    <br />
-[% END #[% FOREACH cluster IN media_clusters %]
-</div>
+[% IF c.acl_user_can_visit('/admin/queries/view') %]
+    <div id='clusters'>
+    [% FOREACH cluster IN clusters %]
+        <fieldset>
+            <p>
+                <b><a href="[% c.uri_for( '/admin/queries/view/' _ cluster.query.queries_id ) %]">[% cluster.description %] ([% cluster.media.size %])</a></b>: 
+                [% FOREACH medium IN cluster.media %]
+                    [ <a href='[% c.uri_for('/admin/queries/view/') _ medium.query.queries_id %]'>[% medium.name %]</a> <a href='[% medium.url %]'>&gt;</a> ]
+                [% END #[% FOREACH medium IN cluster.media %]
+            </p>
+            <fieldset>[% cluster.word_cloud %]</fieldset>
+        </fieldset>
+        <br />
+    [% END #[% FOREACH cluster IN media_clusters %]
+    </div>
+[% END #[% IF c.acl_user_can_visit('/admin/queries/view') %]
 
 </body>
 </html>

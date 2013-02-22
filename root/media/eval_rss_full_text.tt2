@@ -5,15 +5,19 @@
     <tr>
         <th>name</th>
         <th>url</th>
-        <th>feeds</th>
+        [% IF c.acl_user_can_visit('/admin/feeds/list') %]
+            <th>feeds</th>
+        [% END -%]
         <th>avg similarity</th>
     </tr> 
     <tr>
         <td>[% medium.name | html %]</td>
         <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
-        <td>
-            <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feeds_added %])
-        </td>
+        [% IF c.acl_user_can_visit('/admin/feeds/list') %]
+            <td>
+                <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feeds_added %])
+            </td>
+        [% END -%]
         <td>
             [% FILTER format('%02.2f');  %] [% medium.avg_similarity %] [% END %]
         </td>
@@ -22,9 +26,10 @@
     [% INCLUDE include/pager.tt2 %] 
 </table>
 
-<br/>
-
-<a href="[% c.uri_for('/admin/media/eval_rss_full_text/') _ next_media_id | url %]"><input type="button" value="Skip To Next Source"></a>
+[% IF c.acl_user_can_visit('/admin/media/eval_rss_full_text') %]
+    <br/>
+    <a href="[% c.uri_for('/admin/media/eval_rss_full_text/') _ next_media_id | url %]"><input type="button" value="Skip To Next Source"></a>
+[% END -%]
 
 <br/>
 <br/>
@@ -73,29 +78,35 @@
 
 </table>
 
-<br/>
+[% IF c.acl_user_can_visit('/admin/media/do_eval_rss_full_text') %]
 
-<form action="[% c.uri_for('/admin/media/do_eval_rss_full_text/') _ medium.media_id | url %]" method="post">
-    <div class="checkbox comment label">
+    <br/>
 
-        <label>Yes</label>
-        <input name="full_text_rss" type="radio" value="1" [% IF medium.full_text_rss.defined and medium.full_text_rss %] checked="checked" [% END -%] />
+    <form action="[% c.uri_for('/admin/media/do_eval_rss_full_text/') _ medium.media_id | url %]" method="post">
+        <div class="checkbox comment label">
 
-        <label>No</label>
-        <input name="full_text_rss" type="radio" value="0" [% IF medium.full_text_rss.defined and !medium.full_text_rss %] checked="checked"[% END -%] />
+            <label>Yes</label>
+            <input name="full_text_rss" type="radio" value="1" [% IF medium.full_text_rss.defined and medium.full_text_rss %] checked="checked" [% END -%] />
 
-        <label>Unknown</label>
-        <input name="full_text_rss" type="radio" value="" [% IF !medium.full_text_rss.defined %] checked="checked"[% END %] />
+            <label>No</label>
+            <input name="full_text_rss" type="radio" value="0" [% IF medium.full_text_rss.defined and !medium.full_text_rss %] checked="checked"[% END -%] />
 
-    </div>
-    <div class="submit">
-        <input type="submit" value="Update" />
-    </div>
-</form>
+            <label>Unknown</label>
+            <input name="full_text_rss" type="radio" value="" [% IF !medium.full_text_rss.defined %] checked="checked"[% END %] />
 
-<br/>
+        </div>
+        <div class="submit">
+            <input type="submit" value="Update" />
+        </div>
+    </form>
 
-<a href="[% c.uri_for('/admin/media/eval_rss_full_text/') _ next_media_id | url %]"><input type="button" value="Skip To Next Source"></a>
+[% END # [% IF c.acl_user_can_visit('/admin/media/do_eval_rss_full_text') %]
+
+[% IF c.acl_user_can_visit('/admin/media/eval_rss_full_text') %]
+    <br/>
+
+    <a href="[% c.uri_for('/admin/media/eval_rss_full_text/') _ next_media_id | url %]"><input type="button" value="Skip To Next Source"></a>
+[% END -%]
 
 <br/>
 <br/>

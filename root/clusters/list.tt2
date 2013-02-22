@@ -1,13 +1,15 @@
 [% title = 'Cluster Runs List' %]
 [% INCLUDE include/header.tt2 %]
 
-<fieldset>
+[% IF c.acl_user_can_visit('/admin/clusters/create') %]
+    <fieldset>
 
-    <p>
-        <a href="[% c.uri_for( '/admin/clusters/create' )%]">Create New Cluster Run</a>
-    </p>
+        <p>
+            <a href="[% c.uri_for( '/admin/clusters/create' )%]">Create New Cluster Run</a>
+        </p>
 
-</fieldset>
+    </fieldset>
+[% END -%]
 
 <p />
 
@@ -19,7 +21,9 @@
         <th>clusters</th>
         <th>media_set</th>
         <th>description</th>
-        <th>view</th>
+        [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+            <th>view</th>
+        [% END -%]
     </tr>
 
     [% FOREACH run IN cluster_runs -%]
@@ -36,7 +40,9 @@
 
         <td>[% run.description | html %]</td>
 
-        <td><a href="[% c.uri_for('/admin/clusters/view/' _ run.media_cluster_runs_id) %]">view</a></td>
+        [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+            <td><a href="[% c.uri_for('/admin/clusters/view/' _ run.media_cluster_runs_id) %]">view</a></td>
+        [% END -%]
 
     </tr>
 

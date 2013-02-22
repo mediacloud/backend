@@ -14,7 +14,11 @@
         <tr [% IF even %]id="even"[% END %]>
 
             <td>
-                <a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">[% story.title | html %]</a>
+                [% IF c.acl_user_can_visit('/admin/stories/view') %]
+                    <a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">[% story.title | html %]</a>
+                [% ELSE %]
+                    [% story.title | html %]
+                [% END -%]
             </td>
 
             <td>

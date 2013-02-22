@@ -1,16 +1,23 @@
 [% title = 'Media Sets List' %]
 [% INCLUDE include/header.tt2 %]
 
-<fieldset>
+[% IF c.acl_user_can_visit('/admin/mediasets/create') OR c.acl_user_can_visit('/admin/dashboards/list') %]
 
-    <p>
-        <a href="[% c.uri_for( '/admin/mediasets/create/' _ dashboards_id )%]">Create New Media Set</a>
-    </p>
-    <p>
-        <a href="[% c.uri_for( '/admin/dashboards/list' )%]">Return to Dashboards List</a>
-    </p>
+    <fieldset>
 
-</fieldset>
+        [% IF c.acl_user_can_visit('/admin/mediasets/create') %]
+            <p>
+                <a href="[% c.uri_for( '/admin/mediasets/create/' _ dashboards_id )%]">Create New Media Set</a>
+            </p>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/dashboards/list') %]
+            <p>
+                <a href="[% c.uri_for( '/admin/dashboards/list' )%]">Return to Dashboards List</a>
+            </p>
+        [% END -%]
+
+    </fieldset>
+[% END -%]
 
 <p />
 
@@ -33,8 +40,12 @@
 
         <td>[% set.tag_name | html %]</td>
 
-        <td>[% set.cluster_run_name %] 
-        (<a href="[% c.uri_for( '/admin/mediasets/edit_cluster_run/' ) _ set.dashboard_media_sets_id %]">edit</a>)</td>
+        <td>
+            [% set.cluster_run_name %]
+            [% IF c.acl_user_can_visit('/admin/mediasets/edit_cluster_run') %]
+                (<a href="[% c.uri_for( '/admin/mediasets/edit_cluster_run/' ) _ set.dashboard_media_sets_id %]">edit</a>)
+            [% END -%]
+        </td>
 
         <td>[% set.creation_date.substr(0, 10) %]</td>
 

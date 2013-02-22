@@ -9,10 +9,18 @@
             <th>name</th>
             <th>url</th>
             <th>tags</th>
-            <th>feeds</th>
-            <th>edit</th>
-            <th>delete</th>
-            <th>downloads</th>
+            [% IF c.acl_user_can_visit('/admin/feeds/list') %]
+                <th>feeds</th>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/edit') %]
+                <th>edit</th>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/delete') %]
+                <th>delete</th>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+                <th>downloads</th>
+            [% END -%]
         </tr>
 
         <tr>
@@ -21,15 +29,31 @@
             <td>
                 <div style="font-size: 80%;">
                     [% tag_names.join(', ') | html %]
-                    (<a href="[% c.uri_for('/admin/media/edit_tags/') _ medium.media_id | url %]">edit</a>)
+                    [% IF c.acl_user_can_visit('/admin/media/edit_tags') %]
+                        (<a href="[% c.uri_for('/admin/media/edit_tags/') _ medium.media_id | url %]">edit</a>)
+                    [% END # [% IF c.acl_user_can_visit('/admin/media/edit_tags') %]
                 </div>
             </td>
-            <td>
-                <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% feeds.size %])
-            </td>
-            <td><a href="[% c.uri_for('/admin/media/edit/') _ medium.media_id | url %]">edit</a></td>
-            <td><a href="[% c.uri_for('/admin/media/delete/') _ medium.media_id | url %]">delete</a></td>
-            <td><a href="[% c.uri_for('/admin/downloads/list') %]?m=[% medium.media_id | url %]">view dls</a></td>
+            [% IF c.acl_user_can_visit('/admin/feeds/list') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% feeds.size %])
+                </td>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/edit') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/media/edit/') _ medium.media_id | url %]">edit</a>
+                </td>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/delete') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/media/delete/') _ medium.media_id | url %]">delete</a>
+                </td>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+                <td>
+                    <a href="[% c.uri_for('/admin/downloads/list') %]?m=[% medium.media_id | url %]">view dls</a>
+                </td>
+            [% END -%]
         </tr>
 
     </table>
@@ -38,30 +62,34 @@
 
     <fieldset>
 
-        <p>
-            [% IF media_sets_id %]
-                <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]?approve=1">Approve this media source</a><br />
-                <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]">Skip this media source</a><br />
-            [% ELSE %]
-                <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id %]?approve=1">Approve this media source</a><br />
-                <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id %]">Skip this media source</a><br />
-            [% END %]
-        </p>
-
-        [% IF merge_media %]
+        [% IF c.acl_user_can_visit('/admin/media/moderate') %]
             <p>
-                Potential media sources to merge: 
+                [% IF media_sets_id %]
+                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]?approve=1">Approve this media source</a><br />
+                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id _ '/' _ media_sets_id %]">Skip this media source</a><br />
+                [% ELSE %]
+                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id %]?approve=1">Approve this media source</a><br />
+                    <a href="[% c.uri_for('/admin/media/moderate/') _ medium.media_id %]">Skip this media source</a><br />
+                [% END %]
+            </p>
+        [% END -%]
 
-                [% FOREACH merge_medium IN merge_media %]
+        [% IF c.acl_user_can_visit('/admin/media/merge') %]
+            [% IF merge_media %]
+                <p>
+                    Potential media sources to merge: 
 
-                    <a href="[% merge_medium.url %]">[% merge_medium.name | html %]</a> 
-                    (<a href="[% c.uri_for( '/admin/feeds/list/' ) _ merge_medium.media_id %]">feeds</a> |
-                    <a href="[% c.uri_for( '/admin/media/merge/' ) _ medium.media_id _ '/' _ merge_medium.media_id %]">merge</a>);
+                    [% FOREACH merge_medium IN merge_media %]
 
-                [% END #[% FOREACH merge_medium IN merge_media %]
+                        <a href="[% merge_medium.url %]">[% merge_medium.name | html %]</a> 
+                        (<a href="[% c.uri_for( '/admin/feeds/list/' ) _ merge_medium.media_id %]">feeds</a> |
+                        <a href="[% c.uri_for( '/admin/media/merge/' ) _ medium.media_id _ '/' _ merge_medium.media_id %]">merge</a>);
 
-                </p>
-        [% END #[% IF merge_media %]
+                    [% END #[% FOREACH merge_medium IN merge_media %]
+
+                    </p>
+            [% END #[% IF merge_media %]
+        [% END # [% IF c.acl_user_can_visit('/admin/media/merge') %]
 
         <p>
             [% queue_size %] media sources left in moderation queue.
@@ -98,9 +126,15 @@
         <p><b>Feeds Found</b></p>
 
         <p>
-            <a href="[% c.uri_for('/admin/media/delete_feeds/') _ medium.media_id | url %]">delete all feeds</a> |
-            <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]">add feed</a> |
-            <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]">scrape feeds</a>
+            [% IF c.acl_user_can_visit('/admin/media/delete_feeds') %]
+                <a href="[% c.uri_for('/admin/media/delete_feeds/') _ medium.media_id | url %]">delete all feeds</a> |
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/feeds/create') %]
+                <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]">add feed</a> |
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/feeds/scrape') %]
+                <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]">scrape feeds</a>
+            [% END -%]
         </p>
 
         <ul>
@@ -109,9 +143,13 @@
             <li>
                 [% feed.name | html %] -
                 <a href="[% feed.url %]">[% feed.url | html %]</a> 
-                [<a href="[% c.uri_for( '/admin/media/delete_unmoderated_feed/') _ feed.feeds_id | url %]">delete</a>]
-                [<a href="[% c.uri_for( '/admin/media/keep_single_feed/') _ feed.feeds_id | url %]">keep single</a>]
-                [<a href="[% c.uri_for( '/admin/media/keep_single_feed/') _ feed.feeds_id | url %]?approve=1">keep single + approve</a>]
+                [% IF c.acl_user_can_visit('/admin/media/delete_unmoderated_feed') %]
+                    [<a href="[% c.uri_for( '/admin/media/delete_unmoderated_feed/') _ feed.feeds_id | url %]">delete</a>]
+                [% END -%]
+                [% IF c.acl_user_can_visit('/admin/media/keep_single_feed') %]
+                    [<a href="[% c.uri_for( '/admin/media/keep_single_feed/') _ feed.feeds_id | url %]">keep single</a>]
+                    [<a href="[% c.uri_for( '/admin/media/keep_single_feed/') _ feed.feeds_id | url %]?approve=1">keep single + approve</a>]
+                [% END -%]
             </li>
             [% END #[% FOREACH feed IN feeds %]
 

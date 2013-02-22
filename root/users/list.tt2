@@ -1,13 +1,15 @@
 [% title = 'Users: List' %]
 [% INCLUDE include/header.tt2 %]
 
-<fieldset>
+[% IF c.acl_user_can_visit('/admin/users/create') %]
+    <fieldset>
 
-    <p>
-        <a href="[% c.uri_for( '/admin/users/create' )%]">Create New User</a>
-    </p>
+        <p>
+            <a href="[% c.uri_for( '/admin/users/create' )%]">Create New User</a>
+        </p>
 
-</fieldset>
+    </fieldset>
+[% END -%]
 
 <p />
 
@@ -20,7 +22,10 @@
     <th>Notes</th>
     <th>Active?</th>
     <th>Roles</th>
-    <th>Actions</th>
+
+    [% IF c.acl_user_can_visit('/admin/users/edit') OR c.acl_user_can_visit('/admin/users/delete') %]
+        <th>Actions</th>
+    [% END -%]
 </tr>
 
 [% FOREACH user IN users -%]
@@ -49,12 +54,22 @@
             </ul>
         </td>
 
-        <td>
-            <ul class="user_actions">
-                <li><a href="[% c.uri_for('/admin/users/edit') %]?email=[% user.email | uri %]">Edit</a></li>
-                <li class="user_action_delete"><a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a></li>
-            </ul>
-        </td>
+        [% IF c.acl_user_can_visit('/admin/users/edit') OR c.acl_user_can_visit('/admin/users/delete') %]
+            <td>
+                <ul class="user_actions">
+                    [% IF c.acl_user_can_visit('/admin/users/edit') %]
+                        <li>
+                            <a href="[% c.uri_for('/admin/users/edit') %]?email=[% user.email | uri %]">Edit</a>
+                        </li>
+                    [% END -%]
+                    [% IF c.acl_user_can_visit('/admin/users/delete') %]
+                        <li class="user_action_delete">
+                            <a href="[% c.uri_for('/admin/users/delete') %]?email=[% user.email | uri %]">Delete</a>
+                        </li>
+                    [% END -%]
+                </ul>
+            </td>
+        [% END -%]
 
     </tr>
 

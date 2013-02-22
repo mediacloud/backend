@@ -3,17 +3,19 @@
 
 <p><b>Search downloads</b></p>
 
-<div>
-    <form action="[% c.uri_for('/admin/search/basic_search') %]" method="post" >
+[% IF c.acl_user_can_visit('/admin/search/basic_search') %]
+    <div>
+        <form action="[% c.uri_for('/admin/search/basic_search') %]" method="post" >
 
-        TSQuery: <input type="text" name="tsquery"><br/>
-        Result List Size: <input type="text" name="num_results_per_page"><br/>
+            TSQuery: <input type="text" name="tsquery"><br/>
+            Result List Size: <input type="text" name="num_results_per_page"><br/>
 
-        <input type="submit" value="Search" />
+            <input type="submit" value="Search" />
 
-    </form>
+        </form>
 
-</div>
+    </div>
+[% END # [% IF c.acl_user_can_visit('/admin/search/basic_search') %]
 
 [% IF match_list %]
 

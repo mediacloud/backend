@@ -20,17 +20,29 @@
 
     <tr [% IF even %]id="even"[% END %]>
         <td>
-            <a href="[% c.uri_for('/admin/downloads/list') %]?m=[% d.medium.media_id %]">[% d.medium.name | html %]</a>
+            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+                <a href="[% c.uri_for('/admin/downloads/list') %]?m=[% d.medium.media_id %]">[% d.medium.name | html %]</a>
+            [% ELSE %]
+                [% d.medium.name | html %]
+            [% END -%]
         </td>
         <td>
-            <a href="[% c.uri_for('/admin/downloads/list') %]?f=[% d.feeds_id %]">[% d.feed.name.substr(0, 40) | html %]</a>
+            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+                <a href="[% c.uri_for('/admin/downloads/list') %]?f=[% d.feeds_id %]">[% d.feed.name.substr(0, 40) | html %]</a>
+            [% ELSE %]
+                [% d.feed.name.substr(0, 40) | html %]
+            [% END -%]
         </td>
         <td>[% d.type %]</td>
         <td><a href="[% d.url %]">view live</a></td>
         <td><div style="font-size: 80%;">[% d.download_time| html %]</div></td>
         <td>
             [% IF (d.state == 'success') -%]
-                <a href="[% c.uri_for('/admin/downloads/view/') _ d.downloads_id %]">view download</a>
+                [% IF c.acl_user_can_visit('/admin/downloads/view') %]
+                    <a href="[% c.uri_for('/admin/downloads/view/') _ d.downloads_id %]">view download</a>
+                [% ELSE %]
+                    view download
+                [% END -%]
             [% ELSE -%]
                 ([% d.state %])
             [% END -%]
@@ -39,7 +51,11 @@
         <td> 
             [% IF (d.type == 'content') -%]
                 [% IF (d.extracted) %]
-                    <a href="[% c.uri_for('/admin/downloads/view_extracted/') _ d.downloads_id %]">view text</a>
+                    [% IF c.acl_user_can_visit('/admin/downloads/view_extracted') %]
+                        <a href="[% c.uri_for('/admin/downloads/view_extracted/') _ d.downloads_id %]">view text</a>
+                    [% ELSE %]
+                        view text
+                    [% END -%]
                 [% ELSE -%]
                     false
                 [% END %]

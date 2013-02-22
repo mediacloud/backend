@@ -1,17 +1,19 @@
 [% title = 'Delete Media Source Confirmation' %]
 [% INCLUDE include/header.tt2 %]
 
-<fieldset>
-<p>
-Are you sure you want to delete the '[% medium.name | html %]' media source?
-</p>
+[% IF c.acl_user_can_visit('/admin/media/delete') %]
 
-<form action="[% c.uri_for('/admin/media/delete/') _ medium.media_id _ '/' _ 'yes' %]">
-<input type="submit" value="Delete" />
-</form>
+    <fieldset>
+    <p>
+    Are you sure you want to delete the '[% medium.name | html %]' media source?
+    </p>
 
-</fieldset>
-  
+    <form action="[% c.uri_for('/admin/media/delete/') _ medium.media_id _ '/' _ 'yes' %]">
+    <input type="submit" value="Delete" />
+    </form>
 
- 
+    </fieldset>
+
+[% END # [% IF c.acl_user_can_visit('/admin/media/delete') %]
+
 [% INCLUDE include/footer.tt2 %]

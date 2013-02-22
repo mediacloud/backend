@@ -31,7 +31,11 @@
         <th>Feeds:</th>
         <td>
             [% FOREACH f IN feeds -%]
-                <a href="[% c.uri_for('/admin/stories/list/')  _ f.feeds_id %]">[% f.name | html %]</a><br/>
+                [% IF c.acl_user_can_visit('/admin/stories/list') %]
+                    <a href="[% c.uri_for('/admin/stories/list/')  _ f.feeds_id %]">[% f.name | html %]</a><br/>
+                [% ELSE %]
+                    [% f.name | html %]
+                [% END -%]
             [% END # FOREACH feeds -%]
         </td>
 
@@ -44,8 +48,12 @@
             [% FOREACH d IN downloads -%]
                 [% IF (d.state == 'success') -%]
                     [% d.downloads_id %]:
-                    <a href="[% c.uri_for('/admin/downloads/view/')  _  d.downloads_id %]">view download</a> |
-                    <a href="[% c.uri_for('/admin/downloads/mextract/')  _  d.downloads_id _ '?developer_ui=1' %]">review download extraction</a>
+                    [% IF c.acl_user_can_visit('/admin/downloads/view') %]
+                        <a href="[% c.uri_for('/admin/downloads/view/')  _  d.downloads_id %]">view download</a> |
+                    [% END -%]
+                    [% IF c.acl_user_can_visit('/admin/downloads/mextract') %]
+                        <a href="[% c.uri_for('/admin/downloads/mextract/')  _  d.downloads_id _ '?developer_ui=1' %]">review download extraction</a>
+                    [% END -%]
                 [% ELSE -%]
                     ([% d.state %])
                 [% END -%]
@@ -60,10 +68,18 @@
         <th>Tags:</th>
         <td>
             [% FOREACH t IN tags -%]
-                [% t.tag_set_name _ ':' _ t.tag | html %] <a href="[% c.uri_for('/admin/stories/delete/') _ stories_id _ '/' _ t.tags_id %]">delete</a><br/>
+                [% t.tag_set_name _ ':' _ t.tag | html %]
+                [% IF c.acl_user_can_visit('/admin/stories/delete') %]
+                    <a href="[% c.uri_for('/admin/stories/delete/') _ stories_id _ '/' _ t.tags_id %]">delete</a><br/>
+                [% END -%]
             [% END # FOREACH tags -%]
-            <a href="[% c.uri_for('/admin/stories/add/') _ stories_id %]">add manual tag</a> |
-            <a href="[% c.uri_for('/admin/stories/retag/') _ stories_id %]">extract / tag all sets now</a><br />
+
+            [% IF c.acl_user_can_visit('/admin/stories/add') %]
+                <a href="[% c.uri_for('/admin/stories/add/') _ stories_id %]">add manual tag</a> |
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/stories/retag') %]
+                <a href="[% c.uri_for('/admin/stories/retag/') _ stories_id %]">extract / tag all sets now</a><br />
+            [% END -%]
         </td>
 
     </tr>
@@ -80,7 +96,7 @@
 <hr />
 
 <p>
-    <div align=center><big><b>END OF STORY</b></big></div>
+    <div align="center"><big><b>END OF STORY</b></big></div>
 </p>
 
 [% INCLUDE include/footer.tt2 %]

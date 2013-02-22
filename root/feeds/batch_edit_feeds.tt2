@@ -24,59 +24,63 @@ function toggleForm(box) {
 
 --></script>
 
-<form action="[% c.uri_for('/admin/feeds/batch_edit/') _ medium.media_id %]" method="post" >
+[% IF c.acl_user_can_visit('/admin/feeds/batch_edit') %]
 
-<fieldset>
-    <p>
-    Apply the following tags:
-    [% FOREACH tag IN tags -%]
-        <b>[% tag.tag_sets_id.name | html %]:[% tag.tag | html %]</b> 
-    [% END #[% FOREACH tag IN tags -%]
-    </p>
-</fieldset>
+    <form action="[% c.uri_for('/admin/feeds/batch_edit/') _ medium.media_id %]" method="post" >
 
-<p />
+    <fieldset>
+        <p>
+        Apply the following tags:
+        [% FOREACH tag IN tags -%]
+            <b>[% tag.tag_sets_id.name | html %]:[% tag.tag | html %]</b> 
+        [% END #[% FOREACH tag IN tags -%]
+        </p>
+    </fieldset>
 
-[% FOREACH tag IN tags %]
-    <input type="hidden" name="tags" value="[% tag.tags_id %]" />
-[% END #[% FOREACH tag IN tags %]
+    <p />
 
-<table>
+    [% FOREACH tag IN tags %]
+        <input type="hidden" name="tags" value="[% tag.tags_id %]" />
+    [% END #[% FOREACH tag IN tags %]
 
-    <tr>
-        <th><input name="link_toggle" type="checkbox" onchange="toggleForm(this)"/></th>
-        <th>Name</th>
-        <th>URL</th>
-        <th>Tags</th>
-        <th>Parser</th>
-        <th>Pager</th>
-    </tr>
+    <table>
 
-    [% FOREACH feed IN medium.feeds -%]
         <tr>
-            <td style="text-align: center;"><input name="import_feeds" type="checkbox" value="[% feed.feeds_id %]" 
-            [% IF search_lookup.exists(feed.feeds_id) -%] checked="checked" [% END -%] 
-            /></td>
-            <td>[% feed.name | html %]</td>
-            <td><div style="font-size: 80%;"><a href="[% feed.url | html %]">[% feed.url | html %]</a></td>
-            <td><div style="font-size: 80%;">[% feed.feed_tags_string | html %]</div></td>
-            <td><div style="font-size: 80%;">[% feed.parser_module | html %]</div></td>
-            <td><div style="font-size: 80%;">[% feed.pager_module | html %]</div></td>
+            <th><input name="link_toggle" type="checkbox" onchange="toggleForm(this)"/></th>
+            <th>Name</th>
+            <th>URL</th>
+            <th>Tags</th>
+            <th>Parser</th>
+            <th>Pager</th>
         </tr>
-    [% END # FOREACH link -%]
 
-    <tr>
-        <td style="text-align: center;" colspan="99">
-        Select Feeds: <input name="q" type="text" width="32" /> <input name="select_feeds" type="submit" value="Select"/>
-        </td>
-    </tr>
- 
-</table>
+        [% FOREACH feed IN medium.feeds -%]
+            <tr>
+                <td style="text-align: center;"><input name="import_feeds" type="checkbox" value="[% feed.feeds_id %]" 
+                [% IF search_lookup.exists(feed.feeds_id) -%] checked="checked" [% END -%] 
+                /></td>
+                <td>[% feed.name | html %]</td>
+                <td><div style="font-size: 80%;"><a href="[% feed.url | html %]">[% feed.url | html %]</a></td>
+                <td><div style="font-size: 80%;">[% feed.feed_tags_string | html %]</div></td>
+                <td><div style="font-size: 80%;">[% feed.parser_module | html %]</div></td>
+                <td><div style="font-size: 80%;">[% feed.pager_module | html %]</div></td>
+            </tr>
+        [% END # FOREACH link -%]
 
-<p />
+        <tr>
+            <td style="text-align: center;" colspan="99">
+            Select Feeds: <input name="q" type="text" width="32" /> <input name="select_feeds" type="submit" value="Select"/>
+            </td>
+        </tr>
+     
+    </table>
 
-<input name="save_tags" type="submit" value="Save Tags" />
+    <p />
 
-</form> 
+    <input name="save_tags" type="submit" value="Save Tags" />
+
+    </form>
+
+[% END # [% IF c.acl_user_can_visit('/admin/feeds/batch_edit') %]
 
 [% INCLUDE include/footer.tt2 -%]
