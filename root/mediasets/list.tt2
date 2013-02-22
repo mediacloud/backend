@@ -3,14 +3,12 @@
 
 <fieldset>
 
-<p>
-<a href="[% c.uri_for( '/admin/mediasets/create/' _ dashboards_id )%]">Create New Media Set</a>
-</p>
-<p>
-<a href="[% c.uri_for( '/admin/dashboards/list' )%]">Return to Dashboards List</a>
-</p>
-
-
+    <p>
+        <a href="[% c.uri_for( '/admin/mediasets/create/' _ dashboards_id )%]">Create New Media Set</a>
+    </p>
+    <p>
+        <a href="[% c.uri_for( '/admin/dashboards/list' )%]">Return to Dashboards List</a>
+    </p>
 
 </fieldset>
 
@@ -18,35 +16,35 @@
 
 <table>
 
-<tr>
-<th>name</th>
-<th>tag</th>
-<th>cluster run</th>
-<th>creation date</th>
-<th>vectors added</th>
-<th>dumps include</th>
-</tr>
+    <tr>
+        <th>name</th>
+        <th>tag</th>
+        <th>cluster run</th>
+        <th>creation date</th>
+        <th>vectors added</th>
+        <th>dumps include</th>
+    </tr>
 
-[% FOREACH set IN media_sets -%]
+    [% FOREACH set IN media_sets -%]
 
-<tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]id="even"[% END %]>
 
-<td>[% set.name | html %]</td>
+        <td>[% set.name | html %]</td>
 
-<td>[% set.tag_name | html %]</td>
+        <td>[% set.tag_name | html %]</td>
 
-<td>[% set.cluster_run_name %] 
-(<a href="[% c.uri_for( '/admin/mediasets/edit_cluster_run/' ) _ set.dashboard_media_sets_id %]">edit</a>)</td>
+        <td>[% set.cluster_run_name %] 
+        (<a href="[% c.uri_for( '/admin/mediasets/edit_cluster_run/' ) _ set.dashboard_media_sets_id %]">edit</a>)</td>
 
-<td>[% set.creation_date.substr(0, 10) %]</td>
+        <td>[% set.creation_date.substr(0, 10) %]</td>
 
-<td>[% IF set.vectors_added %]yes[% ELSE %]no[% END %]</td>
-<td>[% IF set.include_in_dump %]yes[% ELSE %]no[% END %]</td>
+        <td>[% IF set.vectors_added %]yes[% ELSE %]no[% END %]</td>
+        <td>[% IF set.include_in_dump %]yes[% ELSE %]no[% END %]</td>
 
-</tr>
+    </tr>
 
-[%  SET even = !even %]
-[% END # FOREACH media_sets -%]
+    [%  SET even = !even %]
+    [% END # FOREACH media_sets -%]
 
 </table>
 

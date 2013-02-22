@@ -8,21 +8,21 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $("#tags").tagit({
-	    tagSource: function(term, showChoices) {
-		$.ajax({
-		    url: "[% c.uri_for('/admin/media/media_tags_search_json') %]",
-		    data: { term: term.term},
-		    dataType: "json",
-		    success: function(choices) {
-			console.log( choices );
-			//choices = ["collectionfoo","collectionfoo,collection"]
-			showChoices(choices);
-		    }
-		})
-	    },
-                // availableTags: ["msm", "blogs", "libral", "conservative" ], 
-		 singleFieldDelimiter: ';'
-});
+            tagSource: function(term, showChoices) {
+                $.ajax({
+                    url: "[% c.uri_for('/admin/media/media_tags_search_json') %]",
+                    data: { term: term.term},
+                    dataType: "json",
+                    success: function(choices) {
+                        console.log( choices );
+                        //choices = ["collectionfoo","collectionfoo,collection"]
+                        showChoices(choices);
+                    }
+                })
+            },
+                    // availableTags: ["msm", "blogs", "libral", "conservative" ], 
+            singleFieldDelimiter: ';'
+        });
     });
 </script>
 
@@ -48,7 +48,5 @@ tag_set:tag [tag_set:tag;...]
 </form> 
 
 </fieldset>
-  
 
- 
 [% INCLUDE include/footer.tt2 %]

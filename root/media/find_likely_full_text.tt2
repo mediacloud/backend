@@ -5,94 +5,84 @@
 
 <table>
 
-<tr>
-<th>id</th>
-<th>name</th><th>url</th>
+    <tr>
+        <th>id</th>
+        <th>name</th><th>url</th>
 
-<th>feeds</th>
+        <th>feeds</th>
 
-<th>full text?</th>
-<th>avg similarity</th>
-<th></th>
+        <th>full text?</th>
+        <th>avg similarity</th>
+        <th></th>
 
-</tr> 
+    </tr> 
 
-[% IF media.size > 0 -%]
+    [% IF media.size > 0 -%]
 
-[% FOREACH medium IN media -%]
+        [% FOREACH medium IN media -%]
 
-<tr>
-<th>[% medium.media_id %]</th>
-<td>[% medium.name | html %]</td>
-<td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
+            <tr>
+                <th>[% medium.media_id %]</th>
+                <td>[% medium.name | html %]</td>
+                <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
+                <td>
+                    <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
+                </td>
+                <td>
+                    <!--
+                     <input name="media_[% medium.media_id %]full_text_rss" type="checkbox"
+                    value="[% medium.media_id %]" 
+                    [% IF medium.full_text_rss == 1 %]
+                     checked='checked'/>
+                    [% ELSE %]
+                    />
+                    -->
+                    <br/>
+                    <div class="checkbox comment label">
 
-<td>
-<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
-</td>
+                        <input name="media_[% medium.media_id %]_full_text_rss" type="radio" value="1"  id="radio_button_media_[% medium.media_id %]_1" [% IF medium.full_text_rss.defined and medium.full_text_rss %] checked="checked"[% END %] />
+                        <label for="radio_button_media_[% medium.media_id %]_1">Yes</label>
+                        <br/>
 
-<td>
+                        <input name="media_[% medium.media_id %]_full_text_rss" type="radio" value="0" id="radio_button_media_[% medium.media_id %]_0" [% IF medium.full_text_rss.defined and !medium.full_text_rss %] checked="checked"[% END %] />
+                        <label for="radio_button_media_[% medium.media_id %]_0">No</label>
+                        <br/>
 
-<!--
- <input name="media_[% medium.media_id %]full_text_rss" type="checkbox"
-value="[% medium.media_id %]" 
-[% IF medium.full_text_rss == 1 %]
- checked='checked'/>
-[% ELSE %]
-/>
--->
-<br/>
-<div class="checkbox comment label">
-<input name="media_[% medium.media_id %]_full_text_rss" type="radio" value="1"  id="radio_button_media_[% medium.media_id %]_1"
-[% IF medium.full_text_rss.defined and medium.full_text_rss %]
-checked="checked"
-[% END %]
- />
-<label for="radio_button_media_[% medium.media_id %]_1">Yes</label>
-<br/>
+                        <input name="media_[% medium.media_id %]_full_text_rss" type="radio" value="" id="radio_button_media_[% medium.media_id %]_U" [% IF !medium.full_text_rss.defined %] checked="checked"[% END %] />
+                        <label for="radio_button_media_[% medium.media_id %]_U">TBD</label>
+                        <br/>
 
-<input name="media_[% medium.media_id %]_full_text_rss" type="radio" value="0" id="radio_button_media_[% medium.media_id %]_0"
-[% IF medium.full_text_rss.defined and !medium.full_text_rss %]
-checked="checked"
-[% END %]
- />
-<label for="radio_button_media_[% medium.media_id %]_0">No</label>
-<br/>
+                    </div>
+                    <!--
+                    [% END %]
+                    -->
+                </td>
+                <td> 
+                    [% FILTER format('%02.2f');  %] [% medium.avg_similarity %] [% END %]
+                </td>
+                <td>
+                    <a href="[% c.uri_for('/admin/media/eval_rss_full_text/') _ medium.media_id | url %]">eval<br/>source</a>
+                </td>
+            </tr>
 
-<input name="media_[% medium.media_id %]_full_text_rss" type="radio" value="" id="radio_button_media_[% medium.media_id %]_U"
-[% IF !medium.full_text_rss.defined %]
-checked="checked"
-[% END %]
- />
-<label for="radio_button_media_[% medium.media_id %]_U">TBD</label>
-<br/>
+            [%  SET even = !even %]
 
-</div>
-[% END %]
+        [% END # FOREACH medium -%]
 
- </td>
-<td> 
-[% FILTER format('%02.2f');  %] [% medium.avg_similarity %] [% END %]
-</td>
-<td><a href="[% c.uri_for('/admin/media/eval_rss_full_text/') _ medium.media_id | url %]">eval<br/>source</a></td>
+        [% INCLUDE include/pager.tt2 %] 
 
-</tr>
+    [% ELSE # IF media.size > 0 -%]
 
-[%  SET even = !even %]
-[% END # FOREACH medium -%]
+        <tr>
+            <td colspan="99">(no media sources found matching '[% q | html %]')</td>
+        </tr>
 
-[% INCLUDE include/pager.tt2 %] 
-
-
-[% ELSE # IF media.size > 0 -%]
-
-<tr><td colspan="99">(no media sources found matching '[% q | html %]')</td></tr>
-
-[% END # IF media.size > 0 -%]
+    [% END # IF media.size > 0 -%]
 
 </table>
-<div class="submit">
-<input type="submit" value="Save" />
-</div>
+
+<div class="submit"><input type="submit" value="Save" /></div>
 
 </form>
+
 [% INCLUDE include/footer.tt2 %]

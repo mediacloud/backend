@@ -3,9 +3,9 @@
 
 <fieldset>
 
-<p>
-<a href="[% c.uri_for( '/admin/dashboards/create' )%]">Create New Dashboard</a>
-</p>
+    <p>
+        <a href="[% c.uri_for( '/admin/dashboards/create' )%]">Create New Dashboard</a>
+    </p>
 
 </fieldset>
 
@@ -13,35 +13,35 @@
 
 <table>
 
-<tr>
-<th>name</th>
-<th>start_date</th>
-<th>end_date</th>
-<th>topics</th>
-<th>media sets</th>
-<th>view dashboard</th>
-</tr>
+    <tr>
+        <th>name</th>
+        <th>start_date</th>
+        <th>end_date</th>
+        <th>topics</th>
+        <th>media sets</th>
+        <th>view dashboard</th>
+    </tr>
 
-[% FOREACH dashboard IN dashboards -%]
+    [% FOREACH dashboard IN dashboards -%]
 
-<tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]id="even"[% END %]>
 
-<td>[% dashboard.name | html %]</td>
+        <td>[% dashboard.name | html %]</td>
 
-<td>[% dashboard.start_date | html %]</td>
+        <td>[% dashboard.start_date | html %]</td>
 
-<td>[% dashboard.end_date | html %]</td>
+        <td>[% dashboard.end_date | html %]</td>
 
-<td><a href='[% c.uri_for( '/admin/dashboards/list_topics/' _ dashboard.dashboards_id ) %]'>topics</a></td>
+        <td><a href='[% c.uri_for( '/admin/dashboards/list_topics/' _ dashboard.dashboards_id ) %]'>topics</a></td>
 
-<td><a href='[% c.uri_for( '/admin/mediasets/list/' ) _ dashboard.dashboards_id %]'>media sets</a></td>
+        <td><a href='[% c.uri_for( '/admin/mediasets/list/' ) _ dashboard.dashboards_id %]'>media sets</a></td>
 
-<td><a href='[% c.uri_for( '/dashboard/view/' )  _ dashboard.dashboards_id %]'>view</a></td>
+        <td><a href='[% c.uri_for( '/dashboard/view/' )  _ dashboard.dashboards_id %]'>view</a></td>
 
-</tr>
+    </tr>
 
-[%  SET even = !even %]
-[% END # FOREACH dashboard -%]
+    [%  SET even = !even %]
+    [% END # FOREACH dashboard -%]
 
 </table>
 
