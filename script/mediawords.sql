@@ -1537,8 +1537,10 @@ CREATE TABLE auth_roles (
 -- Map of user IDs and roles that are allowed to each of the user
 CREATE TABLE auth_users_roles_map (
     auth_users_roles_map    SERIAL      PRIMARY KEY,
-    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
     CONSTRAINT no_duplicate_entries UNIQUE (users_id, roles_id)
 );
 CREATE INDEX auth_users_roles_map_users_id_roles_id
