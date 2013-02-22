@@ -1524,10 +1524,7 @@ CREATE TABLE auth_users (
 
     -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
     -- salt_len=>64) or NULL
-    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
-
-    -- Timestamp of the last unsuccessful login attempt (to prevent brute-force attacks)
-    last_unsuccessful_login_attempt     TIMESTAMP WITH TIME ZONE    NOT NULL DEFAULT 'epoch'
+    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL)
 );
 
 -- List of roles the users can perform
