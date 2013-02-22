@@ -115,11 +115,21 @@ sub acl_access_denied
 {
     my ( $c, $class, $action, $err ) = @_;
 
-    # Dump a log message to the development server debug output
-    $c->log->debug( '***Root::auto User not found, forwarding to /login' );
+    if ( $c->user_exists )
+    {
+        $c->log->debug( 'User has been found, is not allowed to access page /' . $action );
 
-    # Redirect the user to the login page
-    $c->response->redirect( $c->uri_for( '/login' ) );
+        # Show the "unauthorized" message
+        $c->res->body( 'You are not allowed to access page /' . $action );
+        $c->res->status( 403 );
+    }
+    else
+    {
+        $c->log->debug( 'User not found, forwarding to /login' );
+
+        # Redirect the user to the login page
+        $c->response->redirect( $c->uri_for( '/login' ) );
+    }
 
     # Continue denying access
     return 0;
