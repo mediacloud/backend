@@ -216,7 +216,7 @@ create table media (
     extract_author      boolean         default(false),
     sw_data_start_date  date            default(null),
     sw_data_end_date    date            default(null),
-    foreign_rss_links   boolean         not null default( false ),
+    foreign_rss_links   boolean         default( false ),
     main_media_id       int             null references media on delete set null,
     is_dup              boolean         null,
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
@@ -243,7 +243,8 @@ create table feeds (
 
     -- Add column to allow more active feeds to be downloaded more frequently.
     last_download_time  timestamp with time zone,
-    last_new_story_time timestamp with time zone
+    last_new_story_time timestamp with time zone,
+    dup_media_id integer
 );
 
 UPDATE feeds SET last_new_story_time = greatest( last_download_time, last_new_story_time );
@@ -1489,6 +1490,7 @@ $$
 LANGUAGE 'plpgsql'
 ;
 
+
 CREATE FUNCTION cat(text, text) RETURNS text
     LANGUAGE plpgsql
     AS $_$
@@ -1546,50 +1548,3 @@ return pg_cancel_backend(cancel_pid);
 END;
 $$;
 
---
--- Authentication
---
-
--- List of users
-CREATE TABLE auth_users (
-    users_id        SERIAL  PRIMARY KEY,
-    email           TEXT    UNIQUE NOT NULL,
-
-    -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
-    password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
-
-    full_name       TEXT    NOT NULL,
-    notes           TEXT    NULL,
-    active          BOOLEAN NOT NULL DEFAULT true,
-
-    -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
-    -- salt_len=>64) or NULL
-    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL)
-);
-
--- List of roles the users can perform
-CREATE TABLE auth_roles (
-    roles_id        SERIAL  PRIMARY KEY,
-    role            TEXT    UNIQUE NOT NULL CONSTRAINT role_name_can_not_contain_spaces CHECK(role NOT LIKE '% %'),
-    description     TEXT    NOT NULL
-);
-
--- Map of user IDs and roles that are allowed to each of the user
-CREATE TABLE auth_users_roles_map (
-    auth_users_roles_map    SERIAL      PRIMARY KEY,
-    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id)
-                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
-    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id)
-                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
-    CONSTRAINT no_duplicate_entries UNIQUE (users_id, roles_id)
-);
-CREATE INDEX auth_users_roles_map_users_id_roles_id
-    ON auth_users_roles_map (users_id, roles_id);
-
--- Roles
-INSERT INTO auth_roles (role, description) VALUES
-    ('admin', 'Do everything, including editing users.'),
-    ('admin-readonly', 'Read access to admin interface.'),
-    ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
-    ('media-edit', 'Add / edit media; includes feeds.'),
-    ('stories-edit', 'Add / edit stories.');

@@ -173,7 +173,7 @@ sub get_random_download_for_dashboard
         select feeds_id from feeds where media_id in(
             select media_id from media_sets_media_map where media_sets_id in(
                 select media_sets_id from dashboard_media_sets where dashboards_id =
-? ) ) ) and type = 'content' and state = 'success' and downloads_id >= ( select (max(downloads_id ) * random())::integer from downloads )  order by downloads_id limit 1
+? ) ) ) and type = 'content' and state = 'success' and file_status <> 'missing' and downloads_id >= ( select (max(downloads_id ) * random())::integer from downloads )  order by downloads_id limit 1
 
 END_SQL
 
