@@ -309,11 +309,43 @@ sub user_remove($)
     return 0;
 }
 
+# Show user information; returns 0 on success, 1 on error
+sub user_show($)
+{
+    my ( $db ) = @_;
+
+    my $user_email = undef;
+
+    my Readonly $user_show_usage = "Usage: $0" . ' --action=show' . ' --email=jdoe@cyber.law.harvard.edu';
+
+    GetOptions( 'email=s' => \$user_email, ) or die "$user_show_usage\n";
+    die "$user_show_usage\n" unless ( $user_email );
+
+    # Fetch information about the user
+    my $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email );
+    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
+
+    unless ( $db_user and $db_user_roles )
+    {
+        say STDERR "Unable to find user '$user_email' in the database.";
+        return 1;
+    }
+
+    say "User ID:\t" . $db_user->{ users_id };
+    say "Email (username):\t" . $db_user->{ email };
+    say "Full name:\t" . $db_user->{ full_name };
+    say "Notes:\t" . $db_user->{ notes };
+    say "Active:\t" . ( $db_user->{ active } ? 'yes' : 'no' );
+    say "Roles:\t" . join( ',', @{ $db_user_roles->{ roles } } );
+
+    return 0;
+}
+
 # User manager
 sub main
 {
-    my $action        = '';                                                      # which action to take
-    my @valid_actions = qw/add remove modify activate deactivate roles show/;    # valid actions
+    my $action        = '';                                       # which action to take
+    my @valid_actions = qw/add modify remove list show roles/;    # valid actions
 
     my Readonly $usage = "Usage: $0" . ' --action=' . join( '|', @valid_actions ) . ' ...';
 
@@ -343,6 +375,12 @@ sub main
 
         # Modify (update) user
         return user_modify( $db );
+    }
+    elsif ( $action eq 'show' )
+    {
+
+        # Show user information
+        return user_show( $db );
     }
 }
 
