@@ -111,6 +111,34 @@ EOF
     return $roles;
 }
 
+# Fetch a user role's ID for a role; returns 0 if no such role was found
+sub role_id_for_role($$)
+{
+    my ( $db, $role ) = @_;
+
+    if ( !$role )
+    {
+        say STDERR "Role is empty.";
+        return 0;
+    }
+
+    my $roles_id = $db->query(
+        <<"EOF",
+        SELECT roles_id
+        FROM auth_roles
+        WHERE role = ?
+        LIMIT 1
+EOF
+        $role
+    )->hash;
+    if ( !( ref( $roles_id ) eq 'HASH' and $roles_id->{ roles_id } ) )
+    {
+        return 0;
+    }
+
+    return $roles_id->{ roles_id };
+}
+
 # Fetch a hash of basic user information (email, full name, notes); returns 0 on error
 sub user_info($$)
 {
@@ -526,12 +554,12 @@ EOF
     return $users;
 }
 
-# Add new user; returns error message on error, empty string on success
+# Add new user; $role_ids is a arrayref to an array of role IDs; returns error message on error, empty string on success
 sub add_user_or_return_error_message($$$$$$$$)
 {
-    my ( $db, $email, $full_name, $notes, $roles, $is_active, $password, $password_repeat ) = @_;
+    my ( $db, $email, $full_name, $notes, $role_ids, $is_active, $password, $password_repeat ) = @_;
 
-    say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, roles: " . Dumper( $roles ) .
+    say STDERR "Creating user with email: $email, full name: $full_name, notes: $notes, role IDs: " . Dumper( $role_ids ) .
       ", is active: $is_active";
 
     my $password_validation_message =
@@ -539,6 +567,12 @@ sub add_user_or_return_error_message($$$$$$$$)
     if ( $password_validation_message )
     {
         return $password_validation_message;
+    }
+
+    # Check if roles is an arrayref
+    if ( ref $role_ids ne 'ARRAY' )
+    {
+        return 'List of role IDs is not an array.';
     }
 
     # Check if user already exists
@@ -579,7 +613,7 @@ EOF
     # Create roles
     my $sql = 'INSERT INTO auth_users_roles_map (users_id, roles_id) VALUES (?, ?)';
     my $sth = $db->dbh->prepare_cached( $sql );
-    for my $roles_id ( @{ $roles } )
+    for my $roles_id ( @{ $role_ids } )
     {
         $sth->execute( $users_id, $roles_id );
     }
