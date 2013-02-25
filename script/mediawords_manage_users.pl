@@ -207,23 +207,8 @@ sub user_modify($)
     $modified_user{ email } = $user_email;
 
     # Overwrite the information if provided as parameters
-    if ( $user_full_name )
-    {
-        $modified_user{ full_name } = $user_full_name;
-    }
-    else
-    {
-        $modified_user{ full_name } = $db_user->{ full_name };
-    }
-
-    if ( $user_notes )
-    {
-        $modified_user{ notes } = $user_notes;
-    }
-    else
-    {
-        $modified_user{ notes } = $db_user->{ notes };
-    }
+    $modified_user{ full_name } = ( $user_full_name ? $user_full_name : $db_user->{ full_name } );
+    $modified_user{ notes }     = ( $user_notes     ? $user_notes     : $db_user->{ notes } );
 
     if ( defined $user_is_active )
     {
@@ -239,14 +224,7 @@ sub user_modify($)
     }
 
     # Roles array
-    if ( $user_roles )
-    {
-        $modified_user{ roles } = [ split( ',', $user_roles ) ];
-    }
-    else
-    {
-        $modified_user{ roles } = $db_user_roles->{ roles };
-    }
+    $modified_user{ roles } = ( $user_roles ? [ split( ',', $user_roles ) ] : $db_user_roles->{ roles } );
 
     my @user_role_ids;
     foreach my $user_role ( @{ $modified_user{ roles } } )
