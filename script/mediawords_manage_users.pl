@@ -1,9 +1,74 @@
 #!/usr/bin/env perl
-
-# CLI user administration
 #
-# Usage:
-#   ./script/run_with_carton.sh ./script/mediawords_manage_users.pl
+# CLI user manager
+#
+#
+# Usage
+# =====
+#
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl --help          # manager's help
+#     or
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl --action=...    # action's help
+#
+# Add user
+# --------
+#
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+#         --action=add \
+#         --email=jdoe@cyber.law.harvard.edu \
+#         --full_name="John Doe" \
+#         --notes="Media Cloud developer." \
+#         [--inactive] \
+#         --roles="query-create,media-edit,stories-edit" \
+#         [--password="correct horse battery staple"]
+#
+#     Notes:
+#     * Skip the `--password` parameter to read the password from STDIN.
+#     * Pass the `--inactive` parameter to make the user inactive initially.
+#
+# Modify user
+# -----------
+#
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+#         --action=modify \
+#         --email=jdoe@cyber.law.harvard.edu \
+#         [--full_name="John Doe"] \
+#         [--notes="Media Cloud developer."] \
+#         [--active|--inactive] \
+#         [--roles="query-create,media-edit,stories-edit"] \
+#         [--password="correct horse battery staple"|--set-password]
+#
+#     Notes:
+#     * Pass only those parameters that you want to change; skip the ones that you want to leave inact.
+#     * You can change the user's password either by:
+#         * passing the new password as the value of `--password`, or
+#         * proving the `--set-password` parameter to read the new password from STDIN.
+#
+# Delete user
+# -----------
+#
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+#         --action=delete \
+#         --email=jdoe@cyber.law.harvard.edu
+#
+# Show user information
+# ---------------------
+#
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+#         --action=show \
+#         --email=jdoe@cyber.law.harvard.edu
+#
+# List all users
+# --------------
+#
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+#         --action=list
+#
+# List all user roles
+# -------------------
+#
+#     ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+#         --action=roles
 #
 
 use strict;
@@ -46,7 +111,7 @@ sub _read_password
         {
 
             # Delete / Backspace was pressed
-            # 1. Remove the last char from the password
+            # 1. Delete the last char from the password
             chop( $password );
 
             # 2. Move the cursor back by one, print a blank character, move the cursor back by one
@@ -283,28 +348,28 @@ sub user_modify($)
     return 0;
 }
 
-# Remove user; returns 0 on success, 1 on error
-sub user_remove($)
+# Delete user; returns 0 on success, 1 on error
+sub user_delete($)
 {
     my ( $db ) = @_;
 
     my $user_email = undef;
 
-    my Readonly $user_remove_usage = "Usage: $0" . ' --action=remove' . ' --email=jdoe@cyber.law.harvard.edu';
+    my Readonly $user_delete_usage = "Usage: $0" . ' --action=delete' . ' --email=jdoe@cyber.law.harvard.edu';
 
-    GetOptions( 'email=s' => \$user_email, ) or die "$user_remove_usage\n";
-    die "$user_remove_usage\n" unless ( $user_email );
+    GetOptions( 'email=s' => \$user_email, ) or die "$user_delete_usage\n";
+    die "$user_delete_usage\n" unless ( $user_email );
 
     # Add the user
     # Delete user
     my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $db, $user_email );
     if ( $delete_user_error_message )
     {
-        say STDERR "Error while trying to remove user: $delete_user_error_message";
+        say STDERR "Error while trying to delete user: $delete_user_error_message";
         return 1;
     }
 
-    say STDERR "User with email address '$user_email' was removed successfully.";
+    say STDERR "User with email address '$user_email' was deleted successfully.";
 
     return 0;
 }
@@ -397,7 +462,7 @@ sub user_roles($)
 sub main
 {
     my $action        = '';                                       # which action to take
-    my @valid_actions = qw/add modify remove list show roles/;    # valid actions
+    my @valid_actions = qw/add modify delete show list roles/;    # valid actions
 
     my Readonly $usage = "Usage: $0" . ' --action=' . join( '|', @valid_actions ) . ' ...';
 
@@ -422,11 +487,11 @@ sub main
         # Modify (update) user
         return user_modify( $db );
     }
-    elsif ( $action eq 'remove' )
+    elsif ( $action eq 'delete' )
     {
 
-        # Remove user
-        return user_remove( $db );
+        # Delete user
+        return user_delete( $db );
     }
     elsif ( $action eq 'list' )
     {
