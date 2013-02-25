@@ -143,7 +143,33 @@ sub user_add($)
         return 1;
     }
 
-    say STDERR "User with email address '$user_email' was added successfully.";
+    say STDERR "User with email address '$user_email' was successfully added.";
+
+    return 0;
+}
+
+# Remove user; returns 0 on success, 1 on error
+sub user_remove($)
+{
+    my ( $db ) = @_;
+
+    my $user_email = undef;
+
+    my Readonly $user_remove_usage = "Usage: $0" . ' --action=remove' . ' --email=jdoe@cyber.law.harvard.edu';
+
+    GetOptions( 'email=s' => \$user_email, ) or die "$user_remove_usage\n";
+    die "$user_remove_usage\n" unless ( $user_email );
+
+    # Add the user
+    # Delete user
+    my $delete_user_error_message = MediaWords::DBI::Auth::delete_user_or_return_error_message( $db, $user_email );
+    if ( $delete_user_error_message )
+    {
+        say STDERR "Error while trying to remove user: $delete_user_error_message";
+        return 1;
+    }
+
+    say STDERR "User with email address '$user_email' was removed successfully.";
 
     return 0;
 }
@@ -170,6 +196,12 @@ sub main
         # Add user
         return user_add( $db );
 
+    }
+    elsif ( $action eq 'remove' )
+    {
+
+        # Remove user
+        return user_remove( $db );
     }
 }
 
