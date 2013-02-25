@@ -367,6 +367,32 @@ sub user_show($)
     return 0;
 }
 
+# List user roles; returns 0 on success, 1 on error
+sub user_roles($)
+{
+    my ( $db ) = @_;
+
+    my Readonly $user_roles_usage = "Usage: $0" . ' --action=roles';
+
+    GetOptions() or die "$user_roles_usage\n";
+
+    # Fetch roles
+    my $roles = MediaWords::DBI::Auth::all_user_roles( $db );
+
+    unless ( $roles )
+    {
+        say STDERR "Unable to fetch a list of user roles from the database.";
+        return 1;
+    }
+
+    foreach my $role ( @{ $roles } )
+    {
+        say $role->{ role } . "\t" . $role->{ description };
+    }
+
+    return 0;
+}
+
 # User manager
 sub main
 {
@@ -413,6 +439,17 @@ sub main
 
         # Show user information
         return user_show( $db );
+    }
+    elsif ( $action eq 'roles' )
+    {
+
+        # List user roles
+        return user_roles( $db );
+    }
+    else
+    {
+        die "$usage\n";
+        return 1;
     }
 }
 
