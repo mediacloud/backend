@@ -183,6 +183,8 @@ sub spawn_fetchers
 {
     my ( $self ) = @_;
 
+    my $in_parent = 1;
+
     for ( my $i = 0 ; $i < $self->processes ; $i++ )
     {
         my ( $parent_socket, $child_socket ) = IO::Socket->socketpair( AF_UNIX, SOCK_STREAM, PF_UNSPEC );
@@ -190,21 +192,34 @@ sub spawn_fetchers
         die "Could not create socket for fetcher $i" unless $parent_socket && $child_socket;
 
         print STDERR "spawn fetcher $i ...\n";
+
+        $self->_close_db_connection();
+
         my $pid = mc_fork();
 
         if ( $pid )
         {
+            say STDERR "in parent after spawning fecther $i";
             $child_socket->close();
             $self->fetchers->[ $i ] = { pid => $pid, socket => $parent_socket };
-            $self->reconnect_db;
+            say STDERR "in parent after spawning fecther $i db reconnect starting";
+            eval { $self->reconnect_db; };
+            if ( $@ )
+            {
+                die "Error in reconnect_db in paranet after spawning fetcher $i";
+            }
+            say STDERR "in parent after spawning fecther $i db reconnect done";
         }
         else
         {
+            say STDERR "in child $i ";
             $parent_socket->close();
+            $in_parent = 0;
             $self->fetcher_number( $i );
             $self->socket( $child_socket );
             $self->reconnect_db;
 
+            say STDERR "in child $i calling run_fetcher";
             eval { $self->_run_fetcher(); };
 
             if ( $@ )
@@ -212,6 +227,16 @@ sub spawn_fetchers
                 die "Error in _run_fetcher for fetcher $i: $@";
             }
         }
+    }
+
+    if ( $in_parent )
+    {
+        ## Give children a catch to initialize to avoid race conditions
+
+        say STDERR "Sleeping in parent";
+        sleep( 1 );
+        say STDERR "continuing in parent";
+
     }
 }
 
@@ -494,13 +519,27 @@ sub dbs
     return $self->{ dbs };
 }
 
-sub reconnect_db
+sub _close_db_connection
 {
     my ( $self ) = @_;
 
     if ( $self->{ dbs } )
     {
         $self->dbs->disconnect;
+
+        $self->{ dbs } = 0;
+    }
+
+    return;
+}
+
+sub reconnect_db
+{
+    my ( $self ) = @_;
+
+    if ( $self->{ dbs } )
+    {
+        $self->_close_db_connection();
     }
 
     $self->{ dbs } = MediaWords::DB::connect_to_db;

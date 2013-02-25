@@ -153,10 +153,31 @@ sub get_random_download
     my $download;
     while ( !$download )
     {
-        $download =
-          $c->dbis->query( "select * from downloads where type = 'content' and state = 'success' and downloads_id = ?",
+        $download = $c->dbis->query(
+            "select * from downloads where type = 'content' and state = 'success' and downloads_id >= ? limit 1",
             $downloads_id++ )->hash;
     }
+
+    return $download;
+}
+
+# get random download to extract
+sub get_random_download_for_dashboard
+{
+    my ( $self, $dbis, $dashboards_id ) = @_;
+
+    my $sql;
+
+    $sql = <<'END_SQL';
+    select * from downloads where feeds_id in(
+        select feeds_id from feeds where media_id in(
+            select media_id from media_sets_media_map where media_sets_id in(
+                select media_sets_id from dashboard_media_sets where dashboards_id =
+? ) ) ) and type = 'content' and state = 'success' and file_status <> 'missing' and downloads_id >= ( select (max(downloads_id ) * random())::integer from downloads )  order by downloads_id limit 1
+
+END_SQL
+
+    my $download = $dbis->query( $sql, $dashboards_id )->hash;
 
     return $download;
 }
@@ -231,6 +252,9 @@ sub mextract : Local
     my ( $self, $c, $download_id ) = @_;
 
     my ( $download, $next_training_download );
+
+    my $dashboards_id = $c->req->params->{ dashboards_id };
+
     if ( $download_id )
     {
         $download = $c->dbis->find_by_id( 'downloads', $download_id );
@@ -248,14 +272,25 @@ sub mextract : Local
               'where a.downloads_id > ? ' . 'order by a.downloads_id asc limit 1)',
             $current_training_download_id
         );
-
+    }
+    elsif ( defined( $dashboards_id ) )
+    {
+        my $dashboards_id = $c->request->param( 'dashboards_id' );
+        $download = $self->get_random_download_for_dashboard( $c->dbis, $dashboards_id );
+        $c->stash->{ dashboards_id } = $dashboards_id;
     }
     else
     {
         $download = $self->get_high_priority_download( $c );
-        $download->{ extractor_training_lines } =
-          $c->dbis->query( "select * from extractor_training_lines where downloads_id = ?", $download_id )->hashes;
     }
+
+    if ( defined( $dashboards_id ) )
+    {
+        $c->stash->{ dashboards_id } = $dashboards_id;
+    }
+
+    $download->{ extractor_training_lines } =
+      $c->dbis->query( "select * from extractor_training_lines where downloads_id = ?", $download_id )->hashes;
 
     $download->{ story }  = $c->dbis->find_by_id( 'stories', $download->{ stories_id } );
     $download->{ medium } = $c->dbis->find_by_id( 'media',   $download->{ story }->{ media_id } );
@@ -383,7 +418,17 @@ sub mextract_do : Local
     }
 
     $c->stash->{ status_msg } = 'Thanks. And again!';
-    $c->response->redirect( $c->uri_for( '/downloads/mextract/' . $downloads_id, { status_msg => 'Done.' } ) );
+
+    my $params = { status_msg => 'Done.' };
+
+    my $dashboards_id = $c->req->params->{ dashboards_id };
+
+    if ( defined( $dashboards_id ) && $dashboards_id )
+    {
+        $params->{ dashboards_id } = $dashboards_id;
+    }
+
+    $c->response->redirect( $c->uri_for( '/downloads/mextract/' . $downloads_id, $params ) );
 }
 
 sub keepMextractFlashSettings

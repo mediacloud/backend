@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4391;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4396;
     
 BEGIN
 
@@ -229,10 +229,7 @@ create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 
 -- allow easy querying of all duplicates, regardless of order
-create view media_dups_transitive as 
-    select distinct media_id, main_media_id from 
-        ( ( select media_id, main_media_id from media where main_media_id is not null ) union 
-          ( select main_media_id as media_id, media_id as main_media_id from media where main_media_id is not null ) ) q;
+create view media_dups_transitive as     select distinct media_id, main_media_id from   ( ( select media_id, main_media_id from media where main_media_id is not null ) union ( select main_media_id as media_id, media_id as main_media_id from media where main_media_id is not null ) ) q;
 
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
 
@@ -527,7 +524,7 @@ BEGIN
     -- RAISE NOTICE 'start date - %', start_date;
     -- RAISE NOTICE 'end date - %', end_date;
 
-    return  ( start_date <= test_date ) and ( end_date >= test_date );    
+    return  ( ( start_date is null )  OR ( start_date <= test_date ) ) AND ( (end_date is null ) OR ( end_date >= test_date ) );
 END;
 $$
 LANGUAGE 'plpgsql' STABLE
@@ -903,7 +900,7 @@ create index story_sentence_words_media_day on story_sentence_words (media_id, p
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
 create table daily_words (
-       daily_words_id               serial          primary key,
+       daily_words_id               bigserial          primary key,
        media_sets_id                int             not null, -- references media_sets,
        dashboard_topics_id          int             null,     -- references dashboard_topics,
        term                         varchar(256)    not null,
@@ -921,7 +918,7 @@ create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id
 CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
-       weekly_words_id              serial          primary key,
+       weekly_words_id              bigserial          primary key,
        media_sets_id                int             not null, -- references media_sets,
        dashboard_topics_id          int             null,     -- references dashboard_topics,
        term                         varchar(256)    not null,
@@ -963,18 +960,10 @@ ALTER TABLE total_top_500_weekly_words ADD CONSTRAINT total_top_500_weekly_words
 create unique index total_top_500_weekly_words_media 
     on total_top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
 
-create view top_500_weekly_words_with_totals
-    as select t5.*, tt5.total_count from top_500_weekly_words t5, total_top_500_weekly_words tt5
-      where t5.media_sets_id = tt5.media_sets_id and t5.publish_week = tt5.publish_week and
-        ( ( t5.dashboard_topics_id = tt5.dashboard_topics_id ) or
-          ( t5.dashboard_topics_id is null and tt5.dashboard_topics_id is null ) );
+create view top_500_weekly_words_with_totals as select t5.*, tt5.total_count from top_500_weekly_words t5, total_top_500_weekly_words tt5       where t5.media_sets_id = tt5.media_sets_id and t5.publish_week = tt5.publish_week and         ( ( t5.dashboard_topics_id = tt5.dashboard_topics_id ) or           ( t5.dashboard_topics_id is null and tt5.dashboard_topics_id is null ) );
 
 create view top_500_weekly_words_normalized
-    as select t5.stem, min(t5.term) as term, 
-            ( least( 0.01, sum(t5.stem_count)::numeric / sum(t5.total_count)::numeric ) * count(*) ) as stem_count,
-            t5.media_sets_id, t5.publish_week, t5.dashboard_topics_id
-        from top_500_weekly_words_with_totals t5
-        group by t5.stem, t5.publish_week, t5.media_sets_id, t5.dashboard_topics_id;
+    as select t5.stem, min(t5.term) as term,             ( least( 0.01, sum(t5.stem_count)::numeric / sum(t5.total_count)::numeric ) * count(*) ) as stem_count, t5.media_sets_id, t5.publish_week, t5.dashboard_topics_id         from top_500_weekly_words_with_totals t5    group by t5.stem, t5.publish_week, t5.media_sets_id, t5.dashboard_topics_id;
     
 create table total_daily_words (
        total_daily_words_id         serial          primary key,
@@ -1004,11 +993,8 @@ create unique index total_weekly_words_ms_id_dt_id_p_week on total_weekly_words(
 CREATE INDEX total_weekly_words_publish_week on total_weekly_words(publish_week);
 INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week, total_count) select media_sets_id, dashboard_topics_id, publish_week, sum(stem_count) as total_count from weekly_words group by media_sets_id, dashboard_topics_id, publish_week order by publish_week asc, media_sets_id, dashboard_topics_id ;
 
-create view daily_words_with_totals 
-    as select d.*, t.total_count from daily_words d, total_daily_words t
-      where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and
-        ( ( d.dashboard_topics_id = t.dashboard_topics_id ) or
-          ( d.dashboard_topics_id is null and t.dashboard_topics_id is null ) );
+create view daily_words_with_totals as select d.*, t.total_count from daily_words d, total_daily_words t where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and ( ( d.dashboard_topics_id = t.dashboard_topics_id ) or ( d.dashboard_topics_id is null and t.dashboard_topics_id is null ) );
+
              
 create schema stories_tags_map_media_sub_tables;
 
@@ -1018,11 +1004,9 @@ create table ssw_queue (
        media_id                     int             not null
 );
 
-create view story_extracted_texts
-       as select stories_id, 
-       array_to_string(array_agg(download_text), ' ') as extracted_text 
-       from (select * from downloads natural join download_texts order by downloads_id) 
-       	    as downloads group by stories_id;
+create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
+       from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
+
 
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
@@ -1209,9 +1193,7 @@ create index story_similarities_b_s on story_similarities ( stories_id_b, simila
 create index story_similarities_day on story_similarities ( publish_day_a, publish_day_b ); 
      
 create view story_similarities_transitive as
-    ( select story_similarities_id, stories_id_a, publish_day_a, stories_id_b, publish_day_b, similarity from story_similarities ) union 
-        ( select story_similarities_id, stories_id_b as stories_id_a, publish_day_b as publish_day_a,
-            stories_id_a as stories_id_b, publish_day_a as publish_day_b, similarity from story_similarities );
+    ( select story_similarities_id, stories_id_a, publish_day_a, stories_id_b, publish_day_b, similarity from story_similarities ) union  ( select story_similarities_id, stories_id_b as stories_id_a, publish_day_b as publish_day_a, stories_id_a as stories_id_b, publish_day_a as publish_day_b, similarity from story_similarities );
             
 create table controversies (
     controversies_id        serial primary key,
@@ -1257,13 +1239,7 @@ create table controversy_stories (
 );
 
 create view controversy_links_cross_media as
-  select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, 
-      substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id
-    from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs
-    where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and 
-      cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and 
-      sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and
-      cs.controversies_id = cl.controversies_id;
+  select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
     
 CREATE VIEW stories_collected_in_past_day as select * from stories where collect_date > now() - interval '1 day';
 
@@ -1279,6 +1255,12 @@ CREATE TABLE queries_top_weekly_words_json (
    queries_id integer references queries on delete cascade not null unique,
    top_weekly_words_json text not null 
 );
+
+CREATE TABLE feedless_stories (
+        stories_id integer,
+        media_id integer
+);
+CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
 
 CREATE TABLE queries_country_counts_json (
    queries_country_counts_json_id serial primary key,
@@ -1320,6 +1302,7 @@ END;
 $body$
     LANGUAGE 'plpgsql';
 --
+
 
 
 
@@ -1394,7 +1377,9 @@ LANGUAGE 'plpgsql';
 
 DROP TRIGGER IF EXISTS download_relative_file_path_trigger on downloads CASCADE;
 CREATE TRIGGER download_relative_file_path_trigger BEFORE INSERT OR UPDATE ON downloads FOR EACH ROW EXECUTE PROCEDURE  download_relative_file_path_trigger() ;
-CREATE INDEX relative_file_paths_to_verify on downloads( relative_file_path ) where file_status = 'tbd' and relative_file_path <> 'tbd' and relative_file_path <> 'error';
+
+CREATE INDEX relative_file_paths_to_verify ON downloads USING btree (relative_file_path) WHERE (((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text));
+
 CREATE OR REPLACE FUNCTION show_stat_activity()
  RETURNS SETOF  pg_stat_activity  AS
 $$
@@ -1408,3 +1393,59 @@ LANGUAGE 'plpgsql'
 ;
 
 
+CREATE FUNCTION cat(text, text) RETURNS text
+    LANGUAGE plpgsql
+    AS $_$
+  DECLARE
+    t text;
+  BEGIN
+return coalesce($1) || ' | ' || coalesce($2);
+  END;
+$_$;
+
+
+CREATE INDEX stories_guid_non_unique ON stories USING btree (guid, media_id);
+
+CREATE UNIQUE INDEX stories_guid_unique_temp ON stories USING btree (guid, media_id) WHERE (stories_id > 72728270);
+
+CREATE INDEX downloads_in_old_format ON downloads USING btree (downloads_id) WHERE ((state = 'success'::download_state) AND (path ~~ 'content/%'::text));
+
+CREATE INDEX file_status_downloads_time_new_format ON downloads USING btree (file_status, download_time) WHERE (relative_file_path ~~ 'mediacloud-%'::text);
+
+CREATE INDEX relative_file_paths_new_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (relative_file_path ~~ 'mediacloud-%'::text));
+
+CREATE INDEX relative_file_paths_old_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (NOT (relative_file_path ~~ 'mediacloud-%'::text)));
+
+CREATE INDEX total_daily_words_date ON total_daily_words USING btree (publish_day);
+
+CREATE INDEX total_daily_words_date_dt ON total_daily_words USING btree (publish_day, dashboard_topics_id);
+
+CREATE INDEX tags_tag_sets_id ON tags USING btree (tag_sets_id);
+
+CREATE INDEX queries_description ON queries USING btree (description);
+
+CREATE INDEX queries_hash ON queries USING btree (md5(description));
+
+CREATE UNIQUE INDEX queries_hash_version ON queries USING btree (md5(description), query_version);
+
+CREATE INDEX queries_md5_signature ON queries USING btree (md5_signature);
+
+CREATE INDEX query_story_searches_stories_map_qss ON query_story_searches_stories_map USING btree (query_story_searches_id);
+
+CREATE INDEX ssw_queue_stories_id ON ssw_queue USING btree (stories_id);
+
+CREATE INDEX story_sentence_words_dm ON story_sentence_words USING btree (publish_day, media_id);
+
+CREATE INDEX top_500_weekly_author_words_publish_week ON top_500_weekly_author_words USING btree (publish_week);
+
+CREATE INDEX top_500_weekly_words_dmds ON top_500_weekly_words USING btree (publish_week, media_sets_id, dashboard_topics_id, stem);
+
+CREATE INDEX weekly_words_topic ON weekly_words USING btree (publish_week, dashboard_topics_id);
+
+CREATE OR REPLACE FUNCTION cancel_pg_process(cancel_pid integer) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+return pg_cancel_backend(cancel_pid);
+END;
+$$;
