@@ -148,6 +148,163 @@ sub user_add($)
     return 0;
 }
 
+# Modify user; returns 0 on success, 1 on error
+sub user_modify($)
+{
+    my ( $db ) = @_;
+
+    my $user_email        = undef;
+    my $user_full_name    = undef;
+    my $user_notes        = undef;
+    my $user_is_active    = undef;
+    my $user_is_inactive  = undef;
+    my $user_roles        = undef;
+    my $user_password     = undef;
+    my $user_set_password = undef;
+
+    my Readonly $user_modify_usage =
+      "Usage: $0" . ' --action=modify' . ' --email=jdoe@cyber.law.harvard.edu' . ' [--full_name="John Doe"]' .
+      ' [--notes="Media Cloud developer."]' . ' [--active|--inactive]' .
+      ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"|--set-password]';
+
+    GetOptions(
+        'email=s'      => \$user_email,
+        'full_name:s'  => \$user_full_name,
+        'notes:s'      => \$user_notes,
+        'active'       => \$user_is_active,
+        'inactive'     => \$user_is_inactive,
+        'roles:s'      => \$user_roles,
+        'password:s'   => \$user_password,
+        'set-password' => \$user_set_password,
+    ) or die "$user_modify_usage\n";
+    die "$user_modify_usage\n" unless ( $user_email );
+
+    # Fetch default information about the user
+    my $db_user = MediaWords::DBI::Auth::user_info( $db, $user_email );
+    my $db_user_roles = MediaWords::DBI::Auth::user_auth( $db, $user_email );
+
+    unless ( $db_user and $db_user_roles )
+    {
+        say STDERR "Unable to find user '$user_email' in the database.";
+        return 1;
+    }
+
+    # Check if anything has to be changed
+    unless ( defined $user_full_name
+        or defined $user_notes
+        or defined $user_is_active
+        or defined $user_is_inactive
+        or defined $user_roles
+        or defined $user_password
+        or defined $user_set_password )
+    {
+        say STDERR "Nothing has to be changed.";
+        die "$user_modify_usage\n";
+    }
+
+    # Hash with user values that should be put back into database
+    my %modified_user;
+    $modified_user{ email } = $user_email;
+
+    # Overwrite the information if provided as parameters
+    if ( $user_full_name )
+    {
+        $modified_user{ full_name } = $user_full_name;
+    }
+    else
+    {
+        $modified_user{ full_name } = $db_user->{ full_name };
+    }
+
+    if ( $user_notes )
+    {
+        $modified_user{ notes } = $user_notes;
+    }
+    else
+    {
+        $modified_user{ notes } = $db_user->{ notes };
+    }
+
+    if ( defined $user_is_active )
+    {
+        $modified_user{ active } = 1;
+    }
+    elsif ( defined $user_is_inactive )
+    {
+        $modified_user{ active } = 0;
+    }
+    else
+    {
+        $modified_user{ active } = $db_user->{ active };
+    }
+
+    # Roles array
+    if ( $user_roles )
+    {
+        $modified_user{ roles } = [ split( ',', $user_roles ) ];
+    }
+    else
+    {
+        $modified_user{ roles } = $db_user_roles->{ roles };
+    }
+
+    my @user_role_ids;
+    foreach my $user_role ( @{ $modified_user{ roles } } )
+    {
+        my $user_role_id = MediaWords::DBI::Auth::role_id_for_role( $db, $user_role );
+        if ( !$user_role_id )
+        {
+            say STDERR "Role '$user_role' was not found.";
+            return 1;
+        }
+
+        push( @user_role_ids, $user_role_id );
+    }
+    $modified_user{ role_ids } = \@user_role_ids;
+
+    # Set / read the password (if needed)
+    $modified_user{ password }        = '';
+    $modified_user{ password_repeat } = '';
+    if ( $user_password )
+    {
+        $modified_user{ password } = $modified_user{ password_repeat } = $user_password;
+    }
+    elsif ( $user_set_password )
+    {
+        while ( !$modified_user{ password } )
+        {
+            print "Enter password: ";
+            $modified_user{ password } = _read_password();
+        }
+        while ( !$modified_user{ password_repeat } )
+        {
+            print "Repeat password: ";
+            $modified_user{ password_repeat } = _read_password();
+        }
+    }
+
+    # Modify (update) user
+    my $update_user_error_message = MediaWords::DBI::Auth::update_user_or_return_error_message(
+        $db,
+        $modified_user{ email },
+        $modified_user{ full_name },
+        $modified_user{ notes },
+        $modified_user{ role_ids },
+        $modified_user{ active },
+        $modified_user{ password },
+        $modified_user{ password_repeat }
+    );
+    if ( $update_user_error_message )
+    {
+        say STDERR "Error while trying to modify user: $update_user_error_message";
+        return 1;
+    }
+
+    say STDERR "User with email address '$user_email' was successfully modified.";
+
+    return 0;
+}
+
 # Remove user; returns 0 on success, 1 on error
 sub user_remove($)
 {
@@ -177,8 +334,8 @@ sub user_remove($)
 # User manager
 sub main
 {
-    my $action        = '';                                                       # which action to take
-    my @valid_actions = qw/add remove modify activate deactivate reset roles/;    # valid roles
+    my $action        = '';                                                      # which action to take
+    my @valid_actions = qw/add remove modify activate deactivate roles show/;    # valid actions
 
     my Readonly $usage = "Usage: $0" . ' --action=' . join( '|', @valid_actions ) . ' ...';
 
@@ -202,6 +359,12 @@ sub main
 
         # Remove user
         return user_remove( $db );
+    }
+    elsif ( $action eq 'modify' )
+    {
+
+        # Modify (update) user
+        return user_modify( $db );
     }
 }
 
