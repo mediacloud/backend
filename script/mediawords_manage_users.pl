@@ -309,6 +309,32 @@ sub user_remove($)
     return 0;
 }
 
+# List users; returns 0 on success, 1 on error
+sub users_list($)
+{
+    my ( $db ) = @_;
+
+    my Readonly $user_list_usage = "Usage: $0" . ' --action=list';
+
+    GetOptions() or die "$user_list_usage\n";
+
+    # Fetch list of users
+    my $users = MediaWords::DBI::Auth::all_users( $db );
+
+    unless ( $users )
+    {
+        say STDERR "Unable to fetch a list of users from the database.";
+        return 1;
+    }
+
+    foreach my $user ( @{ $users } )
+    {
+        say $user->{ email };
+    }
+
+    return 0;
+}
+
 # Show user information; returns 0 on success, 1 on error
 sub user_show($)
 {
@@ -364,17 +390,23 @@ sub main
         return user_add( $db );
 
     }
+    elsif ( $action eq 'modify' )
+    {
+
+        # Modify (update) user
+        return user_modify( $db );
+    }
     elsif ( $action eq 'remove' )
     {
 
         # Remove user
         return user_remove( $db );
     }
-    elsif ( $action eq 'modify' )
+    elsif ( $action eq 'list' )
     {
 
-        # Modify (update) user
-        return user_modify( $db );
+        # List users
+        return users_list( $db );
     }
     elsif ( $action eq 'show' )
     {
