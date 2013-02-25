@@ -566,6 +566,78 @@
          "target" : "AnyEvent::HTTP",
          "version" : "2.14"
       },
+      "AnyEvent::Twitter::Stream" : {
+         "dist" : "AnyEvent-Twitter-Stream-0.22",
+         "mymeta" : {
+            "abstract" : "Receive Twitter streaming API in an event loop",
+            "author" : [
+               "Tatsuhiko Miyagawa <miyagawa@bulknews.net>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.02, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "AnyEvent-Twitter-Stream",
+            "no_index" : {
+               "directory" : [
+                  "inc",
+                  "t",
+                  "xt"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42",
+                     "Test::More" : 0,
+                     "Test::Requires" : 0,
+                     "Test::TCP" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.42"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "AnyEvent" : 0,
+                     "AnyEvent::HTTP" : "2.0",
+                     "Filter::Util::Call" : 0,
+                     "JSON" : "2.0",
+                     "URI" : 0,
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://github.com/miyagawa/AnyEvent-Twitter-Stream.git"
+               }
+            },
+            "version" : "0.22"
+         },
+         "name" : "AnyEvent::Twitter::Stream",
+         "pathname" : "M/MI/MIYAGAWA/AnyEvent-Twitter-Stream-0.22.tar.gz",
+         "provides" : {
+            "AnyEvent::Twitter::Stream" : {
+               "file" : "AnyEvent/Twitter/Stream.pm",
+               "version" : "0.22"
+            }
+         },
+         "target" : "AnyEvent::Twitter::Stream",
+         "version" : "0.22"
+      },
       "App::cpanminus" : {
          "dist" : "App-cpanminus-1.5010",
          "mymeta" : {
@@ -7039,6 +7111,84 @@
          "target" : "Crypt::SaltedHash",
          "version" : "0.05"
       },
+      "Crypt::SSLeay" : {
+         "dist" : "Crypt-SSLeay-0.64",
+         "mymeta" : {
+            "abstract" : "OpenSSL support for LWP",
+            "author" : [
+               "A. Sinan Unur <nanis@cpan.org>",
+               "David Landgren",
+               "Joshua Chamas",
+               "Gisle Aas"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "artistic_2"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Crypt-SSLeay",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : "0.88",
+                     "Try::Tiny" : "0.09"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "LWP::Protocol::https" : "6.02",
+                     "MIME::Base64" : 0
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.64"
+         },
+         "name" : "Crypt::SSLeay",
+         "pathname" : "N/NA/NANIS/Crypt-SSLeay-0.64.tar.gz",
+         "provides" : {
+            "Crypt::SSLeay" : {
+               "file" : "Crypt/SSLeay.pm",
+               "version" : "0.64"
+            },
+            "Crypt::SSLeay::CTX" : {
+               "file" : "Crypt/SSLeay/CTX.pm"
+            },
+            "Crypt::SSLeay::Conn" : {
+               "file" : "Crypt/SSLeay/Conn.pm"
+            },
+            "Crypt::SSLeay::Err" : {
+               "file" : "Crypt/SSLeay/Err.pm"
+            },
+            "Crypt::SSLeay::MainContext" : {
+               "file" : "Crypt/SSLeay/MainContext.pm"
+            },
+            "Crypt::SSLeay::X509" : {
+               "file" : "Crypt/SSLeay/X509.pm"
+            },
+            "Net::SSL" : {
+               "file" : "Net/SSL.pm",
+               "version" : "2.85"
+            }
+         },
+         "target" : "Crypt::SSLeay",
+         "version" : "0.64"
+      },
       "DBD::Pg" : {
          "dist" : "DBD-Pg-2.18.1",
          "mymeta" : {
@@ -9047,7 +9197,7 @@
                "David E. Wheeler <david@justatheory.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -17612,7 +17762,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120351, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.113640, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -17666,6 +17816,59 @@
          },
          "target" : "Email::Valid",
          "version" : "0.190"
+      },
+      "Domain::PublicSuffix" : {
+         "dist" : "Domain-PublicSuffix-0.07",
+         "mymeta" : {
+            "abstract" : "Parse a domain down to root",
+            "author" : [
+               "Nicholas Melnick <nick@abstractwankery.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300020, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Domain-PublicSuffix",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {}
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Class::Accessor::Fast" : 0,
+                     "Data::Validate::Domain" : 0,
+                     "File::Spec" : 0,
+                     "Test::More" : "0.88"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.07"
+         },
+         "name" : "Domain::PublicSuffix",
+         "pathname" : "N/NM/NMELNICK/Domain-PublicSuffix-0.07.tar.gz",
+         "provides" : {
+            "Domain::PublicSuffix" : {
+               "file" : "Domain/PublicSuffix.pm",
+               "version" : "0.07"
+            },
+            "Domain::PublicSuffix::Default" : {
+               "file" : "Domain/PublicSuffix/Default.pm",
+               "version" : "0.07"
+            }
+         },
+         "target" : "Domain::PublicSuffix",
+         "version" : "0.07"
       },
       "Encode::HanConvert" : {
          "dist" : "Encode-HanConvert-0.35",
@@ -27872,17 +28075,379 @@
          "target" : "Module::Util",
          "version" : "1.07"
       },
-      "MongoDB" : {
-         "dist" : "MongoDB-0.501.1",
+      "Mojolicious" : {
+         "dist" : "Mojolicious-3.64",
          "mymeta" : {
-            "abstract" : "A Mongo Driver for Perl",
+            "abstract" : "Real-time web framework",
             "author" : [
-               "Florian Ragwitz <rafl@debian.org>",
-               "Kristina Chodorow <kristina@mongodb.org>",
-               "Mike Friedman <mike.friedman@10gen.com>"
+               "Sebastian Riedel <sri@cpan.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Dist::Zilla version 4.300028, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.6302, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "artistic_2"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Mojolicious",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {}
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://github.com/kraih/mojo/issues"
+               },
+               "homepage" : "http://mojolicio.us",
+               "license" : [
+                  "http://www.opensource.org/licenses/artistic-license-2.0"
+               ],
+               "repository" : {
+                  "url" : "http://github.com/kraih/mojo"
+               },
+               "x_MailingList" : "http://groups.google.com/group/mojolicious"
+            },
+            "version" : "3.64"
+         },
+         "name" : "Mojolicious",
+         "pathname" : "S/SR/SRI/Mojolicious-3.64.tar.gz",
+         "provides" : {
+            "Mojo" : {
+               "file" : "Mojo.pm"
+            },
+            "Mojo::Asset" : {
+               "file" : "Mojo/Asset.pm"
+            },
+            "Mojo::Asset::File" : {
+               "file" : "Mojo/Asset/File.pm"
+            },
+            "Mojo::Asset::Memory" : {
+               "file" : "Mojo/Asset/Memory.pm"
+            },
+            "Mojo::Base" : {
+               "file" : "Mojo/Base.pm"
+            },
+            "Mojo::ByteStream" : {
+               "file" : "Mojo/ByteStream.pm"
+            },
+            "Mojo::Cache" : {
+               "file" : "Mojo/Cache.pm"
+            },
+            "Mojo::Collection" : {
+               "file" : "Mojo/Collection.pm"
+            },
+            "Mojo::Content" : {
+               "file" : "Mojo/Content.pm"
+            },
+            "Mojo::Content::MultiPart" : {
+               "file" : "Mojo/Content/MultiPart.pm"
+            },
+            "Mojo::Content::Single" : {
+               "file" : "Mojo/Content/Single.pm"
+            },
+            "Mojo::Cookie" : {
+               "file" : "Mojo/Cookie.pm"
+            },
+            "Mojo::Cookie::Request" : {
+               "file" : "Mojo/Cookie/Request.pm"
+            },
+            "Mojo::Cookie::Response" : {
+               "file" : "Mojo/Cookie/Response.pm"
+            },
+            "Mojo::DOM" : {
+               "file" : "Mojo/DOM.pm"
+            },
+            "Mojo::DOM::CSS" : {
+               "file" : "Mojo/DOM/CSS.pm"
+            },
+            "Mojo::DOM::HTML" : {
+               "file" : "Mojo/DOM/HTML.pm"
+            },
+            "Mojo::Date" : {
+               "file" : "Mojo/Date.pm"
+            },
+            "Mojo::EventEmitter" : {
+               "file" : "Mojo/EventEmitter.pm"
+            },
+            "Mojo::Exception" : {
+               "file" : "Mojo/Exception.pm"
+            },
+            "Mojo::Headers" : {
+               "file" : "Mojo/Headers.pm"
+            },
+            "Mojo::HelloWorld" : {
+               "file" : "Mojo/HelloWorld.pm"
+            },
+            "Mojo::Home" : {
+               "file" : "Mojo/Home.pm"
+            },
+            "Mojo::IOLoop" : {
+               "file" : "Mojo/IOLoop.pm"
+            },
+            "Mojo::IOLoop::Client" : {
+               "file" : "Mojo/IOLoop/Client.pm"
+            },
+            "Mojo::IOLoop::Delay" : {
+               "file" : "Mojo/IOLoop/Delay.pm"
+            },
+            "Mojo::IOLoop::Server" : {
+               "file" : "Mojo/IOLoop/Server.pm"
+            },
+            "Mojo::IOLoop::Stream" : {
+               "file" : "Mojo/IOLoop/Stream.pm"
+            },
+            "Mojo::JSON" : {
+               "file" : "Mojo/JSON.pm"
+            },
+            "Mojo::JSON::Pointer" : {
+               "file" : "Mojo/JSON/Pointer.pm"
+            },
+            "Mojo::Loader" : {
+               "file" : "Mojo/Loader.pm"
+            },
+            "Mojo::Log" : {
+               "file" : "Mojo/Log.pm"
+            },
+            "Mojo::Message" : {
+               "file" : "Mojo/Message.pm"
+            },
+            "Mojo::Message::Request" : {
+               "file" : "Mojo/Message/Request.pm"
+            },
+            "Mojo::Message::Response" : {
+               "file" : "Mojo/Message/Response.pm"
+            },
+            "Mojo::Parameters" : {
+               "file" : "Mojo/Parameters.pm"
+            },
+            "Mojo::Path" : {
+               "file" : "Mojo/Path.pm"
+            },
+            "Mojo::Reactor" : {
+               "file" : "Mojo/Reactor.pm"
+            },
+            "Mojo::Reactor::EV" : {
+               "file" : "Mojo/Reactor/EV.pm"
+            },
+            "Mojo::Reactor::Poll" : {
+               "file" : "Mojo/Reactor/Poll.pm"
+            },
+            "Mojo::Server" : {
+               "file" : "Mojo/Server.pm"
+            },
+            "Mojo::Server::CGI" : {
+               "file" : "Mojo/Server/CGI.pm"
+            },
+            "Mojo::Server::Daemon" : {
+               "file" : "Mojo/Server/Daemon.pm"
+            },
+            "Mojo::Server::Hypnotoad" : {
+               "file" : "Mojo/Server/Hypnotoad.pm"
+            },
+            "Mojo::Server::Morbo" : {
+               "file" : "Mojo/Server/Morbo.pm"
+            },
+            "Mojo::Server::PSGI" : {
+               "file" : "Mojo/Server/PSGI.pm"
+            },
+            "Mojo::Template" : {
+               "file" : "Mojo/Template.pm"
+            },
+            "Mojo::Transaction" : {
+               "file" : "Mojo/Transaction.pm"
+            },
+            "Mojo::Transaction::HTTP" : {
+               "file" : "Mojo/Transaction/HTTP.pm"
+            },
+            "Mojo::Transaction::WebSocket" : {
+               "file" : "Mojo/Transaction/WebSocket.pm"
+            },
+            "Mojo::URL" : {
+               "file" : "Mojo/URL.pm"
+            },
+            "Mojo::Upload" : {
+               "file" : "Mojo/Upload.pm"
+            },
+            "Mojo::UserAgent" : {
+               "file" : "Mojo/UserAgent.pm"
+            },
+            "Mojo::UserAgent::CookieJar" : {
+               "file" : "Mojo/UserAgent/CookieJar.pm"
+            },
+            "Mojo::UserAgent::Transactor" : {
+               "file" : "Mojo/UserAgent/Transactor.pm"
+            },
+            "Mojo::Util" : {
+               "file" : "Mojo/Util.pm"
+            },
+            "Mojolicious" : {
+               "file" : "Mojolicious.pm",
+               "version" : "3.64"
+            },
+            "Mojolicious::Command" : {
+               "file" : "Mojolicious/Command.pm"
+            },
+            "Mojolicious::Command::cgi" : {
+               "file" : "Mojolicious/Command/cgi.pm"
+            },
+            "Mojolicious::Command::cpanify" : {
+               "file" : "Mojolicious/Command/cpanify.pm"
+            },
+            "Mojolicious::Command::daemon" : {
+               "file" : "Mojolicious/Command/daemon.pm"
+            },
+            "Mojolicious::Command::eval" : {
+               "file" : "Mojolicious/Command/eval.pm"
+            },
+            "Mojolicious::Command::generate" : {
+               "file" : "Mojolicious/Command/generate.pm"
+            },
+            "Mojolicious::Command::generate::app" : {
+               "file" : "Mojolicious/Command/generate/app.pm"
+            },
+            "Mojolicious::Command::generate::lite_app" : {
+               "file" : "Mojolicious/Command/generate/lite_app.pm"
+            },
+            "Mojolicious::Command::generate::makefile" : {
+               "file" : "Mojolicious/Command/generate/makefile.pm"
+            },
+            "Mojolicious::Command::generate::plugin" : {
+               "file" : "Mojolicious/Command/generate/plugin.pm"
+            },
+            "Mojolicious::Command::get" : {
+               "file" : "Mojolicious/Command/get.pm"
+            },
+            "Mojolicious::Command::inflate" : {
+               "file" : "Mojolicious/Command/inflate.pm"
+            },
+            "Mojolicious::Command::psgi" : {
+               "file" : "Mojolicious/Command/psgi.pm"
+            },
+            "Mojolicious::Command::routes" : {
+               "file" : "Mojolicious/Command/routes.pm"
+            },
+            "Mojolicious::Command::test" : {
+               "file" : "Mojolicious/Command/test.pm"
+            },
+            "Mojolicious::Command::version" : {
+               "file" : "Mojolicious/Command/version.pm"
+            },
+            "Mojolicious::Commands" : {
+               "file" : "Mojolicious/Commands.pm"
+            },
+            "Mojolicious::Controller" : {
+               "file" : "Mojolicious/Controller.pm"
+            },
+            "Mojolicious::Lite" : {
+               "file" : "Mojolicious/Lite.pm"
+            },
+            "Mojolicious::Plugin" : {
+               "file" : "Mojolicious/Plugin.pm"
+            },
+            "Mojolicious::Plugin::Charset" : {
+               "file" : "Mojolicious/Plugin/Charset.pm"
+            },
+            "Mojolicious::Plugin::Config" : {
+               "file" : "Mojolicious/Plugin/Config.pm"
+            },
+            "Mojolicious::Plugin::DefaultHelpers" : {
+               "file" : "Mojolicious/Plugin/DefaultHelpers.pm"
+            },
+            "Mojolicious::Plugin::EPLRenderer" : {
+               "file" : "Mojolicious/Plugin/EPLRenderer.pm"
+            },
+            "Mojolicious::Plugin::EPRenderer" : {
+               "file" : "Mojolicious/Plugin/EPRenderer.pm"
+            },
+            "Mojolicious::Plugin::HeaderCondition" : {
+               "file" : "Mojolicious/Plugin/HeaderCondition.pm"
+            },
+            "Mojolicious::Plugin::JSONConfig" : {
+               "file" : "Mojolicious/Plugin/JSONConfig.pm"
+            },
+            "Mojolicious::Plugin::Mount" : {
+               "file" : "Mojolicious/Plugin/Mount.pm"
+            },
+            "Mojolicious::Plugin::PODRenderer" : {
+               "file" : "Mojolicious/Plugin/PODRenderer.pm"
+            },
+            "Mojolicious::Plugin::PoweredBy" : {
+               "file" : "Mojolicious/Plugin/PoweredBy.pm"
+            },
+            "Mojolicious::Plugin::RequestTimer" : {
+               "file" : "Mojolicious/Plugin/RequestTimer.pm"
+            },
+            "Mojolicious::Plugin::TagHelpers" : {
+               "file" : "Mojolicious/Plugin/TagHelpers.pm"
+            },
+            "Mojolicious::Plugins" : {
+               "file" : "Mojolicious/Plugins.pm"
+            },
+            "Mojolicious::Renderer" : {
+               "file" : "Mojolicious/Renderer.pm"
+            },
+            "Mojolicious::Routes" : {
+               "file" : "Mojolicious/Routes.pm"
+            },
+            "Mojolicious::Routes::Match" : {
+               "file" : "Mojolicious/Routes/Match.pm"
+            },
+            "Mojolicious::Routes::Pattern" : {
+               "file" : "Mojolicious/Routes/Pattern.pm"
+            },
+            "Mojolicious::Routes::Route" : {
+               "file" : "Mojolicious/Routes/Route.pm"
+            },
+            "Mojolicious::Sessions" : {
+               "file" : "Mojolicious/Sessions.pm"
+            },
+            "Mojolicious::Static" : {
+               "file" : "Mojolicious/Static.pm"
+            },
+            "Mojolicious::Types" : {
+               "file" : "Mojolicious/Types.pm"
+            },
+            "Test::Mojo" : {
+               "file" : "Test/Mojo.pm"
+            },
+            "ojo" : {
+               "file" : "ojo.pm"
+            }
+         },
+         "target" : "Mojolicious::Lite",
+         "version" : "3.64"
+      },
+      "MongoDB" : {
+         "dist" : "MongoDB-0.45",
+         "mymeta" : {
+            "abstract" : "Mongo Driver for Perl",
+            "author" : [
+               "Florian Ragwitz <rafl@debian.org>",
+               "Kristina Chodorow <kristina@10gen.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.01, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "apache_2_0"
             ],
@@ -27903,13 +28468,12 @@
                   "requires" : {
                      "Data::Types" : 0,
                      "DateTime" : 0,
-                     "ExtUtils::MakeMaker" : "6.59",
+                     "ExtUtils::MakeMaker" : "6.42",
                      "File::Slurp" : 0,
                      "File::Temp" : "0.17",
                      "FileHandle" : 0,
                      "JSON" : 0,
                      "Test::Exception" : 0,
-                     "Test::Warn" : 0,
                      "Tie::IxHash" : 0,
                      "Try::Tiny" : 0,
                      "boolean" : 0
@@ -27917,7 +28481,7 @@
                },
                "configure" : {
                   "requires" : {
-                     "ExtUtils::MakeMaker" : "6.30"
+                     "ExtUtils::MakeMaker" : "6.42"
                   }
                },
                "runtime" : {
@@ -27929,78 +28493,72 @@
                      "Tie::IxHash" : 0,
                      "XSLoader" : 0,
                      "boolean" : 0,
-                     "inc::Module::Install" : 0,
                      "perl" : "5.008004"
                   }
                }
             },
             "release_status" : "stable",
             "resources" : {
-               "bugtracker" : {
-                  "web" : "https://jira.mongodb.org/browse/PERL"
-               },
-               "homepage" : "https://github.com/mongodb/mongo-perl-driver",
+               "license" : [
+                  "http://apache.org/licenses/LICENSE-2.0"
+               ],
                "repository" : {
                   "type" : "git",
                   "url" : "git://github.com/mongodb/mongo-perl-driver.git"
                }
             },
-            "version" : "0.501.1"
+            "version" : "0.45"
          },
          "name" : "MongoDB",
-         "pathname" : "F/FR/FRIEDO/MongoDB-0.501.1.tar.gz",
+         "pathname" : "K/KR/KRISTINA/MongoDB-0.45.tar.gz",
          "provides" : {
             "MongoDB" : {
                "file" : "MongoDB.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::BSON" : {
                "file" : "MongoDB/BSON.pm",
-               "version" : "v0.501.1"
-            },
-            "MongoDB::BSON::Binary" : {
-               "file" : "MongoDB/BSON/Binary.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::Code" : {
                "file" : "MongoDB/Code.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::Collection" : {
                "file" : "MongoDB/Collection.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::Connection" : {
                "file" : "MongoDB/Connection.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::Cursor" : {
                "file" : "MongoDB/Cursor.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::Database" : {
                "file" : "MongoDB/Database.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::GridFS" : {
                "file" : "MongoDB/GridFS.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::GridFS::File" : {
                "file" : "MongoDB/GridFS/File.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::OID" : {
                "file" : "MongoDB/OID.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             },
             "MongoDB::Timestamp" : {
                "file" : "MongoDB/Timestamp.pm",
-               "version" : "v0.501.1"
+               "version" : "0.45"
             }
          },
          "target" : "MongoDB",
-         "version" : "v0.501.1"
+         "version" : "0.45"
       },
       "Moo" : {
          "dist" : "Moo-1.000008",
@@ -32072,6 +32630,235 @@
          "target" : "Net::HTTP",
          "version" : "6.02"
       },
+      "Net::OAuth" : {
+         "dist" : "Net-OAuth-0.28",
+         "mymeta" : {
+            "abstract" : "An implementation of the OAuth protocol",
+            "author" : [
+               "Keith Grennan <kgrennan@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Net-OAuth",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : "0.66",
+                     "Test::Warn" : "0.21"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "Module::Build" : "0.36"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Class::Accessor" : "0.31",
+                     "Class::Data::Inheritable" : "0.06",
+                     "Digest::HMAC_SHA1" : "1.01",
+                     "Digest::SHA" : "5.47",
+                     "Digest::SHA1" : "2.12",
+                     "Encode" : "2.35",
+                     "LWP::UserAgent" : "1",
+                     "URI::Escape" : "3.28"
+                  }
+               }
+            },
+            "provides" : {
+               "Net::OAuth" : {
+                  "file" : "lib/Net/OAuth.pm",
+                  "version" : "0.28"
+               },
+               "Net::OAuth::AccessToken" : {
+                  "file" : "lib/Net/OAuth/AccessToken.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::AccessTokenRequest" : {
+                  "file" : "lib/Net/OAuth/AccessTokenRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::AccessTokenResponse" : {
+                  "file" : "lib/Net/OAuth/AccessTokenResponse.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::Client" : {
+                  "file" : "lib/Net/OAuth/Client.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::ConsumerRequest" : {
+                  "file" : "lib/Net/OAuth/ConsumerRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::Message" : {
+                  "file" : "lib/Net/OAuth/Message.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::ProtectedResourceRequest" : {
+                  "file" : "lib/Net/OAuth/ProtectedResourceRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::Request" : {
+                  "file" : "lib/Net/OAuth/Request.pm",
+                  "version" : "0.28"
+               },
+               "Net::OAuth::RequestTokenRequest" : {
+                  "file" : "lib/Net/OAuth/RequestTokenRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::RequestTokenResponse" : {
+                  "file" : "lib/Net/OAuth/RequestTokenResponse.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::Response" : {
+                  "file" : "lib/Net/OAuth/Response.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::SignatureMethod::HMAC_SHA1" : {
+                  "file" : "lib/Net/OAuth/SignatureMethod/HMAC_SHA1.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::SignatureMethod::HMAC_SHA256" : {
+                  "file" : "lib/Net/OAuth/SignatureMethod/HMAC_SHA256.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::SignatureMethod::PLAINTEXT" : {
+                  "file" : "lib/Net/OAuth/SignatureMethod/PLAINTEXT.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::SignatureMethod::RSA_SHA1" : {
+                  "file" : "lib/Net/OAuth/SignatureMethod/RSA_SHA1.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::UserAuthRequest" : {
+                  "file" : "lib/Net/OAuth/UserAuthRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::UserAuthResponse" : {
+                  "file" : "lib/Net/OAuth/UserAuthResponse.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::V1_0A::AccessTokenRequest" : {
+                  "file" : "lib/Net/OAuth/V1_0A/AccessTokenRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::V1_0A::RequestTokenRequest" : {
+                  "file" : "lib/Net/OAuth/V1_0A/RequestTokenRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::V1_0A::RequestTokenResponse" : {
+                  "file" : "lib/Net/OAuth/V1_0A/RequestTokenResponse.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::V1_0A::UserAuthResponse" : {
+                  "file" : "lib/Net/OAuth/V1_0A/UserAuthResponse.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::XauthAccessTokenRequest" : {
+                  "file" : "lib/Net/OAuth/XauthAccessTokenRequest.pm",
+                  "version" : 0
+               },
+               "Net::OAuth::YahooAccessTokenRefreshRequest" : {
+                  "file" : "lib/Net/OAuth/YahooAccessTokenRefreshRequest.pm",
+                  "version" : 0
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.28"
+         },
+         "name" : "Net::OAuth",
+         "pathname" : "K/KG/KGRENNAN/Net-OAuth-0.28.tar.gz",
+         "provides" : {
+            "Net::OAuth" : {
+               "file" : "Net/OAuth.pm",
+               "version" : "0.28"
+            },
+            "Net::OAuth::AccessToken" : {
+               "file" : "Net/OAuth/AccessToken.pm"
+            },
+            "Net::OAuth::AccessTokenRequest" : {
+               "file" : "Net/OAuth/AccessTokenRequest.pm"
+            },
+            "Net::OAuth::AccessTokenResponse" : {
+               "file" : "Net/OAuth/AccessTokenResponse.pm"
+            },
+            "Net::OAuth::Client" : {
+               "file" : "Net/OAuth/Client.pm"
+            },
+            "Net::OAuth::ConsumerRequest" : {
+               "file" : "Net/OAuth/ConsumerRequest.pm"
+            },
+            "Net::OAuth::Message" : {
+               "file" : "Net/OAuth/Message.pm"
+            },
+            "Net::OAuth::ProtectedResourceRequest" : {
+               "file" : "Net/OAuth/ProtectedResourceRequest.pm"
+            },
+            "Net::OAuth::Request" : {
+               "file" : "Net/OAuth/Request.pm",
+               "version" : "0.28"
+            },
+            "Net::OAuth::RequestTokenRequest" : {
+               "file" : "Net/OAuth/RequestTokenRequest.pm"
+            },
+            "Net::OAuth::RequestTokenResponse" : {
+               "file" : "Net/OAuth/RequestTokenResponse.pm"
+            },
+            "Net::OAuth::Response" : {
+               "file" : "Net/OAuth/Response.pm"
+            },
+            "Net::OAuth::SignatureMethod::HMAC_SHA1" : {
+               "file" : "Net/OAuth/SignatureMethod/HMAC_SHA1.pm"
+            },
+            "Net::OAuth::SignatureMethod::HMAC_SHA256" : {
+               "file" : "Net/OAuth/SignatureMethod/HMAC_SHA256.pm"
+            },
+            "Net::OAuth::SignatureMethod::PLAINTEXT" : {
+               "file" : "Net/OAuth/SignatureMethod/PLAINTEXT.pm"
+            },
+            "Net::OAuth::SignatureMethod::RSA_SHA1" : {
+               "file" : "Net/OAuth/SignatureMethod/RSA_SHA1.pm"
+            },
+            "Net::OAuth::UserAuthRequest" : {
+               "file" : "Net/OAuth/UserAuthRequest.pm"
+            },
+            "Net::OAuth::UserAuthResponse" : {
+               "file" : "Net/OAuth/UserAuthResponse.pm"
+            },
+            "Net::OAuth::V1_0A::AccessTokenRequest" : {
+               "file" : "Net/OAuth/V1_0A/AccessTokenRequest.pm"
+            },
+            "Net::OAuth::V1_0A::RequestTokenRequest" : {
+               "file" : "Net/OAuth/V1_0A/RequestTokenRequest.pm"
+            },
+            "Net::OAuth::V1_0A::RequestTokenResponse" : {
+               "file" : "Net/OAuth/V1_0A/RequestTokenResponse.pm"
+            },
+            "Net::OAuth::V1_0A::UserAuthResponse" : {
+               "file" : "Net/OAuth/V1_0A/UserAuthResponse.pm"
+            },
+            "Net::OAuth::XauthAccessTokenRequest" : {
+               "file" : "Net/OAuth/XauthAccessTokenRequest.pm"
+            },
+            "Net::OAuth::YahooAccessTokenRefreshRequest" : {
+               "file" : "Net/OAuth/YahooAccessTokenRefreshRequest.pm"
+            }
+         },
+         "target" : "Net::OAuth",
+         "version" : "0.28"
+      },
       "Net::SSLeay" : {
          "dist" : "Net-SSLeay-1.48",
          "mymeta" : {
@@ -32272,6 +33059,174 @@
          },
          "target" : "Net::Server",
          "version" : "0.99"
+      },
+      "Net::Twitter" : {
+         "dist" : "Net-Twitter-3.18004",
+         "mymeta" : {
+            "abstract" : "A perl interface to the Twitter API",
+            "author" : [
+               "Marc Mims <marc@questright.com> (@semifor on Twitter)"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Net-Twitter",
+            "no_index" : {
+               "directory" : [
+                  "examples",
+                  "inc",
+                  "src",
+                  "t"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59",
+                     "Test::Fatal" : 0,
+                     "Test::More" : "0.88"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.59"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Carp" : 0,
+                     "Crypt::SSLeay" : "0.5",
+                     "Data::Visitor::Callback" : 0,
+                     "DateTime" : "0.51",
+                     "DateTime::Format::Strptime" : "1.09",
+                     "Devel::StackTrace" : "1.21",
+                     "Digest::HMAC_SHA1" : 0,
+                     "Digest::SHA" : 0,
+                     "Encode" : 0,
+                     "File::Spec" : 0,
+                     "HTML::Entities" : 0,
+                     "HTTP::Request::Common" : 0,
+                     "JSON" : 0,
+                     "LWP::UserAgent" : "2.032",
+                     "List::Util" : 0,
+                     "Moose" : "0.9",
+                     "Moose::Exporter" : 0,
+                     "Moose::Role" : 0,
+                     "MooseX::Aliases" : 0,
+                     "MooseX::Role::Parameterized" : 0,
+                     "Net::Netrc" : 0,
+                     "Net::OAuth" : "0.25",
+                     "Scalar::Util" : 0,
+                     "Test::Fatal" : 0,
+                     "Test::More" : "0.88",
+                     "Time::HiRes" : 0,
+                     "Try::Tiny" : "0.03",
+                     "URI" : "1.4",
+                     "URI::Escape" : 0,
+                     "namespace::autoclean" : "0.09",
+                     "perl" : "5.008001"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "bugtracker" : {
+                  "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=Net-Twitter"
+               },
+               "homepage" : "http://github.com/semifor/Net-Twitter",
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ],
+               "repository" : {
+                  "type" : "git",
+                  "url" : "git://github.com/semifor/Net-Twitter.git"
+               }
+            },
+            "version" : "3.18004"
+         },
+         "name" : "Net::Twitter",
+         "pathname" : "M/MM/MMIMS/Net-Twitter-3.18004.tar.gz",
+         "provides" : {
+            "Net::Identica" : {
+               "file" : "Net/Identica.pm",
+               "version" : "3.18004"
+            },
+            "Net::Twitter" : {
+               "file" : "Net/Twitter.pm",
+               "version" : "3.18004"
+            },
+            "Net::Twitter::API" : {
+               "file" : "Net/Twitter/API.pm"
+            },
+            "Net::Twitter::Core" : {
+               "file" : "Net/Twitter/Core.pm",
+               "version" : "3.18004"
+            },
+            "Net::Twitter::Error" : {
+               "file" : "Net/Twitter/Error.pm"
+            },
+            "Net::Twitter::Meta::Method" : {
+               "file" : "Net/Twitter/API.pm"
+            },
+            "Net::Twitter::OAuth" : {
+               "file" : "Net/Twitter/OAuth.pm",
+               "version" : "3.18004"
+            },
+            "Net::Twitter::Role::API::Lists" : {
+               "file" : "Net/Twitter/Role/API/Lists.pm"
+            },
+            "Net::Twitter::Role::API::REST" : {
+               "file" : "Net/Twitter/Role/API/REST.pm"
+            },
+            "Net::Twitter::Role::API::Search" : {
+               "file" : "Net/Twitter/Role/API/Search.pm"
+            },
+            "Net::Twitter::Role::API::Search::Trends" : {
+               "file" : "Net/Twitter/Role/API/Search/Trends.pm"
+            },
+            "Net::Twitter::Role::API::TwitterVision" : {
+               "file" : "Net/Twitter/Role/API/TwitterVision.pm"
+            },
+            "Net::Twitter::Role::API::Upload" : {
+               "file" : "Net/Twitter/Role/API/Upload.pm"
+            },
+            "Net::Twitter::Role::AutoCursor" : {
+               "file" : "Net/Twitter/Role/AutoCursor.pm"
+            },
+            "Net::Twitter::Role::InflateObjects" : {
+               "file" : "Net/Twitter/Role/InflateObjects.pm"
+            },
+            "Net::Twitter::Role::Legacy" : {
+               "file" : "Net/Twitter/Role/Legacy.pm"
+            },
+            "Net::Twitter::Role::OAuth" : {
+               "file" : "Net/Twitter/Role/OAuth.pm"
+            },
+            "Net::Twitter::Role::RateLimit" : {
+               "file" : "Net/Twitter/Role/RateLimit.pm"
+            },
+            "Net::Twitter::Role::RetryOnError" : {
+               "file" : "Net/Twitter/Role/RetryOnError.pm"
+            },
+            "Net::Twitter::Role::SimulateCursors" : {
+               "file" : "Net/Twitter/Role/SimulateCursors.pm"
+            },
+            "Net::Twitter::Role::WrapError" : {
+               "file" : "Net/Twitter/Role/WrapError.pm"
+            },
+            "Net::Twitter::Search" : {
+               "file" : "Net/Twitter/Search.pm",
+               "version" : "3.18004"
+            }
+         },
+         "target" : "Net::Twitter",
+         "version" : "3.18004"
       },
       "Net::Server::Coro" : {
          "dist" : "Net-Server-Coro-1.3",
@@ -37043,7 +37998,7 @@
          "version" : "0.2014"
       },
       "Store::CouchDB" : {
-         "dist" : "Store-CouchDB-2.4",
+         "dist" : "Store-CouchDB-2.3",
          "mymeta" : {
             "abstract" : "a simple CouchDB driver",
             "author" : [
@@ -37089,18 +38044,18 @@
                }
             },
             "release_status" : "stable",
-            "version" : "2.4"
+            "version" : "2.3"
          },
          "name" : "Store::CouchDB",
-         "pathname" : "N/NO/NORBU/Store-CouchDB-2.4.tar.gz",
+         "pathname" : "N/NO/NORBU/Store-CouchDB-2.3.tar.gz",
          "provides" : {
             "Store::CouchDB" : {
                "file" : "Store/CouchDB.pm",
-               "version" : "2.4"
+               "version" : "2.3"
             }
          },
          "target" : "Store::CouchDB",
-         "version" : "2.4"
+         "version" : "2.3"
       },
       "Stream::Buffered" : {
          "dist" : "Stream-Buffered-0.02",
