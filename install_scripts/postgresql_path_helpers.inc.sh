@@ -17,6 +17,20 @@ function run_psql {
     echo "$run_psql_result"
 }
 
+function run_psql_import {
+    local sql_filename="$1"
+    local db_name="$2"
+
+    if [ `uname` == 'Darwin' ]; then
+        # Mac OS X
+        local run_psql_import_result=`/usr/local/bin/psql -f "$sql_filename" $db_name 2>&1 || echo `
+    else
+        # assume Ubuntu
+        local run_psql_import_result=`sudo su -l postgres -c "psql -f \"$sql_filename\" $db_name 2>&1 " || echo `
+    fi
+    echo "$run_psql_import_result"
+}
+
 function run_dropdb {
     local db_name="$1"
 
