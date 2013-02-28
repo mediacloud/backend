@@ -10,5 +10,5 @@ BEGIN
 }
 BEGIN { use_ok 'MediaWords::Controller::Feeds' }
 
-ok( request( '/feeds/list/1' )->is_success, 'Request should succeed' );
+ok( request( '/admin/feeds/list/1' )->is_success, 'Request should succeed' );
 

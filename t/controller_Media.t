@@ -10,5 +10,5 @@ BEGIN
 }
 BEGIN { use_ok 'MediaWords::Controller::Media' }
 
-ok( request( '/media/list' )->is_success, 'Request should succeed' );
+ok( request( '/admin/media/list' )->is_success, 'Request should succeed' );
 
