@@ -33,12 +33,19 @@ sub index : Path : Args(0)
         {
             load_config_file => $c->path_to() . '/root/forms/auth/login.yml',
             method           => 'POST',
-            action           => $c->uri_for( '/login' ),
-            default_values   => {
-                'email' => $c->request->param( 'email' )    # in case 'email' was passed as a parameter from '/logout'
-            }
+            action           => $c->uri_for( '/login' )
         }
     );
+
+    # In case we're coming here from /logout
+    if ( $c->request->param( 'email' ) )
+    {
+        $form->default_values(
+            {
+                'email' => $c->request->param( 'email' )    # in case 'email' was passed as a parameter from '/logout'
+            }
+        );
+    }
 
     $form->process( $c->request );
 
