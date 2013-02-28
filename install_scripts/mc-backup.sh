@@ -24,8 +24,17 @@ BUILD_DIR_2=`mktemp -d -t buildXXXXX`
 echo "Output: $ARCHIVE_TO_CREATE (directory: $ARCHIVE_DIRECTORY; filename: $ARCHIVE_FILENAME)"
 echo "Temp. directory: $BUILD_DIR"
 
+# Include PostgreSQL path helpers
+PWD="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "$PWD/postgresql_path_helpers.inc.sh"
+
 echo "Exporting database..."
-pg_dump mediacloud > "$BUILD_DIR/mediacloud.sql"
+chmod 777 "$BUILD_DIR"
+run_pg_dump mediacloud "$BUILD_DIR/mediacloud.sql"
+if [ ! -s "$BUILD_DIR/mediacloud.sql" ]; then
+	echo "SQL dump is empty."
+	exit 1
+fi
 
 echo "Copying mediawords.yml..."
 cp mediawords.yml "$BUILD_DIR/mediawords.yml"
