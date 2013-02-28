@@ -9,15 +9,17 @@ set -o  errexit
 
 function hostname_help {
     echo "Please set the hostname to an alphanumeric value, e.g.:"
-    echo "    hostname mediacloud"
     echo "    export HOSTNAME=mediacloud"
+    echo "    sudo hostname mediacloud"
+    echo "    echo 127.0.0.1 \`hostname\` | sudo tee -a /etc/hosts"
     echo "and then try again."    
 }
 
 function domainname_help {
     echo "Please set the domainname to an alphanumeric value, e.g.:"
     echo
-    echo "    domainname local"
+    echo "    sudo domainname local"
+    echo "    echo 127.0.0.1 \`hostname\`.\`domainname\` | sudo tee -a /etc/hosts"
     echo
     echo "and then try again."
 }
