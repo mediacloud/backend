@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4396;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4397;
     
 BEGIN
 
@@ -639,10 +639,10 @@ create table downloads (
     priority            int             not null,
     sequence            int             not null,
     extracted           boolean         not null default 'f',
-    file_status         download_file_status not null default 'tbd',
-    relative_file_path  text            not null default 'tbd',
     old_download_time   timestamp without time zone,
-    old_state           download_state
+    old_state           download_state,
+    file_status         download_file_status not null default 'tbd',
+    relative_file_path  text            not null default 'tbd'
 );
 
 UPDATE downloads set old_download_time = download_time, old_state = state;
