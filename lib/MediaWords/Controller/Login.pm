@@ -1,6 +1,7 @@
 package MediaWords::Controller::Login;
 use Moose;
 use namespace::autoclean;
+use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
 
 BEGIN { extends 'Catalyst::Controller'; }

@@ -1,6 +1,7 @@
 package MediaWords::Controller::Admin::Users;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
 
 use strict;

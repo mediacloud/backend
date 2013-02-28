@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
+use MediaWords::Util::Config;
 use Email::MIME;
 use Email::Sender::Simple qw(try_to_sendmail);
 
