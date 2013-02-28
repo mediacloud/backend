@@ -29,7 +29,7 @@ sub _get_description
 {
     my ( $query ) = @_;
 
-    my $description;
+    my $description = '';
 
     my $dashboard        = $query->{ dashboard };
     my $media_sets       = $query->{ media_sets };
@@ -39,17 +39,17 @@ sub _get_description
 
     if ( $dashboard )
     {
-        $description = "in the $dashboard->{ name } Dashboard";
+        $description .= "in the " . $dashboard->{ name } . " Dashboard";
     }
     if ( @{ $media_sets } > 2 )
     {
-        $description =
+        $description .=
           "in one of " . @{ $media_sets } . " media sources including " .
           join( " and ", map { $_->{ name } } @{ $media_sets }[ 0 .. 1 ] );
     }
     else
     {
-        $description = "in " . join( " or ", map { $_->{ name } } @{ $media_sets } );
+        $description .= "in " . join( " or ", map { $_->{ name } } @{ $media_sets } );
     }
 
     if ( @{ $dashboard_topics } > 2 )

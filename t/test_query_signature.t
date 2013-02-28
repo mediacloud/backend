@@ -36,7 +36,7 @@ sub create_query_parts
             my $dashboard_topic = $db->create(
                 'dashboard_topics',
                 {
-                    name          => "qs test $i",
+                    name          => "qs test $i topic $j",
                     query         => "foo",
                     dashboards_id => $dashboard->{ dashboards_id },
                     start_date    => '2010-01-01',
