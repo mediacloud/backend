@@ -80,6 +80,13 @@ sub connect_settings
 {
     my ( $label ) = @_;
 
+    # If this is Catalyst::Test run, force the label to the test database
+    if ( $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } )
+    {
+        print STDERR "Using the 'test' database\n";
+        $label = 'test';
+    }
+
     my $all_settings = MediaWords::Util::Config::get_config->{ database };
 
     defined( $all_settings ) or croak( "No database connections configured" );
