@@ -27,7 +27,11 @@ sub index : Path : Args(0)
 {
     my ( $self, $c ) = @_;
 
-    my $email = $c->user->username;
+    my $email = '';
+    if ( $c->user_exists )
+    {
+        $email = $c->user->username;
+    }
 
     # Clear the user's state
     $c->logout;
