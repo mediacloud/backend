@@ -17,9 +17,7 @@
 
 SET search_path = public, pg_catalog;
 
-ALTER TABLE database_variables
-	ALTER COLUMN name TYPE varchar(512)    not null unique /* TYPE change - table: database_variables original: varchar(512) new: varchar(512)    not null unique */,
-	ALTER COLUMN name DROP NOT NULL;
+CREATE UNIQUE INDEX database_variables_name_key2  on database_variables( name );
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
