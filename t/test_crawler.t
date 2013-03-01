@@ -234,15 +234,27 @@ sub test_stories
                 }
             }
 
-            eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
+            unless ( eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" ) )
+            {
+                print STDERR "Expected content: " . Dumper( $story->{ content } );
+                print STDERR "Got content: " . Dumper( $test_story->{ content } );
+            }
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
 
-            is(
-                scalar( @{ $story->{ story_sentences } } ),
-                scalar( @{ $test_story->{ story_sentences } } ),
-                "story sentence count" . $story->{ stories_id }
-            );
+            unless (
+                is(
+                    scalar( @{ $story->{ story_sentences } } ),
+                    scalar( @{ $test_story->{ story_sentences } } ),
+                    "story sentence count" . $story->{ stories_id }
+                )
+              )
+            {
+                print STDERR "Expected sentence count: " . scalar( @{ $story->{ story_sentences } } ) . "\n";
+                print STDERR "Expected sentences: " . Dumper( $story->{ story_sentences } );
+                print STDERR "Got sentence count: " . scalar( @{ $test_story->{ story_sentences } } ) . "\n";
+                print STDERR "Got sentences: " . Dumper( $test_story->{ story_sentences } );
+            }
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
@@ -253,11 +265,17 @@ sub test_stories
                 map { delete( $_->{ publish_date } ) }
                   ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
             }
-            cmp_deeply(
-                $story->{ story_sentences },
-                $test_story->{ story_sentences },
-                "story sentences " . $story->{ stories_id }
-            );
+            unless (
+                cmp_deeply(
+                    $story->{ story_sentences },
+                    $test_story->{ story_sentences },
+                    "story sentences " . $story->{ stories_id }
+                )
+              )
+            {
+                print STDERR "Expected sentences: " . Dumper( $story->{ story_sentences } );
+                print STDERR "Got sentences: " . Dumper( $test_story->{ story_sentences } );
+            }
 
           TODO:
             {
@@ -266,11 +284,16 @@ sub test_stories
                 my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
                 my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
 
-                is(
-                    $story_sentence_words_count,
-                    $test_story_sentence_words_count,
-                    "story words count for " . $story->{ stories_id }
-                );
+                unless (
+                    is(
+                        $story_sentence_words_count, $test_story_sentence_words_count,
+                        "story words count for " . $story->{ stories_id }
+                    )
+                  )
+                {
+                    print STDERR "Expected words: " . Dumper( $story->{ story_sentence_words } );
+                    print STDERR "Got words: " . Dumper( $test_story->{ story_sentence_words } );
+                }
             }
         }
 
