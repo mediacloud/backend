@@ -39,51 +39,62 @@ my $english_test_string = 'agreement agreements candy candies people';
 
 my $english_expected_stems = {
     'agreement' => {
-        'count' => 2,
-        'word'  => 'agreement'
+        'count'    => 2,
+        'word'     => 'agreement',
+        'language' => 'en'
     },
     'peopl' => {
-        'count' => 1,
-        'word'  => 'people'
+        'count'    => 1,
+        'word'     => 'people',
+        'language' => 'en'
     },
     'candi' => {
-        'count' => 2,
-        'word'  => 'candy'
+        'count'    => 2,
+        'word'     => 'candy',
+        'language' => 'en'
     }
 };
 
 my $foreign_expected_stems = {
     'газет' => {
-        'count' => 1,
-        'word'  => 'газета'
+        'count'    => 1,
+        'word'     => 'газета',
+        'language' => 'ru'
     },
     'агентств' => {
-        'count' => 1,
-        'word'  => 'агентства'
+        'count'    => 1,
+        'word'     => 'агентства',
+        'language' => 'ru'
     },
     'владимир' => {
-        'count' => 1,
-        'word'  => 'владимир'
+        'count'    => 1,
+        'word'     => 'владимир',
+        'language' => 'ru'
     },
     'não' => {
-        'count' => 1,
-        'word'  => 'não'
+        'count'    => 1,
+        'word'     => 'não',
+        'language' => 'ru'
     },
     'американск' => {
-        'count' => 1,
-        'word'  => 'американских'
+        'count'    => 1,
+        'word'     => 'американских',
+        'language' => 'ru'
     },
     'александр' => {
-        'count' => 1,
-        'word'  => 'александр'
+        'count'    => 1,
+        'word'     => 'александр',
+        'language' => 'ru'
     },
     'автомобил' => {
-        'count' => 1,
-        'word'  => 'автомобиль'
+        'count'    => 1,
+        'word'     => 'автомобиль',
+        'language' => 'ru'
     },
     'воен' => {
-        'count' => 1,
-        'word'  => 'военных'
+        'count'    => 1,
+        'word'     => 'военных',
+        'language' => 'ru'
     },
 };
 
