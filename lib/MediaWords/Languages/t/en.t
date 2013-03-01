@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 7 + 1;
+use Test::More tests => 8 + 1;
 use utf8;
 
 # Test::More UTF-8 output
@@ -119,6 +119,21 @@ QUOTE
 $expected_sentences = [
 'In another demonstration of cyberactivism and acvistim, Brazilian Internet users are gathering around a cause: to fight Senator Azeredo\'s Digital Crimes Bill.',
 'This legal project, which intends to intervene severely in the way people use the Internet in Brazil is being heavily criticized by Brazil\'s academic field, left-wing parties and the Internet community.',
+];
+
+{
+    is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
+}
+
+#
+# Two spaces in the middle of the sentence
+#
+$test_string = <<'QUOTE';
+Although several opposition groups have called for boycotting the coming June 12  presidential election, it seems the weight of boycotting groups is much less than four years ago.
+QUOTE
+
+$expected_sentences = [
+'Although several opposition groups have called for boycotting the coming June 12 presidential election, it seems the weight of boycotting groups is much less than four years ago.',
 ];
 
 {
