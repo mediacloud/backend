@@ -421,13 +421,16 @@ sub _tokenize_text_with_lingua_sentence
     # The above regexp and html stripping often leave a space before the period at the end of a sentence
     $text =~ s/ +\./\./g;
 
-    # we see lots of cases of missing spaces after sentence ending periods
-    # (commented out before it breaks Portuguese "a.C.." abbreviations and such)
-    #$text =~ s/([[:lower:]])\.([[:upper:]])/$1. $2/g;
+    # We see lots of cases of missing spaces after sentence ending periods
+    # (has a hardcoded lower limit of characters because otherwise it breaks Portuguese "a.C.." abbreviations and such)
+    $text =~ s/([[:lower:]]{2,})\.([[:upper:]][[:lower:]]{1,})/$1. $2/g;
 
     # Trim whitespace from start / end of the whole string
     $text =~ s/^\s*//g;
     $text =~ s/\s*$//g;
+
+    # FIXME: fix "bla bla... yada yada"? is it two sentences?
+    # FIXME: fix "text . . some more text."?
 
     # Split to sentences
     my @sentences = $self->sentence_tokenizer->split_array( $text );
