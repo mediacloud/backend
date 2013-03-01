@@ -236,8 +236,9 @@ sub test_stories
 
             unless ( eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" ) )
             {
-                print STDERR "Expected content: " . Dumper( $test_story->{ content } );
-                print STDERR "Got content: " . Dumper( $story->{ content } );
+
+                #print STDERR "Expected content: " . Dumper( $test_story->{ content } );
+                #print STDERR "Got content: " . Dumper( $story->{ content } );
             }
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
