@@ -359,7 +359,8 @@ sub dump_top_500_weekly_words
 {
     my ( $db ) = @_;
 
-    my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
+    my $top_500_weekly_words =
+      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term, language', )->hashes;
     _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
 
     MediaWords::Test::Data::store_test_data( 'top_500_weekly_words', $top_500_weekly_words );
@@ -373,7 +374,7 @@ sub sort_top_500_weekly_words
 
     #ensure that the order is deterministic
     #first sort on the important fields then sort on everything just to be sure...
-    my @keys = qw (publish_week stem dashboard_topics_id term );
+    my @keys = qw (publish_week stem dashboard_topics_id term language );
 
     my @hash_fields = sort keys %{ $array->[ 0 ] };
 
@@ -385,7 +386,7 @@ sub test_top_500_weekly_words
     my ( $db ) = @_;
 
     my $top_500_weekly_words_actual =
-      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term' )->hashes;
+      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term, language' )->hashes;
     _process_top_500_weekly_words_for_testing( $top_500_weekly_words_actual );
 
     my $top_500_weekly_words_expected = MediaWords::Test::Data::fetch_test_data( 'top_500_weekly_words' );
