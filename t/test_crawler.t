@@ -236,8 +236,8 @@ sub test_stories
 
             unless ( eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" ) )
             {
-                print STDERR "Expected content: " . Dumper( $story->{ content } );
-                print STDERR "Got content: " . Dumper( $test_story->{ content } );
+                print STDERR "Expected content: " . Dumper( $test_story->{ content } );
+                print STDERR "Got content: " . Dumper( $story->{ content } );
             }
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
@@ -250,10 +250,10 @@ sub test_stories
                 )
               )
             {
-                print STDERR "Expected sentence count: " . scalar( @{ $story->{ story_sentences } } ) . "\n";
-                print STDERR "Expected sentences: " . Dumper( $story->{ story_sentences } );
-                print STDERR "Got sentence count: " . scalar( @{ $test_story->{ story_sentences } } ) . "\n";
-                print STDERR "Got sentences: " . Dumper( $test_story->{ story_sentences } );
+                print STDERR "Expected sentence count: " . scalar( @{ $test_story->{ story_sentences } } ) . "\n";
+                print STDERR "Expected sentences: " . Dumper( $test_story->{ story_sentences } );
+                print STDERR "Got sentence count: " . scalar( @{ $story->{ story_sentences } } ) . "\n";
+                print STDERR "Got sentences: " . Dumper( $story->{ story_sentences } );
             }
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
@@ -273,8 +273,8 @@ sub test_stories
                 )
               )
             {
-                print STDERR "Expected sentences: " . Dumper( $story->{ story_sentences } );
-                print STDERR "Got sentences: " . Dumper( $test_story->{ story_sentences } );
+                print STDERR "Expected sentences: " . Dumper( $test_story->{ story_sentences } );
+                print STDERR "Got sentences: " . Dumper( $story->{ story_sentences } );
             }
 
           TODO:
@@ -291,8 +291,8 @@ sub test_stories
                     )
                   )
                 {
-                    print STDERR "Expected words: " . Dumper( $story->{ story_sentence_words } );
-                    print STDERR "Got words: " . Dumper( $test_story->{ story_sentence_words } );
+                    print STDERR "Expected words: " . Dumper( $test_story->{ story_sentence_words } );
+                    print STDERR "Got words: " . Dumper( $story->{ story_sentence_words } );
                 }
             }
         }
