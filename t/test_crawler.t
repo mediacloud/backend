@@ -5,7 +5,20 @@ use warnings;
 use Data::Dumper;
 use Modern::Perl "2012";
 
-# basic sanity test of crawler functionality
+#
+# Basic sanity test of crawler functionality
+#
+# ---
+#
+# If you run t/test_crawler.t with the -d command it rewrites the files. E.g.:
+#
+#     ./script/run_with_carton.sh ./t/test_crawler.t  -d
+#
+# This changes the expected results so it's important to make sure that you're
+# not masking bugs in the code. Also it's a good idea to manually examine the
+# changes in t/data/top_500_weekly_words.pl and t/data/crawler_stories.pl
+# before committing them.
+#
 
 BEGIN
 {
