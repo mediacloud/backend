@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 10 + 1;
+use Test::More tests => 11 + 1;
 use utf8;
 
 # Test::More UTF-8 output
@@ -166,6 +166,22 @@ QUOTE
 $expected_sentences = [
     'Anger is a waste of energy and what North Korea wants of you.',
     'We can and will work together and use our minds, to work this through.'
+];
+
+{
+    is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
+}
+
+#
+# Unicode's "…"
+#
+$test_string = <<'QUOTE';
+One of the most popular Brahmin community, with 28, 726 members, randomly claims: “we r clever & hardworking. no one can fool us…” The Brahmans community with 41952 members and the Brahmins of India community with 30588 members are also very popular.
+QUOTE
+
+$expected_sentences = [
+'One of the most popular Brahmin community, with 28, 726 members, randomly claims: “we r clever & hardworking. no one can fool us...”',
+'The Brahmans community with 41952 members and the Brahmins of India community with 30588 members are also very popular.',
 ];
 
 {

@@ -429,6 +429,9 @@ sub _tokenize_text_with_lingua_sentence
     $text =~ s/^\s*//g;
     $text =~ s/\s*$//g;
 
+    # Replace Unicode's "…" with "..."
+    $text =~ s/…/.../g;
+
     # FIXME: fix "bla bla... yada yada"? is it two sentences?
     # FIXME: fix "text . . some more text."?
 
