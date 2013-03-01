@@ -1,6 +1,7 @@
 #<<<
 $VAR1 = [
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => '2twenty3',
@@ -9,6 +10,7 @@ $VAR1 = [
             'term' => '2twenty3'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => '31th',
@@ -17,6 +19,7 @@ $VAR1 = [
             'term' => '31th'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => '64forsuu',
@@ -25,6 +28,7 @@ $VAR1 = [
             'term' => '64forsuu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => '64th',
@@ -33,6 +37,7 @@ $VAR1 = [
             'term' => '64th'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'a330',
@@ -41,6 +46,7 @@ $VAR1 = [
             'term' => 'a330'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'abaixo',
@@ -49,6 +55,7 @@ $VAR1 = [
             'term' => 'abaixo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'abi',
@@ -57,6 +64,7 @@ $VAR1 = [
             'term' => 'aby'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'absurd',
@@ -65,6 +73,7 @@ $VAR1 = [
             'term' => 'absurd'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'absurdo',
@@ -73,6 +82,7 @@ $VAR1 = [
             'term' => 'absurdo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'abund',
@@ -81,6 +91,7 @@ $VAR1 = [
             'term' => 'abundant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'abus',
@@ -89,6 +100,7 @@ $VAR1 = [
             'term' => 'abuses'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'acabar',
@@ -97,6 +109,7 @@ $VAR1 = [
             'term' => 'acabar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'acentuando',
@@ -105,6 +118,7 @@ $VAR1 = [
             'term' => 'acentuando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ach',
@@ -113,6 +127,7 @@ $VAR1 = [
             'term' => 'ache'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'acho',
@@ -121,6 +136,7 @@ $VAR1 = [
             'term' => 'acho'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'acident',
@@ -129,6 +145,7 @@ $VAR1 = [
             'term' => 'acidente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'acknowledg',
@@ -137,6 +154,7 @@ $VAR1 = [
             'term' => 'acknowledge'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'acknowledg',
@@ -145,6 +163,7 @@ $VAR1 = [
             'term' => 'acknowledged'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'acompanho',
@@ -153,6 +172,7 @@ $VAR1 = [
             'term' => 'acompanho'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'aconteceu',
@@ -161,6 +181,7 @@ $VAR1 = [
             'term' => 'aconteceu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'acordo',
@@ -169,6 +190,7 @@ $VAR1 = [
             'term' => 'acordo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'adiru',
@@ -177,6 +199,7 @@ $VAR1 = [
             'term' => 'adiru'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'adirus',
@@ -185,6 +208,7 @@ $VAR1 = [
             'term' => 'adirus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'advisori',
@@ -193,6 +217,7 @@ $VAR1 = [
             'term' => 'advisory'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => "a\x{e9}reo",
@@ -201,6 +226,7 @@ $VAR1 = [
             'term' => "a\x{e9}reo"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'affirm',
@@ -209,6 +235,7 @@ $VAR1 = [
             'term' => 'affirming'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'afirma',
@@ -217,6 +244,7 @@ $VAR1 = [
             'term' => 'afirma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'african',
@@ -225,6 +253,7 @@ $VAR1 = [
             'term' => 'african'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'agreement',
@@ -233,6 +262,7 @@ $VAR1 = [
             'term' => 'agreements'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'ahm',
@@ -241,6 +271,7 @@ $VAR1 = [
             'term' => 'ahmed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'ahm',
@@ -249,6 +280,7 @@ $VAR1 = [
             'term' => 'ahmed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'ainda',
@@ -257,6 +289,7 @@ $VAR1 = [
             'term' => 'ainda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "a\x{ee}n\x{e9}",
@@ -265,6 +298,7 @@ $VAR1 = [
             'term' => "a\x{ee}n\x{e9}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => 'airbus',
@@ -273,6 +307,7 @@ $VAR1 = [
             'term' => 'airbus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'aircraft',
@@ -281,6 +316,7 @@ $VAR1 = [
             'term' => 'aircraft'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'airlin',
@@ -289,6 +325,7 @@ $VAR1 = [
             'term' => 'airliner'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'airmen',
@@ -297,6 +334,7 @@ $VAR1 = [
             'term' => 'airmen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'airplan',
@@ -305,6 +343,7 @@ $VAR1 = [
             'term' => 'airplane'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'airport',
@@ -313,6 +352,7 @@ $VAR1 = [
             'term' => 'airport'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'airport',
@@ -321,6 +361,7 @@ $VAR1 = [
             'term' => 'airport'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'alarm',
@@ -329,6 +370,7 @@ $VAR1 = [
             'term' => 'alarming'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'alaykum',
@@ -337,6 +379,7 @@ $VAR1 = [
             'term' => 'alaykum'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'albeit',
@@ -345,6 +388,7 @@ $VAR1 = [
             'term' => 'albeit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'alberto',
@@ -353,6 +397,7 @@ $VAR1 = [
             'term' => 'alberto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'albright',
@@ -361,6 +406,7 @@ $VAR1 = [
             'term' => 'albright'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ale',
@@ -369,6 +415,7 @@ $VAR1 = [
             'term' => 'ale'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'algo',
@@ -377,6 +424,7 @@ $VAR1 = [
             'term' => 'algo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'alguien',
@@ -385,6 +433,7 @@ $VAR1 = [
             'term' => 'alguien'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'alheia',
@@ -393,6 +442,7 @@ $VAR1 = [
             'term' => 'alheia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "all\x{e1}",
@@ -401,6 +451,7 @@ $VAR1 = [
             'term' => "all\x{e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'allah',
@@ -409,6 +460,7 @@ $VAR1 = [
             'term' => 'allah'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'amazon',
@@ -417,6 +469,7 @@ $VAR1 = [
             'term' => 'amazon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'amazonian',
@@ -425,6 +478,7 @@ $VAR1 = [
             'term' => 'amazonian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "amaz\x{f3}nico",
@@ -433,6 +487,7 @@ $VAR1 = [
             'term' => "amaz\x{f3}nico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ambit',
@@ -441,6 +496,7 @@ $VAR1 = [
             'term' => 'ambition'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'amelia',
@@ -449,6 +505,7 @@ $VAR1 = [
             'term' => 'amelia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'america',
@@ -457,6 +514,7 @@ $VAR1 = [
             'term' => 'america'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'american',
@@ -465,6 +523,7 @@ $VAR1 = [
             'term' => 'american'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'american',
@@ -473,6 +532,7 @@ $VAR1 = [
             'term' => 'american'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ameryka',
@@ -481,6 +541,7 @@ $VAR1 = [
             'term' => 'ameryka'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ami',
@@ -489,6 +550,7 @@ $VAR1 = [
             'term' => 'amis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'analisou',
@@ -497,6 +559,7 @@ $VAR1 = [
             'term' => 'analisou'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'analyz',
@@ -505,6 +568,7 @@ $VAR1 = [
             'term' => 'analyzed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'analyz',
@@ -513,6 +577,7 @@ $VAR1 = [
             'term' => 'analyzed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'anjelica',
@@ -521,6 +586,7 @@ $VAR1 = [
             'term' => 'anjelica'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'antonio',
@@ -529,6 +595,7 @@ $VAR1 = [
             'term' => 'antonio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'anwar',
@@ -537,6 +604,7 @@ $VAR1 = [
             'term' => 'anwar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'anwar',
@@ -545,6 +613,7 @@ $VAR1 = [
             'term' => 'anwar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'aond',
@@ -553,6 +622,7 @@ $VAR1 = [
             'term' => 'aonde'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'apena',
@@ -561,6 +631,7 @@ $VAR1 = [
             'term' => 'apenas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'apolog',
@@ -569,6 +640,7 @@ $VAR1 = [
             'term' => 'apologizing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'apoyo',
@@ -577,6 +649,7 @@ $VAR1 = [
             'term' => 'apoyo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'appal',
@@ -585,6 +658,7 @@ $VAR1 = [
             'term' => 'appalling'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'appropri',
@@ -593,6 +667,7 @@ $VAR1 = [
             'term' => 'appropriated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'apra',
@@ -601,6 +676,7 @@ $VAR1 = [
             'term' => 'apra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'aqui',
@@ -609,6 +685,7 @@ $VAR1 = [
             'term' => 'aqui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'arab',
@@ -617,6 +694,7 @@ $VAR1 = [
             'term' => 'arab'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'arab',
@@ -625,6 +703,7 @@ $VAR1 = [
             'term' => 'arab'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'arabist',
@@ -633,6 +712,7 @@ $VAR1 = [
             'term' => 'arabist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'arabist',
@@ -641,6 +721,7 @@ $VAR1 = [
             'term' => 'arabist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'arafa',
@@ -649,6 +730,7 @@ $VAR1 = [
             'term' => 'arafa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'arafa',
@@ -657,6 +739,7 @@ $VAR1 = [
             'term' => 'arafa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'archbishop',
@@ -665,6 +748,7 @@ $VAR1 = [
             'term' => 'archbishop'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'armistic',
@@ -673,6 +757,7 @@ $VAR1 = [
             'term' => 'armistice'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ascens',
@@ -681,6 +766,7 @@ $VAR1 = [
             'term' => 'ascension'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ashton',
@@ -689,6 +775,7 @@ $VAR1 = [
             'term' => 'ashton'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'asia',
@@ -697,6 +784,7 @@ $VAR1 = [
             'term' => 'asia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'asian',
@@ -705,6 +793,7 @@ $VAR1 = [
             'term' => 'asians'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'aspir',
@@ -713,6 +802,7 @@ $VAR1 = [
             'term' => 'aspirations'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'assert',
@@ -721,6 +811,7 @@ $VAR1 = [
             'term' => 'asserting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'assessoria',
@@ -729,6 +820,7 @@ $VAR1 = [
             'term' => 'assessoria'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'assunto',
@@ -737,6 +829,7 @@ $VAR1 = [
             'term' => 'assunto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => "at\x{e9}",
@@ -745,6 +838,7 @@ $VAR1 = [
             'term' => "at\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'athor',
@@ -753,6 +847,7 @@ $VAR1 = [
             'term' => 'athority'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'atlant',
@@ -761,6 +856,7 @@ $VAR1 = [
             'term' => 'atlantic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "atl\x{e2}ntico",
@@ -769,6 +865,7 @@ $VAR1 = [
             'term' => "atl\x{e2}ntico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'atsb',
@@ -777,6 +874,7 @@ $VAR1 = [
             'term' => 'atsb'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "audi\x{ea}ncia",
@@ -785,6 +883,7 @@ $VAR1 = [
             'term' => "audi\x{ea}ncia"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "a\x{fa}n",
@@ -793,6 +892,7 @@ $VAR1 = [
             'term' => "a\x{fa}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 9,
             'stem' => 'aung',
@@ -801,6 +901,7 @@ $VAR1 = [
             'term' => 'aung'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'aussi',
@@ -809,6 +910,7 @@ $VAR1 = [
             'term' => 'aussi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'australia',
@@ -817,6 +919,7 @@ $VAR1 = [
             'term' => 'australia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'autopilot',
@@ -825,6 +928,7 @@ $VAR1 = [
             'term' => 'autopilot'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'aux',
@@ -833,6 +937,7 @@ $VAR1 = [
             'term' => 'aux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => "avi\x{e3}o",
@@ -841,6 +946,7 @@ $VAR1 = [
             'term' => "avi\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "avi\x{e3}ozinho",
@@ -849,6 +955,7 @@ $VAR1 = [
             'term' => "avi\x{e3}ozinho"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'aviat',
@@ -857,6 +964,7 @@ $VAR1 = [
             'term' => 'aviation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'avion',
@@ -865,6 +973,7 @@ $VAR1 = [
             'term' => 'avions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "awaj\x{fa}n",
@@ -873,6 +982,7 @@ $VAR1 = [
             'term' => "awaj\x{fa}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'baboseira',
@@ -881,6 +991,7 @@ $VAR1 = [
             'term' => 'baboseiras'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "b\x{105}d\x{17a}",
@@ -889,6 +1000,7 @@ $VAR1 = [
             'term' => "b\x{105}d\x{17a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 9,
             'stem' => 'bagua',
@@ -897,6 +1009,7 @@ $VAR1 = [
             'term' => 'bagua'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bando',
@@ -905,6 +1018,7 @@ $VAR1 = [
             'term' => 'bando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'barack',
@@ -913,6 +1027,7 @@ $VAR1 = [
             'term' => 'barack'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'barack',
@@ -921,6 +1036,7 @@ $VAR1 = [
             'term' => 'barack'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bardzo',
@@ -929,6 +1045,7 @@ $VAR1 = [
             'term' => 'bardzo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'barrymor',
@@ -937,6 +1054,7 @@ $VAR1 = [
             'term' => 'barrymore'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bastant',
@@ -945,6 +1063,7 @@ $VAR1 = [
             'term' => 'bastante'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'beckham',
@@ -953,6 +1072,7 @@ $VAR1 = [
             'term' => 'beckham'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "b\x{119}d\x{119}",
@@ -961,6 +1081,7 @@ $VAR1 = [
             'term' => "b\x{119}d\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ben',
@@ -969,6 +1090,7 @@ $VAR1 = [
             'term' => 'ben'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => 'bermuda',
@@ -977,6 +1099,7 @@ $VAR1 = [
             'term' => 'bermuda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bermudzkim',
@@ -985,6 +1108,7 @@ $VAR1 = [
             'term' => 'bermudzkim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bien',
@@ -993,6 +1117,7 @@ $VAR1 = [
             'term' => 'bien'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'birthday',
@@ -1001,6 +1126,7 @@ $VAR1 = [
             'term' => 'birthday'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'blah',
@@ -1009,6 +1135,7 @@ $VAR1 = [
             'term' => 'blah'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'blather',
@@ -1017,6 +1144,7 @@ $VAR1 = [
             'term' => 'blathering'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "blisk\x{105}",
@@ -1025,6 +1153,7 @@ $VAR1 = [
             'term' => "blisk\x{105}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'blockad',
@@ -1033,6 +1162,7 @@ $VAR1 = [
             'term' => 'blockading'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 8,
             'stem' => 'blogger',
@@ -1041,6 +1171,7 @@ $VAR1 = [
             'term' => 'blogger'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'blogger',
@@ -1049,6 +1180,7 @@ $VAR1 = [
             'term' => 'blogger'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'blogospher',
@@ -1057,6 +1189,7 @@ $VAR1 = [
             'term' => 'blogosphere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'blogospher',
@@ -1065,6 +1198,7 @@ $VAR1 = [
             'term' => 'blogosphere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "b\x{142}ogostan",
@@ -1073,6 +1207,7 @@ $VAR1 = [
             'term' => "b\x{142}ogostan"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'blogspher',
@@ -1081,6 +1216,7 @@ $VAR1 = [
             'term' => 'blogsphere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'blogspher',
@@ -1089,6 +1225,7 @@ $VAR1 = [
             'term' => 'blogsphere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bloodi',
@@ -1097,6 +1234,7 @@ $VAR1 = [
             'term' => 'bloody'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'boe',
@@ -1105,6 +1243,7 @@ $VAR1 = [
             'term' => 'boeing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bono',
@@ -1113,6 +1252,7 @@ $VAR1 = [
             'term' => 'bono'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'brack',
@@ -1121,6 +1261,7 @@ $VAR1 = [
             'term' => 'brack'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'brad',
@@ -1129,6 +1270,7 @@ $VAR1 = [
             'term' => 'brad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'brasileiro',
@@ -1137,6 +1279,7 @@ $VAR1 = [
             'term' => 'brasileiro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => 'brazil',
@@ -1145,6 +1288,7 @@ $VAR1 = [
             'term' => 'brazil'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'brazilian',
@@ -1153,6 +1297,7 @@ $VAR1 = [
             'term' => 'brazilian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'british',
@@ -1161,6 +1306,7 @@ $VAR1 = [
             'term' => 'british'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'broderick',
@@ -1169,6 +1315,7 @@ $VAR1 = [
             'term' => 'broderick'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bruno',
@@ -1177,6 +1324,7 @@ $VAR1 = [
             'term' => 'bruno'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'brutal',
@@ -1185,6 +1333,7 @@ $VAR1 = [
             'term' => 'brutalement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bullock',
@@ -1193,6 +1342,7 @@ $VAR1 = [
             'term' => 'bullock'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'bunch',
@@ -1201,6 +1351,7 @@ $VAR1 = [
             'term' => 'bunch'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'burma',
@@ -1209,6 +1360,7 @@ $VAR1 = [
             'term' => 'burma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'burmes',
@@ -1217,6 +1369,7 @@ $VAR1 = [
             'term' => 'burmese'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'burro',
@@ -1225,6 +1378,7 @@ $VAR1 = [
             'term' => 'burros'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'caido',
@@ -1233,6 +1387,7 @@ $VAR1 = [
             'term' => 'caido'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'caipirinha',
@@ -1241,6 +1396,7 @@ $VAR1 = [
             'term' => 'caipirinhas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cair',
@@ -1249,6 +1405,7 @@ $VAR1 = [
             'term' => 'cair'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => 'cairo',
@@ -1257,6 +1414,7 @@ $VAR1 = [
             'term' => 'cairo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'cairo',
@@ -1265,6 +1423,7 @@ $VAR1 = [
             'term' => 'cairo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'caixa',
@@ -1273,6 +1432,7 @@ $VAR1 = [
             'term' => 'caixa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cajamarca',
@@ -1281,6 +1441,7 @@ $VAR1 = [
             'term' => 'cajamarca'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'camerini',
@@ -1289,6 +1450,7 @@ $VAR1 = [
             'term' => 'camerini'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'camino',
@@ -1297,6 +1459,7 @@ $VAR1 = [
             'term' => 'caminos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'campaign',
@@ -1305,6 +1468,7 @@ $VAR1 = [
             'term' => 'campaign'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'campaign',
@@ -1313,6 +1477,7 @@ $VAR1 = [
             'term' => 'campaign'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'campina',
@@ -1321,6 +1486,7 @@ $VAR1 = [
             'term' => 'campinas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'caraca',
@@ -1329,6 +1495,7 @@ $VAR1 = [
             'term' => 'caracas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cariz',
@@ -1337,6 +1504,7 @@ $VAR1 = [
             'term' => 'cariz'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cartoon',
@@ -1345,6 +1513,7 @@ $VAR1 = [
             'term' => 'cartoon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'caso',
@@ -1353,6 +1522,7 @@ $VAR1 = [
             'term' => 'caso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => "cat\x{e1}strof",
@@ -1361,6 +1531,7 @@ $VAR1 = [
             'term' => "cat\x{e1}strofe"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'catastroph',
@@ -1369,6 +1540,7 @@ $VAR1 = [
             'term' => 'catastrophe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'categoricament',
@@ -1377,6 +1549,7 @@ $VAR1 = [
             'term' => 'categoricamente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'causa',
@@ -1385,6 +1558,7 @@ $VAR1 = [
             'term' => 'causa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'celebr',
@@ -1393,6 +1567,7 @@ $VAR1 = [
             'term' => 'celebrities'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'centena',
@@ -1401,6 +1576,7 @@ $VAR1 = [
             'term' => 'centenas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cerrando',
@@ -1409,6 +1585,7 @@ $VAR1 = [
             'term' => 'cerrando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ceux',
@@ -1417,6 +1594,7 @@ $VAR1 = [
             'term' => 'ceux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'chacun',
@@ -1425,6 +1603,7 @@ $VAR1 = [
             'term' => 'chacun'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'chamar',
@@ -1433,6 +1612,7 @@ $VAR1 = [
             'term' => 'chamar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'charisma',
@@ -1441,6 +1621,7 @@ $VAR1 = [
             'term' => 'charisma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'charl',
@@ -1449,6 +1630,7 @@ $VAR1 = [
             'term' => 'charles'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cheer',
@@ -1457,6 +1639,7 @@ $VAR1 = [
             'term' => 'cheering'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cheio',
@@ -1465,6 +1648,7 @@ $VAR1 = [
             'term' => 'cheio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'chorus',
@@ -1473,6 +1657,7 @@ $VAR1 = [
             'term' => 'chorus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'chwili',
@@ -1481,6 +1666,7 @@ $VAR1 = [
             'term' => 'chwili'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "ciesz\x{119}",
@@ -1489,6 +1675,7 @@ $VAR1 = [
             'term' => "ciesz\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'clamour',
@@ -1497,6 +1684,7 @@ $VAR1 = [
             'term' => 'clamour'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'claro',
@@ -1505,6 +1693,7 @@ $VAR1 = [
             'term' => 'claro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'clash',
@@ -1513,6 +1702,7 @@ $VAR1 = [
             'term' => 'clashes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'claus',
@@ -1521,6 +1711,7 @@ $VAR1 = [
             'term' => 'claus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cleanup',
@@ -1529,6 +1720,7 @@ $VAR1 = [
             'term' => 'cleanup'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'clockwis',
@@ -1537,6 +1729,7 @@ $VAR1 = [
             'term' => 'clockwise'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'clockwis',
@@ -1545,6 +1738,7 @@ $VAR1 = [
             'term' => 'clockwise'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'clooney',
@@ -1553,6 +1747,7 @@ $VAR1 = [
             'term' => 'clooney'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cobra',
@@ -1561,6 +1756,7 @@ $VAR1 = [
             'term' => 'cobra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'coincid',
@@ -1569,6 +1765,7 @@ $VAR1 = [
             'term' => 'coincidences'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'coisa',
@@ -1577,6 +1774,7 @@ $VAR1 = [
             'term' => 'coisas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "coll\x{e8}gu",
@@ -1585,6 +1783,7 @@ $VAR1 = [
             'term' => "coll\x{e8}gues"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'colocar',
@@ -1593,6 +1792,7 @@ $VAR1 = [
             'term' => 'colocar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'comercio',
@@ -1601,6 +1801,7 @@ $VAR1 = [
             'term' => 'comercio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'comic',
@@ -1609,6 +1810,7 @@ $VAR1 = [
             'term' => 'comic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'comic',
@@ -1617,6 +1819,7 @@ $VAR1 = [
             'term' => 'comic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'comm',
@@ -1625,6 +1828,7 @@ $VAR1 = [
             'term' => 'comme'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'como',
@@ -1633,6 +1837,7 @@ $VAR1 = [
             'term' => 'como'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'conceal',
@@ -1641,6 +1846,7 @@ $VAR1 = [
             'term' => 'conceal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "concern\x{e9}",
@@ -1649,6 +1855,7 @@ $VAR1 = [
             'term' => "concern\x{e9}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'condol',
@@ -1657,6 +1864,7 @@ $VAR1 = [
             'term' => 'condolences'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'confirmado',
@@ -1665,6 +1873,7 @@ $VAR1 = [
             'term' => 'confirmado'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'conflicto',
@@ -1673,6 +1882,7 @@ $VAR1 = [
             'term' => 'conflicto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "confront\x{e9}",
@@ -1681,6 +1891,7 @@ $VAR1 = [
             'term' => "confront\x{e9}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "conjun\x{e7}\x{e3}o",
@@ -1689,6 +1900,7 @@ $VAR1 = [
             'term' => "conjun\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'conjunct',
@@ -1697,6 +1909,7 @@ $VAR1 = [
             'term' => 'conjunction'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'consigam',
@@ -1705,6 +1918,7 @@ $VAR1 = [
             'term' => 'consigam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'contradict',
@@ -1713,6 +1927,7 @@ $VAR1 = [
             'term' => 'contradicting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'contradict',
@@ -1721,6 +1936,7 @@ $VAR1 = [
             'term' => 'contradicting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "cora\x{e7}\x{e3}o",
@@ -1729,6 +1945,7 @@ $VAR1 = [
             'term' => "cora\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'corja',
@@ -1737,6 +1954,7 @@ $VAR1 = [
             'term' => 'corja'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'corporacraci',
@@ -1745,6 +1963,7 @@ $VAR1 = [
             'term' => 'corporacracy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'countrymen',
@@ -1753,6 +1972,7 @@ $VAR1 = [
             'term' => 'countrymen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'creep',
@@ -1761,6 +1981,7 @@ $VAR1 = [
             'term' => 'creeps'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'crewmemb',
@@ -1769,6 +1990,7 @@ $VAR1 = [
             'term' => 'crewmembers'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'crikey',
@@ -1777,6 +1999,7 @@ $VAR1 = [
             'term' => 'crikey'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'criticando',
@@ -1785,6 +2008,7 @@ $VAR1 = [
             'term' => 'criticando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'culpado',
@@ -1793,6 +2017,7 @@ $VAR1 = [
             'term' => 'culpados'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'curva',
@@ -1801,6 +2026,7 @@ $VAR1 = [
             'term' => 'curva'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cusack',
@@ -1809,6 +2035,7 @@ $VAR1 = [
             'term' => 'cusack'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'cynic',
@@ -1817,6 +2044,7 @@ $VAR1 = [
             'term' => 'cynical'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'czarna',
@@ -1825,6 +2053,7 @@ $VAR1 = [
             'term' => 'czarna'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "cz\x{119}sto",
@@ -1833,6 +2062,7 @@ $VAR1 = [
             'term' => "cz\x{119}sto"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "czynnik\x{f3}w",
@@ -1841,6 +2071,7 @@ $VAR1 = [
             'term' => "czynnik\x{f3}w"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'damon',
@@ -1849,6 +2080,7 @@ $VAR1 = [
             'term' => 'damon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dar',
@@ -1857,6 +2089,7 @@ $VAR1 = [
             'term' => 'dar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'das',
@@ -1865,6 +2098,7 @@ $VAR1 = [
             'term' => 'das'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'david',
@@ -1873,6 +2107,7 @@ $VAR1 = [
             'term' => 'david'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'david',
@@ -1881,6 +2116,7 @@ $VAR1 = [
             'term' => 'david'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'deaf',
@@ -1889,6 +2125,7 @@ $VAR1 = [
             'term' => 'deaf'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'deaf',
@@ -1897,6 +2134,7 @@ $VAR1 = [
             'term' => 'deaf'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'debri',
@@ -1905,6 +2143,7 @@ $VAR1 = [
             'term' => 'debris'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'deem',
@@ -1913,6 +2152,7 @@ $VAR1 = [
             'term' => 'deemed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'deepen',
@@ -1921,6 +2161,7 @@ $VAR1 = [
             'term' => 'deepening'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'defenders',
@@ -1929,6 +2170,7 @@ $VAR1 = [
             'term' => 'defenderse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dejando',
@@ -1937,6 +2179,7 @@ $VAR1 = [
             'term' => 'dejando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'dela',
@@ -1945,6 +2188,7 @@ $VAR1 = [
             'term' => 'dela'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'demai',
@@ -1953,6 +2197,7 @@ $VAR1 = [
             'term' => 'demais'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'democrat',
@@ -1961,6 +2206,7 @@ $VAR1 = [
             'term' => 'democratic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'democrat',
@@ -1969,6 +2215,7 @@ $VAR1 = [
             'term' => 'democratic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'depoi',
@@ -1977,6 +2224,7 @@ $VAR1 = [
             'term' => 'depois'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'derecho',
@@ -1985,6 +2233,7 @@ $VAR1 = [
             'term' => 'derecho'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'derrubou',
@@ -1993,6 +2242,7 @@ $VAR1 = [
             'term' => 'derrubou'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'des',
@@ -2001,6 +2251,7 @@ $VAR1 = [
             'term' => 'des'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'desafortunado',
@@ -2009,6 +2260,7 @@ $VAR1 = [
             'term' => 'desafortunado'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'desastr',
@@ -2017,6 +2269,7 @@ $VAR1 = [
             'term' => 'desastre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'desbordado',
@@ -2025,6 +2278,7 @@ $VAR1 = [
             'term' => 'desbordado'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'descaradament',
@@ -2033,6 +2287,7 @@ $VAR1 = [
             'term' => 'descaradamente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'desejo',
@@ -2041,6 +2296,7 @@ $VAR1 = [
             'term' => 'desejo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'desencadeam',
@@ -2049,6 +2305,7 @@ $VAR1 = [
             'term' => 'desencadeam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'deserv',
@@ -2057,6 +2314,7 @@ $VAR1 = [
             'term' => 'deserve'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'desfilando',
@@ -2065,6 +2323,7 @@ $VAR1 = [
             'term' => 'desfilando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "desgra\x{e7}a",
@@ -2073,6 +2332,7 @@ $VAR1 = [
             'term' => "desgra\x{e7}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'desmond',
@@ -2081,6 +2341,7 @@ $VAR1 = [
             'term' => 'desmond'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'dess',
@@ -2089,6 +2350,7 @@ $VAR1 = [
             'term' => 'desse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dessa',
@@ -2097,6 +2359,7 @@ $VAR1 = [
             'term' => 'dessa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'destin',
@@ -2105,6 +2368,7 @@ $VAR1 = [
             'term' => 'destination'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "destro\x{e7}o",
@@ -2113,6 +2377,7 @@ $VAR1 = [
             'term' => "destro\x{e7}os"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'detalh',
@@ -2121,6 +2386,7 @@ $VAR1 = [
             'term' => 'detalhe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'deterior',
@@ -2129,6 +2395,7 @@ $VAR1 = [
             'term' => 'deteriorated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'deu',
@@ -2137,6 +2404,7 @@ $VAR1 = [
             'term' => 'deu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'deveriam',
@@ -2145,6 +2413,7 @@ $VAR1 = [
             'term' => 'deveriam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'diablo',
@@ -2153,6 +2422,7 @@ $VAR1 = [
             'term' => 'diablo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'diment',
@@ -2161,6 +2431,7 @@ $VAR1 = [
             'term' => 'dimention'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dinero',
@@ -2169,6 +2440,7 @@ $VAR1 = [
             'term' => 'dinero'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dinheiro',
@@ -2177,6 +2449,7 @@ $VAR1 = [
             'term' => 'dinheiro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'disengag',
@@ -2185,6 +2458,7 @@ $VAR1 = [
             'term' => 'disengagement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "disfar\x{e7}am",
@@ -2193,6 +2467,7 @@ $VAR1 = [
             'term' => "disfar\x{e7}am"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'disgust',
@@ -2201,6 +2476,7 @@ $VAR1 = [
             'term' => 'disgusted'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'disrespect',
@@ -2209,6 +2485,7 @@ $VAR1 = [
             'term' => 'disrespectful'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'divert',
@@ -2217,6 +2494,7 @@ $VAR1 = [
             'term' => 'diverted'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "divisi\x{f3}n",
@@ -2225,6 +2503,7 @@ $VAR1 = [
             'term' => "divisi\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'divulgando',
@@ -2233,6 +2512,7 @@ $VAR1 = [
             'term' => 'divulgando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'divulgar',
@@ -2241,6 +2521,7 @@ $VAR1 = [
             'term' => 'divulgar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dizendo',
@@ -2249,6 +2530,7 @@ $VAR1 = [
             'term' => 'dizendo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'dizer',
@@ -2257,6 +2539,7 @@ $VAR1 = [
             'term' => 'dizer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dlaczego',
@@ -2265,6 +2548,7 @@ $VAR1 = [
             'term' => 'dlaczego'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dni',
@@ -2273,6 +2557,7 @@ $VAR1 = [
             'term' => 'dni'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dobrz',
@@ -2281,6 +2566,7 @@ $VAR1 = [
             'term' => 'dobrze'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dole',
@@ -2289,6 +2575,7 @@ $VAR1 = [
             'term' => 'dole'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "dolecie\x{107}",
@@ -2297,6 +2584,7 @@ $VAR1 = [
             'term' => "dolecie\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'domain',
@@ -2305,6 +2593,7 @@ $VAR1 = [
             'term' => 'domains'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'donia',
@@ -2313,6 +2602,7 @@ $VAR1 = [
             'term' => 'donia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dor',
@@ -2321,6 +2611,7 @@ $VAR1 = [
             'term' => 'dor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dos',
@@ -2329,6 +2620,7 @@ $VAR1 = [
             'term' => 'dos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "do\x{15b}\x{107}",
@@ -2337,6 +2629,7 @@ $VAR1 = [
             'term' => "do\x{15b}\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "dos\x{142}owni",
@@ -2345,6 +2638,7 @@ $VAR1 = [
             'term' => "dos\x{142}ownie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "dzia\x{142}a",
@@ -2353,6 +2647,7 @@ $VAR1 = [
             'term' => "dzia\x{142}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'dziecko',
@@ -2361,6 +2656,7 @@ $VAR1 = [
             'term' => 'dziecko'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'earhart',
@@ -2369,6 +2665,7 @@ $VAR1 = [
             'term' => 'earhart'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'eastner',
@@ -2377,6 +2674,7 @@ $VAR1 = [
             'term' => 'eastners'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'econom',
@@ -2385,6 +2683,7 @@ $VAR1 = [
             'term' => 'economic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'efeito',
@@ -2393,6 +2692,7 @@ $VAR1 = [
             'term' => 'efeito'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'egypt',
@@ -2401,6 +2701,7 @@ $VAR1 = [
             'term' => 'egypt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'egypt',
@@ -2409,6 +2710,7 @@ $VAR1 = [
             'term' => 'egypt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => 'egyptian',
@@ -2417,6 +2719,7 @@ $VAR1 = [
             'term' => 'egyptian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 9,
             'stem' => 'egyptian',
@@ -2425,6 +2728,7 @@ $VAR1 = [
             'term' => 'egyptian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'elder',
@@ -2433,6 +2737,7 @@ $VAR1 = [
             'term' => 'elders'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'electromagnet',
@@ -2441,6 +2746,7 @@ $VAR1 = [
             'term' => 'electromagnetic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'eloqu',
@@ -2449,6 +2755,7 @@ $VAR1 = [
             'term' => 'eloquence'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'emot',
@@ -2457,6 +2764,7 @@ $VAR1 = [
             'term' => 'emotion'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'empathi',
@@ -2465,6 +2773,7 @@ $VAR1 = [
             'term' => 'empathy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'emphat',
@@ -2473,6 +2782,7 @@ $VAR1 = [
             'term' => 'emphatically'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'endur',
@@ -2481,6 +2791,7 @@ $VAR1 = [
             'term' => 'enduring'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'energia',
@@ -2489,6 +2800,7 @@ $VAR1 = [
             'term' => 'energias'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'enfim',
@@ -2497,6 +2809,7 @@ $VAR1 = [
             'term' => 'enfim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'enfrentamiento',
@@ -2505,6 +2818,7 @@ $VAR1 = [
             'term' => 'enfrentamiento'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'enhanc',
@@ -2513,6 +2827,7 @@ $VAR1 = [
             'term' => 'enhancing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'enlac',
@@ -2521,6 +2836,7 @@ $VAR1 = [
             'term' => 'enlace'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'enrag',
@@ -2529,6 +2845,7 @@ $VAR1 = [
             'term' => 'enraged'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'entendimiento',
@@ -2537,6 +2854,7 @@ $VAR1 = [
             'term' => 'entendimiento'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'entr',
@@ -2545,6 +2863,7 @@ $VAR1 = [
             'term' => 'entre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'environment',
@@ -2553,6 +2872,7 @@ $VAR1 = [
             'term' => 'environmental'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'enxergar',
@@ -2561,6 +2881,7 @@ $VAR1 = [
             'term' => 'enxergar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "epis\x{f3}dio",
@@ -2569,6 +2890,7 @@ $VAR1 = [
             'term' => "epis\x{f3}dio"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'eras',
@@ -2577,6 +2899,7 @@ $VAR1 = [
             'term' => 'erase'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'erich',
@@ -2585,6 +2908,7 @@ $VAR1 = [
             'term' => 'erich'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'escala',
@@ -2593,6 +2917,7 @@ $VAR1 = [
             'term' => 'escala'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "esc\x{e2}ndalo",
@@ -2601,6 +2926,7 @@ $VAR1 = [
             'term' => "esc\x{e2}ndalo"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'escond',
@@ -2609,6 +2935,7 @@ $VAR1 = [
             'term' => 'esconde'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'especialista',
@@ -2617,6 +2944,7 @@ $VAR1 = [
             'term' => 'especialistas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "especula\x{e7}\x{f5}",
@@ -2625,6 +2953,7 @@ $VAR1 = [
             'term' => "especula\x{e7}\x{f5}es"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'esquecimento',
@@ -2633,6 +2962,7 @@ $VAR1 = [
             'term' => 'esquecimento'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'essa',
@@ -2641,6 +2971,7 @@ $VAR1 = [
             'term' => 'essa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "est\x{e1}",
@@ -2649,6 +2980,7 @@ $VAR1 = [
             'term' => "est\x{e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "est\x{e1}n",
@@ -2657,6 +2989,7 @@ $VAR1 = [
             'term' => "est\x{e1}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "est\x{e3}o",
@@ -2665,6 +2998,7 @@ $VAR1 = [
             'term' => "est\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'esto',
@@ -2673,6 +3007,7 @@ $VAR1 = [
             'term' => 'esto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'estou',
@@ -2681,6 +3016,7 @@ $VAR1 = [
             'term' => 'estou'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'europ',
@@ -2689,6 +3025,7 @@ $VAR1 = [
             'term' => 'europe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'europa',
@@ -2697,6 +3034,7 @@ $VAR1 = [
             'term' => 'europa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'everywher',
@@ -2705,6 +3043,7 @@ $VAR1 = [
             'term' => 'everywhere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'exam',
@@ -2713,6 +3052,7 @@ $VAR1 = [
             'term' => 'exams'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'exceed',
@@ -2721,6 +3061,7 @@ $VAR1 = [
             'term' => 'exceed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'exploit',
@@ -2729,6 +3070,7 @@ $VAR1 = [
             'term' => 'exploiting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'explorando',
@@ -2737,6 +3079,7 @@ $VAR1 = [
             'term' => 'explorando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'explorar',
@@ -2745,6 +3088,7 @@ $VAR1 = [
             'term' => 'explorar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "extr\x{ea}m",
@@ -2753,6 +3097,7 @@ $VAR1 = [
             'term' => "extr\x{ea}me"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'extremist',
@@ -2761,6 +3106,7 @@ $VAR1 = [
             'term' => 'extremist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'fact',
@@ -2769,6 +3115,7 @@ $VAR1 = [
             'term' => 'fact'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'falam',
@@ -2777,6 +3124,7 @@ $VAR1 = [
             'term' => 'falam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'falando',
@@ -2785,6 +3133,7 @@ $VAR1 = [
             'term' => 'falando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'famili',
@@ -2793,6 +3142,7 @@ $VAR1 = [
             'term' => 'families'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'familia',
@@ -2801,6 +3151,7 @@ $VAR1 = [
             'term' => 'familias'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fato',
@@ -2809,6 +3160,7 @@ $VAR1 = [
             'term' => 'fatos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fator',
@@ -2817,6 +3169,7 @@ $VAR1 = [
             'term' => 'fatores'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'fattract',
@@ -2825,6 +3178,7 @@ $VAR1 = [
             'term' => 'fattractive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'faulti',
@@ -2833,6 +3187,7 @@ $VAR1 = [
             'term' => 'faulty'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'favourit',
@@ -2841,6 +3196,7 @@ $VAR1 = [
             'term' => 'favourite'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fazendo',
@@ -2849,6 +3205,7 @@ $VAR1 = [
             'term' => 'fazendo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fazer',
@@ -2857,6 +3214,7 @@ $VAR1 = [
             'term' => 'fazer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ficar',
@@ -2865,6 +3223,7 @@ $VAR1 = [
             'term' => 'ficar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fico',
@@ -2873,6 +3232,7 @@ $VAR1 = [
             'term' => 'fico'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ficou',
@@ -2881,6 +3241,7 @@ $VAR1 = [
             'term' => 'ficou'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'float',
@@ -2889,6 +3250,7 @@ $VAR1 = [
             'term' => 'floating'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'florida',
@@ -2897,6 +3259,7 @@ $VAR1 = [
             'term' => 'florida'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fome',
@@ -2905,6 +3268,7 @@ $VAR1 = [
             'term' => 'fome'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'footnot',
@@ -2913,6 +3277,7 @@ $VAR1 = [
             'term' => 'footnote'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'footnot',
@@ -2921,6 +3286,7 @@ $VAR1 = [
             'term' => 'footnote'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'forgotten',
@@ -2929,6 +3295,7 @@ $VAR1 = [
             'term' => 'forgotten'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'foss',
@@ -2937,6 +3304,7 @@ $VAR1 = [
             'term' => 'fosse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fragment',
@@ -2945,6 +3313,7 @@ $VAR1 = [
             'term' => 'fragmented'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "frajd\x{119}",
@@ -2953,6 +3322,7 @@ $VAR1 = [
             'term' => "frajd\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fran',
@@ -2961,6 +3331,7 @@ $VAR1 = [
             'term' => 'franly'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 17,
             'stem' => 'franc',
@@ -2969,6 +3340,7 @@ $VAR1 = [
             'term' => 'france'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'freak',
@@ -2977,6 +3349,7 @@ $VAR1 = [
             'term' => 'freak'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'free',
@@ -2985,6 +3358,7 @@ $VAR1 = [
             'term' => 'free'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'freedom',
@@ -2993,6 +3367,7 @@ $VAR1 = [
             'term' => 'freedom'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'french',
@@ -3001,6 +3376,7 @@ $VAR1 = [
             'term' => 'french'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'fui',
@@ -3009,6 +3385,7 @@ $VAR1 = [
             'term' => 'fui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'futura',
@@ -3017,6 +3394,7 @@ $VAR1 = [
             'term' => 'futura'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'ganar',
@@ -3025,6 +3403,7 @@ $VAR1 = [
             'term' => 'ganar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ganha',
@@ -3033,6 +3412,7 @@ $VAR1 = [
             'term' => 'ganha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "gapi\x{107}",
@@ -3041,6 +3421,7 @@ $VAR1 = [
             'term' => "gapi\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'gdi',
@@ -3049,6 +3430,7 @@ $VAR1 = [
             'term' => 'gdy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'gdzie',
@@ -3057,6 +3439,7 @@ $VAR1 = [
             'term' => 'gdzie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "gdzie\x{15b}",
@@ -3065,6 +3448,7 @@ $VAR1 = [
             'term' => "gdzie\x{15b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'gender',
@@ -3073,6 +3457,7 @@ $VAR1 = [
             'term' => 'gender'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'genocid',
@@ -3081,6 +3466,7 @@ $VAR1 = [
             'term' => 'genocide'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'gent',
@@ -3089,6 +3475,7 @@ $VAR1 = [
             'term' => 'gente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'georg',
@@ -3097,6 +3484,7 @@ $VAR1 = [
             'term' => 'george'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ghandi',
@@ -3105,6 +3493,7 @@ $VAR1 = [
             'term' => 'ghandi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ghost',
@@ -3113,6 +3502,7 @@ $VAR1 = [
             'term' => 'ghost'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'global',
@@ -3121,6 +3511,7 @@ $VAR1 = [
             'term' => 'global'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "gobernaci\x{f3}n",
@@ -3129,6 +3520,7 @@ $VAR1 = [
             'term' => "gobernaci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'god',
@@ -3137,6 +3529,7 @@ $VAR1 = [
             'term' => 'god'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'godzin',
@@ -3145,6 +3538,7 @@ $VAR1 = [
             'term' => 'godzin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'godzinami',
@@ -3153,6 +3547,7 @@ $VAR1 = [
             'term' => 'godzinami'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'gordon',
@@ -3161,6 +3556,7 @@ $VAR1 = [
             'term' => 'gordon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'gorenberg',
@@ -3169,6 +3565,7 @@ $VAR1 = [
             'term' => 'gorenberg'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'grandson',
@@ -3177,6 +3574,7 @@ $VAR1 = [
             'term' => 'grandson'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "gravit\x{e9}",
@@ -3185,6 +3583,7 @@ $VAR1 = [
             'term' => "gravit\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'grief',
@@ -3193,6 +3592,7 @@ $VAR1 = [
             'term' => 'grief'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'griev',
@@ -3201,6 +3601,7 @@ $VAR1 = [
             'term' => 'grieving'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'grumman',
@@ -3209,6 +3610,7 @@ $VAR1 = [
             'term' => 'grumman'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'gwiazdi',
@@ -3217,6 +3619,7 @@ $VAR1 = [
             'term' => 'gwiazdy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'habitant',
@@ -3225,6 +3628,7 @@ $VAR1 = [
             'term' => 'habitantes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "haci\x{e9}ndos",
@@ -3233,6 +3637,7 @@ $VAR1 = [
             'term' => "haci\x{e9}ndose"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ha\'er',
@@ -3241,6 +3646,7 @@ $VAR1 = [
             'term' => 'ha\'er'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'han',
@@ -3249,6 +3655,7 @@ $VAR1 = [
             'term' => 'han'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'har',
@@ -3257,6 +3664,7 @@ $VAR1 = [
             'term' => 'harness'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'harvard',
@@ -3265,6 +3673,7 @@ $VAR1 = [
             'term' => 'harvard'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'hashtag',
@@ -3273,6 +3682,7 @@ $VAR1 = [
             'term' => 'hashtag'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'hasta',
@@ -3281,6 +3691,7 @@ $VAR1 = [
             'term' => 'hasta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'havel',
@@ -3289,6 +3700,7 @@ $VAR1 = [
             'term' => 'havel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'haven',
@@ -3297,6 +3709,7 @@ $VAR1 = [
             'term' => 'haven'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'heartless',
@@ -3305,6 +3718,7 @@ $VAR1 = [
             'term' => 'heartless'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'hecho',
@@ -3313,6 +3727,7 @@ $VAR1 = [
             'term' => 'hecho'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'heighten',
@@ -3321,6 +3736,7 @@ $VAR1 = [
             'term' => 'heighten'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'helen',
@@ -3329,6 +3745,7 @@ $VAR1 = [
             'term' => 'helen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'henceforth',
@@ -3337,6 +3754,7 @@ $VAR1 = [
             'term' => 'henceforth'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'herald',
@@ -3345,6 +3763,7 @@ $VAR1 = [
             'term' => 'herald'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'hereon',
@@ -3353,6 +3772,7 @@ $VAR1 = [
             'term' => 'hereon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'highway',
@@ -3361,6 +3781,7 @@ $VAR1 = [
             'term' => 'highway'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'holist',
@@ -3369,6 +3790,7 @@ $VAR1 = [
             'term' => 'holistic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "hol\x{ed}stica",
@@ -3377,6 +3799,7 @@ $VAR1 = [
             'term' => "hol\x{ed}stica"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'homm',
@@ -3385,6 +3808,7 @@ $VAR1 = [
             'term' => 'hommes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'honeywel',
@@ -3393,6 +3817,7 @@ $VAR1 = [
             'term' => 'honeywell'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'honour',
@@ -3401,6 +3826,7 @@ $VAR1 = [
             'term' => 'honour'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'honour',
@@ -3409,6 +3835,7 @@ $VAR1 = [
             'term' => 'honour'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'hoo',
@@ -3417,6 +3844,7 @@ $VAR1 = [
             'term' => 'hoo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'hood',
@@ -3425,6 +3853,7 @@ $VAR1 = [
             'term' => 'hood'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'horrif',
@@ -3433,6 +3862,7 @@ $VAR1 = [
             'term' => 'horrific'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'hunger',
@@ -3441,6 +3871,7 @@ $VAR1 = [
             'term' => 'hunger'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'huston',
@@ -3449,6 +3880,7 @@ $VAR1 = [
             'term' => 'huston'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'hype',
@@ -3457,6 +3889,7 @@ $VAR1 = [
             'term' => 'hype'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'icon',
@@ -3465,6 +3898,7 @@ $VAR1 = [
             'term' => 'icon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'imam',
@@ -3473,6 +3907,7 @@ $VAR1 = [
             'term' => 'imam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'imam',
@@ -3481,6 +3916,7 @@ $VAR1 = [
             'term' => 'imam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'importa',
@@ -3489,6 +3925,7 @@ $VAR1 = [
             'term' => 'importa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'important',
@@ -3497,6 +3934,7 @@ $VAR1 = [
             'term' => 'importante'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'imprensa',
@@ -3505,6 +3943,7 @@ $VAR1 = [
             'term' => 'imprensa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'imprison',
@@ -3513,6 +3952,7 @@ $VAR1 = [
             'term' => 'imprisoned'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'incognita',
@@ -3521,6 +3961,7 @@ $VAR1 = [
             'term' => 'incognita'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'independ',
@@ -3529,6 +3970,7 @@ $VAR1 = [
             'term' => 'independent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "ind\x{e9}pendam",
@@ -3537,6 +3979,7 @@ $VAR1 = [
             'term' => "ind\x{e9}pendamment"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "indica\x{e7}\x{e3}o",
@@ -3545,6 +3988,7 @@ $VAR1 = [
             'term' => "indica\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 10,
             'stem' => 'indigen',
@@ -3553,6 +3997,7 @@ $VAR1 = [
             'term' => 'indigenous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'indignada',
@@ -3561,6 +4006,7 @@ $VAR1 = [
             'term' => 'indignada'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'inerti',
@@ -3569,6 +4015,7 @@ $VAR1 = [
             'term' => 'inertial'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'infant',
@@ -3577,6 +4024,7 @@ $VAR1 = [
             'term' => 'infant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'influenti',
@@ -3585,6 +4033,7 @@ $VAR1 = [
             'term' => 'influential'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'inhibit',
@@ -3593,6 +4042,7 @@ $VAR1 = [
             'term' => 'inhibit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'injustic',
@@ -3601,6 +4051,7 @@ $VAR1 = [
             'term' => 'injustice'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'innym',
@@ -3609,6 +4060,7 @@ $VAR1 = [
             'term' => 'innym'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "insens\x{ed}vel",
@@ -3617,6 +4069,7 @@ $VAR1 = [
             'term' => "insens\x{ed}vel"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'intellig',
@@ -3625,6 +4078,7 @@ $VAR1 = [
             'term' => 'intelligent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'intellig',
@@ -3633,6 +4087,7 @@ $VAR1 = [
             'term' => 'intelligent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'interesant',
@@ -3641,6 +4096,7 @@ $VAR1 = [
             'term' => 'interesante'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'interven',
@@ -3649,6 +4105,7 @@ $VAR1 = [
             'term' => 'intervene'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'intoler',
@@ -3657,6 +4114,7 @@ $VAR1 = [
             'term' => 'intolerable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "irr\x{e9}m\x{e9}diabl",
@@ -3665,6 +4123,7 @@ $VAR1 = [
             'term' => "irr\x{e9}m\x{e9}diable"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'irrepar',
@@ -3673,6 +4132,7 @@ $VAR1 = [
             'term' => 'irreparable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'islam',
@@ -3681,6 +4141,7 @@ $VAR1 = [
             'term' => 'islamic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'islam',
@@ -3689,6 +4150,7 @@ $VAR1 = [
             'term' => 'islamic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'isra',
@@ -3697,6 +4159,7 @@ $VAR1 = [
             'term' => 'israeli'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'isra',
@@ -3705,6 +4168,7 @@ $VAR1 = [
             'term' => 'israelis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'israel',
@@ -3713,6 +4177,7 @@ $VAR1 = [
             'term' => 'israel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'israel',
@@ -3721,6 +4186,7 @@ $VAR1 = [
             'term' => 'israel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'isso',
@@ -3729,6 +4195,7 @@ $VAR1 = [
             'term' => 'isso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "ja\x{e9}n",
@@ -3737,6 +4204,7 @@ $VAR1 = [
             'term' => "ja\x{e9}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'jak',
@@ -3745,6 +4213,7 @@ $VAR1 = [
             'term' => 'jak'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'janeiro',
@@ -3753,6 +4222,7 @@ $VAR1 = [
             'term' => 'janeiro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'jao',
@@ -3761,6 +4231,7 @@ $VAR1 = [
             'term' => 'jao'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'jednym',
@@ -3769,6 +4240,7 @@ $VAR1 = [
             'term' => 'jednym'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'jeja',
@@ -3777,6 +4249,7 @@ $VAR1 = [
             'term' => 'jeja'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "je\x{15b}li",
@@ -3785,6 +4258,7 @@ $VAR1 = [
             'term' => "je\x{15b}li"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'jessica',
@@ -3793,6 +4267,7 @@ $VAR1 = [
             'term' => 'jessica'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'jest',
@@ -3801,6 +4276,7 @@ $VAR1 = [
             'term' => 'jest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'jeszcz',
@@ -3809,6 +4285,7 @@ $VAR1 = [
             'term' => 'jeszcze'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'johansson',
@@ -3817,6 +4294,7 @@ $VAR1 = [
             'term' => 'johansson'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'john',
@@ -3825,6 +4303,7 @@ $VAR1 = [
             'term' => 'john'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'john',
@@ -3833,6 +4312,7 @@ $VAR1 = [
             'term' => 'john'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'jornalismo',
@@ -3841,6 +4321,7 @@ $VAR1 = [
             'term' => 'jornalismo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'jornalista',
@@ -3849,6 +4330,7 @@ $VAR1 = [
             'term' => 'jornalistas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'journal',
@@ -3857,6 +4339,7 @@ $VAR1 = [
             'term' => 'journal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'journalist',
@@ -3865,6 +4348,7 @@ $VAR1 = [
             'term' => 'journalists'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'julgando',
@@ -3873,6 +4357,7 @@ $VAR1 = [
             'term' => 'julgando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'julia',
@@ -3881,6 +4366,7 @@ $VAR1 = [
             'term' => 'julia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'junta',
@@ -3889,6 +4375,7 @@ $VAR1 = [
             'term' => 'junta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'katastrofi',
@@ -3897,6 +4384,7 @@ $VAR1 = [
             'term' => 'katastrofy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'kennedi',
@@ -3905,6 +4393,7 @@ $VAR1 = [
             'term' => 'kennedy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'kennedi',
@@ -3913,6 +4402,7 @@ $VAR1 = [
             'term' => 'kennedy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'kerimel',
@@ -3921,6 +4411,7 @@ $VAR1 = [
             'term' => 'kerimel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'kidman',
@@ -3929,6 +4420,7 @@ $VAR1 = [
             'term' => 'kidman'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'kilka',
@@ -3937,6 +4429,7 @@ $VAR1 = [
             'term' => 'kilka'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "kilkana\x{15b}ci",
@@ -3945,6 +4438,7 @@ $VAR1 = [
             'term' => "kilkana\x{15b}cie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "k\x{142}opoti",
@@ -3953,6 +4447,7 @@ $VAR1 = [
             'term' => "k\x{142}opoty"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'knesset',
@@ -3961,6 +4456,7 @@ $VAR1 = [
             'term' => 'knesset'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'knesset',
@@ -3969,6 +4465,7 @@ $VAR1 = [
             'term' => 'knesset'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "ksi\x{119}\x{17c}yca",
@@ -3977,6 +4474,7 @@ $VAR1 = [
             'term' => "ksi\x{119}\x{17c}yca"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'kutcher',
@@ -3985,6 +4483,7 @@ $VAR1 = [
             'term' => 'kutcher'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'kuwait',
@@ -3993,6 +4492,7 @@ $VAR1 = [
             'term' => 'kuwait'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 11,
             'stem' => 'kyi',
@@ -4001,6 +4501,7 @@ $VAR1 = [
             'term' => 'kyi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "l\x{105}dowaniu",
@@ -4009,6 +4510,7 @@ $VAR1 = [
             'term' => "l\x{105}dowaniu"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'las',
@@ -4017,6 +4519,7 @@ $VAR1 = [
             'term' => 'las'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "lata\x{107}",
@@ -4025,6 +4528,7 @@ $VAR1 = [
             'term' => "lata\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'latam',
@@ -4033,6 +4537,7 @@ $VAR1 = [
             'term' => 'latam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'latania',
@@ -4041,6 +4546,7 @@ $VAR1 = [
             'term' => 'latania'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'launchpad',
@@ -4049,6 +4555,7 @@ $VAR1 = [
             'term' => 'launchpad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'launchpad',
@@ -4057,6 +4564,7 @@ $VAR1 = [
             'term' => 'launchpad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'learmonth',
@@ -4065,6 +4573,7 @@ $VAR1 = [
             'term' => 'learmonth'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "lec\x{105}ci",
@@ -4073,6 +4582,7 @@ $VAR1 = [
             'term' => "lec\x{105}cy"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'leit',
@@ -4081,6 +4591,7 @@ $VAR1 = [
             'term' => 'leite'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'les',
@@ -4089,6 +4600,7 @@ $VAR1 = [
             'term' => 'les'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'leur',
@@ -4097,6 +4609,7 @@ $VAR1 = [
             'term' => 'leurs'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'levar',
@@ -4105,6 +4618,7 @@ $VAR1 = [
             'term' => 'levar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'lieu',
@@ -4113,6 +4627,7 @@ $VAR1 = [
             'term' => 'lieu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'lightn',
@@ -4121,6 +4636,7 @@ $VAR1 = [
             'term' => 'lightning'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'llamada',
@@ -4129,6 +4645,7 @@ $VAR1 = [
             'term' => 'llamada'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'localizar',
@@ -4137,6 +4654,7 @@ $VAR1 = [
             'term' => 'localizar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'los',
@@ -4145,6 +4663,7 @@ $VAR1 = [
             'term' => 'los'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'lotnicza',
@@ -4153,6 +4672,7 @@ $VAR1 = [
             'term' => 'lotnicza'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'love',
@@ -4161,6 +4681,7 @@ $VAR1 = [
             'term' => 'loves'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'luckili',
@@ -4169,6 +4690,7 @@ $VAR1 = [
             'term' => 'luckily'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'luego',
@@ -4177,6 +4699,7 @@ $VAR1 = [
             'term' => 'luego'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'lugar',
@@ -4185,6 +4708,7 @@ $VAR1 = [
             'term' => 'lugar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'madelein',
@@ -4193,6 +4717,7 @@ $VAR1 = [
             'term' => 'madeleine'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'madonna',
@@ -4201,6 +4726,7 @@ $VAR1 = [
             'term' => 'madonna'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'mai',
@@ -4209,6 +4735,7 @@ $VAR1 = [
             'term' => 'mais'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'mal',
@@ -4217,6 +4744,7 @@ $VAR1 = [
             'term' => 'mal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'malaysia',
@@ -4225,6 +4753,7 @@ $VAR1 = [
             'term' => 'malaysia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'mam',
@@ -4233,6 +4762,7 @@ $VAR1 = [
             'term' => 'mam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mandar',
@@ -4241,6 +4771,7 @@ $VAR1 = [
             'term' => 'mandar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mandela',
@@ -4249,6 +4780,7 @@ $VAR1 = [
             'term' => 'mandela'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'maneira',
@@ -4257,6 +4789,7 @@ $VAR1 = [
             'term' => 'maneira'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "marginaci\x{f3}n",
@@ -4265,6 +4798,7 @@ $VAR1 = [
             'term' => "marginaci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'mas',
@@ -4273,6 +4807,7 @@ $VAR1 = [
             'term' => 'mas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "m\x{e1}s",
@@ -4281,6 +4816,7 @@ $VAR1 = [
             'term' => "m\x{e1}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'maszyna',
@@ -4289,6 +4825,7 @@ $VAR1 = [
             'term' => 'maszyna'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'maten',
@@ -4297,6 +4834,7 @@ $VAR1 = [
             'term' => 'maten'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'matt',
@@ -4305,6 +4843,7 @@ $VAR1 = [
             'term' => 'matt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'matthew',
@@ -4313,6 +4852,7 @@ $VAR1 = [
             'term' => 'matthew'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "m\x{e1}ximo",
@@ -4321,6 +4861,7 @@ $VAR1 = [
             'term' => "m\x{e1}ximo"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'meanwhil',
@@ -4329,6 +4870,7 @@ $VAR1 = [
             'term' => 'meanwhile'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => 'media',
@@ -4337,6 +4879,7 @@ $VAR1 = [
             'term' => 'media'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'meg',
@@ -4345,6 +4888,7 @@ $VAR1 = [
             'term' => 'meg'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'merci',
@@ -4353,6 +4897,7 @@ $VAR1 = [
             'term' => 'mercy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'meryl',
@@ -4361,6 +4906,7 @@ $VAR1 = [
             'term' => 'meryl'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mesma',
@@ -4369,6 +4915,7 @@ $VAR1 = [
             'term' => 'mesma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mesmooo',
@@ -4377,6 +4924,7 @@ $VAR1 = [
             'term' => 'mesmooo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'mestizo',
@@ -4385,6 +4933,7 @@ $VAR1 = [
             'term' => 'mestizos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'meter',
@@ -4393,6 +4942,7 @@ $VAR1 = [
             'term' => 'meters'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mid',
@@ -4401,6 +4951,7 @@ $VAR1 = [
             'term' => 'mid'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'miembro',
@@ -4409,6 +4960,7 @@ $VAR1 = [
             'term' => 'miembros'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'mientra',
@@ -4417,6 +4969,7 @@ $VAR1 = [
             'term' => 'mientras'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "miesi\x{105}cu",
@@ -4425,6 +4978,7 @@ $VAR1 = [
             'term' => "miesi\x{105}cu"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'mim',
@@ -4433,6 +4987,7 @@ $VAR1 = [
             'term' => 'mim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mindless',
@@ -4441,6 +4996,7 @@ $VAR1 = [
             'term' => 'mindlessly'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'miner',
@@ -4449,6 +5005,7 @@ $VAR1 = [
             'term' => 'minerals'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'minha',
@@ -4457,6 +5014,7 @@ $VAR1 = [
             'term' => 'minha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "m\x{ed}nimo",
@@ -4465,6 +5023,7 @@ $VAR1 = [
             'term' => "m\x{ed}nimo"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'minist',
@@ -4473,6 +5032,7 @@ $VAR1 = [
             'term' => 'minister'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mirag',
@@ -4481,6 +5041,7 @@ $VAR1 = [
             'term' => 'mirage'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'misfortun',
@@ -4489,6 +5050,7 @@ $VAR1 = [
             'term' => 'misfortune'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'mnie',
@@ -4497,6 +5059,7 @@ $VAR1 = [
             'term' => 'mnie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "mog\x{119}",
@@ -4505,6 +5068,7 @@ $VAR1 = [
             'term' => "mog\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'moich',
@@ -4513,6 +5077,7 @@ $VAR1 = [
             'term' => 'moich'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "m\x{f3}j",
@@ -4521,6 +5086,7 @@ $VAR1 = [
             'term' => "m\x{f3}j"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'moje',
@@ -4529,6 +5095,7 @@ $VAR1 = [
             'term' => 'moje'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'momento',
@@ -4537,6 +5104,7 @@ $VAR1 = [
             'term' => 'momento'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'monger',
@@ -4545,6 +5113,7 @@ $VAR1 = [
             'term' => 'mongering'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'monger',
@@ -4553,6 +5122,7 @@ $VAR1 = [
             'term' => 'mongering'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'monika',
@@ -4561,6 +5131,7 @@ $VAR1 = [
             'term' => 'monika'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'moon',
@@ -4569,6 +5140,7 @@ $VAR1 = [
             'term' => 'moon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'morrem',
@@ -4577,6 +5149,7 @@ $VAR1 = [
             'term' => 'morrem'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mubarak',
@@ -4585,6 +5158,7 @@ $VAR1 = [
             'term' => 'mubarak'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mubarak',
@@ -4593,6 +5167,7 @@ $VAR1 = [
             'term' => 'mubarak'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'mucho',
@@ -4601,6 +5176,7 @@ $VAR1 = [
             'term' => 'mucho'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'muerto',
@@ -4609,6 +5185,7 @@ $VAR1 = [
             'term' => 'muertos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'muito',
@@ -4617,6 +5194,7 @@ $VAR1 = [
             'term' => 'muitos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "musia\x{142}",
@@ -4625,6 +5203,7 @@ $VAR1 = [
             'term' => "musia\x{142}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 7,
             'stem' => 'muslim',
@@ -4633,6 +5212,7 @@ $VAR1 = [
             'term' => 'muslims'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'muslim',
@@ -4641,6 +5221,7 @@ $VAR1 = [
             'term' => 'muslims'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'myanmar',
@@ -4649,6 +5230,7 @@ $VAR1 = [
             'term' => 'myanmar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'nacion',
@@ -4657,6 +5239,7 @@ $VAR1 = [
             'term' => 'nacional'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nad',
@@ -4665,6 +5248,7 @@ $VAR1 = [
             'term' => 'nad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nada',
@@ -4673,6 +5257,7 @@ $VAR1 = [
             'term' => 'nada'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nadal',
@@ -4681,6 +5266,7 @@ $VAR1 = [
             'term' => 'nadal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nadi',
@@ -4689,6 +5275,7 @@ $VAR1 = [
             'term' => 'nadie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "nadziej\x{119}",
@@ -4697,6 +5284,7 @@ $VAR1 = [
             'term' => "nadziej\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "najbli\x{17c}sz",
@@ -4705,6 +5293,7 @@ $VAR1 = [
             'term' => "najbli\x{17c}sze"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 7,
             'stem' => "n\x{e3}o",
@@ -4713,6 +5302,7 @@ $VAR1 = [
             'term' => "n\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'naomi',
@@ -4721,6 +5311,7 @@ $VAR1 = [
             'term' => 'naomi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'napoleon',
@@ -4729,6 +5320,7 @@ $VAR1 = [
             'term' => 'napoleon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nas',
@@ -4737,6 +5329,7 @@ $VAR1 = [
             'term' => 'nas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'nativo',
@@ -4745,6 +5338,7 @@ $VAR1 = [
             'term' => 'nativos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nato',
@@ -4753,6 +5347,7 @@ $VAR1 = [
             'term' => 'natos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'navig',
@@ -4761,6 +5356,7 @@ $VAR1 = [
             'term' => 'navigants'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nawet',
@@ -4769,6 +5365,7 @@ $VAR1 = [
             'term' => 'nawet'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'neff',
@@ -4777,6 +5374,7 @@ $VAR1 = [
             'term' => 'neff'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'negativa',
@@ -4785,6 +5383,7 @@ $VAR1 = [
             'term' => 'negativas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nego',
@@ -4793,6 +5392,7 @@ $VAR1 = [
             'term' => 'nego'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nelson',
@@ -4801,6 +5401,7 @@ $VAR1 = [
             'term' => 'nelson'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nem',
@@ -4809,6 +5410,7 @@ $VAR1 = [
             'term' => 'nem'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nepumoceno',
@@ -4817,6 +5419,7 @@ $VAR1 = [
             'term' => 'nepumoceno'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ness',
@@ -4825,6 +5428,7 @@ $VAR1 = [
             'term' => 'nesse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'newsworthi',
@@ -4833,6 +5437,7 @@ $VAR1 = [
             'term' => 'newsworthy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nic',
@@ -4841,6 +5446,7 @@ $VAR1 = [
             'term' => 'nic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nicol',
@@ -4849,6 +5455,7 @@ $VAR1 = [
             'term' => 'nicole'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'nie',
@@ -4857,6 +5464,7 @@ $VAR1 = [
             'term' => 'nie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nighttim',
@@ -4865,6 +5473,7 @@ $VAR1 = [
             'term' => 'nighttime'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nineteen',
@@ -4873,6 +5482,7 @@ $VAR1 = [
             'term' => 'nineteen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "ningu\x{e9}m",
@@ -4881,6 +5491,7 @@ $VAR1 = [
             'term' => "ningu\x{e9}m"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ninguna',
@@ -4889,6 +5500,7 @@ $VAR1 = [
             'term' => 'ninguna'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'niro',
@@ -4897,6 +5509,7 @@ $VAR1 = [
             'term' => 'niro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nixon',
@@ -4905,6 +5518,7 @@ $VAR1 = [
             'term' => 'nixon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nixon',
@@ -4913,6 +5527,7 @@ $VAR1 = [
             'term' => 'nixon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nobil',
@@ -4921,6 +5536,7 @@ $VAR1 = [
             'term' => 'nobility'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'noc',
@@ -4929,6 +5545,7 @@ $VAR1 = [
             'term' => 'noc'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nombr',
@@ -4937,6 +5554,7 @@ $VAR1 = [
             'term' => 'nombre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'non',
@@ -4945,6 +5563,7 @@ $VAR1 = [
             'term' => 'non'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nordest',
@@ -4953,6 +5572,7 @@ $VAR1 = [
             'term' => 'nordeste'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'nordestino',
@@ -4961,6 +5581,7 @@ $VAR1 = [
             'term' => 'nordestinos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'northeast',
@@ -4969,6 +5590,7 @@ $VAR1 = [
             'term' => 'northeast'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'northrop',
@@ -4977,6 +5599,7 @@ $VAR1 = [
             'term' => 'northrop'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "n\x{fa}mero",
@@ -4985,6 +5608,7 @@ $VAR1 = [
             'term' => "n\x{fa}meros"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'numerolog',
@@ -4993,6 +5617,7 @@ $VAR1 = [
             'term' => 'numerology'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'numerologia',
@@ -5001,6 +5626,7 @@ $VAR1 = [
             'term' => 'numerologia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'numerologist',
@@ -5009,6 +5635,7 @@ $VAR1 = [
             'term' => 'numerologist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 24,
             'stem' => 'obama',
@@ -5017,6 +5644,7 @@ $VAR1 = [
             'term' => 'obama'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 24,
             'stem' => 'obama',
@@ -5025,6 +5653,7 @@ $VAR1 = [
             'term' => 'obama'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'oceanu',
@@ -5033,6 +5662,7 @@ $VAR1 = [
             'term' => 'oceanu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ocorr',
@@ -5041,6 +5671,7 @@ $VAR1 = [
             'term' => 'ocorre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ode',
@@ -5049,6 +5680,7 @@ $VAR1 = [
             'term' => 'ode'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'odio',
@@ -5057,6 +5689,7 @@ $VAR1 = [
             'term' => 'odio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "odprowadza\x{142}em",
@@ -5065,6 +5698,7 @@ $VAR1 = [
             'term' => "odprowadza\x{142}em"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'odrywa',
@@ -5073,6 +5707,7 @@ $VAR1 = [
             'term' => 'odrywa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'okienko',
@@ -5081,6 +5716,7 @@ $VAR1 = [
             'term' => 'okienko'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{f4}nibus",
@@ -5089,6 +5725,7 @@ $VAR1 = [
             'term' => "\x{f4}nibus"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'onlin',
@@ -5097,6 +5734,7 @@ $VAR1 = [
             'term' => 'online'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ono',
@@ -5105,6 +5743,7 @@ $VAR1 = [
             'term' => 'ono'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "opini\x{e3}o",
@@ -5113,6 +5752,7 @@ $VAR1 = [
             'term' => "opini\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'opinion',
@@ -5121,6 +5761,7 @@ $VAR1 = [
             'term' => 'opinion'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'opinion',
@@ -5129,6 +5770,7 @@ $VAR1 = [
             'term' => 'opinion'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'oppress',
@@ -5137,6 +5779,7 @@ $VAR1 = [
             'term' => 'oppression'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'optimist',
@@ -5145,6 +5788,7 @@ $VAR1 = [
             'term' => 'optimistic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'optimist',
@@ -5153,6 +5797,7 @@ $VAR1 = [
             'term' => 'optimistic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'org',
@@ -5161,6 +5806,7 @@ $VAR1 = [
             'term' => 'org'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'outrag',
@@ -5169,6 +5815,7 @@ $VAR1 = [
             'term' => 'outrageous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'outro',
@@ -5177,6 +5824,7 @@ $VAR1 = [
             'term' => 'outro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ouvir',
@@ -5185,6 +5833,7 @@ $VAR1 = [
             'term' => 'ouvir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'overload',
@@ -5193,6 +5842,7 @@ $VAR1 = [
             'term' => 'overload'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'paisano',
@@ -5201,6 +5851,7 @@ $VAR1 = [
             'term' => 'paisanos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'palestin',
@@ -5209,6 +5860,7 @@ $VAR1 = [
             'term' => 'palestine'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'palestinian',
@@ -5217,6 +5869,7 @@ $VAR1 = [
             'term' => 'palestinians'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'palm',
@@ -5225,6 +5878,7 @@ $VAR1 = [
             'term' => 'palm'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'palm',
@@ -5233,6 +5887,7 @@ $VAR1 = [
             'term' => 'palm'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'para',
@@ -5241,6 +5896,7 @@ $VAR1 = [
             'term' => 'para'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'pari',
@@ -5249,6 +5905,7 @@ $VAR1 = [
             'term' => 'paris'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'parker',
@@ -5257,6 +5914,7 @@ $VAR1 = [
             'term' => 'parker'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "pary\x{17c}a",
@@ -5265,6 +5923,7 @@ $VAR1 = [
             'term' => "pary\x{17c}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'passa',
@@ -5273,6 +5932,7 @@ $VAR1 = [
             'term' => 'passa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pein',
@@ -5281,6 +5941,7 @@ $VAR1 = [
             'term' => 'peine'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'pela',
@@ -5289,6 +5950,7 @@ $VAR1 = [
             'term' => 'pela'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'perenni',
@@ -5297,6 +5959,7 @@ $VAR1 = [
             'term' => 'perennial'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'permitido',
@@ -5305,6 +5968,7 @@ $VAR1 = [
             'term' => 'permitido'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pero',
@@ -5313,6 +5977,7 @@ $VAR1 = [
             'term' => 'pero'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pert',
@@ -5321,6 +5986,7 @@ $VAR1 = [
             'term' => 'perte'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'perth',
@@ -5329,6 +5995,7 @@ $VAR1 = [
             'term' => 'perth'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'peru',
@@ -5337,6 +6004,7 @@ $VAR1 = [
             'term' => 'peru'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'peruvian',
@@ -5345,6 +6013,7 @@ $VAR1 = [
             'term' => 'peruvians'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pervers',
@@ -5353,6 +6022,7 @@ $VAR1 = [
             'term' => 'perverse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'perverso',
@@ -5361,6 +6031,7 @@ $VAR1 = [
             'term' => 'perverso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pessoa',
@@ -5369,6 +6040,7 @@ $VAR1 = [
             'term' => 'pessoas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pewni',
@@ -5377,6 +6049,7 @@ $VAR1 = [
             'term' => 'pewnie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'philippin',
@@ -5385,6 +6058,7 @@ $VAR1 = [
             'term' => 'philippines'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pitt',
@@ -5393,6 +6067,7 @@ $VAR1 = [
             'term' => 'pitt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'pizango',
@@ -5401,6 +6076,7 @@ $VAR1 = [
             'term' => 'pizango'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "plant\x{e3}o",
@@ -5409,6 +6085,7 @@ $VAR1 = [
             'term' => "plant\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'poblacion',
@@ -5417,6 +6094,7 @@ $VAR1 = [
             'term' => 'poblaciones'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pod',
@@ -5425,6 +6103,7 @@ $VAR1 = [
             'term' => 'pod'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pode',
@@ -5433,6 +6112,7 @@ $VAR1 = [
             'term' => 'pode'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "podr\x{f3}\x{17c}",
@@ -5441,6 +6121,7 @@ $VAR1 = [
             'term' => "podr\x{f3}\x{17c}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "podr\x{f3}\x{17c}i",
@@ -5449,6 +6130,7 @@ $VAR1 = [
             'term' => "podr\x{f3}\x{17c}y"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "polic\x{ed}a",
@@ -5457,6 +6139,7 @@ $VAR1 = [
             'term' => "polic\x{ed}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'polish',
@@ -5465,6 +6148,7 @@ $VAR1 = [
             'term' => 'polish'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "politiquer\x{ed}a",
@@ -5473,6 +6157,7 @@ $VAR1 = [
             'term' => "politiquer\x{ed}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "po\x{142}udniowa",
@@ -5481,6 +6166,7 @@ $VAR1 = [
             'term' => "po\x{142}udniowa"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'por',
@@ -5489,6 +6175,7 @@ $VAR1 = [
             'term' => 'por'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'posibilidad',
@@ -5497,6 +6184,7 @@ $VAR1 = [
             'term' => 'posibilidad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "poss\x{ed}vel",
@@ -5505,6 +6193,7 @@ $VAR1 = [
             'term' => "poss\x{ed}vel"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'postpon',
@@ -5513,6 +6202,7 @@ $VAR1 = [
             'term' => 'postponed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'poursuivr',
@@ -5521,6 +6211,7 @@ $VAR1 = [
             'term' => 'poursuivre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "pozosta\x{142}i",
@@ -5529,6 +6220,7 @@ $VAR1 = [
             'term' => "pozosta\x{142}y"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'pra',
@@ -5537,6 +6229,7 @@ $VAR1 = [
             'term' => 'pra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'prais',
@@ -5545,6 +6238,7 @@ $VAR1 = [
             'term' => 'praises'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'prawdopodobni',
@@ -5553,6 +6247,7 @@ $VAR1 = [
             'term' => 'prawdopodobnie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pre',
@@ -5561,6 +6256,7 @@ $VAR1 = [
             'term' => 'pre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'prematuro',
@@ -5569,6 +6265,7 @@ $VAR1 = [
             'term' => 'prematuro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'premier',
@@ -5577,6 +6274,7 @@ $VAR1 = [
             'term' => 'premier'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'preocupa',
@@ -5585,6 +6283,7 @@ $VAR1 = [
             'term' => 'preocupa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'preta',
@@ -5593,6 +6292,7 @@ $VAR1 = [
             'term' => 'preta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'prim',
@@ -5601,6 +6301,7 @@ $VAR1 = [
             'term' => 'prim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'primeiro',
@@ -5609,6 +6310,7 @@ $VAR1 = [
             'term' => 'primeiro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'problemi',
@@ -5617,6 +6319,7 @@ $VAR1 = [
             'term' => 'problemy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'propio',
@@ -5625,6 +6328,7 @@ $VAR1 = [
             'term' => 'propios'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "prop\x{f5}em",
@@ -5633,6 +6337,7 @@ $VAR1 = [
             'term' => "prop\x{f5}em"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'protestar',
@@ -5641,6 +6346,7 @@ $VAR1 = [
             'term' => 'protestar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'protestor',
@@ -5649,6 +6355,7 @@ $VAR1 = [
             'term' => 'protestors'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'protocol',
@@ -5657,6 +6364,7 @@ $VAR1 = [
             'term' => 'protocol'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "pr\x{f3}xima",
@@ -5665,6 +6373,7 @@ $VAR1 = [
             'term' => "pr\x{f3}xima"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "pr\x{f3}ximo",
@@ -5673,6 +6382,7 @@ $VAR1 = [
             'term' => "pr\x{f3}ximo"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'przeciwni',
@@ -5681,6 +6391,7 @@ $VAR1 = [
             'term' => 'przeciwnie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "przewo\x{17a}nik\x{f3}w",
@@ -5689,6 +6400,7 @@ $VAR1 = [
             'term' => "przewo\x{17a}nik\x{f3}w"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'przez',
@@ -5697,6 +6409,7 @@ $VAR1 = [
             'term' => 'przez'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'przi',
@@ -5705,6 +6418,7 @@ $VAR1 = [
             'term' => 'przy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "przyjaci\x{f3}\x{142}k\x{119}",
@@ -5713,6 +6427,7 @@ $VAR1 = [
             'term' => "przyjaci\x{f3}\x{142}k\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'przynajmniej',
@@ -5721,6 +6436,7 @@ $VAR1 = [
             'term' => 'przynajmniej'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'puerto',
@@ -5729,6 +6445,7 @@ $VAR1 = [
             'term' => 'puerto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'pyramid',
@@ -5737,6 +6454,7 @@ $VAR1 = [
             'term' => 'pyramids'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'qanta',
@@ -5745,6 +6463,7 @@ $VAR1 = [
             'term' => 'qantas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'qf72',
@@ -5753,6 +6472,7 @@ $VAR1 = [
             'term' => 'qf72'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'qualquer',
@@ -5761,6 +6481,7 @@ $VAR1 = [
             'term' => 'qualquer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'quanta',
@@ -5769,6 +6490,7 @@ $VAR1 = [
             'term' => 'quantas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'quantidad',
@@ -5777,6 +6499,7 @@ $VAR1 = [
             'term' => 'quantidade'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'queda',
@@ -5785,6 +6508,7 @@ $VAR1 = [
             'term' => 'queda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'quemara',
@@ -5793,6 +6517,7 @@ $VAR1 = [
             'term' => 'quemara'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'querer',
@@ -5801,6 +6526,7 @@ $VAR1 = [
             'term' => 'querer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'qui',
@@ -5809,6 +6535,7 @@ $VAR1 = [
             'term' => 'qui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'quien',
@@ -5817,6 +6544,7 @@ $VAR1 = [
             'term' => 'quien'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'qur',
@@ -5825,6 +6553,7 @@ $VAR1 = [
             'term' => 'qur'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'raio',
@@ -5833,6 +6562,7 @@ $VAR1 = [
             'term' => 'raios'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'razi',
@@ -5841,6 +6571,7 @@ $VAR1 = [
             'term' => 'razy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'react',
@@ -5849,6 +6580,7 @@ $VAR1 = [
             'term' => 'reacting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'react',
@@ -5857,6 +6589,7 @@ $VAR1 = [
             'term' => 'reacting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'realis',
@@ -5865,6 +6598,7 @@ $VAR1 = [
             'term' => 'realise'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'recebemo',
@@ -5873,6 +6607,7 @@ $VAR1 = [
             'term' => 'recebemos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'reconcili',
@@ -5881,6 +6616,7 @@ $VAR1 = [
             'term' => 'reconciliation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'regardless',
@@ -5889,6 +6625,7 @@ $VAR1 = [
             'term' => 'regardless'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "relaksuj\x{105}co",
@@ -5897,6 +6634,7 @@ $VAR1 = [
             'term' => "relaksuj\x{105}co"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'relax',
@@ -5905,6 +6643,7 @@ $VAR1 = [
             'term' => 'relaxes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'remota',
@@ -5913,6 +6652,7 @@ $VAR1 = [
             'term' => 'remota'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'renda',
@@ -5921,6 +6661,7 @@ $VAR1 = [
             'term' => 'renda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'repress',
@@ -5929,6 +6670,7 @@ $VAR1 = [
             'term' => 'repressive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'repress',
@@ -5937,6 +6679,7 @@ $VAR1 = [
             'term' => 'repressive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'rescu',
@@ -5945,6 +6688,7 @@ $VAR1 = [
             'term' => 'rescue'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'resembl',
@@ -5953,6 +6697,7 @@ $VAR1 = [
             'term' => 'resembles'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'respeito',
@@ -5961,6 +6706,7 @@ $VAR1 = [
             'term' => 'respeito'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'reviv',
@@ -5969,6 +6715,7 @@ $VAR1 = [
             'term' => 'revived'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'rhetor',
@@ -5977,6 +6724,7 @@ $VAR1 = [
             'term' => 'rhetoric'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'rico',
@@ -5985,6 +6733,7 @@ $VAR1 = [
             'term' => 'rico'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'rio',
@@ -5993,6 +6742,7 @@ $VAR1 = [
             'term' => 'rio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'riski',
@@ -6001,6 +6751,7 @@ $VAR1 = [
             'term' => 'risky'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'robert',
@@ -6009,6 +6760,7 @@ $VAR1 = [
             'term' => 'robert'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'robin',
@@ -6017,6 +6769,7 @@ $VAR1 = [
             'term' => 'robin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'roku',
@@ -6025,6 +6778,7 @@ $VAR1 = [
             'term' => 'roku'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'rpp',
@@ -6033,6 +6787,7 @@ $VAR1 = [
             'term' => 'rpp'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'rudder',
@@ -6041,6 +6796,7 @@ $VAR1 = [
             'term' => 'rudder'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ruin',
@@ -6049,6 +6805,7 @@ $VAR1 = [
             'term' => 'ruins'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'rumour',
@@ -6057,6 +6814,7 @@ $VAR1 = [
             'term' => 'rumours'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ryan',
@@ -6065,6 +6823,7 @@ $VAR1 = [
             'term' => 'ryan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sabe',
@@ -6073,6 +6832,7 @@ $VAR1 = [
             'term' => 'sabe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'saber',
@@ -6081,6 +6841,7 @@ $VAR1 = [
             'term' => 'saber'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sacrif',
@@ -6089,6 +6850,7 @@ $VAR1 = [
             'term' => 'sacrificed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'sadat',
@@ -6097,6 +6859,7 @@ $VAR1 = [
             'term' => 'sadat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sadat',
@@ -6105,6 +6868,7 @@ $VAR1 = [
             'term' => 'sadat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "s\x{105}dz\x{119}",
@@ -6113,6 +6877,7 @@ $VAR1 = [
             'term' => "s\x{105}dz\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'safest',
@@ -6121,6 +6886,7 @@ $VAR1 = [
             'term' => 'safest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'salamu',
@@ -6129,6 +6895,7 @@ $VAR1 = [
             'term' => 'salamu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'saldo',
@@ -6137,6 +6904,7 @@ $VAR1 = [
             'term' => 'saldo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sam',
@@ -6145,6 +6913,7 @@ $VAR1 = [
             'term' => 'sam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'samolot',
@@ -6153,6 +6922,7 @@ $VAR1 = [
             'term' => 'samolot'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'samolotem',
@@ -6161,6 +6931,7 @@ $VAR1 = [
             'term' => 'samolotem'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'samolotu',
@@ -6169,6 +6940,7 @@ $VAR1 = [
             'term' => 'samolotu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 9,
             'stem' => 'san',
@@ -6177,6 +6949,7 @@ $VAR1 = [
             'term' => 'san'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sandiland',
@@ -6185,6 +6958,7 @@ $VAR1 = [
             'term' => 'sandilands'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sandra',
@@ -6193,6 +6967,7 @@ $VAR1 = [
             'term' => 'sandra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sangriento',
@@ -6201,6 +6976,7 @@ $VAR1 = [
             'term' => 'sangriento'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'santa',
@@ -6209,6 +6985,7 @@ $VAR1 = [
             'term' => 'santa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "s\x{e3}o",
@@ -6217,6 +6994,7 @@ $VAR1 = [
             'term' => "s\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sarah',
@@ -6225,6 +7003,7 @@ $VAR1 = [
             'term' => 'sarah'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'scandal',
@@ -6233,6 +7012,7 @@ $VAR1 = [
             'term' => 'scandal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'scarlett',
@@ -6241,6 +7021,7 @@ $VAR1 = [
             'term' => 'scarlett'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'scientif',
@@ -6249,6 +7030,7 @@ $VAR1 = [
             'term' => 'scientific'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sec',
@@ -6257,6 +7039,7 @@ $VAR1 = [
             'term' => 'sec'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'seguro',
@@ -6265,6 +7048,7 @@ $VAR1 = [
             'term' => 'seguro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sensat',
@@ -6273,6 +7057,7 @@ $VAR1 = [
             'term' => 'sensationalism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "s\x{e9}rie",
@@ -6281,6 +7066,7 @@ $VAR1 = [
             'term' => "s\x{e9}rie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'servindi',
@@ -6289,6 +7075,7 @@ $VAR1 = [
             'term' => 'servindi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'shelv',
@@ -6297,6 +7084,7 @@ $VAR1 = [
             'term' => 'shelved'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sherif',
@@ -6305,6 +7093,7 @@ $VAR1 = [
             'term' => 'sherif'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sherif',
@@ -6313,6 +7102,7 @@ $VAR1 = [
             'term' => 'sherif'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'shokeir',
@@ -6321,6 +7111,7 @@ $VAR1 = [
             'term' => 'shokeir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'shokier',
@@ -6329,6 +7120,7 @@ $VAR1 = [
             'term' => 'shokier'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'shokier',
@@ -6337,6 +7129,7 @@ $VAR1 = [
             'term' => 'shokier'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => "si\x{119}",
@@ -6345,6 +7138,7 @@ $VAR1 = [
             'term' => "si\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sieg',
@@ -6353,6 +7147,7 @@ $VAR1 = [
             'term' => 'siege'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sim',
@@ -6361,6 +7156,7 @@ $VAR1 = [
             'term' => 'sim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'sincer',
@@ -6369,6 +7165,7 @@ $VAR1 = [
             'term' => 'sincere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sincer',
@@ -6377,6 +7174,7 @@ $VAR1 = [
             'term' => 'sincere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'singapor',
@@ -6385,6 +7183,7 @@ $VAR1 = [
             'term' => 'singapore'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sir',
@@ -6393,6 +7192,7 @@ $VAR1 = [
             'term' => 'sir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sir',
@@ -6401,6 +7201,7 @@ $VAR1 = [
             'term' => 'sir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sistema',
@@ -6409,6 +7210,7 @@ $VAR1 = [
             'term' => 'sistema'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sitiando',
@@ -6417,6 +7219,7 @@ $VAR1 = [
             'term' => 'sitiando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'skeptic',
@@ -6425,6 +7228,7 @@ $VAR1 = [
             'term' => 'skepticism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'skinni',
@@ -6433,6 +7237,7 @@ $VAR1 = [
             'term' => 'skinny'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "sk\x{f3}r\x{119}",
@@ -6441,6 +7246,7 @@ $VAR1 = [
             'term' => "sk\x{f3}r\x{119}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'snippet',
@@ -6449,6 +7255,7 @@ $VAR1 = [
             'term' => 'snippets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'sobr',
@@ -6457,6 +7264,7 @@ $VAR1 = [
             'term' => 'sobre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'solar',
@@ -6465,6 +7273,7 @@ $VAR1 = [
             'term' => 'solar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'solidar',
@@ -6473,6 +7282,7 @@ $VAR1 = [
             'term' => 'solidarity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'solut',
@@ -6481,6 +7291,7 @@ $VAR1 = [
             'term' => 'solutions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sont',
@@ -6489,6 +7300,7 @@ $VAR1 = [
             'term' => 'sont'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sou',
@@ -6497,6 +7309,7 @@ $VAR1 = [
             'term' => 'sou'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'southeast',
@@ -6505,6 +7318,7 @@ $VAR1 = [
             'term' => 'southeast'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'specul',
@@ -6513,6 +7327,7 @@ $VAR1 = [
             'term' => 'speculation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'specyficzni',
@@ -6521,6 +7336,7 @@ $VAR1 = [
             'term' => 'specyficzny'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'spielberg',
@@ -6529,6 +7345,7 @@ $VAR1 = [
             'term' => 'spielberg'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'spill',
@@ -6537,6 +7354,7 @@ $VAR1 = [
             'term' => 'spilled'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'spoon',
@@ -6545,6 +7363,7 @@ $VAR1 = [
             'term' => 'spoon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sprawia',
@@ -6553,6 +7372,7 @@ $VAR1 = [
             'term' => 'sprawia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'squat',
@@ -6561,6 +7381,7 @@ $VAR1 = [
             'term' => 'squat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{15b}rodku",
@@ -6569,6 +7390,7 @@ $VAR1 = [
             'term' => "\x{15b}rodku"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'stall',
@@ -6577,6 +7399,7 @@ $VAR1 = [
             'term' => 'stall'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'starci',
@@ -6585,6 +7408,7 @@ $VAR1 = [
             'term' => 'starcie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'steven',
@@ -6593,6 +7417,7 @@ $VAR1 = [
             'term' => 'steven'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'stosunek',
@@ -6601,6 +7426,7 @@ $VAR1 = [
             'term' => 'stosunek'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'streep',
@@ -6609,6 +7435,7 @@ $VAR1 = [
             'term' => 'streep'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'stresu',
@@ -6617,6 +7444,7 @@ $VAR1 = [
             'term' => 'stresu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'suceso',
@@ -6625,6 +7453,7 @@ $VAR1 = [
             'term' => 'sucesos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'suficient',
@@ -6633,6 +7462,7 @@ $VAR1 = [
             'term' => 'suficiente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'sumi',
@@ -6641,6 +7471,7 @@ $VAR1 = [
             'term' => 'sumie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'superfici',
@@ -6649,6 +7480,7 @@ $VAR1 = [
             'term' => 'superficially'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'suppress',
@@ -6657,6 +7489,7 @@ $VAR1 = [
             'term' => 'suppressed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "s\x{fb}r",
@@ -6665,6 +7498,7 @@ $VAR1 = [
             'term' => "s\x{fb}r"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'sus',
@@ -6673,6 +7507,7 @@ $VAR1 = [
             'term' => 'sus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 11,
             'stem' => 'suu',
@@ -6681,6 +7516,7 @@ $VAR1 = [
             'term' => 'suu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{15b}wiadomo\x{15b}\x{107}",
@@ -6689,6 +7525,7 @@ $VAR1 = [
             'term' => "\x{15b}wiadomo\x{15b}\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'syria',
@@ -6697,6 +7534,7 @@ $VAR1 = [
             'term' => 'syria'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'syrian',
@@ -6705,6 +7543,7 @@ $VAR1 = [
             'term' => 'syrian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "szcz\x{119}\x{15b}cie",
@@ -6713,6 +7552,7 @@ $VAR1 = [
             'term' => "szcz\x{119}\x{15b}cie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "t\x{e2}che",
@@ -6721,6 +7561,7 @@ $VAR1 = [
             'term' => "t\x{e2}che"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tackl',
@@ -6729,6 +7570,7 @@ $VAR1 = [
             'term' => 'tackled'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "tajemniczo\x{15b}\x{107}",
@@ -6737,6 +7579,7 @@ $VAR1 = [
             'term' => "tajemniczo\x{15b}\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tak',
@@ -6745,6 +7588,7 @@ $VAR1 = [
             'term' => 'tak'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tam',
@@ -6753,6 +7597,7 @@ $VAR1 = [
             'term' => 'tam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'taro',
@@ -6761,6 +7606,7 @@ $VAR1 = [
             'term' => 'taro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "tar\x{f4}",
@@ -6769,6 +7615,7 @@ $VAR1 = [
             'term' => "tar\x{f4}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tedious',
@@ -6777,6 +7624,7 @@ $VAR1 = [
             'term' => 'tedious'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tej',
@@ -6785,6 +7633,7 @@ $VAR1 = [
             'term' => 'tej'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "t\x{ea}m",
@@ -6793,6 +7642,7 @@ $VAR1 = [
             'term' => "t\x{ea}m"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'temu',
@@ -6801,6 +7651,7 @@ $VAR1 = [
             'term' => 'temu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tenho',
@@ -6809,6 +7660,7 @@ $VAR1 = [
             'term' => 'tenho'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'tens',
@@ -6817,6 +7669,7 @@ $VAR1 = [
             'term' => 'tense'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'terapeuta',
@@ -6825,6 +7678,7 @@ $VAR1 = [
             'term' => 'terapeuta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'teria',
@@ -6833,6 +7687,7 @@ $VAR1 = [
             'term' => 'teria'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'terror',
@@ -6841,6 +7696,7 @@ $VAR1 = [
             'term' => 'terrorism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'terrorist',
@@ -6849,6 +7705,7 @@ $VAR1 = [
             'term' => 'terrorist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'texto',
@@ -6857,6 +7714,7 @@ $VAR1 = [
             'term' => 'texto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "te\x{17c}",
@@ -6865,6 +7723,7 @@ $VAR1 = [
             'term' => "te\x{17c}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'therapist',
@@ -6873,6 +7732,7 @@ $VAR1 = [
             'term' => 'therapist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'thrill',
@@ -6881,6 +7741,7 @@ $VAR1 = [
             'term' => 'thrilled'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'thrive',
@@ -6889,6 +7750,7 @@ $VAR1 = [
             'term' => 'thrive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'throne',
@@ -6897,6 +7759,7 @@ $VAR1 = [
             'term' => 'throne'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'thumbnail',
@@ -6905,6 +7768,7 @@ $VAR1 = [
             'term' => 'thumbnail'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'thunderstorm',
@@ -6913,6 +7777,7 @@ $VAR1 = [
             'term' => 'thunderstorms'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tienen',
@@ -6921,6 +7786,7 @@ $VAR1 = [
             'term' => 'tienen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tierra',
@@ -6929,6 +7795,7 @@ $VAR1 = [
             'term' => 'tierra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tipo',
@@ -6937,6 +7804,7 @@ $VAR1 = [
             'term' => 'tipo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'toler',
@@ -6945,6 +7813,7 @@ $VAR1 = [
             'term' => 'tolerant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'toll',
@@ -6953,6 +7822,7 @@ $VAR1 = [
             'term' => 'toll'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tomado',
@@ -6961,6 +7831,7 @@ $VAR1 = [
             'term' => 'tomado'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'topic',
@@ -6969,6 +7840,7 @@ $VAR1 = [
             'term' => 'topic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tradycyjn',
@@ -6977,6 +7849,7 @@ $VAR1 = [
             'term' => 'tradycyjne'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "trag\x{e9}dia",
@@ -6985,6 +7858,7 @@ $VAR1 = [
             'term' => "trag\x{e9}dia"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "tr\x{e1}gico",
@@ -6993,6 +7867,7 @@ $VAR1 = [
             'term' => "tr\x{e1}gico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'transbrasil',
@@ -7001,6 +7876,7 @@ $VAR1 = [
             'term' => 'transbrasil'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'translat',
@@ -7009,6 +7885,7 @@ $VAR1 = [
             'term' => 'translated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'trapezoid',
@@ -7017,6 +7894,7 @@ $VAR1 = [
             'term' => 'trapezoid'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'trasi',
@@ -7025,6 +7903,7 @@ $VAR1 = [
             'term' => 'trasie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'treati',
@@ -7033,6 +7912,7 @@ $VAR1 = [
             'term' => 'treaty'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'treati',
@@ -7041,6 +7921,7 @@ $VAR1 = [
             'term' => 'treaty'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'trist',
@@ -7049,6 +7930,7 @@ $VAR1 = [
             'term' => 'triste'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "tr\x{f3}jk\x{105}tem",
@@ -7057,6 +7939,7 @@ $VAR1 = [
             'term' => "tr\x{f3}jk\x{105}tem"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'trouvent',
@@ -7065,6 +7948,7 @@ $VAR1 = [
             'term' => 'trouvent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'true',
@@ -7073,6 +7957,7 @@ $VAR1 = [
             'term' => 'true'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tune',
@@ -7081,6 +7966,7 @@ $VAR1 = [
             'term' => 'tuning'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'turbul',
@@ -7089,6 +7975,7 @@ $VAR1 = [
             'term' => 'turbulence'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tutu',
@@ -7097,6 +7984,7 @@ $VAR1 = [
             'term' => 'tutu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tvs',
@@ -7105,6 +7993,7 @@ $VAR1 = [
             'term' => 'tvs'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'tweet',
@@ -7113,6 +8002,7 @@ $VAR1 = [
             'term' => 'tweets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'twelfth',
@@ -7121,6 +8011,7 @@ $VAR1 = [
             'term' => 'twelfth'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 7,
             'stem' => 'twitter',
@@ -7129,6 +8020,7 @@ $VAR1 = [
             'term' => 'twitterers'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tylko',
@@ -7137,6 +8029,7 @@ $VAR1 = [
             'term' => 'tylko'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'tym',
@@ -7145,6 +8038,7 @@ $VAR1 = [
             'term' => 'tym'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'tyranni',
@@ -7153,6 +8047,7 @@ $VAR1 = [
             'term' => 'tyranny'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'uda',
@@ -7161,6 +8056,7 @@ $VAR1 = [
             'term' => 'uda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ulubionych',
@@ -7169,6 +8065,7 @@ $VAR1 = [
             'term' => 'ulubionych'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'uma',
@@ -7177,6 +8074,7 @@ $VAR1 = [
             'term' => 'uma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'unawar',
@@ -7185,6 +8083,7 @@ $VAR1 = [
             'term' => 'unaware'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'unbear',
@@ -7193,6 +8092,7 @@ $VAR1 = [
             'term' => 'unbearable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'unconfirm',
@@ -7201,6 +8101,7 @@ $VAR1 = [
             'term' => 'unconfirmed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'une',
@@ -7209,6 +8110,7 @@ $VAR1 = [
             'term' => 'une'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'unfinish',
@@ -7217,6 +8119,7 @@ $VAR1 = [
             'term' => 'unfinished'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{fa}nico",
@@ -7225,6 +8128,7 @@ $VAR1 = [
             'term' => "\x{fa}nico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'unoffici',
@@ -7233,6 +8137,7 @@ $VAR1 = [
             'term' => 'unofficial'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'unpreced',
@@ -7241,6 +8146,7 @@ $VAR1 = [
             'term' => 'unprecedented'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'upset',
@@ -7249,6 +8155,7 @@ $VAR1 = [
             'term' => 'upset'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'urbana',
@@ -7257,6 +8164,7 @@ $VAR1 = [
             'term' => 'urbanas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'usa',
@@ -7265,6 +8173,7 @@ $VAR1 = [
             'term' => 'usa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'uso',
@@ -7273,6 +8182,7 @@ $VAR1 = [
             'term' => 'uso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "uspokajaj\x{105}co",
@@ -7281,6 +8191,7 @@ $VAR1 = [
             'term' => "uspokajaj\x{105}co"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'uwielbiam',
@@ -7289,6 +8200,7 @@ $VAR1 = [
             'term' => 'uwielbiam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "v\x{e1}clav",
@@ -7297,6 +8209,7 @@ $VAR1 = [
             'term' => "v\x{e1}clav"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'valu',
@@ -7305,6 +8218,7 @@ $VAR1 = [
             'term' => 'values'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'van',
@@ -7313,6 +8227,7 @@ $VAR1 = [
             'term' => 'van'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'vanish',
@@ -7321,6 +8236,7 @@ $VAR1 = [
             'term' => 'vanished'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'vejam',
@@ -7329,6 +8245,7 @@ $VAR1 = [
             'term' => 'vejam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "vendi\x{f3}",
@@ -7337,6 +8254,7 @@ $VAR1 = [
             'term' => "vendi\x{f3}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'venha',
@@ -7345,6 +8263,7 @@ $VAR1 = [
             'term' => 'venha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'venu',
@@ -7353,6 +8272,7 @@ $VAR1 = [
             'term' => 'venue'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'venu',
@@ -7361,6 +8281,7 @@ $VAR1 = [
             'term' => 'venue'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'veo',
@@ -7369,6 +8290,7 @@ $VAR1 = [
             'term' => 'veo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'verdad',
@@ -7377,6 +8299,7 @@ $VAR1 = [
             'term' => 'verdade'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'vergonha',
@@ -7385,6 +8308,7 @@ $VAR1 = [
             'term' => 'vergonha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'vertic',
@@ -7393,6 +8317,7 @@ $VAR1 = [
             'term' => 'vertical'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 6,
             'stem' => 'victim',
@@ -7401,6 +8326,7 @@ $VAR1 = [
             'term' => 'victims'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'vida',
@@ -7409,6 +8335,7 @@ $VAR1 = [
             'term' => 'vidas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'violenc',
@@ -7417,6 +8344,7 @@ $VAR1 = [
             'term' => 'violence'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "v\x{ed}tima",
@@ -7425,6 +8353,7 @@ $VAR1 = [
             'term' => "v\x{ed}timas"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "voc\x{ea}",
@@ -7433,6 +8362,7 @@ $VAR1 = [
             'term' => "voc\x{ea}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'vont',
@@ -7441,6 +8371,7 @@ $VAR1 = [
             'term' => 'vont'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'vontad',
@@ -7449,6 +8380,7 @@ $VAR1 = [
             'term' => 'vontade'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'vou',
@@ -7457,6 +8389,7 @@ $VAR1 = [
             'term' => 'vou'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'vultur',
@@ -7465,6 +8398,7 @@ $VAR1 = [
             'term' => 'vultures'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'wampi',
@@ -7473,6 +8407,7 @@ $VAR1 = [
             'term' => 'wampis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 5,
             'stem' => 'war',
@@ -7481,6 +8416,7 @@ $VAR1 = [
             'term' => 'war'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'war',
@@ -7489,6 +8425,7 @@ $VAR1 = [
             'term' => 'war'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'wasn',
@@ -7497,6 +8434,7 @@ $VAR1 = [
             'term' => 'wasn'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'wasn',
@@ -7505,6 +8443,7 @@ $VAR1 = [
             'term' => 'wasn'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'watt',
@@ -7513,6 +8452,7 @@ $VAR1 = [
             'term' => 'watts'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wci\x{105}\x{17c}",
@@ -7521,6 +8461,7 @@ $VAR1 = [
             'term' => "wci\x{105}\x{17c}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'websit',
@@ -7529,6 +8470,7 @@ $VAR1 = [
             'term' => 'website'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'western',
@@ -7537,6 +8479,7 @@ $VAR1 = [
             'term' => 'western'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'whoever',
@@ -7545,6 +8488,7 @@ $VAR1 = [
             'term' => 'whoever'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wida\x{107}",
@@ -7553,6 +8497,7 @@ $VAR1 = [
             'term' => "wida\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wielk\x{105}",
@@ -7561,6 +8506,7 @@ $VAR1 = [
             'term' => "wielk\x{105}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "w\x{142}a\x{15b}ni",
@@ -7569,6 +8515,7 @@ $VAR1 = [
             'term' => "w\x{142}a\x{15b}nie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wlaz\x{142}",
@@ -7577,6 +8524,7 @@ $VAR1 = [
             'term' => "wlaz\x{142}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'wpadam',
@@ -7585,6 +8533,7 @@ $VAR1 = [
             'term' => 'wpadam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'wrap',
@@ -7593,6 +8542,7 @@ $VAR1 = [
             'term' => 'wrapping'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wra\x{17c}eni",
@@ -7601,6 +8551,7 @@ $VAR1 = [
             'term' => "wra\x{17c}enie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wr\x{119}cz",
@@ -7609,6 +8560,7 @@ $VAR1 = [
             'term' => "wr\x{119}cz"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wsi\x{105}\x{15b}\x{107}",
@@ -7617,6 +8569,7 @@ $VAR1 = [
             'term' => "wsi\x{105}\x{15b}\x{107}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'wszystki',
@@ -7625,6 +8578,7 @@ $VAR1 = [
             'term' => 'wszystkie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'wymiarz',
@@ -7633,6 +8587,7 @@ $VAR1 = [
             'term' => 'wymiarze'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'wypadek',
@@ -7641,6 +8596,7 @@ $VAR1 = [
             'term' => 'wypadek'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "wywo\x{142}uj",
@@ -7649,6 +8605,7 @@ $VAR1 = [
             'term' => "wywo\x{142}uje"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'yendo',
@@ -7657,6 +8614,7 @@ $VAR1 = [
             'term' => 'yendo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'yoko',
@@ -7665,6 +8623,7 @@ $VAR1 = [
             'term' => 'yoko'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'yousif',
@@ -7673,6 +8632,7 @@ $VAR1 = [
             'term' => 'yousif'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'youtub',
@@ -7681,6 +8641,7 @@ $VAR1 = [
             'term' => 'youtube'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'yurimagua',
@@ -7689,6 +8650,7 @@ $VAR1 = [
             'term' => 'yurimaguas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{17c}adn",
@@ -7697,6 +8659,7 @@ $VAR1 = [
             'term' => "\x{17c}adne"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{17c}adnego",
@@ -7705,6 +8668,7 @@ $VAR1 = [
             'term' => "\x{17c}adnego"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "zagini\x{119}ci",
@@ -7713,6 +8677,7 @@ $VAR1 = [
             'term' => "zagini\x{119}cie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "zale\x{17c}i",
@@ -7721,6 +8686,7 @@ $VAR1 = [
             'term' => "zale\x{17c}y"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'zastanawiam',
@@ -7729,6 +8695,7 @@ $VAR1 = [
             'term' => 'zastanawiam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'zdistrict',
@@ -7737,6 +8704,7 @@ $VAR1 = [
             'term' => 'zdistrict'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'zeinobia',
@@ -7745,6 +8713,7 @@ $VAR1 = [
             'term' => 'zeinobia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'zeinobia',
@@ -7753,6 +8722,7 @@ $VAR1 = [
             'term' => 'zeinobia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'ziemi',
@@ -7761,6 +8731,7 @@ $VAR1 = [
             'term' => 'ziemi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "z\x{142}o\x{17c}y\x{142}o",
@@ -7769,6 +8740,7 @@ $VAR1 = [
             'term' => "z\x{142}o\x{17c}y\x{142}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'zmartwienia',
@@ -7777,6 +8749,7 @@ $VAR1 = [
             'term' => 'zmartwienia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "zmieni\x{142}",
@@ -7785,6 +8758,7 @@ $VAR1 = [
             'term' => "zmieni\x{142}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'zona',
@@ -7793,6 +8767,7 @@ $VAR1 = [
             'term' => 'zona'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "zupe\x{142}ni",
@@ -7801,6 +8776,7 @@ $VAR1 = [
             'term' => "zupe\x{142}nie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{627}\x{642}\x{648}\x{644}\x{64a}",
@@ -7809,6 +8785,7 @@ $VAR1 = [
             'term' => "\x{627}\x{627}\x{642}\x{648}\x{644}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{62a}\x{635}\x{648}\x{631}",
@@ -7817,6 +8794,7 @@ $VAR1 = [
             'term' => "\x{627}\x{62a}\x{635}\x{648}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{62b}\x{646}\x{627}\x{621}",
@@ -7825,6 +8803,7 @@ $VAR1 = [
             'term' => "\x{623}\x{62b}\x{646}\x{627}\x{621}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{62e}\x{644}\x{639}",
@@ -7833,6 +8812,7 @@ $VAR1 = [
             'term' => "\x{627}\x{62e}\x{644}\x{639}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{631}\x{648}\x{639}",
@@ -7841,6 +8821,7 @@ $VAR1 = [
             'term' => "\x{623}\x{631}\x{648}\x{639}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{632}\x{648}\x{631}",
@@ -7849,6 +8830,7 @@ $VAR1 = [
             'term' => "\x{627}\x{632}\x{648}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{633}\x{62a}\x{639}\x{62f}\x{627}\x{62f}",
@@ -7857,6 +8839,7 @@ $VAR1 = [
             'term' => "\x{627}\x{633}\x{62a}\x{639}\x{62f}\x{627}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{625}\x{633}\x{62a}\x{647}\x{644}\x{627}\x{643}\x{64a}\x{629}",
@@ -7865,6 +8848,7 @@ $VAR1 = [
             'term' => "\x{625}\x{633}\x{62a}\x{647}\x{644}\x{627}\x{643}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{639}\x{62a}\x{642}\x{62f}",
@@ -7873,6 +8857,7 @@ $VAR1 = [
             'term' => "\x{623}\x{639}\x{62a}\x{642}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{625}\x{642}\x{62a}\x{635}\x{627}\x{62f}\x{64a}",
@@ -7881,6 +8866,7 @@ $VAR1 = [
             'term' => "\x{625}\x{642}\x{62a}\x{635}\x{627}\x{62f}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{627}\x{628}\x{64a}\x{636}",
@@ -7889,6 +8875,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{627}\x{628}\x{64a}\x{636}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{62f}\x{646}\x{64a}",
@@ -7897,6 +8884,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{623}\x{62f}\x{646}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{627}\x{639}\x{62a}\x{630}\x{627}\x{631}",
@@ -7905,6 +8893,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{627}\x{639}\x{62a}\x{630}\x{627}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{642}\x{631}\x{628}",
@@ -7913,6 +8902,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{623}\x{642}\x{631}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
@@ -7921,6 +8911,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{622}\x{646}",
@@ -7929,6 +8920,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{622}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{628}\x{64a}\x{62a}",
@@ -7937,6 +8929,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{628}\x{64a}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}",
@@ -7945,6 +8938,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{627}\x{644}",
@@ -7953,6 +8947,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62d}\x{627}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{642}",
@@ -7961,6 +8956,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62d}\x{642}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{644}\x{648}\x{644}",
@@ -7969,6 +8965,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62d}\x{644}\x{648}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{648}\x{627}\x{631}\x{627}\x{62a}",
@@ -7977,6 +8974,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62d}\x{648}\x{627}\x{631}\x{627}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{64a}\x{627}\x{62f}",
@@ -7985,6 +8983,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62d}\x{64a}\x{627}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62e}\x{637}\x{627}\x{628}",
@@ -7993,6 +8992,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62e}\x{637}\x{627}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{630}\x{64a}",
@@ -8001,6 +9001,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{630}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{631}\x{627}\x{62c}\x{644}",
@@ -8009,6 +9010,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{631}\x{627}\x{62c}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{631}\x{62c}\x{644}",
@@ -8017,6 +9019,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{631}\x{62c}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 7,
             'stem' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}",
@@ -8025,6 +9028,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{632}\x{645}\x{646}",
@@ -8033,6 +9037,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{632}\x{645}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{627}\x{644}\x{633}\x{627}\x{628}\x{642}\x{629}",
@@ -8041,6 +9046,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{633}\x{627}\x{628}\x{642}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{633}\x{628}\x{628}",
@@ -8049,6 +9055,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{633}\x{628}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{627}\x{644}\x{633}\x{64a}\x{62f}",
@@ -8057,6 +9064,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{633}\x{64a}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{639}\x{627}\x{62f}\x{629}",
@@ -8065,6 +9073,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{639}\x{627}\x{62f}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}",
@@ -8073,6 +9082,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{63a}\x{62f}\x{627}\x{621}",
@@ -8081,6 +9091,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{63a}\x{62f}\x{627}\x{621}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{644}\x{647}\x{62c}\x{629}",
@@ -8089,6 +9100,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{644}\x{647}\x{62c}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{635}\x{631}\x{64a}",
@@ -8097,6 +9109,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{635}\x{631}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => "\x{627}\x{644}\x{645}\x{637}\x{627}\x{631}",
@@ -8105,6 +9118,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{637}\x{627}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{641}\x{627}\x{62a}\x{62d}\x{629}",
@@ -8113,6 +9127,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{641}\x{627}\x{62a}\x{62d}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{646}\x{638}\x{631}",
@@ -8121,6 +9136,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{646}\x{638}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{646}\x{647}\x{627}\x{64a}\x{629}",
@@ -8129,6 +9145,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{646}\x{647}\x{627}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{647}\x{631}\x{645}",
@@ -8137,6 +9154,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{647}\x{631}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => "\x{625}\x{644}\x{64a}",
@@ -8145,6 +9163,7 @@ $VAR1 = [
             'term' => "\x{625}\x{644}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{645}\x{627}",
@@ -8153,6 +9172,7 @@ $VAR1 = [
             'term' => "\x{623}\x{645}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{623}\x{645}\x{629}",
@@ -8161,6 +9181,7 @@ $VAR1 = [
             'term' => "\x{623}\x{645}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
@@ -8169,6 +9190,7 @@ $VAR1 = [
             'term' => "\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{645}\x{633}",
@@ -8177,6 +9199,7 @@ $VAR1 = [
             'term' => "\x{623}\x{645}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{646}\x{627}",
@@ -8185,6 +9208,7 @@ $VAR1 = [
             'term' => "\x{623}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{646}\x{646}\x{627}",
@@ -8193,6 +9217,7 @@ $VAR1 = [
             'term' => "\x{627}\x{646}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{627}\x{646}\x{647}",
@@ -8201,6 +9226,7 @@ $VAR1 = [
             'term' => "\x{627}\x{646}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{647}\x{645}",
@@ -8209,6 +9235,7 @@ $VAR1 = [
             'term' => "\x{623}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}",
@@ -8217,6 +9244,7 @@ $VAR1 = [
             'term' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{628}\x{627}\x{628}\x{627}",
@@ -8225,6 +9253,7 @@ $VAR1 = [
             'term' => "\x{628}\x{627}\x{628}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{628}\x{62f}\x{646}\x{64a}",
@@ -8233,6 +9262,7 @@ $VAR1 = [
             'term' => "\x{628}\x{62f}\x{646}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{628}\x{635}\x{62d}\x{629}",
@@ -8241,6 +9271,7 @@ $VAR1 = [
             'term' => "\x{628}\x{635}\x{62d}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{628}\x{635}\x{648}\x{631}\x{629}",
@@ -8249,6 +9280,7 @@ $VAR1 = [
             'term' => "\x{628}\x{635}\x{648}\x{631}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{628}\x{647}\x{630}\x{647}",
@@ -8257,6 +9289,7 @@ $VAR1 = [
             'term' => "\x{628}\x{647}\x{630}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{628}\x{64a}\x{62d}\x{628}\x{646}\x{627}",
@@ -8265,6 +9298,7 @@ $VAR1 = [
             'term' => "\x{628}\x{64a}\x{62d}\x{628}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{623}\x{62b}\x{64a}\x{631}",
@@ -8273,6 +9307,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{623}\x{62b}\x{64a}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{623}\x{62e}\x{630}",
@@ -8281,6 +9316,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{623}\x{62e}\x{630}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{630}\x{647}\x{628}",
@@ -8289,6 +9325,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{630}\x{647}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{635}\x{644}\x{64a}\x{62d}\x{627}\x{62a}",
@@ -8297,6 +9334,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{635}\x{644}\x{64a}\x{62d}\x{627}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{639}\x{628}\x{627}\x{646}",
@@ -8305,6 +9343,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{639}\x{628}\x{627}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{642}\x{64a}\x{64a}\x{645}",
@@ -8313,6 +9352,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{642}\x{64a}\x{64a}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{643}\x{646}",
@@ -8321,6 +9361,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{643}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{643}\x{646}\x{648}\x{644}\x{648}\x{62c}\x{64a}",
@@ -8329,6 +9370,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{643}\x{646}\x{648}\x{644}\x{648}\x{62c}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{645}\x{646}\x{62d}",
@@ -8337,6 +9379,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{645}\x{646}\x{62d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{646}\x{628}\x{626}",
@@ -8345,6 +9388,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{646}\x{628}\x{626}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{646}\x{62a}\x{643}\x{633}",
@@ -8353,6 +9397,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{646}\x{62a}\x{643}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62b}\x{627}\x{644}\x{62b}\x{627}\x{64b}",
@@ -8361,6 +9406,7 @@ $VAR1 = [
             'term' => "\x{62b}\x{627}\x{644}\x{62b}\x{627}\x{64b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62b}\x{642}\x{644}",
@@ -8369,6 +9415,7 @@ $VAR1 = [
             'term' => "\x{62b}\x{642}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62c}\x{627}\x{644}\x{646}\x{627}",
@@ -8377,6 +9424,7 @@ $VAR1 = [
             'term' => "\x{62c}\x{627}\x{644}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62c}\x{646}\x{628}\x{647}",
@@ -8385,6 +9433,7 @@ $VAR1 = [
             'term' => "\x{62c}\x{646}\x{628}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62d}\x{62a}\x{649}",
@@ -8393,6 +9442,7 @@ $VAR1 = [
             'term' => "\x{62d}\x{62a}\x{649}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62d}\x{641}\x{64a}\x{62f}\x{647}",
@@ -8401,6 +9451,7 @@ $VAR1 = [
             'term' => "\x{62d}\x{641}\x{64a}\x{62f}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62e}\x{627}\x{645}\x{633}\x{627}\x{64b}",
@@ -8409,6 +9460,7 @@ $VAR1 = [
             'term' => "\x{62e}\x{627}\x{645}\x{633}\x{627}\x{64b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{62f}\x{648}\x{644}\x{64a}",
@@ -8417,6 +9469,7 @@ $VAR1 = [
             'term' => "\x{62f}\x{648}\x{644}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{631}\x{627}\x{628}\x{639}\x{627}\x{64b}",
@@ -8425,6 +9478,7 @@ $VAR1 = [
             'term' => "\x{631}\x{627}\x{628}\x{639}\x{627}\x{64b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{631}\x{623}\x{64a}\x{62a}\x{645}",
@@ -8433,6 +9487,7 @@ $VAR1 = [
             'term' => "\x{631}\x{623}\x{64a}\x{62a}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{631}\x{62c}\x{644}",
@@ -8441,6 +9496,7 @@ $VAR1 = [
             'term' => "\x{631}\x{62c}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{631}\x{63a}\x{645}",
@@ -8449,6 +9505,7 @@ $VAR1 = [
             'term' => "\x{631}\x{63a}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{631}\x{648}\x{628}\x{64a}\x{646}",
@@ -8457,6 +9514,7 @@ $VAR1 = [
             'term' => "\x{631}\x{648}\x{628}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{631}\x{648}\x{626}\x{64a}\x{629}",
@@ -8465,6 +9523,7 @@ $VAR1 = [
             'term' => "\x{631}\x{648}\x{626}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{631}\x{626}\x{64a}\x{633}",
@@ -8473,6 +9532,7 @@ $VAR1 = [
             'term' => "\x{631}\x{626}\x{64a}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{632}\x{64a}\x{627}\x{631}\x{627}\x{62a}\x{647}",
@@ -8481,6 +9541,7 @@ $VAR1 = [
             'term' => "\x{632}\x{64a}\x{627}\x{631}\x{627}\x{62a}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{633}\x{645}\x{639}\x{646}\x{627}",
@@ -8489,6 +9550,7 @@ $VAR1 = [
             'term' => "\x{633}\x{645}\x{639}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{634}\x{627}\x{628}",
@@ -8497,6 +9559,7 @@ $VAR1 = [
             'term' => "\x{634}\x{627}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{634}\x{62e}\x{635}\x{64a}\x{629}",
@@ -8505,6 +9568,7 @@ $VAR1 = [
             'term' => "\x{634}\x{62e}\x{635}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{635}\x{62d}\x{64a}\x{62d}",
@@ -8513,6 +9577,7 @@ $VAR1 = [
             'term' => "\x{635}\x{62d}\x{64a}\x{62d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{637}\x{631}\x{64a}\x{642}\x{629}",
@@ -8521,6 +9586,7 @@ $VAR1 = [
             'term' => "\x{637}\x{631}\x{64a}\x{642}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{637}\x{645}\x{648}\x{62d}\x{627}\x{62a}\x{64a}",
@@ -8529,6 +9595,7 @@ $VAR1 = [
             'term' => "\x{637}\x{645}\x{648}\x{62d}\x{627}\x{62a}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{639}\x{633}\x{643}\x{631}\x{64a}",
@@ -8537,6 +9604,7 @@ $VAR1 = [
             'term' => "\x{639}\x{633}\x{643}\x{631}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{639}\x{634}\x{627}\x{646}",
@@ -8545,6 +9613,7 @@ $VAR1 = [
             'term' => "\x{639}\x{634}\x{627}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{639}\x{644}\x{627}\x{642}\x{627}\x{62a}\x{646}\x{627}",
@@ -8553,6 +9622,7 @@ $VAR1 = [
             'term' => "\x{639}\x{644}\x{627}\x{642}\x{627}\x{62a}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{639}\x{644}\x{645}\x{64a}",
@@ -8561,6 +9631,7 @@ $VAR1 = [
             'term' => "\x{639}\x{644}\x{645}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{639}\x{644}\x{64a}\x{647}",
@@ -8569,6 +9640,7 @@ $VAR1 = [
             'term' => "\x{639}\x{644}\x{64a}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{639}\x{646}\x{62f}\x{647}\x{645}",
@@ -8577,6 +9649,7 @@ $VAR1 = [
             'term' => "\x{639}\x{646}\x{62f}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}",
@@ -8585,6 +9658,7 @@ $VAR1 = [
             'term' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{641}\x{639}\x{644}\x{627}\x{64b}",
@@ -8593,6 +9667,7 @@ $VAR1 = [
             'term' => "\x{641}\x{639}\x{644}\x{627}\x{64b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{641}\x{642}\x{627}\x{644}\x{643}",
@@ -8601,6 +9676,7 @@ $VAR1 = [
             'term' => "\x{641}\x{642}\x{627}\x{644}\x{643}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{641}\x{644}\x{645}",
@@ -8609,6 +9685,7 @@ $VAR1 = [
             'term' => "\x{641}\x{644}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{641}\x{647}\x{648}",
@@ -8617,6 +9694,7 @@ $VAR1 = [
             'term' => "\x{641}\x{647}\x{648}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{641}\x{648}\x{641}\x{627}\x{629}",
@@ -8625,6 +9703,7 @@ $VAR1 = [
             'term' => "\x{641}\x{648}\x{641}\x{627}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{642}\x{648}\x{64a}",
@@ -8633,6 +9712,7 @@ $VAR1 = [
             'term' => "\x{642}\x{648}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{642}\x{648}\x{64a}\x{629}",
@@ -8641,6 +9721,7 @@ $VAR1 = [
             'term' => "\x{642}\x{648}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{643}\x{627}\x{646}",
@@ -8649,6 +9730,7 @@ $VAR1 = [
             'term' => "\x{643}\x{627}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{643}\x{644}\x{627}\x{645}\x{647}",
@@ -8657,6 +9739,7 @@ $VAR1 = [
             'term' => "\x{643}\x{644}\x{627}\x{645}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{643}\x{644}\x{645}\x{62a}\x{64a}\x{646}",
@@ -8665,6 +9748,7 @@ $VAR1 = [
             'term' => "\x{643}\x{644}\x{645}\x{62a}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{643}\x{648}\x{646}\x{647}",
@@ -8673,6 +9757,7 @@ $VAR1 = [
             'term' => "\x{643}\x{648}\x{646}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{623}\x{633}\x{644}\x{627}\x{641}\x{647}",
@@ -8681,6 +9766,7 @@ $VAR1 = [
             'term' => "\x{644}\x{623}\x{633}\x{644}\x{627}\x{641}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{623}\x{646}",
@@ -8689,6 +9775,7 @@ $VAR1 = [
             'term' => "\x{644}\x{623}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{628}\x{630}\x{644}",
@@ -8697,6 +9784,7 @@ $VAR1 = [
             'term' => "\x{644}\x{628}\x{630}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{62f}\x{64a}\x{647}",
@@ -8705,6 +9793,7 @@ $VAR1 = [
             'term' => "\x{644}\x{62f}\x{64a}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{643}\x{64a}",
@@ -8713,6 +9802,7 @@ $VAR1 = [
             'term' => "\x{644}\x{643}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{644}\x{637}\x{627}\x{626}\x{631}\x{629}",
@@ -8721,6 +9811,7 @@ $VAR1 = [
             'term' => "\x{644}\x{644}\x{637}\x{627}\x{626}\x{631}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{644}\x{645}\x{633}\x{62a}\x{642}\x{628}\x{644}",
@@ -8729,6 +9820,7 @@ $VAR1 = [
             'term' => "\x{644}\x{644}\x{645}\x{633}\x{62a}\x{642}\x{628}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{646}\x{627}",
@@ -8737,6 +9829,7 @@ $VAR1 = [
             'term' => "\x{644}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{647}\x{627}",
@@ -8745,6 +9838,7 @@ $VAR1 = [
             'term' => "\x{644}\x{647}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{64a}\x{633}",
@@ -8753,6 +9847,7 @@ $VAR1 = [
             'term' => "\x{644}\x{64a}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{644}\x{64a}\x{642}\x{62f}\x{645}",
@@ -8761,6 +9856,7 @@ $VAR1 = [
             'term' => "\x{644}\x{64a}\x{642}\x{62f}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{62a}\x{628}\x{627}\x{62f}\x{644}\x{629}",
@@ -8769,6 +9865,7 @@ $VAR1 = [
             'term' => "\x{645}\x{62a}\x{628}\x{627}\x{62f}\x{644}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{62a}\x{641}\x{627}\x{621}\x{644}",
@@ -8777,6 +9874,7 @@ $VAR1 = [
             'term' => "\x{645}\x{62a}\x{641}\x{627}\x{621}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{62b}\x{644}",
@@ -8785,6 +9883,7 @@ $VAR1 = [
             'term' => "\x{645}\x{62b}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{62c}\x{627}\x{644}",
@@ -8793,6 +9892,7 @@ $VAR1 = [
             'term' => "\x{645}\x{62c}\x{627}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{62c}\x{647}\x{648}\x{62f}",
@@ -8801,6 +9901,7 @@ $VAR1 = [
             'term' => "\x{645}\x{62c}\x{647}\x{648}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{639}\x{62a}\x{642}\x{62f}\x{634}",
@@ -8809,6 +9910,7 @@ $VAR1 = [
             'term' => "\x{645}\x{639}\x{62a}\x{642}\x{62f}\x{634}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{639}\x{646}\x{64a}",
@@ -8817,6 +9919,7 @@ $VAR1 = [
             'term' => "\x{645}\x{639}\x{646}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{639}\x{647}\x{645}",
@@ -8825,6 +9928,7 @@ $VAR1 = [
             'term' => "\x{645}\x{639}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{641}\x{643}\x{643}\x{629}",
@@ -8833,6 +9937,7 @@ $VAR1 = [
             'term' => "\x{645}\x{641}\x{643}\x{643}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{645}\x{644}\x{62d}\x{648}\x{638}\x{629}",
@@ -8841,6 +9946,7 @@ $VAR1 = [
             'term' => "\x{645}\x{644}\x{62d}\x{648}\x{638}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{646}\x{62d}\x{646}",
@@ -8849,6 +9955,7 @@ $VAR1 = [
             'term' => "\x{646}\x{62d}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{646}\x{638}\x{631}\x{629}",
@@ -8857,6 +9964,7 @@ $VAR1 = [
             'term' => "\x{646}\x{638}\x{631}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{646}\x{641}\x{633}",
@@ -8865,6 +9973,7 @@ $VAR1 = [
             'term' => "\x{646}\x{641}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{646}\x{648}\x{64a}\x{644}",
@@ -8873,6 +9982,7 @@ $VAR1 = [
             'term' => "\x{646}\x{648}\x{64a}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{647}\x{630}\x{627}",
@@ -8881,6 +9991,7 @@ $VAR1 = [
             'term' => "\x{647}\x{630}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{647}\x{646}\x{627}",
@@ -8889,6 +10000,7 @@ $VAR1 = [
             'term' => "\x{647}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{647}\x{648}\x{62f}",
@@ -8897,6 +10009,7 @@ $VAR1 = [
             'term' => "\x{647}\x{648}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{647}\x{64a}\x{62a}\x{646}\x{641}\x{630}",
@@ -8905,6 +10018,7 @@ $VAR1 = [
             'term' => "\x{647}\x{64a}\x{62a}\x{646}\x{641}\x{630}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{628}\x{631}\x{648}\x{62a}\x{648}\x{643}\x{648}\x{644}",
@@ -8913,6 +10027,7 @@ $VAR1 = [
             'term' => "\x{648}\x{627}\x{644}\x{628}\x{631}\x{648}\x{62a}\x{648}\x{643}\x{648}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{627}\x{639}\x{62f}\x{627}\x{62a}",
@@ -8921,6 +10036,7 @@ $VAR1 = [
             'term' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{627}\x{639}\x{62f}\x{627}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{647}\x{648}\x{627}\x{646}",
@@ -8929,6 +10045,7 @@ $VAR1 = [
             'term' => "\x{648}\x{627}\x{644}\x{647}\x{648}\x{627}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{62a}\x{639}\x{637}\x{64a}",
@@ -8937,6 +10054,7 @@ $VAR1 = [
             'term' => "\x{648}\x{62a}\x{639}\x{637}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{62a}\x{647}\x{628}",
@@ -8945,6 +10063,7 @@ $VAR1 = [
             'term' => "\x{648}\x{62a}\x{647}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{62f}\x{648}\x{627}\x{639}\x{64a}",
@@ -8953,6 +10072,7 @@ $VAR1 = [
             'term' => "\x{648}\x{62f}\x{648}\x{627}\x{639}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{635}\x{644}\x{646}\x{627}",
@@ -8961,6 +10081,7 @@ $VAR1 = [
             'term' => "\x{648}\x{635}\x{644}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => "\x{648}\x{644}\x{627}",
@@ -8969,6 +10090,7 @@ $VAR1 = [
             'term' => "\x{648}\x{644}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{648}\x{644}\x{64a}\x{633}",
@@ -8977,6 +10099,7 @@ $VAR1 = [
             'term' => "\x{648}\x{644}\x{64a}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{645}\x{627}\x{645}\x{62f}\x{649}",
@@ -8985,6 +10108,7 @@ $VAR1 = [
             'term' => "\x{648}\x{645}\x{627}\x{645}\x{62f}\x{649}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{647}\x{648}",
@@ -8993,6 +10117,7 @@ $VAR1 = [
             'term' => "\x{648}\x{647}\x{648}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{648}\x{64a}\x{631}\x{62d}\x{644}",
@@ -9001,6 +10126,7 @@ $VAR1 = [
             'term' => "\x{648}\x{64a}\x{631}\x{62d}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{623}\x{62a}\x{64a}",
@@ -9009,6 +10135,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{623}\x{62a}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{628}\x{62f}\x{648}",
@@ -9017,6 +10144,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{628}\x{62f}\x{648}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{628}\x{642}\x{64a}",
@@ -9025,6 +10153,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{628}\x{642}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{62a}\x{643}\x{644}\x{645}",
@@ -9033,6 +10162,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{62a}\x{643}\x{644}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{62a}\x{645}",
@@ -9041,6 +10171,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{62a}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{62c}\x{628}",
@@ -9049,6 +10180,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{62c}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}",
@@ -9057,6 +10189,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}\x{647}",
@@ -9065,6 +10198,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{633}\x{62a}\x{642}\x{628}\x{644}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{635}\x{639}\x{62f}",
@@ -9073,6 +10207,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{635}\x{639}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{642}\x{648}\x{62f}",
@@ -9081,6 +10216,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{642}\x{648}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{642}\x{648}\x{644}",
@@ -9089,6 +10225,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{642}\x{648}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{646}\x{628}\x{63a}\x{64a}",
@@ -9097,6 +10234,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{646}\x{628}\x{63a}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => '14th',
@@ -9105,6 +10243,7 @@ $VAR1 = [
             'term' => '14th'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => '17th',
@@ -9113,6 +10252,7 @@ $VAR1 = [
             'term' => '17th'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => '1st',
@@ -9121,6 +10261,7 @@ $VAR1 = [
             'term' => '1st'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => '25th',
@@ -9129,6 +10270,7 @@ $VAR1 = [
             'term' => '25th'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => '30pm',
@@ -9137,6 +10279,7 @@ $VAR1 = [
             'term' => '30pm'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "30\x{65b0}\x{805e}\x{7b2c}\x{4e09}\x{6bb5}",
@@ -9145,6 +10288,7 @@ $VAR1 = [
             'term' => "30\x{65b0}\x{805e}\x{7b2c}\x{4e09}\x{6bb5}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => '3alienkoum',
@@ -9153,6 +10297,7 @@ $VAR1 = [
             'term' => '3alienkoum'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => '4th',
@@ -9161,6 +10306,7 @@ $VAR1 = [
             'term' => '4th'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => '8th',
@@ -9169,6 +10315,7 @@ $VAR1 = [
             'term' => '8th'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'abolish',
@@ -9177,6 +10324,7 @@ $VAR1 = [
             'term' => 'abolished'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'absurd',
@@ -9185,6 +10333,7 @@ $VAR1 = [
             'term' => 'absurd'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'abus',
@@ -9193,6 +10342,7 @@ $VAR1 = [
             'term' => 'abuse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "accedi\x{f3}",
@@ -9201,6 +10351,7 @@ $VAR1 = [
             'term' => "accedi\x{f3}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'accentu',
@@ -9209,6 +10360,7 @@ $VAR1 = [
             'term' => 'accentuated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aceptar',
@@ -9217,6 +10369,7 @@ $VAR1 = [
             'term' => 'aceptar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'acknowledg',
@@ -9225,6 +10378,7 @@ $VAR1 = [
             'term' => 'acknowledge'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'acronym',
@@ -9233,6 +10387,7 @@ $VAR1 = [
             'term' => 'acronym'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'actitud',
@@ -9241,6 +10396,7 @@ $VAR1 = [
             'term' => 'actitud'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'activist',
@@ -9249,6 +10405,7 @@ $VAR1 = [
             'term' => 'activists'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'acusa',
@@ -9257,6 +10414,7 @@ $VAR1 = [
             'term' => 'acusa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'acusar',
@@ -9265,6 +10423,7 @@ $VAR1 = [
             'term' => 'acusar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'acvistim',
@@ -9273,6 +10432,7 @@ $VAR1 = [
             'term' => 'acvistim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'adapt',
@@ -9281,6 +10441,7 @@ $VAR1 = [
             'term' => 'adapted'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'adelant',
@@ -9289,6 +10450,7 @@ $VAR1 = [
             'term' => 'adelante'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "adem\x{e1}",
@@ -9297,6 +10459,7 @@ $VAR1 = [
             'term' => "adem\x{e1}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "ades\x{e3}o",
@@ -9305,6 +10468,7 @@ $VAR1 = [
             'term' => "ades\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'adieu',
@@ -9313,6 +10477,7 @@ $VAR1 = [
             'term' => 'adieu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ador',
@@ -9321,6 +10486,7 @@ $VAR1 = [
             'term' => 'adore'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'advoc',
@@ -9329,6 +10495,7 @@ $VAR1 = [
             'term' => 'advocates'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'afect',
@@ -9337,6 +10504,7 @@ $VAR1 = [
             'term' => 'afecte'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'affili',
@@ -9345,6 +10513,7 @@ $VAR1 = [
             'term' => 'affiliations'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'afp',
@@ -9353,6 +10522,7 @@ $VAR1 = [
             'term' => 'afp'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'africa',
@@ -9361,6 +10531,7 @@ $VAR1 = [
             'term' => 'africa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'africain',
@@ -9369,6 +10540,7 @@ $VAR1 = [
             'term' => 'africains'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 12,
             'stem' => 'african',
@@ -9377,6 +10549,7 @@ $VAR1 = [
             'term' => 'african'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'african',
@@ -9385,6 +10558,7 @@ $VAR1 = [
             'term' => 'african'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'afriqu',
@@ -9393,6 +10567,7 @@ $VAR1 = [
             'term' => 'afrique'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'afro',
@@ -9401,6 +10576,7 @@ $VAR1 = [
             'term' => 'afro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aggreg',
@@ -9409,6 +10585,7 @@ $VAR1 = [
             'term' => 'aggregate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aggress',
@@ -9417,6 +10594,7 @@ $VAR1 = [
             'term' => 'aggression'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aggress',
@@ -9425,6 +10603,7 @@ $VAR1 = [
             'term' => 'aggression'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'agreement',
@@ -9433,6 +10612,7 @@ $VAR1 = [
             'term' => 'agreements'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'agregador',
@@ -9441,6 +10621,7 @@ $VAR1 = [
             'term' => 'agregador'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'agregar',
@@ -9449,6 +10630,7 @@ $VAR1 = [
             'term' => 'agregar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ahmadinejad',
@@ -9457,6 +10639,7 @@ $VAR1 = [
             'term' => 'ahmadinejad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ahora',
@@ -9465,6 +10648,7 @@ $VAR1 = [
             'term' => 'ahora'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ai5digit',
@@ -9473,6 +10657,7 @@ $VAR1 = [
             'term' => 'ai5digital'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aibai',
@@ -9481,6 +10666,7 @@ $VAR1 = [
             'term' => 'aibai'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aifufu',
@@ -9489,6 +10675,7 @@ $VAR1 = [
             'term' => 'aifufu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ajudar',
@@ -9497,6 +10684,7 @@ $VAR1 = [
             'term' => 'ajudar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'alan',
@@ -9505,6 +10693,7 @@ $VAR1 = [
             'term' => 'alan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alaoui',
@@ -9513,6 +10702,7 @@ $VAR1 = [
             'term' => 'alaoui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alaoui',
@@ -9521,6 +10711,7 @@ $VAR1 = [
             'term' => 'alaoui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alaykoum',
@@ -9529,6 +10720,7 @@ $VAR1 = [
             'term' => 'alaykoum'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alaykum',
@@ -9537,6 +10729,7 @@ $VAR1 = [
             'term' => 'alaykum'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alaykum',
@@ -9545,6 +10738,7 @@ $VAR1 = [
             'term' => 'alaykum'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'albert',
@@ -9553,6 +10747,7 @@ $VAR1 = [
             'term' => 'albert'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alegr',
@@ -9561,6 +10756,7 @@ $VAR1 = [
             'term' => 'alegre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "al\x{e9}m",
@@ -9569,6 +10765,7 @@ $VAR1 = [
             'term' => "al\x{e9}m"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'algun',
@@ -9577,6 +10774,7 @@ $VAR1 = [
             'term' => 'alguns'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "alg\x{fa}n",
@@ -9585,6 +10783,7 @@ $VAR1 = [
             'term' => "alg\x{fa}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alguna',
@@ -9593,6 +10792,7 @@ $VAR1 = [
             'term' => 'alguna'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ali',
@@ -9601,6 +10801,7 @@ $VAR1 = [
             'term' => 'ali'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alleg',
@@ -9609,6 +10810,7 @@ $VAR1 = [
             'term' => 'alleged'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'amass',
@@ -9617,6 +10819,7 @@ $VAR1 = [
             'term' => 'amassed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "amass\x{e9}",
@@ -9625,6 +10828,7 @@ $VAR1 = [
             'term' => "amass\x{e9}e"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'amazilia',
@@ -9633,6 +10837,7 @@ $VAR1 = [
             'term' => 'amazilia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'amazon',
@@ -9641,6 +10846,7 @@ $VAR1 = [
             'term' => 'amazon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "amaz\x{f3}nico",
@@ -9649,6 +10855,7 @@ $VAR1 = [
             'term' => "amaz\x{f3}nico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'america',
@@ -9657,6 +10864,7 @@ $VAR1 = [
             'term' => 'america'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'america',
@@ -9665,6 +10873,7 @@ $VAR1 = [
             'term' => 'america'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "am\x{e9}ricain",
@@ -9673,6 +10882,7 @@ $VAR1 = [
             'term' => "am\x{e9}ricain"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 12,
             'stem' => 'american',
@@ -9681,6 +10891,7 @@ $VAR1 = [
             'term' => 'american'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'american',
@@ -9689,6 +10900,7 @@ $VAR1 = [
             'term' => 'american'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'ami',
@@ -9697,6 +10909,7 @@ $VAR1 = [
             'term' => 'ami'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'amid',
@@ -9705,6 +10918,7 @@ $VAR1 = [
             'term' => 'amid'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'amongst',
@@ -9713,6 +10927,7 @@ $VAR1 = [
             'term' => 'amongst'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'amongst',
@@ -9721,6 +10936,7 @@ $VAR1 = [
             'term' => 'amongst'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ana',
@@ -9729,6 +10945,7 @@ $VAR1 = [
             'term' => 'anas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ana',
@@ -9737,6 +10954,7 @@ $VAR1 = [
             'term' => 'anas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'anal',
@@ -9745,6 +10963,7 @@ $VAR1 = [
             'term' => 'anal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "an\x{e1}lis",
@@ -9753,6 +10972,7 @@ $VAR1 = [
             'term' => "an\x{e1}lise"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'analog',
@@ -9761,6 +10981,7 @@ $VAR1 = [
             'term' => 'analogy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'angel',
@@ -9769,6 +10990,7 @@ $VAR1 = [
             'term' => 'angeles'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ano',
@@ -9777,6 +10999,7 @@ $VAR1 = [
             'term' => 'ano'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'anomali',
@@ -9785,6 +11008,7 @@ $VAR1 = [
             'term' => 'anomaly'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'anti',
@@ -9793,6 +11017,7 @@ $VAR1 = [
             'term' => 'anti'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'antonio',
@@ -9801,6 +11026,7 @@ $VAR1 = [
             'term' => 'antonio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'anymor',
@@ -9809,6 +11035,7 @@ $VAR1 = [
             'term' => 'anymore'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'apartheid',
@@ -9817,6 +11044,7 @@ $VAR1 = [
             'term' => 'apartheid'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'apesar',
@@ -9825,6 +11053,7 @@ $VAR1 = [
             'term' => 'apesar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aplastar',
@@ -9833,6 +11062,7 @@ $VAR1 = [
             'term' => 'aplastar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'appell',
@@ -9841,6 +11071,7 @@ $VAR1 = [
             'term' => 'appelle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'applaud',
@@ -9849,6 +11080,7 @@ $VAR1 = [
             'term' => 'applauded'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'applaudiss',
@@ -9857,6 +11089,7 @@ $VAR1 = [
             'term' => 'applaudissements'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'applaus',
@@ -9865,6 +11098,7 @@ $VAR1 = [
             'term' => 'applause'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'apportera',
@@ -9873,6 +11107,7 @@ $VAR1 = [
             'term' => 'apportera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "apr\x{e8}",
@@ -9881,6 +11116,7 @@ $VAR1 = [
             'term' => "apr\x{e8}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aprofundar',
@@ -9889,6 +11125,7 @@ $VAR1 = [
             'term' => 'aprofundar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'arab',
@@ -9897,6 +11134,7 @@ $VAR1 = [
             'term' => 'arabic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'arab',
@@ -9905,6 +11143,7 @@ $VAR1 = [
             'term' => 'arabs'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'argumento',
@@ -9913,6 +11152,7 @@ $VAR1 = [
             'term' => 'argumentos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'arl',
@@ -9921,6 +11161,7 @@ $VAR1 = [
             'term' => 'arles'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'arlesophia',
@@ -9929,6 +11170,7 @@ $VAR1 = [
             'term' => 'arlesophia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'armi',
@@ -9937,6 +11179,7 @@ $VAR1 = [
             'term' => 'army'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'arranca',
@@ -9945,6 +11188,7 @@ $VAR1 = [
             'term' => 'arranca'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aryan',
@@ -9953,6 +11197,7 @@ $VAR1 = [
             'term' => 'aryans'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ashok',
@@ -9961,6 +11206,7 @@ $VAR1 = [
             'term' => 'ashok'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ashtari',
@@ -9969,6 +11215,7 @@ $VAR1 = [
             'term' => 'ashtary'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'asian',
@@ -9977,6 +11224,7 @@ $VAR1 = [
             'term' => 'asian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'assalaamu',
@@ -9985,6 +11233,7 @@ $VAR1 = [
             'term' => 'assalaamu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'assalaamu',
@@ -9993,6 +11242,7 @@ $VAR1 = [
             'term' => 'assalaamu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'assalamou',
@@ -10001,6 +11251,7 @@ $VAR1 = [
             'term' => 'assalamou'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'assert',
@@ -10009,6 +11260,7 @@ $VAR1 = [
             'term' => 'assert'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'asset',
@@ -10017,6 +11269,7 @@ $VAR1 = [
             'term' => 'assets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'asum',
@@ -10025,6 +11278,7 @@ $VAR1 = [
             'term' => 'asume'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'asunto',
@@ -10033,6 +11287,7 @@ $VAR1 = [
             'term' => 'asunto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'ato',
@@ -10041,6 +11296,7 @@ $VAR1 = [
             'term' => 'atos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'atrev',
@@ -10049,6 +11305,7 @@ $VAR1 = [
             'term' => 'atreve'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'attende',
@@ -10057,6 +11314,7 @@ $VAR1 = [
             'term' => 'attendees'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'atv',
@@ -10065,6 +11323,7 @@ $VAR1 = [
             'term' => 'atv'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aumentando',
@@ -10073,6 +11332,7 @@ $VAR1 = [
             'term' => 'aumentando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "a\x{fa}n",
@@ -10081,6 +11341,7 @@ $VAR1 = [
             'term' => "a\x{fa}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aussi',
@@ -10089,6 +11350,7 @@ $VAR1 = [
             'term' => 'aussi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'autor',
@@ -10097,6 +11359,7 @@ $VAR1 = [
             'term' => 'autoral'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'autoridad',
@@ -10105,6 +11368,7 @@ $VAR1 = [
             'term' => 'autoridades'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'autr',
@@ -10113,6 +11377,7 @@ $VAR1 = [
             'term' => 'autres'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'aux',
@@ -10121,6 +11386,7 @@ $VAR1 = [
             'term' => 'aux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'avancera',
@@ -10129,6 +11395,7 @@ $VAR1 = [
             'term' => 'avancera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'avec',
@@ -10137,6 +11404,7 @@ $VAR1 = [
             'term' => 'avec'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'await',
@@ -10145,6 +11413,7 @@ $VAR1 = [
             'term' => 'awaited'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'azaan',
@@ -10153,6 +11422,7 @@ $VAR1 = [
             'term' => 'azaan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'azaan',
@@ -10161,6 +11431,7 @@ $VAR1 = [
             'term' => 'azaan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'azeredo',
@@ -10169,6 +11440,7 @@ $VAR1 = [
             'term' => 'azeredo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "a\x{5c0d}\x{7ae5}\x{5de5}\x{8aaa}",
@@ -10177,6 +11449,7 @@ $VAR1 = [
             'term' => "a\x{5c0d}\x{7ae5}\x{5de5}\x{8aaa}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'bagua',
@@ -10185,6 +11458,7 @@ $VAR1 = [
             'term' => 'bagua'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bak',
@@ -10193,6 +11467,7 @@ $VAR1 = [
             'term' => 'bak'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bal',
@@ -10201,6 +11476,7 @@ $VAR1 = [
             'term' => 'bal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'ban',
@@ -10209,6 +11485,7 @@ $VAR1 = [
             'term' => 'banned'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bancair',
@@ -10217,6 +11494,7 @@ $VAR1 = [
             'term' => 'bancaires'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'banner',
@@ -10225,6 +11503,7 @@ $VAR1 = [
             'term' => 'banner'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'barack',
@@ -10233,6 +11512,7 @@ $VAR1 = [
             'term' => 'barack'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'barack',
@@ -10241,6 +11521,7 @@ $VAR1 = [
             'term' => 'barack'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'barcelona',
@@ -10249,6 +11530,7 @@ $VAR1 = [
             'term' => 'barcelona'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bataill',
@@ -10257,6 +11539,7 @@ $VAR1 = [
             'term' => 'bataille'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'beij',
@@ -10265,6 +11548,7 @@ $VAR1 = [
             'term' => 'beijing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'ben',
@@ -10273,6 +11557,7 @@ $VAR1 = [
             'term' => 'ben'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'benefici',
@@ -10281,6 +11566,7 @@ $VAR1 = [
             'term' => 'beneficial'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'berlin',
@@ -10289,6 +11575,7 @@ $VAR1 = [
             'term' => 'berliner'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'bernard',
@@ -10297,6 +11584,7 @@ $VAR1 = [
             'term' => 'bernard'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bewitch',
@@ -10305,6 +11593,7 @@ $VAR1 = [
             'term' => 'bewitched'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'bien',
@@ -10313,6 +11602,7 @@ $VAR1 = [
             'term' => 'bien'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "bient\x{f4}t",
@@ -10321,6 +11611,7 @@ $VAR1 = [
             'term' => "bient\x{f4}t"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'bilan',
@@ -10329,6 +11620,7 @@ $VAR1 = [
             'term' => 'bilan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'biographi',
@@ -10337,6 +11629,7 @@ $VAR1 = [
             'term' => 'biographies'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bisexu',
@@ -10345,6 +11638,7 @@ $VAR1 = [
             'term' => 'bisexual'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bisexu',
@@ -10353,6 +11647,7 @@ $VAR1 = [
             'term' => 'bisexual'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'blake',
@@ -10361,6 +11656,7 @@ $VAR1 = [
             'term' => 'blake'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'blaze',
@@ -10369,6 +11665,7 @@ $VAR1 = [
             'term' => 'blaze'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'blaze',
@@ -10377,6 +11674,7 @@ $VAR1 = [
             'term' => 'blaze'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'bleak',
@@ -10385,6 +11683,7 @@ $VAR1 = [
             'term' => 'bleak'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bless',
@@ -10393,6 +11692,7 @@ $VAR1 = [
             'term' => 'bless'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'blockad',
@@ -10401,6 +11701,7 @@ $VAR1 = [
             'term' => 'blockades'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 22,
             'stem' => 'blogger',
@@ -10409,6 +11710,7 @@ $VAR1 = [
             'term' => 'blogger'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'blogger',
@@ -10417,6 +11719,7 @@ $VAR1 = [
             'term' => 'bloggers'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'blogoma',
@@ -10425,6 +11728,7 @@ $VAR1 = [
             'term' => 'blogoma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'blogospher',
@@ -10433,6 +11737,7 @@ $VAR1 = [
             'term' => 'blogosphere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bloqueo',
@@ -10441,6 +11746,7 @@ $VAR1 = [
             'term' => 'bloqueos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bodili',
@@ -10449,6 +11755,7 @@ $VAR1 = [
             'term' => 'bodily'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "bollor\x{e9}",
@@ -10457,6 +11764,7 @@ $VAR1 = [
             'term' => "bollor\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 20,
             'stem' => 'bongo',
@@ -10465,6 +11773,7 @@ $VAR1 = [
             'term' => 'bongo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bonheur',
@@ -10473,6 +11782,7 @@ $VAR1 = [
             'term' => 'bonheur'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bookmark',
@@ -10481,6 +11791,7 @@ $VAR1 = [
             'term' => 'bookmarks'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'boycot',
@@ -10489,6 +11800,7 @@ $VAR1 = [
             'term' => 'boycotting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'boycott',
@@ -10497,6 +11809,7 @@ $VAR1 = [
             'term' => 'boycott'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'brahman',
@@ -10505,6 +11818,7 @@ $VAR1 = [
             'term' => 'brahmans'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'brahmansamaj',
@@ -10513,6 +11827,7 @@ $VAR1 = [
             'term' => 'brahmansamaj'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 36,
             'stem' => 'brahmin',
@@ -10521,6 +11836,7 @@ $VAR1 = [
             'term' => 'brahmin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'brahminsamaj',
@@ -10529,6 +11845,7 @@ $VAR1 = [
             'term' => 'brahminsamaj'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'brasil',
@@ -10537,6 +11854,7 @@ $VAR1 = [
             'term' => 'brasil'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'brasileira',
@@ -10545,6 +11863,7 @@ $VAR1 = [
             'term' => 'brasileira'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'brazil',
@@ -10553,6 +11872,7 @@ $VAR1 = [
             'term' => 'brazil'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'brazilian',
@@ -10561,6 +11881,7 @@ $VAR1 = [
             'term' => 'brazilian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'breather',
@@ -10569,6 +11890,7 @@ $VAR1 = [
             'term' => 'breather'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'breather',
@@ -10577,6 +11899,7 @@ $VAR1 = [
             'term' => 'breather'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'broadcast',
@@ -10585,6 +11908,7 @@ $VAR1 = [
             'term' => 'broadcasts'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'bulletin',
@@ -10593,6 +11917,7 @@ $VAR1 = [
             'term' => 'bulletin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cada',
@@ -10601,6 +11926,7 @@ $VAR1 = [
             'term' => 'cada'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cage',
@@ -10609,6 +11935,7 @@ $VAR1 = [
             'term' => 'cage'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cair',
@@ -10617,6 +11944,7 @@ $VAR1 = [
             'term' => 'caire'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'cairo',
@@ -10625,6 +11953,7 @@ $VAR1 = [
             'term' => 'cairo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'cairo',
@@ -10633,6 +11962,7 @@ $VAR1 = [
             'term' => 'cairo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cambio',
@@ -10641,6 +11971,7 @@ $VAR1 = [
             'term' => 'cambio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'caminar',
@@ -10649,6 +11980,7 @@ $VAR1 = [
             'term' => 'caminar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'campagn',
@@ -10657,6 +11989,7 @@ $VAR1 = [
             'term' => 'campagnes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'campaign',
@@ -10665,6 +11998,7 @@ $VAR1 = [
             'term' => 'campaign'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'campesina',
@@ -10673,6 +12007,7 @@ $VAR1 = [
             'term' => 'campesinas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cancer',
@@ -10681,6 +12016,7 @@ $VAR1 = [
             'term' => 'cancer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'candl',
@@ -10689,6 +12025,7 @@ $VAR1 = [
             'term' => 'candle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'capaz',
@@ -10697,6 +12034,7 @@ $VAR1 = [
             'term' => 'capaz'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'capter',
@@ -10705,6 +12043,7 @@ $VAR1 = [
             'term' => 'capter'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'captur',
@@ -10713,6 +12052,7 @@ $VAR1 = [
             'term' => 'capturing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'careless',
@@ -10721,6 +12061,7 @@ $VAR1 = [
             'term' => 'careless'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'carib',
@@ -10729,6 +12070,7 @@ $VAR1 = [
             'term' => 'caribe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cas',
@@ -10737,6 +12079,7 @@ $VAR1 = [
             'term' => 'cas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'casablanca',
@@ -10745,6 +12088,7 @@ $VAR1 = [
             'term' => 'casablanca'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "caser\x{ed}a",
@@ -10753,6 +12097,7 @@ $VAR1 = [
             'term' => "caser\x{ed}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'categor',
@@ -10761,6 +12106,7 @@ $VAR1 = [
             'term' => 'categorically'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'caucasian',
@@ -10769,6 +12115,7 @@ $VAR1 = [
             'term' => 'caucasian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'cctv',
@@ -10777,6 +12124,7 @@ $VAR1 = [
             'term' => 'cctv'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 9,
             'stem' => 'cctvb',
@@ -10785,6 +12133,7 @@ $VAR1 = [
             'term' => 'cctvb'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "cctvb\x{5e73}\x{65e5}",
@@ -10793,6 +12142,7 @@ $VAR1 = [
             'term' => "cctvb\x{5e73}\x{65e5}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "cctvb\x{6240}\x{4f5c}\x{6240}\x{70ba}",
@@ -10801,6 +12151,7 @@ $VAR1 = [
             'term' => "cctvb\x{6240}\x{4f5c}\x{6240}\x{70ba}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'celebr',
@@ -10809,6 +12160,7 @@ $VAR1 = [
             'term' => 'celebrate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'celib',
@@ -10817,6 +12169,7 @@ $VAR1 = [
             'term' => 'celibate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'censor',
@@ -10825,6 +12178,7 @@ $VAR1 = [
             'term' => 'censored'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'censorship',
@@ -10833,6 +12187,7 @@ $VAR1 = [
             'term' => 'censorship'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'censur',
@@ -10841,6 +12196,7 @@ $VAR1 = [
             'term' => 'censure'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'censura',
@@ -10849,6 +12205,7 @@ $VAR1 = [
             'term' => 'censura'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "centr\x{e9}",
@@ -10857,6 +12214,7 @@ $VAR1 = [
             'term' => "centr\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ceo',
@@ -10865,6 +12223,7 @@ $VAR1 = [
             'term' => 'ceo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ces',
@@ -10873,6 +12232,7 @@ $VAR1 = [
             'term' => 'ces'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "cess\x{e9}",
@@ -10881,6 +12241,7 @@ $VAR1 = [
             'term' => "cess\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'c\'est',
@@ -10889,6 +12250,7 @@ $VAR1 = [
             'term' => 'c\'est'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'cett',
@@ -10897,6 +12259,7 @@ $VAR1 = [
             'term' => 'cette'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ceux',
@@ -10905,6 +12268,7 @@ $VAR1 = [
             'term' => 'ceux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'changement',
@@ -10913,6 +12277,7 @@ $VAR1 = [
             'term' => 'changement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'chao',
@@ -10921,6 +12286,7 @@ $VAR1 = [
             'term' => 'chaos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'chapter',
@@ -10929,6 +12295,7 @@ $VAR1 = [
             'term' => 'chapter'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'chi',
@@ -10937,6 +12304,7 @@ $VAR1 = [
             'term' => 'chi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'child',
@@ -10945,6 +12313,7 @@ $VAR1 = [
             'term' => 'child'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'children',
@@ -10953,6 +12322,7 @@ $VAR1 = [
             'term' => 'children'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'chile',
@@ -10961,6 +12331,7 @@ $VAR1 = [
             'term' => 'chile'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'china',
@@ -10969,6 +12340,7 @@ $VAR1 = [
             'term' => 'china'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'chines',
@@ -10977,6 +12349,7 @@ $VAR1 = [
             'term' => 'chinese'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'chopra',
@@ -10985,6 +12358,7 @@ $VAR1 = [
             'term' => 'chopra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'christian',
@@ -10993,6 +12367,7 @@ $VAR1 = [
             'term' => 'christian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'christoph',
@@ -11001,6 +12376,7 @@ $VAR1 = [
             'term' => 'christophe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'chrome',
@@ -11009,6 +12385,7 @@ $VAR1 = [
             'term' => 'chrome'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'chronicl',
@@ -11017,6 +12394,7 @@ $VAR1 = [
             'term' => 'chronicle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ciberativista',
@@ -11025,6 +12403,7 @@ $VAR1 = [
             'term' => 'ciberativistas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cidadania',
@@ -11033,6 +12412,7 @@ $VAR1 = [
             'term' => 'cidadania'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'citer',
@@ -11041,6 +12421,7 @@ $VAR1 = [
             'term' => 'citer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'citer',
@@ -11049,6 +12430,7 @@ $VAR1 = [
             'term' => 'citer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'citizenship',
@@ -11057,6 +12439,7 @@ $VAR1 = [
             'term' => 'citizenship'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'citoyen',
@@ -11065,6 +12448,7 @@ $VAR1 = [
             'term' => 'citoyen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'clair',
@@ -11073,6 +12457,7 @@ $VAR1 = [
             'term' => 'claire'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "clam\x{e9}",
@@ -11081,6 +12466,7 @@ $VAR1 = [
             'term' => "clam\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'clarifi',
@@ -11089,6 +12475,7 @@ $VAR1 = [
             'term' => 'clarify'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'claro',
@@ -11097,6 +12484,7 @@ $VAR1 = [
             'term' => 'claro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'clash',
@@ -11105,6 +12493,7 @@ $VAR1 = [
             'term' => 'clashes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'classifi',
@@ -11113,6 +12502,7 @@ $VAR1 = [
             'term' => 'classify'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'clever',
@@ -11121,6 +12511,7 @@ $VAR1 = [
             'term' => 'clever'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cnn',
@@ -11129,6 +12520,7 @@ $VAR1 = [
             'term' => 'cnn'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'coincid',
@@ -11137,6 +12529,7 @@ $VAR1 = [
             'term' => 'coincides'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'coisa',
@@ -11145,6 +12538,7 @@ $VAR1 = [
             'term' => 'coisa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'coitus',
@@ -11153,6 +12547,7 @@ $VAR1 = [
             'term' => 'coitus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'collabor',
@@ -11161,6 +12556,7 @@ $VAR1 = [
             'term' => 'collaborative'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'combien',
@@ -11169,6 +12565,7 @@ $VAR1 = [
             'term' => 'combien'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'combo',
@@ -11177,6 +12574,7 @@ $VAR1 = [
             'term' => 'combo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'comentarista',
@@ -11185,6 +12583,7 @@ $VAR1 = [
             'term' => 'comentaristas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "comenzar\x{e1}",
@@ -11193,6 +12592,7 @@ $VAR1 = [
             'term' => "comenzar\x{e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'comercio',
@@ -11201,6 +12601,7 @@ $VAR1 = [
             'term' => 'comercio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "comisi\x{f3}n",
@@ -11209,6 +12610,7 @@ $VAR1 = [
             'term' => "comisi\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'comm',
@@ -11217,6 +12619,7 @@ $VAR1 = [
             'term' => 'comme'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'commemor',
@@ -11225,6 +12628,7 @@ $VAR1 = [
             'term' => 'commemorate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'commenc',
@@ -11233,6 +12637,7 @@ $VAR1 = [
             'term' => 'commence'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'commentari',
@@ -11241,6 +12646,7 @@ $VAR1 = [
             'term' => 'commentary'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'commer',
@@ -11249,6 +12655,7 @@ $VAR1 = [
             'term' => 'commerical'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'como',
@@ -11257,6 +12664,7 @@ $VAR1 = [
             'term' => 'como'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "compa\x{f1}\x{ed}a",
@@ -11265,6 +12673,7 @@ $VAR1 = [
             'term' => "compa\x{f1}\x{ed}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'compil',
@@ -11273,6 +12682,7 @@ $VAR1 = [
             'term' => 'compiled'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'comprehens',
@@ -11281,6 +12691,7 @@ $VAR1 = [
             'term' => 'comprehensive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'compt',
@@ -11289,6 +12700,7 @@ $VAR1 = [
             'term' => 'comptes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'comrad',
@@ -11297,6 +12709,7 @@ $VAR1 = [
             'term' => 'comrades'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "comunicaci\x{f3}n",
@@ -11305,6 +12718,7 @@ $VAR1 = [
             'term' => "comunicaci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'comunidad',
@@ -11313,6 +12727,7 @@ $VAR1 = [
             'term' => 'comunidades'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'con',
@@ -11321,6 +12736,7 @@ $VAR1 = [
             'term' => 'con'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'concertada',
@@ -11329,6 +12745,7 @@ $VAR1 = [
             'term' => 'concertada'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'confin',
@@ -11337,6 +12754,7 @@ $VAR1 = [
             'term' => 'confinement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'conflicto',
@@ -11345,6 +12763,7 @@ $VAR1 = [
             'term' => 'conflictos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'confundir',
@@ -11353,6 +12772,7 @@ $VAR1 = [
             'term' => 'confundir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'congreso',
@@ -11361,6 +12781,7 @@ $VAR1 = [
             'term' => 'congreso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'congress',
@@ -11369,6 +12790,7 @@ $VAR1 = [
             'term' => 'congress'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'conjunct',
@@ -11377,6 +12799,7 @@ $VAR1 = [
             'term' => 'conjunction'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'connait',
@@ -11385,6 +12808,7 @@ $VAR1 = [
             'term' => 'connait'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "conseq\x{fc}entement",
@@ -11393,6 +12817,7 @@ $VAR1 = [
             'term' => "conseq\x{fc}entemente"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => "constituci\x{f3}n",
@@ -11401,6 +12826,7 @@ $VAR1 = [
             'term' => "constituci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'constitutionnel',
@@ -11409,6 +12835,7 @@ $VAR1 = [
             'term' => 'constitutionnel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'consult',
@@ -11417,6 +12844,7 @@ $VAR1 = [
             'term' => 'consultation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'consulta',
@@ -11425,6 +12853,7 @@ $VAR1 = [
             'term' => 'consulta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'consultada',
@@ -11433,6 +12862,7 @@ $VAR1 = [
             'term' => 'consultada'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "contin\x{fa}a",
@@ -11441,6 +12871,7 @@ $VAR1 = [
             'term' => "contin\x{fa}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'continuam',
@@ -11449,6 +12880,7 @@ $VAR1 = [
             'term' => 'continuam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'contra',
@@ -11457,6 +12889,7 @@ $VAR1 = [
             'term' => 'contra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'contracept',
@@ -11465,6 +12898,7 @@ $VAR1 = [
             'term' => 'contraceptive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'contradict',
@@ -11473,6 +12907,7 @@ $VAR1 = [
             'term' => 'contradictions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'convenio',
@@ -11481,6 +12916,7 @@ $VAR1 = [
             'term' => 'convenio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'convey',
@@ -11489,6 +12925,7 @@ $VAR1 = [
             'term' => 'conveyed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'convey',
@@ -11497,6 +12934,7 @@ $VAR1 = [
             'term' => 'conveyed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'convien',
@@ -11505,6 +12943,7 @@ $VAR1 = [
             'term' => 'conviene'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'copyright',
@@ -11513,6 +12952,7 @@ $VAR1 = [
             'term' => 'copyright'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'coran',
@@ -11521,6 +12961,7 @@ $VAR1 = [
             'term' => 'coran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'coran',
@@ -11529,6 +12970,7 @@ $VAR1 = [
             'term' => 'coran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cosa',
@@ -11537,6 +12979,7 @@ $VAR1 = [
             'term' => 'cosa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cosmet',
@@ -11545,6 +12988,7 @@ $VAR1 = [
             'term' => 'cosmetic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "cosm\x{e9}tica",
@@ -11553,6 +12997,7 @@ $VAR1 = [
             'term' => "cosm\x{e9}ticas"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'cosmopolitan',
@@ -11561,6 +13006,7 @@ $VAR1 = [
             'term' => 'cosmopolitan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "c\x{f4}t\x{e9}",
@@ -11569,6 +13015,7 @@ $VAR1 = [
             'term' => "c\x{f4}t\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'counterpart',
@@ -11577,6 +13024,7 @@ $VAR1 = [
             'term' => 'counterpart'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'coup',
@@ -11585,6 +13033,7 @@ $VAR1 = [
             'term' => 'coup'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'creer',
@@ -11593,6 +13042,7 @@ $VAR1 = [
             'term' => 'creer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'crime',
@@ -11601,6 +13051,7 @@ $VAR1 = [
             'term' => 'crimes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'crimin',
@@ -11609,6 +13060,7 @@ $VAR1 = [
             'term' => 'criminalize'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "criminaliza\x{e7}\x{e3}o",
@@ -11617,6 +13069,7 @@ $VAR1 = [
             'term' => "criminaliza\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'crisi',
@@ -11625,6 +13078,7 @@ $VAR1 = [
             'term' => 'crisis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'crocodil',
@@ -11633,6 +13087,7 @@ $VAR1 = [
             'term' => 'crocodiles'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'crude',
@@ -11641,6 +13096,7 @@ $VAR1 = [
             'term' => 'crude'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cruel',
@@ -11649,6 +13105,7 @@ $VAR1 = [
             'term' => 'cruel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'cuando',
@@ -11657,6 +13114,7 @@ $VAR1 = [
             'term' => 'cuando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cuesta',
@@ -11665,6 +13123,7 @@ $VAR1 = [
             'term' => 'cuestas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cultiv',
@@ -11673,6 +13132,7 @@ $VAR1 = [
             'term' => 'cultivated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cultiv',
@@ -11681,6 +13141,7 @@ $VAR1 = [
             'term' => 'cultivated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'curs',
@@ -11689,6 +13150,7 @@ $VAR1 = [
             'term' => 'curse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cyberactiv',
@@ -11697,6 +13159,7 @@ $VAR1 = [
             'term' => 'cyberactivism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'cyberactivist',
@@ -11705,6 +13168,7 @@ $VAR1 = [
             'term' => 'cyberactivists'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cybercrim',
@@ -11713,6 +13177,7 @@ $VAR1 = [
             'term' => 'cybercrimes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cynic',
@@ -11721,6 +13186,7 @@ $VAR1 = [
             'term' => 'cynically'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'cyniqu',
@@ -11729,6 +13195,7 @@ $VAR1 = [
             'term' => 'cyniquement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'd\'abord',
@@ -11737,6 +13204,7 @@ $VAR1 = [
             'term' => 'd\'abord'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'daivadnya',
@@ -11745,6 +13213,7 @@ $VAR1 = [
             'term' => 'daivadnya'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 16,
             'stem' => 'dalit',
@@ -11753,6 +13222,7 @@ $VAR1 = [
             'term' => 'dalit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'dam',
@@ -11761,6 +13231,7 @@ $VAR1 = [
             'term' => 'dam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'dan',
@@ -11769,6 +13240,7 @@ $VAR1 = [
             'term' => 'dans'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dandol',
@@ -11777,6 +13249,7 @@ $VAR1 = [
             'term' => 'dandole'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'danish',
@@ -11785,6 +13258,7 @@ $VAR1 = [
             'term' => 'danish'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'das',
@@ -11793,6 +13267,7 @@ $VAR1 = [
             'term' => 'das'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'debe',
@@ -11801,6 +13276,7 @@ $VAR1 = [
             'term' => 'debe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'deben',
@@ -11809,6 +13285,7 @@ $VAR1 = [
             'term' => 'deben'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "decisi\x{f3}n",
@@ -11817,6 +13294,7 @@ $VAR1 = [
             'term' => "decisi\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'declarada',
@@ -11825,6 +13303,7 @@ $VAR1 = [
             'term' => 'declaradas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'declarado',
@@ -11833,6 +13312,7 @@ $VAR1 = [
             'term' => 'declarados'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'decre',
@@ -11841,6 +13321,7 @@ $VAR1 = [
             'term' => 'decrees'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'decreas',
@@ -11849,6 +13330,7 @@ $VAR1 = [
             'term' => 'decreasing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'decreto',
@@ -11857,6 +13339,7 @@ $VAR1 = [
             'term' => 'decretos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'decrimin',
@@ -11865,6 +13348,7 @@ $VAR1 = [
             'term' => 'decriminalizing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'decrimin',
@@ -11873,6 +13357,7 @@ $VAR1 = [
             'term' => 'decriminalizing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'decriminalis',
@@ -11881,6 +13366,7 @@ $VAR1 = [
             'term' => 'decriminalisation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dedican',
@@ -11889,6 +13375,7 @@ $VAR1 = [
             'term' => 'dedican'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'deepen',
@@ -11897,6 +13384,7 @@ $VAR1 = [
             'term' => 'deepen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "defensor\x{ed}a",
@@ -11905,6 +13393,7 @@ $VAR1 = [
             'term' => "defensor\x{ed}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "d\x{e9}funt",
@@ -11913,6 +13402,7 @@ $VAR1 = [
             'term' => "d\x{e9}funt"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "d\x{e9}j\x{e0}",
@@ -11921,6 +13411,7 @@ $VAR1 = [
             'term' => "d\x{e9}j\x{e0}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dela',
@@ -11929,6 +13420,7 @@ $VAR1 = [
             'term' => 'dela'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'deleg',
@@ -11937,6 +13429,7 @@ $VAR1 = [
             'term' => 'delegation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'delici',
@@ -11945,6 +13438,7 @@ $VAR1 = [
             'term' => 'delicious'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'delv',
@@ -11953,6 +13447,7 @@ $VAR1 = [
             'term' => 'delve'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "d\x{e9}m\x{ea}ler",
@@ -11961,6 +13456,7 @@ $VAR1 = [
             'term' => "d\x{e9}m\x{ea}ler"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'democrat',
@@ -11969,6 +13465,7 @@ $VAR1 = [
             'term' => 'democrats'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'democrata',
@@ -11977,6 +13474,7 @@ $VAR1 = [
             'term' => 'democratas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "d\x{e9}mocrati",
@@ -11985,6 +13483,7 @@ $VAR1 = [
             'term' => "d\x{e9}mocratie"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "d\x{e9}mocratiqu",
@@ -11993,6 +13492,7 @@ $VAR1 = [
             'term' => "d\x{e9}mocratique"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "d\x{e9}part",
@@ -12001,6 +13501,7 @@ $VAR1 = [
             'term' => "d\x{e9}part"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'depoi',
@@ -12009,6 +13510,7 @@ $VAR1 = [
             'term' => 'depois'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'depui',
@@ -12017,6 +13519,7 @@ $VAR1 = [
             'term' => 'depuis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'deputi',
@@ -12025,6 +13528,7 @@ $VAR1 = [
             'term' => 'deputy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'derail',
@@ -12033,6 +13537,7 @@ $VAR1 = [
             'term' => 'derail'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'derecho',
@@ -12041,6 +13546,7 @@ $VAR1 = [
             'term' => 'derechos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 9,
             'stem' => 'des',
@@ -12049,6 +13555,7 @@ $VAR1 = [
             'term' => 'des'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'desarrollo',
@@ -12057,6 +13564,7 @@ $VAR1 = [
             'term' => 'desarrollo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'descend',
@@ -12065,6 +13573,7 @@ $VAR1 = [
             'term' => 'descendants'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'deshashtha',
@@ -12073,6 +13582,7 @@ $VAR1 = [
             'term' => 'deshashtha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'desinforman',
@@ -12081,6 +13591,7 @@ $VAR1 = [
             'term' => 'desinforman'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'despot',
@@ -12089,6 +13600,7 @@ $VAR1 = [
             'term' => 'despots'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "desprop\x{f3}sito",
@@ -12097,6 +13609,7 @@ $VAR1 = [
             'term' => "desprop\x{f3}sitos"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'destin',
@@ -12105,6 +13618,7 @@ $VAR1 = [
             'term' => 'destin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "d'\x{e9}tat",
@@ -12113,6 +13627,7 @@ $VAR1 = [
             'term' => "d'\x{e9}tat"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'detect',
@@ -12121,6 +13636,7 @@ $VAR1 = [
             'term' => 'detection'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'detenido',
@@ -12129,6 +13645,7 @@ $VAR1 = [
             'term' => 'detenidos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'detruir',
@@ -12137,6 +13654,7 @@ $VAR1 = [
             'term' => 'detruire'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'deuil',
@@ -12145,6 +13663,7 @@ $VAR1 = [
             'term' => 'deuil'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'devait',
@@ -12153,6 +13672,7 @@ $VAR1 = [
             'term' => 'devait'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'devenu',
@@ -12161,6 +13681,7 @@ $VAR1 = [
             'term' => 'devenu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "dever\x{ed}amo",
@@ -12169,6 +13690,7 @@ $VAR1 = [
             'term' => "dever\x{ed}amos"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'deviant',
@@ -12177,6 +13699,7 @@ $VAR1 = [
             'term' => 'deviant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'd\'homm',
@@ -12185,6 +13708,7 @@ $VAR1 = [
             'term' => 'd\'hommes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "di\x{e1}logo",
@@ -12193,6 +13717,7 @@ $VAR1 = [
             'term' => "di\x{e1}logo"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dialogu',
@@ -12201,6 +13726,7 @@ $VAR1 = [
             'term' => 'dialogue'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dictat',
@@ -12209,6 +13735,7 @@ $VAR1 = [
             'term' => 'dictator'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'dictatorship',
@@ -12217,6 +13744,7 @@ $VAR1 = [
             'term' => 'dictatorship'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dieu',
@@ -12225,6 +13753,7 @@ $VAR1 = [
             'term' => 'dieu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "difus\x{e3}o",
@@ -12233,6 +13762,7 @@ $VAR1 = [
             'term' => "difus\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'digit',
@@ -12241,6 +13771,7 @@ $VAR1 = [
             'term' => 'digital'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dilut',
@@ -12249,6 +13780,7 @@ $VAR1 = [
             'term' => 'dilution'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dio',
@@ -12257,6 +13789,7 @@ $VAR1 = [
             'term' => 'dios'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dire',
@@ -12265,6 +13798,7 @@ $VAR1 = [
             'term' => 'dire'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'directori',
@@ -12273,6 +13807,7 @@ $VAR1 = [
             'term' => 'directories'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'direito',
@@ -12281,6 +13816,7 @@ $VAR1 = [
             'term' => 'direito'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dirigencia',
@@ -12289,6 +13825,7 @@ $VAR1 = [
             'term' => 'dirigencia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dis',
@@ -12297,6 +13834,7 @@ $VAR1 = [
             'term' => 'dis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'disadvantag',
@@ -12305,6 +13843,7 @@ $VAR1 = [
             'term' => 'disadvantaged'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'disagre',
@@ -12313,6 +13852,7 @@ $VAR1 = [
             'term' => 'disagree'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'disappoint',
@@ -12321,6 +13861,7 @@ $VAR1 = [
             'term' => 'disappointment'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'disappoint',
@@ -12329,6 +13870,7 @@ $VAR1 = [
             'term' => 'disappointment'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'discard',
@@ -12337,6 +13879,7 @@ $VAR1 = [
             'term' => 'discard'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'discomfort',
@@ -12345,6 +13888,7 @@ $VAR1 = [
             'term' => 'discomfort'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'discour',
@@ -12353,6 +13897,7 @@ $VAR1 = [
             'term' => 'discours'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'discov',
@@ -12361,6 +13906,7 @@ $VAR1 = [
             'term' => 'discovered'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'discrimin',
@@ -12369,6 +13915,7 @@ $VAR1 = [
             'term' => 'discrimination'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'discurso',
@@ -12377,6 +13924,7 @@ $VAR1 = [
             'term' => 'discurso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'discutirs',
@@ -12385,6 +13933,7 @@ $VAR1 = [
             'term' => 'discutirse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'disgrac',
@@ -12393,6 +13942,7 @@ $VAR1 = [
             'term' => 'disgrace'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dispar',
@@ -12401,6 +13951,7 @@ $VAR1 = [
             'term' => 'disparities'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "disposici\x{f3}n",
@@ -12409,6 +13960,7 @@ $VAR1 = [
             'term' => "disposici\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'disservic',
@@ -12417,6 +13969,7 @@ $VAR1 = [
             'term' => 'disservice'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ditabranda',
@@ -12425,6 +13978,7 @@ $VAR1 = [
             'term' => 'ditabranda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'ditadura',
@@ -12433,6 +13987,7 @@ $VAR1 = [
             'term' => 'ditadura'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'diversa',
@@ -12441,6 +13996,7 @@ $VAR1 = [
             'term' => 'diversas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'diverso',
@@ -12449,6 +14005,7 @@ $VAR1 = [
             'term' => 'diversos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'divulgar',
@@ -12457,6 +14014,7 @@ $VAR1 = [
             'term' => 'divulgar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'doit',
@@ -12465,6 +14023,7 @@ $VAR1 = [
             'term' => 'doit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'doivent',
@@ -12473,6 +14032,7 @@ $VAR1 = [
             'term' => 'doivent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dolor',
@@ -12481,6 +14041,7 @@ $VAR1 = [
             'term' => 'dolor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'd\'omar',
@@ -12489,6 +14050,7 @@ $VAR1 = [
             'term' => 'd\'omar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dont',
@@ -12497,6 +14059,7 @@ $VAR1 = [
             'term' => 'dont'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'dos',
@@ -12505,6 +14068,7 @@ $VAR1 = [
             'term' => 'dos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'downplay',
@@ -12513,6 +14077,7 @@ $VAR1 = [
             'term' => 'downplayed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'downward',
@@ -12521,6 +14086,7 @@ $VAR1 = [
             'term' => 'downward'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'doyen',
@@ -12529,6 +14095,7 @@ $VAR1 = [
             'term' => 'doyen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dude',
@@ -12537,6 +14104,7 @@ $VAR1 = [
             'term' => 'dude'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'd\'un',
@@ -12545,6 +14113,7 @@ $VAR1 = [
             'term' => 'd\'un'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'dysfunct',
@@ -12553,6 +14122,7 @@ $VAR1 = [
             'term' => 'dysfunctions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eastern',
@@ -12561,6 +14131,7 @@ $VAR1 = [
             'term' => 'eastern'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eastern',
@@ -12569,6 +14140,7 @@ $VAR1 = [
             'term' => 'eastern'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'econom',
@@ -12577,6 +14149,7 @@ $VAR1 = [
             'term' => 'economic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "econ\x{f4}mico",
@@ -12585,6 +14158,7 @@ $VAR1 = [
             'term' => "econ\x{f4}micos"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}crit",
@@ -12593,6 +14167,7 @@ $VAR1 = [
             'term' => "\x{e9}crit"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'educ',
@@ -12601,6 +14176,7 @@ $VAR1 = [
             'term' => 'education'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'effet',
@@ -12609,6 +14185,7 @@ $VAR1 = [
             'term' => 'effet'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}galement",
@@ -12617,6 +14194,7 @@ $VAR1 = [
             'term' => "\x{e9}galement"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}galement",
@@ -12625,6 +14203,7 @@ $VAR1 = [
             'term' => "\x{e9}galement"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'egypt',
@@ -12633,6 +14212,7 @@ $VAR1 = [
             'term' => 'egypt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'egypt',
@@ -12641,6 +14221,7 @@ $VAR1 = [
             'term' => 'egypt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ein',
@@ -12649,6 +14230,7 @@ $VAR1 = [
             'term' => 'ein'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ejecutivo',
@@ -12657,6 +14239,7 @@ $VAR1 = [
             'term' => 'ejecutivo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ele',
@@ -12665,6 +14248,7 @@ $VAR1 = [
             'term' => 'ele'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "\x{e9}lection",
@@ -12673,6 +14257,7 @@ $VAR1 = [
             'term' => "\x{e9}lections"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'elector',
@@ -12681,6 +14266,7 @@ $VAR1 = [
             'term' => 'electoral'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}lectoral",
@@ -12689,6 +14275,7 @@ $VAR1 = [
             'term' => "\x{e9}lectorales"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eleg',
@@ -12697,6 +14284,7 @@ $VAR1 = [
             'term' => 'elegance'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eleg',
@@ -12705,6 +14293,7 @@ $VAR1 = [
             'term' => 'elegance'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}l\x{e9}ganc",
@@ -12713,6 +14302,7 @@ $VAR1 = [
             'term' => "\x{e9}l\x{e9}gance"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}l\x{e9}ganc",
@@ -12721,6 +14311,7 @@ $VAR1 = [
             'term' => "\x{e9}l\x{e9}gance"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'elementari',
@@ -12729,6 +14320,7 @@ $VAR1 = [
             'term' => 'elementary'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eleph',
@@ -12737,6 +14329,7 @@ $VAR1 = [
             'term' => 'elephant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'elicit',
@@ -12745,6 +14338,7 @@ $VAR1 = [
             'term' => 'eliciting'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'elit',
@@ -12753,6 +14347,7 @@ $VAR1 = [
             'term' => 'elite'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'ell',
@@ -12761,6 +14356,7 @@ $VAR1 = [
             'term' => 'elle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'embargo',
@@ -12769,6 +14365,7 @@ $VAR1 = [
             'term' => 'embargo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'embellish',
@@ -12777,6 +14374,7 @@ $VAR1 = [
             'term' => 'embellished'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'emend',
@@ -12785,6 +14383,7 @@ $VAR1 = [
             'term' => 'emended'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'emot',
@@ -12793,6 +14392,7 @@ $VAR1 = [
             'term' => 'emotional'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'empresa',
@@ -12801,6 +14401,7 @@ $VAR1 = [
             'term' => 'empresa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'enact',
@@ -12809,6 +14410,7 @@ $VAR1 = [
             'term' => 'enact'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'encontrar',
@@ -12817,6 +14419,7 @@ $VAR1 = [
             'term' => 'encontrar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'endors',
@@ -12825,6 +14428,7 @@ $VAR1 = [
             'term' => 'endorsement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'endors',
@@ -12833,6 +14437,7 @@ $VAR1 = [
             'term' => 'endorsement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'endur',
@@ -12841,6 +14446,7 @@ $VAR1 = [
             'term' => 'endure'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'enfant',
@@ -12849,6 +14455,7 @@ $VAR1 = [
             'term' => 'enfants'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'enslav',
@@ -12857,6 +14464,7 @@ $VAR1 = [
             'term' => 'enslaved'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'entendr',
@@ -12865,6 +14473,7 @@ $VAR1 = [
             'term' => 'entendre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'entidad',
@@ -12873,6 +14482,7 @@ $VAR1 = [
             'term' => 'entidad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'entiti',
@@ -12881,6 +14491,7 @@ $VAR1 = [
             'term' => 'entity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'entourag',
@@ -12889,6 +14500,7 @@ $VAR1 = [
             'term' => 'entourage'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'entr',
@@ -12897,6 +14509,7 @@ $VAR1 = [
             'term' => 'entre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'entrera',
@@ -12905,6 +14518,7 @@ $VAR1 = [
             'term' => 'entrera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'entretanto',
@@ -12913,6 +14527,7 @@ $VAR1 = [
             'term' => 'entretanto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "entr\x{f3}",
@@ -12921,6 +14536,7 @@ $VAR1 = [
             'term' => "entr\x{f3}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'erad',
@@ -12929,6 +14545,7 @@ $VAR1 = [
             'term' => 'eradicate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eras',
@@ -12937,6 +14554,7 @@ $VAR1 = [
             'term' => 'erase'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eras',
@@ -12945,6 +14563,7 @@ $VAR1 = [
             'term' => 'erase'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'erick',
@@ -12953,6 +14572,7 @@ $VAR1 = [
             'term' => 'erick'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'escape',
@@ -12961,6 +14581,7 @@ $VAR1 = [
             'term' => 'escapees'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'escondiendo',
@@ -12969,6 +14590,7 @@ $VAR1 = [
             'term' => 'escondiendo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'escort',
@@ -12977,6 +14599,7 @@ $VAR1 = [
             'term' => 'escort'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'espoir',
@@ -12985,6 +14608,7 @@ $VAR1 = [
             'term' => 'espoir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'essa',
@@ -12993,6 +14617,7 @@ $VAR1 = [
             'term' => 'essa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'esta',
@@ -13001,6 +14626,7 @@ $VAR1 = [
             'term' => 'estas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "est\x{e1}",
@@ -13009,6 +14635,7 @@ $VAR1 = [
             'term' => "est\x{e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'establec',
@@ -13017,6 +14644,7 @@ $VAR1 = [
             'term' => 'establece'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'estamo',
@@ -13025,6 +14653,7 @@ $VAR1 = [
             'term' => 'estamos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => "est\x{e3}o",
@@ -13033,6 +14662,7 @@ $VAR1 = [
             'term' => "est\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "estar\x{e1}n",
@@ -13041,6 +14671,7 @@ $VAR1 = [
             'term' => "estar\x{e1}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'esto',
@@ -13049,6 +14680,7 @@ $VAR1 = [
             'term' => 'esto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'eswn',
@@ -13057,6 +14689,7 @@ $VAR1 = [
             'term' => 'eswn'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => "\x{e9}tait",
@@ -13065,6 +14698,7 @@ $VAR1 = [
             'term' => "\x{e9}tait"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'etc',
@@ -13073,6 +14707,7 @@ $VAR1 = [
             'term' => 'etc'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "\x{e9}t\x{e9}",
@@ -13081,6 +14716,7 @@ $VAR1 = [
             'term' => "\x{e9}t\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}ternel",
@@ -13089,6 +14725,7 @@ $VAR1 = [
             'term' => "\x{e9}ternellement"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'etkhabat',
@@ -13097,6 +14734,7 @@ $VAR1 = [
             'term' => 'etkhabat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => "\x{ea}tre",
@@ -13105,6 +14743,7 @@ $VAR1 = [
             'term' => "\x{ea}tre"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'euna',
@@ -13113,6 +14752,7 @@ $VAR1 = [
             'term' => 'euna'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eutopia',
@@ -13121,6 +14761,7 @@ $VAR1 = [
             'term' => 'eutopia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'evento',
@@ -13129,6 +14770,7 @@ $VAR1 = [
             'term' => 'eventos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'everywher',
@@ -13137,6 +14779,7 @@ $VAR1 = [
             'term' => 'everywhere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{e9}videm",
@@ -13145,6 +14788,7 @@ $VAR1 = [
             'term' => "\x{e9}videmment"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'exagerando',
@@ -13153,6 +14797,7 @@ $VAR1 = [
             'term' => 'exagerando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'exagger',
@@ -13161,6 +14806,7 @@ $VAR1 = [
             'term' => 'exaggerating'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'exam',
@@ -13169,6 +14815,7 @@ $VAR1 = [
             'term' => 'exam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "exerc\x{ed}cio",
@@ -13177,6 +14824,7 @@ $VAR1 = [
             'term' => "exerc\x{ed}cio"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'exit',
@@ -13185,6 +14833,7 @@ $VAR1 = [
             'term' => 'exit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'expat',
@@ -13193,6 +14842,7 @@ $VAR1 = [
             'term' => 'expats'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'extranjera',
@@ -13201,6 +14851,7 @@ $VAR1 = [
             'term' => 'extranjera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'eyegh',
@@ -13209,6 +14860,7 @@ $VAR1 = [
             'term' => 'eyeghe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'facebook',
@@ -13217,6 +14869,7 @@ $VAR1 = [
             'term' => 'facebook'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'fact',
@@ -13225,6 +14878,7 @@ $VAR1 = [
             'term' => 'fact'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fait',
@@ -13233,6 +14887,7 @@ $VAR1 = [
             'term' => 'fait'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fallait',
@@ -13241,6 +14896,7 @@ $VAR1 = [
             'term' => 'fallait'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fameux',
@@ -13249,6 +14905,7 @@ $VAR1 = [
             'term' => 'fameux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'famili',
@@ -13257,6 +14914,7 @@ $VAR1 = [
             'term' => 'families'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'farhad',
@@ -13265,6 +14923,7 @@ $VAR1 = [
             'term' => 'farhad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'feront',
@@ -13273,6 +14932,7 @@ $VAR1 = [
             'term' => 'feront'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fieri',
@@ -13281,6 +14941,7 @@ $VAR1 = [
             'term' => 'fiery'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fieri',
@@ -13289,6 +14950,7 @@ $VAR1 = [
             'term' => 'fiery'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fil',
@@ -13297,6 +14959,7 @@ $VAR1 = [
             'term' => 'fils'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'filter',
@@ -13305,6 +14968,7 @@ $VAR1 = [
             'term' => 'filter'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'firefox',
@@ -13313,6 +14977,7 @@ $VAR1 = [
             'term' => 'firefox'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'firmado',
@@ -13321,6 +14986,7 @@ $VAR1 = [
             'term' => 'firmado'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fiscaux',
@@ -13329,6 +14995,7 @@ $VAR1 = [
             'term' => 'fiscaux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'flaw',
@@ -13337,6 +15004,7 @@ $VAR1 = [
             'term' => 'flaws'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'foi',
@@ -13345,6 +15013,7 @@ $VAR1 = [
             'term' => 'foi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'folha',
@@ -13353,6 +15022,7 @@ $VAR1 = [
             'term' => 'folha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fomentar',
@@ -13361,6 +15031,7 @@ $VAR1 = [
             'term' => 'fomentar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'fondo',
@@ -13369,6 +15040,7 @@ $VAR1 = [
             'term' => 'fondo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'fora',
@@ -13377,6 +15049,7 @@ $VAR1 = [
             'term' => 'fora'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "for\x{e7}a",
@@ -13385,6 +15058,7 @@ $VAR1 = [
             'term' => "for\x{e7}as"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'forcejeando',
@@ -13393,6 +15067,7 @@ $VAR1 = [
             'term' => 'forcejeando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'formul',
@@ -13401,6 +15076,7 @@ $VAR1 = [
             'term' => 'formule'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'foster',
@@ -13409,6 +15085,7 @@ $VAR1 = [
             'term' => 'foster'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'founder',
@@ -13417,6 +15094,7 @@ $VAR1 = [
             'term' => 'founder'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fracaso',
@@ -13425,6 +15103,7 @@ $VAR1 = [
             'term' => 'fracaso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 9,
             'stem' => 'franc',
@@ -13433,6 +15112,7 @@ $VAR1 = [
             'term' => 'france'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'francafriqu',
@@ -13441,6 +15121,7 @@ $VAR1 = [
             'term' => 'francafrique'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => "fran\x{e7}afriqu",
@@ -13449,6 +15130,7 @@ $VAR1 = [
             'term' => "fran\x{e7}afrique"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "fran\x{e7}ai",
@@ -13457,6 +15139,7 @@ $VAR1 = [
             'term' => "fran\x{e7}ais"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "fran\x{e7}oi",
@@ -13465,6 +15148,7 @@ $VAR1 = [
             'term' => "fran\x{e7}ois"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fransisco',
@@ -13473,6 +15157,7 @@ $VAR1 = [
             'term' => 'fransisco'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'fratricid',
@@ -13481,6 +15166,7 @@ $VAR1 = [
             'term' => 'fratricide'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'free',
@@ -13489,6 +15175,7 @@ $VAR1 = [
             'term' => 'free'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 11,
             'stem' => 'freedom',
@@ -13497,6 +15184,7 @@ $VAR1 = [
             'term' => 'freedom'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'freeli',
@@ -13505,6 +15193,7 @@ $VAR1 = [
             'term' => 'freely'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'french',
@@ -13513,6 +15202,7 @@ $VAR1 = [
             'term' => 'french'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'frenchmen',
@@ -13521,6 +15211,7 @@ $VAR1 = [
             'term' => 'frenchmen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'frenzi',
@@ -13529,6 +15220,7 @@ $VAR1 = [
             'term' => 'frenzy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'frontpag',
@@ -13537,6 +15229,7 @@ $VAR1 = [
             'term' => 'frontpage'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fruto',
@@ -13545,6 +15238,7 @@ $VAR1 = [
             'term' => 'fruto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fuerza',
@@ -13553,6 +15247,7 @@ $VAR1 = [
             'term' => 'fuerza'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'funni',
@@ -13561,6 +15256,7 @@ $VAR1 = [
             'term' => 'funny'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'fut',
@@ -13569,6 +15265,7 @@ $VAR1 = [
             'term' => 'fut'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'gabon',
@@ -13577,6 +15274,7 @@ $VAR1 = [
             'term' => 'gabon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'gabonai',
@@ -13585,6 +15283,7 @@ $VAR1 = [
             'term' => 'gabonais'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'gabonais',
@@ -13593,6 +15292,7 @@ $VAR1 = [
             'term' => 'gabonaise'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'gabones',
@@ -13601,6 +15301,7 @@ $VAR1 = [
             'term' => 'gabonese'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'garantia',
@@ -13609,6 +15310,7 @@ $VAR1 = [
             'term' => 'garantia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'garcia',
@@ -13617,6 +15319,7 @@ $VAR1 = [
             'term' => 'garcia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => "garc\x{ed}a",
@@ -13625,6 +15328,7 @@ $VAR1 = [
             'term' => "garc\x{ed}a"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'garhwali',
@@ -13633,6 +15337,7 @@ $VAR1 = [
             'term' => 'garhwali'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'gaull',
@@ -13641,6 +15346,7 @@ $VAR1 = [
             'term' => 'gaulle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gaur',
@@ -13649,6 +15355,7 @@ $VAR1 = [
             'term' => 'gaur'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gawd',
@@ -13657,6 +15364,7 @@ $VAR1 = [
             'term' => 'gawd'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gem',
@@ -13665,6 +15373,7 @@ $VAR1 = [
             'term' => 'gems'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gender',
@@ -13673,6 +15382,7 @@ $VAR1 = [
             'term' => 'gender'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "generar\x{e1}n",
@@ -13681,6 +15391,7 @@ $VAR1 = [
             'term' => "generar\x{e1}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gent',
@@ -13689,6 +15400,7 @@ $VAR1 = [
             'term' => 'gente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'geograph',
@@ -13697,6 +15409,7 @@ $VAR1 = [
             'term' => 'geographically'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gerai',
@@ -13705,6 +15418,7 @@ $VAR1 = [
             'term' => 'gerais'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gfw',
@@ -13713,6 +15427,7 @@ $VAR1 = [
             'term' => 'gfw'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'gigant',
@@ -13721,6 +15436,7 @@ $VAR1 = [
             'term' => 'gigantous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gigantesqu',
@@ -13729,6 +15445,7 @@ $VAR1 = [
             'term' => 'gigantesque'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'gilmar',
@@ -13737,6 +15454,7 @@ $VAR1 = [
             'term' => 'gilmar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'global',
@@ -13745,6 +15463,7 @@ $VAR1 = [
             'term' => 'global'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'gnassingb',
@@ -13753,6 +15472,7 @@ $VAR1 = [
             'term' => 'gnassingbe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'gobierno',
@@ -13761,6 +15481,7 @@ $VAR1 = [
             'term' => 'gobierno'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'god',
@@ -13769,6 +15490,7 @@ $VAR1 = [
             'term' => 'god'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'golyardi',
@@ -13777,6 +15499,7 @@ $VAR1 = [
             'term' => 'golyardi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'goodby',
@@ -13785,6 +15508,7 @@ $VAR1 = [
             'term' => 'goodbye'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'googl',
@@ -13793,6 +15517,7 @@ $VAR1 = [
             'term' => 'google'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'gore',
@@ -13801,6 +15526,7 @@ $VAR1 = [
             'term' => 'gore'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gouvern',
@@ -13809,6 +15535,7 @@ $VAR1 = [
             'term' => 'gouvernements'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gowd',
@@ -13817,6 +15544,7 @@ $VAR1 = [
             'term' => 'gowd'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gran',
@@ -13825,6 +15553,7 @@ $VAR1 = [
             'term' => 'gran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'grandchildren',
@@ -13833,6 +15562,7 @@ $VAR1 = [
             'term' => 'grandchildren'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'graphic',
@@ -13841,6 +15571,7 @@ $VAR1 = [
             'term' => 'graphics'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'greendam',
@@ -13849,6 +15580,7 @@ $VAR1 = [
             'term' => 'greendam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'grim',
@@ -13857,6 +15589,7 @@ $VAR1 = [
             'term' => 'grim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'groom',
@@ -13865,6 +15598,7 @@ $VAR1 = [
             'term' => 'grooming'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gsb',
@@ -13873,6 +15607,7 @@ $VAR1 = [
             'term' => 'gsb'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'gsbmatch',
@@ -13881,6 +15616,7 @@ $VAR1 = [
             'term' => 'gsbmatch'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'guarante',
@@ -13889,6 +15625,7 @@ $VAR1 = [
             'term' => 'guarantees'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hablar',
@@ -13897,6 +15634,7 @@ $VAR1 = [
             'term' => 'hablar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hace',
@@ -13905,6 +15643,7 @@ $VAR1 = [
             'term' => 'hace'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hacer',
@@ -13913,6 +15652,7 @@ $VAR1 = [
             'term' => 'hacer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hacia',
@@ -13921,6 +15661,7 @@ $VAR1 = [
             'term' => 'hacia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hack',
@@ -13929,6 +15670,7 @@ $VAR1 = [
             'term' => 'hacked'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'hadj',
@@ -13937,6 +15679,7 @@ $VAR1 = [
             'term' => 'hadj'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'haiku',
@@ -13945,6 +15688,7 @@ $VAR1 = [
             'term' => 'haiku'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'han',
@@ -13953,6 +15697,7 @@ $VAR1 = [
             'term' => 'han'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hardlin',
@@ -13961,6 +15706,7 @@ $VAR1 = [
             'term' => 'hardline'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hardwork',
@@ -13969,6 +15715,7 @@ $VAR1 = [
             'term' => 'hardworking'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'harmon',
@@ -13977,6 +15724,7 @@ $VAR1 = [
             'term' => 'harmonizing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'harsh',
@@ -13985,6 +15733,7 @@ $VAR1 = [
             'term' => 'harsh'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hashtag',
@@ -13993,6 +15742,7 @@ $VAR1 = [
             'term' => 'hashtags'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'haut',
@@ -14001,6 +15751,7 @@ $VAR1 = [
             'term' => 'haute'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'haven',
@@ -14009,6 +15760,7 @@ $VAR1 = [
             'term' => 'havens'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'haya',
@@ -14017,6 +15769,7 @@ $VAR1 = [
             'term' => 'haya'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'headlin',
@@ -14025,6 +15778,7 @@ $VAR1 = [
             'term' => 'headline'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "h\x{e9}bergent",
@@ -14033,6 +15787,7 @@ $VAR1 = [
             'term' => "h\x{e9}bergent"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'heighten',
@@ -14041,6 +15796,7 @@ $VAR1 = [
             'term' => 'heighten'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'heighten',
@@ -14049,6 +15805,7 @@ $VAR1 = [
             'term' => 'heighten'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'heir',
@@ -14057,6 +15814,7 @@ $VAR1 = [
             'term' => 'heir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'heiress',
@@ -14065,6 +15823,7 @@ $VAR1 = [
             'term' => 'heiress'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'herebi',
@@ -14073,6 +15832,7 @@ $VAR1 = [
             'term' => 'hereby'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'herebi',
@@ -14081,6 +15841,7 @@ $VAR1 = [
             'term' => 'hereby'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "h\x{e9}ritier",
@@ -14089,6 +15850,7 @@ $VAR1 = [
             'term' => "h\x{e9}ritiers"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hermit',
@@ -14097,6 +15859,7 @@ $VAR1 = [
             'term' => 'hermit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'heterosexu',
@@ -14105,6 +15868,7 @@ $VAR1 = [
             'term' => 'heterosexuals'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'hey',
@@ -14113,6 +15877,7 @@ $VAR1 = [
             'term' => 'hey'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'highlight',
@@ -14121,6 +15886,7 @@ $VAR1 = [
             'term' => 'highlight'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hindu',
@@ -14129,6 +15895,7 @@ $VAR1 = [
             'term' => 'hindu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hindutva',
@@ -14137,6 +15904,7 @@ $VAR1 = [
             'term' => 'hindutva'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hisham',
@@ -14145,6 +15913,7 @@ $VAR1 = [
             'term' => 'hisham'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hisham',
@@ -14153,6 +15922,7 @@ $VAR1 = [
             'term' => 'hisham'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'histoir',
@@ -14161,6 +15931,7 @@ $VAR1 = [
             'term' => 'histoire'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hmmm',
@@ -14169,6 +15940,7 @@ $VAR1 = [
             'term' => 'hmmm'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'homepag',
@@ -14177,6 +15949,7 @@ $VAR1 = [
             'term' => 'homepage'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'homo',
@@ -14185,6 +15958,7 @@ $VAR1 = [
             'term' => 'homos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'homophob',
@@ -14193,6 +15967,7 @@ $VAR1 = [
             'term' => 'homophobic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 23,
             'stem' => 'homosexu',
@@ -14201,6 +15976,7 @@ $VAR1 = [
             'term' => 'homosexuality'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'homosexu',
@@ -14209,6 +15985,7 @@ $VAR1 = [
             'term' => 'homosexuality'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 12,
             'stem' => 'hong',
@@ -14217,6 +15994,7 @@ $VAR1 = [
             'term' => 'hong'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'horgan',
@@ -14225,6 +16003,7 @@ $VAR1 = [
             'term' => 'horgan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'horrif',
@@ -14233,6 +16012,7 @@ $VAR1 = [
             'term' => 'horrific'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'hospit',
@@ -14241,6 +16021,7 @@ $VAR1 = [
             'term' => 'hospitals'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'humain',
@@ -14249,6 +16030,7 @@ $VAR1 = [
             'term' => 'humain'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'hypocrisi',
@@ -14257,6 +16039,7 @@ $VAR1 = [
             'term' => 'hypocrisy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ich',
@@ -14265,6 +16048,7 @@ $VAR1 = [
             'term' => 'ich'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'idanian',
@@ -14273,6 +16057,7 @@ $VAR1 = [
             'term' => 'idanian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "ideol\x{f3}gico",
@@ -14281,6 +16066,7 @@ $VAR1 = [
             'term' => "ideol\x{f3}gicos"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'idiot',
@@ -14289,6 +16075,7 @@ $VAR1 = [
             'term' => 'idiotic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ifeng',
@@ -14297,6 +16084,7 @@ $VAR1 = [
             'term' => 'ifeng'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ignorant',
@@ -14305,6 +16093,7 @@ $VAR1 = [
             'term' => 'ignorantes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ikalyanam',
@@ -14313,6 +16102,7 @@ $VAR1 = [
             'term' => 'ikalyanam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'illeg',
@@ -14321,6 +16111,7 @@ $VAR1 = [
             'term' => 'illegally'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ilo',
@@ -14329,6 +16120,7 @@ $VAR1 = [
             'term' => 'ilo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'imf',
@@ -14337,6 +16129,7 @@ $VAR1 = [
             'term' => 'imf'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'immobili',
@@ -14345,6 +16138,7 @@ $VAR1 = [
             'term' => 'immobilier'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "imp\x{e9}rio",
@@ -14353,6 +16147,7 @@ $VAR1 = [
             'term' => "imp\x{e9}rio"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'important',
@@ -14361,6 +16156,7 @@ $VAR1 = [
             'term' => 'importante'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'imprensa',
@@ -14369,6 +16165,7 @@ $VAR1 = [
             'term' => 'imprensa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'inabl',
@@ -14377,6 +16174,7 @@ $VAR1 = [
             'term' => 'inability'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'inaccess',
@@ -14385,6 +16183,7 @@ $VAR1 = [
             'term' => 'inaccessible'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'inaugur',
@@ -14393,6 +16192,7 @@ $VAR1 = [
             'term' => 'inauguration'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'inaugur',
@@ -14401,6 +16201,7 @@ $VAR1 = [
             'term' => 'inauguration'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'incertitud',
@@ -14409,6 +16210,7 @@ $VAR1 = [
             'term' => 'incertitudes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'incierto',
@@ -14417,6 +16219,7 @@ $VAR1 = [
             'term' => 'incierto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'incluso',
@@ -14425,6 +16228,7 @@ $VAR1 = [
             'term' => 'incluso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'inconstitucional',
@@ -14433,6 +16237,7 @@ $VAR1 = [
             'term' => 'inconstitucionales'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'independ',
@@ -14441,6 +16246,7 @@ $VAR1 = [
             'term' => 'independent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'independient',
@@ -14449,6 +16255,7 @@ $VAR1 = [
             'term' => 'independientes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'india',
@@ -14457,6 +16264,7 @@ $VAR1 = [
             'term' => 'india'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'indian',
@@ -14465,6 +16273,7 @@ $VAR1 = [
             'term' => 'indian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'indica',
@@ -14473,6 +16282,7 @@ $VAR1 = [
             'term' => 'indica'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'indict',
@@ -14481,6 +16291,7 @@ $VAR1 = [
             'term' => 'indictment'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'indiferencia',
@@ -14489,6 +16300,7 @@ $VAR1 = [
             'term' => 'indiferencia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'indiffer',
@@ -14497,6 +16309,7 @@ $VAR1 = [
             'term' => 'indifference'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'indigen',
@@ -14505,6 +16318,7 @@ $VAR1 = [
             'term' => 'indigenous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "ind\x{ed}gena",
@@ -14513,6 +16327,7 @@ $VAR1 = [
             'term' => "ind\x{ed}genas"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ineffect',
@@ -14521,6 +16336,7 @@ $VAR1 = [
             'term' => 'ineffective'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "informa\x{e7}\x{e3}o",
@@ -14529,6 +16345,7 @@ $VAR1 = [
             'term' => "informa\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "informaci\x{f3}n",
@@ -14537,6 +16354,7 @@ $VAR1 = [
             'term' => "informaci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "informa\x{e7}\x{f5}",
@@ -14545,6 +16363,7 @@ $VAR1 = [
             'term' => "informa\x{e7}\x{f5}es"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'infrastructur',
@@ -14553,6 +16372,7 @@ $VAR1 = [
             'term' => 'infrastructure'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'inhabit',
@@ -14561,6 +16381,7 @@ $VAR1 = [
             'term' => 'inhabitants'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'innov',
@@ -14569,6 +16390,7 @@ $VAR1 = [
             'term' => 'innovations'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'innov',
@@ -14577,6 +16399,7 @@ $VAR1 = [
             'term' => 'innovations'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'instructor',
@@ -14585,6 +16408,7 @@ $VAR1 = [
             'term' => 'instructor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'insult',
@@ -14593,6 +16417,7 @@ $VAR1 = [
             'term' => 'insults'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intellectu',
@@ -14601,6 +16426,7 @@ $VAR1 = [
             'term' => 'intellectual'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'intellectu',
@@ -14609,6 +16435,7 @@ $VAR1 = [
             'term' => 'intellectuals'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intellectuell',
@@ -14617,6 +16444,7 @@ $VAR1 = [
             'term' => 'intellectuelle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intellectuell',
@@ -14625,6 +16453,7 @@ $VAR1 = [
             'term' => 'intellectuelle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intellig',
@@ -14633,6 +16462,7 @@ $VAR1 = [
             'term' => 'intelligence'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'interact',
@@ -14641,6 +16471,7 @@ $VAR1 = [
             'term' => 'interaction'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'interess',
@@ -14649,6 +16480,7 @@ $VAR1 = [
             'term' => 'interesses'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'internacion',
@@ -14657,6 +16489,7 @@ $VAR1 = [
             'term' => 'internacional'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 28,
             'stem' => 'internet',
@@ -14665,6 +16498,7 @@ $VAR1 = [
             'term' => 'internet'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'interrog',
@@ -14673,6 +16507,7 @@ $VAR1 = [
             'term' => 'interrogations'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'interruptus',
@@ -14681,6 +16516,7 @@ $VAR1 = [
             'term' => 'interruptus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'interven',
@@ -14689,6 +16525,7 @@ $VAR1 = [
             'term' => 'intervene'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intimaci',
@@ -14697,6 +16534,7 @@ $VAR1 = [
             'term' => 'intimacy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intimid',
@@ -14705,6 +16543,7 @@ $VAR1 = [
             'term' => 'intimidation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intoler',
@@ -14713,6 +16552,7 @@ $VAR1 = [
             'term' => 'intolerant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'intolerant',
@@ -14721,6 +16561,7 @@ $VAR1 = [
             'term' => 'intolerante'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'introduzindo',
@@ -14729,6 +16570,7 @@ $VAR1 = [
             'term' => 'introduzindo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'introduzir',
@@ -14737,6 +16579,7 @@ $VAR1 = [
             'term' => 'introduzir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'introduziss',
@@ -14745,6 +16588,7 @@ $VAR1 = [
             'term' => 'introduzisse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "inversi\x{f3}n",
@@ -14753,6 +16597,7 @@ $VAR1 = [
             'term' => "inversi\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'invis',
@@ -14761,6 +16606,7 @@ $VAR1 = [
             'term' => 'invisible'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'iraisonn',
@@ -14769,6 +16615,7 @@ $VAR1 = [
             'term' => 'iraisonnable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'iran',
@@ -14777,6 +16624,7 @@ $VAR1 = [
             'term' => 'iran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'iranian',
@@ -14785,6 +16633,7 @@ $VAR1 = [
             'term' => 'iranian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'irrat',
@@ -14793,6 +16642,7 @@ $VAR1 = [
             'term' => 'irrationality'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'islam',
@@ -14801,6 +16651,7 @@ $VAR1 = [
             'term' => 'islamic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'islam',
@@ -14809,6 +16660,7 @@ $VAR1 = [
             'term' => 'islamic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'isra',
@@ -14817,6 +16669,7 @@ $VAR1 = [
             'term' => 'israeli'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'isra',
@@ -14825,6 +16678,7 @@ $VAR1 = [
             'term' => 'israeli'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ivorian',
@@ -14833,6 +16687,7 @@ $VAR1 = [
             'term' => 'ivorian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'iyer',
@@ -14841,6 +16696,7 @@ $VAR1 = [
             'term' => 'iyers'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jade',
@@ -14849,6 +16705,7 @@ $VAR1 = [
             'term' => 'jade'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jamai',
@@ -14857,6 +16714,7 @@ $VAR1 = [
             'term' => 'jamais'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jame',
@@ -14865,6 +16723,7 @@ $VAR1 = [
             'term' => 'james'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'janeiro',
@@ -14873,6 +16732,7 @@ $VAR1 = [
             'term' => 'janeiro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'jangid',
@@ -14881,6 +16741,7 @@ $VAR1 = [
             'term' => 'jangid'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'japan',
@@ -14889,6 +16750,7 @@ $VAR1 = [
             'term' => 'japan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jat',
@@ -14897,6 +16759,7 @@ $VAR1 = [
             'term' => 'jats'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jatland',
@@ -14905,6 +16768,7 @@ $VAR1 = [
             'term' => 'jatland'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jean',
@@ -14913,6 +16777,7 @@ $VAR1 = [
             'term' => 'jean'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jeuness',
@@ -14921,6 +16786,7 @@ $VAR1 = [
             'term' => 'jeunesse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'j\'exig',
@@ -14929,6 +16795,7 @@ $VAR1 = [
             'term' => 'j\'exige'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jfk',
@@ -14937,6 +16804,7 @@ $VAR1 = [
             'term' => 'jfk'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jillian',
@@ -14945,6 +16813,7 @@ $VAR1 = [
             'term' => 'jillian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jinhui',
@@ -14953,6 +16822,7 @@ $VAR1 = [
             'term' => 'jinhui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jogo',
@@ -14961,6 +16831,7 @@ $VAR1 = [
             'term' => 'jogo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jomg',
@@ -14969,6 +16840,7 @@ $VAR1 = [
             'term' => 'jomg'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'jomra',
@@ -14977,6 +16849,7 @@ $VAR1 = [
             'term' => 'jomra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'jong',
@@ -14985,6 +16858,7 @@ $VAR1 = [
             'term' => 'jong'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'jour',
@@ -14993,6 +16867,7 @@ $VAR1 = [
             'term' => 'jours'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'journal',
@@ -15001,6 +16876,7 @@ $VAR1 = [
             'term' => 'journal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'journalist',
@@ -15009,6 +16885,7 @@ $VAR1 = [
             'term' => 'journalists'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'juin',
@@ -15017,6 +16894,7 @@ $VAR1 = [
             'term' => 'juin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'junk',
@@ -15025,6 +16903,7 @@ $VAR1 = [
             'term' => 'junk'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'juntar',
@@ -15033,6 +16912,7 @@ $VAR1 = [
             'term' => 'juntar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "jur\x{ed}dica",
@@ -15041,6 +16921,7 @@ $VAR1 = [
             'term' => "jur\x{ed}dica"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'justament',
@@ -15049,6 +16930,7 @@ $VAR1 = [
             'term' => 'justamente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'justif',
@@ -15057,6 +16939,7 @@ $VAR1 = [
             'term' => 'justification'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "justificaci\x{f3}n",
@@ -15065,6 +16948,7 @@ $VAR1 = [
             'term' => "justificaci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kamran',
@@ -15073,6 +16957,7 @@ $VAR1 = [
             'term' => 'kamran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'karoubi',
@@ -15081,6 +16966,7 @@ $VAR1 = [
             'term' => 'karoubi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'kayastha',
@@ -15089,6 +16975,7 @@ $VAR1 = [
             'term' => 'kayastha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kelli',
@@ -15097,6 +16984,7 @@ $VAR1 = [
             'term' => 'kelly'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'kenya',
@@ -15105,6 +16993,7 @@ $VAR1 = [
             'term' => 'kenya'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kenyan',
@@ -15113,6 +17002,7 @@ $VAR1 = [
             'term' => 'kenyan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'kenyan',
@@ -15121,6 +17011,7 @@ $VAR1 = [
             'term' => 'kenyan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kerala',
@@ -15129,6 +17020,7 @@ $VAR1 = [
             'term' => 'kerala'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'keralaiy',
@@ -15137,6 +17029,7 @@ $VAR1 = [
             'term' => 'keralaiyers'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'keyword',
@@ -15145,6 +17038,7 @@ $VAR1 = [
             'term' => 'keywords'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'kim',
@@ -15153,6 +17047,7 @@ $VAR1 = [
             'term' => 'kim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kin',
@@ -15161,6 +17056,7 @@ $VAR1 = [
             'term' => 'kin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'knot',
@@ -15169,6 +17065,7 @@ $VAR1 = [
             'term' => 'knots'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kokanastha',
@@ -15177,6 +17074,7 @@ $VAR1 = [
             'term' => 'kokanastha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 12,
             'stem' => 'kong',
@@ -15185,6 +17083,7 @@ $VAR1 = [
             'term' => 'kong'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'kopg',
@@ -15193,6 +17092,7 @@ $VAR1 = [
             'term' => 'kopgli'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'koran',
@@ -15201,6 +17101,7 @@ $VAR1 = [
             'term' => 'koran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'koran',
@@ -15209,6 +17110,7 @@ $VAR1 = [
             'term' => 'koran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 13,
             'stem' => 'korea',
@@ -15217,6 +17119,7 @@ $VAR1 = [
             'term' => 'korea'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'korean',
@@ -15225,6 +17128,7 @@ $VAR1 = [
             'term' => 'koreans'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kouamouo',
@@ -15233,6 +17137,7 @@ $VAR1 = [
             'term' => 'kouamouo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'kumar',
@@ -15241,6 +17146,7 @@ $VAR1 = [
             'term' => 'kumar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'labor',
@@ -15249,6 +17155,7 @@ $VAR1 = [
             'term' => 'labor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'l\'afriqu',
@@ -15257,6 +17164,7 @@ $VAR1 = [
             'term' => 'l\'afrique'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'l\'aidera',
@@ -15265,6 +17173,7 @@ $VAR1 = [
             'term' => 'l\'aidera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'laiss',
@@ -15273,6 +17182,7 @@ $VAR1 = [
             'term' => 'laisse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'laisson',
@@ -15281,6 +17191,7 @@ $VAR1 = [
             'term' => 'laissons'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lament',
@@ -15289,6 +17200,7 @@ $VAR1 = [
             'term' => 'lamentable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lamentablement',
@@ -15297,6 +17209,7 @@ $VAR1 = [
             'term' => 'lamentablemente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "l'arm\x{e9}",
@@ -15305,6 +17218,7 @@ $VAR1 = [
             'term' => "l'arm\x{e9}e"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'las',
@@ -15313,6 +17227,7 @@ $VAR1 = [
             'term' => 'las'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'laura',
@@ -15321,6 +17236,7 @@ $VAR1 = [
             'term' => 'laura'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'lee',
@@ -15329,6 +17245,7 @@ $VAR1 = [
             'term' => 'lee'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'legaci',
@@ -15337,6 +17254,7 @@ $VAR1 = [
             'term' => 'legacy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'legco',
@@ -15345,6 +17263,7 @@ $VAR1 = [
             'term' => 'legco'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "l\x{e9}g\x{e8}re",
@@ -15353,6 +17272,7 @@ $VAR1 = [
             'term' => "l\x{e9}g\x{e8}re"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'legislativo',
@@ -15361,6 +17281,7 @@ $VAR1 = [
             'term' => 'legislativos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'legitim',
@@ -15369,6 +17290,7 @@ $VAR1 = [
             'term' => 'legitimate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'legitimaci',
@@ -15377,6 +17299,7 @@ $VAR1 = [
             'term' => 'legitimacy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lei',
@@ -15385,6 +17308,7 @@ $VAR1 = [
             'term' => 'lei'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lejo',
@@ -15393,6 +17317,7 @@ $VAR1 = [
             'term' => 'lejos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lenovo',
@@ -15401,6 +17326,7 @@ $VAR1 = [
             'term' => 'lenovo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "l'\x{e8}re",
@@ -15409,6 +17335,7 @@ $VAR1 = [
             'term' => "l'\x{e8}re"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 9,
             'stem' => 'les',
@@ -15417,6 +17344,7 @@ $VAR1 = [
             'term' => 'les'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'lesbian',
@@ -15425,6 +17353,7 @@ $VAR1 = [
             'term' => 'lesbian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lesbian',
@@ -15433,6 +17362,7 @@ $VAR1 = [
             'term' => 'lesbian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ley',
@@ -15441,6 +17371,7 @@ $VAR1 = [
             'term' => 'leyes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'lgbt',
@@ -15449,6 +17380,7 @@ $VAR1 = [
             'term' => 'lgbt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'liar',
@@ -15457,6 +17389,7 @@ $VAR1 = [
             'term' => 'liar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'liberatelaura',
@@ -15465,6 +17398,7 @@ $VAR1 = [
             'term' => 'liberatelaura'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'liberdad',
@@ -15473,6 +17407,7 @@ $VAR1 = [
             'term' => 'liberdade'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'lifestyl',
@@ -15481,6 +17416,7 @@ $VAR1 = [
             'term' => 'lifestyle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lin',
@@ -15489,6 +17425,7 @@ $VAR1 = [
             'term' => 'lin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'liner',
@@ -15497,6 +17434,7 @@ $VAR1 = [
             'term' => 'liners'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'ling',
@@ -15505,6 +17443,7 @@ $VAR1 = [
             'term' => 'ling'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'loco',
@@ -15513,6 +17452,7 @@ $VAR1 = [
             'term' => 'locos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "l\x{f3}gica",
@@ -15521,6 +17461,7 @@ $VAR1 = [
             'term' => "l\x{f3}gica"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'logo',
@@ -15529,6 +17470,7 @@ $VAR1 = [
             'term' => 'logos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'l\'on',
@@ -15537,6 +17479,7 @@ $VAR1 = [
             'term' => 'l\'on'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'longev',
@@ -15545,6 +17488,7 @@ $VAR1 = [
             'term' => 'longevity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "long\x{e9}vit\x{e9}",
@@ -15553,6 +17497,7 @@ $VAR1 = [
             'term' => "long\x{e9}vit\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'looni',
@@ -15561,6 +17506,7 @@ $VAR1 = [
             'term' => 'loony'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lor',
@@ -15569,6 +17515,7 @@ $VAR1 = [
             'term' => 'lors'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 14,
             'stem' => 'los',
@@ -15577,6 +17524,7 @@ $VAR1 = [
             'term' => 'los'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'love',
@@ -15585,6 +17533,7 @@ $VAR1 = [
             'term' => 'lovely'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'love',
@@ -15593,6 +17542,7 @@ $VAR1 = [
             'term' => 'loving'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lugar',
@@ -15601,6 +17551,7 @@ $VAR1 = [
             'term' => 'lugar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'lui',
@@ -15609,6 +17560,7 @@ $VAR1 = [
             'term' => 'lui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'luminoso',
@@ -15617,6 +17569,7 @@ $VAR1 = [
             'term' => 'luminoso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'lux',
@@ -15625,6 +17578,7 @@ $VAR1 = [
             'term' => 'luxe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mackinnon',
@@ -15633,6 +17587,7 @@ $VAR1 = [
             'term' => 'mackinnon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'maghreb',
@@ -15641,6 +17596,7 @@ $VAR1 = [
             'term' => 'maghreb'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'maghreb',
@@ -15649,6 +17605,7 @@ $VAR1 = [
             'term' => 'maghreb'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'mai',
@@ -15657,6 +17614,7 @@ $VAR1 = [
             'term' => 'mais'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mainstream',
@@ -15665,6 +17623,7 @@ $VAR1 = [
             'term' => 'mainstream'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "manifesta\x{e7}\x{f5}",
@@ -15673,6 +17632,7 @@ $VAR1 = [
             'term' => "manifesta\x{e7}\x{f5}es"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'manifesto',
@@ -15681,6 +17641,7 @@ $VAR1 = [
             'term' => 'manifesto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'manipul',
@@ -15689,6 +17650,7 @@ $VAR1 = [
             'term' => 'manipulating'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'manipular',
@@ -15697,6 +17659,7 @@ $VAR1 = [
             'term' => 'manipular'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'manqu',
@@ -15705,6 +17668,7 @@ $VAR1 = [
             'term' => 'manque'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'manten',
@@ -15713,6 +17677,7 @@ $VAR1 = [
             'term' => 'mantener'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "manuten\x{e7}\x{e3}o",
@@ -15721,6 +17686,7 @@ $VAR1 = [
             'term' => "manuten\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'marcha',
@@ -15729,6 +17695,7 @@ $VAR1 = [
             'term' => 'marcha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'margeri',
@@ -15737,6 +17704,7 @@ $VAR1 = [
             'term' => 'margerie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "m\x{e1}s",
@@ -15745,6 +17713,7 @@ $VAR1 = [
             'term' => "m\x{e1}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'masacr',
@@ -15753,6 +17722,7 @@ $VAR1 = [
             'term' => 'masacre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "m\x{e1}scara",
@@ -15761,6 +17731,7 @@ $VAR1 = [
             'term' => "m\x{e1}scara"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mask',
@@ -15769,6 +17740,7 @@ $VAR1 = [
             'term' => 'masks'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'massacr',
@@ -15777,6 +17749,7 @@ $VAR1 = [
             'term' => 'massacre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'masturb',
@@ -15785,6 +17758,7 @@ $VAR1 = [
             'term' => 'masturbation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'matrimoni',
@@ -15793,6 +17767,7 @@ $VAR1 = [
             'term' => 'matrimonial'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'm\'avanc',
@@ -15801,6 +17776,7 @@ $VAR1 = [
             'term' => 'm\'avance'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'meanwhil',
@@ -15809,6 +17785,7 @@ $VAR1 = [
             'term' => 'meanwhile'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'meber',
@@ -15817,6 +17794,7 @@ $VAR1 = [
             'term' => 'mebers'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mecanismo',
@@ -15825,6 +17803,7 @@ $VAR1 = [
             'term' => 'mecanismos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'meddl',
@@ -15833,6 +17812,7 @@ $VAR1 = [
             'term' => 'meddle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 11,
             'stem' => 'media',
@@ -15841,6 +17821,7 @@ $VAR1 = [
             'term' => 'media'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'medida',
@@ -15849,6 +17830,7 @@ $VAR1 = [
             'term' => 'medida'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'medio',
@@ -15857,6 +17839,7 @@ $VAR1 = [
             'term' => 'medios'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'mega',
@@ -15865,6 +17848,7 @@ $VAR1 = [
             'term' => 'mega'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'meganao',
@@ -15873,6 +17857,7 @@ $VAR1 = [
             'term' => 'meganao'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mehdi',
@@ -15881,6 +17866,7 @@ $VAR1 = [
             'term' => 'mehdi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "m\x{ea}ler",
@@ -15889,6 +17875,7 @@ $VAR1 = [
             'term' => "m\x{ea}ler"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'memoir',
@@ -15897,6 +17884,7 @@ $VAR1 = [
             'term' => 'memoirs'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mend',
@@ -15905,6 +17893,7 @@ $VAR1 = [
             'term' => 'mendes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'meno',
@@ -15913,6 +17902,7 @@ $VAR1 = [
             'term' => 'menos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mentiroso',
@@ -15921,6 +17911,7 @@ $VAR1 = [
             'term' => 'mentiroso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'merci',
@@ -15929,6 +17920,7 @@ $VAR1 = [
             'term' => 'merci'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mesa',
@@ -15937,6 +17929,7 @@ $VAR1 = [
             'term' => 'mesa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mesma',
@@ -15945,6 +17938,7 @@ $VAR1 = [
             'term' => 'mesma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'meta',
@@ -15953,6 +17947,7 @@ $VAR1 = [
             'term' => 'meta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mettront',
@@ -15961,6 +17956,7 @@ $VAR1 = [
             'term' => 'mettront'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'meur',
@@ -15969,6 +17965,7 @@ $VAR1 = [
             'term' => 'meurs'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mezcla',
@@ -15977,6 +17974,7 @@ $VAR1 = [
             'term' => 'mezcla'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "midi\x{e1}tico",
@@ -15985,6 +17983,7 @@ $VAR1 = [
             'term' => "midi\x{e1}ticos"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'miit',
@@ -15993,6 +17992,7 @@ $VAR1 = [
             'term' => 'miit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'milit',
@@ -16001,6 +18001,7 @@ $VAR1 = [
             'term' => 'militant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'militar',
@@ -16009,6 +18010,7 @@ $VAR1 = [
             'term' => 'militar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mimick',
@@ -16017,6 +18019,7 @@ $VAR1 = [
             'term' => 'mimicking'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mina',
@@ -16025,6 +18028,7 @@ $VAR1 = [
             'term' => 'minas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'minha',
@@ -16033,6 +18037,7 @@ $VAR1 = [
             'term' => 'minha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'minimizando',
@@ -16041,6 +18046,7 @@ $VAR1 = [
             'term' => 'minimizando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'miniscul',
@@ -16049,6 +18055,7 @@ $VAR1 = [
             'term' => 'miniscule'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'minist',
@@ -16057,6 +18064,7 @@ $VAR1 = [
             'term' => 'minister'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ministeri',
@@ -16065,6 +18073,7 @@ $VAR1 = [
             'term' => 'ministerial'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ministra',
@@ -16073,6 +18082,7 @@ $VAR1 = [
             'term' => 'ministra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'ministri',
@@ -16081,6 +18091,7 @@ $VAR1 = [
             'term' => 'ministry'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'misinform',
@@ -16089,6 +18100,7 @@ $VAR1 = [
             'term' => 'misinform'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mislead',
@@ -16097,6 +18109,7 @@ $VAR1 = [
             'term' => 'misleading'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mister',
@@ -16105,6 +18118,7 @@ $VAR1 = [
             'term' => 'mister'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mistrust',
@@ -16113,6 +18127,7 @@ $VAR1 = [
             'term' => 'mistrust'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mistrust',
@@ -16121,6 +18136,7 @@ $VAR1 = [
             'term' => 'mistrust'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mit',
@@ -16129,6 +18145,7 @@ $VAR1 = [
             'term' => 'mit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mitterr',
@@ -16137,6 +18154,7 @@ $VAR1 = [
             'term' => 'mitterrant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mitterrand',
@@ -16145,6 +18163,7 @@ $VAR1 = [
             'term' => 'mitterrand'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mobili',
@@ -16153,6 +18172,7 @@ $VAR1 = [
             'term' => 'mobilier'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'modelo',
@@ -16161,6 +18181,7 @@ $VAR1 = [
             'term' => 'modelo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'modh',
@@ -16169,6 +18190,7 @@ $VAR1 = [
             'term' => 'modh'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'modhbrahmin',
@@ -16177,6 +18199,7 @@ $VAR1 = [
             'term' => 'modhbrahmin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'modif',
@@ -16185,6 +18208,7 @@ $VAR1 = [
             'term' => 'modifications'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'modificacion',
@@ -16193,6 +18217,7 @@ $VAR1 = [
             'term' => 'modificaciones'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'moham',
@@ -16201,6 +18226,7 @@ $VAR1 = [
             'term' => 'mohammed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'moham',
@@ -16209,6 +18235,7 @@ $VAR1 = [
             'term' => 'mohammed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'momento',
@@ -16217,6 +18244,7 @@ $VAR1 = [
             'term' => 'momento'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'monitor',
@@ -16225,6 +18253,7 @@ $VAR1 = [
             'term' => 'monitoring'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'monopol',
@@ -16233,6 +18262,7 @@ $VAR1 = [
             'term' => 'monopolized'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'monopoli',
@@ -16241,6 +18271,7 @@ $VAR1 = [
             'term' => 'monopoly'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "monop\x{f3}lio",
@@ -16249,6 +18280,7 @@ $VAR1 = [
             'term' => "monop\x{f3}lio"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'monsieur',
@@ -16257,6 +18289,7 @@ $VAR1 = [
             'term' => 'monsieur'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "montr\x{e9}",
@@ -16265,6 +18298,7 @@ $VAR1 = [
             'term' => "montr\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'moroccan',
@@ -16273,6 +18307,7 @@ $VAR1 = [
             'term' => 'moroccan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'moroccan',
@@ -16281,6 +18316,7 @@ $VAR1 = [
             'term' => 'moroccan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'morocco',
@@ -16289,6 +18325,7 @@ $VAR1 = [
             'term' => 'morocco'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'morocco',
@@ -16297,6 +18334,7 @@ $VAR1 = [
             'term' => 'morocco'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'mort',
@@ -16305,6 +18343,7 @@ $VAR1 = [
             'term' => 'mort'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'motivo',
@@ -16313,6 +18352,7 @@ $VAR1 = [
             'term' => 'motivos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mouamba',
@@ -16321,6 +18361,7 @@ $VAR1 = [
             'term' => 'mouamba'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'moumbamba',
@@ -16329,6 +18370,7 @@ $VAR1 = [
             'term' => 'moumbamba'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mourn',
@@ -16337,6 +18379,7 @@ $VAR1 = [
             'term' => 'mourn'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'movimento',
@@ -16345,6 +18388,7 @@ $VAR1 = [
             'term' => 'movimentos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mucho',
@@ -16353,6 +18397,7 @@ $VAR1 = [
             'term' => 'muchos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mueren',
@@ -16361,6 +18406,7 @@ $VAR1 = [
             'term' => 'mueren'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'muert',
@@ -16369,6 +18415,7 @@ $VAR1 = [
             'term' => 'muertes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'mugab',
@@ -16377,6 +18424,7 @@ $VAR1 = [
             'term' => 'mugabe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'muhurtham',
@@ -16385,6 +18433,7 @@ $VAR1 = [
             'term' => 'muhurtham'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 9,
             'stem' => 'muslim',
@@ -16393,6 +18442,7 @@ $VAR1 = [
             'term' => 'muslim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'muslim',
@@ -16401,6 +18451,7 @@ $VAR1 = [
             'term' => 'muslims'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'muy',
@@ -16409,6 +18460,7 @@ $VAR1 = [
             'term' => 'muy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'myri',
@@ -16417,6 +18469,7 @@ $VAR1 = [
             'term' => 'myris'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'myung',
@@ -16425,6 +18478,7 @@ $VAR1 = [
             'term' => 'myung'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nacion',
@@ -16433,6 +18487,7 @@ $VAR1 = [
             'term' => 'nacional'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nada',
@@ -16441,6 +18496,7 @@ $VAR1 = [
             'term' => 'nada'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'namibia',
@@ -16449,6 +18505,7 @@ $VAR1 = [
             'term' => 'namibia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => "n\x{e3}o",
@@ -16457,6 +18514,7 @@ $VAR1 = [
             'term' => "n\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nationalist',
@@ -16465,6 +18523,7 @@ $VAR1 = [
             'term' => 'nationalists'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'nativ',
@@ -16473,6 +18532,7 @@ $VAR1 = [
             'term' => 'natives'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'nativa',
@@ -16481,6 +18541,7 @@ $VAR1 = [
             'term' => 'nativas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'nativo',
@@ -16489,6 +18550,7 @@ $VAR1 = [
             'term' => 'nativos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ndong',
@@ -16497,6 +18559,7 @@ $VAR1 = [
             'term' => 'ndong'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'necesaria',
@@ -16505,6 +18568,7 @@ $VAR1 = [
             'term' => 'necesarias'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'neglect',
@@ -16513,6 +18577,7 @@ $VAR1 = [
             'term' => 'neglect'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nekue',
@@ -16521,6 +18586,7 @@ $VAR1 = [
             'term' => 'nekuee'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'n\'est',
@@ -16529,6 +18595,7 @@ $VAR1 = [
             'term' => 'n\'est'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'netanyahu',
@@ -16537,6 +18604,7 @@ $VAR1 = [
             'term' => 'netanyahu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'netanyahu',
@@ -16545,6 +18613,7 @@ $VAR1 = [
             'term' => 'netanyahu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'netherland',
@@ -16553,6 +18622,7 @@ $VAR1 = [
             'term' => 'netherlands'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'netizen',
@@ -16561,6 +18631,7 @@ $VAR1 = [
             'term' => 'netizens'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'n\'exist',
@@ -16569,6 +18640,7 @@ $VAR1 = [
             'term' => 'n\'existent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'nigeria',
@@ -16577,6 +18649,7 @@ $VAR1 = [
             'term' => 'nigeria'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nobel',
@@ -16585,6 +18658,7 @@ $VAR1 = [
             'term' => 'nobel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'noeud',
@@ -16593,6 +18667,7 @@ $VAR1 = [
             'term' => 'noeuds'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nom',
@@ -16601,6 +18676,7 @@ $VAR1 = [
             'term' => 'nom'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nombr',
@@ -16609,6 +18685,7 @@ $VAR1 = [
             'term' => 'nombre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nombreux',
@@ -16617,6 +18694,7 @@ $VAR1 = [
             'term' => 'nombreux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'non',
@@ -16625,6 +18703,7 @@ $VAR1 = [
             'term' => 'non'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nonsens',
@@ -16633,6 +18712,7 @@ $VAR1 = [
             'term' => 'nonsense'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nos',
@@ -16641,6 +18721,7 @@ $VAR1 = [
             'term' => 'nos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "n\x{f3}s",
@@ -16649,6 +18730,7 @@ $VAR1 = [
             'term' => "n\x{f3}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nossa',
@@ -16657,6 +18739,7 @@ $VAR1 = [
             'term' => 'nossa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nota',
@@ -16665,6 +18748,7 @@ $VAR1 = [
             'term' => 'nota'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'notam',
@@ -16673,6 +18757,7 @@ $VAR1 = [
             'term' => 'notamment'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'noticia',
@@ -16681,6 +18766,7 @@ $VAR1 = [
             'term' => 'noticias'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'notori',
@@ -16689,6 +18775,7 @@ $VAR1 = [
             'term' => 'notorious'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nous',
@@ -16697,6 +18784,7 @@ $VAR1 = [
             'term' => 'nous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'nuclear',
@@ -16705,6 +18793,7 @@ $VAR1 = [
             'term' => 'nuclear'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "n\x{fa}cleo",
@@ -16713,6 +18802,7 @@ $VAR1 = [
             'term' => "n\x{fa}cleos"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nuisanc',
@@ -16721,6 +18811,7 @@ $VAR1 = [
             'term' => 'nuisance'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nujoma',
@@ -16729,6 +18820,7 @@ $VAR1 = [
             'term' => 'nujoma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'nyt',
@@ -16737,6 +18829,7 @@ $VAR1 = [
             'term' => 'nyt'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 21,
             'stem' => 'obama',
@@ -16745,6 +18838,7 @@ $VAR1 = [
             'term' => 'obama'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 21,
             'stem' => 'obama',
@@ -16753,6 +18847,7 @@ $VAR1 = [
             'term' => 'obama'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'objetivo',
@@ -16761,6 +18856,7 @@ $VAR1 = [
             'term' => 'objetivo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'obliga',
@@ -16769,6 +18865,7 @@ $VAR1 = [
             'term' => 'obliga'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'obscen',
@@ -16777,6 +18874,7 @@ $VAR1 = [
             'term' => 'obscenity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'observon',
@@ -16785,6 +18883,7 @@ $VAR1 = [
             'term' => 'observons'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'octroi',
@@ -16793,6 +18892,7 @@ $VAR1 = [
             'term' => 'octroie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'odinma',
@@ -16801,6 +18901,7 @@ $VAR1 = [
             'term' => 'odinma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'odio',
@@ -16809,6 +18910,7 @@ $VAR1 = [
             'term' => 'odio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'offend',
@@ -16817,6 +18919,7 @@ $VAR1 = [
             'term' => 'offended'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'offr',
@@ -16825,6 +18928,7 @@ $VAR1 = [
             'term' => 'offre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "o\x{ed}r",
@@ -16833,6 +18937,7 @@ $VAR1 = [
             'term' => "o\x{ed}r"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'oit',
@@ -16841,6 +18946,7 @@ $VAR1 = [
             'term' => 'oit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'okay',
@@ -16849,6 +18955,7 @@ $VAR1 = [
             'term' => 'okay'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "oligop\x{f3}lio",
@@ -16857,6 +18964,7 @@ $VAR1 = [
             'term' => "oligop\x{f3}lios"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'omar',
@@ -16865,6 +18973,7 @@ $VAR1 = [
             'term' => 'omar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ombudsman',
@@ -16873,6 +18982,7 @@ $VAR1 = [
             'term' => 'ombudsman'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'ondimba',
@@ -16881,6 +18991,7 @@ $VAR1 = [
             'term' => 'ondimba'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 10,
             'stem' => 'onlin',
@@ -16889,6 +19000,7 @@ $VAR1 = [
             'term' => 'online'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ont',
@@ -16897,6 +19009,7 @@ $VAR1 = [
             'term' => 'ont'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'onward',
@@ -16905,6 +19018,7 @@ $VAR1 = [
             'term' => 'onward'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "opini\x{e3}o",
@@ -16913,6 +19027,7 @@ $VAR1 = [
             'term' => "opini\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'opinion',
@@ -16921,6 +19036,7 @@ $VAR1 = [
             'term' => 'opinions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'opinion',
@@ -16929,6 +19045,7 @@ $VAR1 = [
             'term' => 'opinions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "opini\x{f3}n",
@@ -16937,6 +19054,7 @@ $VAR1 = [
             'term' => "opini\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'optimist',
@@ -16945,6 +19063,7 @@ $VAR1 = [
             'term' => 'optimistic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'optimist',
@@ -16953,6 +19072,7 @@ $VAR1 = [
             'term' => 'optimistic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'orchestr',
@@ -16961,6 +19081,7 @@ $VAR1 = [
             'term' => 'orchestrated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'orden',
@@ -16969,6 +19090,7 @@ $VAR1 = [
             'term' => 'orden'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ordinari',
@@ -16977,6 +19099,7 @@ $VAR1 = [
             'term' => 'ordinary'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ordinarili',
@@ -16985,6 +19108,7 @@ $VAR1 = [
             'term' => 'ordinarily'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'org',
@@ -16993,6 +19117,7 @@ $VAR1 = [
             'term' => 'org'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'organis',
@@ -17001,6 +19126,7 @@ $VAR1 = [
             'term' => 'organiser'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'organiz',
@@ -17009,6 +19135,7 @@ $VAR1 = [
             'term' => 'organizational'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "organiza\x{e7}\x{e3}o",
@@ -17017,6 +19144,7 @@ $VAR1 = [
             'term' => "organiza\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{f3}rg\x{e3}os",
@@ -17025,6 +19153,7 @@ $VAR1 = [
             'term' => "\x{f3}rg\x{e3}os"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'orient',
@@ -17033,6 +19162,7 @@ $VAR1 = [
             'term' => 'orientation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 14,
             'stem' => 'orkut',
@@ -17041,6 +19171,7 @@ $VAR1 = [
             'term' => 'orkut'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'orquestado',
@@ -17049,6 +19180,7 @@ $VAR1 = [
             'term' => 'orquestado'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'otra',
@@ -17057,6 +19189,7 @@ $VAR1 = [
             'term' => 'otra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'otro',
@@ -17065,6 +19198,7 @@ $VAR1 = [
             'term' => 'otros'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ouest',
@@ -17073,6 +19207,7 @@ $VAR1 = [
             'term' => 'ouest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'oui',
@@ -17081,6 +19216,7 @@ $VAR1 = [
             'term' => 'oui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'outlaw',
@@ -17089,6 +19225,7 @@ $VAR1 = [
             'term' => 'outlawed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'outlet',
@@ -17097,6 +19234,7 @@ $VAR1 = [
             'term' => 'outlets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'outlin',
@@ -17105,6 +19243,7 @@ $VAR1 = [
             'term' => 'outlined'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'outrag',
@@ -17113,6 +19252,7 @@ $VAR1 = [
             'term' => 'outraged'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'outright',
@@ -17121,6 +19261,7 @@ $VAR1 = [
             'term' => 'outright'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'outright',
@@ -17129,6 +19270,7 @@ $VAR1 = [
             'term' => 'outright'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ouvrir',
@@ -17137,6 +19279,7 @@ $VAR1 = [
             'term' => 'ouvrir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pacif',
@@ -17145,6 +19288,7 @@ $VAR1 = [
             'term' => 'pacific'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pacifica',
@@ -17153,6 +19297,7 @@ $VAR1 = [
             'term' => 'pacifica'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "pa\x{ed}",
@@ -17161,6 +19306,7 @@ $VAR1 = [
             'term' => "pa\x{ed}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'paicorg',
@@ -17169,6 +19315,7 @@ $VAR1 = [
             'term' => 'paicorg'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => "pa\x{ed}s",
@@ -17177,6 +19324,7 @@ $VAR1 = [
             'term' => "pa\x{ed}ses"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pakistan',
@@ -17185,6 +19333,7 @@ $VAR1 = [
             'term' => 'pakistan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'palac',
@@ -17193,6 +19342,7 @@ $VAR1 = [
             'term' => 'palace'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pao',
@@ -17201,6 +19351,7 @@ $VAR1 = [
             'term' => 'pao'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'par',
@@ -17209,6 +19360,7 @@ $VAR1 = [
             'term' => 'par'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'para',
@@ -17217,6 +19369,7 @@ $VAR1 = [
             'term' => 'para'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'paradi',
@@ -17225,6 +19378,7 @@ $VAR1 = [
             'term' => 'paradis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'parc',
@@ -17233,6 +19387,7 @@ $VAR1 = [
             'term' => 'parc'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'parlamento',
@@ -17241,6 +19396,7 @@ $VAR1 = [
             'term' => 'parlamento'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'parliament',
@@ -17249,6 +19405,7 @@ $VAR1 = [
             'term' => 'parliament'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'participei',
@@ -17257,6 +19414,7 @@ $VAR1 = [
             'term' => 'participei'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'partnership',
@@ -17265,6 +19423,7 @@ $VAR1 = [
             'term' => 'partnership'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'pas',
@@ -17273,6 +19432,7 @@ $VAR1 = [
             'term' => 'pas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pasa',
@@ -17281,6 +19441,7 @@ $VAR1 = [
             'term' => 'pasa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pascalin',
@@ -17289,6 +19450,7 @@ $VAR1 = [
             'term' => 'pascaline'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'passera',
@@ -17297,6 +19459,7 @@ $VAR1 = [
             'term' => 'passera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'password',
@@ -17305,6 +19468,7 @@ $VAR1 = [
             'term' => 'password'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pat',
@@ -17313,6 +19477,7 @@ $VAR1 = [
             'term' => 'pat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'patriarch',
@@ -17321,6 +19486,7 @@ $VAR1 = [
             'term' => 'patriarche'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'paulo',
@@ -17329,6 +19495,7 @@ $VAR1 = [
             'term' => 'paulo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pauloteixeira13',
@@ -17337,6 +19504,7 @@ $VAR1 = [
             'term' => 'pauloteixeira13'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pawn',
@@ -17345,6 +19513,7 @@ $VAR1 = [
             'term' => 'pawn'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pcs',
@@ -17353,6 +19522,7 @@ $VAR1 = [
             'term' => 'pcs'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "p\x{e9}an",
@@ -17361,6 +19531,7 @@ $VAR1 = [
             'term' => "p\x{e9}an"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'peasant',
@@ -17369,6 +19540,7 @@ $VAR1 = [
             'term' => 'peasant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pelo',
@@ -17377,6 +19549,7 @@ $VAR1 = [
             'term' => 'pelo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pendant',
@@ -17385,6 +19558,7 @@ $VAR1 = [
             'term' => 'pendant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pens',
@@ -17393,6 +19567,7 @@ $VAR1 = [
             'term' => 'pense'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pensando',
@@ -17401,6 +19576,7 @@ $VAR1 = [
             'term' => 'pensando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'pepper',
@@ -17409,6 +19585,7 @@ $VAR1 = [
             'term' => 'pepper'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'perceiv',
@@ -17417,6 +19594,7 @@ $VAR1 = [
             'term' => 'perceived'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'perdur',
@@ -17425,6 +19603,7 @@ $VAR1 = [
             'term' => 'perdurer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'permitir',
@@ -17433,6 +19612,7 @@ $VAR1 = [
             'term' => 'permitir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pero',
@@ -17441,6 +19621,7 @@ $VAR1 = [
             'term' => 'pero'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'perpetu',
@@ -17449,6 +19630,7 @@ $VAR1 = [
             'term' => 'perpetuation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'personn',
@@ -17457,6 +19639,7 @@ $VAR1 = [
             'term' => 'personne'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'peru',
@@ -17465,6 +19648,7 @@ $VAR1 = [
             'term' => 'peru'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => "per\x{fa}",
@@ -17473,6 +19657,7 @@ $VAR1 = [
             'term' => "per\x{fa}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'peru21',
@@ -17481,6 +19666,7 @@ $VAR1 = [
             'term' => 'peru21'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'peruvian',
@@ -17489,6 +19675,7 @@ $VAR1 = [
             'term' => 'peruvian'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pervas',
@@ -17497,6 +19684,7 @@ $VAR1 = [
             'term' => 'pervasive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'petit',
@@ -17505,6 +19693,7 @@ $VAR1 = [
             'term' => 'petit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'peupl',
@@ -17513,6 +19702,7 @@ $VAR1 = [
             'term' => 'peuple'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'peut',
@@ -17521,6 +19711,7 @@ $VAR1 = [
             'term' => 'peut'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'phiona',
@@ -17529,6 +19720,7 @@ $VAR1 = [
             'term' => 'phiona'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'photo',
@@ -17537,6 +19729,7 @@ $VAR1 = [
             'term' => 'photos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'physiolog',
@@ -17545,6 +19738,7 @@ $VAR1 = [
             'term' => 'physiological'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pierr',
@@ -17553,6 +19747,7 @@ $VAR1 = [
             'term' => 'pierre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'pig',
@@ -17561,6 +19756,7 @@ $VAR1 = [
             'term' => 'pig'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pilier',
@@ -17569,6 +19765,7 @@ $VAR1 = [
             'term' => 'pilier'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pillar',
@@ -17577,6 +19774,7 @@ $VAR1 = [
             'term' => 'pillar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pion',
@@ -17585,6 +19783,7 @@ $VAR1 = [
             'term' => 'pion'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'piti',
@@ -17593,6 +19792,7 @@ $VAR1 = [
             'term' => 'pitiful'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pizango',
@@ -17601,6 +19801,7 @@ $VAR1 = [
             'term' => 'pizango'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'platitud',
@@ -17609,6 +19810,7 @@ $VAR1 = [
             'term' => 'platitudes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "poblaci\x{f3}n",
@@ -17617,6 +19819,7 @@ $VAR1 = [
             'term' => "poblaci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pobr',
@@ -17625,6 +19828,7 @@ $VAR1 = [
             'term' => 'pobres'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'poder',
@@ -17633,6 +19837,7 @@ $VAR1 = [
             'term' => 'poder'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "podr\x{e1}",
@@ -17641,6 +19846,7 @@ $VAR1 = [
             'term' => "podr\x{e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'poid',
@@ -17649,6 +19855,7 @@ $VAR1 = [
             'term' => 'poids'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "pol\x{ed}tico",
@@ -17657,6 +19864,7 @@ $VAR1 = [
             'term' => "pol\x{ed}ticos"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'politiqu',
@@ -17665,6 +19873,7 @@ $VAR1 = [
             'term' => 'politique'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "ponctu\x{e9}",
@@ -17673,6 +19882,7 @@ $VAR1 = [
             'term' => "ponctu\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ponder',
@@ -17681,6 +19891,7 @@ $VAR1 = [
             'term' => 'ponders'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pone',
@@ -17689,6 +19900,7 @@ $VAR1 = [
             'term' => 'pone'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'poner',
@@ -17697,6 +19909,7 @@ $VAR1 = [
             'term' => 'poner'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pop',
@@ -17705,6 +19918,7 @@ $VAR1 = [
             'term' => 'popped'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'por',
@@ -17713,6 +19927,7 @@ $VAR1 = [
             'term' => 'por'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'pornograph',
@@ -17721,6 +19936,7 @@ $VAR1 = [
             'term' => 'pornographic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'pornographi',
@@ -17729,6 +19945,7 @@ $VAR1 = [
             'term' => 'pornography'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "port\x{e9}",
@@ -17737,6 +19954,7 @@ $VAR1 = [
             'term' => "port\x{e9}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'porto',
@@ -17745,6 +19963,7 @@ $VAR1 = [
             'term' => 'porto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'portray',
@@ -17753,6 +19972,7 @@ $VAR1 = [
             'term' => 'portray'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "positionn\x{e9}",
@@ -17761,6 +19981,7 @@ $VAR1 = [
             'term' => "positionn\x{e9}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'possibilidad',
@@ -17769,6 +19990,7 @@ $VAR1 = [
             'term' => 'possibilidade'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pourrait',
@@ -17777,6 +19999,7 @@ $VAR1 = [
             'term' => 'pourrait'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'pouvoir',
@@ -17785,6 +20008,7 @@ $VAR1 = [
             'term' => 'pouvoir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'predecessor',
@@ -17793,6 +20017,7 @@ $VAR1 = [
             'term' => 'predecessor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'predecessor',
@@ -17801,6 +20026,7 @@ $VAR1 = [
             'term' => 'predecessor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'predomin',
@@ -17809,6 +20035,7 @@ $VAR1 = [
             'term' => 'predominately'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pregunto',
@@ -17817,6 +20044,7 @@ $VAR1 = [
             'term' => 'pregunto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'prejudic',
@@ -17825,6 +20053,7 @@ $VAR1 = [
             'term' => 'prejudice'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'prensa',
@@ -17833,6 +20062,7 @@ $VAR1 = [
             'term' => 'prensa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'presencialment',
@@ -17841,6 +20071,7 @@ $VAR1 = [
             'term' => 'presencialmente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'presenta',
@@ -17849,6 +20080,7 @@ $VAR1 = [
             'term' => 'presenta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'president',
@@ -17857,6 +20089,7 @@ $VAR1 = [
             'term' => 'presidente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "pr\x{e9}sident",
@@ -17865,6 +20098,7 @@ $VAR1 = [
             'term' => "pr\x{e9}sidente"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'presidenti',
@@ -17873,6 +20107,7 @@ $VAR1 = [
             'term' => 'presidential'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "press\x{e3}o",
@@ -17881,6 +20116,7 @@ $VAR1 = [
             'term' => "press\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pretend',
@@ -17889,6 +20125,7 @@ $VAR1 = [
             'term' => 'pretending'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "pr\x{e9}tendait",
@@ -17897,6 +20134,7 @@ $VAR1 = [
             'term' => "pr\x{e9}tendait"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'previament',
@@ -17905,6 +20143,7 @@ $VAR1 = [
             'term' => 'previamente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'primeiro',
@@ -17913,6 +20152,7 @@ $VAR1 = [
             'term' => 'primeiro'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'primera',
@@ -17921,6 +20161,7 @@ $VAR1 = [
             'term' => 'primera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'prioriti',
@@ -17929,6 +20170,7 @@ $VAR1 = [
             'term' => 'priorities'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'prise',
@@ -17937,6 +20179,7 @@ $VAR1 = [
             'term' => 'prise'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'privaci',
@@ -17945,6 +20188,7 @@ $VAR1 = [
             'term' => 'privacy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'probabali',
@@ -17953,6 +20197,7 @@ $VAR1 = [
             'term' => 'probabaly'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'probiti',
@@ -17961,6 +20206,7 @@ $VAR1 = [
             'term' => 'probity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'prochain',
@@ -17969,6 +20215,7 @@ $VAR1 = [
             'term' => 'prochains'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'proclaim',
@@ -17977,6 +20224,7 @@ $VAR1 = [
             'term' => 'proclaim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'proclaim',
@@ -17985,6 +20233,7 @@ $VAR1 = [
             'term' => 'proclaim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'procreat',
@@ -17993,6 +20242,7 @@ $VAR1 = [
             'term' => 'procreation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'professor',
@@ -18001,6 +20251,7 @@ $VAR1 = [
             'term' => 'professor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "profond\x{e9}",
@@ -18009,6 +20260,7 @@ $VAR1 = [
             'term' => "profond\x{e9}ment"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'projeto',
@@ -18017,6 +20269,7 @@ $VAR1 = [
             'term' => 'projeto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "prononc\x{e9}",
@@ -18025,6 +20278,7 @@ $VAR1 = [
             'term' => "prononc\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'propag',
@@ -18033,6 +20287,7 @@ $VAR1 = [
             'term' => 'propagating'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'propia',
@@ -18041,6 +20296,7 @@ $VAR1 = [
             'term' => 'propia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'propo',
@@ -18049,6 +20305,7 @@ $VAR1 = [
             'term' => 'propos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'propo',
@@ -18057,6 +20314,7 @@ $VAR1 = [
             'term' => 'propos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'proposta',
@@ -18065,6 +20323,7 @@ $VAR1 = [
             'term' => 'proposta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'protesta',
@@ -18073,6 +20332,7 @@ $VAR1 = [
             'term' => 'protesta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'provoc',
@@ -18081,6 +20341,7 @@ $VAR1 = [
             'term' => 'provocative'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "p\x{fa}blica",
@@ -18089,6 +20350,7 @@ $VAR1 = [
             'term' => "p\x{fa}blica"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "p\x{fa}blico",
@@ -18097,6 +20359,7 @@ $VAR1 = [
             'term' => "p\x{fa}blico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pudo',
@@ -18105,6 +20368,7 @@ $VAR1 = [
             'term' => 'pudo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pueblo',
@@ -18113,6 +20377,7 @@ $VAR1 = [
             'term' => 'pueblos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pued',
@@ -18121,6 +20386,7 @@ $VAR1 = [
             'term' => 'puede'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pueda',
@@ -18129,6 +20395,7 @@ $VAR1 = [
             'term' => 'pueda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'puerto',
@@ -18137,6 +20404,7 @@ $VAR1 = [
             'term' => 'puerto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'puesto',
@@ -18145,6 +20413,7 @@ $VAR1 = [
             'term' => 'puestos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'pui',
@@ -18153,6 +20422,7 @@ $VAR1 = [
             'term' => 'puis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'puiss',
@@ -18161,6 +20431,7 @@ $VAR1 = [
             'term' => 'puisse'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'pulitz',
@@ -18169,6 +20440,7 @@ $VAR1 = [
             'term' => 'pulitzer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'punctuat',
@@ -18177,6 +20449,7 @@ $VAR1 = [
             'term' => 'punctuated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'puso',
@@ -18185,6 +20458,7 @@ $VAR1 = [
             'term' => 'puso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pyongyang',
@@ -18193,6 +20467,7 @@ $VAR1 = [
             'term' => 'pyongyang'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quand',
@@ -18201,6 +20476,7 @@ $VAR1 = [
             'term' => 'quand'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quando',
@@ -18209,6 +20485,7 @@ $VAR1 = [
             'term' => 'quando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => "qu\x{e9}",
@@ -18217,6 +20494,7 @@ $VAR1 = [
             'term' => "qu\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quel',
@@ -18225,6 +20503,7 @@ $VAR1 = [
             'term' => 'quel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'querendo',
@@ -18233,6 +20512,7 @@ $VAR1 = [
             'term' => 'querendo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quest',
@@ -18241,6 +20521,7 @@ $VAR1 = [
             'term' => 'quest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "quest\x{e3}o",
@@ -18249,6 +20530,7 @@ $VAR1 = [
             'term' => "quest\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'questionn',
@@ -18257,6 +20539,7 @@ $VAR1 = [
             'term' => 'questionnements'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'qui',
@@ -18265,6 +20548,7 @@ $VAR1 = [
             'term' => 'qui'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quien',
@@ -18273,6 +20557,7 @@ $VAR1 = [
             'term' => 'quien'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'qu\'il',
@@ -18281,6 +20566,7 @@ $VAR1 = [
             'term' => 'qu\'il'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quo',
@@ -18289,6 +20575,7 @@ $VAR1 = [
             'term' => 'quo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'qu\'on',
@@ -18297,6 +20584,7 @@ $VAR1 = [
             'term' => 'qu\'on'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quotat',
@@ -18305,6 +20593,7 @@ $VAR1 = [
             'term' => 'quotations'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quotat',
@@ -18313,6 +20602,7 @@ $VAR1 = [
             'term' => 'quotations'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quran',
@@ -18321,6 +20611,7 @@ $VAR1 = [
             'term' => 'quran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'quran',
@@ -18329,6 +20620,7 @@ $VAR1 = [
             'term' => 'quran'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rabat',
@@ -18337,6 +20629,7 @@ $VAR1 = [
             'term' => 'rabat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rabat',
@@ -18345,6 +20638,7 @@ $VAR1 = [
             'term' => 'rabat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'racism',
@@ -18353,6 +20647,7 @@ $VAR1 = [
             'term' => 'racism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'radic',
@@ -18361,6 +20656,7 @@ $VAR1 = [
             'term' => 'radical'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rag',
@@ -18369,6 +20665,7 @@ $VAR1 = [
             'term' => 'rag'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'railway',
@@ -18377,6 +20674,7 @@ $VAR1 = [
             'term' => 'railway'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rajapur',
@@ -18385,6 +20683,7 @@ $VAR1 = [
             'term' => 'rajapur'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rajasthan',
@@ -18393,6 +20692,7 @@ $VAR1 = [
             'term' => 'rajasthan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 8,
             'stem' => 'rajput',
@@ -18401,6 +20701,7 @@ $VAR1 = [
             'term' => 'rajput'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'random',
@@ -18409,6 +20710,7 @@ $VAR1 = [
             'term' => 'randomly'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rape',
@@ -18417,6 +20719,7 @@ $VAR1 = [
             'term' => 'rape'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rappell',
@@ -18425,6 +20728,7 @@ $VAR1 = [
             'term' => 'rappelle'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ratifi',
@@ -18433,6 +20737,7 @@ $VAR1 = [
             'term' => 'ratified'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "ratific\x{f3}",
@@ -18441,6 +20746,7 @@ $VAR1 = [
             'term' => "ratific\x{f3}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "raz\x{f3}n",
@@ -18449,6 +20755,7 @@ $VAR1 = [
             'term' => "raz\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'react',
@@ -18457,6 +20764,7 @@ $VAR1 = [
             'term' => 'reacted'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'reassur',
@@ -18465,6 +20773,7 @@ $VAR1 = [
             'term' => 'reassure'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rebecca',
@@ -18473,6 +20782,7 @@ $VAR1 = [
             'term' => 'rebecca'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rechazada',
@@ -18481,6 +20791,7 @@ $VAR1 = [
             'term' => 'rechazadas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "r\x{e9}clame",
@@ -18489,6 +20800,7 @@ $VAR1 = [
             'term' => "r\x{e9}clame"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'recognit',
@@ -18497,6 +20809,7 @@ $VAR1 = [
             'term' => 'recognition'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rede',
@@ -18505,6 +20818,7 @@ $VAR1 = [
             'term' => 'rede'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "redemocratiza\x{e7}\x{e3}o",
@@ -18513,6 +20827,7 @@ $VAR1 = [
             'term' => "redemocratiza\x{e7}\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'redonn',
@@ -18521,6 +20836,7 @@ $VAR1 = [
             'term' => 'redonner'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'reformist',
@@ -18529,6 +20845,7 @@ $VAR1 = [
             'term' => 'reformist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'regardless',
@@ -18537,6 +20854,7 @@ $VAR1 = [
             'term' => 'regardless'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'regla',
@@ -18545,6 +20863,7 @@ $VAR1 = [
             'term' => 'reglas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "r\x{e8}gles",
@@ -18553,6 +20872,7 @@ $VAR1 = [
             'term' => "r\x{e8}gles"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'reli',
@@ -18561,6 +20881,7 @@ $VAR1 = [
             'term' => 'relies'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'remis',
@@ -18569,6 +20890,7 @@ $VAR1 = [
             'term' => 'remise'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "rend\x{f3}n",
@@ -18577,6 +20899,7 @@ $VAR1 = [
             'term' => "rend\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'repent',
@@ -18585,6 +20908,7 @@ $VAR1 = [
             'term' => 'repente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'repentino',
@@ -18593,6 +20917,7 @@ $VAR1 = [
             'term' => 'repentino'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'repercuss',
@@ -18601,6 +20926,7 @@ $VAR1 = [
             'term' => 'repercussions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "repr\x{e9}sent",
@@ -18609,6 +20935,7 @@ $VAR1 = [
             'term' => "repr\x{e9}senter"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "repress\x{e3}o",
@@ -18617,6 +20944,7 @@ $VAR1 = [
             'term' => "repress\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "r\x{e9}publiqu",
@@ -18625,6 +20953,7 @@ $VAR1 = [
             'term' => "r\x{e9}publique"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rescu',
@@ -18633,6 +20962,7 @@ $VAR1 = [
             'term' => 'rescue'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "respect\x{e9}",
@@ -18641,6 +20971,7 @@ $VAR1 = [
             'term' => "respect\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'respecto',
@@ -18649,6 +20980,7 @@ $VAR1 = [
             'term' => 'respecto'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'respetar',
@@ -18657,6 +20989,7 @@ $VAR1 = [
             'term' => 'respetar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'respeten',
@@ -18665,6 +20998,7 @@ $VAR1 = [
             'term' => 'respeten'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'respir',
@@ -18673,6 +21007,7 @@ $VAR1 = [
             'term' => 'respirer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rester',
@@ -18681,6 +21016,7 @@ $VAR1 = [
             'term' => 'rester'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'retreat',
@@ -18689,6 +21025,7 @@ $VAR1 = [
             'term' => 'retreat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'retrouvera',
@@ -18697,6 +21034,7 @@ $VAR1 = [
             'term' => 'retrouvera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'reunit',
@@ -18705,6 +21043,7 @@ $VAR1 = [
             'term' => 'reunited'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'reviv',
@@ -18713,6 +21052,7 @@ $VAR1 = [
             'term' => 'revive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'revolv',
@@ -18721,6 +21061,7 @@ $VAR1 = [
             'term' => 'revolving'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rican',
@@ -18729,6 +21070,7 @@ $VAR1 = [
             'term' => 'rican'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'richard',
@@ -18737,6 +21079,7 @@ $VAR1 = [
             'term' => 'richard'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'richardson',
@@ -18745,6 +21088,7 @@ $VAR1 = [
             'term' => 'richardson'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'riddanc',
@@ -18753,6 +21097,7 @@ $VAR1 = [
             'term' => 'riddance'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rien',
@@ -18761,6 +21106,7 @@ $VAR1 = [
             'term' => 'rien'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rim',
@@ -18769,6 +21115,7 @@ $VAR1 = [
             'term' => 'rim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rio',
@@ -18777,6 +21124,7 @@ $VAR1 = [
             'term' => 'rio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'risa',
@@ -18785,6 +21133,7 @@ $VAR1 = [
             'term' => 'risa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'roadblock',
@@ -18793,6 +21142,7 @@ $VAR1 = [
             'term' => 'roadblocks'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'robert',
@@ -18801,6 +21151,7 @@ $VAR1 = [
             'term' => 'robert'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rod',
@@ -18809,6 +21160,7 @@ $VAR1 = [
             'term' => 'rod'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rodrigu',
@@ -18817,6 +21169,7 @@ $VAR1 = [
             'term' => 'rodrigue'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rohit',
@@ -18825,6 +21178,7 @@ $VAR1 = [
             'term' => 'rohit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'romero',
@@ -18833,6 +21187,7 @@ $VAR1 = [
             'term' => 'romero'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'royal',
@@ -18841,6 +21196,7 @@ $VAR1 = [
             'term' => 'royal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'rpp',
@@ -18849,6 +21205,7 @@ $VAR1 = [
             'term' => 'rpp'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'rsbnet',
@@ -18857,6 +21214,7 @@ $VAR1 = [
             'term' => 'rsbnet'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sabe',
@@ -18865,6 +21223,7 @@ $VAR1 = [
             'term' => 'sabe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 's\'affaiblira',
@@ -18873,6 +21232,7 @@ $VAR1 = [
             'term' => 's\'affaiblira'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'saharan',
@@ -18881,6 +21241,7 @@ $VAR1 = [
             'term' => 'saharan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'saia',
@@ -18889,6 +21250,7 @@ $VAR1 = [
             'term' => 'saia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sakhdwipi',
@@ -18897,6 +21259,7 @@ $VAR1 = [
             'term' => 'sakhdwipi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'salutair',
@@ -18905,6 +21268,7 @@ $VAR1 = [
             'term' => 'salutaire'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sam',
@@ -18913,6 +21277,7 @@ $VAR1 = [
             'term' => 'sam'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'samadeu',
@@ -18921,6 +21286,7 @@ $VAR1 = [
             'term' => 'samadeu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'samaj',
@@ -18929,6 +21295,7 @@ $VAR1 = [
             'term' => 'samaj'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'san',
@@ -18937,6 +21304,7 @@ $VAR1 = [
             'term' => 'san'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => "s\x{e3}o",
@@ -18945,6 +21313,7 @@ $VAR1 = [
             'term' => "s\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'saraswat',
@@ -18953,6 +21322,7 @@ $VAR1 = [
             'term' => 'saraswat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'saraswath',
@@ -18961,6 +21331,7 @@ $VAR1 = [
             'term' => 'saraswath'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sarkozi',
@@ -18969,6 +21340,7 @@ $VAR1 = [
             'term' => 'sarkozy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'satisfactorili',
@@ -18977,6 +21349,7 @@ $VAR1 = [
             'term' => 'satisfactorily'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sauf',
@@ -18985,6 +21358,7 @@ $VAR1 = [
             'term' => 'sauf'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "sc\x{e8}ne",
@@ -18993,6 +21367,7 @@ $VAR1 = [
             'term' => "sc\x{e8}ne"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "sch\x{e9}ma",
@@ -19001,6 +21376,7 @@ $VAR1 = [
             'term' => "sch\x{e9}ma"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'scorn',
@@ -19009,6 +21385,7 @@ $VAR1 = [
             'term' => 'scorn'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'scorn',
@@ -19017,6 +21394,7 @@ $VAR1 = [
             'term' => 'scorned'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'scumbag',
@@ -19025,6 +21403,7 @@ $VAR1 = [
             'term' => 'scumbag'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sebaspac',
@@ -19033,6 +21412,7 @@ $VAR1 = [
             'term' => 'sebaspace'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sect',
@@ -19041,6 +21421,7 @@ $VAR1 = [
             'term' => 'sects'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sector',
@@ -19049,6 +21430,7 @@ $VAR1 = [
             'term' => 'sector'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'seguir',
@@ -19057,6 +21439,7 @@ $VAR1 = [
             'term' => 'seguir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'segundo',
@@ -19065,6 +21448,7 @@ $VAR1 = [
             'term' => 'segundo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'segurament',
@@ -19073,6 +21457,7 @@ $VAR1 = [
             'term' => 'seguramente'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sek',
@@ -19081,6 +21466,7 @@ $VAR1 = [
             'term' => 'sek'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'semen',
@@ -19089,6 +21475,7 @@ $VAR1 = [
             'term' => 'semen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sena',
@@ -19097,6 +21484,7 @@ $VAR1 = [
             'term' => 'sena'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "s\x{e9}nat",
@@ -19105,6 +21493,7 @@ $VAR1 = [
             'term' => "s\x{e9}nat"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sendero',
@@ -19113,6 +21502,7 @@ $VAR1 = [
             'term' => 'sendero'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'ser',
@@ -19121,6 +21511,7 @@ $VAR1 = [
             'term' => 'ser'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sera',
@@ -19129,6 +21520,7 @@ $VAR1 = [
             'term' => 'sera'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ses',
@@ -19137,6 +21529,7 @@ $VAR1 = [
             'term' => 'ses'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'seus',
@@ -19145,6 +21538,7 @@ $VAR1 = [
             'term' => 'seus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'seventeen',
@@ -19153,6 +21547,7 @@ $VAR1 = [
             'term' => 'seventeen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'shakdwipi',
@@ -19161,6 +21556,7 @@ $VAR1 = [
             'term' => 'shakdwipis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'shakespear',
@@ -19169,6 +21565,7 @@ $VAR1 = [
             'term' => 'shakespeare'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'shakespearean',
@@ -19177,6 +21574,7 @@ $VAR1 = [
             'term' => 'shakespearean'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'shallow',
@@ -19185,6 +21583,7 @@ $VAR1 = [
             'term' => 'shallow'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'shervin',
@@ -19193,6 +21592,7 @@ $VAR1 = [
             'term' => 'shervin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'shiv',
@@ -19201,6 +21601,7 @@ $VAR1 = [
             'term' => 'shiv'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'shival',
@@ -19209,6 +21610,7 @@ $VAR1 = [
             'term' => 'shivalli'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sic',
@@ -19217,6 +21619,7 @@ $VAR1 = [
             'term' => 'sic'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'sido',
@@ -19225,6 +21628,7 @@ $VAR1 = [
             'term' => 'sido'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'signatur',
@@ -19233,6 +21637,7 @@ $VAR1 = [
             'term' => 'signatures'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'significa',
@@ -19241,6 +21646,7 @@ $VAR1 = [
             'term' => 'significa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'silvio',
@@ -19249,6 +21655,7 @@ $VAR1 = [
             'term' => 'silvio'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'simon',
@@ -19257,6 +21664,7 @@ $VAR1 = [
             'term' => 'simon'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "sim\x{f3}n",
@@ -19265,6 +21673,7 @@ $VAR1 = [
             'term' => "sim\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'simultan',
@@ -19273,6 +21682,7 @@ $VAR1 = [
             'term' => 'simultaneous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sincer',
@@ -19281,6 +21691,7 @@ $VAR1 = [
             'term' => 'sincere'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sino',
@@ -19289,6 +21700,7 @@ $VAR1 = [
             'term' => 'sino'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'skeptic',
@@ -19297,6 +21709,7 @@ $VAR1 = [
             'term' => 'skepticism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'skeptic',
@@ -19305,6 +21718,7 @@ $VAR1 = [
             'term' => 'skepticism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'slightest',
@@ -19313,6 +21727,7 @@ $VAR1 = [
             'term' => 'slightest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'slogan',
@@ -19321,6 +21736,7 @@ $VAR1 = [
             'term' => 'slogan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sloppi',
@@ -19329,6 +21745,7 @@ $VAR1 = [
             'term' => 'sloppy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'smal',
@@ -19337,6 +21754,7 @@ $VAR1 = [
             'term' => 'smal'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sms',
@@ -19345,6 +21763,7 @@ $VAR1 = [
             'term' => 'sms'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sms',
@@ -19353,6 +21772,7 @@ $VAR1 = [
             'term' => 'sms'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'sobr',
@@ -19361,6 +21781,7 @@ $VAR1 = [
             'term' => 'sobre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sociologist',
@@ -19369,6 +21790,7 @@ $VAR1 = [
             'term' => 'sociologist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'sodomi',
@@ -19377,6 +21799,7 @@ $VAR1 = [
             'term' => 'sodomy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 23,
             'stem' => 'softwar',
@@ -19385,6 +21808,7 @@ $VAR1 = [
             'term' => 'software'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'solana',
@@ -19393,6 +21817,7 @@ $VAR1 = [
             'term' => 'solana'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'solano',
@@ -19401,6 +21826,7 @@ $VAR1 = [
             'term' => 'solano'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'solidar',
@@ -19409,6 +21835,7 @@ $VAR1 = [
             'term' => 'solidarity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'solitari',
@@ -19417,6 +21844,7 @@ $VAR1 = [
             'term' => 'solitary'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'solo',
@@ -19425,6 +21853,7 @@ $VAR1 = [
             'term' => 'solo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "soluci\x{f3}n",
@@ -19433,6 +21862,7 @@ $VAR1 = [
             'term' => "soluci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sommet',
@@ -19441,6 +21871,7 @@ $VAR1 = [
             'term' => 'sommet'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sont',
@@ -19449,6 +21880,7 @@ $VAR1 = [
             'term' => 'sont'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sordid',
@@ -19457,6 +21889,7 @@ $VAR1 = [
             'term' => 'sordid'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'souhait',
@@ -19465,6 +21898,7 @@ $VAR1 = [
             'term' => 'souhaiter'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'soulag',
@@ -19473,6 +21907,7 @@ $VAR1 = [
             'term' => 'soulagement'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sous',
@@ -19481,6 +21916,7 @@ $VAR1 = [
             'term' => 'sous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'southern',
@@ -19489,6 +21925,7 @@ $VAR1 = [
             'term' => 'southern'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'soviet',
@@ -19497,6 +21934,7 @@ $VAR1 = [
             'term' => 'soviet'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "sovi\x{e9}tico",
@@ -19505,6 +21943,7 @@ $VAR1 = [
             'term' => "sovi\x{e9}tico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'space',
@@ -19513,6 +21952,7 @@ $VAR1 = [
             'term' => 'space'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'spain',
@@ -19521,6 +21961,7 @@ $VAR1 = [
             'term' => 'spain'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'spark',
@@ -19529,6 +21970,7 @@ $VAR1 = [
             'term' => 'sparked'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'spark',
@@ -19537,6 +21979,7 @@ $VAR1 = [
             'term' => 'sparked'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'spectrum',
@@ -19545,6 +21988,7 @@ $VAR1 = [
             'term' => 'spectrum'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'spectrum',
@@ -19553,6 +21997,7 @@ $VAR1 = [
             'term' => 'spectrum'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'specul',
@@ -19561,6 +22006,7 @@ $VAR1 = [
             'term' => 'speculate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'spin',
@@ -19569,6 +22015,7 @@ $VAR1 = [
             'term' => 'spin'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'splinter',
@@ -19577,6 +22024,7 @@ $VAR1 = [
             'term' => 'splintered'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'spoil',
@@ -19585,6 +22033,7 @@ $VAR1 = [
             'term' => 'spoil'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'steinberg',
@@ -19593,6 +22042,7 @@ $VAR1 = [
             'term' => 'steinberg'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'stipul',
@@ -19601,6 +22051,7 @@ $VAR1 = [
             'term' => 'stipulates'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'stir',
@@ -19609,6 +22060,7 @@ $VAR1 = [
             'term' => 'stir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'stolen',
@@ -19617,6 +22069,7 @@ $VAR1 = [
             'term' => 'stolen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'strength',
@@ -19625,6 +22078,7 @@ $VAR1 = [
             'term' => 'strength'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'student',
@@ -19633,6 +22087,7 @@ $VAR1 = [
             'term' => 'students'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'sub',
@@ -19641,6 +22096,7 @@ $VAR1 = [
             'term' => 'sub'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'subsect',
@@ -19649,6 +22105,7 @@ $VAR1 = [
             'term' => 'subsects'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'subsequ',
@@ -19657,6 +22114,7 @@ $VAR1 = [
             'term' => 'subsequent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'subvers',
@@ -19665,6 +22123,7 @@ $VAR1 = [
             'term' => 'subversive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'subway',
@@ -19673,6 +22132,7 @@ $VAR1 = [
             'term' => 'subway'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'suck',
@@ -19681,6 +22141,7 @@ $VAR1 = [
             'term' => 'suck'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sufrido',
@@ -19689,6 +22150,7 @@ $VAR1 = [
             'term' => 'sufrido'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sui',
@@ -19697,6 +22159,7 @@ $VAR1 = [
             'term' => 'suis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 's\'unir',
@@ -19705,6 +22168,7 @@ $VAR1 = [
             'term' => 's\'unir'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'supervisori',
@@ -19713,6 +22177,7 @@ $VAR1 = [
             'term' => 'supervisory'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'supongo',
@@ -19721,6 +22186,7 @@ $VAR1 = [
             'term' => 'supongo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'suppress',
@@ -19729,6 +22195,7 @@ $VAR1 = [
             'term' => 'suppression'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'suprem',
@@ -19737,6 +22204,7 @@ $VAR1 = [
             'term' => 'supreme'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sur',
@@ -19745,6 +22213,7 @@ $VAR1 = [
             'term' => 'sur'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'surgindo',
@@ -19753,6 +22222,7 @@ $VAR1 = [
             'term' => 'surgindo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'surveil',
@@ -19761,6 +22231,7 @@ $VAR1 = [
             'term' => 'surveillance'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'sus',
@@ -19769,6 +22240,7 @@ $VAR1 = [
             'term' => 'sus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'suspens',
@@ -19777,6 +22249,7 @@ $VAR1 = [
             'term' => 'suspension'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'sway',
@@ -19785,6 +22258,7 @@ $VAR1 = [
             'term' => 'sway'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'symptom',
@@ -19793,6 +22267,7 @@ $VAR1 = [
             'term' => 'symptoms'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "syst\x{e8}m",
@@ -19801,6 +22276,7 @@ $VAR1 = [
             'term' => "syst\x{e8}me"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tabloid',
@@ -19809,6 +22285,7 @@ $VAR1 = [
             'term' => 'tabloid'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'taboo',
@@ -19817,6 +22294,7 @@ $VAR1 = [
             'term' => 'taboo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 't\'accapar',
@@ -19825,6 +22303,7 @@ $VAR1 = [
             'term' => 't\'accapare'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tahkim',
@@ -19833,6 +22312,7 @@ $VAR1 = [
             'term' => 'tahkim'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tahrimen',
@@ -19841,6 +22321,7 @@ $VAR1 = [
             'term' => 'tahrimen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "tambi\x{e9}n",
@@ -19849,6 +22330,7 @@ $VAR1 = [
             'term' => "tambi\x{e9}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tamper',
@@ -19857,6 +22339,7 @@ $VAR1 = [
             'term' => 'tamper'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tanta',
@@ -19865,6 +22348,7 @@ $VAR1 = [
             'term' => 'tantas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tao',
@@ -19873,6 +22357,7 @@ $VAR1 = [
             'term' => 'tao'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'tax',
@@ -19881,6 +22366,7 @@ $VAR1 = [
             'term' => 'tax'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'taxpay',
@@ -19889,6 +22375,7 @@ $VAR1 = [
             'term' => 'taxpayer'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'teach',
@@ -19897,6 +22384,7 @@ $VAR1 = [
             'term' => 'teach'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'teach',
@@ -19905,6 +22393,7 @@ $VAR1 = [
             'term' => 'teach'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'teacher',
@@ -19913,6 +22402,7 @@ $VAR1 = [
             'term' => 'teacher'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tel',
@@ -19921,6 +22411,7 @@ $VAR1 = [
             'term' => 'tel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'tema',
@@ -19929,6 +22420,7 @@ $VAR1 = [
             'term' => 'tema'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'temp',
@@ -19937,6 +22429,7 @@ $VAR1 = [
             'term' => 'temps'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "tendr\x{ed}an",
@@ -19945,6 +22438,7 @@ $VAR1 = [
             'term' => "tendr\x{ed}an"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tengan',
@@ -19953,6 +22447,7 @@ $VAR1 = [
             'term' => 'tengan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tenta',
@@ -19961,6 +22456,7 @@ $VAR1 = [
             'term' => 'tenta'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tentando',
@@ -19969,6 +22465,7 @@ $VAR1 = [
             'term' => 'tentando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'tentativa',
@@ -19977,6 +22474,7 @@ $VAR1 = [
             'term' => 'tentativa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'terr',
@@ -19985,6 +22483,7 @@ $VAR1 = [
             'term' => 'terre'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "t\x{e9}trico",
@@ -19993,6 +22492,7 @@ $VAR1 = [
             'term' => "t\x{e9}trico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'thakeray',
@@ -20001,6 +22501,7 @@ $VAR1 = [
             'term' => 'thakeray'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'thambraa',
@@ -20009,6 +22510,7 @@ $VAR1 = [
             'term' => 'thambraas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'thamizhnadu',
@@ -20017,6 +22519,7 @@ $VAR1 = [
             'term' => 'thamizhnadu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "th\x{e9}ophil",
@@ -20025,6 +22528,7 @@ $VAR1 = [
             'term' => "th\x{e9}ophile"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'thread',
@@ -20033,6 +22537,7 @@ $VAR1 = [
             'term' => 'threads'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'thumbnail',
@@ -20041,6 +22546,7 @@ $VAR1 = [
             'term' => 'thumbnail'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tiananmen',
@@ -20049,6 +22555,7 @@ $VAR1 = [
             'term' => 'tiananmen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tiempo',
@@ -20057,6 +22564,7 @@ $VAR1 = [
             'term' => 'tiempo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tinshiuwai',
@@ -20065,6 +22573,7 @@ $VAR1 = [
             'term' => 'tinshiuwai'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'titan',
@@ -20073,6 +22582,7 @@ $VAR1 = [
             'term' => 'titan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'toda',
@@ -20081,6 +22591,7 @@ $VAR1 = [
             'term' => 'toda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'todo',
@@ -20089,6 +22600,7 @@ $VAR1 = [
             'term' => 'todo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => 'togo',
@@ -20097,6 +22609,7 @@ $VAR1 = [
             'term' => 'togo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'togolais',
@@ -20105,6 +22618,7 @@ $VAR1 = [
             'term' => 'togolaise'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'togoles',
@@ -20113,6 +22627,7 @@ $VAR1 = [
             'term' => 'togolese'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "tomar\x{e1}",
@@ -20121,6 +22636,7 @@ $VAR1 = [
             'term' => "tomar\x{e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'topic',
@@ -20129,6 +22645,7 @@ $VAR1 = [
             'term' => 'topics'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'totalfinaelf',
@@ -20137,6 +22654,7 @@ $VAR1 = [
             'term' => 'totalfinaelf'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 't\'oublit',
@@ -20145,6 +22663,7 @@ $VAR1 = [
             'term' => 't\'oublit'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'toughest',
@@ -20153,6 +22672,7 @@ $VAR1 = [
             'term' => 'toughest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tous',
@@ -20161,6 +22681,7 @@ $VAR1 = [
             'term' => 'tous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'tout',
@@ -20169,6 +22690,7 @@ $VAR1 = [
             'term' => 'tout'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'transgend',
@@ -20177,6 +22699,7 @@ $VAR1 = [
             'term' => 'transgender'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'transgend',
@@ -20185,6 +22708,7 @@ $VAR1 = [
             'term' => 'transgender'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "transmiss\x{e3}o",
@@ -20193,6 +22717,7 @@ $VAR1 = [
             'term' => "transmiss\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tratado',
@@ -20201,6 +22726,7 @@ $VAR1 = [
             'term' => 'tratados'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'treati',
@@ -20209,6 +22735,7 @@ $VAR1 = [
             'term' => 'treaties'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "tr\x{ea}s",
@@ -20217,6 +22744,7 @@ $VAR1 = [
             'term' => "tr\x{ea}s"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'tribal',
@@ -20225,6 +22753,7 @@ $VAR1 = [
             'term' => 'tribals'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'trickeri',
@@ -20233,6 +22762,7 @@ $VAR1 = [
             'term' => 'trickery'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'troll',
@@ -20241,6 +22771,7 @@ $VAR1 = [
             'term' => 'troll'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'trop',
@@ -20249,6 +22780,7 @@ $VAR1 = [
             'term' => 'trop'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'true',
@@ -20257,6 +22789,7 @@ $VAR1 = [
             'term' => 'true'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'tvb',
@@ -20265,6 +22798,7 @@ $VAR1 = [
             'term' => 'tvb'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tweet',
@@ -20273,6 +22807,7 @@ $VAR1 = [
             'term' => 'tweets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tweet',
@@ -20281,6 +22816,7 @@ $VAR1 = [
             'term' => 'tweets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'tweeter',
@@ -20289,6 +22825,7 @@ $VAR1 = [
             'term' => 'tweeters'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'twitter',
@@ -20297,6 +22834,7 @@ $VAR1 = [
             'term' => 'twitter'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'typifi',
@@ -20305,6 +22843,7 @@ $VAR1 = [
             'term' => 'typify'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'uganda',
@@ -20313,6 +22852,7 @@ $VAR1 = [
             'term' => 'uganda'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'ugandan',
@@ -20321,6 +22861,7 @@ $VAR1 = [
             'term' => 'ugandan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{fa}ltima",
@@ -20329,6 +22870,7 @@ $VAR1 = [
             'term' => "\x{fa}ltima"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'uma',
@@ -20337,6 +22879,7 @@ $VAR1 = [
             'term' => 'uma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'una',
@@ -20345,6 +22888,7 @@ $VAR1 = [
             'term' => 'una'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unafrican',
@@ -20353,6 +22897,7 @@ $VAR1 = [
             'term' => 'unafrican'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'uncertainti',
@@ -20361,6 +22906,7 @@ $VAR1 = [
             'term' => 'uncertainty'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unclear',
@@ -20369,6 +22915,7 @@ $VAR1 = [
             'term' => 'unclear'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'unconstitut',
@@ -20377,6 +22924,7 @@ $VAR1 = [
             'term' => 'unconstitutional'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'underway',
@@ -20385,6 +22933,7 @@ $VAR1 = [
             'term' => 'underway'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'une',
@@ -20393,6 +22942,7 @@ $VAR1 = [
             'term' => 'une'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unequivoc',
@@ -20401,6 +22951,7 @@ $VAR1 = [
             'term' => 'unequivocally'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unfathom',
@@ -20409,6 +22960,7 @@ $VAR1 = [
             'term' => 'unfathomable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'uni',
@@ -20417,6 +22969,7 @@ $VAR1 = [
             'term' => 'unie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{fa}nico",
@@ -20425,6 +22978,7 @@ $VAR1 = [
             'term' => "\x{fa}nico"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "universit\x{e9}",
@@ -20433,6 +22987,7 @@ $VAR1 = [
             'term' => "universit\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unreason',
@@ -20441,6 +22996,7 @@ $VAR1 = [
             'term' => 'unreasonable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unreli',
@@ -20449,6 +23005,7 @@ $VAR1 = [
             'term' => 'unreliable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unspecifi',
@@ -20457,6 +23014,7 @@ $VAR1 = [
             'term' => 'unspecified'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unthink',
@@ -20465,6 +23023,7 @@ $VAR1 = [
             'term' => 'unthinkable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'unti',
@@ -20473,6 +23032,7 @@ $VAR1 = [
             'term' => 'untie'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'upgrad',
@@ -20481,6 +23041,7 @@ $VAR1 = [
             'term' => 'upgrading'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'uphold',
@@ -20489,6 +23050,7 @@ $VAR1 = [
             'term' => 'uphold'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'uptak',
@@ -20497,6 +23059,7 @@ $VAR1 = [
             'term' => 'uptake'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'usa',
@@ -20505,6 +23068,7 @@ $VAR1 = [
             'term' => 'usa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'usag',
@@ -20513,6 +23077,7 @@ $VAR1 = [
             'term' => 'usage'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'usando',
@@ -20521,6 +23086,7 @@ $VAR1 = [
             'term' => 'usando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'usaram',
@@ -20529,6 +23095,7 @@ $VAR1 = [
             'term' => 'usaram'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'uterus',
@@ -20537,6 +23104,7 @@ $VAR1 = [
             'term' => 'uterus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'uttermost',
@@ -20545,6 +23113,7 @@ $VAR1 = [
             'term' => 'uttermost'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vahdat',
@@ -20553,6 +23122,7 @@ $VAR1 = [
             'term' => 'vahdat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'valen',
@@ -20561,6 +23131,7 @@ $VAR1 = [
             'term' => 'valen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'valu',
@@ -20569,6 +23140,7 @@ $VAR1 = [
             'term' => 'values'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vamo',
@@ -20577,6 +23149,7 @@ $VAR1 = [
             'term' => 'vamos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'vampir',
@@ -20585,6 +23158,7 @@ $VAR1 = [
             'term' => 'vampires'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vario',
@@ -20593,6 +23167,7 @@ $VAR1 = [
             'term' => 'varios'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vecino',
@@ -20601,6 +23176,7 @@ $VAR1 = [
             'term' => 'vecino'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vegetarian',
@@ -20609,6 +23185,7 @@ $VAR1 = [
             'term' => 'vegetarians'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vegonzoso',
@@ -20617,6 +23194,7 @@ $VAR1 = [
             'term' => 'vegonzoso'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'venezuela',
@@ -20625,6 +23203,7 @@ $VAR1 = [
             'term' => 'venezuela'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ver',
@@ -20633,6 +23212,7 @@ $VAR1 = [
             'term' => 'vers'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'verdict',
@@ -20641,6 +23221,7 @@ $VAR1 = [
             'term' => 'verdict'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'verset',
@@ -20649,6 +23230,7 @@ $VAR1 = [
             'term' => 'versets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'verset',
@@ -20657,6 +23239,7 @@ $VAR1 = [
             'term' => 'versets'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vest',
@@ -20665,6 +23248,7 @@ $VAR1 = [
             'term' => 'vested'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vest',
@@ -20673,6 +23257,7 @@ $VAR1 = [
             'term' => 'vested'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'vez',
@@ -20681,6 +23266,7 @@ $VAR1 = [
             'term' => 'vez'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'victim',
@@ -20689,6 +23275,7 @@ $VAR1 = [
             'term' => 'victims'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'victoria',
@@ -20697,6 +23284,7 @@ $VAR1 = [
             'term' => 'victoria'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vien',
@@ -20705,6 +23293,7 @@ $VAR1 = [
             'term' => 'viene'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vieux',
@@ -20713,6 +23302,7 @@ $VAR1 = [
             'term' => 'vieux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'viewership',
@@ -20721,6 +23311,7 @@ $VAR1 = [
             'term' => 'viewership'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 7,
             'stem' => 'vigil',
@@ -20729,6 +23320,7 @@ $VAR1 = [
             'term' => 'vigil'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'vigilant',
@@ -20737,6 +23329,7 @@ $VAR1 = [
             'term' => 'vigilantism'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'vigilantismo',
@@ -20745,6 +23338,7 @@ $VAR1 = [
             'term' => 'vigilantismo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vile',
@@ -20753,6 +23347,7 @@ $VAR1 = [
             'term' => 'vile'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'vindic',
@@ -20761,6 +23356,7 @@ $VAR1 = [
             'term' => 'vindication'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'viol',
@@ -20769,6 +23365,7 @@ $VAR1 = [
             'term' => 'viol'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "violaci\x{f3}n",
@@ -20777,6 +23374,7 @@ $VAR1 = [
             'term' => "violaci\x{f3}n"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'violando',
@@ -20785,6 +23383,7 @@ $VAR1 = [
             'term' => 'violando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'violat',
@@ -20793,6 +23392,7 @@ $VAR1 = [
             'term' => 'violation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'violenc',
@@ -20801,6 +23401,7 @@ $VAR1 = [
             'term' => 'violences'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'violent',
@@ -20809,6 +23410,7 @@ $VAR1 = [
             'term' => 'violent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'viva',
@@ -20817,6 +23419,7 @@ $VAR1 = [
             'term' => 'vivas'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "volver\x{e1}",
@@ -20825,6 +23428,7 @@ $VAR1 = [
             'term' => "volver\x{e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'voulaient',
@@ -20833,6 +23437,7 @@ $VAR1 = [
             'term' => 'voulaient'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'vraiment',
@@ -20841,6 +23446,7 @@ $VAR1 = [
             'term' => 'vraiment'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'vulgar',
@@ -20849,6 +23455,7 @@ $VAR1 = [
             'term' => 'vulgarity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'wai',
@@ -20857,6 +23464,7 @@ $VAR1 = [
             'term' => 'wai'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'wander',
@@ -20865,6 +23473,7 @@ $VAR1 = [
             'term' => 'wandered'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'wang',
@@ -20873,6 +23482,7 @@ $VAR1 = [
             'term' => 'wang'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'war',
@@ -20881,6 +23491,7 @@ $VAR1 = [
             'term' => 'war'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'war',
@@ -20889,6 +23500,7 @@ $VAR1 = [
             'term' => 'wars'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'weaken',
@@ -20897,6 +23509,7 @@ $VAR1 = [
             'term' => 'weaken'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'weaker',
@@ -20905,6 +23518,7 @@ $VAR1 = [
             'term' => 'weaker'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'websit',
@@ -20913,6 +23527,7 @@ $VAR1 = [
             'term' => 'website'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 18,
             'stem' => 'websit',
@@ -20921,6 +23536,7 @@ $VAR1 = [
             'term' => 'websites'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'wei',
@@ -20929,6 +23545,7 @@ $VAR1 = [
             'term' => 'wei'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'wen',
@@ -20937,6 +23554,7 @@ $VAR1 = [
             'term' => 'wen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'western',
@@ -20945,6 +23563,7 @@ $VAR1 = [
             'term' => 'western'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'whenev',
@@ -20953,6 +23572,7 @@ $VAR1 = [
             'term' => 'whenever'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'whilst',
@@ -20961,6 +23581,7 @@ $VAR1 = [
             'term' => 'whilst'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'whilst',
@@ -20969,6 +23590,7 @@ $VAR1 = [
             'term' => 'whilst'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'wiki',
@@ -20977,6 +23599,7 @@ $VAR1 = [
             'term' => 'wiki'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'winner',
@@ -20985,6 +23608,7 @@ $VAR1 = [
             'term' => 'winner'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'witchdoctor',
@@ -20993,6 +23617,7 @@ $VAR1 = [
             'term' => 'witchdoctors'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'wsj',
@@ -21001,6 +23626,7 @@ $VAR1 = [
             'term' => 'wsj'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'yadav',
@@ -21009,6 +23635,7 @@ $VAR1 = [
             'term' => 'yadavs'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'y\'avait',
@@ -21017,6 +23644,7 @@ $VAR1 = [
             'term' => 'y\'avait'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'yearn',
@@ -21025,6 +23653,7 @@ $VAR1 = [
             'term' => 'yearnings'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'yearn',
@@ -21033,6 +23662,7 @@ $VAR1 = [
             'term' => 'yearnings'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'yeux',
@@ -21041,6 +23671,7 @@ $VAR1 = [
             'term' => 'yeux'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'youth',
@@ -21049,6 +23680,7 @@ $VAR1 = [
             'term' => 'youth'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'youtub',
@@ -21057,6 +23689,7 @@ $VAR1 = [
             'term' => 'youtube'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'yuan',
@@ -21065,6 +23698,7 @@ $VAR1 = [
             'term' => 'yuans'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'yuen',
@@ -21073,6 +23707,7 @@ $VAR1 = [
             'term' => 'yuen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'zhao',
@@ -21081,6 +23716,7 @@ $VAR1 = [
             'term' => 'zhao'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'zimbabwean',
@@ -21089,6 +23725,7 @@ $VAR1 = [
             'term' => 'zimbabwean'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ziyang',
@@ -21097,6 +23734,7 @@ $VAR1 = [
             'term' => 'ziyang'
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{623}\x{628}\x{62c}\x{62f}\x{64a}\x{627}\x{62a}",
@@ -21105,6 +23743,7 @@ $VAR1 = [
             'term' => "\x{623}\x{628}\x{62c}\x{62f}\x{64a}\x{627}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{64d}\x{630}",
@@ -21113,6 +23752,7 @@ $VAR1 = [
             'term' => "\x{627}\x{64d}\x{630}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{625}\x{630}\x{646}",
@@ -21121,6 +23761,7 @@ $VAR1 = [
             'term' => "\x{625}\x{630}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => "\x{625}\x{644}\x{627}",
@@ -21129,6 +23770,7 @@ $VAR1 = [
             'term' => "\x{625}\x{644}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{622}\x{644}\x{627}\x{645}",
@@ -21137,6 +23779,7 @@ $VAR1 = [
             'term' => "\x{622}\x{644}\x{627}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{622}\x{645}\x{627}\x{644}",
@@ -21145,6 +23788,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{622}\x{645}\x{627}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}",
@@ -21153,6 +23797,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
@@ -21161,6 +23806,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}\x{629}",
@@ -21169,6 +23815,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{623}\x{648}\x{644}",
@@ -21177,6 +23824,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{623}\x{648}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{628}\x{627}\x{631}\x{62f}",
@@ -21185,6 +23833,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{628}\x{627}\x{631}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{628}\x{644}\x{647}\x{649}",
@@ -21193,6 +23842,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{628}\x{644}\x{647}\x{649}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62a}\x{62e}\x{644}\x{635}",
@@ -21201,6 +23851,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62a}\x{62e}\x{644}\x{635}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62a}\x{62e}\x{648}\x{641}",
@@ -21209,6 +23860,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62a}\x{62e}\x{648}\x{641}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}",
@@ -21217,6 +23869,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62a}\x{639}\x{627}\x{645}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "\x{627}\x{644}\x{62a}\x{642}\x{64a}\x{62a}",
@@ -21225,6 +23878,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62a}\x{642}\x{64a}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62b}\x{645}\x{64a}\x{646}",
@@ -21233,6 +23887,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62b}\x{645}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{627}\x{636}\x{631}\x{648}\x{646}",
@@ -21241,6 +23896,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62d}\x{627}\x{636}\x{631}\x{648}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}",
@@ -21249,6 +23905,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}",
@@ -21257,6 +23914,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{631}\x{626}\x{64a}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{634}\x{639}\x{648}\x{628}",
@@ -21265,6 +23923,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{634}\x{639}\x{648}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{637}\x{63a}\x{627}\x{629}",
@@ -21273,6 +23932,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{637}\x{63a}\x{627}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}",
@@ -21281,6 +23941,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{639}\x{627}\x{644}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{639}\x{62f}\x{648}\x{627}\x{646}",
@@ -21289,6 +23950,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{639}\x{62f}\x{648}\x{627}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{639}\x{631}\x{628}",
@@ -21297,6 +23959,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{639}\x{631}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => "\x{627}\x{644}\x{639}\x{631}\x{628}\x{64a}",
@@ -21305,6 +23968,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{639}\x{631}\x{628}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{641}\x{635}\x{644}",
@@ -21313,6 +23977,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{641}\x{635}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{642}\x{637}\x{64a}\x{639}",
@@ -21321,6 +23986,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{642}\x{637}\x{64a}\x{639}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{643}\x{631}\x{64a}\x{645}\x{62a}\x{64a}\x{646}",
@@ -21329,6 +23995,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{643}\x{631}\x{64a}\x{645}\x{62a}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{62a}\x{62d}\x{62f}\x{629}",
@@ -21337,6 +24004,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{62a}\x{62d}\x{62f}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{62a}\x{645}\x{64a}\x{632}\x{629}",
@@ -21345,6 +24013,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{62a}\x{645}\x{64a}\x{632}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{62b}\x{642}\x{641}\x{64a}\x{646}",
@@ -21353,6 +24022,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{62b}\x{642}\x{641}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{631}\x{629}",
@@ -21361,6 +24031,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{631}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{633}\x{631}\x{62d}\x{64a}\x{629}",
@@ -21369,6 +24040,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{633}\x{631}\x{62d}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{648}\x{627}\x{637}\x{646}\x{64a}\x{646}",
@@ -21377,6 +24049,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{648}\x{627}\x{637}\x{646}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{648}\x{62a}",
@@ -21385,6 +24058,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{648}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{64a}\x{627}\x{645}\x{64a}\x{646}",
@@ -21393,6 +24067,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{64a}\x{627}\x{645}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{645}\x{64a}\x{62a}",
@@ -21401,6 +24076,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{645}\x{64a}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{648}\x{627}\x{636}\x{62d}\x{629}",
@@ -21409,6 +24085,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{648}\x{627}\x{636}\x{62d}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{648}\x{644}\x{627}\x{64a}\x{627}\x{62a}",
@@ -21417,6 +24094,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{648}\x{644}\x{627}\x{64a}\x{627}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{625}\x{644}\x{649}",
@@ -21425,6 +24103,7 @@ $VAR1 = [
             'term' => "\x{625}\x{644}\x{649}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{64a}\x{645}\x{648}\x{642}\x{631}\x{627}\x{637}\x{64a}\x{629}",
@@ -21433,6 +24112,7 @@ $VAR1 = [
             'term' => "\x{627}\x{644}\x{64a}\x{645}\x{648}\x{642}\x{631}\x{627}\x{637}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{623}\x{645}\x{64a}\x{62a}\x{647}\x{645}",
@@ -21441,6 +24121,7 @@ $VAR1 = [
             'term' => "\x{623}\x{645}\x{64a}\x{62a}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{623}\x{646}\x{62a}\x{62c}",
@@ -21449,6 +24130,7 @@ $VAR1 = [
             'term' => "\x{623}\x{646}\x{62a}\x{62c}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{623}\x{646}\x{641}\x{627}\x{633}",
@@ -21457,6 +24139,7 @@ $VAR1 = [
             'term' => "\x{623}\x{646}\x{641}\x{627}\x{633}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{623}\x{646}\x{641}\x{627}\x{633}\x{647}\x{627}",
@@ -21465,6 +24148,7 @@ $VAR1 = [
             'term' => "\x{623}\x{646}\x{641}\x{627}\x{633}\x{647}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 5,
             'stem' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}",
@@ -21473,6 +24157,7 @@ $VAR1 = [
             'term' => "\x{623}\x{648}\x{628}\x{627}\x{645}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{623}\x{645}\x{644}",
@@ -21481,6 +24166,7 @@ $VAR1 = [
             'term' => "\x{628}\x{623}\x{645}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{62d}\x{631}\x{627}\x{631}\x{629}",
@@ -21489,6 +24175,7 @@ $VAR1 = [
             'term' => "\x{628}\x{62d}\x{631}\x{627}\x{631}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "\x{628}\x{639}\x{62f}",
@@ -21497,6 +24184,7 @@ $VAR1 = [
             'term' => "\x{628}\x{639}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{639}\x{636}\x{627}",
@@ -21505,6 +24193,7 @@ $VAR1 = [
             'term' => "\x{628}\x{639}\x{636}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{645}\x{646}",
@@ -21513,6 +24202,7 @@ $VAR1 = [
             'term' => "\x{628}\x{645}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{648}\x{634}",
@@ -21521,6 +24211,7 @@ $VAR1 = [
             'term' => "\x{628}\x{648}\x{634}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{64a}\x{62f}\x{64a}\x{647}",
@@ -21529,6 +24220,7 @@ $VAR1 = [
             'term' => "\x{628}\x{64a}\x{62f}\x{64a}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{64a}\x{646}",
@@ -21537,6 +24229,7 @@ $VAR1 = [
             'term' => "\x{628}\x{64a}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{628}\x{64a}\x{646}\x{646}\x{627}",
@@ -21545,6 +24238,7 @@ $VAR1 = [
             'term' => "\x{628}\x{64a}\x{646}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{62a}\x{62d}\x{648}\x{644}",
@@ -21553,6 +24247,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{62a}\x{62d}\x{648}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{631}\x{643}",
@@ -21561,6 +24256,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{631}\x{643}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{639}\x{628}\x{64a}\x{631}",
@@ -21569,6 +24265,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{639}\x{628}\x{64a}\x{631}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{644}\x{62a}\x{642}\x{637}",
@@ -21577,6 +24274,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{644}\x{62a}\x{642}\x{637}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62a}\x{648}\x{641}\x{642}",
@@ -21585,6 +24283,7 @@ $VAR1 = [
             'term' => "\x{62a}\x{648}\x{641}\x{642}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62b}\x{642}\x{627}\x{641}\x{64a}\x{627}",
@@ -21593,6 +24292,7 @@ $VAR1 = [
             'term' => "\x{62b}\x{642}\x{627}\x{641}\x{64a}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62c}\x{627}\x{621}",
@@ -21601,6 +24301,7 @@ $VAR1 = [
             'term' => "\x{62c}\x{627}\x{621}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62c}\x{627}\x{631}\x{62d}",
@@ -21609,6 +24310,7 @@ $VAR1 = [
             'term' => "\x{62c}\x{627}\x{631}\x{62d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62c}\x{632}\x{621}\x{627}",
@@ -21617,6 +24319,7 @@ $VAR1 = [
             'term' => "\x{62c}\x{632}\x{621}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62c}\x{626}\x{62a}",
@@ -21625,6 +24328,7 @@ $VAR1 = [
             'term' => "\x{62c}\x{626}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62d}\x{631}\x{648}\x{628}",
@@ -21633,6 +24337,7 @@ $VAR1 = [
             'term' => "\x{62d}\x{631}\x{648}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{62d}\x{642}\x{62f}\x{627}",
@@ -21641,6 +24346,7 @@ $VAR1 = [
             'term' => "\x{62d}\x{642}\x{62f}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{633}\x{644}\x{641}\x{643}\x{645}",
@@ -21649,6 +24355,7 @@ $VAR1 = [
             'term' => "\x{633}\x{644}\x{641}\x{643}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{633}\x{64a}\x{634}\x{62a}\x{62f}",
@@ -21657,6 +24364,7 @@ $VAR1 = [
             'term' => "\x{633}\x{64a}\x{634}\x{62a}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{635}\x{646}\x{639}",
@@ -21665,6 +24373,7 @@ $VAR1 = [
             'term' => "\x{635}\x{646}\x{639}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{639}\x{642}\x{62f}\x{629}",
@@ -21673,6 +24382,7 @@ $VAR1 = [
             'term' => "\x{639}\x{642}\x{62f}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{639}\x{644}\x{64a}\x{647}\x{627}",
@@ -21681,6 +24391,7 @@ $VAR1 = [
             'term' => "\x{639}\x{644}\x{64a}\x{647}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{639}\x{645}\x{64a}\x{642}",
@@ -21689,6 +24400,7 @@ $VAR1 = [
             'term' => "\x{639}\x{645}\x{64a}\x{642}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{639}\x{646}\x{62f}\x{647}\x{645}",
@@ -21697,6 +24409,7 @@ $VAR1 = [
             'term' => "\x{639}\x{646}\x{62f}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{639}\x{646}\x{647}\x{645}",
@@ -21705,6 +24418,7 @@ $VAR1 = [
             'term' => "\x{639}\x{646}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{63a}\x{636}\x{628}\x{627}",
@@ -21713,6 +24427,7 @@ $VAR1 = [
             'term' => "\x{63a}\x{636}\x{628}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{641}\x{631}\x{635}\x{629}",
@@ -21721,6 +24436,7 @@ $VAR1 = [
             'term' => "\x{641}\x{631}\x{635}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{641}\x{633}\x{623}\x{637}\x{644}\x{628}",
@@ -21729,6 +24445,7 @@ $VAR1 = [
             'term' => "\x{641}\x{633}\x{623}\x{637}\x{644}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{641}\x{626}\x{629}",
@@ -21737,6 +24454,7 @@ $VAR1 = [
             'term' => "\x{641}\x{626}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{641}\x{64a}\x{646}\x{627}",
@@ -21745,6 +24463,7 @@ $VAR1 = [
             'term' => "\x{641}\x{64a}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{641}\x{64a}\x{647}\x{645}",
@@ -21753,6 +24472,7 @@ $VAR1 = [
             'term' => "\x{641}\x{64a}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{642}\x{628}\x{644}\x{629}",
@@ -21761,6 +24481,7 @@ $VAR1 = [
             'term' => "\x{642}\x{628}\x{644}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{642}\x{648}\x{645}",
@@ -21769,6 +24490,7 @@ $VAR1 = [
             'term' => "\x{642}\x{648}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{643}\x{631}\x{647}\x{627}",
@@ -21777,6 +24499,7 @@ $VAR1 = [
             'term' => "\x{643}\x{631}\x{647}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{643}\x{645}\x{627}",
@@ -21785,6 +24508,7 @@ $VAR1 = [
             'term' => "\x{643}\x{645}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{643}\x{64a}\x{641}\x{64a}\x{629}",
@@ -21793,6 +24517,7 @@ $VAR1 = [
             'term' => "\x{643}\x{64a}\x{641}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{627}",
@@ -21801,6 +24526,7 @@ $VAR1 = [
             'term' => "\x{644}\x{623}\x{645}\x{631}\x{64a}\x{643}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{62d}\x{638}\x{627}\x{62a}",
@@ -21809,6 +24535,7 @@ $VAR1 = [
             'term' => "\x{644}\x{62d}\x{638}\x{627}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{62d}\x{638}\x{629}",
@@ -21817,6 +24544,7 @@ $VAR1 = [
             'term' => "\x{644}\x{62d}\x{638}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{62d}\x{643}\x{627}\x{645}\x{646}\x{627}",
@@ -21825,6 +24553,7 @@ $VAR1 = [
             'term' => "\x{644}\x{62d}\x{643}\x{627}\x{645}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{642}\x{644}\x{62a}",
@@ -21833,6 +24562,7 @@ $VAR1 = [
             'term' => "\x{644}\x{642}\x{644}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{643}\x{644}",
@@ -21841,6 +24571,7 @@ $VAR1 = [
             'term' => "\x{644}\x{643}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{646}\x{627}",
@@ -21849,6 +24580,7 @@ $VAR1 = [
             'term' => "\x{644}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{647}\x{627}",
@@ -21857,6 +24589,7 @@ $VAR1 = [
             'term' => "\x{644}\x{647}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{648}\x{62d}",
@@ -21865,6 +24598,7 @@ $VAR1 = [
             'term' => "\x{644}\x{648}\x{62d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{64a}\x{642}\x{628}\x{644}",
@@ -21873,6 +24607,7 @@ $VAR1 = [
             'term' => "\x{644}\x{64a}\x{642}\x{628}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{644}\x{64a}\x{645}\x{62d}\x{648}",
@@ -21881,6 +24616,7 @@ $VAR1 = [
             'term' => "\x{644}\x{64a}\x{645}\x{62d}\x{648}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{645}\x{62a}\x{62a}\x{627}\x{644}\x{64a}\x{629}",
@@ -21889,6 +24625,7 @@ $VAR1 = [
             'term' => "\x{645}\x{62a}\x{62a}\x{627}\x{644}\x{64a}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{645}\x{62a}\x{635}\x{627}\x{639}\x{62f}\x{627}",
@@ -21897,6 +24634,7 @@ $VAR1 = [
             'term' => "\x{645}\x{62a}\x{635}\x{627}\x{639}\x{62f}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{645}\x{631}\x{62d}\x{644}\x{629}",
@@ -21905,6 +24643,7 @@ $VAR1 = [
             'term' => "\x{645}\x{631}\x{62d}\x{644}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{645}\x{644}\x{648}\x{643}\x{646}\x{627}",
@@ -21913,6 +24652,7 @@ $VAR1 = [
             'term' => "\x{645}\x{644}\x{648}\x{643}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{645}\x{646}\x{647}",
@@ -21921,6 +24661,7 @@ $VAR1 = [
             'term' => "\x{645}\x{646}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{646}\x{641}\x{627}\x{642}\x{647}\x{645}",
@@ -21929,6 +24670,7 @@ $VAR1 = [
             'term' => "\x{646}\x{641}\x{627}\x{642}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{623}\x{62e}\x{631}\x{649}",
@@ -21937,6 +24679,7 @@ $VAR1 = [
             'term' => "\x{648}\x{623}\x{62e}\x{631}\x{649}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{623}\x{637}\x{644}\x{642}\x{62a}",
@@ -21945,6 +24688,7 @@ $VAR1 = [
             'term' => "\x{648}\x{623}\x{637}\x{644}\x{642}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}",
@@ -21953,6 +24697,7 @@ $VAR1 = [
             'term' => "\x{648}\x{627}\x{644}\x{62d}\x{642}\x{64a}\x{642}\x{629}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{639}\x{631}\x{628}",
@@ -21961,6 +24706,7 @@ $VAR1 = [
             'term' => "\x{648}\x{627}\x{644}\x{639}\x{631}\x{628}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{644}\x{645}\x{648}\x{646}",
@@ -21969,6 +24715,7 @@ $VAR1 = [
             'term' => "\x{648}\x{627}\x{644}\x{645}\x{633}\x{644}\x{645}\x{648}\x{646}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{627}\x{646}\x{62a}",
@@ -21977,6 +24724,7 @@ $VAR1 = [
             'term' => "\x{648}\x{627}\x{646}\x{62a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{62c}\x{628}\x{627}\x{628}\x{631}\x{62a}\x{646}\x{627}",
@@ -21985,6 +24733,7 @@ $VAR1 = [
             'term' => "\x{648}\x{62c}\x{628}\x{627}\x{628}\x{631}\x{62a}\x{646}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{62d}\x{636}\x{627}\x{631}\x{64a}\x{627}",
@@ -21993,6 +24742,7 @@ $VAR1 = [
             'term' => "\x{648}\x{62d}\x{636}\x{627}\x{631}\x{64a}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{62f}\x{64a}\x{646}\x{64a}\x{627}",
@@ -22001,6 +24751,7 @@ $VAR1 = [
             'term' => "\x{648}\x{62f}\x{64a}\x{646}\x{64a}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{633}\x{64a}\x{627}\x{633}\x{64a}\x{627}",
@@ -22009,6 +24760,7 @@ $VAR1 = [
             'term' => "\x{648}\x{633}\x{64a}\x{627}\x{633}\x{64a}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{635}\x{641}\x{642}",
@@ -22017,6 +24769,7 @@ $VAR1 = [
             'term' => "\x{648}\x{635}\x{641}\x{642}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{639}\x{62f}\x{627}",
@@ -22025,6 +24778,7 @@ $VAR1 = [
             'term' => "\x{648}\x{639}\x{62f}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{642}\x{62a}\x{647}",
@@ -22033,6 +24787,7 @@ $VAR1 = [
             'term' => "\x{648}\x{642}\x{62a}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{644}\x{64a}\x{639}\x{644}\x{645}\x{647}\x{645}",
@@ -22041,6 +24796,7 @@ $VAR1 = [
             'term' => "\x{648}\x{644}\x{64a}\x{639}\x{644}\x{645}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{644}\x{64a}\x{644}\x{642}\x{646}\x{647}\x{645}",
@@ -22049,6 +24805,7 @@ $VAR1 = [
             'term' => "\x{648}\x{644}\x{64a}\x{644}\x{642}\x{646}\x{647}\x{645}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{648}\x{644}\x{64a}\x{646}\x{62a}\x{647}\x{64a}",
@@ -22057,6 +24814,7 @@ $VAR1 = [
             'term' => "\x{648}\x{644}\x{64a}\x{646}\x{62a}\x{647}\x{64a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "\x{648}\x{645}\x{627}",
@@ -22065,6 +24823,7 @@ $VAR1 = [
             'term' => "\x{648}\x{645}\x{627}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{62a}\x{631}\x{62f}\x{62f}",
@@ -22073,6 +24832,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{62a}\x{631}\x{62f}\x{62f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{62e}\x{635}\x{635}\x{647}",
@@ -22081,6 +24841,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{62e}\x{635}\x{635}\x{647}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{641}\x{639}\x{644}",
@@ -22089,6 +24850,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{641}\x{639}\x{644}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{642}\x{62a}\x{637}\x{639}",
@@ -22097,6 +24859,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{642}\x{62a}\x{637}\x{639}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{64a}\x{645}\x{646}\x{62d}",
@@ -22105,6 +24868,7 @@ $VAR1 = [
             'term' => "\x{64a}\x{645}\x{646}\x{62d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e00}\x{500b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{5427}\x{4e86}",
@@ -22113,6 +24877,7 @@ $VAR1 = [
             'term' => "\x{4e00}\x{500b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{5427}\x{4e86}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e0b}\x{4e00}\x{5e74}\x{5ea6}\x{662f}\x{5426}\x{8fd8}\x{8981}\x{82b1}\x{8d39}\x{6570}\x{4ee5}\x{5343}\x{4e07}\x{8ba1}\x{7684}\x{5de8}\x{989d}\x{8d44}\x{91d1}\x{8d2d}\x{4e70}\x{8f6f}\x{4ef6}\x{670d}\x{52a1}",
@@ -22121,6 +24886,7 @@ $VAR1 = [
             'term' => "\x{4e0b}\x{4e00}\x{5e74}\x{5ea6}\x{662f}\x{5426}\x{8fd8}\x{8981}\x{82b1}\x{8d39}\x{6570}\x{4ee5}\x{5343}\x{4e07}\x{8ba1}\x{7684}\x{5de8}\x{989d}\x{8d44}\x{91d1}\x{8d2d}\x{4e70}\x{8f6f}\x{4ef6}\x{670d}\x{52a1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e0d}\x{514d}\x{4ee4}\x{4eba}\x{8d28}\x{7591}",
@@ -22129,6 +24895,7 @@ $VAR1 = [
             'term' => "\x{4e0d}\x{514d}\x{4ee4}\x{4eba}\x{8d28}\x{7591}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e0d}\x{53ef}\x{6d3b}",
@@ -22137,6 +24904,7 @@ $VAR1 = [
             'term' => "\x{4e0d}\x{53ef}\x{6d3b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e0d}\x{662f}\x{6881}\x{6d1b}\x{65bd}\x{70ba}\x{674e}\x{6fa4}\x{6977}\x{7522}\x{5b50}\x{76f8}\x{7206}\x{5149}",
@@ -22145,6 +24913,7 @@ $VAR1 = [
             'term' => "\x{4e0d}\x{662f}\x{6881}\x{6d1b}\x{65bd}\x{70ba}\x{674e}\x{6fa4}\x{6977}\x{7522}\x{5b50}\x{76f8}\x{7206}\x{5149}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e0d}\x{6703}\x{88ab}\x{963f}\x{723a}\x{548c}\x{8ae7}\x{6389}",
@@ -22153,6 +24922,7 @@ $VAR1 = [
             'term' => "\x{4e0d}\x{6703}\x{88ab}\x{963f}\x{723a}\x{548c}\x{8ae7}\x{6389}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e8b}\x{4e8b}\x{65e6}\x{65e6}",
@@ -22161,6 +24931,7 @@ $VAR1 = [
             'term' => "\x{4e8b}\x{4e8b}\x{65e6}\x{65e6}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e8c}\x{689d}\x{53ef}\x{662f}",
@@ -22169,6 +24940,7 @@ $VAR1 = [
             'term' => "\x{4e8c}\x{689d}\x{53ef}\x{662f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4e9e}\x{8996}\x{6dea}\x{70ba}\x{4e2d}\x{592e}\x{53f0}",
@@ -22177,6 +24949,7 @@ $VAR1 = [
             'term' => "\x{4e9e}\x{8996}\x{6dea}\x{70ba}\x{4e2d}\x{592e}\x{53f0}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4eba}\x{4eec}\x{5bf9}\x{653f}\x{6cbb}\x{5c42}\x{9762}\x{7684}\x{62c5}\x{5fe7}\x{5c31}\x{66f4}\x{591a}\x{4e86}",
@@ -22185,6 +24958,7 @@ $VAR1 = [
             'term' => "\x{4eba}\x{4eec}\x{5bf9}\x{653f}\x{6cbb}\x{5c42}\x{9762}\x{7684}\x{62c5}\x{5fe7}\x{5c31}\x{66f4}\x{591a}\x{4e86}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4ece}\x{4e0a}\x{8ff0}\x{6d4b}\x{8bd5}\x{6765}\x{770b}",
@@ -22193,6 +24967,7 @@ $VAR1 = [
             'term' => "\x{4ece}\x{4e0a}\x{8ff0}\x{6d4b}\x{8bd5}\x{6765}\x{770b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4ece}\x{62a5}\x{9053}\x{4e2d}\x{53ef}\x{77e5}",
@@ -22201,6 +24976,7 @@ $VAR1 = [
             'term' => "\x{4ece}\x{62a5}\x{9053}\x{4e2d}\x{53ef}\x{77e5}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4ee5}\x{81f3}cctvb\x{5728}\x{516d}\x{56db}\x{7576}\x{65e5}",
@@ -22209,6 +24985,7 @@ $VAR1 = [
             'term' => "\x{4ee5}\x{81f3}cctvb\x{5728}\x{516d}\x{56db}\x{7576}\x{65e5}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4f1a}\x{4e25}\x{91cd}\x{5f71}\x{54cd}\x{5230}\x{4e00}\x{4e9b}\x{7528}\x{6237}\x{7684}\x{6b63}\x{5e38}\x{4f7f}\x{7528}",
@@ -22217,6 +24994,7 @@ $VAR1 = [
             'term' => "\x{4f1a}\x{4e25}\x{91cd}\x{5f71}\x{54cd}\x{5230}\x{4e00}\x{4e9b}\x{7528}\x{6237}\x{7684}\x{6b63}\x{5e38}\x{4f7f}\x{7528}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4f1a}\x{53e6}\x{4e00}\x{4e9b}\x{4e0d}\x{719f}\x{6089}\x{7535}\x{8111}\x{7f51}\x{7edc}\x{8bbe}\x{7f6e}\x{7684}\x{4eba}\x{7fa4}\x{6df1}\x{53d7}\x{5176}\x{5bb3}",
@@ -22225,6 +25003,7 @@ $VAR1 = [
             'term' => "\x{4f1a}\x{53e6}\x{4e00}\x{4e9b}\x{4e0d}\x{719f}\x{6089}\x{7535}\x{8111}\x{7f51}\x{7edc}\x{8bbe}\x{7f6e}\x{7684}\x{4eba}\x{7fa4}\x{6df1}\x{53d7}\x{5176}\x{5bb3}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4f46}\x{662f}\x{4e00}\x{4e9b}\x{8a00}\x{8f9e}\x{5c16}\x{9510}\x{7684}\x{7f51}\x{7ad9}\x{548c}\x{535a}\x{5ba2}\x{5374}\x{5728}\x{8fd0}\x{52a8}\x{4e2d}\x{5012}\x{4e0b}",
@@ -22233,6 +25012,7 @@ $VAR1 = [
             'term' => "\x{4f46}\x{662f}\x{4e00}\x{4e9b}\x{8a00}\x{8f9e}\x{5c16}\x{9510}\x{7684}\x{7f51}\x{7ad9}\x{548c}\x{535a}\x{5ba2}\x{5374}\x{5728}\x{8fd0}\x{52a8}\x{4e2d}\x{5012}\x{4e0b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4f46}\x{6b63}\x{5982}a\x{8aaa}",
@@ -22241,6 +25021,7 @@ $VAR1 = [
             'term' => "\x{4f46}\x{6b63}\x{5982}a\x{8aaa}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{4f55}\x{4f86}\x{4e00}\x{500b}",
@@ -22249,6 +25030,7 @@ $VAR1 = [
             'term' => "\x{4f55}\x{4f86}\x{4e00}\x{500b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5168}\x{793e}\x{4f1a}\x{514d}\x{8d39}\x{4f7f}\x{7528}",
@@ -22257,6 +25039,7 @@ $VAR1 = [
             'term' => "\x{5168}\x{793e}\x{4f1a}\x{514d}\x{8d39}\x{4f7f}\x{7528}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{516d}\x{56db}\x{7576}\x{65e5}cctvb\x{516d}\x{9ede}\x{534a}\x{65b0}\x{982d}\x{689d}\x{662f}",
@@ -22265,6 +25048,7 @@ $VAR1 = [
             'term' => "\x{516d}\x{56db}\x{7576}\x{65e5}cctvb\x{516d}\x{9ede}\x{534a}\x{65b0}\x{982d}\x{689d}\x{662f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5317}\x{4eac}\x{5bf9}\x{4e92}\x{8054}\x{7f51}\x{7684}\x{7ba1}\x{5236}\x{662f}\x{53f8}\x{9a6c}\x{662d}\x{4e4b}\x{5fc3}",
@@ -22273,6 +25057,7 @@ $VAR1 = [
             'term' => "\x{5317}\x{4eac}\x{5bf9}\x{4e92}\x{8054}\x{7f51}\x{7684}\x{7ba1}\x{5236}\x{662f}\x{53f8}\x{9a6c}\x{662d}\x{4e4b}\x{5fc3}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{53c8}\x{8981}\x{5f3a}\x{5236}\x{63a8}\x{5e7f}\x{4e00}\x{4e2a}\x{6240}\x{8c13}\x{7684}\x{8fc7}\x{6ee4}\x{8272}\x{60c5}\x{7f51}\x{7ad9}\x{7684}\x{8f6f}\x{4ef6}",
@@ -22281,6 +25066,7 @@ $VAR1 = [
             'term' => "\x{53c8}\x{8981}\x{5f3a}\x{5236}\x{63a8}\x{5e7f}\x{4e00}\x{4e2a}\x{6240}\x{8c13}\x{7684}\x{8fc7}\x{6ee4}\x{8272}\x{60c5}\x{7f51}\x{7ad9}\x{7684}\x{8f6f}\x{4ef6}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{53ea}\x{662f}\x{4e00}\x{500b}\x{958b}\x{59cb}",
@@ -22289,6 +25075,7 @@ $VAR1 = [
             'term' => "\x{53ea}\x{662f}\x{4e00}\x{500b}\x{958b}\x{59cb}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{53ef}\x{662f}\x{770b}\x{5728}\x{773c}\x{88e1}",
@@ -22297,6 +25084,7 @@ $VAR1 = [
             'term' => "\x{53ef}\x{662f}\x{770b}\x{5728}\x{773c}\x{88e1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{56e0}\x{4e3a}\x{5de5}\x{4fe1}\x{90e8}\x{7b49}\x{51e0}\x{90e8}\x{59d4}\x{4f7f}\x{7528}\x{4e2d}\x{592e}\x{8d22}\x{653f}\x{8d44}\x{91d1}4170\x{4e07}\x{5143}\x{4eba}\x{6c11}\x{5e01}\x{4e70}\x{65ad}\x{8fd9}\x{5957}\x{8f6f}\x{4ef6}\x{7684}\x{4e00}\x{5e74}\x{670d}\x{52a1}",
@@ -22305,6 +25093,7 @@ $VAR1 = [
             'term' => "\x{56e0}\x{4e3a}\x{5de5}\x{4fe1}\x{90e8}\x{7b49}\x{51e0}\x{90e8}\x{59d4}\x{4f7f}\x{7528}\x{4e2d}\x{592e}\x{8d22}\x{653f}\x{8d44}\x{91d1}4170\x{4e07}\x{5143}\x{4eba}\x{6c11}\x{5e01}\x{4e70}\x{65ad}\x{8fd9}\x{5957}\x{8f6f}\x{4ef6}\x{7684}\x{4e00}\x{5e74}\x{670d}\x{52a1}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5728}\x{5317}\x{4eac}\x{770b}\x{6765}\x{8272}\x{60c5}\x{662f}\x{5426}\x{4e5f}\x{5305}\x{62ec}\x{653f}\x{6cbb}\x{5462}",
@@ -22313,6 +25102,7 @@ $VAR1 = [
             'term' => "\x{5728}\x{5317}\x{4eac}\x{770b}\x{6765}\x{8272}\x{60c5}\x{662f}\x{5426}\x{4e5f}\x{5305}\x{62ec}\x{653f}\x{6cbb}\x{5462}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5929}\x{4f5c}\x{5b7d}",
@@ -22321,6 +25111,7 @@ $VAR1 = [
             'term' => "\x{5929}\x{4f5c}\x{5b7d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5929}\x{6c34}\x{570d}\x{4e09}\x{7537}\x{751f}\x{7591}\x{6feb}\x{85e5}\x{65bc}\x{516c}\x{5712}\x{6688}\x{5012}",
@@ -22329,6 +25120,7 @@ $VAR1 = [
             'term' => "\x{5929}\x{6c34}\x{570d}\x{4e09}\x{7537}\x{751f}\x{7591}\x{6feb}\x{85e5}\x{65bc}\x{516c}\x{5712}\x{6688}\x{5012}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5982}\x{4f55}\x{628a}\x{516d}\x{56db}\x{65b0}\x{805e}",
@@ -22337,6 +25129,7 @@ $VAR1 = [
             'term' => "\x{5982}\x{4f55}\x{628a}\x{516d}\x{56db}\x{65b0}\x{805e}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5b9e}\x{5219}\x{4e5f}\x{662f}\x{7eb3}\x{7a0e}\x{4eba}\x{81ea}\x{5df1}\x{57cb}\x{5355}",
@@ -22345,6 +25138,7 @@ $VAR1 = [
             'term' => "\x{5b9e}\x{5219}\x{4e5f}\x{662f}\x{7eb3}\x{7a0e}\x{4eba}\x{81ea}\x{5df1}\x{57cb}\x{5355}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5c0d}\x{4e8b}\x{4ef6}\x{6012}\x{4e0d}\x{53ef}\x{904f}\x{4e91}\x{4e91}",
@@ -22353,6 +25147,7 @@ $VAR1 = [
             'term' => "\x{5c0d}\x{4e8b}\x{4ef6}\x{6012}\x{4e0d}\x{53ef}\x{904f}\x{4e91}\x{4e91}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5c31}\x{662f}cctvb\x{5728}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{65b0}\x{805e}\x{76f4}\x{64ad}\x{4e2d}",
@@ -22361,6 +25156,7 @@ $VAR1 = [
             'term' => "\x{5c31}\x{662f}cctvb\x{5728}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{65b0}\x{805e}\x{76f4}\x{64ad}\x{4e2d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5de5}\x{4fe1}\x{90e8}\x{5982}\x{6b64}\x{5927}\x{624b}\x{7b14}\x{6492}\x{94b1}\x{662f}\x{5426}\x{5408}\x{4e4e}\x{653f}\x{5e9c}\x{8d22}\x{653f}\x{652f}\x{51fa}\x{7684}\x{7a0b}\x{5e8f}\x{6b63}\x{4e49}",
@@ -22369,6 +25165,7 @@ $VAR1 = [
             'term' => "\x{5de5}\x{4fe1}\x{90e8}\x{5982}\x{6b64}\x{5927}\x{624b}\x{7b14}\x{6492}\x{94b1}\x{662f}\x{5426}\x{5408}\x{4e4e}\x{653f}\x{5e9c}\x{8d22}\x{653f}\x{652f}\x{51fa}\x{7684}\x{7a0b}\x{5e8f}\x{6b63}\x{4e49}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5df2}\x{6709}\x{8aa4}\x{5c0e}\x{4e4b}\x{5acc}",
@@ -22377,6 +25174,7 @@ $VAR1 = [
             'term' => "\x{5df2}\x{6709}\x{8aa4}\x{5c0e}\x{4e4b}\x{5acc}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5e94}\x{8be5}\x{4e0d}\x{4f1a}\x{53ea}\x{7528}\x{4e00}\x{5e74}\x{5c31}\x{64a4}\x{9000}",
@@ -22385,6 +25183,7 @@ $VAR1 = [
             'term' => "\x{5e94}\x{8be5}\x{4e0d}\x{4f1a}\x{53ea}\x{7528}\x{4e00}\x{5e74}\x{5c31}\x{64a4}\x{9000}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{5f71}\x{54cd}\x{8fd9}\x{4e48}\x{5e7f}\x{6cdb}\x{7684}\x{653f}\x{7b56}\x{51fa}\x{53f0}\x{524d}\x{53c8}\x{4e0d}\x{7ecf}\x{8fc7}\x{793e}\x{4f1a}\x{7684}\x{5e7f}\x{6cdb}\x{8ba8}\x{8bba}",
@@ -22393,6 +25192,7 @@ $VAR1 = [
             'term' => "\x{5f71}\x{54cd}\x{8fd9}\x{4e48}\x{5e7f}\x{6cdb}\x{7684}\x{653f}\x{7b56}\x{51fa}\x{53f0}\x{524d}\x{53c8}\x{4e0d}\x{7ecf}\x{8fc7}\x{793e}\x{4f1a}\x{7684}\x{5e7f}\x{6cdb}\x{8ba8}\x{8bba}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6050}\x{6015}\x{4e0d}\x{662f}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{6709}\x{591a}\x{5c11}\x{4eba}\x{53c2}\x{52a0}",
@@ -22401,6 +25201,7 @@ $VAR1 = [
             'term' => "\x{6050}\x{6015}\x{4e0d}\x{662f}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{6709}\x{591a}\x{5c11}\x{4eba}\x{53c2}\x{52a0}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{608d}\x{885b}\x{9999}\x{6e2f}\x{5a92}\x{9ad4}",
@@ -22409,6 +25210,7 @@ $VAR1 = [
             'term' => "\x{608d}\x{885b}\x{9999}\x{6e2f}\x{5a92}\x{9ad4}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6216}\x{8bb8}\x{5728}\x{5317}\x{4eac}\x{7684}\x{773c}\x{91cc}\x{7684}",
@@ -22417,6 +25219,7 @@ $VAR1 = [
             'term' => "\x{6216}\x{8bb8}\x{5728}\x{5317}\x{4eac}\x{7684}\x{773c}\x{91cc}\x{7684}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6240}\x{8c13}\x{4f9b}",
@@ -22425,6 +25228,7 @@ $VAR1 = [
             'term' => "\x{6240}\x{8c13}\x{4f9b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{63a5}\x{53d7}\x{4eba}\x{5927}\x{4ee3}\x{8868}\x{7684}\x{5ba1}\x{8bae}",
@@ -22433,6 +25237,7 @@ $VAR1 = [
             'term' => "\x{63a5}\x{53d7}\x{4eba}\x{5927}\x{4ee3}\x{8868}\x{7684}\x{5ba1}\x{8bae}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{64da}\x{805e}cctvb\x{9818}\x{5c0e}\x{4eba}\x{8881}\x{82b1}\x{5fd7}\x{5049}",
@@ -22441,6 +25246,7 @@ $VAR1 = [
             'term' => "\x{64da}\x{805e}cctvb\x{9818}\x{5c0e}\x{4eba}\x{8881}\x{82b1}\x{5fd7}\x{5049}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{653e}\x{5728}\x{516d}\x{56db}15\x{842c}\x{4eba}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{4e4b}\x{524d}",
@@ -22449,6 +25255,7 @@ $VAR1 = [
             'term' => "\x{653e}\x{5728}\x{516d}\x{56db}15\x{842c}\x{4eba}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{4e4b}\x{524d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{653e}\x{5728}\x{7576}\x{65e5}6",
@@ -22457,6 +25264,7 @@ $VAR1 = [
             'term' => "\x{653e}\x{5728}\x{7576}\x{65e5}6"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{653f}\x{6cbb}\x{8272}\x{60c5}\x{6bd4}\x{8089}\x{4f53}\x{8272}\x{60c5}\x{66f4}\x{53ef}\x{6015}",
@@ -22465,6 +25273,7 @@ $VAR1 = [
             'term' => "\x{653f}\x{6cbb}\x{8272}\x{60c5}\x{6bd4}\x{8089}\x{4f53}\x{8272}\x{60c5}\x{66f4}\x{53ef}\x{6015}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6574}\x{987f}\x{4e92}\x{8054}\x{7f51}\x{4f4e}\x{4fd7}\x{4e4b}\x{98ce}",
@@ -22473,6 +25282,7 @@ $VAR1 = [
             'term' => "\x{6574}\x{987f}\x{4e92}\x{8054}\x{7f51}\x{4f4e}\x{4fd7}\x{4e4b}\x{98ce}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{65f6}\x{4e0d}\x{65f6}\x{501f}\x{52a9}\x{4e00}\x{4e9b}\x{8fd0}\x{52a8}\x{8fdb}\x{884c}\x{6574}\x{6cbb}",
@@ -22481,6 +25291,7 @@ $VAR1 = [
             'term' => "\x{65f6}\x{4e0d}\x{65f6}\x{501f}\x{52a9}\x{4e00}\x{4e9b}\x{8fd0}\x{52a8}\x{8fdb}\x{884c}\x{6574}\x{6cbb}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6628}\x{5929}\x{6700}\x{591a}\x{4eba}\x{8a0e}\x{8ad6}\x{7684}\x{65b0}\x{805e}",
@@ -22489,6 +25300,7 @@ $VAR1 = [
             'term' => "\x{6628}\x{5929}\x{6700}\x{591a}\x{4eba}\x{8a0e}\x{8ad6}\x{7684}\x{65b0}\x{805e}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{662f}\x{5426}\x{9700}\x{8981}\x{5217}\x{5165}\x{653f}\x{5e9c}\x{9884}\x{7b97}",
@@ -22497,6 +25309,7 @@ $VAR1 = [
             'term' => "\x{662f}\x{5426}\x{9700}\x{8981}\x{5217}\x{5165}\x{653f}\x{5e9c}\x{9884}\x{7b97}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{66f4}\x{6302}\x{7f8a}\x{5934}\x{5356}\x{72d7}\x{8089}",
@@ -22505,6 +25318,7 @@ $VAR1 = [
             'term' => "\x{66f4}\x{6302}\x{7f8a}\x{5934}\x{5356}\x{72d7}\x{8089}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6703}\x{628a}\x{4e00}\x{500b}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{8f44}\x{4e0b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6c7a}\x{8b70}",
@@ -22513,6 +25327,7 @@ $VAR1 = [
             'term' => "\x{6703}\x{628a}\x{4e00}\x{500b}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{8f44}\x{4e0b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6c7a}\x{8b70}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6709}\x{6c92}\x{6709}\x{4eba}\x{70ba}\x{4ed6}\x{5011}\x{8faf}\x{8b77}",
@@ -22521,6 +25336,7 @@ $VAR1 = [
             'term' => "\x{6709}\x{6c92}\x{6709}\x{4eba}\x{70ba}\x{4ed6}\x{5011}\x{8faf}\x{8b77}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6b64}\x{8f6f}\x{4ef6}\x{5bf9}\x{7cfb}\x{7edf}\x{8d44}\x{6e90}\x{7684}\x{5360}\x{7528}\x{662f}\x{5de8}\x{5927}\x{7684}",
@@ -22529,6 +25345,7 @@ $VAR1 = [
             'term' => "\x{6b64}\x{8f6f}\x{4ef6}\x{5bf9}\x{7cfb}\x{7edf}\x{8d44}\x{6e90}\x{7684}\x{5360}\x{7528}\x{662f}\x{5de8}\x{5927}\x{7684}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{6bd4}\x{5982}\x{6570}\x{6708}\x{524d}\x{522e}\x{8d77}\x{7684}\x{90a3}\x{573a}\x{58f0}\x{52bf}\x{6d69}\x{5927}\x{7684}",
@@ -22537,6 +25354,7 @@ $VAR1 = [
             'term' => "\x{6bd4}\x{5982}\x{6570}\x{6708}\x{524d}\x{522e}\x{8d77}\x{7684}\x{90a3}\x{573a}\x{58f0}\x{52bf}\x{6d69}\x{5927}\x{7684}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{70ba}\x{4f55}\x{516d}\x{56db}\x{7576}\x{65e5}",
@@ -22545,6 +25363,7 @@ $VAR1 = [
             'term' => "\x{70ba}\x{4f55}\x{516d}\x{56db}\x{7576}\x{65e5}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{70ba}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{76e1}\x{9ede}\x{529b}",
@@ -22553,6 +25372,7 @@ $VAR1 = [
             'term' => "\x{70ba}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{76e1}\x{9ede}\x{529b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7121}\x{7dab}\x{65b0}\x{805e}",
@@ -22561,6 +25381,7 @@ $VAR1 = [
             'term' => "\x{7121}\x{7dab}\x{65b0}\x{805e}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7167}\x{5de5}\x{4fe1}\x{90e8}\x{63a8}\x{884c}",
@@ -22569,6 +25390,7 @@ $VAR1 = [
             'term' => "\x{7167}\x{5de5}\x{4fe1}\x{90e8}\x{63a8}\x{884c}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{722d}\x{53d6}\x{9999}\x{6e2f}\x{6c11}\x{4e3b}",
@@ -22577,6 +25399,7 @@ $VAR1 = [
             'term' => "\x{722d}\x{53d6}\x{9999}\x{6e2f}\x{6c11}\x{4e3b}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7336}\x{53ef}\x{6055}",
@@ -22585,6 +25408,7 @@ $VAR1 = [
             'term' => "\x{7336}\x{53ef}\x{6055}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7576}\x{65e5}cctvb\x{5831}\x{9053}\x{9019}\x{6bb5}\x{65b0}\x{805e}",
@@ -22593,6 +25417,7 @@ $VAR1 = [
             'term' => "\x{7576}\x{65e5}cctvb\x{5831}\x{9053}\x{9019}\x{6bb5}\x{65b0}\x{805e}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7684}\x{51b3}\x{5fc3}",
@@ -22601,6 +25426,7 @@ $VAR1 = [
             'term' => "\x{7684}\x{51b3}\x{5fc3}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7a31}\x{9019}\x{500b}\x{59d4}\x{54e1}\x{6703}\x{505a}",
@@ -22609,6 +25435,7 @@ $VAR1 = [
             'term' => "\x{7a31}\x{9019}\x{500b}\x{59d4}\x{54e1}\x{6703}\x{505a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{773e}\x{591a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}",
@@ -22617,6 +25444,7 @@ $VAR1 = [
             'term' => "\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{773e}\x{591a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7acb}\x{6cd5}\x{6703}\x{901a}\x{904e}\x{76e1}\x{5feb}\x{8208}\x{5efa}\x{897f}\x{6e2f}\x{5cf6}\x{7dda}",
@@ -22625,6 +25453,7 @@ $VAR1 = [
             'term' => "\x{7acb}\x{6cd5}\x{6703}\x{901a}\x{904e}\x{76e1}\x{5feb}\x{8208}\x{5efa}\x{897f}\x{6e2f}\x{5cf6}\x{7dda}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7ae5}\x{5de5}\x{53ef}\x{4ee5}\x{8aaa}",
@@ -22633,6 +25462,7 @@ $VAR1 = [
             'term' => "\x{7ae5}\x{5de5}\x{53ef}\x{4ee5}\x{8aaa}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{7ae5}\x{5de5}\x{9084}\x{53ef}\x{4ee5}\x{8a8d}\x{70ba}\x{8aaa}\x{5f97}\x{904e}\x{53bb}",
@@ -22641,6 +25471,7 @@ $VAR1 = [
             'term' => "\x{7ae5}\x{5de5}\x{9084}\x{53ef}\x{4ee5}\x{8a8d}\x{70ba}\x{8aaa}\x{5f97}\x{904e}\x{53bb}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{800c}\x{6240}\x{8fc7}\x{6ee4}\x{7684}\x{5185}\x{5bb9}\x{53c8}\x{4e0d}\x{63d0}\x{4ea4}\x{72ec}\x{7acb}\x{7684}\x{7b2c}\x{4e09}\x{65b9}\x{5ba1}\x{6838}",
@@ -22649,6 +25480,7 @@ $VAR1 = [
             'term' => "\x{800c}\x{6240}\x{8fc7}\x{6ee4}\x{7684}\x{5185}\x{5bb9}\x{53c8}\x{4e0d}\x{63d0}\x{4ea4}\x{72ec}\x{7acb}\x{7684}\x{7b2c}\x{4e09}\x{65b9}\x{5ba1}\x{6838}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{800c}\x{73b0}\x{5728}",
@@ -22657,6 +25489,7 @@ $VAR1 = [
             'term' => "\x{800c}\x{73b0}\x{5728}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{81ea}\x{4f5c}\x{5b7d}",
@@ -22665,6 +25498,7 @@ $VAR1 = [
             'term' => "\x{81ea}\x{4f5c}\x{5b7d}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{82b1}\x{5b63}\x{62a4}\x{822a}",
@@ -22673,6 +25507,7 @@ $VAR1 = [
             'term' => "\x{82b1}\x{5b63}\x{62a4}\x{822a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{82e5}\x{9023}\x{65b0}\x{805e}\x{81ea}\x{7531}\x{4e5f}\x{5b88}\x{4e0d}\x{4f4f}",
@@ -22681,6 +25516,7 @@ $VAR1 = [
             'term' => "\x{82e5}\x{9023}\x{65b0}\x{805e}\x{81ea}\x{7531}\x{4e5f}\x{5b88}\x{4e0d}\x{4f4f}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{82e5}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{4e5f}\x{5728}\x{81ea}\x{6211}\x{5be9}\x{67e5}\x{7684}\x{6642}\x{5019}",
@@ -22689,6 +25525,7 @@ $VAR1 = [
             'term' => "\x{82e5}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{4e5f}\x{5728}\x{81ea}\x{6211}\x{5be9}\x{67e5}\x{7684}\x{6642}\x{5019}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{8881}\x{82b1}\x{5fd7}\x{5049}\x{7576}\x{65e5}\x{5982}\x{4f55}\x{8655}\x{7406}\x{8d99}\x{7d2b}\x{967d}\x{56de}\x{61b6}\x{9304}\x{65b0}\x{805e}",
@@ -22697,6 +25534,7 @@ $VAR1 = [
             'term' => "\x{8881}\x{82b1}\x{5fd7}\x{5049}\x{7576}\x{65e5}\x{5982}\x{4f55}\x{8655}\x{7406}\x{8d99}\x{7d2b}\x{967d}\x{56de}\x{61b6}\x{9304}\x{65b0}\x{805e}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{88ab}\x{5728}\x{5834}\x{5e02}\x{6c11}\x{8209}\x{8d77}\x{6297}\x{8b70}\x{724c}",
@@ -22705,6 +25543,7 @@ $VAR1 = [
             'term' => "\x{88ab}\x{5728}\x{5834}\x{5e02}\x{6c11}\x{8209}\x{8d77}\x{6297}\x{8b70}\x{724c}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{8981}\x{5e73}\x{53cd}\x{516d}\x{56db}",
@@ -22713,6 +25552,7 @@ $VAR1 = [
             'term' => "\x{8981}\x{5e73}\x{53cd}\x{516d}\x{56db}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{8def}\x{4eba}\x{7686}\x{77e5}",
@@ -22721,6 +25561,7 @@ $VAR1 = [
             'term' => "\x{8def}\x{4eba}\x{7686}\x{77e5}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{8fd0}\x{52a8}\x{8fc7}\x{540e}\x{4e2d}\x{56fd}\x{7684}\x{4e92}\x{8054}\x{7f51}\x{4f9d}\x{65e7}\x{4f4e}\x{4fd7}",
@@ -22729,6 +25570,7 @@ $VAR1 = [
             'term' => "\x{8fd0}\x{52a8}\x{8fc7}\x{540e}\x{4e2d}\x{56fd}\x{7684}\x{4e92}\x{8054}\x{7f51}\x{4f9d}\x{65e7}\x{4f4e}\x{4fd7}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{8fd9}\x{5c31}\x{662f}\x{5317}\x{4eac}\x{7406}\x{89e3}\x{7684}",
@@ -22737,6 +25579,7 @@ $VAR1 = [
             'term' => "\x{8fd9}\x{5c31}\x{662f}\x{5317}\x{4eac}\x{7406}\x{89e3}\x{7684}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{8fd9}\x{6837}\x{7684}\x{5927}\x{624b}\x{7b14}",
@@ -22745,6 +25588,7 @@ $VAR1 = [
             'term' => "\x{8fd9}\x{6837}\x{7684}\x{5927}\x{624b}\x{7b14}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{9023}\x{6b63}\x{5f0f}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{4e5f}\x{4e0d}\x{6703}\x{5831}\x{9053}",
@@ -22753,6 +25597,7 @@ $VAR1 = [
             'term' => "\x{9023}\x{6b63}\x{5f0f}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{4e5f}\x{4e0d}\x{6703}\x{5831}\x{9053}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{9084}\x{671f}\x{671b}\x{8ab0}\x{70ba}\x{6e2f}\x{4eba}\x{767c}\x{8072}",
@@ -22761,6 +25606,7 @@ $VAR1 = [
             'term' => "\x{9084}\x{671f}\x{671b}\x{8ab0}\x{70ba}\x{6e2f}\x{4eba}\x{767c}\x{8072}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{9084}\x{8ac7}\x{751a}\x{9ebc}\x{722d}\x{53d6}\x{5e73}\x{53cd}\x{516d}\x{56db}",
@@ -22769,6 +25615,7 @@ $VAR1 = [
             'term' => "\x{9084}\x{8ac7}\x{751a}\x{9ebc}\x{722d}\x{53d6}\x{5e73}\x{53cd}\x{516d}\x{56db}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{90a3}\x{53ea}\x{662f}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{5167}",
@@ -22777,6 +25624,7 @@ $VAR1 = [
             'term' => "\x{90a3}\x{53ea}\x{662f}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{5167}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{90a3}\x{53ea}\x{662f}\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{4e4b}\x{4e0b}\x{7684}\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{6c7a}\x{5b9a}",
@@ -22785,6 +25633,7 @@ $VAR1 = [
             'term' => "\x{90a3}\x{53ea}\x{662f}\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{4e4b}\x{4e0b}\x{7684}\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{6c7a}\x{5b9a}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{91cd}\x{8981}\x{6027}\x{6709}\x{591a}\x{5927}",
@@ -22793,6 +25642,7 @@ $VAR1 = [
             'term' => "\x{91cd}\x{8981}\x{6027}\x{6709}\x{591a}\x{5927}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => "\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{59d4}\x{54e1}\x{6703}",
@@ -22801,6 +25651,7 @@ $VAR1 = [
             'term' => "\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{59d4}\x{54e1}\x{6703}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{9664}\x{4e86}\x{79d8}\x{5bc6}\x{7b51}\x{8d77}\x{81ed}\x{540d}\x{662d}\x{8457}\x{7684}\x{9632}\x{706b}\x{5899}",
@@ -22809,6 +25660,7 @@ $VAR1 = [
             'term' => "\x{9664}\x{4e86}\x{79d8}\x{5bc6}\x{7b51}\x{8d77}\x{81ed}\x{540d}\x{662d}\x{8457}\x{7684}\x{9632}\x{706b}\x{5899}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{9996}\x{8981}\x{5b88}\x{4f4f}\x{9999}\x{6e2f}\x{7684}\x{65b0}\x{805e}\x{81ea}\x{7531}",
@@ -22817,6 +25669,7 @@ $VAR1 = [
             'term' => "\x{9996}\x{8981}\x{5b88}\x{4f4f}\x{9999}\x{6e2f}\x{7684}\x{65b0}\x{805e}\x{81ea}\x{7531}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => "\x{9999}\x{6e2f}\x{4eba}\x{662f}\x{6642}\x{5019}",
@@ -22825,6 +25678,7 @@ $VAR1 = [
             'term' => "\x{9999}\x{6e2f}\x{4eba}\x{662f}\x{6642}\x{5019}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'academi',
@@ -22833,6 +25687,7 @@ $VAR1 = [
             'term' => 'academy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'activist',
@@ -22841,6 +25696,7 @@ $VAR1 = [
             'term' => 'activist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'africa',
@@ -22849,6 +25705,7 @@ $VAR1 = [
             'term' => 'africa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'african',
@@ -22857,6 +25714,7 @@ $VAR1 = [
             'term' => 'african'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'algeria',
@@ -22865,6 +25723,7 @@ $VAR1 = [
             'term' => 'algeria'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'ami',
@@ -22873,6 +25732,7 @@ $VAR1 = [
             'term' => 'ami'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'anarchist',
@@ -22881,6 +25741,7 @@ $VAR1 = [
             'term' => 'anarchist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'anthoni',
@@ -22889,6 +25750,7 @@ $VAR1 = [
             'term' => 'anthony'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'anti',
@@ -22897,6 +25759,7 @@ $VAR1 = [
             'term' => 'anti'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'assault',
@@ -22905,6 +25768,7 @@ $VAR1 = [
             'term' => 'assaulted'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'athen',
@@ -22913,6 +25777,7 @@ $VAR1 = [
             'term' => 'athens'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'auster',
@@ -22921,6 +25786,7 @@ $VAR1 = [
             'term' => 'austerity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'bamako',
@@ -22929,6 +25795,7 @@ $VAR1 = [
             'term' => 'bamako'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'ban',
@@ -22937,6 +25804,7 @@ $VAR1 = [
             'term' => 'ban'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'beij',
@@ -22945,6 +25813,7 @@ $VAR1 = [
             'term' => 'beijing'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'belgrad',
@@ -22953,6 +25822,7 @@ $VAR1 = [
             'term' => 'belgrade'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'belov',
@@ -22961,6 +25831,7 @@ $VAR1 = [
             'term' => 'beloved'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'biodivers',
@@ -22969,6 +25840,7 @@ $VAR1 = [
             'term' => 'biodiversity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'biofuel',
@@ -22977,6 +25849,7 @@ $VAR1 = [
             'term' => 'biofuel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'blasphem',
@@ -22985,6 +25858,7 @@ $VAR1 = [
             'term' => 'blasphemous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'blogger',
@@ -22993,6 +25867,7 @@ $VAR1 = [
             'term' => 'blogger'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'boycott',
@@ -23001,6 +25876,7 @@ $VAR1 = [
             'term' => 'boycott'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'bust',
@@ -23009,6 +25885,7 @@ $VAR1 = [
             'term' => 'bust'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'campaign',
@@ -23017,6 +25894,7 @@ $VAR1 = [
             'term' => 'campaigning'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'cancel',
@@ -23025,6 +25903,7 @@ $VAR1 = [
             'term' => 'cancellation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'cee',
@@ -23033,6 +25912,7 @@ $VAR1 = [
             'term' => 'cee'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'chapter',
@@ -23041,6 +25921,7 @@ $VAR1 = [
             'term' => 'chapters'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'children',
@@ -23049,6 +25930,7 @@ $VAR1 = [
             'term' => 'children'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'chines',
@@ -23057,6 +25939,7 @@ $VAR1 = [
             'term' => 'chinese'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'christi',
@@ -23065,6 +25948,7 @@ $VAR1 = [
             'term' => 'christi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'congress',
@@ -23073,6 +25957,7 @@ $VAR1 = [
             'term' => 'congress'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 3,
             'stem' => 'copper',
@@ -23081,6 +25966,7 @@ $VAR1 = [
             'term' => 'copper'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'coren',
@@ -23089,6 +25975,7 @@ $VAR1 = [
             'term' => 'coren'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'corona',
@@ -23097,6 +25984,7 @@ $VAR1 = [
             'term' => 'corona'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'corpus',
@@ -23105,6 +25993,7 @@ $VAR1 = [
             'term' => 'corpus'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'covet',
@@ -23113,6 +26002,7 @@ $VAR1 = [
             'term' => 'coveted'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'cumbersom',
@@ -23121,6 +26011,7 @@ $VAR1 = [
             'term' => 'cumbersome'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'daniela',
@@ -23129,6 +26020,7 @@ $VAR1 = [
             'term' => 'daniela'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'deem',
@@ -23137,6 +26029,7 @@ $VAR1 = [
             'term' => 'deeming'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'detain',
@@ -23145,6 +26038,7 @@ $VAR1 = [
             'term' => 'detained'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'diari',
@@ -23153,6 +26047,7 @@ $VAR1 = [
             'term' => 'diary'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'dissid',
@@ -23161,6 +26056,7 @@ $VAR1 = [
             'term' => 'dissident'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'documentari',
@@ -23169,6 +26065,7 @@ $VAR1 = [
             'term' => 'documentary'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'eastern',
@@ -23177,6 +26074,7 @@ $VAR1 = [
             'term' => 'eastern'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'educ',
@@ -23185,6 +26083,7 @@ $VAR1 = [
             'term' => 'education'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'englund',
@@ -23193,6 +26092,7 @@ $VAR1 = [
             'term' => 'englund'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'ensu',
@@ -23201,6 +26101,7 @@ $VAR1 = [
             'term' => 'ensued'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'ethnic',
@@ -23209,6 +26110,7 @@ $VAR1 = [
             'term' => 'ethnicities'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'europ',
@@ -23217,6 +26119,7 @@ $VAR1 = [
             'term' => 'europe'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'evict',
@@ -23225,6 +26128,7 @@ $VAR1 = [
             'term' => 'evictions'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'famili',
@@ -23233,6 +26137,7 @@ $VAR1 = [
             'term' => 'families'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'fdr',
@@ -23241,6 +26146,7 @@ $VAR1 = [
             'term' => 'fdr'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'ferdinand',
@@ -23249,6 +26155,7 @@ $VAR1 = [
             'term' => 'ferdinand'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'franz',
@@ -23257,6 +26164,7 @@ $VAR1 = [
             'term' => 'franz'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'freedom',
@@ -23265,6 +26173,7 @@ $VAR1 = [
             'term' => 'freedom'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'french',
@@ -23273,6 +26182,7 @@ $VAR1 = [
             'term' => 'french'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'frosti',
@@ -23281,6 +26191,7 @@ $VAR1 = [
             'term' => 'frosty'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'furious',
@@ -23289,6 +26200,7 @@ $VAR1 = [
             'term' => 'furious'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'greek',
@@ -23297,6 +26209,7 @@ $VAR1 = [
             'term' => 'greek'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'guinea',
@@ -23305,6 +26218,7 @@ $VAR1 = [
             'term' => 'guinea'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'gulf',
@@ -23313,6 +26227,7 @@ $VAR1 = [
             'term' => 'gulf'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'hajim',
@@ -23321,6 +26236,7 @@ $VAR1 = [
             'term' => 'hajime'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'hamaha',
@@ -23329,6 +26245,7 @@ $VAR1 = [
             'term' => 'hamaha'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'hernando',
@@ -23337,6 +26254,7 @@ $VAR1 = [
             'term' => 'hernando'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'horrend',
@@ -23345,6 +26263,7 @@ $VAR1 = [
             'term' => 'horrendous'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'hostag',
@@ -23353,6 +26272,7 @@ $VAR1 = [
             'term' => 'hostages'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'immers',
@@ -23361,6 +26281,7 @@ $VAR1 = [
             'term' => 'immersed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'indec',
@@ -23369,6 +26290,7 @@ $VAR1 = [
             'term' => 'indecent'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'intensifi',
@@ -23377,6 +26299,7 @@ $VAR1 = [
             'term' => 'intensify'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'jihad',
@@ -23385,6 +26308,7 @@ $VAR1 = [
             'term' => 'jihad'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'journalist',
@@ -23393,6 +26317,7 @@ $VAR1 = [
             'term' => 'journalist'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'kantorova',
@@ -23401,6 +26326,7 @@ $VAR1 = [
             'term' => 'kantorova'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'keynot',
@@ -23409,6 +26335,7 @@ $VAR1 = [
             'term' => 'keynote'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'kindl',
@@ -23417,6 +26344,7 @@ $VAR1 = [
             'term' => 'kindling'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'lanka',
@@ -23425,6 +26353,7 @@ $VAR1 = [
             'term' => 'lanka'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'laureat',
@@ -23433,6 +26362,7 @@ $VAR1 = [
             'term' => 'laureate'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'lawsuit',
@@ -23441,6 +26371,7 @@ $VAR1 = [
             'term' => 'lawsuits'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'leon',
@@ -23449,6 +26380,7 @@ $VAR1 = [
             'term' => 'leone'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'liu',
@@ -23457,6 +26389,7 @@ $VAR1 = [
             'term' => 'liu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'lovelyish',
@@ -23465,6 +26398,7 @@ $VAR1 = [
             'term' => 'lovelyish'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'malala',
@@ -23473,6 +26407,7 @@ $VAR1 = [
             'term' => 'malala'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'mali',
@@ -23481,6 +26416,7 @@ $VAR1 = [
             'term' => 'mali'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'media',
@@ -23489,6 +26425,7 @@ $VAR1 = [
             'term' => 'media'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'metaphor',
@@ -23497,6 +26434,7 @@ $VAR1 = [
             'term' => 'metaphor'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'mexico',
@@ -23505,6 +26443,7 @@ $VAR1 = [
             'term' => 'mexico'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'ministri',
@@ -23513,6 +26452,7 @@ $VAR1 = [
             'term' => 'ministry'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'mojwa',
@@ -23521,6 +26461,7 @@ $VAR1 = [
             'term' => 'mojwa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'monarchi',
@@ -23529,6 +26470,7 @@ $VAR1 = [
             'term' => 'monarchy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'monocultur',
@@ -23537,6 +26479,7 @@ $VAR1 = [
             'term' => 'monocultures'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'murphi',
@@ -23545,6 +26488,7 @@ $VAR1 = [
             'term' => 'murphy'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'musa',
@@ -23553,6 +26497,7 @@ $VAR1 = [
             'term' => 'musa'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'nazi',
@@ -23561,6 +26506,7 @@ $VAR1 = [
             'term' => 'nazis'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'neo',
@@ -23569,6 +26515,7 @@ $VAR1 = [
             'term' => 'neo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 3,
             'stem' => 'netizen',
@@ -23577,6 +26524,7 @@ $VAR1 = [
             'term' => 'netizens'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'ngos',
@@ -23585,6 +26533,7 @@ $VAR1 = [
             'term' => 'ngos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 3,
             'stem' => 'nobel',
@@ -23593,6 +26542,7 @@ $VAR1 = [
             'term' => 'nobel'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'non',
@@ -23601,6 +26551,7 @@ $VAR1 = [
             'term' => 'non'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'northern',
@@ -23609,6 +26560,7 @@ $VAR1 = [
             'term' => 'northern'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'onlin',
@@ -23617,6 +26569,7 @@ $VAR1 = [
             'term' => 'online'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'onslaught',
@@ -23625,6 +26578,7 @@ $VAR1 = [
             'term' => 'onslaught'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'ould',
@@ -23633,6 +26587,7 @@ $VAR1 = [
             'term' => 'ould'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'oumar',
@@ -23641,6 +26596,7 @@ $VAR1 = [
             'term' => 'oumar'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'outrag',
@@ -23649,6 +26605,7 @@ $VAR1 = [
             'term' => 'outrage'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'pakistan',
@@ -23657,6 +26614,7 @@ $VAR1 = [
             'term' => 'pakistan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'pakistani',
@@ -23665,6 +26623,7 @@ $VAR1 = [
             'term' => 'pakistani'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'pathogen',
@@ -23673,6 +26632,7 @@ $VAR1 = [
             'term' => 'pathogen'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'pedraz',
@@ -23681,6 +26641,7 @@ $VAR1 = [
             'term' => 'pedraz'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'perpetr',
@@ -23689,6 +26650,7 @@ $VAR1 = [
             'term' => 'perpetrated'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'peter',
@@ -23697,6 +26659,7 @@ $VAR1 = [
             'term' => 'peter'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'photo',
@@ -23705,6 +26668,7 @@ $VAR1 = [
             'term' => 'photos'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 3,
             'stem' => 'pinterest',
@@ -23713,6 +26677,7 @@ $VAR1 = [
             'term' => 'pinterest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'plagu',
@@ -23721,6 +26686,7 @@ $VAR1 = [
             'term' => 'plagued'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'posh',
@@ -23729,6 +26695,7 @@ $VAR1 = [
             'term' => 'posh'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => "p\x{159}edn\x{e1}dra\x{17e}\x{ed}",
@@ -23737,6 +26704,7 @@ $VAR1 = [
             'term' => "p\x{159}edn\x{e1}dra\x{17e}\x{ed}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'preemptiv',
@@ -23745,6 +26713,7 @@ $VAR1 = [
             'term' => 'preemptively'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => "pr\x{ed}ncipe",
@@ -23753,6 +26722,7 @@ $VAR1 = [
             'term' => "pr\x{ed}ncipe"
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'rafael',
@@ -23761,6 +26731,7 @@ $VAR1 = [
             'term' => 'rafael'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'raveonett',
@@ -23769,6 +26740,7 @@ $VAR1 = [
             'term' => 'raveonettes'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'react',
@@ -23777,6 +26749,7 @@ $VAR1 = [
             'term' => 'reacted'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'reconcili',
@@ -23785,6 +26758,7 @@ $VAR1 = [
             'term' => 'reconciliation'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'reluct',
@@ -23793,6 +26767,7 @@ $VAR1 = [
             'term' => 'reluctant'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'renam',
@@ -23801,6 +26776,7 @@ $VAR1 = [
             'term' => 'renamed'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'right2dign',
@@ -23809,6 +26785,7 @@ $VAR1 = [
             'term' => 'right2dignity'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'roma',
@@ -23817,6 +26794,7 @@ $VAR1 = [
             'term' => 'roma'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'rooftop',
@@ -23825,6 +26803,7 @@ $VAR1 = [
             'term' => 'rooftop'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'saddest',
@@ -23833,6 +26812,7 @@ $VAR1 = [
             'term' => 'saddest'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => "s\x{e3}o",
@@ -23841,6 +26821,7 @@ $VAR1 = [
             'term' => "s\x{e3}o"
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'saudi',
@@ -23849,6 +26830,7 @@ $VAR1 = [
             'term' => 'saudi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'shiraishi',
@@ -23857,6 +26839,7 @@ $VAR1 = [
             'term' => 'shiraishi'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'sierra',
@@ -23865,6 +26848,7 @@ $VAR1 = [
             'term' => 'sierra'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'slu',
@@ -23873,6 +26857,7 @@ $VAR1 = [
             'term' => 'slu'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'spiral',
@@ -23881,6 +26866,7 @@ $VAR1 = [
             'term' => 'spiral'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'spokesperson',
@@ -23889,6 +26875,7 @@ $VAR1 = [
             'term' => 'spokesperson'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'sri',
@@ -23897,6 +26884,7 @@ $VAR1 = [
             'term' => 'sri'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'swat',
@@ -23905,6 +26893,7 @@ $VAR1 = [
             'term' => 'swat'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'swedish',
@@ -23913,6 +26902,7 @@ $VAR1 = [
             'term' => 'swedish'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'taliban',
@@ -23921,6 +26911,7 @@ $VAR1 = [
             'term' => 'taliban'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'tao',
@@ -23929,6 +26920,7 @@ $VAR1 = [
             'term' => 'tao'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'tom',
@@ -23937,6 +26929,7 @@ $VAR1 = [
             'term' => 'tom'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => "tom\x{e9}",
@@ -23945,6 +26938,7 @@ $VAR1 = [
             'term' => "tom\x{e9}"
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'unaccept',
@@ -23953,6 +26947,7 @@ $VAR1 = [
             'term' => 'unacceptable'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'unanim',
@@ -23961,6 +26956,7 @@ $VAR1 = [
             'term' => 'unanimously'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'uncheck',
@@ -23969,6 +26965,7 @@ $VAR1 = [
             'term' => 'unchecked'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'unicef',
@@ -23977,6 +26974,7 @@ $VAR1 = [
             'term' => 'unicef'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'violenc',
@@ -23985,6 +26983,7 @@ $VAR1 = [
             'term' => 'violence'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'wiki',
@@ -23993,6 +26992,7 @@ $VAR1 = [
             'term' => 'wiki'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 4,
             'stem' => 'wikimedia',
@@ -24001,6 +27001,7 @@ $VAR1 = [
             'term' => 'wikimedia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'winner',
@@ -24009,6 +27010,7 @@ $VAR1 = [
             'term' => 'winner'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'women2dr',
@@ -24017,6 +27019,7 @@ $VAR1 = [
             'term' => 'women2drive'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'writ',
@@ -24025,6 +27028,7 @@ $VAR1 = [
             'term' => 'writ'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'xiaobo',
@@ -24033,6 +27037,7 @@ $VAR1 = [
             'term' => 'xiaobo'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'yan',
@@ -24041,6 +27046,7 @@ $VAR1 = [
             'term' => 'yan'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'yosoy132',
@@ -24049,6 +27055,7 @@ $VAR1 = [
             'term' => 'yosoy132'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'yousufzai',
@@ -24057,6 +27064,7 @@ $VAR1 = [
             'term' => 'yousufzai'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'youth',
@@ -24065,6 +27073,7 @@ $VAR1 = [
             'term' => 'youth'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 2,
             'stem' => 'youtub',
@@ -24073,6 +27082,7 @@ $VAR1 = [
             'term' => 'youtube'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'zambia',
@@ -24081,6 +27091,7 @@ $VAR1 = [
             'term' => 'zambia'
           },
           {
+            'language' => 'en',
             'publish_week' => '2012-10-22',
             'stem_count' => 1,
             'stem' => 'zambian',
