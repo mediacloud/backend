@@ -409,6 +409,12 @@ sub _tokenize_text_with_lingua_sentence
     $text =~ s/\n\n\n*/\n\n/gso;
     $text =~ s/\n\n/\n/gso;
 
+    # Replace tabs with spaces
+    $text =~ s/\t/ /gs;
+
+    # Replace multiple spaces with a single space
+    $text =~ s/  +/ /gs;
+
     # The above regexp and html stripping often leave a space before the period at the end of a sentence
     $text =~ s/ +\./\./g;
 
