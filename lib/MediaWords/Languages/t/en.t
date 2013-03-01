@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 6 + 1;
+use Test::More tests => 7 + 1;
 use utf8;
 
 # Test::More UTF-8 output
@@ -103,6 +103,22 @@ $test_string =
 $expected_sentences = [
 'Perhaps that’s the best thing the Nobel Committee did by awarding this year’s literature prize to a non-dissident, someone whom Peter Englund of the Swedish Academy said was “more a critic of the system, sitting within the system.”',
     'They’ve given him a chance to bust out.',
+];
+
+{
+    is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
+}
+
+#
+# String whitespace trimming
+#
+$test_string = <<'QUOTE';
+    	  In another demonstration of cyberactivism and acvistim, Brazilian Internet users are gathering around a cause: to fight Senator Azeredo's Digital Crimes Bill.  	   This legal project, which intends to intervene severely in the way people use the Internet in Brazil is being heavily criticized by Brazil's academic field, left-wing parties and the Internet community.		
+QUOTE
+
+$expected_sentences = [
+'In another demonstration of cyberactivism and acvistim, Brazilian Internet users are gathering around a cause: to fight Senator Azeredo\'s Digital Crimes Bill.',
+'This legal project, which intends to intervene severely in the way people use the Internet in Brazil is being heavily criticized by Brazil\'s academic field, left-wing parties and the Internet community.',
 ];
 
 {

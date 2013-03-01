@@ -416,12 +416,16 @@ sub _tokenize_text_with_lingua_sentence
     # (commented out before it breaks Portuguese "a.C.." abbreviations and such)
     #$text =~ s/([[:lower:]])\.([[:upper:]])/$1. $2/g;
 
-    # Trim string
-    $text =~ s/^\s+//;
-    $text =~ s/\s+$//;
+    # Trim whitespace from start / end of the whole string
+    $text =~ s/^\s*//g;
+    $text =~ s/\s*$//g;
 
     # Split to sentences
     my @sentences = $self->sentence_tokenizer->split_array( $text );
+
+    # Trim whitespace from start / end of each of the sentences
+    @sentences = grep( s/^\s*//g, @sentences );
+    @sentences = grep( s/\s*$//g, @sentences );
 
     return \@sentences;
 }
