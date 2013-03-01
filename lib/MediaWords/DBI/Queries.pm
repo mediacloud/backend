@@ -56,11 +56,12 @@ sub _get_description
     {
         $description .=
           " mentioning one of " . @{ $dashboard_topics } . " topics including " .
-          join( " and ", map { $_->{ name } } @{ $dashboard_topics }[ 0 .. 1 ] );
+          join( " and ", map { $_->{ name } . ' [' . $_->{ language } . ']' } @{ $dashboard_topics }[ 0 .. 1 ] );
     }
     elsif ( @{ $dashboard_topics } )
     {
-        $description .= " mentioning " . join( " or ", map { $_->{ name } } @{ $dashboard_topics } );
+        $description .=
+          " mentioning " . join( " or ", map { $_->{ name } . ' [' . $_->{ language } . ']' } @{ $dashboard_topics } );
     }
 
     $description .= " during the week starting $start_date";
