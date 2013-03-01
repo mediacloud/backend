@@ -68,6 +68,7 @@ sub _insert_story_sentence_words
                     sentence_number,
                     stem,
                     term,
+                    language,
                     publish_day,
                     media_id
                 )
@@ -92,7 +93,8 @@ EOF
                     $db->dbh->pg_putcopydata(
                         $story->{ stories_id } . "\t" . $hash->{ count } . "\t" . $sentence_num . "\t" .
                           encode_utf8( $stem ) . "\t" . encode_utf8( lc( $hash->{ word } ) ) . "\t" .
-                          $story->{ publish_date } . "\t" . $story->{ media_id } . "\n" );
+                          encode_utf8( lc( $hash->{ language } ) ) . "\t" . $story->{ publish_date } . "\t" .
+                          $story->{ media_id } . "\n" );
 
                 };
                 if ( $@ )
@@ -566,7 +568,9 @@ sub _get_stem_word_counts_for_sentence($$;$)
 
         if ( _valid_stem( $stem, $word, $stop_stems ) )
         {
-            $word_counts->{ $stem }->{ word } ||= $word;
+            $word_counts->{ $stem }->{ word }     ||= $word;
+            $word_counts->{ $stem }->{ language } ||= $sentence_lang;
+            $word_counts->{ $stem }->{ language } ||= $fallback_lang;    # if no sentence_lang was set
             $word_counts->{ $stem }->{ count }++;
         }
     }
