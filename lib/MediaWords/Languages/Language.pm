@@ -442,6 +442,9 @@ sub _tokenize_text_with_lingua_sentence
     @sentences = grep( s/^\s*//g, @sentences );
     @sentences = grep( s/\s*$//g, @sentences );
 
+    # Remove empty sentences (buggy Lingua::Sentence I guess)
+    @sentences = grep( /\S/, @sentences );
+
     return \@sentences;
 }
 
