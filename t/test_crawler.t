@@ -451,6 +451,10 @@ sub get_crawler_data_directory
 sub main
 {
 
+    # Errors might want to print out UTF-8 characters
+    binmode( STDOUT, ":utf8" );
+    binmode( STDERR, ":utf8" );
+
     my ( $dump ) = @ARGV;
 
     MediaWords::Test::DB::test_on_test_database(
