@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 5 + 1;
+use Test::More tests => 6 + 1;
 use utf8;
 
 # Test::More UTF-8 output
@@ -89,6 +89,21 @@ Non Mega Não! [Mega No!], l.
 QUOTE
 
 $expected_sentences = [ 'Non Mega Não!', '[Mega No!], l.', ];
+
+{
+    is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
+}
+
+#
+# Quotation
+#
+$test_string =
+"Perhaps that\x{2019}s the best thing the Nobel Committee did by awarding this year\x{2019}s literature prize to a non-dissident, someone whom Peter Englund of the Swedish Academy said was \x{201c}more a critic of the system, sitting within the system.\x{201d} They\x{2019}ve given him a chance to bust out.";
+
+$expected_sentences = [
+'Perhaps that’s the best thing the Nobel Committee did by awarding this year’s literature prize to a non-dissident, someone whom Peter Englund of the Swedish Academy said was “more a critic of the system, sitting within the system.”',
+    'They’ve given him a chance to bust out.',
+];
 
 {
     is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
