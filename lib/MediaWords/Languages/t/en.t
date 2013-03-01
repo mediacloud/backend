@@ -12,7 +12,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 8 + 1;
+use Test::More tests => 9 + 1;
 use utf8;
 
 # Test::More UTF-8 output
@@ -134,6 +134,22 @@ QUOTE
 
 $expected_sentences = [
 'Although several opposition groups have called for boycotting the coming June 12 presidential election, it seems the weight of boycotting groups is much less than four years ago.',
+];
+
+{
+    is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
+}
+
+#
+# Non-breaking space
+#
+$test_string = <<"QUOTE";
+American Current TV journalists Laura Ling and Euna Lee have been  sentenced  to 12 years of hard labor (according to CNN).\x{a0} Jillian York  rounded up blog posts  for Global Voices prior to the journalists' sentencing.
+QUOTE
+
+$expected_sentences = [
+'American Current TV journalists Laura Ling and Euna Lee have been sentenced to 12 years of hard labor (according to CNN).',
+    'Jillian York rounded up blog posts for Global Voices prior to the journalists\' sentencing.',
 ];
 
 {

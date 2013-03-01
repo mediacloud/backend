@@ -412,6 +412,9 @@ sub _tokenize_text_with_lingua_sentence
     # Replace tabs with spaces
     $text =~ s/\t/ /gs;
 
+    # Replace non-breaking spaces with normal spaces
+    $text =~ s/\x{a0}/ /gs;
+
     # Replace multiple spaces with a single space
     $text =~ s/  +/ /gs;
 
