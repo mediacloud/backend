@@ -165,7 +165,7 @@ foreach my $language_to_load ( @_enabled_languages )
 {
 
     # Check if the language is supported by the language identifier
-    if ( !MediaWords::Util::IdentifyLanguage::language_is_supported( $language_to_load ) )
+    unless ( MediaWords::Util::IdentifyLanguage::language_is_supported( $language_to_load ) )
     {
         die(
             "Language module '$language_to_load' is enabled but the language is not supported by the language identifier." );
@@ -208,7 +208,7 @@ sub language_for_code($)
 {
     my $language_code = shift;
 
-    if ( !language_is_enabled( $language_code ) )
+    unless ( language_is_enabled( $language_code ) )
     {
         return 0;
     }
@@ -219,8 +219,8 @@ sub language_for_code($)
 # (static) Returns default language module instance (English)
 sub default_language
 {
-    my $language = language_for_code { default_language_code() };
-    if ( $language )
+    my $language = language_for_code( default_language_code() );
+    unless ( $language )
     {
         die "Default language 'en' is not enabled.";
     }
