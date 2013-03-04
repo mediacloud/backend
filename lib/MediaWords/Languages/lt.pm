@@ -78,9 +78,11 @@ sub get_noise_strings
 {
     my $self          = shift;
     my @noise_strings = (
-        'naujienų', 'BNS',          'skelbti',     'cituoti',    'atgaminti',   'kopijuoti',
-        'dauginti',  'platinti',     'informavimo', 'raštiško', 'raštišką', 'sutikimo',
-        'sutikimą', 'neleidžiama', 'draudžiama', 'taisyklės', 'teisės',     'saugomos',
+        'naujienų', 'BNS',       'skelbti',      'cituoti',        'atgaminti',   'kopijuoti',
+        'dauginti',  'platinti',  'informavimo',  'raštiško',     'raštišką', 'sutikimo',
+        'sutikimą', 'sutikimas', 'neleidžiama', 'draudžiama',    'taisyklės',  'teisės',
+        'saugomos',  'griežtai', 'DELFI',        'žiniasklaidos', 'nurodyti',    'šaltinį',
+        'šaltinis'
     );
     return \@noise_strings;
 }
