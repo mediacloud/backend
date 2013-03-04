@@ -91,6 +91,13 @@ sub create_topic : Local
         return;
     }
 
+    if ( !$form->submitted_and_valid() )
+    {
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'dashboards/create_topic.tt2';
+        return;
+    }
+
     my $language_code = $c->req->param( 'language' );
     if ( $language_code =~ /\W/ or bytes::length( $language_code ) < 2 or bytes::length( $language_code ) > 3 )
     {
@@ -106,13 +113,6 @@ sub create_topic : Local
         $c->stash->{ form }      = $form;
         $c->stash->{ template }  = 'dashboards/create_topic.tt2';
         $c->stash->{ error_msg } = 'Language "' . $language_code . '" is not available.';
-        return;
-    }
-
-    if ( !$form->submitted_and_valid() )
-    {
-        $c->stash->{ form }     = $form;
-        $c->stash->{ template } = 'dashboards/create_topic.tt2';
         return;
     }
 
