@@ -24,26 +24,32 @@ if [ `uname` == 'Darwin' ]; then
         exit 1
     fi
 
-    sudo port install \
-        postgresql84 +perl \
-        postgresql84-server \
-        p5.12-dbd-pg +postgresql84
+    # Install PostgreSQL and Perl bindings
+    brew install postgresql9
+    sudo cpan DBD::Pg
 
     # Initialize PostgreSQL if installing for the first time
-    if [ ! -d /opt/local/var/db/postgresql84/defaultdb ]; then
-        sudo mkdir -p /opt/local/var/db/postgresql84/defaultdb
-        sudo chown postgres:postgres /opt/local/var/db/postgresql84/defaultdb
-        sudo su postgres -c '/opt/local/lib/postgresql84/bin/initdb -D /opt/local/var/db/postgresql84/defaultdb'
+    if [ ! -d /usr/local/var/postgres ]; then
+        initdb /usr/local/var/postgres -E utf8
+    fi
+
+    # Upgrading?    
+    if [ -f ~/Library/LaunchAgents/org.postgresql.postgres.plist ]; then
+        launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+        ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
     fi
 
     # Start PostgreSQL
-    sudo port load postgresql84-server
+    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+    sleep 5
+    createdb    # for the current user
+    createuser postgres
 
 else
 
     # assume Ubuntu
     sudo apt-get --assume-yes install \
-        postgresql-8.4 postgresql-client-8.4 postgresql-contrib-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4
+        postgresql postgresql-client postgresql-contrib postgresql-plperl postgresql-server-dev-all
 
 fi
 

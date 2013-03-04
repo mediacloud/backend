@@ -24,43 +24,33 @@ if [ `uname` == 'Darwin' ]; then
         exit 1
     fi
 
-    sudo port install \
-        coreutils expat p5.12-xml-parser p5.12-xml-sax-expat p5.12-xml-libxml p5.12-xml-libxml-simple \
-        p5.12-libxml-perl p5.12-test-www-mechanize p5.12-opengl \
-        graphviz +perl \
-        p5.12-graphviz p5.12-graph \
-        postgresql84 +perl \
-        postgresql84-server \
-        curl \
-        p5.12-dbd-pg +postgresql84 \
-        tidy p5.12-perl-tidy p5.12-html-parser \
-        libyaml p5.12-yaml p5.12-yaml-libyaml p5.12-yaml-syck \
-        p5.12-list-allutils p5.12-list-moreutils \
-        p5.12-readonly p5.12-readonly-xs \
-        db44 p5.12-berkeleydb
+    brew install \
+        perl --use-threads \
+        graphviz --with-bindings \
+        coreutils postgresql curl tidy libyaml berkeley-db4
 
-    # Absolute path because we need to use Perl from MacPorts
-    sudo -n -u root -H /opt/local/bin/cpan-5.12 App::cpanminus
-    if [ -x /opt/local/bin/cpanm ]; then
-        CPANM=/opt/local/bin/cpanm
-    elif [ -x /opt/local/libexec/perl5.12/sitebin/cpanm ]; then
-        CPANM=/opt/local/libexec/perl5.12/sitebin/cpanm
-    else
-        echo "I have tried to install 'cpanm' (App::cpanminus) previously, but not I am unable to locate it."
-        exit 1
-    fi
+    sudo cpan XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
+        Test::WWW::Mechanize OpenGL \
+        DBD::Pg Perl::Tidy HTML::Parser \
+        YAML YAML::LibYAML YAML::Syck \
+        List::AllUtils List::MoreUtils \
+        Readonly Readonly::XS \
+        BerkeleyDB \
+        GraphViz Graph
 
-    sudo -n -u root -H $CPANM Graph::Writer::GraphViz
-    sudo -n -u root -H $CPANM HTML::Entities
-    sudo -n -u root -H $CPANM version
-    sudo -n -u root -H $CPANM Lingua::Stem::Snowball
+    # Absolute path because we need to use Perl from Homebrew
+    sudo -n -u root -H /usr/local/bin/cpan App::cpanminus
+    sudo -n -u root -H /usr/local/bin/cpanm Graph::Writer::GraphViz
+    sudo -n -u root -H /usr/local/bin/cpanm HTML::Entities
+    sudo -n -u root -H /usr/local/bin/cpanm version
+    sudo -n -u root -H /usr/local/bin/cpanm Lingua::Stem::Snowball
 
 else
 
     # assume Ubuntu
     sudo apt-get --assume-yes install \
         expat libexpat1-dev libxml2-dev \
-        postgresql-server-dev-8.4 postgresql-client-8.4 libdb-dev libtest-www-mechanize-perl libtidy-dev \
+        postgresql-server-dev-all postgresql-client libdb-dev libtest-www-mechanize-perl libtidy-dev \
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev \
         libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
         build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl
