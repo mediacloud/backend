@@ -25,14 +25,14 @@ elements:
   - type: Text
     name: start_date
     label: Start Date
-    comment: (2008-09-01)
+    comment: (e.g. 2008-09-01; will be truncated to a week)
     constraints:
         - Required
 
   - type: Text
     name: end_date
     label: End Date
-    comment: (2008-09-30)
+    comment: (e.g. 2008-09-30; will be truncated to a week)
     constraints:
         - Required
 
