@@ -8,6 +8,8 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 use MediaWords::Crawler::Extractor;
+use MediaWords::Languages::Language;
+use MediaWords::Util::IdentifyLanguage;
 
 # extract substantive new story text from html pages
 
@@ -30,22 +32,11 @@ use constant DESCRIPTION_SIMILARITY_DISCOUNT => .5;
 # only apply similarity test to this many characters of the story text and desciption
 use constant MAX_SIMILARITY_LENGTH => 8192;
 
-# count these words as html, since they generally indicate noise words
-my $_NOISE_WORDS = [
-    qw/comment advertise advertisement advertising classified subscribe subscription please
-      address published obituary current high low click filter select copyright reserved
-      abusive defamatory post trackback url /,
-    'terms of use',
-    'data provided by',
-    'data is provided by',
-    'privacy policy',
-];
-
 #todo explain what this function really does
 # return the ratio of html characters to text characters
-sub get_html_density
+sub get_html_density($$)
 {
-    my ( $line ) = @_;
+    my ( $line, $language_code ) = @_;
 
     if ( !$line )
     {
@@ -82,7 +73,12 @@ sub get_html_density
         $html_length += $len;
     }
 
-    for my $noise_word ( @{ $_NOISE_WORDS } )
+    # Noise words
+    # (count these words as html, since they generally indicate noise words)
+    my $lang        = MediaWords::Languages::Language::language_for_code( $language_code );
+    my $noise_words = $lang->get_noise_strings();
+
+    for my $noise_word ( @{ $noise_words } )
     {
         while ( $line =~ /$noise_word/ig )
         {
@@ -93,7 +89,7 @@ sub get_html_density
     return ( $html_length / ( length( $line ) ) );
 }
 
-sub lineStartsWithTitleText
+sub lineStartsWithTitleText($$)
 {
     my ( $line_text, $title_text ) = @_;
 
@@ -119,7 +115,7 @@ sub lineStartsWithTitleText
 }
 
 # get discount based on the similarity to the description
-sub get_description_similarity_discount
+sub get_description_similarity_discount($$)
 {
     my ( $line, $description ) = @_;
 
@@ -166,13 +162,9 @@ sub get_description_similarity_discount
 #
 # New subroutine "calculate_line_extraction_metrics" extracted - Mon Feb 27 17:19:53 2012.
 #
-sub calculate_line_extraction_metrics
+sub calculate_line_extraction_metrics($$$$$$)
 {
-    my $i              = shift;
-    my $description    = shift;
-    my $line           = shift;
-    my $sphereit_map   = shift;
-    my $has_clickprint = shift;
+    my ( $i, $description, $line, $sphereit_map, $has_clickprint, $language_code ) = @_;
 
     Readonly my $article_has_clickprint => $has_clickprint;    #<--- syntax error at (eval 980) line 11, near "Readonly my "
 
@@ -187,27 +179,33 @@ sub calculate_line_extraction_metrics
 #
 # New subroutine "get_copyright_count" extracted - Mon Feb 27 17:27:56 2012.
 #
-sub get_copyright_count
+sub get_copyright_count($$)
 {
-    my $line = shift;
+    my ( $line, $language_code ) = @_;
 
     my $copyright_count = 0;
 
-    while ( $line =~ /copyright|copying|&copy;|all rights reserved/ig )
+    # Copyright strings
+    my $lang              = MediaWords::Languages::Language::language_for_code( $language_code );
+    my $copyright_strings = $lang->get_copyright_strings();
+
+    for my $copyright_string ( @{ $copyright_strings } )
     {
-        $copyright_count++;
+        while ( $line =~ /$copyright_string/ig )
+        {
+            $copyright_count++;
+        }
     }
+
     return ( $copyright_count );
 }
 
 #
 # New subroutine "calculate_line_extraction_metrics_2" extracted - Mon Feb 27 17:30:21 2012.
 #
-sub calculate_line_extraction_metrics_2
+sub calculate_line_extraction_metrics_2($$$$)
 {
-    my $line_text  = shift;
-    my $line       = shift;
-    my $title_text = shift;
+    my ( $line_text, $line, $title_text, $language_code ) = @_;
 
     Readonly my $line_length => length( $line );    #<--- syntax error at (eval 983) line 8, near "Readonly my "
     Readonly my $line_starts_with_title_text => lineStartsWithTitleText( $line_text, $title_text );
@@ -215,10 +213,12 @@ sub calculate_line_extraction_metrics_2
     return ( $line_length, $line_starts_with_title_text );
 }
 
-sub calculate_full_line_metrics
+sub calculate_full_line_metrics($$$$$$$$$)
 {
-    my ( $line, $line_number, $title_text, $description, $sphereit_map, $has_clickprint, $auto_excluded_lines, $markers ) =
-      @_;
+    my (
+        $line,           $line_number,         $title_text, $description, $sphereit_map,
+        $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+    ) = @_;
 
     my $line_info = {};
 
@@ -250,7 +250,7 @@ sub calculate_full_line_metrics
         return $line_info;
     }
 
-    $line_info->{ html_density } = get_html_density( $line );
+    $line_info->{ html_density } = get_html_density( $line, $language_code );
 
     $line_text =~ s/^\s*//;
     $line_text =~ s/\s*$//;
@@ -259,12 +259,13 @@ sub calculate_full_line_metrics
     $line_info->{ auto_excluded } = 0;
 
     my ( $line_length, $line_starts_with_title_text ) =
-      calculate_line_extraction_metrics_2( $line_text, $line, $title_text );
+      calculate_line_extraction_metrics_2( $line_text, $line, $title_text, $language_code );
 
-    my ( $copyright_count ) = get_copyright_count( $line );
+    my ( $copyright_count ) = get_copyright_count( $line, $language_code );
 
     my ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount, $sphereit_map_includes_line )
-      = calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint );
+      = calculate_line_extraction_metrics( $line_number, $description, $line, $sphereit_map, $has_clickprint,
+        $language_code );
 
     $line_info->{ line_length }                     = $line_length;
     $line_info->{ line_starts_with_title_text }     = $line_starts_with_title_text;
@@ -277,11 +278,18 @@ sub calculate_full_line_metrics
     return $line_info;
 }
 
-sub get_info_for_lines
+sub get_info_for_lines($$$)
 {
     my ( $lines, $title, $description ) = @_;
 
-    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
+    # Story language will be later determined in MediaWords::StoryVectors too,
+    # but before that let's take into account a full HTML page (because presumably)
+    # even if the story is written in language B, the page itself (including the
+    # copyright lines and such) will still be present in language A.
+    my $full_text = join( "\n", @{ $lines } );
+    my $language_code = MediaWords::Util::IdentifyLanguage::language_code_for_text( $full_text, undef, 1 );
+
+    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code );
 
     my $info_for_lines = [];
 
@@ -291,9 +299,9 @@ sub get_info_for_lines
     $title_text =~ s/\s*$//;
     $title_text =~ s/\s+/ /;
 
-    my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines );
+    my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
     my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
-    my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers );
+    my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
 
     MediaWords::Crawler::Extractor::print_time( "find_markers" );
 
@@ -311,8 +319,10 @@ sub get_info_for_lines
 
         my ( $html_density, $discounted_html_density, $explanation );
 
-        my $line_info = calculate_full_line_metrics( $line, $i, $title_text, $description, $sphereit_map, $has_clickprint,
-            $auto_excluded_lines, $markers );
+        my $line_info = calculate_full_line_metrics(
+            $line,           $i,                   $title_text, $description, $sphereit_map,
+            $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+        );
 
         $info_for_lines->[ $i ] = $line_info;
     }
@@ -320,7 +330,7 @@ sub get_info_for_lines
     return $info_for_lines;
 }
 
-sub words_on_line
+sub words_on_line($)
 {
     my ( $line ) = @_;
 
@@ -338,7 +348,7 @@ sub words_on_line
     return $ret;
 }
 
-sub add_additional_features
+sub add_additional_features($$)
 {
     my ( $line_info, $line_text ) = @_;
 
@@ -377,7 +387,7 @@ sub add_additional_features
 
 my $banned_fields;
 
-sub get_feature_string_from_line_info
+sub get_feature_string_from_line_info($$;$)
 {
 
     my ( $line_info, $line_text, $top_words ) = @_;

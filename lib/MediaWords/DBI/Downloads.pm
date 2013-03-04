@@ -302,7 +302,7 @@ sub fetch_preprocessed_content_lines
 #   extracted_text => $text,    # a string with the extracted html strippped to text
 #   download_lines => $lines,   # an array of the lines of original html
 #   scores => $scores }         # the scores returned by Mediawords::Crawler::Extractor::score_lines
-sub extractor_results_for_download
+sub extractor_results_for_download($$)
 {
     my ( $db, $download ) = @_;
 
@@ -337,7 +337,7 @@ sub add_period_to_tagline
     }
 }
 
-sub _do_extraction_from_content_ref
+sub _do_extraction_from_content_ref($$$)
 {
     my ( $content_ref, $title, $description ) = @_;
 
@@ -364,7 +364,7 @@ sub _get_included_line_numbers
     return \@included_lines;
 }
 
-sub extract_preprocessed_lines_for_story
+sub extract_preprocessed_lines_for_story($$$)
 {
     my ( $lines, $story_title, $story_description ) = @_;
 

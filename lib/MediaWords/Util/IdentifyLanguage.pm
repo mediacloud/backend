@@ -204,21 +204,31 @@ use Readonly;
     # Parameters:
     #  * Text that should be identified (required)
     #  * Top-level domain that can help with the identification (optional)
+    #  * True if the content is (X)HTML, false otherwise (optional)
     # Returns: ISO 690 language code (e.g. 'en') on successful identification, empty string ('') on failure
-    sub language_code_for_text($;$)
+    sub language_code_for_text($;$$)
     {
-        my ( $text, $tld ) = @_;
+        my ( $text, $tld, $is_html ) = @_;
 
-        my $language_name;
-
-        if ( defined $tld and $tld ne '' )
+        if ( $is_html )
         {
-            $tld = lc( $tld );
-            $language_name = $cld->identify( $text, tld => $tld, isPlainText => 1, allowExtendedLanguages => 0 );
+            $is_html = 1;
         }
         else
         {
-            $language_name = $cld->identify( $text, isPlainText => 1, allowExtendedLanguages => 0 );
+            $is_html = 0;
+        }
+
+        my $language_name;
+
+        if ( defined $tld and $tld )
+        {
+            $tld = lc( $tld );
+            $language_name = $cld->identify( $text, tld => $tld, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 );
+        }
+        else
+        {
+            $language_name = $cld->identify( $text, isPlainText => ( !$is_html ), allowExtendedLanguages => 0 );
         }
 
         $language_name = lc( $language_name );
@@ -275,11 +285,11 @@ use Readonly;
         return 1;
     }
 
-# Returns TLD (top-level domain) of the URL passed as a parameter
-# (http://stackoverflow.com/questions/8031620/extraction-of-tld-from-urls-and-sorting-domains-and-subdomains-for-each-tld-file)
-# Parameters:
-#  * URL
-# Returns: TLD of the URL or empty string in case of an error
+    # Returns TLD (top-level domain) of the URL passed as a parameter
+    # (http://stackoverflow.com/q/8031620/200603)
+    # Parameters:
+    #  * URL
+    # Returns: TLD of the URL or empty string in case of an error
     sub tld_from_url($)
     {
         my $url = shift;

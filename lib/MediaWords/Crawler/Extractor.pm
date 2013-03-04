@@ -55,9 +55,9 @@ my $_MARKER_PATTERNS = {
 
 # find various markers that can be used to discount line scores
 # return a hash of the found markers
-sub find_markers
+sub find_markers($$)
 {
-    my ( $lines ) = @_;
+    my ( $lines, $language_code ) = @_;
 
     my $markers = {};
 
@@ -71,9 +71,9 @@ sub find_markers
 
 # return hash with lines numbers that should be included by sphereit
 # { linenum1 => 1, linenum2 => 1, ...}
-sub get_sphereit_map
+sub get_sphereit_map($$)
 {
-    my ( $markers ) = @_;
+    my ( $markers, $language_code ) = @_;
 
     my $sphereit_map;
     while ( my $start = shift( @{ $markers->{ sphereitbegin } } ) )
@@ -115,12 +115,12 @@ sub print_time
     $_last_time = $t;
 }
 
-sub find_auto_excluded_lines
+sub find_auto_excluded_lines($$)
 {
-    my ( $lines ) = @_;
+    my ( $lines, $language_code ) = @_;
 
-    my $markers      = find_markers( $lines );
-    my $sphereit_map = get_sphereit_map( $markers );
+    my $markers = find_markers( $lines, $language_code );
+    my $sphereit_map = get_sphereit_map( $markers, $language_code );
 
     my $ret = [];
 
@@ -179,21 +179,21 @@ sub find_auto_excluded_lines
 # given a reference to an html story (news, blog, etc), return just the substantive text.
 # uses text to html density along with a variety of other metrics to pick substantive
 # content vs. ads, navigation, and other affluvia
-sub score_lines
+sub score_lines($$$)
 {
     my ( $lines, $title, $description ) = @_;
 
     return heuristically_scored_lines( $lines, $title, $description );
 }
 
-sub heuristically_scored_lines
+sub heuristically_scored_lines($$$)
 {
     my ( $lines, $title, $description ) = @_;
 
     return _heuristically_scored_lines_impl( $lines, $title, $description );
 }
 
-sub _heuristically_scored_lines_impl
+sub _heuristically_scored_lines_impl($$$)
 {
     my ( $lines, $title, $description ) = @_;
 

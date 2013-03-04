@@ -119,6 +119,13 @@ requires 'get_sentences';
 #
 requires 'tokenize';
 
+# Returns an arrayref of "noise words" for the heuristic line analyzer.
+requires 'get_noise_strings';
+
+# Returns an arrayref of strings which denote that a particular HTML line is
+# likely to be the "copyright" string.
+requires 'get_copyright_strings';
+
 #
 # END OF THE SUBCLASS INTERFACE
 #

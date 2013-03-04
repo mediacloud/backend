@@ -70,7 +70,7 @@ sub get_line_analysis_info
     my $story_description =
       $dbs->query( "SELECT description FROM stories where stories.stories_id=? ", $download->{ stories_id } )->flat->[ 0 ];
 
-    $ret = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $preprocessed_lines, $story_title, $story_description, );
+    $ret = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $preprocessed_lines, $story_title, $story_description );
 
     return $ret;
 }
