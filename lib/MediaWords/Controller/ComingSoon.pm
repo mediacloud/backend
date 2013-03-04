@@ -19,7 +19,6 @@ use List::MoreUtils qw/:all/;
 use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
-use MediaWords::Util::Countries;
 
 use Data::Dumper;
 use Date::Format;

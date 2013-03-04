@@ -12,13 +12,6 @@
 [% c.loc('The comparative word cloud starts with the top 75 words of each query but colors words according to their relative frequency within each query.  Words in red or blue are words within the top 75 words for one query that are ranked at least 25 spots lower than in the other query.  Words in purple are ranked within 25 spots in both of the queries.  So the word 'elephant' would be blue if it were the 15th most popular word in the first query but only the 50th most popular word in the second query.  If 'elephant' were the 15th most popular word in the first query and the 35th most popular word in the second query, it would be colored purple.  Words are sized according to the number of mentions divided by the number of queries it is found in.  So a word that is found in both queries is sized according to the mentions in both queries divided by two, but a word that is found in only one query is sized according to the number of mentions in the one query with no division.') %]
 </p>
 
-<a name ="coverage_map"></a>
-<p><i>[% c.loc('How is the coverage map generated?') %]</i></p>
-
-<p>
-[% c.loc('The coverage map displays a heat map of the coverage of a given country for the given media set or media source during the given week.  So for a media source that mentions China frequently but African countries rarely, China should appear very dark on the map while African countries should appear very light.  We use a very simple country tagging system that counts mentions of a given country by looking for either the country name if it is a single word (eg. Ghana) or for two words from the country name to appear anywhere in the same sentence if the country name is more than one word (eg. United States).  This tagging algorithm is likely to have some false negatives and false positives.') %]
-</p>
-
 <a name="topic"></a>
 <p><i>[% c.loc('What is a topic?') %]</i></p>
 

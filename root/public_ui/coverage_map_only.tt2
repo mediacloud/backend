@@ -259,23 +259,12 @@
 </td>
 </tr>
 <tr style = "align: top;">
-<td>
-
-[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.0.queries_id } ) %]
-<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string, 'width' => 300, 'height' => 240 } ) %]" ></iframe>
-</td>
-<td>
-[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries.1.queries_id } ) %]
-<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string, 'width' => 300, 'height' => 240 } ) %]" ></iframe>
-</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 </tr>
 </table>
 [% ELSIF word_cloud %]
-[% csv_url_string = c.uri_for('/dashboard/country_counts_csv/', { 'queries_id' => queries_ids } ) %]
-<a href="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %]"></a>
-<div>
-<iframe style="border-style: none; width: 100%; height: 100%;" cellspacing="0" border="0" id="coverage_map_frame" name="coverage_map_frame" scrolling="no" frameborder="0" src="[% c.uri_for('/dashboard/coverage_map_iframe/', { 'url' => csv_url_string } ) %]" ></iframe>
-</div>
+&nbsp;
 [% ELSE %]
 This is a Coverage Map! That's what goes here.  Anything having to do with a Coverage map goes right in this little div tag!  But its only visible once you click on the coverage map tag!
 [% END %]
