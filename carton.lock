@@ -16165,14 +16165,14 @@
          "version" : "4.11"
       },
       "Email::Valid" : {
-         "dist" : "Email-Valid-0.190",
+         "dist" : "Email-Valid-0.187",
          "mymeta" : {
             "abstract" : "unknown",
             "author" : [
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.120351, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.113640, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -16201,7 +16201,6 @@
                "runtime" : {
                   "requires" : {
                      "Mail::Address" : 0,
-                     "Net::DNS" : 0,
                      "Scalar::Util" : 0,
                      "Test::More" : 0,
                      "perl" : "5.006"
@@ -16214,18 +16213,18 @@
                   "url" : "http://github.com/rjbs/email-valid"
                }
             },
-            "version" : "0.190"
+            "version" : "0.187"
          },
          "name" : "Email::Valid",
-         "pathname" : "R/RJ/RJBS/Email-Valid-0.190.tar.gz",
+         "pathname" : "R/RJ/RJBS/Email-Valid-0.187.tar.gz",
          "provides" : {
             "Email::Valid" : {
                "file" : "Email/Valid.pm",
-               "version" : "0.190"
+               "version" : "0.187"
             }
          },
          "target" : "Email::Valid",
-         "version" : "0.190"
+         "version" : "0.187"
       },
       "Encode::HanConvert" : {
          "dist" : "Encode-HanConvert-0.35",
@@ -17105,7 +17104,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MakeMaker.pm"
+               "file" : "ExtUtils/MY.pm"
             }
          },
          "target" : "ExtUtils::MakeMaker",
@@ -35935,7 +35934,7 @@
          "version" : "0.2014"
       },
       "Store::CouchDB" : {
-         "dist" : "Store-CouchDB-2.4",
+         "dist" : "Store-CouchDB-2.3",
          "mymeta" : {
             "abstract" : "a simple CouchDB driver",
             "author" : [
@@ -35981,18 +35980,18 @@
                }
             },
             "release_status" : "stable",
-            "version" : "2.4"
+            "version" : "2.3"
          },
          "name" : "Store::CouchDB",
-         "pathname" : "N/NO/NORBU/Store-CouchDB-2.4.tar.gz",
+         "pathname" : "N/NO/NORBU/Store-CouchDB-2.3.tar.gz",
          "provides" : {
             "Store::CouchDB" : {
                "file" : "Store/CouchDB.pm",
-               "version" : "2.4"
+               "version" : "2.3"
             }
          },
          "target" : "Store::CouchDB",
-         "version" : "2.4"
+         "version" : "2.3"
       },
       "String::RewritePrefix" : {
          "dist" : "String-RewritePrefix-0.006",
@@ -41436,7 +41435,7 @@
          "version" : "0.14"
       },
       "WebService::Solr" : {
-         "dist" : "WebService-Solr-0.21",
+         "dist" : "WebService-Solr-0.19",
          "mymeta" : {
             "abstract" : "Module to interface with the Solr (Lucene) webservice",
             "author" : [
@@ -41463,7 +41462,7 @@
                   "requires" : {
                      "ExtUtils::MakeMaker" : "6.59",
                      "Test::Mock::LWP" : "0.05",
-                     "Test::More" : "0.94",
+                     "Test::More" : 0,
                      "XML::Simple" : 0
                   }
                },
@@ -41495,14 +41494,14 @@
                   "url" : "http://github.com/bricas/webservice-solr"
                }
             },
-            "version" : "0.21"
+            "version" : "0.19"
          },
          "name" : "WebService::Solr",
-         "pathname" : "B/BR/BRICAS/WebService-Solr-0.21.tar.gz",
+         "pathname" : "B/BR/BRICAS/WebService-Solr-0.19.tar.gz",
          "provides" : {
             "WebService::Solr" : {
                "file" : "WebService/Solr.pm",
-               "version" : "0.21"
+               "version" : "0.19"
             },
             "WebService::Solr::Document" : {
                "file" : "WebService/Solr/Document.pm"
@@ -41518,7 +41517,7 @@
             }
          },
          "target" : "WebService::Solr",
-         "version" : "0.21"
+         "version" : "0.19"
       },
       "XML::Easy" : {
          "dist" : "XML-Easy-0.009",
@@ -41528,7 +41527,7 @@
                "Andrew Main (Zefram) <zefram@fysh.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -42930,7 +42929,7 @@
                "Audrey Tang <cpan@audreyt.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Install version 1.04, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "mit"
             ],
