@@ -9,18 +9,6 @@ perl -v
 set -u
 set -o  errexit
 
-if [ `uname` == 'Darwin' ]; then
-
-    # Mac OS X
-    CPANM=/usr/local/bin/cpanm
-
-else
-
-    # assume Ubuntu
-    CPANM=cpanm
-
-fi
-
-$CPANM foreign_modules/carton-v0.9.4.tar.gz
-$CPANM foreign_modules/List-MoreUtils-0.33.tgz
-$CPANM foreign_modules/Devel-NYTProf-4.06.tar.gz 
+cpanm foreign_modules/carton-v0.9.4.tar.gz
+cpanm foreign_modules/List-MoreUtils-0.33.tgz
+cpanm foreign_modules/Devel-NYTProf-4.06.tar.gz 

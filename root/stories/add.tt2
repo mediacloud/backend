@@ -1,49 +1,54 @@
 [% title = 'Stories: Manually Add Tag for: ' _ story.title %]
 [% INCLUDE include/header.tt2 %]
 
+[% IF c.acl_user_can_visit('/admin/stories/add_do') %]
 
+    <fieldset>
 
+        <form name="input" action="[% c.uri_for('/admin/stories/add_do/') _ 
+        story.stories_id %]" method="post">
 
-<fieldset>
+            <p>Tag name:</p>
+            <input type="text" name="new_tag" size="20" />
 
-<form name="input" action="[% c.uri_for('/stories/add_do/') _ 
-story.stories_id %]" method="post">
+            <br />
 
-<p>Tag name:</p>
+            <!-- <p>Select tag type:</p> -->
 
-<input type="text" name="new_tag" size="20" />
+            <br />
 
-<br />
+            <p>
+                <input type="submit" name="Submit" value="Manually Add Tag" />
+            </p>
 
-<!-- <p>Select tag type:</p> -->
+            <br /><br />
 
+            <p>
+                <em>Existing tags for this story:</em><br />
 
-<br />
+                [% FOREACH t IN tags -%]
+                    [% t.tag | html %]
+                    [% IF c.acl_user_can_visit('/admin/stories/delete') %]
+                        <a href="[% c.uri_for('/admin/stories/delete/') _ story.stories_id _ '/' _ t.tags_id %]">delete</a><br/>
+                    [% END -%]
+              [% END # FOREACH tags -%]
+              
+            </p>
 
-<p>
-<input type="submit" name="Submit" value="Manually Add Tag" />
-</p>
-<br />
-<br />
-<p>
-<em>Existing tags for this story:</em><br />
+        </form> 
 
+    </fieldset>
 
-  [% FOREACH t IN tags -%]
-    [% t.tag | html %] <a href="[% c.uri_for('/stories/delete/') _ 
-    story.stories_id _ '/' _ t.tags_id %]">delete</a><br/>
-  [% END # FOREACH tags -%]
-  
-</p>
+[% END # [% IF c.acl_user_can_visit('/admin/stories/add_do') %]
 
-</form> 
+[% IF c.acl_user_can_visit('/admin/stories/view') %]
 
-</fieldset>
-  
-<br/>
-<p>
-<a href="[% c.uri_for('/stories/view/') _ story.stories_id %]">Back to 
-story</a>
-</p>
- 
+    <br/>
+
+    <p>
+        <a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">Back to story</a>
+    </p>
+
+[% END # [% IF c.acl_user_can_visit('/admin/stories/view') %]
+
 [% INCLUDE include/footer.tt2 %]

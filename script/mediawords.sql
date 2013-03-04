@@ -56,7 +56,7 @@ DROP FUNCTION create_language_plperlu();
 -- Database properties (variables) table
 create table database_variables (
     variables_id        serial          primary key,
-    name                varchar(512)    not null unique,        
+    name                varchar(512)    not null,        
     value               varchar(1024)   not null
 );
 
@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4399;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4396;
     
 BEGIN
 
@@ -81,7 +81,7 @@ LANGUAGE 'plpgsql';
 
 -- Set the version number right away
 SELECT set_database_schema_version();
-INSERT INTO database_variables( name, value ) values ( 'LAST_STORY_SENTENCES_ID_PROCESSED', '0' ); 
+
 
 -- This function is needed because date_trunc('week', date) is not consider immutable 
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
@@ -636,10 +636,10 @@ create table downloads (
     priority            int             not null,
     sequence            int             not null,
     extracted           boolean         not null default 'f',
-    old_download_time   timestamp without time zone,
-    old_state           download_state,
     file_status         download_file_status not null default 'tbd',
-    relative_file_path  text            not null default 'tbd'
+    relative_file_path  text            not null default 'tbd',
+    old_download_time   timestamp without time zone,
+    old_state           download_state
 );
 
 UPDATE downloads set old_download_time = download_time, old_state = state;
@@ -1226,11 +1226,6 @@ create table controversy_stories (
     redirect_url                    text
 );
 
-create table processed_stories (
-    processed_stories_id        bigserial          primary key,
-    stories_id                  bigint             not null references stories on delete cascade
-);
-
 create view controversy_links_cross_media as
   select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
     
@@ -1248,6 +1243,12 @@ CREATE TABLE queries_top_weekly_words_json (
    queries_id integer references queries on delete cascade not null unique,
    top_weekly_words_json text not null 
 );
+
+CREATE TABLE feedless_stories (
+        stories_id integer,
+        media_id integer
+);
+CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
 
 CREATE TABLE queries_country_counts_json (
    queries_country_counts_json_id serial primary key,
@@ -1488,7 +1489,6 @@ $$
 LANGUAGE 'plpgsql'
 ;
 
-
 CREATE FUNCTION cat(text, text) RETURNS text
     LANGUAGE plpgsql
     AS $_$
@@ -1546,3 +1546,54 @@ return pg_cancel_backend(cancel_pid);
 END;
 $$;
 
+--
+-- Authentication
+--
+
+-- List of users
+CREATE TABLE auth_users (
+    users_id        SERIAL  PRIMARY KEY,
+    email           TEXT    UNIQUE NOT NULL,
+
+    -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
+    password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
+
+    full_name       TEXT    NOT NULL,
+    notes           TEXT    NULL,
+    active          BOOLEAN NOT NULL DEFAULT true,
+
+    -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
+    -- salt_len=>64) or NULL
+    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
+
+    -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
+    -- attempts in order to prevent brute-force attacks
+    last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch'
+);
+
+-- List of roles the users can perform
+CREATE TABLE auth_roles (
+    roles_id        SERIAL  PRIMARY KEY,
+    role            TEXT    UNIQUE NOT NULL CONSTRAINT role_name_can_not_contain_spaces CHECK(role NOT LIKE '% %'),
+    description     TEXT    NOT NULL
+);
+
+-- Map of user IDs and roles that are allowed to each of the user
+CREATE TABLE auth_users_roles_map (
+    auth_users_roles_map    SERIAL      PRIMARY KEY,
+    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    CONSTRAINT no_duplicate_entries UNIQUE (users_id, roles_id)
+);
+CREATE INDEX auth_users_roles_map_users_id_roles_id
+    ON auth_users_roles_map (users_id, roles_id);
+
+-- Roles
+INSERT INTO auth_roles (role, description) VALUES
+    ('admin', 'Do everything, including editing users.'),
+    ('admin-readonly', 'Read access to admin interface.'),
+    ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
+    ('media-edit', 'Add / edit media; includes feeds.'),
+    ('stories-edit', 'Add / edit stories.');

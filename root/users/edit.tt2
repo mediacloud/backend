@@ -1,0 +1,54 @@
+[% title = 'Users: Edit' %]
+
+[% INCLUDE include/header.tt2 %]
+
+<h2>Editing user <code>[% email | html %]</code></h2>
+
+<!-- Edit user form -->
+<fieldset id="editUser" class="formNameValue">
+    [% form.render %]
+</fieldset>
+
+<script type="text/javascript"><!--
+
+    // Check if passwords are entered, and if so, do they match
+    jQuery(function()
+    {
+        $("fieldset#editUser div.submit input").click(function()
+        {
+            $(".error").hide();
+
+            var hasError = false;
+
+            var password = $("#password").val();
+            var password_repeat = $("#password_repeat").val();
+
+            if (! password) {
+                // No password change
+                return;
+            }
+
+            if (! password_repeat) {
+                $("#password_repeat").after('<label for="password_repeat" class="error">Please re-enter a new password.</label>');
+                hasError = true;
+            }
+            if ((! hasError) && (password != password_repeat)) {
+                $("#password_repeat").after('<label for="password_repeat" class="error">Passwords do not match.</label>');
+                hasError = true;
+            }
+            if (hasError == true) {
+                return false;
+            }
+        });
+    });
+
+    $(document).ready(function() {
+
+        // Validate login form -- select empty form fields
+        $("fieldset#editUser form").validate();
+
+    });
+
+--></script>
+  
+[% INCLUDE include/footer.tt2 %]

@@ -1,0 +1,45 @@
+[% title = 'Login to Media Cloud' %]
+
+[% INCLUDE include/header.tt2 %]
+
+[% IF c.user %]
+
+    You are already logged in as <code>[% c.user.username | html %]</code>.
+    You can <a href="[% c.uri_for('/logout') %]">logout</a> here.
+
+[% ELSE %]
+
+    <p>
+        You need to login to use this application.
+    </p>
+
+    <!-- Login form -->
+    <fieldset id="login" class="formNameValue">
+        [% form.render %]
+    </fieldset>
+
+    <p>
+        <a href="[% c.uri_for('/login/forgot') %]?email=[% c.request.params.email | html %]">Forgot your password?</a>
+    </p>
+
+    <script type="text/javascript"><!--
+
+        // Validate login form -- select empty form fields
+        $(document).ready(function(){
+            $("fieldset#login form").validate();
+        });
+
+        // Focus email or password field on load
+        $(function() {
+            if ($("#email").val()) {
+                $("#password").focus();
+            } else {
+                $("#email").focus();
+            }
+        });
+
+    --></script>
+
+[% END #[% IF c.user -%]
+  
+[% INCLUDE include/footer.tt2 %]

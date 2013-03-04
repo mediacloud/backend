@@ -3,36 +3,60 @@
 
 <table>
 
-<tr>
-<th>name</th>
-<th>live url</th>
-<th>tags</th>
-<th>edit</th>
-<th>delete</th>
-<th>dls</th>
-</tr>
+    <tr>
+        <th>name</th>
+        <th>live url</th>
+        <th>tags</th>
+        [% IF c.acl_user_can_visit('/admin/feeds/edit') %]
+            <th>edit</th>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/feeds/delete') %]
+            <th>delete</th>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+            <th>dls</th>
+        [% END -%]
+    </tr>
 
-[% FOREACH feed IN feeds -%]
+    [% FOREACH feed IN feeds -%]
 
-<tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]id="even"[% END %]>
 
-<td><a href="[% c.uri_for('/stories/list/') _ feed.feeds_id %]">[% feed.name | html %]</a></td>
+        <td>
+            [% IF c.acl_user_can_visit('/admin/stories/list') %]
+                <a href="[% c.uri_for('/admin/stories/list/') _ feed.feeds_id %]">[% feed.name | html %]</a>
+            [% ELSE %]
+                [% feed.name | html %]
+            [% END -%]
+        </td>
 
-<td><a href="[% feed.url %]">view&nbsp;live</a></td>
+        <td><a href="[% feed.url %]">view&nbsp;live</a></td>
 
-<td><div style="font-size: 80%;">[% feed.tag_names.join(', ') | html %]
-(<a href="[% c.uri_for('/feeds/edit_tags/') _ feed.feeds_id %]">edit</a>)</div></td>
+        <td>
+            <div style="font-size: 80%;">
+                [% feed.tag_names.join(', ') | html %]
+                [% IF c.acl_user_can_visit('/admin/feeds/edit_tags') %]
+                    (<a href="[% c.uri_for('/admin/feeds/edit_tags/') _ feed.feeds_id %]">edit</a>)
+                [% END -%]
+            </div>
+        </td>
 
-<td><a href="[% c.uri_for('/feeds/edit/') _ feed.feeds_id %]">edit</a></td>
+        [% IF c.acl_user_can_visit('/admin/feeds/edit') %]
+            <td><a href="[% c.uri_for('/admin/feeds/edit/') _ feed.feeds_id %]">edit</a></td>
+        [% END -%]
 
-<td><a href="[% c.uri_for('/feeds/delete/') _ feed.feeds_id %]">delete</a></td>
+        [% IF c.acl_user_can_visit('/admin/feeds/delete') %]
+            <td><a href="[% c.uri_for('/admin/feeds/delete/') _ feed.feeds_id %]">delete</a></td>
+        [% END -%]
 
-<td><a href="[% c.uri_for('/downloads/list') %]?f=[% feed.feeds_id %]">view</a></td>
+        [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+            <td><a href="[% c.uri_for('/admin/downloads/list') %]?f=[% feed.feeds_id %]">view</a></td>
+        [% END -%]
 
-</tr>
+    </tr>
 
-[%  SET even = !even %]
-[% END # FOREACH feeds -%]
+    [%  SET even = !even %]
+    [% END # FOREACH feeds -%]
 
 </table>
 

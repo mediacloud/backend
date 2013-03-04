@@ -2,7 +2,7 @@
 
 if [ `uname` == 'Darwin' ]; then
     # Mac OS X
-    PSQL=/usr/local/bin/psql
+    PSQL=/opt/local/lib/postgresql84/bin/psql
 else
     # assume Ubuntu
     PSQL=psql

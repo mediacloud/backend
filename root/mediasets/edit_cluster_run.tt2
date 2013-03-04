@@ -1,9 +1,11 @@
 [% title = 'Edit Media Set Cluster Run' %]
 [% INCLUDE include/header.tt2 %]
 
+[% IF c.acl_user_can_visit('/admin/mediasets/edit_cluster_run_do') %]
+
 <fieldset>
 
-<form action="[% c.uri_for( '/mediasets/edit_cluster_run_do/' ) _ dashboard_media_set.dashboard_media_sets_id %]" method="POST">
+<form action="[% c.uri_for( '/admin/mediasets/edit_cluster_run_do/' ) _ dashboard_media_set.dashboard_media_sets_id %]" method="POST">
 
 <div class="text label">
 <label>Cluster Run</label>
@@ -17,5 +19,7 @@
 <input type="submit" value="edit" />
 
 </fieldset>
+
+[% END # [% IF c.acl_user_can_visit('/admin/mediasets/edit_cluster_run_do') %]
 
 [% INCLUDE include/footer.tt2 %]

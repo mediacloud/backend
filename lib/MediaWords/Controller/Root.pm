@@ -30,16 +30,32 @@ MediaWords::Controller::Root - Root Controller for MediaWords
 
 =cut
 
+sub begin : Private
+{
+    my ( $self, $c ) = @_;
+
+    my $locale = $c->request->param( 'locale' );
+
+    $c->response->headers->push_header( 'Vary' => 'Accept-Language' );    # hmm vary and param?
+    $c->languages( $locale ? [ $locale ] : undef );
+
+    #switch to english if locale param is not explicitly specified.
+    $c->languages( $locale ? [ $locale ] : [ 'en' ] );
+}
+
+=head2 auto
+ 
+Check if there is a user and, if not, forward to login page
+ 
+=cut
+
 sub default : Private
 {
     my ( $self, $c ) = @_;
 
-    # Hello World
-    my $config = MediaWords::Util::Config::get_config;
-
+    # Redirect to default homepage
+    my $config            = MediaWords::Util::Config::get_config;
     my $default_home_page = $config->{ mediawords }->{ default_home_page };
-
-    $default_home_page //= 'media/list';
     $c->response->redirect( $c->uri_for( $default_home_page ) );
 }
 

@@ -1,54 +1,56 @@
 [% title = 'Add Media' %]
 [% INCLUDE include/header.tt2 %]
 
-<fieldset>
+[% IF c.acl_user_can_visit('/admin/media/create_do') %]
 
-<form action="[% c.uri_for('/media/create_do') %]" method="post">
+    <fieldset>
 
-<script type="text/javascript">
-    $(document).ready(function() {
-        $("#tags").tagit({
-	    tagSource: function(term, showChoices) {
-		$.ajax({
-		    url: "[% c.uri_for('/media/media_tags_search_json') %]",
-		    data: { term: term.term},
-		    dataType: "json",
-		    success: function(choices) {
-			console.log( choices );
-			//choices = ["collectionfoo","collectionfoo,collection"]
-			showChoices(choices);
-		    }
-		})
-	    },
-                // availableTags: ["msm", "blogs", "libral", "conservative" ], 
-		 singleFieldDelimiter: ';'
-});
-    });
-</script>
+    <form action="[% c.uri_for('/admin/media/create_do') %]" method="post">
 
-<p>
-Enter one media source url one per line. 
-</p>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#tags").tagit({
+                tagSource: function(term, showChoices) {
+                    $.ajax({
+                        url: "[% c.uri_for('/admin/media/media_tags_search_json') %]",
+                        data: { term: term.term},
+                        dataType: "json",
+                        success: function(choices) {
+                            console.log( choices );
+                            //choices = ["collectionfoo","collectionfoo,collection"]
+                            showChoices(choices);
+                        }
+                    })
+                },
+                        // availableTags: ["msm", "blogs", "libral", "conservative" ], 
+                singleFieldDelimiter: ';'
+            });
+        });
+    </script>
 
-<textarea name="urls" rows="20" cols="80">
-</textarea>
+    <p>
+    Enter one media source url one per line. 
+    </p>
 
-<p>
-Enter tags to apply to all sources.  The format is: <br/>
-tag_set:tag [tag_set:tag;...]
-</p>
-<input id="tags" name="tags" type="text" size="80" />
+    <textarea name="urls" rows="20" cols="80">
+    </textarea>
 
-<ul id="mytags"/>
+    <p>
+    Enter tags to apply to all sources.  The format is: <br/>
+    tag_set:tag [tag_set:tag;...]
+    </p>
+    <input id="tags" name="tags" type="text" size="80" />
 
-<p>
-<input type="submit" value="Add Media" />
-</p>
+    <ul id="mytags"/>
 
-</form> 
+    <p>
+    <input type="submit" value="Add Media" />
+    </p>
 
-</fieldset>
-  
+    </form> 
 
- 
+    </fieldset>
+
+[% END # [% IF c.acl_user_can_visit('/admin/media/create_do') %]
+
 [% INCLUDE include/footer.tt2 %]
