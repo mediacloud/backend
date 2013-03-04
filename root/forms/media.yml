@@ -1,5 +1,5 @@
 auto_fieldset:
-    
+
 elements:
   - type: Text
     name: name
@@ -8,7 +8,7 @@ elements:
     comment: name of media source (New York Times)
     constraints:
         - Required
-        
+
   - type: Text
     name: url
     label: URL
@@ -18,11 +18,16 @@ elements:
         - Required
         - type: URL
           message: This is not a url
-        
+
   - type: Checkbox
     name: full_text_rss
     label: Full Text RSS
     comment: Whether the media source has the full text in the RSS
+
+  - type: Checkbox
+    name: foreign_rss_links
+    label: foreign_rss_links
+    comment: foreign_rss_links
 
   - type: Submit
     value: Save
