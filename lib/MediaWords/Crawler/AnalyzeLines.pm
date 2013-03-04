@@ -75,8 +75,16 @@ sub get_html_density($$)
 
     # Noise words
     # (count these words as html, since they generally indicate noise words)
-    my $lang        = MediaWords::Languages::Language::language_for_code( $language_code );
+    my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
+    unless ( $lang )
+    {
+        die "Language is null for language code '$language_code'.\n";
+    }
     my $noise_words = $lang->get_noise_strings();
+    unless ( $noise_words )
+    {
+        die "Noise words is null for language code '$language_code'.\n";
+    }
 
     for my $noise_word ( @{ $noise_words } )
     {
@@ -288,6 +296,14 @@ sub get_info_for_lines($$$)
     # copyright lines and such) will still be present in language A.
     my $full_text = join( "\n", @{ $lines } );
     my $language_code = MediaWords::Util::IdentifyLanguage::language_code_for_text( $full_text, undef, 1 );
+    unless ( MediaWords::Languages::Language::language_for_code( $language_code ) )
+    {
+
+        # Unknown language, fallback to English
+        $language_code = MediaWords::Languages::Language::default_language_code();
+        say STDERR "Language for the story '$title' was not determined / enabled," .
+          " falling back to default language '$language_code'.";
+    }
 
     my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code );
 
