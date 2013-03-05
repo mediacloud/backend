@@ -589,7 +589,8 @@ EOF
             $country_count->{ language } );
         die unless defined $country_code_2;
 
-        my $country_code_3 = uc( $lcm->country_code2code( $country_code_2, 'LOCALE_CODE_ALPHA_2', 'LOCALE_CODE_ALPHA_3' ) );
+        my $country_code_3 =
+          uc( $lcm->country2code( $lcm->code2country( $country_code_2, 'en' ), 'LOCALE_CODE_ALPHA_3', 'en' ) );
 
         $country_count->{ country_code } = $country_code_3;
         $country_count->{ time }         = $country_count->{ publish_day };
@@ -764,9 +765,12 @@ sub _country_counts_to_csv_array
     my $lang = MediaWords::Languages::Language::lang();
     my $lcm  = $lang->get_locale_codes_api_object();
 
-    my $country_code_3_counts =
-      { map { uc( $lcm->country_code2code( $_, 'LOCALE_CODE_ALPHA_2', 'LOCALE_CODE_ALPHA_3' ) ) => $country_counts->{ $_ } }
-          ( sort keys %{ $country_counts } ) };
+    my $country_code_3_counts = {
+        map {
+            uc( $lcm->country2code( $lcm->code2country( $_, 'en' ), 'LOCALE_CODE_ALPHA_3', 'en' ) ) =>
+              $country_counts->{ $_ }
+          } ( sort keys %{ $country_counts } )
+    };
 
     my $country_count_csv_array = [
         map { join ',', @$_ } (
