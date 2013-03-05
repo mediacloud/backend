@@ -45,7 +45,7 @@ DETAILED INSTALL
 
   sudo ./install_scripts/install_mediacloud_package_dependencies.sh
 
-This will install PostgreSQL 8.4 and a number of system libraries needed by CPAN modules.
+This will install PostgreSQL 9.2+ and a number of system libraries needed by CPAN modules.
 
 * Create the default PostgreSQL user and databases for Media Cloud. From the Media Cloud root directory, run:
 

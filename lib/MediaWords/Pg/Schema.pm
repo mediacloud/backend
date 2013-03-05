@@ -208,6 +208,18 @@ sub _reset_schema
         #removes schema used by dklab enum procedures
         #schema will be re-added in dklab sqlfile
         $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
+
+        my $postgres_version = $db->query( 'SELECT VERSION() AS version' )->hash;
+        $postgres_version = $postgres_version->{ version };
+        $postgres_version =~ s/^\s+//;
+        $postgres_version =~ s/\s+$//;
+
+        unless ( $postgres_version =~ /^PostgreSQL 8/ )
+        {
+
+            # Assume PostgreSQL 9+ ('DROP EXTENSION' is only available+required since that version)
+            $db->query( "DROP EXTENSION IF EXISTS plpgsql CASCADE" );
+        }
         $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE" );
         $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
 
