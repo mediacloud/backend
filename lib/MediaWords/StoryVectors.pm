@@ -1207,7 +1207,7 @@ EOF
                                      ssw.stem,
                                      term,
                                      ss.language
-                           ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
+                           ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, language, publish_day )
                      ) AS q
                 WHERE term_rank = 1
 EOF
@@ -1326,7 +1326,7 @@ EOF
                                  ssw.term,
                                  ss.language,
                                  authors_id
-                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_day )
+                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, language, publish_day )
                  ) AS query
             WHERE term_rank = 1
                   AND sum_stem_counts > 1
@@ -1545,7 +1545,7 @@ EOF
                                  term,
                                  language,
                                  dashboard_topics_id
-                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
+                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, language, publish_week, dashboard_topics_id )
                  ) AS q
             WHERE term_rank = 1
 EOF
@@ -1630,7 +1630,7 @@ EOF
                                term,
                                language,
                                dashboard_topics_id
-                     ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, dashboard_topics_id )
+                     ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, language, publish_week, dashboard_topics_id )
                  ) AS q
             WHERE term_rank = 1
 EOF
@@ -1704,7 +1704,7 @@ EOF
                                  term,
                                  language,
                                  authors_id
-                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, publish_week, authors_id )
+                       ) AS foo WINDOW w AS (PARTITION BY media_sets_id, stem, language, publish_week, authors_id )
                  ) AS q
             WHERE term_rank = 1
 EOF
