@@ -28,7 +28,7 @@ if [ `uname` == 'Darwin' ]; then
     brew install \
         perl --use-threads \
         graphviz --with-bindings \
-        coreutils postgresql8 curl tidy libyaml berkeley-db4
+        coreutils postgresql curl tidy libyaml berkeley-db4
 
     sudo cpan XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
         Test::WWW::Mechanize OpenGL \
@@ -51,7 +51,7 @@ else
     # assume Ubuntu
     sudo apt-get --assume-yes install \
         expat libexpat1-dev libxml2-dev \
-        postgresql-server-dev-8.4 postgresql-client-8.4 libdb-dev libtest-www-mechanize-perl libtidy-dev \
+        postgresql-server-dev-all postgresql-client libdb-dev libtest-www-mechanize-perl libtidy-dev \
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev \
         libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
         build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl

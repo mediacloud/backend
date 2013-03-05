@@ -26,30 +26,31 @@ if [ `uname` == 'Darwin' ]; then
     fi
 
     # Install PostgreSQL and Perl bindings
-    brew install postgresql8
+    brew install postgresql9
     sudo cpan DBD::Pg
 
     # Initialize PostgreSQL if installing for the first time
     if [ ! -d /usr/local/var/postgres ]; then
-        initdb /usr/local/var/postgres
+        initdb /usr/local/var/postgres -E utf8
     fi
 
     # Upgrading?    
     if [ -f ~/Library/LaunchAgents/org.postgresql.postgres.plist ]; then
-        launchctl unload -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
+        launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+        ln -sfv /usr/local/opt/postgresql/*.plist ~/Library/LaunchAgents
     fi
-    cp /usr/local/Cellar/postgresql8/*/org.postgresql.postgres.plist ~/Library/LaunchAgents
-    launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
-    ln -sfv /usr/local/opt/postgresql8/*.plist ~/Library/LaunchAgents
 
     # Start PostgreSQL
-    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.postgresql8.plist
+    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.postgresql.plist
+    sleep 5
+    createdb    # for the current user
+    createuser postgres
 
 else
 
     # assume Ubuntu
     sudo apt-get --assume-yes install \
-        postgresql-8.4 postgresql-client-8.4 postgresql-contrib-8.4 postgresql-plperl-8.4 postgresql-server-dev-8.4
+        postgresql postgresql-client postgresql-contrib postgresql-plperl postgresql-server-dev-all
 
 fi
 
