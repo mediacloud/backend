@@ -23,11 +23,15 @@ elements:
     name: full_text_rss
     label: Full Text RSS
     comment: Whether the media source has the full text in the RSS
+    value: 1
+    default_empty_value: true
 
   - type: Checkbox
     name: foreign_rss_links
     label: foreign_rss_links
     comment: foreign_rss_links
+    value: 1
+    default_empty_value: true
 
   - type: Submit
     value: Save

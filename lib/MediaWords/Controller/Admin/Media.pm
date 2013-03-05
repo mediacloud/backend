@@ -164,7 +164,13 @@ sub edit_do : Local
     }
     else
     {
-        $c->dbis->update_by_id( 'media', $id, $form->params );
+
+        # Set the database-compatible boolean checkbox values
+        my $form_params = { %{ $form->params } };    # shallow copy to make editable
+        $form_params->{ full_text_rss }     = '0' unless $form_params->{ full_text_rss };
+        $form_params->{ foreign_rss_links } = '0' unless $form_params->{ foreign_rss_links };
+
+        $c->dbis->update_by_id( 'media', $id, $form_params );
 
         if ( $medium->{ moderated } )
         {
