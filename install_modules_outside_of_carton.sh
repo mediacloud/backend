@@ -12,14 +12,7 @@ set -o  errexit
 if [ `uname` == 'Darwin' ]; then
 
     # Mac OS X
-    if [ -x /opt/local/bin/cpanm ]; then
-        CPANM=/opt/local/bin/cpanm
-    elif [ -x /opt/local/libexec/perl5.12/sitebin/cpanm ]; then
-        CPANM=/opt/local/libexec/perl5.12/sitebin/cpanm
-    else
-        echo "I have tried to install 'cpanm' (App::cpanminus) previously, but not I am unable to locate it."
-        exit 1
-    fi
+    CPANM=/usr/local/bin/cpanm
 
 else
 
