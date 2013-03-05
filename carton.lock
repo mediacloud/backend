@@ -7190,7 +7190,7 @@
          "version" : "0.64"
       },
       "DBD::Pg" : {
-         "dist" : "DBD-Pg-2.18.1",
+         "dist" : "DBD-Pg-2.19.3",
          "mymeta" : {
             "abstract" : "DBI PostgreSQL interface",
             "author" : [
@@ -7253,11 +7253,11 @@
             "provides" : {
                "Bundle::DBD::Pg" : {
                   "file" : "lib/Bundle/DBD/Pg.pm",
-                  "version" : "v2.18.1"
+                  "version" : "v2.19.3"
                },
                "DBD::Pg" : {
                   "file" : "Pg.pm",
-                  "version" : "v2.18.1"
+                  "version" : "v2.19.3"
                }
             },
             "release_status" : "stable",
@@ -7274,18 +7274,18 @@
                },
                "x_MailingList" : "http://www.nntp.perl.org/group/perl.dbd.pg/"
             },
-            "version" : "2.18.1"
+            "version" : "2.19.3"
          },
          "name" : "DBD::Pg",
-         "pathname" : "T/TU/TURNSTEP/DBD-Pg-2.18.1.tar.gz",
+         "pathname" : "T/TU/TURNSTEP/DBD-Pg-2.19.3.tar.gz",
          "provides" : {
             "Bundle::DBD::Pg" : {
                "file" : "Bundle/DBD/Pg.pm",
-               "version" : "v2.18.1"
+               "version" : "v2.19.3"
             },
             "DBD::Pg" : {
                "file" : "DBD/Pg.pm",
-               "version" : "v2.18.1"
+               "version" : "v2.19.3"
             },
             "DBD::Pg::DefaultValue" : {
                "file" : "DBD/Pg.pm"
@@ -7301,7 +7301,7 @@
             }
          },
          "target" : "DBD::Pg",
-         "version" : "v2.18.1"
+         "version" : "v2.19.3"
       },
       "DBD::SQLite" : {
          "dist" : "DBD-SQLite-1.35",
