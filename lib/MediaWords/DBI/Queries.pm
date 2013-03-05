@@ -1548,9 +1548,9 @@ EOF
     return $dashboard_topic_options;
 }
 
-sub _get_json_country_counts_for_query
+sub _get_json_country_counts_for_query($$$)
 {
-    my ( $db, $query ) = @_;
+    my ( $db, $query, $language_code ) = @_;
 
     ( my $country_counts_json ) = $db->query(
         <<"EOF",
@@ -1581,9 +1581,9 @@ EOF
     return;
 }
 
-sub _store_country_counts_for_query
+sub _store_country_counts_for_query($$$$)
 {
-    my ( $db, $query, $country_counts ) = @_;
+    my ( $db, $query, $language_code, $country_counts ) = @_;
 
     #eval {
     my $country_counts_json = encode_json( $country_counts );
@@ -1613,9 +1613,9 @@ EOF
 
 # get the country counts for the given query normalized by the total daily words
 # in each media set / dashboard topic
-sub _get_country_counts_impl
+sub _get_country_counts_impl($$$)
 {
-    my ( $db, $query ) = @_;
+    my ( $db, $query, $language_code ) = @_;
 
     my $media_sets_ids_list       = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause_2 = get_dashboard_topics_clause( $query );
@@ -1632,6 +1632,7 @@ sub _get_country_counts_impl
         FROM (SELECT *
               FROM daily_country_counts
               WHERE $shared_where_clauses
+                    AND language = '$language_code'
         ) AS dcc,
              (SELECT SUM(total_count) AS total_count
               FROM total_daily_words
@@ -1648,16 +1649,16 @@ EOF
     return $ret;
 }
 
-sub get_country_counts
+sub get_country_counts($$$)
 {
-    my ( $db, $query ) = @_;
+    my ( $db, $query, $language_code ) = @_;
 
-    my $ret = _get_json_country_counts_for_query( $db, $query );
+    my $ret = _get_json_country_counts_for_query( $db, $query, $language_code );
 
     if ( !$ret )
     {
-        $ret = _get_country_counts_impl( $db, $query );
-        _store_country_counts_for_query( $db, $query, $ret );
+        $ret = _get_country_counts_impl( $db, $query, $language_code );
+        _store_country_counts_for_query( $db, $query, $language_code, $ret );
     }
 
     return $ret;

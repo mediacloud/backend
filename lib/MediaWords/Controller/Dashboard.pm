@@ -462,13 +462,19 @@ sub get_word_list : Local
 # get an xml or csv list of the top 500 words for the given set of queries
 sub country_counts_csv : Local
 {
-    my ( $self, $c, $language_code ) = @_;
+    my ( $self, $c ) = @_;
+
+    my $language_code = $c->req->param( 'lang' );
+    unless ( $language_code )
+    {
+        $language_code = 'en';
+    }
 
     my $queries_id = $c->req->param( 'queries_id' );
 
     my $query = $self->get_query_by_id( $c, $queries_id );
     my $country_counts = $self->_get_country_counts( $c, $query, $language_code );
-    my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
+    my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts, $language_code );
 
     my $response_body = join "\n", ( 'country_code,value', @{ $country_count_csv_array } );
     $c->response->header( "Content-Disposition" => "attachment;filename=country_list.csv" );
@@ -486,7 +492,13 @@ sub get_country_counts_all_dates : Local
     my $dashboard_topic;
     my $media_set_num = 1;
 
-    my $lang = MediaWords::Languages::Language::lang();
+    my $language_code = $c->req->param( 'lang' );
+    unless ( $language_code )
+    {
+        $language_code = 'en';
+    }
+
+    my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
     my $lcm  = $lang->get_locale_codes_api_object();
 
     if ( my $id = $c->req->param( "dashboard_topics_id$media_set_num" ) )
@@ -525,13 +537,15 @@ sub get_country_counts_all_dates : Local
             FROM daily_country_counts
                 INNER JOIN dashboard_topics
                     ON daily_country_counts.dashboard_topics_id = dashboard_topics.dashboard_topics_id
+                    AND daily_country_counts.language = dashboard_topics.language
             WHERE media_sets_id = $media_set->{ media_sets_id }
                   AND $dashboard_topic_clause
                   AND publish_day >= ?
                   AND publish_day <= ?
+                  AND language = '$language_code'
             GROUP BY publish_day,
                      media_sets_id,
-                     dashboard_topics_id,
+                     daily_country_counts.dashboard_topics_id,
                      country,
                      dashboard_topics.language
             ORDER BY publish_day,
@@ -557,11 +571,13 @@ EOF
             FROM daily_country_counts
                 INNER JOIN dashboard_topics
                     ON daily_country_counts.dashboard_topics_id = dashboard_topics.dashboard_topics_id
+                    AND daily_country_counts.language = dashboard_topics.language
             WHERE media_sets_id = $media_set->{ media_sets_id }
                   AND $dashboard_topic_clause
+                  AND language = '$language_code'
             GROUP BY publish_day,
                      media_sets_id,
-                     dashboard_topics_id,
+                     daily_country_counts.dashboard_topics_id,
                      country,
                      dashboard_topics.language
             ORDER BY publish_day,
@@ -760,9 +776,9 @@ sub _get_tag_count_map_url
 
 sub _country_counts_to_csv_array
 {
-    my ( $self, $country_counts ) = @_;
+    my ( $self, $country_counts, $language_code ) = @_;
 
-    my $lang = MediaWords::Languages::Language::lang();
+    my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
     my $lcm  = $lang->get_locale_codes_api_object();
 
     my $country_code_3_counts = {
