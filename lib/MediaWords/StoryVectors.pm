@@ -12,6 +12,7 @@ use Data::Dumper;
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::SQL;
+use MediaWords::Util::Countries;
 use MediaWords::Util::IdentifyLanguage;
 
 use Date::Format;
@@ -1359,6 +1360,105 @@ EOF
     return 1;
 }
 
+# update the given table for the given date and interval
+sub _update_daily_country_counts
+{
+    my ( $db, $sql_date, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    return 1 if ( $dashboard_topics_id );
+
+    my $media_set_clause = _get_media_set_clause( $media_sets_id );
+
+    $db->query(
+        <<"EOF"
+        DELETE FROM daily_country_counts
+        WHERE publish_day = '${ sql_date }'::date
+              AND $media_set_clause
+EOF
+    );
+
+    # For all configured languages
+    my @enabled_languages = MediaWords::Languages::Language::enabled_languages();
+    foreach my $language_code ( @enabled_languages )
+    {
+        my $all_countries = MediaWords::Util::Countries::get_countries_for_counts( $language_code );
+
+        my $stemmed_country_terms =
+          [ map { MediaWords::Util::Countries::get_stemmed_country_terms( $_, $language_code ) } @{ $all_countries } ];
+
+        my $single_terms_list =
+          join( ',', map { $db->dbh->quote( $_->[ 0 ] ) } grep { @{ $_ } == 1 } @{ $stemmed_country_terms } );
+
+        $db->query_with_large_work_mem(
+            <<"EOF"
+            INSERT INTO daily_country_counts (
+                media_sets_id,
+                language,
+                publish_day,
+                country,
+                country_count
+            )
+                SELECT media_sets_id,
+                       '$language_code',
+                       publish_day,
+                       stem,
+                       stem_count
+                FROM daily_words
+                WHERE publish_day = '$sql_date'::date
+                      AND dashboard_topics_id IS NULL
+                      AND $media_set_clause
+                      AND stem IN ( $single_terms_list )
+EOF
+        );
+
+        my $double_country_terms = [ grep { @{ $_ } == 2 } @{ $stemmed_country_terms } ];
+
+        for my $country ( @{ $double_country_terms } )
+        {
+            my $country_name = join( " ", @{ $country } );
+            my ( $term_a, $term_b ) = map { $db->dbh->quote( $_ ) } @{ $country };
+
+            $db->query_with_large_work_mem(
+                <<"EOF",
+                INSERT INTO daily_country_counts (
+                    media_sets_id,
+                    language,
+                    publish_day,
+                    country,
+                    country_count
+                )
+                    SELECT msmm.media_sets_id,
+                           '$language_code',
+                           ssw.publish_day,
+                           ?,
+                           COUNT(*)
+                    FROM story_sentence_words AS ssw,
+                         media_sets_media_map AS msmm
+                    WHERE ssw.media_id = msmm.media_id
+                          AND ssw.publish_day = '$sql_date'::date
+                          AND stem = $term_a
+                          AND language = '$language_code'
+                          AND EXISTS (SELECT 1
+                                      FROM story_sentence_words AS sswb
+                                      WHERE ssw.publish_day = sswb.publish_day
+                                            AND ssw.media_id = sswb.media_id
+                                            AND sswb.stem = $term_b
+                                            AND sswb.language = '$language_code'
+                                            AND ssw.stories_id = sswb.stories_id
+                                            AND ssw.sentence_number = sswb.sentence_number
+                                     )
+                    GROUP BY msmm.media_sets_id,
+                             ssw.publish_day
+EOF
+                $country_name
+            );
+        }
+
+    }
+
+    return 1;
+}
+
 # get quoted, comma separate list of the dates in the week starting with
 # the given date
 sub _get_week_dates_list
@@ -1759,6 +1859,7 @@ sub update_aggregate_words($;$$$$$)
         {
             say STDERR "update_aggregate_words: add for $date ($start_date - $end_date) $days";
             _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
             _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             $update_weekly = 1;
         }
@@ -1855,6 +1956,7 @@ sub update_aggregate_words_for_sentence_study
         {
 
             # _update_daily_words( $db, $date, $dashboard_topics_id, $media_sets_id );
+            # _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
             # _update_daily_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             # $update_weekly = 1;
         }
@@ -1872,6 +1974,38 @@ sub update_aggregate_words_for_sentence_study
             # _update_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             # _update_top_500_weekly_author_words( $db, $date, $dashboard_topics_id, $media_sets_id );
             $update_weekly = 0;
+        }
+
+        $db->commit();
+
+        $days++;
+    }
+
+    $db->commit;
+}
+
+# if dashbaord_topics_id or media_sets_id are specified, only update for the given
+# dashboard_topic or media_set
+
+# TODO this method is only used by ./mediawords_update_aggregate_country_counts.pl do we still want to keep it?
+sub update_country_counts
+{
+    my ( $db, $start_date, $end_date, $force, $dashboard_topics_id, $media_sets_id ) = @_;
+
+    $start_date ||= '2008-06-01';
+    $end_date ||= Date::Format::time2str( "%Y-%m-%d", time - 86400 );
+
+    my $days          = 0;
+    my $update_weekly = 0;
+
+    for ( my $date = $start_date ; $date le $end_date ; $date = _increment_day( $date ) )
+    {
+        say STDERR "update_aggregate_country_counts: $date ($start_date - $end_date) $days";
+
+        if ( $force || !_aggregate_data_exists_for_date( $db, $date, $dashboard_topics_id, $media_sets_id ) )
+        {
+            _update_daily_country_counts( $db, $date, $dashboard_topics_id, $media_sets_id );
+            $update_weekly = 1;
         }
 
         $db->commit();

@@ -35,7 +35,7 @@
    //swapDIV('CMcontentarea');
     });
 
-[% csv_url_string = 'about:blank' %]
+[% csv_url_string = c.uri_for('/dashboard/get_country_counts_all_dates/',dashboard.dashboards_id,c.req.parameters ) _ '&format=csv' %]
 
 -->
 </script>

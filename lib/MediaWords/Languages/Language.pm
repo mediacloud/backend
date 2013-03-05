@@ -19,6 +19,7 @@ use Moose::Role;
 use Lingua::Stem::Snowball;
 use Lingua::StopWords;
 use Lingua::Sentence;
+use Locale::Country::Multilingual { use_io_layer => 1 };
 use MediaWords::Util::IdentifyLanguage;    # to check if the language can be identified
 
 use File::Basename ();
@@ -126,6 +127,13 @@ requires 'get_noise_strings';
 # likely to be the "copyright" string.
 requires 'get_copyright_strings';
 
+# Returns an object complying with Locale::Codes::API "protocol" (e.g. an instance of
+# Locale::Country::Multilingual) for fetching a list of country codes and countries.
+requires 'get_locale_codes_api_object';
+
+# Gets country name remapping for MediaWords::Util::Countries
+requires 'get_country_name_remapping';
+
 #
 # END OF THE SUBCLASS INTERFACE
 #
@@ -142,6 +150,9 @@ has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
 
 # Lingua::Sentence language
 has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
+
+# Instance of Locale::Country::Multilingual (if needed), lazy-initialized in _get_locale_country_multilingual_object()
+has 'locale_country_multilingual_object' => ( is => 'rw', default => 0 );
 
 # Cached stopwords
 has 'cached_tiny_stop_words'  => ( is => 'rw', default => 0 );
@@ -338,6 +349,20 @@ sub get_long_stop_word_stems
     }
 
     return $self->cached_long_stop_word_stems;
+}
+
+# Returns an instance of Locale::Country::Multilingual for the language code
+sub _get_locale_country_multilingual_object
+{
+    my ( $self, $language ) = @_;
+
+    if ( $self->locale_country_multilingual_object == 0 )
+    {
+        $self->locale_country_multilingual_object( Locale::Country::Multilingual->new() );
+        $self->locale_country_multilingual_object->set_lang( $language );
+    }
+
+    return $self->locale_country_multilingual_object;
 }
 
 # Lingua::Stem::Snowball helper

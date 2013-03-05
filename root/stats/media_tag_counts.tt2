@@ -8,6 +8,8 @@
 <form action="[% c.uri_for('/stats/media_tag_counts') %]" method="GET" >
 
 <p>
+generate a country map: <input type="checkbox" name="use_countries" /> <br />
+OR
 search for tags associated with this tag: <input type="text" name="tag_query" value="[% tag_query | html %]" /><br />
 OR
 (leave blank for top ten tags for each source)<br />

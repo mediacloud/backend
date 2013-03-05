@@ -1010,6 +1010,17 @@ create view story_extracted_texts as select stories_id, array_to_string(array_ag
 
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
+CREATE TABLE daily_country_counts (
+    media_sets_id integer  not null references media_sets on delete cascade,
+    language varchar(3) not null, -- 2- or 3-character ISO 690 language code
+    publish_day date not null,
+    country character varying not null,
+    country_count bigint not null,
+    dashboard_topics_id integer references dashboard_topics on delete cascade
+);
+
+CREATE INDEX daily_country_counts_day_media_dashboard ON daily_country_counts USING btree (publish_day, media_sets_id, dashboard_topics_id);
+
 CREATE TABLE authors (
     authors_id serial          PRIMARY KEY,
     author_name character varying UNIQUE NOT NULL
@@ -1250,6 +1261,12 @@ CREATE TABLE feedless_stories (
         media_id integer
 );
 CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
+
+CREATE TABLE queries_country_counts_json (
+   queries_country_counts_json_id serial primary key,
+   queries_id integer references queries on delete cascade not null unique,
+   country_counts_json text not null 
+);
 
 
 CREATE OR REPLACE FUNCTION add_query_version (new_query_version_enum_string character varying) RETURNS void

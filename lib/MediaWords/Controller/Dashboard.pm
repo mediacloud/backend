@@ -19,6 +19,7 @@ use List::MoreUtils qw/:all/;
 use MediaWords::Controller::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
+use MediaWords::Util::Countries;
 use MediaWords::Languages::Language;
 
 #use MediaWords::Util::Translate;
@@ -377,6 +378,27 @@ EOF
     )->hashes;
 }
 
+sub _get_country_counts($$$$)
+{
+    my ( $self, $c, $query, $language_code ) = @_;
+
+    my $country_counts = MediaWords::DBI::Queries::get_country_counts( $c->dbis, $query, $language_code );
+
+    my $ret;
+    foreach my $country_count ( @$country_counts )
+    {
+        my $country_code =
+          MediaWords::Util::Countries::get_country_code_for_stemmed_country_name( $country_count->{ country },
+            $language_code );
+
+        die Dumper( $country_count ) unless defined $country_code && $country_count->{ country_count };
+
+        $ret->{ $country_code } = $country_count->{ country_count };
+    }
+
+    return $ret;
+}
+
 # get an xml or csv list of the top 500 words for the given set of queries
 sub get_word_list : Local
 {
@@ -435,6 +457,88 @@ sub get_word_list : Local
     $c->response->body( $response_body );
 
     return;
+}
+
+# get an xml or csv list of the top 500 words for the given set of queries
+sub country_counts_csv : Local
+{
+    my ( $self, $c, $language_code ) = @_;
+
+    my $queries_id = $c->req->param( 'queries_id' );
+
+    my $query = $self->get_query_by_id( $c, $queries_id );
+    my $country_counts = $self->_get_country_counts( $c, $query, $language_code );
+    my $country_count_csv_array = $self->_country_counts_to_csv_array( $country_counts );
+
+    my $response_body = join "\n", ( 'country_code,value', @{ $country_count_csv_array } );
+    $c->response->header( "Content-Disposition" => "attachment;filename=country_list.csv" );
+    $c->response->content_type( 'text/csv; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $response_body ) );
+    $c->response->body( $response_body );
+
+    return;
+}
+
+sub get_country_counts_all_dates : Local
+{
+    my ( $self, $c, $dashboards_id ) = @_;
+
+    die( "Country count code does not support multilanguage environment." );
+}
+
+# get the url of a chart image for the given tag counts
+sub _get_tag_count_map_url
+{
+    my ( $self, $country_code_count, $title ) = @_;
+
+    if ( !defined( $country_code_count ) || !scalar( %{ $country_code_count } ) )
+    {
+        return;
+    }
+
+    my $max_tag_count = max( values %{ $country_code_count } );
+
+    #prevent divide by zero error
+    if ( $max_tag_count == 0 )
+    {
+        $max_tag_count = 1;
+    }
+
+    my $data =
+      join( ',', map { int( ( $country_code_count->{ $_ } / $max_tag_count ) * 100 ) } sort keys %{ $country_code_count } );
+
+    say STDERR "date: $data";
+
+    my $countrycodes = join( '', sort keys %{ $country_code_count } );
+
+    say STDERR "country_codes: $countrycodes";
+
+    my $esc_title = uri_escape( $title );
+
+    my $url_object = URI->new( 'HTTP://chart.apis.google.com/chart' );
+
+    $url_object->query_form(
+        cht  => 't',
+        chtm => 'world',
+        chs  => '440x220',
+        chd  => "t:$data",
+        chtt => $title,
+        chco => 'ffffff,edf0d4,13390a',
+        chld => $countrycodes,
+        chf  => 'bg,s,EAF7FE'
+    );
+
+    #print Dumper($tag_counts);
+    #print Dumper($country_code_count);
+
+    return $url_object->canonical;
+}
+
+sub _country_counts_to_csv_array
+{
+    my ( $self, $country_counts ) = @_;
+
+    die( "Country count code does not support multilanguage environment." );
 }
 
 my $_consistent_data_cache;
