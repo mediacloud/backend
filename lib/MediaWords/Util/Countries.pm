@@ -7,6 +7,7 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use Carp;
 use MediaWords::Languages::Language;
 use utf8;
 
@@ -121,10 +122,12 @@ sub get_country_code_for_stemmed_country_name($$)
 
     my $ret = $_country_code_for_stemmed_country_name->{ $stemmed_country_name };
 
+    # unless ($ret) {
+    #     confess "Country code for $stemmed_country_name not found in " . Dumper( $_country_code_for_stemmed_country_name );
+    # }
+
     $ret = uc( $ret );
 
-    #die "Country code for $stemmed_country_name not found in " . Dumper( $_country_code_for_stemmed_country_name )
-    #  unless $ret;
     return $ret;
 }
 
