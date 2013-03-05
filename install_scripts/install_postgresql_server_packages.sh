@@ -26,7 +26,7 @@ if [ `uname` == 'Darwin' ]; then
     fi
 
     # Install PostgreSQL and Perl bindings
-    brew install postgresql9
+    brew install postgresql
     sudo cpan DBD::Pg
 
     # Initialize PostgreSQL if installing for the first time
