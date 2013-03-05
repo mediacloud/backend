@@ -469,6 +469,10 @@ sub country_counts_csv : Local
     {
         $language_code = 'en';
     }
+    unless ( length( $language_code ) == 2 )
+    {
+        die "Invalid language code.\n";
+    }
 
     my $queries_id = $c->req->param( 'queries_id' );
 
@@ -496,6 +500,10 @@ sub get_country_counts_all_dates : Local
     unless ( $language_code )
     {
         $language_code = 'en';
+    }
+    unless ( length( $language_code ) == 2 )
+    {
+        die "Invalid language code.\n";
     }
 
     my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
