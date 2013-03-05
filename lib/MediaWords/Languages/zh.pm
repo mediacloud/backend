@@ -194,21 +194,22 @@ sub get_copyright_strings
         'all rights reserved',
     );
     return \@copyright_strings;
+}
 
-    sub get_locale_codes_api_object
-    {
-        my $self = shift;
-        return $self->_get_locale_country_multilingual_object( 'zh' );
-    }
+sub get_locale_codes_api_object
+{
+    my $self = shift;
+    return $self->_get_locale_country_multilingual_object( 'zh' );
+}
 
-    sub get_country_name_remapping
-    {
-        my $self = shift;
+sub get_country_name_remapping
+{
+    my $self = shift;
 
-        # Current Chinese word tokenizer (as of Dec 14, 2012) does not manage to figure out that, say,
-        # '博茨瓦纳' ('Botswana') is a single word.
+    # Current Chinese word tokenizer (as of Dec 14, 2012) does not manage to figure out that, say,
+    # '博茨瓦纳' ('Botswana') is a single word.
 
-        return {};
-    }
+    return {};
+}
 
-    1;
+1;
