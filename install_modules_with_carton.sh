@@ -17,7 +17,7 @@ if [ `uname` == 'Darwin' ]; then
 	./script/run_carton.sh install YAML::Syck
 
 	# Install BerkeleyDB correctly before installing the remaining modules from carton.lock
-	BERKELEYDB_INCLUDE=/usr/local/include/db44 \
+	BERKELEYDB_INCLUDE=/usr/local/include \
 	BERKELEYDB_LIB=/usr/local/lib \
 	./script/run_carton.sh install BerkeleyDB
 fi
