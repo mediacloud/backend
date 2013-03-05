@@ -15,9 +15,7 @@ use strict;
 use WebService::Google::Language;
 
 use Text::Trim;
-eval {
-use CHI;
-};
+eval { use CHI; };
 
 die "$@" if $@;
 
