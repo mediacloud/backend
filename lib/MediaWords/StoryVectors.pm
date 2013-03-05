@@ -1408,6 +1408,7 @@ EOF
                       AND dashboard_topics_id IS NULL
                       AND $media_set_clause
                       AND stem IN ( $single_terms_list )
+                      AND language = '$language_code'
 EOF
         );
 
