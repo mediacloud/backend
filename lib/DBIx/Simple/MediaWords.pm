@@ -312,7 +312,7 @@ sub find_by_id
 
 # update the row in the table with the given id
 # ignore any fields that start with '_'
-sub update_by_id
+sub update_by_id($$$$)
 {
     my ( $self, $table, $id, $hash ) = @_;
 
@@ -333,6 +333,109 @@ sub update_by_id
     {
         $hash->{ $k } = $v;
     }
+
+    return $r;
+}
+
+# update the row in the table with the given id
+# and make note of the changes that were made
+sub update_by_id_and_log($$$$$$$$)
+{
+    my ( $self, $table, $id, $old_hash, $new_hash, $log_table_name, $log_reason, $username ) = @_;
+
+    delete( $new_hash->{ reason } );
+
+    # say STDERR "Will log the change to table: $log_table_name";
+    # say STDERR "Reason: $log_reason";
+    # say STDERR "Existing media: " . Dumper($old_hash);
+
+    # Find out which fields were changed
+    my @changes;
+    foreach my $field_name ( keys %{ $old_hash } )
+    {
+
+        # Ignore fields that start with '_' and other form cruft
+        unless ( $field_name =~ /^_/ or $field_name eq 'submit' or $field_name eq 'reason' )
+        {
+
+            # Might be empty
+            if ( defined $new_hash->{ $field_name } and defined $old_hash->{ $field_name } )
+            {
+
+                if ( $new_hash->{ $field_name } ne $old_hash->{ $field_name } )
+                {
+
+                    # say STDERR "Field '$field_name' was changed from: " . $old_hash->{$field_name} .
+                    #     "; to: " . $new_hash->{$field_name};
+
+                    my $change = {
+                        edited_field => $field_name,
+                        old_value    => $old_hash->{ $field_name },
+                        new_value    => $new_hash->{ $field_name },
+                    };
+                    push( @changes, $change );
+                }
+            }
+
+        }
+    }
+
+    # Check if user making a change exists
+    my $user_exists = $self->query(
+        <<"EOF",
+        SELECT users_id
+        FROM auth_users
+        WHERE email = ?
+        LIMIT 1
+EOF
+        $username
+    )->hash;
+    unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ users_id } )
+    {
+        die "User '$username' does not exist.\n";
+    }
+
+    # Start transaction
+    $self->dbh->begin_work;
+
+    # Make the change
+    my $r = 0;
+    eval { $r = $self->update_by_id( $table, $id, $new_hash ); };
+    if ( $@ )
+    {
+
+        # Update failed
+        $self->dbh->rollback;
+        die $@;
+    }
+
+    # Update succeeded, write the change log
+    foreach my $change ( @changes )
+    {
+        eval {
+            $r = $self->query(
+                <<"EOF",
+                INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email)
+                VALUES (?, ?, ?, ?, ?)
+EOF
+                $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username
+            );
+        };
+        if ( $@ )
+        {
+
+            # Writing one of the changes failed
+            $self->dbh->rollback;
+            die $@;
+
+        }
+
+    }
+
+    # Things went fine at this point, commit
+    $self->dbh->commit;
+
+    return $r;
 }
 
 # delete the row in the table with the given id
