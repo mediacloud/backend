@@ -216,7 +216,13 @@ create table media (
     extract_author      boolean         default(false),
     sw_data_start_date  date            default(null),
     sw_data_end_date    date            default(null),
+
+    -- It indicates that the media source includes a substantial number of
+    -- links in its feeds that are not its own. These media sources cause
+    -- problems for the cm spider, which finds those foreign rss links and
+    -- thinks that the urls belong to the parent media source.
     foreign_rss_links   boolean         not null default( false ),
+    
     main_media_id       int             null references media on delete set null,
     is_dup              boolean         null,
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
