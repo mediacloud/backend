@@ -339,9 +339,11 @@ sub update_by_id($$$$)
 
 # update the row in the table with the given id
 # and make note of the changes that were made
-sub update_by_id_and_log($$$$$$$$)
+sub update_by_id_and_log($$$$$$$$;$$)
 {
-    my ( $self, $table, $id, $old_hash, $new_hash, $log_table_name, $log_reason, $username ) = @_;
+    my ( $self, $table, $id, $old_hash, $new_hash, $log_table_name, $log_reason, $username, $additional_column_name,
+        $additional_column_value )
+      = @_;
 
     delete( $new_hash->{ reason } );
 
@@ -413,13 +415,27 @@ EOF
     foreach my $change ( @changes )
     {
         eval {
-            $r = $self->query(
-                <<"EOF",
-                INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email)
-                VALUES (?, ?, ?, ?, ?)
+            if ( $additional_column_name )
+            {
+                $r = $self->query(
+                    <<"EOF",
+                    INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email, $additional_column_name)
+                    VALUES (?, ?, ?, ?, ?, ?)
 EOF
-                $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username
-            );
+                    $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username,
+                    $additional_column_value
+                );
+            }
+            else
+            {
+                $r = $self->query(
+                    <<"EOF",
+                    INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email)
+                    VALUES (?, ?, ?, ?, ?)
+EOF
+                    $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username
+                );
+            }
         };
         if ( $@ )
         {
