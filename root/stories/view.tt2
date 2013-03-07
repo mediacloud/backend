@@ -13,6 +13,12 @@
         <th>URL:</th>
         <td><a href="[% story.url %]">view&nbsp;live</a></td>
     </tr>
+    [% IF c.acl_user_can_visit('/admin/stories/edit') %]
+        <tr>
+            <th>Edit:</th>
+            <td><a href="[% c.uri_for('/admin/stories/edit/') _ story.stories_id %]">edit</a></td>
+        </tr>
+    [% END -%]
     <tr>
         <th>Date Published:</th>
         <td>[% story.publish_date %]</td>

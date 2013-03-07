@@ -222,6 +222,7 @@ sub setup_acl()
       /admin/api/stories/subset_PUT
       /admin/stories/add
       /admin/stories/add_do
+      /admin/stories/edit
       /admin/stories/delete
       |;
 

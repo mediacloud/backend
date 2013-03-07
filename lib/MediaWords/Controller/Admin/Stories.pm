@@ -7,6 +7,9 @@ use warnings;
 use base 'Catalyst::Controller';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use URI;
+use URI::Escape;
+use URI::QueryParam;
 
 =head1 NAME
 
@@ -129,6 +132,94 @@ sub view : Local
     $c->stash->{ stories_id } = $stories_id;
 
     $c->stash->{ template } = 'stories/view.tt2';
+}
+
+# edit a single story
+sub edit : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    $stories_id += 0;
+
+    if ( !$stories_id )
+    {
+        die "no stories id";
+    }
+
+    my $form = HTML::FormFu->new(
+        {
+            load_config_file => $c->path_to() . '/root/forms/story.yml',
+            method           => 'post',
+            action           => '/admin/stories/edit/' . $stories_id
+        }
+    );
+
+    # Save the original referer to the edit form so we can get back to that URL later on
+    my $el_referer = $form->get_element( { name => 'referer', type => 'Hidden' } );
+    unless ( $el_referer->value )
+    {
+        if ( $c->request->referer )
+        {
+            $el_referer->value( $c->request->referer );
+        }
+    }
+
+    my $story = $c->dbis->find_by_id( 'stories', $stories_id );
+
+    $form->default_values( $story );
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid )
+    {
+        $form->stash->{ c }     = $c;
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'stories/edit.tt2';
+        $c->stash->{ title }    = 'Edit Story';
+
+    }
+    else
+    {
+
+        # Make a logged update
+        my $form_params = { %{ $form->params } };    # shallow copy to make editable
+        delete $form_params->{ referer };
+
+        # Only 'publish_date' is needed
+        delete $form_params->{ publish_date_year };
+        delete $form_params->{ publish_date_month };
+        delete $form_params->{ publish_date_day };
+        delete $form_params->{ publish_date_hour };
+        delete $form_params->{ publish_date_minute };
+        delete $form_params->{ publish_date_second };
+
+        $c->dbis->update_by_id_and_log(
+            'stories',     $stories_id,               $story,             $form_params,
+            'story_edits', $form->params->{ reason }, $c->user->username, 'stories_id',
+            $stories_id
+        );
+
+        # Redirect back to the referer or a story
+        my $url        = '';
+        my $status_msg = 'Story with ID ' . $story->{ stories_id } . ' has been modified.';
+
+        if ( $form->params->{ referer } )
+        {
+            my $uri = URI->new( $form->params->{ referer } );
+            $uri->query_param_delete( 'status_msg' );
+            $uri->query_param_append( 'status_msg' => $status_msg );
+            $url = $uri->as_string
+
+        }
+        else
+        {
+            $url = $c->uri_for( '/admin/stories/view/' . $story->{ stories_id }, { status_msg => $status_msg } );
+
+        }
+
+        $c->response->redirect( $url );
+
+    }
+
 }
 
 # delete tag
