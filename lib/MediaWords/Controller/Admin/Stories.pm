@@ -223,14 +223,14 @@ sub edit : Local
 }
 
 # delete tag
-sub delete : Local
+sub delete_tag : Local
 {
     my ( $self, $c, $stories_id, $tags_id, $confirm ) = @_;
 
     if ( $stories_id == "" || $tags_id == "" )
     {
         die "incorrectly formed link because must have Stories ID number 
-        and Tags ID number. ex: stories/delete/637467/128";
+        and Tags ID number. ex: stories/delete_tag/637467/128";
     }
 
     my $story = $c->dbis->find_by_id( "stories", $stories_id );
@@ -243,7 +243,7 @@ sub delete : Local
     {
         $c->stash->{ story }    = $story;
         $c->stash->{ tag }      = $tag;
-        $c->stash->{ template } = 'stories/delete.tt2';
+        $c->stash->{ template } = 'stories/delete_tag.tt2';
     }
     else
     {
@@ -263,7 +263,7 @@ sub delete : Local
 }
 
 # sets up add tag
-sub add : Local
+sub add_tag : Local
 {
     my ( $self, $c, $stories_id ) = @_;
 
@@ -278,11 +278,11 @@ sub add : Local
     my @tagsets = $c->dbis->query( "select ts.* from tag_sets ts" )->hashes;
     $c->stash->{ tagsets } = \@tagsets;
 
-    $c->stash->{ template } = 'stories/add.tt2';
+    $c->stash->{ template } = 'stories/add_tag.tt2';
 }
 
 # executes add tag
-sub add_do : Local
+sub add_tag_do : Local
 {
     my ( $self, $c, $stories_id ) = @_;
 
@@ -321,7 +321,7 @@ sub add_do : Local
 
     $c->response->redirect(
         $c->uri_for(
-            '/admin/stories/add/' . $story->{ stories_id },
+            '/admin/stories/add_tag/' . $story->{ stories_id },
             { status_msg => 'Tag \'' . $added_tag->{ tag } . '\' added.' }
         )
     );

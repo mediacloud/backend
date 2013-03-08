@@ -1,11 +1,11 @@
 [% title = 'Stories: Manually Add Tag for: ' _ story.title %]
 [% INCLUDE include/header.tt2 %]
 
-[% IF c.acl_user_can_visit('/admin/stories/add_do') %]
+[% IF c.acl_user_can_visit('/admin/stories/add_tag_do') %]
 
     <fieldset>
 
-        <form name="input" action="[% c.uri_for('/admin/stories/add_do/') _ 
+        <form name="input" action="[% c.uri_for('/admin/stories/add_tag_do/') _ 
         story.stories_id %]" method="post">
 
             <p>Tag name:</p>
@@ -28,8 +28,8 @@
 
                 [% FOREACH t IN tags -%]
                     [% t.tag | html %]
-                    [% IF c.acl_user_can_visit('/admin/stories/delete') %]
-                        <a href="[% c.uri_for('/admin/stories/delete/') _ story.stories_id _ '/' _ t.tags_id %]">delete</a><br/>
+                    [% IF c.acl_user_can_visit('/admin/stories/delete_tag') %]
+                        <a href="[% c.uri_for('/admin/stories/delete_tag/') _ story.stories_id _ '/' _ t.tags_id %]">delete</a><br/>
                     [% END -%]
               [% END # FOREACH tags -%]
               
@@ -39,7 +39,7 @@
 
     </fieldset>
 
-[% END # [% IF c.acl_user_can_visit('/admin/stories/add_do') %]
+[% END # [% IF c.acl_user_can_visit('/admin/stories/add_tag_do') %]
 
 [% IF c.acl_user_can_visit('/admin/stories/view') %]
 

@@ -1,7 +1,7 @@
 [% title = 'Story: Delete Tag Confirmation' %]
 [% INCLUDE include/header.tt2 %]
 
-[% IF c.acl_user_can_visit('/admin/stories/delete') %]
+[% IF c.acl_user_can_visit('/admin/stories/delete_tag') %]
 
     <fieldset>
     <p>
@@ -9,12 +9,12 @@
     from the '[% story.title | html %]' story?
     </p>
 
-    <form action="[% c.uri_for('/admin/stories/delete/') _ story.stories_id _ '/' _ tag.tags_id _ '/' _ 'yes' %]">
+    <form action="[% c.uri_for('/admin/stories/delete_tag/') _ story.stories_id _ '/' _ tag.tags_id _ '/' _ 'yes' %]">
     <input type="submit" value="Delete" />
     </form>
 
     </fieldset>
 
-[% END # [% IF c.acl_user_can_visit('/admin/stories/delete') %]
+[% END # [% IF c.acl_user_can_visit('/admin/stories/delete_tag') %]
 
 [% INCLUDE include/footer.tt2 %]

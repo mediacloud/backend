@@ -216,14 +216,14 @@ sub setup_acl()
 
     # stories-edit role; can do everything admin-readonly can + add / edit stories
     my @acl_stories_edit = qw|
-      /admin/api/stories/add
-      /admin/api/stories/add_do
-      /admin/api/stories/delete
+      /admin/api/stories/add_tag
+      /admin/api/stories/add_tag_do
+      /admin/api/stories/delete_tag
       /admin/api/stories/subset_PUT
-      /admin/stories/add
-      /admin/stories/add_do
+      /admin/stories/add_tag
+      /admin/stories/add_tag_do
       /admin/stories/edit
-      /admin/stories/delete
+      /admin/stories/delete_tag
       |;
 
     foreach my $path ( @acl_admin_readonly )

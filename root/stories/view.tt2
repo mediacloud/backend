@@ -75,13 +75,13 @@
         <td>
             [% FOREACH t IN tags -%]
                 [% t.tag_set_name _ ':' _ t.tag | html %]
-                [% IF c.acl_user_can_visit('/admin/stories/delete') %]
-                    <a href="[% c.uri_for('/admin/stories/delete/') _ stories_id _ '/' _ t.tags_id %]">delete</a><br/>
+                [% IF c.acl_user_can_visit('/admin/stories/delete_tag') %]
+                    <a href="[% c.uri_for('/admin/stories/delete_tag/') _ stories_id _ '/' _ t.tags_id %]">delete</a><br/>
                 [% END -%]
             [% END # FOREACH tags -%]
 
-            [% IF c.acl_user_can_visit('/admin/stories/add') %]
-                <a href="[% c.uri_for('/admin/stories/add/') _ stories_id %]">add manual tag</a> |
+            [% IF c.acl_user_can_visit('/admin/stories/add_tag') %]
+                <a href="[% c.uri_for('/admin/stories/add_tag/') _ stories_id %]">add manual tag</a> |
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/stories/retag') %]
                 <a href="[% c.uri_for('/admin/stories/retag/') _ stories_id %]">extract / tag all sets now</a><br />
