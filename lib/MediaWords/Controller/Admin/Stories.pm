@@ -227,7 +227,7 @@ sub delete_tag : Local
 {
     my ( $self, $c, $stories_id, $tags_id, $confirm ) = @_;
 
-    if ( $stories_id == "" || $tags_id == "" )
+    unless ( $stories_id and $tags_id )
     {
         die "incorrectly formed link because must have Stories ID number 
         and Tags ID number. ex: stories/delete_tag/637467/128";
@@ -253,7 +253,43 @@ sub delete_tag : Local
         }
         else
         {
-            $c->dbis->query( "delete from stories_tags_map where tags_id = ?", $tags_id );
+            my $reason = $c->request->params->{ reason };
+            unless ( $reason )
+            {
+                $c->dbis->dbh->rollback;
+                die( "Tag NOT deleted.  Reason left blank." );
+            }
+
+            # Start transaction
+            $c->dbis->dbh->begin_work;
+
+            # Fetch old tags
+            my $old_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+            # Delete tag
+            $c->dbis->query( "DELETE FROM stories_tags_map WHERE tags_id = ?", $tags_id );
+
+            # Fetch old tags
+            my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+            # Log the new set of tags
+            my @changes;
+            my $change = {
+                edited_field => '_tags',
+                old_value    => $old_tags,
+                new_value    => $new_tags,
+            };
+            push( @changes, $change );
+            unless (
+                $c->dbis->log_changes( 'story_edits', $reason, $c->user->username, \@changes, 'stories_id', $stories_id ) )
+            {
+                $c->dbis->dbh->rollback;
+                die "Unable to log addition of new tags.\n";
+            }
+
+            # Things went fine
+            $c->dbis->dbh->commit;
+
             $status_msg = 'Tag \'' . $tag->{ tag } . '\' deleted from this story.';
         }
 
@@ -270,12 +306,17 @@ sub add_tag : Local
     my $story = $c->dbis->find_by_id( "stories", $stories_id );
     $c->stash->{ story } = $story;
 
-    my @tags =
-      $c->dbis->query( "select t.* from tags t, stories_tags_map stm where t.tags_id = stm.tags_id and stm.stories_id = ?",
-        $stories_id )->hashes;
+    my @tags = $c->dbis->query(
+        <<"EOF",
+        SELECT t.*
+        FROM tags t, stories_tags_map stm
+        WHERE t.tags_id = stm.tags_id AND stm.stories_id = ?
+EOF
+        $stories_id
+    )->hashes;
     $c->stash->{ tags } = \@tags;
 
-    my @tagsets = $c->dbis->query( "select ts.* from tag_sets ts" )->hashes;
+    my @tagsets = $c->dbis->query( "SELECT ts.* FROM tag_sets ts" )->hashes;
     $c->stash->{ tagsets } = \@tagsets;
 
     $c->stash->{ template } = 'stories/add_tag.tt2';
@@ -289,10 +330,24 @@ sub add_tag_do : Local
     my $story = $c->dbis->find_by_id( "stories", $stories_id );
     $c->stash->{ story } = $story;
 
+    # Start transaction
+    $c->dbis->dbh->begin_work;
+
+    # Fetch old tags
+    my $old_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+    # Add new tag
     my $new_tag = $c->request->params->{ new_tag };
-    if ( $new_tag eq '' )
+    my $reason  = $c->request->params->{ reason };
+    unless ( $new_tag )
     {
+        $c->dbis->dbh->rollback;
         die( "Tag NOT added.  Tag name left blank." );
+    }
+    unless ( $reason )
+    {
+        $c->dbis->dbh->rollback;
+        die( "Tag NOT added.  Reason left blank." );
     }
 
     my $new_tag_sets_id = $c->request->params->{ tagset };
@@ -318,6 +373,26 @@ sub add_tag_do : Local
     );
 
     $c->stash->{ added_tag } = $added_tag;
+
+    # Fetch new tags
+    my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+    # Log the new set of tags
+    my @changes;
+    my $change = {
+        edited_field => '_tags',
+        old_value    => $old_tags,
+        new_value    => $new_tags,
+    };
+    push( @changes, $change );
+    unless ( $c->dbis->log_changes( 'story_edits', $reason, $c->user->username, \@changes, 'stories_id', $stories_id ) )
+    {
+        $c->dbis->dbh->rollback;
+        die "Unable to log addition of new tags.\n";
+    }
+
+    # Things went fine
+    $c->dbis->dbh->commit;
 
     $c->response->redirect(
         $c->uri_for(

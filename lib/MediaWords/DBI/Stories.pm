@@ -199,6 +199,41 @@ sub get_existing_tags
     return $ret;
 }
 
+sub get_existing_tags_as_string
+{
+    my ( $db, $stories_id ) = @_;
+
+    # Take note of the old tags
+    my $tags = $db->query(
+        <<"EOF",
+            SELECT stm.stories_id,
+                   CAST(ARRAY_AGG(ts.name || ':' || t.tag) AS TEXT) AS tags
+            FROM tags t,
+                 stories_tags_map stm,
+                 tag_sets ts
+            WHERE t.tags_id = stm.tags_id
+                  AND stm.stories_id = ?
+                  AND t.tag_sets_id = ts.tag_sets_id
+            GROUP BY stm.stories_id,
+                     t.tag_sets_id
+            ORDER BY tags
+            LIMIT 1
+EOF
+        $stories_id
+    )->hash;
+
+    if ( ref( $tags ) eq 'HASH' and $tags->{ stories_id } )
+    {
+        $tags = $tags->{ tags };
+    }
+    else
+    {
+        $tags = '';
+    }
+
+    return $tags;
+}
+
 # add a tags list as returned by MediaWords::Tagger::get_tags_for_modules to the database.
 # handle errors from the tagging module.
 # store any content returned by the tagging module.

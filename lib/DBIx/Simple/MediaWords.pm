@@ -347,10 +347,6 @@ sub update_by_id_and_log($$$$$$$$;$$)
 
     delete( $new_hash->{ reason } );
 
-    # say STDERR "Will log the change to table: $log_table_name";
-    # say STDERR "Reason: $log_reason";
-    # say STDERR "Existing media: " . Dumper($old_hash);
-
     # Find out which fields were changed
     my @changes;
     foreach my $field_name ( keys %{ $old_hash } )
@@ -412,7 +408,33 @@ EOF
     }
 
     # Update succeeded, write the change log
-    foreach my $change ( @changes )
+    unless (
+        $self->log_changes(
+            $log_table_name, $log_reason, $username, \@changes, $additional_column_name, $additional_column_value
+        )
+      )
+    {
+
+        # Writing one of the changes failed
+        $self->dbh->rollback;
+        die "Writing one of the changes failed.\n";
+    }
+
+    # Things went fine at this point, commit
+    $self->dbh->commit;
+
+    return $r;
+}
+
+# Log table changes
+sub log_changes($$$$$;$$)
+{
+    my ( $self, $log_table_name, $log_reason, $username, $changes, $additional_column_name, $additional_column_value ) = @_;
+
+    my $r = 0;
+
+    # Update succeeded, write the change log
+    foreach my $change ( @{ $changes } )
     {
         eval {
             if ( $additional_column_name )
@@ -441,17 +463,13 @@ EOF
         {
 
             # Writing one of the changes failed
-            $self->dbh->rollback;
-            die $@;
+            return 0;
 
         }
 
     }
 
-    # Things went fine at this point, commit
-    $self->dbh->commit;
-
-    return $r;
+    return 1;
 }
 
 # delete the row in the table with the given id

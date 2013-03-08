@@ -13,6 +13,11 @@
 
             <br />
 
+            <p>Reason:</p>
+            <input type="text" name="reason" size="40" />
+
+            <br />
+
             <!-- <p>Select tag type:</p> -->
 
             <br />
