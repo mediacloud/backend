@@ -237,25 +237,6 @@ create index media_moderated on media(moderated);
 -- allow easy querying of all duplicates, regardless of order
 create view media_dups_transitive as     select distinct media_id, main_media_id from   ( ( select media_id, main_media_id from media where main_media_id is not null ) union ( select main_media_id as media_id, media_id as main_media_id from media where main_media_id is not null ) ) q;
 
-
--- Media edits log
-CREATE TABLE media_edits (
-    media_edits_id      SERIAL      PRIMARY KEY,
-    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
-    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
-                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
-    old_value           TEXT        NOT NULL,
-    new_value           TEXT        NOT NULL,
-    reason              TEXT        NOT NULL
-                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
-
-    -- Store user's email instead of ID in case the user gets deleted
-    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
-
-);
-
-
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
 
 create table feeds (
@@ -640,30 +621,6 @@ create index stories_publish_date on stories (publish_date);
 create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
-
--- Story edits log
-CREATE TABLE story_edits (
-    story_edits_id      SERIAL      PRIMARY KEY,
-
-    -- Store user's email instead of ID in case the user gets deleted
-    stories_id          INT         NOT NULL REFERENCES stories(stories_id)
-                                    -- don't remove the logged edits when the story gets removed
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
-
-    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
-    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
-                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
-    old_value           TEXT        NOT NULL,
-    new_value           TEXT        NOT NULL,
-    reason              TEXT        NOT NULL
-                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
-
-    -- Store user's email instead of ID in case the user gets deleted
-    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
-
-);
-
 
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
@@ -1646,3 +1603,48 @@ INSERT INTO auth_roles (role, description) VALUES
     ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.');
+
+
+--
+-- Edit logs
+--
+
+-- Media edits log
+CREATE TABLE media_edits (
+    media_edits_id      SERIAL      PRIMARY KEY,
+    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
+    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
+                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
+    old_value           TEXT        NOT NULL,
+    new_value           TEXT        NOT NULL,
+    reason              TEXT        NOT NULL
+                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
+
+    -- Store user's email instead of ID in case the user gets deleted
+    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
+
+);
+
+-- Story edits log
+CREATE TABLE story_edits (
+    story_edits_id      SERIAL      PRIMARY KEY,
+
+    -- Store user's email instead of ID in case the user gets deleted
+    stories_id          INT         NOT NULL REFERENCES stories(stories_id)
+                                    -- don't remove the logged edits when the story gets removed
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
+
+    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
+    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
+                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
+    old_value           TEXT        NOT NULL,
+    new_value           TEXT        NOT NULL,
+    reason              TEXT        NOT NULL
+                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
+
+    -- Store user's email instead of ID in case the user gets deleted
+    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
+
+);
