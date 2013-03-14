@@ -91,19 +91,28 @@
 
     <fieldset>
 
-        <p><b>Feeds Found</b></p>
+        <p><b>[% feeds.size %] Feeds Found</b></p>
 
         <p>
-            <a href="[% c.uri_for('/media/delete_feeds/') _ medium.media_id | url %]">delete all feeds</a> |
+            [% IF feeds.size > 0 %]
+                <a href="[% c.uri_for('/media/delete_feeds/') _ medium.media_id | url %]">delete all feeds</a> |
+            [% END %]
             <a href="[% c.uri_for('/feeds/create/') _ medium.media_id | url %]">add feed</a> |
             <a href="[% c.uri_for('/feeds/scrape/') _ medium.media_id | url %]">scrape feeds</a>
+            [% IF feeds.size == 0 %]
+                | <a href="[% c.uri_for('/feeds/add_web_page_feed/') _ medium.media_id | url %]">add 'web page' feed</a>
+            [% END %]
         </p>
 
         <ul>
 
             [% FOREACH feed IN feeds %]
                 <li>
-                    [% feed.name | html %] - <a href="[% feed.url %]">[% feed.url | html %]</a> 
+                    [% IF feed.feed_type == "web_page" %]
+                        <em>("web page" feed)</em>
+                    [% END %]
+                    [% feed.name | html %] -
+                    <a href="[% feed.url %]">[% feed.url | html %]</a>
                     [<a href="[% c.uri_for( '/media/delete_unmoderated_feed/') _ feed.feeds_id | url %]">delete</a>]
                     [<a href="[% c.uri_for( '/media/keep_single_feed/') _ feed.feeds_id | url %]">keep single</a>]
                     [<a href="[% c.uri_for( '/media/keep_single_feed/') _ feed.feeds_id | url %]?approve=1">keep single + approve</a>]
