@@ -28,6 +28,7 @@ use Data::Dumper;
 use Getopt::Long;
 use Encode;
 use MediaWords::DB;
+use MediaWords::Util::Tags;
 
 # Strip string from whitespace
 sub _strip_string
@@ -140,29 +141,13 @@ EOF
 
         for my $tag_set_and_tag ( @{ $media_tags_to_add } )
         {
-            my ( $tag_set_name, $tag_name ) = split( ':', $tag_set_and_tag );
-
-            unless ( $tag_set_name and $tag_name )
-            {
-                $dbis->rollback;
-                die "Tag set or tag is empty.\n";
-            }
-
-            # Create / fetch tag set
-            my $tag_set = $dbis->find_or_create( 'tag_sets', { name => $tag_set_name } );
-            unless ( $tag_set )
-            {
-                $dbis->rollback;
-                die "Unable to create / fetch tag set '$tag_set_name'.\n";
-            }
 
             # Create / fetch tag
-            my $tag = $dbis->find_or_create( 'tags', { tag => $tag_name, tag_sets_id => $tag_set->{ tag_sets_id } } );
+            my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $dbis, $tag_set_and_tag );
             unless ( $tag )
             {
                 $dbis->rollback;
-                die "Unable to create / fetch tag '$tag_name' in tag set '$tag_set_name' (" . $tag_set->{ tag_sets_id } .
-                  ").\n";
+                die "Unable to create / fetch tag '$tag_set_and_tag'.\n";
             }
 
             # Map media to a tag
@@ -173,8 +158,8 @@ EOF
               )
             {
                 $dbis->rollback;
-                die "Unable to assign '$tag_name' (" . $tag->{ tags_id } . ") to media '" . $medium->{ name } . "' (" .
-                  $medium->{ media_id } . ").\n";
+                die "Unable to assign '$tag_set_and_tag' to media '" . $medium->{ name } . "' (" . $medium->{ media_id } .
+                  ").\n";
             }
 
         }
