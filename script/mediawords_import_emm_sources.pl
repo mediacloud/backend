@@ -98,9 +98,29 @@ sub main
             next;
         }
 
+        my $media_url = encode( 'UTF-8', _strip_string( $source->{ '-url' } ) );
+
+        # Add missing 'http://'
+        if ( $media_url !~ /http:\/\//i and $media_url !~ /https:\/\//i and $media_url =~ /www/i )
+        {
+            $media_url = 'http://' . $media_url;
+        }
+
+        # 'hhttp://www.beta.rs/' fix
+        if ( $media_url =~ /hhttp:\/\//i )
+        {
+            $media_url =~ s/^hhttp:\/\//http:\/\//;
+        }
+
+        # "Le Journal Francophone de Budapest | Toute l'actualité hongroise en français" fix
+        if ( $media_url =~ /^Le Journal Francophone de Budapest/i )
+        {
+            $media_url = 'http://www.jfb.hu/';
+        }
+
         my $media_to_add = {
             name        => encode( 'UTF-8', _strip_string( $source->{ '-name' } ) ),
-            url         => encode( 'UTF-8', _strip_string( $source->{ '-url' } ) ),
+            url         => $media_url,
             moderated   => 'f',
             feeds_added => 'f',
         };
