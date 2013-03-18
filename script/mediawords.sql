@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4399;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4400;
     
 BEGIN
 
@@ -1230,6 +1230,23 @@ create table processed_stories (
     processed_stories_id        bigserial          primary key,
     stories_id                  bigint             not null references stories on delete cascade
 );
+
+create table story_subsets (
+    story_subsets_id        bigserial          primary key,
+    start_date              timestamp with time zone,
+    end_date                timestamp with time zone,
+    media_id                int references media_sets null,
+    media_sets_id           int references media_sets null,
+    ready                   boolean default 'false',
+    last_processed_stories_id bigint references processed_stories(processed_stories_id)
+);
+
+CREATE TABLE story_subsets_processed_stories_map (
+   story_subsets_processed_stories_map_id bigserial primary key,
+   story_subsets_id bigint NOT NULL references story_subsets on delete cascade,
+   processed_stories_id bigint NOT NULL references processed_stories on delete cascade
+);
+
 
 create view controversy_links_cross_media as
   select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
