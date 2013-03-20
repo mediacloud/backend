@@ -1,5 +1,4 @@
 
-import couchdb
 from pubsub import pub
 import nltk
 from mediacloud.readability.readabilitytests import ReadabilityTool

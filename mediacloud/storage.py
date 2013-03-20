@@ -1,5 +1,5 @@
-
 import couchdb
+import pymongo
 from pubsub import pub
 
 class StoryDatabase(object):
@@ -61,13 +61,63 @@ class StoryDatabase(object):
     def getMaxStoryId(self):
         raise NotImplementedError("Subclasses should implement this!")
 
+    def initialize(self):
+        raise NotImplementedError("Subclasses should implement this!")
+
+class MongoStoryDatabase(StoryDatabase):
+
+    def __init__(self, db_name=None, host='127.0.0.1', port=27017, username=None, password=None):
+        self._server = pymongo.MongoClient(host, port)
+
+    def createDatabase(self, db_name):
+        self.selectDatabase(db_name)
+
+    def selectDatabase(self, db_name):
+        self._db = self._server[db_name]
+
+    def deleteDatabase(self, ignored):
+        self._db.drop_collection('stories')
+
+    def storyExists(self, story_id):
+        stories = self._db.stories
+        story = stories.find_one( { "_id": story_id } )
+        return story != None
+
+    def _saveStory(self, story_attributes):
+        stories = self._db.stories
+        story_id = stories.insert(story_attributes)
+        story = stories.find_one( { "_id": story_id } )
+        return story
+
+    def getStory(self, story_id):
+        stories = self._db.stories
+        story = stories.find_one( { "_id": story_id } )
+        return story
+
+    def getMaxStoryId(self):
+        max_story_id = 0
+        if self._db.stories.count() > 0 :
+            max_story_id = self._db.stories.find().sort("_id",-1)[0]['_id']
+        return int(max_story_id)
+
+    def initialize(self):
+        # nothing to init for mongo
+        return
+
 
 class CouchStoryDatabase(StoryDatabase):
 
     def __init__(self, db_name=None, host='127.0.0.1', port=5984, username=None, password=None):
-        self.connect(db_name, host, port, username, password)
+        if (username is not None) and (password is not None):
+            url = "http://"+username+":"+password+"@"
+        else:
+            url = "http://"
+        url = url + host+":"+str(port)
+        self._server = couchdb.Server(url)
+        if db_name is not None:
+          self.selectDatabase(db_name)        
 
-    def insertExampleViews(self):
+    def initialize(self):
         views = {
           "_id": "_design/examples",
           "language": "javascript",
@@ -118,16 +168,6 @@ class CouchStoryDatabase(StoryDatabase):
           }
         }
         self._db.save(views)
-
-    def connect(self, db_name, host, port, username, password):
-        if (username is not None) and (password is not None):
-            url = "http://"+username+":"+password+"@"
-        else:
-            url = "http://"
-        url = url + host+":"+str(port)
-        self._server = couchdb.Server(url)
-        if db_name is not None:
-          self.selectDatabase(db_name)        
 
     def storyExists(self, story_id):
         '''

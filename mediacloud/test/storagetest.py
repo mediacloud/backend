@@ -1,27 +1,18 @@
 
 import unittest
 import mediacloud.examples
-from mediacloud.storage import CouchStoryDatabase
+from mediacloud.storage import *
 
 class StorageTest(unittest.TestCase):
 
     TEST_DB_NAME = 'mediacloud-test'
 
-    def testCouchCreateMaxIdView(self):
-        db = CouchStoryDatabase()
-        db.createDatabase(self.TEST_DB_NAME)
-        db.insertExampleViews()
-        self.assertEquals(db.getMaxStoryId(),0)
-        db.deleteDatabase(self.TEST_DB_NAME)        
-
-    def testCouchManageDatabase(self):
-        db = CouchStoryDatabase()
+    def _createThenDeleteDb(self,db):
         db.createDatabase(self.TEST_DB_NAME)
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testCouchAddStory(self):
+    def _addStoryToDb(self, db):
         story = self._getFakeStory()
-        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
         worked = db.addStory(story)
         self.assertTrue(worked)
@@ -32,9 +23,8 @@ class StorageTest(unittest.TestCase):
         self.assertEquals(saved_story['story_sentences_count'], 2)
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testCouchStoryExists(self):
+    def _checkStoryExistsInDb(self, db):
         story = self._getFakeStory()
-        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
         db.addStory(story)
         saved_story = db.getStory(str(story['stories_id']))
@@ -42,19 +32,18 @@ class StorageTest(unittest.TestCase):
         self.assertFalse(db.storyExists('43223535'))
         db.deleteDatabase(self.TEST_DB_NAME)
 
-    def testCouchGetMaxStoryId(self):
+    def _testMaxStoryIdInDb(self, db):
         story1 = self._getFakeStory()
         story1['stories_id'] = "1000"
         story2 = self._getFakeStory()
         story1['stories_id'] = "2000"
-        db = CouchStoryDatabase()
         db.createDatabase(self.TEST_DB_NAME)
-        db.insertExampleViews()
+        db.initialize()
         self.assertEquals(db.getMaxStoryId(),0)
         db.addStory(story1)
         db.addStory(story2)
         self.assertEquals(db.getMaxStoryId(),2000)
-        db.deleteDatabase(self.TEST_DB_NAME)        
+        db.deleteDatabase(self.TEST_DB_NAME)           
 
     def _getFakeStory(self):
         story_attributes = {
@@ -73,3 +62,46 @@ class StorageTest(unittest.TestCase):
            ],
         }
         return story_attributes
+
+class CouchStorageTest(StorageTest):
+
+    def testManageDatabase(self):
+        db = CouchStoryDatabase()
+        self._createThenDeleteDb(db)
+
+    def testAddStory(self):
+        db = CouchStoryDatabase()
+        self._addStoryToDb(db)
+
+    def testStoryExists(self):
+        db = CouchStoryDatabase()
+        self._checkStoryExistsInDb(db)
+
+    def testGetMaxStoryId(self):
+        db = CouchStoryDatabase()
+        self._testMaxStoryIdInDb(db)
+
+    def testCreateMaxIdView(self):
+        db = CouchStoryDatabase()
+        db.createDatabase(self.TEST_DB_NAME)
+        db.initialize()
+        self.assertEquals(db.getMaxStoryId(),0)
+        db.deleteDatabase(self.TEST_DB_NAME)        
+
+class MongoStorageTest(StorageTest):
+
+    def testManageDatabsae(self):
+        db = MongoStoryDatabase()
+        self._createThenDeleteDb(db)
+
+    def testAddStory(self):
+        db = MongoStoryDatabase()
+        self._addStoryToDb(db)
+
+    def testStoryExists(self):
+        db = MongoStoryDatabase()
+        self._checkStoryExistsInDb(db)
+
+    def testGetMaxStoryId(self):
+        db = MongoStoryDatabase()
+        self._testMaxStoryIdInDb(db)

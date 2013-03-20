@@ -17,6 +17,6 @@ config.read('mc-client.config')
 db = CouchStoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
 
 # create the views
-db.insertExampleViews()
+db.initialize()
 
 print "Created the views"
