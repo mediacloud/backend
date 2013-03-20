@@ -16,9 +16,8 @@ Make sure you have Python > 2.6 (and setuptools) and then install the python dep
     pip install couchdb
     pip install pymongo
     
-Install and run CouchDB to store article info (created a 'mediacloud' database):
-
-    http://couchdb.apache.org
+Install and run [CouchDB](http://couchdb.apache.org) or [MongoDb](http://mongodb.org) to store 
+article info.
 
 Copy the `mc-client.config.template` to `mc-client.config` and edit it, putting in the 
 API username and password.  Then run the `example_create_views.py` script to create the 
@@ -65,10 +64,23 @@ You can fetch the stories created after a specific story like this:
 You can save those stories to a local 'mediacloud' CouchDB database like this:
 
     from mediacloud.api import MediaCloud
-    from mediacloud.storage import StoryDatabase
+    from mediacloud.storage import CouchStoryDatabase
     mc = MediaCloud( api_username, api_password )
     results = mc.recentStories()
-    db = StoryDatabase('mediacloud')
+    db = CouchStoryDatabase('mediacloud')
+    for story in results:
+      worked = db.addStory(story)
+
+### Saving Stories to MongoDB
+
+You can save those stories to a local 'mediacloud' MongoDB database like this 
+(in a `stories` collection):
+
+    from mediacloud.api import MediaCloud
+    from mediacloud.storage import MongoStoryDatabase
+    mc = MediaCloud( api_username, api_password )
+    results = mc.recentStories()
+    db = MongoStoryDatabase('mediacloud')
     for story in results:
       worked = db.addStory(story)
 
