@@ -304,7 +304,11 @@ sub main
 
     mkdir( $data_dir );
 
-    my $temp_dir = tempdir( DIR => $data_dir, CLEANUP => 1 );
+    my $temp_dir_path = $config->{ mediawords }->{ data_dump_tmp_dir };
+
+    $temp_dir_path //= $data_dir;
+
+    my $temp_dir = tempdir( DIR => $temp_dir_path, CLEANUP => 1 );
 
     my $current_date = _current_date();
 
