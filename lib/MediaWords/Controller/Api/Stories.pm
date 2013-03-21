@@ -401,22 +401,11 @@ sub subset_PUT : Local
     {
         my $json_data = $c->req->param( 'data' );
 
-        say STDERR "Got json data: $json_data";
-
-        say STDERR Dumper( $c->req );
-
         $subset = decode_json( $json_data );
 
         #die "Got json data " . Dumper ( $subset );
     }
 
-    say STDERR "Dumping subset";
-
-    say STDERR Dumper( $subset );
-
-    say STDERR "Dumping request";
-
-    say STDERR Dumper( $c->req );
 
     die "No data " unless defined( $subset );
 
@@ -434,19 +423,6 @@ sub subset_PUT : Local
         entity   => $story_subset,
     );
 
-}
-
-sub subset_POST : Local
-{
-    my ( $self, $c ) = @_;
-
-    $DB::single = 2;
-
-    my $subset = $c->req->data;
-
-    say STDERR Dumper( $subset );
-
-    die "No data " unless defined( $subset );
 }
 
 sub subset_GET : Local
