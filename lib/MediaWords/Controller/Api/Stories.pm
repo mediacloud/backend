@@ -406,7 +406,6 @@ sub subset_PUT : Local
         #die "Got json data " . Dumper ( $subset );
     }
 
-
     die "No data " unless defined( $subset );
 
     my $story_subset = $c->dbis->create( 'story_subsets', $subset );
