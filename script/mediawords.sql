@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4400;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4401;
     
 BEGIN
 
@@ -854,6 +854,8 @@ create table story_sentences (
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
 create index story_sentences_publish_day on story_sentences( date_trunc( 'day', publish_date ), media_id );
+create index story_sentences_media_id    on story_sentences( media_id );
+
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
     
