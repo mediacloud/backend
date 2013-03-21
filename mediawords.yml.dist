@@ -46,6 +46,10 @@ mail:
 
     ### parent directory of the content/ directory with all downloaded content is stored
     #data_dir: "<bindir>/../data"
+    
+    ### Uncomment to use the directory given by <PATH> to temporarily store CSV files generated in the public data dumps
+    ### Note that since these are uncompressed files they can be very large.
+    #data_dump_tmp_dir : <PATH>
 
     ### script directory
     #script_dir: "<bindir>/../script"
