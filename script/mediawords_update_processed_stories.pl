@@ -18,11 +18,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
 
-# extract, story, and tag downloaded text a slice of downloads.
-# downloads are extracted by a total of num_total_jobs processings
-# a total of num_total_processes, with a unique 1-indexed job_number
-# for each job
-sub extract_text
+sub update_processed_stories
 {
     my $db = MediaWords::DB::connect_to_db;
 
@@ -36,6 +32,14 @@ sub extract_text
 
     my $stop_story_sentences_id = ( $db->query( " SELECT max(story_sentences_id) from story_sentences" )->flat() )[ 0 ];
 
+    if ( $last_story_sentences_id_processed == $stop_story_sentences_id )
+    {
+        say STDERR "processed_stories is up to date. Stop story_sentences_id = $stop_story_sentences_id";
+        return;
+    }
+
+    say STDERR "Updating processed stories from $last_story_sentences_id_processed to $stop_story_sentences_id";
+
     $db->query(
 " INSERT INTO processed_stories ( stories_id ) select distinct( stories_id ) from story_sentences where story_sentences_id >? and story_sentences_id <= ? order by stories_id",
         $last_story_sentences_id_processed, $stop_story_sentences_id
@@ -48,13 +52,22 @@ sub extract_text
 
 }
 
-# fork of $num_processes
 sub main
 {
-    extract_text();
-}
+    if ( ( scalar( @ARGV ) >= 1 ) && $ARGV[ 0 ] eq '-d' )
+    {
+        while ( 1 )
+        {
+            update_processed_stories();
+            say STDERR "Sleeping...";
+            sleep( 30 );
+        }
+    }
+    else
+    {
+        update_processed_stories();
 
-# use Test::LeakTrace;
-# leaktrace { main(); };
+    }
+}
 
 main();
