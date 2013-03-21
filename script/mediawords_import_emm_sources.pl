@@ -107,7 +107,7 @@ sub main
         }
 
         # 'hhttp://www.beta.rs/' fix
-        if ( $media_url =~ /hhttp:\/\//i )
+        if ( $media_url =~ /^hhttp:\/\//i )
         {
             $media_url =~ s/^hhttp:\/\//http:\/\//;
         }
