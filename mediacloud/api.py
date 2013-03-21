@@ -75,6 +75,7 @@ class MediaCloud(object):
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
         url_handle = urllib2.urlopen(self.API_URL, urllib.urlencode(params))
+        #print self.API_URL + "?" + urllib.urlencode(params)
         return url_handle.read()
   
     def _parseJsonResults(self, json_text):
