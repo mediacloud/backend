@@ -68,6 +68,8 @@ class MongoStoryDatabase(StoryDatabase):
 
     def __init__(self, db_name=None, host='127.0.0.1', port=27017, username=None, password=None):
         self._server = pymongo.MongoClient(host, port)
+        if db_name is not None:
+            self.selectDatabase(db_name)
 
     def createDatabase(self, db_name):
         self.selectDatabase(db_name)

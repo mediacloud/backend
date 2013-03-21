@@ -6,8 +6,8 @@ from mediacloud.storage import CouchStoryDatabase
 import mediacloud.examples
 
 '''
-This example file creates the views needed by the other example files.  Run it once
-to initialize the design document used by all the other examples.
+This example file creates the views needed by the other example files if you are using CouchDB.
+Run it once to initialize the design document used by all the other examples.
 '''
 
 config = ConfigParser.ConfigParser()

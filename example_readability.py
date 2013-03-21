@@ -11,7 +11,7 @@ import mediacloud.examples
 
 '''
 This example file fetches the latest 25 stories from MediaCloud and saves their metadata 
-to a 'mediacloud' CouchDB database.  It adds in the extracted text readability via a 
+to a 'mediacloud' database.  It adds in the extracted text readability via a 
 pre-save event subscription.
 
 To Install:
@@ -26,7 +26,8 @@ config = ConfigParser.ConfigParser()
 config.read('mc-client.config')
 
 # set up a connection to a local DB
-db = CouchStoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
+#db = CouchStoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
+db = MongoStoryDatabase('mediacloud')
 
 # connect to MC and fetch some articles
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )

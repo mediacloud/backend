@@ -13,7 +13,7 @@ import mediacloud.examples
 '''
 This example is meant to be run from a cron job on a server.  It fetches all stories 
 created after the latest one it has in it's db.  It saves the metadata for all those to 
-a 'mediacloud' CouchDB database.
+a 'mediacloud' database.
 '''
 
 STORIES_TO_FETCH = 100
@@ -27,7 +27,8 @@ log = logging.getLogger('mc-realtime')
 log.info("---------------------------------------------------------------------------")
 
 # setup a connection to a local DB
-db = CouchStoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
+#db = CouchStoryDatabase('mediacloud', config.get('db','host'), config.get('db','port') )
+db = MongoStoryDatabase('mediacloud')
 
 # setup the mediacloud connection
 mc = MediaCloud( config.get('api','user'), config.get('api','pass') )
