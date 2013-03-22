@@ -15,6 +15,7 @@ Make sure you have Python > 2.6 (and setuptools) and then install the python dep
     pip install nltk
     pip install couchdb
     pip install pymongo
+    pip install tldextract
     
 Install and run [CouchDB](http://couchdb.apache.org) or [MongoDb](http://mongodb.org) to store 
 article info.

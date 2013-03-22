@@ -2,6 +2,7 @@
 from pubsub import pub
 import nltk
 from mediacloud.readability.readabilitytests import ReadabilityTool
+import tldextract
 
 ENGLISH_STOPWORDS = set(nltk.corpus.stopwords.words('english'))
 
@@ -69,3 +70,20 @@ def isEnglish(text):
         words = set(nltk.wordpunct_tokenize(text))
         matchesEnglish = len(words & ENGLISH_STOPWORDS) > 0
     return matchesEnglish
+
+def addDomainInfoToStory(db_story, raw_story):
+    '''
+    add the broken up domain info
+    '''
+    info = getDomainInfo(db_story)
+    db_story['domain'] = {}
+    db_story['domain']['subdomain'] = info.subdomain
+    db_story['domain']['domain'] = info.domain
+    db_story['domain']['tld'] = info.tld
+
+def getDomainInfo(db_story):
+    if db_story['guid'].find('http://') == 0:
+        source = db_story['guid']
+    else:
+        source = db_story['url']
+    return tldextract.extract(source)

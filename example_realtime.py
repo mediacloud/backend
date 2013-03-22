@@ -46,6 +46,9 @@ pub.subscribe(mediacloud.examples.addIsEnglishToStory, StoryDatabase.EVENT_PRE_S
 # set up my callback function that adds the reading grade level to the story
 pub.subscribe(mediacloud.examples.addFleshKincaidGradeLevelToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
+# set up my callback that adds splits up the domain nicely and adds the part of it to the story
+pub.subscribe(mediacloud.examples.addDomainInfoToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
+
 # save all the stories in the db
 saved = 0
 for story in results:
