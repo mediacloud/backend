@@ -55,7 +55,7 @@ DROP FUNCTION create_language_plperlu();
 
 -- Database properties (variables) table
 create table database_variables (
-    variables_id        serial          primary key,
+    database_variables_id        serial          primary key,
     name                varchar(512)    not null unique,        
     value               varchar(1024)   not null
 );
@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4401;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4402;
     
 BEGIN
 
