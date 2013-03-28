@@ -401,7 +401,10 @@ sub main
 
     my $dump_zip_file_name = $dump_name . '_' . $dumped_stories->[ 0 ] . '_' . $dumped_stories->[ 1 ];
 
-    $dump_zip_file_name .= '_' . join( '-', @{ $_dump_dashboards } ) if ( @{ $_dump_dashboards } );
+    if ( defined( $_dump_dashboards ) && @{ $_dump_dashboards } )
+    {
+        $dump_zip_file_name .= '_' . join( '-', @{ $_dump_dashboards } );
+    }
 
     my $tmp_zip_file_path = "/$data_dir/tmp_$dump_zip_file_name" . ".zip";
 
