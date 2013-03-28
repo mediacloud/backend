@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4402;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4403;
     
 BEGIN
 
@@ -689,16 +689,26 @@ create view downloads_media as select d.*, f.media_id as _media_id from download
 
 create view downloads_non_media as select d.* from downloads d where d.feeds_id is null;
 
-CREATE INDEX downloads_sites_index on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'));
-CREATE INDEX downloads_sites_pending on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3')) where state='pending';
+CREATE OR REPLACE FUNCTION site_from_host(host varchar)
+    RETURNS varchar AS
+$$
+BEGIN
+    RETURN regexp_replace(host, E'^(.)*?([^.]+)\\.([^.]+)$' ,E'\\2.\\3');
+END;
+$$
+LANGUAGE 'plpgsql' IMMUTABLE;
+
+
+CREATE INDEX downloads_sites_index on downloads ( site_from_host(host) );
+CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
 
 CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
 
-CREATE INDEX downloads_sites_downloads_id_pending ON downloads USING btree (regexp_replace((host)::text, E'^(.)*?([^.]+)\\.([^.]+)$'::text, E'\\2.\\3'::text), downloads_id) WHERE (state = 'pending'::download_state);
+CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads ( site_from_host(host), downloads_id ) WHERE (state = 'pending');
 
--- CREATE INDEX downloads_sites_index_downloads_id on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id);
+-- CREATE INDEX downloads_sites_index_downloads_id on downloads (site_from_host( host ), downloads_id);
 
-CREATE VIEW downloads_sites as select regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3') as site, * from downloads_media;
+CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from downloads_media;
 
 create table feeds_stories_map
  (
