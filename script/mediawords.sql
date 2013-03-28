@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4403;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4404;
     
 BEGIN
 
@@ -698,6 +698,7 @@ END;
 $$
 LANGUAGE 'plpgsql' IMMUTABLE;
 
+CREATE UNIQUE INDEX downloads_for_extractor_trainer on downloads ( downloads_id, feeds_id) where file_status <> 'missing' and type = 'content' and state = 'success';
 
 CREATE INDEX downloads_sites_index on downloads ( site_from_host(host) );
 CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
