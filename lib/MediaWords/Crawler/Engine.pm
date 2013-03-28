@@ -277,55 +277,62 @@ sub crawl
     my $start_time = time;
 
     my $queued_downloads = [];
-    while ( 1 )
+
+    MediaWords::DB::run_block_with_large_work_mem
     {
-        if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
+
+        while ( 1 )
         {
-            print STDERR "crawler timed out\n";
-            last;
-        }
-
-        #print "wait for fetcher requests ...\n";
-        for my $s ( $socket_select->can_read() )
-        {
-            my $fetcher_number = $s->getline();
-
-            if ( !defined( $fetcher_number ) )
+            if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
             {
-                print STDERR "skipping fetcher in which we couldn't read the fetcher number\n";
-                $socket_select->remove( $s );
-                next;
-            }
-
-            chomp( $fetcher_number );
-
-            #print "get fetcher $fetcher_number ping\n";
-
-            if ( scalar( @{ $queued_downloads } ) == 0 )
-            {
-                print STDERR "refill queued downloads ...\n";
-                $queued_downloads = $provider->provide_downloads();
-            }
-
-            if ( my $queued_download = shift( @{ $queued_downloads } ) )
-            {
-
-                # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
-                $s->printflush( $queued_download->{ downloads_id } . "\n" );
-            }
-            else
-            {
-
-                #print STDERR "sending fetcher $fetcher_number none\n";
-                $s->printflush( "none\n" );
+                print STDERR "crawler timed out\n";
                 last;
             }
 
-            # print "fetcher $fetcher_number request assigned\n";
+            #print "wait for fetcher requests ...\n";
+            for my $s ( $socket_select->can_read() )
+            {
+                my $fetcher_number = $s->getline();
+
+                if ( !defined( $fetcher_number ) )
+                {
+                    print STDERR "skipping fetcher in which we couldn't read the fetcher number\n";
+                    $socket_select->remove( $s );
+                    next;
+                }
+
+                chomp( $fetcher_number );
+
+                #print "get fetcher $fetcher_number ping\n";
+
+                if ( scalar( @{ $queued_downloads } ) == 0 )
+                {
+                    print STDERR "refill queued downloads ...\n";
+                    $queued_downloads = $provider->provide_downloads();
+                }
+
+                if ( my $queued_download = shift( @{ $queued_downloads } ) )
+                {
+
+                    # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
+                    $s->printflush( $queued_download->{ downloads_id } . "\n" );
+                }
+                else
+                {
+
+                    #print STDERR "sending fetcher $fetcher_number none\n";
+                    $s->printflush( "none\n" );
+                    last;
+                }
+
+                # print "fetcher $fetcher_number request assigned\n";
+            }
+
+            $self->dbs->commit;
         }
 
-        $self->dbs->commit;
     }
+    $self->dbs;
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
     print "waiting 5 seconds for children to exit ...\n";
