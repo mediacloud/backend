@@ -184,7 +184,7 @@ EOF
 
         }
 
-        print STDERR "Will add / update media '" . $medium->{ name } . "'\n";
+        print STDERR "Added / updated media '" . $medium->{ name } . "'\n";
     }
 
     print STDERR "Committing...\n";
