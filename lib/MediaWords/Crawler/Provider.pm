@@ -27,7 +27,7 @@ use constant STALE_FEED_CHECK_INTERVAL => 10 * ONE_MINUTE;
 use constant STALE_DOWNLOAD_INTERVAL => 5 * ONE_MINUTE;
 
 # how many downloads to store in memory queue
-use constant MAX_QUEUED_DOWNLOADS => 20000;
+use constant MAX_QUEUED_DOWNLOADS => 50000;
 
 # how often to check the database for new pending downloads (seconds)
 use constant DEFAULT_PENDING_CHECK_INTERVAL => ONE_MINUTE;
