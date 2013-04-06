@@ -13,6 +13,61 @@ use Regexp::Common qw /URI/;
 
 use Data::Dumper;
 
+# parse the domain from the url of each story.  return the list of domains
+sub _get_domains_from_story_urls
+{
+    my ( $stories ) = @_;
+    
+    my $domains = [];
+    
+    for my $story ( @{ $stories } )
+    {
+        my $url = $story->{ url };
+        
+        next unless ( $url  =~ m~https?://([^/]*)~ );
+
+        my $host = $1;
+
+        my $name_parts = [ split( /\./, $host ) ];
+
+        my $n = @{ $name_parts } - 1;
+
+        my $domain;
+        if ( $host =~ /\.co.[a-z]+$/ )
+        {
+            $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+        }
+        else
+        {
+            $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
+        }
+    
+        push( @{ $domains }, lc( $domain ) );
+    }
+    
+    return $domains;
+}
+
+# return a hash map of domains and counts for the urls of the latest 1000 stories in the given media source
+sub get_medium_domain_counts
+{
+    my ( $db, $medium ) = @_;
+
+    my $media_id = $medium->{ media_id } + 0;
+
+    my $stories = $db->query( <<END )->hashes;
+select url from stories where media_id = $media_id order by date_trunc( 'day', publish_date ) limit 1000
+END
+
+    my $domains = _get_domains_from_story_urls( $stories );
+    
+    my $domain_map = {};
+    map { $domain_map->{ $_ }++ } @{ $domains };
+    
+    return $domain_map;
+}
+
+
 # for each url in $urls, either find the medium associated with that
 # url or the medium assocaited with the title from the given url or,
 # if no medium is found, a newly created medium.  Return the list of
