@@ -22,6 +22,7 @@ use Data::Dumper;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use MediaWords::Util::HTML;
+use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use JSON;
 use URI;
@@ -477,7 +478,8 @@ sub delete_feeds : Local
         }
         else
         {
-            $c->dbis->query( "delete from feeds where media_id = ?", $media_id );
+            my $feeds = $c->dbis->query( "select * from feeds where media_id = ?", $media_id )->hashes;
+            map { MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $_->{ feeds_id } ) } @{ $feeds };
             $status_msg = 'Media source feeds deleted.';
         }
 
@@ -503,7 +505,9 @@ sub delete_unmoderated_feed : Local
         return;
     }
 
-    $c->dbis->query( "delete from feeds where feeds_id = ?", $feeds_id );
+    my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
+
+    MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $feed->{ feeds_id } );
     my $status_msg = 'Media source feed deleted.';
     $c->response->redirect(
         $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
@@ -529,7 +533,11 @@ sub keep_single_feed : Local
     # make sure feeds_id is a num
     $feeds_id += 0;
 
-    $c->dbis->query( "delete from feeds where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
+    my $feeds = $c->dbis->query( <<END, $medium->{ media_id }, $feeds_id )->hashes;
+select * from feeds where media_id = ? and feeds_id <> ?
+END
+    map { MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $_->{ feeds_id } ) } @{ $feeds };
+    
     my $status_msg = 'Media source feeds deleted.';
 
     if ( $c->req->param( 'approve' ) )
