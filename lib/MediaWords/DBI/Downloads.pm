@@ -521,7 +521,8 @@ sub store_content
         my $path = 'content:' . $$content_ref;
         $db->query(
             "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-            $new_state, encode( 'utf8', $path ),
+            $new_state,
+            encode( 'utf8', $path ),
             encode( 'utf8', $download->{ error_message } ),
             $download->{ downloads_id }
         );
@@ -574,7 +575,7 @@ sub get_medium
 sub process_download_for_extractor
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
-    
+
     print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
 

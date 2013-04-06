@@ -1467,32 +1467,39 @@ sub search_stories
         # I think download_texts in the distinct is slowing this down.  try a subquery for the distinct stories_id and
         # joining everything else to that
         $stories = $db->query_with_large_work_mem(
-            "select distinct q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, " .
-              "    ms.name as media_set_name " . "  from stories s, media m, media_sets ms, " .
-              "( select distinct ssw.stories_id, msmm.media_sets_id " .
-              "    from story_sentence_words ssw, media_sets_media_map msmm, story_sentences ss, query_story_searches qss " .
-              "    where $date_clause and ssw.media_id = msmm.media_id " . "      and ssw.stem in ( $topics ) " .
-              "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "      and ss.sentence ~* qss.pattern and ss.stories_id = ssw.stories_id " .
-              "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } " . "  ) q " .
-              "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id " .
-              "  limit 100000" )->hashes;
+"select distinct q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, "
+              . "    ms.name as media_set_name "
+              . "  from stories s, media m, media_sets ms, "
+              . "( select distinct ssw.stories_id, msmm.media_sets_id "
+              . "    from story_sentence_words ssw, media_sets_media_map msmm, story_sentences ss, query_story_searches qss "
+              . "    where $date_clause and ssw.media_id = msmm.media_id "
+              . "      and ssw.stem in ( $topics ) "
+              . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
+              . "      and ss.sentence ~* qss.pattern and ss.stories_id = ssw.stories_id "
+              . "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } "
+              . "  ) q "
+              . "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id "
+              . "  limit 100000" )->hashes;
     }
     else
     {
         my $date_clause =
           get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "date_trunc( 'day', ss.publish_date )" );
         $stories = $db->query_with_large_work_mem(
-            "select distinct q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, " .
-              "    ms.name as media_set_name " . "  from stories s, media m, media_sets ms, " .
-              "( select distinct ss.stories_id, msmm.media_sets_id " .
-              "    from story_sentences ss, media_sets_media_map msmm, query_story_searches qss, queries q " .
-              "    where ss.media_id = msmm.media_id " . "      and msmm.media_sets_id in ( $media_sets_ids_list ) " .
-              "      and ss.sentence ~* qss.pattern " .
-              "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } " .
-              "      and qss.queries_id = q.queries_id " . "      and $date_clause " . "  ) q " .
-              "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id " .
-              "  limit 100000" )->hashes;
+"select distinct q.stories_id, s.url, s.title, s.publish_date, m.media_id, m.name as media_name, m.url as media_url, "
+              . "    ms.name as media_set_name "
+              . "  from stories s, media m, media_sets ms, "
+              . "( select distinct ss.stories_id, msmm.media_sets_id "
+              . "    from story_sentences ss, media_sets_media_map msmm, query_story_searches qss, queries q "
+              . "    where ss.media_id = msmm.media_id "
+              . "      and msmm.media_sets_id in ( $media_sets_ids_list ) "
+              . "      and ss.sentence ~* qss.pattern "
+              . "      and qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } "
+              . "      and qss.queries_id = q.queries_id "
+              . "      and $date_clause "
+              . "  ) q "
+              . "  where q.stories_id = s.stories_id and s.media_id = m.media_id and q.media_sets_id = ms.media_sets_id "
+              . "  limit 100000" )->hashes;
     }
 
     return $stories;
