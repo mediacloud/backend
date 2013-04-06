@@ -42,7 +42,7 @@ sub do_fetch
 
     my $response = $ua->get( $download->{ url } );
 
-    #     if (!$response->is_success )
+    #     if (!$response->is_t )
     #     {
     #         sleep 20;
     #

@@ -182,6 +182,12 @@ sub _call_pager
 {
     my ( $self, $dbs, $download, $response ) = @_;
 
+    my $medium = $dbs->query( <<END )->hash;
+select * from media m where media_id in ( select media_id from feeds where feeds_id = 1 );
+END
+
+    return if ( defined( $medium->{ use_pager } && ( $medium->{ use_pager } == 0 ) ) );
+
     say STDERR "fetcher " . $self->engine->fetcher_number . " starting _call_pager for download " .
       $download->{ downloads_id };
     if ( $download->{ sequence } > MAX_PAGES )
@@ -201,8 +207,9 @@ sub _call_pager
 
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
-    if ( my $next_page_url =
-        MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $response->decoded_content ) )
+    my $next_page_url = MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $response->decoded_content );
+
+    if ( $next_page_url )
     {
 
         print STDERR "fetcher " . $self->engine->fetcher_number . "next page: $next_page_url\nprev page: " .
@@ -224,6 +231,23 @@ sub _call_pager
                 extracted     => 'f'
             }
         );
+        
+    }
+    
+    if ( !defined( $medium->{ use_pager } ) )
+    {
+        if ( $next_page_url )
+        {
+            $dbs->query( "update media set use_pager = 't' where media_id = ?", $medium->{ media_id } );
+        }
+        elsif ( $medium->{ unpaged_stories } < 100 )
+        {
+            $dbs->query( "update media set unpaged_stories = unpaged_stories + 1 where media_id = ?", $medium->{ media_id } );
+        }
+        else
+        {
+            $dbs->query( "update media set use_pager = 'f' where media_id = ?", $medium->{ media_id } );
+        }
     }
 }
 

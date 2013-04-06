@@ -92,8 +92,6 @@ sub fetch_and_handle_single_download
 
     $self->_fetch_and_handle_download( $download, $fetcher, $handler );
 
-    $self->dbs->commit;
-
     return;
 }
 
@@ -168,11 +166,6 @@ sub _run_fetcher
                 $self->dbs->update_by_id( 'downloads', $download->{ downloads_id }, $download );
             }
 
-        }
-
-        if ( $self->dbs )
-        {
-            $self->dbs->commit;
         }
 
     }
@@ -283,6 +276,7 @@ sub crawl
 
         while ( 1 )
         {
+            $self->dbs->begin;
             if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
             {
                 print STDERR "crawler timed out\n";
@@ -332,6 +326,7 @@ sub crawl
         }
 
     }
+    
     $self->dbs;
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
@@ -362,6 +357,8 @@ sub crawl_single_download
     my $queued_downloads = [ $download ];
 
     #print "wait for fetcher requests ...\n";
+
+    $self->dbs->begin;
 
   OUTER_LOOP:
     while ( 1 )
@@ -550,7 +547,7 @@ sub reconnect_db
     }
 
     $self->{ dbs } = MediaWords::DB::connect_to_db;
-    $self->dbs->dbh->{ AutoCommit } = 0;
+    $self->dbs->dbh->{ AutoCommit } = 1;
 }
 
 1;
