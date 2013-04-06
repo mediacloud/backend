@@ -87,8 +87,10 @@ sub get_links_from_html
 
         next if ( $link->{ href } !~ /^http/i );
 
-        next if ( $link->{ href } =~ /(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|(livejournal.com\/(tag|profile))/ );
-        
+        next
+          if (
+            $link->{ href } =~ /(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|(livejournal.com\/(tag|profile))/ );
+
         next if ( $link->{ href } =~ $_ignore_link_pattern );
 
         push( @{ $links }, { url => $link->{ href } } );
@@ -145,15 +147,15 @@ sub get_boingboing_links
 sub get_extracted_html
 {
     my ( $db, $story ) = @_;
-    
+
     my $extracted_html;
     eval { $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story ); };
     if ( $@ )
     {
-        MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story ); 
+        MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
         $extracted_html = MediaWords::DBI::Stories::get_extracted_html_from_db( $db, $story );
     }
-    
+
     return $extracted_html;
 }
 
@@ -199,7 +201,7 @@ sub sanitize_url
     $url = lc( $url );
 
     $url =~ s/^(https?:\/\/)(www.?|article|news|archives?)\./$1/;
-    
+
     $url =~ s/\#.*//;
 
     $url =~ s/\/+$//;
@@ -277,9 +279,9 @@ sub lookup_medium_by_url
         for my $medium ( @{ $media } )
         {
             my $dup_medium = get_dup_medium( $db, $medium->{ media_id } );
-            
+
             $medium = $dup_medium ? $dup_medium : $medium;
-            
+
             croak( "foreign rss medium $medium->{ media_id }" ) if ( $medium->{ foreign_rss_links } );
             $_media_url_lookup->{ sanitize_url( $medium->{ url } ) } = $medium;
         }
@@ -300,7 +302,7 @@ sub add_medium_to_url_lookup
 sub generate_medium_url_and_name_from_url
 {
     my ( $story_url ) = @_;
-    
+
     if ( !( $story_url =~ m~(http.?://(www\.)?([^/]+))~i ) )
     {
         warn( "Unable to find host name in url: $story_url" );
@@ -310,9 +312,9 @@ sub generate_medium_url_and_name_from_url
     my ( $medium_url, $medium_name ) = ( $1, $3 );
 
     $medium_url .= "/" unless ( $medium_url =~ /\/$/ );
-    
+
     return ( $medium_url, $medium_name );
-    
+
 }
 
 # return a spider specific media_id for each story.  create a new spider specific medium
@@ -320,29 +322,29 @@ sub generate_medium_url_and_name_from_url
 sub get_spider_medium
 {
     my ( $db, $story_url ) = @_;
-    
+
     my ( $medium_url, $medium_name ) = generate_medium_url_and_name_from_url( $story_url );
-        
+
     my $medium = lookup_medium_by_url( $db, $medium_url );
-        
+
     $medium ||= $db->query( <<END, $medium_name )->hash;
 select m.* from media m
     where lower( m.name ) = lower( ? ) and m.foreign_rss_links = false
 END
 
     $medium = $db->find_by_id( 'media', $medium->{ dup_media_id } ) if ( $medium && $medium->{ dup_media_id } );
-    
+
     return $medium if ( $medium );
-            
+
     # avoid conflicts with existing media urls that are missed by the above query b/c of dups feeds or foreign_rss_links
     $medium_url = substr( $medium_url, 0, 1000 ) . '#spider';
-        
+
     $medium = {
-        name => encode( 'utf8', substr( $medium_name, 0, 128 ) ),
-        url  => encode( 'utf8', $medium_url ),
-         moderated   => 't',
-         feeds_added => 't'
-     };
+        name        => encode( 'utf8', substr( $medium_name, 0, 128 ) ),
+        url         => encode( 'utf8', $medium_url ),
+        moderated   => 't',
+        feeds_added => 't'
+    };
 
     $medium = $db->create( 'media', $medium );
 
@@ -381,6 +383,7 @@ sub get_spider_feed
 # parse the content for tags that might indicate the story's title
 sub get_story_title_from_content
 {
+
     # my ( $content, $url ) = @_;
 
     if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
@@ -423,7 +426,7 @@ sub extract_download
 sub get_new_story_date
 {
     my ( $db, $story, $story_content, $old_story, $source_link ) = @_;
-    
+
     # for merged stories, use the method associated with the old story
     # or use 'merged_story_rss' to indicate that we got the date from a
     # a merged story whose date came from rss
@@ -435,7 +438,7 @@ select t.tag from tags t, tag_sets ts, stories_tags_map stm
         t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_guess_method'
 END
         $old_story_method ||= 'merged_story_rss';
-        
+
         return ( $old_story_method, $old_story->{ publish_date } );
     }
 
@@ -444,12 +447,12 @@ END
     {
         return ( $date_method, $publish_date );
     }
-    
+
     if ( $source_link && $source_link->{ stories_id } )
     {
         return ( 'source_link', $db->find_by_id( 'stories', $source_link->{ stories_id } )->{ publish_date } );
     }
-    
+
     return ( 'current_time', DateTime->now->datetime );
 }
 
@@ -467,7 +470,8 @@ delete from stories_tags_map stm
         ts.name = 'date_guess_method' and stm.stories_id = ?    
 END
 
-    $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $date_guess_method_tag->{ tags_id } } );
+    $db->create( 'stories_tags_map',
+        { stories_id => $story->{ stories_id }, tags_id => $date_guess_method_tag->{ tags_id } } );
 }
 
 # recursively search for the medium pointed to by dup_media_id
@@ -475,18 +479,18 @@ END
 sub get_dup_medium
 {
     my ( $db, $media_id, $count ) = @_;
-    
+
     croak( "loop detected" ) if ( $count > 10 );
-    
+
     return undef unless ( $media_id );
-    
+
     my $medium = $db->find_by_id( 'media', $media_id );
-    
+
     if ( $medium->{ dup_media_id } )
     {
         return get_dup_medium( $db, $medium->{ dup_media_id }, ++$count );
     }
-    
+
     return undef if ( $medium->{ foreign_rss_links } );
 
     return $medium;
@@ -495,10 +499,10 @@ sub get_dup_medium
 # add a new story and download corresponding to the given link or existing story
 sub add_new_story
 {
-    my ( $db, $link, $old_story ) = @_; 
+    my ( $db, $link, $old_story ) = @_;
 
     die( "only one of $link or $old_story should be set" ) if ( $link && $old_story );
-    
+
     my $story_content;
     if ( $link )
     {
@@ -507,19 +511,20 @@ sub add_new_story
         $old_story->{ title } = get_story_title_from_content( $story_content, $old_story->{ url } );
     }
     else
-    {   
-        MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $old_story ); 
+    {
+        MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $old_story );
         my $content_ref = MediaWords::DBI::Stories::fetch_content( $db, $old_story );
         $story_content = ${ $content_ref };
-    }        
-    
+    }
+
     print STDERR "add_new_story: $old_story->{ url }\n";
 
-    $old_story->{ url } =  ( length( $old_story->{ url } ) > 1024 )? substr( $old_story->{ url } , 0, 1024 ) : $old_story->{ url };
+    $old_story->{ url } =
+      ( length( $old_story->{ url } ) > 1024 ) ? substr( $old_story->{ url }, 0, 1024 ) : $old_story->{ url };
 
     my $medium = get_dup_medium( $db, $old_story->{ media_id } ) || get_spider_medium( $db, $old_story->{ url } );
     my $feed = get_spider_feed( $db, $medium );
-    
+
     my $story = {
         url          => $old_story->{ url },
         guid         => $old_story->{ url },
@@ -528,18 +533,18 @@ sub add_new_story
         title        => encode( 'utf8', $old_story->{ title } ),
         description  => ''
     };
-    
+
     my ( $date_guess_method, $publish_date ) = get_new_story_date( $db, $story, $story_content, $old_story, $link );
     print STDERR "date guess: $date_guess_method: $publish_date\n";
     $story->{ publish_date } = $publish_date;
-    
+
     if ( my $dup_story = get_dup_story( $db, $story ) )
     {
         return $dup_story;
     }
 
     eval { $story = $db->create( 'stories', $story ) };
-    croak (  $@ . " - " . Dumper( $story ) ) if ( $@ );
+    croak( $@ . " - " . Dumper( $story ) ) if ( $@ );
 
     my $spidered_tag = get_spidered_tag( $db );
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
@@ -574,7 +579,7 @@ sub add_new_story
         MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
     }
 
-   extract_download( $db, $download );
+    extract_download( $db, $download );
 
     return $story;
 }
@@ -603,8 +608,8 @@ select 1 from download_texts dt, downloads d
         lower( dt.download_text ) ~ ?
 END
 
-    # my $query =
-    #   "select 1 from story_sentences ss where ss.stories_id = $story->{ stories_id } and " . "    lower( ss.sentence ) ~ ?";
+   # my $query =
+   #   "select 1 from story_sentences ss where ss.stories_id = $story->{ stories_id } and " . "    lower( ss.sentence ) ~ ?";
 
     # print STDERR "match query: $query\n";
 
@@ -619,14 +624,13 @@ END
 sub add_to_controversy_stories
 {
     my ( $db, $controversy, $story, $iteration, $link_mined ) = @_;
-    
+
     $db->query(
         "insert into controversy_stories ( controversies_id, stories_id, iteration, redirect_url, link_mined ) " .
           "  values ( ?, ?, ?, ?, ? )",
         $controversy->{ controversies_id },
         $story->{ stories_id },
-        $iteration, $story->{ url },
-        $link_mined
+        $iteration, $story->{ url }, $link_mined
     );
 }
 
@@ -654,12 +658,13 @@ select distinct s.* from stories s, controversy_stories cs
         s.media_id = ? and cs.controversies_id = ?    
 END
 
-    my $dup_stories = $db->query( 
-        $query, 
-        $story->{ title }, 
-        $story->{ stories_id } || -1, 
+    my $dup_stories = $db->query(
+        $query,
+        $story->{ title },
+        $story->{ stories_id } || -1,
         $story->{ media_id },
-        $controversy->{ controversies_id } )->hashes;
+        $controversy->{ controversies_id }
+    )->hashes;
 
     for my $dup_story ( @{ $dup_stories } )
     {
@@ -667,9 +672,10 @@ END
         my $story_epoch     = MediaWords::Util::SQL::get_epoch_from_sql_date( $story->{ publish_date } );
 
         # if the stories aren't within a week, be more careful about matching
-        if ( ( $dup_story_epoch < ( $story_epoch - ( 7 * 86400 ) ) ) || 
-             ( $dup_story_epoch > ( $story_epoch + ( 7 * 86400 ) ) ) )
+        if (   ( $dup_story_epoch < ( $story_epoch - ( 7 * 86400 ) ) )
+            || ( $dup_story_epoch > ( $story_epoch + ( 7 * 86400 ) ) ) )
         {
+
             # if the stories aren't in the same week, require that the length be greater than 32
             next if ( length( $story->{ title } ) < 32 );
 
@@ -680,7 +686,7 @@ END
             $story_url_no_p     =~ s/(.*)\?(.*)/$1/;
 
             next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
-            
+
             return $dup_story;
         }
     }
@@ -705,10 +711,10 @@ select distinct s.* from stories s
     where ( s.url in ( ? , ? ) or s.guid in ( ?, ? ) ) and 
         m.foreign_rss_links = false
 END
-    
+
     # replace with dup story if there's one already added to controversy_stories
     $story = get_dup_story( $db, $story ) || $story;
-    
+
     if ( $story )
     {
         my $downloads = $db->query( "select * from downloads where stories_id = ? and extracted = 'f' order by downloads_id",
@@ -755,11 +761,11 @@ sub add_redirect_url_to_link
 sub set_controversy_ref_story
 {
     my ( $db, $ref_story, $controversy_link ) - @_;
-    
-    my $ref_stories_id = $ref_story->{ stories_id };
-    my $stories_id = $controversy_link->{ stories_id };
+
+    my $ref_stories_id   = $ref_story->{ stories_id };
+    my $stories_id       = $controversy_link->{ stories_id };
     my $controversies_id = $controversy_link->{ controversies_id };
-    
+
     my $link_exists = $db->query( <<END, $ref_stories_id, $stories_id, $controversies_id )->hash;
 select 1 from controversy_links
     where ref_stories_id = ? and stories_id = ? and controversies_id = ?
@@ -777,14 +783,14 @@ END
 update controversy_links set ref_stories_id = ? where controversy_links_id = ?
 END
     }
-}   
+}
 
 sub set_controversy_link_ref_story
 {
     my ( $db, $story, $controversy_link ) = @_;
-    
+
     return unless ( $controversy_link->{ controversy_links_id } );
-    
+
     my $link_exists = $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } )->hash;
 select 1 from controversy_links a, controversy_links b
     where a.stories_id = b.stories_id and a.controversies_id = b.controversies_id and
@@ -792,16 +798,15 @@ select 1 from controversy_links a, controversy_links b
 END
 
     return if ( $link_exists );
-    
+
     croak( "story $story->{ stories_id } does not exist" )
-        unless ( $db->find_by_id( 'stories', $story->{ stories_id } ) );
-    
+      unless ( $db->find_by_id( 'stories', $story->{ stories_id } ) );
+
     $db->query( <<END, $story->{ stories_id }, $controversy_link->{ controversy_links_id } );
 update controversy_links set ref_stories_id = ? where controversy_links_id = ?
 END
 
 }
-
 
 # if the story matches the controversy pattern, add it to controversy_stories and controversy_links
 sub add_to_controversy_stories_and_links_if_match
@@ -825,7 +830,7 @@ sub add_to_controversy_stories_and_links_if_match
 sub add_new_links
 {
     my ( $db, $controversy, $iteration, $new_links ) = @_;
-    
+
     # find all the links that we can find existing stories for without having to fetch anything
     my $fetch_links = [];
     for my $link ( @{ $new_links } )
@@ -855,7 +860,7 @@ sub add_new_links
 
         add_redirect_url_to_link( $db, $link );
         my $story = get_matching_story_from_db( $db, $link, $controversy ) || add_new_story( $db, $link );
-        
+
         $link->{ story } = $story;
 
         add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
@@ -876,7 +881,7 @@ sub spider_new_links
         $controversy->{ controversies_id },
         $controversy->{ controversies_id }
     )->hashes;
-    
+
     add_new_links( $db, $controversy, $iteration, $new_links );
 }
 
@@ -1093,30 +1098,32 @@ sub generate_link_weights
 sub merge_dup_story
 {
     my ( $db, $controversy, $delete_story, $keep_story ) = @_;
-    
-    print STDERR "dup $keep_story->{ title } [ $keep_story->{ stories_id } ] <- $delete_story->{ title } [ $delete_story->{ stories_id } ]\n";
-    
+
+    print STDERR
+"dup $keep_story->{ title } [ $keep_story->{ stories_id } ] <- $delete_story->{ title } [ $delete_story->{ stories_id } ]\n";
+
     my $controversies_id = $controversy->{ controversies_id };
-    
+
     my $ref_controversy_links = $db->query( <<END, $delete_story->{ stories_id }, $controversies_id )->hashes;
 select * from controversy_links where ref_stories_id = ? and controversies_id = ?
 END
-    
+
     for my $ref_controversy_link ( @{ $ref_controversy_links } )
     {
         set_controversy_link_ref_story( $db, $keep_story, $ref_controversy_link );
     }
-    
-    add_to_controversy_stories( $db, $controversy, $keep_story, 1000, 1 ) 
-        unless ( story_is_controversy_story( $db, $controversy, $keep_story ) );
+
+    add_to_controversy_stories( $db, $controversy, $keep_story, 1000, 1 )
+      unless ( story_is_controversy_story( $db, $controversy, $keep_story ) );
 
     my $controversy_links = $db->query( <<END, $delete_story->{ stories_id }, $controversies_id )->hashes;
 select * from controversy_links where stories_id = ? and controversies_id = ?
 END
-    
+
     for my $controversy_link ( @{ $controversy_links } )
     {
-        my ( $link_exists ) = $db->query( <<END, $keep_story->{ stories_id } , $controversy_link->{ ref_stories_id }, $controversies_id )->hash;
+        my ( $link_exists ) =
+          $db->query( <<END, $keep_story->{ stories_id }, $controversy_link->{ ref_stories_id }, $controversies_id )->hash;
 select * from controversy_links where stories_id = ? and ref_stories_id = ? and controversies_id = ?
 END
 
@@ -1127,7 +1134,7 @@ update controversy_links set stories_id = ? where controversy_links_id = ?
 END
         }
     }
-            
+
     $db->query( <<END, $delete_story->{ stories_id }, $controversies_id );
 delete from controversy_stories where stories_id = ? and controversies_id = ?
 END
@@ -1143,29 +1150,29 @@ END
 sub merge_foreign_rss_story
 {
     my ( $db, $controversy, $story ) = @_;
-    
+
     my $medium = $db->find_by_id( 'media', $story->{ media_id } );
-    
+
     my ( $story_medium_url, $story_medium_name ) = generate_medium_url_and_name_from_url( $story->{ url } );
-    
+
     # for stories in ycombinator.com, allow stories with a http://yombinator.com/.* url
     return if ( $medium->{ url } eq $story_medium_url );
-    
+
     my $link = { url => $story->{ url } };
-    
+
     # note that get_matching_story_from_db will not return $story b/c it now checkes for foreign_rss_links = true
     my $merge_into_story = get_matching_story_from_db( $db, $link, $controversy ) || add_new_story( $db, undef, $story );
-        
-    merge_dup_story( $db, $controversy, $story, $merge_into_story );   
+
+    merge_dup_story( $db, $controversy, $story, $merge_into_story );
 }
 
 # find all controversy stories with a foreign_rss_links medium and merge each story
 # into a different medium unless the story's url domain matches that of the existing
-# medium.  
+# medium.
 sub merge_foreign_rss_stories
 {
     my ( $db, $controversy ) = @_;
-    
+
     my $foreign_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select s.* from stories s, controversy_stories cs, media m 
     where s.stories_id = cs.stories_id and s.media_id = m.media_id and 
@@ -1179,12 +1186,13 @@ END
 sub merge_dup_media_story
 {
     my ( $db, $controversy, $story ) = @_;
-    
+
     my $dup_medium = get_dup_medium( $db, $story->{ media_id } );
 
     return unless ( $dup_medium );
-    
-    my $new_story = $db->query( <<END, $dup_medium->{ media_id }, $story->{ url }, $story->{ title }, $story->{ publish_date } )->hash;
+
+    my $new_story =
+      $db->query( <<END, $dup_medium->{ media_id }, $story->{ url }, $story->{ title }, $story->{ publish_date } )->hash;
 SELECT s.* FROM stories s 
     WHERE s.media_id = ? and
         ( ( ? in ( s.url, s.guid ) ) or ( s.title = ? and date_trunc( 'day', s.publish_date ) = ? ) )
@@ -1195,11 +1203,11 @@ END
     merge_dup_story( $db, $controversy, $story, $new_story );
 }
 
-# merge all stories belonging to dup_media_id media to the dup_media_id 
+# merge all stories belonging to dup_media_id media to the dup_media_id
 sub merge_dup_media_stories
 {
     my ( $db, $controversy ) = @_;
-    
+
     my $dup_media_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 SELECT distinct s.* FROM stories s, controversy_stories cs, media m
     WHERE s.stories_id = cs.stories_id and m.media_id = s.media_id and 
@@ -1208,16 +1216,16 @@ END
 
     print STDERR "merging " . scalar( @{ $dup_media_stories } ) . " stories\n" if ( @{ $dup_media_stories } );
 
-    map { merge_dup_media_story( $db, $controversy, $_ ) }  @{ $dup_media_stories };
+    map { merge_dup_media_story( $db, $controversy, $_ ) } @{ $dup_media_stories };
 }
 
 # import all controversy_seed_urls that have not already been processed
 sub import_seed_urls
 {
     my ( $db, $controversy ) = @_;
-    
+
     my $controversies_id = $controversy->{ controversies_id };
-    
+
     # take care of any seed urls with urls that we have already processed
     # for this controversy
     $db->query( <<END, $controversies_id );
@@ -1227,28 +1235,28 @@ update controversy_seed_urls a set stories_id = b.stories_id, processed = 't'
         a.controversies_id = ? and b.controversies_id = a.controversies_id and 
         a.stories_id is null and b.stories_id is not null        
 END
-    
+
     my $seed_urls = $db->query( <<END, $controversies_id )->hashes;
 select * from controversy_seed_urls where controversies_id = ? and processed = 'f'
 END
 
     add_new_links( $db, $controversy, 0, $seed_urls );
-    
+
     for my $seed_url ( @{ $seed_urls } )
     {
         $db->query( <<END, $seed_url->{ story }->{ stories_id }, $seed_url->{ controversy_seed_urls_id } );
 update controversy_seed_urls set stories_id = ?, processed = 't' where controversy_seed_urls_id = ?
 END
     }
-    
+
 }
 
-# look for any stories in the controversy tagged with a date method of 'current_time' and 
+# look for any stories in the controversy tagged with a date method of 'current_time' and
 # assign each the earliest source link date if any source links exist
 sub add_source_link_dates
 {
     my ( $db, $controversy ) = @_;
-    
+
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select s.* from stories s, controversy_stories cs, tag_sets ts, tags t, stories_tags_map stm
     where s.stories_id = cs.stories_id and cs.controversies_id = ? and
@@ -1256,9 +1264,9 @@ select s.* from stories s, controversy_stories cs, tag_sets ts, tags t, stories_
         t.tag_sets_id = ts.tag_sets_id and
         t.tag in ( 'current_time' ) and ts.name = 'date_guess_method'
 END
-    
+
     for my $story ( @{ $stories } )
-    { 
+    {
         my $source_link = $db->query( <<END, $controversy->{ controversies_id } )->hash;
 select cl.*, s.publish_date from controversy_links cl, stories s 
     where cl.ref_stories_id = s.stories_id
@@ -1266,7 +1274,7 @@ select cl.*, s.publish_date from controversy_links cl, stories s
 END
 
         next unless ( $source_link );
-                
+
         $db->query( <<END, $source_link->{ publish_date }, $controversy->{ controversies_id } );
 update stories set publish_date = ? where stories_id = ?
 END
@@ -1275,15 +1283,15 @@ END
 }
 
 # make a pass through all broken stories caching any broken downloads
-# using MediaWords::Util::Web::cache_link_downloads.  these will get 
-# fetched with Web::get_cached_link_download and then stored via 
+# using MediaWords::Util::Web::cache_link_downloads.  these will get
+# fetched with Web::get_cached_link_download and then stored via
 # MediaWords::DBI::Stories::fix_story_downloads_if_needed
 # later in the process, but we have to cache the downloads now so that we can do the
 # downloads in one big parallel job rather than one at a time.
 sub cache_broken_story_downloads
 {
     my ( $db, $stories ) = @_;
-    
+
     my $fetch_links = [];
     for my $story ( @{ $stories } )
     {
@@ -1291,20 +1299,20 @@ sub cache_broken_story_downloads
 select * from downloads where stories_id = ? order by downloads_id
 END
         my $broken_downloads = [ grep { MediaWords::DBI::Stories::download_is_broken( $db, $_ ) } @{ $downloads } ];
-        
+
         map { $story->{ cached_downloads }->{ $_->{ downloads_id } } = $_ } @{ $broken_downloads };
-        
+
         push( @{ $fetch_links }, @{ $broken_downloads } );
     }
-    
-    MediaWords::Util::Web::cache_link_downloads( $fetch_links );    
-} 
+
+    MediaWords::Util::Web::cache_link_downloads( $fetch_links );
+}
 
 # import stories from the query_story_searches associated with this controversy
 sub import_query_story_search
 {
     my ( $db, $controversy ) = @_;
-    
+
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select distinct s.* from stories s, query_story_searches_stories_map qsssm, controversies c
     where s.stories_id = qsssm.stories_id and 
@@ -1325,7 +1333,7 @@ insert into controversy_query_story_searches_imported_stories_map
     ( controversies_id, stories_id ) values ( ?, ? );
 END
 
-        my $controversy_story_exists = $db->query( <<END, $story->{ stories_id } , $controversy->{ controversies_id } )->hash;
+        my $controversy_story_exists = $db->query( <<END, $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
 select 1 from controversy_stories where stories_id = ? and controversies_id = ?
 END
         next if ( $controversy_story_exists );
@@ -1337,7 +1345,7 @@ select 1 from controversy_merged_stories_map cmsm, controversy_stories cs
         cs.controversies_id = ?
 END
         next if ( $merged_story );
-        
+
         add_to_controversy_stories_and_links( $db, $controversy, $story, 0 );
     }
 }
@@ -1351,7 +1359,7 @@ sub main
 
     Getopt::Long::GetOptions(
         "controversy=s" => \$controversies_id,
-        "dedup_media!" => \$dedup_media
+        "dedup_media!"  => \$dedup_media
     ) || return;
 
     die( "usage: $0 --controversy < controversies_id > [ --dedup_media ]" ) unless ( $controversies_id );
@@ -1384,7 +1392,7 @@ sub main
 
     print STDERR "running spider ...\n";
     run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
-    
+
     print STDERR "adding source link dates ...\n";
     add_source_link_dates( $db, $controversy );
 

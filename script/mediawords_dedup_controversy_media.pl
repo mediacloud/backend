@@ -22,9 +22,9 @@ sub get_medium_domain
     my ( $medium ) = @_;
 
     $medium->{ url } =~ m~https?://([^/#]*)~ || return $medium;
-    
+
     my $host = $1;
-    
+
     my $name_parts = [ split( /\./, $host ) ];
 
     my $n = @{ $name_parts } - 1;
@@ -38,7 +38,8 @@ sub get_medium_domain
     {
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
     }
-    elsif ( $host =~ /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
+    elsif ( $host =~
+        /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
     {
         $domain = $host;
     }
@@ -53,26 +54,25 @@ sub get_medium_domain
 sub mark_medium_as_dup
 {
     my ( $db, $source_medium, $target_medium ) = @_;
-    
+
     return if ( $source_medium->{ media_id } == $target_medium->{ media_id } );
-    
+
     if ( $target_medium->{ dup_media_id } )
-    {    
+    {
         print( "target medium has dup_media_id set. skipping ...\n" );
         return;
     }
-    
-    
+
     if ( $target_medium->{ foreign_rss_links } )
     {
         print( "target medium has foreign_rss_links = true. skipping ...\n" );
         return;
     }
-    
+
     print "$source_medium->{ name } -> $target_medium->{ name }\n";
-    
+
     $source_medium->{ dup_media_id } = $target_medium->{ media_id };
-    $source_medium->{ hide } = 1;
+    $source_medium->{ hide }         = 1;
 
     $db->query( <<END, $target_medium->{ media_id }, $source_medium->{ media_id } );
 update media set dup_media_id = ? where media_id = ?
@@ -83,9 +83,9 @@ END
 sub mark_medium_is_not_dup
 {
     my ( $db, $medium ) = @_;
-    
+
     $medium->{ is_not_dup } = 1;
-    
+
     $db->query( "update media set is_not_dup = true where media_id = ?", $medium->{ media_id } );
 }
 
@@ -93,13 +93,13 @@ sub mark_medium_is_not_dup
 sub normalize_url
 {
     my ( $url ) = @_;
-    
+
     $url =~ s/^(https?:\/\/)(www.?|article|news|archives|blogs?|video|\d+?)\./$1/i;
-    
+
     $url =~ s/\#spider$//;
-    
+
     my $url_c = URI->new( $url )->canonical;
-    
+
     return $url_c;
 }
 
@@ -108,19 +108,19 @@ sub normalize_url
 sub mark_canonical_url_duplicates
 {
     my ( $db, $domain, $media ) = @_;
-    
+
     map { $_->{ url_c } = normalize_url( $_->{ url } ) } @{ $media };
-    
+
     my $media = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $media } ];
-    
+
     for my $a ( @{ $media } )
     {
         next if ( $a->{ dup_media_id } );
-        
+
         for my $b ( @{ $media } )
         {
             next if ( $a->{ media_id } == $b->{ media_id } || $b->{ dup_media_id } );
-                        
+
             if ( $a->{ url_c } eq $b->{ url_c } )
             {
                 mark_medium_as_dup( $db, $b, $a );
@@ -133,7 +133,7 @@ sub mark_canonical_url_duplicates
 sub create_domain_medium
 {
     my ( $db, $domain ) = @_;
-    
+
     my $existing_domain_medium = $db->query( <<END, $domain )->hash;
 select 1 from media where lower( url ) = lower( ? ) or n
 END
@@ -144,21 +144,21 @@ END
 sub prompt_for_dup_media
 {
     my ( $db, $domain, $media ) = @_;
-    
+
     my $original_media = [ grep { !$_->{ is_spidered } } @{ $media } ];
     my $spidered_media = [ grep { $_->{ is_spidered } } @{ $media } ];
-    
+
     my $ordered_media = [ @{ $original_media }, @{ $spidered_media } ];
 
     for my $medium ( @{ $media } )
     {
-        $medium->{ not_dup_label } = $medium->{ is_not_dup } ? 'NOT_DUP ' : '';
-        $medium->{ spidered_label } = $medium->{ is_spidered } ? 'SPIDERED ' : '';
+        $medium->{ not_dup_label }     = $medium->{ is_not_dup }        ? 'NOT_DUP '     : '';
+        $medium->{ spidered_label }    = $medium->{ is_spidered }       ? 'SPIDERED '    : '';
         $medium->{ foreign_rss_links } = $medium->{ foreign_rss_links } ? 'FOREIGN_RSS ' : '';
     }
 
     while ( 1 )
-    {        
+    {
         print "\nDOMAIN: $domain\n";
         for ( my $i = 0 ; $i < @{ $ordered_media } ; $i++ )
         {
@@ -173,7 +173,7 @@ END
         print "\n";
 
         print "Action (h for help):\n";
-    
+
         my $line = <STDIN>;
         chomp( $line );
         my $command = [ split( / /, $line ) ];
@@ -197,22 +197,23 @@ END
         {
             return undef;
         }
+
         # elsif ( $command->[ 0 ] eq 'd' )
         # {
         #     push( @{ $media }, create_domain_medium( $db, $domain );
         # }
-        elsif ( @{ $command } eq 2  )
+        elsif ( @{ $command } eq 2 )
         {
             my ( $s, $t ) = @{ $command };
             if ( ( $s =~ /^(a|\d+)$/ ) && ( $t =~ /^\d+$/ ) && ( $s eq 'a' || $media->[ $s ] ) && $media->[ $t ] )
-            {                 
+            {
                 my $target_medium = $media->[ $t ];
                 my $source_media = ( $s eq 'a' ) ? [ grep { !$_->{ hide } } @{ $media } ] : [ $media->[ $s ] ];
-                
+
                 return ( $source_media, $target_medium );
             }
         }
-        
+
         print( "Invalid command.\n" );
         print( $help );
     }
@@ -222,9 +223,9 @@ END
 sub get_unprocessed_media
 {
     my ( $media ) = @_;
-    
+
     return [ grep { !( $_->{ hide } || $_->{ is_not_dup } || $_->{ dup_media_id } ) } @{ $media } ];
-}        
+}
 
 # prompt the user to decide whether domain-equivalent media sources are duplicates of one another
 sub dedup_media
@@ -232,7 +233,7 @@ sub dedup_media
     my ( $db, $domain, $media ) = @_;
 
     while ( 1 )
-    {    
+    {
         my ( $source_media, $target_medium ) = prompt_for_dup_media( $db, $domain, $media );
 
         if ( !$source_media )
@@ -245,7 +246,7 @@ sub dedup_media
         {
             mark_medium_as_dup( $db, $source_medium, $target_medium );
         }
-            
+
         my $unprocessed_media = get_unprocessed_media( $media );
         last unless ( @{ $unprocessed_media } > 1 );
     }
@@ -261,8 +262,8 @@ sub main
     my $spidered_tag = MediaWords::Util::Tags::lookup_tag( $db, 'spidered:spidered' )
       || die( "Unable to find spidered:spidered tag" );
 
-      # only dedup media that are either not spidered or are associated with controversy stories
-      # (this eliminates spidered media not actually associated with any controversy story)
+    # only dedup media that are either not spidered or are associated with controversy stories
+    # (this eliminates spidered media not actually associated with any controversy story)
     my $media = $db->query( <<END, $spidered_tag->{ tags_id } )->hashes;
 select m.*, coalesce( mtm.tags_id, 0 ) is_spidered
   from media m left join media_tags_map mtm on ( m.media_id = mtm.media_id and mtm.tags_id = ? )
@@ -278,17 +279,17 @@ END
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
         my $unprocessed_media = get_unprocessed_media( $domain_media );
-        delete( $media_domain_lookup->{ $domain } ) if ( !$domain || @{ $unprocessed_media } < 2  );
+        delete( $media_domain_lookup->{ $domain } ) if ( !$domain || @{ $unprocessed_media } < 2 );
     }
 
-    my $i = 1;
+    my $i           = 1;
     my $num_domains = scalar( values( %{ $media_domain_lookup } ) );
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
-        print( "\n" . $i++  . "/ $num_domains\n" );
-        
+        print( "\n" . $i++ . "/ $num_domains\n" );
+
         mark_canonical_url_duplicates( $db, $domain, $domain_media );
-        
+
         my $unprocessed_media = get_unprocessed_media( $domain_media );
 
         dedup_media( $db, $domain, $domain_media ) if ( @{ $unprocessed_media } > 1 );

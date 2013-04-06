@@ -44,7 +44,7 @@ sub get_request_domain
     my $name_parts = [ split( /\./, $host ) ];
 
     my $n = @{ $name_parts } - 1;
-    
+
     my $domain;
     if ( $host =~ /\.co.uk$/ )
     {
@@ -58,7 +58,7 @@ sub get_request_domain
     {
         $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
     }
-    
+
     return lc( $domain );
 }
 

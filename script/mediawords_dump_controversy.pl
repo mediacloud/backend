@@ -49,7 +49,7 @@ my $_media_static_gexf_attribute_types = {
     story_count => 'integer',
 };
 
-# track the paths of all layout dumps so that we can write them to 
+# track the paths of all layout dumps so that we can write them to
 # an html file at the end of the dump process
 my $_layout_dump_paths;
 
@@ -73,9 +73,9 @@ sub get_dump_label
 sub get_parent_dump_dir
 {
     my ( $controversy ) = @_;
-    
+
     return $_parent_dump_dir if ( $_parent_dump_dir );
-    
+
     my $controversy_name = $controversy->{ name };
     $controversy_name =~ s/\//_/g;
 
@@ -83,13 +83,14 @@ sub get_parent_dump_dir
     my $i = 1;
     do
     {
-        $parent_dump_dir = "controversy_dumps/${ controversy_name }_dumps_" . Date::Format::time2str( '%Y-%m-%d', time ) . "_" . $i++;
+        $parent_dump_dir =
+          "controversy_dumps/${ controversy_name }_dumps_" . Date::Format::time2str( '%Y-%m-%d', time ) . "_" . $i++;
     } while ( -e $parent_dump_dir );
-    
+
     File::Path::mkpath( $parent_dump_dir ) unless ( -e $parent_dump_dir );
 
     $_parent_dump_dir = $parent_dump_dir;
-    
+
     print STDERR "dump dir: $parent_dump_dir\n";
 
     return $parent_dump_dir;
@@ -106,7 +107,7 @@ sub get_dump_file_path
 
     my $dump_dir = "$parent_dump_dir/controversy_dump_${ dump_label }";
     mkdir( $dump_dir ) unless ( -d $dump_dir );
-    
+
     my $file_path = "$dump_dir/${ file_name }_${ dump_label }.${ extension }";
 
     return $file_path;
@@ -124,7 +125,7 @@ sub write_dump_file
     print FILE $encoded_data;
 
     close( FILE );
-    
+
     return $file_path;
 
 }
@@ -154,19 +155,20 @@ sub write_link_counts
     my ( $db, $controversy, $start_date, $end_date ) = @_;
 
     replace_table_contents( $db, 'controversy_story_link_counts_dump',
-        "select count(distinct cl.stories_id) link_count, ref_stories_id " . "  from controversy_links_cross_media cl, stories s, stories r " .
+        "select count(distinct cl.stories_id) link_count, ref_stories_id " .
+          "  from controversy_links_cross_media cl, stories s, stories r " .
           "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
           "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
           "    s.publish_date > r.publish_date - interval '1 day' and " .
           "    controversies_id = $controversy->{ controversies_id } " . "  group by ref_stories_id" );
 
     replace_table_contents( $db, 'controversy_story_outlink_counts_dump',
-        "select count(distinct cl.ref_stories_id) outlink_count, cl.stories_id " . 
+        "select count(distinct cl.ref_stories_id) outlink_count, cl.stories_id " .
           "  from controversy_links_cross_media cl, stories s, stories r " .
           "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
           "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
-          "    cl.controversies_id = $controversy->{ controversies_id } and s.publish_date > r.publish_date - interval '1 day' " .
-          "  group by cl.stories_id" );
+"    cl.controversies_id = $controversy->{ controversies_id } and s.publish_date > r.publish_date - interval '1 day' "
+          . "  group by cl.stories_id" );
 }
 
 sub write_controversy_stories_dump
@@ -538,27 +540,27 @@ sub get_media_type_color
 sub scale_map_size
 {
     my ( $gexf_file ) = @_;
-    
+
     my $gexf = XML::Simple::XMLin( $gexf_file, ForceArray => 1, ForceContent => 1, KeyAttr => [] );
-    
+
     # print Dumper( $gexf );
 
     my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->[ 0 ]->{ node };
-    
-    # we assume that the gephi maps are symmetrical and so only check the 
+
+    # we assume that the gephi maps are symmetrical and so only check the
     my $max_x;
     for my $node ( @{ $nodes } )
     {
         my $p = $node->{ 'viz:position' }->[ 0 ];
         $max_x = $p->{ x } if ( $p->{ x } > $max_x );
     }
-    
+
     my $map_width = $max_x * 2;
-    
+
     if ( $map_width > MAX_MAP_WIDTH )
     {
         my $scale = MAX_MAP_WIDTH / $map_width;
-        
+
         for my $node ( @{ $nodes } )
         {
             my $p = $node->{ 'viz:position' }->[ 0 ];
@@ -566,13 +568,13 @@ sub scale_map_size
             $p->{ y } *= $scale;
         }
     }
-    
+
     open( FILE, ">$gexf_file" ) || die( "Unable to open file '$gexf_file': $!" );
-    
+
     print FILE encode( 'utf8', XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' ) );
-    
+
     close FILE;
-    
+
 }
 
 # call java program to lay out graph.  the java program accepts a gexf file as input and
@@ -580,18 +582,20 @@ sub scale_map_size
 sub write_layout_dump
 {
     my ( $controversy, $dump_name ) = @_;
-    
+
     print STDERR "generating gephi layout ...\n";
-    
-    my $nolayout_dump_path = get_dump_file_path( $controversy, "${ dump_name }_nolayout", "gexf" );
-    my $layout_dump_path = get_dump_file_path( $controversy, "${ dump_name }_gephi_layout", "gexf" );
-    
-    my $cmd = "java -cp $FindBin::Bin/../java/build/jar/GephiLayout.jar:FindBin::Bin/../java/lib/gephi-toolkit.jar edu.law.harvard.cyber.mediacloud.layout.GephiLayout '$nolayout_dump_path' '$layout_dump_path'";
+
+    my $nolayout_dump_path = get_dump_file_path( $controversy, "${ dump_name }_nolayout",     "gexf" );
+    my $layout_dump_path   = get_dump_file_path( $controversy, "${ dump_name }_gephi_layout", "gexf" );
+
+    my $cmd =
+"java -cp $FindBin::Bin/../java/build/jar/GephiLayout.jar:FindBin::Bin/../java/lib/gephi-toolkit.jar edu.law.harvard.cyber.mediacloud.layout.GephiLayout '$nolayout_dump_path' '$layout_dump_path'";
+
     # print STDERR "$cmd\n";
     system( $cmd );
-    
+
     scale_map_size( $layout_dump_path );
-    
+
     return $layout_dump_path;
 }
 
@@ -606,13 +610,13 @@ sub get_node_size
 
     # my $min_size = $scale * ( 1 / $total_link_count );
     # $scale = 3 * ( $scale / $min_size ) if ( $min_size < 3 );
-     
+
     my $size = $scale * ( ( $medium->{ link_count } + 1 ) / $total_link_count );
-        
+
     $size = 1 if ( $size < 1 );
-    
+
     #print STDERR "size: $size\n";
-    
+
     return $size;
 }
 
@@ -620,30 +624,30 @@ sub get_node_size
 sub scale_node_sizes
 {
     my ( $nodes ) = @_;
-        
+
     map { $_->{ 'viz:size' }->{ value } += 1 } @{ $nodes };
 
     my $max_size = 1;
-    map { my $s = $_->{ 'viz:size' }->{ value }; $max_size = $s if ( $max_size < $s  ); } @{ $nodes };
+    map { my $s = $_->{ 'viz:size' }->{ value }; $max_size = $s if ( $max_size < $s ); } @{ $nodes };
 
     my $scale = MAX_NODE_SIZE / $max_size;
     if ( $scale > 1 )
     {
         $scale = 0.5 + ( $scale / 2 );
     }
-    
+
     # my $scale = ( $max_size > ( MAX_NODE_SIZE / MIN_NODE_SIZE ) ) ? ( MAX_NODE_SIZE / $max_size ) : 1;
-        
+
     for my $node ( @{ $nodes } )
     {
         my $s = $node->{ 'viz:size' }->{ value };
-        
+
         $s = int( $scale * $s );
-        
+
         $s = MIN_NODE_SIZE if ( $s < MIN_NODE_SIZE );
-        
+
         $node->{ 'viz:size' }->{ value } = $s;
-        
+
         # say STDERR "viz:size $s";
     }
 }
@@ -730,7 +734,7 @@ sub write_gexf_dump
         }
 
         $node->{ 'viz:color' } = [ get_media_type_color( $db, $controversy, $medium->{ code_media_type } ) ];
-        $node->{ 'viz:size' } = { value =>  $medium->{ link_count } + 1 };
+        $node->{ 'viz:size' } = { value => $medium->{ link_count } + 1 };
 
         push( @{ $graph->{ nodes }->{ node } }, $node );
     }
@@ -741,9 +745,9 @@ sub write_gexf_dump
 
     my $dump_name = "controversy_media_${ weighting }";
     write_dump_file( $controversy, "${ dump_name }_nolayout", 'gexf', encode( 'utf8', $xml_dump ) );
-    
+
     my $layout_dump_path = write_layout_dump( $controversy, $dump_name );
-    
+
     return $layout_dump_path;
 }
 
@@ -771,13 +775,13 @@ sub write_layout_dump_links
 
 <ul>
 END
- 
+
     my $layout_dump_paths = get_layout_dump_paths();
     for my $layout_dump_path ( @{ $layout_dump_paths } )
     {
         $html .= "<li><a href='http://cyber.law.harvard.edu/~hroberts/gexf/#$layout_dump_path'>$layout_dump_path</a></li>\n";
-    }    
-    
+    }
+
     $html .= <<END;
 </ul>
 </body>
@@ -785,13 +789,13 @@ END
 END
 
     my $parent_dump_dir = get_parent_dump_dir();
-    
+
     my $layout_html = "$parent_dump_dir/layouts.html";
-    
+
     open( FILE, ">$layout_html" ) || die( "Unable to open file '$layout_html': $!" );
-    
+
     print FILE $html;
-    
+
     close( FILE );
 }
 
@@ -809,7 +813,7 @@ sub stories_exist_for_period
 sub write_post_dated_links_dump
 {
     my ( $db, $controversy ) = @_;
-    
+
     write_dump_as_csv( $db, $controversy, 'controversy_post_dated_links_dump', <<END );
 select count(*) post_dated_links, sb.stories_id, min( sb.url ) url, min( sb.publish_date ) publish_date 
     from stories sa, stories sb, controversy_links_cross_media cl 
@@ -826,7 +830,7 @@ END
 sub write_post_dated_stories_dump
 {
     my ( $db, $controversy ) = @_;
-    
+
     write_dump_as_csv( $db, $controversy, 'controversy_post_dated_stories_dump', <<END );
 select distinct sa.stories_id, sa.url, sa.publish_date, 
         count(sa.stories_id) OVER (PARTITION BY sb.stories_id) post_dated_stories, sb.stories_id ref_stories_id, 
@@ -856,26 +860,26 @@ select m.* from media m
 END
 
     my $media_fields = $res->columns;
-    my $media = $res->hashes;
+    my $media        = $res->hashes;
 
     print STDERR "generating media domains ...\n";
 
     my $num_media = scalar( @{ $media } );
-    my $i = 0;
+    my $i         = 0;
     for my $medium ( @{ $media } )
     {
-        print STDERR "[ $i / $num_media ]\n" unless ( ++$i %100 );
-        
+        print STDERR "[ $i / $num_media ]\n" unless ( ++$i % 100 );
+
         my $domain_map = MediaWords::DBI::Media::get_medium_domain_counts( $db, $medium );
-        
-        $medium->{ num_domains } = scalar( values ( %{ $domain_map } ) );
+
+        $medium->{ num_domains } = scalar( values( %{ $domain_map } ) );
 
         my $domain_counts = [];
         while ( my ( $domain, $count ) = each( %{ $domain_map } ) )
         {
             push( @{ $domain_counts }, "[ $domain $count ]" );
         }
-        
+
         $medium->{ domain_counts } = join( " ", @{ $domain_counts } );
 
     }
@@ -890,7 +894,7 @@ END
 sub write_dup_stories_dump
 {
     my ( $db, $controversy ) = @_;
-    
+
     write_dump_as_csv( $db, $controversy, 'controversy_dup_stories_dump', <<END );
 select sa.title, sa.stories_id stories_id_a, sa.publish_date publish_date_a, sa.url story_url_a,
         sa.media_id media_id_a, ma.url media_url_a, ma.name media_name_a,
@@ -922,13 +926,13 @@ sub generate_period_dump
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       || die( "Unable to find controversy '$controversies_id'" );
-      
+
     write_link_counts( $db, $controversy, $start_date, $end_date );
 
     write_controversy_links_dump( $db, $controversy, $start_date, $end_date );
 
     write_controversy_stories_dump( $db, $controversy, $start_date, $end_date );
-    
+
     if ( !stories_exist_for_period( $db, $controversy ) )
     {
         print STDERR "skipping $dump_label because no stories exist\n";
@@ -942,7 +946,7 @@ sub generate_period_dump
     write_controversy_date_counts_dump( $db, $controversy, $start_date, $end_date );
 
     map { add_layout_dump_path( write_gexf_dump( $db, $controversy, $start_date, $end_date, $_ ) ) } @{ $weightings };
-    
+
 }
 
 # decrease the given date to the latest monday equal to or before the date
@@ -976,15 +980,15 @@ sub truncate_to_start_of_month
 sub generate_custom_period_dumps
 {
     my ( $db, $controversies_id, $weightings ) = @_;
-    
-    my $controversy_dates = $db->query ( <<END, $controversies_id )->hashes;
+
+    my $controversy_dates = $db->query( <<END, $controversies_id )->hashes;
 select * from controversy_dates where controversies_id = ? order by start_date, end_date
 END
 
     for my $controversy_date ( @{ $controversy_dates } )
     {
         my $start_date = $controversy_date->{ start_date };
-        my $end_date = $controversy_date->{ end_date };
+        my $end_date   = $controversy_date->{ end_date };
         generate_period_dump( $db, $controversies_id, $start_date, $end_date, 'custom', $weightings );
     }
 }
@@ -1037,7 +1041,7 @@ sub generate_all_period_dumps
 sub get_default_dates
 {
     my ( $db, $controversy ) = @_;
-    
+
     my ( $start_date, $end_date ) = $db->query( <<END, $controversy->{ query_story_searches_id } )->flat;
 select q.start_date, q.end_date from queries q, query_story_searches qss
     where qss.query_story_searches_id = ? and q.queries_id = qss.queries_id
@@ -1062,8 +1066,8 @@ sub main
 {
     my ( $start_date, $end_date, $period, $weighting, $controversies_id, $cleanup_data );
 
-    $period = 'all';
-    $weighting = 'link'; 
+    $period    = 'all';
+    $weighting = 'link';
 
     Getopt::Long::GetOptions(
         "start_date=s"  => \$start_date,
@@ -1095,7 +1099,7 @@ sub main
 
     my ( $default_start_date, $default_end_date ) = get_default_dates( $db, $controversy );
     $start_date ||= $default_start_date;
-    $end_date ||= $default_end_date;
+    $end_date   ||= $default_end_date;
 
     my $periods = ( $period eq 'all' ) ? $all_periods : [ $period ];
 
@@ -1104,9 +1108,9 @@ sub main
         my $weightings = ( $weighting eq 'all' ) ? $all_weightings : [ $weighting ];
         generate_all_period_dumps( $db, $controversies_id, $start_date, $end_date, $p, $weightings );
     }
-    
+
     write_layout_dump_links();
-    
+
     write_cleanup_dumps( $db, $controversy ) if ( $cleanup_data );
 }
 

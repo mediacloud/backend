@@ -17,47 +17,48 @@ use MediaWords::Util::CSV;
 
 use constant MAX_DIFFERENT_DOMAINS => 10;
 
-sub main 
+sub main
 {
     binmode( STDERR, 'utf8' );
-    
+
     my $db = MediaWords::DB::connect_to_db;
-    
+
     my $media = $db->query( <<END )->hashes;
 select * from media order by media_id
 END
-#     where ( foreign_rss_links is null or foreign_rss_links is false ) and
-#         media_id in ( select media_id from sopa_stories ss, stories s where ss.stories_id = s.stories_id )
-#     order by media_id 
-# END
+
+    #     where ( foreign_rss_links is null or foreign_rss_links is false ) and
+    #         media_id in ( select media_id from sopa_stories ss, stories s where ss.stories_id = s.stories_id )
+    #     order by media_id
+    # END
 
     my $i = 0;
     for my $medium ( @{ $media } )
     {
         my $domain_map = MediaWords::DBI::Media::get_medium_domain_count( $db, $medium );
-        
+
         my $num_domains = scalar( values( %{ $domain_map } ) );
 
         my $foreign_rss_links = ( $num_domains > MAX_DIFFERENT_DOMAINS ) ? 't' : 'f';
-        
+
         print STDERR "$medium->{ name } [ $medium->{ media_id } ]: $num_domains - $foreign_rss_links\n";
-        
+
         $db->query( "update media set foreign_rss_links = ? where media_id = ?", $foreign_rss_links, $medium->{ media_id } );
-        
+
         $medium->{ foreign_rss_links } = $foreign_rss_links;
-        $medium->{ num_domains } = $num_domains;
-        
+        $medium->{ num_domains }       = $num_domains;
+
         my $domain_counts = [];
         while ( my ( $domain, $count ) = each( %{ $domain_map } ) )
         {
             push( @{ $domain_counts }, "[ $domain $count ]" );
         }
-        
+
         $medium->{ domain_counts } = join( " ", @{ $domain_counts } );
     }
-    
-    # print MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, [ qw(name url media_id foreign_rss_links num_domains domain_counts) ] );
-    
+
+# print MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, [ qw(name url media_id foreign_rss_links num_domains domain_counts) ] );
+
 }
 
 main();

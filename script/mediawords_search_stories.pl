@@ -41,7 +41,7 @@ sub execute_and_store_search
 
     $db->query( "update query_story_searches set search_completed = 't' where query_story_searches_id = ?",
         $query_story_search->{ query_story_searches_id } );
-        
+
     print STDERR "done.\n";
 }
 
@@ -49,7 +49,7 @@ sub main
 {
     binmode( STDERR, 'utf8' );
     binmode( STDOUT, 'utf8' );
-    
+
     while ( 1 )
     {
         my $db = MediaWords::DB::connect_to_db;

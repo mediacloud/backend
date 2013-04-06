@@ -18,25 +18,25 @@ use MediaWords::DB;
 sub main
 {
     my ( $media_id ) = @ARGV;
-    
+
     die( "usage: $0 < media_id >" ) unless ( $media_id );
-    
+
     my $db = MediaWords::DB::connect_to_db;
-    
+
     my $medium = $db->find_by_id( 'media', $media_id ) || die( "invalid media_id '$media_id'" );
     $medium->{ feeds } = $db->query( "select * from feeds where media_id = ?", $media_id )->hashes;
-    
+
     print "Are you sure you want to delete this medium?\n";
-    
+
     print Dumper( $medium );
-    
+
     print "y/n: ";
-    
+
     my $answer = <STDIN>;
     chomp( $answer );
-    
+
     return unless ( $answer eq 'y' );
-    
+
     print STDERR "deleting downloads ...\n";
     $db->query( <<END, $media_id );
 delete from downloads d using feeds f
