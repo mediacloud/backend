@@ -374,7 +374,7 @@ sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
 
-    my $download_texts = $db->query( 
+    my $download_texts = $db->query(
         "select dt.* from downloads d, download_texts dt " .
           "  where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id",
         $story->{ stories_id }
@@ -576,10 +576,8 @@ sub is_new
         $db_story = $dbs->query(
             "select * from stories where title = ? and media_id = ? " .
               "and publish_date between ?::date and ?::date for update",
-            $title,
-            $story->{ media_id },
-            $start_date,
-            $end_date
+            $title, $story->{ media_id },
+            $start_date, $end_date
         )->hash;
     }
 
@@ -630,7 +628,7 @@ sub download_is_broken
 sub get_broken_download_content
 {
     my ( $db, $downloads ) = @_;
-    
+
     my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $downloads } ];
 
     my $responses = MediaWords::Util::Web::ParallelGet( $urls );
@@ -641,7 +639,7 @@ sub get_broken_download_content
     for my $response ( @{ $responses } )
     {
         my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
-        
+
         $download_lookup->{ $original_url }->{ content } = $response->decoded_content;
     }
 }
@@ -653,7 +651,8 @@ sub fix_story_downloads_if_needed
 
     if ( $story->{ url } =~ /livejournal.com/ )
     {
-        # hack to fix livejournal extra pages, which are misparsing errors from Pager.pm 
+
+        # hack to fix livejournal extra pages, which are misparsing errors from Pager.pm
         $db->query( <<END, $story->{ stories_id } );
 delete from downloads where stories_id = ? and sequence > 1
 END
@@ -662,7 +661,7 @@ END
     my $downloads = $db->query( <<END, $story->{ stories_id } )->hashes;
 select * from downloads where stories_id = ? order by downloads_id
 END
-    
+
     my $broken_downloads = [ grep { download_is_broken( $db, $_ ) } @{ $downloads } ];
 
     my $fetch_downloads = [];
@@ -679,11 +678,11 @@ END
     }
 
     get_broken_download_content( $db, $fetch_downloads );
-    
+
     for my $download ( @{ $broken_downloads } )
     {
         restore_download_content( $db, $download, $download->{ content } );
-    }    
+    }
 }
 
 1;

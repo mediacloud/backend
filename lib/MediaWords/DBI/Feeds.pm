@@ -5,12 +5,12 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
-# delete a feed, making sure to delete any stories belonging to that feed that are 
+# delete a feed, making sure to delete any stories belonging to that feed that are
 # not associate with another feed
 sub delete_feed_and_stories
 {
     my ( $db, $feeds_id ) = @_;
-    
+
     $db->query( <<END, $feeds_id );
 delete from stories s using feeds_stories_map fsm
     where s.stories_id = fsm.stories_id and fsm.feeds_id = ?
