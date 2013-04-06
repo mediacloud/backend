@@ -107,10 +107,10 @@ sub _queue_download
 
     $_downloads->{ $media_id }->{ queued } ||= $self->_get_media_download_queue( $media_id );
     $_downloads->{ $media_id }->{ time }   ||= 0;
-    $_downloads->{ $media_id }->{ map } ||= {};
+    $_downloads->{ $media_id }->{ map }    ||= {};
 
     my $map = $_downloads->{ $media_id }->{ map };
-    
+
     return if ( $map->{ $download->{ downloads_id } } );
 
     $map->{ $download->{ downloads_id } } = 1;
@@ -137,11 +137,11 @@ sub _pop_download
     my ( $self, $media_id ) = @_;
     $_downloads->{ $media_id }->{ time } = time;
 
-    $_downloads->{ $media_id }->{ queued } ||= [];    
+    $_downloads->{ $media_id }->{ queued } ||= [];
 
     my $download_serialized = shift( @{ $_downloads->{ $media_id }->{ queued } } );
     my $download            = $download_serialized;
-        
+
     if ( $download )
     {
         $_downloads->{ $media_id }->{ map }->{ $download->{ downloads_id } } = 0;

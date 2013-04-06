@@ -156,7 +156,7 @@ END
 
         $self->{ downloads }->_queue_download( $download );
     }
-    
+
     print STDERR "end _add_stale_feeds\n";
 
 }
@@ -256,15 +256,15 @@ select d.*, f.media_id _media_id, coalesce( site_from_host( d.host ), 'non-media
     from downloads d left join feeds f on ( f.feeds_id = d.feeds_id )
     where state = 'pending'
 END
-    
+
     my $downloads = $db->query( <<END, MAX_QUEUED_DOWNLOADS )->hashes;
 $downloads_query order by downloads_id asc limit ?
 END
 
-#     my $random_downloads = $db->query( <<END, int( MAX_QUEUED_DOWNLOADS / 2 ) )->hashes;
-# $downloads_query order by RANDOM() asc limit ?
-# END
-    # 
+    #     my $random_downloads = $db->query( <<END, int( MAX_QUEUED_DOWNLOADS / 2 ) )->hashes;
+    # $downloads_query order by RANDOM() asc limit ?
+    # END
+    #
     # my $downloads_map = {};
     # map { $downloads_map->{ $_->{ downloads_id } } = 1 } @{ $downloads };
     # map { push( @{ $downloads }, $_ ) unless ( $downloads_map->{ $_->{ downloads_id } } ) } @{ $random_downloads };
@@ -273,7 +273,7 @@ END
 
     my $site_downloads = {};
     map { push( @{ $site_downloads->{ $_->{ site } } }, $_ ) } @{ $downloads };
-    
+
     return unless ( @{ $sites } );
 
     my $site_download_queue_limit = int( MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
@@ -331,6 +331,7 @@ sub provide_downloads
   MEDIA_ID:
     for my $media_id ( @{ $self->{ downloads }->_get_download_media_ids } )
     {
+
         # we just slept for 1 so only bother calling time() if throttle is greater than 1
         if ( ( $self->engine->throttle > 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
         {

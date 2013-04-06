@@ -135,7 +135,6 @@ sub _add_story_using_parent_download
     #say STDERR "starting _add_story_using_parent_download ";
     #say STDERR Dumper( $story );
 
-
     $dbs->begin;
     $dbs->query( "lock table stories in row exclusive mode" );
     if ( !MediaWords::DBI::Stories::is_new( $dbs, $story ) )
@@ -157,7 +156,7 @@ sub _add_story_using_parent_download
         if ( $_ =~ /unique constraint "stories_guid"/ )
         {
             warn "failed to add story for '." . $story->{ url } . "' to guid conflict ( guid =  '" . $story->{ guid } . "')";
-            
+
             return;
         }
         else
@@ -177,9 +176,9 @@ sub _add_story_using_parent_download
             feeds_id   => $parent_download->{ feeds_id }
         }
     );
-    
+
     $dbs->commit;
-    
+
     return $story;
 }
 
@@ -223,11 +222,11 @@ sub _add_story_and_content_download
 sub _stories_checksum_matches_feed
 {
     my ( $db, $download, $stories ) = @_;
-    
+
     my $story_url_concat = join( '|', map { $_->{ url } } @{ $stories } );
-    
+
     my $checksum = Digest::MD5::md5_hex( $story_url_concat );
-    
+
     my ( $matches ) = $db->query( <<END, $download->{ feeds_id }, $checksum )->flat;
 select 1 from feeds where feeds_id = ? and last_checksum = ?
 END
@@ -235,7 +234,7 @@ END
     return 1 if ( $matches );
 
     $db->query( "update feeds set last_checksum = ? where feeds_id = ?", $checksum, $download->{ feeds_id } );
-    
+
     return 0;
 }
 
@@ -244,7 +243,7 @@ sub add_feed_stories_and_downloads
     my ( $dbs, $download, $decoded_content ) = @_;
 
     my $stories = _get_stories_from_feed_contents( $dbs, $download, $decoded_content );
-    
+
     return 0 if ( _stories_checksum_matches_feed( $dbs, $download, $stories ) );
 
     my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];

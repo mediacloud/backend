@@ -1,6 +1,6 @@
 package MediaWords::CM::GuessDate;
 
-# guess the date of a spidered story using a combination of the story url, html, and 
+# guess the date of a spidered story using a combination of the story url, html, and
 # a first guess date
 
 use strict;
@@ -23,56 +23,57 @@ my $_date_guess_threshhold = 14;
 # only use the date from these guessing functions if the date is within $_date_guess_threshhold days
 # of the existing date for the story
 my $_date_guess_functions = [
-    { 
-        name => 'guess_by_dc_date_issued',
-        function => \&guess_by_dc_date_issued, 
-        test => '<meta name="DC.date.issued" content="2012-01-17T12:00:00-05:00" />' 
+    {
+        name     => 'guess_by_dc_date_issued',
+        function => \&guess_by_dc_date_issued,
+        test     => '<meta name="DC.date.issued" content="2012-01-17T12:00:00-05:00" />'
     },
     {
-        name => 'guess_by_dc_created',
+        name     => 'guess_by_dc_created',
         function => \&guess_by_dc_created,
-        test => '<li property="dc:date dc:created" content="2012-01-17T12:00:00-05:00" datatype="xsd:dateTime" class="created">January 17, 2012</li>'
+        test =>
+'<li property="dc:date dc:created" content="2012-01-17T12:00:00-05:00" datatype="xsd:dateTime" class="created">January 17, 2012</li>'
     },
     {
-        name => 'guess_by_meta_publish_date',
+        name     => 'guess_by_meta_publish_date',
         function => \&guess_by_meta_publish_date,
         test     => '<meta name="item-publish-date" content="Tue, 17 Jan 2012 12:00:00 EST" />'
     },
-    { 
-        name => 'guess_by_storydate',
-        function => \&guess_by_storydate, 
-        test => '<p class="storydate">Tue, Jan 17th 2012</p>' 
+    {
+        name     => 'guess_by_storydate',
+        function => \&guess_by_storydate,
+        test     => '<p class="storydate">Tue, Jan 17th 2012</p>'
     },
     {
-        name => 'guess_by_datatime',
+        name     => 'guess_by_datatime',
         function => \&guess_by_datatime,
         test     => '<span class="date" data-time="1326819600">Jan 17, 2012 12:00 pm EST</span>'
     },
     {
-        name => 'guess_by_datetime_pubdate',
+        name     => 'guess_by_datetime_pubdate',
         function => \&guess_by_datetime_pubdate,
         test     => '<time datetime="2012-01-17" pubdate>Jan 17, 2012 12:00 pm EST</time>'
     },
-    { 
-        name => 'guess_by_url_and_date_text',
-        function => \&guess_by_url_and_date_text 
-    },
-    { 
-        name => 'guess_by_url',
-        function => \&guess_by_url 
-    },
-    { 
-        name => 'guess_by_class_date',
-        function => \&guess_by_class_date, 
-        test => '<p class="date">Jan 17, 2012</p>' 
+    {
+        name     => 'guess_by_url_and_date_text',
+        function => \&guess_by_url_and_date_text
     },
     {
-        name => 'guess_by_date_text',
+        name     => 'guess_by_url',
+        function => \&guess_by_url
+    },
+    {
+        name     => 'guess_by_class_date',
+        function => \&guess_by_class_date,
+        test     => '<p class="date">Jan 17, 2012</p>'
+    },
+    {
+        name     => 'guess_by_date_text',
         function => \&guess_by_date_text,
         test     => '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST'
     },
     {
-        name => 'guess_by_existing_story_date',
+        name     => 'guess_by_existing_story_date',
         function => \&guess_by_existing_story_date,
     },
 ];
@@ -249,7 +250,6 @@ sub guess_by_existing_story_date
     return $story->{ publish_date };
 }
 
-
 # if the date is exactly midnight, round it to noon because noon is a better guess of the publication time
 sub round_midnight_to_noon
 {
@@ -278,7 +278,7 @@ sub make_epoch_date
     return $date if ( $date =~ /^\d+$/ );
 
     my $epoch = Date::Parse::str2time( $date, 'EST' );
-    
+
     return undef unless ( $epoch );
 
     $epoch = round_midnight_to_noon( $epoch );

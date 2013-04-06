@@ -207,7 +207,8 @@ END
 
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
-    my $next_page_url = MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $response->decoded_content );
+    my $next_page_url =
+      MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $response->decoded_content );
 
     if ( $next_page_url )
     {
@@ -231,9 +232,9 @@ END
                 extracted     => 'f'
             }
         );
-        
+
     }
-    
+
     if ( !defined( $medium->{ use_pager } ) )
     {
         if ( $next_page_url )
@@ -242,7 +243,8 @@ END
         }
         elsif ( $medium->{ unpaged_stories } < 100 )
         {
-            $dbs->query( "update media set unpaged_stories = unpaged_stories + 1 where media_id = ?", $medium->{ media_id } );
+            $dbs->query( "update media set unpaged_stories = unpaged_stories + 1 where media_id = ?",
+                $medium->{ media_id } );
         }
         else
         {

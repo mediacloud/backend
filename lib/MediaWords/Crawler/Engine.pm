@@ -326,7 +326,7 @@ sub crawl
         }
 
     }
-    
+
     $self->dbs;
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );

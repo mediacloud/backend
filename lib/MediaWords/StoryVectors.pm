@@ -46,7 +46,7 @@ sub _insert_story_sentence_words
 {
     my ( $db, $story, $word_counts ) = @_;
 
-    eval { 
+    eval {
         $db->dbh->do( <<END );
 copy story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) from STDIN
 END
@@ -72,10 +72,10 @@ END
                     die $@;
                 }
             }
-        };
+        }
 
         $db->dbh->pg_putcopyend();
-        
+
         if ( $@ )
         {
             print STDERR "Error inserting into story_sentence_words\n";
