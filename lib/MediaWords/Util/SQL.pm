@@ -6,6 +6,7 @@ use MediaWords::CommonLibs;
 
 use strict;
 
+use DateTime;
 use Time::Local;
 
 # given a ref to a list of ids, return a list suitable
@@ -21,6 +22,13 @@ sub get_ids_in_list
     }
 
     return join( ',', @{ $list } );
+}
+
+sub get_sql_date_from_epoch
+{
+    my ( $epoch ) = @_;
+    
+    return DateTime->from_epoch( epoch => $epoch )->datetime
 }
 
 # given a date in the sql format 'YYYY-MM-DD', return the epoch time
