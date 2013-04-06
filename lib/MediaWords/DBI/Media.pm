@@ -17,14 +17,14 @@ use Data::Dumper;
 sub _get_domains_from_story_urls
 {
     my ( $stories ) = @_;
-    
+
     my $domains = [];
-    
+
     for my $story ( @{ $stories } )
     {
         my $url = $story->{ url };
-        
-        next unless ( $url  =~ m~https?://([^/]*)~ );
+
+        next unless ( $url =~ m~https?://([^/]*)~ );
 
         my $host = $1;
 
@@ -41,10 +41,10 @@ sub _get_domains_from_story_urls
         {
             $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
         }
-    
+
         push( @{ $domains }, lc( $domain ) );
     }
-    
+
     return $domains;
 }
 
@@ -60,13 +60,12 @@ select url from stories where media_id = $media_id order by date_trunc( 'day', p
 END
 
     my $domains = _get_domains_from_story_urls( $stories );
-    
+
     my $domain_map = {};
     map { $domain_map->{ $_ }++ } @{ $domains };
-    
+
     return $domain_map;
 }
-
 
 # for each url in $urls, either find the medium associated with that
 # url or the medium assocaited with the title from the given url or,

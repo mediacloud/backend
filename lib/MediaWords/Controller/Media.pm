@@ -537,7 +537,7 @@ sub keep_single_feed : Local
 select * from feeds where media_id = ? and feeds_id <> ?
 END
     map { MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $_->{ feeds_id } ) } @{ $feeds };
-    
+
     my $status_msg = 'Media source feeds deleted.';
 
     if ( $c->req->param( 'approve' ) )
