@@ -31,7 +31,7 @@ use constant NUM_PARALLEL => 10;
 use constant TIMEOUT => 90;
 
 # number of seconds to wait before sending a new request to a given domain
-use constant PER_DOMAIN_TIMEOUT => 3;
+use constant PER_DOMAIN_TIMEOUT => 1;
 
 sub get_request_domain
 {
@@ -44,17 +44,21 @@ sub get_request_domain
     my $name_parts = [ split( /\./, $host ) ];
 
     my $n = @{ $name_parts } - 1;
-
+    
     my $domain;
     if ( $host =~ /\.co.uk$/ )
     {
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
     }
+    elsif ( $host =~ /blogspot.com|livejournal.com|wordpress.com/ )
+    {
+        $domain = $request->{ url };
+    }
     else
     {
         $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
     }
-
+    
     return lc( $domain );
 }
 

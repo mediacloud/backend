@@ -53,26 +53,12 @@ END AS plperlu_created;
 DROP FUNCTION create_language_plperlu();
 
 
-
-CREATE SEQUENCE database_variables_datebase_variables_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
 -- Database properties (variables) table
 create table database_variables (
-    database_variables_id        integer DEFAULT nextval('database_variables_datebase_variables_id_seq'::regclass) not null,
+    database_variables_id        serial          primary key,
     name                varchar(512)    not null unique,        
     value               varchar(1024)   not null
 );
-CREATE UNIQUE INDEX database_variables_name_key_index ON database_variables USING btree (name);
-ALTER SEQUENCE database_variables_datebase_variables_id_seq
-    OWNED BY database_variables.database_variables_id;
-ALTER TABLE ONLY database_variables
-    ADD CONSTRAINT database_variables_pkey PRIMARY KEY (database_variables_id);
-
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
@@ -231,21 +217,16 @@ create table media (
     sw_data_start_date  date            default(null),
     sw_data_end_date    date            default(null),
     foreign_rss_links   boolean         not null default( false ),
-    dup_media_id        integer         REFERENCES media(media_id) ON DELETE SET NULL,
-    is_not_dup          boolean,
-    CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
-    CONSTRAINT media_self_dup CHECK (((dup_media_id IS NULL) OR (dup_media_id <> media_id)))
+    dup_media_id        int             null references media on delete set null,
+    is_not_dup          boolean         null,
+    use_pager           boolean         null,
+    unpaged_stories     int             not null default 0,
+    CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) )
 );
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
-
-CREATE VIEW media_no_dups AS
-    SELECT *
-    FROM media
-    WHERE dup_media_id IS NULL;
-
 
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
 
@@ -255,7 +236,8 @@ create table feeds (
     name                varchar(512)    not null,        
     url                 varchar(1024)   not null,
     reparse             boolean         null,
-    feed_type           feed_feed_type  not null default 'syndicated',
+    feed_type           feed_feed_type  not null default 'syndicated',    
+    last_checksum       text            null,
 
     -- Add column to allow more active feeds to be downloaded more frequently.
     last_download_time  timestamp with time zone,
@@ -282,9 +264,8 @@ create table tags (
     tags_id                serial            primary key,
     tag_sets_id            int                not null references tag_sets,
     tag                    varchar(512)    not null,
-        CONSTRAINT no_lead_or_trailing_whitspace CHECK
-            (tag_sets_id = 13 OR tag_sets_id = 9 OR tag_sets_id = 8 OR tag_sets_id = 6 OR tag::text = btrim(tag::text, ' 
-    '::text)),
+        CONSTRAINT no_lead_or_trailing_whitspace CHECK ((((((tag_sets_id = 13) OR (tag_sets_id = 9)) OR (tag_sets_id = 8)) OR (tag_sets_id = 6)) OR ((tag)::text = btrim((tag)::text, ' 
+    '::text)))),
         CONSTRAINT no_line_feed CHECK (((NOT ((tag)::text ~~ '%
 %'::text)) AND (NOT ((tag)::text ~~ '%
 %'::text)))),
@@ -345,22 +326,24 @@ create table queries (
 
 
 create index queries_creation_date on queries (creation_date);
+create unique index queries_signature_version on queries ( md5_signature, query_version );
+create unique index queries_signature on queries (md5_signature);
 
 create table media_cluster_runs (
-    media_cluster_runs_id   serial          primary key,
-    queries_id              int             not null references queries,
-    num_clusters            int                not null,
-    state                   varchar(32)     not null default 'pending',
+	media_cluster_runs_id   serial          primary key,
+	queries_id              int             not null references queries,
+	num_clusters			int			    not null,
+	state                   varchar(32)     not null default 'pending',
     clustering_engine       varchar(256)    not null
 );
 
-alter table media_cluster_runs add constraint media_cluster_runs_state CHECK (((state)::text = ANY (ARRAY[('pending'::character varying)::text, ('executing'::character varying)::text, ('completed'::character varying)::text])));
+alter table media_cluster_runs add constraint media_cluster_runs_state check (state in ('pending', 'executing', 'completed'));
 
 create table media_clusters (
-    media_clusters_id        serial    primary key,
-    media_cluster_runs_id    int        not null references media_cluster_runs on delete cascade,
-    description             text    null,
-    centroid_media_id       int     null references media on delete cascade
+	media_clusters_id		serial	primary key,
+	media_cluster_runs_id	int	    not null references media_cluster_runs on delete cascade,
+	description             text    null,
+	centroid_media_id       int     null references media on delete cascade
 );
 CREATE INDEX media_clusters_runs_id on media_clusters(media_cluster_runs_id);
    
@@ -406,7 +389,7 @@ create table media_cluster_maps (
     media_cluster_runs_id       int             not null references media_cluster_runs on delete cascade
 );
     
-alter table media_cluster_maps add constraint media_cluster_maps_type CHECK (((map_type)::text = ANY (ARRAY[('cluster'::character varying)::text, ('polar'::character varying)::text])));
+alter table media_cluster_maps add constraint media_cluster_maps_type check( map_type in ('cluster', 'polar' ));
 
 create index media_cluster_maps_run on media_cluster_maps( media_cluster_runs_id );
 
@@ -420,41 +403,22 @@ create table media_cluster_map_poles (
 
 create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
 
-CREATE SEQUENCE media_cluster_map_pole_simila_media_cluster_map_pole_simila_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-CREATE TABLE media_cluster_map_pole_similarities (
-    media_cluster_map_pole_similarities_id integer primary key DEFAULT nextval('media_cluster_map_pole_simila_media_cluster_map_pole_simila_seq'::regclass) NOT NULL,
-    media_id integer NOT NULL REFERENCES media(media_id),
-    queries_id integer NOT NULL REFERENCES queries(queries_id),
-    similarity integer NOT NULL,
-    media_cluster_maps_id integer NOT NULL REFERENCES media_cluster_maps(media_cluster_maps_id)
-);
-CREATE INDEX media_cluster_map_pole_similarities_map ON media_cluster_map_pole_similarities USING btree (media_cluster_maps_id);
-ALTER SEQUENCE media_cluster_map_pole_simila_media_cluster_map_pole_simila_seq
-    OWNED BY media_cluster_map_pole_similarities.media_cluster_map_pole_similarities_id;
-
-
 create table media_clusters_media_map (
     media_clusters_media_map_id     serial primary key,
-    media_clusters_id               int   not null references media_clusters on delete cascade,
-    media_id                        int   not null references media on delete cascade
+	media_clusters_id               int   not null references media_clusters on delete cascade,
+	media_id		                int   not null references media on delete cascade
 );
 
 create index media_clusters_media_map_cluster on media_clusters_media_map (media_clusters_id);
 create index media_clusters_media_map_media on media_clusters_media_map (media_id);
 
 create table media_cluster_words (
-    media_cluster_words_id    serial    primary key,
-    media_clusters_id       int        not null references media_clusters on delete cascade,
+	media_cluster_words_id	serial	primary key,
+	media_clusters_id       int	    not null references media_clusters on delete cascade,
     internal                boolean not null,
-    weight                    float    not null,
-    stem                    text    not null,
-    term                    text    not null
+	weight			        float	not null,
+	stem			        text	not null,
+	term                    text    not null
 );
 
 create index media_cluster_words_cluster on media_cluster_words (media_clusters_id);
@@ -463,7 +427,7 @@ create index media_cluster_words_cluster on media_cluster_words (media_clusters_
 -- -> Used in Protovis' force visualization. 
 create table media_cluster_links (
   media_cluster_links_id    serial  primary key,
-  media_cluster_runs_id        int        not null     references media_cluster_runs on delete cascade,
+  media_cluster_runs_id	    int	    not null     references media_cluster_runs on delete cascade,
   source_media_id           int     not null     references media              on delete cascade,
   target_media_id           int     not null     references media              on delete cascade,
   weight                    float   not null
@@ -475,8 +439,8 @@ create table media_cluster_links (
 -- clusters will be stored in media_clusters, if at all)
 create table media_cluster_zscores (
   media_cluster_zscores_id  serial primary key,
-    media_cluster_runs_id        int      not null     references media_cluster_runs on delete cascade,
-    media_clusters_id         int    not null     references media_clusters     on delete cascade,
+	media_cluster_runs_id	    int 	 not null     references media_cluster_runs on delete cascade,
+	media_clusters_id         int    not null     references media_clusters     on delete cascade,
   media_id                  int    not null     references media              on delete cascade,
   internal_zscore           float  not null, 
   internal_similarity       float  not null,
@@ -638,12 +602,12 @@ create table stories (
     description                 text            null,
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
-    full_text_rss               boolean         not null default 'f',
-    story_texts_id              integer
+    full_text_rss               boolean         not null default 'f'
 );
 
 -- create index stories_media on stories (media_id, guid);
 create index stories_media_id on stories (media_id);
+create unique index stories_guid on stories(guid, media_id);
 create index stories_url on stories (url);
 create index stories_publish_date on stories (publish_date);
 create index stories_collect_date on stories (collect_date);
@@ -675,7 +639,6 @@ create table downloads (
     file_status         download_file_status not null default 'tbd',
     relative_file_path  text            not null default 'tbd'
 );
-ALTER TABLE ONLY downloads ALTER COLUMN "host" SET STATISTICS 10000;
 
 UPDATE downloads set old_download_time = download_time, old_state = state;
 
@@ -735,6 +698,7 @@ LANGUAGE 'plpgsql' IMMUTABLE;
 
 CREATE UNIQUE INDEX downloads_for_extractor_trainer on downloads ( downloads_id, feeds_id) where file_status <> 'missing' and type = 'content' and state = 'success';
 
+CREATE INDEX downloads_sites_index on downloads ( site_from_host(host) );
 CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
 
 CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
@@ -758,14 +722,9 @@ create index feeds_stories_map_story on feeds_stories_map (stories_id);
 create table stories_tags_map
 (
     stories_tags_map_id     serial  primary key,
-    stories_id              int     not null,
-    tags_id                 int     not null
+    stories_id              int     not null references stories on delete cascade,
+    tags_id                 int     not null references tags on delete cascade
 );
-ALTER TABLE ONLY stories_tags_map ADD CONSTRAINT stories_tags_map_tag FOREIGN KEY (tags_id) REFERENCES tags(tags_id) ON DELETE CASCADE;
-ALTER TABLE ONLY stories_tags_map ADD CONSTRAINT stories_tags_map_story FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
-ALTER TABLE ONLY stories_tags_map ADD CONSTRAINT stories_tags_map_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
-ALTER TABLE ONLY stories_tags_map ADD CONSTRAINT stories_tags_map_tags_id_fkey FOREIGN KEY (tags_id) REFERENCES tags(tags_id) ON DELETE CASCADE;
-
 
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);
 create index stories_tags_map_tag on stories_tags_map (tags_id);
@@ -785,11 +744,11 @@ create unique index extractor_training_lines_line on extractor_training_lines(li
 create index extractor_training_lines_download on extractor_training_lines(downloads_id);
     
 CREATE TABLE top_ten_tags_for_media (
-    media_id integer NOT NULL REFERENCES media(media_id) ON DELETE CASCADE,
-    tags_id integer NOT NULL REFERENCES tags(tags_id),
+    media_id integer NOT NULL,
+    tags_id integer NOT NULL,
     media_tag_count integer NOT NULL,
     tag_name character varying(512) NOT NULL,
-    tag_sets_id integer NOT NULL REFERENCES tag_sets(tag_sets_id)
+    tag_sets_id integer NOT NULL
 );
 
 
@@ -842,7 +801,7 @@ INSERT  into url_discovery_counts VALUES ('not_yet_processed');
     
 create table word_cloud_topics (
         word_cloud_topics_id    serial      primary key,
-        source_tags_id          int         not null,
+        source_tags_id          int         not null references tags,
         set_tag_names           text        not null,
         creator                 text        not null,
         query                   text        not null,
@@ -855,8 +814,6 @@ create table word_cloud_topics (
 
 alter table word_cloud_topics add constraint word_cloud_topics_type check (type in ('words', 'phrases'));
 alter table word_cloud_topics add constraint word_cloud_topics_state check (state in ('pending', 'generating', 'completed'));
-ALTER TABLE ONLY word_cloud_topics ADD CONSTRAINT word_cloud_topics_source_tag_fk FOREIGN KEY (source_tags_id) REFERENCES tags(tags_id);
-ALTER TABLE ONLY word_cloud_topics ADD CONSTRAINT word_cloud_topics_source_tags_id_fkey FOREIGN KEY (source_tags_id) REFERENCES tags(tags_id);
 
 -- VIEWS
 
@@ -921,8 +878,6 @@ create table story_sentence_counts (
        first_sentence_number        int             not null
 );
 
-ALTER TABLE story_sentence_counts CLUSTER ON story_sentence_counts_pkey;
-
 --# We have chossen not to make the 'story_sentence_counts_md5' index unique purely for performance reasons.
 --# Duplicate rows within this index are not desirable but are relatively rare in practice.
 --# Thus we have decided to avoid the performance and code complexity implications of a unique index
@@ -943,6 +898,8 @@ create table story_sentence_words (
 
 create index story_sentence_words_story on story_sentence_words (stories_id, sentence_number);
 create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
+create index story_sentence_words_day on story_sentence_words(publish_day);
+create index story_sentence_words_media_day on story_sentence_words (media_id, publish_day);
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
@@ -960,6 +917,7 @@ create index daily_words_media on daily_words(publish_day, media_sets_id, dashbo
 create index daily_words_count on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem_count);
 create index daily_words_publish_week on daily_words(week_start_date(publish_day));
 
+create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
 CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
@@ -974,6 +932,7 @@ create table weekly_words (
 
 create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
+CREATE INDEX weekly_words_publish_week on weekly_words(publish_week);
 ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
 create table top_500_weekly_words (
@@ -989,25 +948,16 @@ create table top_500_weekly_words (
 create UNIQUE index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) where dashboard_topics_id is null;
 ALTER TABLE  top_500_weekly_words ADD CONSTRAINT top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
-
-CREATE SEQUENCE total_top_500_weekly_words_total_top_500_words_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
   
 create table total_top_500_weekly_words (
-       total_top_500_weekly_words_id       int          primary key DEFAULT nextval('total_top_500_weekly_words_total_top_500_words_id_seq'::regclass),
-       media_sets_id                int             not null references media_sets(media_sets_id) on delete cascade, 
-       dashboard_topics_id          int             null references dashboard_topics(dashboard_topics_id) on delete cascade,
+       total_top_500_weekly_words_id       serial          primary key,
+       media_sets_id                int             not null references media_sets on delete cascade, 
+       dashboard_topics_id          int             null references dashboard_topics,
        publish_week                 date            not null,
        total_count                  int             not null
        
 );
 ALTER TABLE total_top_500_weekly_words ADD CONSTRAINT total_top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
-ALTER SEQUENCE total_top_500_weekly_words_total_top_500_words_id_seq
-    OWNED BY total_top_500_weekly_words.total_top_500_weekly_words_id;
 
 create unique index total_top_500_weekly_words_media 
     on total_top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id);
@@ -1024,8 +974,6 @@ create table total_daily_words (
        publish_day                  date            not null,
        total_count                  int             not null
 );
-
-ALTER TABLE total_daily_words CLUSTER ON total_daily_words_pkey;
 
 create index total_daily_words_media_sets_id on total_daily_words (media_sets_id);
 create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
@@ -1050,6 +998,8 @@ INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week,
 create view daily_words_with_totals as select d.*, t.total_count from daily_words d, total_daily_words t where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and ( ( d.dashboard_topics_id = t.dashboard_topics_id ) or ( d.dashboard_topics_id is null and t.dashboard_topics_id is null ) );
 
              
+create schema stories_tags_map_media_sub_tables;
+
 create table ssw_queue (
        stories_id                   int             not null,
        publish_date                 timestamp       not null,
@@ -1160,26 +1110,15 @@ create index top_500_weekly_author_words_authors on top_500_weekly_author_words(
 
 create UNIQUE index top_500_weekly_author_words_authors_stem on top_500_weekly_author_words(authors_id, publish_week, media_sets_id, stem);
 
-
-CREATE SEQUENCE total_top_500_weekly_author_words_total_top_500_words_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
     
 create table total_top_500_weekly_author_words (
-       total_top_500_weekly_author_words_id       integer          primary key DEFAULT nextval('total_top_500_weekly_author_words_total_top_500_words_id_seq'::regclass),
+       total_top_500_weekly_author_words_id       serial          primary key,
        media_sets_id                int             not null references media_sets on delete cascade,
        authors_id                   int             not null references authors on delete cascade,
        publish_week                 date            not null,
        total_count                  int             not null
        
 );
-
-ALTER SEQUENCE total_top_500_weekly_author_words_total_top_500_words_id_seq
-    OWNED BY total_top_500_weekly_author_words.total_top_500_weekly_author_words_id;
-
 
 create UNIQUE index total_top_500_weekly_author_words_media 
     on total_top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
@@ -1213,21 +1152,14 @@ create table query_story_searches (
 create unique index query_story_searches_query_pattern on query_story_searches( queries_id, pattern );
   
 create table query_story_searches_stories_map (
-    query_story_searches_id     int REFERENCES query_story_searches(query_story_searches_id) ON DELETE CASCADE,
-    stories_id                  int REFERENCES stories(stories_id) ON DELETE CASCADE
+    query_story_searches_id     int references query_story_searches on delete cascade,
+    stories_id                  int references stories on delete cascade
 );
 
 create unique index query_story_searches_stories_map_u on query_story_searches_stories_map ( query_story_searches_id, stories_id );
-
-CREATE SEQUENCE story_similarities_story_similarities_id_seq1
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
+    
 create table story_similarities (
-    story_similarities_id   integer primary key DEFAULT nextval('story_similarities_story_similarities_id_seq1'::regclass),
+    story_similarities_id   serial primary key,
     stories_id_a            int,
     publish_day_a           date,
     stories_id_b            int,
@@ -1235,66 +1167,13 @@ create table story_similarities (
     similarity              int
 );
 
-ALTER SEQUENCE story_similarities_story_similarities_id_seq1
-    OWNED BY story_similarities.story_similarities_id;
-
-CREATE SEQUENCE story_similarities_story_similarities_id_seq2
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-CREATE TABLE story_similarities_1000_tiny_idf (
-    story_similarities_id integer primary key DEFAULT nextval('story_similarities_story_similarities_id_seq2'::regclass) NOT NULL,
-    stories_id_a integer,
-    publish_day_a date,
-    stories_id_b integer,
-    publish_day_b date,
-    similarity integer,
-    "method" character varying(1024)
-);
-
-ALTER SEQUENCE story_similarities_story_similarities_id_seq2
-    OWNED BY story_similarities_1000_tiny_idf.story_similarities_id;
-
-CREATE SEQUENCE story_similarities_100_short_story_similarities_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-CREATE TABLE story_similarities_100_short (
-    story_similarities_id integer PRIMARY KEY DEFAULT nextval('story_similarities_100_short_story_similarities_id_seq'::regclass) NOT NULL,
-    stories_id_a integer,
-    publish_day_a date,
-    stories_id_b integer,
-    publish_day_b date,
-    similarity integer
-);
-ALTER SEQUENCE story_similarities_100_short_story_similarities_id_seq
-    OWNED BY story_similarities_100_short.story_similarities_id;
-
-
-CREATE INDEX story_similarities_a_b ON story_similarities_1000_tiny_idf USING btree (stories_id_a, stories_id_b);
-CREATE INDEX story_similarities_a_s ON story_similarities_1000_tiny_idf USING btree (stories_id_a, similarity, publish_day_b);
-CREATE INDEX story_similarities_b_s ON story_similarities_1000_tiny_idf USING btree (stories_id_b, similarity, publish_day_a);
+create index story_similarities_a_b on story_similarities ( stories_id_a, stories_id_b );
+create index story_similarities_a_s on story_similarities ( stories_id_a, similarity, publish_day_b );
+create index story_similarities_b_s on story_similarities ( stories_id_b, similarity, publish_day_a );
 create index story_similarities_day on story_similarities ( publish_day_a, publish_day_b ); 
-CREATE INDEX story_similarities_1000_tiny_a_b ON story_similarities USING btree (stories_id_a, stories_id_b);
-CREATE INDEX story_similarities_1000_tiny_a_s ON story_similarities USING btree (stories_id_a, similarity, publish_day_b);
-CREATE INDEX story_similarities_1000_tiny_b_s ON story_similarities USING btree (stories_id_b, similarity, publish_day_a);
-CREATE INDEX story_similarities_100_short_a_s ON story_similarities_100_short USING btree (stories_id_a, similarity, publish_day_b);
-CREATE INDEX story_similarities_100_short_b_s ON story_similarities_100_short USING btree (stories_id_b, similarity, publish_day_a);
-
+     
 create view story_similarities_transitive as
     ( select story_similarities_id, stories_id_a, publish_day_a, stories_id_b, publish_day_b, similarity from story_similarities ) union  ( select story_similarities_id, stories_id_b as stories_id_a, publish_day_b as publish_day_a, stories_id_a as stories_id_b, publish_day_a as publish_day_b, similarity from story_similarities );
-
-CREATE TABLE tar_downloads_queue (
-    downloads_id integer
-);
-CREATE INDEX tar_downloads_queue_download ON tar_downloads_queue USING btree (downloads_id);
-
             
 create table controversies (
     controversies_id        serial primary key,
@@ -1303,7 +1182,13 @@ create table controversies (
 );
 
 create unique index controversies_name on controversies( name );
-
+    
+create table controversy_dates (
+    controversy_dates_id    serial primary key,
+    controversies_id        int not null references controversies on delete cascade,
+    start_date              date not null,
+    end_date                date not null
+);
 
 create table controversy_media_codes (
     controversies_id        int not null references controversies on delete cascade,
@@ -1312,81 +1197,28 @@ create table controversy_media_codes (
     code                    text
 );
 
-
-CREATE SEQUENCE controversy_dates_controversy_dates_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-CREATE TABLE controversy_dates (
-    controversy_dates_id integer primary key DEFAULT nextval('controversy_dates_controversy_dates_id_seq'::regclass) NOT NULL,
-    controversies_id integer NOT NULL REFERENCES controversies(controversies_id) ON DELETE CASCADE,
-    start_date date NOT NULL,
-    end_date date NOT NULL
+create table controversy_merged_stories_map (
+    source_stories_id       int not null references stories on delete cascade,
+    target_stories_id       int not null references stories on delete cascade
 );
 
-ALTER SEQUENCE controversy_dates_controversy_dates_id_seq
-    OWNED BY controversy_dates.controversy_dates_id;
-
-
-CREATE SEQUENCE controversy_seed_urls_controversy_seed_urls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-CREATE TABLE controversy_seed_urls (
-    controversy_seed_urls_id integer primary key DEFAULT nextval('controversy_seed_urls_controversy_seed_urls_id_seq'::regclass) NOT NULL,
-    controversies_id integer NOT NULL REFERENCES controversies(controversies_id) ON DELETE CASCADE,
-    url text,
-    source text,
-    stories_id integer REFERENCES stories(stories_id) ON DELETE CASCADE,
-    processed boolean DEFAULT false NOT NULL
-);
-CREATE INDEX controversy_seed_urls_controversy ON controversy_seed_urls USING btree (controversies_id);
-ALTER SEQUENCE controversy_seed_urls_controversy_seed_urls_id_seq
-    OWNED BY controversy_seed_urls.controversy_seed_urls_id;
-
-
-
-CREATE TABLE controversy_merged_stories_map (
-    source_stories_id integer NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE,
-    target_stories_id integer NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE
-);
-CREATE INDEX controversy_merged_stories_map_source ON controversy_merged_stories_map USING btree (source_stories_id);
-
-
-CREATE TABLE controversy_query_story_searches_imported_stories_map (
-    controversies_id integer NOT NULL REFERENCES controversies(controversies_id) ON DELETE CASCADE,
-    stories_id integer NOT NULL REFERENCES stories(stories_id) ON DELETE CASCADE
-);
-CREATE INDEX cqssism_c ON controversy_query_story_searches_imported_stories_map USING btree (controversies_id);
-CREATE INDEX cqssism_s ON controversy_query_story_searches_imported_stories_map USING btree (stories_id);
-
-
-
-CREATE TABLE controversy_unmerged_media (
-    media_id integer NOT NULL REFERENCES media(media_id) ON DELETE CASCADE
-);
-CREATE INDEX controversy_unmerged_media_media ON controversy_unmerged_media USING btree (media_id);
-
-
+create index controversy_merged_stories_map_source on controversy_merged_stories_map ( source_stories_id );
 
 create table controversy_stories (
     controversy_stories_id          serial primary key,
-    controversies_id                int not null references controversies(controversies_id) on delete cascade,
-    stories_id                      int not null references stories(stories_id) on delete cascade,
+    controversies_id                int not null references controversies on delete cascade,
+    stories_id                      int not null references stories on delete cascade,
     link_mined                      boolean default 'f',
     iteration                       int default 0,
     link_weight                     real,
-    redirect_url                    text
+    redirect_url                    text    
 );
-CREATE UNIQUE INDEX controversy_stories_sc ON controversy_stories USING btree (stories_id, controversies_id);
 
+create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id ) ;
 
+-- no foreign key constraints on controversies_id and stories_id because
+--   we have the combined foreign key constraint pointing to controversy_stories
+--   below 
 create table controversy_links (
     controversy_links_id        serial primary key,
     controversies_id            int not null,
@@ -1396,16 +1228,26 @@ create table controversy_links (
     ref_stories_id              int references stories on delete cascade,
     link_spidered               boolean default 'f'
 );
-CREATE UNIQUE INDEX controversy_links_scr ON controversy_links USING btree (stories_id, controversies_id, ref_stories_id);
-ALTER TABLE ONLY controversy_links
-    ADD CONSTRAINT controversy_links_controversy_story_stories_id FOREIGN KEY (stories_id, controversies_id) REFERENCES controversy_stories(stories_id, controversies_id) ON DELETE CASCADE;
 
+alter table controversy_links add constraint controversy_links_controversy_story_stories_id 
+    foreign key ( stories_id, controversies_id ) references controversy_stories ( stories_id, controversies_id )
+    on delete cascade;
+
+create unique index controversy_links_scr on controversy_links ( stories_id, controversies_id, ref_stories_id );
+
+create table controversy_seed_urls (
+    controversy_seed_urls_id        serial primary key,
+    controversies_id                int not null references controversies on delete cascade,
+    url                             text,
+    source                          text,
+    stories_id                      int references stories on delete cascade,
+    processed                       boolean not null default false
+);
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
     stories_id                  bigint             not null references stories on delete cascade
 );
-CREATE INDEX processed_stories_story ON processed_stories USING btree (stories_id);
 
 create table story_subsets (
     story_subsets_id        bigserial          primary key,
@@ -1426,9 +1268,16 @@ CREATE TABLE story_subsets_processed_stories_map (
 
 create view controversy_links_cross_media as
   select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
+
+create table controversy_query_story_searches_imported_stories_map (
+    controversies_id            int not null references controversies on delete cascade,
+    stories_id                  int not null references stories on delete cascade
+);
+
+create index cqssism_c on controversy_query_story_searches_imported_stories_map ( controversies_id );
+create index cqssism_s on controversy_query_story_searches_imported_stories_map ( stories_id );
     
-CREATE VIEW stories_collected_in_past_day AS
-    SELECT stories.stories_id, stories.media_id, stories.url, stories.guid, stories.title, stories.description, stories.publish_date, stories.collect_date, stories.story_texts_id, stories.full_text_rss FROM stories WHERE (stories.collect_date > (now() - '1 day'::interval));
+CREATE VIEW stories_collected_in_past_day as select * from stories where collect_date > now() - interval '1 day';
 
 CREATE VIEW downloads_to_be_extracted as select * from downloads where extracted = 'f' and state = 'success' and type = 'content';
 
@@ -1638,26 +1487,26 @@ $$
       IF TG_OP = 'UPDATE' then
           -- RAISE NOTICE 'UPDATE ';
 
-      -- The second part is needed because of the way comparisons with null are handled.
-      path_change := ( OLD.path <> NEW.path )  AND (  ( OLD.path is not null) <> (NEW.path is not null) ) ;
-      -- RAISE NOTICE 'test result % ', path_change; 
-      
+	  -- The second part is needed because of the way comparisons with null are handled.
+	  path_change := ( OLD.path <> NEW.path )  AND (  ( OLD.path is not null) <> (NEW.path is not null) ) ;
+	  -- RAISE NOTICE 'test result % ', path_change; 
+	  
           IF path_change is null THEN
-           -- RAISE NOTICE 'Path change % != %', OLD.path, NEW.path;
+	       -- RAISE NOTICE 'Path change % != %', OLD.path, NEW.path;
                NEW.relative_file_path = get_relative_file_path(NEW.path);
 
                IF NEW.relative_file_path = 'inline' THEN
-          NEW.file_status = 'inline';
-           END IF;
-      ELSE
+		  NEW.file_status = 'inline';
+	       END IF;
+	  ELSE
                -- RAISE NOTICE 'NO path change % = %', OLD.path, NEW.path;
           END IF;
       ELSIF TG_OP = 'INSERT' then
-      NEW.relative_file_path = get_relative_file_path(NEW.path);
+	  NEW.relative_file_path = get_relative_file_path(NEW.path);
 
           IF NEW.relative_file_path = 'inline' THEN
-         NEW.file_status = 'inline';
-      END IF;
+	     NEW.file_status = 'inline';
+	  END IF;
       END IF;
 
       RETURN NEW;
@@ -1714,9 +1563,7 @@ CREATE INDEX tags_tag_sets_id ON tags USING btree (tag_sets_id);
 
 CREATE INDEX queries_description ON queries USING btree (description);
 
-CREATE INDEX queries_hash ON queries USING btree (md5(description));
-
-CREATE UNIQUE INDEX queries_hash_version ON queries USING btree (md5(description), query_version);
+CREATE UNIQUE INDEX queries_hash_version ON queries USING btree (md5_signature, query_version);
 
 CREATE INDEX queries_md5_signature ON queries USING btree (md5_signature);
 
@@ -1740,236 +1587,3 @@ return pg_cancel_backend(cancel_pid);
 END;
 $$;
 
-
-
---
--- Additional (temporary?) tables from Amanda, probably not useful for general purpose
---
-
-CREATE TABLE adhoc_momentum (
-    publish_day date,
-    stem character varying(1024),
-    num_sentences integer,
-    media_set_name character varying(1024),
-    media_sets_id integer
-);
-
-CREATE TABLE controversy_links_copy (
-    controversy_links_id integer,
-    controversies_id integer,
-    stories_id integer,
-    url text,
-    redirect_url text,
-    ref_stories_id integer,
-    link_spidered boolean
-);
-
-CREATE TABLE controversy_links_copy_20120920 (
-    controversy_links_id integer,
-    controversies_id integer,
-    stories_id integer,
-    url text,
-    redirect_url text,
-    ref_stories_id integer,
-    link_spidered boolean
-);
-
-CREATE TABLE controversy_media_codes_20121020 (
-    controversies_id integer,
-    media_id integer,
-    code_type text,
-    code text
-);
-
-CREATE TABLE controversy_stories_20121018 (
-    controversy_stories_id integer,
-    controversies_id integer,
-    stories_id integer,
-    link_mined boolean,
-    iteration integer,
-    link_weight real,
-    redirect_url text
-);
-
-CREATE TABLE controversy_links_20121018 (
-    controversy_links_id integer,
-    controversies_id integer,
-    stories_id integer,
-    url text,
-    redirect_url text,
-    ref_stories_id integer,
-    link_spidered boolean
-);
-
-CREATE TABLE controversy_stories_copy (
-    controversy_stories_id integer,
-    controversies_id integer,
-    stories_id integer,
-    link_mined boolean,
-    iteration integer,
-    link_weight real,
-    redirect_url text
-);
-
-CREATE TABLE controversy_stories_copy_20120920 (
-    controversy_stories_id integer,
-    controversies_id integer,
-    stories_id integer,
-    link_mined boolean,
-    iteration integer,
-    link_weight real,
-    redirect_url text
-);
-
-CREATE TABLE controversy_links_distinct (
-    controversy_links_id integer,
-    controversies_id integer,
-    stories_id integer,
-    url text,
-    redirect_url text,
-    ref_stories_id integer,
-    link_spidered boolean
-);
-
-CREATE TABLE extractor_training_lines_corrupted_download_content (
-    extractor_training_lines_id integer,
-    line_number integer,
-    required boolean,
-    downloads_id integer,
-    "time" timestamp without time zone,
-    submitter character varying(256)
-);
-
-CREATE TABLE hr_pilot_study_stories (
-    media_id integer,
-    stories_id integer,
-    title text,
-    url character varying(1024)
-);
-
-CREATE TABLE india_million (
-    stories_id integer,
-    publish_date timestamp without time zone,
-    title text,
-    url character varying(1024),
-    media_name character varying(128)
-);
-
-CREATE TABLE ma_ms_queue (
-    media_sets_id integer
-);
-
-CREATE TABLE pilot_story_sims (
-    similarity text,
-    title_1 text,
-    title_2 text,
-    url_1 text,
-    url_2 text,
-    stories_id_1 text,
-    stories_id_2 text,
-    include boolean
-);
-
-CREATE TABLE pilot_story_sims_code (
-    similarity text,
-    title_1 text,
-    title_2 text,
-    url_1 text,
-    url_2 text,
-    stories_id_1 text,
-    stories_id_2 text,
-    include boolean
-);
-
-CREATE TABLE pilot_study_stories (
-    media_id integer,
-    stories_id integer,
-    title text,
-    url text
-);
-
-CREATE TABLE questionable_downloads_rows (
-    downloads_id integer,
-    feeds_id integer,
-    stories_id integer,
-    parent integer,
-    url character varying(1024),
-    "host" character varying(1024),
-    download_time timestamp without time zone,
-    type download_type,
-    "state" download_state,
-    "path" text,
-    error_message text,
-    priority integer,
-    "sequence" integer,
-    extracted boolean,
-    old_download_time timestamp without time zone,
-    old_state download_state
-);
-
-CREATE TABLE ssw_dump (
-    stories_id integer,
-    term character varying(256),
-    stem character varying(256),
-    stem_count smallint,
-    sentence_number smallint,
-    media_id integer,
-    publish_day date
-);
-
-CREATE TABLE stories_description_not_salvaged (
-    stories_id integer,
-    media_id integer,
-    url character varying(1024),
-    guid character varying(1024),
-    title text,
-    description text,
-    publish_date timestamp without time zone,
-    collect_date timestamp without time zone,
-    story_texts_id integer,
-    full_text_rss boolean
-);
-
-CREATE TABLE total_daily_media_words (
-    media_id integer,
-    publish_day date,
-    stem_count bigint,
-    dashboard_topics_id integer
-);
-
-CREATE TABLE valid_trayvon_stories (
-    stories_id integer
-);
-
-CREATE TABLE media_rss_full_text_detection_data (
-    media_id integer,
-    max_similarity real,
-    avg_similarity double precision,
-    min_similarity real,
-    avg_extracted_length numeric,
-    avg_rss_length numeric,
-    avg_rss_discription numeric,
-    "count" bigint
-);
-CREATE INDEX media_rss_full_text_detection_data_media_1305311081 ON media_rss_full_text_detection_data USING btree (media_id);
-
-
-CREATE SEQUENCE media_alexa_stats_media_alexa_stats_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-CREATE TABLE media_alexa_stats (
-    media_alexa_stats_id integer primary key DEFAULT nextval('media_alexa_stats_media_alexa_stats_id_seq'::regclass) NOT NULL,
-    media_id integer REFERENCES media(media_id) ON DELETE CASCADE,
-    "day" date,
-    reach_per_million double precision,
-    page_views_per_million double precision,
-    page_views_per_user double precision,
-    "rank" integer
-);
-CREATE INDEX media_alexa_stats_medium ON media_alexa_stats USING btree (media_id);
-ALTER SEQUENCE media_alexa_stats_media_alexa_stats_id_seq
-    OWNED BY media_alexa_stats.media_alexa_stats_id;
