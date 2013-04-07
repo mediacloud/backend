@@ -537,8 +537,14 @@ sub is_new
 {
     my ( $dbs, $story ) = @_;
 
-    my $db_story =
-      $dbs->query( "select * from stories where guid = ? and media_id = ?", $story->{ guid }, $story->{ media_id } )->hash;
+    # try restricting to the last day first, since this will hit the much smaller stories_guid_recent index
+    my $db_story = $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
+select * from stories where guid = ? and media_id = ? and publish_date > now() - '1 day'
+END
+
+    $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
+select * from stories where guid = ? and media_id = ?
+END
 
     if ( !$db_story )
     {

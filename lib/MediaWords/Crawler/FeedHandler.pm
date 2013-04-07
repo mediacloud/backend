@@ -219,21 +219,21 @@ sub _add_story_and_content_download
 # check whether the checksum of the concatenated urls of the stories in the feed matches
 # the last such checksum for this feed.  If the checksums don't match, store the current
 # checksum in the feed
-sub _stories_checksum_matches_feed
+sub stories_checksum_matches_feed
 {
-    my ( $db, $download, $stories ) = @_;
+    my ( $db, $feeds_id, $stories ) = @_;
 
     my $story_url_concat = join( '|', map { $_->{ url } } @{ $stories } );
 
     my $checksum = Digest::MD5::md5_hex( $story_url_concat );
 
-    my ( $matches ) = $db->query( <<END, $download->{ feeds_id }, $checksum )->flat;
+    my ( $matches ) = $db->query( <<END, $feeds_id, $checksum )->flat;
 select 1 from feeds where feeds_id = ? and last_checksum = ?
 END
 
     return 1 if ( $matches );
 
-    $db->query( "update feeds set last_checksum = ? where feeds_id = ?", $checksum, $download->{ feeds_id } );
+    $db->query( "update feeds set last_checksum = ? where feeds_id = ?", $checksum, $feeds_id );
 
     return 0;
 }
@@ -244,7 +244,7 @@ sub add_feed_stories_and_downloads
 
     my $stories = _get_stories_from_feed_contents( $dbs, $download, $decoded_content );
 
-    return 0 if ( _stories_checksum_matches_feed( $dbs, $download, $stories ) );
+    return 0 if ( stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
 
     my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];
 
