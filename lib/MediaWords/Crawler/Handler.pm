@@ -177,22 +177,22 @@ sub _restrict_content_type
 sub use_pager
 {
     my ( $medium ) = @_;
-    
+
     return 1 if ( !defined( $medium->{ use_pager } ) || $medium->{ use_pager } );
-    
+
     return 0;
 }
 
 # if use_pager is already set, do nothing.  Otherwise, if next_page_url is true,
-# set use_pager to true.  Otherwise, if there are less than 100 unpaged_stories, 
-# increment unpaged_stories.  If there are at least 100 unpaged_stories, set 
+# set use_pager to true.  Otherwise, if there are less than 100 unpaged_stories,
+# increment unpaged_stories.  If there are at least 100 unpaged_stories, set
 # use_pager to false.
 sub set_use_pager
 {
     my ( $dbs, $medium, $next_page_url ) = @_;
-    
+
     return if ( defined( $medium->{ use_pager } ) );
-    
+
     if ( $next_page_url )
     {
         $dbs->query( "update media set use_pager = 't' where media_id = ?", $medium->{ media_id } );
@@ -215,7 +215,7 @@ sub set_use_pager
 sub call_pager
 {
     my ( $self, $dbs, $download ) = @_;
-    my $content = \$_[ 3 ];    
+    my $content = \$_[ 3 ];
 
     my $medium = $dbs->query( <<END )->hash;
 select * from media m where media_id in ( select media_id from feeds where feeds_id = 1 );
@@ -257,7 +257,7 @@ END
                 download_time => DateTime->now->datetime,
                 extracted     => 'f'
             }
-        );       
+        );
     }
 
     set_use_pager( $dbs, $medium, $next_page_url );

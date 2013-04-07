@@ -16,25 +16,25 @@ BEGIN
 sub test_use_pager
 {
     my ( $db ) = @_;
-    
+
     my $medium = {
-        name => "test use pager $PROCESS_ID",
-        url => "url://test/use/pager/$PROCESS_ID",
-        moderated => 't',
+        name        => "test use pager $PROCESS_ID",
+        url         => "url://test/use/pager/$PROCESS_ID",
+        moderated   => 't',
         feeds_added => 't',
-        use_pager => 't'
+        use_pager   => 't'
     };
     $medium = $db->create( 'media', $medium );
-    
+
     is( MediaWords::Crawler::Handler::use_pager( $medium ), 1, "use_pager true" );
-    
+
     $medium = $db->query( "update media set use_pager = null where media_id = ? returning *", $medium->{ media_id } )->hash;
     is( MediaWords::Crawler::Handler::use_pager( $medium ), 1, "null use_pager" );
-    
+
     $medium = $db->query( "update media set use_pager = 'f' where media_id = ? returning *", $medium->{ media_id } )->hash;
     is( MediaWords::Crawler::Handler::use_pager( $medium ), 0, "use_pager false" );
 
-    $medium = $db->query( "update media set use_pager = null where media_id = ? returning *", $medium->{ media_id } )->hash;    
+    $medium = $db->query( "update media set use_pager = null where media_id = ? returning *", $medium->{ media_id } )->hash;
     MediaWords::Crawler::Handler::set_use_pager( $db, $medium, 'http://foo.bar' );
     $medium = $db->find_by_id( 'media', $medium->{ media_id } );
     is( MediaWords::Crawler::Handler::use_pager( $medium ), 1, "set_use_pager use_pager true" );
@@ -50,22 +50,20 @@ END
     $medium = $db->find_by_id( 'media', $medium->{ media_id } );
     is( MediaWords::Crawler::Handler::use_pager( $medium ), 0, "100th unpaged story: use_pager false" );
 }
-    
+
 sub main
 {
     my $db = MediaWords::DB::connect_to_db;
-    
+
     $db->begin;
-    
-    eval {
-        test_use_pager( $db );
-    };
+
+    eval { test_use_pager( $db ); };
 
     die( $@ ) if ( $@ );
 
     $db->rollback;
 
-    done_testing( );
+    done_testing();
 }
 
 main();
