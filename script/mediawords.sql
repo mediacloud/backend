@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4405;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4404;
     
 BEGIN
 
@@ -221,7 +221,8 @@ create table media (
     is_not_dup          boolean         null,
     use_pager           boolean         null,
     unpaged_stories     int             not null default 0,
-    CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) )
+    CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
+    CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
 );
 
 create unique index media_name on media(name);
@@ -264,8 +265,6 @@ create table tags (
     tags_id                serial            primary key,
     tag_sets_id            int                not null references tag_sets,
     tag                    varchar(512)    not null,
-        CONSTRAINT no_lead_or_trailing_whitspace CHECK ((((((tag_sets_id = 13) OR (tag_sets_id = 9)) OR (tag_sets_id = 8)) OR (tag_sets_id = 6)) OR ((tag)::text = btrim((tag)::text, ' 
-    '::text)))),
         CONSTRAINT no_line_feed CHECK (((NOT ((tag)::text ~~ '%
 %'::text)) AND (NOT ((tag)::text ~~ '%
 %'::text)))),
@@ -402,6 +401,16 @@ create table media_cluster_map_poles (
 );
 
 create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
+    
+create table media_cluster_map_pole_similarities (
+    media_cluster_map_pole_similarities_id  serial primary key,
+    media_id                                int not null references media on delete cascade,
+    queries_id                              int not null references queries on delete cascade,
+    similarity                              int not null,
+    media_cluster_maps_id                   int not null references media_cluster_maps on delete cascade
+);
+
+create index media_cluster_map_pole_similarities_map ON media_cluster_map_pole_similarities (media_cluster_maps_id);
 
 create table media_clusters_media_map (
     media_clusters_media_map_id     serial primary key,
@@ -698,7 +707,6 @@ LANGUAGE 'plpgsql' IMMUTABLE;
 
 CREATE UNIQUE INDEX downloads_for_extractor_trainer on downloads ( downloads_id, feeds_id) where file_status <> 'missing' and type = 'content' and state = 'success';
 
-CREATE INDEX downloads_sites_index on downloads ( site_from_host(host) );
 CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
 
 CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
@@ -799,22 +807,6 @@ CREATE TABLE url_discovery_counts (
 INSERT  into url_discovery_counts VALUES ('already_processed');
 INSERT  into url_discovery_counts VALUES ('not_yet_processed');
     
-create table word_cloud_topics (
-        word_cloud_topics_id    serial      primary key,
-        source_tags_id          int         not null references tags,
-        set_tag_names           text        not null,
-        creator                 text        not null,
-        query                   text        not null,
-        type                    text        not null,
-        start_date              date        not null,
-        end_date                date        not null,
-        state                   text        not null,
-        url                     text        not null
-);
-
-alter table word_cloud_topics add constraint word_cloud_topics_type check (type in ('words', 'phrases'));
-alter table word_cloud_topics add constraint word_cloud_topics_state check (state in ('pending', 'generating', 'completed'));
-
 -- VIEWS
 
 CREATE VIEW media_extractor_training_downloads_count AS
@@ -898,8 +890,7 @@ create table story_sentence_words (
 
 create index story_sentence_words_story on story_sentence_words (stories_id, sentence_number);
 create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
-create index story_sentence_words_day on story_sentence_words(publish_day);
-create index story_sentence_words_media_day on story_sentence_words (media_id, publish_day);
+create index story_sentence_words_dm on story_sentence_words (publish_day, media_id);
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
@@ -917,7 +908,6 @@ create index daily_words_media on daily_words(publish_day, media_sets_id, dashbo
 create index daily_words_count on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem_count);
 create index daily_words_publish_week on daily_words(week_start_date(publish_day));
 
-create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
 CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
@@ -932,7 +922,8 @@ create table weekly_words (
 
 create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
-CREATE INDEX weekly_words_publish_week on weekly_words(publish_week);
+create index weekly_words_topic on weeky_words (publish_week, dashboard_topics_id);
+
 ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
 create table top_500_weekly_words (
@@ -1243,6 +1234,10 @@ create table controversy_seed_urls (
     stories_id                      int references stories on delete cascade,
     processed                       boolean not null default false
 );
+
+create index process_stories_story on processed_stories ( stories_id );
+
+create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
