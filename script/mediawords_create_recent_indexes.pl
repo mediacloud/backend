@@ -97,9 +97,8 @@ END
     # use the past day for the predicate since these queries don't include the stories_id
     my $now       = MediaWords::Util::SQL::get_sql_date_from_epoch( time() );
     my $yesterday = "publish_date > '$now'::date - '1 day'::interval";
-
-    recreate_index( $db, 'stories_url_recent',           'stories', 'url',                 $yesterday );
-    recreate_index( $db, 'stories_guid_recent',          'stories', 'guid, media_id',      $yesterday );
+    
+    recreate_index( $db, 'stories_guid_recent', 'stories', 'guid, media_id', $yesterday ); 
     recreate_index( $db, 'stories_title_pubdate_recent', 'stories', 'title, publish_date', $yesterday );
 
 }
