@@ -29,11 +29,11 @@ sub too_many_stories
     my $db = MediaWords::DB::connect_to_db;
 
     my ( $stories_exists ) = $db->query( "select 1 from pg_class where relname = 'stories'" )->flat;
-    
+
     return 0 unless ( $stories_exists );
-    
+
     my ( $num_stories ) = $db->query( "select count(*) from ( select 1 from stories limit ? ) q", MAX_STORIES )->flat;
-    
+
     return ( $num_stories >= MAX_STORIES ) ? 1 : 0;
 }
 
@@ -44,7 +44,7 @@ sub main
         say "Refusing to drop database with at least " . MAX_STORIES . " stories";
         return 1;
     }
-    
+
     my $warning_message =
 "Warning this script will delete all information in the current media cloud database and create a new database. Are you sure you wish to continue?";
 
