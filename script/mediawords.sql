@@ -271,6 +271,7 @@ create table tags (
         CONSTRAINT tag_not_empty CHECK (((tag)::text <> ''::text))
 );
 
+create index tags_tag_sets_id ON tags (tag_sets_id);
 create unique index tags_tag on tags (tag, tag_sets_id);
 create index tags_tag_1 on tags (split_part(tag, ' ', 1));
 create index tags_tag_2 on tags (split_part(tag, ' ', 2));
@@ -323,10 +324,22 @@ create table queries (
     query_version           query_version_enum  NOT NULL DEFAULT enum_last (null::query_version_enum )
 );
 
-
 create index queries_creation_date on queries (creation_date);
-create unique index queries_signature_version on queries ( md5_signature, query_version );
-create unique index queries_signature on queries (md5_signature);
+create unique index queries_hash_version on queries (md5_signature, query_version);
+create index queries_md5_signature on queries  (md5_signature);
+
+create table media_rss_full_text_detection_data (
+    media_id            int references media on delete cascade,
+    max_similarity      real,
+    avg_similarity      double precision,
+    min_similarity      real,
+    avg_expected_length numeric,
+    avg_rss_length      numeric,
+    avg_rss_discription numeric,
+    count               bigint
+);
+
+create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
 
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
@@ -403,11 +416,11 @@ create table media_cluster_map_poles (
 create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
     
 create table media_cluster_map_pole_similarities (
-    media_cluster_map_pole_similarities_id  serial primary key,
-    media_id                                int not null references media on delete cascade,
-    queries_id                              int not null references queries on delete cascade,
-    similarity                              int not null,
-    media_cluster_maps_id                   int not null references media_cluster_maps on delete cascade
+    media_cluster_map_pole_similarities_id  serial  primary key,
+    media_id                                int     not null references media on delete cascade,
+    queries_id                              int     not null references queries on delete cascade,
+    similarity                              int     not null,
+    media_cluster_maps_id                   int     not null references media_cluster_maps on delete cascade
 );
 
 create index media_cluster_map_pole_similarities_map ON media_cluster_map_pole_similarities (media_cluster_maps_id);
@@ -623,6 +636,7 @@ create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 
+
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
 
@@ -691,6 +705,17 @@ CREATE INDEX downloads_spider_urls on downloads(url) where type = 'spider_blog_h
 CREATE INDEX downloads_spider_download_errors_to_clear on downloads(state,type,error_message) where state='error' and type in ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list') and (error_message like '50%' or error_message= 'Download timed out by Fetcher::_timeout_stale_downloads') ;
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
 CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
+
+CREATE INDEX downloads_in_old_format ON downloads USING btree (downloads_id) WHERE ((state = 'success'::download_state) AND (path ~~ 'content/%'::text));
+
+CREATE INDEX file_status_downloads_time_new_format ON downloads USING btree (file_status, download_time) WHERE (relative_file_path ~~ 'mediacloud-%'::text);
+
+CREATE INDEX relative_file_paths_new_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (relative_file_path ~~ 'mediacloud-%'::text));
+
+CREATE INDEX relative_file_paths_old_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (NOT (relative_file_path ~~ 'mediacloud-%'::text)));
+
+
+
 
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
@@ -922,7 +947,7 @@ create table weekly_words (
 
 create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
-create index weekly_words_topic on weeky_words (publish_week, dashboard_topics_id);
+create index weekly_words_topic on weekly_words (publish_week, dashboard_topics_id);
 
 ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
@@ -937,7 +962,10 @@ create table top_500_weekly_words (
 );
 
 create UNIQUE index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
-create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) where dashboard_topics_id is null;
+create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) 
+    where dashboard_topics_id is null;
+create index top_500_weekly_words_dmds on top_500_weekly_words using btree (publish_week, media_sets_id, dashboard_topics_id, stem);
+
 ALTER TABLE  top_500_weekly_words ADD CONSTRAINT top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
   
 create table total_top_500_weekly_words (
@@ -970,7 +998,7 @@ create index total_daily_words_media_sets_id on total_daily_words (media_sets_id
 create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
 create index total_daily_words_publish_day on total_daily_words (publish_day);
 create index total_daily_words_publish_week on total_daily_words (week_start_date(publish_day));
-CREATE UNIQUE INDEX total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
+create unique index total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
 
 
 create table total_weekly_words (
@@ -990,12 +1018,6 @@ create view daily_words_with_totals as select d.*, t.total_count from daily_word
 
              
 create schema stories_tags_map_media_sub_tables;
-
-create table ssw_queue (
-       stories_id                   int             not null,
-       publish_date                 timestamp       not null,
-       media_id                     int             not null
-);
 
 create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
@@ -1098,9 +1120,8 @@ create table top_500_weekly_author_words (
 
 create index top_500_weekly_author_words_media on top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
 create index top_500_weekly_author_words_authors on top_500_weekly_author_words(authors_id, publish_week, media_sets_id);
-
 create UNIQUE index top_500_weekly_author_words_authors_stem on top_500_weekly_author_words(authors_id, publish_week, media_sets_id, stem);
-
+create index top_500_weekly_author_words_publish_week on top_500_weekly_author_words (publish_week);
     
 create table total_top_500_weekly_author_words (
        total_top_500_weekly_author_words_id       serial          primary key,
@@ -1235,14 +1256,14 @@ create table controversy_seed_urls (
     processed                       boolean not null default false
 );
 
-create index process_stories_story on processed_stories ( stories_id );
-
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
     stories_id                  bigint             not null references stories on delete cascade
 );
+
+create index processed_stories_story on processed_stories ( stories_id );
 
 create table story_subsets (
     story_subsets_id        bigserial          primary key,
@@ -1536,43 +1557,6 @@ CREATE FUNCTION cat(text, text) RETURNS text
 return coalesce($1) || ' | ' || coalesce($2);
   END;
 $_$;
-
-
-CREATE INDEX stories_guid_non_unique ON stories USING btree (guid, media_id);
-
-CREATE UNIQUE INDEX stories_guid_unique_temp ON stories USING btree (guid, media_id) WHERE (stories_id > 72728270);
-
-CREATE INDEX downloads_in_old_format ON downloads USING btree (downloads_id) WHERE ((state = 'success'::download_state) AND (path ~~ 'content/%'::text));
-
-CREATE INDEX file_status_downloads_time_new_format ON downloads USING btree (file_status, download_time) WHERE (relative_file_path ~~ 'mediacloud-%'::text);
-
-CREATE INDEX relative_file_paths_new_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (relative_file_path ~~ 'mediacloud-%'::text));
-
-CREATE INDEX relative_file_paths_old_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (NOT (relative_file_path ~~ 'mediacloud-%'::text)));
-
-CREATE INDEX total_daily_words_date ON total_daily_words USING btree (publish_day);
-
-CREATE INDEX total_daily_words_date_dt ON total_daily_words USING btree (publish_day, dashboard_topics_id);
-
-CREATE INDEX tags_tag_sets_id ON tags USING btree (tag_sets_id);
-
-CREATE INDEX queries_description ON queries USING btree (description);
-
-CREATE UNIQUE INDEX queries_hash_version ON queries USING btree (md5_signature, query_version);
-
-CREATE INDEX queries_md5_signature ON queries USING btree (md5_signature);
-
-CREATE INDEX query_story_searches_stories_map_qss ON query_story_searches_stories_map USING btree (query_story_searches_id);
-
-CREATE INDEX ssw_queue_stories_id ON ssw_queue USING btree (stories_id);
-
-CREATE INDEX story_sentence_words_dm ON story_sentence_words USING btree (publish_day, media_id);
-
-CREATE INDEX top_500_weekly_author_words_publish_week ON top_500_weekly_author_words USING btree (publish_week);
-
-CREATE INDEX top_500_weekly_words_dmds ON top_500_weekly_words USING btree (publish_week, media_sets_id, dashboard_topics_id, stem);
-
-CREATE INDEX weekly_words_topic ON weekly_words USING btree (publish_week, dashboard_topics_id);
 
 CREATE OR REPLACE FUNCTION cancel_pg_process(cancel_pid integer) RETURNS boolean
     LANGUAGE plpgsql SECURITY DEFINER
