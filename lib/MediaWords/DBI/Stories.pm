@@ -539,7 +539,7 @@ sub is_new
 
     # try restricting to the last day first, since this will hit the much smaller stories_guid_recent index
     my $db_story = $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
-select * from stories where guid = ? and media_id = ? and publish_date > now() - '1 day'
+select * from stories where guid = ? and media_id = ? and publish_date > now() - '1 day'::interval
 END
 
     $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
