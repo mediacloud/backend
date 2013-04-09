@@ -276,7 +276,6 @@ sub crawl
 
         while ( 1 )
         {
-            $self->dbs->begin;
             if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
             {
                 print STDERR "crawler timed out\n";
@@ -307,7 +306,6 @@ sub crawl
 
                 if ( my $queued_download = shift( @{ $queued_downloads } ) )
                 {
-
                     # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
                     $s->printflush( $queued_download->{ downloads_id } . "\n" );
                 }
@@ -322,7 +320,6 @@ sub crawl
                 # print "fetcher $fetcher_number request assigned\n";
             }
 
-            $self->dbs->commit;
         }
 
     }
