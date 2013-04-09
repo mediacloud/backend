@@ -56,7 +56,6 @@ sub begin : Private
     $c->languages( $locale ? [ $locale ] : [ 'en' ] );
 }
 
-
 =head2 end
 
 Attempt to render a view, if needed.

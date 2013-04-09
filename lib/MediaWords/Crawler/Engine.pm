@@ -306,6 +306,7 @@ sub crawl
 
                 if ( my $queued_download = shift( @{ $queued_downloads } ) )
                 {
+
                     # print STDERR "sending fetcher $fetcher_number download:" . $queued_download->{downloads_id} . "\n";
                     $s->printflush( $queued_download->{ downloads_id } . "\n" );
                 }
