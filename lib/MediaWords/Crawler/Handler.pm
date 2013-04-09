@@ -221,7 +221,7 @@ sub call_pager
 select * from media m where media_id in ( select media_id from feeds where feeds_id = 1 );
 END
 
-    return if ( use_pager( $medium ) );
+    return unless ( use_pager( $medium ) );
 
     if ( $download->{ sequence } > MAX_PAGES )
     {
