@@ -352,5 +352,4 @@ sub get_medium_domain
     return lc( $domain );
 }
 
-
 1;

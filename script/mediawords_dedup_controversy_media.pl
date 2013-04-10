@@ -240,7 +240,7 @@ select m.*, coalesce( mtm.tags_id, 0 ) is_spidered
 END
 
     my $media_domain_lookup = {};
-    map { push( @{ $media_domain_lookup->{ MediaWords:DBI::Media::get_medium_domain( $_ ) } }, $_ ) } @{ $media };
+    map { push( @{ $media_domain_lookup->{ MediaWords : DBI::Media::get_medium_domain( $_ ) } }, $_ ) } @{ $media };
 
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {
