@@ -24,6 +24,7 @@ use URI::Escape;
 
 use MediaWords::CM::GuessDate;
 use MediaWords::DB;
+use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
@@ -623,14 +624,15 @@ END
 # add to controversy_stories table
 sub add_to_controversy_stories
 {
-    my ( $db, $controversy, $story, $iteration, $link_mined ) = @_;
+    my ( $db, $controversy, $story, $iteration, $link_mined, $valid_foreign_rss_story ) = @_;
 
     $db->query(
-        "insert into controversy_stories ( controversies_id, stories_id, iteration, redirect_url, link_mined ) " .
-          "  values ( ?, ?, ?, ?, ? )",
+        "insert into controversy_stories ( controversies_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story ) " .
+          "  values ( ?, ?, ?, ?, ?, ? )",
         $controversy->{ controversies_id },
         $story->{ stories_id },
-        $iteration, $story->{ url }, $link_mined
+        $iteration, $story->{ url }, $link_mined, 
+        $valid_foreign_rss_story
     );
 }
 
@@ -707,9 +709,9 @@ sub get_matching_story_from_db
     # in dup_media_id media.
     my $story = $db->query( <<'END', $u, $ru, $u, $ru )->hash;
 select distinct s.* from stories s 
-        join media_no_dups m on s.media_id = m.media_id
+        join media m on s.media_id = m.media_id
     where ( s.url in ( ? , ? ) or s.guid in ( ?, ? ) ) and 
-        m.foreign_rss_links = false
+        m.foreign_rss_links = false and m.dup_media_id is null
 END
 
     # replace with dup story if there's one already added to controversy_stories
@@ -864,6 +866,123 @@ sub add_new_links
         $link->{ story } = $story;
 
         add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
+    }
+}
+
+# build a lookup table of aliases for a url based on url and redirect_url fields in the 
+# controversy_links
+sub get_url_alias_lookup
+{
+    my ( $db ) = @_;
+    
+    my $lookup;
+    
+    my $url_pairs = $db->query( <<END )->hashes;
+select distinct url, redirect_url from 
+    ( ( select url, redirect_url from controversy_links where url <> redirect_url ) union
+      ( select s.url, cs.redirect_url 
+           from controversy_stories cs join stories s on ( cs.stories_id = s.stories_id ) 
+           where cs.redirect_url <> s.url
+       ) ) q
+END
+
+    # use a hash of hashes so that we can do easy hash lookups in the
+    # network traversal below
+    for my $url_pair ( @{ $url_pairs } )
+    {
+        $lookup->{ $url_pair->{ url } }->{ $url_pair->{ redirect_url } } = 1;
+        $lookup->{ $url_pair->{ redirect_url } }->{ $url_pair->{ url } } = 1;
+    }
+    
+    # traverse the network gathering indirect aliases
+    my $lookups_updated = 1;
+    while ( $lookups_updated )
+    {
+        $lookups_updated = 0;
+        while ( my ( $url, $aliases ) = each ( %{ $lookup } ) )
+        {
+            for my $alias_url ( keys( %{ $aliases } ) )
+            {
+                if ( !$lookup->{ $alias_url }->{ $url }  )
+                {
+                    $lookups_updated = 1;
+                    $lookup->{ $alias_url }->{ $url } = 1;
+                }
+            }
+        }
+    }
+    
+    my $url_alias_lookup = {};
+    while ( my ( $url, $aliases ) = each ( %{ $lookup } ) )
+    {
+        $url_alias_lookup->{ $url } = [ keys( %{ $aliases } ) ];
+    }
+    
+    return $url_alias_lookup;
+}
+
+# return true if the domain of the source story medium url is found in the target story url
+sub medium_domain_matches_url
+{
+    my ( $db, $source_story, $target_story ) = @_;
+    
+    my $source_medium = $db->query( "select url from media where media_id = ?", $source_story->{ media_id } )->hash;
+    
+    my $domain = MediaWords::DBI::Media::get_medium_domain( $source_medium );
+    
+    return 1 if ( index( lc( $target_story->{ url } ), lc( $domain  ) ) >= 0 );
+    
+    return 0;
+}
+
+# for each stories in aggregator stories that has the same url as a controversy story, add
+# that story as a controversy story with a link to the matching controversy story
+sub add_outgoing_foreign_rss_links
+{
+    my ( $db, $controversy ) = @_;
+    
+    # I can't get postgres to generate a plan that recognizes that 
+    # these aggregator url matches are pretty rare, so it's quicker
+    # to do the url lookups in perl
+    my $target_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+select s.* from stories s, controversy_stories cs
+    where s.stories_id = cs.stories_id and cs.controversies_id = ?
+END
+
+    my $url_alias_lookup = get_url_alias_lookup( $db );
+    for my $target_story ( @{ $target_stories } )
+    {
+        my $urls = $url_alias_lookup->{ $target_story->{ url } };
+        push( @{ $urls }, $target_story->{ url } );
+        my $url_params = join( ',', map { '?' } ( 1 .. scalar( @{ $urls } ) ) );
+        my $source_stories = $db->query( <<END, @{ $urls } )->hashes;
+select s.* from stories s, media m
+    where m.foreign_rss_links and s.media_id = m.media_id and s.url in ( $url_params ) and
+        not exists ( select 1 from controversy_stories cs where s.stories_id = cs.stories_id )
+        
+END
+        for my $source_story ( @{ $source_stories } )
+        {
+            say STDERR "$source_story->{ media_id } -> $target_story->{ url }";
+            say STDERR Dumper( $source_story );
+            say STDERR Dumper( $target_story );
+            
+            next if ( medium_domain_matches_url( $db, $source_story, $target_story ) );
+            
+            say STDERR "add";
+            
+            add_to_controversy_stories( $db, $controversy, $source_story, 1, 1, 1 );
+            $db->create(
+                "controversy_links",
+                {
+                    stories_id          => $source_story->{ stories_id },
+                    url                 => encode( 'utf8', $target_story->{ url } ),
+                    controversies_id    => $controversy->{ controversies_id },
+                    ref_stories_id      => $target_story->{ stories_id },
+                    link_spidered       => 1,
+                }
+            );
+        }
     }
 }
 
@@ -1153,10 +1272,10 @@ sub merge_foreign_rss_story
 
     my $medium = $db->find_by_id( 'media', $story->{ media_id } );
 
-    my ( $story_medium_url, $story_medium_name ) = generate_medium_url_and_name_from_url( $story->{ url } );
+    my $medium_domain = MediaWords::DBI::Media::get_medium_domain( $medium );
 
     # for stories in ycombinator.com, allow stories with a http://yombinator.com/.* url
-    return if ( $medium->{ url } eq $story_medium_url );
+    return if ( index( lc( $story->{ url } ), lc( $medium_domain  ) ) >= 0 );
 
     my $link = { url => $story->{ url } };
 
@@ -1176,7 +1295,8 @@ sub merge_foreign_rss_stories
     my $foreign_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
 select s.* from stories s, controversy_stories cs, media m 
     where s.stories_id = cs.stories_id and s.media_id = m.media_id and 
-        m.foreign_rss_links = true and cs.controversies_id = ?
+        m.foreign_rss_links = true and cs.controversies_id = ? and
+        not cs.valid_foreign_rss_story        
 END
 
     map { merge_foreign_rss_story( $db, $controversy, $_ ) } @{ $foreign_stories };
@@ -1378,12 +1498,6 @@ sub main
     print STDERR "merging foreign_rss stories ...\n";
     merge_foreign_rss_stories( $db, $controversy );
 
-    if ( $dedup_media )
-    {
-        print STDERR "merging media_dup stories ...\n";
-        merge_dup_media_stories( $db, $controversy );
-    }
-
     print STDERR "adding redirect urls to controversy stories ...\n";
     add_redirect_urls_to_controversy_stories( $db, $controversy );
 
@@ -1392,6 +1506,15 @@ sub main
 
     print STDERR "running spider ...\n";
     run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
+    
+    print STDERR "adding outgoing foreign rss links ...\n";
+    add_outgoing_foreign_rss_links( $db, $controversy );
+
+    if ( $dedup_media )
+    {
+        print STDERR "merging media_dup stories ...\n";
+        merge_dup_media_stories( $db, $controversy );
+    }
 
     print STDERR "adding source link dates ...\n";
     add_source_link_dates( $db, $controversy );

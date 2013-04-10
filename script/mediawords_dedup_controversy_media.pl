@@ -14,42 +14,8 @@ use Getopt::Long;
 use URI;
 
 use MediaWords::DB;
+use MediaWords::DBI::Media;
 use MediaWords::Util::Tags;
-
-# get the domain from the medium url
-sub get_medium_domain
-{
-    my ( $medium ) = @_;
-
-    $medium->{ url } =~ m~https?://([^/#]*)~ || return $medium;
-
-    my $host = $1;
-
-    my $name_parts = [ split( /\./, $host ) ];
-
-    my $n = @{ $name_parts } - 1;
-
-    my $domain;
-    if ( $host =~ /\.(gov|org|com?)\...$/i )
-    {
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
-    }
-    elsif ( $host =~ /\.(edu|gov)$/i )
-    {
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
-    }
-    elsif ( $host =~
-        /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
-    {
-        $domain = $host;
-    }
-    else
-    {
-        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
-    }
-
-    return lc( $domain );
-}
 
 sub mark_medium_as_dup
 {
@@ -274,7 +240,7 @@ select m.*, coalesce( mtm.tags_id, 0 ) is_spidered
 END
 
     my $media_domain_lookup = {};
-    map { push( @{ $media_domain_lookup->{ get_medium_domain( $_ ) } }, $_ ) } @{ $media };
+    map { push( @{ $media_domain_lookup->{ MediaWords:DBI::Media::get_medium_domain( $_ ) } }, $_ ) } @{ $media };
 
     while ( my ( $domain, $domain_media ) = each( %{ $media_domain_lookup } ) )
     {

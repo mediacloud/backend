@@ -1,4 +1,5 @@
 package MediaWords::DBI::Media;
+
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
@@ -315,5 +316,41 @@ sub _find_media_from_urls
 
     return $url_media;
 }
+
+# get the domain from the medium url
+sub get_medium_domain
+{
+    my ( $medium ) = @_;
+
+    $medium->{ url } =~ m~https?://([^/#]*)~ || return $medium;
+
+    my $host = $1;
+
+    my $name_parts = [ split( /\./, $host ) ];
+
+    my $n = @{ $name_parts } - 1;
+
+    my $domain;
+    if ( $host =~ /\.(gov|org|com?)\...$/i )
+    {
+        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+    }
+    elsif ( $host =~ /\.(edu|gov)$/i )
+    {
+        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ] ) );
+    }
+    elsif ( $host =~
+        /wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com|24open.ru|patch.com|tumblr.com/i )
+    {
+        $domain = $host;
+    }
+    else
+    {
+        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
+    }
+
+    return lc( $domain );
+}
+
 
 1;

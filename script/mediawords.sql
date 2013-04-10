@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4404;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4406;
     
 BEGIN
 
@@ -1223,7 +1223,8 @@ create table controversy_stories (
     link_mined                      boolean default 'f',
     iteration                       int default 0,
     link_weight                     real,
-    redirect_url                    text    
+    redirect_url                    text,
+    valid_foreign_rss_story         boolean default false
 );
 
 create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id ) ;
