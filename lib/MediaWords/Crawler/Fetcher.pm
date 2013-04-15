@@ -39,6 +39,7 @@ sub do_fetch
     $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );
     $ua->max_redirect( 15 );
+    $ua->env_proxy;
 
     my $response = $ua->get( $download->{ url } );
 

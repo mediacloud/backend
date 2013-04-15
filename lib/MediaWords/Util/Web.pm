@@ -40,6 +40,7 @@ sub UserAgent
     $ua->timeout( TIMEOUT );
     $ua->max_size( MAX_DOWNLOAD_SIZE );
     $ua->max_redirect( MAX_REDIRECT );
+    $ua->env_proxy;
 
     return $ua;
 }

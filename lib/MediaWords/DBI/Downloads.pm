@@ -163,6 +163,7 @@ sub fetch_content_remote
     my ( $download ) = @_;
 
     my $ua = LWP::UserAgent->new;
+    $ua->env_proxy;
 
     if ( !defined( $download->{ downloads_id } ) )
     {
