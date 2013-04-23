@@ -338,48 +338,74 @@ select source_media_id, ref_media_id, count(*) link_count
 END
 }
 
-sub write_controversy_date_counts_dump
+# get the list of fields and subqueries to include in the date count query
+# for each tag in the controversy_<name> tag_set
+sub get_date_count_tag_queries
 {
-    my ( $db, $controversy, $start_date, $end_date ) = @_;
-
+    my ( $db, $controversy, $period ) = @_;
+    
     my $tagset_name = "controversy_$controversy->{ name }";
 
-    my $tags =
-      $db->query( "select * from tags t, tag_sets ts " . "  where t.tag_sets_id = ts.tag_sets_id and ts.name = ?",
-        $tagset_name )->hashes;
+    my $tags = $db->query( <<END, $tagset_name )->hashes;
+select * from tags t, tag_sets ts  where t.tag_sets_id = ts.tag_sets_id and ts.name = ?
+END
+
+    return unless ( @{ $tags } );
 
     my $tag_fields  = [];
     my $tag_queries = [];
+    my $labels_map = {};
+        
     for my $tag ( @{ $tags } )
     {
-        my $label = "count_" . $tag->{ tag };
+        my $label = "c_" . $tag->{ tag };
 
-        push( @{ $tag_fields }, "coalesce( $label.week_count, 0 ) week_$label" );
+        $label = substr( $label, 0, 61 ) if ( length( $label ) > 61 );
+        my $i = 1;
+        while ( $labels_map->{ $label } )
+        {
+            substr( $label, -4 ) = "_" . $i++;
+        }
+        
+        $labels_map->{ $label } = 1;
+
+        push( @{ $tag_fields }, "coalesce( $label.date_count, 0 ) d_$label" );
 
         push(
             @{ $tag_queries },
-            "left join ( select count(*) week_count,  date_trunc( 'week', a.publish_date ) publish_week " .
+            "left join ( select count(*) date_count,  date_trunc( '$period', a.publish_date ) publish_date " .
               "      from stories_tags_map stm, stories a " .
               "      where a.stories_id = stm.stories_id and stm.tags_id = $tag->{ tags_id } " .
-              "      group by date_trunc( 'week', a.publish_date ) ) " .
-              "  as $label on ( all_weeks.publish_week = $label.publish_week )"
+              "      group by date_trunc( '$period', a.publish_date ) ) " .
+              "  as $label on ( all_dates.publish_date = $label.publish_date )"
         );
     }
+    
+    return ( $tag_fields, $tag_queries );
+}
 
-    my $tag_fields_list = join( ', ', @{ $tag_fields } );
-    $tag_fields_list = ", $tag_fields_list" if ( $tag_fields_list );
+sub write_controversy_date_counts_dump
+{
+    my ( $db, $controversy, $start_date, $end_date, $period ) = @_;
 
+    die ( "unknown period '$period'" ) unless ( grep { $period eq $_  } qw(day week) );
+
+    my ( $tag_fields, $tag_queries ) = get_date_count_tag_queries( $db, $controversy, $period );
+    
+    return unless ( $tag_fields );
+
+    my $tag_fields_list = join( ', ', @{ $tag_fields } ); 
     my $tag_queries_list = join( ' ', @{ $tag_queries } );
 
     my $cid = $controversy->{ controversies_id };
 
-    write_dump_as_csv( $db, $controversy, 'controversy_date_counts_dump', <<END );
-select all_weeks.publish_week $tag_fields_list
-    from ( select distinct date_trunc( 'week', s.publish_date ) publish_week
-             from stories s join controversy_stories cs on ( s.stories_id = cs.stories_id and controversies_id = $cid ) ) all_weeks
+    write_dump_as_csv( $db, $controversy, 'controversy_' . $period . '_date_counts_dump', <<END );
+select all_dates.publish_date, $tag_fields_list
+    from ( select distinct date_trunc( '$period', s.publish_date ) publish_date
+             from stories s join controversy_stories cs on ( s.stories_id = cs.stories_id and controversies_id = $cid ) ) all_dates
          $tag_queries_list
-         where all_weeks.publish_week between '$start_date' and '$end_date'::timestamp - interval '1 second'
-         order by all_weeks.publish_week
+         where all_dates.publish_date between '$start_date'::timestamp and '$end_date'::timestamp - interval '1 second'
+         order by all_dates.publish_date
 END
 }
 
@@ -943,7 +969,9 @@ sub generate_period_dump
 
     write_controversy_media_links_dump( $db, $controversy );
 
-    write_controversy_date_counts_dump( $db, $controversy, $start_date, $end_date );
+    write_controversy_date_counts_dump( $db, $controversy, $start_date, $end_date, 'day' );
+    
+    write_controversy_date_counts_dump( $db, $controversy, $start_date, $end_date, 'week' );
 
     map { add_layout_dump_path( write_gexf_dump( $db, $controversy, $start_date, $end_date, $_ ) ) } @{ $weightings };
 
@@ -1046,6 +1074,9 @@ sub get_default_dates
 select q.start_date, q.end_date from queries q, query_story_searches qss
     where qss.query_story_searches_id = ? and q.queries_id = qss.queries_id
 END
+
+    die( "Unable to find default dates" ) unless ( $start_date && $end_date );
+
 }
 
 # write various dumps useful for cleaning up the dataset.  some of these take quite
@@ -1097,9 +1128,12 @@ sub main
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       || die( "Unable to find controversy '$controversies_id'" );
 
-    my ( $default_start_date, $default_end_date ) = get_default_dates( $db, $controversy );
-    $start_date ||= $default_start_date;
-    $end_date   ||= $default_end_date;
+    if ( !$start_date || !$end_date )
+    {
+        my ( $default_start_date, $default_end_date ) = get_default_dates( $db, $controversy );
+        $start_date ||= $default_start_date;
+        $end_date   ||= $default_end_date;
+    }
 
     my $periods = ( $period eq 'all' ) ? $all_periods : [ $period ];
 
