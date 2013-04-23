@@ -343,7 +343,7 @@ END
 sub get_date_count_tag_queries
 {
     my ( $db, $controversy, $period ) = @_;
-    
+
     my $tagset_name = "controversy_$controversy->{ name }";
 
     my $tags = $db->query( <<END, $tagset_name )->hashes;
@@ -354,8 +354,8 @@ END
 
     my $tag_fields  = [];
     my $tag_queries = [];
-    my $labels_map = {};
-        
+    my $labels_map  = {};
+
     for my $tag ( @{ $tags } )
     {
         my $label = "c_" . $tag->{ tag };
@@ -366,7 +366,7 @@ END
         {
             substr( $label, -4 ) = "_" . $i++;
         }
-        
+
         $labels_map->{ $label } = 1;
 
         push( @{ $tag_fields }, "coalesce( $label.date_count, 0 ) d_$label" );
@@ -380,7 +380,7 @@ END
               "  as $label on ( all_dates.publish_date = $label.publish_date )"
         );
     }
-    
+
     return ( $tag_fields, $tag_queries );
 }
 
@@ -388,14 +388,14 @@ sub write_controversy_date_counts_dump
 {
     my ( $db, $controversy, $start_date, $end_date, $period ) = @_;
 
-    die ( "unknown period '$period'" ) unless ( grep { $period eq $_  } qw(day week) );
+    die( "unknown period '$period'" ) unless ( grep { $period eq $_ } qw(day week) );
 
     my ( $tag_fields, $tag_queries ) = get_date_count_tag_queries( $db, $controversy, $period );
-    
+
     return unless ( $tag_fields );
 
-    my $tag_fields_list = join( ', ', @{ $tag_fields } ); 
-    my $tag_queries_list = join( ' ', @{ $tag_queries } );
+    my $tag_fields_list  = join( ', ', @{ $tag_fields } );
+    my $tag_queries_list = join( ' ',  @{ $tag_queries } );
 
     my $cid = $controversy->{ controversies_id };
 
@@ -970,7 +970,7 @@ sub generate_period_dump
     write_controversy_media_links_dump( $db, $controversy );
 
     write_controversy_date_counts_dump( $db, $controversy, $start_date, $end_date, 'day' );
-    
+
     write_controversy_date_counts_dump( $db, $controversy, $start_date, $end_date, 'week' );
 
     map { add_layout_dump_path( write_gexf_dump( $db, $controversy, $start_date, $end_date, $_ ) ) } @{ $weightings };
