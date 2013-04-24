@@ -41,11 +41,11 @@ select count(*) media_count, ms.name media_set_name
 END
 
     say "Total Media Sources in Query: $total_count\n";
-    
+
     say "Media Counts for Each Media Set in Query:";
     for my $media_count ( @{ $media_counts } )
     {
-        say "\t$media_count->{ media_set_name }: $media_count->{ media_count }"
+        say "\t$media_count->{ media_set_name }: $media_count->{ media_count }";
     }
 
     say "\n";
@@ -55,7 +55,7 @@ END
 sub print_query_feed_counts
 {
     my ( $db, $controversies_id ) = @_;
-    
+
     my ( $total_count ) = $db->query( <<END, $controversies_id )->flat;
 select count( distinct f.feeds_id ) feed_count
     from controversies c, query_story_searches qss, queries_media_sets_map qmsm, 
@@ -76,11 +76,11 @@ select count(*) feed_count, ms.name media_set_name
 END
 
     say "Total Feeds in Query: $total_count\n";
-    
+
     say "Feed Counts for Each Media Set in Query:";
     for my $feed_count ( @{ $feed_counts } )
     {
-        say "\t$feed_count->{ media_set_name }: $feed_count->{ feed_count }"
+        say "\t$feed_count->{ media_set_name }: $feed_count->{ feed_count }";
     }
 
     say "\n";
@@ -91,7 +91,7 @@ END
 sub print_query_story_counts
 {
     my ( $db, $controversies_id ) = @_;
-    
+
     my ( $total_count ) = $db->query( <<END, $controversies_id )->flat;
 select count( distinct fsm.stories_id ) story_count
     from controversies c, query_story_searches qss, queries_media_sets_map qmsm, 
@@ -113,33 +113,33 @@ select count(*) story_count, ms.name media_set_name
 END
 
     say "Total Stories in Query: $total_count\n";
-    
+
     say "Story Counts for Each Media Set in Query:";
     for my $story_count ( @{ $story_counts } )
     {
-        say "\t$story_count->{ media_set_name }: $story_count->{ story_count }"
+        say "\t$story_count->{ media_set_name }: $story_count->{ story_count }";
     }
 
     say "";
-    
+
 }
 
 # description of the query
 sub print_query_info
 {
     my ( $db, $controversies_id ) = @_;
-    
+
     my $query_story_search = $db->query( <<END, $controversies_id )->hash;
 select qss.* from query_story_searches qss, controversies c
     where qss.query_story_searches_id = c.query_story_searches_id and c.controversies_id = ?
 END
 
     say "Search Pattern: [ $query_story_search->{ pattern } ]\n";
-    
+
     my $query = MediaWords::DBI::Queries::find_query_by_id( $db, $query_story_search->{ queries_id } );
-    
+
     say MediaWords::DBI::Queries::get_full_description( $query );
-    
+
 }
 
 # print stats about the overall query that the query_story_search was run on
@@ -157,11 +157,11 @@ of the subset of those media sources, feeds, and stories found to match the sear
 END
 
     print_query_info( $db, $controversies_id );
-    
+
     print_query_media_counts( $db, $controversies_id );
-    
+
     print_query_feed_counts( $db, $controversies_id );
-    
+
     # print_query_story_counts( $db, $controversies_id );
 }
 
@@ -169,13 +169,13 @@ END
 sub print_controversy_media
 {
     my ( $db, $controversies_id ) = @_;
-    
+
     my ( $total_count ) = $db->query( <<END, $controversies_id )->flat;
 select count( distinct s.media_id ) media_count from controversy_stories cs, stories s
     where cs.controversies_id = ? and cs.stories_id = s.stories_id
 END
     say "Total Media in Controversy: $total_count\n";
-    
+
     my ( $spider_count ) = $db->query( <<END, $controversies_id )->flat;
 select count( distinct s.media_id ) media_count 
     from controversy_stories cs, stories s, media_tags_map mtm, tags t, tag_sets ts
@@ -191,13 +191,13 @@ END
 sub print_controversy_stories
 {
     my ( $db, $controversies_id ) = @_;
-    
+
     my ( $total_count ) = $db->query( <<END, $controversies_id )->flat;
 select count( distinct s.stories_id ) media_count from controversy_stories cs, stories s
     where cs.controversies_id = ? and cs.stories_id = s.stories_id
 END
     say "Total Stories in Controversy: $total_count\n";
-    
+
     my ( $spider_count ) = $db->query( <<END, $controversies_id )->flat;
 select count( distinct cs.stories_id ) media_count 
     from controversy_stories cs, stories_tags_map stm, tags t, tag_sets ts
@@ -207,7 +207,7 @@ select count( distinct cs.stories_id ) media_count
 END
 
     say "Total Spidered Stories in Controversy: $spider_count\n";
-    
+
     my $media_set_counts = $db->query( <<END, $controversies_id )->hashes;
 select distinct count( * ) story_count, ms.name media_set_name
     from controversy_stories cs, stories s, media_sets_media_map msmm, media_sets ms
@@ -219,20 +219,20 @@ select distinct count( * ) story_count, ms.name media_set_name
 END
 
     say "Stories in Controversy by Media Set:\n";
-    
+
     for my $media_set_count ( @{ $media_set_counts } )
     {
         say "\t$media_set_count->{ media_set_name }: $media_set_count->{ story_count }";
     }
-    
+
     say "\n";
-    
+
     my ( $link_count ) = $db->query( <<END, $controversies_id )->flat;
 select count(*) from controversy_links_cross_media where controversies_id = ?
 END
 
     say "Total Cross Media Links in Controversy: $link_count\n";
-    
+
     my $iteration_counts = $db->query( <<END, $controversies_id )->hashes;
 select count(*) iteration_count, iteration from controversy_stories
     where controversies_id = ?
@@ -241,12 +241,11 @@ select count(*) iteration_count, iteration from controversy_stories
 END
 
     say "Story Counts by Iteration:";
-    for my $iteration_count ( @{ $iteration_counts} )
+    for my $iteration_count ( @{ $iteration_counts } )
     {
         say "\t$iteration_count->{ iteration }: $iteration_count->{ iteration_count }";
     }
     say "";
-
 
 }
 
@@ -254,37 +253,35 @@ END
 sub print_controversy_stats
 {
     my ( $db, $controversies_id ) = @_;
-    
+
     say <<END;
 Controversy Stats
 
 The following info describes the media sources, feed, stories, and links found within the controversy itself.
 END
-    
+
     print_controversy_media( $db, $controversies_id );
-    
+
     print_controversy_stories( $db, $controversies_id );
 }
 
-sub main 
+sub main
 {
     my ( $controversies_id );
 
-    Getopt::Long::GetOptions(
-        "controversy=s" => \$controversies_id,
-    ) || return;
+    Getopt::Long::GetOptions( "controversy=s" => \$controversies_id, ) || return;
 
     die( "usage: $0 --controversy < controversies_id >" ) unless ( $controversies_id );
-    
+
     my $db = MediaWords::DB::connect_to_db;
-    
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id ) || 
-        die( "Unable to find controversy '$controversies_id'" );
-        
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
+      || die( "Unable to find controversy '$controversies_id'" );
+
     say "Controversy Stats for $controversy->{ name }\n";
-    
+
     print_query_stats( $db, $controversies_id );
-    
+
     print_controversy_stats( $db, $controversies_id );
 
 }

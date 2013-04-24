@@ -819,7 +819,7 @@ sub add_to_controversy_stories_and_links_if_match
 
     return if ( story_is_controversy_story( $db, $controversy, $story ) );
 
-    if ( $link->{ assume_match } || story_matches_controversy_pattern( $db, $controversy, $story  ) )
+    if ( $link->{ assume_match } || story_matches_controversy_pattern( $db, $controversy, $story ) )
     {
         print STDERR "CONTROVERSY MATCH: $link->{ url }\n";
         add_to_controversy_stories_and_links( $db, $controversy, $story, $link->{ iteration } + 1 );
@@ -867,7 +867,7 @@ sub add_new_links
 
         $link->{ story } = $story;
 
-        add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link  );
+        add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
     }
 }
 
@@ -964,7 +964,7 @@ select s.* from stories s, media m
         
 END
         for my $source_story ( @{ $source_stories } )
-        {            
+        {
             next if ( medium_domain_matches_url( $db, $source_story, $target_story ) );
 
             add_to_controversy_stories( $db, $controversy, $source_story, 1, 1, 1 );
