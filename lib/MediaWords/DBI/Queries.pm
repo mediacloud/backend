@@ -43,13 +43,13 @@ sub _get_description
     }
     if ( @{ $media_sets } > 2 )
     {
-        $description =
+        $description .=
           "in one of " . @{ $media_sets } . " media sources including " .
           join( " and ", map { $_->{ name } } @{ $media_sets }[ 0 .. 1 ] );
     }
     else
     {
-        $description = "in " . join( " or ", map { $_->{ name } } @{ $media_sets } );
+        $description .= "in " . join( " or ", map { $_->{ name } } @{ $media_sets } );
     }
 
     if ( @{ $dashboard_topics } > 2 )
@@ -1503,6 +1503,36 @@ sub search_stories
     }
 
     return $stories;
+}
+
+# return the full description of the query, without the ellipses in the { decription } field as set by _get_description
+sub get_full_description
+{
+    my ( $query ) = @_;
+    
+    my $description;
+
+    my $dashboard        = $query->{ dashboard };
+    my $media_sets       = $query->{ media_sets };
+    my $dashboard_topics = $query->{ dashboard_topics };
+    my $start_date       = substr( $query->{ start_date }, 0, 12 );
+    my $end_date         = substr( $query->{ end_date }, 0, 12 ) if ( $query->{ end_date } );
+
+    if ( $dashboard )
+    {
+        $description = "Dashboard: $dashboard->{ name }\n";
+    }
+    
+    $description .= "Media Sets: " . join( " or ", map { $_->{ name } } @{ $media_sets } ) . "\n";
+
+    if ( @{ $dashboard_topics } )
+    { 
+        $description .= "Topics: " . join( " or ", map { $_->{ name } } @{ $dashboard_topics } ) . "\n";
+    }
+
+    $description .= "Dates: $start_date - $end_date\n";
+
+    return $description;
 }
 
 1;
