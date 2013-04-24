@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4406;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4407;
     
 BEGIN
 
@@ -1190,7 +1190,7 @@ create view story_similarities_transitive as
 create table controversies (
     controversies_id        serial primary key,
     name                    varchar(1024) not null,
-    query_story_searches_id int not null
+    query_story_searches_id int not null references query_story_searches
 );
 
 create unique index controversies_name on controversies( name );
@@ -1254,7 +1254,8 @@ create table controversy_seed_urls (
     url                             text,
     source                          text,
     stories_id                      int references stories on delete cascade,
-    processed                       boolean not null default false
+    processed                       boolean not null default false,
+    assume_match                    boolean not null default false
 );
 
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );

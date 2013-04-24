@@ -815,14 +815,16 @@ sub add_to_controversy_stories_and_links_if_match
 {
     my ( $db, $controversy, $story, $link ) = @_;
 
-    if (  !story_is_controversy_story( $db, $controversy, $story )
-        && story_matches_controversy_pattern( $db, $controversy, $story ) )
+    set_controversy_link_ref_story( $db, $story, $link ) if ( $link->{ controversy_links_id } );
+
+    return if ( story_is_controversy_story( $db, $controversy, $story ) );
+
+    if ( $link->{ assume_match } || story_matches_controversy_pattern( $db, $controversy, $story  ) )
     {
         print STDERR "CONTROVERSY MATCH: $link->{ url }\n";
         add_to_controversy_stories_and_links( $db, $controversy, $story, $link->{ iteration } + 1 );
     }
 
-    set_controversy_link_ref_story( $db, $story, $link ) if ( $link->{ controversy_links_id } );
 }
 
 # download any unmatched link in new_links, add it as a story, extract it, add any links to the controversy_links list.
@@ -865,7 +867,7 @@ sub add_new_links
 
         $link->{ story } = $story;
 
-        add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link );
+        add_to_controversy_stories_and_links_if_match( $db, $controversy, $story, $link  );
     }
 }
 
@@ -962,14 +964,8 @@ select s.* from stories s, media m
         
 END
         for my $source_story ( @{ $source_stories } )
-        {
-            say STDERR "$source_story->{ media_id } -> $target_story->{ url }";
-            say STDERR Dumper( $source_story );
-            say STDERR Dumper( $target_story );
-
+        {            
             next if ( medium_domain_matches_url( $db, $source_story, $target_story ) );
-
-            say STDERR "add";
 
             add_to_controversy_stories( $db, $controversy, $source_story, 1, 1, 1 );
             $db->create(
