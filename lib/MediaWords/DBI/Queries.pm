@@ -1509,7 +1509,7 @@ sub search_stories
 sub get_full_description
 {
     my ( $query ) = @_;
-    
+
     my $description;
 
     my $dashboard        = $query->{ dashboard };
@@ -1522,11 +1522,11 @@ sub get_full_description
     {
         $description = "Dashboard: $dashboard->{ name }\n";
     }
-    
+
     $description .= "Media Sets: " . join( " or ", map { $_->{ name } } @{ $media_sets } ) . "\n";
 
     if ( @{ $dashboard_topics } )
-    { 
+    {
         $description .= "Topics: " . join( " or ", map { $_->{ name } } @{ $dashboard_topics } ) . "\n";
     }
 
