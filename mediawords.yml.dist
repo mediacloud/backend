@@ -57,6 +57,10 @@ mail:
     ## media_sets_id of the media set to display on the Dashboard home page
     ##default_media_set: 1
 
+    ### HTTP user agent and the email address of the owner of the bot
+    #user_agent: "Mozilla/5.0 (Linux) MediaCloud/1.0"
+    #owner: "mediacloud@cyber.law.harvard.edu"
+
     #uncomment to enable storage of download in mongo/gridfs server defined above
     #download_storage_location: "gridfs"
 

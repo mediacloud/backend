@@ -71,6 +71,8 @@ sub set_defaults
     $config->{ mediawords }->{ script_dir }                       ||= "$_base_dir/script";
     $config->{ mediawords }->{ data_dir }                         ||= "$_base_dir/data";
     $config->{ mediawords }->{ language }                         ||= "en_US_and_ru_RU";
+    $config->{ mediawords }->{ user_agent }                       ||= "Mozilla/5.0 (Linux) MediaCloud/1.0";
+    $config->{ mediawords }->{ owner }                            ||= "mediacloud\@cyber.law.harvard.edu";
     $config->{ mediawords }->{ always_show_stack_traces }         ||= "no";
     $config->{ mediawords }->{ disable_json_top_500_words_cache } ||= "no";
     $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";

@@ -13,12 +13,11 @@ use LWP::UserAgent;
 use Storable;
 
 use MediaWords::Util::Paths;
+use MediaWords::Util::Config;
 
 use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
 use constant TIMEOUT           => 20;
 use constant MAX_REDIRECT      => 15;
-use constant BOT_FROM          => 'mediacloud@cyber.law.harvard.edu';
-use constant BOT_AGENT         => 'mediacloud bot (http://mediacloud.org)';
 
 # number of links to prefetch at a time for the cached downloads
 use constant LINK_CACHE_SIZE => 100;
@@ -34,8 +33,10 @@ sub UserAgent
 {
     my $ua = LWP::UserAgent->new();
 
-    $ua->from( BOT_FROM );
-    $ua->agent( BOT_AGENT );
+    my $config = MediaWords::Util::Config::get_config;
+
+    $ua->from( $config->{ mediawords }->{ owner } );
+    $ua->agent( $config->{ mediawords }->{ user_agent } );
 
     $ua->timeout( TIMEOUT );
     $ua->max_size( MAX_DOWNLOAD_SIZE );
