@@ -1259,6 +1259,7 @@ create table controversy_seed_urls (
 );
 
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
+create index controversy_seed_urls_url on controversy_seed_urls( url );
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,

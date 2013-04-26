@@ -23,6 +23,8 @@ ALTER TABLE controversies
 
 ALTER TABLE controversy_seed_urls
 	ADD COLUMN assume_match boolean not null DEFAULT false;
+	
+CREATE INDEX controversy_seed_urls_url ON controversy_seed_urls (url);
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE

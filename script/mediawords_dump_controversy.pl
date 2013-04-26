@@ -10,6 +10,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Carp;
 use Color::Mix;
 use Data::Dumper;
 use Date::Format;
@@ -158,7 +159,7 @@ sub write_link_counts
         "select count(distinct cl.stories_id) link_count, ref_stories_id " .
           "  from controversy_links_cross_media cl, stories s, stories r " .
           "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
-          "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+          "    ( s.publish_date between '$start_date'::timestamp and '$end_date'::timestamp - interval '1 second' ) and " .
           "    s.publish_date > r.publish_date - interval '1 day' and " .
           "    controversies_id = $controversy->{ controversies_id } " . "  group by ref_stories_id" );
 
@@ -166,7 +167,7 @@ sub write_link_counts
         "select count(distinct cl.ref_stories_id) outlink_count, cl.stories_id " .
           "  from controversy_links_cross_media cl, stories s, stories r " .
           "  where cl.stories_id = s.stories_id and cl.ref_stories_id = r.stories_id and " .
-          "    ( s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and " .
+          "    ( s.publish_date between '$start_date'::timestamp and '$end_date'::timestamp - interval '1 second' ) and " .
 "    cl.controversies_id = $controversy->{ controversies_id } and s.publish_date > r.publish_date - interval '1 day' "
           . "  group by cl.stories_id" );
 }
@@ -212,7 +213,7 @@ select distinct s.stories_id, s.title, s.url, s.publish_date,
         ( s.stories_id in ( 
             ( select cl.source_stories_id from controversy_links_dump_${ dump_version } cl ) union
             ( select cl.ref_stories_id from controversy_links_dump_${ dump_version } cl ) ) 
-          or s.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' )
+          or s.publish_date between '$start_date'::timestamp and '$end_date'::timestamp - interval '1 second' )
 	order by s.publish_date;
 END
 }
@@ -228,7 +229,7 @@ select distinct cl.stories_id source_stories_id, ss.title source_title, ss.url s
 		rm.media_id ref_media_id
 	from controversy_links_cross_media cl, stories ss, media sm, stories rs, media rm
 	where cl.stories_id = ss.stories_id and ss.media_id = sm.media_id and cl.ref_stories_id = rs.stories_id and rs.media_id = rm.media_id and 
-	  ( ss.publish_date between '$start_date' and '$end_date'::timestamp - interval '1 second' ) and
+	  ( ss.publish_date between '$start_date'::timestamp and '$end_date'::timestamp - interval '1 second' ) and
       ss.publish_date > rs.publish_date - interval '1 day' and
 	  cl.controversies_id = $controversy->{ controversies_id }
 END
@@ -445,7 +446,9 @@ sub replace_table_contents
 
     print STDERR "writing ${ table }_${ version } ...\n";
 
-    $db->query( "create temporary table ${ table }_${ version } as $query" );
+    eval { $db->query( "create temporary table ${ table }_${ version } as $query" ) };
+    
+    croak( $@ ) if ( $@ );
 }
 
 sub attach_stories_to_media
@@ -1076,6 +1079,8 @@ select q.start_date, q.end_date from queries q, query_story_searches qss
 END
 
     die( "Unable to find default dates" ) unless ( $start_date && $end_date );
+    
+    return ( $start_date, $end_date );
 
 }
 

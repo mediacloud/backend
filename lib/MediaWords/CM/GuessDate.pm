@@ -7,7 +7,7 @@ use strict;
 
 use DateTime;
 use Date::Parse;
-use HTML::TreeBuilder::XPath;
+use HTML::TreeBuilder::LibXML;
 
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
@@ -292,12 +292,12 @@ sub make_epoch_date
     return $epoch;
 }
 
-# get HTML::TreeBuilder::XPath object representing the html
+# get HTML::TreeBuilder::LibXML object representing the html
 sub get_xpath
 {
     my ( $html ) = @_;
 
-    my $xpath = HTML::TreeBuilder::XPath->new;
+    my $xpath = HTML::TreeBuilder::LibXML->new;
     $xpath->ignore_unknown( 0 );
     $xpath->parse_content( $html );
 
