@@ -104,7 +104,7 @@ sub get_next_page_url
     say STDERR "Starting get_next_page_url";
 
     # blogs and forums almost never have paging but often have 'next' story / thread links
-    if ( $base_url =~ /blog|forum|discuss/ )
+    if ( $base_url =~ /blog|forum|discuss|wordpress|livejournal/ )
     {
         return;
     }

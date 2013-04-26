@@ -167,8 +167,6 @@ sub get_extracted_html_from_db
 
     my $download = $db->query( 'SELECT * from downloads where downloads_id = ? ', $download_text->{ downloads_id } )->hash;
 
-    die unless $download;
-
     my $lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
 
     return get_extracted_html( $lines, $extracted_line_numbers );

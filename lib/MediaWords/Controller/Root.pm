@@ -59,6 +59,19 @@ sub default : Private
     $c->response->redirect( $c->uri_for( $default_home_page ) );
 }
 
+sub begin : Private
+{
+    my ( $self, $c ) = @_;
+
+    my $locale = $c->request->param( 'locale' );
+
+    $c->response->headers->push_header( 'Vary' => 'Accept-Language' );    # hmm vary and param?
+    $c->languages( $locale ? [ $locale ] : undef );
+
+    #switch to english if locale param is not explicitly specified.
+    $c->languages( $locale ? [ $locale ] : [ 'en' ] );
+}
+
 =head2 end
 
 Attempt to render a view, if needed.

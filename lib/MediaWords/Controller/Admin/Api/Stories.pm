@@ -2,11 +2,15 @@ package MediaWords::Controller::Admin::Api::Stories;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
+use Moose;
+use namespace::autoclean;
+
+BEGIN { extends 'Catalyst::Controller::REST' }
+
 use MediaWords::DBI::StorySubsets;
 
 use strict;
 use warnings;
-use base 'Catalyst::Controller';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
@@ -14,27 +18,9 @@ use namespace::autoclean;
 use List::Compare;
 use Carp;
 
-=head1 NAME
-
-MediaWords::Controller::Stories - Catalyst Controller
-
-=head1 DESCRIPTION
-
-Catalyst Controller.
-
-=head1 METHODS
-
-=cut
-
-=head2 index 
-
-=cut
-
-BEGIN { extends 'Catalyst::Controller::REST' }
+__PACKAGE__->config( 'default' => 'application/json' );
 
 use constant ROWS_PER_PAGE => 20;
-
-use MediaWords::Tagger;
 
 # list of stories with the given feed id
 sub list : Local
@@ -404,7 +390,24 @@ sub subset : Local : ActionClass('REST')
 sub subset_PUT : Local
 {
     my ( $self, $c ) = @_;
-    my $subset = $c->req->data;
+
+    my $subset;
+
+    if ( $c->req->data )
+    {
+        $subset //= $c->req->data->{ media_id };
+    }
+
+    if ( !defined( $subset ) )
+    {
+        my $json_data = $c->req->param( 'data' );
+
+        $subset = decode_json( $json_data );
+
+        #die "Got json data " . Dumper ( $subset );
+    }
+
+    die "No data " unless defined( $subset );
 
     my $story_subset = $c->dbis->create( 'story_subsets', $subset );
 

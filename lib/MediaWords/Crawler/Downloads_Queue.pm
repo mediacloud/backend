@@ -107,6 +107,13 @@ sub _queue_download
 
     $_downloads->{ $media_id }->{ queued } ||= $self->_get_media_download_queue( $media_id );
     $_downloads->{ $media_id }->{ time }   ||= 0;
+    $_downloads->{ $media_id }->{ map }    ||= {};
+
+    my $map = $_downloads->{ $media_id }->{ map };
+
+    return if ( $map->{ $download->{ downloads_id } } );
+
+    $map->{ $download->{ downloads_id } } = 1;
 
     my $pending = $_downloads->{ $media_id }->{ queued };
 
@@ -137,6 +144,7 @@ sub _pop_download
 
     if ( $download )
     {
+        $_downloads->{ $media_id }->{ map }->{ $download->{ downloads_id } } = 0;
         $_downloads_count--;
     }
 
