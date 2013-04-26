@@ -627,12 +627,12 @@ sub add_to_controversy_stories
     my ( $db, $controversy, $story, $iteration, $link_mined, $valid_foreign_rss_story ) = @_;
 
     $db->query(
-        "insert into controversy_stories ( controversies_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story ) " .
-          "  values ( ?, ?, ?, ?, ?, ? )",
+"insert into controversy_stories ( controversies_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story ) "
+          . "  values ( ?, ?, ?, ?, ?, ? )",
         $controversy->{ controversies_id },
         $story->{ stories_id },
-        $iteration, $story->{ url }, $link_mined, 
-        $valid_foreign_rss_story
+        $iteration, $story->{ url },
+        $link_mined, $valid_foreign_rss_story
     );
 }
 
@@ -881,14 +881,14 @@ sub add_new_links
     }
 }
 
-# build a lookup table of aliases for a url based on url and redirect_url fields in the 
+# build a lookup table of aliases for a url based on url and redirect_url fields in the
 # controversy_links
 sub get_url_alias_lookup
 {
     my ( $db ) = @_;
-    
+
     my $lookup;
-    
+
     my $url_pairs = $db->query( <<END )->hashes;
 select distinct url, redirect_url from 
     ( ( select url, redirect_url from controversy_links where url <> redirect_url ) union
@@ -905,17 +905,17 @@ END
         $lookup->{ $url_pair->{ url } }->{ $url_pair->{ redirect_url } } = 1;
         $lookup->{ $url_pair->{ redirect_url } }->{ $url_pair->{ url } } = 1;
     }
-    
+
     # traverse the network gathering indirect aliases
     my $lookups_updated = 1;
     while ( $lookups_updated )
     {
         $lookups_updated = 0;
-        while ( my ( $url, $aliases ) = each ( %{ $lookup } ) )
+        while ( my ( $url, $aliases ) = each( %{ $lookup } ) )
         {
             for my $alias_url ( keys( %{ $aliases } ) )
             {
-                if ( !$lookup->{ $alias_url }->{ $url }  )
+                if ( !$lookup->{ $alias_url }->{ $url } )
                 {
                     $lookups_updated = 1;
                     $lookup->{ $alias_url }->{ $url } = 1;
@@ -923,13 +923,13 @@ END
             }
         }
     }
-    
+
     my $url_alias_lookup = {};
-    while ( my ( $url, $aliases ) = each ( %{ $lookup } ) )
+    while ( my ( $url, $aliases ) = each( %{ $lookup } ) )
     {
         $url_alias_lookup->{ $url } = [ keys( %{ $aliases } ) ];
     }
-    
+
     return $url_alias_lookup;
 }
 
@@ -937,13 +937,13 @@ END
 sub medium_domain_matches_url
 {
     my ( $db, $source_story, $target_story ) = @_;
-    
+
     my $source_medium = $db->query( "select url from media where media_id = ?", $source_story->{ media_id } )->hash;
-    
+
     my $domain = MediaWords::DBI::Media::get_medium_domain( $source_medium );
-    
-    return 1 if ( index( lc( $target_story->{ url } ), lc( $domain  ) ) >= 0 );
-    
+
+    return 1 if ( index( lc( $target_story->{ url } ), lc( $domain ) ) >= 0 );
+
     return 0;
 }
 
@@ -952,8 +952,8 @@ sub medium_domain_matches_url
 sub add_outgoing_foreign_rss_links
 {
     my ( $db, $controversy ) = @_;
-    
-    # I can't get postgres to generate a plan that recognizes that 
+
+    # I can't get postgres to generate a plan that recognizes that
     # these aggregator url matches are pretty rare, so it's quicker
     # to do the url lookups in perl
     my $target_stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
@@ -976,16 +976,16 @@ END
         for my $source_story ( @{ $source_stories } )
         {
             next if ( medium_domain_matches_url( $db, $source_story, $target_story ) );
-            
+
             add_to_controversy_stories( $db, $controversy, $source_story, 1, 1, 1 );
             $db->create(
                 "controversy_links",
                 {
-                    stories_id          => $source_story->{ stories_id },
-                    url                 => encode( 'utf8', $target_story->{ url } ),
-                    controversies_id    => $controversy->{ controversies_id },
-                    ref_stories_id      => $target_story->{ stories_id },
-                    link_spidered       => 1,
+                    stories_id       => $source_story->{ stories_id },
+                    url              => encode( 'utf8', $target_story->{ url } ),
+                    controversies_id => $controversy->{ controversies_id },
+                    ref_stories_id   => $target_story->{ stories_id },
+                    link_spidered    => 1,
                 }
             );
         }
@@ -1281,7 +1281,7 @@ sub merge_foreign_rss_story
     my $medium_domain = MediaWords::DBI::Media::get_medium_domain( $medium );
 
     # for stories in ycombinator.com, allow stories with a http://yombinator.com/.* url
-    return if ( index( lc( $story->{ url } ), lc( $medium_domain  ) ) >= 0 );
+    return if ( index( lc( $story->{ url } ), lc( $medium_domain ) ) >= 0 );
 
     my $link = { url => $story->{ url } };
 
@@ -1512,7 +1512,7 @@ sub main
 
     print STDERR "running spider ...\n";
     run_spider( $db, $controversy, NUM_SPIDER_ITERATIONS );
-    
+
     print STDERR "adding outgoing foreign rss links ...\n";
     add_outgoing_foreign_rss_links( $db, $controversy );
 

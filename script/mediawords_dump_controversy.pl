@@ -447,7 +447,7 @@ sub replace_table_contents
     print STDERR "writing ${ table }_${ version } ...\n";
 
     eval { $db->query( "create temporary table ${ table }_${ version } as $query" ) };
-    
+
     croak( $@ ) if ( $@ );
 }
 
@@ -1079,7 +1079,7 @@ select q.start_date, q.end_date from queries q, query_story_searches qss
 END
 
     die( "Unable to find default dates" ) unless ( $start_date && $end_date );
-    
+
     return ( $start_date, $end_date );
 
 }
