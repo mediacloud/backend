@@ -78,6 +78,7 @@ __PACKAGE__->setup;
 # (https://metacpan.org/module/Catalyst::Plugin::Authorization::ACL)
 sub setup_acl()
 {
+
     # Admin read-only interface
     my @acl_admin_readonly = qw|
       /admin/api/stories/all_processed

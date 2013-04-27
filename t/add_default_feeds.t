@@ -50,7 +50,7 @@ BEGIN { use_ok 'Feed::Scrape' }
 sub add_feed_types
 {
     my ( $list ) = @_;
-    
+
     map { $_->{ feed_type } = 'syndicated' } @{ $list };
 }
 
@@ -86,7 +86,7 @@ EOF
             'name' => 'Atom 0.3'
         }
     ];
-    
+
     add_feed_types( $expected_result );
 
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
@@ -307,7 +307,7 @@ EOF
             'name' => 'Dagbladet STIL'
         }
     ];
-    
+
     add_feed_types( $expected_result );
 
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Dagbladet.se test' );
