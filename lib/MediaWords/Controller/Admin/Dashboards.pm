@@ -1,4 +1,4 @@
-package MediaWords::Controller::Dashboards;
+package MediaWords::Controller::Admin::Dashboards;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -31,7 +31,7 @@ sub create : Local
         {
             load_config_file => $c->path_to() . '/root/forms/dashboard.yml',
             method           => 'post',
-            action           => $c->uri_for( '/dashboards/create' ),
+            action           => $c->uri_for( '/admin/dashboards/create' ),
         }
     );
 
@@ -46,7 +46,7 @@ sub create : Local
 
     $c->dbis->create_from_request( 'dashboards', $c->request, [ qw/name start_date end_date/ ] );
 
-    $c->response->redirect( $c->uri_for( '/dashboards/list', { status_msg => 'Dashboard created.' } ) );
+    $c->response->redirect( $c->uri_for( '/admin/dashboards/list', { status_msg => 'Dashboard created.' } ) );
 }
 
 # list all topics for the dashboard
@@ -76,7 +76,7 @@ sub create_topic : Local
         {
             load_config_file => $c->path_to() . '/root/forms/dashboard_topic.yml',
             method           => 'post',
-            action           => $c->uri_for( "/dashboards/create_topic/$dashboards_id" ),
+            action           => $c->uri_for( "/admin/dashboards/create_topic/$dashboards_id" ),
         }
     );
 
@@ -113,7 +113,8 @@ sub create_topic : Local
         $dashboards_id
     );
 
-    $c->response->redirect( $c->uri_for( "/dashboards/list_topics/$dashboards_id", { status_msg => 'Topic created.' } ) );
+    $c->response->redirect(
+        $c->uri_for( "/admin/dashboards/list_topics/$dashboards_id", { status_msg => 'Topic created.' } ) );
 }
 
 1;

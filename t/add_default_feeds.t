@@ -46,6 +46,14 @@ EOF
 
 BEGIN { use_ok 'Feed::Scrape' }
 
+# add 'syndicated' feed_type field to all hashes in list
+sub add_feed_types
+{
+    my ( $list ) = @_;
+    
+    map { $_->{ feed_type } = 'syndicated' } @{ $list };
+}
+
 # Basic RSS feed URL scraping
 sub test_basic()
 {
@@ -78,6 +86,8 @@ EOF
             'name' => 'Atom 0.3'
         }
     ];
+    
+    add_feed_types( $expected_result );
 
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
 }
@@ -109,6 +119,8 @@ EOF
             'name' => 'Atom 1.0'
         }
     ];
+
+    add_feed_types( $expected_result );
 
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
 }
@@ -146,6 +158,8 @@ EOF
         }
     ];
 
+    add_feed_types( $expected_result );
+
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
 }
 
@@ -181,6 +195,8 @@ EOF
             'name' => 'Basic test (no titles)'
         }
     ];
+
+    add_feed_types( $expected_result );
 
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test (no RSS titles)' );
 }
@@ -291,6 +307,8 @@ EOF
             'name' => 'Dagbladet STIL'
         }
     ];
+    
+    add_feed_types( $expected_result );
 
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Dagbladet.se test' );
 }
@@ -442,6 +460,8 @@ EOF
         }
     ];
 
+    add_feed_types( $expected_result );
+
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'GP.se test' );
 }
 
@@ -553,6 +573,8 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
+    add_feed_types( $expected_links );
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
 
     kill 9, $pid;
@@ -633,6 +655,8 @@ EOF
     my $medium = { url => $test_url_1 };
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    add_feed_types( $expected_links );
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
@@ -725,6 +749,8 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    add_feed_types( $expected_links );
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate,
         'test_rss_immediate_redirect_via_html_meta_refresh need_to_moderate' );
@@ -812,6 +838,8 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
+    add_feed_types( $expected_links );
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
 
     kill 9, $pid;
@@ -881,6 +909,8 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
+    add_feed_types( $expected_links );
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
 
     kill 9, $pid;
@@ -949,6 +979,8 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
+    add_feed_types( $expected_links );
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
 
     kill 9, $pid;
@@ -1005,6 +1037,8 @@ EOF
     my $medium = { url => TEST_HTTP_SERVER_URL };
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    add_feed_types( $expected_links );
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
@@ -1070,6 +1104,8 @@ EOF
     ];
     my $expected_need_to_moderate = 1;
     my $expected_existing_urls    = [];
+
+    add_feed_types( $expected_links );
 
     my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
     my $db     = MediaWords::DB::connect_to_db();
@@ -1161,6 +1197,9 @@ EOF
             'name' => 'Example.com'
         },
     ];
+
+    add_feed_types( $expected_links );
+
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 
@@ -1228,6 +1267,9 @@ EOF
             'name' => 'Sample RSS feed'
         },
     ];
+
+    add_feed_types( $expected_links );
+
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 

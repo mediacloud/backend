@@ -1,4 +1,4 @@
-package MediaWords::Controller::Downloads;
+package MediaWords::Controller::Admin::Downloads;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -72,7 +72,7 @@ sub list : Local
 
     $c->stash->{ downloads } = $downloads;
     $c->stash->{ pager }     = $pager;
-    $c->stash->{ pager_url } = $c->uri_for( '/downloads/list', { f => $feeds_id, m => $media_id, e => $error } );
+    $c->stash->{ pager_url } = $c->uri_for( '/admin/downloads/list', { f => $feeds_id, m => $media_id, e => $error } );
     $c->stash->{ template }  = 'downloads/list.tt2';
 }
 
@@ -82,7 +82,7 @@ sub view : Local
 
     if ( !$downloads_id )
     {
-        $c->response->redirect( $c->uri_for( '/downloads/list', { error_msg => 'no download specified' } ) );
+        $c->response->redirect( $c->uri_for( '/admin/downloads/list', { error_msg => 'no download specified' } ) );
         return;
     }
 
@@ -125,7 +125,7 @@ sub view_extracted : Local
 
     if ( !$downloads_id )
     {
-        $c->response->redirect( $c->uri_for( '/downloads/list', { error_msg => 'no download specified' } ) );
+        $c->response->redirect( $c->uri_for( '/admin/downloads/list', { error_msg => 'no download specified' } ) );
         return;
     }
 
@@ -221,7 +221,7 @@ sub mextract_random : Local
 
     my $downloads_id = $self->get_random_download( $c );
 
-    $c->response->redirect( $c->uri_for( '/downloads/mextract/' . $downloads_id->{ downloads_id } ) );
+    $c->response->redirect( $c->uri_for( '/admin/downloads/mextract/' . $downloads_id->{ downloads_id } ) );
 }
 
 sub redownload : Local
@@ -428,7 +428,7 @@ sub mextract_do : Local
         $params->{ dashboards_id } = $dashboards_id;
     }
 
-    $c->response->redirect( $c->uri_for( '/downloads/mextract/' . $downloads_id, $params ) );
+    $c->response->redirect( $c->uri_for( '/admin/downloads/mextract/' . $downloads_id, $params ) );
 }
 
 sub keepMextractFlashSettings
@@ -452,7 +452,7 @@ sub changeMextractSetting
 
     $self->keepMextractFlashSettings( $c );
 
-    $c->response->redirect( $c->uri_for( '/downloads/mextract/' . $downloads_id ) );
+    $c->response->redirect( $c->uri_for( '/admin/downloads/mextract/' . $downloads_id ) );
 }
 
 # store the results of the manual extraction and forward to another extraction form

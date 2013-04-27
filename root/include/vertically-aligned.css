@@ -34,7 +34,8 @@ fieldset .select,
 fieldset .submit,
 fieldset .text,
 fieldset .number,
-fieldset .textarea
+fieldset .textarea,
+fieldset .recaptcha
 {
     display: block;
     border: 0;
@@ -56,9 +57,11 @@ fieldset .select.label,
 fieldset .submit.label,
 fieldset .text.label,
 fieldset .number.label,
-fieldset .textarea.label
+fieldset .textarea.label,
+fieldset .recaptcha.label
 {
     margin-left: 1px;
+    clear: both;
 }
 
 fieldset .error.label {
@@ -116,7 +119,8 @@ fieldset .radiogroup label,
 fieldset .select label,
 fieldset .text label,
 fieldset .number label,
-fieldset .textarea label
+fieldset .textarea label,
+fieldset .recaptcha label
 {
     display: inline;
     float: left;
@@ -240,4 +244,10 @@ fieldset .dojoeditor2 .RichTextEditable { /* Dojo::Editor2 */
     float: left;
     background-color: #ffc;
     padding-bottom: 0.1em;
+}
+
+/* reCAPTCHA span + iframe */
+fieldset .recaptcha span.elements {
+    display: inline-block;
+    clear: right;
 }

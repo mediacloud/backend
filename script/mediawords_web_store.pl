@@ -25,7 +25,7 @@ use Storable;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
-use constant NUM_PARALLEL => 10;
+use constant NUM_PARALLEL => 1;
 
 # timeout any given request after this many seconds
 use constant TIMEOUT => 90;

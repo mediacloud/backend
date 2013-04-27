@@ -29,7 +29,7 @@ sub _get_description
 {
     my ( $query ) = @_;
 
-    my $description;
+    my $description = '';
 
     my $dashboard        = $query->{ dashboard };
     my $media_sets       = $query->{ media_sets };
@@ -39,7 +39,7 @@ sub _get_description
 
     if ( $dashboard )
     {
-        $description = "in the $dashboard->{ name } Dashboard";
+        $description .= "in the " . $dashboard->{ name } . " Dashboard";
     }
     if ( @{ $media_sets } > 2 )
     {

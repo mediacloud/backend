@@ -1,4 +1,4 @@
-package MediaWords::Controller::Api::Stories;
+package MediaWords::Controller::Admin::Api::Stories;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -57,7 +57,7 @@ sub list : Local
 
     $c->stash->{ stories }   = $stories;
     $c->stash->{ pager }     = $pager;
-    $c->stash->{ pager_url } = $c->uri_for( "/stories/list/$feeds_id" ) . '?';
+    $c->stash->{ pager_url } = $c->uri_for( "/admin/stories/list/$feeds_id" ) . '?';
 
     $c->stash->{ template } = 'stories/list.tt2';
 }
@@ -160,7 +160,8 @@ sub delete : Local
             $status_msg = 'Tag \'' . $tag->{ tag } . '\' deleted from this story.';
         }
 
-        $c->response->redirect( $c->uri_for( '/stories/view/' . $story->{ stories_id }, { status_msg => $status_msg } ) );
+        $c->response->redirect(
+            $c->uri_for( '/admin/stories/view/' . $story->{ stories_id }, { status_msg => $status_msg } ) );
     }
 }
 
@@ -223,7 +224,7 @@ sub add_do : Local
 
     $c->response->redirect(
         $c->uri_for(
-            '/stories/add/' . $story->{ stories_id },
+            '/admin/stories/add/' . $story->{ stories_id },
             { status_msg => 'Tag \'' . $added_tag->{ tag } . '\' added.' }
         )
     );

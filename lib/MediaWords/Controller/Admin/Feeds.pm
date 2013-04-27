@@ -1,4 +1,4 @@
-package MediaWords::Controller::Feeds;
+package MediaWords::Controller::Admin::Feeds;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -113,7 +113,7 @@ sub create : Local
 
     $media_id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( '/feeds/create_do/' . $media_id ) );
+    my $form = $self->make_edit_form( $c, $c->uri_for( '/admin/feeds/create_do/' . $media_id ) );
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
@@ -129,7 +129,7 @@ sub create_do : Local
 
     $media_id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( '/feeds/create_do/' . $media_id ) );
+    my $form = $self->make_edit_form( $c, $c->uri_for( '/admin/feeds/create_do/' . $media_id ) );
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
@@ -147,12 +147,16 @@ sub create_do : Local
     if ( !$medium->{ moderated } )
     {
         $c->response->redirect(
-            $c->uri_for( '/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => 'Feed added.' } ) );
+            $c->uri_for( '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => 'Feed added.' } ) );
     }
     else
     {
         $c->response->redirect(
-            $c->uri_for( '/feeds/edit_tags/' . $feed->{ feeds_id }, { status_msg => 'Feed added.  Choose tags below.' } ) );
+            $c->uri_for(
+                '/admin/feeds/edit_tags/' . $feed->{ feeds_id },
+                { status_msg => 'Feed added.  Choose tags below.' }
+            )
+        );
     }
 }
 
@@ -187,7 +191,7 @@ sub make_scrape_form
         {
             load_config_file => $c->path_to() . '/root/forms/scrape_feeds.yml',
             method           => 'post',
-            action           => $c->uri_for( '/feeds/scrape/' . $medium->{ media_id } )
+            action           => $c->uri_for( '/admin/feeds/scrape/' . $medium->{ media_id } )
         }
     );
 
@@ -275,7 +279,7 @@ sub scrape_import : Local
         $self->add_default_scraped_tags( $c, $feed );
     }
 
-    $c->response->redirect( $c->uri_for( '/feeds/list/' . $media_id, { status_msg => 'Feeds imported.' } ) );
+    $c->response->redirect( $c->uri_for( '/admin/feeds/list/' . $media_id, { status_msg => 'Feeds imported.' } ) );
 }
 
 sub edit : Local
@@ -284,7 +288,7 @@ sub edit : Local
 
     $feeds_id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( "/feeds/edit_do/$feeds_id" ) );
+    my $form = $self->make_edit_form( $c, $c->uri_for( "/admin/feeds/edit_do/$feeds_id" ) );
 
     my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
     $feed->{ medium } = $c->dbis->find_by_id( 'media', $feed->{ media_id } );
@@ -302,7 +306,7 @@ sub edit_do : Local
 {
     my ( $self, $c, $feeds_id ) = @_;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( "/feeds/edit_do/$feeds_id" ) );
+    my $form = $self->make_edit_form( $c, $c->uri_for( "/admin/feeds/edit_do/$feeds_id" ) );
 
     my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
 
@@ -311,7 +315,8 @@ sub edit_do : Local
 
         $c->dbis->update_by_id( 'feeds', $feeds_id, $form->params );
 
-        $c->response->redirect( $c->uri_for( "/feeds/list/" . $feed->{ media_id }, { status_msg => 'Feed updated.' } ) );
+        $c->response->redirect(
+            $c->uri_for( "/admin/feeds/list/" . $feed->{ media_id }, { status_msg => 'Feed updated.' } ) );
     }
     else
     {
@@ -343,7 +348,7 @@ sub delete : Local
     if ( $marked_for_deletion )
     {
         $status_msg = 'Feed already marked for deletion.';
-        $c->response->redirect( $c->uri_for( "/feeds/list/" . $medium->{ media_id }, { status_msg => $status_msg } ) );
+        $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $medium->{ media_id }, { status_msg => $status_msg } ) );
     }
     elsif ( !defined( $confirm ) )
     {
@@ -372,7 +377,7 @@ sub delete : Local
             $status_msg = 'Feed marked for deletion.';
         }
 
-        $c->response->redirect( $c->uri_for( "/feeds/list/" . $medium->{ media_id }, { status_msg => $status_msg } ) );
+        $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $medium->{ media_id }, { status_msg => $status_msg } ) );
     }
 }
 
@@ -393,7 +398,7 @@ sub edit_tags : Local
 
     my $medium = $c->dbis->find_by_id( 'media', $feed->{ media_id } );
 
-    my $action = $c->uri_for( '/feeds/edit_tags_do/' . $feeds_id );
+    my $action = $c->uri_for( '/admin/feeds/edit_tags_do/' . $feeds_id );
 
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
@@ -417,7 +422,7 @@ sub edit_tags_do : Local
         die( "Unable to find feed $feeds_id" );
     }
 
-    my $action = $c->uri_for( '/feeds/edit_tags_do/' ) . $feeds_id;
+    my $action = $c->uri_for( '/admin/feeds/edit_tags_do/' ) . $feeds_id;
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
     if ( !$form->submitted_and_valid )
@@ -427,7 +432,7 @@ sub edit_tags_do : Local
 
     MediaWords::Util::Tags->save_tags( $c, $feeds_id, 'feeds' );
 
-    $c->response->redirect( $c->uri_for( "/feeds/list/" . $feed->{ media_id }, { status_msg => 'Tags updated.' } ) );
+    $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $feed->{ media_id }, { status_msg => 'Tags updated.' } ) );
 }
 
 # accept a list of feed urls and create feeds from them
@@ -498,7 +503,7 @@ sub batch_create_do : Local
         $status_msg = 'All feeds were created successfully.';
     }
 
-    $c->response->redirect( $c->uri_for( "/feeds/list/$media_id", { status_msg => $status_msg } ) );
+    $c->response->redirect( $c->uri_for( "/admin/feeds/list/$media_id", { status_msg => $status_msg } ) );
 }
 
 =head1 AUTHOR

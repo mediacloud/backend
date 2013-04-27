@@ -1,4 +1,4 @@
-package MediaWords::Controller::Media;
+package MediaWords::Controller::Admin::Media;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -128,7 +128,7 @@ sub create_do : Local
         $status_msg = "All media sources were added successfully.";
     }
 
-    $c->response->redirect( $c->uri_for( '/media/list', { status_msg => $status_msg } ) );
+    $c->response->redirect( $c->uri_for( '/admin/media/list', { status_msg => $status_msg } ) );
 }
 
 sub edit : Local
@@ -137,7 +137,7 @@ sub edit : Local
 
     $id += 0;
 
-    my $form = $self->_make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
+    my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
 
     my $medium = $c->dbis->find_by_id( 'media', $id );
 
@@ -154,7 +154,7 @@ sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
 
-    my $form = $self->_make_edit_form( $c, $c->uri_for( "/media/edit_do/$id" ) );
+    my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
     my $medium = $c->dbis->find_by_id( 'media', $id );
 
     if ( !$form->submitted_and_valid )
@@ -170,12 +170,15 @@ sub edit_do : Local
         if ( $medium->{ moderated } )
         {
             $c->response->redirect(
-                $c->uri_for( '/feeds/list/' . $medium->{ media_id }, { status_msg => 'Media source updated.' } ) );
+                $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => 'Media source updated.' } ) );
         }
         else
         {
             $c->response->redirect(
-                $c->uri_for( '/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => 'Media source updated.' } )
+                $c->uri_for(
+                    '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
+                    { status_msg => 'Media source updated.' }
+                )
             );
         }
     }
@@ -198,7 +201,7 @@ sub delete : Local
     if ( $marked_for_deletion )
     {
         $status_msg = 'Medium already marked for deletion.';
-        $c->response->redirect( $c->uri_for( "/media/list", { status_msg => $status_msg } ) );
+        $c->response->redirect( $c->uri_for( "/admin/media/list", { status_msg => $status_msg } ) );
     }
     elsif ( !defined( $confirm ) )
     {
@@ -223,12 +226,12 @@ sub delete : Local
 
         if ( $medium->{ moderated } )
         {
-            $c->response->redirect( $c->uri_for( '/media/list', { status_msg => $status_msg } ) );
+            $c->response->redirect( $c->uri_for( '/admin/media/list', { status_msg => $status_msg } ) );
         }
         else
         {
             $c->response->redirect(
-                $c->uri_for( '/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
+                $c->uri_for( '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
         }
     }
 }
@@ -383,7 +386,7 @@ sub search : Local
 
     $c->stash->{ media }     = $media;
     $c->stash->{ pager }     = $pager;
-    $c->stash->{ pager_url } = $c->uri_for( '/media/search', { q => $q, m => \@m, f => $f } );
+    $c->stash->{ pager_url } = $c->uri_for( '/admin/media/search', { q => $q, m => \@m, f => $f } );
 
     $c->stash->{ q }        = $q;
     $c->stash->{ form }     = $form;
@@ -412,7 +415,7 @@ sub edit_tags : Local
         die( "Unable to find medium $media_id" );
     }
 
-    my $action = $c->uri_for( '/media/edit_tags_do/' . $media_id );
+    my $action = $c->uri_for( '/admin/media/edit_tags_do/' . $media_id );
 
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
 
@@ -436,7 +439,7 @@ sub edit_tags_do : Local
         die( "Unable to find medium $media_id" );
     }
 
-    my $action = $c->uri_for( '/media/edit_tags_do/' ) . $media_id;
+    my $action = $c->uri_for( '/admin/media/edit_tags_do/' ) . $media_id;
     my $form = MediaWords::Util::Tags->make_edit_tags_form( $c, $action, $media_id, 'media' );
 
     if ( !$form->submitted_and_valid )
@@ -446,7 +449,7 @@ sub edit_tags_do : Local
 
     MediaWords::Util::Tags->save_tags( $c, $media_id, 'media' );
 
-    $c->response->redirect( $c->uri_for( "/feeds/list/" . $media_id, { status_msg => 'Tags updated.' } ) );
+    $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $media_id, { status_msg => 'Tags updated.' } ) );
 }
 
 # delete all feeds belonging to this media source
@@ -460,7 +463,7 @@ sub delete_feeds : Local
     {
         my $error = "You can only delete the feeds of media sources that have not yet been moderated";
         $c->response->redirect(
-            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
+            $c->uri_for( "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
         return;
     }
 
@@ -484,7 +487,7 @@ sub delete_feeds : Local
         }
 
         $c->response->redirect(
-            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
+            $c->uri_for( "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
     }
 }
 
@@ -501,7 +504,7 @@ sub delete_unmoderated_feed : Local
     {
         my $error = "You can only delete the feeds of media sources that have not yet been moderated";
         $c->response->redirect(
-            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
+            $c->uri_for( "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
         return;
     }
 
@@ -510,7 +513,7 @@ sub delete_unmoderated_feed : Local
     MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $feed->{ feeds_id } );
     my $status_msg = 'Media source feed deleted.';
     $c->response->redirect(
-        $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
+        $c->uri_for( "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
 }
 
 # keep only the one feed for the medium
@@ -526,7 +529,7 @@ sub keep_single_feed : Local
     {
         my $error = "You can only delete the feeds of media sources that have not yet been moderated";
         $c->response->redirect(
-            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
+            $c->uri_for( "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $error } ) );
         return;
     }
 
@@ -542,12 +545,12 @@ END
 
     if ( $c->req->param( 'approve' ) )
     {
-        $c->response->redirect( $c->uri_for( "/media/moderate/$medium->{ media_id }", { approve => 1 } ) );
+        $c->response->redirect( $c->uri_for( "/admin/media/moderate/$medium->{ media_id }", { approve => 1 } ) );
     }
     else
     {
         $c->response->redirect(
-            $c->uri_for( "/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
+            $c->uri_for( "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ), { status_msg => $status_msg } ) );
     }
 }
 
@@ -581,7 +584,7 @@ sub merge : Local
 
         $c->dbis->delete_by_id( 'media', $medium_a->{ media_id } );
 
-        $c->response->redirect( $c->uri_for( '/media/moderate/' . $medium_a->{ media_id } ) );
+        $c->response->redirect( $c->uri_for( '/admin/media/moderate/' . $medium_a->{ media_id } ) );
     }
     else
     {
@@ -665,7 +668,7 @@ sub do_find_likely_full_text_rss : Local
 
     #say STDERR $status_msg;
 
-    $c->response->redirect( $c->uri_for( '/media/find_likely_full_text_rss/', { status_msg => $status_msg } ) );
+    $c->response->redirect( $c->uri_for( '/admin/media/find_likely_full_text_rss/', { status_msg => $status_msg } ) );
 }
 
 sub _get_likely_rss_full_text_media_list
@@ -719,7 +722,7 @@ sub find_likely_full_text_rss : Local
 
     $c->stash->{ media } = $media;
 
-    $c->stash->{ pager_url } = $c->uri_for( '/media/search', { q => $q, m => \@m, f => $f } );
+    $c->stash->{ pager_url } = $c->uri_for( '/admin/media/search', { q => $q, m => \@m, f => $f } );
 
     $c->stash->{ q } = $q;
 
@@ -765,7 +768,7 @@ sub eval_rss_full_text : Local
 
     #say STDERR Dumper( $medium );
 
-    my $action = $c->uri_for( '/media/do_eval_rss_full_text/' ) . $id;
+    my $action = $c->uri_for( '/admin/media/do_eval_rss_full_text/' ) . $id;
 
     my $recent_stories = $c->dbis->query(
         "select stories.* from stories natural join downloads natural join download_texts " .
@@ -818,7 +821,8 @@ sub do_eval_rss_full_text : Local
 
     #say STDERR $status_msg;
 
-    $c->response->redirect( $c->uri_for( '/media/eval_rss_full_text/' . $next_media_id, { status_msg => $status_msg } ) );
+    $c->response->redirect(
+        $c->uri_for( '/admin/media/eval_rss_full_text/' . $next_media_id, { status_msg => $status_msg } ) );
 }
 
 =head1 AUTHOR

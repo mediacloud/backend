@@ -1,4 +1,4 @@
-package MediaWords::Controller::Stats_static;
+package MediaWords::Controller::Admin::Stats_static;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 

@@ -18,7 +18,7 @@
 SET search_path = public, pg_catalog;
 
 ALTER TABLE weekly_words
-	ALTER COLUMN weekly_words_id TYPE bigint /* TYPE change - table: weekly_words original: serial          primary key new: bigserial          primary key */;
+	ALTER COLUMN weekly_words_id TYPE bigserial          primary key /* TYPE change - table: weekly_words original: serial          primary key new: bigserial          primary key */;
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE

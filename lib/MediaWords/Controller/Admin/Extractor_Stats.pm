@@ -1,4 +1,4 @@
-package MediaWords::Controller::Extractor_Stats;
+package MediaWords::Controller::Admin::Extractor_Stats;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 

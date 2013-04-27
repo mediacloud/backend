@@ -11,7 +11,7 @@
 	dataString = $("#form").serialize();
 	var chart_element = $('#line_chart');
 
-	annotatedTimeLineChart( chart_element, '[% c.uri_for('/monitor/crawler_google_data_table') %]', dataString );
+	annotatedTimeLineChart( chart_element, '[% c.uri_for('/admin/monitor/crawler_google_data_table') %]', dataString );
 
 	return false;
     }

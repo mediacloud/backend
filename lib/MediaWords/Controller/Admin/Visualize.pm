@@ -1,4 +1,4 @@
-package MediaWords::Controller::Visualize;
+package MediaWords::Controller::Admin::Visualize;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 

@@ -27,12 +27,15 @@ use Catalyst qw/
   ConfigLoader
   ConfigDefaults
   Static::Simple
-  Session
-  Session::Store::FastMmap
-  Session::State::Cookie
   Unicode
   StackTrace
   I18N
+  Authentication
+  Authorization::Roles
+  Authorization::ACL
+  Session
+  Session::Store::FastMmap
+  Session::State::Cookie
   /;
 
 our $VERSION = '0.01';
@@ -51,20 +54,238 @@ use HTML::FormFu::Unicode;
 
 my $config = __PACKAGE__->config( -name => 'MediaWords' );
 
+# Configure authentication scheme
+__PACKAGE__->config(
+    'Plugin::Authentication' => {
+        default_realm => 'users',
+        users         => {
+            credential => {
+                class              => 'Password',
+                password_field     => 'password',
+                password_type      => 'salted_hash',
+                password_hash_type => 'SHA-256',
+                password_salt_len  => 64
+            },
+            store => { class => 'MediaWords' }
+        }
+    }
+);
+
 # Start the application
 __PACKAGE__->setup;
 
-sub begin : Private
+# Access rules; created on the "disallow everything but explicitly allow this" basis
+# (https://metacpan.org/module/Catalyst::Plugin::Authorization::ACL)
+sub setup_acl()
 {
-    my ( $self, $c ) = @_;
+    # Admin read-only interface
+    my @acl_admin_readonly = qw|
+      /admin/api/stories/all_processed
+      /admin/api/stories/all_processed_GET
+      /admin/api/stories/list
+      /admin/api/stories/retag
+      /admin/api/stories/stories_query
+      /admin/api/stories/stories_query_GET
+      /admin/api/stories/subset
+      /admin/api/stories/subset_GET
+      /admin/api/stories/subset_processed
+      /admin/api/stories/subset_processed_GET
+      /admin/api/stories/tag
+      /admin/api/stories/view
+      /admin/clusters/index
+      /admin/clusters/view
+      /admin/clusters/view_time_slice_map
+      /admin/dashboards/list
+      /admin/dashboards/list_topics
+      /admin/downloads/list
+      /admin/downloads/view
+      /admin/downloads/view_extracted
+      /admin/feeds/list
+      /admin/media/do_eval_rss_full_text
+      /admin/media/do_find_likely_full_text_rss
+      /admin/media/eval_rss_full_text
+      /admin/media/find_likely_full_text_rss
+      /admin/media/list
+      /admin/media/media_tags_search_json
+      /admin/media/search
+      /admin/mediasets/list
+      /admin/monitor/crawler_google_data_table
+      /admin/monitor/index
+      /admin/monitor/view
+      /admin/queries/compare
+      /admin/queries/index
+      /admin/queries/list
+      /admin/queries/sentences
+      /admin/queries/stories
+      /admin/queries/terms
+      /admin/queries/view
+      /admin/queries/view_media
+      /admin/stats/index
+      /admin/stats/media_tag_counts
+      /admin/stories/list
+      /admin/stories/retag
+      /admin/stories/stories_query_json
+      /admin/stories/tag
+      /admin/stories/view
+      /admin/topics/index
+      /admin/topics/list
+      /admin/users/list
+      /admin/visualize
+      |;
 
-    my $locale = $c->request->param( 'locale' );
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/admin-readonly/ ] );
+    }
 
-    $c->response->headers->push_header( 'Vary' => 'Accept-Language' );    # hmm vary and param?
-    $c->languages( $locale ? [ $locale ] : undef );
+    # query-create role; can do everything admin-readonly can + create queries, dashboards,
+    # dashboard topics, media sets
+    my @acl_query_create = qw|
+      /admin/clusters/create
+      /admin/clusters/create_cluster_map
+      /admin/clusters/create_polar_map
+      /admin/dashboards/create
+      /admin/dashboards/create_topic
+      /admin/mediasets/create
+      /admin/mediasets/edit_cluster_run
+      /admin/mediasets/edit_cluster_run_do
+      /admin/queries/create
+      /admin/topics/create_do
+      |;
 
-    #switch to english if locale param is not explicitly specified.
-    $c->languages( $locale ? [ $locale ] : [ 'en' ] );
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
+    }
+    foreach my $path ( @acl_query_create )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
+    }
+
+    # media-edit role; can do everything admin-readonly can + add / edit media / feeds
+    my @acl_media_edit = qw|
+      /admin/downloads/disable_autoexclude
+      /admin/downloads/disable_translation
+      /admin/downloads/enable_autoexclude
+      /admin/downloads/enable_translation
+      /admin/downloads/mextract
+      /admin/downloads/mextract_do
+      /admin/downloads/mextract_random
+      /admin/downloads/redownload
+      /admin/downloads/useDeveloperUI
+      /admin/downloads/useTrainerUI
+      /admin/extractor_stats/index
+      /admin/extractor_stats/list
+      /admin/feeds/batch_create
+      /admin/feeds/batch_create_do
+      /admin/feeds/create
+      /admin/feeds/create_do
+      /admin/feeds/delete
+      /admin/feeds/edit
+      /admin/feeds/edit_do
+      /admin/feeds/edit_tags
+      /admin/feeds/edit_tags_do
+      /admin/feeds/scrape
+      /admin/feeds/scrape_import
+      /admin/media/create_batch
+      /admin/media/create_do
+      /admin/media/delete
+      /admin/media/delete_feeds
+      /admin/media/delete_unmoderated_feed
+      /admin/media/edit
+      /admin/media/edit_do
+      /admin/media/edit_tags
+      /admin/media/edit_tags_do
+      /admin/media/keep_single_feed
+      /admin/media/merge
+      /admin/media/moderate
+      /admin/mediasets/create
+      /admin/mediasets/edit_cluster_run
+      /admin/mediasets/edit_cluster_run_do
+      |;
+
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit/ ] );
+    }
+    foreach my $path ( @acl_media_edit )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit/ ] );
+    }
+
+    # stories-edit role; can do everything admin-readonly can + add / edit stories
+    my @acl_stories_edit = qw|
+      /admin/api/stories/add
+      /admin/api/stories/add_do
+      /admin/api/stories/delete
+      /admin/api/stories/subset_PUT
+      /admin/stories/add
+      /admin/stories/add_do
+      /admin/stories/delete
+      |;
+
+    foreach my $path ( @acl_admin_readonly )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit/ ] );
+    }
+    foreach my $path ( @acl_stories_edit )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit/ ] );
+    }
+
+    # ---
+
+    # All roles can access their profile
+    __PACKAGE__->allow_access_if_any(
+        "/admin/profile",
+        [
+            qw/
+              admin
+              admin-readonly
+              query-create
+              media-edit
+              stories-edit
+              /
+        ]
+    );
+
+    # Blanket rule for the rest of the administration controllers
+    __PACKAGE__->deny_access_unless_any( "/admin", [ qw/admin/ ] );
+
+    # Public interface
+    __PACKAGE__->allow_access( "/dashboard" );
+    __PACKAGE__->allow_access( "/login" );
+    __PACKAGE__->allow_access( "/logout" );
+}
+
+setup_acl();
+
+# Checks if current user can visit a specified action
+# (similar to can_visit() from Catalyst::ActionRole::ACL)
+sub acl_user_can_visit
+{
+    my ( $self, $path ) = @_;
+
+    my $action = $self->dispatcher->get_action_by_path( $path );
+
+    if (    Scalar::Util::blessed( $action )
+        and $action->name ne "access_denied"
+        and $action->name ne "ACL error rethrower" )
+    {
+        eval { $self->_acl_engine->check_action_rules( $self, $action ) };
+
+        if ( my $err = $@ )
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    # Fallback
+    return 0;
 }
 
 sub uri_for
@@ -94,6 +315,31 @@ sub create_form
     my $ret = HTML::FormFu::Unicode->new( $args );
 
     return $ret;
+}
+
+# Redirect unauthenticated users to login page
+sub acl_access_denied
+{
+    my ( $c, $class, $action, $err ) = @_;
+
+    if ( $c->user_exists )
+    {
+        $c->log->debug( 'User has been found, is not allowed to access page /' . $action );
+
+        # Show the "unauthorized" message
+        $c->res->body( 'You are not allowed to access page /' . $action );
+        $c->res->status( 403 );
+    }
+    else
+    {
+        $c->log->debug( 'User not found, forwarding to /login' );
+
+        # Redirect the user to the login page
+        $c->response->redirect( $c->uri_for( '/login' ) );
+    }
+
+    # Continue denying access
+    return 0;
 }
 
 # shortcut to dbis model

@@ -18,27 +18,36 @@ This form will only queue up a job to do the search in the background, since the
 
 <table>
 
-<tr>
-<th>Pattern</th>
-<th>Job Status</th>
-<th>Stories CSV</th>
-</tr>
+    <tr>
+        <th>Pattern</th>
+        <th>Job Status</th>
+        <th>Stories CSV</th>
+    </tr>
 
-[% FOREACH search IN searches -%]
+    [% FOREACH search IN searches -%]
 
-<tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]id="even"[% END %]>
 
-<td>[% search.pattern | html %]</td>
-[% IF search.search_completed %]
-<td>completed</td><td><a href='[% c.uri_for( "/queries/story_search_csv/" _ search.query_story_searches_id ) %]'>csv</a></td>
-[% ELSE %]
-<td>processing</td><td>not available yet</td>
-[% END %]
+        <td>[% search.pattern | html %]</td>
+        [% IF search.search_completed %]
+            <td>completed</td>
+            <td>
+                [% IF c.acl_user_can_visit('/admin/queries/story_search_csv') %]
+                    <a href='[% c.uri_for( "/admin/queries/story_search_csv/" _ search.query_story_searches_id ) %]'>csv</a>
+                [% ELSE -%]
+                    csv
+                [% END -%]
+            </td>
+        [% ELSE %]
+            <td>processing</td>
+            <td>not available yet</td>
+        [% END %]
 
-</tr>
+    </tr>
 
-[%  SET even = !even %]
-[% END #FOREACH search IN searches -%]
+    [%  SET even = !even %]
+
+    [% END #FOREACH search IN searches -%]
 
 </table>
 

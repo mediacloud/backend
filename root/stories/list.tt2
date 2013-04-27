@@ -3,28 +3,37 @@
 
 <table>
 
-<tr>
-<th>title</th>
-<th>url</th>
-<th>date published</th>
-</tr>
+    <tr>
+        <th>title</th>
+        <th>url</th>
+        <th>date published</th>
+    </tr>
 
-[% FOREACH story IN stories -%]
+    [% FOREACH story IN stories -%]
 
-<tr [% IF even %]id="even"[% END %]>
+        <tr [% IF even %]id="even"[% END %]>
 
-<td><a href="[% c.uri_for('/stories/view/') _ story.stories_id %]">[% story.title | html %]</a></td>
+            <td>
+                [% IF c.acl_user_can_visit('/admin/stories/view') %]
+                    <a href="[% c.uri_for('/admin/stories/view/') _ story.stories_id %]">[% story.title | html %]</a>
+                [% ELSE %]
+                    [% story.title | html %]
+                [% END -%]
+            </td>
 
-<td><a href="[% story.url %]">view&nbsp;live</a></td>
+            <td>
+                <a href="[% story.url %]">view&nbsp;live</a>
+            </td>
 
-<td>[% story.publish_date %]</td>
+            <td>[% story.publish_date %]</td>
 
-</tr>
+        </tr>
 
-[%  SET even = !even %]
-[% END # FOREACH stories -%]
+        [%  SET even = !even %]
 
-[% INCLUDE include/pager.tt2 %]
+    [% END # FOREACH stories -%]
+
+    [% INCLUDE include/pager.tt2 %]
 
 </table>
 

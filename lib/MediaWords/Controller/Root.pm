@@ -26,20 +26,19 @@ MediaWords::Controller::Root - Root Controller for MediaWords
 
 =cut
 
-=head2 default
-
+=head2 auto
+ 
+Check if there is a user and, if not, forward to login page
+ 
 =cut
 
 sub default : Private
 {
     my ( $self, $c ) = @_;
 
-    # Hello World
-    my $config = MediaWords::Util::Config::get_config;
-
+    # Redirect to default homepage
+    my $config            = MediaWords::Util::Config::get_config;
     my $default_home_page = $config->{ mediawords }->{ default_home_page };
-
-    $default_home_page //= 'media/list';
     $c->response->redirect( $c->uri_for( $default_home_page ) );
 }
 

@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4407;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4408;
     
 BEGIN
 
@@ -712,11 +712,6 @@ CREATE INDEX file_status_downloads_time_new_format ON downloads USING btree (fil
 
 CREATE INDEX relative_file_paths_new_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (relative_file_path ~~ 'mediacloud-%'::text));
 
-CREATE INDEX relative_file_paths_old_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (NOT (relative_file_path ~~ 'mediacloud-%'::text)));
-
-
-
-
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
 create view downloads_non_media as select d.* from downloads d where d.feeds_id is null;
@@ -1022,7 +1017,6 @@ create schema stories_tags_map_media_sub_tables;
 create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
 
-
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
 CREATE TABLE daily_country_counts (
@@ -1311,6 +1305,12 @@ CREATE TABLE queries_top_weekly_words_json (
    top_weekly_words_json text not null 
 );
 
+CREATE TABLE feedless_stories (
+        stories_id integer,
+        media_id integer
+);
+CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
+
 CREATE TABLE queries_country_counts_json (
    queries_country_counts_json_id serial primary key,
    queries_id integer references queries on delete cascade not null unique,
@@ -1550,7 +1550,6 @@ $$
 LANGUAGE 'plpgsql'
 ;
 
-
 CREATE FUNCTION cat(text, text) RETURNS text
     LANGUAGE plpgsql
     AS $_$
@@ -1569,3 +1568,54 @@ return pg_cancel_backend(cancel_pid);
 END;
 $$;
 
+--
+-- Authentication
+--
+
+-- List of users
+CREATE TABLE auth_users (
+    users_id        SERIAL  PRIMARY KEY,
+    email           TEXT    UNIQUE NOT NULL,
+
+    -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
+    password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
+
+    full_name       TEXT    NOT NULL,
+    notes           TEXT    NULL,
+    active          BOOLEAN NOT NULL DEFAULT true,
+
+    -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
+    -- salt_len=>64) or NULL
+    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
+
+    -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
+    -- attempts in order to prevent brute-force attacks
+    last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch'
+);
+
+-- List of roles the users can perform
+CREATE TABLE auth_roles (
+    roles_id        SERIAL  PRIMARY KEY,
+    role            TEXT    UNIQUE NOT NULL CONSTRAINT role_name_can_not_contain_spaces CHECK(role NOT LIKE '% %'),
+    description     TEXT    NOT NULL
+);
+
+-- Map of user IDs and roles that are allowed to each of the user
+CREATE TABLE auth_users_roles_map (
+    auth_users_roles_map    SERIAL      PRIMARY KEY,
+    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    CONSTRAINT no_duplicate_entries UNIQUE (users_id, roles_id)
+);
+CREATE INDEX auth_users_roles_map_users_id_roles_id
+    ON auth_users_roles_map (users_id, roles_id);
+
+-- Roles
+INSERT INTO auth_roles (role, description) VALUES
+    ('admin', 'Do everything, including editing users.'),
+    ('admin-readonly', 'Read access to admin interface.'),
+    ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
+    ('media-edit', 'Add / edit media; includes feeds.'),
+    ('stories-edit', 'Add / edit stories.');

@@ -49,7 +49,7 @@ Fill out the fields as follows:
 
 name: mydash
 Start Date : 2008-01-01
-End Date: 2020-01-01
+End Date: 2014-01-01
 
 Hit Create
 

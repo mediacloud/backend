@@ -1,4 +1,4 @@
-package MediaWords::Controller::ComingSoon;
+package MediaWords::Controller::Admin::ComingSoon;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -10,13 +10,12 @@ use parent 'Catalyst::Controller::HTML::FormFu';
 
 use HTML::TagCloud;
 use List::Util;
-use Net::SMTP;
 use Number::Format qw(:subs);
 use URI::Escape;
 use List::Util qw (max min maxstr minstr reduce sum);
 use List::MoreUtils qw/:all/;
 
-use MediaWords::Controller::Visualize;
+use MediaWords::Controller::Admin::Visualize;
 use MediaWords::Util::Chart;
 use MediaWords::Util::Config;
 use MediaWords::Util::Countries;
