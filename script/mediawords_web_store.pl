@@ -117,15 +117,15 @@ sub main
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $num_parallel = $config->{ mediawords }->{ web_store_num_parallel } || DEFAULT_NUM_PARALLEL;
-    my $timeout = $config->{ mediawords }->{ web_store_timeout } || DEFAULT_TIMEOUT;
+    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel }       || DEFAULT_NUM_PARALLEL;
+    my $timeout            = $config->{ mediawords }->{ web_store_timeout }            || DEFAULT_TIMEOUT;
     my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout } || DEFAULT_PER_DOMAIN_TIMEOUT;
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 
     my $ua = MediaWords::Util::Web::UserAgent();
 
-    my $requests   = get_scheduled_requests( $requests, $per_domain_timeout );
+    my $requests = get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;
 
     my $i     = 0;

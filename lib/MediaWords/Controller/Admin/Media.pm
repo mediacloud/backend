@@ -176,7 +176,6 @@ sub edit_do : Local
         $c->dbis->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edits', $form->params->{ reason },
             $c->user->username );
 
-
         if ( $medium->{ moderated } )
         {
             $c->response->redirect(
