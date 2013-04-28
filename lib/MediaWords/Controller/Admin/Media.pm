@@ -167,6 +167,16 @@ sub edit_do : Local
     {
         $c->dbis->update_by_id( 'media', $id, $form->params );
 
+        # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
+        my $form_params = { %{ $form->params } };    # shallow copy to make editable
+        $form_params->{ full_text_rss }     = 0 unless $form_params->{ full_text_rss };
+        $form_params->{ foreign_rss_links } = 0 unless $form_params->{ foreign_rss_links };
+
+        # Make a logged update
+        $c->dbis->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edits', $form->params->{ reason },
+            $c->user->username );
+
+
         if ( $medium->{ moderated } )
         {
             $c->response->redirect(

@@ -7151,6 +7151,55 @@
          "target" : "Crypt::DES",
          "version" : "2.05"
       },
+      "Crypt::SaltedHash" : {
+         "dist" : "Crypt-SaltedHash-0.05",
+         "mymeta" : {
+            "abstract" : "Perl interface to functions that assist in working\nwith salted hashes.",
+            "author" : [
+               "Sascha Kiefer, L<esskar@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Crypt-SaltedHash",
+            "prereqs" : {
+               "runtime" : {
+                  "requires" : {
+                     "Digest" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "Crypt::SaltedHash" : {
+                  "file" : "lib/Crypt/SaltedHash.pm",
+                  "version" : "0.05"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.05"
+         },
+         "name" : "Crypt::SaltedHash",
+         "pathname" : "E/ES/ESSKAR/Crypt-SaltedHash-0.05.tar.gz",
+         "provides" : {
+            "Crypt::SaltedHash" : {
+               "file" : "Crypt/SaltedHash.pm",
+               "version" : "0.05"
+            }
+         },
+         "target" : "Crypt::SaltedHash",
+         "version" : "0.05"
+      },
       "Crypt::SSLeay" : {
          "dist" : "Crypt-SSLeay-0.64",
          "mymeta" : {
@@ -17856,6 +17905,7 @@
                "runtime" : {
                   "requires" : {
                      "Mail::Address" : 0,
+                     "Net::DNS" : 0,
                      "Scalar::Util" : 0,
                      "Test::More" : 0,
                      "perl" : "5.006"
@@ -17880,6 +17930,59 @@
          },
          "target" : "Email::Valid",
          "version" : "0.190"
+      },
+      "Domain::PublicSuffix" : {
+         "dist" : "Domain-PublicSuffix-0.07",
+         "mymeta" : {
+            "abstract" : "Parse a domain down to root",
+            "author" : [
+               "Nicholas Melnick <nick@abstractwankery.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Dist::Zilla version 4.300020, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Domain-PublicSuffix",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {}
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "6.30"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Class::Accessor::Fast" : 0,
+                     "Data::Validate::Domain" : 0,
+                     "File::Spec" : 0,
+                     "Test::More" : "0.88"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.07"
+         },
+         "name" : "Domain::PublicSuffix",
+         "pathname" : "N/NM/NMELNICK/Domain-PublicSuffix-0.07.tar.gz",
+         "provides" : {
+            "Domain::PublicSuffix" : {
+               "file" : "Domain/PublicSuffix.pm",
+               "version" : "0.07"
+            },
+            "Domain::PublicSuffix::Default" : {
+               "file" : "Domain/PublicSuffix/Default.pm",
+               "version" : "0.07"
+            }
+         },
+         "target" : "Domain::PublicSuffix",
+         "version" : "0.07"
       },
       "Encode::HanConvert" : {
          "dist" : "Encode-HanConvert-0.35",
@@ -18759,7 +18862,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MY.pm"
+               "file" : "ExtUtils/MakeMaker.pm"
             }
          },
          "target" : "ExtUtils::MakeMaker",
@@ -21686,7 +21789,7 @@
                "Gisle Aas <gisle@ActiveState.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -41708,7 +41811,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -43530,14 +43633,14 @@
          "version" : "20111103"
       },
       "Variable::Magic" : {
-         "dist" : "Variable-Magic-0.47",
+         "dist" : "Variable-Magic-0.52",
          "mymeta" : {
             "abstract" : "Associate user-defined magic to variables from Perl.",
             "author" : [
                "Vincent Pit <perl@profvince.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.59, CPAN::Meta::Converter version 2.112621, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.6302, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -43555,7 +43658,13 @@
             "prereqs" : {
                "build" : {
                   "requires" : {
-                     "ExtUtils::MakeMaker" : 0
+                     "Carp" : 0,
+                     "Config" : 0,
+                     "Exporter" : 0,
+                     "ExtUtils::MakeMaker" : 0,
+                     "Test::More" : 0,
+                     "XSLoader" : 0,
+                     "base" : 0
                   }
                },
                "configure" : {
@@ -43587,18 +43696,18 @@
                   "url" : "http://git.profvince.com/?p=perl%2Fmodules%2FVariable-Magic.git"
                }
             },
-            "version" : "0.47"
+            "version" : "0.52"
          },
          "name" : "Variable::Magic",
-         "pathname" : "V/VP/VPIT/Variable-Magic-0.47.tar.gz",
+         "pathname" : "V/VP/VPIT/Variable-Magic-0.52.tar.gz",
          "provides" : {
             "Variable::Magic" : {
                "file" : "Variable/Magic.pm",
-               "version" : "0.47"
+               "version" : "0.52"
             }
          },
          "target" : "Variable::Magic",
-         "version" : "0.47"
+         "version" : "0.52"
       },
       "WWW::Mechanize" : {
          "dist" : "WWW-Mechanize-1.71",
@@ -43933,7 +44042,7 @@
                "Andrew Main (Zefram) <zefram@fysh.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],

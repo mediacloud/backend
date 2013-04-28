@@ -17,10 +17,10 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-mongodb_gridfs:
-    - host      : "localhost" 
-      port      : "27017" 
-      database  : "mediacloud_downloads_gridfs"
+#mongodb_gridfs:
+#    - host      : "localhost" 
+#      port      : "27017" 
+#      database  : "mediacloud_downloads_gridfs"
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
@@ -129,4 +129,9 @@ mongodb_gridfs:
     
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
+    
+    # settings for mediawords_web_store.pl script that does in process parallel fetching
+    # web_store_num_parallel: 10
+    # web_store_timeout: 90
+    # web_store_per_domain_timeout: 1
 
