@@ -722,7 +722,8 @@ sub _get_dashboard_consistent_data
             $dashboard->{ dashboards_id }
         )->hashes;
 
-        my $dashboard_topics = $c->dbis->query( "select * from dashboard_topics where dashboards_id = ? order by name asc",
+        my $dashboard_topics = $c->dbis->query(
+            "select * from dashboard_topics where dashboards_id = ? and vectors_added = 'true' order by name asc",
             $dashboard->{ dashboards_id } )->hashes;
 
         MediaWords::Util::Tags::assign_tag_names( $c->dbis, $collection_media_sets );

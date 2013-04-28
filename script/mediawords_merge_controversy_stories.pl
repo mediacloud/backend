@@ -33,7 +33,7 @@ sub merge_dup_story
 # find all cases of stories with the same title and the same media id and merge them
 sub merge_duplicate_stories
 {
-    my ( $db, $stories ) = @_;
+    my ( $db, $stories, $controversy ) = @_;
 
     # lookup of stories to skip b/c they have already been merged
     my $merged_stories_map = {};
@@ -46,10 +46,11 @@ sub merge_duplicate_stories
 
         my $dup_stories = $db->query(
             "select distinct s.* from stories s, controversy_stories cs where cs.stories_id = s.stories_id and " .
-              "    s.media_id = ? and s.title = ? and s.stories_id <> ?",
+              "    s.media_id = ? and s.title = ? and s.stories_id <> ? and cs.controversies_id = ?",
             $story->{ media_id },
             $story->{ title },
-            $story->{ stories_id }
+            $story->{ stories_id },
+            $controversy->{ controversies_id }
         )->hashes;
         for my $dup_story ( @{ $dup_stories } )
         {
@@ -77,15 +78,15 @@ sub merge_duplicate_stories
 
 sub main
 {
-    my ( $controversy_name ) = @ARGV;
+    my ( $controversies_id ) = @ARGV;
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $controversy = $db->query( "select * from controversies where name = ?", $controversy_name )->hash
-      || die( "Unable to find controversy '$controversy_name'" );
+    my $controversy = $db->query( "select * from controversies where controversies_id = ?", $controversies_id )->hash
+      || die( "Unable to find controversy '$controversies_id'" );
 
     my $stories = $db->query(
         "select * from stories s, controversy_stories cs " .

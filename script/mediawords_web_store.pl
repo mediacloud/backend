@@ -25,13 +25,13 @@ use Storable;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
-use constant NUM_PARALLEL => 10;
+use constant NUM_PARALLEL => 1;
 
 # timeout any given request after this many seconds
 use constant TIMEOUT => 90;
 
 # number of seconds to wait before sending a new request to a given domain
-use constant PER_DOMAIN_TIMEOUT => 3;
+use constant PER_DOMAIN_TIMEOUT => 1;
 
 sub get_request_domain
 {
@@ -49,6 +49,10 @@ sub get_request_domain
     if ( $host =~ /\.co.uk$/ )
     {
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+    }
+    elsif ( $host =~ /blogspot.com|livejournal.com|wordpress.com/ )
+    {
+        $domain = $request->{ url };
     }
     else
     {

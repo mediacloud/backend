@@ -28,6 +28,7 @@ sub get_tags
     #TODO switch back to LWP::UserAgent::Determined if its install gets fixed
     #my $ua = LWP::UserAgent::Determined->new();
     my $ua = LWP::UserAgent->new();
+    $ua->env_proxy;
 
     my $key = MediaWords::Util::Config::get_config->{ mediawords }->{ yahoo_key };
 

@@ -1,6 +1,6 @@
 create table processed_stories (
-    processed_stories_id        serial          primary key,
-    stories_id                  int             not null references stories on delete cascade
+    processed_stories_id        bigserial          primary key,
+    stories_id                  bigint             not null references stories on delete cascade
 );
 
 
