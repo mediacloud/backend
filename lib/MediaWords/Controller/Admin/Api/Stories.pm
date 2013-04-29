@@ -224,7 +224,7 @@ sub add_do : Local
 
     $c->response->redirect(
         $c->uri_for(
-            '/admin/stories/add/' . $story->{ stories_id },
+            '/admin/stories/add_tag/' . $story->{ stories_id },
             { status_msg => 'Tag \'' . $added_tag->{ tag } . '\' added.' }
         )
     );

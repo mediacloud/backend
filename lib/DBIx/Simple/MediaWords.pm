@@ -339,15 +339,13 @@ sub update_by_id($$$$)
 
 # update the row in the table with the given id
 # and make note of the changes that were made
-sub update_by_id_and_log($$$$$$$$)
+sub update_by_id_and_log($$$$$$$$;$$)
 {
-    my ( $self, $table, $id, $old_hash, $new_hash, $log_table_name, $log_reason, $username ) = @_;
+    my ( $self, $table, $id, $old_hash, $new_hash, $log_table_name, $log_reason, $username, $additional_column_name,
+        $additional_column_value )
+      = @_;
 
     delete( $new_hash->{ reason } );
-
-    # say STDERR "Will log the change to table: $log_table_name";
-    # say STDERR "Reason: $log_reason";
-    # say STDERR "Existing media: " . Dumper($old_hash);
 
     # Find out which fields were changed
     my @changes;
@@ -410,32 +408,68 @@ EOF
     }
 
     # Update succeeded, write the change log
-    foreach my $change ( @changes )
+    unless (
+        $self->log_changes(
+            $log_table_name, $log_reason, $username, \@changes, $additional_column_name, $additional_column_value
+        )
+      )
     {
-        eval {
-            $r = $self->query(
-                <<"EOF",
-                INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email)
-                VALUES (?, ?, ?, ?, ?)
-EOF
-                $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username
-            );
-        };
-        if ( $@ )
-        {
 
-            # Writing one of the changes failed
-            $self->dbh->rollback;
-            die $@;
-
-        }
-
+        # Writing one of the changes failed
+        $self->dbh->rollback;
+        die "Writing one of the changes failed.\n";
     }
 
     # Things went fine at this point, commit
     $self->dbh->commit;
 
     return $r;
+}
+
+# Log table changes
+sub log_changes($$$$$;$$)
+{
+    my ( $self, $log_table_name, $log_reason, $username, $changes, $additional_column_name, $additional_column_value ) = @_;
+
+    my $r = 0;
+
+    # Update succeeded, write the change log
+    foreach my $change ( @{ $changes } )
+    {
+        eval {
+            if ( $additional_column_name )
+            {
+                $r = $self->query(
+                    <<"EOF",
+                    INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email, $additional_column_name)
+                    VALUES (?, ?, ?, ?, ?, ?)
+EOF
+                    $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username,
+                    $additional_column_value
+                );
+            }
+            else
+            {
+                $r = $self->query(
+                    <<"EOF",
+                    INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email)
+                    VALUES (?, ?, ?, ?, ?)
+EOF
+                    $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username
+                );
+            }
+        };
+        if ( $@ )
+        {
+
+            # Writing one of the changes failed
+            return 0;
+
+        }
+
+    }
+
+    return 1;
 }
 
 # delete the row in the table with the given id

@@ -7,6 +7,9 @@ use warnings;
 use base 'Catalyst::Controller';
 use JSON;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use URI;
+use URI::Escape;
+use URI::QueryParam;
 
 =head1 NAME
 
@@ -131,15 +134,103 @@ sub view : Local
     $c->stash->{ template } = 'stories/view.tt2';
 }
 
+# edit a single story
+sub edit : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    $stories_id += 0;
+
+    if ( !$stories_id )
+    {
+        die "no stories id";
+    }
+
+    my $form = HTML::FormFu->new(
+        {
+            load_config_file => $c->path_to() . '/root/forms/story.yml',
+            method           => 'post',
+            action           => '/admin/stories/edit/' . $stories_id
+        }
+    );
+
+    # Save the original referer to the edit form so we can get back to that URL later on
+    my $el_referer = $form->get_element( { name => 'referer', type => 'Hidden' } );
+    unless ( $el_referer->value )
+    {
+        if ( $c->request->referer )
+        {
+            $el_referer->value( $c->request->referer );
+        }
+    }
+
+    my $story = $c->dbis->find_by_id( 'stories', $stories_id );
+
+    $form->default_values( $story );
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid )
+    {
+        $form->stash->{ c }     = $c;
+        $c->stash->{ form }     = $form;
+        $c->stash->{ template } = 'stories/edit.tt2';
+        $c->stash->{ title }    = 'Edit Story';
+
+    }
+    else
+    {
+
+        # Make a logged update
+        my $form_params = { %{ $form->params } };    # shallow copy to make editable
+        delete $form_params->{ referer };
+
+        # Only 'publish_date' is needed
+        delete $form_params->{ publish_date_year };
+        delete $form_params->{ publish_date_month };
+        delete $form_params->{ publish_date_day };
+        delete $form_params->{ publish_date_hour };
+        delete $form_params->{ publish_date_minute };
+        delete $form_params->{ publish_date_second };
+
+        $c->dbis->update_by_id_and_log(
+            'stories',     $stories_id,               $story,             $form_params,
+            'story_edits', $form->params->{ reason }, $c->user->username, 'stories_id',
+            $stories_id
+        );
+
+        # Redirect back to the referer or a story
+        my $url        = '';
+        my $status_msg = 'Story with ID ' . $story->{ stories_id } . ' has been modified.';
+
+        if ( $form->params->{ referer } )
+        {
+            my $uri = URI->new( $form->params->{ referer } );
+            $uri->query_param_delete( 'status_msg' );
+            $uri->query_param_append( 'status_msg' => $status_msg );
+            $url = $uri->as_string
+
+        }
+        else
+        {
+            $url = $c->uri_for( '/admin/stories/view/' . $story->{ stories_id }, { status_msg => $status_msg } );
+
+        }
+
+        $c->response->redirect( $url );
+
+    }
+
+}
+
 # delete tag
-sub delete : Local
+sub delete_tag : Local
 {
     my ( $self, $c, $stories_id, $tags_id, $confirm ) = @_;
 
-    if ( $stories_id == "" || $tags_id == "" )
+    unless ( $stories_id and $tags_id )
     {
         die "incorrectly formed link because must have Stories ID number 
-        and Tags ID number. ex: stories/delete/637467/128";
+        and Tags ID number. ex: stories/delete_tag/637467/128";
     }
 
     my $story = $c->dbis->find_by_id( "stories", $stories_id );
@@ -152,7 +243,7 @@ sub delete : Local
     {
         $c->stash->{ story }    = $story;
         $c->stash->{ tag }      = $tag;
-        $c->stash->{ template } = 'stories/delete.tt2';
+        $c->stash->{ template } = 'stories/delete_tag.tt2';
     }
     else
     {
@@ -162,7 +253,43 @@ sub delete : Local
         }
         else
         {
-            $c->dbis->query( "delete from stories_tags_map where tags_id = ?", $tags_id );
+            my $reason = $c->request->params->{ reason };
+            unless ( $reason )
+            {
+                $c->dbis->dbh->rollback;
+                die( "Tag NOT deleted.  Reason left blank." );
+            }
+
+            # Start transaction
+            $c->dbis->dbh->begin_work;
+
+            # Fetch old tags
+            my $old_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+            # Delete tag
+            $c->dbis->query( "DELETE FROM stories_tags_map WHERE tags_id = ?", $tags_id );
+
+            # Fetch old tags
+            my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+            # Log the new set of tags
+            my @changes;
+            my $change = {
+                edited_field => '_tags',
+                old_value    => $old_tags,
+                new_value    => $new_tags,
+            };
+            push( @changes, $change );
+            unless (
+                $c->dbis->log_changes( 'story_edits', $reason, $c->user->username, \@changes, 'stories_id', $stories_id ) )
+            {
+                $c->dbis->dbh->rollback;
+                die "Unable to log addition of new tags.\n";
+            }
+
+            # Things went fine
+            $c->dbis->dbh->commit;
+
             $status_msg = 'Tag \'' . $tag->{ tag } . '\' deleted from this story.';
         }
 
@@ -172,36 +299,55 @@ sub delete : Local
 }
 
 # sets up add tag
-sub add : Local
+sub add_tag : Local
 {
     my ( $self, $c, $stories_id ) = @_;
 
     my $story = $c->dbis->find_by_id( "stories", $stories_id );
     $c->stash->{ story } = $story;
 
-    my @tags =
-      $c->dbis->query( "select t.* from tags t, stories_tags_map stm where t.tags_id = stm.tags_id and stm.stories_id = ?",
-        $stories_id )->hashes;
+    my @tags = $c->dbis->query(
+        <<"EOF",
+        SELECT t.*
+        FROM tags t, stories_tags_map stm
+        WHERE t.tags_id = stm.tags_id AND stm.stories_id = ?
+EOF
+        $stories_id
+    )->hashes;
     $c->stash->{ tags } = \@tags;
 
-    my @tagsets = $c->dbis->query( "select ts.* from tag_sets ts" )->hashes;
+    my @tagsets = $c->dbis->query( "SELECT ts.* FROM tag_sets ts" )->hashes;
     $c->stash->{ tagsets } = \@tagsets;
 
-    $c->stash->{ template } = 'stories/add.tt2';
+    $c->stash->{ template } = 'stories/add_tag.tt2';
 }
 
 # executes add tag
-sub add_do : Local
+sub add_tag_do : Local
 {
     my ( $self, $c, $stories_id ) = @_;
 
     my $story = $c->dbis->find_by_id( "stories", $stories_id );
     $c->stash->{ story } = $story;
 
+    # Start transaction
+    $c->dbis->dbh->begin_work;
+
+    # Fetch old tags
+    my $old_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+    # Add new tag
     my $new_tag = $c->request->params->{ new_tag };
-    if ( $new_tag eq '' )
+    my $reason  = $c->request->params->{ reason };
+    unless ( $new_tag )
     {
+        $c->dbis->dbh->rollback;
         die( "Tag NOT added.  Tag name left blank." );
+    }
+    unless ( $reason )
+    {
+        $c->dbis->dbh->rollback;
+        die( "Tag NOT added.  Reason left blank." );
     }
 
     my $new_tag_sets_id = $c->request->params->{ tagset };
@@ -228,9 +374,29 @@ sub add_do : Local
 
     $c->stash->{ added_tag } = $added_tag;
 
+    # Fetch new tags
+    my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
+
+    # Log the new set of tags
+    my @changes;
+    my $change = {
+        edited_field => '_tags',
+        old_value    => $old_tags,
+        new_value    => $new_tags,
+    };
+    push( @changes, $change );
+    unless ( $c->dbis->log_changes( 'story_edits', $reason, $c->user->username, \@changes, 'stories_id', $stories_id ) )
+    {
+        $c->dbis->dbh->rollback;
+        die "Unable to log addition of new tags.\n";
+    }
+
+    # Things went fine
+    $c->dbis->dbh->commit;
+
     $c->response->redirect(
         $c->uri_for(
-            '/admin/stories/add/' . $story->{ stories_id },
+            '/admin/stories/add_tag/' . $story->{ stories_id },
             { status_msg => 'Tag \'' . $added_tag->{ tag } . '\' added.' }
         )
     );

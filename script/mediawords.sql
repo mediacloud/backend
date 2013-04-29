@@ -1023,6 +1023,7 @@ create view story_extracted_texts as select stories_id, array_to_string(array_ag
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
 
 
+
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
 
 CREATE TABLE daily_country_counts (
@@ -1633,6 +1634,29 @@ INSERT INTO auth_roles (role, description) VALUES
 -- Media edits log
 CREATE TABLE media_edits (
     media_edits_id      SERIAL      PRIMARY KEY,
+    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
+    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
+                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
+    old_value           TEXT        NOT NULL,
+    new_value           TEXT        NOT NULL,
+    reason              TEXT        NOT NULL
+                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
+
+    -- Store user's email instead of ID in case the user gets deleted
+    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
+
+);
+
+-- Story edits log
+CREATE TABLE story_edits (
+    story_edits_id      SERIAL      PRIMARY KEY,
+
+    -- Store user's email instead of ID in case the user gets deleted
+    stories_id          INT         NOT NULL REFERENCES stories(stories_id)
+                                    -- don't remove the logged edits when the story gets removed
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
+
     edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
     edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
                                     CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
