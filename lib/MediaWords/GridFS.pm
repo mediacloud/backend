@@ -11,7 +11,6 @@ use File::Path;
 use HTTP::Request;
 use IO::Uncompress::Gunzip;
 use IO::Compress::Gzip;
-use LWP::UserAgent;
 
 use Archive::Tar::Indexed;
 use MediaWords::Crawler::Extractor;

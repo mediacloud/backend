@@ -15,16 +15,21 @@ use strict;
 use WebService::Google::Language;
 
 use Text::Trim;
-use CHI;
+eval { use CHI; };
+
+die "$@" if $@;
+
 use MediaWords::Util::Config;
 
-my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
+my $mediacloud_translate_cache_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ translation_cache_dir };
+
+$mediacloud_translate_cache_dir .= MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir } . '/cache/translate';
 
 my $cache = CHI->new(
     driver           => 'FastMmap',
     expires_in       => '1 week',
     expires_variance => '0.1',
-    root_dir         => "${ mediacloud_data_dir }/cache/translate",
+    root_dir         => "${ mediacloud_translate_cache_dir }",
     cache_size       => '3m'
 );
 

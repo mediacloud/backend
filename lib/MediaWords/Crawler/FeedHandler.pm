@@ -123,7 +123,6 @@ sub _get_stories_from_feed_contents_impl
         };
 
         push @{ $ret }, $story;
-
     }
 
     return $ret;
@@ -136,8 +135,13 @@ sub _add_story_using_parent_download
     #say STDERR "starting _add_story_using_parent_download ";
     #say STDERR Dumper( $story );
 
-    ### Extra check to lower the risk of a race condition -- we still might have one though....
-    return unless MediaWords::DBI::Stories::is_new( $dbs, $story );
+    $dbs->begin;
+    $dbs->query( "lock table stories in row exclusive mode" );
+    if ( !MediaWords::DBI::Stories::is_new( $dbs, $story ) )
+    {
+        $dbs->commit;
+        return;
+    }
 
     try
     {
@@ -145,6 +149,8 @@ sub _add_story_using_parent_download
     }
     catch
     {
+
+        $dbs->rollback;
 
         #TODO handle race conditions differently
         if ( $_ =~ /unique constraint "stories_guid"/ )
@@ -170,6 +176,8 @@ sub _add_story_using_parent_download
             feeds_id   => $parent_download->{ feeds_id }
         }
     );
+
+    $dbs->commit;
 
     return $story;
 }
@@ -208,11 +216,35 @@ sub _add_story_and_content_download
     }
 }
 
+# check whether the checksum of the concatenated urls of the stories in the feed matches
+# the last such checksum for this feed.  If the checksums don't match, store the current
+# checksum in the feed
+sub stories_checksum_matches_feed
+{
+    my ( $db, $feeds_id, $stories ) = @_;
+
+    my $story_url_concat = join( '|', map { $_->{ url } } @{ $stories } );
+
+    my $checksum = Digest::MD5::md5_hex( $story_url_concat );
+
+    my ( $matches ) = $db->query( <<END, $feeds_id, $checksum )->flat;
+select 1 from feeds where feeds_id = ? and last_checksum = ?
+END
+
+    return 1 if ( $matches );
+
+    $db->query( "update feeds set last_checksum = ? where feeds_id = ?", $checksum, $feeds_id );
+
+    return 0;
+}
+
 sub add_feed_stories_and_downloads
 {
     my ( $dbs, $download, $decoded_content ) = @_;
 
     my $stories = _get_stories_from_feed_contents( $dbs, $download, $decoded_content );
+
+    return 0 if ( stories_checksum_matches_feed( $dbs, $download->{ feeds_id }, $stories ) );
 
     my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $dbs, $_ ) } @{ $stories } ];
 

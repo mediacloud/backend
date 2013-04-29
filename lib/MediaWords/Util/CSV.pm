@@ -54,4 +54,26 @@ sub send_hashes_as_csv_page
     $c->res->body( $encoded_output );
 }
 
+# given a file name, open the file, parse it as a csv, and return a list of hashes.
+# assumes that the csv includes a header line.
+sub get_csv_as_hashes
+{
+    my ( $file ) = @_;
+
+    my $csv = Text::CSV_XS->new( { binary => 1, sep_char => "," } )
+      || die "error using CSV_XS: " . Text::CSV_XS->error_diag();
+
+    open my $fh, "<:encoding(utf8)", $file || die "Unable to open file $file: $!\n";
+
+    $csv->column_names( $csv->getline( $fh ) );
+
+    my $hashes = [];
+    while ( my $hash = $csv->getline_hr( $fh ) )
+    {
+        push( @{ $hashes }, $hash );
+    }
+
+    return $hashes;
+}
+
 1;

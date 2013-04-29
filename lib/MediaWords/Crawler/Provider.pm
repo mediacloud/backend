@@ -10,8 +10,6 @@ use warnings;
 use URI::Split;
 
 use Data::Dumper;
-use Data::Serializer;
-use Data::Random;
 
 use List::MoreUtils;
 use MediaWords::DB;
@@ -20,17 +18,20 @@ use Readonly;
 use Time::Seconds;
 use Math::Random;
 
+# how often to download each feed (seconds)
+use constant STALE_FEED_INTERVAL => 3 * 4 * ONE_HOUR;
+
 # how often to check for feeds to download (seconds)
-use constant STALE_FEED_CHECK_INTERVAL => 10 * ONE_MINUTE;
+use constant STALE_FEED_CHECK_INTERVAL => 30 * ONE_MINUTE;
 
 # timeout for download in fetching state (seconds)
 use constant STALE_DOWNLOAD_INTERVAL => 5 * ONE_MINUTE;
 
 # how many downloads to store in memory queue
-use constant MAX_QUEUED_DOWNLOADS => 20000;
+use constant MAX_QUEUED_DOWNLOADS => 50000;
 
 # how often to check the database for new pending downloads (seconds)
-use constant DEFAULT_PENDING_CHECK_INTERVAL => ONE_MINUTE;
+use constant DEFAULT_PENDING_CHECK_INTERVAL => 10 * ONE_MINUTE;
 
 # last time a stale feed check was run
 my $_last_stale_feed_check = 0;
@@ -78,33 +79,7 @@ sub _setup
         print STDERR "Provider _setup\n";
         $_setup = 1;
 
-        my $dbs = $self->engine->dbs;
-
-# $dbs->query("UPDATE downloads SET state = 'error', error_message = 'removed from queue at startup' where (state = 'queued' or state='pending') and type = 'feed'");
-
-        #For the spider type download change these from queued to pending so that we don't load too much stuff into memory.
-        #No obvious reason to just do this for spider type downloads but I haven't had a chance to test other stuff
-        $dbs->query(
-"UPDATE downloads set state = 'pending' where state = 'queued' and type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss')"
-        );
-        $dbs->query( "UPDATE downloads set state = 'queued' where state = 'fetching'" );
-
-        my $dbs_result = $dbs->query( "SELECT * from downloads_media where state =  'queued'" );
-
-        #print Dumper ($dbs);
-        #print Dumper($dbs_result);
-
-        my @queued_downloads = $dbs_result->hashes();
-
-        $dbs_result = $dbs->query( "SELECT * from downloads_non_media where state =  'queued'" );
-        push @queued_downloads, ( $dbs_result->hashes() );
-
-        print STDERR "Provider _setup queued_downloads array length = " . scalar( @queued_downloads ) . "\n";
-
-        for my $d ( @queued_downloads )
-        {
-            $self->{ downloads }->_queue_download( $d );
-        }
+        $self->engine->dbs->query( "UPDATE downloads set state = 'pending' where state = 'fetching'" );
     }
 }
 
@@ -139,9 +114,6 @@ sub _timeout_stale_downloads
 
 }
 
-# how often to download each feed (seconds)
-use constant STALE_FEED_INTERVAL => 3 * 4 * ONE_HOUR;
-
 # get all stale feeds and add each to the download queue
 # this subroutine expects to be executed in a transaction
 sub _add_stale_feeds
@@ -166,38 +138,23 @@ sub _add_stale_feeds
       "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " . STALE_FEED_INTERVAL .
       " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
-    Readonly my $feeds_query => "SELECT * FROM feeds WHERE " . $constraint;
-
-    #say STDERR "$feeds_query";
-
-    my @feeds = $dbs->query( $feeds_query )->hashes();
+    my $feeds = $dbs->query( <<END )->hashes;
+UPDATE feeds SET last_download_time = now()
+    WHERE $constraint
+    RETURNING *
+END
 
   DOWNLOAD:
-    for my $feed ( @feeds )
+    for my $feed ( @{ $feeds } )
     {
         ##TODO add a constraint to the fields table in the database to ensure that the URL is valid
-        if ( !$feed->{ url }
-            || ( ( substr( $feed->{ url }, 0, 7 ) ne 'http://' ) && ( substr( $feed->{ url }, 0, 8 ) ne 'https://' ) ) )
-        {
-
-            # TODO: report an error?
-            next DOWNLOAD;
-        }
+        next DOWNLOAD if ( !$feed->{ url } || !( $feed->{ url } =~ /^https?:\/\//i ) );
 
         my $download = _create_download_for_feed( $feed, $dbs );
 
         $download->{ _media_id } = $feed->{ media_id };
 
         $self->{ downloads }->_queue_download( $download );
-
-        # add a random skew to each feed so not every feed is downloaded at the same time
-        my $skew = random_uniform_integer( 1, -1 * 5 * ONE_MINUTE, 5 * ONE_MINUTE );
-
-        $feed->{ last_download_time } = \"now() + interval '$skew seconds'";
-
-        #print STDERR "updating feed: " . $feed->{feeds_id} . "\n";
-
-        $dbs->update_by_id( 'feeds', $feed->{ feeds_id }, $feed );
     }
 
     print STDERR "end _add_stale_feeds\n";
@@ -223,7 +180,7 @@ sub _create_download_for_feed
             host          => $host,
             type          => 'feed',
             sequence      => 1,
-            state         => 'queued',
+            state         => 'pending',
             priority      => $priority,
             download_time => 'now()',
             extracted     => 'f'
@@ -238,13 +195,10 @@ sub _queue_download_list
 {
     my ( $self, $downloads ) = @_;
 
-    for my $download ( @{ $downloads } )
-    {
-        $download->{ state } = ( 'queued' );
-        $self->engine->dbs->update_by_id( 'downloads', $download->{ downloads_id }, $download );
+    # my $downloads_id_list = join( ',', map { $_->{ downloads_id } } @{ $downloads } );
+    # $self->engine->dbs->query( "update downloads set state = 'queued' where downloads_id in ($downloads_id_list)" );
 
-        $self->{ downloads }->_queue_download( $download );
-    }
+    map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
 
     return;
 }
@@ -254,6 +208,8 @@ sub _queue_download_list_with_per_site_limit
 {
     my ( $self, $downloads, $site_limit ) = @_;
 
+    my $queued_downloads = [];
+
     for my $download ( @{ $downloads } )
     {
         my $site = MediaWords::Crawler::Downloads_Queue::get_download_site_from_hostname( $download->{ host } );
@@ -262,33 +218,15 @@ sub _queue_download_list_with_per_site_limit
 
         next if ( $site_queued_download_count > $site_limit );
 
-        $download->{ state } = ( 'queued' );
-
-        $self->engine->dbs->update_by_id( 'downloads', $download->{ downloads_id }, $download );
+        push( @{ $queued_downloads }, $download );
 
         $self->{ downloads }->_queue_download( $download );
     }
 
+    # my $downloads_id_list = join( ',', map { $_->{ downloads_id } } @{ $queued_downloads } );
+    # $self->engine->dbs->query( "update downloads set state = 'queued' where downloads_id in ($downloads_id_list)" );
+
     return;
-}
-
-my $_pending_download_sites;
-
-sub _get_pending_downloads_sites
-{
-    my ( $self ) = @_;
-
-    if ( !$_pending_download_sites )
-    {
-        $_pending_download_sites =
-          $self->engine->dbs->query( "SELECT distinct(site) from downloads_sites where state='pending' " )->flat();
-
-        print "Updating _pending_download_sites\n";
-
-        #print Dumper($_pending_download_sites);
-    }
-
-    return $_pending_download_sites;
 }
 
 # add all pending downloads to the $_downloads list
@@ -298,78 +236,52 @@ sub _add_pending_downloads
 
     my $interval = $self->engine->pending_check_interval || DEFAULT_PENDING_CHECK_INTERVAL;
 
-    if ( $_last_pending_check > ( time() - $interval ) )
-    {
-        return;
-    }
+    return if ( $_last_pending_check > ( time() - $interval ) );
+
     $_last_pending_check = time();
 
     my $current_queue_size = $self->{ downloads }->_get_downloads_size;
     if ( $current_queue_size > MAX_QUEUED_DOWNLOADS )
     {
-        print "skipping add pending downloads due to queue size ($current_queue_size)\n";
+        print STDERR "skipping add pending downloads due to queue size ($current_queue_size)\n";
         return;
     }
 
-    print "Not skipping add pending downloads queue size($current_queue_size) \n";
+    print STDERR "Not skipping add pending downloads queue size($current_queue_size) \n";
 
-    my @downloads_non_media =
-      $self->engine->dbs->query( "SELECT * from downloads_non_media where state = 'pending' ORDER BY downloads_id limit ? ",
-        int( int( MAX_QUEUED_DOWNLOADS ) / 2 ) )->hashes;
-    $self->_queue_download_list_with_per_site_limit( \@downloads_non_media, 100000 );
-    say "Queued " . scalar( @downloads_non_media ) . ' non_media downloads';
+    my $db = $self->engine->dbs;
 
-    my @sites = map { $_->{ media_id } } @{ $self->{ downloads }->_get_download_media_ids };
+    my $downloads_query = <<END;
+select d.*, f.media_id _media_id, coalesce( site_from_host( d.host ), 'non-media' ) site
+    from downloads d left join feeds f on ( f.feeds_id = d.feeds_id )
+    where state = 'pending'
+END
 
-    #print Dumper(@sites);
-    @sites = grep { $_ =~ /\./ } @sites;
-    push( @sites, @{ $self->_get_pending_downloads_sites() } );
-    @sites = List::MoreUtils::uniq( @sites );
+    my $downloads = $db->query( <<END, MAX_QUEUED_DOWNLOADS )->hashes;
+$downloads_query order by downloads_id asc limit ?
+END
 
-    my @sites_with_queued_downloads = grep { $self->{ downloads }->_get_queued_downloads_count( $_, 1 ) > 0 } @sites;
+    #     my $random_downloads = $db->query( <<END, int( MAX_QUEUED_DOWNLOADS / 2 ) )->hashes;
+    # $downloads_query order by RANDOM() asc limit ?
+    # END
+    #
+    # my $downloads_map = {};
+    # map { $downloads_map->{ $_->{ downloads_id } } = 1 } @{ $downloads };
+    # map { push( @{ $downloads }, $_ ) unless ( $downloads_map->{ $_->{ downloads_id } } ) } @{ $random_downloads };
 
-    my $site_download_queue_limit = int( int( MAX_QUEUED_DOWNLOADS ) / ( scalar( @sites ) + 1 ) );
+    my $sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $downloads } ) ];
 
-    my @downloads =
-      $self->engine->dbs->query( "SELECT * from downloads_media where state = 'pending' ORDER BY downloads_id asc limit ? ",
-        int( int( MAX_QUEUED_DOWNLOADS ) / 10 ) )->hashes;
-    $self->_queue_download_list_with_per_site_limit( \@downloads, $site_download_queue_limit );
+    my $site_downloads = {};
+    map { push( @{ $site_downloads->{ $_->{ site } } }, $_ ) } @{ $downloads };
 
-    @downloads =
-      $self->engine->dbs->query( "SELECT * from downloads_media where state = 'pending' ORDER BY RANDOM() limit ? ",
-        int( int( MAX_QUEUED_DOWNLOADS ) / 20 ) )->hashes;
-    $self->_queue_download_list_with_per_site_limit( \@downloads, $site_download_queue_limit );
+    return unless ( @{ $sites } );
 
-    for my $site ( @sites )
+    my $site_download_queue_limit = int( MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
+
+    for my $site ( @{ $sites } )
     {
-        my $site_queued_downloads = $self->{ downloads }->_get_queued_downloads_count( $site, 1 );
-        my $site_downloads_to_fetch = $site_download_queue_limit - $site_queued_downloads;
-
-        next if ( $site_downloads_to_fetch < 0 );
-
-        my @site_downloads = $self->_get_pending_downloads_for_site( $site, $site_downloads_to_fetch );
-
-        #print "Site: '$site' downloads\n";
-        #print Dumper(\@site_downloads);
-        $self->_queue_download_list( \@site_downloads );
+        $self->_queue_download_list_with_per_site_limit( $site_downloads->{ $site }, $site_download_queue_limit );
     }
-}
-
-sub _get_pending_downloads_for_site
-{
-    my ( $self, $site, $max_downloads ) = @_;
-
-    my @site_downloads = $self->engine->dbs->query(
-        "SELECT * from downloads_sites where site = ? and state = 'pending' ORDER BY downloads_id limit ? ",
-        $site, $max_downloads )->hashes;
-
-    #rip out the 'site' field since this isn't part of the downloads table
-    for my $site_download ( @site_downloads )
-    {
-        delete( $site_download->{ site } );
-    }
-
-    return @site_downloads;
 }
 
 # add all pending downloads to the $_downloads list
