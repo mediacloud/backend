@@ -17,10 +17,10 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-mongodb_gridfs:
-    - host      : "localhost" 
-      port      : "27017" 
-      database  : "mediacloud_downloads_gridfs"
+#mongodb_gridfs:
+#    - host      : "localhost" 
+#      port      : "27017" 
+#      database  : "mediacloud_downloads_gridfs"
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
@@ -49,12 +49,20 @@ mongodb_gridfs:
 
     ### parent directory of the content/ directory with all downloaded content is stored
     #data_dir: "<bindir>/../data"
+    
+    ### Uncomment to use the directory given by <PATH> to temporarily store CSV files generated in the public data dumps
+    ### Note that since these are uncompressed files they can be very large.
+    #data_dump_tmp_dir : <PATH>
 
     ### script directory
     #script_dir: "<bindir>/../script"
 
     ## media_sets_id of the media set to display on the Dashboard home page
     ##default_media_set: 1
+
+    ### HTTP user agent and the email address of the owner of the bot
+    #user_agent: "Mozilla/5.0 (Linux) MediaCloud/1.0"
+    #owner: "mediacloud@cyber.law.harvard.edu"
 
     #uncomment to enable storage of download in mongo/gridfs server defined above
     #download_storage_location: "gridfs"
@@ -121,4 +129,9 @@ mongodb_gridfs:
     
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
+    
+    # settings for mediawords_web_store.pl script that does in process parallel fetching
+    # web_store_num_parallel: 10
+    # web_store_timeout: 90
+    # web_store_per_domain_timeout: 1
 

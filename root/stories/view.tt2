@@ -5,6 +5,7 @@
 
 <table border="1">
 
+<<<<<<< .working
     <tr>
         <th>Title:</th>
         <td>[% story.title | html %]</td>
@@ -31,6 +32,28 @@
         <th>Description:</th> 
         <td>[% story.description | html_strip %]</td>
     </tr>
+=======
+    <tr>
+        <th>Title:</th>
+        <td>[% story.title | html %]</td>
+    </tr>
+    <tr>
+        <th>URL:</th>
+        <td><a href="[% story.url %]">view&nbsp;live</a></td>
+    </tr>
+    <tr>
+        <th>Date Published:</th>
+        <td>[% story.publish_date %]</td>
+    </tr>
+    <tr>
+        <th>Date Collected:</th>
+        <td>[% story.collect_date %]</td>
+    </tr>
+    <tr>
+        <th>Description:</th> 
+        <td>[% story.description | html_strip %]</td>
+    </tr>
+>>>>>>> .merge-right.r5168
 
     <tr>
 
@@ -71,6 +94,7 @@
 
     <tr>
 
+<<<<<<< .working
         <th>Tags:</th>
         <td>
             [% FOREACH t IN tags -%]
@@ -79,7 +103,18 @@
                     <a href="[% c.uri_for('/admin/stories/delete_tag/') _ stories_id _ '/' _ t.tags_id %]">delete</a><br/>
                 [% END -%]
             [% END # FOREACH tags -%]
+=======
+        <th>Tags:</th>
+        <td>
+            [% FOREACH t IN tags -%]
+                [% t.tag_set_name _ ':' _ t.tag | html %]
+                [% IF c.acl_user_can_visit('/admin/stories/delete') %]
+                    <a href="[% c.uri_for('/admin/stories/delete/') _ stories_id _ '/' _ t.tags_id %]">delete</a><br/>
+                [% END -%]
+            [% END # FOREACH tags -%]
+>>>>>>> .merge-right.r5168
 
+<<<<<<< .working
             [% IF c.acl_user_can_visit('/admin/stories/add_tag') %]
                 <a href="[% c.uri_for('/admin/stories/add_tag/') _ stories_id %]">add manual tag</a> |
             [% END -%]
@@ -87,6 +122,15 @@
                 <a href="[% c.uri_for('/admin/stories/retag/') _ stories_id %]">extract / tag all sets now</a><br />
             [% END -%]
         </td>
+=======
+            [% IF c.acl_user_can_visit('/admin/stories/add') %]
+                <a href="[% c.uri_for('/admin/stories/add/') _ stories_id %]">add manual tag</a> |
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/stories/retag') %]
+                <a href="[% c.uri_for('/admin/stories/retag/') _ stories_id %]">extract / tag all sets now</a><br />
+            [% END -%]
+        </td>
+>>>>>>> .merge-right.r5168
 
     </tr>
 

@@ -1,8 +1,8 @@
 
 CREATE TABLE processed_stories_properties (
-  processed_stories_properties_id serial primary key,
-  stories_id int NOT NULL references story_subsets on delete cascade,
-  processed_stories_id int NOT NULL references processed_stories on delete cascade,
+  processed_stories_properties_id bigserial primary key,
+  stories_id bigint NOT NULL references story_subsets on delete cascade,
+  processed_stories_id bigint NOT NULL references processed_stories on delete cascade,
   properties hstore NOT NULL
 );
 

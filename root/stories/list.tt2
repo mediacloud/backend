@@ -3,6 +3,7 @@
 
 <table>
 
+<<<<<<< .working
     <tr>
         <th>title</th>
         <th>url</th>
@@ -11,6 +12,13 @@
             <th>edit</th>
         [% END -%]
     </tr>
+=======
+    <tr>
+        <th>title</th>
+        <th>url</th>
+        <th>date published</th>
+    </tr>
+>>>>>>> .merge-right.r5168
 
     [% FOREACH story IN stories -%]
 
@@ -30,20 +38,37 @@
 
             <td>[% story.publish_date %]</td>
 
+<<<<<<< .working
             [% IF c.acl_user_can_visit('/admin/stories/edit') %]
                 <td>
                     <a href="[% c.uri_for('/admin/stories/edit/') _ story.stories_id %]">edit</a>
                 </td>
             [% END -%]
-
+=======
         </tr>
+>>>>>>> .merge-right.r5168
 
+<<<<<<< .working
+        </tr>
+=======
         [%  SET even = !even %]
+>>>>>>> .merge-right.r5168
 
+<<<<<<< .working
+        [%  SET even = !even %]
+=======
+    [% END # FOREACH stories -%]
+>>>>>>> .merge-right.r5168
+
+<<<<<<< .working
     [% END # FOREACH stories -%]
 
     [% INCLUDE include/pager.tt2 %]
 
+=======
+    [% INCLUDE include/pager.tt2 %]
+
+>>>>>>> .merge-right.r5168
 </table>
 
 <p>

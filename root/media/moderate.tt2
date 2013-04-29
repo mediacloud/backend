@@ -123,7 +123,7 @@
 
     <fieldset>
 
-        <p><b>Feeds Found</b></p>
+        <p><b>[% feeds.size %] Feeds Found</b></p>
 
         <p>
             [% IF c.acl_user_can_visit('/admin/media/delete_feeds') %]
@@ -135,12 +135,20 @@
             [% IF c.acl_user_can_visit('/admin/feeds/scrape') %]
                 <a href="[% c.uri_for('/admin/feeds/scrape/') _ medium.media_id | url %]">scrape feeds</a>
             [% END -%]
+            [% IF c.acl_user_can_visit('/admin/feeds/add_web_page_feed') %]
+                [% IF feeds.size == 0 %]
+                    | <a href="[% c.uri_for('/admin/feeds/add_web_page_feed/') _ medium.media_id | url %]">add 'web page' feed</a>
+                [% END %]
+            [% END %]
         </p>
 
         <ul>
 
             [% FOREACH feed IN feeds %]
             <li>
+                [% IF feed.feed_type == "web_page" %]
+                    <em>("web page" feed)</em>
+                [% END %]
                 [% feed.name | html %] -
                 <a href="[% feed.url %]">[% feed.url | html %]</a> 
                 [% IF c.acl_user_can_visit('/admin/media/delete_unmoderated_feed') %]

@@ -74,7 +74,7 @@ sub add_query_signature
 {
     my ( $db, $query ) = @_;
 
-    my $md5_signature = MediaWords::DBI::Queries::get_md5_signature( $query );
+    my $md5_signature = MediaWords::DBI::Queries::get_md5_signature( $db, $query );
 
     # print STDERR "query [ $query->{ queries_id } ]: $md5_signature\n";
 

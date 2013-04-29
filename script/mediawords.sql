@@ -55,8 +55,8 @@ DROP FUNCTION create_language_plperlu();
 
 -- Database properties (variables) table
 create table database_variables (
-    variables_id        serial          primary key,
-    name                varchar(512)    not null,        
+    database_variables_id        serial          primary key,
+    name                varchar(512)    not null unique,        
     value               varchar(1024)   not null
 );
 
@@ -65,7 +65,11 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
+<<<<<<< .working
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4396;
+=======
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4408;
+>>>>>>> .merge-right.r5168
     
 BEGIN
 
@@ -81,7 +85,7 @@ LANGUAGE 'plpgsql';
 
 -- Set the version number right away
 SELECT set_database_schema_version();
-
+INSERT INTO database_variables( name, value ) values ( 'LAST_STORY_SENTENCES_ID_PROCESSED', '0' ); 
 
 -- This function is needed because date_trunc('week', date) is not consider immutable 
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
@@ -222,21 +226,30 @@ create table media (
     -- problems for the cm spider, which finds those foreign rss links and
     -- thinks that the urls belong to the parent media source.
     foreign_rss_links   boolean         not null default( false ),
+<<<<<<< .working
     
     main_media_id       int             null references media on delete set null,
     is_dup              boolean         null,
+=======
+    dup_media_id        int             null references media on delete set null,
+    is_not_dup          boolean         null,
+    use_pager           boolean         null,
+    unpaged_stories     int             not null default 0,
+>>>>>>> .merge-right.r5168
     CONSTRAINT media_name_not_empty CHECK ( ( (name)::text <> ''::text ) ),
-    CONSTRAINT media_dup CHECK ( ( ( is_dup is null or is_dup = false ) and main_media_id is null ) 
-        or ( is_dup = true and main_media_id is not null ) )
+    CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
 );
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 
+<<<<<<< .working
 -- allow easy querying of all duplicates, regardless of order
 create view media_dups_transitive as     select distinct media_id, main_media_id from   ( ( select media_id, main_media_id from media where main_media_id is not null ) union ( select main_media_id as media_id, media_id as main_media_id from media where main_media_id is not null ) ) q;
 
+=======
+>>>>>>> .merge-right.r5168
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
 
 create table feeds (
@@ -245,7 +258,8 @@ create table feeds (
     name                varchar(512)    not null,        
     url                 varchar(1024)   not null,
     reparse             boolean         null,
-    feed_type           feed_feed_type  not null default 'syndicated',
+    feed_type           feed_feed_type  not null default 'syndicated',    
+    last_checksum       text            null,
 
     -- Add column to allow more active feeds to be downloaded more frequently.
     last_download_time  timestamp with time zone,
@@ -272,14 +286,13 @@ create table tags (
     tags_id                serial            primary key,
     tag_sets_id            int                not null references tag_sets,
     tag                    varchar(512)    not null,
-        CONSTRAINT no_lead_or_trailing_whitspace CHECK ((((((tag_sets_id = 13) OR (tag_sets_id = 9)) OR (tag_sets_id = 8)) OR (tag_sets_id = 6)) OR ((tag)::text = btrim((tag)::text, ' 
-    '::text)))),
         CONSTRAINT no_line_feed CHECK (((NOT ((tag)::text ~~ '%
 %'::text)) AND (NOT ((tag)::text ~~ '%
 %'::text)))),
         CONSTRAINT tag_not_empty CHECK (((tag)::text <> ''::text))
 );
 
+create index tags_tag_sets_id ON tags (tag_sets_id);
 create unique index tags_tag on tags (tag, tag_sets_id);
 create index tags_tag_1 on tags (split_part(tag, ' ', 1));
 create index tags_tag_2 on tags (split_part(tag, ' ', 2));
@@ -332,10 +345,22 @@ create table queries (
     query_version           query_version_enum  NOT NULL DEFAULT enum_last (null::query_version_enum )
 );
 
-
 create index queries_creation_date on queries (creation_date);
-create unique index queries_signature_version on queries ( md5_signature, query_version );
-create unique index queries_signature on queries (md5_signature);
+create unique index queries_hash_version on queries (md5_signature, query_version);
+create index queries_md5_signature on queries  (md5_signature);
+
+create table media_rss_full_text_detection_data (
+    media_id            int references media on delete cascade,
+    max_similarity      real,
+    avg_similarity      double precision,
+    min_similarity      real,
+    avg_expected_length numeric,
+    avg_rss_length      numeric,
+    avg_rss_discription numeric,
+    count               bigint
+);
+
+create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
 
 create table media_cluster_runs (
 	media_cluster_runs_id   serial          primary key,
@@ -410,6 +435,16 @@ create table media_cluster_map_poles (
 );
 
 create index media_cluster_map_poles_map on media_cluster_map_poles( media_cluster_maps_id );
+    
+create table media_cluster_map_pole_similarities (
+    media_cluster_map_pole_similarities_id  serial  primary key,
+    media_id                                int     not null references media on delete cascade,
+    queries_id                              int     not null references queries on delete cascade,
+    similarity                              int     not null,
+    media_cluster_maps_id                   int     not null references media_cluster_maps on delete cascade
+);
+
+create index media_cluster_map_pole_similarities_map ON media_cluster_map_pole_similarities (media_cluster_maps_id);
 
 create table media_clusters_media_map (
     media_clusters_media_map_id     serial primary key,
@@ -622,6 +657,7 @@ create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 
+
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
 
@@ -642,10 +678,10 @@ create table downloads (
     priority            int             not null,
     sequence            int             not null,
     extracted           boolean         not null default 'f',
-    file_status         download_file_status not null default 'tbd',
-    relative_file_path  text            not null default 'tbd',
     old_download_time   timestamp without time zone,
-    old_state           download_state
+    old_state           download_state,
+    file_status         download_file_status not null default 'tbd',
+    relative_file_path  text            not null default 'tbd'
 );
 
 UPDATE downloads set old_download_time = download_time, old_state = state;
@@ -691,20 +727,36 @@ CREATE INDEX downloads_spider_download_errors_to_clear on downloads(state,type,e
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
 CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
 
+CREATE INDEX downloads_in_old_format ON downloads USING btree (downloads_id) WHERE ((state = 'success'::download_state) AND (path ~~ 'content/%'::text));
+
+CREATE INDEX file_status_downloads_time_new_format ON downloads USING btree (file_status, download_time) WHERE (relative_file_path ~~ 'mediacloud-%'::text);
+
+CREATE INDEX relative_file_paths_new_format_to_verify ON downloads USING btree (relative_file_path) WHERE ((((((file_status = 'tbd'::download_file_status) AND (relative_file_path <> 'tbd'::text)) AND (relative_file_path <> 'error'::text)) AND (relative_file_path <> 'na'::text)) AND (relative_file_path <> 'inline'::text)) AND (relative_file_path ~~ 'mediacloud-%'::text));
+
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
 create view downloads_non_media as select d.* from downloads d where d.feeds_id is null;
 
-CREATE INDEX downloads_sites_index on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'));
-CREATE INDEX downloads_sites_pending on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3')) where state='pending';
+CREATE OR REPLACE FUNCTION site_from_host(host varchar)
+    RETURNS varchar AS
+$$
+BEGIN
+    RETURN regexp_replace(host, E'^(.)*?([^.]+)\\.([^.]+)$' ,E'\\2.\\3');
+END;
+$$
+LANGUAGE 'plpgsql' IMMUTABLE;
+
+CREATE UNIQUE INDEX downloads_for_extractor_trainer on downloads ( downloads_id, feeds_id) where file_status <> 'missing' and type = 'content' and state = 'success';
+
+CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
 
 CREATE INDEX downloads_queued_spider ON downloads(downloads_id) where state = 'queued' and  type in  ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list','spider_validation_blog_home','spider_validation_rss');
 
-CREATE INDEX downloads_sites_downloads_id_pending ON downloads USING btree (regexp_replace((host)::text, E'^(.)*?([^.]+)\\.([^.]+)$'::text, E'\\2.\\3'::text), downloads_id) WHERE (state = 'pending'::download_state);
+CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads ( site_from_host(host), downloads_id ) WHERE (state = 'pending');
 
--- CREATE INDEX downloads_sites_index_downloads_id on downloads (regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3'), downloads_id);
+-- CREATE INDEX downloads_sites_index_downloads_id on downloads (site_from_host( host ), downloads_id);
 
-CREATE VIEW downloads_sites as select regexp_replace(host, $q$^(.)*?([^.]+)\.([^.]+)$$q$ ,E'\\2.\\3') as site, * from downloads_media;
+CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from downloads_media;
 
 create table feeds_stories_map
  (
@@ -796,22 +848,6 @@ CREATE TABLE url_discovery_counts (
 INSERT  into url_discovery_counts VALUES ('already_processed');
 INSERT  into url_discovery_counts VALUES ('not_yet_processed');
     
-create table word_cloud_topics (
-        word_cloud_topics_id    serial      primary key,
-        source_tags_id          int         not null references tags,
-        set_tag_names           text        not null,
-        creator                 text        not null,
-        query                   text        not null,
-        type                    text        not null,
-        start_date              date        not null,
-        end_date                date        not null,
-        state                   text        not null,
-        url                     text        not null
-);
-
-alter table word_cloud_topics add constraint word_cloud_topics_type check (type in ('words', 'phrases'));
-alter table word_cloud_topics add constraint word_cloud_topics_state check (state in ('pending', 'generating', 'completed'));
-
 -- VIEWS
 
 CREATE VIEW media_extractor_training_downloads_count AS
@@ -860,6 +896,8 @@ create table story_sentences (
 
 create index story_sentences_story on story_sentences (stories_id, sentence_number);
 create index story_sentences_publish_day on story_sentences( date_trunc( 'day', publish_date ), media_id );
+create index story_sentences_media_id    on story_sentences( media_id );
+
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
     
@@ -893,8 +931,7 @@ create table story_sentence_words (
 
 create index story_sentence_words_story on story_sentence_words (stories_id, sentence_number);
 create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
-create index story_sentence_words_day on story_sentence_words(publish_day);
-create index story_sentence_words_media_day on story_sentence_words (media_id, publish_day);
+create index story_sentence_words_dm on story_sentence_words (publish_day, media_id);
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
@@ -912,7 +949,6 @@ create index daily_words_media on daily_words(publish_day, media_sets_id, dashbo
 create index daily_words_count on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem_count);
 create index daily_words_publish_week on daily_words(week_start_date(publish_day));
 
-create UNIQUE index daily_words_unique on daily_words(publish_day, media_sets_id, dashboard_topics_id, stem);
 CREATE INDEX daily_words_day_topic ON daily_words USING btree (publish_day, dashboard_topics_id);
 
 create table weekly_words (
@@ -927,7 +963,8 @@ create table weekly_words (
 
 create UNIQUE index weekly_words_media on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
 create index weekly_words_count on weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem_count);
-CREATE INDEX weekly_words_publish_week on weekly_words(publish_week);
+create index weekly_words_topic on weekly_words (publish_week, dashboard_topics_id);
+
 ALTER TABLE  weekly_words ADD CONSTRAINT weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
 
 create table top_500_weekly_words (
@@ -941,7 +978,10 @@ create table top_500_weekly_words (
 );
 
 create UNIQUE index top_500_weekly_words_media on top_500_weekly_words(publish_week, media_sets_id, dashboard_topics_id, stem);
-create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) where dashboard_topics_id is null;
+create index top_500_weekly_words_media_null_dashboard on top_500_weekly_words (publish_week,media_sets_id, dashboard_topics_id) 
+    where dashboard_topics_id is null;
+create index top_500_weekly_words_dmds on top_500_weekly_words using btree (publish_week, media_sets_id, dashboard_topics_id, stem);
+
 ALTER TABLE  top_500_weekly_words ADD CONSTRAINT top_500_weekly_words_publish_week_is_monday CHECK ( EXTRACT ( ISODOW from publish_week) = 1 );
   
 create table total_top_500_weekly_words (
@@ -974,7 +1014,7 @@ create index total_daily_words_media_sets_id on total_daily_words (media_sets_id
 create index total_daily_words_media_sets_id_publish_day on total_daily_words (media_sets_id,publish_day);
 create index total_daily_words_publish_day on total_daily_words (publish_day);
 create index total_daily_words_publish_week on total_daily_words (week_start_date(publish_day));
-CREATE UNIQUE INDEX total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
+create unique index total_daily_words_media_sets_id_dashboard_topic_id_publish_day ON total_daily_words (media_sets_id, dashboard_topics_id, publish_day);
 
 
 create table total_weekly_words (
@@ -995,14 +1035,14 @@ create view daily_words_with_totals as select d.*, t.total_count from daily_word
              
 create schema stories_tags_map_media_sub_tables;
 
-create table ssw_queue (
-       stories_id                   int             not null,
-       publish_date                 timestamp       not null,
-       media_id                     int             not null
-);
-
 create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
+
+<<<<<<< .working
+create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
+       from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
+=======
+>>>>>>> .merge-right.r5168
 
 
 CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM feeds GROUP by media_id);
@@ -1102,9 +1142,8 @@ create table top_500_weekly_author_words (
 
 create index top_500_weekly_author_words_media on top_500_weekly_author_words(publish_week, media_sets_id, authors_id);
 create index top_500_weekly_author_words_authors on top_500_weekly_author_words(authors_id, publish_week, media_sets_id);
-
 create UNIQUE index top_500_weekly_author_words_authors_stem on top_500_weekly_author_words(authors_id, publish_week, media_sets_id, stem);
-
+create index top_500_weekly_author_words_publish_week on top_500_weekly_author_words (publish_week);
     
 create table total_top_500_weekly_author_words (
        total_top_500_weekly_author_words_id       serial          primary key,
@@ -1147,31 +1186,12 @@ create table query_story_searches (
 create unique index query_story_searches_query_pattern on query_story_searches( queries_id, pattern );
   
 create table query_story_searches_stories_map (
-    query_story_searches_id     int,
-    stories_id                  int
+    query_story_searches_id     int references query_story_searches on delete cascade,
+    stories_id                  int references stories on delete cascade
 );
 
 create unique index query_story_searches_stories_map_u on query_story_searches_stories_map ( query_story_searches_id, stories_id );
     
-create table sopa_links (
-    sopa_links_id       serial primary key,
-    stories_id          int not null references stories,
-    url                 text not null,
-    redirect_url        text,
-    ref_stories_id      int references stories,
-    link_spidered       boolean default 'f'
-);
-
-create index sopa_links_story on sopa_links (stories_id);
-    
-create table sopa_stories (
-    sopa_stories_id         serial primary key,
-    stories_id              int not null references stories,
-    link_mined              boolean default 'f',
-    iteration               int default 0,
-    link_weight             real
-);
-
 create table story_similarities (
     story_similarities_id   serial primary key,
     stories_id_a            int,
@@ -1192,11 +1212,17 @@ create view story_similarities_transitive as
 create table controversies (
     controversies_id        serial primary key,
     name                    varchar(1024) not null,
-    query_story_searches_id int not null
+    query_story_searches_id int not null references query_story_searches
 );
 
 create unique index controversies_name on controversies( name );
-
+    
+create table controversy_dates (
+    controversy_dates_id    serial primary key,
+    controversies_id        int not null references controversies on delete cascade,
+    start_date              date not null,
+    end_date                date not null
+);
 
 create table controversy_media_codes (
     controversies_id        int not null references controversies on delete cascade,
@@ -1204,24 +1230,14 @@ create table controversy_media_codes (
     code_type               text,
     code                    text
 );
-    
-create table controversy_merged_media (
-    source_media_id         int not null,
-    target_media_id         int not null
+
+create table controversy_merged_stories_map (
+    source_stories_id       int not null references stories on delete cascade,
+    target_stories_id       int not null references stories on delete cascade
 );
 
-create table controversy_links (
-    controversy_links_id        serial primary key,
-    controversies_id            int not null references controversies on delete cascade,
-    stories_id                  int not null references stories on delete cascade,
-    url                         text not null,
-    redirect_url                text,
-    ref_stories_id              int references stories on delete cascade,
-    link_spidered               boolean default 'f'
-);
+create index controversy_merged_stories_map_source on controversy_merged_stories_map ( source_stories_id );
 
-create index controversy_links_story on controversy_links (stories_id, controversies_id );
-    
 create table controversy_stories (
     controversy_stories_id          serial primary key,
     controversies_id                int not null references controversies on delete cascade,
@@ -1229,11 +1245,82 @@ create table controversy_stories (
     link_mined                      boolean default 'f',
     iteration                       int default 0,
     link_weight                     real,
-    redirect_url                    text
+    redirect_url                    text,
+    valid_foreign_rss_story         boolean default false
 );
 
+create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id ) ;
+
+-- no foreign key constraints on controversies_id and stories_id because
+--   we have the combined foreign key constraint pointing to controversy_stories
+--   below 
+create table controversy_links (
+    controversy_links_id        serial primary key,
+    controversies_id            int not null,
+    stories_id                  int not null,
+    url                         text not null,
+    redirect_url                text,
+    ref_stories_id              int references stories on delete cascade,
+    link_spidered               boolean default 'f'
+);
+
+alter table controversy_links add constraint controversy_links_controversy_story_stories_id 
+    foreign key ( stories_id, controversies_id ) references controversy_stories ( stories_id, controversies_id )
+    on delete cascade;
+
+create unique index controversy_links_scr on controversy_links ( stories_id, controversies_id, ref_stories_id );
+
+create table controversy_seed_urls (
+    controversy_seed_urls_id        serial primary key,
+    controversies_id                int not null references controversies on delete cascade,
+    url                             text,
+    source                          text,
+    stories_id                      int references stories on delete cascade,
+    processed                       boolean not null default false,
+    assume_match                    boolean not null default false
+);
+
+create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
+create index controversy_seed_urls_url on controversy_seed_urls( url );
+
+create table processed_stories (
+    processed_stories_id        bigserial          primary key,
+    stories_id                  bigint             not null references stories on delete cascade
+);
+
+create index processed_stories_story on processed_stories ( stories_id );
+
+create table story_subsets (
+    story_subsets_id        bigserial          primary key,
+    start_date              timestamp with time zone,
+    end_date                timestamp with time zone,
+    media_id                int references media_sets null,
+    media_sets_id           int references media_sets null,
+    ready                   boolean default 'false',
+    last_processed_stories_id bigint references processed_stories(processed_stories_id)
+);
+
+CREATE TABLE story_subsets_processed_stories_map (
+   story_subsets_processed_stories_map_id bigserial primary key,
+   story_subsets_id bigint NOT NULL references story_subsets on delete cascade,
+   processed_stories_id bigint NOT NULL references processed_stories on delete cascade
+);
+
+
 create view controversy_links_cross_media as
+<<<<<<< .working
   select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
+=======
+  select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
+
+create table controversy_query_story_searches_imported_stories_map (
+    controversies_id            int not null references controversies on delete cascade,
+    stories_id                  int not null references stories on delete cascade
+);
+
+create index cqssism_c on controversy_query_story_searches_imported_stories_map ( controversies_id );
+create index cqssism_s on controversy_query_story_searches_imported_stories_map ( stories_id );
+>>>>>>> .merge-right.r5168
     
 CREATE VIEW stories_collected_in_past_day as select * from stories where collect_date > now() - interval '1 day';
 
@@ -1505,6 +1592,7 @@ return coalesce($1) || ' | ' || coalesce($2);
   END;
 $_$;
 
+<<<<<<< .working
 
 CREATE INDEX stories_guid_non_unique ON stories USING btree (guid, media_id);
 
@@ -1648,3 +1736,85 @@ CREATE TABLE story_edits (
                                     ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
 
 );
+=======
+CREATE OR REPLACE FUNCTION cancel_pg_process(cancel_pid integer) RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+return pg_cancel_backend(cancel_pid);
+END;
+$$;
+
+--
+-- Authentication
+--
+
+-- List of users
+CREATE TABLE auth_users (
+    users_id        SERIAL  PRIMARY KEY,
+    email           TEXT    UNIQUE NOT NULL,
+
+    -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
+    password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
+
+    full_name       TEXT    NOT NULL,
+    notes           TEXT    NULL,
+    active          BOOLEAN NOT NULL DEFAULT true,
+
+    -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
+    -- salt_len=>64) or NULL
+    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
+
+    -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
+    -- attempts in order to prevent brute-force attacks
+    last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch'
+);
+
+-- List of roles the users can perform
+CREATE TABLE auth_roles (
+    roles_id        SERIAL  PRIMARY KEY,
+    role            TEXT    UNIQUE NOT NULL CONSTRAINT role_name_can_not_contain_spaces CHECK(role NOT LIKE '% %'),
+    description     TEXT    NOT NULL
+);
+
+-- Map of user IDs and roles that are allowed to each of the user
+CREATE TABLE auth_users_roles_map (
+    auth_users_roles_map    SERIAL      PRIMARY KEY,
+    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id)
+                                        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    CONSTRAINT no_duplicate_entries UNIQUE (users_id, roles_id)
+);
+CREATE INDEX auth_users_roles_map_users_id_roles_id
+    ON auth_users_roles_map (users_id, roles_id);
+
+-- Roles
+INSERT INTO auth_roles (role, description) VALUES
+    ('admin', 'Do everything, including editing users.'),
+    ('admin-readonly', 'Read access to admin interface.'),
+    ('query-create', 'Create query; includes ability to create clusters, maps, etc. under clusters.'),
+    ('media-edit', 'Add / edit media; includes feeds.'),
+    ('stories-edit', 'Add / edit stories.');
+
+--
+-- Edit logs
+--
+
+-- Media edits log
+CREATE TABLE media_edits (
+    media_edits_id      SERIAL      PRIMARY KEY,
+    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
+    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
+                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
+    old_value           TEXT        NOT NULL,
+    new_value           TEXT        NOT NULL,
+    reason              TEXT        NOT NULL
+                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
+
+    -- Store user's email instead of ID in case the user gets deleted
+    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
+
+);
+>>>>>>> .merge-right.r5168
