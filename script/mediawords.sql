@@ -1312,12 +1312,6 @@ CREATE TABLE queries_top_weekly_words_json (
    top_weekly_words_json text not null 
 );
 
-CREATE TABLE feedless_stories (
-        stories_id integer,
-        media_id integer
-);
-CREATE INDEX feedless_stories_story ON feedless_stories USING btree (stories_id);
-
 CREATE TABLE queries_country_counts_json (
    queries_country_counts_json_id serial primary key,
    queries_id integer references queries on delete cascade not null unique,

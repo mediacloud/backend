@@ -3,7 +3,11 @@ use warnings;
 use Test::NoWarnings;
 use Test::More tests => 2;
 
-# BEGIN { use Catalyst::Test 'MediaWords' };
+BEGIN
+{
+    $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
+    use_ok 'Catalyst::Test', 'MediaWords';
+}
 BEGIN { use_ok 'MediaWords::Controller::Admin::Feeds' }
 
 # commented out until we can add support for testing with auth -hal
