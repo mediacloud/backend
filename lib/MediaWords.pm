@@ -216,9 +216,9 @@ sub setup_acl()
 
     # stories-edit role; can do everything admin-readonly can + add / edit stories
     my @acl_stories_edit = qw|
-      /admin/api/stories/add_tag
-      /admin/api/stories/add_tag_do
-      /admin/api/stories/delete_tag
+      /admin/api/stories/add
+      /admin/api/stories/add_do
+      /admin/api/stories/delete
       /admin/api/stories/subset_PUT
       /admin/stories/add_tag
       /admin/stories/add_tag_do
