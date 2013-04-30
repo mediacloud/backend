@@ -36,6 +36,7 @@ sub _get_page_content
     $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );
     $ua->max_redirect( 15 );
+    $ua->env_proxy;
 
     print "starting get of $url\n";
 

@@ -26,7 +26,7 @@ require_ok( 'MediaWords::Util::Config' );
 require_ok( 'DBIx::Simple::MediaWords' );
 require_ok( 'MediaWords::DB' );
 
-my $dbs = MediaWords::DB::connect_to_db( 'test' );
+my $dbs = MediaWords::DB::connect_to_db( 'test', 1 );
 
 isa_ok( $dbs, "DBIx::Simple::MediaWords" );
 

@@ -25,13 +25,13 @@ use Storable;
 use MediaWords::Util::Web;
 
 # number of processes to run in parallel
-use constant NUM_PARALLEL => 10;
+use constant DEFAULT_NUM_PARALLEL => 10;
 
 # timeout any given request after this many seconds
-use constant TIMEOUT => 90;
+use constant DEFAULT_TIMEOUT => 90;
 
 # number of seconds to wait before sending a new request to a given domain
-use constant PER_DOMAIN_TIMEOUT => 3;
+use constant DEFAULT_PER_DOMAIN_TIMEOUT => 1;
 
 sub get_request_domain
 {
@@ -50,6 +50,10 @@ sub get_request_domain
     {
         $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
     }
+    elsif ( $host =~ /blogspot.com|livejournal.com|wordpress.com/ )
+    {
+        $domain = $request->{ url };
+    }
     else
     {
         $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
@@ -59,10 +63,10 @@ sub get_request_domain
 }
 
 # schedule the requests by adding a { time => $time } field to each request
-# to make sure we obey the PER_DOMAIN_TIMEOUT.  sort requests by ascending time.
+# to make sure we obey the $per_domain_timeout.  sort requests by ascending time.
 sub get_scheduled_requests
 {
-    my ( $requests ) = @_;
+    my ( $requests, $per_domain_timeout ) = @_;
 
     my $domain_requests = {};
 
@@ -81,7 +85,7 @@ sub get_scheduled_requests
         {
             $domain_request->{ time } = $time;
             push( @{ $scheduled_requests }, $domain_request );
-            $time += PER_DOMAIN_TIMEOUT;
+            $time += $per_domain_timeout;
         }
     }
 
@@ -111,11 +115,17 @@ sub main
         return;
     }
 
-    my $pm = new Parallel::ForkManager( NUM_PARALLEL );
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel }       || DEFAULT_NUM_PARALLEL;
+    my $timeout            = $config->{ mediawords }->{ web_store_timeout }            || DEFAULT_TIMEOUT;
+    my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout } || DEFAULT_PER_DOMAIN_TIMEOUT;
+
+    my $pm = new Parallel::ForkManager( $num_parallel );
 
     my $ua = MediaWords::Util::Web::UserAgent();
 
-    my $requests   = get_scheduled_requests( $requests );
+    my $requests = get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;
 
     my $i     = 0;
@@ -131,7 +141,7 @@ sub main
             sleep( $request->{ time } - $time_increment );
         }
 
-        alarm( TIMEOUT );
+        alarm( $timeout );
         $pm->start and next;
 
         print STDERR "fetch [$i/$total] : $request->{ url }\n";

@@ -50,7 +50,7 @@ sub process
 
     foreach my $clause ( @{ $subset_clauses } )
     {
-        $where_clause .= 'and';
+        $where_clause .= ' and ';
         $where_clause .= $query_map->{ $clause };
         push $query_params, $st_subset->{ $clause };
     }

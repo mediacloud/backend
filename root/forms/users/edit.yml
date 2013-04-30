@@ -1,0 +1,68 @@
+#
+# "Edit user" form
+#
+
+# indicator is the field that is used to test for form submission
+indicator: submit
+auto_fieldset:
+
+elements:
+  - type: Text
+    id: email
+    name: email
+    label: Email
+    size: 40
+    constraints:
+      - Required
+      - Email
+    attributes:
+      # jQuery validator classes
+      class: email required
+      # Unable to change email address once the user has been created
+      readonly: readonly
+
+  - type: Text
+    id: full_name
+    name: full_name
+    label: Full name
+    size: 40
+    constraints:
+      - Required
+    attributes:
+      # jQuery validator classes
+      class: required
+
+  - type: Textarea
+    id: notes
+    name: notes
+    label: Notes
+    cols: 30
+    rows: 10
+
+  - type: Checkbox
+    id: active
+    name: active
+    label: User is active
+    default: 1
+
+  - type: Checkboxgroup
+    id: roles
+    name: roles
+    label: Roles
+    # 'options' will be filled by the Users controller
+
+  - type: Password
+    id: password
+    name: password
+    label: Password (enter to change)
+    size: 40
+
+  - type: Password
+    id: password_repeat
+    name: password_repeat
+    label: Repeat password
+    size: 40
+
+  - type: Submit
+    name: submit
+    value: Save changes

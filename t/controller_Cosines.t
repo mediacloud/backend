@@ -8,7 +8,7 @@ BEGIN
     $ENV{ MEDIAWORDS_FORCE_USING_TEST_DATABASE } = 1;
     use_ok 'Catalyst::Test', 'MediaWords';
 }
-BEGIN { use_ok 'MediaWords::Controller::Cosines' }
+BEGIN { use_ok 'MediaWords::Controller::Admin::Cosines' }
 
-#action_ok( '/cosines', 'Request should succeed' );
+#action_ok( '/admin/cosines', 'Request should succeed' );
 

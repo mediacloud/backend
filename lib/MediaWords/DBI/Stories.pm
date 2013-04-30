@@ -10,6 +10,7 @@ use Encode;
 
 use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_dot vector_normalize);
 use MediaWords::Util::HTML;
+use MediaWords::Util::Web;
 use MediaWords::Tagger;
 use MediaWords::Util::Config;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
@@ -199,6 +200,41 @@ sub get_existing_tags
     return $ret;
 }
 
+sub get_existing_tags_as_string
+{
+    my ( $db, $stories_id ) = @_;
+
+    # Take note of the old tags
+    my $tags = $db->query(
+        <<"EOF",
+            SELECT stm.stories_id,
+                   CAST(ARRAY_AGG(ts.name || ':' || t.tag) AS TEXT) AS tags
+            FROM tags t,
+                 stories_tags_map stm,
+                 tag_sets ts
+            WHERE t.tags_id = stm.tags_id
+                  AND stm.stories_id = ?
+                  AND t.tag_sets_id = ts.tag_sets_id
+            GROUP BY stm.stories_id,
+                     t.tag_sets_id
+            ORDER BY tags
+            LIMIT 1
+EOF
+        $stories_id
+    )->hash;
+
+    if ( ref( $tags ) eq 'HASH' and $tags->{ stories_id } )
+    {
+        $tags = $tags->{ tags };
+    }
+    else
+    {
+        $tags = '';
+    }
+
+    return $tags;
+}
+
 # add a tags list as returned by MediaWords::Tagger::get_tags_for_modules to the database.
 # handle errors from the tagging module.
 # store any content returned by the tagging module.
@@ -369,6 +405,19 @@ sub get_extracted_text
     return join( ". ", map { $_->{ download_text } } @{ $download_texts } );
 }
 
+sub get_extracted_html_from_db
+{
+    my ( $db, $story ) = @_;
+
+    my $download_texts = $db->query(
+        "select dt.* from downloads d, download_texts dt " .
+          "  where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id",
+        $story->{ stories_id }
+    )->hashes;
+
+    return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
+}
+
 sub get_first_download_for_story
 {
     my ( $db, $story ) = @_;
@@ -523,8 +572,14 @@ sub is_new
 {
     my ( $dbs, $story ) = @_;
 
-    my $db_story =
-      $dbs->query( "select * from stories where guid = ? and media_id = ?", $story->{ guid }, $story->{ media_id } )->hash;
+    # try restricting to the last day first, since this will hit the much smaller stories_guid_recent index
+    my $db_story = $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
+select * from stories where guid = ? and media_id = ? and publish_date > now() - '1 day'::interval
+END
+
+    $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
+select * from stories where guid = ? and media_id = ?
+END
 
     if ( !$db_story )
     {
@@ -561,9 +616,9 @@ sub is_new
 
         $db_story = $dbs->query(
             "select * from stories where title = ? and media_id = ? " .
-              "and publish_date between date '$start_date' and date '$end_date' for update",
-            $title,
-            $story->{ media_id }
+              "and publish_date between ?::date and ?::date for update",
+            $title, $story->{ media_id },
+            $start_date, $end_date
         )->hash;
     }
 
@@ -574,6 +629,100 @@ sub is_new
     else
     {
         return 0;
+    }
+}
+
+# re-extract the story for the given download
+sub reextract_download
+{
+    my ( $db, $download ) = @_;
+
+    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4$/i );
+
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "restore", 1, 1 ); };
+    warn "extract error processing download $download->{ downloads_id }" if ( $@ );
+}
+
+sub restore_download_content
+{
+    my ( $db, $download, $story_content ) = @_;
+
+    MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+    reextract_download( $db, $download );
+}
+
+# check to see whether the given download is broken
+sub download_is_broken
+{
+    my ( $db, $download ) = @_;
+
+    my $content_ref;
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $download ); };
+
+    return 0 if ( $content_ref && ( length( $$content_ref ) > 32 ) );
+
+    return 1;
+}
+
+# for each download, refetch the content and add a { content } field with the
+# fetched content
+sub get_broken_download_content
+{
+    my ( $db, $downloads ) = @_;
+
+    my $urls = [ map { URI->new( $_->{ url } )->as_string } @{ $downloads } ];
+
+    my $responses = MediaWords::Util::Web::ParallelGet( $urls );
+
+    my $download_lookup = {};
+    map { $download_lookup->{ URI->new( $_->{ url } )->as_string } = $_ } @{ $downloads };
+
+    for my $response ( @{ $responses } )
+    {
+        my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
+
+        $download_lookup->{ $original_url }->{ content } = $response->decoded_content;
+    }
+}
+
+# if this story is one of the ones for which we lost the download, refetch the content_ref
+sub fix_story_downloads_if_needed
+{
+    my ( $db, $story ) = @_;
+
+    if ( $story->{ url } =~ /livejournal.com/ )
+    {
+
+        # hack to fix livejournal extra pages, which are misparsing errors from Pager.pm
+        $db->query( <<END, $story->{ stories_id } );
+delete from downloads where stories_id = ? and sequence > 1
+END
+    }
+
+    my $downloads = $db->query( <<END, $story->{ stories_id } )->hashes;
+select * from downloads where stories_id = ? order by downloads_id
+END
+
+    my $broken_downloads = [ grep { download_is_broken( $db, $_ ) } @{ $downloads } ];
+
+    my $fetch_downloads = [];
+    for my $download ( @{ $broken_downloads } )
+    {
+        if ( my $cached_download = $story->{ cached_downloads }->{ $download->{ downloads_id } } )
+        {
+            $download->{ content } = MediaWords::Util::Web::get_cached_link_download( $cached_download );
+        }
+        else
+        {
+            push( @{ $fetch_downloads }, $download );
+        }
+    }
+
+    get_broken_download_content( $db, $fetch_downloads );
+
+    for my $download ( @{ $broken_downloads } )
+    {
+        restore_download_content( $db, $download, $download->{ content } );
     }
 }
 

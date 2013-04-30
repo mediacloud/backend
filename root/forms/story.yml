@@ -1,0 +1,45 @@
+auto_fieldset:
+
+elements:
+  - type: Hidden
+    name: referer
+
+  - type: Text
+    name: title
+    label: Title
+    size: 96
+    comment: title of the story
+    constraints:
+        - Required
+
+  - type: Textarea
+    name: description
+    label: Description
+    cols: 30
+    rows: 10
+    comment: description of the story
+    constraints:
+        - Required
+
+  - type: DateTime
+    name: publish_date
+    strftime: '%Y-%m-%d %H:%M:%S'
+    year:
+        less: 10
+        plus: 2
+    field_order: ['year', 'month', 'day', 'hour', 'minute', 'second']
+    label: Publish date
+    comment: publish date of the story
+    constraints:
+        - Required
+
+  - type: Text
+    name: reason
+    label: Reason
+    size: 48
+    comment: reason for the modification that you are making
+    constraints:
+        - Required
+
+  - type: Submit
+    value: Save
