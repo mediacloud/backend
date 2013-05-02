@@ -17,10 +17,18 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-#mongodb_gridfs:
-#    - host      : "localhost" 
-#      port      : "27017" 
-#      database  : "mediacloud_downloads_gridfs"
+### MongoDB connection settings for storing downloads in GridFS
+mongodb_gridfs:
+    # Production database
+    mediawords:
+        - host      : "localhost" 
+          port      : "27017" 
+          database  : "mediacloud_downloads_gridfs"
+    # Testing database
+    test:
+        - host      : "localhost" 
+          port      : "27017" 
+          database  : "mediacloud_downloads_gridfs_test"
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
@@ -64,8 +72,12 @@ database:
     #user_agent: "Mozilla/5.0 (Linux) MediaCloud/1.0"
     #owner: "mediacloud@cyber.law.harvard.edu"
 
-    #uncomment to enable storage of download in mongo/gridfs server defined above
-    #download_storage_location: "gridfs"
+    ### Uncomment one or more storage methods to store downloads to; default is just "tar"
+    #download_storage_locations:
+        ### store downloads to Tar archives
+        #- tar
+        ## store downloads to a MongoDB GridFS database
+        #- gridfs
 
     ### fetch content from another instance of MediaCloud?
     #fetch_remote_content          : "yes"

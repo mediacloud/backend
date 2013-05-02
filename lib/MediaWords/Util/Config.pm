@@ -78,6 +78,7 @@ sub set_defaults
     $config->{ mediawords }->{ default_home_page }                ||= "admin/media/list";
     $config->{ mediawords }->{ recaptcha_public_key }             ||= "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_";
     $config->{ mediawords }->{ recaptcha_private_key }            ||= "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2";
+    $config->{ mediawords }->{ download_storage_locations }       ||= [ 'tar' ];
     $config->{ mail }->{ from_address }                           ||= "noreply\@mediacloud.org";
     $config->{ mail }->{ bug_email }                              ||= "";
     $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
