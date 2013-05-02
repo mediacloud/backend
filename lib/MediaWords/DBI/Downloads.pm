@@ -326,6 +326,8 @@ sub store_content($$$)
         {
             $path = $store->store_content( $db, $download, $content_ref );
         }
+
+        # Now $path points to the last store that was configured
     };
     if ( $@ )
     {

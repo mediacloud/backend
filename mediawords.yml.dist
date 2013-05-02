@@ -72,7 +72,8 @@ mongodb_gridfs:
     #user_agent: "Mozilla/5.0 (Linux) MediaCloud/1.0"
     #owner: "mediacloud@cyber.law.harvard.edu"
 
-    ### Uncomment one or more storage methods to store downloads to; default is just "tar"
+    ### Uncomment one or more storage methods to store downloads to; default is just "tar".
+    ### The path to the last download storage method listed below will be stored in the database.
     #download_storage_locations:
         ### store downloads to Tar archives
         #- tar
