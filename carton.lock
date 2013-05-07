@@ -15262,6 +15262,66 @@
          "target" : "DateTime::TimeZone",
          "version" : "1.42"
       },
+      "DateTime::Tiny" : {
+         "dist" : "DateTime-Tiny-1.04",
+         "mymeta" : {
+            "abstract" : "A datetime object with as little code as possible",
+            "author" : [
+               "Adam Kennedy <adamk@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.48, CPAN::Meta::Converter version 2.130880, CPAN::Meta::Converter version 2.112621",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "DateTime-Tiny",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : 0
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Test::More" : "0.47",
+                     "perl" : "5.004"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "repository" : {
+                  "url" : "http://svn.ali.as/cpan/trunk/DateTime-Tiny"
+               }
+            },
+            "version" : "1.04"
+         },
+         "name" : "DateTime::Tiny",
+         "pathname" : "A/AD/ADAMK/DateTime-Tiny-1.04.tar.gz",
+         "provides" : {
+            "DateTime::Tiny" : {
+               "file" : "DateTime/Tiny.pm",
+               "version" : "1.04"
+            }
+         },
+         "target" : "DateTime::Tiny",
+         "version" : "1.04"
+      },
       "Devel::Caller" : {
          "dist" : "Devel-Caller-2.05",
          "mymeta" : {
@@ -28619,12 +28679,13 @@
          "version" : "3.64"
       },
       "MongoDB" : {
-         "dist" : "MongoDB-0.45",
+         "dist" : "MongoDB-0.700.0",
          "mymeta" : {
-            "abstract" : "Mongo Driver for Perl",
+            "abstract" : "A Mongo Driver for Perl",
             "author" : [
                "Florian Ragwitz <rafl@debian.org>",
-               "Kristina Chodorow <kristina@10gen.com>"
+               "Kristina Chodorow <kristina@mongodb.org>",
+               "Mike Friedman <mike.friedman@10gen.com>"
             ],
             "dynamic_config" : 0,
             "generated_by" : "Module::Install version 1.01, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
@@ -28648,12 +28709,14 @@
                   "requires" : {
                      "Data::Types" : 0,
                      "DateTime" : 0,
-                     "ExtUtils::MakeMaker" : "6.42",
+                     "DateTime::Tiny" : 0,
+                     "ExtUtils::MakeMaker" : "6.59",
                      "File::Slurp" : 0,
                      "File::Temp" : "0.17",
                      "FileHandle" : 0,
                      "JSON" : 0,
                      "Test::Exception" : 0,
+                     "Test::Warn" : 0,
                      "Tie::IxHash" : 0,
                      "Try::Tiny" : 0,
                      "boolean" : 0
@@ -28661,15 +28724,16 @@
                },
                "configure" : {
                   "requires" : {
-                     "ExtUtils::MakeMaker" : "6.42"
+                     "ExtUtils::MakeMaker" : "6.30"
                   }
                },
                "runtime" : {
                   "requires" : {
-                     "Any::Moose" : 0,
                      "Class::Method::Modifiers" : 0,
                      "DateTime" : 0,
                      "Digest::MD5" : 0,
+                     "Module::Install" : 0,
+                     "Moose" : 0,
                      "Tie::IxHash" : 0,
                      "XSLoader" : 0,
                      "boolean" : 0,
@@ -28679,66 +28743,79 @@
             },
             "release_status" : "stable",
             "resources" : {
-               "license" : [
-                  "http://apache.org/licenses/LICENSE-2.0"
-               ],
+               "bugtracker" : {
+                  "web" : "https://jira.mongodb.org/browse/PERL"
+               },
+               "homepage" : "https://github.com/mongodb/mongo-perl-driver",
                "repository" : {
                   "type" : "git",
                   "url" : "git://github.com/mongodb/mongo-perl-driver.git"
                }
             },
-            "version" : "0.45"
+            "version" : "0.700.0"
          },
          "name" : "MongoDB",
-         "pathname" : "K/KR/KRISTINA/MongoDB-0.45.tar.gz",
+         "pathname" : "F/FR/FRIEDO/MongoDB-0.700.0.tar.gz",
          "provides" : {
             "MongoDB" : {
                "file" : "MongoDB.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             },
             "MongoDB::BSON" : {
                "file" : "MongoDB/BSON.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
+            },
+            "MongoDB::BSON::Binary" : {
+               "file" : "MongoDB/BSON/Binary.pm",
+               "version" : "v0.700.0"
             },
             "MongoDB::Code" : {
                "file" : "MongoDB/Code.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             },
             "MongoDB::Collection" : {
                "file" : "MongoDB/Collection.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             },
             "MongoDB::Connection" : {
                "file" : "MongoDB/Connection.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             },
             "MongoDB::Cursor" : {
                "file" : "MongoDB/Cursor.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
+            },
+            "MongoDB::DBRef" : {
+               "file" : "MongoDB/DBRef.pm",
+               "version" : "v0.700.0"
             },
             "MongoDB::Database" : {
                "file" : "MongoDB/Database.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             },
             "MongoDB::GridFS" : {
                "file" : "MongoDB/GridFS.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             },
             "MongoDB::GridFS::File" : {
                "file" : "MongoDB/GridFS/File.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
+            },
+            "MongoDB::MongoClient" : {
+               "file" : "MongoDB/MongoClient.pm",
+               "version" : "v0.700.0"
             },
             "MongoDB::OID" : {
                "file" : "MongoDB/OID.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             },
             "MongoDB::Timestamp" : {
                "file" : "MongoDB/Timestamp.pm",
-               "version" : "0.45"
+               "version" : "v0.700.0"
             }
          },
          "target" : "MongoDB",
-         "version" : "0.45"
+         "version" : "v0.700.0"
       },
       "Moo" : {
          "dist" : "Moo-1.000008",
