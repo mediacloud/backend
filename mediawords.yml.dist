@@ -21,14 +21,14 @@ database:
 mongodb_gridfs:
     # Production database
     mediawords:
-        - host      : "localhost" 
-          port      : "27017" 
-          database  : "mediacloud_downloads_gridfs"
+        host      : "localhost" 
+        port      : "27017" 
+        database  : "mediacloud_downloads_gridfs"
     # Testing database
     test:
-        - host      : "localhost" 
-          port      : "27017" 
-          database  : "mediacloud_downloads_gridfs_test"
+        host      : "localhost" 
+        port      : "27017" 
+        database  : "mediacloud_downloads_gridfs_test"
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
