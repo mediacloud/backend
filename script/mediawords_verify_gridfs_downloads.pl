@@ -232,7 +232,6 @@ EOF
             {
                 die "MongoDB connection settings are undefined.\n";
             }
-            $mongo_settings = $mongo_settings->[ 0 ];
 
             # Check settings
             my $host          = $mongo_settings->{ host };
