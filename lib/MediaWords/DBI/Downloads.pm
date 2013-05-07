@@ -6,220 +6,177 @@ use MediaWords::CommonLibs;
 
 use strict;
 
-use Encode;
-use File::Path;
-use HTTP::Request;
-use IO::Uncompress::Gunzip;
-use IO::Compress::Gzip;
-use LWP::UserAgent;
-
-use Archive::Tar::Indexed;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::StoryVectors;
+use MediaWords::DBI::Downloads::Store::DatabaseInline;
+use MediaWords::DBI::Downloads::Store::LocalFile;
+use MediaWords::DBI::Downloads::Store::Remote;
+use MediaWords::DBI::Downloads::Store::Tar;
+use MediaWords::DBI::Downloads::Store::GridFS;
 use Carp;
-use MongoDB;
-use MongoDB::GridFS;
-use MediaWords::GridFS;
 
 use Data::Dumper;
 
+# Download store instances
+my $_databaseinline_store;
+my $_localfile_store;
+my $_remote_store;
+my $_tar_store;
+my $_gridfs_store;
+
+# Reference to configuration
+my $_config;
+
+# Database inline content length limit
 Readonly my $INLINE_CONTENT_LENGTH => 256;
 
-sub _get_local_file_content_path_from_path
+# Constructor
+BEGIN
 {
-    my ( $path ) = @_;
+    $_databaseinline_store = MediaWords::DBI::Downloads::Store::DatabaseInline->new();
+    $_localfile_store      = MediaWords::DBI::Downloads::Store::LocalFile->new();
+    $_remote_store         = MediaWords::DBI::Downloads::Store::Remote->new();
+    $_gridfs_store         = MediaWords::DBI::Downloads::Store::GridFS->new();
+    $_tar_store            = MediaWords::DBI::Downloads::Store::Tar->new();
 
-    # note redefine delimitor from '/' to '~'
-    $path =~ s~^.*/(content/.*.gz)$~$1~;
-
-    my $config = MediaWords::Util::Config::get_config;
-    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
-
-    $data_dir = "" if ( !$data_dir );
-    $path     = "" if ( !$path );
-    $path     = "$data_dir/$path";
-
-    return $path;
-}
-
-# return a ref to the content associated with the given download, or under if there is none
-sub fetch_content_local_file
-{
-    my ( $download ) = @_;
-
-    my $path = $download->{ path };
-    if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
+    # Early sanity check on configuration
+    $_config = MediaWords::Util::Config::get_config;
+    my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
+    if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
-        return undef;
+        die "No download storage methods are configured.\n";
+    }
+    foreach my $download_storage_location ( @{ $download_storage_locations } )
+    {
+        unless ( lc( $download_storage_location ) eq 'tar' or lc( $download_storage_location ) eq 'gridfs' )
+        {
+            die "Download storage location '$download_storage_location' is not valid.\n";
+        }
     }
 
-    $path = _get_local_file_content_path_from_path( $path );
+}
 
-    my $content;
+# Returns arrayref of stores for writing new downloads to
+sub _download_stores_for_writing($)
+{
+    my $content_ref = shift;
 
-    if ( -f $path )
+    my $stores = [];
+
+    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
     {
-        my $fh;
-        if ( !( $fh = IO::Uncompress::Gunzip->new( $path ) ) )
-        {
-            return undef;
-        }
 
-        while ( my $line = $fh->getline )
-        {
-            $content .= decode( 'utf-8', $line );
-        }
-
-        $fh->close;
+        # Inline
+        #say STDERR "Will store inline.";
+        push( @{ $stores }, $_databaseinline_store );
     }
     else
     {
-        $path =~ s/\.gz$/.dl/;
-
-        if ( !open( FILE, $path ) )
+        my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
+        foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
-            return undef;
+
+            if ( lc( $download_storage_location ) eq 'tar' )
+            {
+
+                #say STDERR "Will store to Tar.";
+                push( @{ $stores }, $_tar_store );
+
+            }
+            elsif ( lc( $download_storage_location ) eq 'gridfs' )
+            {
+
+                #say STDERR "Will store to GridFS.";
+                push( @{ $stores }, $_gridfs_store );
+
+            }
+            else
+            {
+                die "Download storage location '$download_storage_location' is not valid.\n";
+            }
         }
-
-        while ( my $line = <FILE> )
-        {
-            $content .= decode( 'utf-8', $line );
-        }
     }
 
-    return \$content;
+    if ( scalar( @{ $stores } ) == 0 )
+    {
+        die "No download storage locations are configured.\n";
+    }
+
+    return $stores;
 }
 
-sub _fetch_content_from_gridfs
+# Returns store for fetching downloads from
+sub _download_store_for_reading($)
 {
-    my ( $download ) = @_;
+    my $download = shift;
 
-    my $path = $download->{ path };
+    my $store;
 
-    my $grid_id_str = $path;
-    $grid_id_str =~ s/^gridfs\://;
-
-    my $gridfs = MediaWords::GridFS::get_gridfs();
-
-    return MediaWords::GridFS::get_download_content_ref( $gridfs, $grid_id_str );
-}
-
-# return a ref to the content associated with the given download, or under if there is none
-sub fetch_content_local
-{
-    my ( $download ) = @_;
-
-    my $path = $download->{ path };
-    if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
+    my $fetch_remote = $_config->{ mediawords }->{ fetch_remote_content } || 'no';
+    if ( $fetch_remote eq 'yes' )
     {
-        return undef;
-    }
 
-    if ( $download->{ path } =~ /^content:(.*)/ )
-    {
-        my $content = $1;
-        return \$content;
-    }
-    if ( $download->{ path } =~ /^gridfs:(.*)/ )
-    {
-        return _fetch_content_from_gridfs( $download );
-    }
-    elsif ( $download->{ path } !~ /^tar:/ )
-    {
-        return fetch_content_local_file( $download );
-    }
-
-    if ( !( $download->{ path } =~ /tar:(\d+):(\d+):([^:]*):(.*)/ ) )
-    {
-        warn( "Unable to parse download path: $download->{ path }" );
-        return undef;
-    }
-
-    my ( $starting_block, $num_blocks, $tar_file, $download_file ) = ( $1, $2, $3, $4 );
-
-    my $config   = MediaWords::Util::Config::get_config;
-    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
-    my $tar_path = "$data_dir/content/$tar_file";
-
-    my $content_ref = Archive::Tar::Indexed::read_file( $tar_path, $download_file, $starting_block, $num_blocks );
-
-    my $content;
-    if ( !( IO::Uncompress::Gunzip::gunzip $content_ref => \$content ) )
-    {
-        warn( "Error gunzipping content for download $download->{ downloads_id }: $IO::Uncompress::Gunzip::GunzipError" );
-    }
-
-    my $decoded_content = decode( 'utf-8', $content );
-
-    return \$decoded_content;
-}
-
-# fetch the content from the production server via http
-sub fetch_content_remote
-{
-    my ( $download ) = @_;
-
-    my $ua = LWP::UserAgent->new;
-    $ua->env_proxy;
-
-    if ( !defined( $download->{ downloads_id } ) )
-    {
-        return \"";
-    }
-
-    my $username = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content_user };
-    my $password = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content_password };
-    my $url      = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content_url };
-
-    if ( !$username || !$password || !$url )
-    {
-        die( "mediawords:fetch_remote_content_username, _password, and _url must all be set" );
-    }
-
-    if ( $url !~ /\/$/ )
-    {
-        $url = "$url/";
-    }
-
-    my $request = HTTP::Request->new( 'GET', $url . $download->{ downloads_id } );
-    $request->authorization_basic( $username, $password );
-
-    my $response = $ua->request( $request );
-
-    if ( $response->is_success() )
-    {
-        my $content = $response->decoded_content();
-
-        return \$content;
+        # Remote
+        $store = $_remote_store;
     }
     else
     {
-        warn( "error fetching remote content for download " . $download->{ downloads_id } . " with url '$url'  " . ":\n" .
-              $response->as_string );
-        return \"";
+        my $path = $download->{ path };
+        if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
+        {
+            $store = undef;
+        }
+        elsif ( $path =~ /^content:(.*)/ )
+        {
+
+            # Inline content
+            $store = $_databaseinline_store;
+        }
+        elsif ( $path =~ /^gridfs:(.*)/ )
+        {
+
+            # GridFS
+            $store = $_gridfs_store;
+        }
+        elsif ( $download->{ path } =~ /^tar:/ )
+        {
+
+            # Tar
+            $store = $_tar_store;
+        }
+        else
+        {
+
+            # Local file
+            $store = $_localfile_store;
+        }
     }
+
+    return $store;
 }
 
 # fetch the content for the given download as a content_ref
-sub fetch_content
+sub fetch_content($)
 {
-    my ( $download ) = @_;
+    my $download = shift;
 
     carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
 
-    my $fetch_remote = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content } || 'no';
-    if ( $fetch_remote eq 'yes' )
+    my $store = _download_store_for_reading( $download );
+    unless ( defined $store )
     {
-        return fetch_content_remote( $download );
+        die "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
     }
-    elsif ( my $content_ref = fetch_content_local( $download ) )
+
+    # Fetch content
+    if ( my $content_ref = $store->fetch_content( $download ) )
     {
 
         # horrible hack to fix old content that is not stored in unicode
-        my $ascii_hack_downloads_id = MediaWords::Util::Config::get_config->{ mediawords }->{ ascii_hack_downloads_id };
+        my $ascii_hack_downloads_id = $_config->{ mediawords }->{ ascii_hack_downloads_id };
         if ( $ascii_hack_downloads_id && ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
         {
             $$content_ref =~ s/[^[:ascii:]]/ /g;
@@ -234,52 +191,10 @@ sub fetch_content
     }
 }
 
-sub rewrite_downloads_content
-{
-    my ( $db, $download ) = @_;
-
-    my $fetch_remote = MediaWords::Util::Config::get_config->{ mediawords }->{ fetch_remote_content } || 'no';
-    die "CANNOT rewrite mobile content" if ( $fetch_remote eq 'yes' );
-
-    my $download_content_ref = fetch_content( $download );
-
-    my $path = $download->{ path };
-
-    store_content( $db, $download, $download_content_ref );
-
-    my $download_content_ref_new = fetch_content( $download );
-
-    die unless $$download_content_ref eq $$download_content_ref_new;
-
-    die if $path eq $download->{ path };
-
-    my $full_path = _get_local_file_content_path_from_path( $path );
-
-    if ( !( -f $full_path ) )
-    {
-        $full_path =~ s/\.gz$/.dl/;
-    }
-
-    if ( !( -f $full_path ) )
-    {
-        return if $$download_content_ref eq '';
-
-        say STDERR "file missing: $full_path";
-        say STDERR "content is:\n'" . $$download_content_ref . "'";
-        warn "File to deleted: '$full_path' does not exist for non-empty content: '$$download_content_ref'"
-          unless $$download_content_ref eq '';
-    }
-    else
-    {
-        say "Deleting $full_path";
-        die "Could not delete $full_path: $! " unless unlink( $full_path );
-    }
-}
-
 # fetch the content as lines in an array after running through the extractor preprocessor
-sub fetch_preprocessed_content_lines
+sub fetch_preprocessed_content_lines($)
 {
-    my ( $download ) = @_;
+    my $download = shift;
 
     my $content_ref = fetch_content( $download );
 
@@ -318,7 +233,7 @@ sub extractor_results_for_download($$)
 
 # if the given line looks like a tagline for another story and is missing an ending period, add a period
 #
-sub add_period_to_tagline
+sub add_period_to_tagline($$$)
 {
     my ( $lines, $scores, $i ) = @_;
 
@@ -349,9 +264,9 @@ sub _do_extraction_from_content_ref($$$)
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }
 
-sub _get_included_line_numbers
+sub _get_included_line_numbers($)
 {
-    my ( $scores ) = @_;
+    my $scores = shift;
 
     my @included_lines;
     for ( my $i = 0 ; $i < @{ $scores } ; $i++ )
@@ -385,127 +300,8 @@ sub extract_preprocessed_lines_for_story($$$)
     };
 }
 
-# get the parent of this download
-sub get_parent
-{
-    my ( $db, $download ) = @_;
-
-    if ( !$download->{ parent } )
-    {
-        return undef;
-    }
-
-    return $db->query( "select * from downloads where downloads_id = ?", $download->{ parent } )->hash;
-}
-
-# get the relative path (to be used within the tarball) to store the given download
-# the path for a download is:
-# <media_id>/<year>/<month>/<day>/<hour>/<minute>[/<parent download_id>]/<download_id
-sub _get_download_path
-{
-    my ( $db, $download ) = @_;
-
-    my $feed = $db->query( "select * from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
-
-    my @date = ( $download->{ download_time } =~ /(\d\d\d\d)-(\d\d)-(\d\d).(\d\d):(\d\d):(\d\d)/ );
-
-    my @path = ( sprintf( "%06d", $feed->{ media_id } ), sprintf( "%06d", $feed->{ feeds_id } ), @date );
-
-    for ( my $p = get_parent( $db, $download ) ; $p ; $p = get_parent( $db, $p ) )
-    {
-        push( @path, $p->{ downloads_id } );
-    }
-
-    push( @path, $download->{ downloads_id } . '.gz' );
-
-    return join( '/', @path );
-}
-
-# get the name of the tar file for the download
-sub _get_tar_file
-{
-    my ( $db, $download ) = @_;
-
-    my $date = $download->{ download_time };
-    $date =~ s/(\d\d\d\d)-(\d\d)-(\d\d).*/$1$2$3/;
-    my $file = "mediacloud-content-$date.tar";
-
-    return $file;
-}
-
-sub _store_content_grid_fs
-{
-    my ( $db, $download, $content_ref, $new_state ) = @_;
-
-    my $grid = MediaWords::GridFS::get_gridfs();
-    my $gridfs_id = MediaWords::GridFS::store_download_content_ref( $grid, $content_ref, $download->{ downloads_id } );
-
-    my $new_path = "gridfs:$gridfs_id";
-
-    $db->query(
-        "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-        $new_state, $new_path,
-        $download->{ error_message },
-        $download->{ downloads_id }
-    );
-
-    $download->{ state } = $new_state;
-    $download->{ path }  = $new_path;
-
-    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
-}
-
-sub _store_content_archive_tar_indexed
-{
-    my ( $db, $download, $content_ref, $new_state ) = @_;
-
-    my $download_path = _get_download_path( $db, $download );
-
-    my $config = MediaWords::Util::Config::get_config;
-    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
-
-    my $tar_file = _get_tar_file( $db, $download );
-    my $tar_path = "$data_dir/content/$tar_file";
-
-    my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
-
-    my $gzipped_content;
-
-    if ( !( IO::Compress::Gzip::gzip \$encoded_content => \$gzipped_content ) )
-    {
-        my $error = "Unable to gzip and store content: $IO::Compress::Gzip::GzipError";
-        $db->query( "update downloads set state = ?, error_message = ? where downloads_id = ?",
-            'error', $error, $download->{ downloads_id } );
-    }
-
-    my ( $starting_block, $num_blocks ) = Archive::Tar::Indexed::append_file( $tar_path, \$gzipped_content, $download_path );
-
-    if ( $num_blocks == 0 )
-    {
-        my $lengths = join( '/', map { length( $_ ) } ( $$content_ref, $encoded_content, $gzipped_content ) );
-        print STDERR "store_content: num_blocks = 0: $lengths\n";
-    }
-
-    my $tar_id = "tar:$starting_block:$num_blocks:$tar_file:$download_path";
-
-    $db->query(
-        "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-        $new_state, $tar_id,
-        $download->{ error_message },
-        $download->{ downloads_id }
-    );
-
-    $download->{ state } = $new_state;
-    $download->{ path }  = $tar_id;
-
-    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
-
-    #say 'Saved download results';
-    #say STDERR Dumper ( $download );
-}
-
 # store the download content in the file system
-sub store_content
+sub store_content($$$)
 {
     my ( $db, $download, $content_ref ) = @_;
 
@@ -517,36 +313,48 @@ sub store_content
         $new_state = $download->{ state };
     }
 
-    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
+    # Store content
+    my $path = '';
+    eval {
+        my $stores_for_writing = _download_stores_for_writing( $content_ref );
+        if ( scalar( @{ $stores_for_writing } ) == 0 )
+        {
+            die "No download stores configured to write to.\n";
+        }
+        foreach my $store ( @{ $stores_for_writing } )
+        {
+            $path = $store->store_content( $db, $download, $content_ref );
+        }
+
+        # Now $path points to the last store that was configured
+    };
+    if ( $@ )
     {
-        my $path = 'content:' . $$content_ref;
-        $db->query(
-            "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-            $new_state,
-            encode( 'utf8', $path ),
-            encode( 'utf8', $download->{ error_message } ),
-            $download->{ downloads_id }
-        );
-
-        $download->{ state } = $new_state;
-
-        $download->{ path } = $path;
-        return;
+        die "Error while trying to store download ID " . $download->{ downloads_id } . ':' . $@;
+        $new_state = 'error';
+        $download->{ error_message } = $@;
+    }
+    else
+    {
+        $download->{ error_message } = '';
     }
 
-    my $config = MediaWords::Util::Config::get_config;
+    # Update database
+    $db->query(
+        "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
+        $new_state, $path,
+        $download->{ error_message },
+        $download->{ downloads_id }
+    );
 
-    if ( defined( $config->{ mediawords }->{ download_storage_location } )
-        && ( $config->{ mediawords }->{ download_storage_location } eq 'gridfs' ) )
-    {
-        return _store_content_grid_fs( $db, $download, $content_ref, $new_state );
-    }
+    $download->{ state } = $new_state;
+    $download->{ path }  = $path;
 
-    return _store_content_archive_tar_indexed( $db, $download, $content_ref, $new_state );
+    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
 }
 
 # convenience method to get the media_id for the download
-sub get_media_id
+sub get_media_id($$)
 {
     my ( $db, $download ) = @_;
 
@@ -562,7 +370,7 @@ sub get_media_id
 }
 
 # convenience method to get the media source for the given download
-sub get_medium
+sub get_medium($$)
 {
     my ( $db, $download ) = @_;
 
@@ -573,14 +381,14 @@ sub get_medium
     return $medium;
 }
 
-sub process_download_for_extractor
+sub process_download_for_extractor($$$;$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
-    print STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }\n";
+    say STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
 
-    #print STDERR "Got download_text\n";
+    #say STDERR "Got download_text";
 
     return if ( $no_vector );
 
@@ -593,11 +401,11 @@ sub process_download_for_extractor
 
         # my $tags = MediaWords::DBI::Stories::add_default_tags( $db, $story );
         #
-        # print STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) \n";
+        # say STDERR "[$process_num] download: $download->{downloads_id} ($download->{feeds_id}) ";
         # while ( my ( $module, $module_tags ) = each( %{$tags} ) )
         # {
-        #     print STDERR "[$process_num] $download->{downloads_id} $module: "
-        #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } ) . "\n";
+        #     say STDERR "[$process_num] $download->{downloads_id} $module: "
+        #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } );
         # }
 
         MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
@@ -607,7 +415,7 @@ sub process_download_for_extractor
     }
     else
     {
-        print STDERR "[$process_num] pending more downloads ...\n";
+        say STDERR "[$process_num] pending more downloads ...";
     }
 }
 

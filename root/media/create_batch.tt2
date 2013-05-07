@@ -32,8 +32,7 @@
     Enter one media source url one per line. 
     </p>
 
-    <textarea name="urls" rows="20" cols="80">
-    </textarea>
+    <textarea name="urls" rows="20" cols="80"></textarea>
 
     <p>
     Enter tags to apply to all sources.  The format is: <br/>

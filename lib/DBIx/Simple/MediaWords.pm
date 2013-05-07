@@ -61,6 +61,51 @@ sub connect($$$$$;$)
     return $ret;
 }
 
+# Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise
+sub _should_continue_with_outdated_schema($$$)
+{
+    my ( $current_schema_version, $target_schema_version, $ignore_schema_version_env_variable ) = @_;
+
+    if ( exists $ENV{ $ignore_schema_version_env_variable } )
+    {
+        say STDERR <<"EOF";
+
+The current Media Cloud database schema is older than the schema present in mediawords.sql,
+but $ignore_schema_version_env_variable is set so continuing anyway.
+EOF
+        return 1;
+
+    }
+    else
+    {
+
+        say STDERR <<"EOF";
+
+################################
+
+The current Media Cloud database schema is not the same as the schema present in mediawords.sql.
+
+The database schema currently running in the database is $current_schema_version,
+and the schema version in the mediawords.sql is $target_schema_version.
+
+Please run:
+
+    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl
+
+to automatically upgrade the database schema to the latest version.
+
+If you want to connect to the Media Cloud database anyway (ignoring the schema version),
+set the $ignore_schema_version_env_variable environment variable as such:
+
+    $ignore_schema_version_env_variable=1 ./script/your_script.pl
+
+################################
+EOF
+
+        return 0;
+    }
+}
+
 # Checks if the database schema is up-to-date
 sub schema_is_up_to_date
 {
@@ -95,56 +140,18 @@ sub schema_is_up_to_date
 
     # Check if the current schema is up-to-date
     Readonly my $ignore_schema_version_env_variable => 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
-    if ( $current_schema_version < $target_schema_version )
+    if ( $current_schema_version != $target_schema_version )
     {
-        if ( exists $ENV{ $ignore_schema_version_env_variable } )
-        {
-            say STDERR "The current Media Cloud database schema is older than the schema present in mediawords.sql \n" .
-              "but $ignore_schema_version_env_variable is set so continuing anyway.";
-            return 1;
-
-        }
-        else
-        {
-            say STDERR "The current Media Cloud database schema is older than the schema present in mediawords.sql.\n" .
-              "The database schema currently running in the database is $current_schema_version, " .
-              "and the schema version in the mediawords.sql is $target_schema_version.\n" . "Please run:\n" .
-              "    ./script/run_with_carton.sh ./script/mediawords_upgrade_db.pl\n" .
-              "to automatically upgrade the database schema to the latest version.\n" .
-              "If you want to connect to the Media Cloud database anyway (ignoring the schema version),\n" .
-              "set the $ignore_schema_version_env_variable environment variable as such:\n" .
-              "    $ignore_schema_version_env_variable=1 ./script/run_with_carton.sh ./script/hello.pl\n";
-            return 0;
-
-        }
-
+        return _should_continue_with_outdated_schema( $current_schema_version, $target_schema_version,
+            $ignore_schema_version_env_variable );
     }
-    elsif ( $current_schema_version > $target_schema_version )
+    else
     {
-        if ( exists $ENV{ $ignore_schema_version_env_variable } )
-        {
-            say STDERR "Current Media Cloud database schema is newer than the schema present in mediawords.sql \n" .
-              "but $ignore_schema_version_env_variable is set so continuing anyway.";
-            return 1;
 
-        }
-        else
-        {
-            say STDERR "The current Media Cloud database schema is newer than the schema present in mediawords.sql.\n" .
-              "The database schema currently running in the database is $current_schema_version, " .
-              "and the schema version in the mediawords.sql is $target_schema_version.\n" .
-              "Please update your Media Cloud's source code to the latest available version.\n" .
-              "If you want to connect to the Media Cloud database anyway (ignoring the schema version),\n" .
-              "set the $ignore_schema_version_env_variable environment variable as such:\n" .
-              "    $ignore_schema_version_env_variable=1 ./script/run_with_carton.sh ./script/hello.pl\n";
-            return 0;
-
-        }
-
+        # Things are fine at this point.
+        return 1;
     }
 
-    # Things are fine at this point.
-    return 1;
 }
 
 sub _query_impl

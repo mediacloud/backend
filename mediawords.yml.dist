@@ -17,21 +17,11 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
-<<<<<<< .working
-mongodb_gridfs:
-    - host      : "localhost" 
-      port      : "27017" 
-      database  : "mediacloud_downloads_gridfs"
-
-mail:
-    - smtp_server : "SMTP_SERVER"
-      bug_email : "EMAIL_ADDRESS_TO_RECEIVE_BUG_REPORT_EMAILS"
-=======
 #mongodb_gridfs:
 #    - host      : "localhost" 
 #      port      : "27017" 
 #      database  : "mediacloud_downloads_gridfs"
->>>>>>> .merge-right.r5185
+
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
@@ -71,19 +61,18 @@ mail:
     ## media_sets_id of the media set to display on the Dashboard home page
     ##default_media_set: 1
 
-<<<<<<< .working
-    #uncomment to enable storage of download in mongo/gridfs server defined above
-    #download_storage_location: "gridfs"
-
-=======
     ### HTTP user agent and the email address of the owner of the bot
     #user_agent: "Mozilla/5.0 (Linux) MediaCloud/1.0"
     #owner: "mediacloud@cyber.law.harvard.edu"
 
-    #uncomment to enable storage of download in mongo/gridfs server defined above
-    #download_storage_location: "gridfs"
+    ### Uncomment one or more storage methods to store downloads to; default is just "tar".
+    ### The path to the last download storage method listed below will be stored in the database.
+    #download_storage_locations:
+        ### store downloads to Tar archives
+        #- tar
+        ## store downloads to a MongoDB GridFS database
+        #- gridfs
 
->>>>>>> .merge-right.r5185
     ### fetch content from another instance of MediaCloud?
     #fetch_remote_content          : "yes"
     #fetch_remote_content_user     : username
@@ -138,13 +127,6 @@ mail:
 
     #uncomment to make the public homepage the default start page    
     #default_home_page: "dashboard/view"
-<<<<<<< .working
-    
-    # downloads id under which to strip all non-ascii characters
-    #ascii_hack_downloads_id: 123456789
-
-=======
-    
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
     
@@ -152,5 +134,3 @@ mail:
     # web_store_num_parallel: 10
     # web_store_timeout: 90
     # web_store_per_domain_timeout: 1
-
->>>>>>> .merge-right.r5185

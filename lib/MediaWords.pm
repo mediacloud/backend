@@ -222,8 +222,8 @@ sub setup_acl()
       /admin/api/stories/subset_PUT
       /admin/stories/add_tag
       /admin/stories/add_tag_do
-      /admin/stories/edit
       /admin/stories/delete_tag
+      /admin/stories/edit
       |;
 
     foreach my $path ( @acl_admin_readonly )
