@@ -40,7 +40,8 @@ BEGIN
     $_localfile_store      = MediaWords::DBI::Downloads::Store::LocalFile->new();
     $_remote_store         = MediaWords::DBI::Downloads::Store::Remote->new();
     $_gridfs_store         = MediaWords::DBI::Downloads::Store::GridFS->new();
-    $_tar_store            = MediaWords::DBI::Downloads::Store::Tar->new();
+    $_gridfs_store->die_unless_configured();
+    $_tar_store = MediaWords::DBI::Downloads::Store::Tar->new();
 
     # Early sanity check on configuration
     $_config = MediaWords::Util::Config::get_config;
