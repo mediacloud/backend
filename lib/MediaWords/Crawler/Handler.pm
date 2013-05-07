@@ -169,44 +169,78 @@ sub _restrict_content_type
         return;
     }
 
-    #if ($response->decoded_content =~ m~<html|<xml|<rss|<atom~i) {
-    #    return;
-    #}
-
     print "unsupported content type: " . $response->content_type . "\n";
     $response->content( '(unsupported content type)' );
 }
 
-# call get_page_urls from the pager module for the download's feed
-sub _call_pager
+# return 1 if medium->{ use_pager } is null or true and 0 otherwise
+sub use_pager
 {
-    my ( $self, $dbs, $download, $response ) = @_;
+    my ( $medium ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _call_pager for download " .
-      $download->{ downloads_id };
+    return 1 if ( !defined( $medium->{ use_pager } ) || $medium->{ use_pager } );
+
+    return 0;
+}
+
+# if use_pager is already set, do nothing.  Otherwise, if next_page_url is true,
+# set use_pager to true.  Otherwise, if there are less than 100 unpaged_stories,
+# increment unpaged_stories.  If there are at least 100 unpaged_stories, set
+# use_pager to false.
+sub set_use_pager
+{
+    my ( $dbs, $medium, $next_page_url ) = @_;
+
+    return if ( defined( $medium->{ use_pager } ) );
+
+    if ( $next_page_url )
+    {
+        $dbs->query( "update media set use_pager = 't' where media_id = ?", $medium->{ media_id } );
+    }
+    elsif ( !defined( $medium->{ unpaged_stories } ) )
+    {
+        $dbs->query( "update media set unpaged_stories = 1 where media_id = ?", $medium->{ media_id } );
+    }
+    elsif ( $medium->{ unpaged_stories } < 100 )
+    {
+        $dbs->query( "update media set unpaged_stories = unpaged_stories + 1 where media_id = ?", $medium->{ media_id } );
+    }
+    else
+    {
+        $dbs->query( "update media set use_pager = 'f' where media_id = ?", $medium->{ media_id } );
+    }
+}
+
+# call get_page_urls from the pager module for the download's feed
+sub call_pager
+{
+    my ( $self, $dbs, $download ) = @_;
+    my $content = \$_[ 3 ];
+
+    my $medium = $dbs->query( <<END )->hash;
+select * from media m where media_id in ( select media_id from feeds where feeds_id = 1 );
+END
+
+    return unless ( use_pager( $medium ) );
+
     if ( $download->{ sequence } > MAX_PAGES )
     {
-        print STDERR "fetcher " . $self->engine->fetcher_number . "reached max pages (" . MAX_PAGES . ") for url " .
-          $download->{ url } . "\n";
+        print STDERR "reached max pages (" . MAX_PAGES . ") for url '$download->{ url }'\n";
         return;
     }
 
-    # my $dbs = $self->engine->dbs;
-
     if ( $dbs->query( "SELECT * from downloads where parent = ? ", $download->{ downloads_id } )->hash )
     {
-        print STDERR "fetcher " . $self->engine->fetcher_number . "story already paged for url " . $download->{ url } . "\n";
         return;
     }
 
     my $validate_url = sub { !$dbs->query( "select 1 from downloads where url = ?", $_[ 0 ] ) };
 
-    if ( my $next_page_url =
-        MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $response->decoded_content ) )
-    {
+    my $next_page_url = MediaWords::Crawler::Pager->get_next_page_url( $validate_url, $download->{ url }, $content );
 
-        print STDERR "fetcher " . $self->engine->fetcher_number . "next page: $next_page_url\nprev page: " .
-          $download->{ url } . "\n";
+    if ( $next_page_url )
+    {
+        print STDERR "next page: $next_page_url\nprev page: $download->{ url }\n";
 
         $dbs->create(
             'downloads',
@@ -225,6 +259,8 @@ sub _call_pager
             }
         );
     }
+
+    set_use_pager( $dbs, $medium, $next_page_url );
 }
 
 sub _queue_author_extraction
@@ -272,13 +308,9 @@ sub _process_content
 
     say STDERR "fetcher " . $self->engine->fetcher_number . "starting _process_content for  " . $download->{ downloads_id };
 
-    $self->_call_pager( $dbs, $download, $response );
+    $self->call_pager( $dbs, $download, $response->decoded_content );
 
     $self->_queue_author_extraction( $download );
-
-    #MediaWords::Crawler::Parser->get_and_append_story_text
-    #($self->engine->db, $download->feeds_id->parser_module,
-    #$download->stories_id, $response->decoded_content);
 
     say STDERR "fetcher " . $self->engine->fetcher_number . " finished _process_content for  " . $download->{ downloads_id };
 }
@@ -315,18 +347,11 @@ sub handle_response
         return;
     }
 
-    # say STDERR "fetcher " . $self->engine->fetcher_number . " starting restrict content type";
-
     $self->_restrict_content_type( $response );
 
-    # say STDERR "fetcher " . $self->engine->fetcher_number . " starting reset";
-
-    # may need to reset download url to the last redirect url
-    $download->{ url } = ( $response->request->url );
-
-    $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
-
-    say STDERR "fetcher " . $self->engine->fetcher_number . "switching on download type " . $download->{ type };
+    $dbs->query( <<END, $download->{ url }, $download->{ downloads_id } );
+update downloads set url = ? where downloads_id = ?
+END
 
     given ( $download->{ type } )
     {

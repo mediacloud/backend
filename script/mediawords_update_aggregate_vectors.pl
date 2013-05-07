@@ -97,9 +97,15 @@ sub run_daemon
 
     while ( 1 )
     {
+<<<<<<< .working
         my ( $yesterday ) = $db->query( "SELECT DATE_TRUNC( 'day', NOW() - INTERVAL '12 hours' )::date" )->flat;
 
         my ( $one_month_ago ) = $db->query( "SELECT DATE_TRUNC( 'day', NOW() - INTERVAL '1 month' )::date" )->flat;
+=======
+        my ( $yesterday ) = $db->query( "select date_trunc( 'day', now() - interval '12 hours' )::date" )->flat;
+
+        my ( $one_month_ago ) = $db->query( "select date_trunc( 'day', now() - interval '1 month' )::date" )->flat;
+>>>>>>> .merge-right.r5185
         ( $yesterday, $one_month_ago ) = map { substr( $_, 0, 10 ) } ( $yesterday, $one_month_ago );
 
         MediaWords::StoryVectors::update_aggregate_words( $db, $one_month_ago, $yesterday );

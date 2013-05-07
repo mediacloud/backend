@@ -31,6 +31,16 @@ echo "creating new database"
 
 ./script/run_with_carton.sh ./script/mediawords_create_db.pl
 
+echo "creating new user 'jdoe@mediacloud.org' with password 'mediacloud'"
+./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+    --action=add \
+    --email="jdoe@mediacloud.org" \
+    --full_name="John Doe" \
+    --notes="Media Cloud administrator" \
+    --roles="admin" \
+    --password="mediacloud"
+
 echo "Media Cloud install succeeded!!!!"
 echo "See doc/ for more information on using Media Cloud"
 echo "Run ./script/start_mediacloud_server.sh to start the Media Cloud server"
+echo "(Log in with email address 'jdoe@mediacloud.org' and password 'mediacloud')"

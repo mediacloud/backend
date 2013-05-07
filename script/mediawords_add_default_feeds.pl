@@ -6,6 +6,7 @@
 # and mark for moderation.
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -34,12 +35,16 @@ sub main
 
         for my $medium ( @{ $media } )
         {
-            my $existing_urls = [];
+            my ( $feed_links, $need_to_moderate, $existing_urls ) =
+              Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+<<<<<<< .working
             # first look for <link> feeds or a set of url pattern feeds that are likely to be
             # main feeds if present (like "$url/feed")
             my $default_feed_links = Feed::Scrape->get_main_feed_urls_from_url( $medium->{ url } );
 
+=======
+>>>>>>> .merge-right.r5185
             # otherwise do an expansive search
             my $feed_links;
             my $need_to_moderate;
@@ -68,8 +73,13 @@ sub main
 
             for my $feed_link ( @{ $feed_links } )
             {
-                print "ADDED $medium->{ name }: $feed_link->{ name } - $feed_link->{ url }\n";
-                my $feed = { name => $feed_link->{ name }, url => $feed_link->{ url }, media_id => $medium->{ media_id } };
+                print "ADDED $medium->{ name }: [$feed_link->{ feed_type }] $feed_link->{ name } - $feed_link->{ url }\n";
+                my $feed = {
+                    name      => $feed_link->{ name },
+                    url       => $feed_link->{ url },
+                    media_id  => $medium->{ media_id },
+                    feed_type => $feed_link->{ feed_type } || 'syndicated'
+                };
                 eval { $db->create( 'feeds', $feed ); };
 
                 if ( $@ )
@@ -92,7 +102,11 @@ sub main
             my $moderated = $need_to_moderate ? 'f' : 't';
 
             $db->query(
+<<<<<<< .working
                 "update media set feeds_added = true, moderation_notes = ?, moderated =  ? where media_id = ?",
+=======
+                "update media set feeds_added = true, moderation_notes = ?, moderated = ? where media_id = ?",
+>>>>>>> .merge-right.r5185
                 $medium->{ moderation_notes },
                 $moderated, $medium->{ media_id }
             );

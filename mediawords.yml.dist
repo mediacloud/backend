@@ -17,6 +17,7 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+<<<<<<< .working
 mongodb_gridfs:
     - host      : "localhost" 
       port      : "27017" 
@@ -25,6 +26,19 @@ mongodb_gridfs:
 mail:
     - smtp_server : "SMTP_SERVER"
       bug_email : "EMAIL_ADDRESS_TO_RECEIVE_BUG_REPORT_EMAILS"
+=======
+#mongodb_gridfs:
+#    - host      : "localhost" 
+#      port      : "27017" 
+#      database  : "mediacloud_downloads_gridfs"
+>>>>>>> .merge-right.r5185
+
+#mail:
+    # Email address to receive bug report emails; leave empty for no bug reports via email
+    #bug_email : ""
+
+    # "From:" email address that is being set in emails sent by Media Cloud
+    #from_address: "noreply@mediacloud.org"
 
 ### everything below is optional.  the system should work out of the box without 
 ### touching any of these other than calais_key for tagging
@@ -46,6 +60,10 @@ mail:
 
     ### parent directory of the content/ directory with all downloaded content is stored
     #data_dir: "<bindir>/../data"
+    
+    ### Uncomment to use the directory given by <PATH> to temporarily store CSV files generated in the public data dumps
+    ### Note that since these are uncompressed files they can be very large.
+    #data_dump_tmp_dir : <PATH>
 
     ### script directory
     #script_dir: "<bindir>/../script"
@@ -53,9 +71,19 @@ mail:
     ## media_sets_id of the media set to display on the Dashboard home page
     ##default_media_set: 1
 
+<<<<<<< .working
     #uncomment to enable storage of download in mongo/gridfs server defined above
     #download_storage_location: "gridfs"
 
+=======
+    ### HTTP user agent and the email address of the owner of the bot
+    #user_agent: "Mozilla/5.0 (Linux) MediaCloud/1.0"
+    #owner: "mediacloud@cyber.law.harvard.edu"
+
+    #uncomment to enable storage of download in mongo/gridfs server defined above
+    #download_storage_location: "gridfs"
+
+>>>>>>> .merge-right.r5185
     ### fetch content from another instance of MediaCloud?
     #fetch_remote_content          : "yes"
     #fetch_remote_content_user     : username
@@ -100,9 +128,29 @@ mail:
     # NOTE: may leak DB passwords and is not to be use in production
     #always_show_stack_traces: "yes"
 
+    # reCAPTCHA public key (used to prevent brute-force in the password reset form)
+    # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
+    #recaptcha_public_key: "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_"
+
+    # reCAPTCHA private key (used to prevent brute-force in the password reset form)
+    # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
+    #recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
+
     #uncomment to make the public homepage the default start page    
     #default_home_page: "dashboard/view"
+<<<<<<< .working
     
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
 
+=======
+    
+    # downloads id under which to strip all non-ascii characters
+    #ascii_hack_downloads_id: 123456789
+    
+    # settings for mediawords_web_store.pl script that does in process parallel fetching
+    # web_store_num_parallel: 10
+    # web_store_timeout: 90
+    # web_store_per_domain_timeout: 1
+
+>>>>>>> .merge-right.r5185

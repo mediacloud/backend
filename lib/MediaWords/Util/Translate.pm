@@ -15,7 +15,10 @@ use strict;
 use WebService::Google::Language;
 
 use Text::Trim;
-use CHI;
+eval { use CHI; };
+
+die "$@" if $@;
+
 use MediaWords::Util::Config;
 
 my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };

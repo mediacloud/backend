@@ -46,6 +46,10 @@ img {
     margin: 20px;
 }
 
+abbr {
+    border-bottom: 1px dotted;
+}
+
 div#menu ul {
     margin: 0em;
     margin-bottom: 1em;
@@ -141,4 +145,42 @@ div#error {
     border: 1px solid silver;
 }
 
+/* Login form or change password form */
+fieldset.formNameValue {
+}
 
+/* jQuery form validation errors */
+fieldset.formNameValue label.error {
+    width: 10em !important;
+    float: none !important;
+    color: red;
+    padding-left: .5em;
+    vertical-align: top;
+    clear: none !important;
+}
+
+/* User panel (top right) */
+div#user {
+    border: 1px solid silver;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    text-align: right;
+    font-size: smaller;
+}
+
+/* Checkboxgroup options */
+fieldset.checkboxgroup span {
+    display: block;
+    clear: both;
+}
+
+/* User table */
+table#users ul.user_actions li {
+    margin-bottom: 1em;
+}
+
+/* Delete action */
+table#users ul.user_actions li.user_action_delete a {
+    color: #a00;
+}

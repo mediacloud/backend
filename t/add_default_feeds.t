@@ -1,0 +1,1315 @@
+use strict;
+use warnings;
+
+use Test::NoWarnings;
+use Test::More tests => 29 + 1;
+use Test::Deep;
+
+use utf8;
+
+use Modern::Perl "2012";
+use MediaWords::CommonLibs;
+use MediaWords::DB;
+use Feed::Scrape::MediaWords;
+
+use HTTP::Server::Simple;
+use HTTP::Server::Simple::CGI;
+
+# must contain a hostname ('localhost') because a foreign feed link test requires it
+use constant TEST_HTTP_SERVER_PORT => 9998;
+use constant TEST_HTTP_SERVER_URL  => 'http://localhost:' . TEST_HTTP_SERVER_PORT;
+
+# for testing immediate redirects; hostname is intentionally different
+use constant TEST_HTTP_SERVER_PORT_2 => 9999;
+use constant TEST_HTTP_SERVER_URL_2  => 'http://127.0.0.1:' . TEST_HTTP_SERVER_PORT_2;
+
+use constant SAMPLE_RSS_FEED => <<EOF;
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Sample RSS feed</title>
+        <link>http://www.example.com</link>
+        <description>This is a sample RSS feed.</description>
+        <item>
+            <title>First post</title>
+            <link>http://www.example.com/first</link>
+            <description>Here goes the first post in a sample RSS feed.</description>
+        </item>
+        <item>
+            <title>Second post</title>
+            <link>http://www.example.com/second</link>
+            <description>Here goes the second post in a sample RSS feed.</description>
+        </item>
+    </channel>
+</rss>
+EOF
+
+BEGIN { use_ok 'Feed::Scrape' }
+
+# add 'syndicated' feed_type field to all hashes in list
+sub add_feed_types
+{
+    my ( $list ) = @_;
+
+    map { $_->{ feed_type } = 'syndicated' } @{ $list };
+}
+
+# Basic RSS feed URL scraping
+sub test_basic()
+{
+    my $url     = 'http://www.example.com/';
+    my $content = <<EOF;
+        <html>
+        <head>
+            <title>Basic test</title>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.example.com/feed/" />
+            <link rel="alternate" type="text/xml" title="RSS .92" href="http://www.example.com/feed/rss/" />
+            <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="http://www.example.com/feed/atom/" />
+        </head>
+        <body>
+            <p>Hello!</p>
+        </body>
+        </html>
+EOF
+    my $expected_result = [
+        {
+            'url'  => 'http://www.example.com/feed/',
+            'name' => 'RSS 2.0'
+        },
+        {
+            'url'  => 'http://www.example.com/feed/rss/',
+            'name' => 'RSS .92'
+        },
+        {
+            'url'  => 'http://www.example.com/feed/atom/',
+            'name' => 'Atom 0.3'
+        }
+    ];
+
+    add_feed_types( $expected_result );
+
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
+}
+
+# Basic RSS feed (entities in URLs)
+sub test_basic_entities_in_urls()
+{
+    my $url     = 'http://www.example.com/';
+    my $content = <<EOF;
+        <html>
+        <head>
+            <title>Basic test</title>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <link href="/index.php?format=feed&amp;type=rss" rel="alternate" type="application/rss+xml" title="RSS 2.0" />
+            <link href="/index.php?format=feed&amp;type=atom" rel="alternate" type="application/atom+xml" title="Atom 1.0" />
+        </head>
+        <body>
+            <p>Hello!</p>
+        </body>
+        </html>
+EOF
+    my $expected_result = [
+        {
+            'url'  => 'http://www.example.com/index.php?format=feed&type=rss',
+            'name' => 'RSS 2.0'
+        },
+        {
+            'url'  => 'http://www.example.com/index.php?format=feed&type=atom',
+            'name' => 'Atom 1.0'
+        }
+    ];
+
+    add_feed_types( $expected_result );
+
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
+}
+
+# Basic RSS feed (HTTPS; short URLs)
+sub test_basic_short_urls()
+{
+    my $url     = 'https://www.example.com/';
+    my $content = <<EOF;
+        <html>
+        <head>
+            <title>Basic test (short URLs)</title>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="//www.example.com/feed/" />
+            <link rel="alternate" type="text/xml" title="RSS .92" href="//www.example.com/feed/rss/" />
+            <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="//www.example.com/feed/atom/" />
+        </head>
+        <body>
+            <p>Hello!</p>
+        </body>
+        </html>
+EOF
+    my $expected_result = [
+        {
+            'url'  => 'https://www.example.com/feed/',
+            'name' => 'RSS 2.0'
+        },
+        {
+            'url'  => 'https://www.example.com/feed/rss/',
+            'name' => 'RSS .92'
+        },
+        {
+            'url'  => 'https://www.example.com/feed/atom/',
+            'name' => 'Atom 0.3'
+        }
+    ];
+
+    add_feed_types( $expected_result );
+
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
+}
+
+# Basic RSS feed URL scraping (no RSS feed titles)
+sub test_basic_no_titles()
+{
+    my $url     = 'http://www.example.com/';
+    my $content = <<EOF;
+        <html>
+        <head>
+            <title>Basic test (no titles)</title>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <link rel="alternate" type="application/rss+xml" href="http://www.example.com/feed/" />
+            <link rel="alternate" type="text/xml" href="http://www.example.com/feed/rss/" />
+            <link rel="alternate" type="application/atom+xml" href="http://www.example.com/feed/atom/" />
+        </head>
+        <body>
+            <p>Hello!</p>
+        </body>
+        </html>
+EOF
+    my $expected_result = [
+        {
+            'url'  => 'http://www.example.com/feed/',
+            'name' => 'Basic test (no titles)'
+        },
+        {
+            'url'  => 'http://www.example.com/feed/rss/',
+            'name' => 'Basic test (no titles)'
+        },
+        {
+            'url'  => 'http://www.example.com/feed/atom/',
+            'name' => 'Basic test (no titles)'
+        }
+    ];
+
+    add_feed_types( $expected_result );
+
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test (no RSS titles)' );
+}
+
+# More complex example (more HTML tags, HTML entities; from dagbladet.se)
+sub test_dagbladet_se()
+{
+    my $url     = 'http://dagbladet.se/';
+    my $content = <<EOF;
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="sv" lang="sv" >
+<head>
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="content-language" content="sv" />
+    
+    <title>Nyheter - www.dagbladet.se</title>
+    
+    <meta name="title" content="Nyheter - www.dagbladet.se" />
+    
+    <meta name="description" content="Senaste nytt från Nyheter" />
+    
+    <meta name="alexaVerifyID" content="9bfowyqeE5_PDkhrMX7ty7y92XU" />
+
+    <meta name="google-site-verification" content="_G8t9o6iVkO6QH-QQGaUsWR-FVdpTRyp2sJApfHssV8" />
+    
+    <link rel="shortcut icon" type="image/ico" href="/polopoly_fs/2.401.1365410226!/favicon.ico" />
+    
+    <link rel="alternate" href="http://dagbladet.se/1.51407" type="application/rss+xml" title="Dagbladet.se Sundsvall" />
+    <link rel="alternate" href="http://dagbladet.se/1.51411" type="application/rss+xml" title="Dagbladet.se Timrå" />
+    <link rel="alternate" href="http://dagbladet.se/1.51412" type="application/rss+xml" title="Dagbladet.se Ånge" />
+    <link rel="alternate" href="http://dagbladet.se/1.51414" type="application/rss+xml" title="Inrikes" />
+    <link rel="alternate" href="http://dagbladet.se/1.51415" type="application/rss+xml" title="Utrikes" />
+    <link rel="alternate" href="http://dagbladet.se/1.122020" type="application/rss+xml" title="Dagbladet.se Sport" />
+    <link rel="alternate" href="http://dagbladet.se/1.122021" type="application/rss+xml" title="Dagbladet.se Kultur &amp; Nöje" />
+    <link rel="alternate" href="http://dagbladet.se/1.2393965" type="application/rss+xml" title="Dagbladet.se Ishockey" />
+    <link rel="alternate" href="http://dagbladet.se/1.4123878" type="application/rss+xml" title="Nyheter" />
+    <link rel="alternate" href="http://dagbladet.se/1.4123892" type="application/rss+xml" title="Sport" />
+    <link rel="alternate" href="http://dagbladet.se/1.4124304" type="application/rss+xml" title="Ekonomi &amp; prylar" />
+    <link rel="alternate" href="http://dagbladet.se/1.4144811" type="application/rss+xml" title="AdaptLogic" />
+    <link rel="alternate" href="http://dagbladet.se/1.4390899" type="application/rss+xml" title="Dagbladet.se GIF-kollen" />
+    <link rel="alternate" href="http://dagbladet.se/1.4390938" type="application/rss+xml" title="Dagbladet.se TIK-kollen" />
+    <link rel="alternate" href="http://dagbladet.se/1.4761908" type="application/rss+xml" title="Dagbladet STIL" />
+
+    <!-- Stylesheets -->        
+    <link rel="stylesheet" href="/css/global.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="/polopoly_fs/2.401.1365410226!/dasu_fredrikh_130403.css" type="text/css" media="all" />
+EOF
+    my $expected_result = [
+        {
+            'url'  => 'http://dagbladet.se/1.51407',
+            'name' => 'Dagbladet.se Sundsvall'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.51411',
+            'name' => 'Dagbladet.se Timrå'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.51412',
+            'name' => 'Dagbladet.se Ånge'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.51414',
+            'name' => 'Inrikes'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.51415',
+            'name' => 'Utrikes'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.122020',
+            'name' => 'Dagbladet.se Sport'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.122021',
+            'name' => 'Dagbladet.se Kultur & Nöje'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.2393965',
+            'name' => 'Dagbladet.se Ishockey'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.4123878',
+            'name' => 'Nyheter'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.4123892',
+            'name' => 'Sport'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.4124304',
+            'name' => 'Ekonomi & prylar'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.4144811',
+            'name' => 'AdaptLogic'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.4390899',
+            'name' => 'Dagbladet.se GIF-kollen'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.4390938',
+            'name' => 'Dagbladet.se TIK-kollen'
+        },
+        {
+            'url'  => 'http://dagbladet.se/1.4761908',
+            'name' => 'Dagbladet STIL'
+        }
+    ];
+
+    add_feed_types( $expected_result );
+
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Dagbladet.se test' );
+}
+
+# More complex example (relative URLs to RSS feeds; a lot of RSS feeds in a single line; from gp.se)
+sub test_gp_se()
+{
+    my $url     = 'http://www.gp.se/';
+    my $content = <<EOF;
+        <!-- DO NOT PUT LINE BREAKS BETWEEN TAGS! No line breaks is the whole point of this test. -->
+        <link rel="alternate" href="/1.16560" type="application/rss+xml" title="GP"/> <link rel="alternate" href="/1.215341" type="application/rss+xml" title="GP - Bohuslän"/> <link rel="alternate" href="/1.16562" type="application/rss+xml" title="GP - Bostad"/> <link rel="alternate" href="/1.315001" type="application/rss+xml" title="GP- Debatt"/> <link rel="alternate" href="/1.16555" type="application/rss+xml" title="GP - Ekonomi"/> <link rel="alternate" href="/1.4449" type="application/rss+xml" title="GP - Filmrecensioner"/> <link rel="alternate" href="/1.16942" type="application/rss+xml" title="GP - Göteborg"/> <link rel="alternate" href="/1.291999" type="application/rss+xml" title="GP - Halland"/> <link rel="alternate" href="/1.165654" type="application/rss+xml" title="GP - Hela nyhetsdygnet"/> <link rel="alternate" href="/1.16572" type="application/rss+xml" title="GP - Jobb &amp; Studier"/> <link rel="alternate" href="/1.4445" type="application/rss+xml" title="GP - Konsertrecensioner"/> <link rel="alternate" href="/1.4470" type="application/rss+xml" title="GP - Konst&amp;Designrecensioner"/> <link rel="alternate" href="/1.16558" type="application/rss+xml" title="GP - Konsument"/> <link rel="alternate" href="/1.16941" type="application/rss+xml" title="GP - Kultur &amp; Nöje"/> <link rel="alternate" href="/1.872491" type="application/rss+xml" title="GP - Ledare"/> <link rel="alternate" href="/1.4465" type="application/rss+xml" title="GP - Litteraturrecensioner"/> <link rel="alternate" href="/1.16571" type="application/rss+xml" title="GP - Mat &amp; Dryck"/> <link rel="alternate" href="/1.4471" type="application/rss+xml" title="GP - Matrecept"/> <link rel="alternate" href="/1.163662" type="application/rss+xml" title="GP - Miljöspaning"/> <link rel="alternate" href="/1.4434" type="application/rss+xml" title="GP - Mode"/> <link rel="alternate" href="/1.16570" type="application/rss+xml" title="GP - Motor"/> <link rel="alternate" href="/1.4482" type="application/rss+xml" title="GP - Motortester"/> <link rel="alternate" href="/1.896286" type="application/rss+xml" title="GP - Mölndal/Härryda"/> <link rel="alternate" href="/1.16569" type="application/rss+xml" title="GP - Resor"/> <link rel="alternate" href="/1.163656" type="application/rss+xml" title="GP - Rinkside"/> <link rel="alternate" href="/1.4466" type="application/rss+xml" title="GP - Scenkonstrecensioner"/> <link rel="alternate" href="/1.4438" type="application/rss+xml" title="GP - Skivrecensioner"/> <link rel="alternate" href="/1.4450" type="application/rss+xml" title="GP - Spelrecensioner"/> <link rel="alternate" href="/1.16542" type="application/rss+xml" title="GP - Sport"/> <link rel="alternate" href="/1.16943" type="application/rss+xml" title="GP - Sverige"/> <link rel="alternate" href="/1.9146" type="application/rss+xml" title="GP - Tester"/> <link rel="alternate" href="/1.4468" type="application/rss+xml" title="GP - Tv-recensioner"/> <link rel="alternate" href="/1.16944" type="application/rss+xml" title="GP - Världen"/> <link rel="alternate" href="/1.970150" type="application/rss+xml" title="GP Nyheter"/>
+EOF
+    my $expected_result = [
+        {
+            'url'  => 'http://www.gp.se/1.16560',
+            'name' => 'GP'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.215341',
+            'name' => 'GP - Bohuslän'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16562',
+            'name' => 'GP - Bostad'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.315001',
+            'name' => 'GP- Debatt'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16555',
+            'name' => 'GP - Ekonomi'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4449',
+            'name' => 'GP - Filmrecensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16942',
+            'name' => 'GP - Göteborg'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.291999',
+            'name' => 'GP - Halland'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.165654',
+            'name' => 'GP - Hela nyhetsdygnet'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16572',
+            'name' => 'GP - Jobb & Studier'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4445',
+            'name' => 'GP - Konsertrecensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4470',
+            'name' => 'GP - Konst&Designrecensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16558',
+            'name' => 'GP - Konsument'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16941',
+            'name' => 'GP - Kultur & Nöje'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.872491',
+            'name' => 'GP - Ledare'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4465',
+            'name' => 'GP - Litteraturrecensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16571',
+            'name' => 'GP - Mat & Dryck'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4471',
+            'name' => 'GP - Matrecept'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.163662',
+            'name' => 'GP - Miljöspaning'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4434',
+            'name' => 'GP - Mode'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16570',
+            'name' => 'GP - Motor'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4482',
+            'name' => 'GP - Motortester'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.896286',
+            'name' => 'GP - Mölndal/Härryda'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16569',
+            'name' => 'GP - Resor'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.163656',
+            'name' => 'GP - Rinkside'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4466',
+            'name' => 'GP - Scenkonstrecensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4438',
+            'name' => 'GP - Skivrecensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4450',
+            'name' => 'GP - Spelrecensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16542',
+            'name' => 'GP - Sport'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16943',
+            'name' => 'GP - Sverige'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.9146',
+            'name' => 'GP - Tester'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.4468',
+            'name' => 'GP - Tv-recensioner'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.16944',
+            'name' => 'GP - Världen'
+        },
+        {
+            'url'  => 'http://www.gp.se/1.970150',
+            'name' => 'GP Nyheter'
+        }
+    ];
+
+    add_feed_types( $expected_result );
+
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'GP.se test' );
+}
+
+{
+
+    # Simple HTTP server implementation
+    package WebsiteServer;
+
+    use base qw(HTTP::Server::Simple::CGI);
+    use Data::Dumper;
+
+    my $pages = {};
+
+    sub set_pages
+    {
+        my ( $self, $new_pages ) = @_;
+        $pages = $new_pages;
+        return $self;
+    }
+
+    sub handle_request
+    {
+        my ( $self, $cgi ) = @_;
+
+        my $path = $cgi->path_info();
+
+        if ( exists $pages->{ $path } )
+        {
+            if ( $pages->{ $path }->{ header } =~ /Location: / )
+            {
+                print "HTTP/1.0 301 Moved Permanently\r\n";
+            }
+            else
+            {
+                print "HTTP/1.0 200 OK\r\n";
+            }
+            print $pages->{ $path }->{ header } . "\r\n\r\n";
+            print $pages->{ $path }->{ contents };
+
+        }
+        else
+        {
+            print "HTTP/1.0 404 Not found\r\n";
+            print "Content-Type: text/html\r\n\r\n";
+            print "Not found :(\n";
+        }
+    }
+}
+
+sub test_rss_simple_website
+{
+    my $pages = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <li><a href="/feed1.xml">Wile E. Coyote</a></li>
+                    <li><a href="/feed2.xml">The Road Runner</a></li>
+                </ul>
+EOF
+        },
+
+        # Sample feeds
+        '/feed1.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+        '/feed2.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed2.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        },
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed1.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        }
+    ];
+
+    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db         = MediaWords::DB::connect_to_db();
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+
+    add_feed_types( $expected_links );
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
+
+    kill 9, $pid;
+}
+
+sub test_rss_immediate_redirect_via_http_header
+{
+    my $test_url_1 = TEST_HTTP_SERVER_URL;
+    my $test_url_2 = TEST_HTTP_SERVER_URL_2;
+
+    my $pages_1 = {
+
+        '/' => {
+
+            # Redirect to a new website
+            header   => 'Content-Type: text/html; charset=UTF-8' . "\r\nLocation: $test_url_2",
+            contents => <<EOF
+                <h1>Website was moved to $test_url_2</h1>
+                <p>See you there!</p>
+EOF
+        }
+    };
+
+    my $pages_2 = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <li><a href="/feed.xml">Wile E. Coyote</a></li>
+                </ul>
+EOF
+        },
+
+        # Sample feeds
+        '/feed.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = $test_url_2 . '/feed.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        }
+    ];
+    my $expected_need_to_moderate = 0;
+    my $expected_existing_urls    = [];
+
+    my $pid_1 = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages_1 )->background();
+    my $pid_2 = WebsiteServer->new( TEST_HTTP_SERVER_PORT_2 )->set_pages( $pages_2 )->background();
+
+    my $db = MediaWords::DB::connect_to_db();
+
+    my $medium = { url => $test_url_1 };
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    add_feed_types( $expected_links );
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
+    cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_immediate_redirect_via_http_header existing_urls' );
+
+    kill 9, $pid_1;
+    kill 9, $pid_2;
+}
+
+sub test_rss_immediate_redirect_via_html_meta_refresh
+{
+    my $test_url_1 = TEST_HTTP_SERVER_URL;
+    my $test_url_2 = TEST_HTTP_SERVER_URL_2;
+
+    my $pages_1 = {
+
+        '/' => {
+
+            # Redirect to a new website
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <html>
+                    <head>
+                        <meta http-equiv="Refresh" content="0; url=$test_url_2">
+                    </head>
+                    <body>
+                        <h1>Website was moved to $test_url_2</h1>
+                        <p>See you there!</p>
+                    </body>
+                </html>
+EOF
+        }
+    };
+
+    my $pages_2 = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <li><a href="/feed.xml">Wile E. Coyote</a></li>
+                </ul>
+EOF
+        },
+
+        # Sample feeds
+        '/feed.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = $test_url_2 . '/feed.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        }
+    ];
+    my $expected_need_to_moderate = 0;
+    my $expected_existing_urls    = [];
+
+    my $pid_1 = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages_1 )->background();
+    my $pid_2 = WebsiteServer->new( TEST_HTTP_SERVER_PORT_2 )->set_pages( $pages_2 )->background();
+
+    my $db = MediaWords::DB::connect_to_db();
+
+    my $medium = { url => $test_url_1 };
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    add_feed_types( $expected_links );
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate,
+        'test_rss_immediate_redirect_via_html_meta_refresh need_to_moderate' );
+    cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_immediate_redirect_via_html_meta_refresh existing_urls' );
+
+    kill 9, $pid_1;
+    kill 9, $pid_2;
+}
+
+# <base href="" />, like in http://www.thejakartaglobe.com
+sub test_rss_base_href
+{
+    my $test_url = TEST_HTTP_SERVER_URL;
+    my $pages    = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <html>
+                    <head>
+                        <base href="$test_url/path_one/" target="_blank" />
+                    </head>
+                    <body>
+                        <h1>Acme News</h1>
+                        <p>
+                            Blah blah yada yada.
+                        </p>
+                        <hr />
+                        <p>
+                            We didn't bother to add proper &lt;link&gt; links to our pages, but
+                            here's a link to the RSS link listing:<br />
+                            <a href="rss">RSS</a>
+                        </p>
+                    </body>
+                </html>
+EOF
+        },
+
+        # RSS listing page
+        '/path_one/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <html>
+                    <head>
+                        <base href="$test_url/path_two/" target="_blank" />
+                    </head>
+                    <body>
+                        <h1>Acme News</h1>
+                        <p>
+                        Our RSS feeds:
+                        </p>
+                        <ul>
+                            <li><a href="feed1.xml">Wile E. Coyote</a></li>
+                            <li><a href="feed2.xml">The Road Runner</a></li>
+                        </ul>
+                    </body>
+                </html>
+EOF
+        },
+
+        # Sample feeds
+        '/path_two/feed1.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+        '/path_two/feed2.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/path_two/feed1.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        },
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/path_two/feed2.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        }
+    ];
+
+    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db         = MediaWords::DB::connect_to_db();
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+
+    add_feed_types( $expected_links );
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
+
+    kill 9, $pid;
+}
+
+sub test_rss_unlinked_urls
+{
+    my $test_url = TEST_HTTP_SERVER_URL;
+    my $pages    = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <!-- No links -->
+                    $test_url/feed1.xml -- Wile E. Coyote<br />
+                    $test_url/feed2.xml -- The Road Runner<br />
+                </ul>
+EOF
+        },
+
+        # Sample feeds
+        '/feed1.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+        '/feed2.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed2.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        },
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed1.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        }
+    ];
+
+    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db         = MediaWords::DB::connect_to_db();
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+
+    add_feed_types( $expected_links );
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
+
+    kill 9, $pid;
+}
+
+sub test_rss_image_link
+{
+    my $pages = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    <!-- Intentionally no mention of R-S-S -->
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the Rich Site Summary link listing:<br />
+                    <a href="/listing"><img src="/rss.png" alt="" /></a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/listing' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                Our Rich Site Summary feeds:
+                </p>
+                <ul>
+                    <li><a href="/feed1.xml">Wile E. Coyote</a></li>
+                    <li><a href="/feed2.xml">The Road Runner</a></li>
+                </ul>
+EOF
+        },
+
+        # Sample feeds
+        '/feed1.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+        '/feed2.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed2.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        },
+        {
+            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed1.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        }
+    ];
+
+    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db         = MediaWords::DB::connect_to_db();
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+
+    add_feed_types( $expected_links );
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
+
+    kill 9, $pid;
+}
+
+sub test_rss_external_feeds
+{
+    my $pages = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <li><a href="http://feeds2.feedburner.com/localhost">Wile E. Coyote</a></li> <!-- This one should be declared as main feed -->
+                    <li><a href="http://quotidianohome.feedsportal.com/c/33327/f/565662/index.rss">The Road Runner</a></li> <!-- This one should *not* be declared a main feed -->
+                </ul>
+EOF
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = 'http://feeds2.feedburner.com/localhost' ) }, 'URI::http' ),
+            'name' => '127.0.0.1 » 127.0.0.1'
+        },
+    ];
+    my $expected_need_to_moderate = 0;
+    my $expected_existing_urls    = [];
+
+    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db     = MediaWords::DB::connect_to_db();
+    my $medium = { url => TEST_HTTP_SERVER_URL };
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    add_feed_types( $expected_links );
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
+    cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_external_feeds existing_urls' );
+
+    kill 9, $pid;
+}
+
+sub test_get_feed_links_and_need_to_moderate_and_existing_urls
+{
+    my $pages = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # URL that looks like a feed but doesn't contain one
+        '/feed' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => 'The feed searcher will look here, but there is no feed to be found at this URL.'
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <!-- "?format=html" was present in http://www.eldis.org/go/subscribe, elsewhere too -->
+                    <li><a href="http://feeds2.feedburner.com/essentialknowledge?format=html">Wile E. Coyote</a></li>
+
+                    <li><a href="http://feeds.feedburner.com/thesartorialist">The Road Runner</a></li>
+                </ul>
+EOF
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = 'http://feeds2.feedburner.com/essentialknowledge' ) }, 'URI::http' ),
+            'name' => 'Essential Knowledge'
+        },
+        {
+            'url' => bless( do { \( my $o = 'http://feeds.feedburner.com/thesartorialist' ) }, 'URI::http' ),
+            'name' => 'The Sartorialist'
+        }
+    ];
+    my $expected_need_to_moderate = 1;
+    my $expected_existing_urls    = [];
+
+    add_feed_types( $expected_links );
+
+    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db     = MediaWords::DB::connect_to_db();
+    my $medium = { url => TEST_HTTP_SERVER_URL };
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate_and_existing_urls feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate,
+        'test_get_feed_links_and_need_to_moderate_and_existing_urls need_to_moderate' );
+    cmp_bag( $existing_urls, $expected_existing_urls,
+        'test_get_feed_links_and_need_to_moderate_and_existing_urls existing_urls' );
+
+    kill 9, $pid;
+}
+
+sub test_feeds_with_common_prefix
+{
+    my $test_url = TEST_HTTP_SERVER_URL;
+    my $pages    = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<"EOF"
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <li><a href="$test_url/feed1.xml">Feed one</a></li>
+                    <li><a href="$test_url/feed2.xml">Feed two</a></li>
+                    <li><a href="$test_url/feed3.xml">Feed three</a></li>
+                </ul>
+EOF
+        },
+
+        # Sample feeds
+        '/feed1.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+        <title>Example.com - Sports</title> <!-- One of the sub-feeds -->
+</channel></rss>
+EOF
+        },
+        '/feed2.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+        <title>Example.com</title> <!-- This is the "main" feed which is expected to
+                                        contain posts from the sub-feeds above -->
+</channel></rss>
+EOF
+        },
+        '/feed3.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+        <title>Example.com - Entertainment</title> <!-- One of the sub-feeds -->
+</channel></rss>
+EOF
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = $test_url . '/feed2.xml' ) }, 'URI::http' ),
+            'name' => 'Example.com'
+        },
+    ];
+
+    add_feed_types( $expected_links );
+
+    my $expected_need_to_moderate = 0;
+    my $expected_existing_urls    = [];
+
+    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db     = MediaWords::DB::connect_to_db();
+    my $medium = { url => TEST_HTTP_SERVER_URL };
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
+    cmp_bag( $existing_urls, $expected_existing_urls, 'test_feeds_with_common_prefix existing_urls' );
+
+    kill 9, $pid;
+}
+
+sub test_feed_aggregator_urls
+{
+    my $test_url = TEST_HTTP_SERVER_URL;
+    my $pages    = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    We didn't bother to add proper &lt;link&gt; links to our pages, but
+                    here's a link to the RSS link listing:<br />
+                    <a href="/rss">RSS</a>
+                </p>
+EOF
+        },
+
+        # RSS listing page
+        '/rss' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<"EOF"
+                <h1>Acme News</h1>
+                <p>
+                Our RSS feeds:
+                </p>
+                <ul>
+                    <li><a href="http://www.google.com/ig/add?feedurl=$test_url/feed.xml">Add to Google</a></li>
+                    <li><a href="http://add.my.yahoo.com/rss?url=$test_url/feed.xml">Add to Yahoo!</a></li>
+                    <li><a href="http://www.netvibes.com/subscribe.php?url=$test_url/feed.xml">Add to NetVibes</a></li>
+                </ul>
+EOF
+        },
+
+        # Sample feeds
+        '/feed.xml' => {
+            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
+            contents => SAMPLE_RSS_FEED
+        },
+
+    };
+    my $expected_links = [
+        {
+            'url' => bless( do { \( my $o = $test_url . '/feed.xml' ) }, 'URI::http' ),
+            'name' => 'Sample RSS feed'
+        },
+    ];
+
+    add_feed_types( $expected_links );
+
+    my $expected_need_to_moderate = 0;
+    my $expected_existing_urls    = [];
+
+    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db     = MediaWords::DB::connect_to_db();
+    my $medium = { url => TEST_HTTP_SERVER_URL };
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
+    cmp_bag( $existing_urls, $expected_existing_urls, 'test_feed_aggregator_urls existing_urls' );
+
+    kill 9, $pid;
+}
+
+sub main
+{
+    my $builder = Test::More->builder;
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
+    test_basic();
+    test_basic_entities_in_urls();
+    test_basic_short_urls();
+    test_basic_no_titles();
+    test_dagbladet_se();
+    test_gp_se();
+    test_rss_simple_website();
+    test_rss_immediate_redirect_via_http_header();
+    test_rss_immediate_redirect_via_html_meta_refresh();
+    test_rss_base_href();
+    test_rss_unlinked_urls();
+    test_rss_image_link();
+    test_rss_external_feeds();
+    test_get_feed_links_and_need_to_moderate_and_existing_urls();
+    test_feeds_with_common_prefix();
+    test_feed_aggregator_urls();
+}
+
+main();
+

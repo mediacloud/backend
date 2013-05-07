@@ -1,17 +1,19 @@
 [% title = 'Delete' %]
 [% INCLUDE include/feeds_header.tt2 %]
 
-<fieldset>
-<p>
-The '[% medium.name _ ': ' _ feed.name | html %]' feed has [% downloads %] downloads and [% stories %] stories.  Are you sure you want to delete the feed?
-</p>
+[% IF c.acl_user_can_visit('/admin/feeds/delete') %]
 
-<form action="[% c.uri_for('/feeds/delete/') _ feed.feeds_id _ '/' _ 'yes' %]">
-<input type="submit" value="Delete" />
-</form>
+    <fieldset>
+    <p>
+    The '[% medium.name _ ': ' _ feed.name | html %]' feed has [% downloads %] downloads and [% stories %] stories.  Are you sure you want to delete the feed?
+    </p>
 
-</fieldset>
-  
+    <form action="[% c.uri_for('/admin/feeds/delete/') _ feed.feeds_id _ '/' _ 'yes' %]">
+    <input type="submit" value="Delete" />
+    </form>
 
+    </fieldset>
+
+[% END # [% IF c.acl_user_can_visit('/admin/feeds/delete') %]
  
 [% INCLUDE include/footer.tt2 %]

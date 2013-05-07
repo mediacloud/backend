@@ -11,36 +11,62 @@
 
 <table>
 
-<tr><th>name</th><th>url</th><th>tags</th><th>feeds</th><th>edit</th><th>delete</th><th>downloads</th></tr>
+    <tr>
+        <th>name</th>
+        <th>url</th>
+        <th>tags</th>
+        <th>feeds</th>
+        [% IF c.acl_user_can_visit('/admin/media/edit') %]
+            <th>edit</th>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/media/delete') %]
+            <th>delete</th>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+            <th>downloads</th>
+        [% END -%]
+    </tr>
 
-[% IF media.size > 0 -%]
+    [% IF media.size > 0 -%]
 
-[% FOREACH medium IN media -%]
+    [% FOREACH medium IN media -%]
 
-<tr [% IF even %]id="even"[% END %]>
-<td>[% medium.name | html %]</td>
-<td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
-<td><div style="font-size: 80%;">[% medium.tag_names.join(', ') | html %]
-(<a href="[% c.uri_for('/media/edit_tags/') _ medium.media_id | url %]">edit</a>)</div></td>
-<td>
-<a href="[% c.uri_for('/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
-</td>
-<td><a href="[% c.uri_for('/media/edit/') _ medium.media_id | url %]">edit</a></td>
-<td><a href="[% c.uri_for('/media/delete/') _ medium.media_id | url %]">delete</a></td>
-<td><a href="[% c.uri_for('/downloads/list') | url %]?m=[% medium.media_id | uri %]">view dls</a></td>
-</tr>
+    <tr [% IF even %]id="even"[% END %]>
+        <td>[% medium.name | html %]</td>
+        <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
+        <td>
+            <div style="font-size: 80%;">
+                [% medium.tag_names.join(', ') | html %]
+                [% IF c.acl_user_can_visit('/admin/media/edit_tags') %]
+                    (<a href="[% c.uri_for('/admin/media/edit_tags/') _ medium.media_id | url %]">edit</a>)
+                [% END -%]
+            </div>
+        </td>
+        <td>
+        <a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id | url %]">feeds</a>&nbsp;([% medium.feed_count %])
+        </td>
+        [% IF c.acl_user_can_visit('/admin/media/edit') %]
+            <td><a href="[% c.uri_for('/admin/media/edit/') _ medium.media_id | url %]">edit</a></td>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/media/delete') %]
+            <td><a href="[% c.uri_for('/admin/media/delete/') _ medium.media_id | url %]">delete</a></td>
+        [% END -%]
+        [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+            <td><a href="[% c.uri_for('/admin/downloads/list') | url %]?m=[% medium.media_id | uri %]">view dls</a></td>
+        [% END -%]
+    </tr>
 
-[%  SET even = !even %]
-[% END # FOREACH medium -%]
+    [%  SET even = !even %]
+    [% END # FOREACH medium -%]
 
-[% INCLUDE include/pager.tt2 %] 
+    [% INCLUDE include/pager.tt2 %] 
 
 
-[% ELSE # IF media.size > 0 -%]
+    [% ELSE # IF media.size > 0 -%]
 
-<tr><td colspan="99">(no media sources found matching '[% q | html %]')</td></tr>
+    <tr><td colspan="99">(no media sources found matching '[% q | html %]')</td></tr>
 
-[% END # IF media.size > 0 -%]
+    [% END # IF media.size > 0 -%]
 
 </table>
 

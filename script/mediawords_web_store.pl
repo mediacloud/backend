@@ -24,6 +24,7 @@ use Storable;
 
 use MediaWords::Util::Web;
 
+<<<<<<< .working
 # number of processes to run in parallel
 use constant NUM_PARALLEL => 10;
 
@@ -88,6 +89,76 @@ sub get_scheduled_requests
     return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
 }
 
+=======
+# number of processes to run in parallel
+use constant DEFAULT_NUM_PARALLEL => 10;
+
+# timeout any given request after this many seconds
+use constant DEFAULT_TIMEOUT => 90;
+
+# number of seconds to wait before sending a new request to a given domain
+use constant DEFAULT_PER_DOMAIN_TIMEOUT => 1;
+
+sub get_request_domain
+{
+    my ( $request ) = @_;
+
+    $request->{ url } =~ m~https?://([^/]*)~ || return $request;
+
+    my $host = $1;
+
+    my $name_parts = [ split( /\./, $host ) ];
+
+    my $n = @{ $name_parts } - 1;
+
+    my $domain;
+    if ( $host =~ /\.co.uk$/ )
+    {
+        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+    }
+    elsif ( $host =~ /blogspot.com|livejournal.com|wordpress.com/ )
+    {
+        $domain = $request->{ url };
+    }
+    else
+    {
+        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
+    }
+
+    return lc( $domain );
+}
+
+# schedule the requests by adding a { time => $time } field to each request
+# to make sure we obey the $per_domain_timeout.  sort requests by ascending time.
+sub get_scheduled_requests
+{
+    my ( $requests, $per_domain_timeout ) = @_;
+
+    my $domain_requests = {};
+
+    for my $request ( @{ $requests } )
+    {
+        my $domain = get_request_domain( $request );
+        push( @{ $domain_requests->{ $domain } }, $request );
+    }
+
+    my $scheduled_requests = [];
+
+    while ( my ( $domain, $domain_requests ) = each( %{ $domain_requests } ) )
+    {
+        my $time = 0;
+        for my $domain_request ( @{ $domain_requests } )
+        {
+            $domain_request->{ time } = $time;
+            push( @{ $scheduled_requests }, $domain_request );
+            $time += $per_domain_timeout;
+        }
+    }
+
+    return [ sort { $a->{ time } <=> $b->{ time } } @{ $scheduled_requests } ];
+}
+
+>>>>>>> .merge-right.r5185
 sub main
 {
     my $requests;
@@ -111,11 +182,29 @@ sub main
         return;
     }
 
-    my $pm = new Parallel::ForkManager( NUM_PARALLEL );
+    my $config = MediaWords::Util::Config::get_config;
 
+<<<<<<< .working
+    my $ua = MediaWords::Util::Web::UserAgent();
+=======
+    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel }       || DEFAULT_NUM_PARALLEL;
+    my $timeout            = $config->{ mediawords }->{ web_store_timeout }            || DEFAULT_TIMEOUT;
+    my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout } || DEFAULT_PER_DOMAIN_TIMEOUT;
+>>>>>>> .merge-right.r5185
+
+<<<<<<< .working
+    my $requests   = get_scheduled_requests( $requests );
+    my $start_time = time;
+=======
+    my $pm = new Parallel::ForkManager( $num_parallel );
+>>>>>>> .merge-right.r5185
+
+<<<<<<< .working
+=======
     my $ua = MediaWords::Util::Web::UserAgent();
 
-    my $requests   = get_scheduled_requests( $requests );
+>>>>>>> .merge-right.r5185
+    my $requests = get_scheduled_requests( $requests, $per_domain_timeout );
     my $start_time = time;
 
     my $i     = 0;
@@ -126,12 +215,21 @@ sub main
         my $time_increment = time - $start_time;
         $i++;
 
+<<<<<<< .working
         if ( $time_increment < $request->{ time } )
         {
             sleep( $request->{ time } - $time_increment );
         }
 
         alarm( TIMEOUT );
+=======
+        if ( $time_increment < $request->{ time } )
+        {
+            sleep( $request->{ time } - $time_increment );
+        }
+
+        alarm( $timeout );
+>>>>>>> .merge-right.r5185
         $pm->start and next;
 
         print STDERR "fetch [$i/$total] : $request->{ url }\n";

@@ -14,8 +14,13 @@
     [% PROCESS clusters/protovis_transform.tt2 %]
     
 <p>
-    <a href="[% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %]">view this cluster map alone ([% c.uri_for( '/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %])</a> | 
-    <a href="[% c.uri_for( '/queries/view/' _ cluster_map.query.queries_id ) %]">view time slice query</a>
+    [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+        <a href="[% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %]">view this cluster map alone ([% c.uri_for( '/admin/clusters/view/' _ cluster_run.media_cluster_runs_id, { 'media_cluster_maps_id' => cluster_map.media_cluster_maps_id, stand_alone => 1 } ) %])</a>
+    [% END -%]
+    | 
+    [% IF c.acl_user_can_visit('/admin/queries/view') %]
+        <a href="[% c.uri_for( '/admin/queries/view/' _ cluster_map.query.queries_id ) %]">view time slice query</a>
+    [% END -%]
 </p>
 
 </fieldset>
@@ -32,19 +37,19 @@
 <!--
     <div id='clusters'>
     [% FOREACH cluster IN clusters %]
-      <fieldset>
-        <p>
-          <b>[% cluster.description %] ([% cluster.media.size %])</b>: 
-          [% FOREACH medium IN cluster.media %]
-            [&nbsp;<a href='[% medium.url %]'>[% medium.name %]</a>&nbsp;]
-          [% END #[% FOREACH medium IN cluster.media %]
-        </p>
-        <fieldset>[% cluster.word_cloud %]</fieldset>
-      </fieldset>
-      <br />
+        <fieldset>
+            <p>
+                <b>[% cluster.description %] ([% cluster.media.size %])</b>: 
+                [% FOREACH medium IN cluster.media %]
+                    [&nbsp;<a href='[% medium.url %]'>[% medium.name %]</a>&nbsp;]
+                [% END #[% FOREACH medium IN cluster.media %]
+            </p>
+            <fieldset>[% cluster.word_cloud %]</fieldset>
+        </fieldset>
+        <br />
     [% END #[% FOREACH cluster IN media_clusters %]
     </div>
 -->
 
-  </body>
+    </body>
 </html>

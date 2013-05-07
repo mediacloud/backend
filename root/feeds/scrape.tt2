@@ -2,57 +2,51 @@
 [% INCLUDE include/feeds_header.tt2 -%]
 
 <fieldset>
-
-[% form.render %]
-
+    [% form.render %]
 </fieldset>
 
 [%- IF existing_urls -%]
-<fieldset>
-
-<p>
-The following feed urls already exist:
-</p>
-
-<ul>
-
-
-[%- FOREACH url IN existing_urls -%]
-<li>[% url | html %]</li>
-[%- END # FOREACH url in existing_urls -%]
-
-</ul>
-
-</fieldset>
+    <fieldset>
+        <p>The following feed urls already exist:</p>
+        <ul>
+            [%- FOREACH url IN existing_urls -%]
+            <li>[% url | html %]</li>
+            [%- END # FOREACH url in existing_urls -%]
+        </ul>
+    </fieldset>
 [%- END # [% IF existing_urls %]
 
-[%- IF links -%]
 
-<form action="[% c.uri_for('/feeds/scrape_import/' _ medium.media_id) | url %]" method="post" >
+[% IF c.acl_user_can_visit('/admin/feeds/scrape_import') %]
 
-<table>
+    [%- IF links -%]
 
-<tr><th>import?</th><th>name</th><th>url</th></tr>
-[% FOREACH link IN links -%]
+        <form action="[% c.uri_for('/admin/feeds/scrape_import/' _ medium.media_id) | url %]" method="post" >
 
-<tr>
-<td><input name="links" type="checkbox" value="[% link.name _ ':' _ link.url | html %]" checked="checked" /></td>
-<td nowrap>[% link.name %]</td>
-<td><a href="[% link.url | url %]">[% link.url | html %]</a></td>
-</tr>
+        <table>
 
-[% END # FOREACH link -%]
- 
-</table>
+            <tr>
+                <th>import?</th>
+                <th>name</th>
+                <th>url</th>
+            </tr>
+            
+            [% FOREACH link IN links -%]
+            <tr>
+                <td><input name="links" type="checkbox" value="[% link.name _ ':' _ link.url | html %]" checked="checked" /></td>
+                <td nowrap>[% link.name %]</td>
+                <td><a href="[% link.url | url %]">[% link.url | html %]</a></td>
+            </tr>
+            [% END # FOREACH link -%]
+         
+        </table>
 
-<p>
-<input type="submit" value="Import Feeds" />
-</p>
+        <p><input type="submit" value="Import Feeds" /></p>
 
-</form>
- 
-[% END # IF links -%]
- 
- 
+        </form>
+     
+    [% END # IF links -%]
+
+[% END # [% IF c.acl_user_can_visit('/admin/feeds/scrape_import') %]
  
 [% INCLUDE include/footer.tt2 -%]

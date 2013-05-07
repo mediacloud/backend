@@ -57,24 +57,12 @@ sub _insert_story_sentence_words
 {
     my ( $db, $story, $word_counts ) = @_;
 
-    while ( my ( $sentence_num, $sentence_counts ) = each( %{ $word_counts } ) )
-    {
-        eval {
-            $db->dbh->do(
-                <<"EOF"
-                COPY story_sentence_words (
-                    stories_id,
-                    stem_count,
-                    sentence_number,
-                    stem,
-                    term,
-                    language,
-                    publish_day,
-                    media_id
-                )
-                FROM STDIN
-EOF
-            );
+    eval {
+        $db->dbh->do( <<END );
+copy story_sentence_words (stories_id, stem_count, sentence_number, stem, term, publish_day, media_id) from STDIN
+END
+        while ( my ( $sentence_num, $sentence_counts ) = each( %{ $word_counts } ) )
+        {
             while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
             {
 
@@ -103,8 +91,9 @@ EOF
                     die $@;
                 }
             }
-            $db->dbh->pg_putcopyend();
-        };
+        }
+
+        $db->dbh->pg_putcopyend();
 
         if ( $@ )
         {
@@ -112,7 +101,7 @@ EOF
             die $@;
         }
 
-    }
+    };
 }
 
 # return 1 if the stem passes various tests
@@ -165,7 +154,7 @@ sub limit_string_length
 }
 
 # return the number of sentences of this sentence within the same media source and calendar week.
-# also adds the sentence to the story_sentence_counts table and/or increments the count in that table
+# also adds the sentence to the  t table and/or increments the count in that table
 # for the sentence.
 #
 # NOTE: you must wrap a 'lock story_sentence_counts in row exclusive mode' around all calls to this within the
@@ -510,17 +499,6 @@ sub update_story_sentence_words_and_language
     }
 
     _insert_story_sentence_words( $db, $story, $sentence_word_counts );
-
-    #testing print
-    q{while ( my ($key, $value) = each(%$sentence_word_counts) ) {
-		 	print "level 1:  $key\n";
-			while ( my ($key, $value1) = each(%$value) ) {
-       				 print "*level 2:  $key\n";
-				while ( my ($key, $value2) = each(%$value1) ) {
-		   				 print "**level 3:  $key => $value2\n";
-	   			 }
-   			}
-	 }};
 }
 
 sub _get_stem_word_counts_for_sentence($$;$)

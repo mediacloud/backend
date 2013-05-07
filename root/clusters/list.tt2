@@ -1,47 +1,53 @@
 [% title = 'Cluster Runs List' %]
 [% INCLUDE include/header.tt2 %]
 
-<fieldset>
+[% IF c.acl_user_can_visit('/admin/clusters/create') %]
+    <fieldset>
 
-<p>
-<a href="[% c.uri_for( '/clusters/create' )%]">Create New Cluster Run</a>
-</p>
+        <p>
+            <a href="[% c.uri_for( '/admin/clusters/create' )%]">Create New Cluster Run</a>
+        </p>
 
-</fieldset>
+    </fieldset>
+[% END -%]
 
 <p />
 
 <table>
 
-<tr>
-<th>start date</th>
-<th>end date</th>
-<th>clusters</th>
-<th>media_set</th>
-<th>description</th>
-<th>view</th>
-</tr>
+    <tr>
+        <th>start date</th>
+        <th>end date</th>
+        <th>clusters</th>
+        <th>media_set</th>
+        <th>description</th>
+        [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+            <th>view</th>
+        [% END -%]
+    </tr>
 
-[% FOREACH run IN cluster_runs -%]
+    [% FOREACH run IN cluster_runs -%]
 
-<tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]id="even"[% END %]>
 
-<td>[% run.start_date.substr(0, 10) %]</td>
+        <td>[% run.start_date.substr(0, 10) %]</td>
 
-<td>[% run.end_date.substr(0, 10) %]</td>
+        <td>[% run.end_date.substr(0, 10) %]</td>
 
-<td>[% run.num_clusters %]</td>
+        <td>[% run.num_clusters %]</td>
 
-<td>[% run.media_set_name | html %]</td>
+        <td>[% run.media_set_name | html %]</td>
 
-<td>[% run.description | html %]</td>
+        <td>[% run.description | html %]</td>
 
-<td><a href="[% c.uri_for('/clusters/view/' _ run.media_cluster_runs_id) %]">view</a></td>
+        [% IF c.acl_user_can_visit('/admin/clusters/view') %]
+            <td><a href="[% c.uri_for('/admin/clusters/view/' _ run.media_cluster_runs_id) %]">view</a></td>
+        [% END -%]
 
-</tr>
+    </tr>
 
-[%  SET even = !even %]
-[% END # FOREACH feeds -%]
+    [%  SET even = !even %]
+    [% END # FOREACH feeds -%]
 
 </table>
 

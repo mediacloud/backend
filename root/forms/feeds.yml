@@ -12,9 +12,6 @@ elements:
         - Required
         - type: FeedURL
           message: This is not an rss feed
-    validators:
-        - type: FeedIsUnique
-          message: This feed URL already exists in the database
 
   - type: Submit
     name: submit

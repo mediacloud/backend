@@ -65,6 +65,7 @@ sub fetch_tags
 
     if ( index( $calais_response, '<Exception>' ) > 0 )
     {
+        say STDERR "Calais exception: $calais_response";
         return { error => "Calais exception: $calais_response" };
     }
 

@@ -202,6 +202,41 @@ sub _purge_story_sentences_id_field
     }
 }
 
+# replace all stories_id fields with the normalized url of the corresponding story
+# within the stories data structure
+sub replace_stories_ids_with_urls
+{
+    my ( $stories ) = @_;
+
+    my $story_urls = {};
+    for my $story ( @{ $stories } )
+    {
+        my $url = $story->{ url };
+        $url =~ s~https?://[^/]*~~;
+        $story_urls->{ $story->{ stories_id } } = $url;
+    }
+
+    my $stack = [ @{ $stories } ];
+    while ( @{ $stack } )
+    {
+        my $o = pop( @{ $stack } );
+
+        if ( ref( $o ) eq 'HASH' )
+        {
+            if ( $o->{ stories_id } )
+            {
+                $o->{ stories_id } = $story_urls->{ $o->{ stories_id } };
+            }
+
+            push( @{ $stack }, values( %{ $o } ) );
+        }
+        elsif ( ref( $o ) eq 'ARRAY' )
+        {
+            push( @{ $stack }, @{ $o } );
+        }
+    }
+}
+
 # test various results of the crawler
 sub test_stories
 {
@@ -216,6 +251,11 @@ sub test_stories
     is( @{ $stories }, 16, "story count" );
 
     my $test_stories = MediaWords::Test::Data::fetch_test_data( 'crawler_stories' );
+
+    # replace stories_id with urls so that the order of stories
+    # doesn't matter
+    replace_stories_ids_with_urls( $stories );
+    replace_stories_ids_with_urls( $test_stories );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
@@ -279,17 +319,12 @@ sub test_stories
                 map { delete( $_->{ publish_date } ) }
                   ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
             }
-            unless (
-                cmp_deeply(
-                    $story->{ story_sentences },
-                    $test_story->{ story_sentences },
-                    "story sentences " . $story->{ stories_id }
-                )
-              )
-            {
-                print STDERR "Expected sentences: " . Dumper( $test_story->{ story_sentences } );
-                print STDERR "Got sentences: " . Dumper( $story->{ story_sentences } );
-            }
+
+            cmp_deeply(
+                $story->{ story_sentences },
+                $test_story->{ story_sentences },
+                "story sentences " . $story->{ stories_id }
+            );
 
           TODO:
             {

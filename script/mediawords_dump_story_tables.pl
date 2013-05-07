@@ -304,7 +304,11 @@ sub main
 
     mkdir( $data_dir );
 
-    my $temp_dir = tempdir( DIR => $data_dir, CLEANUP => 1 );
+    my $temp_dir_path = $config->{ mediawords }->{ data_dump_tmp_dir };
+
+    $temp_dir_path //= $data_dir;
+
+    my $temp_dir = tempdir( DIR => $temp_dir_path, CLEANUP => 1 );
 
     my $current_date = _current_date();
 
@@ -397,8 +401,16 @@ sub main
 
     my $dump_zip_file_name = $dump_name . '_' . $dumped_stories->[ 0 ] . '_' . $dumped_stories->[ 1 ];
 
+<<<<<<< .working
     $dump_zip_file_name .= '_' . join( '-', @{ $_dump_dashboards } ) if ( @{ $_dump_dashboards } );
 
+=======
+    if ( defined( $_dump_dashboards ) && @{ $_dump_dashboards } )
+    {
+        $dump_zip_file_name .= '_' . join( '-', @{ $_dump_dashboards } );
+    }
+
+>>>>>>> .merge-right.r5185
     my $tmp_zip_file_path = "/$data_dir/tmp_$dump_zip_file_name" . ".zip";
 
     # unless ( $zip->writeToFileNamed( $tmp_zip_file_path ) == AZ_OK )

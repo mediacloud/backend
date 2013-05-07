@@ -2,7 +2,8 @@ package MediaWords::Util::Web;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-# various functions for editing feed and medium tags
+# various functions to make downloading web pages easier and faster, including parallel
+# and cached fetching.
 
 use strict;
 
@@ -12,6 +13,7 @@ use LWP::UserAgent;
 use Storable;
 
 use MediaWords::Util::Paths;
+use MediaWords::Util::Config;
 
 use constant MAX_DOWNLOAD_SIZE => 1024 * 1024;
 use constant TIMEOUT           => 20;
@@ -102,6 +104,95 @@ sub get_original_request
     }
 
     return $original_response->request;
+}
+
+# cache link downloads LINK_CACHE_SIZE at a time so that we can do them in parallel.
+# this doesn't actually do any caching -- it just sets the list of
+# links so that they can be done LINK_CACHE_SIZE at a time by get_cached_link_download.
+sub cache_link_downloads
+{
+    my ( $links ) = @_;
+
+    $_link_downloads_list = $links;
+
+    my $i = 0;
+    map { $_->{ _link_num } = $i++ } @{ $links };
+}
+
+# if the url has been precached, return it, otherwise download the current links and the next ten links
+sub get_cached_link_download
+{
+    my ( $link ) = @_;
+
+    die( "no { _link_num } field in $link } " ) if ( !defined( $link->{ _link_num } ) );
+
+    my $link_num = $link->{ _link_num };
+
+    # the url gets transformed like this in the ParallelGet below, so we have
+    # to transform it here so that we can go back and find the request by the url
+    # in the ParalleGet
+    my $url = URI->new( $link->{ url } )->as_string;
+
+    if ( my $response = $_link_downloads_cache->{ $url } )
+    {
+        return ( ref( $response ) ? $response->decoded_content : $response );
+    }
+
+    my $links = $_link_downloads_list;
+    my $urls  = [];
+    for ( my $i = 0 ; $links->[ $link_num + $i ] && $i < LINK_CACHE_SIZE ; $i++ )
+    {
+        my $link = $links->[ $link_num + $i ];
+        push( @{ $urls }, URI->new( $link->{ url } )->as_string );
+    }
+
+    my $responses = ParallelGet( $urls );
+
+    $_link_downloads_cache = {};
+    for my $response ( @{ $responses } )
+    {
+        my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
+        if ( $response->is_success )
+        {
+
+            # print STDERR "original_url: $original_url " . length( $response->decoded_content ) . "\n";
+            $_link_downloads_cache->{ $original_url } = $response;
+        }
+        else
+        {
+            my $msg = "error retrieving content for $original_url: " . $response->status_line;
+            warn( $msg );
+            $_link_downloads_cache->{ $original_url } = $msg;
+        }
+    }
+
+    warn( "Unable to find cached download for '$url'" ) if ( !defined( $_link_downloads_cache->{ $url } ) );
+
+    my $response = $_link_downloads_cache->{ $url };
+    return ( ref( $response ) ? $response->decoded_content : ( $response || '' ) );
+}
+
+# get the redirected url from the cached download for the url.
+# if no redirected url is found, just return the given url.
+sub get_cached_link_download_redirect_url
+{
+    my ( $link ) = @_;
+
+    my $url      = URI->new( $link->{ url } )->as_string;
+    my $link_num = $link->{ link_num };
+
+    # make sure the $_link_downloads_cache is setup correctly
+    get_cached_link_download( $link );
+
+    if ( my $response = $_link_downloads_cache->{ $url } )
+    {
+        if ( ref( $response ) )
+        {
+            return $response->request->uri->as_string;
+        }
+    }
+
+    return $url;
 }
 
 1;

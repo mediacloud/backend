@@ -363,7 +363,6 @@ sub words_on_line($)
 
     return $ret;
 }
-
 sub add_additional_features($$)
 {
     my ( $line_info, $line_text ) = @_;
