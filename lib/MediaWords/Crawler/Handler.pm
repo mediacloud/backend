@@ -306,7 +306,7 @@ sub _process_content
 {
     my ( $self, $dbs, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . "starting _process_content for  " . $download->{ downloads_id };
+    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _process_content for  " . $download->{ downloads_id };
 
     $self->call_pager( $dbs, $download, $response->decoded_content );
 
