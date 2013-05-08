@@ -15,6 +15,17 @@ use MediaWords::Util::Config;
 use MongoDB 0.700.0;
 use MongoDB::GridFS;
 
+# MongoDB's query timeout, in ms
+# (default timeout is 30 s, but MongoDB sometimes creates a new 2 GB data file for ~38 seconds,
+#  so we set it to 60 s)
+use constant MONGODB_QUERY_TIMEOUT => 60 * 1000;
+
+# MongoDB's number of read / write retries
+# (in case waiting 60 seconds for the read / write to happen doesn't help, the instance should
+#  retry writing a couple of times)
+use constant MONGODB_READ_RETRIES  => 3;
+use constant MONGODB_WRITE_RETRIES => 3;
+
 # MongoDB client, GridFS instance (lazy-initialized to prevent multiple forks using the same object)
 my $_mongodb_client   = undef;
 my $_mongodb_database = undef;
@@ -96,7 +107,7 @@ sub _connect_to_mongodb_or_die
     }
 
     # Connect
-    $_mongodb_client = MongoDB::MongoClient->new( host => $host, port => $port );
+    $_mongodb_client = MongoDB::MongoClient->new( host => $host, port => $port, query_timeout => MONGODB_QUERY_TIMEOUT );
     unless ( $_mongodb_client )
     {
         die "GridFS: Unable to connect to MongoDB.\n";
@@ -173,9 +184,9 @@ sub store_content($$$$;$)
     my $filename = '' . $download->{ downloads_id };
     my $gridfs_id;
 
-    # MongoDB sometimes times out when writing, so we'll try to write several times
-    my Readonly $mongodb_write_retries = 3;
-    for ( my $retry = 0 ; $retry < $mongodb_write_retries ; ++$retry )
+    # MongoDB sometimes times out when writing because it's busy creating a new data file,
+    # so we'll try to write several times
+    for ( my $retry = 0 ; $retry < MONGODB_WRITE_RETRIES ; ++$retry )
     {
         if ( $retry > 0 )
         {
@@ -215,7 +226,7 @@ sub store_content($$$$;$)
 
     unless ( $gridfs_id )
     {
-        die "GridFS: Unable to store download '$filename' to GridFS after $mongodb_write_retries retries.\n";
+        die "GridFS: Unable to store download '$filename' to GridFS after " . MONGODB_WRITE_RETRIES . " retries.\n";
     }
 
     return $gridfs_id;
@@ -237,10 +248,43 @@ sub fetch_content($$;$)
 
     my $id = MongoDB::OID->new( filename => $filename );
 
-    # Read
-    my $file = $_mongodb_gridfs->find_one( { 'filename' => $filename } );
+    # MongoDB sometimes times out when reading because it's busy creating a new data file,
+    # so we'll try to read several times
+    my $attempt_to_read_succeeded = 0;
+    my $file                      = undef;
+    for ( my $retry = 0 ; $retry < MONGODB_READ_RETRIES ; ++$retry )
+    {
+        if ( $retry > 0 )
+        {
+            say STDERR "GridFS: Retrying...";
+        }
 
-    die "GridFS: Could not get file from GridFS for filename " . $filename . "\n" unless defined $file;
+        eval {
+
+            # Read
+            $file = $_mongodb_gridfs->find_one( { 'filename' => $filename } );
+            $attempt_to_read_succeeded = 1;
+        };
+
+        if ( $@ )
+        {
+            say STDERR "GridFS: Read from '$filename' didn't succeed because: $@";
+        }
+        else
+        {
+            last;
+        }
+    }
+
+    unless ( $attempt_to_read_succeeded )
+    {
+        die "GridFS: Unable to read download '$filename' from GridFS after " . MONGODB_READ_RETRIES . " retries.\n";
+    }
+
+    unless ( defined( $file ) )
+    {
+        die "GridFS: Could not get file from GridFS for filename " . $filename . "\n";
+    }
 
     my $gzipped_content = $file->slurp;
 
