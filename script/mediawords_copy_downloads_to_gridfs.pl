@@ -269,7 +269,7 @@ EOF
                     {
 
                         # GridFS -- don't copy to GridFS
-                        say STDERR "Already in GridFS, skipping..." if ( _verbose() );
+                        say STDERR "Already in GridFS, skipping download " . $download->{ downloads_id } . "...";
                         next;
                     }
                     elsif ( $download->{ path } =~ /^tar:/ )
