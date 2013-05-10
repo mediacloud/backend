@@ -37,6 +37,9 @@ max_story_id = db.getMaxStoryId()
 results = mc.storiesSince( max_story_id, STORIES_TO_FETCH )
 log.info("Fetched "+str(len(results))+" stories (after "+str(max_story_id)+")")
 
+# set up my callback that adds splits up the domain nicely and adds the part of it to the story
+pub.subscribe(mediacloud.examples.addDomainInfoToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
+
 # set up my callback function that adds word count to the story
 pub.subscribe(mediacloud.examples.addWordCountToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
@@ -45,9 +48,6 @@ pub.subscribe(mediacloud.examples.addIsEnglishToStory, StoryDatabase.EVENT_PRE_S
 
 # set up my callback function that adds the reading grade level to the story
 pub.subscribe(mediacloud.examples.addFleshKincaidGradeLevelToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
-
-# set up my callback that adds splits up the domain nicely and adds the part of it to the story
-pub.subscribe(mediacloud.examples.addDomainInfoToStory, StoryDatabase.EVENT_PRE_STORY_SAVE)
 
 # save all the stories in the db
 saved = 0

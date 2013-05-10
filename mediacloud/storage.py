@@ -81,11 +81,11 @@ class MongoStoryDatabase(StoryDatabase):
         self._db.drop_collection('stories')
 
     def storyExists(self, story_id):
-        stories = self._db.stories
-        story = stories.find_one( { "_id": story_id } )
+        story = self._db.stories.find_one( { "_id": int(story_id) } )
         return story != None
 
     def _saveStory(self, story_attributes):
+        story_attributes['_id'] = int(story_attributes['_id'])
         stories = self._db.stories
         story_id = stories.insert(story_attributes)
         story = stories.find_one( { "_id": story_id } )
