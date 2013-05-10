@@ -132,15 +132,19 @@ class ExampleMongoStoryDatabase(MongoStoryDatabase):
     def storyReadingLevelFreq(self,domain):
         if domain == None:
             map = Code("function () {"
-                    "   emit(Math.round(this.fk_grade_level),1);"
+                    "       if(this.fk_grade_level){"
+                    "           emit(Math.round(this.fk_grade_level),1);"
+                    "       }"
                     "}")
             results_name = "story_reading_level_freq"
         else:
             domain_parts = domain.split(".")
             map = Code("function () {"
-                    "   if(this.domain.domain==\""+domain_parts[0]+"\" && this.domain.tld==\""+domain_parts[1]+"\"){"
-                    "       emit(Math.round(this.fk_grade_level),1);"
-                    "   }"
+                    "     if(this.fk_grade_level){"
+                    "       if(this.domain.domain==\""+domain_parts[0]+"\" && this.domain.tld==\""+domain_parts[1]+"\"){"
+                    "         emit(Math.round(this.fk_grade_level),1);"
+                    "     }"
+                    "   }"                    
                     "}")
             results_name = "story_reading_level_freq_"+domain[0]+"_"+domain[1]      
         reduce = Code("function (key, values) {"
@@ -152,6 +156,7 @@ class ExampleMongoStoryDatabase(MongoStoryDatabase):
                         "}")
         rawResults = self._db.stories.map_reduce(map, reduce, "story_reading_level_freq")
         results = self._resultsToDict(rawResults)
+        print results
         # fill in any blanks so we can chart this easily
         maxLevel = int(max(results.keys(), key=int))
         for level in range(maxLevel):
