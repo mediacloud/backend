@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+import time
+start_time = time.time()
 
 import ConfigParser
 import json
@@ -59,4 +61,8 @@ for story in results:
       log.warning("  unable to save story "+str(story['stories_id']))
 
 max_story_id = db.getMaxStoryId()
+
+end_time = time.time()
+duration = end_time - start_time
 log.info("Saved "+str(saved)+" stories - new max id "+str(max_story_id))
+log.info("  took "+str(duration)+" secs ("+str(round(duration/STORIES_TO_FETCH,2))+" secs per story)")
