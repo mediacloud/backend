@@ -88,12 +88,12 @@ class MongoStoryDatabase(StoryDatabase):
         story_attributes['_id'] = int(story_attributes['_id'])
         stories = self._db.stories
         story_id = stories.insert(story_attributes)
-        story = stories.find_one( { "_id": story_id } )
+        story = stories.find_one( { "_id": int(story_id) } )
         return story
 
     def getStory(self, story_id):
         stories = self._db.stories
-        story = stories.find_one( { "_id": story_id } )
+        story = stories.find_one( { "_id": int(story_id) } )
         return story
 
     def getMaxStoryId(self):

@@ -17,9 +17,10 @@ class StorageTest(unittest.TestCase):
         worked = db.addStory(story)
         self.assertTrue(worked)
         worked = db.addStory(story)
-        self.assertFalse(worked)        
+        self.assertFalse(worked)
         saved_story = db.getStory(str(story['stories_id']))
-        self.assertEquals(saved_story['_id'], str(story['stories_id']))
+        self.assertNotEqual(saved_story,None)
+        self.assertEquals(int(saved_story['_id']), story['stories_id'])
         self.assertEquals(saved_story['story_sentences_count'], 2)
         db.deleteDatabase(self.TEST_DB_NAME)
 
