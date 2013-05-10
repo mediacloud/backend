@@ -120,6 +120,8 @@ the API.
 
 Run the `example_realtime.py` script from a cron job to continuously fetch the latest
 stories from MediaCloud and save them to your database (with an extracted text word count).
+Make sure the user it runs under has the nltk libraries installed, otherwise you'll be stuck
+for a while!
 
 The website in `example-web-server` gives you a view of the word count data saved 
 by the `example_realtime.py` script. Check out the readme in that directory for more info.

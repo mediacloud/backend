@@ -31,7 +31,6 @@ First, prep your Ubuntu machine:
 sudo aptitude install python
 sudo aptitude install libapache2-mod-wsgi
 sudo easy_install pip
-sudo pip install feedparser
 sudo pip install flask
 ```
 
