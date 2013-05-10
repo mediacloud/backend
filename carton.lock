@@ -7151,55 +7151,6 @@
          "target" : "Crypt::DES",
          "version" : "2.05"
       },
-      "Crypt::SaltedHash" : {
-         "dist" : "Crypt-SaltedHash-0.05",
-         "mymeta" : {
-            "abstract" : "Perl interface to functions that assist in working\nwith salted hashes.",
-            "author" : [
-               "Sascha Kiefer, L<esskar@cpan.org>"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "Crypt-SaltedHash",
-            "prereqs" : {
-               "runtime" : {
-                  "requires" : {
-                     "Digest" : 0
-                  }
-               }
-            },
-            "provides" : {
-               "Crypt::SaltedHash" : {
-                  "file" : "lib/Crypt/SaltedHash.pm",
-                  "version" : "0.05"
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "license" : [
-                  "http://dev.perl.org/licenses/"
-               ]
-            },
-            "version" : "0.05"
-         },
-         "name" : "Crypt::SaltedHash",
-         "pathname" : "E/ES/ESSKAR/Crypt-SaltedHash-0.05.tar.gz",
-         "provides" : {
-            "Crypt::SaltedHash" : {
-               "file" : "Crypt/SaltedHash.pm",
-               "version" : "0.05"
-            }
-         },
-         "target" : "Crypt::SaltedHash",
-         "version" : "0.05"
-      },
       "Crypt::SSLeay" : {
          "dist" : "Crypt-SSLeay-0.64",
          "mymeta" : {
@@ -15262,66 +15213,6 @@
          "target" : "DateTime::TimeZone",
          "version" : "1.42"
       },
-      "DateTime::Tiny" : {
-         "dist" : "DateTime-Tiny-1.04",
-         "mymeta" : {
-            "abstract" : "A datetime object with as little code as possible",
-            "author" : [
-               "Adam Kennedy <adamk@cpan.org>"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.48, CPAN::Meta::Converter version 2.130880, CPAN::Meta::Converter version 2.112621",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "DateTime-Tiny",
-            "no_index" : {
-               "directory" : [
-                  "t",
-                  "inc"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : 0
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : 0
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "Test::More" : "0.47",
-                     "perl" : "5.004"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "repository" : {
-                  "url" : "http://svn.ali.as/cpan/trunk/DateTime-Tiny"
-               }
-            },
-            "version" : "1.04"
-         },
-         "name" : "DateTime::Tiny",
-         "pathname" : "A/AD/ADAMK/DateTime-Tiny-1.04.tar.gz",
-         "provides" : {
-            "DateTime::Tiny" : {
-               "file" : "DateTime/Tiny.pm",
-               "version" : "1.04"
-            }
-         },
-         "target" : "DateTime::Tiny",
-         "version" : "1.04"
-      },
       "Devel::Caller" : {
          "dist" : "Devel-Caller-2.05",
          "mymeta" : {
@@ -17965,7 +17856,6 @@
                "runtime" : {
                   "requires" : {
                      "Mail::Address" : 0,
-                     "Net::DNS" : 0,
                      "Scalar::Util" : 0,
                      "Test::More" : 0,
                      "perl" : "5.006"
@@ -17990,59 +17880,6 @@
          },
          "target" : "Email::Valid",
          "version" : "0.190"
-      },
-      "Domain::PublicSuffix" : {
-         "dist" : "Domain-PublicSuffix-0.07",
-         "mymeta" : {
-            "abstract" : "Parse a domain down to root",
-            "author" : [
-               "Nicholas Melnick <nick@abstractwankery.com>"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Dist::Zilla version 4.300020, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "Domain-PublicSuffix",
-            "prereqs" : {
-               "build" : {
-                  "requires" : {}
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.30"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "Class::Accessor::Fast" : 0,
-                     "Data::Validate::Domain" : 0,
-                     "File::Spec" : 0,
-                     "Test::More" : "0.88"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "version" : "0.07"
-         },
-         "name" : "Domain::PublicSuffix",
-         "pathname" : "N/NM/NMELNICK/Domain-PublicSuffix-0.07.tar.gz",
-         "provides" : {
-            "Domain::PublicSuffix" : {
-               "file" : "Domain/PublicSuffix.pm",
-               "version" : "0.07"
-            },
-            "Domain::PublicSuffix::Default" : {
-               "file" : "Domain/PublicSuffix/Default.pm",
-               "version" : "0.07"
-            }
-         },
-         "target" : "Domain::PublicSuffix",
-         "version" : "0.07"
       },
       "Encode::HanConvert" : {
          "dist" : "Encode-HanConvert-0.35",
@@ -18922,7 +18759,7 @@
                "file" : "ExtUtils/MM.pm"
             },
             "MY" : {
-               "file" : "ExtUtils/MakeMaker.pm"
+               "file" : "ExtUtils/MY.pm"
             }
          },
          "target" : "ExtUtils::MakeMaker",
@@ -21849,7 +21686,7 @@
                "Gisle Aas <gisle@ActiveState.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -28679,13 +28516,12 @@
          "version" : "3.64"
       },
       "MongoDB" : {
-         "dist" : "MongoDB-0.700.0",
+         "dist" : "MongoDB-0.45",
          "mymeta" : {
-            "abstract" : "A Mongo Driver for Perl",
+            "abstract" : "Mongo Driver for Perl",
             "author" : [
                "Florian Ragwitz <rafl@debian.org>",
-               "Kristina Chodorow <kristina@mongodb.org>",
-               "Mike Friedman <mike.friedman@10gen.com>"
+               "Kristina Chodorow <kristina@10gen.com>"
             ],
             "dynamic_config" : 0,
             "generated_by" : "Module::Install version 1.01, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
@@ -28709,14 +28545,12 @@
                   "requires" : {
                      "Data::Types" : 0,
                      "DateTime" : 0,
-                     "DateTime::Tiny" : 0,
-                     "ExtUtils::MakeMaker" : "6.59",
+                     "ExtUtils::MakeMaker" : "6.42",
                      "File::Slurp" : 0,
                      "File::Temp" : "0.17",
                      "FileHandle" : 0,
                      "JSON" : 0,
                      "Test::Exception" : 0,
-                     "Test::Warn" : 0,
                      "Tie::IxHash" : 0,
                      "Try::Tiny" : 0,
                      "boolean" : 0
@@ -28724,16 +28558,15 @@
                },
                "configure" : {
                   "requires" : {
-                     "ExtUtils::MakeMaker" : "6.30"
+                     "ExtUtils::MakeMaker" : "6.42"
                   }
                },
                "runtime" : {
                   "requires" : {
+                     "Any::Moose" : 0,
                      "Class::Method::Modifiers" : 0,
                      "DateTime" : 0,
                      "Digest::MD5" : 0,
-                     "Module::Install" : 0,
-                     "Moose" : 0,
                      "Tie::IxHash" : 0,
                      "XSLoader" : 0,
                      "boolean" : 0,
@@ -28743,79 +28576,66 @@
             },
             "release_status" : "stable",
             "resources" : {
-               "bugtracker" : {
-                  "web" : "https://jira.mongodb.org/browse/PERL"
-               },
-               "homepage" : "https://github.com/mongodb/mongo-perl-driver",
+               "license" : [
+                  "http://apache.org/licenses/LICENSE-2.0"
+               ],
                "repository" : {
                   "type" : "git",
                   "url" : "git://github.com/mongodb/mongo-perl-driver.git"
                }
             },
-            "version" : "0.700.0"
+            "version" : "0.45"
          },
          "name" : "MongoDB",
-         "pathname" : "F/FR/FRIEDO/MongoDB-0.700.0.tar.gz",
+         "pathname" : "K/KR/KRISTINA/MongoDB-0.45.tar.gz",
          "provides" : {
             "MongoDB" : {
                "file" : "MongoDB.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::BSON" : {
                "file" : "MongoDB/BSON.pm",
-               "version" : "v0.700.0"
-            },
-            "MongoDB::BSON::Binary" : {
-               "file" : "MongoDB/BSON/Binary.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::Code" : {
                "file" : "MongoDB/Code.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::Collection" : {
                "file" : "MongoDB/Collection.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::Connection" : {
                "file" : "MongoDB/Connection.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::Cursor" : {
                "file" : "MongoDB/Cursor.pm",
-               "version" : "v0.700.0"
-            },
-            "MongoDB::DBRef" : {
-               "file" : "MongoDB/DBRef.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::Database" : {
                "file" : "MongoDB/Database.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::GridFS" : {
                "file" : "MongoDB/GridFS.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::GridFS::File" : {
                "file" : "MongoDB/GridFS/File.pm",
-               "version" : "v0.700.0"
-            },
-            "MongoDB::MongoClient" : {
-               "file" : "MongoDB/MongoClient.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::OID" : {
                "file" : "MongoDB/OID.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             },
             "MongoDB::Timestamp" : {
                "file" : "MongoDB/Timestamp.pm",
-               "version" : "v0.700.0"
+               "version" : "0.45"
             }
          },
          "target" : "MongoDB",
-         "version" : "v0.700.0"
+         "version" : "0.45"
       },
       "Moo" : {
          "dist" : "Moo-1.000008",
@@ -41888,7 +41708,7 @@
                "unknown"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -43710,14 +43530,14 @@
          "version" : "20111103"
       },
       "Variable::Magic" : {
-         "dist" : "Variable-Magic-0.52",
+         "dist" : "Variable-Magic-0.47",
          "mymeta" : {
             "abstract" : "Associate user-defined magic to variables from Perl.",
             "author" : [
                "Vincent Pit <perl@profvince.com>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.6302, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "ExtUtils::MakeMaker version 6.59, CPAN::Meta::Converter version 2.112621, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],
@@ -43735,13 +43555,7 @@
             "prereqs" : {
                "build" : {
                   "requires" : {
-                     "Carp" : 0,
-                     "Config" : 0,
-                     "Exporter" : 0,
-                     "ExtUtils::MakeMaker" : 0,
-                     "Test::More" : 0,
-                     "XSLoader" : 0,
-                     "base" : 0
+                     "ExtUtils::MakeMaker" : 0
                   }
                },
                "configure" : {
@@ -43773,18 +43587,18 @@
                   "url" : "http://git.profvince.com/?p=perl%2Fmodules%2FVariable-Magic.git"
                }
             },
-            "version" : "0.52"
+            "version" : "0.47"
          },
          "name" : "Variable::Magic",
-         "pathname" : "V/VP/VPIT/Variable-Magic-0.52.tar.gz",
+         "pathname" : "V/VP/VPIT/Variable-Magic-0.47.tar.gz",
          "provides" : {
             "Variable::Magic" : {
                "file" : "Variable/Magic.pm",
-               "version" : "0.52"
+               "version" : "0.47"
             }
          },
          "target" : "Variable::Magic",
-         "version" : "0.52"
+         "version" : "0.47"
       },
       "WWW::Mechanize" : {
          "dist" : "WWW-Mechanize-1.71",
@@ -44119,7 +43933,7 @@
                "Andrew Main (Zefram) <zefram@fysh.org>"
             ],
             "dynamic_config" : 0,
-            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
+            "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.112150",
             "license" : [
                "perl_5"
             ],

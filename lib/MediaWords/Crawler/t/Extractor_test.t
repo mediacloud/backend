@@ -200,7 +200,7 @@ foreach my $test_case ( @{ $test_cases } )
     );
 
     my $result = MediaWords::Crawler::Extractor::score_lines( HTML::CruftText::clearCruftText( $test_case->{ test_input } ),
-        "__NO_TITLE__" );
+        "__NO_TITLE__", "__NO_DESCRIPTION__" );
 
     ok( $result, "title_not_found_test" );
 }

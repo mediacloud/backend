@@ -3,27 +3,27 @@
 
 <table>
 
-    <tr>
-        <th>query</th>
-        <th>include tag</th>
-        <th>sets</th>
-        <th>start_date</th>
-        <th>end_date</th>
-        <th>creator</th>
-        <th>state</th>
-    </tr>
+<tr>
+<th>query [language]</th>
+<th>include tag</th>
+<th>sets</th>
+<th>start_date</th>
+<th>end_date</th>
+<th>creator</th>
+<th>state</th>
+</tr>
 
     [% FOREACH topic IN topics -%]
 
         <tr [% IF even %]id="even"[% END %]>
 
-            <td>
-                [% IF topic.state == 'completed' -%]
-                    <a href="[% topic.url %]">[% topic.query %]</a>
-                [% ELSE %]
-                    [% topic.query %]
-                [% END %]
-            </td>
+<td>
+[% IF topic.state == 'completed' -%]
+<a href="[% topic.url %]">[% topic.query %] [[% topic.language %]]</a>
+[% ELSE %]
+[% topic.query %] [[% topic.query %]]
+[% END %]
+</td>
 
             <td>[% topic.source_tag_name %]</td>
 
@@ -61,13 +61,23 @@
                 </span>
             </div>
 
-            <div class="text comment label">
-                <label>Query</label>
-                <input name="query" type="text" size="48" />
-                <span class="comment">
-                    The query that defines the topic.  The resulting word clouds will include only stories that match this plain text query.  If the query has more than one word, the topic will include stories that match all of the words individually. <i>example: bailout</i>
-                </span>
-            </div>
+<div class="text comment label">
+<label>Language code</label>
+<input name="language" type="text" size="48" />
+<span class="comment">
+ISO 639-1 language code for the query. <i>example: en</i>
+</span>
+</div>
+
+<div class="text comment label">
+<label>Start Date</label>
+<input name="start_date" type="text" size="48" />
+<span class="comment">
+Include stories starting on this date.  Must be after 2008-06-01, since that's when our archive starts.  Will be rounded down to the
+previous start of week to make sure the tool includes at least a week of stories.  
+<i>example: 2008-08-01</i>
+</span>
+</div>
 
             <div class="text comment label">
                 <label>Start Date</label>

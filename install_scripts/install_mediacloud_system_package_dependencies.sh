@@ -25,6 +25,20 @@ if [ `uname` == 'Darwin' ]; then
         exit 1
     fi
 
+    if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then
+        echo "You have to manually download, build and install Chromium Compact Language Detector library from:"
+        echo
+        echo "http://code.google.com/p/chromium-compact-language-detector/"
+        echo
+        echo "When you have done that, make sure that you have libcld.0.dylib somewhere (e.g. in "
+        echo "/usr/local/lib/libcld.0.dylib) and run this script again with the environment variable "
+        echo "I_HAVE_INSTALLED_CLD being set as such:"
+        echo
+        echo "I_HAVE_INSTALLED_CLD=1 $0"
+        echo
+        exit 1
+    fi
+
     brew install \
         perl --use-threads \
         graphviz --with-bindings \
@@ -55,6 +69,34 @@ else
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev \
         libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
         build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl
+
+    # Install CLD separately
+    if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then     # Not installed manually?
+        if [ ! -f /usr/lib/libcld.so ]; then        # Library is not installed yet?
+
+            # Try to download and install
+            CLDTEMPDIR=`mktemp -d -t cldXXXXX`
+            wget -O "$CLDTEMPDIR/cld.deb" http://chromium-compact-language-detector.googlecode.com/files/compact-language-detector_0.1-1_amd64.deb
+            sudo dpkg -i "$CLDTEMPDIR/cld.deb"
+            rm -rf "$CLDTEMPDIR"
+
+            if [ ! -f /usr/lib/libcld.so ]; then    # Installed?
+                echo "I have tried to install CLD manually but failed."
+                echo
+                echo "You have to manually download, build and install Chromium Compact Language Detector library from:"
+                echo
+                echo "http://code.google.com/p/chromium-compact-language-detector/"
+                echo
+                echo "When you have done that, make sure that you have libcld.0.dylib somewhere (e.g. in "
+                echo "/usr/local/lib/libcld.0.dylib) and run this script again with the environment variable "
+                echo "I_HAVE_INSTALLED_CLD being set as such:"
+                echo
+                echo "I_HAVE_INSTALLED_CLD=1 $0"
+                echo
+                exit 1
+            fi
+        fi
+    fi
 
 fi
 

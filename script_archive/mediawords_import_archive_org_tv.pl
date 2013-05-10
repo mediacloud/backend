@@ -302,7 +302,7 @@ sub import_show
 
     my $download_text = find_or_create_download_text( $db, $download );
 
-    #MediaWords::StoryVectors::update_story_sentence_words( $db, $story );
+    #MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story );
 
     print STDERR
 "import show complete: s $story->{ stories_id } / d $download->{ downloads_id } / dt $download_text->{ download_texts_id }\n";

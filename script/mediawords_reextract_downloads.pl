@@ -31,7 +31,6 @@ use Digest::SHA qw(sha1 sha1_hex sha1_base64);
 #use XML::LibXML::CDATASection;
 use Encode;
 use MIME::Base64;
-use Lingua::EN::Sentence::MediaWords;
 
 #use XML::LibXML::Enhanced;
 
@@ -120,7 +119,7 @@ sub regenerate_download_texts_for_downloads
 
             say "Updating story sentence words ";
 
-            MediaWords::StoryVectors::update_story_sentence_words( $dbs, $story );
+            MediaWords::StoryVectors::update_story_sentence_words_and_language( $dbs, $story );
         }
         else
         {

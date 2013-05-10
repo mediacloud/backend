@@ -408,7 +408,7 @@ sub process_download_for_extractor($$$;$$)
         #       . join( ' ', map { "<$_>" } @{ $module_tags->{tags} } );
         # }
 
-        MediaWords::StoryVectors::update_story_sentence_words( $db, $story, 0, $no_dedup_sentences );
+        MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, $no_dedup_sentences );
 
         # Temporarily commenting this out until we're ready to push it to Amanda.
         # $db->query( " INSERT INTO processed_stories ( stories_id ) VALUES ( ? ) " , $download->{ stories_id }  );

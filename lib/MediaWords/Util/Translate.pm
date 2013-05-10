@@ -21,15 +21,13 @@ die "$@" if $@;
 
 use MediaWords::Util::Config;
 
-my $mediacloud_translate_cache_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ translation_cache_dir };
-
-$mediacloud_translate_cache_dir .= MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir } . '/cache/translate';
+my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
 
 my $cache = CHI->new(
     driver           => 'FastMmap',
     expires_in       => '1 week',
     expires_variance => '0.1',
-    root_dir         => "${ mediacloud_translate_cache_dir }",
+    root_dir         => "${ mediacloud_data_dir }/cache/translate",
     cache_size       => '3m'
 );
 

@@ -40,7 +40,8 @@ sub create_query_parts
                     query         => "foo",
                     dashboards_id => $dashboard->{ dashboards_id },
                     start_date    => '2010-01-01',
-                    end_date      => '2020-01-01'
+                    end_date      => '2020-01-01',
+                    language      => 'en'
                 }
             );
             push( @{ $dashboard->{ dashboard_topics } }, $dashboard_topic );

@@ -22,6 +22,7 @@ use MediaWords::CommonLibs;
 use LWP::Protocol::https;
 
 use MediaWords::Languages::Language;
+use MediaWords::Util::IdentifyLanguage;
 
 sub process_url
 {
@@ -72,7 +73,11 @@ sub process_url
 
         say $formatted_text if $debug_print;
 
-        my $lang  = MediaWords::Languages::Language::lang();
+        my $tld       = MediaWords::Util::IdentifyLanguage::tld_from_url( $final_url );
+        my $lang_code = MediaWords::Util::IdentifyLanguage::language_code_for_text( $formatted_text );
+        $ret->{ language } = $lang_code;
+
+        my $lang  = MediaWords::Languages::Language::language_for_code( $lang_code );
         my $words = $lang->tokenize( $formatted_text );
 
         my $word_counts = {};
@@ -104,7 +109,7 @@ sub process_url
 }
 
 use Class::CSV;
-my $fields = [ qw ( file url final_url formatted_text word_counts non_stop_word_counts    ) ];
+my $fields = [ qw ( file url final_url language formatted_text word_counts non_stop_word_counts    ) ];
 
 #my $fields =   [keys %{ $url_info } ] ;
 
@@ -163,7 +168,7 @@ foreach my $file ( @ARGV )
 
         my $word_and_count_list = [];
 
-        my $lang       = MediaWords::Languages::Language::lang();
+        my $lang       = MediaWords::Languages::Language::language_for_code( $url_info->{ language } );
         my $stop_words = $lang->get_tiny_stop_words();
 
         if ( defined( $url_info->{ sorted_counts } ) )

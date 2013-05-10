@@ -166,10 +166,6 @@ sub _purge_story_sentences_id_field
     for my $sentence ( @$sentences )
     {
 
-        #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
-
-        #die Dumper ($sentence);
-
         $sentence->{ story_sentences_id } = '';
         delete $sentence->{ story_sentences_id };
     }
@@ -181,14 +177,19 @@ sub _purge_stories_id_field
 
     for my $sentence ( @$sentences )
     {
-
-        #die Dumper ($sentence ) unless $sentence->{story_sentences_id };
-
-        #die Dumper ($sentence);
-
         $sentence->{ stories_id } = '';
         delete $sentence->{ stories_id };
     }
+}
+
+# print human readable version of ssw, sorted by count
+sub print_ssw
+{
+    my ( $label, $story_sentence_words ) = @_;
+    
+    my $ssw_sorted = [ sort { $a->{ stem_count } <=> $b->{ stem_count } } @{ $story_sentence_words } ];
+    
+    map { print STDERR "$label: $_->{ stem } [ $_->{ term } ] - $_->{ stem_count }\n" } @{ $ssw_sorted };
 }
 
 # test various results of the crawler
@@ -434,10 +435,6 @@ sub main
 
             my $feed_download = MediaWords::Crawler::Provider::_create_download_for_feed( $feed, $db );
 
-            #say STDERR Dumper( $feed_download );
-
-            #run_crawler();
-
             my $crawler = MediaWords::Crawler::Engine->new();
 
             $crawler->processes( 1 );
@@ -454,10 +451,6 @@ sub main
 
             my $content_download = pop @{ $content_downloads };
 
-            #say STDERR Dumper ( $content_download );
-
-            #say STDERR Dumper ( $content_downloads );
-
             die unless $content_downloads;
 
             $db->query( " DELETE from stories where stories_id <> ? ", $content_download->{ stories_id } );
@@ -465,33 +458,6 @@ sub main
             $crawler->crawl_single_download( $content_download->{ downloads_id } );
 
             extract_downloads( $db );
-
-            # my $duplicate_sentence =
-            #               $db->query( " SELECT * from story_sentences where sentence = 'Post-Thumbnail'" )->hash();
-
-            #             $db->query(
-            #                 " DELETE from story_sentences where sentence_number = ? and stories_id = ? ",
-            #                 $duplicate_sentence->{ sentence_number },
-            #                 $duplicate_sentence->{ stories_id }
-            #             );
-
-            #             $db->query(
-            #                 " DELETE from story_sentence_words where sentence_number  = ? and stories_id = ? ",
-            #                 $duplicate_sentence->{ sentence_number },
-            #                 $duplicate_sentence->{ stories_id }
-            #             );
-
-        #             $db->query(
-        # " UPDATE story_sentences SET sentence_number = sentence_number - 1  where sentence_number > ? and stories_id = ? ",
-        #                 $duplicate_sentence->{ sentence_number },
-        #                 $duplicate_sentence->{ stories_id }
-        #             );
-
-   #             $db->query(
-   # " UPDATE story_sentence_words SET sentence_number = sentence_number - 1  where sentence_number > ? and stories_id = ? ",
-   #                 $duplicate_sentence->{ sentence_number },
-   #                 $duplicate_sentence->{ stories_id }
-   #             );
 
             process_stories( $db );
 
@@ -501,14 +467,6 @@ sub main
             }
 
             test_stories( $db, $feed );
-
-            # generate_aggregate_words( $db, $feed );
-            # if ( defined( $dump ) && ( $dump eq '-d' ) )
-            # {
-            #     #dump_top_500_weekly_words( $db, $feed );
-            # }
-
-            # test_top_500_weekly_words( $db, $feed );
 
             print "Killing server\n";
             kill_local_server( $url_to_crawl );

@@ -9,7 +9,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 use MediaWords::DB;
-use Lingua::EN::Sentence::MediaWords;
+use MediaWords::Languages::en;
 
 sub main
 {
@@ -27,7 +27,8 @@ sub main
         $stories_id
     )->flat;
 
-    my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $text ) || return;
+    my $lang = MediaWords::Languages::en->new();
+    my $sentences = $lang->get_sentences( $text ) || return;
 
     print join( " - ", @{ $sentences } ) . "\n";
 }

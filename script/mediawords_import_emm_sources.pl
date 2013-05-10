@@ -107,7 +107,7 @@ sub main
         }
 
         # 'hhttp://www.beta.rs/' fix
-        if ( $media_url =~ /hhttp:\/\//i )
+        if ( $media_url =~ /^hhttp:\/\//i )
         {
             $media_url =~ s/^hhttp:\/\//http:\/\//;
         }
@@ -184,7 +184,7 @@ EOF
 
         }
 
-        print STDERR "Added / updated media '" . $medium->{ name } . "'\n";
+        print STDERR "Will add / update media '" . $medium->{ name } . "'\n";
     }
 
     print STDERR "Committing...\n";

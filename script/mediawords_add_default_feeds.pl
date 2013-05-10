@@ -14,6 +14,8 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use constant MAX_DEFAULT_FEEDS => 4;
+
 use DBIx::Simple::MediaWords;
 use Feed::Scrape::MediaWords;
 use MediaWords::DB;
@@ -35,6 +37,36 @@ sub main
         {
             my ( $feed_links, $need_to_moderate, $existing_urls ) =
               Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+            # first look for <link> feeds or a set of url pattern feeds that are likely to be
+            # main feeds if present (like "$url/feed")
+            my $default_feed_links = Feed::Scrape->get_main_feed_urls_from_url( $medium->{ url } );
+
+            # otherwise do an expansive search
+            my $feed_links;
+            my $need_to_moderate;
+            if ( !@{ $default_feed_links } )
+            {
+                $need_to_moderate = 1;
+                $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ $medium->{ url } ],
+                    1, $db, [], $existing_urls );
+
+                # look through all feeds found for those with the host name in them and if found
+                # treat them as default feeds
+                my $medium_host = lc( URI->new( $medium->{ url } )->host );
+                $default_feed_links = [ grep { lc( URI->new( $_->{ url } )->host ) eq $medium_host } @{ $feed_links } ];
+                $default_feed_links = [ grep { $_->{ url } !~ /foaf/ } @{ $default_feed_links } ];
+            }
+
+            # if there are more than 0 default feeds, use those.  If there are no more than
+            # MAX_DEFAULT_FEEDS, use the first one and don't moderate.
+            if ( @{ $default_feed_links } )
+            {
+                $default_feed_links = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $default_feed_links } ];
+                $default_feed_links = [ $default_feed_links->[ 0 ] ] if ( @{ $default_feed_links } <= MAX_DEFAULT_FEEDS );
+                $feed_links         = $default_feed_links;
+                $need_to_moderate   = 0;
+            }
 
             for my $feed_link ( @{ $feed_links } )
             {

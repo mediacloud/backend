@@ -6,7 +6,13 @@ elements:
     label: term
     constraints:
         - Required
-        
+
+  - type: Text
+    name: language
+    label: language code
+    constraints:
+        - Required
+
   - type: Hidden
     name: queries_ids
 
