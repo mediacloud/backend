@@ -176,14 +176,17 @@ sub _heuristically_scored_lines_impl
 
 sub get_info_for_lines_inner_loop
 {
-    my ( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint, 
-         $auto_excluded_lines, $markers, $language_code ) = @_;
+    my (
+        $info_for_lines, $lines,               $title_text, $description, $sphereit_map,
+        $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+    ) = @_;
 
     my $line = defined( $lines->[ 0 ] ) ? $lines->[ 0 ] : '';
 
-    my $line_info =
-      MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, 0, $title_text, $description, $sphereit_map,
-        $has_clickprint, $auto_excluded_lines, $markers, $language_code );
+    my $line_info = MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics(
+        $line,           0,                    $title_text, $description, $sphereit_map,
+        $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+    );
 
     # $info_for_lines->[ 0 ] = $line_info;
 
@@ -246,8 +249,10 @@ sub get_info_for_lines
 
     while ( 1 )
     {
-        get_info_for_lines_inner_loop( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint,
-            $auto_excluded_lines, $markers, $language_code );
+        get_info_for_lines_inner_loop(
+            $info_for_lines, $lines,               $title_text, $description, $sphereit_map,
+            $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+        );
 
     }
 

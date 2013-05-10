@@ -302,6 +302,7 @@ use Readonly;
 
         if ( !$dps->get_root_domain( $host ) )
         {
+
             # say STDERR "Unable to get root domain for host '$host'.";
             return '';
         }

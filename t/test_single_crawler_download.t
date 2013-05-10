@@ -186,9 +186,9 @@ sub _purge_stories_id_field
 sub print_ssw
 {
     my ( $label, $story_sentence_words ) = @_;
-    
+
     my $ssw_sorted = [ sort { $a->{ stem_count } <=> $b->{ stem_count } } @{ $story_sentence_words } ];
-    
+
     map { print STDERR "$label: $_->{ stem } [ $_->{ term } ] - $_->{ stem_count }\n" } @{ $ssw_sorted };
 }
 

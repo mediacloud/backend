@@ -114,7 +114,8 @@ sub create : Local
 
     $c->dbis->query( "UPDATE QUERIES SET generate_page = 't' WHERE queries_id = ?", $query->{ queries_id } );
 
-    $c->response->redirect( $c->uri_for( "/admin/queries/view/$query->{ queries_id }", { status_msg => 'Query created.' } ) );
+    $c->response->redirect(
+        $c->uri_for( "/admin/queries/view/$query->{ queries_id }", { status_msg => 'Query created.' } ) );
 }
 
 # return url for a chart of the daily terms in the dashboard topics vs. all words for each day in the date range

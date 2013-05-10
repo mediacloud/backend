@@ -259,7 +259,7 @@ sub test_stories
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
-    
+
     for my $story ( @{ $stories } )
     {
         my $test_story = $test_story_hash->{ $story->{ title } };
@@ -506,7 +506,7 @@ sub main
         sub {
             use Encode;
             my ( $db ) = @_;
-            
+
             # Errors might want to print out UTF-8 characters
             binmode( STDOUT, ":utf8" );
             binmode( STDERR, ":utf8" );

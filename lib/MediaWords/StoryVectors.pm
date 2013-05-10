@@ -70,8 +70,7 @@ END
     {
         while ( my ( $stem, $hash ) = each( %{ $sentence_counts } ) )
         {
-            my $data = join( 
-                "\t",
+            my $data = join( "\t",
                 $story->{ stories_id },
                 $hash->{ count },
                 $sentence_num,
@@ -79,8 +78,8 @@ END
                 encode_utf8( lc( $hash->{ word } ) ),
                 encode_utf8( lc( $hash->{ language } ) ),
                 $story->{ publish_date },
-                $story->{ media_id });
-                            
+                $story->{ media_id } );
+
             eval { $db->dbh->pg_putcopydata( "$data\n" ); };
 
             if ( $@ )
@@ -89,7 +88,6 @@ END
             }
         }
     }
-
 
     eval { $db->dbh->pg_putcopyend(); };
 
@@ -494,8 +492,8 @@ sub update_story_sentence_words_and_language
     }
 
     _insert_story_sentence_words( $db, $story, $sentence_word_counts );
-    
-    $db->dbh->{ AutoCommit } || $db->commit
+
+    $db->dbh->{ AutoCommit } || $db->commit;
 }
 
 sub _get_stem_word_counts_for_sentence($$;$)
