@@ -21,14 +21,20 @@ Install and run [CouchDB](http://couchdb.apache.org) or [MongoDb](http://mongodb
 article info.
 
 Copy the `mc-client.config.template` to `mc-client.config` and edit it, putting in the 
-API username and password.  Then run the `example_create_views.py` script to create the 
-views that the various scripts and webpages use.
+API username and password.  Then if you are using CouchDB run the `example_create_views.py` 
+script to create the views that the various scripts and webpages use.
 
 ### Ubuntu
 
-On Ubuntu, you may need to do this first to get nltk to install:
+On Ubuntu, you may need to do this first to get nltk and pymongo to install:
 
-    sudo aptitude install python-dev
+    sudo apt-get install build-essential python-dev
+
+### Setup NLTK
+
+To run some of the examples, you need the `stopwords` corpora for NLTK. To get this, first
+enter the python console.  Then do `import nltk`.  Then `nltk.download()`.  Then follow the
+instructions and download the `stopwords` library.  To the same thing for the `punkt` library.
 
 Testing
 -------
@@ -115,6 +121,6 @@ the API.
 Run the `example_realtime.py` script from a cron job to continuously fetch the latest
 stories from MediaCloud and save them to your database (with an extracted text word count).
 
-The website in `example_realtime_website` gives you a view of the word count data saved 
-by the `example_realtime.py` script.
+The website in `example-web-server` gives you a view of the word count data saved 
+by the `example_realtime.py` script. Check out the readme in that directory for more info.
 
