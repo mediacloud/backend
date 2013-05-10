@@ -1,44 +1,15 @@
-<?php
-$t0 = microtime();  // do some performance monitoring, old school
-// initialization
-require_once('./lib/CouchSimple.php');
-$options = parse_ini_file("config.ini");
-$couch = new CouchSimple($options);
-
-$t1 = microtime();
-// update cached list of (two-part) domain names
-$updatedDomainCache = false;
-define('CACHED_DOMAIN_LIST', 'cache/'.$options['host'].'_domain_two_part.json');
-if(!file_exists(CACHED_DOMAIN_LIST) || (microtime()-filemtime(CACHED_DOMAIN_LIST))>(24*60*60) ){
-  $domainListJson = $couch->send("GET", "/mediacloud/_design/examples/_view/domain_two_part?group=true");
-  file_put_contents(CACHED_DOMAIN_LIST,$domainListJson);
-  $updatedDomainCache = true;
-}
-// load from cached file
-$domainTwoPart = json_decode(file_get_contents(CACHED_DOMAIN_LIST));
-$domainList = array();
-foreach( $domainTwoPart->rows as $row ) {
-  array_push($domainList, $row->key);
-}
-sort($domainList);
-$t2 = microtime();
-?>
-
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>MediaCloud API Client Examples</title>
-    <link href="css/mediacloud.css" rel="stylesheet" type="text/css"/>
-    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
-    <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/d3.v2.min.js"></script>
-  </head>
 
-  <body>
+<head>
+  <title>MediaCloud API Client Examples</title>
+  <link href="/static/css/mediacloud.css" rel="stylesheet" type="text/css"/>
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
 
 <div class="container"> 
-
 
   <div class="row">
     <div class="span12">
@@ -48,47 +19,9 @@ $t2 = microtime();
     </div>
   </div>
 
-
-<?php
-// max story id
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/max_story_id") ); 
-$maxStoryId = $results->rows[0]->value;
-$t3 = microtime();
-
-// total story count
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/total_stories") ); 
-$storyCount = $results->rows[0]->value;
-$t4 = microtime();
-
-// english story count
-$englishStoryCount = null;
-$results = json_decode( $couch->send("GET", "/mediacloud/_design/examples/_view/is_english?group=true") ); 
-foreach ($results->rows as $row){
-  if($row->key==true) {
-    $englishStoryCount = $row->value;
-  }
-}
-$t5 = microtime();
-
-?>
-
   <div class="row">
-    <div class="span12">
-
-<?php
-if($updatedDomainCache){
-?>
-  <div class="alert alert-info">
-    <button type="button" class="close" data-dismiss="alert"></button> 
-    <strong>FYI:</strong> just updated the cached list of domains
-  </div>
-<?php
-}
-?>
-
-      <p><i>
-      <?=$storyCount?> stories in the database (<?=round(100*$englishStoryCount/$storyCount)?>% in english). The max story id is <?=$maxStoryId?>.
-      </i></p>
+    <div class="span12" id="mcSummaryInfo">
+      {{ story_count }} stories in the database ({{english_story_pct}}% are in English).  The max story id is {{max_story_id}}.
     </div>
   </div>
 
@@ -155,18 +88,10 @@ if($updatedDomainCache){
 
   <div class="row">
     <div class="span12">
-      <p><b>Top Sources:</b>
-<?php
-// sources
-function compareRowValue($a,$b){ return $b->value > $a->value; }
-uasort($domainTwoPart->rows,'compareRowValue');
-$topTwentydomainList = array_slice($domainTwoPart->rows, 0,20);
-foreach($topTwentydomainList as $row){
-?>  <a href="http://<?=$row->key?>"><?=$row->key?></a> <span class="badge"><?=$row->value?></span>
-<?php
-}
-$t6 = microtime();
-?>
+      <p><b>Top Sources:</b>  
+        {% for info in story_counts_by_source|dictsort %}
+          <a href="http://{{info[0]}}">{{info[0]}}</a> <span class="badge">{{info[1]|int}}</span>
+        {% endfor %}
       </p>
     </div>
   </div >
@@ -174,11 +99,13 @@ $t6 = microtime();
 </div>
 
 <script type="text/javascript">
+
 // called by returned JS
 function updateFilteredInfo(domain, storyCount){
   $('#mcFilteredInfo').html("We know about "+storyCount+" articles from "+domain);
 }
-// called by returned JS
+
+// update results based on domain user chooses
 function updateFilterResults(domain){
   $('#mcFilteredResults').hide();
   $('#mcFilteredInfo').empty();
@@ -186,22 +113,12 @@ function updateFilterResults(domain){
   $('#mcFilteredReadability').empty();
   $.ajax({
     type: "GET",
-    url:"data.js.php?domain="+domain,
+    url:"/"+domain+"/info",
     dataType: 'script'
   });
 }
-// fire ajax request when user filters by news source
-$('#mcPickDomain').typeahead({
-    source: <?= json_encode($domainList) ?>,
-    updater: function(item){
-        updateFilterResults(item);
-    }
-});
-</script>
 
-<script type="text/javascript">
-
-// helper function to draw a standard histogram chart
+// helper function to draw a standard histogram chart (called by returned JS from server)
 function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, maxXValue,barsToShow, maxY, xTickCount) {
   var y = d3.scale.linear()
        .domain([0, maxY])
@@ -239,29 +156,31 @@ function histogramChart(container, dataset, chartWidth, chartHeight, barWidth, m
        .style("stroke", "#666");
 }
 
-// load up the aggregate charts
-$(function(){
-  $.ajax({
-      type: "GET",
-      url:"data.js.php",
-      dataType: 'script'
-    });
-});
-
 </script>
 
-<!--
-<?php
-// print out performance of each section
-print "1: ".round($t1-$t0,4)."<br/>";
-print "2: ".round($t2-$t1,4)."<br/>";
-print "3: ".round($t3-$t2,4)."<br/>";
-print "4: ".round($t4-$t3,4)."<br/>";
-print "5: ".round($t5-$t4,4)."<br/>";
-print "6: ".round($t6-$t5,4)."<br/>";
-?>
--->
+<script type="text/javascript" src="/static/js/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/static/js/d3.v2.min.js"></script>
 
-  </body>
+<script type="text/javascript">
+// stuff to run once the page loads
+$(function(){
+  // load up the aggregate charts
+  $.ajax({
+      type: "GET",
+      url:"/all_domains/info",
+      dataType: 'script'
+    });
+  // set up to fire ajax request when user filters by news source
+  $('#mcPickDomain').typeahead({
+      source: {{source_domains_json|safe}},
+      updater: function(item){
+          updateFilterResults(item);
+      }
+  });
+});
+</script>
+
+</body>
 
 </html>

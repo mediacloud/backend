@@ -11,3 +11,7 @@
   stroke: white;
   fill: #8C2D53;
 }
+
+#mcSummaryInfo {
+  font-style: italic;
+}

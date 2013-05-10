@@ -106,6 +106,8 @@ class MongoStoryDatabase(StoryDatabase):
         # nothing to init for mongo
         return
 
+    def storyCount(self):
+        return self._db['stories'].count()
 
 class CouchStoryDatabase(StoryDatabase):
 
