@@ -139,8 +139,7 @@ EOF
         $dashboards_id
     );
 
-    $c->response->redirect(
-        $c->uri_for( "/admin/dashboards/list_topics/$dashboards_id", { status_msg => 'Topic created.' } ) );
+    $c->response->redirect( $c->uri_for( "/admin/dashboards/list_topics/$dashboards_id", { status_msg => 'Topic created.' } ) );
 }
 
 1;
