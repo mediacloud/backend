@@ -16,6 +16,7 @@ use MediaWords::DBI::Downloads::Store::LocalFile;
 use MediaWords::DBI::Downloads::Store::Remote;
 use MediaWords::DBI::Downloads::Store::Tar;
 use MediaWords::DBI::Downloads::Store::GridFS;
+use MediaWords::DBI::Downloads::Store::AmazonS3;
 use Carp;
 
 use Data::Dumper;
@@ -26,6 +27,7 @@ my $_localfile_store;
 my $_remote_store;
 my $_tar_store;
 my $_gridfs_store;
+my $_amazon_s3_store;
 
 # Reference to configuration
 my $_config;
@@ -41,6 +43,7 @@ BEGIN
     $_remote_store         = MediaWords::DBI::Downloads::Store::Remote->new();
     $_gridfs_store         = MediaWords::DBI::Downloads::Store::GridFS->new();
     $_tar_store            = MediaWords::DBI::Downloads::Store::Tar->new();
+    $_amazon_s3_store      = MediaWords::DBI::Downloads::Store::AmazonS3->new();
 
     # Early sanity check on configuration
     $_config = MediaWords::Util::Config::get_config;
@@ -51,7 +54,8 @@ BEGIN
     }
     foreach my $download_storage_location ( @{ $download_storage_locations } )
     {
-        unless ( lc( $download_storage_location ) eq 'tar' or lc( $download_storage_location ) eq 'gridfs' )
+        my $location = lc( $download_storage_location );
+        unless ( $location eq 'tar' or $location eq 'gridfs' or $location eq 'amazon_s3' )
         {
             die "Download storage location '$download_storage_location' is not valid.\n";
         }
@@ -78,24 +82,32 @@ sub _download_stores_for_writing($)
         my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
+            my $location = lc( $download_storage_location );
 
-            if ( lc( $download_storage_location ) eq 'tar' )
+            if ( $location eq 'tar' )
             {
 
                 #say STDERR "Will store to Tar.";
                 push( @{ $stores }, $_tar_store );
 
             }
-            elsif ( lc( $download_storage_location ) eq 'gridfs' )
+            elsif ( $location eq 'gridfs' )
             {
 
                 #say STDERR "Will store to GridFS.";
                 push( @{ $stores }, $_gridfs_store );
 
             }
+            elsif ( $location eq 'amazon_s3' )
+            {
+
+                #say STDERR "Will store to Amazon S3.";
+                push( @{ $stores }, $_amazon_s3_store );
+
+            }
             else
             {
-                die "Download storage location '$download_storage_location' is not valid.\n";
+                die "Download storage location '$location' is not valid.\n";
             }
         }
     }
@@ -140,6 +152,12 @@ sub _download_store_for_reading($)
 
             # GridFS
             $store = $_gridfs_store;
+        }
+        elsif ( $path =~ /^s3:(.*)/ )
+        {
+
+            # Amazon S3
+            $store = $_amazon_s3_store;
         }
         elsif ( $download->{ path } =~ /^tar:/ )
         {
