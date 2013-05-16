@@ -8,6 +8,10 @@
     <script type="text/javascript" src="/script/protovis-r3.2.js"></script>
     <script type="text/javascript" src="/script/jquery.tipsy.js"></script>
     <script type="text/javascript" src="/script/tipsy.js"></script>
+
+    <!-- Sorting tables -->
+    <script type="text/javascript" src="/script/jquery.metadata.js"></script>
+    <script type="text/javascript" src="/script/jquery.tablesorter.min.js"></script>
     
     <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script> -->
     
@@ -71,7 +75,7 @@
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/media/moderate') %]
             <li>
-              <a href="[% c.uri_for('/admin/media/moderate') %]">Moderate Media</a>
+              <a href="[% c.uri_for('/media/moderate_tags') %]">Moderate Media</a>
             </li>
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/downloads/list') %]

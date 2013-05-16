@@ -217,8 +217,8 @@ sub call_pager
     my ( $self, $dbs, $download ) = @_;
     my $content = \$_[ 3 ];
 
-    my $medium = $dbs->query( <<END )->hash;
-select * from media m where media_id in ( select media_id from feeds where feeds_id = 1 );
+    my $medium = $dbs->query( <<END, $download->{ feeds_id } )->hash;
+select * from media m where media_id in ( select media_id from feeds where feeds_id = ? );
 END
 
     return unless ( use_pager( $medium ) );

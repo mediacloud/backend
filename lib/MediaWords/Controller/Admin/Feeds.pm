@@ -111,9 +111,12 @@ sub create : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
+    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+
     $media_id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( '/admin/feeds/create_do/' . $media_id ) );
+    my $form =
+      $self->make_edit_form( $c, $c->uri_for( '/admin/feeds/create_do/' . $media_id, { media_tags_id => $media_tags_id } ) );
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
@@ -127,9 +130,12 @@ sub create_do : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
+    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+
     $media_id += 0;
 
-    my $form = $self->make_edit_form( $c, $c->uri_for( '/admin/feeds/create_do/' . $media_id ) );
+    my $form =
+      $self->make_edit_form( $c, $c->uri_for( '/admin/feeds/create_do/' . $media_id, { media_tags_id => $media_tags_id } ) );
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
@@ -147,7 +153,11 @@ sub create_do : Local
     if ( !$medium->{ moderated } )
     {
         $c->response->redirect(
-            $c->uri_for( '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => 'Feed added.' } ) );
+            $c->uri_for(
+                '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
+                { status_msg => 'Feed added.', media_tags_id => $media_tags_id }
+            )
+        );
     }
     else
     {
@@ -164,6 +174,8 @@ sub add_web_page_feed : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
+    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+
     $media_id += 0;
 
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
@@ -178,7 +190,11 @@ sub add_web_page_feed : Local
     $feed = $c->dbis->create( 'feeds', $feed );
 
     $c->response->redirect(
-        $c->uri_for( '/media/moderate/' . ( $medium->{ media_id } - 1 ), { status_msg => '"Web page" feed added.' } ) );
+        $c->uri_for(
+            '/media/moderate/' . ( $medium->{ media_id } - 1 ),
+            { status_msg => '"Web page" feed added.', media_tags_id => $media_tags_id }
+        )
+    );
 }
 
 sub make_scrape_form
