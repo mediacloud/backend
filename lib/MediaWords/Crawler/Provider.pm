@@ -305,7 +305,7 @@ sub _retry_timed_out_spider_downloads
     $self->engine->dbs->query(
 "update downloads set (state,error_message) = ('pending','') where state='error' and type in ('spider_blog_home','spider_posting','spider_rss','spider_blog_friends_list') and (error_message like '50%' or error_message = '$download_timed_out_error_message') ;"
     );
-    
+
     print STDERR "end _retry_timed_out_spider_downloads\n";
 }
 

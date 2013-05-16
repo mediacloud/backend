@@ -139,8 +139,8 @@ sub edit : Local
 
     $id += 0;
 
-    my $form =
-      $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) . "?media_tags_id=$media_tags_id", $media_tags_id );
+    my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) . "?media_tags_id=$media_tags_id",
+        $media_tags_id );
 
     my $medium = $c->dbis->find_by_id( 'media', $id );
 
@@ -720,7 +720,8 @@ END
     if ( $c->req->param( 'approve' ) )
     {
         $c->response->redirect(
-            $c->uri_for( "/admin/media/moderate/$medium->{ media_id }", { approve => 1, media_tags_id => $media_tags_id } ) );
+            $c->uri_for( "/admin/media/moderate/$medium->{ media_id }", { approve => 1, media_tags_id => $media_tags_id } )
+        );
     }
     else
     {

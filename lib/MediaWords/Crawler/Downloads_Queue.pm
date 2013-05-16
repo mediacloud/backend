@@ -144,6 +144,7 @@ sub _pop_download
 
     if ( $download )
     {
+
         # this causes a race condition which results in us redownloading a lot of
         # duplicate downloads.  The easiest thing is just to comment this line,
         # with the effect that no download can be redownloaded until the crawler
