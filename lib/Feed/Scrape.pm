@@ -967,7 +967,7 @@ sub get_feed_links_and_need_to_moderate_and_existing_urls($$)
     # first look for <link> feeds or a set of url pattern feeds that are likely to be
     # main feeds if present (like "$url/feed")
     my $default_feed_links = Feed::Scrape->get_main_feed_urls_from_url( $medium->{ url } );
-
+    
     # otherwise do an expansive search
     my $feed_links;
     my $need_to_moderate;
@@ -979,7 +979,7 @@ sub get_feed_links_and_need_to_moderate_and_existing_urls($$)
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }
-
+    
     # if there are more than 0 default feeds, use those.  If there are no more than
     # MAX_DEFAULT_FEEDS, use the first one and don't moderate.
     if ( scalar @{ $default_feed_links } > 0 )

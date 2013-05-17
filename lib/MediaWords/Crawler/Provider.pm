@@ -30,6 +30,14 @@ use constant STALE_DOWNLOAD_INTERVAL => 5 * ONE_MINUTE;
 # how many downloads to store in memory queue
 use constant MAX_QUEUED_DOWNLOADS => 50000;
 
+# how many queued downloads mean the queue is more or less idle
+# and thus can be filled with missing downloads
+use constant QUEUED_DOWNLOADS_IDLE_COUNT => 1000;
+
+# how many broken (missing) downloads to enqueue each and every
+# time the queue is idle
+use constant BROKEN_DOWNLOADS_CHUNK_COUNT => 10000;
+
 # how often to check the database for new pending downloads (seconds)
 use constant DEFAULT_PENDING_CHECK_INTERVAL => 10 * ONE_MINUTE;
 
@@ -229,6 +237,29 @@ sub _queue_download_list_with_per_site_limit
     return;
 }
 
+# enqueue broken (missing) downloads
+sub _enqueue_broken_downloads($)
+{
+    my ( $self ) = @_;
+
+    my $db = $self->engine->dbs;
+
+    # Enqueue some of the missing downloads to the redownloaded
+    my $downloads = $db->query(
+        <<END,
+        UPDATE downloads
+        SET state = 'pending'
+        WHERE downloads_id IN (
+            SELECT downloads_id
+            FROM downloads
+            WHERE type = 'content' AND file_status = 'missing'
+            LIMIT ?
+        )
+END
+        BROKEN_DOWNLOADS_CHUNK_COUNT
+    );
+}
+
 # add all pending downloads to the $_downloads list
 sub _add_pending_downloads
 {
@@ -241,6 +272,13 @@ sub _add_pending_downloads
     $_last_pending_check = time();
 
     my $current_queue_size = $self->{ downloads }->_get_downloads_size;
+    if ( $current_queue_size < QUEUED_DOWNLOADS_IDLE_COUNT )
+    {
+        print STDERR "queue contains less than " . QUEUED_DOWNLOADS_IDLE_COUNT .
+          " pending downloads, adding missing downloads instead\n";
+        $self->_enqueue_broken_downloads();
+        $current_queue_size = $self->{ downloads }->_get_downloads_size;
+    }
     if ( $current_queue_size > MAX_QUEUED_DOWNLOADS )
     {
         print STDERR "skipping add pending downloads due to queue size ($current_queue_size)\n";
@@ -251,23 +289,19 @@ sub _add_pending_downloads
 
     my $db = $self->engine->dbs;
 
-    my $downloads_query = <<END;
-select d.*, f.media_id _media_id, coalesce( site_from_host( d.host ), 'non-media' ) site
-    from downloads d left join feeds f on ( f.feeds_id = d.feeds_id )
-    where state = 'pending'
+    my $downloads = $db->query(
+        <<END,
+        SELECT d.*,
+               f.media_id AS _media_id,
+               COALESCE( site_from_host( d.host ), 'non-media' ) AS site
+        FROM downloads AS d
+            LEFT JOIN feeds AS f ON f.feeds_id = d.feeds_id
+        WHERE state = 'pending'
+        ORDER BY downloads_id ASC
+        LIMIT ?
 END
-
-    my $downloads = $db->query( <<END, MAX_QUEUED_DOWNLOADS )->hashes;
-$downloads_query order by downloads_id asc limit ?
-END
-
-    #     my $random_downloads = $db->query( <<END, int( MAX_QUEUED_DOWNLOADS / 2 ) )->hashes;
-    # $downloads_query order by RANDOM() asc limit ?
-    # END
-    #
-    # my $downloads_map = {};
-    # map { $downloads_map->{ $_->{ downloads_id } } = 1 } @{ $downloads };
-    # map { push( @{ $downloads }, $_ ) unless ( $downloads_map->{ $_->{ downloads_id } } ) } @{ $random_downloads };
+        MAX_QUEUED_DOWNLOADS
+    )->hashes;
 
     my $sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $downloads } ) ];
 

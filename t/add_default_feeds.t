@@ -1114,6 +1114,7 @@ EOF
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
     cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate_and_existing_urls feed_links' );
+    print STDERR Dumper( $feed_links, $expected_links ) . "\n";
     is( $need_to_moderate, $expected_need_to_moderate,
         'test_get_feed_links_and_need_to_moderate_and_existing_urls need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls,
