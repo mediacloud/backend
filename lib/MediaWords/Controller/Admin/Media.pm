@@ -373,7 +373,10 @@ sub moderate : Local
     $prev_media_id ||= 0;
     if ( $prev_media_id && $approve )
     {
-        $c->dbis->query( "UPDATE MEDIA SET moderated = 't', feeds_added = 't' WHERE media_id = ?", $prev_media_id );
+        $c->dbis->update_by_id( 'media', $prev_media_id, { feeds_added => 1, moderated => 1 } );
+        $c->dbis->query( <<END, $prev_media_id );
+UPDATE FEEDS SET feed_status = 'active' where feed_status = 'inactive' and media_id = ?
+END
     }
 
     my $media_tag;
@@ -448,7 +451,9 @@ EOF
 EOF
             $medium->{ media_id }
         )->flat;
-        $feeds = $c->dbis->query( "SELECT * FROM feeds WHERE media_id = ? ORDER BY name", $medium->{ media_id } )->hashes;
+
+        $feeds = $c->dbis->query( "select * from feeds where media_id = ? and feed_status = 'active' order by name",
+            $medium->{ media_id } )->hashes;
 
         $merge_media = $self->_get_potential_merge_media( $c, $medium );
 
@@ -501,11 +506,11 @@ sub search : Local
     }
     elsif ( $f )
     {
-        ( $media, $pager ) = $c->dbis->query_paged_hashes(
-            "select * from media m " . "where not exists (select 1 from feeds f where f.media_id = m.media_id) " .
-              "order by media_id desc",
-            [], $p, ROWS_PER_PAGE
-        );
+        ( $media, $pager ) = $c->dbis->query_paged_hashes( <<END, [], $p, ROWS_PER_PAGE );
+select * from media m
+    where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
+    order by media_id desc
+END
     }
     elsif ( @m )
     {
@@ -528,7 +533,9 @@ sub search : Local
 EOF
             $m->{ media_id }
         )->flat;
-        ( $m->{ feed_count } ) = $c->dbis->query( "select count(*) from feeds where media_id = ?", $m->{ media_id } )->flat;
+        ( $m->{ feed_count } ) = $c->dbis->query( <<END, $m->{ media_id } )->flat;
+select count(*) from feeds where media_id = ? and feed_status = 'active'
+END
     }
 
     $c->stash->{ media }     = $media;
@@ -599,8 +606,8 @@ sub edit_tags_do : Local
     $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $media_id, { status_msg => 'Tags updated.' } ) );
 }
 
-# delete all feeds belonging to this media source
-sub delete_feeds : Local
+# mark all feeds belonging to this media source as 'skip'
+sub skip_feeds : Local
 {
     my ( $self, $c, $media_id, $confirm ) = @_;
 
@@ -610,7 +617,7 @@ sub delete_feeds : Local
 
     if ( $medium->{ moderated } )
     {
-        my $error = "You can only delete the feeds of media sources that have not yet been moderated";
+        my $error = "You can only skip the feeds of media sources that have not yet been moderated";
         $c->response->redirect(
             $c->uri_for(
                 "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
@@ -624,20 +631,19 @@ sub delete_feeds : Local
     {
         $c->stash->{ medium }        = $medium;
         $c->stash->{ media_tags_id } = $media_tags_id;
-        $c->stash->{ template }      = 'media/delete_feeds.tt2';
+        $c->stash->{ template }      = 'media/skip_feeds.tt2';
     }
     else
     {
         my $status_msg;
         if ( $confirm ne 'yes' )
         {
-            $status_msg = 'Media source feed deletion cancelled.';
+            $status_msg = 'Media source feed skipping cancelled.';
         }
         else
         {
-            my $feeds = $c->dbis->query( "select * from feeds where media_id = ?", $media_id )->hashes;
-            map { MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $_->{ feeds_id } ) } @{ $feeds };
-            $status_msg = 'Media source feeds deleted.';
+            $c->dbis->query( "update feeds set feed_status = 'skipped' where media_id = ?", $media_id );
+            $status_msg = 'Media source feeds skipped.';
         }
 
         $c->response->redirect(
@@ -649,8 +655,8 @@ sub delete_feeds : Local
     }
 }
 
-# delete the feed without confirmation, but only if it is from an unmoderated media source
-sub delete_unmoderated_feed : Local
+# skip the feed without confirmation, but only if it is from an unmoderated media source
+sub skip_unmoderated_feed : Local
 {
     my ( $self, $c, $feeds_id ) = @_;
 
@@ -662,7 +668,7 @@ sub delete_unmoderated_feed : Local
 
     if ( $medium->{ moderated } )
     {
-        my $error = "You can only delete the feeds of media sources that have not yet been moderated";
+        my $error = "You can only skip the feeds of media sources that have not yet been moderated";
         $c->response->redirect(
             $c->uri_for(
                 "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
@@ -672,10 +678,9 @@ sub delete_unmoderated_feed : Local
         return;
     }
 
-    my $feed = $c->dbis->find_by_id( 'feeds', $feeds_id );
+    $c->dbis->query( "update feeds set feed_status = 'skipped' where feeds_id = ?", $feeds_id );
+    my $status_msg = 'Media source feed skipped.';
 
-    MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $feed->{ feeds_id } );
-    my $status_msg = 'Media source feed deleted.';
     $c->response->redirect(
         $c->uri_for(
             "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
@@ -697,7 +702,7 @@ sub keep_single_feed : Local
 
     if ( $medium->{ moderated } )
     {
-        my $error = "You can only delete the feeds of media sources that have not yet been moderated";
+        my $error = "You can only skip the feeds of media sources that have not yet been moderated";
         $c->response->redirect(
             $c->uri_for(
                 "/admin/media/moderate/" . ( $medium->{ media_id } - 1 ),
@@ -710,12 +715,9 @@ sub keep_single_feed : Local
     # make sure feeds_id is a num
     $feeds_id += 0;
 
-    my $feeds = $c->dbis->query( <<END, $medium->{ media_id }, $feeds_id )->hashes;
-select * from feeds where media_id = ? and feeds_id <> ?
-END
-    map { MediaWords::DBI::Feeds::delete_feed_and_stories( $c->dbis, $_->{ feeds_id } ) } @{ $feeds };
-
-    my $status_msg = 'Media source feeds deleted.';
+    $c->dbis->query(
+        "update feeds set feed_status = 'skipped' where media_id = $medium->{ media_id } and feeds_id <> $feeds_id" );
+    my $status_msg = 'Media source feeds skipped.';
 
     if ( $c->req->param( 'approve' ) )
     {
@@ -901,7 +903,9 @@ sub find_likely_full_text_rss : Local
 
     for my $m ( @{ $media } )
     {
-        ( $m->{ feed_count } ) = $c->dbis->query( "select count(*) from feeds where media_id = ?", $m->{ media_id } )->flat;
+        ( $m->{ feed_count } ) = $c->dbis->query( <<END, $m->{ media_id } )->flat;
+select count(*) from feeds where media_id = ? and feed_status = 'active'
+END
     }
 
     $c->stash->{ media } = $media;

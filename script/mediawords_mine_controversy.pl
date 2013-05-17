@@ -365,15 +365,20 @@ sub get_spider_feed
 {
     my ( $db, $medium ) = @_;
 
-    my $feed_query = "select * from feeds where media_id = ? and url = ? order by ( name = 'Controversy Spider Feed' )";
+    my $feed_query = <<"END";
+select * from feeds 
+    where media_id = ? and url = ? and 
+        feed_status in ( 'active', 'inactive' )
+    order by ( name = 'Controversy Spider Feed' )
+END
 
     my $feed = $db->query( $feed_query, $medium->{ media_id }, $medium->{ url } )->hash;
 
     return $feed if ( $feed );
 
     $db->query(
-        "insert into feeds ( media_id, url, last_download_time, name ) " .
-          "  values ( ?, ?, now() + interval '10 years', 'Controversy Spider Feed' )",
+        "insert into feeds ( media_id, url, last_download_time, name, feed_status ) " .
+          "  values ( ?, ?, now() + interval '10 years', 'Controversy Spider Feed', 'inactive' )",
         $medium->{ media_id },
         $medium->{ url }
     );

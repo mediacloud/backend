@@ -136,8 +136,8 @@
         <p><b>[% feeds.size %] Feeds Found</b></p>
 
         <p>
-            [% IF c.acl_user_can_visit('/admin/media/delete_feeds') %]
-                <a href="[% c.uri_for('/admin/media/delete_feeds/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">delete all feeds</a> |
+            [% IF c.acl_user_can_visit('/admin/media/skip_feeds') %]
+                <a href="[% c.uri_for('/admin/media/skip_feeds/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">skip all feeds</a> |
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/feeds/create') %]
                 <a href="[% c.uri_for('/admin/feeds/create/') _ medium.media_id | url %]?media_tags_id=[% media_tags_id %]">add feed</a> |
@@ -161,8 +161,8 @@
                 [% END %]
                 [% feed.name | html %] -
                 <a href="[% feed.url %]">[% feed.url | html %]</a> 
-                [% IF c.acl_user_can_visit('/admin/media/delete_unmoderated_feed') %]
-                    [<a href="[% c.uri_for( '/admin/media/delete_unmoderated_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">delete</a>]
+                [% IF c.acl_user_can_visit('/admin/media/skip_unmoderated_feed') %]
+                    [<a href="[% c.uri_for( '/admin/media/skip_unmoderated_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">skip</a>]
                 [% END -%]
                 [% IF c.acl_user_can_visit('/admin/media/keep_single_feed') %]
                     [<a href="[% c.uri_for( '/admin/media/keep_single_feed/') _ feed.feeds_id | url %]?media_tags_id=[% media_tags_id %]">keep single</a>]

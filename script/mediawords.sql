@@ -235,15 +235,29 @@ create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
+    
+-- Feed statuses that determine whether the feed will be fetched
+-- or skipped
+CREATE TYPE feed_feed_status AS ENUM (
+    -- Feed is active, being fetched
+    'active',
+    -- Feed is (temporary) disabled (usually by hand), not being fetched
+    'inactive',
+    -- Feed was moderated as the one that shouldn't be fetched, but is still kept around
+    -- to reduce the moderation queue next time the page is being scraped for feeds to find
+    -- new ones
+    'skipped'
+);
 
 create table feeds (
-    feeds_id            serial          primary key,
-    media_id            int             not null references media on delete cascade,
-    name                varchar(512)    not null,        
-    url                 varchar(1024)   not null,
-    reparse             boolean         null,
-    feed_type           feed_feed_type  not null default 'syndicated',    
-    last_checksum       text            null,
+    feeds_id            serial              primary key,
+    media_id            int                 not null references media on delete cascade,
+    name                varchar(512)        not null,        
+    url                 varchar(1024)       not null,
+    reparse             boolean             null,
+    feed_type           feed_feed_type      not null default 'syndicated',
+    feed_status         feed_feed_status    not null default 'active',
+    last_checksum       text                null,
 
     -- Add column to allow more active feeds to be downloaded more frequently.
     last_download_time  timestamp with time zone,

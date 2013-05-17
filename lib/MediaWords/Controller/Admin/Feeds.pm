@@ -35,9 +35,13 @@ sub get_feed_download_counts
 {
     my ( $self, $c, $medium ) = @_;
 
-    return $c->dbis->query(
-        "select d.feeds_id as feeds_id, count(downloads_id) as download_count from downloads d, feeds f " .
-          "where f.media_id = ? grou by d.feeds_id" )->map;
+    return $c->dbis->query( <<END )->map;
+select d.feeds_id as feeds_id, count(downloads_id) as download_count 
+    from downloads d, feeds f
+    where f.media_id = ?
+    group by d.feeds_id
+END
+
 }
 
 sub list : Local
@@ -58,9 +62,13 @@ sub list : Local
     # given media id.  $c->dbis is the DBIx::Simple::MediaWords db handle.
     my $medium = $c->dbis->find_by_id( 'media', $media_id );
 
+    my $sql_feed_status = $c->request->param( 'all' ) ? '1=1' : "feed_status = 'active'";
+
     # query the database for the list of feeds associated with the
     # given media id
-    my $feeds = $c->dbis->query( "select * from feeds where media_id = ? order by name, url", $media_id )->hashes;
+    my $feeds = $c->dbis->query( <<END, $media_id )->hashes;
+select * from feeds where media_id = ? and $sql_feed_status order by name, url
+END
 
     # if there aren't any feeds, return the feed scraping page instead of
     # the feed list
@@ -83,8 +91,9 @@ sub list : Local
 
     # FIXME: this is too slow -hal
     #$c->stash->{feed_download_counts} = $self->get_feed_download_counts($c, $medium);
-    $c->stash->{ medium } = $medium;
-    $c->stash->{ feeds }  = $feeds;
+    $c->stash->{ showing_all_feeds } = $c->request->param( 'all' );
+    $c->stash->{ medium }            = $medium;
+    $c->stash->{ feeds }             = $feeds;
 
     # set the template used to generate the html.  This template can be found in mediawords/feeds/list.tt2
     $c->stash->{ template } = 'feeds/list.tt2';

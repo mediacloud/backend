@@ -191,8 +191,8 @@ sub setup_acl()
       /admin/media/create_batch
       /admin/media/create_do
       /admin/media/delete
-      /admin/media/delete_feeds
-      /admin/media/delete_unmoderated_feed
+      /admin/media/skip_feeds
+      /admin/media/skip_unmoderated_feed
       /admin/media/edit
       /admin/media/edit_do
       /admin/media/edit_tags
