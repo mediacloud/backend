@@ -71,14 +71,14 @@ sub main
             for my $feed_link ( @{ $feed_links } )
             {
                 my $feed = {
-                    name        => $feed_link->{ name },
-                    url         => $feed_link->{ url },
-                    media_id    => $medium->{ media_id },
-                    feed_type   => $feed_link->{ feed_type } || 'syndicated'
+                    name      => $feed_link->{ name },
+                    url       => $feed_link->{ url },
+                    media_id  => $medium->{ media_id },
+                    feed_type => $feed_link->{ feed_type } || 'syndicated'
                 };
-                
+
                 $feed->{ feed_status } = $need_to_moderate ? 'inactive' : 'active';
-                
+
                 eval { $db->create( 'feeds', $feed ); };
 
                 if ( $@ )
