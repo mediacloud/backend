@@ -35,7 +35,11 @@ sub main
 
         for my $medium ( @{ $media } )
         {
-            my ( $feed_links, $need_to_moderate, $existing_urls ) =
+            my $feed_links;
+            my $need_to_moderate;
+            my $existing_urls;
+
+            ( $feed_links, $need_to_moderate, $existing_urls ) =
               Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
             # first look for <link> feeds or a set of url pattern feeds that are likely to be
@@ -43,8 +47,8 @@ sub main
             my $default_feed_links = Feed::Scrape->get_main_feed_urls_from_url( $medium->{ url } );
 
             # otherwise do an expansive search
-            my $feed_links;
-            my $need_to_moderate;
+            $feed_links       = undef;
+            $need_to_moderate = undef;
             if ( !@{ $default_feed_links } )
             {
                 $need_to_moderate = 1;
