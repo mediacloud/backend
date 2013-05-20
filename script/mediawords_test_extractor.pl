@@ -336,7 +336,9 @@ sub pipe_to_streaming_model
     {
         my $script_path =
           '~/ML_code/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports_dev/run_predict_stream_input.sh';
-        my $model_path = 'training_data_features_top_1000_unigrams_2_prior_states_MaxEntModel_Iterations_1500.txt';
+
+        #my $model_path = 'training_data_features_top_1000_unigrams_2_prior_states_MaxEntModel_Iterations_1500.txt';
+        my $model_path = 'training_data_features_top_1000_unigrams_no_prior_states_MaxEntModel_Iterations_1000.txt';
 
         my $cmd = "$script_path $model_path";
 
@@ -434,7 +436,7 @@ sub get_extracted_line_with_maxent
 
         my $prediction = reduce { $model_result->{ $a } > $model_result->{ $b } ? $a : $b } keys %{ $model_result };
 
-        if ( $model_result->{ excluded } < 0.95 )
+        if ( $model_result->{ excluded } < 0.85 )
         {
             push $extracted_lines, $line_info->{ line_number };
             $last_in_story_line = $line_number;
@@ -470,7 +472,7 @@ sub processDownload
 
     my $extracted_lines = \@extracted_lines;
 
-    #$extracted_lines = get_extracted_line_with_maxent( $line_info  , $preprocessed_lines );
+    #$extracted_lines = get_extracted_line_with_maxent( $line_info, $preprocessed_lines );
 
     #say Dumper ( $extracted_lines );
     #exit;
