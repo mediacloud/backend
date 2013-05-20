@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 29 + 1;
+use Test::More tests => 32 + 1;
 use Test::Deep;
 
 use utf8;
@@ -1321,6 +1321,52 @@ EOF
     kill 9, $pid;
 }
 
+sub test_web_page_feed
+{
+    my $test_url    = TEST_HTTP_SERVER_URL;
+    my $medium_name = 'Acme News -- The best news ever!';
+    my $medium      = { url => TEST_HTTP_SERVER_URL, name => $medium_name };
+    my $pages       = {
+
+        # Index page
+        '/' => {
+            header   => 'Content-Type: text/html; charset=UTF-8',
+            contents => <<EOF
+                <h1>Acme News</h1>
+                <p>
+                    Blah blah yada yada.
+                </p>
+                <hr />
+                <p>
+                    This website doesn't have any RSS feeds, so it should be added
+                    as an "web_page" feed.
+                </p>
+EOF
+        }
+    };
+    my $expected_links = [
+        {
+            'url'       => $test_url,
+            'name'      => $medium_name,
+            'feed_type' => 'web_page',
+        },
+    ];
+
+    my $expected_need_to_moderate = 0;
+    my $expected_existing_urls    = [];
+
+    my $pid = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
+    my $db  = MediaWords::DB::connect_to_db();
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+
+    cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
+    is( $need_to_moderate, $expected_need_to_moderate, 'test_web_page_feed need_to_moderate' );
+    cmp_bag( $existing_urls, $expected_existing_urls, 'test_web_page_feed existing_urls' );
+
+    kill 9, $pid;
+}
+
 sub main
 {
     my $builder = Test::More->builder;
@@ -1344,6 +1390,7 @@ sub main
     test_get_feed_links_and_need_to_moderate_and_existing_urls();
     test_feeds_with_common_prefix();
     test_feed_aggregator_urls();
+    test_web_page_feed();
 }
 
 main();
