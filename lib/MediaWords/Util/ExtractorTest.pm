@@ -12,6 +12,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use HTML::Strip;
 use MediaWords::Util::HTML;
 use MediaWords::Crawler::AnalyzeLines;
+use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use MediaWords::Languages::en;
 
 sub get_lines_that_should_be_in_story
@@ -242,5 +243,203 @@ sub get_extracted_lines_for_story
 
     return @extracted_lines;
 }
+
+
+sub compare_extraction_with_training_data
+{
+    my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info, $_test_sentences ) = @_;
+
+    #say STDERR Dumper( $line_info );
+
+    my @extracted_lines = @{ $extracted_lines };
+
+    my @missing_lines = _get_missing_lines( $line_should_be_in_story, $extracted_lines );
+
+    my @extra_lines = _get_extra_lines( $line_should_be_in_story, $extracted_lines );
+
+    my @correctly_included_lines = _get_correctly_included_lines( $line_should_be_in_story, $extracted_lines );
+
+    my $missing_lines            = \@missing_lines;
+    my $extra_lines              = \@extra_lines;
+    my $correctly_included_lines = \@correctly_included_lines;
+
+    my $non_optional_non_autoexcluded_line_count =
+      _get_non_optional_non_autoexcluded_line_count( $line_should_be_in_story, $line_info );
+
+    my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, $extra_lines, $missing_lines,
+        $non_optional_non_autoexcluded_line_count );
+
+    my $character_level_results =
+      get_character_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
+        $correctly_included_lines, $preprocessed_lines, $line_info );
+
+    my $sentence_level_results = {};
+
+    if ( $_test_sentences )
+    {
+        $sentence_level_results =
+          get_story_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
+            \@correctly_included_lines, $preprocessed_lines, $dbs );
+    }
+
+    my $ret = { %{ $line_level_results }, %{ $character_level_results }, %{ $sentence_level_results }, };
+
+    return $ret;
+}
+
+
+sub _get_required_lines
+{
+    my ( $line_should_be_in_story ) = @_;
+
+    my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
+
+    return @required_lines;
+}
+
+sub _get_optional_lines
+{
+    my ( $line_should_be_in_story ) = @_;
+
+    my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
+
+    return @optional_lines;
+}
+
+sub _get_missing_lines
+{
+    my ( $line_should_be_in_story, $extracted_lines ) = @_;
+
+    my @extracted_lines = @{ $extracted_lines };
+
+    my @required_lines = _get_required_lines( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
+
+    my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
+
+    return @missing_lines;
+}
+
+sub _get_extra_lines
+{
+    my ( $line_should_be_in_story, $extracted_lines ) = @_;
+
+    my @extracted_lines = @{ $extracted_lines };
+
+    my @required_lines = _get_required_lines( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
+
+    my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
+
+    return @extra_lines;
+}
+
+
+sub _get_non_optional_non_autoexcluded_line_count
+{
+
+    my ( $line_should_be_in_story, $line_info ) = @_;
+
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
+
+    my $non_autoexcluded = [ grep { !$_->{ auto_excluded } } @{ $line_info } ];
+
+    my $non_autoexcluded_line_numbers = [ map { $_->{ line_number } } @$non_autoexcluded ];
+
+    # say Dumper ( \@optional_lines );
+    # say Dumper ( $non_autoexcluded );
+    # say Dumper ( $non_autoexcluded_line_numbers );
+    # say Dumper ( scalar ( @ $non_autoexcluded_line_numbers ) );
+
+    return scalar( @$non_autoexcluded_line_numbers );
+}
+
+sub _get_correctly_included_lines
+{
+    my ( $line_should_be_in_story, $extracted_lines ) = @_;
+
+    my @extracted_lines = @{ $extracted_lines };
+
+    my @required_lines = _get_required_lines( $line_should_be_in_story );
+    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
+
+    my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
+
+    return @extra_lines;
+}
+
+
+sub get_line_level_extractor_results
+{
+    my ( $line_should_be_in_story, $extra_lines, $missing_lines, $non_optional_non_autoexclude_line_count ) = @_;
+
+    my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
+
+    my $extra_line_count   = scalar( @{ $extra_lines } );
+    my $missing_line_count = scalar( @{ $missing_lines } );
+
+    my $ret = {
+        story_line_count                        => $story_line_count,
+        extra_line_count                        => $extra_line_count,
+        missing_line_count                      => $missing_line_count,
+        non_optional_non_autoexclude_line_count => $non_optional_non_autoexclude_line_count,
+    };
+
+    return $ret;
+}
+
+
+sub get_character_level_extractor_results
+{
+    my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $correctly_included_lines, $preprocessed_lines,
+        $line_info )
+      = @_;
+
+    my $extra_line_count   = scalar( @{ $extra_lines } );
+    my $missing_line_count = scalar( @{ $missing_lines } );
+
+    my $errors = 0;
+
+    die unless $line_info;
+
+    #say STDERR Dumper ( $line_info );
+
+    #say STDERR "Dumping";
+
+    #say STDERR "correctly_included_lines " . Dumper( $correctly_included_lines );
+
+    #say STDERR Dumper ( [ map { $line_info->[ $_ ]->{html_stripped_text_length } } @$correctly_included_lines ] );
+    my $correctly_included_character_length =
+      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } @$correctly_included_lines );
+
+    my $story_lines_character_length =
+      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } keys %{ $line_should_be_in_story } );
+    my $missing_lines_character_length =
+      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$missing_lines );
+    my $extra_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$extra_lines );
+
+    $correctly_included_character_length ||= 0;
+
+    $missing_lines_character_length ||= 0;
+    $extra_lines_character_length   ||= 0;
+
+    my $ret = {
+        story_characters   => $story_lines_character_length,
+        extra_characters   => $extra_lines_character_length,
+        errors             => $errors,
+        missing_characters => $missing_lines_character_length,
+        accuracy           => (
+            $story_lines_character_length
+            ? int(
+                ( $extra_lines_character_length + $missing_lines_character_length ) / $story_lines_character_length * 100
+              )
+            : 0
+        ),
+    };
+
+    return $ret;
+}
+
+
 
 1;
