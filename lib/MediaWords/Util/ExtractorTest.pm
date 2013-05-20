@@ -244,10 +244,10 @@ sub get_extracted_lines_for_story
     return @extracted_lines;
 }
 
-
 sub compare_extraction_with_training_data
 {
-    my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info, $_test_sentences ) = @_;
+    my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info, $_test_sentences ) =
+      @_;
 
     #say STDERR Dumper( $line_info );
 
@@ -286,7 +286,6 @@ sub compare_extraction_with_training_data
 
     return $ret;
 }
-
 
 sub _get_required_lines
 {
@@ -334,7 +333,6 @@ sub _get_extra_lines
     return @extra_lines;
 }
 
-
 sub _get_non_optional_non_autoexcluded_line_count
 {
 
@@ -368,7 +366,6 @@ sub _get_correctly_included_lines
     return @extra_lines;
 }
 
-
 sub get_line_level_extractor_results
 {
     my ( $line_should_be_in_story, $extra_lines, $missing_lines, $non_optional_non_autoexclude_line_count ) = @_;
@@ -387,7 +384,6 @@ sub get_line_level_extractor_results
 
     return $ret;
 }
-
 
 sub get_character_level_extractor_results
 {
@@ -439,7 +435,5 @@ sub get_character_level_extractor_results
 
     return $ret;
 }
-
-
 
 1;

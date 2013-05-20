@@ -142,8 +142,8 @@ sub processDownload
     #say Dumper ( $extracted_lines );
     #exit;
 
-    return MediaWords::Util::ExtractorTest::compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines,
-        $dbs, $line_info, $_test_sentences );
+    return MediaWords::Util::ExtractorTest::compare_extraction_with_training_data( $line_should_be_in_story,
+        $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info, $_test_sentences );
 }
 
 sub analyze_downloads
