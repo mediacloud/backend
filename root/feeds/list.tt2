@@ -79,9 +79,9 @@
 
 <p>
 [% IF ! showing_all_feeds %]
-	<a href="[% c.uri_for('/feeds/list/') _ medium.media_id _ '?all=1' %]">Show inactive and skipped feeds</a>
+	<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id _ '?all=1' %]">Show inactive and skipped feeds</a>
 [% ELSE %]
-	<a href="[% c.uri_for('/feeds/list/') _ medium.media_id _ '' %]">Hide inactive and skipped feeds</a>
+	<a href="[% c.uri_for('/admin/feeds/list/') _ medium.media_id _ '' %]">Hide inactive and skipped feeds</a>
 [% END %]
 </p>
 
