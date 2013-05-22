@@ -17,28 +17,31 @@ use MediaWords::DB;
 # story date without dropping the guess
 my $_date_guess_threshhold = 14;
 
+# Integer constants (in case Date::Parse::str2time fails)
+use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST
+use constant _TIMESTAMP_05_00_GMT => 1326776400;    # Tue, 17 Jan 2012 05:00:00 GMT; for dates without time / timezone
+
 # only use the date from these guessing functions if the date is within $_date_guess_threshhold days
 # of the existing date for the story
-# (assume that str2time will parse RFC-822 dates correctly at all times)
 my $_date_guess_functions = [
     {
         name     => 'guess_by_dc_date_issued',
         function => \&guess_by_dc_date_issued,
         test     => '<meta name="DC.date.issued" content="2012-01-17T12:00:00-05:00" />',
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 12:00:00 EST' )
+        expected => _TIMESTAMP_12_00_EST
     },
     {
         name     => 'guess_by_dc_created',
         function => \&guess_by_dc_created,
         test =>
 '<li property="dc:date dc:created" content="2012-01-17T12:00:00-05:00" datatype="xsd:dateTime" class="created">January 17, 2012</li>',
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 12:00:00 EST' )
+        expected => _TIMESTAMP_12_00_EST
     },
     {
         name     => 'guess_by_meta_publish_date',
         function => \&guess_by_meta_publish_date,
         test     => '<meta name="item-publish-date" content="Tue, 17 Jan 2012 12:00:00 EST" />',
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 12:00:00 EST' )
+        expected => _TIMESTAMP_12_00_EST
     },
     {
         name     => 'guess_by_storydate',
@@ -46,48 +49,49 @@ my $_date_guess_functions = [
         test     => '<p class="storydate">Tue, Jan 17th 2012</p>',
 
         # Assume that the timezone is GMT
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 05:00:00 GMT' )
+        expected => _TIMESTAMP_05_00_GMT
     },
     {
         name     => 'guess_by_datatime',
         function => \&guess_by_datatime,
         test     => '<span class="date" data-time="1326819600">Jan 17, 2012 12:00 pm EST</span>',
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 12:00:00 EST' )
+        expected => _TIMESTAMP_12_00_EST
     },
     {
         name     => 'guess_by_datetime_pubdate',
         function => \&guess_by_datetime_pubdate,
         test     => '<time datetime="2012-01-17" pubdate>Jan 17, 2012 12:00 pm EST</time>',
 
- # FIXME guess_by_datetime_pubdate() ignores contents, uses @datetime instead; and @datetime assumes that the timezone is GMT
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 05:00:00 GMT' )
+        # FIXME guess_by_datetime_pubdate() ignores contents, uses @datetime instead;
+        # and @datetime assumes that the timezone is GMT.
+        expected => _TIMESTAMP_05_00_GMT
     },
     {
         name     => 'guess_by_url_and_date_text',
         function => \&guess_by_url_and_date_text,
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 17:00:00 GMT' )
+        expected => _TIMESTAMP_12_00_EST
     },
     {
         name     => 'guess_by_url',
         function => \&guess_by_url,
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 17:00:00 GMT' )
+        expected => _TIMESTAMP_12_00_EST
     },
     {
         name     => 'guess_by_class_date',
         function => \&guess_by_class_date,
         test     => '<p class="date">Jan 17, 2012</p>',
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 05:00:00 GMT' )
+        expected => _TIMESTAMP_05_00_GMT
     },
     {
         name     => 'guess_by_date_text',
         function => \&guess_by_date_text,
         test     => '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST',
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 17:00:00 GMT' )
+        expected => _TIMESTAMP_12_00_EST
     },
     {
         name     => 'guess_by_existing_story_date',
         function => \&guess_by_existing_story_date,
-        expected => Date::Parse::str2time( 'Tue, 17 Jan 2012 17:00:00 GMT' )
+        expected => _TIMESTAMP_12_00_EST
     },
 ];
 
