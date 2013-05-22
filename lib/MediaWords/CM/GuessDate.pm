@@ -21,7 +21,7 @@ my $_date_guess_threshhold = 14;
 
 # Integer constants (in case Date::Parse::str2time fails)
 use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST
-use constant _TIMESTAMP_05_00_GMT => 1326776400;    # Tue, 17 Jan 2012 05:00:00 GMT; for dates without time / timezone
+use constant _TIMESTAMP_05_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT; for dates without time / timezone
 
 # only use the date from these guessing functions if the date is within $_date_guess_threshhold days
 # of the existing date for the story
@@ -128,7 +128,7 @@ sub _validate_date_parts
 
     return 0 if ( ( $year < 2000 ) || ( $year > 2020 ) );
 
-    return Date::Parse::str2time( "$year-$month-$day 12:00 PM", 'EST' );
+    return Date::Parse::str2time( "$year-$month-$day 12:00 PM", 'GMT' );
 }
 
 # if the date is exactly midnight, round it to noon because noon is a better guess of the publication time
@@ -308,7 +308,7 @@ sub _make_epoch_date
 
     return $date if ( $date =~ /^\d+$/ );
 
-    my $epoch = Date::Parse::str2time( $date, 'EST' );
+    my $epoch = Date::Parse::str2time( $date, 'GMT' );
 
     return undef unless ( $epoch );
 
