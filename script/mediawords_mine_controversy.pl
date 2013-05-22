@@ -377,8 +377,8 @@ END
     return $feed if ( $feed );
 
     $db->query(
-        "insert into feeds ( media_id, url, last_download_time, name, feed_status ) " .
-          "  values ( ?, ?, now() + interval '10 years', 'Controversy Spider Feed', 'inactive' )",
+        "insert into feeds ( media_id, url, name, feed_status ) " .
+          "  values ( ?, ?, 'Controversy Spider Feed', 'inactive' )",
         $medium->{ media_id },
         $medium->{ url }
     );
