@@ -274,11 +274,11 @@ sub _guess_by_url_and_date_text
 
     my $url_date = _guess_by_url( $story, $html, $html_tree );
 
-    return if ( !$url_date );
+    return unless defined( $url_date );
 
     my $text_date = _make_unix_timestamp( _guess_by_date_text( $story, $html, $html_tree ) );
 
-    if ( ( $text_date > $url_date ) and ( ( $text_date - $url_date ) < 86400 ) )
+    if ( defined( $text_date ) and ( $text_date > $url_date ) and ( ( $text_date - $url_date ) < 86400 ) )
     {
         return $text_date;
     }
