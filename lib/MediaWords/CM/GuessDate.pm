@@ -276,7 +276,7 @@ sub _guess_by_url_and_date_text
 
     return if ( !$url_date );
 
-    my $text_date = _make_epoch_date( _guess_by_date_text( $story, $html, $xpath ) );
+    my $text_date = _make_unix_timestamp( _guess_by_date_text( $story, $html, $xpath ) );
 
     if ( ( $text_date > $url_date ) and ( ( $text_date - $url_date ) < 86400 ) )
     {
@@ -298,9 +298,9 @@ sub _guess_by_existing_story_date
     return $story->{ publish_date };
 }
 
-# if the date is a number, assume it is an epoch date and return it; otherwise, parse
-# it and return the epoch date
-sub _make_epoch_date
+# if the date is a number, assume it is an UNIX timestamp and return it; otherwise, parse
+# it and return the UNIX timestamp
+sub _make_unix_timestamp
 {
     my ( $date ) = @_;
 
@@ -308,40 +308,40 @@ sub _make_epoch_date
 
     return $date if ( $date =~ /^\d+$/ );
 
-    my $epoch = Date::Parse::str2time( $date, 'GMT' );
+    my $timestamp = Date::Parse::str2time( $date, 'GMT' );
 
-    return undef unless ( $epoch );
+    return undef unless ( $timestamp );
 
-    $epoch = _round_midnight_to_noon( $epoch );
+    $timestamp = _round_midnight_to_noon( $timestamp );
 
     # if we have to use a default timezone, deal with daylight savings
-    if ( ( $date =~ /T$/ ) && ( my $is_daylight_savings = ( gmtime( $epoch ) )[ 8 ] ) )
+    if ( ( $date =~ /T$/ ) && ( my $is_daylight_savings = ( gmtime( $timestamp ) )[ 8 ] ) )
     {
-        $epoch += 3600;
+        $timestamp += 3600;
     }
 
-    return $epoch;
+    return $timestamp;
 }
 
-# guess the date for the story by cycling through the $_date_guess_functions one at a time.  return the date in epoch format.
+# guess the date for the story by cycling through the $_date_guess_functions one at a time.  return the date as UNIX timestamp.
 sub guess_date
 {
     my ( $db, $story, $html, $use_threshold ) = @_;
 
     my $xpath = _get_xpath( $html );
 
-    my $story_epoch_date = _make_epoch_date( $story->{ publish_date } );
+    my $story_timestamp = _make_unix_timestamp( $story->{ publish_date } );
 
     for my $date_guess_function ( @{ $_date_guess_functions } )
     {
-        if ( my $date = _make_epoch_date( $date_guess_function->{ function }->( $story, $html, $xpath ) ) )
+        if ( my $timestamp = _make_unix_timestamp( $date_guess_function->{ function }->( $story, $html, $xpath ) ) )
         {
-            if ( $use_threshold && ( abs( $date - $story_epoch_date ) < ( $_date_guess_threshhold * 86400 ) ) )
+            if ( $use_threshold && ( abs( $timestamp - $story_timestamp ) < ( $_date_guess_threshhold * 86400 ) ) )
             {
                 next;
             }
-            my $epoch_date = DateTime->from_epoch( epoch => $date )->datetime;
-            return wantarray ? ( $date_guess_function->{ name }, $epoch_date ) : $epoch_date;
+            my $date = DateTime->from_epoch( epoch => $timestamp )->datetime;
+            return wantarray ? ( $date_guess_function->{ name }, $date ) : $date;
         }
     }
 
@@ -359,11 +359,11 @@ sub test_date_parsers
             my $xpath = _get_xpath( $test );
 
             my $story = { url => $test };
-            my $date = _make_epoch_date( $date_guess_function->{ function }->( $story, $test, $xpath ) );
+            my $timestamp = _make_unix_timestamp( $date_guess_function->{ function }->( $story, $test, $xpath ) );
 
-            if ( defined( $date ) and ( $date ne $date_guess_function->{ expected } ) )
+            if ( defined( $timestamp ) and ( $timestamp ne $date_guess_function->{ expected } ) )
             {
-                die( "test $i [ $test ] failed: got date '$date' expected '$date_guess_function->{ expected }'" );
+                die( "test $i [ $test ] failed: got timestamp '$timestamp', expected '$date_guess_function->{ expected }'" );
             }
         }
 
