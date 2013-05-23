@@ -19,81 +19,52 @@ use MediaWords::DB;
 # story date without dropping the guess
 my $_date_guess_threshhold = 14;
 
-# Integer constants (in case Date::Parse::str2time fails)
-use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST
-use constant _TIMESTAMP_05_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT; for dates without time / timezone
-
 # only use the date from these guessing functions if the date is within $_date_guess_threshhold days
 # of the existing date for the story
 my $_date_guess_functions = [
     {
         name     => 'guess_by_dc_date_issued',
-        function => \&_guess_by_dc_date_issued,
-        test     => '<meta name="DC.date.issued" content="2012-01-17T12:00:00-05:00" />',
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_dc_date_issued
     },
     {
         name     => 'guess_by_dc_created',
-        function => \&_guess_by_dc_created,
-        test =>
-'<li property="dc:date dc:created" content="2012-01-17T12:00:00-05:00" datatype="xsd:dateTime" class="created">January 17, 2012</li>',
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_dc_created
     },
     {
         name     => 'guess_by_meta_publish_date',
-        function => \&_guess_by_meta_publish_date,
-        test     => '<meta name="item-publish-date" content="Tue, 17 Jan 2012 12:00:00 EST" />',
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_meta_publish_date
     },
     {
         name     => 'guess_by_storydate',
-        function => \&_guess_by_storydate,
-        test     => '<p class="storydate">Tue, Jan 17th 2012</p>',
-
-        # Assume that the timezone is GMT
-        expected => _TIMESTAMP_05_00_GMT
+        function => \&_guess_by_storydate
     },
     {
         name     => 'guess_by_datatime',
-        function => \&_guess_by_datatime,
-        test     => '<span class="date" data-time="1326819600">Jan 17, 2012 12:00 pm EST</span>',
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_datatime
     },
     {
         name     => 'guess_by_datetime_pubdate',
-        function => \&_guess_by_datetime_pubdate,
-        test     => '<time datetime="2012-01-17" pubdate>Jan 17, 2012 12:00 pm EST</time>',
-
-        # FIXME _guess_by_datetime_pubdate() ignores contents, uses @datetime instead;
-        # and @datetime assumes that the timezone is GMT.
-        expected => _TIMESTAMP_05_00_GMT
+        function => \&_guess_by_datetime_pubdate
     },
     {
         name     => 'guess_by_url_and_date_text',
-        function => \&_guess_by_url_and_date_text,
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_url_and_date_text
     },
     {
         name     => 'guess_by_url',
-        function => \&_guess_by_url,
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_url
     },
     {
         name     => 'guess_by_class_date',
-        function => \&_guess_by_class_date,
-        test     => '<p class="date">Jan 17, 2012</p>',
-        expected => _TIMESTAMP_05_00_GMT
+        function => \&_guess_by_class_date
     },
     {
         name     => 'guess_by_date_text',
-        function => \&_guess_by_date_text,
-        test     => '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST',
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_date_text
     },
     {
         name     => 'guess_by_existing_story_date',
-        function => \&_guess_by_existing_story_date,
-        expected => _TIMESTAMP_12_00_EST
+        function => \&_guess_by_existing_story_date
     },
 ];
 
@@ -362,29 +333,6 @@ sub guess_date($$$;$)
 
     my $date = DateTime->from_epoch( epoch => $timestamp )->datetime;
     return wantarray ? ( $name, $date ) : $date;
-}
-
-# test each date parser
-sub test_date_parsers
-{
-    my $i = 0;
-    for my $date_guess_function ( @{ $_date_guess_functions } )
-    {
-        if ( my $test = $date_guess_function->{ test } )
-        {
-            my $html_tree = _get_html_tree( $test );
-
-            my $story = { url => $test };
-            my $timestamp = _make_unix_timestamp( $date_guess_function->{ function }->( $story, $test, $html_tree ) );
-
-            if ( defined( $timestamp ) and ( $timestamp ne $date_guess_function->{ expected } ) )
-            {
-                die( "test $i [ $test ] failed: got timestamp '$timestamp', expected '$date_guess_function->{ expected }'" );
-            }
-        }
-
-        $i++;
-    }
 }
 
 1;
