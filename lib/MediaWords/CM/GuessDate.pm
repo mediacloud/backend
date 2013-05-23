@@ -323,8 +323,9 @@ sub _make_unix_timestamp
     return $timestamp;
 }
 
-# guess the date for the story by cycling through the $_date_guess_functions one at a time.  return the date as UNIX timestamp.
-sub guess_date
+# guess the date for the story by cycling through the $_date_guess_functions one at a time.
+# return the date as UNIX timestamp.
+sub guess_timestamp($$$;$)
 {
     my ( $db, $story, $html, $use_threshold ) = @_;
 
@@ -340,12 +341,27 @@ sub guess_date
             {
                 next;
             }
-            my $date = DateTime->from_epoch( epoch => $timestamp )->datetime;
-            return wantarray ? ( $date_guess_function->{ name }, $date ) : $date;
+            return wantarray ? ( $date_guess_function->{ name }, $timestamp ) : $timestamp;
         }
     }
 
     return undef;
+}
+
+# guess the date for the story by cycling through the $_date_guess_functions one at a time.
+# return the date as ISO-8601 string in GMT timezone (e.g. '2012-01-17T17:00:00')
+sub guess_date($$$;$)
+{
+    my ( $db, $story, $html, $use_threshold ) = @_;
+
+    my ( $name, $timestamp ) = guess_timestamp( $db, $story, $html, $use_threshold );
+    unless ( defined( $timestamp ) )
+    {
+        return undef;
+    }
+
+    my $date = DateTime->from_epoch( epoch => $timestamp )->datetime;
+    return wantarray ? ( $name, $date ) : $date;
 }
 
 # test each date parser
