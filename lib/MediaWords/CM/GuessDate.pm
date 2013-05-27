@@ -35,6 +35,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_meta_publish_date
     },
     {
+        name     => 'guess_by_og_article_published_time',
+        function => \&_guess_by_og_article_published_time
+    },
+    {
         name     => 'guess_by_storydate',
         function => \&_guess_by_storydate
     },
@@ -147,6 +151,17 @@ sub _guess_by_meta_publish_date
     my ( $story, $html, $html_tree ) = @_;
 
     if ( my $node = _find_first_node( $html_tree, '//meta[@name="item-publish-date"]' ) )
+    {
+        return $node->attr( 'content' );
+    }
+}
+
+# <meta property="article:published_time" content="2012-01-17T12:00:00-05:00" />
+sub _guess_by_og_article_published_time
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//meta[@property="article:published_time"]' ) )
     {
         return $node->attr( 'content' );
     }

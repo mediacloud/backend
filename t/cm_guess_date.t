@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 13 + 1;
+use Test::More tests => 14 + 1;
 use Test::Deep;
 
 use utf8;
@@ -42,6 +42,9 @@ sub test_dates
     );
     is( _gt( '<meta name="item-publish-date" content="Tue, 17 Jan 2012 12:00:00 EST" />' ),
         _TIMESTAMP_12_00_EST, 'guess_by_meta_publish_date' );
+
+    is( _gt( '<meta property="article:published_time" content="2012-01-17T12:00:00-05:00" />' ),
+        _TIMESTAMP_12_00_EST, 'guess_by_og_article_published_time' );
 
     # Assume that the timezone is GMT
     is( _gt( '<p class="storydate">Tue, Jan 17th 2012</p>' ), _TIMESTAMP_12_00_GMT, 'guess_by_storydate' );
