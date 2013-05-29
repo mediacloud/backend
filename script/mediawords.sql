@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4408;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4409;
     
 BEGIN
 
@@ -1298,7 +1298,7 @@ create table story_subsets (
     story_subsets_id        bigserial          primary key,
     start_date              timestamp with time zone,
     end_date                timestamp with time zone,
-    media_id                int references media_sets null,
+    media_id                int references media null,
     media_sets_id           int references media_sets null,
     ready                   boolean default 'false',
     last_processed_stories_id bigint references processed_stories(processed_stories_id)
