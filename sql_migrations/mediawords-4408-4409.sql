@@ -17,8 +17,8 @@
 
 SET search_path = public, pg_catalog;
 
-ALTER TABLE story_subsets
-	ALTER COLUMN media_id TYPE int references media /* TYPE change - table: story_subsets original: int references media_sets new: int references media */;
+ALTER TABLE story_subsets DROP CONSTRAINT story_subsets_media_id_fkey;
+ALTER TABLE story_subsets ADD FOREIGN KEY (media_id) REFERENCES media;
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
