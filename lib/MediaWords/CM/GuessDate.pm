@@ -12,16 +12,20 @@ use Date::Parse;
 use HTML::TreeBuilder::LibXML;
 use LWP::Simple;
 use Regexp::Common qw(time);
+use Date::Parse;
 
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
 use MediaWords::DB;
 
-# threshhold of number of days a guess date can be off from the existing
+# threshold of number of days a guess date can be off from the existing
 # story date without dropping the guess
-my $_date_guess_threshhold = 14;
+use constant DATE_GUESS_THRESHOLD => 14;
 
-# only use the date from these guessing functions if the date is within $_date_guess_threshhold days
+# Default hour to use when no time is present (minutes and seconds are going to both be 0)
+use constant DEFAULT_HOUR => 5;
+
+# only use the date from these guessing functions if the date is within DATE_GUESS_THRESHOLD days
 # of the existing date for the story
 my $_date_guess_functions = [
     {
@@ -273,13 +277,13 @@ sub _guess_by_class_date
 
 }
 
-# look for any month name followed by something that looks like a date
+# Matches a (likely) publication date(+time) in the HTML passed as a parameter; returns timestamp on success,
+# undef if no date(+time) was found
 # FIXME use return values of Regexp::Common::time to form a standardized date
-sub _guess_by_date_text
+# FIXME prefer date-time timestamps over date-only timestamps
+sub timestamp_from_html($)
 {
-    my ( $story, $html, $html_tree ) = @_;
-
-    my $date_string = undef;
+    my $html = shift;
 
     my $month_names   = [ qw/january february march april may june july august september october november december/ ];
     my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
@@ -290,101 +294,179 @@ sub _guess_by_date_text
     my $month_names_pattern   = join( '|', @{ $month_names } );
     my $weekday_names_pattern = join( '|', @{ $weekday_names } );
 
-    # January 17, 2012 2:31 PM EST
-    if (
-        $html =~ /(
-            (?:$month_names_pattern)    # January, February, ..., Jan, Feb, ...
+    # Common patterns for date / time parts
+    my $pattern_timezone    = qr/(?<timezone>\w{1,4}T)/i;                               # e.g. "PT", "GMT", "EEST", "AZOST"
+    my $pattern_hour        = qr/(?<hour>\d\d?)/i;                                      # e.g. "12", "9", "24"
+    my $pattern_minute      = qr/(?<minute>\d\d)/i;                                     # e.g. "01", "59"
+    my $pattern_second      = qr/(?<second>\d\d)/i;                                     # e.g. "01", "59"
+    my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;    # e.g. "12:50", "9:39"
+    my $pattern_hour_minute_second =
+      qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;    # e.g. "12:50:00"
+    my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
+    my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"
+    my $pattern_day_of_month  = qr/(?:(?<day>\d\d?)(?:st|th)?)/i;           # e.g. "23", "02", "9th", "1st"
+    my $pattern_year          = qr/(?<year>20\d\d)/i;                       # e.g. "2001", "2023"
+    my $pattern_am_pm         = qr/(?<am_pm>[AP]M)/i;                       # e.g. "AM", "PM"
+    my $pattern_comma         = qr/(?:,)/i;                                 # e.g. ","
+
+    # Patterns that match both date *and* time
+    my @date_time_patterns = (
+
+        # January 17, 2012, 2:31 PM EST
+        qr/(
+            $pattern_month_names
+            \s+
+            $pattern_day_of_month?
             \s*
-            \d\d?(?:st|th)?             # 1, 2, 3, ..., 31 (optional '-st', '-th' suffix)
             (?:,|\s+at)?                # optional comma or "at"
             \s+
-            20\d\d                      # year
+            $pattern_year
             (
-                ?:,?                    # optional comma
                 \s*
-                \d\d?\:\d\d             # HH:mm
+                $pattern_comma?
+                \s+
+                $pattern_hour_minute
                 \s*
-                ([AP]M)?                # optional AM or PM
-                (?:\s+\w\wT)?           # optional timezone
+                $pattern_am_pm?
+                \s+
+                $pattern_timezone?
             )?
-            )/ix
-      )
-    {
-        $date_string = $1;
-    }
+            )/ix,
 
-    # Wednesday, 29 August 2012 03:55
-    elsif (
-        $html =~ /(
-        (?:$weekday_names_pattern)      # Monday, Tuesday, ..., Mon, Tue, ...
-        \s*?,\s*?                       # comma
-        \d\d?(?:st|th)?                 # 1, 2, 3, ..., 31 (optional '-st', '-th' suffix)
-        \s+
-        (?:$month_names_pattern)        # January, February, ..., Jan, Feb, ...
-        \s+
-        20\d\d                          # year
-        (
-            ?:,?                        # optional comma
+        # # 9:24 pm, Tuesday, August 28, 2012
+        # qr/(
+        #     $pattern_hours_minutes
+        #     \s*
+        #     $pattern_am_pm?
+        #     \s*
+        #     $pattern_comma?
+        #     \s+
+        #     $pattern_weekday_names
+        #     \s*
+        #     $pattern_comma?
+        #     \s+
+        #     $pattern_month_names
+        #     \s+
+        #     $pattern_day_of_month?
+        #     \s*
+        #     $pattern_comma?
+        #     \s+
+        #     $pattern_year
+        #     )/ix,
+
+        # Tue, 28 Aug 2012 21:24:00 GMT (RFC 822)
+        # or
+        # Wednesday, 29 August 2012 03:55
+        qr/(
+            $pattern_weekday_names
             \s*
-            \d\d?\:\d\d                 # HH:mm
+            $pattern_comma
+            \s+
+            $pattern_day_of_month
+            \s+
+            $pattern_month_names
+            \s+
+            $pattern_year
+            \s+
+            $pattern_hour_minute(\:$pattern_second)?
+            (\s+$pattern_timezone)?
+            )/ix,
+
+        # Thursday May 30, 2013 2:14 AM PT (sfgate.com header)
+        qr/(
+            $pattern_weekday_names
+            \s+
+            $pattern_month_names
+            \s+
+            $pattern_day_of_month
             \s*
-            ([AP]M)?                    # optional AM or PM
-            (?:\s+\w\wT)?               # optional timezone
-        )?
-        )/ix
-      )
+            $pattern_comma?
+            \s+
+            $pattern_year
+            \s+
+            $pattern_hour_minute
+            \s*
+            $pattern_am_pm
+            \s+
+            $pattern_timezone
+            )/ix,
+    );
+
+    # Create one big regex out of date patterns as we want to know the order of
+    # various dates appearing in the HTML page
+    my $date_pattern = join( '|', @date_time_patterns );
+    $date_pattern = '(' . $date_pattern . ')';
+
+    my @matched_timestamps = ();
+
+    my %mon2num = qw(
+      jan 1    feb 2  mar 3  apr 4  may 5  jun 6
+      jul 7    aug 8  sep 9  oct 10  nov 11 dec 12
+      january 1  february 2  march 3  april 4  may 5  june 6
+      july 7  august 8  september 9  october 10  november 11 december 12
+    );
+
+    # Attempt to match both date *and* time first for better accuracy
+    while ( $html =~ /$date_pattern/g )
     {
-        $date_string = $1;
+
+        # Collect date parts
+        my $d_year  = $+{ year } + 0;
+        my $d_month = lc( $+{ month } );
+        if ( $mon2num{ $d_month } )
+        {
+            $d_month = $mon2num{ $d_month };
+        }
+        else
+        {
+            $d_month = ( $d_month + 0 );
+        }
+        my $d_day   = $+{ day } + 0;
+        my $d_am_pm = ( $+{ am_pm } ? lc( $+{ am_pm } ) : '' );
+        my $d_hour  = ( $+{ hour } ? $+{ hour } + 0 : DEFAULT_HOUR );
+        if ( $d_am_pm )
+        {
+            $d_hour = ( $d_hour % 12 ) + ( ( $d_am_pm eq 'am' ) ? 0 : 12 );
+        }
+        my $d_minute   = ( $+{ minute }   ? $+{ minute } + 0 : 0 );
+        my $d_second   = ( $+{ second }   ? $+{ second } + 0 : 0 );
+        my $d_timezone = ( $+{ timezone } ? $+{ timezone }   : 'GMT' );
+
+        if ( uc( $d_timezone ) eq 'PT' )
+        {
+
+            # FIXME assume at Pacific Time (PT) is always PDT and not PST
+            # (no easy way to determine which exact timezone is currently in America/Los_Angeles)
+            $d_timezone = 'PDT';
+        }
+
+        # Create a date parseable by Date::Parse correctly, e.g. 2013-05-13 23:52:00 GMT
+        my $date_string = sprintf( '%04d-%02d-%02d %02d:%02d:%02d %s',
+            $d_year, $d_month, $d_day, $d_hour, $d_minute, $d_second, $d_timezone );
+        my $time = str2time( $date_string );
+
+        if ( $time )
+        {
+            push( @matched_timestamps, $time );
+        }
     }
 
-    # ISO 8601
-    elsif ( $html =~ /$RE{time}{iso}/i )
+    if ( scalar( @matched_timestamps ) > 0 )
     {
-        $date_string = $1;
+        return $matched_timestamps[ 0 ];
     }
-
-    # RFC 2822
-    elsif ( $html =~ /$RE{time}{mail}/i )
+    else
     {
-        $date_string = $1;
+        return undef;
     }
+}
 
-    # informal US date strings
-    elsif ( $html =~ /$RE{time}{american}/i )
-    {
-        $date_string = $1;
-    }
+# look for any month name followed by something that looks like a date
+sub _guess_by_date_text
+{
+    my ( $story, $html, $html_tree ) = @_;
 
-    # fuzzy date-time patterns (m/d/y)
-    elsif ( $html =~ /$RE{time}{mdy}\s+?$RE{time}{hms}/i )
-    {
-        $date_string = $1;
-    }
-
-    # fuzzy date-time patterns (y-m-d)
-    elsif ( $html =~ /$RE{time}{ymd}\s+?$RE{time}{hms}/i )
-    {
-        $date_string = $1;
-        return $date_string;
-    }
-
-    # fuzzy date patterns (m/d/y)
-    elsif ( $html =~ /$RE{time}{mdy}/i )
-    {
-        $date_string = $1;
-    }
-
-    # fuzzy date patterns (y-m-d)
-    elsif ( $html =~ /$RE{time}{ymd}/i )
-    {
-        $date_string = $1;
-    }
-
-    # if ($date_string) {
-    #     say STDERR "Date string: $date_string";
-    # }
-
-    return $date_string;
+    return timestamp_from_html( $html );
 }
 
 # if _guess_by_url returns a date, use _guess_by_date_text if the days agree
@@ -457,7 +539,7 @@ sub guess_timestamp($$$;$)
     {
         if ( my $timestamp = _make_unix_timestamp( $date_guess_function->{ function }->( $story, $html, $html_tree ) ) )
         {
-            if ( $use_threshold && ( abs( $timestamp - $story_timestamp ) < ( $_date_guess_threshhold * 86400 ) ) )
+            if ( $use_threshold && ( abs( $timestamp - $story_timestamp ) < ( DATE_GUESS_THRESHOLD * 86400 ) ) )
             {
                 next;
             }

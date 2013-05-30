@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 18 + 1;
+use Test::More tests => 20 + 1;
 use Test::Deep;
 
 use utf8;
@@ -39,6 +39,14 @@ sub _gt_url($;$)
     die "Unable to fetch URL $story_url because: $!\n" unless defined $html;
 
     return _gt( $html, $story_url, $story_publish_date );
+}
+
+# Shorthand for timestamp_from_html()
+sub _ts_from_html($)
+{
+    my $html = shift;
+
+    return MediaWords::CM::GuessDate::timestamp_from_html( $html );
 }
 
 # Shortcut for making UNIX timestamps out of RFC 822 dates
@@ -110,6 +118,27 @@ sub test_live_urls
         _ts( 'Wed, 17 Oct 2012 23:59:25 GMT' ),
         'live_url: HTTP Last-Modified'
     );
+
+    # is(
+    #     _gt_url('http://www.sfgate.com/opinion/openforum/article/Prop-36-reforms-three-strikes-3822862.php'),
+    #     _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
+    #     'live_url: sfgate.com'
+    # );
+}
+
+sub test_date_matching
+{
+    is(
+        _ts_from_html( '<p>Tue, 28 Aug 2012 21:24:00 GMT</p>' ),
+        _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
+        'date_matching: RFC 822'
+    );
+
+    is(
+        _ts_from_html( '<p>Thursday May 30, 2013 2:14 AM PT</p>' ),
+        _ts( 'Thu, 30 May 2013 02:14:00 PDT' ),
+        'date_matching: sfgate.com header'
+    );
 }
 
 sub main
@@ -121,6 +150,7 @@ sub main
 
     test_dates();
     test_live_urls();
+    test_date_matching();
 }
 
 main();
