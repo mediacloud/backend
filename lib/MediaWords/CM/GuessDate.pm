@@ -482,12 +482,12 @@ sub timestamp_from_html($)
         return undef;
     }
 
-    # If there are 2+ dates on the page and the first one looks more or less like now (+/- 1 hour),
+    # If there are 2+ dates on the page and the first one looks more or less like now (+/- 5 minutes),
     # then it's probably a website's header with today's date and it should be ignored
     if ( scalar( @matched_timestamps ) >= 2 )
     {
-        if (   ( time() > $matched_timestamps[ 0 ] and time() - $matched_timestamps[ 0 ] <= ( 60 * 60 ) )
-            or ( $matched_timestamps[ 0 ] < time() and $matched_timestamps[ 0 ] - time() <= ( 60 * 60 ) ) )
+        if (   ( time() > $matched_timestamps[ 0 ] and time() - $matched_timestamps[ 0 ] <= ( 60 * 5 ) )
+            or ( $matched_timestamps[ 0 ] < time() and $matched_timestamps[ 0 ] - time() <= ( 60 * 5 ) ) )
         {
             return $matched_timestamps[ 1 ];
         }
