@@ -237,18 +237,62 @@ sub _guess_by_date_text
 {
     my ( $story, $html, $html_tree ) = @_;
 
-    my $month_names = [ qw/january february march april may june july august september october november december/ ];
+    my $month_names   = [ qw/january february march april may june july august september october november december/ ];
+    my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
 
-    push( @{ $month_names }, map { substr( $_, 0, 3 ) } @{ $month_names } );
+    push( @{ $month_names },   map { substr( $_, 0, 3 ) } @{ $month_names } );
+    push( @{ $weekday_names }, map { substr( $_, 0, 3 ) } @{ $weekday_names } );
 
-    my $month_names_pattern = join( '|', @{ $month_names } );
+    my $month_names_pattern   = join( '|', @{ $month_names } );
+    my $weekday_names_pattern = join( '|', @{ $weekday_names } );
 
-    #  January 17, 2012 2:31 PM EST
-    if ( $html =~
-        /((?:$month_names_pattern)\s*\d\d?(?:st|th)?(?:,|\s+at)?\s+20\d\d(?:,?\s*\d\d?\:\d\d\s*[AP]M(?:\s+\w\wT)?)?)/i )
+    # January 17, 2012 2:31 PM EST
+    if (
+        $html =~ /(
+            (?:$month_names_pattern)    # January, February, ..., Jan, Feb, ...
+            \s*
+            \d\d?(?:st|th)?             # 1, 2, 3, ..., 31 (optional '-st', '-th' suffix)
+            (?:,|\s+at)?                # optional comma or "at"
+            \s+
+            20\d\d                      # year
+            (
+                ?:,?                    # optional comma
+                \s*
+                \d\d?\:\d\d             # HH:mm
+                \s*
+                ([AP]M)?                # optional AM or PM
+                (?:\s+\w\wT)?           # optional timezone
+            )?
+            )/ix
+      )
     {
         my $date_string = $1;
 
+        return $date_string;
+    }
+
+    # Wednesday, 29 August 2012 03:55
+    if (
+        $html =~ /(
+        (?:$weekday_names_pattern)      # Monday, Tuesday, ..., Mon, Tue, ...
+        \s*?,\s*?                       # comma
+        \d\d?(?:st|th)?                 # 1, 2, 3, ..., 31 (optional '-st', '-th' suffix)
+        \s+
+        (?:$month_names_pattern)        # January, February, ..., Jan, Feb, ...
+        \s+
+        20\d\d                          # year
+        (
+            ?:,?                        # optional comma
+            \s*
+            \d\d?\:\d\d                 # HH:mm
+            \s*
+            ([AP]M)?                    # optional AM or PM
+            (?:\s+\w\wT)?               # optional timezone
+        )?
+        )/ix
+      )
+    {
+        my $date_string = $1;
         return $date_string;
     }
 }
