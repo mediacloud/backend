@@ -10,6 +10,7 @@ use strict;
 use DateTime;
 use Date::Parse;
 use HTML::TreeBuilder::LibXML;
+use LWP::Simple;
 
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
@@ -57,6 +58,10 @@ my $_date_guess_functions = [
     {
         name     => 'guess_by_url',
         function => \&_guess_by_url
+    },
+    {
+        name     => 'guess_by_http_last_modified',
+        function => \&_guess_by_http_last_modified
     },
     {
         name     => 'guess_by_class_date',
@@ -218,6 +223,41 @@ sub _guess_by_url
     {
         return _validate_date_parts( $1, $2, $3 );
     }
+}
+
+# look into HTTP Last-Modified header
+sub _guess_by_http_last_modified
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    my $url = $story->{ url };
+
+    my ( $content_type, $doc_length, $mod_time, $expires, $server );
+
+    # Don't test IANA example domains
+    my $host = URI->new( $url )->host;
+    if ( $host =~ /example\.(com|net|org)$/i )
+    {
+        return undef;
+    }
+
+    if ( ( $content_type, $doc_length, $mod_time, $expires, $server ) = head( $url ) )
+    {
+        if ( $mod_time )
+        {
+
+            # Don't trust modification dates newer than one day
+            # (because that modification date might be today's timestamp)
+            if ( time() - $mod_time > ( 60 * 60 * 24 ) )
+            {
+                return $mod_time;
+            }
+
+        }
+    }
+
+    # Fallback
+    return undef;
 }
 
 # look for any element with a class='date' attribute
