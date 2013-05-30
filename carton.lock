@@ -36714,6 +36714,56 @@
          "target" : "Regexp::Common",
          "version" : "2011121001"
       },
+      "Regexp::Common::time" : {
+         "dist" : "Regexp-Common-time-0.04",
+         "mymeta" : {
+            "abstract" : "Date and time regexps.",
+            "author" : [
+               "Eric J. Roode <eroode@barrack.com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.130880, CPAN::Meta::Converter version 2.112621",
+            "license" : [
+               "unrestricted"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Regexp-Common-time",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "Test::More" : "0.40"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "POSIX" : 0,
+                     "Regexp::Common" : 0
+                  }
+               }
+            },
+            "provides" : {
+               "Regexp::Common::time" : {
+                  "file" : "lib/Regexp/Common/time.pm",
+                  "version" : "0.04"
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.04"
+         },
+         "name" : "Regexp::Common::time",
+         "pathname" : "R/RO/ROODE/Regexp-Common-time-0.04.tar.gz",
+         "provides" : {
+            "Regexp::Common::time" : {
+               "file" : "Regexp/Common/time.pm",
+               "version" : "0.04"
+            }
+         },
+         "target" : "Regexp::Common::time",
+         "version" : "0.04"
+      },
       "Role::Tiny" : {
          "dist" : "Role-Tiny-1.002005",
          "mymeta" : {

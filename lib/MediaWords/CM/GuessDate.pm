@@ -11,6 +11,7 @@ use DateTime;
 use Date::Parse;
 use HTML::TreeBuilder::LibXML;
 use LWP::Simple;
+use Regexp::Common qw(time);
 
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
@@ -273,9 +274,12 @@ sub _guess_by_class_date
 }
 
 # look for any month name followed by something that looks like a date
+# FIXME use return values of Regexp::Common::time to form a standardized date
 sub _guess_by_date_text
 {
     my ( $story, $html, $html_tree ) = @_;
+
+    my $date_string = undef;
 
     my $month_names   = [ qw/january february march april may june july august september october november december/ ];
     my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
@@ -306,13 +310,11 @@ sub _guess_by_date_text
             )/ix
       )
     {
-        my $date_string = $1;
-
-        return $date_string;
+        $date_string = $1;
     }
 
     # Wednesday, 29 August 2012 03:55
-    if (
+    elsif (
         $html =~ /(
         (?:$weekday_names_pattern)      # Monday, Tuesday, ..., Mon, Tue, ...
         \s*?,\s*?                       # comma
@@ -332,9 +334,57 @@ sub _guess_by_date_text
         )/ix
       )
     {
-        my $date_string = $1;
+        $date_string = $1;
+    }
+
+    # ISO 8601
+    elsif ( $html =~ /$RE{time}{iso}/i )
+    {
+        $date_string = $1;
+    }
+
+    # RFC 2822
+    elsif ( $html =~ /$RE{time}{mail}/i )
+    {
+        $date_string = $1;
+    }
+
+    # informal US date strings
+    elsif ( $html =~ /$RE{time}{american}/i )
+    {
+        $date_string = $1;
+    }
+
+    # fuzzy date-time patterns (m/d/y)
+    elsif ( $html =~ /$RE{time}{mdy}\s+?$RE{time}{hms}/i )
+    {
+        $date_string = $1;
+    }
+
+    # fuzzy date-time patterns (y-m-d)
+    elsif ( $html =~ /$RE{time}{ymd}\s+?$RE{time}{hms}/i )
+    {
+        $date_string = $1;
         return $date_string;
     }
+
+    # fuzzy date patterns (m/d/y)
+    elsif ( $html =~ /$RE{time}{mdy}/i )
+    {
+        $date_string = $1;
+    }
+
+    # fuzzy date patterns (y-m-d)
+    elsif ( $html =~ /$RE{time}{ymd}/i )
+    {
+        $date_string = $1;
+    }
+
+    # if ($date_string) {
+    #     say STDERR "Date string: $date_string";
+    # }
+
+    return $date_string;
 }
 
 # if _guess_by_url returns a date, use _guess_by_date_text if the days agree
