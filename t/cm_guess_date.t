@@ -91,14 +91,17 @@ sub test_dates
     is( _gt( '<p>Hey!</p>', undef, '2012-01-17T12:00:00-05:00' ), _TIMESTAMP_12_00_EST, 'guess_by_existing_story_date' );
 }
 
+# Redo into local tests
 sub test_live_urls
 {
+
+    # Wednesday, 29 August 2012 03:55
     is(
         _gt_url(
 'http://davisvanguard.org/index.php?option=com_content&view=article&id=5650:proposition-36-would-modify-californias-three-strikes-law&Itemid=100'
         ),
         _ts( 'Wed, 29 Aug 12 03:55:00 +0000' ),
-        'live_url_davisvanguard.org'
+        'live_url: W, [dj] F Y H:i'
     );
 }
 
