@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 14 + 1;
+use Test::More tests => 17 + 1;
 use Test::Deep;
 
 use utf8;
@@ -15,10 +15,12 @@ use constant _TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 
 use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST
 
 BEGIN { use_ok 'MediaWords::CM::GuessDate' }
+BEGIN { use_ok 'Date::Parse' }
+BEGIN { use_ok 'LWP::Simple' }
 
 my $db = MediaWords::DB::connect_to_db();
 
-# Shorthand
+# Shorthand for guess_timestamp()
 sub _gt($;$$)
 {
     my ( $html, $story_url, $story_publish_date ) = @_;
@@ -26,6 +28,24 @@ sub _gt($;$$)
     $story_publish_date ||= 'unknown';
     my $story = { url => $story_url, publish_date => $story_publish_date };
     return MediaWords::CM::GuessDate::guess_timestamp( $db, $story, $html );
+}
+
+# Shorthand for guess_timestamp() by fetching the URL
+sub _gt_url($;$)
+{
+    my ( $story_url, $story_publish_date ) = @_;
+
+    my $html = get( $story_url );
+    die "Unable to fetch URL $story_url because: $!\n" unless defined $html;
+
+    return _gt( $html, $story_url, $story_publish_date );
+}
+
+# Shortcut for making UNIX timestamps out of RFC 822 dates
+sub _ts($)
+{
+    my $date = shift;
+    return Date::Parse::str2time( $date );
 }
 
 sub test_dates
@@ -71,6 +91,17 @@ sub test_dates
     is( _gt( '<p>Hey!</p>', undef, '2012-01-17T12:00:00-05:00' ), _TIMESTAMP_12_00_EST, 'guess_by_existing_story_date' );
 }
 
+sub test_live_urls
+{
+    is(
+        _gt_url(
+'http://davisvanguard.org/index.php?option=com_content&view=article&id=5650:proposition-36-would-modify-californias-three-strikes-law&Itemid=100'
+        ),
+        _ts( 'Wed, 29 Aug 12 03:55:00 +0000' ),
+        'live_url_davisvanguard.org'
+    );
+}
+
 sub main
 {
     my $builder = Test::More->builder;
@@ -79,6 +110,7 @@ sub main
     binmode $builder->todo_output,    ":utf8";
 
     test_dates();
+    test_live_urls();
 }
 
 main();
