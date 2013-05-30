@@ -304,11 +304,12 @@ sub timestamp_from_html($)
     my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;    # e.g. "12:50", "9:39"
     my $pattern_hour_minute_second =
       qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;    # e.g. "12:50:00"
+    my $pattern_month         = qr/(?<month>\d\d?)/i;                       # e.g. "12", "01", "7"
     my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
     my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"
     my $pattern_day_of_month  = qr/(?:(?<day>\d\d?)(?:st|th)?)/i;           # e.g. "23", "02", "9th", "1st"
     my $pattern_year          = qr/(?<year>20\d\d)/i;                       # e.g. "2001", "2023"
-    my $pattern_am_pm         = qr/(?<am_pm>[AP]M)/i;                       # e.g. "AM", "PM"
+    my $pattern_am_pm         = qr/(?<am_pm>[AP]\.?M\.?)/i;                 # e.g. "AM", "PM"
     my $pattern_comma         = qr/(?:,)/i;                                 # e.g. ","
 
     # Patterns that match both date *and* time
@@ -332,11 +333,24 @@ sub timestamp_from_html($)
             \s+
             $pattern_month_names
             \s+
-            $pattern_day_of_month?
+            $pattern_day_of_month
             \s*
             $pattern_comma?
             \s+
             $pattern_year
+            )/ix,
+
+        # 11.06.2012 11:56 p.m.
+        qr/(
+            $pattern_month
+            \.
+            $pattern_day_of_month
+            \.
+            $pattern_year
+            \s+
+            $pattern_hour_minute
+            \s+
+            $pattern_am_pm?
             )/ix,
 
         # January 17(th), 2012, 2:31 PM EST

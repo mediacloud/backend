@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 22 + 1;
+use Test::More tests => 24 + 1;
 use Test::Deep;
 
 use utf8;
@@ -124,6 +124,12 @@ sub test_live_urls
         _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
         'live_url: sfgate.com'
     );
+
+    is(
+        _gt_url( 'http://www.noozhawk.com/article/california_election_statewide_propositions_prop_30/' ),
+        _ts( 'Tue, 6 Nov 2012 23:56:00 GMT' ),
+        'live_url: noozhawk.com'
+    );
 }
 
 sub test_date_matching
@@ -146,6 +152,11 @@ sub test_date_matching
         'date_matching: sfgate.com article'
     );
 
+    is(
+        _ts_from_html( '<p>11.06.2012 11:56 p.m.</p>' ),
+        _ts( 'Tue, 6 Nov 2012 23:56:00 GMT' ),
+        'date_matching: noozhawk.com article'
+    );
 }
 
 sub main
