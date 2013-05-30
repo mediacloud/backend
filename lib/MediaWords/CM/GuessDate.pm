@@ -285,6 +285,8 @@ sub timestamp_from_html($)
 {
     my $html = shift;
 
+    $html =~ s/&nbsp;/ /g;
+
     my $month_names   = [ qw/january february march april may june july august september october november december/ ];
     my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
 
@@ -312,7 +314,32 @@ sub timestamp_from_html($)
     # Patterns that match both date *and* time
     my @date_time_patterns = (
 
-        # January 17, 2012, 2:31 PM EST
+        #
+        # Date + time patterns
+        #
+
+        # 9:24 pm, Tuesday, August 28, 2012
+        qr/(
+            $pattern_hour_minute
+            \s*
+            $pattern_am_pm?
+            \s*
+            $pattern_comma?
+            \s+
+            $pattern_weekday_names
+            \s*
+            $pattern_comma?
+            \s+
+            $pattern_month_names
+            \s+
+            $pattern_day_of_month?
+            \s*
+            $pattern_comma?
+            \s+
+            $pattern_year
+            )/ix,
+
+        # January 17(th), 2012, 2:31 PM EST
         qr/(
             $pattern_month_names
             \s+
@@ -321,38 +348,15 @@ sub timestamp_from_html($)
             (?:,|\s+at)?                # optional comma or "at"
             \s+
             $pattern_year
-            (
-                \s*
-                $pattern_comma?
-                \s+
-                $pattern_hour_minute
-                \s*
-                $pattern_am_pm?
-                \s+
-                $pattern_timezone?
-            )?
+            \s*
+            $pattern_comma?
+            \s+
+            $pattern_hour_minute
+            \s*
+            $pattern_am_pm?
+            \s+
+            $pattern_timezone?
             )/ix,
-
-        # # 9:24 pm, Tuesday, August 28, 2012
-        # qr/(
-        #     $pattern_hours_minutes
-        #     \s*
-        #     $pattern_am_pm?
-        #     \s*
-        #     $pattern_comma?
-        #     \s+
-        #     $pattern_weekday_names
-        #     \s*
-        #     $pattern_comma?
-        #     \s+
-        #     $pattern_month_names
-        #     \s+
-        #     $pattern_day_of_month?
-        #     \s*
-        #     $pattern_comma?
-        #     \s+
-        #     $pattern_year
-        #     )/ix,
 
         # Tue, 28 Aug 2012 21:24:00 GMT (RFC 822)
         # or
@@ -390,6 +394,22 @@ sub timestamp_from_html($)
             \s+
             $pattern_timezone
             )/ix,
+
+        #
+        # Date-only patterns
+        #
+
+        # January 17, 2012
+        qr/(
+            $pattern_month_names
+            \s+
+            $pattern_day_of_month?
+            \s*
+            (?:,|\s+at)?                # optional comma or "at"
+            \s+
+            $pattern_year
+            )/ix,
+
     );
 
     # Create one big regex out of date patterns as we want to know the order of
@@ -409,6 +429,8 @@ sub timestamp_from_html($)
     # Attempt to match both date *and* time first for better accuracy
     while ( $html =~ /$date_pattern/g )
     {
+
+        # say STDERR "Matched string: $1";
 
         # Collect date parts
         my $d_year  = $+{ year } + 0;
@@ -451,14 +473,27 @@ sub timestamp_from_html($)
         }
     }
 
-    if ( scalar( @matched_timestamps ) > 0 )
+    # say STDERR "Matched timestamps: " . Dumper(@matched_timestamps);
+
+    if ( scalar( @matched_timestamps ) == 0 )
     {
-        return $matched_timestamps[ 0 ];
-    }
-    else
-    {
+
+        # no timestamps found
         return undef;
     }
+
+    # If there are 2+ dates on the page and the first one looks more or less like now (+/- 1 hour),
+    # then it's probably a website's header with today's date and it should be ignored
+    if ( scalar( @matched_timestamps ) >= 2 )
+    {
+        if (   ( time() > $matched_timestamps[ 0 ] and time() - $matched_timestamps[ 0 ] <= ( 60 * 60 ) )
+            or ( $matched_timestamps[ 0 ] < time() and $matched_timestamps[ 0 ] - time() <= ( 60 * 60 ) ) )
+        {
+            return $matched_timestamps[ 1 ];
+        }
+    }
+
+    return $matched_timestamps[ 0 ];
 }
 
 # look for any month name followed by something that looks like a date

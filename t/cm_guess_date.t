@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 20 + 1;
+use Test::More tests => 22 + 1;
 use Test::Deep;
 
 use utf8;
@@ -119,11 +119,11 @@ sub test_live_urls
         'live_url: HTTP Last-Modified'
     );
 
-    # is(
-    #     _gt_url('http://www.sfgate.com/opinion/openforum/article/Prop-36-reforms-three-strikes-3822862.php'),
-    #     _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
-    #     'live_url: sfgate.com'
-    # );
+    is(
+        _gt_url( 'http://www.sfgate.com/opinion/openforum/article/Prop-36-reforms-three-strikes-3822862.php' ),
+        _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
+        'live_url: sfgate.com'
+    );
 }
 
 sub test_date_matching
@@ -139,6 +139,13 @@ sub test_date_matching
         _ts( 'Thu, 30 May 2013 02:14:00 PDT' ),
         'date_matching: sfgate.com header'
     );
+
+    is(
+        _ts_from_html( '<p>9:24 pm, Tuesday, August 28, 2012</p>' ),
+        _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
+        'date_matching: sfgate.com article'
+    );
+
 }
 
 sub main
