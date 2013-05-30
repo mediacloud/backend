@@ -285,6 +285,11 @@ sub timestamp_from_html($)
 {
     my $html = shift;
 
+    unless ( $html )
+    {
+        return undef;
+    }
+
     $html =~ s/&nbsp;/ /g;
 
     my $month_names   = [ qw/january february march april may june july august september october november december/ ];
@@ -584,6 +589,11 @@ sub _make_unix_timestamp
 sub guess_timestamp($$$;$)
 {
     my ( $db, $story, $html, $use_threshold ) = @_;
+
+    unless ( $html )
+    {
+        return undef;
+    }
 
     my $html_tree = _get_html_tree( $html );
 

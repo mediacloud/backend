@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 26 + 1;
+use Test::More tests => 27 + 1;
 use Test::Deep;
 
 use utf8;
@@ -36,7 +36,8 @@ sub _gt_url($;$)
     my ( $story_url, $story_publish_date ) = @_;
 
     my $html = get( $story_url );
-    die "Unable to fetch URL $story_url because: $!\n" unless defined $html;
+
+    #die "Unable to fetch URL $story_url because: $!\n" unless defined $html;
 
     return _gt( $html, $story_url, $story_publish_date );
 }
@@ -135,6 +136,12 @@ sub test_live_urls
         _gt_url( 'http://punkpedagogy.tumblr.com/post/35204551491/proposition-36-placed-on-the-ballot-in-hopes-of' ),
         _ts( 'Wed, 7 Nov 2012 05:00:00 GMT' ),
         'live_url: punkpedagogy.tumblr.com'
+    );
+
+    is(
+        _gt_url( 'http://www.cjcj.org/post/adult/corrections/prop/36/modest/and/necessary/three/strikes/reform/index.html' ),
+        undef,
+        'live_url: 404 Not Found'
     );
 }
 
