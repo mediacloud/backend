@@ -346,17 +346,20 @@ sub timestamp_from_html($)
             )/ix,
 
         # 11.06.2012 11:56 p.m.
-        qr/(
+        # or
+        # 11/06/2012 08:30:20 PM PST
+        qr{(
             $pattern_month
-            \.
+            [\./]
             $pattern_day_of_month
-            \.
+            [\./]
             $pattern_year
             \s+
             $pattern_hour_minute
-            \s+
-            $pattern_am_pm?
-            )/ix,
+            (?:\:$pattern_second)?
+            (?:\s+$pattern_am_pm)?
+            (?:\s+$pattern_timezone)?
+            )}ix,
 
         # January 17(th), 2012, 2:31 PM EST
         qr/(
@@ -506,12 +509,13 @@ sub timestamp_from_html($)
         return undef;
     }
 
-    # If there are 2+ dates on the page and the first one looks more or less like now (+/- 5 minutes),
-    # then it's probably a website's header with today's date and it should be ignored
+    # If there are 2+ dates on the page and the first one looks more or less like now
+    # (+/- 1 day to reduce timezone ambiguity), then it's probably a website's header
+    # with today's date and it should be ignored
     if ( scalar( @matched_timestamps ) >= 2 )
     {
-        if (   ( time() > $matched_timestamps[ 0 ] and time() - $matched_timestamps[ 0 ] <= ( 60 * 5 ) )
-            or ( $matched_timestamps[ 0 ] < time() and $matched_timestamps[ 0 ] - time() <= ( 60 * 5 ) ) )
+        if (   ( time() > $matched_timestamps[ 0 ] and time() - $matched_timestamps[ 0 ] <= ( 60 * 60 * 24 ) )
+            or ( $matched_timestamps[ 0 ] > time() and $matched_timestamps[ 0 ] - time() <= ( 60 * 60 * 24 ) ) )
         {
             return $matched_timestamps[ 1 ];
         }

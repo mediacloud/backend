@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 27 + 1;
+use Test::More tests => 29 + 1;
 use Test::Deep;
 
 use utf8;
@@ -143,6 +143,13 @@ sub test_live_urls
         undef,
         'live_url: 404 Not Found'
     );
+
+    is(
+        _gt_url( 'http://www.mercurynews.com/crime-courts/ci_21943951/prop-36-huge-lead-early-returns' ),
+        _ts( 'Tue, 6 Nov 2012 20:30:20 PST' ),
+        'live_url: mercurynews.com'
+    );
+
 }
 
 sub test_date_matching
@@ -175,6 +182,26 @@ sub test_date_matching
         _ts_from_html( '<p>7th November 2012</p>' ),
         _ts( 'Wed, 7 Nov 2012 05:00:00 GMT' ),
         'date_matching: punkpedagogy.tumblr.com'
+    );
+
+    is(
+        _ts_from_html(
+            <<EOF
+            <div id="articleDate" class="articleDate">
+                Posted:
+                &nbsp;
+                11/06/2012 08:30:20 PM PST
+            </div>
+            <div id="articleDate" class="articleSecondaryDate">
+                <span class="updated" style="display:none;" title="2012-11-07T11:02:32Z">November 7, 2012 11:2 AM GMT</span>
+                Updated:
+                &nbsp;
+                11/07/2012 03:02:32 AM PST
+            </div>
+EOF
+        ),
+        _ts( 'Tue, 6 Nov 2012 20:30:20 PST' ),
+        'date_matching: mercurynews.com'
     );
 }
 
