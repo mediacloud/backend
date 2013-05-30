@@ -375,19 +375,24 @@ sub timestamp_from_html($)
         # Tue, 28 Aug 2012 21:24:00 GMT (RFC 822)
         # or
         # Wednesday, 29 August 2012 03:55
+        # or
+        # 7th November 2012
         qr/(
-            $pattern_weekday_names
+            (?:$pattern_weekday_names
             \s*
             $pattern_comma
-            \s+
+            \s+)?
             $pattern_day_of_month
             \s+
             $pattern_month_names
             \s+
             $pattern_year
-            \s+
-            $pattern_hour_minute(\:$pattern_second)?
-            (\s+$pattern_timezone)?
+            (?:
+                \s+
+                $pattern_hour_minute
+                (?:\:$pattern_second)?
+                (?:\s+$pattern_timezone)?
+            )?
             )/ix,
 
         # Thursday May 30, 2013 2:14 AM PT (sfgate.com header)
