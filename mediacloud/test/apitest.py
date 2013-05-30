@@ -1,6 +1,5 @@
 
 import unittest
-import codecs
 import ConfigParser
 from mediacloud.api import MediaCloud
 
