@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 29 + 1;
+use Test::More tests => 31 + 1;
 use Test::Deep;
 
 use utf8;
@@ -150,6 +150,13 @@ sub test_live_urls
         'live_url: mercurynews.com'
     );
 
+    is(
+        _gt_url(
+            'http://www2.registerguard.com/cms/index.php/duck-football/comments/third-quarter-oregon-38-california-17/'
+        ),
+        _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
+        'live_url: registerguard.com'
+    );
 }
 
 sub test_date_matching
@@ -202,6 +209,12 @@ EOF
         ),
         _ts( 'Tue, 6 Nov 2012 20:30:20 PST' ),
         'date_matching: mercurynews.com'
+    );
+
+    is(
+        _ts_from_html( '<div class="noted">11/10/12<br>11:29pm</div>' ),
+        _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
+        'date_matching: registerguard.com'
     );
 }
 

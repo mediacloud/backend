@@ -291,6 +291,7 @@ sub timestamp_from_html($)
     }
 
     $html =~ s/&nbsp;/ /g;
+    $html =~ s|<br ?/?>| |g;
 
     my $month_names   = [ qw/january february march april may june july august september october november december/ ];
     my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
@@ -309,13 +310,13 @@ sub timestamp_from_html($)
     my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;    # e.g. "12:50", "9:39"
     my $pattern_hour_minute_second =
       qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;    # e.g. "12:50:00"
-    my $pattern_month         = qr/(?<month>(:?0?[1-9]|1[012]))/i;                 # e.g. "12", "01", "7"
-    my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;               # e.g. "January", "February", "Jan", "Feb"
-    my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;           # e.g. "Monday", "Tuesday", "Mon", "Tue"
-    my $pattern_day_of_month  = qr/(?:(?<day>(:?[0-2]?[1-9]|3[01]))(?:st|th)?)/i;  # e.g. "23", "02", "9th", "1st"
-    my $pattern_year          = qr/(?<year>20\d\d)/i;                              # e.g. "2001", "2023"
-    my $pattern_am_pm         = qr/(?<am_pm>[AP]\.?M\.?)/i;                        # e.g. "AM", "PM"
-    my $pattern_comma         = qr/(?:,)/i;                                        # e.g. ","
+    my $pattern_month         = qr/(?<month>(:?0?[1-9]|1[012]))/i;          # e.g. "12", "01", "7"
+    my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
+    my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"
+    my $pattern_day_of_month = qr/(?:(?<day>(?:0?[1-9]|[12][0-9]|3[01]))(?:st|th)?)/i;    # e.g. "23", "02", "9th", "1st"
+    my $pattern_year         = qr/(?<year>2?0?\d\d)/i;                                    # e.g. "2001", "2023"
+    my $pattern_am_pm        = qr/(?<am_pm>[AP]\.?M\.?)/i;                                # e.g. "AM", "PM"
+    my $pattern_comma        = qr/(?:,)/i;                                                # e.g. ","
 
     # Patterns that match both date *and* time
     my @date_time_patterns = (
@@ -357,7 +358,7 @@ sub timestamp_from_html($)
             \s+
             $pattern_hour_minute
             (?:\:$pattern_second)?
-            (?:\s+$pattern_am_pm)?
+            (?:\s*$pattern_am_pm)?
             (?:\s+$pattern_timezone)?
             )}ix,
 
@@ -460,7 +461,11 @@ sub timestamp_from_html($)
         # say STDERR "Matched string: $1";
 
         # Collect date parts
-        my $d_year  = $+{ year } + 0;
+        my $d_year = $+{ year } + 0;
+        if ( $d_year < 100 )
+        {    # two digits, e.g. "12"
+            $d_year += 2000;
+        }
         my $d_month = lc( $+{ month } );
         if ( $mon2num{ $d_month } )
         {
