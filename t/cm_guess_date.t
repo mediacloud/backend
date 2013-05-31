@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 32 + 1;
+use Test::More tests => 35 + 1;
 use Test::Deep;
 
 use utf8;
@@ -160,6 +160,32 @@ sub test_live_urls
         _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
         'live_url: registerguard.com'
     );
+
+    is(
+        _gt_url( 'http://witnessla.com/crime-and-punishment/2012/admin/three-strikes-reform-the-joy-of-the-right-to-vote/' ),
+        _ts( 'Wed, 7 Nov 2012 05:00:00 GMT' ),
+        'live_url: witnessla.com'
+    );
+
+    is(
+        _gt_url( 'http://www.santacruzsentinel.com/elections/ci_21943951/prop-36-huge-lead-early-returns' ),
+        _ts( 'Tue, 6 Nov 2012 20:30:20 PST' ),
+        'live_url: santacruzsentinel.com'
+    );
+
+    is(
+        _gt_url(
+'http://www.policymic.com/articles/18212/california-propositions-prop-34-and-prop-36-could-have-national-reprecussions'
+        ),
+        _ts( 'Tue, 6 Nov 2012 08:59:00 EST' ),
+        'live_url: policymic.com'
+    );
+
+    # is(
+    #     _gt_url('http://www.turnto23.com/news/local-news/balloon-launch-in-support-of-prop-36'),
+    #     _ts('Mon, 5 Nov 2012 05:00:00 GMT'),
+    #     'live_url: turnto23.com'
+    # );
 }
 
 sub test_date_matching
@@ -219,6 +245,20 @@ EOF
         _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
         'date_matching: registerguard.com'
     );
+
+    #     is(
+    #         _ts_from_html(<<EOF
+    #             <p class="fontStyle21">
+    #                 Posted: 11/05/2012
+    #                 <br>
+    #                 Last Updated:
+    #                 207 days ago
+    #             </p>
+    # EOF
+    #         ),
+    #         _ts('Mon, 5 Nov 2012 05:00:00 GMT'),
+    #         'date_matching: turnto23.com'
+    #     );
 }
 
 sub main
