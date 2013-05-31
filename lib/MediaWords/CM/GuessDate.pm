@@ -45,6 +45,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_og_article_published_time
     },
     {
+        name     => '_guess_by_sailthru_date',
+        function => \&_guess_by_sailthru_date
+    },
+    {
         name     => 'guess_by_storydate',
         function => \&_guess_by_storydate
     },
@@ -172,6 +176,17 @@ sub _guess_by_og_article_published_time
     my ( $story, $html, $html_tree ) = @_;
 
     if ( my $node = _find_first_node( $html_tree, '//meta[@property="article:published_time"]' ) )
+    {
+        return $node->attr( 'content' );
+    }
+}
+
+# <meta name="sailthru.date" content="Tue, 11 Sep 2012 11:37:49 -0400">
+sub _guess_by_sailthru_date
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//meta[@name="sailthru.date"]' ) )
     {
         return $node->attr( 'content' );
     }
