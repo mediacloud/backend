@@ -14,19 +14,19 @@ use Moose;
 
 with 'MediaWords::Util::Extractor';
 
-sub getExtractedLines {
-    my ( $self,  $line_infos, $preprocessed_lines ) = @_;
+sub getExtractedLines
+{
+    my ( $self, $line_infos, $preprocessed_lines ) = @_;
 
-    return get_extracted_line_with_maxent( $line_infos, $preprocessed_lines);
+    return get_extracted_line_with_maxent( $line_infos, $preprocessed_lines );
 }
 
-
 {
- my ( $leave_out_data_fh, $leave_out_data_file_name ) = tempfile("/tmp/leave_out_tmpfileXXXXXX",  SUFFIX => '.dat');
+    my ( $leave_out_data_fh, $leave_out_data_file_name ) = tempfile( "/tmp/leave_out_tmpfileXXXXXX", SUFFIX => '.dat' );
 
     print $leave_out_data_fh @leave_out_data;
 
-    close( $leave_out_data_fh);
+    close( $leave_out_data_fh );
 }
 
 sub get_extracted_lines_with_crf
@@ -99,49 +99,45 @@ sub get_extracted_lines_with_crf
     return $extracted_lines;
 }
 
-
 sub run_model
 {
     my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
-    
+
     my $probabilities_fh = $output_fhs->{ probabilities_fh };
 
     my $predictions_fh = $output_fhs->{ predictions_fh };
 
     my $expected_results_fh = $output_fhs->{ expected_results_fh };
-    
+
     say STDERR "generating probabilities";
-    
-    # my $model_results_command = "$HOME/Dropbox/SCOTUS_Data2/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports/run_predict.sh  $test_data_file $model_file_name";
-    # #say STDERR $model_results_command;
-    
+
+# my $model_results_command = "$HOME/Dropbox/SCOTUS_Data2/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports/run_predict.sh  $test_data_file $model_file_name";
+# #say STDERR $model_results_command;
+
     # my $model_results = `$model_results_command`;
     # print $probabilities_fh $model_results;
-
 
     my $create_model_script_path = "$HOME/Applications/mallet-2.0.7/run_simple_tagger.sh";
 
     say STDERR "generating predictions";
-    
+
     my $model_prediction_command = "$create_model_script_path --model-file  $model_file_name $test_data_file";
-    
+
     #say STDERR "$model_prediction_command";
-    
+
     my $model_predictions = `$model_prediction_command`;
 
     $model_predictions =~ s/ +\n/\n/g;
     print $predictions_fh $model_predictions;
 
-    open my $in_fh,  $test_data_file or die "Failed to open file $@";
+    open my $in_fh, $test_data_file or die "Failed to open file $@";
 
-    my @test_data = <$in_fh>;   
+    my @test_data = <$in_fh>;
 
     my @expected_results = map { $_ =~ s/.* //; $_ } @test_data;
 
-    print $expected_results_fh @expected_results;    
+    print $expected_results_fh @expected_results;
 }
-
-
 
 my $chldout;
 my $chldin;
