@@ -25,6 +25,7 @@ use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::MoreUtils qw( uniq distinct :all );
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
+use Lingua::EN::Sentence::MediaWords;
 use Text::Trim;
 
 use Data::Dumper;
@@ -242,6 +243,71 @@ sub get_top_words
     return \%top_words;
 }
 
+sub mark_auto_excluded_previous_lines
+{
+    my $line_infos = ( @_ );
+
+    my $previous_line_auto_excluded = 0;
+    foreach my $line_info ( @ { $line_infos } ) 
+    {
+	if ( $previous_line_auto_excluded ) 
+	{
+	     $line_info->{ previous_line_auto_excluded } = 1;
+	}
+
+	$previous_line_auto_excluded = $line_info->{ auto_excluded };
+    }
+
+    return;    
+}
+
+sub get_feature_strings_for_lines
+{
+    my ( $line_infos, $preprocessed_lines ) = @_;
+
+    my $ret = [];
+
+    mark_auto_excluded_previous_lines( $line_infos );
+    
+    my $ea = each_arrayref( $line_infos, $preprocessed_lines );
+    
+    #TODO DRY out this code
+    my $previous_states = [ qw ( prestart start ) ];
+    while ( my ( $line_info, $line_text ) = $ea->() )
+    {
+	my $current_state = $line_info->{ class };
+	
+	if ( $line_info->{ auto_excluded } == 1 )
+	{
+	    $current_state = 'auto_excluded';
+	}
+	
+	my $prior_state_string = join '_', @$previous_states;
+	
+	#$line_info->{ "priors_$prior_state_string" } = 1;
+
+	if ( $previous_states->[ 1 ] eq 'auto_excluded' )
+	{
+	    $line_info->{ previous_line_auto_excluded } = 1;
+	}
+
+	shift $previous_states;
+
+	push $previous_states, $current_state;
+
+	next if $line_info->{ auto_excluded } == 1;
+
+	MediaWords::Crawler::AnalyzeLines::add_additional_features( $line_info, $line_text );
+
+	my $feature_string =
+	    MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );
+
+	push $feature_string, $ret;
+	#say $feature_string;
+    }
+    
+}
+
 sub main
 {
     my $file;
@@ -263,7 +329,7 @@ sub main
 
     say STDERR "retrieved file";
 
-    add_distance_from_previous_line( $downloads );
+    #add_distance_from_previous_line( $downloads );
 
     # say STDERR "About to call add_additional_features";
 
@@ -273,15 +339,19 @@ sub main
 
     my $top_words = get_top_words( $downloads );
 
+    Readonly my $blank_line_between_downloads => 1;
+
     foreach my $download ( @{ $downloads } )
     {
+
+	mark_auto_excluded_previous_lines( $download->{ line_info };
+
         my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
 
         #TODO DRY out this code
         my $previous_states = [ qw ( prestart start ) ];
         while ( my ( $line_info, $line_text ) = $ea->() )
         {
-
             my $current_state = $line_info->{ class };
 
             if ( $line_info->{ auto_excluded } == 1 )
@@ -290,7 +360,8 @@ sub main
             }
 
             my $prior_state_string = join '_', @$previous_states;
-            $line_info->{ "priors_$prior_state_string" } = 1;
+
+            #$line_info->{ "priors_$prior_state_string" } = 1;
 
             if ( $previous_states->[ 1 ] eq 'auto_excluded' )
             {
@@ -308,6 +379,11 @@ sub main
             my $feature_string =
               MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );
             say $feature_string;
+        }
+
+        if ( $blank_line_between_downloads )
+        {
+            say '';
         }
     }
 }
