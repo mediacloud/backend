@@ -42,7 +42,7 @@ if [ `uname` == 'Darwin' ]; then
     brew install \
         perl --use-threads \
         graphviz --with-bindings \
-        coreutils postgresql curl tidy libyaml berkeley-db4
+        coreutils postgresql curl tidy libyaml berkeley-db4 gawk
 
     sudo cpan XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
         Test::WWW::Mechanize OpenGL \
