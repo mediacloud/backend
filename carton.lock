@@ -25476,6 +25476,62 @@
          "target" : "Lingua::Stem::Ru",
          "version" : "0.01"
       },
+      "Lingua::Stem::Snowball" : {
+         "dist" : "Lingua-Stem-Snowball-0.952",
+         "mymeta" : {
+            "abstract" : "Perl interface to Snowball stemmers.",
+            "author" : [
+               "Marvin Humphrey <marvin at rectangular dot com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4005, CPAN::Meta::Converter version 2.131490",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Lingua-Stem-Snowball",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::CBuilder" : "0",
+                     "ExtUtils::ParseXS" : "0"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Test::More" : "0",
+                     "perl" : "v5.6.2"
+                  }
+               }
+            },
+            "provides" : {
+               "Lingua::Stem::Snowball" : {
+                  "file" : "lib/Lingua/Stem/Snowball.pm",
+                  "version" : "0.952"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.952"
+         },
+         "name" : "Lingua::Stem::Snowball",
+         "pathname" : "C/CR/CREAMYG/Lingua-Stem-Snowball-0.952.tar.gz",
+         "provides" : {
+            "Lingua::Stem::Snowball" : {
+               "file" : "Lingua/Stem/Snowball.pm",
+               "version" : "0.952"
+            }
+         },
+         "target" : "Lingua::Stem::Snowball",
+         "version" : "0.952"
+      },
       "Lingua::Stem::Snowball::Da" : {
          "dist" : "Lingua-Stem-Snowball-Da-1.01",
          "mymeta" : {
@@ -25527,6 +25583,62 @@
          },
          "target" : "Lingua::Stem::Snowball::Da",
          "version" : "1.01"
+      },
+      "Lingua::Stem::Snowball::Lt" : {
+         "dist" : "Lingua-Stem-Snowball-Lt-0.01",
+         "mymeta" : {
+            "abstract" : "Perl interface to Snowball stemmer for the Lithuanian language.",
+            "author" : [
+               "Linas Valiukas <linas dot valiukas at gmail dot com>, Marvin Humphrey <marvin at rectangular dot com>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "Module::Build version 0.4005, CPAN::Meta::Converter version 2.131490",
+            "license" : [
+               "perl_5"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Lingua-Stem-Snowball-Lt",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::CBuilder" : "0",
+                     "ExtUtils::ParseXS" : "0"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Test::More" : "0",
+                     "perl" : "v5.6.2"
+                  }
+               }
+            },
+            "provides" : {
+               "Lingua::Stem::Snowball::Lt" : {
+                  "file" : "lib/Lingua/Stem/Snowball/Lt.pm",
+                  "version" : "0.01"
+               }
+            },
+            "release_status" : "stable",
+            "resources" : {
+               "license" : [
+                  "http://dev.perl.org/licenses/"
+               ]
+            },
+            "version" : "0.01"
+         },
+         "name" : "Lingua::Stem::Snowball::Lt",
+         "pathname" : "L/LV/LVALIUKAS/Lingua-Stem-Snowball-Lt-0.01.tar.gz",
+         "provides" : {
+            "Lingua::Stem::Snowball::Lt" : {
+               "file" : "Lingua/Stem/Snowball/Lt.pm",
+               "version" : "0.01"
+            }
+         },
+         "target" : "Lingua::Stem::Snowball::Lt",
+         "version" : "0.01"
       },
       "Lingua::Stem::Snowball::No" : {
          "dist" : "Snowball-Norwegian-1.2",
