@@ -21,6 +21,11 @@ else
 
 fi
 
+# FIXME Install ExtUtils::MakeMaker (a Carton dependency) separately
+# without testing it because t/meta_convert.t fails on some machines
+# (https://rt.cpan.org/Public/Bug/Display.html?id=85861)
+$CPANM --notest ExtUtils::MakeMaker
+
 $CPANM Carton~0.9.15
 $CPANM List::MoreUtils
 $CPANM Devel::NYTProf
