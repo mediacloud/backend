@@ -24434,7 +24434,7 @@
          "version" : "1.01"
       },
       "Lingua::Stem::Snowball::Lt" : {
-         "dist" : "Lingua-Stem-Snowball-Lt-0.01",
+         "dist" : "Lingua-Stem-Snowball-Lt-0.02",
          "mymeta" : {
             "abstract" : "Perl interface to Snowball stemmer for the Lithuanian language.",
             "author" : [
@@ -24467,7 +24467,7 @@
             "provides" : {
                "Lingua::Stem::Snowball::Lt" : {
                   "file" : "lib/Lingua/Stem/Snowball/Lt.pm",
-                  "version" : "0.01"
+                  "version" : "0.02"
                }
             },
             "release_status" : "stable",
@@ -24476,18 +24476,18 @@
                   "http://dev.perl.org/licenses/"
                ]
             },
-            "version" : "0.01"
+            "version" : "0.02"
          },
          "name" : "Lingua::Stem::Snowball::Lt",
-         "pathname" : "L/LV/LVALIUKAS/Lingua-Stem-Snowball-Lt-0.01.tar.gz",
+         "pathname" : "L/LV/LVALIUKAS/Lingua-Stem-Snowball-Lt-0.02.tar.gz",
          "provides" : {
             "Lingua::Stem::Snowball::Lt" : {
                "file" : "Lingua/Stem/Snowball/Lt.pm",
-               "version" : "0.01"
+               "version" : "0.02"
             }
          },
          "target" : "Lingua::Stem::Snowball::Lt",
-         "version" : "0.01"
+         "version" : "0.02"
       },
       "Lingua::Stem::Snowball::No" : {
          "dist" : "Snowball-Norwegian-1.2",

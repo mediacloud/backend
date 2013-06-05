@@ -64,7 +64,7 @@ requires 'Lingua::Identify::CLD';
 requires 'Lingua::Sentence';
 requires 'Lingua::Stem';
 requires 'Lingua::Stem::Snowball';
-requires 'Lingua::Stem::Snowball::Lt';
+requires 'Lingua::Stem::Snowball::Lt', '0.02';
 requires 'Lingua::StopWords';
 requires 'Lingua::ZH::WordSegmenter';
 requires 'List::Compare';
