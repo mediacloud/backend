@@ -51,7 +51,7 @@ sub stem
         $self->lt_stemmer( Lingua::Stem::Snowball::Lt->new() );
     }
 
-    my @stems = $self->stemmer->stem( \@_ );
+    my @stems = $self->lt_stemmer->stem( \@_ );
 
     return \@stems;
 }
