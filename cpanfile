@@ -63,7 +63,8 @@ requires 'IPC::System::Simple';
 requires 'Lingua::Identify::CLD';
 requires 'Lingua::Sentence';
 requires 'Lingua::Stem';
-requires 'Lingua::Stem::Snowball';  # FIXME replace with modified version
+requires 'Lingua::Stem::Snowball';
+requires 'Lingua::Stem::Snowball::Lt';
 requires 'Lingua::StopWords';
 requires 'Lingua::ZH::WordSegmenter';
 requires 'List::Compare';
