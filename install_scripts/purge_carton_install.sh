@@ -1,2 +1,1 @@
-svn revert carton.lock 
-rm -rf .carton local
+rm -rf carton.lock .carton/ local/
