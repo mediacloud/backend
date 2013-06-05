@@ -1,32 +1,11 @@
 #
 # This file lists *direct* Perl module dependencies of Media Cloud.
 #
+# See:
 #
-# To add a new dependency:
-# 
-# 1. Add a dependency to this file (make sure to keep the list in alphabetical order for easier merges):
+#     doc/carton.txt
 #
-#    ...
-#    requires 'Your::Module';
-#    ...
-#
-# 2. Install the dependency with Carton:
-#
-#    ./script/run_carton.sh install --deployment
-#
-# 3. Commit:
-#
-#    # SVN
-#    svn commit cpanfile carton.lock
-#    
-#    # Git
-#    git add cpanfile carton.lock
-#    git commit
-#
-#
-# See also:
-# 
-#  * http://search.cpan.org/~miyagawa/Module-CPANfile-0.9031/lib/cpanfile.pod
+# for instructions on how to add a new Perl module dependency.
 #
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';

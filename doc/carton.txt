@@ -1,55 +1,92 @@
-Adding new modules.
+Adding new modules (dependencies)
+=================================
 
-This is a brief description of the best practice method of adding new modules to carton.
+The Carton module dependency manager depends on two files:
 
-Run svn up to make sure you're up to date.
+* `cpanfile` -- human-edited list of Perl module dependencies for Media Cloud.
+* `carton.lock` -- auto-generated list of modules, their versions and
+  dependencies used by Carton to install a specific version of the module in
+  `each of the developer's machines.
 
-Run ./install_scripts/purge_carton_install.sh
+So, to add a new Perl module dependency:
 
-Run ./install_modules_outside_of_carton.sh
+1. Add a dependency to this `cpanfile` (make sure to keep the list in
+alphabetical order for easier merges):
 
-Run  ./install_modules_with_carton.sh 
+    ...
+    requires 'Your::Module';
+    ...
 
-Run ./script/run_carton.sh install <MODULE_NAME> 
-where <MODULE_NAME> is the module that you want to install.
+2. Install the dependency using Carton while also regenerating `carton.lock`
+   file:
 
-Make sure that Carton installed the module without error messages.
+    ./script/run_carton.sh install --deployment
 
-Run svn diff on carton.lock and make sure the changes make sense. In particular, make sure that no modules were deleted. If there are problems with carton.lock, svn revert it and try again. (You may need the run ./install_scripts/purge_carton_install.sh  and ./install_modules_with_carton.sh before starting over at the beginning of those instructions.) If carton.lock looks okay, svn commit it.
+3. Commit both files:
+
+    # SVN
+    svn commit cpanfile carton.lock
+     
+    # Git
+    git add cpanfile carton.lock
+    git commit
+
+See:
+
+    http://search.cpan.org/~miyagawa/Module-CPANfile-0.9031/lib/cpanfile.pod
+
+for more information about the `cpanfile` file format.
+
 
 Running Scripts
+===============
 
-95% of the time you'll just use the run_with_carton.sh wrapper to run scripts. E.g.:
+95% of the time you'll just use the `run_with_carton.sh` wrapper to run scripts:
 
-      ./script/run_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
+    ./script/run_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
 
-Note its best to run this script from the base directory of the media cloud install. However, this only matters if the arguments after the script are file paths.
+Note it's best to run this script from the base directory of the Media Cloud
+install. However, this only matters if the arguments after the script are file
+paths.
+
 
 Debugging
+=========
 
-To run a script with the debugger under carton use ./script/debug_with_carton.sh e.g.:
-      ./script/debug_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
+To run a script with the debugger under Carton, use
+`./script/debug_with_carton.sh`:
 
-You can invoke this script with the same arguments you used for run_with_carton.sh
+    ./script/debug_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
+
+You can invoke this script with the same arguments you used for
+`run_with_carton.sh`.
+
 
 Profiling
+=========
 
-To profile execution with Devel::NYTProf use ./script/profile_with_carton.sh e.g.:
+To profile execution with `Devel::NYTProf`, use
+`./script/profile_with_carton.sh`:
 
-      ./script/profile_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
+    ./script/profile_with_carton.sh ./script/SCRIPT_NAME.pl ARG1 ARG2
 
-You can invoke this script in the same manner as run_with_carton.sh and debug_with_carton.sh.
+You can invoke this script in the same manner as `run_with_carton.sh` and
+`debug_with_carton.sh`.
+
 
 The Gory Details
+================
 
-debug_with_carton.sh and run_with_carton.sh work by invoking a special version of Carton that we've modified to examine the environment variable CARTON_EXTRA_PERL5OPT. Everything in this variable is appended to PERL5OPT by our Carton before it executes the given perl script.
+`debug_with_carton.sh` and `run_with_carton.sh` work by invoking a special
+version of Carton that we've modified to examine the environment variable
+`CARTON_EXTRA_PERL5OPT`.
 
-You can use this special Carton with ./script/run_wrappered_carton.sh. For example, to have SCRIPT_NAME.pl be invoke with the model Foo::Bar, you would do the following:
+Everything in this variable is appended to `PERL5OPT` by our Carton before it
+executes the given Perl script.
 
-     CARTON_EXTRA_PERL5OPT="-mFoo::Bar" ./script/run_wrappered_carton.sh exec  ./script/SCRIPT_NAME.pl ARG1 ARG2
+You can use this special Carton with `./script/run_wrappered_carton.sh`. For
+example, to have `SCRIPT_NAME.pl` be invoked with the module `Foo::Bar`, you
+would do the following:
 
-
-
-
-
-
+    CARTON_EXTRA_PERL5OPT="-mFoo::Bar" \
+    ./script/run_wrappered_carton.sh exec ./script/SCRIPT_NAME.pl ARG1 ARG2
