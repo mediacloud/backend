@@ -21,7 +21,6 @@ else
 
 fi
 
-$CPANM foreign_modules/carton-v0.9.4.tar.gz
-$CPANM foreign_modules/List-MoreUtils-0.33.tgz
-$CPANM foreign_modules/Devel-NYTProf-4.06.tar.gz 
-$CPANM foreign_modules/Lingua-Stem-Snowball-0.96.tar.gz
+$CPANM Carton~0.9.15
+$CPANM List::MoreUtils
+$CPANM Devel::NYTProf
