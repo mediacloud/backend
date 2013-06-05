@@ -6,7 +6,7 @@ The Carton module dependency manager depends on two files:
 * `cpanfile` -- human-edited list of Perl module dependencies for Media Cloud.
 * `carton.lock` -- auto-generated list of modules, their versions and
   dependencies used by Carton to install a specific version of the module in
-  `each of the developer's machines.
+  each of the developer's machines.
 
 So, to add a new Perl module dependency:
 
