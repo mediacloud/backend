@@ -237,13 +237,17 @@ sub _queue_download_list_with_per_site_limit
     return;
 }
 
-# enqueue broken (missing) downloads
-sub _enqueue_broken_downloads($)
+# enqueue broken (missing) downloads if queue size is less than QUEUED_DOWNLOADS_IDLE_COUNT
+sub _enqueue_broken_downloads_if_idle($)
 {
     my ( $self ) = @_;
 
-    my $db = $self->engine->dbs;
+    return unless ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT );
+ 
+    print STDERR "queue contains less than " . QUEUED_DOWNLOADS_IDLE_COUNT .
+      " pending downloads, adding missing downloads\n";
 
+    my $db = $self->engine->dbs;
     # Enqueue some of the missing downloads to the redownloaded
     my $downloads = $db->query(
         <<END,
@@ -271,21 +275,11 @@ sub _add_pending_downloads
 
     $_last_pending_check = time();
 
-    my $current_queue_size = $self->{ downloads }->_get_downloads_size;
-    if ( $current_queue_size < QUEUED_DOWNLOADS_IDLE_COUNT )
+    if ( $self->{ downloads }->_get_downloads_size > MAX_QUEUED_DOWNLOADS )
     {
-        print STDERR "queue contains less than " . QUEUED_DOWNLOADS_IDLE_COUNT .
-          " pending downloads, adding missing downloads instead\n";
-        $self->_enqueue_broken_downloads();
-        $current_queue_size = $self->{ downloads }->_get_downloads_size;
-    }
-    if ( $current_queue_size > MAX_QUEUED_DOWNLOADS )
-    {
-        print STDERR "skipping add pending downloads due to queue size ($current_queue_size)\n";
+        print STDERR "skipping add pending downloads due to queue size\n";
         return;
     }
-
-    print STDERR "Not skipping add pending downloads queue size($current_queue_size) \n";
 
     my $db = $self->engine->dbs;
 
@@ -308,14 +302,17 @@ END
     my $site_downloads = {};
     map { push( @{ $site_downloads->{ $_->{ site } } }, $_ ) } @{ $downloads };
 
-    return unless ( @{ $sites } );
-
-    my $site_download_queue_limit = int( MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
-
-    for my $site ( @{ $sites } )
+    if ( @{ $sites } )
     {
-        $self->_queue_download_list_with_per_site_limit( $site_downloads->{ $site }, $site_download_queue_limit );
+        my $site_download_queue_limit = int( MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) );
+
+        for my $site ( @{ $sites } )
+        {
+            $self->_queue_download_list_with_per_site_limit( $site_downloads->{ $site }, $site_download_queue_limit );
+        }
     }
+    
+    $self->_enqueue_broken_downloads_if_idle();
 }
 
 # add all pending downloads to the $_downloads list

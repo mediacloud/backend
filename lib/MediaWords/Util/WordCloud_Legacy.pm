@@ -43,7 +43,8 @@ sub get_word_cloud
                 queries_ids => $query->{ queries_id },
                 authors_id  => $query->{ authors_id },
                 stem        => $word->{ stem },
-                term        => $word->{ term }
+                term        => $word->{ term },
+                langauge    => $word->{ language }
             }
         );
 
@@ -202,9 +203,15 @@ sub get_multi_set_word_cloud
         say STDERR "SET: $set\n";
 
         my $queries_ids = [ map { $_->{ queries_id } } @{ $queries } ];
-        my $url =
-          $c->uri_for( $base_url,
-            { queries_ids => $queries_ids, stem => $word_record->{ stem }, term => $word_record->{ term }, set => $set } );
+
+        my $url = $c->uri_for( 
+              $base_url,
+              { queries_ids => $queries_ids, 
+                stem => $word_record->{ stem }, 
+                term => $word_record->{ term }, 
+                language => $word_record->{ language }, 
+                set => $set }
+            );
 
         $cloud->add( $word_record->{ term }, $url, $word_record->{ stem_count } * 100000 );
     }

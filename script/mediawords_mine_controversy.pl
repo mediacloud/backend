@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+!/usr/bin/env perl
 
 # Run through stories found for the given controversy and find all the links in each story.
 # For each link, try to find whether it matches any given story.  If it doesn't, create a

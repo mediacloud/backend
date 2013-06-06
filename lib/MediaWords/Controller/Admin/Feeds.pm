@@ -13,6 +13,7 @@ use MediaWords::Util::Web;
 use Data::Dumper;
 use HTML::Entities;
 use LWP::Simple;
+use XML::FeedPP;
 
 =head1 NAME>
 
@@ -135,6 +136,18 @@ sub create : Local
     $c->stash->{ title }    = 'Create ' . $medium->{ name } . ' feed';
 }
 
+# return 1 if the feed is not syndicated or does not parse as a feed
+sub validate_syndicated_feed
+{
+    my ( $self, $c, $feed ) = @_;
+    
+    return 1 unless ( $feed->{ feed_type } eq 'syndicated' );
+    
+    eval { XML::FeedPP->new( $feed->{ url } ) };
+    
+    return ( $@ ) ? 0 : 1;
+}
+
 sub create_do : Local
 {
     my ( $self, $c, $media_id ) = @_;
@@ -156,7 +169,23 @@ sub create_do : Local
     my $feed = $form->params;
     $feed->{ media_id } = $media_id;
     $feed->{ name } ||= 'feed';
+    
+    my ( $feed_exists ) = $c->dbis->query( <<END, $feed->{ media_id }, $feed->{ url } )->flat;
+select 1 from feeds where media_id = ? and url = ?
+END
 
+    if ( $feed_exists ) 
+    {
+        $c->stash->{ error_msg } = 'Feed url already exists in media source';
+        return $self->create( $c, $media_id );
+    }
+    
+    if ( !$self->validate_syndicated_feed( $c, $feed ) )
+    {
+        $c->stash->{ error_msg } = 'Syndicated feed is not a valid rss/atom/rdf feed';
+        return $self->create( $c, $media_id );        
+    }
+    
     $feed = $c->dbis->create( 'feeds', $feed );
 
     if ( !$medium->{ moderated } )

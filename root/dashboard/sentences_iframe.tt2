@@ -145,7 +145,7 @@
                   <div id = "Source[% i %]"><strong>[% medium.name | html %]</strong><br />
 <br />
     <a id="json_stories_url_[% i %]" 
-       href="[% c.uri_for('/dashboard/sentences_medium_json',dashboard.dashboards_id, { media_id => medium.media_id, stem => stem, queries_ids => queries_ids}) %]" ></a>
+       href="[% c.uri_for('/dashboard/sentences_medium_json',dashboard.dashboards_id, { media_id => medium.media_id, stem => stem, queries_ids => queries_ids, language => language }) %]" ></a>
  <div id="source_sentences_[% i %]">foo
   <ul id='stories[% i %]' class='filetree'>
     [% FOREACH story IN medium.stories %]
