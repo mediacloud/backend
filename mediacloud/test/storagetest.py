@@ -1,6 +1,5 @@
 
 import unittest
-import mediacloud.examples
 from mediacloud.storage import *
 
 class StorageTest(unittest.TestCase):
