@@ -25,25 +25,13 @@ the `dist` directory.
 Examples
 --------
 
-### Getting Stories from Media Cloud
+### Getting the Latest Stories from Media Cloud
 
-You can fetch the latest stories from MediaCloud like this:
-
-    from mediacloud.api import MediaCloud
-    mc = MediaCloud( api_username, api_password )
-    results = mc.recentStories()
-
-You can fetch information about a specific story like this:
+You can fetch the latest 20 processed stories from MediaCloud like this:
 
     from mediacloud.api import MediaCloud
     mc = MediaCloud( api_username, api_password )
-    results = mc.storyDetail(story_id)
-
-You can fetch the stories created after a specific story like this:
-
-    from mediacloud.api import MediaCloud
-    mc = MediaCloud( api_username, api_password )
-    results = mc.storiesSince(story_id)
+    stories = mc.allProcessed()
 
 ### Saving Stories to CouchDB
 
@@ -52,9 +40,9 @@ You can save those stories to a local 'mediacloud' CouchDB database like this:
     from mediacloud.api import MediaCloud
     from mediacloud.storage import CouchStoryDatabase
     mc = MediaCloud( api_username, api_password )
-    results = mc.recentStories()
+    stories = mc.allProcessed()
     db = CouchStoryDatabase('mediacloud')
-    for story in results:
+    for story in stories:
       worked = db.addStory(story)
 
 ### Saving Stories to MongoDB
@@ -65,31 +53,33 @@ You can save those stories to a local 'mediacloud' MongoDB database like this
     from mediacloud.api import MediaCloud
     from mediacloud.storage import MongoStoryDatabase
     mc = MediaCloud( api_username, api_password )
-    results = mc.recentStories()
+    stories = mc.recentStories()
     db = MongoStoryDatabase('mediacloud')
-    for story in results:
+    for story in stories:
       worked = db.addStory(story)
 
 ### Adding Metadata via Callbacks
 
 We have a simple callback mechanism for subscribing to database save events.  This 
-example adds a piece of metadata ("coolness") to the story that gets saved with it 
+example adds a piece of metadata with the source name to the story that gets saved with it 
 when the story is inserted into the database:
 
     from mediacloud.api import MediaCloud
     from mediacloud.storage import StoryDatabase
     from pubsub import pub
     
-    def myCallback(db_story, raw_story):
-        db_story['coolness'] = 10
-    pub.subscribe(myCallback, StoryDatabase.EVENT_PRE_STORY_SAVE)
-    
     mc = MediaCloud( api_username, api_password )
-    results = mc.recentStories()
+
+    def addSourceNameCallback(db_story, raw_story):
+        db_story['source_name'] = mc.mediaInfo(db_story['media_id'])
+    pub.subscribe(addSourceNameCallback, StoryDatabase.EVENT_PRE_STORY_SAVE)
+    
+    stories = mc.recentStories()
     
     db = StoryDatabase('mediacloud')
-    for story in results:
-      worked = db.addStory(story)   # this will fire the myCallback for each story
+    for story in stories:
+      worked = db.addStory(story)   # this will automatically call addSourceNameCallback for each story
 
 ### Downloading a Subset of Articles
 
+To Do...
