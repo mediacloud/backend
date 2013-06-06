@@ -243,11 +243,12 @@ sub _enqueue_broken_downloads_if_idle($)
     my ( $self ) = @_;
 
     return unless ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT );
- 
+
     print STDERR "queue contains less than " . QUEUED_DOWNLOADS_IDLE_COUNT .
       " pending downloads, adding missing downloads\n";
 
     my $db = $self->engine->dbs;
+
     # Enqueue some of the missing downloads to the redownloaded
     my $downloads = $db->query(
         <<END,
@@ -311,7 +312,7 @@ END
             $self->_queue_download_list_with_per_site_limit( $site_downloads->{ $site }, $site_download_queue_limit );
         }
     }
-    
+
     $self->_enqueue_broken_downloads_if_idle();
 }
 

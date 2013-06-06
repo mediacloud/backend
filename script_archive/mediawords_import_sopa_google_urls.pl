@@ -1,4 +1,4 @@
-    #!/usr/bin/env perl
+#!/usr/bin/env perl
 
 # parse a set of csvs, each of which contains a list of urls found be
 # searching google for various terms related to sopa/pipa/coica.  Insert

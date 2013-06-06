@@ -39,7 +39,7 @@ sub get_word_cloud
     {
         my $params = $c->req->parameters;
 
-        $params->{ term } = $word->{ term };
+        $params->{ term }     = $word->{ term };
         $params->{ language } = $word->{ language };
 
         my $url = $c->uri_for( $c->action, @{ $c->req->arguments }, $params );
@@ -83,7 +83,7 @@ sub _get_uri_for_word_cloud_word
     my ( $c, $word ) = @_;
     my $params = $c->req->parameters;
 
-    $params->{ term } = $word->{ term };
+    $params->{ term }     = $word->{ term };
     $params->{ language } = $word->{ language };
 
     my $url = $c->uri_for( $c->action, @{ $c->req->arguments }, $params );
@@ -222,14 +222,16 @@ sub get_multi_set_word_cloud
 
         #say STDERR $url;
 
-        my $query_url = $c->uri_for( 
-              $base_url,
-              { queries_ids => $queries_ids, 
-                stem        => $word_record->{ stem }, 
-                term        => $word_record->{ term }, 
+        my $query_url = $c->uri_for(
+            $base_url,
+            {
+                queries_ids => $queries_ids,
+                stem        => $word_record->{ stem },
+                term        => $word_record->{ term },
                 language    => $word->{ language },
-                set         => $set }
-            );
+                set         => $set
+            }
+        );
 
         $query_url =~ s/&/&amp;/g;
 

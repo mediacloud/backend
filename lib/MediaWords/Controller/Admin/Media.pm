@@ -178,7 +178,7 @@ sub edit_do : Local
         # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
         $form_params->{ full_text_rss }     ||= 0;
         $form_params->{ foreign_rss_links } ||= 0;
-        
+
         $c->dbis->update_by_id( 'media', $id, $form_params );
 
         # Make a logged update

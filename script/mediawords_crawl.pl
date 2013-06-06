@@ -21,12 +21,12 @@ use MediaWords::Crawler::Engine;
 sub main
 {
     my $use_test_interval = 0;
-    if ( $ARGV[ 0 ] eq '-t' ) 
+    if ( $ARGV[ 0 ] eq '-t' )
     {
         $use_test_interval = 1;
         shift( @ARGV );
     }
-    
+
     my ( $processes ) = @ARGV;
 
     $processes ||= 1;

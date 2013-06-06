@@ -1,11 +1,11 @@
-!/usr/bin/env perl
+!/usr/ bin / env perl
 
-# Run through stories found for the given controversy and find all the links in each story.
-# For each link, try to find whether it matches any given story.  If it doesn't, create a
-# new story.  Add that story's links to the queue if it matches the pattern for the
-# controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
+  # Run through stories found for the given controversy and find all the links in each story.
+  # For each link, try to find whether it matches any given story.  If it doesn't, create a
+  # new story.  Add that story's links to the queue if it matches the pattern for the
+  # controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
 
-use strict;
+  use strict;
 
 BEGIN
 {
