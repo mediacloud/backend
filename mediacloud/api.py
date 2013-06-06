@@ -2,6 +2,8 @@
 import json
 import requests
 import re
+import csv
+import codecs
 
 class MediaCloud(object):
     '''
@@ -14,10 +16,29 @@ class MediaCloud(object):
 
     DEFAULT_STORY_COUNT = 25
 
+    media_info = None
+
     def __init__(self, api_user=None, api_pass=None):
         self._api_user = api_user
         self._api_pass = api_pass
         
+    def mediaInfo(self, media_id):
+        '''
+        Call this to get info about a particular media source that you know the id of
+        '''
+        if MediaCloud.media_info == None:
+            MediaCloud.media_info = {}
+            MEDIA_FILE = 'mediacloud/data/media_ids.csv'
+            csv_reader = csv.reader(codecs.open(MEDIA_FILE, 'rU'))
+            header = csv_reader.next() # skip header
+            print header
+            for row in csv_reader:
+                m_id = str(row[0])
+                MediaCloud.media_info[m_id] = {}
+                for idx, column_name in enumerate(header):
+                    MediaCloud.media_info[m_id][ column_name ] = row[idx]
+        return MediaCloud.media_info[str(media_id)]
+
     def createStorySubset(self, start_date, end_date, media_id):
         '''
         Call this to create a subset of stories by date and media source.  This will return a subset id.

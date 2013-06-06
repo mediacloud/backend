@@ -16,5 +16,9 @@ class ApiTest(unittest.TestCase):
         stories = mc.allProcessed()
         self.assertEquals(len(stories),20)
   
+    def testMediaId(self):
+        mc = MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+        self.assertEquals(mc.mediaInfo(1)['name'],'New York Times')
+
     def suite():
         return unittest.makeSuite(ApiTest, 'test')

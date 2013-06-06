@@ -1,10 +1,10 @@
 MediaCloud Python API Client
 ============================
 
-This module is an simple *under construction* demonstration MediaCloud api client written 
-in Python.  It demonstrates pulling stories via the MediaCloud API, processing them via an 
-event subscription to add metadata, and storing all the metadata to a CouchDB or MongoDB 
-document database.
+This is the source code of the python MediaCloud API module.  It is a siple *under construction* 
+demonstration MediaCloud api client written in Python.  It lets you pull subsets of stories via 
+the MediaCloud API, process them via an event subscription to add metadata, and store them in a 
+CouchDB or MongoDB document database.
 
 Installation
 ------------
@@ -15,6 +15,12 @@ Download the distribution zip, then run
 
 Install and run [CouchDB](http://couchdb.apache.org) or [MongoDb](http://mongodb.org) to store 
 article info.
+
+Distribution
+------------
+
+To build the distributon, run `python setup.py sdist` and a compressed file will be created in 
+the `dist` directory.
 
 Examples
 --------
