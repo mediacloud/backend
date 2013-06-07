@@ -47,7 +47,7 @@ You can save those stories to a local 'mediacloud' MongoDB database like this
     from mediacloud.api import MediaCloud
     from mediacloud.storage import MongoStoryDatabase
     mc = MediaCloud( api_username, api_password )
-    stories = mc.recentStories()
+    stories = mc.allProcessed()
     db = MongoStoryDatabase('mediacloud')
     for story in stories:
       worked = db.addStory(story)
@@ -59,18 +59,18 @@ example adds a piece of metadata with the source name to the story that gets sav
 when the story is inserted into the database:
 
     from mediacloud.api import MediaCloud
-    from mediacloud.storage import StoryDatabase
+    from mediacloud.storage import StoryDatabase, MongoStoryDatabase
     from pubsub import pub
     
     mc = MediaCloud( api_username, api_password )
 
     def addSourceNameCallback(db_story, raw_story):
-        db_story['source_name'] = mc.mediaInfo(db_story['media_id'])
+        db_story['source_name'] = mc.mediaInfo(db_story['media_id'])['name']
     pub.subscribe(addSourceNameCallback, StoryDatabase.EVENT_PRE_STORY_SAVE)
     
-    stories = mc.recentStories()
+    stories = mc.allProcessed()
     
-    db = StoryDatabase('mediacloud')
+    db = MongoStoryDatabase('mediacloud')
     for story in stories:
       worked = db.addStory(story)   # this will automatically call addSourceNameCallback for each story
 
