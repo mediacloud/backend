@@ -82,4 +82,41 @@ when the story is inserted into the database:
 
 ### Downloading a Subset of Articles
 
-To Do...
+This is asynchronous, so it takes a bit more work.
+
+#### Step 1: Create a subset
+
+The first step is telling MediaCloud what set of articles you want.  This examples grabs
+all the stories on two dates from the New York Times (media_id 1 as found in 
+`mediacloud/data/media_ids.csv`)
+
+    mc = MediaCloud( api_username, api_password )
+    subset_id = mc.createStorySubset('2012-01-01','2012-01-02',1)
+
+The `subset_id` you get back is important to keep track of.  Now MediaCould will go off
+and gather all the articles it has for you.
+
+#### Step 2: Check if the subset is ready
+
+You can check every once in a while to see if MediaCloud is done gathering the articles.
+This code checks to see if the with the id returned in the Step 1 is ready to be downloaded.
+
+    ready = mc.isStorySubsetReady(subset_id):
+
+The `ready` variable is boolean.
+
+#### Step 3: Download all your articles
+
+Once `ready == True`, you are free to download all your articles.  This works just like
+the `allProcessed()` method, in that you page through results (basde on your `subset_id`).
+
+    db = MongoStoryDatabase('mediacloud')
+    more_stories = True
+    while more_stories:
+      stories = mc.allProcessedInSubset(subset_id,1)
+      if len(stories)==0:
+        more_stories = False
+      for story in stories:
+        worked = db.addStory(story)
+        if worked:
+          saved_story_count = saved_story_count + 1
