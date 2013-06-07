@@ -12,5 +12,5 @@ setup(name='mediacloud',
             'mediacloud.test': 'mediacloud/test'},
   package_data={'mediacloud':['data/*.csv'],
                 'mediacloud.test':['fixtures/*.json']},
-  requires=['pypubsub','nltk','couchdb','pymongo','tldextract','requests']
+  requires=['pypubsub','couchdb','pymongo','requests']
   )
