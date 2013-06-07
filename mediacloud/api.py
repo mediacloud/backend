@@ -31,7 +31,6 @@ class MediaCloud(object):
             MEDIA_FILE = 'mediacloud/data/media_ids.csv'
             csv_reader = csv.reader(codecs.open(MEDIA_FILE, 'rU'))
             header = csv_reader.next() # skip header
-            print header
             for row in csv_reader:
                 m_id = str(row[0])
                 MediaCloud.media_info[m_id] = {}
