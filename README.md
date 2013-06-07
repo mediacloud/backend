@@ -16,12 +16,6 @@ Download the distribution zip, then run
 Install and run [CouchDB](http://couchdb.apache.org) or [MongoDb](http://mongodb.org) to store 
 article info.
 
-Distribution
-------------
-
-To build the distributon, run `python setup.py sdist` and a compressed file will be created in 
-the `dist` directory.
-
 Examples
 --------
 
@@ -120,3 +114,15 @@ the `allProcessed()` method, in that you page through results (basde on your `su
         worked = db.addStory(story)
         if worked:
           saved_story_count = saved_story_count + 1
+
+Testing
+-------
+
+First run all the tests.  Copy `mc-client.config.template` to `mc-client.config` and edit it.
+Then run `python tests.py`.
+
+Distribution
+------------
+
+To build the distributon, run `python setup.py sdist` and a compressed file will be created in 
+the `dist` directory.
