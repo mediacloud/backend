@@ -4,6 +4,7 @@ import requests
 import re
 import csv
 import codecs
+import logging
 
 class MediaCloud(object):
     '''
@@ -19,6 +20,7 @@ class MediaCloud(object):
     media_info = None
 
     def __init__(self, api_user=None, api_pass=None):
+        logging.basicConfig(filename='mediacloud-api.log',level=logging.DEBUG)
         self._api_user = api_user
         self._api_pass = api_pass
         
@@ -84,6 +86,7 @@ class MediaCloud(object):
         Helper that actually makes the requests
         '''
         url = self.API_URL + method
+        logging.debug("query "+url+" with "+str(params))
         r = requests.request( http_method, url, 
             params=params,
             auth=(self._api_user, self._api_pass), 

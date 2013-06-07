@@ -119,6 +119,8 @@ Testing
 First run all the tests.  Copy `mc-client.config.template` to `mc-client.config` and edit it.
 Then run `python tests.py`.
 
+Notice you get a `mediacloud-api.log` that tells you about each query it runs.
+
 Distribution
 ------------
 
