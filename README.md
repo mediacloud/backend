@@ -112,8 +112,6 @@ the `allProcessed()` method, in that you page through results (basde on your `su
         more_stories = False
       for story in stories:
         worked = db.addStory(story)
-        if worked:
-          saved_story_count = saved_story_count + 1
 
 Testing
 -------
