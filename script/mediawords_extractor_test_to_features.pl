@@ -102,20 +102,23 @@ sub get_word_counts_by_class
 
         while ( my ( $line_info, $preprocessed_line ) = $ea->() )
         {
-            if ( $line_info->{ auto_excluded } )
+            if ( ! $line_info->{ auto_excluded } )
             {
                 next if $preprocessed_line eq '';
                 next if $preprocessed_line eq ' ';
 
                 #say Dumper($preprocessed_line );
+		#say STDERR Dumper( $line_info );
 
                 my @words = @{ MediaWords::Crawler::AnalyzeLines::words_on_line( $preprocessed_line ) };
 
                 foreach my $word ( @words )
                 {
+		    $word_counts->{ $line_info->{ class } } //= {};
                     $word_counts->{ $line_info->{ class } }->{ $word } //= 0;
                     $word_counts->{ $line_info->{ class } }->{ $word }++;
                 }
+		
             }
         }
     }
@@ -156,6 +159,24 @@ sub add_distance_from_previous_line
 
     return;
 
+}
+
+sub add_class_information
+{
+    my ( $downloads ) = @_;
+
+    foreach my $download ( @{ $downloads } )
+    {
+        foreach my $line ( @{ $download->{ line_info } } )
+        {
+            my $line_number = $line->{ line_number };
+
+            $line->{ class } = $download->{ line_should_be_in_story }->{ $line_number } // 'excluded';
+        }
+
+    }
+
+    return;
 }
 
 sub sort_pmi
@@ -244,7 +265,7 @@ sub get_top_words
 
 sub mark_auto_excluded_previous_lines
 {
-    my $line_infos = ( @_ );
+    my ( $line_infos ) = ( @_ );
 
     my $previous_line_auto_excluded = 0;
     foreach my $line_info ( @{ $line_infos } )
@@ -306,6 +327,8 @@ sub get_feature_strings_for_lines
         #say $feature_string;
     }
 
+    return $ret;
+
 }
 
 sub main
@@ -337,6 +360,8 @@ sub main
 
     # say STDERR "Returned from call to add_additional_features";
 
+    add_class_information( $downloads );
+
     my $top_words = get_top_words( $downloads );
 
     Readonly my $blank_line_between_downloads => 1;
@@ -344,10 +369,13 @@ sub main
     foreach my $download ( @{ $downloads } )
     {
 
-        mark_auto_excluded_previous_lines(
-            $download->{ line_info } );
+	my $line_infos =  $download->{ line_info } ;
+	my $preprocessed_lines = $download->{ preprocessed_lines };
 
-              my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
+        mark_auto_excluded_previous_lines(
+            $line_infos );
+
+              my $ea = each_arrayref( $line_infos, $download->{ preprocessed_lines } );
 
               #TODO DRY out this code
               my $previous_states = [ qw ( prestart start ) ];
