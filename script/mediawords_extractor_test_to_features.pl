@@ -262,7 +262,7 @@ sub mark_auto_excluded_previous_lines
 
 sub get_feature_strings_for_lines
 {
-    my ( $line_infos, $preprocessed_lines ) = @_;
+    my ( $line_infos, $preprocessed_lines, $top_words ) = @_;
 
     my $ret = [];
 
@@ -345,7 +345,7 @@ sub main
     {
 
         mark_auto_excluded_previous_lines(
-            $download->{ line_info };
+            $download->{ line_info } );
 
               my $ea = each_arrayref( $download->{ line_info }, $download->{ preprocessed_lines } );
 
