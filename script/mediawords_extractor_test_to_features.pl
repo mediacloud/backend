@@ -331,9 +331,11 @@ sub get_feature_strings_for_lines
 
 }
 
-sub print_feature_strings_for_download
+sub get_feature_strings_for_download
 {
     my ( $line_infos, $preprocessed_lines, $top_words ) = @_;
+
+    my $ret = [];
 
     mark_auto_excluded_previous_lines( $line_infos );
 
@@ -369,9 +371,10 @@ sub print_feature_strings_for_download
 
         my $feature_string =
           MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );
-        say $feature_string;
+        push $ret, $feature_string;
     }
 
+    return $ret;
 }
 
 sub main
@@ -415,7 +418,9 @@ sub main
         my $line_infos         = $download->{ line_info };
         my $preprocessed_lines = $download->{ preprocessed_lines };
 
-        print_feature_strings_for_download( $line_infos, $preprocessed_lines, $top_words );
+        my $feature_strings = get_feature_strings_for_download( $line_infos, $preprocessed_lines, $top_words );
+
+	say join "\n", @ { $feature_strings };
 
         if ( $blank_line_between_downloads )
         {
