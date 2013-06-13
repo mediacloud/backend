@@ -1,0 +1,185 @@
+Manual testing script for basic mediacloud functionality.
+
+TEST
+
+* run script/mediawords_create_db.sh to create a fresh database
+
+VERIFY
+
+* no errors during db creation
+
+TEST
+
+* add a user using the following command:
+
+./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
+         --action=add \
+         --email=jdoe@cyber.law.harvard.edu \
+         --full_name="John Doe" \
+         --notes="test" \
+         --roles="admin" \
+         --password="testtest"
+VERIFY
+
+* script returns with no errors
+
+TEST
+
+* run script/run_server_with_carton.sh to start web app
+* bring up mediacloud admin site in browser (http://localhost:3000/)
+* login with the above test user
+* click add media
+* in the large box enter 'nytimes.com'
+* click the Add Media button
+
+VERIFY
+
+* login is successful
+* all pages load without errors
+* the New York Times appears in the list of media after nytimes.com is added
+
+TEST
+
+* In the media list screen click ‘edit’ in the tags column for the new york times.
+* For tagset enter ‘collection’
+* For tag enter ‘newspapers’
+* Click Go
+* Click Home
+
+VERIFY
+
+* 'collection:newspapers' appears in the tags field for the new york times
+
+TEST
+
+* Click Add Media
+* Enter the following for sources:
+
+washingtonpost.com
+latimes.com
+
+* In the tags box enter:
+
+collection:newpapers
+
+* Click the Add Media button
+* Click Home
+
+VERIFY
+
+* washington post and la times appear in the media list, and both have 'collection:newspapers' in as a tag
+
+TEST
+
+* Click Add media
+* In the first box enter:
+
+boingboing.net collection:blogs
+redstate.com collection:blogs;collection:conservative_blogs
+
+* Click the Add Media button
+* Click Home
+
+VERIFY
+
+* boingboing and redstate appear in the media list and are associated with the relevant tags above
+
+TEST
+
+* For each of the sources do the following:
+    * Click Feeds in the ‘feeds’ column
+    * Click scrape but don’t check recurse
+    * After the scraping is complete, leave the first feed checked and click import
+    
+NOTE: To speed things up, process each source in a separate tab so feeds can be imported in parallel. To do this on browsers such as chrome or firefox, middle click on the Feeds link in the feeds column on the home scree.
+
+VERIFY
+
+* Verify that each source has 1 feed associated with it by clicking on the 'feeds' link of each media source from the /admin/media page
+
+TEST
+
+* Click Dashboards
+* Click Create New Dashboard
+
+* Fill out the fields as follows:
+
+name: mydash
+Start Date : 2008-01-01
+End Date: 2014-01-01
+
+* Click on Create
+
+VERIFY
+
+* 'mydash' appears in list of dashboards
+
+TEST
+
+* Click mediasets on mydash row
+* Click Create New Media Set
+* Fill out as follows
+
+Name: Newspapers
+Description: Newspapers
+Collection Tag: collection:newspapers
+
+* Click Go
+
+* Repeat twice with the following info:
+
+Name: blogs
+Description: blogs
+Collection Tag: collection:blogs
+
+Name: conservative_blogs
+Description: conservative_blogs
+Collection Tag: collection:conservative_blogs
+
+VERIFY
+
+* all three media sets appear in the list with the associated tags
+
+TEST
+
+* Run the following command:
+
+nice ./script/run_with_carton.sh ./script/mediawords_crawl.pl -t 10
+
+* Wait a few minutes for the crawler to start repeating 'provide downloads: 0 downloads', indicating that all urls in the feeds for the media sources added to the system have been downloaded
+* Ctl-c to kill the script
+
+VERIFY
+
+* Verify that stories have been downloaded for each of the 5 media sources by going to the 'feeds' link for each media source on the home page and clicking on the name of the single feed for each media source
+
+TEST
+
+* run the following command:
+
+nice ./script/run_with_carton.sh ./script/mediawords_extract_and_vector.pl 10
+
+* Wait a few minutes until you see 'no downloads found. sleeping ...' repeatedly
+* Ctl-c to kill the script
+
+VERIFY
+
+* Verify that a few stories have been extracted by listing the stories within a feed as above and the clicking on a few of the story titles.  The extracted text should appear after the second line of '***' in the 'Extracted text:' field.
+
+Test
+
+* run the following command and wait until it exits (should be a couple of minutes at most):
+
+nice ./script/run_with_carton.sh ./script/mediawords_update_aggregate_vectors.pl 
+
+VERIFY
+
+* Click ‘Dashboards’
+* Click the ‘view’ link for the dashboard called MyDashboard
+* Verify that a word cloud appears
+* Select the current week and click submit
+* Select each media set and click submit for each
+* Verify that a word cloud appears for each media set
+* Click a word in the word cloud and verify that sentences appear
+* In the Media Sources box in the Query section start typing “New York Times” and verify that autocomplete works
+

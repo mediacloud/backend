@@ -2098,6 +2098,7 @@ sub sentences : Local
     $c->stash->{ dashboard }           = $dashboard;
     $c->stash->{ stem }                = $stem;
     $c->stash->{ term }                = $term;
+    $c->stash->{ language }            = $lang_code;
     $c->stash->{ queries_description } = $queries_description;
     $c->stash->{ queries_ids }         = [ $c->req->param( 'queries_ids' ) ];
     $c->stash->{ media }               = $media;
