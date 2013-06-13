@@ -27,15 +27,15 @@ use constant MONGODB_READ_RETRIES  => 3;
 use constant MONGODB_WRITE_RETRIES => 3;
 
 # MongoDB client, GridFS instance (lazy-initialized to prevent multiple forks using the same object)
-my $_mongodb_client   = undef;
-my $_mongodb_database = undef;
-my $_mongodb_gridfs   = undef;
+has '_mongodb_client'   => ( is => 'rw' );
+has '_mongodb_database' => ( is => 'rw' );
+has '_mongodb_gridfs'   => ( is => 'rw' );
 
 # Process PID (to prevent forks attempting to clone the MongoDB accessor objects)
-my $_pid = 0;
+has '_pid' => ( is => 'rw', default => 0 );
 
 # True if the package should connect to the MongoDB GridFS database used for testing
-my $_use_testing_database = 0;
+has '_use_testing_database' => ( is => 'rw', default => 0 );
 
 # Constructor
 sub BUILD
@@ -45,30 +45,21 @@ sub BUILD
     # Get settings
     if ( $args->{ use_testing_database } )
     {
-        $_use_testing_database = 1;
+        $self->_use_testing_database( 1 );
     }
     else
     {
-        $_use_testing_database = 0;
+        $self->_use_testing_database( 0 );
     }
+
+    $self->_pid( $$ );
 }
 
-# Destructor
-sub DEMOLISH
-{
-
-    # Setting instances to undef should take care of the disconnect / cleanup automatically
-    $_mongodb_gridfs   = undef;
-    $_mongodb_database = undef;
-    $_mongodb_client   = undef;
-    $_pid              = 0;
-}
-
-sub _connect_to_mongodb_or_die
+sub _connect_to_mongodb_or_die($)
 {
     my ( $self ) = @_;
 
-    if ( $_pid == $$ and ( $_mongodb_client and $_mongodb_database and $_mongodb_gridfs ) )
+    if ( $self->_pid == $$ and ( $self->_mongodb_client and $self->_mongodb_database and $self->_mongodb_gridfs ) )
     {
 
         # Already connected on the very same process
@@ -77,7 +68,7 @@ sub _connect_to_mongodb_or_die
 
     # Get settings
     my $mongo_settings;
-    if ( $_use_testing_database )
+    if ( $self->_use_testing_database )
     {
         $mongo_settings = MediaWords::Util::Config::get_config->{ mongodb_gridfs }->{ test };
         unless ( defined( $mongo_settings ) )
@@ -107,26 +98,27 @@ sub _connect_to_mongodb_or_die
     }
 
     # Connect
-    $_mongodb_client = MongoDB::MongoClient->new( host => $host, port => $port, query_timeout => MONGODB_QUERY_TIMEOUT );
-    unless ( $_mongodb_client )
+    $self->_mongodb_client(
+        MongoDB::MongoClient->new( host => $host, port => $port, query_timeout => MONGODB_QUERY_TIMEOUT ) );
+    unless ( $self->_mongodb_client )
     {
         die "GridFS: Unable to connect to MongoDB.\n";
     }
 
-    $_mongodb_database = $_mongodb_client->get_database( $database_name );
-    unless ( $_mongodb_database )
+    $self->_mongodb_database( $self->_mongodb_client->get_database( $database_name ) );
+    unless ( $self->_mongodb_database )
     {
         die "GridFS: Unable to choose a MongoDB database.\n";
     }
 
-    $_mongodb_gridfs = $_mongodb_database->get_gridfs;
-    unless ( $_mongodb_gridfs )
+    $self->_mongodb_gridfs( $self->_mongodb_database->get_gridfs );
+    unless ( $self->_mongodb_gridfs )
     {
         die "GridFS: Unable to connect use the MongoDB database as GridFS.\n";
     }
 
     # Save PID
-    $_pid = $$;
+    $self->_pid( $$ );
 
     say STDERR "GridFS: Connected to GridFS download storage at '$host:$port/$database_name' for PID $$.";
 }
@@ -136,10 +128,10 @@ sub content_exists($$)
 {
     my ( $self, $download ) = @_;
 
-    _connect_to_mongodb_or_die();
+    $self->_connect_to_mongodb_or_die();
 
     my $filename = '' . $download->{ downloads_id };
-    my $file = $_mongodb_gridfs->find_one( { "filename" => $filename } );
+    my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } );
 
     return ( defined $file );
 }
@@ -149,17 +141,17 @@ sub remove_content($$)
 {
     my ( $self, $download ) = @_;
 
-    _connect_to_mongodb_or_die();
+    $self->_connect_to_mongodb_or_die();
 
     my $filename = '' . $download->{ downloads_id };
 
     # Remove file(s) if already exist(s) -- MongoDB might store several versions of the same file
-    while ( my $file = $_mongodb_gridfs->find_one( { "filename" => $filename } ) )
+    while ( my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } ) )
     {
         say STDERR "GridFS: Removing existing file '$filename'.";
 
         # "safe -- If true, each remove will be checked for success and die on failure."
-        $_mongodb_gridfs->remove( { "filename" => $filename }, { safe => 1 } );
+        $self->_mongodb_gridfs->remove( { "filename" => $filename }, { safe => 1 } );
     }
 }
 
@@ -168,7 +160,7 @@ sub store_content($$$$;$)
 {
     my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
 
-    _connect_to_mongodb_or_die();
+    $self->_connect_to_mongodb_or_die();
 
     # Encode + gzip
     my $content_to_store;
@@ -196,7 +188,7 @@ sub store_content($$$$;$)
         eval {
 
             # Remove file(s) if already exist(s) -- MongoDB might store several versions of the same file
-            while ( my $file = $_mongodb_gridfs->find_one( { "filename" => $filename } ) )
+            while ( my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } ) )
             {
                 say STDERR "GridFS: Removing existing file '$filename'.";
                 $self->remove_content( $download );
@@ -205,7 +197,7 @@ sub store_content($$$$;$)
             # Write
             my $basic_fh;
             open( $basic_fh, '<', \$content_to_store );
-            $gridfs_id = $_mongodb_gridfs->put( $basic_fh, { "filename" => $filename } );
+            $gridfs_id = $self->_mongodb_gridfs->put( $basic_fh, { "filename" => $filename } );
             unless ( $gridfs_id )
             {
                 die "GridFS: MongoDBs OID is empty.";
@@ -237,7 +229,7 @@ sub fetch_content($$;$)
 {
     my ( $self, $download, $skip_gunzip_and_decode ) = @_;
 
-    _connect_to_mongodb_or_die();
+    $self->_connect_to_mongodb_or_die();
 
     unless ( $download->{ downloads_id } )
     {
@@ -262,7 +254,7 @@ sub fetch_content($$;$)
         eval {
 
             # Read
-            $file = $_mongodb_gridfs->find_one( { 'filename' => $filename } );
+            $file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
             $attempt_to_read_succeeded = 1;
         };
 
