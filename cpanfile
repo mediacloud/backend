@@ -61,6 +61,8 @@ requires 'HTML::TagCloud';
 requires 'HTML::TreeBuilder::LibXML';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
+requires 'Inline';
+requires 'Inline::Java';
 requires 'Lingua::Identify::CLD';
 requires 'Lingua::Sentence';
 requires 'Lingua::Stem';
