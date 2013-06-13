@@ -522,7 +522,7 @@ sub get_feature_strings_for_download
     my $ea = each_arrayref( $line_infos, $preprocessed_lines );
 
     #TODO DRY out this code
-    my $previous_states = [ qw ( prestart start ) ];
+    #my $previous_states = [ qw ( prestart start ) ];
     while ( my ( $line_info, $line_text ) = $ea->() )
     {
         my $current_state = $line_info->{ class };
@@ -532,18 +532,18 @@ sub get_feature_strings_for_download
             $current_state = 'auto_excluded';
         }
 
-        my $prior_state_string = join '_', @$previous_states;
+        # my $prior_state_string = join '_', @$previous_states;
 
-        #$line_info->{ "priors_$prior_state_string" } = 1;
+        # #$line_info->{ "priors_$prior_state_string" } = 1;
 
-        if ( $previous_states->[ 1 ] eq 'auto_excluded' )
-        {
-            $line_info->{ previous_line_auto_excluded } = 1;
-        }
+        # if ( $previous_states->[ 1 ] eq 'auto_excluded' )
+        # {
+        #     $line_info->{ previous_line_auto_excluded } = 1;
+        # }
 
-        shift $previous_states;
+        # shift $previous_states;
 
-        push $previous_states, $current_state;
+        # push $previous_states, $current_state;
 
         next if $line_info->{ auto_excluded } == 1;
 

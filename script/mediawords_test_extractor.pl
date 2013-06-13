@@ -30,6 +30,7 @@ use MediaWords::Util::HTML;
 use MediaWords::Util::ExtractorTest;
 use MediaWords::Util::HeuristicExtractor;
 use MediaWords::Util::MaxEntExtractor;
+use MediaWords::Util::CrfExtractor;
 
 use Data::Compare;
 use Storable;
@@ -133,11 +134,14 @@ sub processDownload
     my $old_extractor   = MediaWords::Util::HeuristicExtractor->new();
     my $extracted_lines = $old_extractor->getExtractedLines( $line_info );
 
-    my $me_extractor = MediaWords::Util::MaxEntExtractor->new();
+    #say STDERR "processDownload";
+    #my $me_extractor = MediaWords::Util::MaxEntExtractor->new();
 
-    $extracted_lines = $me_extractor->getExtractedLines( $line_info, $preprocessed_lines );
+    #$extracted_lines = $me_extractor->getExtractedLines( $line_info, $preprocessed_lines );
 
-    #$extracted_lines = get_extracted_line_with_maxent( $line_info, $preprocessed_lines );
+    #my $crf_extractor = MediaWords::Util::CrfExtractor->new();
+
+    #$extracted_lines = $crf_extractor->getExtractedLines( $line_info, $preprocessed_lines );
 
     #say Dumper ( $extracted_lines );
     #exit;

@@ -143,7 +143,7 @@ sub run_model_on_array
 {
     my ( $crf, $test_data_array ) = @_;
 
-    my $test_data = join '', @{ $test_data_array };
+    my $test_data = join "\n", @{ $test_data_array };
 
     my $foo = model_runner->run_model_string( $test_data, $crf );
 
@@ -270,7 +270,6 @@ public class model_runner {
 
 			results.addAll(predictions);
 
-			results.add("");
 			// return results.toArray(new String[0]);
 			// return ret;
 
@@ -308,7 +307,6 @@ public class model_runner {
 			FileNotFoundException, ClassNotFoundException {
 		ObjectInputStream s = new ObjectInputStream(new FileInputStream(
 				modelFileName));
-
 		CRF crf = null;
 		crf = (CRF) s.readObject();
 		s.close();

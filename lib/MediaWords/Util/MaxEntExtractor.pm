@@ -6,7 +6,7 @@ use strict;
 
 use Data::Dumper;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
-use List::MoreUtils qw( :all);
+#use List::MoreUtils qw( :all);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use IPC::Open2;
 
