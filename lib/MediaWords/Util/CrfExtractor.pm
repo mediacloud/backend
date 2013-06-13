@@ -9,6 +9,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::MoreUtils qw( :all);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use IPC::Open2;
+use CRF::CrfUtils;
 
 use Moose;
 
@@ -20,14 +21,6 @@ sub getExtractedLines
 
     return get_extracted_line_with_crf( $line_infos, $preprocessed_lines );
 }
-
-# {
-#     my ( $leave_out_data_fh, $leave_out_data_file_name ) = tempfile( "/tmp/leave_out_tmpfileXXXXXX", SUFFIX => '.dat' );
-
-#     print $leave_out_data_fh @leave_out_data;
-
-#     close( $leave_out_data_fh );
-# }
 
 sub get_extracted_lines_with_crf
 {
