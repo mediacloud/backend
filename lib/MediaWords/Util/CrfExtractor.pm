@@ -1,4 +1,4 @@
-package MediaWords::Util::MaxEntExtractor;
+package MediaWords::Util::CrfExtractor;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
@@ -9,6 +9,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::MoreUtils qw( :all);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use IPC::Open2;
+use CRF::CrfUtils;
 
 use Moose;
 
@@ -18,15 +19,7 @@ sub getExtractedLines
 {
     my ( $self, $line_infos, $preprocessed_lines ) = @_;
 
-    return get_extracted_line_with_maxent( $line_infos, $preprocessed_lines );
-}
-
-{
-    my ( $leave_out_data_fh, $leave_out_data_file_name ) = tempfile( "/tmp/leave_out_tmpfileXXXXXX", SUFFIX => '.dat' );
-
-    print $leave_out_data_fh @leave_out_data;
-
-    close( $leave_out_data_fh );
+    return get_extracted_line_with_crf( $line_infos, $preprocessed_lines );
 }
 
 sub get_extracted_lines_with_crf
@@ -99,106 +92,106 @@ sub get_extracted_lines_with_crf
     return $extracted_lines;
 }
 
-sub run_model
-{
-    my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
+# sub run_model
+# {
+#     my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
 
-    my $probabilities_fh = $output_fhs->{ probabilities_fh };
+#     my $probabilities_fh = $output_fhs->{ probabilities_fh };
 
-    my $predictions_fh = $output_fhs->{ predictions_fh };
+#     my $predictions_fh = $output_fhs->{ predictions_fh };
 
-    my $expected_results_fh = $output_fhs->{ expected_results_fh };
+#     my $expected_results_fh = $output_fhs->{ expected_results_fh };
 
-    say STDERR "generating probabilities";
+#     say STDERR "generating probabilities";
 
-# my $model_results_command = "$HOME/Dropbox/SCOTUS_Data2/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports/run_predict.sh  $test_data_file $model_file_name";
-# #say STDERR $model_results_command;
+# # my $model_results_command = "$HOME/Dropbox/SCOTUS_Data2/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports/run_predict.sh  $test_data_file $model_file_name";
+# # #say STDERR $model_results_command;
 
-    # my $model_results = `$model_results_command`;
-    # print $probabilities_fh $model_results;
+#     # my $model_results = `$model_results_command`;
+#     # print $probabilities_fh $model_results;
 
-    my $create_model_script_path = "$HOME/Applications/mallet-2.0.7/run_simple_tagger.sh";
+#     my $create_model_script_path = "$HOME/Applications/mallet-2.0.7/run_simple_tagger.sh";
 
-    say STDERR "generating predictions";
+#     say STDERR "generating predictions";
 
-    my $model_prediction_command = "$create_model_script_path --model-file  $model_file_name $test_data_file";
+#     my $model_prediction_command = "$create_model_script_path --model-file  $model_file_name $test_data_file";
 
-    #say STDERR "$model_prediction_command";
+#     #say STDERR "$model_prediction_command";
 
-    my $model_predictions = `$model_prediction_command`;
+#     my $model_predictions = `$model_prediction_command`;
 
-    $model_predictions =~ s/ +\n/\n/g;
-    print $predictions_fh $model_predictions;
+#     $model_predictions =~ s/ +\n/\n/g;
+#     print $predictions_fh $model_predictions;
 
-    open my $in_fh, $test_data_file or die "Failed to open file $@";
+#     open my $in_fh, $test_data_file or die "Failed to open file $@";
 
-    my @test_data = <$in_fh>;
+#     my @test_data = <$in_fh>;
 
-    my @expected_results = map { $_ =~ s/.* //; $_ } @test_data;
+#     my @expected_results = map { $_ =~ s/.* //; $_ } @test_data;
 
-    print $expected_results_fh @expected_results;
-}
+#     print $expected_results_fh @expected_results;
+# }
 
-my $chldout;
-my $chldin;
-my $pid;
+# my $chldout;
+# my $chldin;
+# my $pid;
 
-sub pipe_to_streaming_model
-{
-    my ( $feature_string ) = @_;
+# sub pipe_to_streaming_model
+# {
+#     my ( $feature_string ) = @_;
 
-    die unless $feature_string;
+#     die unless $feature_string;
 
-    if ( !defined( $chldout ) )
-    {
-        my $script_path =
-          '~/ML_code/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports_dev/run_predict_stream_input.sh';
+#     if ( !defined( $chldout ) )
+#     {
+#         my $script_path =
+#           '~/ML_code/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports_dev/run_predict_stream_input.sh';
 
-        #my $model_path = 'training_data_features_top_1000_unigrams_2_prior_states_MaxEntModel_Iterations_1500.txt';
-        my $model_path = 'training_data_features_top_1000_unigrams_no_prior_states_MaxEntModel_Iterations_1000.txt';
+#         #my $model_path = 'training_data_features_top_1000_unigrams_2_prior_states_MaxEntModel_Iterations_1500.txt';
+#         my $model_path = 'training_data_features_top_1000_unigrams_no_prior_states_MaxEntModel_Iterations_1000.txt';
 
-        my $cmd = "$script_path $model_path";
+#         my $cmd = "$script_path $model_path";
 
-        say STDERR "Starting cmd:\n$cmd";
+#         say STDERR "Starting cmd:\n$cmd";
 
-        $pid = open2( $chldout, $chldin, "$cmd" );
+#         $pid = open2( $chldout, $chldin, "$cmd" );
 
-        use POSIX ":sys_wait_h";
+#         use POSIX ":sys_wait_h";
 
-        sleep 2;
+#         sleep 2;
 
-        my $reaped_pid = waitpid( $pid, WNOHANG );
+#         my $reaped_pid = waitpid( $pid, WNOHANG );
 
-        die if ( $reaped_pid == $pid );
-    }
+#         die if ( $reaped_pid == $pid );
+#     }
 
-    #say STDERR "sending '$feature_string'";
+#     #say STDERR "sending '$feature_string'";
 
-    say $chldin $feature_string;
+#     say $chldin $feature_string;
 
-    my $string = <$chldout>;
+#     my $string = <$chldout>;
 
-    my $reaped_pid = waitpid( $pid, WNOHANG );
+#     my $reaped_pid = waitpid( $pid, WNOHANG );
 
-    die $string if ( $reaped_pid == $pid );
+#     die $string if ( $reaped_pid == $pid );
 
-    my $prob_strings = [ split /\s+/, $string ];
+#     my $prob_strings = [ split /\s+/, $string ];
 
-    #say Dumper( $prob_strings );
+#     #say Dumper( $prob_strings );
 
-    my $prob_hash = {};
+#     my $prob_hash = {};
 
-    foreach my $prob_string ( @{ $prob_strings } )
-    {
-        $prob_string =~ /([a-z]+)\[([0-9.]+)\]/;
+#     foreach my $prob_string ( @{ $prob_strings } )
+#     {
+#         $prob_string =~ /([a-z]+)\[([0-9.]+)\]/;
 
-        die "Invalid prob string '$prob_string' from '$string'" unless defined( $1 ) && defined( $2 );
+#         die "Invalid prob string '$prob_string' from '$string'" unless defined( $1 ) && defined( $2 );
 
-        $prob_hash->{ $1 } = $2;
+#         $prob_hash->{ $1 } = $2;
 
-    }
+#     }
 
-    return $prob_hash;
-}
+#     return $prob_hash;
+# }
 
 1;
