@@ -33,320 +33,320 @@ BEGIN
     say STDERR "classpath: $class_path";
  }
 
-# sub output_testing_and_training
-# {
-#     my ( $out_data, my $leave_out_part, my $parts ) = @_;
+sub output_testing_and_training
+{
+    my ( $out_data, my $leave_out_part, my $parts ) = @_;
 
-#     my @test_data = @{ $out_data };
+    my @test_data = @{ $out_data };
 
-#     my $part_size = my $parts_size = int( scalar( @test_data ) / $parts ) + 1;
+    my $part_size = my $parts_size = int( scalar( @test_data ) / $parts ) + 1;
 
-#     my @leave_out_data = splice @test_data, ( $part_size * $leave_out_part ), $part_size;
+    my @leave_out_data = splice @test_data, ( $part_size * $leave_out_part ), $part_size;
 
-#     my ( $leave_out_data_fh, $leave_out_data_file_name ) = tempfile( "/tmp/leave_out_tmpfileXXXXXX", SUFFIX => '.dat' );
+    my ( $leave_out_data_fh, $leave_out_data_file_name ) = tempfile( "/tmp/leave_out_tmpfileXXXXXX", SUFFIX => '.dat' );
 
-#     print $leave_out_data_fh @leave_out_data;
+    print $leave_out_data_fh @leave_out_data;
 
-#     close( $leave_out_data_fh );
+    close( $leave_out_data_fh );
 
-#     my ( $train_data_fh, $train_data_file_name ) = tempfile( "/tmp/train_tmpfileeXXXXXX", SUFFIX => '.dat' );
+    my ( $train_data_fh, $train_data_file_name ) = tempfile( "/tmp/train_tmpfileeXXXXXX", SUFFIX => '.dat' );
 
-#     print $train_data_fh @test_data;
+    print $train_data_fh @test_data;
 
-#     say STDERR $leave_out_data_file_name;
-#     say STDERR $train_data_file_name;
+    say STDERR $leave_out_data_file_name;
+    say STDERR $train_data_file_name;
 
-#     close( $train_data_fh );
+    close( $train_data_fh );
 
-#     return {
-#         leave_out_file  => $leave_out_data_file_name,
-#         train_data_file => $train_data_file_name
-#     };
-# }
+    return {
+        leave_out_file  => $leave_out_data_file_name,
+        train_data_file => $train_data_file_name
+    };
+}
 
-# sub generate_output_fhs
-# {
-#     my ( $output_dir ) = @_;
+sub generate_output_fhs
+{
+    my ( $output_dir ) = @_;
 
-#     my $ret                     = {};
-#     my $probabilities_file_name = "$output_dir/probabilities.txt";
-#     open my $probabilities_fh, '>', $probabilities_file_name or die "Failed to open file $@";
+    my $ret                     = {};
+    my $probabilities_file_name = "$output_dir/probabilities.txt";
+    open my $probabilities_fh, '>', $probabilities_file_name or die "Failed to open file $@";
 
-#     $ret->{ probabilities_fh } = $probabilities_fh;
+    $ret->{ probabilities_fh } = $probabilities_fh;
 
-#     my $predictions_file_name = "$output_dir/predictions.txt";
-#     open my $predictions_fh, '>', $predictions_file_name or die "Failed to open file $@";
+    my $predictions_file_name = "$output_dir/predictions.txt";
+    open my $predictions_fh, '>', $predictions_file_name or die "Failed to open file $@";
 
-#     $ret->{ predictions_fh } = $predictions_fh;
+    $ret->{ predictions_fh } = $predictions_fh;
 
-#     my $expected_results_file_name = "$output_dir/expected.txt";
-#     open my $expected_results_fh, '>', $expected_results_file_name or die "Failed to open file $@";
+    my $expected_results_file_name = "$output_dir/expected.txt";
+    open my $expected_results_fh, '>', $expected_results_file_name or die "Failed to open file $@";
 
-#     $ret->{ expected_results_fh } = $expected_results_fh;
+    $ret->{ expected_results_fh } = $expected_results_fh;
 
-#     return $ret;
-# }
+    return $ret;
+}
 
-# my $gaussian = $ENV{ MAX_ENT_GUASSIAN };
+my $gaussian = $ENV{ MAX_ENT_GUASSIAN };
 
-# sub create_model
-# {
-#     my ( $training_data_file, $iterations ) = @_;
+sub create_model
+{
+    my ( $training_data_file, $iterations ) = @_;
 
-#     return create_model_inline_java( $training_data_file, $iterations );
-# }
+    return create_model_inline_java( $training_data_file, $iterations );
+}
 
-# sub create_model_inline_java
-# {
-#     my ( $training_data_file, $iterations ) = @_;
+sub create_model_inline_java
+{
+    my ( $training_data_file, $iterations ) = @_;
 
-#     say "Entering create_model_inline_java";
+    say "Entering create_model_inline_java";
 
-#     use Inline (
-#         Java  => 'STUDY',
-#         STUDY => [
-#             qw ( cc.mallet.fst.SimpleTagger
-#               java.io.FileReader java.io.File )
-#         ],
-#         AUTOSTUDY => 1,
-#         CLASSPATH => $class_path,
-#         PACKAGE => 'main'
-#     );
+    use Inline (
+        Java  => 'STUDY',
+        STUDY => [
+            qw ( cc.mallet.fst.SimpleTagger
+              java.io.FileReader java.io.File )
+        ],
+        AUTOSTUDY => 1,
+        CLASSPATH => $class_path,
+        PACKAGE => 'main'
+    );
 
-#     my $model_file_name = $training_data_file;
+    my $model_file_name = $training_data_file;
 
-#     $model_file_name =~ s/\.dat$/Model\.txt/;
+    $model_file_name =~ s/\.dat$/Model\.txt/;
 
-#     say "Model File: $model_file_name";
+    say "Model File: $model_file_name";
 
-#     my $foo = cc::mallet::fst::SimpleTagger->main(
-#         [ "--train", "true", "--iterations", $iterations, "--model-file", $model_file_name, $training_data_file ] );
+    my $foo = cc::mallet::fst::SimpleTagger->main(
+        [ "--train", "true", "--iterations", $iterations, "--model-file", $model_file_name, $training_data_file ] );
 
-#     return;
-# }
+    return;
+}
 
-# my $crf;
+my $crf;
 
-# sub run_model_inline_java_data_array
-# {
-#     my ( $model_file_name, $test_data_array ) = @_;
+sub run_model_inline_java_data_array
+{
+    my ( $model_file_name, $test_data_array ) = @_;
 
-#     if ( !defined( $crf ) )
-#     {
-#         $crf = model_runner->readModel( $model_file_name );
-#     }
+    if ( !defined( $crf ) )
+    {
+        $crf = model_runner->readModel( $model_file_name );
+    }
 
-#     return run_model_on_array( $crf, $test_data_array );
-# }
+    return run_model_on_array( $crf, $test_data_array );
+}
 
-# sub run_model_on_array
-# {
-#     my ( $crf, $test_data_array ) = @_;
+sub run_model_on_array
+{
+    my ( $crf, $test_data_array ) = @_;
 
-#     my $test_data = join '', @{ $test_data_array };
+    my $test_data = join '', @{ $test_data_array };
 
-#     my $foo = model_runner->run_model_string( $test_data, $crf );
+    my $foo = model_runner->run_model_string( $test_data, $crf );
 
-#     return $foo;
-# }
+    return $foo;
+}
 
-# sub run_model_inline_java
-# {
-#     my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
+sub run_model_inline_java
+{
+    my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
 
-#     my $probabilities_fh = $output_fhs->{ probabilities_fh };
+    my $probabilities_fh = $output_fhs->{ probabilities_fh };
 
-#     my $predictions_fh = $output_fhs->{ predictions_fh };
+    my $predictions_fh = $output_fhs->{ predictions_fh };
 
-#     my $expected_results_fh = $output_fhs->{ expected_results_fh };
+    my $expected_results_fh = $output_fhs->{ expected_results_fh };
 
-#     my $create_model_script_path = "$HOME/Applications/mallet-2.0.7/run_simple_tagger.sh";
+    my $create_model_script_path = "$HOME/Applications/mallet-2.0.7/run_simple_tagger.sh";
 
-#     say STDERR "generating predictions";
+    say STDERR "generating predictions";
 
-#     say STDERR "classpath: $class_path";
+    say STDERR "classpath: $class_path";
 
     
-#     use Inline (
-#         Java  => 'STUDY',
-#         STUDY => [
-#             qw ( cc.mallet.fst.SimpleTagger
-#               java.io.FileReader java.io.File )
-#         ],
-#         AUTOSTUDY => 1,
-#         CLASSPATH => $class_path,
-#         PACKAGE => 'main'
-#     );
+    use Inline (
+        Java  => 'STUDY',
+        STUDY => [
+            qw ( cc.mallet.fst.SimpleTagger
+              java.io.FileReader java.io.File )
+        ],
+        AUTOSTUDY => 1,
+        CLASSPATH => $class_path,
+        PACKAGE => 'main'
+    );
 
-#     open my $test_data_file_fh, '<', $test_data_file;
+    open my $test_data_file_fh, '<', $test_data_file;
 
-#     my @test_data_array = <$test_data_file_fh>;
+    my @test_data_array = <$test_data_file_fh>;
 
-#     my $foo = run_model_inline_java_data_array( $model_file_name, \@test_data_array );
+    my $foo = run_model_inline_java_data_array( $model_file_name, \@test_data_array );
 
-#     say join "\n", @{ $foo };
+    say join "\n", @{ $foo };
 
-#     exit();
-# }
+    exit();
+}
 
-# sub run_model
-# {
-#     my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
+sub run_model
+{
+    my ( $model_file_name, $test_data_file, $output_fhs ) = @_;
 
-#     return run_model_inline_java( $model_file_name, $test_data_file, $output_fhs );
-# }
+    return run_model_inline_java( $model_file_name, $test_data_file, $output_fhs );
+}
 
-# sub train_and_test
-# {
-#     my ( $files, $output_fhs, $iterations ) = @_;
+sub train_and_test
+{
+    my ( $files, $output_fhs, $iterations ) = @_;
 
-#     my $model_file_name = create_model( $files->{ train_data_file }, $iterations );
+    my $model_file_name = create_model( $files->{ train_data_file }, $iterations );
 
-#     run_model( $model_file_name, $files->{ leave_out_file }, $output_fhs );
-# }
+    run_model( $model_file_name, $files->{ leave_out_file }, $output_fhs );
+}
 
-# use Inline
-#   JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, PACKAGE => 'main';
+use Inline
+  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, PACKAGE => 'main';
 
-# import java.io.File;
-# import java.io.FileInputStream;
-# import java.io.FileNotFoundException;
-# import java.io.FileReader;
-# import java.io.IOException;
-# import java.io.ObjectInputStream;
-# import java.io.Reader;
-# import java.io.StringReader;
-# import java.util.ArrayList;
-# import java.util.regex.Pattern;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
-# import cc.mallet.fst.CRF;
-# import cc.mallet.fst.SimpleTagger;
-# import cc.mallet.pipe.Pipe;
-# import cc.mallet.pipe.iterator.LineGroupIterator;
-# import cc.mallet.types.InstanceList;
-# import cc.mallet.types.Sequence;
+import cc.mallet.fst.CRF;
+import cc.mallet.fst.SimpleTagger;
+import cc.mallet.pipe.Pipe;
+import cc.mallet.pipe.iterator.LineGroupIterator;
+import cc.mallet.types.InstanceList;
+import cc.mallet.types.Sequence;
 
-# public class model_runner {
+public class model_runner {
 
-# 	public static void main(String[] args) throws Exception {
-# 		run_model(args[0], args[1]);
-# 	}
+	public static void main(String[] args) throws Exception {
+		run_model(args[0], args[1]);
+	}
 
-# 	public static String[] run_model(String testFileName, String modelFileName)
-# 			throws Exception {
-# 		InstanceList testData = readTestData(testFileName);
+	public static String[] run_model(String testFileName, String modelFileName)
+			throws Exception {
+		InstanceList testData = readTestData(testFileName);
 
-# 		return run_model_impl(modelFileName, testData);
-# 	}
+		return run_model_impl(modelFileName, testData);
+	}
 
-# 	public static String[] run_model_string(String testDataString, String modelFileName)
-# 			throws Exception {
-# 		InstanceList testData = readTestDataFromString(testDataString);
+	public static String[] run_model_string(String testDataString, String modelFileName)
+			throws Exception {
+		InstanceList testData = readTestDataFromString(testDataString);
 
-# 		return run_model_impl(modelFileName, testData);
-# 	}
+		return run_model_impl(modelFileName, testData);
+	}
 	
-# 	public static String[] run_model_string(String testDataString, CRF crf)
-# 			throws Exception {
-# 		InstanceList testData = readTestDataFromString(testDataString);
+	public static String[] run_model_string(String testDataString, CRF crf)
+			throws Exception {
+		InstanceList testData = readTestDataFromString(testDataString);
 
-# 		return run_crf_model(testData, crf);
-# 	}
+		return run_crf_model(testData, crf);
+	}
 	
-# 	private static String[] run_model_impl(String modelFileName,
-# 			InstanceList testData) throws IOException, FileNotFoundException,
-# 			ClassNotFoundException {
-# 		CRF crf = readModel(modelFileName);
+	private static String[] run_model_impl(String modelFileName,
+			InstanceList testData) throws IOException, FileNotFoundException,
+			ClassNotFoundException {
+		CRF crf = readModel(modelFileName);
 
-# 		return run_crf_model(testData, crf);
-# 	}
+		return run_crf_model(testData, crf);
+	}
 
-# 	private static String[] run_crf_model(InstanceList testData, CRF crf) {
-# 		ArrayList<String> results = new ArrayList<String>();
-# 		for (int i = 0; i < testData.size(); i++) {
-# 			Sequence input = (Sequence) testData.get(i).getData();
+	private static String[] run_crf_model(InstanceList testData, CRF crf) {
+		ArrayList<String> results = new ArrayList<String>();
+		for (int i = 0; i < testData.size(); i++) {
+			Sequence input = (Sequence) testData.get(i).getData();
 
-# 			ArrayList<String> predictions = predictSequence(crf, input);
+			ArrayList<String> predictions = predictSequence(crf, input);
 
-# 			results.addAll(predictions);
+			results.addAll(predictions);
 
-# 			results.add("");
-# 			// return results.toArray(new String[0]);
-# 			// return ret;
+			results.add("");
+			// return results.toArray(new String[0]);
+			// return ret;
 
-# 		}
-# 		return results.toArray(new String[0]);
-# 	}
+		}
+		return results.toArray(new String[0]);
+	}
 
-# 	private static InstanceList readTestData(String testFileName)
-# 			throws FileNotFoundException {
+	private static InstanceList readTestData(String testFileName)
+			throws FileNotFoundException {
 		
 
-# 		Reader testFile = new FileReader(new File(testFileName));
+		Reader testFile = new FileReader(new File(testFileName));
 		
-# 		return instanceListFromReader(testFile);
-# 	}
+		return instanceListFromReader(testFile);
+	}
 
-# 	private static InstanceList readTestDataFromString(final String testData)
-# 	{
+	private static InstanceList readTestDataFromString(final String testData)
+	{
 
-# 		Reader testFile = new StringReader(testData);
+		Reader testFile = new StringReader(testData);
 		
-# 		return instanceListFromReader(testFile);
-# 	}
+		return instanceListFromReader(testFile);
+	}
 
 	
-# 	private static InstanceList instanceListFromReader(Reader testFile) {
-# 		Pipe p = new SimpleTagger.SimpleTaggerSentence2FeatureVectorSequence();
-# 		InstanceList testData = new InstanceList(p);
-# 		testData.addThruPipe(new LineGroupIterator(testFile, Pattern
-# 				.compile("^\\s*$"), true));
-# 		return testData;
-# 	}
+	private static InstanceList instanceListFromReader(Reader testFile) {
+		Pipe p = new SimpleTagger.SimpleTaggerSentence2FeatureVectorSequence();
+		InstanceList testData = new InstanceList(p);
+		testData.addThruPipe(new LineGroupIterator(testFile, Pattern
+				.compile("^\\s*$"), true));
+		return testData;
+	}
 
-# 	public static CRF readModel(String modelFileName) throws IOException,
-# 			FileNotFoundException, ClassNotFoundException {
-# 		ObjectInputStream s = new ObjectInputStream(new FileInputStream(
-# 				modelFileName));
+	public static CRF readModel(String modelFileName) throws IOException,
+			FileNotFoundException, ClassNotFoundException {
+		ObjectInputStream s = new ObjectInputStream(new FileInputStream(
+				modelFileName));
 
-# 		CRF crf = null;
-# 		crf = (CRF) s.readObject();
-# 		s.close();
-# 		return crf;
-# 	}
+		CRF crf = null;
+		crf = (CRF) s.readObject();
+		s.close();
+		return crf;
+	}
 
-# 	private static ArrayList<String> predictSequence(CRF crf,
-# 			Sequence input) {
+	private static ArrayList<String> predictSequence(CRF crf,
+			Sequence input) {
 		
-# 		ArrayList<String> sequenceResults = new ArrayList<String>();
-# 		int nBestOption = 1;
+		ArrayList<String> sequenceResults = new ArrayList<String>();
+		int nBestOption = 1;
 
-# 		Sequence[] outputs = SimpleTagger.apply(crf, input, nBestOption);
-# 		int k = outputs.length;
-# 		boolean error = false;
-# 		for (int a = 0; a < k; a++) {
-# 			if (outputs[a].size() != input.size()) {
-# 				// logger.info("Failed to decode input sequence " + i
-# 				// + ", answer " + a);
-# 				error = true;
-# 			}
-# 		}
+		Sequence[] outputs = SimpleTagger.apply(crf, input, nBestOption);
+		int k = outputs.length;
+		boolean error = false;
+		for (int a = 0; a < k; a++) {
+			if (outputs[a].size() != input.size()) {
+				// logger.info("Failed to decode input sequence " + i
+				// + ", answer " + a);
+				error = true;
+			}
+		}
 
-# 		if (!error) {
-# 			for (int j = 0; j < input.size(); j++) {
-# 				StringBuffer buf = new StringBuffer();
-# 				for (int a = 0; a < k; a++) {
-# 					String prediction = outputs[a].get(j).toString();
-# 					buf.append(prediction).append(" ");
-# 					sequenceResults.add(prediction + " ");
-# 				}
-# 			}
-# 		}
+		if (!error) {
+			for (int j = 0; j < input.size(); j++) {
+				StringBuffer buf = new StringBuffer();
+				for (int a = 0; a < k; a++) {
+					String prediction = outputs[a].get(j).toString();
+					buf.append(prediction).append(" ");
+					sequenceResults.add(prediction + " ");
+				}
+			}
+		}
 
-# 		return sequenceResults;
-# 	}
-# }
+		return sequenceResults;
+	}
+}
 
-# END_JAVA
+END_JAVA
 
 1;
