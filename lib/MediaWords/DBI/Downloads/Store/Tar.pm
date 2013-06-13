@@ -14,7 +14,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use Archive::Tar::Indexed;
 
-my $_data_dir;
+has '_data_dir' => ( is => 'rw' );
 
 # Constructor
 sub BUILD
@@ -22,7 +22,7 @@ sub BUILD
     my ( $self, $args ) = @_;
 
     my $config = MediaWords::Util::Config::get_config;
-    $_data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
+    $self->_data_dir( $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir } );
 
     # say STDERR "New Tar download storage.";
 }
@@ -83,7 +83,7 @@ sub store_content($$$$;$)
     my $download_path = _get_download_path( $db, $download );
 
     my $tar_file = _get_tar_file( $db, $download );
-    my $tar_path = "$_data_dir/content/$tar_file";
+    my $tar_path = $self->_data_dir . "/content/$tar_file";
 
     # Encode + gzip
     my $content_to_store;
@@ -124,7 +124,7 @@ sub fetch_content($$;$)
 
     my ( $starting_block, $num_blocks, $tar_file, $download_file ) = ( $1, $2, $3, $4 );
 
-    my $tar_path = "$_data_dir/content/$tar_file";
+    my $tar_path = $self->_data_dir . "/content/$tar_file";
 
     # Read from Tar
     my $gzipped_content_ref = Archive::Tar::Indexed::read_file( $tar_path, $download_file, $starting_block, $num_blocks );

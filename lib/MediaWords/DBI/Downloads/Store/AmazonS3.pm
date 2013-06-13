@@ -29,16 +29,16 @@ use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING => 1;
 use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING => 1;
 
 # Net::Amazon::S3 instance, bucket (lazy-initialized to prevent multiple forks using the same object)
-my $_s3                       = undef;
-my $_s3_client                = undef;
-my $_s3_bucket                = undef;
-my $_s3_downloads_folder_name = '';
+has '_s3'                       => ( is => 'rw' );
+has '_s3_client'                => ( is => 'rw' );
+has '_s3_bucket'                => ( is => 'rw' );
+has '_s3_downloads_folder_name' => ( is => 'rw', default => '' );
 
 # Process PID (to prevent forks attempting to clone the Net::Amazon::S3 accessor objects)
-my $_pid = 0;
+has '_pid' => ( is => 'rw', default => 0 );
 
 # True if the package should connect to the Amazon S3 bucket used for testing
-my $_use_testing_database = 0;
+has '_use_testing_database' => ( is => 'rw', default => 0 );
 
 # Constructor
 sub BUILD
@@ -48,30 +48,21 @@ sub BUILD
     # Get settings
     if ( $args->{ use_testing_database } )
     {
-        $_use_testing_database = 1;
+        $self->_use_testing_database( 1 );
     }
     else
     {
-        $_use_testing_database = 0;
+        $self->_use_testing_database( 0 );
     }
+
+    $self->_pid( $$ );
 }
 
-# Destructor
-sub DEMOLISH
-{
-
-    # Setting instances to undef should take care of the cleanup automatically
-    $_s3_bucket = undef;
-    $_s3_client = undef;
-    $_s3        = undef;
-    $_pid       = 0;
-}
-
-sub _initialize_s3_or_die
+sub _initialize_s3_or_die($)
 {
     my ( $self ) = @_;
 
-    if ( $_pid == $$ and ( $_s3 and $_s3_bucket ) )
+    if ( $self->_pid == $$ and ( $self->_s3 and $self->_s3_bucket ) )
     {
 
         # Already initialized on the very same process
@@ -91,7 +82,7 @@ sub _initialize_s3_or_die
     my $bucket_name;
     my $downloads_folder_name;
 
-    if ( $_use_testing_database )
+    if ( $self->_use_testing_database )
     {
         say STDERR "AmazonS3: Will use testing bucket.";
         $bucket_name           = $config->{ amazon_s3 }->{ test }->{ bucket_name };
@@ -116,52 +107,54 @@ sub _initialize_s3_or_die
     }
 
     # Initialize
-    $_s3_downloads_folder_name = $downloads_folder_name || '';
-    $_s3 = Net::Amazon::S3->new(
-        aws_access_key_id     => $access_key_id,
-        aws_secret_access_key => $secret_access_key,
-        retry                 => 1,
-        secure                => AMAZON_S3_USE_SSL,
-        timeout               => AMAZON_S3_TIMEOUT
+    $self->_s3_downloads_folder_name( $downloads_folder_name || '' );
+    $self->_s3(
+        Net::Amazon::S3->new(
+            aws_access_key_id     => $access_key_id,
+            aws_secret_access_key => $secret_access_key,
+            retry                 => 1,
+            secure                => AMAZON_S3_USE_SSL,
+            timeout               => AMAZON_S3_TIMEOUT
+        )
     );
-    unless ( $_s3 )
+    unless ( $self->_s3 )
     {
         die "AmazonS3: Unable to initialize Net::Amazon::S3 instance.\n";
     }
-    $_s3_client = Net::Amazon::S3::Client->new( s3 => $_s3 );
+    $self->_s3_client( Net::Amazon::S3::Client->new( s3 => $self->_s3 ) );
 
     # Get the bucket ($_s3->bucket would not verify that the bucket exists)
-    my @buckets = $_s3_client->buckets;
+    my @buckets = $self->_s3_client->buckets;
     foreach my $bucket ( @buckets )
     {
         if ( $bucket->name eq $bucket_name )
         {
-            $_s3_bucket = $bucket;
+            $self->_s3_bucket( $bucket );
         }
     }
-    unless ( $_s3_bucket )
+    unless ( $self->_s3_bucket )
     {
         die "AmazonS3: Unable to get bucket '$bucket_name'.";
     }
 
     # Save PID
-    $_pid = $$;
+    $self->_pid( $$ );
 
-    my $path = ( $_s3_downloads_folder_name ? "$bucket_name/$downloads_folder_name" : "$bucket_name" );
+    my $path = ( $self->_s3_downloads_folder_name ? "$bucket_name/$downloads_folder_name" : "$bucket_name" );
     say STDERR "AmazonS3: Initialized Amazon S3 download storage at '$path' for PID $$.";
 }
 
-sub _object_for_download($)
+sub _object_for_download($$)
 {
-    my ( $download ) = @_;
+    my ( $self, $download ) = @_;
 
     unless ( $download and $download->{ downloads_id } )
     {
         die "Download is invalid: " . Dumper( $download );
     }
 
-    my $filename = $_s3_downloads_folder_name . $download->{ downloads_id };
-    my $object = $_s3_bucket->object( key => $filename );
+    my $filename = $self->_s3_downloads_folder_name . $download->{ downloads_id };
+    my $object = $self->_s3_bucket->object( key => $filename );
 
     return $object;
 }
@@ -171,9 +164,9 @@ sub content_exists($$)
 {
     my ( $self, $download ) = @_;
 
-    _initialize_s3_or_die();
+    $self->_initialize_s3_or_die();
 
-    my $object = _object_for_download( $download );
+    my $object = $self->_object_for_download( $download );
     if ( $object->exists )
     {
         return 1;
@@ -189,14 +182,14 @@ sub remove_content($$)
 {
     my ( $self, $download ) = @_;
 
-    _initialize_s3_or_die();
+    $self->_initialize_s3_or_die();
 
     unless ( $self->content_exists( $download ) )
     {
         die "AmazonS3: download ID " . $download->{ downloads_id } . " does not exist.\n";
     }
 
-    my $object = _object_for_download( $download );
+    my $object = $self->_object_for_download( $download );
 
     $object->delete;
 
@@ -208,7 +201,7 @@ sub store_content($$$$;$)
 {
     my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
 
-    _initialize_s3_or_die();
+    $self->_initialize_s3_or_die();
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING )
     {
@@ -231,7 +224,7 @@ sub store_content($$$$;$)
     }
 
     # Store; will die() on failure
-    my $object = _object_for_download( $download );
+    my $object = $self->_object_for_download( $download );
     $object->put( $content_to_store );
 
     return 's3:' . $download->{ downloads_id };
@@ -242,7 +235,7 @@ sub fetch_content($$;$)
 {
     my ( $self, $download, $skip_gunzip_and_decode ) = @_;
 
-    _initialize_s3_or_die();
+    $self->_initialize_s3_or_die();
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING )
     {
@@ -253,7 +246,7 @@ sub fetch_content($$;$)
     }
 
     # Read; will die() on failure
-    my $object          = _object_for_download( $download );
+    my $object          = $self->_object_for_download( $download );
     my $gzipped_content = $object->get;
 
     # Gunzip + decode
