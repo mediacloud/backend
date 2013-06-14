@@ -1,7 +1,7 @@
 
 import unittest
 import ConfigParser
-from mediacloud.api import MediaCloud
+import mediacloud.api
 
 class ApiTest(unittest.TestCase):
 
@@ -12,13 +12,18 @@ class ApiTest(unittest.TestCase):
         self._config.read('mc-client.config')
 
     def testAllProcessed(self):
-        mc = MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+        mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
         stories = mc.allProcessed()
         self.assertEquals(len(stories),20)
   
-    def testMediaId(self):
-        mc = MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
-        self.assertEquals(mc.mediaInfo(1)['name'],'New York Times')
+    def testClassMediaSource(self):
+        mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+        media_source = mc.mediaSource(1)
+        self.assertEquals(media_source['name'],'New York Times')
+
+    def testModuleMediaSource(self):
+        media_source = mediacloud.api.mediaSource(1)
+        self.assertEquals(media_source['name'],'New York Times')
 
     def suite():
         return unittest.makeSuite(ApiTest, 'test')

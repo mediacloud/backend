@@ -6,39 +6,43 @@ import csv
 import codecs
 import logging
 
+media_info = None
+
+def mediaSource(media_id):
+    '''
+    Call this to get info about a particular media source that you know the id of
+    '''
+    global media_info
+    if media_info == None:
+        media_info = {}
+        MEDIA_FILE = 'mediacloud/data/media_ids.csv'
+        csv_reader = csv.reader(codecs.open(MEDIA_FILE, 'rU'))
+        header = csv_reader.next() # skip header
+        for row in csv_reader:
+            m_id = str(row[0])
+            media_info[m_id] = {}
+            for idx, column_name in enumerate(header):
+                media_info[m_id][ column_name ] = row[idx]
+    return media_info[str(media_id)]
+
 class MediaCloud(object):
     '''
     Simple client library for the nascent MediaCloud story feed API
     '''
 
-    VERSION = "0.2"
+    VERSION = "0.3"
 
     API_URL = "http://amanda.law.harvard.edu/admin/api/stories/"
 
     DEFAULT_STORY_COUNT = 25
 
-    media_info = None
-
     def __init__(self, api_user=None, api_pass=None):
         logging.basicConfig(filename='mediacloud-api.log',level=logging.DEBUG)
         self._api_user = api_user
         self._api_pass = api_pass
-        
-    def mediaInfo(self, media_id):
-        '''
-        Call this to get info about a particular media source that you know the id of
-        '''
-        if MediaCloud.media_info == None:
-            MediaCloud.media_info = {}
-            MEDIA_FILE = 'mediacloud/data/media_ids.csv'
-            csv_reader = csv.reader(codecs.open(MEDIA_FILE, 'rU'))
-            header = csv_reader.next() # skip header
-            for row in csv_reader:
-                m_id = str(row[0])
-                MediaCloud.media_info[m_id] = {}
-                for idx, column_name in enumerate(header):
-                    MediaCloud.media_info[m_id][ column_name ] = row[idx]
-        return MediaCloud.media_info[str(media_id)]
+
+    def mediaSource(self, media_id):
+        return mediaSource(media_id)
 
     def createStorySubset(self, start_date, end_date, media_id):
         '''

@@ -58,6 +58,7 @@ We have a simple callback mechanism for subscribing to database save events.  Th
 example adds a piece of metadata with the source name to the story that gets saved with it 
 when the story is inserted into the database:
 
+    import mediacloud.api
     from mediacloud.api import MediaCloud
     from mediacloud.storage import StoryDatabase, MongoStoryDatabase
     from pubsub import pub
@@ -65,7 +66,7 @@ when the story is inserted into the database:
     mc = MediaCloud( api_username, api_password )
 
     def addSourceNameCallback(db_story, raw_story):
-        db_story['source_name'] = mc.mediaInfo(db_story['media_id'])['name']
+        db_story['source_name'] = mediacloud.api.mediaSource(db_story['media_id'])['name']
     pub.subscribe(addSourceNameCallback, StoryDatabase.EVENT_PRE_STORY_SAVE)
     
     stories = mc.allProcessed()
