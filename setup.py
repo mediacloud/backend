@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='mediacloud',
-  version='0.2',
+  version='0.3',
   description='MediaCloud API Client Library',
   author='Rahul Bhargava',
   author_email='rahulb@media.mit.edu',
