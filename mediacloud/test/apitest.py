@@ -5,8 +5,6 @@ import mediacloud.api
 
 class ApiTest(unittest.TestCase):
 
-    TEST_STORY_ID = 88848860
-
     def setUp(self):
         self._config = ConfigParser.ConfigParser()
         self._config.read('mc-client.config')
