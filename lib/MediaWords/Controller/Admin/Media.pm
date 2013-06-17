@@ -170,12 +170,16 @@ sub edit_do : Local
     }
     else
     {
-        $c->dbis->update_by_id( 'media', $id, $form->params );
+        my $form_params = { %{ $form->params } };    # shallow copy to make editable
+
+        # remove from copy so update_by_id doesn't try to update non-existent media field
+        delete( $form_params->{ reason } );
 
         # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
-        my $form_params = { %{ $form->params } };    # shallow copy to make editable
-        $form_params->{ full_text_rss }     = 0 unless $form_params->{ full_text_rss };
-        $form_params->{ foreign_rss_links } = 0 unless $form_params->{ foreign_rss_links };
+        $form_params->{ full_text_rss }     ||= 0;
+        $form_params->{ foreign_rss_links } ||= 0;
+
+        $c->dbis->update_by_id( 'media', $id, $form_params );
 
         # Make a logged update
         $c->dbis->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edits', $form->params->{ reason },

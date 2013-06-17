@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 
-# Run through stories found for the given controversy and find all the links in each story.
-# For each link, try to find whether it matches any given story.  If it doesn't, create a
-# new story.  Add that story's links to the queue if it matches the pattern for the
-# controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
+  # Run through stories found for the given controversy and find all the links in each story.
+  # For each link, try to find whether it matches any given story.  If it doesn't, create a
+  # new story.  Add that story's links to the queue if it matches the pattern for the
+  # controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
 
-use strict;
+  use strict;
 
 BEGIN
 {
@@ -377,8 +377,8 @@ END
     return $feed if ( $feed );
 
     $db->query(
-        "insert into feeds ( media_id, url, last_download_time, name, feed_status ) " .
-          "  values ( ?, ?, now() + interval '10 years', 'Controversy Spider Feed', 'inactive' )",
+        "insert into feeds ( media_id, url, name, feed_status ) " .
+          "  values ( ?, ?, 'Controversy Spider Feed', 'inactive' )",
         $medium->{ media_id },
         $medium->{ url }
     );

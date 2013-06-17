@@ -13,6 +13,11 @@ use utf8;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
+use Lingua::Stem::Snowball::Lt;
+
+# Lingua::Stem::Snowball::Lt instance (if needed), lazy-initialized in stem()
+has 'lt_stemmer' => ( is => 'rw', default => 0 );
+
 sub get_language_code
 {
     return 'lt';
@@ -39,7 +44,16 @@ sub fetch_and_return_long_stop_words
 sub stem
 {
     my $self = shift;
-    return $self->_stem_with_lingua_stem_snowball( 'lt', 'UTF-8', \@_ );
+
+    # (Re-)initialize stemmer if needed
+    if ( $self->lt_stemmer == 0 )
+    {
+        $self->lt_stemmer( Lingua::Stem::Snowball::Lt->new() );
+    }
+
+    my @stems = $self->lt_stemmer->stem( \@_ );
+
+    return \@stems;
 }
 
 sub get_word_length_limit

@@ -28,6 +28,9 @@ use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use Data::Dumper;
 use MediaWords::Util::HTML;
 use MediaWords::Util::ExtractorTest;
+use MediaWords::Util::HeuristicExtractor;
+use MediaWords::Util::MaxEntExtractor;
+
 use Data::Compare;
 use Storable;
 use 5.14.2;
@@ -39,155 +42,6 @@ my $_download_data_load_file;
 my $_download_data_store_file;
 my $_dont_store_preprocessed_lines;
 my $_dump_training_data_csv;
-
-sub _get_required_lines
-{
-    my ( $line_should_be_in_story ) = @_;
-
-    my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
-
-    return @required_lines;
-}
-
-sub _get_optional_lines
-{
-    my ( $line_should_be_in_story ) = @_;
-
-    my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
-
-    return @optional_lines;
-}
-
-sub _get_missing_lines
-{
-    my ( $line_should_be_in_story, $extracted_lines ) = @_;
-
-    my @extracted_lines = @{ $extracted_lines };
-
-    my @required_lines = _get_required_lines( $line_should_be_in_story );
-    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
-
-    my @missing_lines = get_unique( [ \@required_lines, \@extracted_lines ] );
-
-    return @missing_lines;
-}
-
-sub _get_extra_lines
-{
-    my ( $line_should_be_in_story, $extracted_lines ) = @_;
-
-    my @extracted_lines = @{ $extracted_lines };
-
-    my @required_lines = _get_required_lines( $line_should_be_in_story );
-    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
-
-    my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
-
-    return @extra_lines;
-}
-
-sub _get_non_optional_non_autoexcluded_line_count
-{
-
-    my ( $line_should_be_in_story, $line_info ) = @_;
-
-    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
-
-    my $non_autoexcluded = [ grep { !$_->{ auto_excluded } } @{ $line_info } ];
-
-    my $non_autoexcluded_line_numbers = [ map { $_->{ line_number } } @$non_autoexcluded ];
-
-    # say Dumper ( \@optional_lines );
-    # say Dumper ( $non_autoexcluded );
-    # say Dumper ( $non_autoexcluded_line_numbers );
-    # say Dumper ( scalar ( @ $non_autoexcluded_line_numbers ) );
-
-    return scalar( @$non_autoexcluded_line_numbers );
-}
-
-sub _get_correctly_included_lines
-{
-    my ( $line_should_be_in_story, $extracted_lines ) = @_;
-
-    my @extracted_lines = @{ $extracted_lines };
-
-    my @required_lines = _get_required_lines( $line_should_be_in_story );
-    my @optional_lines = _get_optional_lines( $line_should_be_in_story );
-
-    my @extra_lines = get_unique( [ \@extracted_lines, get_union_ref( [ \@required_lines, \@optional_lines ] ) ] );
-
-    return @extra_lines;
-}
-
-sub get_line_level_extractor_results
-{
-    my ( $line_should_be_in_story, $extra_lines, $missing_lines, $non_optional_non_autoexclude_line_count ) = @_;
-
-    my $story_line_count = scalar( keys %{ $line_should_be_in_story } );
-
-    my $extra_line_count   = scalar( @{ $extra_lines } );
-    my $missing_line_count = scalar( @{ $missing_lines } );
-
-    my $ret = {
-        story_line_count                        => $story_line_count,
-        extra_line_count                        => $extra_line_count,
-        missing_line_count                      => $missing_line_count,
-        non_optional_non_autoexclude_line_count => $non_optional_non_autoexclude_line_count,
-    };
-
-    return $ret;
-}
-
-sub get_character_level_extractor_results
-{
-    my ( $download, $line_should_be_in_story, $missing_lines, $extra_lines, $correctly_included_lines, $preprocessed_lines,
-        $line_info )
-      = @_;
-
-    my $extra_line_count   = scalar( @{ $extra_lines } );
-    my $missing_line_count = scalar( @{ $missing_lines } );
-
-    my $errors = 0;
-
-    die unless $line_info;
-
-    #say STDERR Dumper ( $line_info );
-
-    #say STDERR "Dumping";
-
-    #say STDERR "correctly_included_lines " . Dumper( $correctly_included_lines );
-
-    #say STDERR Dumper ( [ map { $line_info->[ $_ ]->{html_stripped_text_length } } @$correctly_included_lines ] );
-    my $correctly_included_character_length =
-      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } } @$correctly_included_lines );
-
-    my $story_lines_character_length =
-      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } keys %{ $line_should_be_in_story } );
-    my $missing_lines_character_length =
-      sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$missing_lines );
-    my $extra_lines_character_length = sum( map { $line_info->[ $_ ]->{ html_stripped_text_length } // 0 } @$extra_lines );
-
-    $correctly_included_character_length ||= 0;
-
-    $missing_lines_character_length ||= 0;
-    $extra_lines_character_length   ||= 0;
-
-    my $ret = {
-        story_characters   => $story_lines_character_length,
-        extra_characters   => $extra_lines_character_length,
-        errors             => $errors,
-        missing_characters => $missing_lines_character_length,
-        accuracy           => (
-            $story_lines_character_length
-            ? int(
-                ( $extra_lines_character_length + $missing_lines_character_length ) / $story_lines_character_length * 100
-              )
-            : 0
-        ),
-    };
-
-    return $ret;
-}
 
 sub get_story_level_extractor_results
 {
@@ -247,61 +101,6 @@ sub get_story_level_extractor_results
     return $ret;
 }
 
-sub compare_extraction_with_training_data
-{
-    my ( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info ) = @_;
-
-    #say STDERR Dumper( $line_info );
-
-    my @extracted_lines = @{ $extracted_lines };
-
-    my @missing_lines = _get_missing_lines( $line_should_be_in_story, $extracted_lines );
-
-    my @extra_lines = _get_extra_lines( $line_should_be_in_story, $extracted_lines );
-
-    my @correctly_included_lines = _get_correctly_included_lines( $line_should_be_in_story, $extracted_lines );
-
-    my $missing_lines            = \@missing_lines;
-    my $extra_lines              = \@extra_lines;
-    my $correctly_included_lines = \@correctly_included_lines;
-
-    my $non_optional_non_autoexcluded_line_count =
-      _get_non_optional_non_autoexcluded_line_count( $line_should_be_in_story, $line_info );
-
-    my $line_level_results = get_line_level_extractor_results( $line_should_be_in_story, $extra_lines, $missing_lines,
-        $non_optional_non_autoexcluded_line_count );
-
-    my $character_level_results =
-      get_character_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
-        $correctly_included_lines, $preprocessed_lines, $line_info );
-
-    my $sentence_level_results = {};
-
-    if ( $_test_sentences )
-    {
-        $sentence_level_results =
-          get_story_level_extractor_results( $download, $line_should_be_in_story, $missing_lines, $extra_lines,
-            \@correctly_included_lines, $preprocessed_lines, $dbs );
-    }
-
-    my $ret = { %{ $line_level_results }, %{ $character_level_results }, %{ $sentence_level_results }, };
-
-    return $ret;
-}
-
-sub store_test_in_xml_file
-{
-    my ( $line_should_be_in_story, $line_info ) = @_;
-
-    my $stored_object = {
-        line_should_be_in_story => $line_should_be_in_story,
-        line_info               => $line_info
-    };
-
-    #store ( $stored_object, '/tmp/foo');
-    #retreive
-}
-
 sub analyze_download
 {
     my ( $download, my $dbs ) = @_;
@@ -321,140 +120,6 @@ sub analyze_download
     return $ret;
 }
 
-my $chldout;
-my $chldin;
-my $pid;
-use IPC::Open2;
-
-sub pipe_to_streaming_model
-{
-    my ( $feature_string ) = @_;
-
-    die unless $feature_string;
-
-    if ( !defined( $chldout ) )
-    {
-        my $script_path =
-          '~/ML_code/apache-opennlp-1.5.2-incubating-src/opennlp-maxent/samples/sports_dev/run_predict_stream_input.sh';
-        my $model_path = 'training_data_features_top_1000_unigrams_2_prior_states_MaxEntModel_Iterations_1500.txt';
-
-        my $cmd = "$script_path $model_path";
-
-        say STDERR "Starting cmd:\n$cmd";
-
-        $pid = open2( $chldout, $chldin, "$cmd" );
-
-        use POSIX ":sys_wait_h";
-
-        sleep 2;
-
-        my $reaped_pid = waitpid( $pid, WNOHANG );
-
-        die if ( $reaped_pid == $pid );
-    }
-
-    #say STDERR "sending '$feature_string'";
-
-    say $chldin $feature_string;
-
-    my $string = <$chldout>;
-
-    my $reaped_pid = waitpid( $pid, WNOHANG );
-
-    die $string if ( $reaped_pid == $pid );
-
-    my $prob_strings = [ split /\s+/, $string ];
-
-    #say Dumper( $prob_strings );
-
-    my $prob_hash = {};
-
-    foreach my $prob_string ( @{ $prob_strings } )
-    {
-        $prob_string =~ /([a-z]+)\[([0-9.]+)\]/;
-
-        die "Invalid prob string '$prob_string' from '$string'" unless defined( $1 ) && defined( $2 );
-
-        $prob_hash->{ $1 } = $2;
-
-    }
-
-    return $prob_hash;
-}
-
-sub get_extracted_line_with_maxent
-{
-    my ( $line_infos, $preprocessed_lines ) = @_;
-
-    my $ea = each_arrayref( $line_infos, $preprocessed_lines );
-
-    my $extracted_lines = [];
-
-    my $last_in_story_line;
-
-    my $line_num = 0;
-
-    #TODO DRY out this code so it doesn't duplicate mediawords_extractor_test_to_features.pl
-    my $previous_states = [ qw ( prestart 'start' ) ];
-
-    while ( my ( $line_info, $line_text ) = $ea->() )
-    {
-
-        my $prior_state_string = join '_', @$previous_states;
-        $line_info->{ "priors_$prior_state_string" } = 1;
-        if ( $previous_states->[ 1 ] eq 'auto_excluded' )
-        {
-            $line_info->{ previous_line_auto_excluded } = 1;
-        }
-
-        shift $previous_states;
-
-        if ( $line_info->{ auto_excluded } == 1 )
-        {
-            push $previous_states, 'auto_excluded';
-            next if $line_info->{ auto_excluded } == 1;
-        }
-
-        my $line_number = $line_info->{ line_number };
-
-        if ( defined( $last_in_story_line ) )
-        {
-            $line_info->{ distance_from_previous_in_story_line } = $line_number - $last_in_story_line;
-        }
-
-        MediaWords::Crawler::AnalyzeLines::add_additional_features( $line_info, $line_text );
-
-        my $feature_string = MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text );
-
-        #say STDERR "got feature_string: $feature_string";
-
-        my $model_result = pipe_to_streaming_model( $feature_string );
-
-        #say STDERR Dumper( $model_result );
-
-        my $prediction = reduce { $model_result->{ $a } > $model_result->{ $b } ? $a : $b } keys %{ $model_result };
-
-        if ( $model_result->{ excluded } < 0.95 )
-        {
-            push $extracted_lines, $line_info->{ line_number };
-            $last_in_story_line = $line_number;
-
-            #say STDERR "including line because of exclude prob:  $model_result->{ excluded } ";
-        }
-        else
-        {
-
-            #say STDERR "Excluded line because of exclude prob:  $model_result->{ excluded } ";
-        }
-
-        push $previous_states, $prediction;
-
-        #say Dumper( $model_result );
-    }
-
-    return $extracted_lines;
-}
-
 sub processDownload
 {
     ( my $analyzed_download, my $dbs ) = @_;
@@ -465,18 +130,20 @@ sub processDownload
 
     my $line_should_be_in_story = $analyzed_download->{ line_should_be_in_story };
 
-    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
-    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
+    my $old_extractor   = MediaWords::Util::HeuristicExtractor->new();
+    my $extracted_lines = $old_extractor->getExtractedLines( $line_info );
 
-    my $extracted_lines = \@extracted_lines;
+    my $me_extractor = MediaWords::Util::MaxEntExtractor->new();
 
-    #$extracted_lines = get_extracted_line_with_maxent( $line_info  , $preprocessed_lines );
+    $extracted_lines = $me_extractor->getExtractedLines( $line_info, $preprocessed_lines );
+
+    #$extracted_lines = get_extracted_line_with_maxent( $line_info, $preprocessed_lines );
 
     #say Dumper ( $extracted_lines );
     #exit;
 
-    return compare_extraction_with_training_data( $line_should_be_in_story, $extracted_lines, $download, $preprocessed_lines,
-        $dbs, $line_info );
+    return MediaWords::Util::ExtractorTest::compare_extraction_with_training_data( $line_should_be_in_story,
+        $extracted_lines, $download, $preprocessed_lines, $dbs, $line_info, $_test_sentences );
 }
 
 sub analyze_downloads
