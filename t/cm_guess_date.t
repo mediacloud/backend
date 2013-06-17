@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 33 + 1;
+use Test::More tests => 34 + 1;
 use Test::Deep;
 
 use utf8;
@@ -15,6 +15,7 @@ use constant _TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 
 use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST (-05:00)
 
 BEGIN { use_ok 'MediaWords::CM::GuessDate' }
+BEGIN { use_ok 'MediaWords::CM::GuessDate::Result' }
 BEGIN { use_ok 'Date::Parse' }
 BEGIN { use_ok 'LWP::Simple' }
 
@@ -27,7 +28,16 @@ sub _gt($;$$)
     $story_url          ||= 'http://www.example.com/story.html';
     $story_publish_date ||= 'unknown';
     my $story = { url => $story_url, publish_date => $story_publish_date };
-    return MediaWords::CM::GuessDate::guess_timestamp( $db, $story, $html );
+
+    my $result = MediaWords::CM::GuessDate::guess_date( $db, $story, $html );
+    if ( $result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+    {
+        return $result->{ timestamp };
+    }
+    else
+    {
+        return undef;
+    }
 }
 
 # Shorthand for guess_timestamp() by fetching the URL

@@ -1,11 +1,11 @@
 #!/usr/bin/env perl
 
-  # Run through stories found for the given controversy and find all the links in each story.
-  # For each link, try to find whether it matches any given story.  If it doesn't, create a
-  # new story.  Add that story's links to the queue if it matches the pattern for the
-  # controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
+# Run through stories found for the given controversy and find all the links in each story.
+# For each link, try to find whether it matches any given story.  If it doesn't, create a
+# new story.  Add that story's links to the queue if it matches the pattern for the
+# controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
 
-  use strict;
+use strict;
 
 BEGIN
 {
@@ -23,6 +23,7 @@ use URI;
 use URI::Escape;
 
 use MediaWords::CM::GuessDate;
+use MediaWords::CM::GuessDate::Result;
 use MediaWords::DB;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
@@ -448,7 +449,13 @@ END
         return ( $old_story_method, $old_story->{ publish_date } );
     }
 
-    my ( $date_method, $publish_date ) = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content );
+    my $guess_date_result = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content );
+    my ( $date_method, $publish_date );
+    if ( $guess_date_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+    {
+        $date_method  = $guess_date_result->{ guess_method };
+        $publish_date = $guess_date_result->{ date };
+    }
     if ( $publish_date )
     {
         return ( $date_method, $publish_date );
@@ -690,7 +697,7 @@ END
             my $dup_story_url_no_p = $dup_story->{ url };
             my $story_url_no_p     = $story->{ url };
             $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-            $story_url_no_p     =~ s/(.*)\?(.*)/$1/;
+            $story_url_no_p =~ s/(.*)\?(.*)/$1/;
 
             next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
 

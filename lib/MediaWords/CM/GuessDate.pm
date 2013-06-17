@@ -6,6 +6,9 @@ package MediaWords::CM::GuessDate;
 # FIXME EST to GMT
 
 use strict;
+use warnings;
+
+use MediaWords::CM::GuessDate::Result;
 
 use DateTime;
 use Date::Parse;
@@ -609,15 +612,33 @@ sub _make_unix_timestamp
     return $timestamp;
 }
 
-# guess the date for the story by cycling through the $_date_guess_functions one at a time.
-# return the date as UNIX timestamp.
-sub guess_timestamp($$$;$)
+# Returns true if date guessing should not be done on this page
+# (404 Not Found, is a tag page, search page, wiki page, etc.)
+sub _guessing_is_inapplicable($$$)
 {
-    my ( $db, $story, $html, $use_threshold ) = @_;
+    my ( $db, $story, $html ) = @_;
 
     unless ( $html )
     {
-        return undef;
+        return 1;
+    }
+
+    return 0;
+}
+
+# guess the date for the story by cycling through the $_date_guess_functions one at a time.
+# returns MediaWords::CM::GuessDate::Result object
+sub guess_date($$$;$)
+{
+    my ( $db, $story, $html, $use_threshold ) = @_;
+
+    my $result = MediaWords::CM::GuessDate::Result->new();
+
+    if ( _guessing_is_inapplicable( $db, $story, $html ) )
+    {
+        # Inapplicable
+        $result->{ result } = MediaWords::CM::GuessDate::Result::INAPPLICABLE;
+        return $result;
     }
 
     my $html_tree = _get_html_tree( $html );
@@ -632,27 +653,19 @@ sub guess_timestamp($$$;$)
             {
                 next;
             }
-            return wantarray ? ( $date_guess_function->{ name }, $timestamp ) : $timestamp;
+
+            # Found
+            $result->{ result }       = MediaWords::CM::GuessDate::Result::FOUND;
+            $result->{ guess_method } = $date_guess_function->{ name };
+            $result->{ timestamp }    = $timestamp;
+            $result->{ date }         = DateTime->from_epoch( epoch => $timestamp )->datetime;
+            return $result;
         }
     }
 
-    return undef;
-}
-
-# guess the date for the story by cycling through the $_date_guess_functions one at a time.
-# return the date as ISO-8601 string in GMT timezone (e.g. '2012-01-17T17:00:00')
-sub guess_date($$$;$)
-{
-    my ( $db, $story, $html, $use_threshold ) = @_;
-
-    my ( $name, $timestamp ) = guess_timestamp( $db, $story, $html, $use_threshold );
-    unless ( defined( $timestamp ) )
-    {
-        return undef;
-    }
-
-    my $date = DateTime->from_epoch( epoch => $timestamp )->datetime;
-    return wantarray ? ( $name, $date ) : $date;
+    # Not found
+    $result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
+    return $result;
 }
 
 1;

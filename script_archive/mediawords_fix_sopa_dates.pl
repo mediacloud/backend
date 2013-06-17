@@ -13,6 +13,7 @@ BEGIN
 use Data::Dumper;
 use DateTime;
 use MediaWords::CM::GuessDate;
+use MediaWords::CM::GuessDate::Result;
 use LWP::UserAgent;
 
 use MediaWords::DB;
@@ -44,9 +45,9 @@ sub fix_date
     my ( $db, $story ) = @_;
 
     my $date = MediaWords::CM::GuessDate::guess_date( $db, $story );
-    if ( defined( $date ) )
+    if ( $date->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
     {
-        $db->query( "update stories set publish_date =  ? where stories_id = ?", $date, $story->{ stories_id } );
+        $db->query( "update stories set publish_date =  ? where stories_id = ?", $date->{ date }, $story->{ stories_id } );
     }
     else
     {
