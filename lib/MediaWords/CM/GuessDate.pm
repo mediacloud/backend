@@ -490,9 +490,9 @@ sub timestamp_from_html($)
         {
             $d_month = ( $d_month + 0 );
         }
-        my $d_day   = $+{ day } + 0;
-        my $d_am_pm = ( $+{ am_pm } ? lc( $+{ am_pm } ) : '' );
-        my $d_hour  = ( $+{ hour } ? $+{ hour } + 0 : DEFAULT_HOUR );
+        my $d_day   = ( defined $+{ day } ? $+{ day } + 0     : 0 );
+        my $d_am_pm = ( $+{ am_pm }       ? lc( $+{ am_pm } ) : '' );
+        my $d_hour  = ( $+{ hour }        ? $+{ hour } + 0    : DEFAULT_HOUR );
         if ( $d_am_pm )
         {
             $d_hour = ( $d_hour % 12 ) + ( ( $d_am_pm eq 'am' ) ? 0 : 12 );
