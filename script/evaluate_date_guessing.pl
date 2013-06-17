@@ -9,7 +9,7 @@
 #     * "actual_publication_date" -- manually dated story publication date (in format readable by Date::Parse::str2time())
 #
 # Example:
-#      ./script/run_with_carton.sh ./script/evaluate_date_guessing.pl t/data/cm_date_guessing_sample.csv
+#      ./script/run_with_carton.sh ./script/evaluate_date_guessing.pl t/data/cm_date_guessing_sample.csv 2>&1 | tee date_guessing.log
 #
 
 use strict;
@@ -86,9 +86,30 @@ sub main()
         say STDERR "Dating story $stories_id: $url...";
         say STDERR "\tActual date:  " . ( $actual_result->{ date } || $actual_result->{ result } ) . " (" .
           ( $actual_result->{ timestamp } || 'undef' ) . ")";
+
+        # Try to guess a date
         my $html           = get( $url );
         my $story          = { url => $url };
         my $guessed_result = MediaWords::CM::GuessDate::guess_date( $db, $story, $html );
+
+        # Old API (e.g. "013-06-17T05:00:00")?
+        my $do_not_differentiate_between_not_found_and_inapplicable = 0;
+        unless ( ref( $guessed_result ) )
+        {
+            $do_not_differentiate_between_not_found_and_inapplicable = 1;
+            my $guessed_timestamp = Date::Parse::str2time( $guessed_result, 'GMT' );
+            $guessed_result = MediaWords::CM::GuessDate::Result->new();
+            if ( $guessed_timestamp )
+            {
+                $guessed_result->{ result }    = MediaWords::CM::GuessDate::Result::FOUND;
+                $guessed_result->{ timestamp } = $guessed_timestamp;
+                $guessed_result->{ date }      = _timestamp_to_date( $guessed_timestamp );    # for display purposes only
+            }
+            else
+            {
+                $guessed_result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
+            }
+        }
         say STDERR "\tGuessed date: " . ( $guessed_result->{ date } || $guessed_result->{ result } ) .
           " (" . ( $guessed_result->{ timestamp } || 'undef' ) . "), guessed with '" .
           ( $guessed_result->{ guess_method } || '-' ) . "'";
@@ -123,11 +144,30 @@ sub main()
         else
         {
 
-            # If both are undefined, that might be a correct match too
-            if ( $actual_result->{ result } eq $guessed_result->{ result } )
+            unless ( $do_not_differentiate_between_not_found_and_inapplicable )
             {
-                say STDERR "\tExact match (both '" . $actual_result->{ result } . "')";
-                ++$guesses_correct_exact;
+                # If both are undefined, that might be a correct match too
+                if ( $actual_result->{ result } eq $guessed_result->{ result } )
+                {
+                    say STDERR "\tExact match (both '" . $actual_result->{ result } . "')";
+                    ++$guesses_correct_exact;
+                }
+            }
+            else
+            {
+
+                if (
+                    (
+                           $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND
+                        or $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE
+                    )
+                    and (  $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND
+                        or $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                  )
+                {
+                    say STDERR "\tExact match (both either 'not found' or 'inapplicable')";
+                    ++$guesses_correct_exact;
+                }
             }
 
         }
