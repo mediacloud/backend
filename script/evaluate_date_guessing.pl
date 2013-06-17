@@ -8,6 +8,9 @@
 #     * "url" -- story's URL
 #     * "actual_publication_date" -- manually dated story publication date (in format readable by Date::Parse::str2time())
 #
+# Example:
+#      ./script/run_with_carton.sh ./script/evaluate_date_guessing.pl t/data/cm_date_guessing_sample.csv
+#
 
 use strict;
 use warnings;
