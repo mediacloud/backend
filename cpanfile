@@ -85,6 +85,7 @@ requires 'Perl::Tidy';
 requires 'RDF::Simple::Parser';
 requires 'Readonly';
 requires 'Regexp::Common';
+requires 'Regexp::Common::time';
 requires 'Smart::Comments';
 requires 'Term::Prompt';
 requires 'Test::Differences';
