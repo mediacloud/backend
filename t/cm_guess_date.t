@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 34 + 1;
+use Test::More tests => 33 + 1;
 use Test::Deep;
 
 use utf8;
@@ -124,13 +124,6 @@ sub test_live_urls
         ),
         _ts( 'Wed, 29 Aug 12 03:55:00 +0000' ),
         'live_url: W, [dj] F Y H:i'
-    );
-
-    # HTTP Last-Modified
-    is(
-        _gt_url( 'http://www.texaspolicy.com/sites/default/files/documents/2012-10-13-Reuters-ROC.pdf' ),
-        _ts( 'Wed, 17 Oct 2012 23:59:25 GMT' ),
-        'live_url: HTTP Last-Modified'
     );
 
     is(
