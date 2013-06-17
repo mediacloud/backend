@@ -581,6 +581,15 @@ sub _guessing_is_inapplicable($$$)
 
     unless ( $html )
     {
+        # Empty page, nothing to date
+        return 1;
+    }
+
+    unless ( $story->{ url } =~ /[0-9]/ )
+    {
+        # Assume that a dateable story will have a numeric component in its URL
+        # (either a part of the date like in WordPress's case, or a story ID or something).
+        # Tags, search pages, static pages usually don't have a numerals in their URLs
         return 1;
     }
 
