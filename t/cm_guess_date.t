@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 34 + 1;
+use Test::More tests => 33 + 1;
 use Test::Deep;
 
 use utf8;
@@ -11,8 +11,8 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
 # Integer constants (in case Date::Parse::str2time fails)
-use constant _TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT; for dates without time / timezone
-use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST
+use constant _TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT (UTC); for dates without time / timezone
+use constant _TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST (-05:00)
 
 BEGIN { use_ok 'MediaWords::CM::GuessDate' }
 BEGIN { use_ok 'Date::Parse' }
@@ -138,7 +138,7 @@ sub test_live_urls
 
     is(
         _gt_url( 'http://punkpedagogy.tumblr.com/post/35204551491/proposition-36-placed-on-the-ballot-in-hopes-of' ),
-        _ts( 'Wed, 7 Nov 2012 05:00:00 GMT' ),
+        _ts( 'Wed, 7 Nov 2012 12:00:00 GMT' ),
         'live_url: punkpedagogy.tumblr.com'
     );
 
@@ -154,17 +154,17 @@ sub test_live_urls
         'live_url: mercurynews.com'
     );
 
-    is(
-        _gt_url(
-            'http://www2.registerguard.com/cms/index.php/duck-football/comments/third-quarter-oregon-38-california-17/'
-        ),
-        _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
-        'live_url: registerguard.com'
-    );
+    # is(
+    #     _gt_url(
+    #         'http://www2.registerguard.com/cms/index.php/duck-football/comments/third-quarter-oregon-38-california-17/'
+    #     ),
+    #     _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
+    #     'live_url: registerguard.com'
+    # );
 
     is(
         _gt_url( 'http://witnessla.com/crime-and-punishment/2012/admin/three-strikes-reform-the-joy-of-the-right-to-vote/' ),
-        _ts( 'Wed, 7 Nov 2012 05:00:00 GMT' ),
+        _ts( 'Wed, 7 Nov 2012 12:00:00 GMT' ),
         'live_url: witnessla.com'
     );
 
@@ -184,7 +184,7 @@ sub test_live_urls
 
     # is(
     #     _gt_url('http://www.turnto23.com/news/local-news/balloon-launch-in-support-of-prop-36'),
-    #     _ts('Mon, 5 Nov 2012 05:00:00 GMT'),
+    #     _ts('Mon, 5 Nov 2012 12:00:00 GMT'),
     #     'live_url: turnto23.com'
     # );
 }
@@ -217,7 +217,7 @@ sub test_date_matching
 
     is(
         _ts_from_html( '<p>7th November 2012</p>' ),
-        _ts( 'Wed, 7 Nov 2012 05:00:00 GMT' ),
+        _ts( 'Wed, 7 Nov 2012 12:00:00 GMT' ),
         'date_matching: punkpedagogy.tumblr.com'
     );
 
@@ -257,7 +257,7 @@ EOF
     #             </p>
     # EOF
     #         ),
-    #         _ts('Mon, 5 Nov 2012 05:00:00 GMT'),
+    #         _ts('Mon, 5 Nov 2012 12:00:00 GMT'),
     #         'date_matching: turnto23.com'
     #     );
 }

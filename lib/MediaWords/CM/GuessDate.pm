@@ -23,7 +23,8 @@ use MediaWords::DB;
 use constant DATE_GUESS_THRESHOLD => 14;
 
 # Default hour to use when no time is present (minutes and seconds are going to both be 0)
-use constant DEFAULT_HOUR => 5;
+# (12:00:00 because it looks nice and more or less fits within the same day in both California and Moscow)
+use constant DEFAULT_HOUR => 12;
 
 # only use the date from these guessing functions if the date is within DATE_GUESS_THRESHOLD days
 # of the existing date for the story
