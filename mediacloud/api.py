@@ -1,6 +1,8 @@
 
+import mediacloud
 import json
 import requests
+import os
 import re
 import csv
 import codecs
@@ -13,9 +15,9 @@ def mediaSource(media_id):
     Call this to get info about a particular media source that you know the id of
     '''
     global media_info
-    if media_info == None:
+    if media_info == None: 
         media_info = {}
-        MEDIA_FILE = 'mediacloud/data/media_ids.csv'
+        MEDIA_FILE = os.path.dirname(mediacloud.__file__)+'/data/media_ids.csv'
         csv_reader = csv.reader(codecs.open(MEDIA_FILE, 'rU'))
         header = csv_reader.next() # skip header
         for row in csv_reader:
@@ -29,8 +31,6 @@ class MediaCloud(object):
     '''
     Simple client library for the nascent MediaCloud story feed API
     '''
-
-    VERSION = "0.3"
 
     API_URL = "http://amanda.law.harvard.edu/admin/api/stories/"
 
