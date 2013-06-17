@@ -31,7 +31,9 @@ sub get_extracted_lines_with_crf
     my $feature_strings =
       MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines );
 
-    Readonly my $model_file_name => '/tmp/data_file_tmpfile7xYGKjModel.txt';
+    my $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/crf_model';
+    
+    $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/features_outputModel.txt';
 
     my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
 
@@ -58,7 +60,7 @@ sub get_extracted_lines_with_crf
 
         my $prediction = rtrim $predictions->[ $prediction_index ];
 
-        die "Invalid prediction: '$prediction'"
+        die "Invalid prediction: '$prediction' for line index $line_index and prediction_index $prediction_index " . Dumper( $predictions )
           unless ( $prediction eq 'excluded' )
           or ( $prediction eq 'required' )
           or ( $prediction eq 'optional' );
