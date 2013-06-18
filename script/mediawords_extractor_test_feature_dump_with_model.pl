@@ -35,15 +35,34 @@ use Storable;
 use 5.14.2;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use File::Temp qw/ tempfile tempdir /;
 
 use CRF::CrfUtils;
+
+sub get_predictions_separate_exec
+{
+    my ( $_model_file, $current_file_lines ) = @_;
+
+    my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
+
+    print $test_data_fh join "\n", @ { $current_file_lines };
+
+    close( $test_data_fh );
+    
+    my $output = `./script/mediawords_extractor_test_run_model.pl --feature_file $test_data_file_name --model_file $_model_file`;
+
+    return [ split "\n", $output];
+}
 
 sub get_predictions
 {
     my ( $_model_file, $current_file_lines ) = @_;
     
-    my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $_model_file, $current_file_lines );
-    
+    #my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $_model_file, $current_file_lines );
+
+    my $predictions = CRF::CrfUtils::run_model_inline_java_data_array(  $_model_file, $current_file_lines );
+    #my $predictions = get_predictions_separate_exec( $_model_file, $current_file_lines );
+
     $predictions = [ map { rtrim $_ } @{ $predictions } ];
 
     return $predictions;
@@ -78,9 +97,12 @@ sub main
     my $matching     = 0;
     my $not_matching = 0;
 
+    my $downloads = 0;
     foreach my $line ( @all_file_lines )
     {
         chomp( $line );
+
+	last if $downloads > 0;
 
         if ( $line eq '' )
         {
@@ -110,6 +132,9 @@ sub main
             $expected_outputs = [];
             $predictions      = [];
 	    $current_file_lines = [];
+	    
+	    $downloads++;
+	    last;
         }
         else
         {
