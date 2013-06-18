@@ -10,16 +10,28 @@ use Moose;
 
 with 'MediaWords::Util::Extractor';
 
+sub getScoresAndLines
+{
+   my ( $self, $line_info ) = @_;
+
+   my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
+   my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
+
+   my $extracted_lines = \@extracted_lines;
+
+   return {
+       included_line_numbers => $extracted_lines,
+       scores                => $scores,
+   }
+}
+
 sub getExtractedLines
 {
     my ( $self, $line_info ) = @_;
 
-    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
-    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
+    my $scores_and_lines = $self->getScoresAndLines( $line_info );
 
-    my $extracted_lines = \@extracted_lines;
-
-    return $extracted_lines;
+    return $scores_and_lines->{ included_line_numbers };
 }
 
 1;
