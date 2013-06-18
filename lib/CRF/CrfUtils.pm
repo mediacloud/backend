@@ -131,12 +131,30 @@ sub run_model_inline_java_data_array
 {
     my ( $model_file_name, $test_data_array ) = @_;
 
+    undef($crf);
+
     if ( !defined( $crf ) )
     {
+        say STDERR "Read model ";
         $crf = model_runner->readModel( $model_file_name );
     }
 
     return run_model_on_array( $crf, $test_data_array );
+}
+
+sub run_model_with_separate_exec
+{
+    my ( $model_file_name, $test_data_array ) = @_;
+
+    my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
+
+    print $test_data_fh join "\n", @ { $test_data_array };
+
+    close( $test_data_fh );
+
+    my $output = `java -cp  $class_path cc.mallet.fst.SimpleTagger --model-file  $model_file_name $test_data_file_name `;
+
+    return [ split "\n", $output];
 }
 
 sub run_model_on_array
@@ -167,16 +185,16 @@ sub run_model_inline_java
     say STDERR "classpath: $class_path";
 
     
-    use Inline (
-        Java  => 'STUDY',
-        STUDY => [
-            qw ( cc.mallet.fst.SimpleTagger
-              java.io.FileReader java.io.File )
-        ],
-        AUTOSTUDY => 1,
-        CLASSPATH => $class_path,
-        PACKAGE => 'main'
-    );
+    # use Inline (
+    #     Java  => 'STUDY',
+    #     STUDY => [
+    #         qw ( cc.mallet.fst.SimpleTagger
+    #           java.io.FileReader java.io.File )
+    #     ],
+    #     AUTOSTUDY => 1,
+    #     CLASSPATH => $class_path,
+    #     PACKAGE => 'main'
+    # );
 
     open my $test_data_file_fh, '<', $test_data_file;
 
