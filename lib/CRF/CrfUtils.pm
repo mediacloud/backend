@@ -19,7 +19,7 @@ use File::Basename;
 my $class_path;
 
 BEGIN
- {
+{
     my $_dirname      = dirname( __FILE__ );
     my $_dirname_full = File::Spec->rel2abs( $_dirname );
 
@@ -31,7 +31,7 @@ BEGIN
     $class_path = scalar( join ':', ( map { "$jar_dir/$_" } @{ $jars } ) );
 
     say STDERR "classpath: $class_path";
- }
+}
 
 # sub output_testing_and_training
 # {
@@ -166,7 +166,6 @@ BEGIN
 
 #     say STDERR "classpath: $class_path";
 
-    
 #     use Inline (
 #         Java  => 'STUDY',
 #         STUDY => [
@@ -245,14 +244,14 @@ BEGIN
 
 # 		return run_model_impl(modelFileName, testData);
 # 	}
-	
+
 # 	public static String[] run_model_string(String testDataString, CRF crf)
 # 			throws Exception {
 # 		InstanceList testData = readTestDataFromString(testDataString);
 
 # 		return run_crf_model(testData, crf);
 # 	}
-	
+
 # 	private static String[] run_model_impl(String modelFileName,
 # 			InstanceList testData) throws IOException, FileNotFoundException,
 # 			ClassNotFoundException {
@@ -280,10 +279,9 @@ BEGIN
 
 # 	private static InstanceList readTestData(String testFileName)
 # 			throws FileNotFoundException {
-		
 
 # 		Reader testFile = new FileReader(new File(testFileName));
-		
+
 # 		return instanceListFromReader(testFile);
 # 	}
 
@@ -291,11 +289,10 @@ BEGIN
 # 	{
 
 # 		Reader testFile = new StringReader(testData);
-		
+
 # 		return instanceListFromReader(testFile);
 # 	}
 
-	
 # 	private static InstanceList instanceListFromReader(Reader testFile) {
 # 		Pipe p = new SimpleTagger.SimpleTaggerSentence2FeatureVectorSequence();
 # 		InstanceList testData = new InstanceList(p);
@@ -317,7 +314,7 @@ BEGIN
 
 # 	private static ArrayList<String> predictSequence(CRF crf,
 # 			Sequence input) {
-		
+
 # 		ArrayList<String> sequenceResults = new ArrayList<String>();
 # 		int nBestOption = 1;
 

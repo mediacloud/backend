@@ -324,8 +324,8 @@ sub process_download_results
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
     print "non_ignoreable lines: $non_optional_non_autoexclude_line_count / $all_extra_lines (" .
-      $all_extra_lines / $non_optional_non_autoexclude_line_count . ") extra / $all_missing_lines (" .
-      $all_missing_lines / $non_optional_non_autoexclude_line_count . ") missing\n";
+      $all_extra_lines / $non_optional_non_autoexclude_line_count .
+      ") extra / $all_missing_lines (" . $all_missing_lines / $non_optional_non_autoexclude_line_count . ") missing\n";
 
     if ( $all_story_characters == 0 )
     {
@@ -334,8 +334,8 @@ sub process_download_results
     else
     {
         print "characters: $all_story_characters story / $all_extra_characters (" .
-          $all_extra_characters / $all_story_characters . ") extra / $all_missing_characters (" .
-          $all_missing_characters / $all_story_characters . ") missing\n";
+          $all_extra_characters / $all_story_characters .
+          ") extra / $all_missing_characters (" . $all_missing_characters / $all_story_characters . ") missing\n";
     }
 
     if ( $_test_sentences )

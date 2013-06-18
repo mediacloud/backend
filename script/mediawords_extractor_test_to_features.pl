@@ -420,7 +420,7 @@ sub main
 
         my $feature_strings = get_feature_strings_for_download( $line_infos, $preprocessed_lines, $top_words );
 
-	say join "\n", @ { $feature_strings };
+        say join "\n", @{ $feature_strings };
 
         if ( $blank_line_between_downloads )
         {

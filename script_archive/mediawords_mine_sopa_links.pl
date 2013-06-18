@@ -778,7 +778,7 @@ sub delete_duplicate_sopa_links
                 "select sopa_links_id from sopa_links where stories_id = ? and ref_stories_id = ?",
                 $duplicate_link->{ stories_id },
                 $duplicate_link->{ ref_stories_id }
-              )->flat
+            )->flat
         ];
 
         shift( @{ $ids } );

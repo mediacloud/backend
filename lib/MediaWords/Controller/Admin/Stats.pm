@@ -74,8 +74,8 @@ sub stash_media_tag_counts
     {
         @media_tag_counts = $c->dbis->query(
             "select c.*, tt.tag from media_tag_tag_counts c, tags t, tags tt " .
-              "where c.tag_tags_id = tt.tags_id and t.tag like ? " . "and c.tags_id = t.tags_id and c.media_id = ? " .
-              "order by c.tag_count desc limit 10",
+              "where c.tag_tags_id = tt.tags_id and t.tag like ? " .
+              "and c.tags_id = t.tags_id and c.media_id = ? " . "order by c.tag_count desc limit 10",
             "%$tag_query%", $media_id
         )->hashes;
     }

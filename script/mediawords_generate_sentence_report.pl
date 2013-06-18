@@ -193,7 +193,7 @@ EOF
                           AND t.tag = ?
 EOF
                     $tag_set_name, $tag_name
-                  )->hash
+                )->hash
             );
         }
 
@@ -713,8 +713,8 @@ sub get_stem_clause($$$$)
 
     if ( $stem )
     {
-        return "$stem_field = " . $_db->{ dbh }->quote( $stem ) . " AND $language_field = " .
-          $_db->{ dbh }->quote( $language_code );
+        return "$stem_field = " .
+          $_db->{ dbh }->quote( $stem ) . " AND $language_field = " . $_db->{ dbh }->quote( $language_code );
     }
     else
     {
@@ -978,7 +978,7 @@ sub generate_timeline_chart_url($$$)
             ',',
             map {
                 join( '', map { $enc->{ int( $_ * ( 60 / $max ) ) } } @{ $_ } )
-              } @{ $time_slicely_data }
+            } @{ $time_slicely_data }
         )
     );
 

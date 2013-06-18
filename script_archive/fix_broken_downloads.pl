@@ -75,8 +75,8 @@ sub main
         elsif ( $downloads->[ 0 ]->type eq 'feed' )
         {
             print "[$i] remove " .
-              scalar( @{ $downloads } ) . " duplicate feeds: " . $downloads->[ 0 ]->downloads_id . " / " .
-              $downloads->[ 0 ]->url . "\n";
+              scalar( @{ $downloads } ) .
+              " duplicate feeds: " . $downloads->[ 0 ]->downloads_id . " / " . $downloads->[ 0 ]->url . "\n";
             $i += @{ $downloads };
             $db->resultset( 'Downloads' )->search( { downloads_id => [ map { $_->downloads_id } @{ $downloads } ] } )
               ->update(
@@ -89,8 +89,8 @@ sub main
         else
         {
             print "[$i] add  " .
-              scalar( @{ $downloads } ) . " pending feeds: " . $downloads->[ 0 ]->downloads_id . " / " .
-              $downloads->[ 0 ]->url . "\n";
+              scalar( @{ $downloads } ) .
+              " pending feeds: " . $downloads->[ 0 ]->downloads_id . " / " . $downloads->[ 0 ]->url . "\n";
             $i += @{ $downloads };
             $db->resultset( 'Downloads' )->search( { downloads_id => [ map { $_->downloads_id } @{ $downloads } ] } )
               ->update( { state => 'pending' } );

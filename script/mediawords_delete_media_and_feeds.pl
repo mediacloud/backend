@@ -107,8 +107,8 @@ sub main
         print STDERR "find stories to delete from feed\n";
         my $stories =
           $db->query( "select s.stories_id, fsma.feeds_id from stories s, feeds_stories_map fsma " .
-              "  where s.stories_id = fsma.stories_id and fsma.feeds_id = $feed_id and " . "    not exists (" .
-              "      select 1 from feeds_stories_map fsmb " .
+              "  where s.stories_id = fsma.stories_id and fsma.feeds_id = $feed_id and " .
+              "    not exists (" . "      select 1 from feeds_stories_map fsmb " .
               "        where s.stories_id = fsmb.stories_id and fsmb.feeds_id <> $feed_id)" )->hashes;
         for my $story ( @{ $stories } )
         {

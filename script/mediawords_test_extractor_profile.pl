@@ -155,8 +155,8 @@ sub extractAndScoreDownloads
 
         if ( $download_errors )
         {
-            print "****\nerrors in download " . $download->downloads_id . ": " . $download->stories_id->title . "\n" .
-              "$download_errors\n****\n";
+            print "****\nerrors in download " .
+              $download->downloads_id . ": " . $download->stories_id->title . "\n" . "$download_errors\n****\n";
             $errors++;
         }
 
@@ -208,8 +208,8 @@ sub extractAndScoreDownloads
     else
     {
         print "characters: $all_story_characters story / $all_extra_characters (" .
-          $all_extra_characters / $all_story_characters . ") extra / $all_missing_characters (" .
-          $all_missing_characters / $all_story_characters . ") missing\n";
+          $all_extra_characters / $all_story_characters .
+          ") extra / $all_missing_characters (" . $all_missing_characters / $all_story_characters . ") missing\n";
     }
 }
 

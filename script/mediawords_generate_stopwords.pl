@@ -516,9 +516,9 @@ sub main
     my $stoplist_threshold = 1000;                       # How many stopwords to print
 
     my Readonly $usage =
-      "Usage: $0" . ' --corpus_name=corpus-simplewiki-20121129' . ' --language=lt' . ' --type=tf|idf|nidf' .
-      ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' . '[--story_separator=----------------]' .
-      ' [--term_limit=i]' . ' [--stoplist_threshold=i]';
+      "Usage: $0" . ' --corpus_name=corpus-simplewiki-20121129' .
+      ' --language=lt' . ' --type=tf|idf|nidf' . ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' .
+      '[--story_separator=----------------]' . ' [--term_limit=i]' . ' [--stoplist_threshold=i]';
 
     GetOptions(
         'corpus_name=s'        => \$corpus_name,
@@ -593,7 +593,7 @@ sub main
     }
 
     # Cleanup
-    close INPUT  unless $input_file  eq '-';
+    close INPUT  unless $input_file eq '-';
     close OUTPUT unless $output_file eq '-';
 
     say STDERR "finished --  " . localtime();

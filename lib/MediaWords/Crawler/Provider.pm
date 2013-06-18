@@ -143,8 +143,8 @@ sub _add_stale_feeds
       " ( now() > last_download_time + ( last_download_time - last_new_story_time ) + interval '5 minutes' ) ";
 
     my $constraint =
-      "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " . STALE_FEED_INTERVAL .
-      " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
+      "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " .
+      STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
     my $feeds = $dbs->query( <<END )->hashes;
 UPDATE feeds SET last_download_time = now()
