@@ -263,7 +263,6 @@ sub get_top_words
     return \%top_words;
 }
 
-
 sub main
 {
     my $file;
@@ -305,9 +304,11 @@ sub main
         my $line_infos         = $download->{ line_info };
         my $preprocessed_lines = $download->{ preprocessed_lines };
 
-        my $feature_strings = MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines, $top_words );
+        my $feature_strings =
+          MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines,
+            $top_words );
 
-	say join "\n", @ { $feature_strings };
+        say join "\n", @{ $feature_strings };
 
         if ( $blank_line_between_downloads )
         {

@@ -29,22 +29,22 @@ use Cwd            ();
 # LIST OF ENABLED LANGUAGES
 #
 my Readonly @_enabled_languages = (
-    'da',                                  # Danish
-    'de',                                  # German
-    'en',                                  # English
-    'es',                                  # Spanish
-    'fi',                                  # Finnish
-    'fr',                                  # French
-    'hu',                                  # Hungarian
-    'it',                                  # Italian
-    'lt',                                  # Lithuanian
-    'nl',                                  # Dutch
-    'no',                                  # Norwegian
-    'pt',                                  # Portuguese
-    'ro',                                  # Romanian
-    'ru',                                  # Russian
-    'sv',                                  # Swedish
-    'tr',                                  # Turkish
+    'da',    # Danish
+    'de',    # German
+    'en',    # English
+    'es',    # Spanish
+    'fi',    # Finnish
+    'fr',    # French
+    'hu',    # Hungarian
+    'it',    # Italian
+    'lt',    # Lithuanian
+    'nl',    # Dutch
+    'no',    # Norwegian
+    'pt',    # Portuguese
+    'ro',    # Romanian
+    'ru',    # Russian
+    'sv',    # Swedish
+    'tr',    # Turkish
 
     # Chinese disabled because of poor word segmentation
     #'zh',                                  # Chinese

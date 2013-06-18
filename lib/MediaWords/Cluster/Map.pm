@@ -104,8 +104,8 @@ sub _get_medium_media_sets_id
 
     my ( $node_media_sets_id ) = $clustering_engine->db->query(
         "select msmm.media_sets_id from media_sets_media_map msmm, queries_media_sets_map qmsm " .
-          "  where msmm.media_sets_id = qmsm.media_sets_id " . "    and qmsm.queries_id = $query->{ queries_id } " .
-          "    and msmm.media_id = $medium->{ media_id }" )->flat;
+          "  where msmm.media_sets_id = qmsm.media_sets_id " .
+          "    and qmsm.queries_id = $query->{ queries_id } " . "    and msmm.media_id = $medium->{ media_id }" )->flat;
 
     return $node_media_sets_id;
 }
@@ -794,7 +794,7 @@ sub _get_time_slice_polar_queries
               "  where mcmp.queries_id = q.queries_id and mcmp.media_cluster_maps_id = ? " .
               "  order by mcmp.pole_number asc",
             $cluster_map->{ media_cluster_maps_id }
-          )->flat
+        )->flat
     ];
     for my $polar_query_id ( @{ $polar_query_ids } )
     {

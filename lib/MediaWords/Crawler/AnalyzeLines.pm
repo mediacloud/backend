@@ -101,7 +101,7 @@ sub lineStartsWithTitleText($$)
 {
     my ( $line_text, $title_text ) = @_;
 
-    $line_text  =~ s/[^\w .]//g;
+    $line_text =~ s/[^\w .]//g;
     $title_text =~ s/[^\w .]//g;
 
     if ( $line_text eq $title_text )

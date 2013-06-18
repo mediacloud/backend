@@ -32,7 +32,7 @@ sub list : Local
         WHERE generate_page = 't'
         ORDER BY start_date
 EOF
-          )->flat
+        )->flat
     ];
 
     my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];

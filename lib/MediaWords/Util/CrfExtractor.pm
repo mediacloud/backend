@@ -32,7 +32,7 @@ sub get_extracted_lines_with_crf
       MediaWords::Crawler::AnalyzeLines::get_feature_strings_for_download( $line_infos, $preprocessed_lines );
 
     my $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/crf_model';
-    
+
     $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/features_outputModel.txt';
 
     #my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
@@ -42,14 +42,14 @@ sub get_extracted_lines_with_crf
     #say STDERR Dumper( $feature_strings );
     #say STDERR ( Dumper( $predictions ) );
 
-    die unless scalar( @ $predictions ) == scalar( @ $feature_strings );
+    die unless scalar( @$predictions ) == scalar( @$feature_strings );
 
     my $line_index       = 0;
     my $prediction_index = 0;
 
     my @extracted_lines;
 
-    die unless scalar( @ $predictions ) <= scalar( @ $line_infos );
+    die unless scalar( @$predictions ) <= scalar( @$line_infos );
 
     while ( $line_index < scalar( @{ $line_infos } ) )
     {
@@ -61,12 +61,13 @@ sub get_extracted_lines_with_crf
 
         my $prediction = rtrim $predictions->[ $prediction_index ];
 
-        die "Invalid prediction: '$prediction' for line index $line_index and prediction_index $prediction_index " . Dumper( $predictions )
+        die "Invalid prediction: '$prediction' for line index $line_index and prediction_index $prediction_index " .
+          Dumper( $predictions )
           unless ( $prediction eq 'excluded' )
           or ( $prediction eq 'required' )
           or ( $prediction eq 'optional' );
 
-	#say STDERR "$prediction";
+        #say STDERR "$prediction";
         if ( $prediction ne 'excluded' )
         {
             push @extracted_lines, $line_infos->[ $line_index ]->{ line_number };

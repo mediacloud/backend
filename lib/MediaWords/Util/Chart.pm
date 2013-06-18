@@ -79,7 +79,7 @@ sub generate_line_chart_url
             ',',
             map {
                 join( '', map { $enc->{ int( $_ * ( 60 / $max ) ) } } @{ $_ } )
-              } @{ $term_date_counts }
+            } @{ $term_date_counts }
         )
     );
 
@@ -321,9 +321,9 @@ sub get_daily_term_chart_url
     my $query =
       "select publish_day, stem, " .
       "    ( least( 0.10, sum(stem_count)::float / sum(total_count)::float ) * count(*) * 100000 ) " .
-      "      as stem_count " . "  from daily_words_with_totals " . "  where publish_day in ( $date_list ) " .
-      "    and media_sets_id = ? " . "    and stem in ( $stem_list ) " . "    and $dashboard_topic_clause " .
-      "  group by stem, publish_day " . "  order by stem, publish_day";
+      "      as stem_count " . "  from daily_words_with_totals " .
+      "  where publish_day in ( $date_list ) " . "    and media_sets_id = ? " . "    and stem in ( $stem_list ) " .
+      "    and $dashboard_topic_clause " . "  group by stem, publish_day " . "  order by stem, publish_day";
 
     print_time( "get_daily_term_chart_url -- about to execute query" );
 

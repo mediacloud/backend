@@ -158,8 +158,8 @@ sub scroll_stories_id_window
     $_stories_id_start = $_stories_id_stop;
     $_stories_id_stop  = $_stories_id_start + $_stories_id_window_size;
 
-    print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " . get_max_stories_id() .
-      ")  -- " .
+    print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " .
+      get_max_stories_id() . ")  -- " .
       localtime() . "\n";
 }
 

@@ -131,30 +131,28 @@ sub processDownload
 
     my $line_should_be_in_story = $analyzed_download->{ line_should_be_in_story };
 
-
     my $extracted_lines;
 
     my $extraction_method = 'CRF';
 
     #$extraction_method = 'old';
 
-    if (  $extraction_method eq 'CRF' ) 
+    if ( $extraction_method eq 'CRF' )
     {
-	my $crf_extractor = MediaWords::Util::CrfExtractor->new();
+        my $crf_extractor = MediaWords::Util::CrfExtractor->new();
 
-	$extracted_lines = $crf_extractor->getExtractedLines( $line_info, $preprocessed_lines );
+        $extracted_lines = $crf_extractor->getExtractedLines( $line_info, $preprocessed_lines );
     }
     else
     {
-	my $old_extractor   = MediaWords::Util::HeuristicExtractor->new();
-	$extracted_lines = $old_extractor->getExtractedLines( $line_info );
+        my $old_extractor = MediaWords::Util::HeuristicExtractor->new();
+        $extracted_lines = $old_extractor->getExtractedLines( $line_info );
     }
 
     #say STDERR "processDownload";
     #my $me_extractor = MediaWords::Util::MaxEntExtractor->new();
 
     #$extracted_lines = $me_extractor->getExtractedLines( $line_info, $preprocessed_lines );
-
 
     #say Dumper ( $extracted_lines );
     #exit;
@@ -341,8 +339,8 @@ sub process_download_results
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
     print "non_ignoreable lines: $non_optional_non_autoexclude_line_count / $all_extra_lines (" .
-      $all_extra_lines / $non_optional_non_autoexclude_line_count . ") extra / $all_missing_lines (" .
-      $all_missing_lines / $non_optional_non_autoexclude_line_count . ") missing\n";
+      $all_extra_lines / $non_optional_non_autoexclude_line_count .
+      ") extra / $all_missing_lines (" . $all_missing_lines / $non_optional_non_autoexclude_line_count . ") missing\n";
 
     if ( $all_story_characters == 0 )
     {
@@ -351,8 +349,8 @@ sub process_download_results
     else
     {
         print "characters: $all_story_characters story / $all_extra_characters (" .
-          $all_extra_characters / $all_story_characters . ") extra / $all_missing_characters (" .
-          $all_missing_characters / $all_story_characters . ") missing\n";
+          $all_extra_characters / $all_story_characters .
+          ") extra / $all_missing_characters (" . $all_missing_characters / $all_story_characters . ") missing\n";
     }
 
     if ( $_test_sentences )

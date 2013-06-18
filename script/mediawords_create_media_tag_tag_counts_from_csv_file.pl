@@ -82,7 +82,7 @@ sub main
         system(
 'psql -c "COPY media_tag_tag_counts_new(media_id, tags_id, tag_tags_id, tag_sets_id, tag_count) FROM STDIN WITH CSV" < '
               . "\"$csv_file\""
-          ) == 0
+        ) == 0
     ) or die;
 
     print STDERR "creating indices ... -- " . localtime() . "\n";

@@ -115,8 +115,8 @@ sub sub_table_exists
             "select tablename from pg_tables where schemaname = ? and tablename = ? ",
             $sub_table_schema_name,
             _get_sub_table_base_name_for_media_id( $media_id )
-          )->flat
-      };
+        )->flat
+    };
 
     return scalar( @sub_table_names ) > 0;
 }
@@ -191,8 +191,8 @@ sub create_indexes_for_sub_table
         "CREATE UNIQUE INDEX $index_name_prefix" . "_stories_id_tags_id ON $table_name (stories_id, tags_id)" );
     execute_query( $dbh, "CREATE INDEX $index_name_prefix" . "_publish_date ON $table_name USING btree (publish_date)" );
     execute_query( $dbh,
-        "ALTER TABLE ONLY $table_name  ADD CONSTRAINT $index_name_prefix" . "_valid_media_id " .
-          " CHECK (media_id=$media_id);" );
+        "ALTER TABLE ONLY $table_name  ADD CONSTRAINT $index_name_prefix" .
+          "_valid_media_id " . " CHECK (media_id=$media_id);" );
 }
 
 sub create_sub_table_for_media_id
@@ -224,10 +224,9 @@ sub create_sub_table_for_media_id
 
     print STDERR 'START CREATE ' . $stories_tags_media_sub_table . ' ' . localtime() . "\n";
 
-    $dbh->query_only_warn_on_error(
-        'CREATE TABLE ' . ' ' . $stories_tags_media_sub_table . ' ( ' . ' media_id integer not null, ' .
-          ' publish_date timestamp without time zone not null, ' . ' stories_id integer not null, ' .
-          ' tags_id integer not null,' . ' tag_sets_id integer not null' . ' )' );
+    $dbh->query_only_warn_on_error( 'CREATE TABLE ' . ' ' . $stories_tags_media_sub_table .
+          ' ( ' . ' media_id integer not null, ' . ' publish_date timestamp without time zone not null, ' .
+          ' stories_id integer not null, ' . ' tags_id integer not null,' . ' tag_sets_id integer not null' . ' )' );
 
     print STDERR "FINISHED CREATING TABLE  -- " . '' . $stories_tags_media_sub_table . ' ' . localtime() . "\n";
 

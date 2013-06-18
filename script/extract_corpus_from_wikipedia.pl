@@ -259,7 +259,7 @@ sub extract_corpus_from_wikipedia($$$)
     $xml->parse( *INPUT );
 
     # Cleanup
-    close INPUT  unless $input_file  eq '-';
+    close INPUT  unless $input_file eq '-';
     close OUTPUT unless $output_file eq '-';
 }
 

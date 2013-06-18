@@ -45,22 +45,24 @@ sub get_predictions_separate_exec
 
     my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
 
-    print $test_data_fh join "\n", @ { $current_file_lines };
+    print $test_data_fh join "\n", @{ $current_file_lines };
 
     close( $test_data_fh );
-    
-    my $output = `./script/mediawords_extractor_test_run_model.pl --feature_file $test_data_file_name --model_file $_model_file`;
 
-    return [ split "\n", $output];
+    my $output =
+      `./script/mediawords_extractor_test_run_model.pl --feature_file $test_data_file_name --model_file $_model_file`;
+
+    return [ split "\n", $output ];
 }
 
 sub get_predictions
 {
     my ( $_model_file, $current_file_lines ) = @_;
-    
+
     #my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $_model_file, $current_file_lines );
 
-    my $predictions = CRF::CrfUtils::run_model_inline_java_data_array(  $_model_file, $current_file_lines );
+    my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $_model_file, $current_file_lines );
+
     #my $predictions = get_predictions_separate_exec( $_model_file, $current_file_lines );
 
     $predictions = [ map { rtrim $_ } @{ $predictions } ];
@@ -102,16 +104,17 @@ sub main
     {
         chomp( $line );
 
-	last if $downloads > 0;
+        last if $downloads > 0;
 
         if ( $line eq '' )
         {
 
-	    push $current_file_lines, '';
+            push $current_file_lines, '';
 
-	    my $predictions = get_predictions( $_model_file, $current_file_lines );
-	    
-            die scalar( @$expected_outputs ) . " != " .  scalar( @$predictions ) unless scalar( @$expected_outputs ) == scalar( @$predictions );
+            my $predictions = get_predictions( $_model_file, $current_file_lines );
+
+            die scalar( @$expected_outputs ) . " != " . scalar( @$predictions )
+              unless scalar( @$expected_outputs ) == scalar( @$predictions );
 
             my $ea = each_arrayref( $expected_outputs, $predictions );
 
@@ -129,12 +132,12 @@ sub main
                 }
             }
 
-            $expected_outputs = [];
-            $predictions      = [];
-	    $current_file_lines = [];
-	    
-	    $downloads++;
-	    last;
+            $expected_outputs   = [];
+            $predictions        = [];
+            $current_file_lines = [];
+
+            $downloads++;
+            last;
         }
         else
         {
@@ -142,7 +145,8 @@ sub main
 
             my $expected = $1;
 
-	    $line =~ s/(.*) (.*?)$/$1/;
+            $line =~ s/(.*) (.*?)$/$1/;
+
             # say $expected;
 
             push $expected_outputs, $expected;

@@ -370,8 +370,8 @@ sub main
     my $skipped_downloads_log   = undef;    # (optional) file into which skipped download IDs should be written
 
     my Readonly $usage =
-      'Usage: ' . $0 . ' [--resume_downloads_id_log=gridfs-resume-downloads_id.log]' .
-      ' [--skipped_downloads_log=skipped-downloads.log]';
+      'Usage: ' . $0 .
+      ' [--resume_downloads_id_log=gridfs-resume-downloads_id.log]' . ' [--skipped_downloads_log=skipped-downloads.log]';
 
     GetOptions(
         'resume_downloads_id_log:s' => \$resume_downloads_id_log,

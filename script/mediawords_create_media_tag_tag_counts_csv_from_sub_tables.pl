@@ -34,9 +34,9 @@ sub get_stories_map_with_tags
 
     my $stories_tags_map_sub_table_name =
       MediaWords::DBI::StoriesTagsMapMediaSubtables::_get_sub_table_full_name_for_media_id( $sub_table_media_id );
-    my $stories_tags_map_rows = $dbh->query_only_warn_on_error(
-        "select media_id, stories_id, tags_id, tag_sets_id  from " . $stories_tags_map_sub_table_name .
-          " where publish_date > (now() - interval '90 days') order by stories_id" );
+    my $stories_tags_map_rows =
+      $dbh->query_only_warn_on_error( "select media_id, stories_id, tags_id, tag_sets_id  from " .
+          $stories_tags_map_sub_table_name . " where publish_date > (now() - interval '90 days') order by stories_id" );
 
     $stories_tags_map_rows->bind( my ( $media_id, $stories_id, $tags_id, $tag_sets_id ) );
     print STDERR "creating stories hash map -- " . localtime() . "\n";

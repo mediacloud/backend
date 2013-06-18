@@ -19,7 +19,7 @@ use File::Basename;
 my $class_path;
 
 BEGIN
- {
+{
     my $_dirname      = dirname( __FILE__ );
     my $_dirname_full = File::Spec->rel2abs( $_dirname );
 
@@ -31,7 +31,7 @@ BEGIN
     $class_path = scalar( join ':', ( map { "$jar_dir/$_" } @{ $jars } ) );
 
     say STDERR "classpath: $class_path";
- }
+}
 
 sub output_testing_and_training
 {
@@ -110,7 +110,7 @@ sub create_model_inline_java
         ],
         AUTOSTUDY => 1,
         CLASSPATH => $class_path,
-        PACKAGE => 'main'
+        PACKAGE   => 'main'
     );
 
     my $model_file_name = $training_data_file;
@@ -131,7 +131,7 @@ sub run_model_inline_java_data_array
 {
     my ( $model_file_name, $test_data_array ) = @_;
 
-    undef($crf);
+    undef( $crf );
 
     if ( !defined( $crf ) )
     {
@@ -148,13 +148,13 @@ sub run_model_with_separate_exec
 
     my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
 
-    print $test_data_fh join "\n", @ { $test_data_array };
+    print $test_data_fh join "\n", @{ $test_data_array };
 
     close( $test_data_fh );
 
     my $output = `java -cp  $class_path cc.mallet.fst.SimpleTagger --model-file  $model_file_name $test_data_file_name `;
 
-    return [ split "\n", $output];
+    return [ split "\n", $output ];
 }
 
 sub run_model_on_array
@@ -184,7 +184,6 @@ sub run_model_inline_java
 
     say STDERR "classpath: $class_path";
 
-    
     # use Inline (
     #     Java  => 'STUDY',
     #     STUDY => [
@@ -263,14 +262,14 @@ public class model_runner {
 
 		return run_model_impl(modelFileName, testData);
 	}
-	
+
 	public static String[] run_model_string(String testDataString, CRF crf)
 			throws Exception {
 		InstanceList testData = readTestDataFromString(testDataString);
 
 		return run_crf_model(testData, crf);
 	}
-	
+
 	private static String[] run_model_impl(String modelFileName,
 			InstanceList testData) throws IOException, FileNotFoundException,
 			ClassNotFoundException {
@@ -297,10 +296,9 @@ public class model_runner {
 
 	private static InstanceList readTestData(String testFileName)
 			throws FileNotFoundException {
-		
 
 		Reader testFile = new FileReader(new File(testFileName));
-		
+
 		return instanceListFromReader(testFile);
 	}
 
@@ -308,11 +306,10 @@ public class model_runner {
 	{
 
 		Reader testFile = new StringReader(testData);
-		
+
 		return instanceListFromReader(testFile);
 	}
 
-	
 	private static InstanceList instanceListFromReader(Reader testFile) {
 		Pipe p = new SimpleTagger.SimpleTaggerSentence2FeatureVectorSequence();
 		InstanceList testData = new InstanceList(p);
@@ -333,7 +330,7 @@ public class model_runner {
 
 	private static ArrayList<String> predictSequence(CRF crf,
 			Sequence input) {
-		
+
 		ArrayList<String> sequenceResults = new ArrayList<String>();
 		int nBestOption = 1;
 
