@@ -17,11 +17,26 @@ use Moose;
 
 with 'MediaWords::Util::Extractor';
 
+
+sub getScoresAndLines
+{
+   my ( $self, $line_info, $preprocessed_lines ) = @_;
+
+   my $extracted_lines = get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
+
+   return {
+       included_line_numbers => $extracted_lines,
+       scores                => [],
+   };
+}
+
 sub getExtractedLines
 {
-    my ( $self, $line_infos, $preprocessed_lines ) = @_;
+    my ( $self, $line_infos, $preprocessed_lines  ) = @_;
 
-    return get_extracted_lines_with_crf( $line_infos, $preprocessed_lines );
+    my $scores_and_lines = $self->getScoresAndLines( $line_infos, $preprocessed_lines );
+
+    return $scores_and_lines->{ included_line_numbers };
 }
 
 sub get_extracted_lines_with_crf

@@ -11,6 +11,15 @@ use Moose::Role;
 requires 'getExtractedLines';
 requires 'getScoresAndLines';
 
+sub getExtractedLines
+{
+    my ( $self, $line_infos, $preprocessed_lines  ) = @_;
+
+    my $scores_and_lines = $self->getScoresAndLines( $line_infos, $preprocessed_lines );
+
+    return $scores_and_lines->{ included_line_numbers };
+}
+
 sub extract_preprocessed_lines_for_story
 {
     my ( $self, $lines, $story_title, $story_description ) = @_;

@@ -15,6 +15,19 @@ use Moose;
 
 with 'MediaWords::Util::Extractor';
 
+sub getScoresAndLines
+{
+    my ( $self, $line_infos, $preprocessed_lines ) = @_;
+
+    my $extracted_lines = get_extracted_line_with_maxent( $line_infos, $preprocessed_lines );
+
+    return {
+       included_line_numbers => $extracted_lines,
+       scores                => [],
+    };
+}
+
+
 sub getExtractedLines
 {
     my ( $self, $line_infos, $preprocessed_lines ) = @_;
