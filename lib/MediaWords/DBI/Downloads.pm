@@ -288,17 +288,6 @@ sub extract_preprocessed_lines_for_story($$$)
     my $old_extractor   = MediaWords::Util::HeuristicExtractor->new();
 
     return $old_extractor->extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
-
-    my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
-
-    my $included_line_numbers = _get_included_line_numbers( $scores );
-
-    return {
-
-        included_line_numbers => $included_line_numbers,
-        download_lines        => $lines,
-        scores                => $scores,
-    };
 }
 
 # store the download content in the file system
