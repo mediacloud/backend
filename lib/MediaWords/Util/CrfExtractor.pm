@@ -35,7 +35,8 @@ sub get_extracted_lines_with_crf
     
     $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/features_outputModel.txt';
 
-    my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
+    #my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
+    my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $model_file_name, $feature_strings );
 
     #say STDERR ( Dumper( $line_infos ) );
     #say STDERR Dumper( $feature_strings );
@@ -48,7 +49,7 @@ sub get_extracted_lines_with_crf
 
     my @extracted_lines;
 
-    die unless scalar( @ $predictions ) < scalar( @ $line_infos );
+    die unless scalar( @ $predictions ) <= scalar( @ $line_infos );
 
     while ( $line_index < scalar( @{ $line_infos } ) )
     {
