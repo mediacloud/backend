@@ -24,9 +24,23 @@ sub getScoresAndLines
 
    my $extracted_lines = get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
 
+   my $scores = [];
+
+   my %extracted_lines_hash = map { $_ => 1 } @ { $extracted_lines };
+
+   foreach my $line ( @ { $line_info } )
+   {
+       my $score = {};
+
+       $score->{ line_number } = $line->{ line_number } ;
+       $score->{ is_story }    = defined( $extracted_lines_hash{ $line->{ line_number } } ) ? 1 : 0 ;
+
+       push $scores, $score;
+   }
+
    return {
        included_line_numbers => $extracted_lines,
-       scores                => [],
+       scores                => $scores,
    };
 }
 
