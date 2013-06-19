@@ -17,7 +17,9 @@ use MediaWords::DBI::Downloads::Store::Remote;
 use MediaWords::DBI::Downloads::Store::Tar;
 use MediaWords::DBI::Downloads::Store::GridFS;
 use Carp;
+use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
+use MediaWords::Util::CrfExtractor;
 
 use Data::Dumper;
 
@@ -285,7 +287,7 @@ sub extract_preprocessed_lines_for_story($$$)
 {
     my ( $lines, $story_title, $story_description ) = @_;
 
-    my $old_extractor   = MediaWords::Util::HeuristicExtractor->new();
+    my $old_extractor   = MediaWords::Util::ExtractorFactory::createExtractor();
 
     return $old_extractor->extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
 }
