@@ -287,7 +287,7 @@ sub extract_preprocessed_lines_for_story($$$)
 {
     my ( $lines, $story_title, $story_description ) = @_;
 
-    my $old_extractor   = MediaWords::Util::ExtractorFactory::createExtractor();
+    my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
 
     return $old_extractor->extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
 }

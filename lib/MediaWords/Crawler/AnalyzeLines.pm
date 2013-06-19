@@ -516,7 +516,7 @@ sub get_feature_strings_for_download
 {
     my ( $line_infos, $preprocessed_lines, $top_words ) = @_;
 
-    confess unless defined ( $line_infos ) and defined ( $preprocessed_lines );
+    confess unless defined( $line_infos ) and defined( $preprocessed_lines );
 
     my $ret = [];
 

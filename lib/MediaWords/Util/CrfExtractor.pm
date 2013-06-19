@@ -29,38 +29,37 @@ BEGIN
     $_model_file_name = "$_dirname_full/../../CRF/models/extractor_model";
 
     say STDERR "model_file: $_model_file_name";
-};
-
+}
 
 sub getScoresAndLines
 {
-   my ( $self, $line_info, $preprocessed_lines ) = @_;
+    my ( $self, $line_info, $preprocessed_lines ) = @_;
 
-   my $extracted_lines = get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
+    my $extracted_lines = get_extracted_lines_with_crf( $line_info, $preprocessed_lines );
 
-   my $scores = [];
+    my $scores = [];
 
-   my %extracted_lines_hash = map { $_ => 1 } @ { $extracted_lines };
+    my %extracted_lines_hash = map { $_ => 1 } @{ $extracted_lines };
 
-   foreach my $line ( @ { $line_info } )
-   {
-       my $score = {};
+    foreach my $line ( @{ $line_info } )
+    {
+        my $score = {};
 
-       $score->{ line_number } = $line->{ line_number } ;
-       $score->{ is_story }    = defined( $extracted_lines_hash{ $line->{ line_number } } ) ? 1 : 0 ;
+        $score->{ line_number } = $line->{ line_number };
+        $score->{ is_story } = defined( $extracted_lines_hash{ $line->{ line_number } } ) ? 1 : 0;
 
-       push $scores, $score;
-   }
+        push $scores, $score;
+    }
 
-   return {
-       included_line_numbers => $extracted_lines,
-       scores                => $scores,
-   };
+    return {
+        included_line_numbers => $extracted_lines,
+        scores                => $scores,
+    };
 }
 
 sub getExtractedLines
 {
-    my ( $self, $line_infos, $preprocessed_lines  ) = @_;
+    my ( $self, $line_infos, $preprocessed_lines ) = @_;
 
     my $scores_and_lines = $self->getScoresAndLines( $line_infos, $preprocessed_lines );
 
@@ -81,7 +80,7 @@ sub get_extracted_lines_with_crf
     $model_file_name = $_model_file_name;
 
     say STDERR "using model file: '$model_file_name'";
-    
+
     #my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
     my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $model_file_name, $feature_strings );
 

@@ -22,11 +22,10 @@ sub getScoresAndLines
     my $extracted_lines = get_extracted_line_with_maxent( $line_infos, $preprocessed_lines );
 
     return {
-       included_line_numbers => $extracted_lines,
-       scores                => [],
+        included_line_numbers => $extracted_lines,
+        scores                => [],
     };
 }
-
 
 sub getExtractedLines
 {

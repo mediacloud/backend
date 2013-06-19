@@ -133,7 +133,7 @@ sub get_value_of_base_64_node
 
         is( $story_line_numbers_actual, $story_line_numbers_expected, "story line numbers" );
 
-	last;
+        last;
     }
 }
 

@@ -13,7 +13,7 @@ requires 'getScoresAndLines';
 
 sub getExtractedLines
 {
-    my ( $self, $line_infos, $preprocessed_lines  ) = @_;
+    my ( $self, $line_infos, $preprocessed_lines ) = @_;
 
     my $scores_and_lines = $self->getScoresAndLines( $line_infos, $preprocessed_lines );
 
@@ -29,7 +29,6 @@ sub extract_preprocessed_lines_for_story
         return;
     }
 
-    
     my $line_info = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $story_title, $story_description );
 
     my $scores_and_lines = $self->getScoresAndLines( $line_info, $lines );

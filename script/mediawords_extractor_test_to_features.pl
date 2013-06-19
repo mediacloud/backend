@@ -232,9 +232,7 @@ sub main
 {
     my $file;
 
-    GetOptions(
-        'file|f=s' => \$file,
-    ) or die;
+    GetOptions( 'file|f=s' => \$file, ) or die;
 
     die unless $file;
 

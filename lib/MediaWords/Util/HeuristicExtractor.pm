@@ -12,17 +12,17 @@ with 'MediaWords::Util::Extractor';
 
 sub getScoresAndLines
 {
-   my ( $self, $line_info, $preprocessed_lines ) = @_;
+    my ( $self, $line_info, $preprocessed_lines ) = @_;
 
-   my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
-   my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
+    my $scores = MediaWords::Crawler::HeuristicLineScoring::_score_lines_with_line_info( $line_info );
+    my @extracted_lines = map { $_->{ line_number } } grep { $_->{ is_story } } @{ $scores };
 
-   my $extracted_lines = \@extracted_lines;
+    my $extracted_lines = \@extracted_lines;
 
-   return {
-       included_line_numbers => $extracted_lines,
-       scores                => $scores,
-   }
+    return {
+        included_line_numbers => $extracted_lines,
+        scores                => $scores,
+    };
 }
 
 sub getExtractedLines
