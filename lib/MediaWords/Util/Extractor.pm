@@ -32,7 +32,7 @@ sub extract_preprocessed_lines_for_story
     
     my $line_info = MediaWords::Crawler::AnalyzeLines::get_info_for_lines( $lines, $story_title, $story_description );
 
-    my $scores_and_lines = $self->getScoresAndLines( $line_info );
+    my $scores_and_lines = $self->getScoresAndLines( $line_info, $lines );
 
     return {
 
