@@ -10,6 +10,7 @@ use MediaWords::Util::HTML;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
+use Carp;
 
 # extract substantive new story text from html pages
 
@@ -514,6 +515,8 @@ sub _mark_auto_excluded_previous_lines
 sub get_feature_strings_for_download
 {
     my ( $line_infos, $preprocessed_lines, $top_words ) = @_;
+
+    confess unless defined ( $line_infos ) and defined ( $preprocessed_lines );
 
     my $ret = [];
 
