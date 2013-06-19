@@ -12,10 +12,24 @@ use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use IPC::Open2;
 use CRF::CrfUtils;
 use Text::Trim;
+use File::Spec;
+use File::Basename;
 
 use Moose;
 
 with 'MediaWords::Util::Extractor';
+
+my $_model_file_name;
+
+BEGIN
+{
+    my $_dirname      = dirname( __FILE__ );
+    my $_dirname_full = File::Spec->rel2abs( $_dirname );
+
+    $_model_file_name = "$_dirname_full/../../CRF/models/extractor_model";
+
+    say STDERR "model_file: $_model_file_name";
+};
 
 
 sub getScoresAndLines
@@ -64,6 +78,10 @@ sub get_extracted_lines_with_crf
 
     $model_file_name = '/home/dlarochelle/mc/mediacloud-code/branches/extractor_inline_java/features_outputModel.txt';
 
+    $model_file_name = $_model_file_name;
+
+    say STDERR "using model file: '$model_file_name'";
+    
     #my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
     my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $model_file_name, $feature_strings );
 
