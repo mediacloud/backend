@@ -126,41 +126,6 @@ sub get_word_counts_by_class
     return $word_counts;
 }
 
-sub add_distance_from_previous_line
-{
-    my ( $downloads ) = @_;
-
-    foreach my $download ( @{ $downloads } )
-    {
-
-        my $last_in_story_line;
-
-        my $line_num = 0;
-
-        foreach my $line ( @{ $download->{ line_info } } )
-        {
-
-            my $line_number = $line->{ line_number };
-
-            if ( defined( $last_in_story_line ) )
-            {
-                $line->{ distance_from_previous_in_story_line } = $line_number - $last_in_story_line;
-            }
-
-            $line->{ class } = $download->{ line_should_be_in_story }->{ $line_number } // 'excluded';
-
-            if ( $line->{ class } ne 'excluded' )
-            {
-                $last_in_story_line = $line_number;
-            }
-        }
-
-    }
-
-    return;
-
-}
-
 sub add_class_information
 {
     my ( $downloads ) = @_;
