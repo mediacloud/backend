@@ -269,28 +269,13 @@ sub main
 
     GetOptions(
         'file|f=s' => \$file,
-
-        # 'download_data_load_file=s'     => \$_download_data_load_file,
-        # 'download_data_store_file=s'    => \$_download_data_store_file,
-        # 'dont_store_preprocessed_lines' => \$_dont_store_preprocessed_lines,
-        # 'dump_training_data_csv'        => \$_dump_training_data_csv,
     ) or die;
 
     die unless $file;
 
     my $downloads = retrieve( $file );
 
-    #say Dumper( $downloads );
-
     say STDERR "retrieved file";
-
-    #add_distance_from_previous_line( $downloads );
-
-    # say STDERR "About to call add_additional_features";
-
-    # add_additional_features( $downloads );
-
-    # say STDERR "Returned from call to add_additional_features";
 
     add_class_information( $downloads );
 
