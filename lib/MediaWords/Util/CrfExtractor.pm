@@ -28,7 +28,7 @@ BEGIN
 
     $_model_file_name = "$_dirname_full/../../CRF/models/extractor_model";
 
-    say STDERR "model_file: $_model_file_name";
+    #say STDERR "model_file: $_model_file_name";
 }
 
 sub getScoresAndLines
@@ -79,7 +79,7 @@ sub get_extracted_lines_with_crf
 
     $model_file_name = $_model_file_name;
 
-    say STDERR "using model file: '$model_file_name'";
+    #say STDERR "using model file: '$model_file_name'";
 
     #my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
     my $predictions = CRF::CrfUtils::run_model_with_separate_exec( $model_file_name, $feature_strings );
