@@ -92,11 +92,21 @@ CREATE TABLE story_edits (
                                     ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
 );
 
+-- Feed statuses that determine whether the feed will be fetched
+-- or skipped
+CREATE TYPE feed_feed_status AS ENUM (
+    -- Feed is active, being fetched
+    'active',
+    -- Feed is (temporary) disabled (usually by hand), not being fetched
+    'inactive',
+    -- Feed was moderated as the one that shouldn't be fetched, but is still kept around
+    -- to reduce the moderation queue next time the page is being scraped for feeds to find
+    -- new ones
+    'skipped'
+);
+
 ALTER TABLE feeds
-	ADD COLUMN feed_status feed_feed_status    not null DEFAULT 'active',
-	ALTER COLUMN feeds_id TYPE serial              primary key /* TYPE change - table: feeds original: serial          primary key new: serial              primary key */,
-	ALTER COLUMN media_id TYPE int                 not null references media on delete cascade /* TYPE change - table: feeds original: int             not null references media on delete cascade new: int                 not null references media on delete cascade */,
-	ALTER COLUMN feed_type TYPE feed_feed_type      not null /* TYPE change - table: feeds original: feed_feed_type  not null new: feed_feed_type      not null */;
+	ADD COLUMN feed_status feed_feed_status    not null DEFAULT 'active';
 
 ALTER TABLE dashboard_topics
 	ADD COLUMN "language" varchar(3) NOT NULL;
@@ -123,10 +133,7 @@ ALTER TABLE daily_country_counts
 	ADD COLUMN "language" varchar(3) NOT NULL;
 
 ALTER TABLE daily_author_words
-	ADD COLUMN "language" varchar(3) NOT NULL,
-	ALTER COLUMN daily_author_words_id TYPE serial                  primary key /* TYPE change - table: daily_author_words original: serial primary key new: serial                  primary key */,
-	ALTER COLUMN authors_id TYPE integer                 not null references authors on delete cascade /* TYPE change - table: daily_author_words original: integer not null references authors on delete cascade new: integer                 not null references authors on delete cascade */,
-	ALTER COLUMN media_sets_id TYPE integer                 not null references media_sets on delete cascade /* TYPE change - table: daily_author_words original: integer not null references media_sets on delete cascade new: integer                 not null references media_sets on delete cascade */;
+	ADD COLUMN "language" varchar(3) NOT NULL;
 
 ALTER TABLE weekly_author_words
 	ADD COLUMN "language" varchar(3) NOT NULL;
