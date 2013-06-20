@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 47 + 1;
+use Test::More tests => 48 + 1;
 use Test::Deep;
 
 use utf8;
@@ -232,8 +232,16 @@ sub test_live_urls
 
     is(
         _gt_url( 'http://www.huffingtonpost.com/lynne-lyman/california-votes-to-refor_b_2089469.html' ),
-        _ts( 'Wed, 07 Nov 2012 15:11:54 -0500' ),
+        _ts( 'Wed, 7 Nov 2012 15:11:54 -0500' ),
         'live_url: huffingtonpost.com'
+    );
+
+    is(
+        _gt_url(
+            'http://yubanet.com/california/Human-Rights-Watch-39-Three-Strikes-39-Vote-a-Humane-Step.php#.UcJ1VfYY2rh'
+        ),
+        _ts( 'Thu, 8 Nov 2012 09:40:01 GMT' ),
+        'live_url: yubanet.com'
     );
 }
 

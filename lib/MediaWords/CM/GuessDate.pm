@@ -432,11 +432,11 @@ sub timestamp_from_html($)
     my $pattern_month         = qr/(?<month>(:?0?[1-9]|1[012]))/i;          # e.g. "12", "01", "7"
     my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
     my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"
-    my $pattern_day_of_month = qr/(?:(?<day>(?:0?[1-9]|[12][0-9]|3[01]))(?:st|th)?)/i;    # e.g. "23", "02", "9th", "1st"
-    my $pattern_year         = qr/(?<year>2?0?\d\d)/i;                                    # e.g. "2001", "2023"
-    my $pattern_am_pm        = qr/(?<am_pm>[AP]\.?M\.?)/i;                                # e.g. "AM", "PM"
-    my $pattern_comma        = qr/(?:,)/i;                                                # e.g. ","
-    my $pattern_comma_or_at  = qr/(?:,|\s+at)/i;                                          # e.g. "," or "at"
+    my $pattern_day_of_month        = qr/(?:(?<day>(?:0?[1-9]|[12][0-9]|3[01]))(?:st|th)?)/i; # e.g. "23", "02", "9th", "1st"
+    my $pattern_year                = qr/(?<year>2?0?\d\d)/i;                                 # e.g. "2001", "2023"
+    my $pattern_am_pm               = qr/(?<am_pm>[AP]\.?M\.?)/i;                             # e.g. "AM", "PM"
+    my $pattern_comma               = qr/(?:,)/i;                                             # e.g. ","
+    my $pattern_comma_or_at_or_dash = qr/(?:,|\s+at|\s*\-\s*)/i;                              # e.g. ",", "at", "-"
     my $pattern_not_digit_or_word_start =
       qr/(?:^|[^\w\d])/i;    # pattern to prevent matching dates in the middle of URLs and such
     my $pattern_not_digit_or_word_end =
@@ -502,17 +502,17 @@ sub timestamp_from_html($)
                 \s+
                 $pattern_day_of_month?
                 \s*
-                $pattern_comma_or_at?
+                $pattern_comma_or_at_or_dash?
                 \s+
                 $pattern_year
                 \s*
-                $pattern_comma_or_at?
+                $pattern_comma_or_at_or_dash?
                 \s+
                 $pattern_hour_minute
+                (?:\:$pattern_second)?
                 \s*
                 $pattern_am_pm?
-                \s+
-                $pattern_timezone?
+                (?:\s+$pattern_timezone)?
             )
             $pattern_not_digit_or_word_end
         }ix,
@@ -582,7 +582,7 @@ sub timestamp_from_html($)
                 \s+
                 $pattern_day_of_month?
                 \s*
-                $pattern_comma_or_at?
+                $pattern_comma_or_at_or_dash?
                 \s+
                 $pattern_year
             )
