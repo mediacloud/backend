@@ -302,16 +302,12 @@ sub _results_from_matching_date_patterns($$)
         {
             $d_month = ( $d_month + 0 );
         }
-        my $d_day   = ( defined $+{ day } ? $+{ day } + 0     : 0 );
-        my $d_am_pm = ( $+{ am_pm }       ? lc( $+{ am_pm } ) : '' );
-        my $d_hour  = ( $+{ hour }        ? $+{ hour } + 0    : DEFAULT_HOUR );
-        if ( $d_am_pm )
-        {
-            $d_hour = ( $d_hour % 12 ) + ( ( $d_am_pm eq 'am' ) ? 0 : 12 );
-        }
-        my $d_minute   = ( $+{ minute }   ? $+{ minute } + 0 : 0 );
-        my $d_second   = ( $+{ second }   ? $+{ second } + 0 : 0 );
-        my $d_timezone = ( $+{ timezone } ? $+{ timezone }   : 'GMT' );
+        my $d_day      = ( defined $+{ day } ? $+{ day } + 0     : 0 );
+        my $d_am_pm    = ( $+{ am_pm }       ? lc( $+{ am_pm } ) : '' );
+        my $d_hour     = ( $+{ hour }        ? $+{ hour } + 0    : DEFAULT_HOUR );
+        my $d_minute   = ( $+{ minute }      ? $+{ minute } + 0  : 0 );
+        my $d_second   = ( $+{ second }      ? $+{ second } + 0  : 0 );
+        my $d_timezone = ( $+{ timezone }    ? $+{ timezone }    : 'GMT' );
 
         if ( uc( $d_timezone ) eq 'PT' )
         {
@@ -319,6 +315,13 @@ sub _results_from_matching_date_patterns($$)
             # FIXME assume at Pacific Time (PT) is always PDT and not PST
             # (no easy way to determine which exact timezone is currently in America/Los_Angeles)
             $d_timezone = 'PDT';
+        }
+
+        $d_am_pm =~ s/\.//gs;
+        if ( $d_am_pm )
+        {
+            $d_hour -= 12 if ( lc( $d_am_pm ) eq 'am' and $d_hour == 12 );
+            $d_hour += 12 if ( lc( $d_am_pm ) eq 'pm' and $d_hour != 12 );
         }
 
         # Create a date parseable by Date::Parse correctly, e.g. 2013-05-13 23:52:00 GMT
