@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 42 + 1;
+use Test::More tests => 44 + 1;
 use Test::Deep;
 
 use utf8;
@@ -111,6 +111,7 @@ sub test_dates
     is( _gt( '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST' ),
         _TIMESTAMP_12_00_EST, 'guess_by_date_text' );
     is( _gt( '<p>Hey!</p>', undef, '2012-01-17T12:00:00-05:00' ), _TIMESTAMP_12_00_EST, 'guess_by_existing_story_date' );
+    is( _gt( '<meta name="pubdate" content="2012-01-17 12:00:00" />' ), _TIMESTAMP_12_00_GMT, 'guess_by_meta_pubdate' );
 
     # LiveJournal
     is( _gt( '<abbr class="updated" title="2012-01-17T12:00:00-05:00">' ),
@@ -213,7 +214,14 @@ sub test_live_urls
         _gt_url(
 'http://sentencing.typepad.com/sentencing_law_and_policy/2012/09/californias-proposition-34-and-proposition-36-expose-red-meat-in-a-blue-state.html'
         ),
-        _ts( 'Thu, 27 Sep 2012 09:03:00 GMT' )
+        _ts( 'Thu, 27 Sep 2012 09:03:00 GMT' ),
+        'live_url: sentencing.typepad.com'
+    );
+
+    is(
+        _gt_url( 'http://www.laweekly.com/2012-11-01/news/Proposition-36-three-strikes-excon-reaction/2/' ),
+        _ts( 'Wed, 31 Oct 2012 13:10:31 GMT' ),
+        'live_url: laweekly.com'
     );
 }
 

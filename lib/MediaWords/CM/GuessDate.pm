@@ -42,6 +42,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_dc_created
     },
     {
+        name     => '_guess_by_meta_pubdate',
+        function => \&_guess_by_meta_pubdate
+    },
+    {
         name     => 'guess_by_meta_publish_date',
         function => \&_guess_by_meta_publish_date
     },
@@ -164,6 +168,17 @@ sub _guess_by_dc_created
     }
 }
 
+# <meta name="pubdate" content="2012-10-31 13:10:31"/>
+sub _guess_by_meta_pubdate
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//meta[@name="pubdate"]' ) )
+    {
+        return $node->attr( 'content' );
+    }
+}
+
 # <meta name="item-publish-date" content="Wed, 28 Dec 2011 17:39:00 GMT" />
 sub _guess_by_meta_publish_date
 {
@@ -197,6 +212,7 @@ sub _guess_by_sailthru_date
     }
 }
 
+# <abbr class="updated" title="2013-06-19T16:55:00+03:00">June 19th, 16:55</abbr> (LiveJournal)
 sub _guess_by_abbr_published_updated_date
 {
     my ( $story, $html, $html_tree ) = @_;
@@ -252,7 +268,7 @@ sub _guess_by_url
     my $url = $story->{ url };
     my $redirect_url = $story->{ redirect_url } || $url;
 
-    if ( ( $url =~ m~(20\d\d)/(\d\d)/(\d\d)~ ) || ( $redirect_url =~ m~(20\d\d)/(\d\d)/(\d\d)~ ) )
+    if ( ( $url =~ m~(20\d\d)[/-](\d\d)[/-](\d\d)~ ) || ( $redirect_url =~ m~(20\d\d)[/-](\d\d)[/-](\d\d)~ ) )
     {
         my $date = _validate_date_parts( $1, $2, $3 );
         return $date if ( $date );
