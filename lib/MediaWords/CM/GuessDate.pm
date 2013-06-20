@@ -673,13 +673,27 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
+    my $host = URI->new( $story->{ url } )->host;
+
     if (    $story->{ url }
-        and URI->new( $story->{ url } )->host !~ /example\.(com|net|org)$/gi
+        and $host !~ /example\.(com|net|org)$/gi
         and $story->{ url } !~ /[0-9]/ )
     {
         # Assume that a dateable story will have a numeric component in its URL
         # (either a part of the date like in WordPress's case, or a story ID or something).
         # Tags, search pages, static pages usually don't have a numerals in their URLs
+        return 1;
+    }
+
+    if ( $host =~ /wikipedia\.org$/gi )
+    {
+        # Ignore Wikipedia pages
+        return 1;
+    }
+
+    if ( $story->{ url } =~ /viewforum\.php/ or $story->{ url } =~ /viewtopic\.php/ )
+    {
+        # Ignore phpBB forums
         return 1;
     }
 
