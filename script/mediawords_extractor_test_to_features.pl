@@ -222,7 +222,7 @@ sub get_top_words
             #say "$high_pmi_word is NOT in top words";
         }
 
-        # $top_words{ $high_pmi_word } = 1;
+        $top_words{ $high_pmi_word } = 1;
     }
 
     return \%top_words;
