@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 44 + 1;
+use Test::More tests => 45 + 1;
 use Test::Deep;
 
 use utf8;
@@ -222,6 +222,12 @@ sub test_live_urls
         _gt_url( 'http://www.laweekly.com/2012-11-01/news/Proposition-36-three-strikes-excon-reaction/2/' ),
         _ts( 'Wed, 31 Oct 2012 13:10:31 GMT' ),
         'live_url: laweekly.com'
+    );
+
+    is(
+        _gt_url( 'http://www.pewstates.org/projects/stateline/headlines/california-reconsiders-three-strikes-85899418707' ),
+        _ts( 'Fri, 21 Sep 2012 12:00:00 GMT' ),
+        'live_url: pewstates.org'
     );
 }
 
