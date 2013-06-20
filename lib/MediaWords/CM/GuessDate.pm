@@ -53,6 +53,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_sailthru_date
     },
     {
+        name     => '_guess_by_abbr_published_updated_date',
+        function => \&_guess_by_abbr_published_updated_date
+    },
+    {
         name     => 'guess_by_storydate',
         function => \&_guess_by_storydate
     },
@@ -189,6 +193,20 @@ sub _guess_by_sailthru_date
     if ( my $node = _find_first_node( $html_tree, '//meta[@name="sailthru.date"]' ) )
     {
         return $node->attr( 'content' );
+    }
+}
+
+sub _guess_by_abbr_published_updated_date
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//abbr[@class="published"]' ) )
+    {
+        return $node->attr( 'title' );
+    }
+    if ( my $node = _find_first_node( $html_tree, '//abbr[@class="updated"]' ) )
+    {
+        return $node->attr( 'title' );
     }
 }
 

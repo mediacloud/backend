@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 37 + 1;
+use Test::More tests => 40 + 1;
 use Test::Deep;
 
 use utf8;
@@ -111,6 +111,12 @@ sub test_dates
     is( _gt( '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST' ),
         _TIMESTAMP_12_00_EST, 'guess_by_date_text' );
     is( _gt( '<p>Hey!</p>', undef, '2012-01-17T12:00:00-05:00' ), _TIMESTAMP_12_00_EST, 'guess_by_existing_story_date' );
+
+    # LiveJournal
+    is( _gt( '<abbr class="updated" title="2012-01-17T12:00:00-05:00">' ),
+        _TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
+    is( _gt( '<abbr class="published" title="2012-01-17T12:00:00-05:00">' ),
+        _TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
 }
 
 # Redo into local tests
@@ -188,6 +194,12 @@ sub test_live_urls
         _gt_url( 'http://www.turnto23.com/news/local-news/balloon-launch-in-support-of-prop-36' ),
         _ts( 'Mon, 5 Nov 2012 12:00:00 GMT' ),
         'live_url: turnto23.com'
+    );
+
+    is(
+        _gt_url( 'http://ligaclub.livejournal.com/254432.html' ),
+        _ts( 'Wed, 19 Jun 2013 16:55:00 EEST' ),
+        'live_url: livejournal.com'
     );
 }
 
