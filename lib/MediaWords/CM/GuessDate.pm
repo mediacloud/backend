@@ -257,173 +257,16 @@ sub _guess_by_class_date
 
 }
 
-# Matches a (likely) publication date(+time) in the HTML passed as a parameter; returns timestamp on success,
-# undef if no date(+time) was found
-# FIXME use return values of Regexp::Common::time to form a standardized date
-# FIXME prefer date-time timestamps over date-only timestamps
-sub timestamp_from_html($)
+# Matches a list of date (or date+time) patterns from the arrayref provided
+# returns matches on success, empty array on failure
+sub _results_from_matching_date_patterns($$)
 {
-    my $html = shift;
-
-    unless ( $html )
-    {
-        return undef;
-    }
-
-    $html =~ s/&nbsp;/ /g;
-    $html =~ s|<br ?/?>| |g;
-
-    my $month_names   = [ qw/january february march april may june july august september october november december/ ];
-    my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
-
-    push( @{ $month_names },   map { substr( $_, 0, 3 ) } @{ $month_names } );
-    push( @{ $weekday_names }, map { substr( $_, 0, 3 ) } @{ $weekday_names } );
-
-    my $month_names_pattern   = join( '|', @{ $month_names } );
-    my $weekday_names_pattern = join( '|', @{ $weekday_names } );
-
-    # Common patterns for date / time parts
-    my $pattern_timezone    = qr/(?<timezone>\w{1,4}T)/i;                               # e.g. "PT", "GMT", "EEST", "AZOST"
-    my $pattern_hour        = qr/(?<hour>\d\d?)/i;                                      # e.g. "12", "9", "24"
-    my $pattern_minute      = qr/(?<minute>\d\d)/i;                                     # e.g. "01", "59"
-    my $pattern_second      = qr/(?<second>\d\d)/i;                                     # e.g. "01", "59"
-    my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;    # e.g. "12:50", "9:39"
-    my $pattern_hour_minute_second =
-      qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;    # e.g. "12:50:00"
-    my $pattern_month         = qr/(?<month>(:?0?[1-9]|1[012]))/i;          # e.g. "12", "01", "7"
-    my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
-    my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"
-    my $pattern_day_of_month = qr/(?:(?<day>(?:0?[1-9]|[12][0-9]|3[01]))(?:st|th)?)/i;    # e.g. "23", "02", "9th", "1st"
-    my $pattern_year         = qr/(?<year>2?0?\d\d)/i;                                    # e.g. "2001", "2023"
-    my $pattern_am_pm        = qr/(?<am_pm>[AP]\.?M\.?)/i;                                # e.g. "AM", "PM"
-    my $pattern_comma        = qr/(?:,)/i;                                                # e.g. ","
-
-    # Patterns that match both date *and* time
-    my @date_time_patterns = (
-
-        #
-        # Date + time patterns
-        #
-
-        # 9:24 pm, Tuesday, August 28, 2012
-        qr/(
-            $pattern_hour_minute
-            \s*
-            $pattern_am_pm?
-            \s*
-            $pattern_comma?
-            \s+
-            $pattern_weekday_names
-            \s*
-            $pattern_comma?
-            \s+
-            $pattern_month_names
-            \s+
-            $pattern_day_of_month
-            \s*
-            $pattern_comma?
-            \s+
-            $pattern_year
-            )/ix,
-
-        # 11.06.2012 11:56 p.m.
-        # or
-        # 11/06/2012 08:30:20 PM PST
-        qr{(
-            $pattern_month
-            [\./]
-            $pattern_day_of_month
-            [\./]
-            $pattern_year
-            \s+
-            $pattern_hour_minute
-            (?:\:$pattern_second)?
-            (?:\s*$pattern_am_pm)?
-            (?:\s+$pattern_timezone)?
-            )}ix,
-
-        # January 17(th), 2012, 2:31 PM EST
-        qr/(
-            $pattern_month_names
-            \s+
-            $pattern_day_of_month?
-            \s*
-            (?:,|\s+at)?                # optional comma or "at"
-            \s+
-            $pattern_year
-            \s*
-            $pattern_comma?
-            \s+
-            $pattern_hour_minute
-            \s*
-            $pattern_am_pm?
-            \s+
-            $pattern_timezone?
-            )/ix,
-
-        # Tue, 28 Aug 2012 21:24:00 GMT (RFC 822)
-        # or
-        # Wednesday, 29 August 2012 03:55
-        # or
-        # 7th November 2012
-        qr/(
-            (?:$pattern_weekday_names
-            \s*
-            $pattern_comma
-            \s+)?
-            $pattern_day_of_month
-            \s+
-            $pattern_month_names
-            \s+
-            $pattern_year
-            (?:
-                \s+
-                $pattern_hour_minute
-                (?:\:$pattern_second)?
-                (?:\s+$pattern_timezone)?
-            )?
-            )/ix,
-
-        # Thursday May 30, 2013 2:14 AM PT (sfgate.com header)
-        qr/(
-            $pattern_weekday_names
-            \s+
-            $pattern_month_names
-            \s+
-            $pattern_day_of_month
-            \s*
-            $pattern_comma?
-            \s+
-            $pattern_year
-            \s+
-            $pattern_hour_minute
-            \s*
-            $pattern_am_pm
-            \s+
-            $pattern_timezone
-            )/ix,
-
-        #
-        # Date-only patterns
-        #
-
-        # January 17, 2012
-        qr/(
-            $pattern_month_names
-            \s+
-            $pattern_day_of_month?
-            \s*
-            (?:,|\s+at)?                # optional comma or "at"
-            \s+
-            $pattern_year
-            )/ix,
-
-    );
+    my ( $html, $date_patterns ) = @_;
 
     # Create one big regex out of date patterns as we want to know the order of
     # various dates appearing in the HTML page
-    my $date_pattern = join( '|', @date_time_patterns );
-    $date_pattern = '(' . $date_pattern . ')';
+    my $date_pattern = join( '|', @{ $date_patterns } );
+    $date_pattern = '(' . $date_pattern . ')';    # will match parentheses in each of the patterns
 
     my @matched_timestamps = ();
 
@@ -437,6 +280,10 @@ sub timestamp_from_html($)
     # Attempt to match both date *and* time first for better accuracy
     while ( $html =~ /$date_pattern/g )
     {
+        unless ( $1 )
+        {
+            next;
+        }
 
         # say STDERR "Matched string: $1";
 
@@ -481,17 +328,237 @@ sub timestamp_from_html($)
 
         if ( $time )
         {
-            push( @matched_timestamps, $time );
+            # Ignore timestamps that are later than "now" (because publication dates are in the past)
+            if ( $time < time() )
+            {
+                # say STDERR "Adding that one";
+                push( @matched_timestamps, $time );
+            }
         }
     }
 
-    # say STDERR "Matched timestamps: " . Dumper(@matched_timestamps);
+    return \@matched_timestamps;
+}
 
+# Matches a (likely) publication date(+time) in the HTML passed as a parameter; returns timestamp on success,
+# undef if no date(+time) was found
+# FIXME use return values of Regexp::Common::time to form a standardized date
+sub timestamp_from_html($)
+{
+    my $html = shift;
+
+    unless ( $html )
+    {
+        return undef;
+    }
+
+    $html =~ s/&nbsp;/ /g;
+    $html =~ s|<br ?/?>| |g;
+
+    my $month_names   = [ qw/january february march april may june july august september october november december/ ];
+    my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
+
+    push( @{ $month_names },   map { substr( $_, 0, 3 ) } @{ $month_names } );
+    push( @{ $weekday_names }, map { substr( $_, 0, 3 ) } @{ $weekday_names } );
+
+    my $month_names_pattern   = join( '|', @{ $month_names } );
+    my $weekday_names_pattern = join( '|', @{ $weekday_names } );
+
+    # Common patterns for date / time parts
+    my $pattern_timezone    = qr/(?<timezone>\w{1,4}T)/i;                               # e.g. "PT", "GMT", "EEST", "AZOST"
+    my $pattern_hour        = qr/(?<hour>\d\d?)/i;                                      # e.g. "12", "9", "24"
+    my $pattern_minute      = qr/(?<minute>\d\d)/i;                                     # e.g. "01", "59"
+    my $pattern_second      = qr/(?<second>\d\d)/i;                                     # e.g. "01", "59"
+    my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;    # e.g. "12:50", "9:39"
+    my $pattern_hour_minute_second =
+      qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;    # e.g. "12:50:00"
+    my $pattern_month         = qr/(?<month>(:?0?[1-9]|1[012]))/i;          # e.g. "12", "01", "7"
+    my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
+    my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"
+    my $pattern_day_of_month = qr/(?:(?<day>(?:0?[1-9]|[12][0-9]|3[01]))(?:st|th)?)/i;    # e.g. "23", "02", "9th", "1st"
+    my $pattern_year         = qr/(?<year>2?0?\d\d)/i;                                    # e.g. "2001", "2023"
+    my $pattern_am_pm        = qr/(?<am_pm>[AP]\.?M\.?)/i;                                # e.g. "AM", "PM"
+    my $pattern_comma        = qr/(?:,)/i;                                                # e.g. ","
+    my $pattern_comma_or_at  = qr/(?:,|\s+at)/i;                                          # e.g. "," or "at"
+    my $pattern_not_digit_or_word_start =
+      qr/(?:^|[^\w\d])/i;    # pattern to prevent matching dates in the middle of URLs and such
+    my $pattern_not_digit_or_word_end =
+      qr/(?:$|[^\w\d])/i;    # pattern to prevent matching dates in the middle of URLs and such
+
+    # Patterns that match both date *and* time
+    my @date_time_patterns = (
+
+        #
+        # Date + time patterns
+        #
+
+        # 9:24 pm, Tuesday, August 28, 2012
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                $pattern_hour_minute
+                \s*
+                $pattern_am_pm?
+                \s*
+                $pattern_comma?
+                \s+
+                $pattern_weekday_names
+                \s*
+                $pattern_comma?
+                \s+
+                $pattern_month_names
+                \s+
+                $pattern_day_of_month
+                \s*
+                $pattern_comma?
+                \s+
+                $pattern_year
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+        # 11.06.2012 11:56 p.m.
+        # or
+        # 11/06/2012 08:30:20 PM PST
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                $pattern_month
+                [\./]
+                $pattern_day_of_month
+                [\./]
+                $pattern_year
+                \s+
+                $pattern_hour_minute
+                (?:\:$pattern_second)?
+                (?:\s*$pattern_am_pm)?
+                (?:\s+$pattern_timezone)?
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+        # January 17(th), 2012, 2:31 PM EST
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                $pattern_month_names
+                \s+
+                $pattern_day_of_month?
+                \s*
+                $pattern_comma_or_at?
+                \s+
+                $pattern_year
+                \s*
+                $pattern_comma?
+                \s+
+                $pattern_hour_minute
+                \s*
+                $pattern_am_pm?
+                \s+
+                $pattern_timezone?
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+        # Tue, 28 Aug 2012 21:24:00 GMT (RFC 822)
+        # or
+        # Wednesday, 29 August 2012 03:55
+        # or
+        # 7th November 2012
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                (
+                    ?:$pattern_weekday_names
+                    \s*
+                    $pattern_comma
+                    \s+
+                )?
+                $pattern_day_of_month
+                \s+
+                $pattern_month_names
+                \s+
+                $pattern_year
+                (?:
+                    \s+
+                    $pattern_hour_minute
+                    (?:\:$pattern_second)?
+                    (?:\s+$pattern_timezone)?
+                )?
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+        # Thursday May 30, 2013 2:14 AM PT (sfgate.com header)
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                $pattern_weekday_names
+                \s+
+                $pattern_month_names
+                \s+
+                $pattern_day_of_month
+                \s*
+                $pattern_comma?
+                \s+
+                $pattern_year
+                \s+
+                $pattern_hour_minute
+                \s*
+                $pattern_am_pm
+                \s+
+                $pattern_timezone
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+    );
+
+    # Patterns that match *only* a date
+    my @date_only_patterns = (
+
+        # January 17, 2012
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                $pattern_month_names
+                \s+
+                $pattern_day_of_month?
+                \s*
+                $pattern_comma_or_at?
+                \s+
+                $pattern_year
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+        # 11/05/2012
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                $pattern_month
+                [\./]
+                $pattern_day_of_month
+                [\./]
+                $pattern_year
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+    );
+
+    # Try matching date+time first, retreat to date-only if there are no results
+    my @matched_timestamps = ();
+    push( @matched_timestamps, @{ _results_from_matching_date_patterns( $html, \@date_time_patterns ) } );
     if ( scalar( @matched_timestamps ) == 0 )
     {
+        push( @matched_timestamps, @{ _results_from_matching_date_patterns( $html, \@date_only_patterns ) } );
 
-        # no timestamps found
-        return undef;
+        if ( scalar( @matched_timestamps ) == 0 )
+        {
+            # no timestamps found
+            return undef;
+        }
     }
 
     # If there are 2+ dates on the page and the first one looks more or less like now
