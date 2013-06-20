@@ -16,6 +16,7 @@ use HTML::TreeBuilder::LibXML;
 use LWP::Simple;
 use Regexp::Common qw(time);
 use Date::Parse;
+use List::Util qw(max min);
 
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
@@ -587,10 +588,12 @@ sub timestamp_from_html($)
     # with today's date and it should be ignored
     if ( scalar( @matched_timestamps ) >= 2 )
     {
-        if (   ( time() > $matched_timestamps[ 0 ] and time() - $matched_timestamps[ 0 ] <= ( 60 * 60 * 24 ) )
-            or ( $matched_timestamps[ 0 ] > time() and $matched_timestamps[ 0 ] - time() <= ( 60 * 60 * 24 ) ) )
+        my $first_timestamp_in_page  = $matched_timestamps[ 0 ];
+        my $second_timestamp_in_page = $matched_timestamps[ 1 ];
+
+        if ( max( time(), $first_timestamp_in_page ) - min( time(), $first_timestamp_in_page ) <= ( 60 * 60 * 24 ) )
         {
-            return $matched_timestamps[ 1 ];
+            return $second_timestamp_in_page;
         }
     }
 
