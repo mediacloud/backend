@@ -42,7 +42,7 @@ my $_date_guess_functions = [
         function => \&_guess_by_dc_created
     },
     {
-        name     => '_guess_by_meta_pubdate',
+        name     => 'guess_by_meta_pubdate',
         function => \&_guess_by_meta_pubdate
     },
     {
@@ -50,15 +50,19 @@ my $_date_guess_functions = [
         function => \&_guess_by_meta_publish_date
     },
     {
+        name     => 'guess_by_meta_item_publish_date',
+        function => \&_guess_by_meta_item_publish_date
+    },
+    {
         name     => 'guess_by_og_article_published_time',
         function => \&_guess_by_og_article_published_time
     },
     {
-        name     => '_guess_by_sailthru_date',
+        name     => 'guess_by_sailthru_date',
         function => \&_guess_by_sailthru_date
     },
     {
-        name     => '_guess_by_abbr_published_updated_date',
+        name     => 'guess_by_abbr_published_updated_date',
         function => \&_guess_by_abbr_published_updated_date
     },
     {
@@ -179,8 +183,23 @@ sub _guess_by_meta_pubdate
     }
 }
 
-# <meta name="item-publish-date" content="Wed, 28 Dec 2011 17:39:00 GMT" />
+# <meta name="publish_date" content="Wed, 07 Nov 2012 15:11:54 EST" />
 sub _guess_by_meta_publish_date
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//meta[@name="publish-date"]' ) )
+    {
+        return $node->attr( 'content' );
+    }
+    if ( my $node = _find_first_node( $html_tree, '//meta[@name="publish_date"]' ) )
+    {
+        return $node->attr( 'content' );
+    }
+}
+
+# <meta name="item-publish-date" content="Wed, 28 Dec 2011 17:39:00 GMT" />
+sub _guess_by_meta_item_publish_date
 {
     my ( $story, $html, $html_tree ) = @_;
 

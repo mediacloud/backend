@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 45 + 1;
+use Test::More tests => 47 + 1;
 use Test::Deep;
 
 use utf8;
@@ -229,6 +229,12 @@ sub test_live_urls
         _ts( 'Fri, 21 Sep 2012 12:00:00 GMT' ),
         'live_url: pewstates.org'
     );
+
+    is(
+        _gt_url( 'http://www.huffingtonpost.com/lynne-lyman/california-votes-to-refor_b_2089469.html' ),
+        _ts( 'Wed, 07 Nov 2012 15:11:54 -0500' ),
+        'live_url: huffingtonpost.com'
+    );
 }
 
 sub test_date_matching
@@ -307,7 +313,8 @@ EOF
 
 sub test_inapplicable
 {
-    is( _gt_url( 'http://www.easyvoterguide.org/propositions/' ), undef, 'inapplicable: no digits in URL' );
+    is( _gt_url( 'http://www.easyvoterguide.org/propositions/' ),                 undef, 'inapplicable: no digits in URL' );
+    is( _gt_url( 'http://www.calchannel.com/proposition-36-three-strikes-law/' ), undef, 'inapplicable: 404 Not Found' );
 }
 
 sub main
