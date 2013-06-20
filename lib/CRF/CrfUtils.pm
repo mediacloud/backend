@@ -131,7 +131,7 @@ sub run_model_inline_java_data_array
 {
     my ( $model_file_name, $test_data_array ) = @_;
 
-    undef( $crf );
+    #undef( $crf );
 
     if ( !defined( $crf ) )
     {
@@ -142,15 +142,36 @@ sub run_model_inline_java_data_array
     return run_model_on_array( $crf, $test_data_array );
 }
 
-sub run_model_with_separate_exec
+sub _create_tmp_file_from_array
 {
-    my ( $model_file_name, $test_data_array ) = @_;
+    my ( $test_data_array ) = @_;
 
     my ( $test_data_fh, $test_data_file_name ) = tempfile( "/tmp/tested_arrayXXXXXX", SUFFIX => '.dat' );
 
     print $test_data_fh join "\n", @{ $test_data_array };
 
     close( $test_data_fh );
+    
+    return $test_data_file_name;
+}
+
+sub run_model_with_tmp_file
+{
+    my ( $model_file_name, $test_data_array ) = @_;
+
+    my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
+
+    my $foo = model_runner->run_model( $test_data_file_name, $model_file_name );
+
+    return $foo;
+}
+
+
+sub run_model_with_separate_exec
+{
+    my ( $model_file_name, $test_data_array ) = @_;
+
+    my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
 
     my $output = `java -cp  $class_path cc.mallet.fst.SimpleTagger --model-file  $model_file_name $test_data_file_name `;
 
@@ -251,29 +272,34 @@ public class model_runner {
 
 	public static String[] run_model(String testFileName, String modelFileName)
 			throws Exception {
-		InstanceList testData = readTestData(testFileName);
 
-		return run_model_impl(modelFileName, testData);
+		CRF crf = readModel(modelFileName);
+		InstanceList testData = readTestData(testFileName, crf);
+
+
+		return run_model_impl(testData, crf);
 	}
 
 	public static String[] run_model_string(String testDataString, String modelFileName)
 			throws Exception {
-		InstanceList testData = readTestDataFromString(testDataString);
+		CRF crf = readModel(modelFileName);
+		InstanceList testData = readTestDataFromString(testDataString, crf);
 
-		return run_model_impl(modelFileName, testData);
+		
+		return run_model_impl(testData, crf);
 	}
 
 	public static String[] run_model_string(String testDataString, CRF crf)
 			throws Exception {
-		InstanceList testData = readTestDataFromString(testDataString);
+		InstanceList testData = readTestDataFromString(testDataString, crf);
 
 		return run_crf_model(testData, crf);
 	}
 
-	private static String[] run_model_impl(String modelFileName,
-			InstanceList testData) throws IOException, FileNotFoundException,
+	private static String[] run_model_impl(InstanceList testData,
+			CRF model) throws IOException, FileNotFoundException,
 			ClassNotFoundException {
-		CRF crf = readModel(modelFileName);
+		CRF crf = model;
 
 		return run_crf_model(testData, crf);
 	}
@@ -294,27 +320,30 @@ public class model_runner {
 		return results.toArray(new String[0]);
 	}
 
-	private static InstanceList readTestData(String testFileName)
+	private static InstanceList readTestData(String testFileName, CRF crf)
 			throws FileNotFoundException {
 
 		Reader testFile = new FileReader(new File(testFileName));
 
-		return instanceListFromReader(testFile);
+		return instanceListFromReader(testFile, crf);
 	}
 
-	private static InstanceList readTestDataFromString(final String testData)
+	private static InstanceList readTestDataFromString(final String testData, CRF crf)
 	{
 
 		Reader testFile = new StringReader(testData);
 
-		return instanceListFromReader(testFile);
+		return instanceListFromReader(testFile, crf);
 	}
 
-	private static InstanceList instanceListFromReader(Reader testFile) {
-		Pipe p = new SimpleTagger.SimpleTaggerSentence2FeatureVectorSequence();
+	private static InstanceList instanceListFromReader(Reader testFile, CRF crf) {
+		Pipe p = crf.getInputPipe();
+//		p.getTargetAlphabet().lookupIndex(defaultOption.value);
+		p.setTargetProcessing(false);
 		InstanceList testData = new InstanceList(p);
-		testData.addThruPipe(new LineGroupIterator(testFile, Pattern
-				.compile("^\\s*$"), true));
+	      testData.addThruPipe(
+	          new LineGroupIterator(testFile,
+	            Pattern.compile("^\\s*$"), true));
 		return testData;
 	}
 
