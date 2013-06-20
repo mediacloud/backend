@@ -471,7 +471,7 @@ sub timestamp_from_html($)
                 \s+
                 $pattern_year
                 \s*
-                $pattern_comma?
+                $pattern_comma_or_at?
                 \s+
                 $pattern_hour_minute
                 \s*

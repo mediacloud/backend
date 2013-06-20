@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 41 + 1;
+use Test::More tests => 42 + 1;
 use Test::Deep;
 
 use utf8;
@@ -208,6 +208,13 @@ sub test_live_urls
     #     _ts('Mon, 24 Sep 2012 12:00:00 GMT'),
     #     'live_url: beyondchron.org'
     # );
+
+    is(
+        _gt_url(
+'http://sentencing.typepad.com/sentencing_law_and_policy/2012/09/californias-proposition-34-and-proposition-36-expose-red-meat-in-a-blue-state.html'
+        ),
+        _ts( 'Thu, 27 Sep 2012 09:03:00 GMT' )
+    );
 }
 
 sub test_date_matching
