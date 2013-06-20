@@ -585,7 +585,9 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    unless ( $story->{ url } =~ /[0-9]/ )
+    if (    $story->{ url }
+        and URI->new( $story->{ url } )->host !~ /example\.(com|net|org)$/gi
+        and $story->{ url } !~ /[0-9]/ )
     {
         # Assume that a dateable story will have a numeric component in its URL
         # (either a part of the date like in WordPress's case, or a story ID or something).
