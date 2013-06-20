@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 40 + 1;
+use Test::More tests => 41 + 1;
 use Test::Deep;
 
 use utf8;
@@ -201,6 +201,13 @@ sub test_live_urls
         _ts( 'Wed, 19 Jun 2013 16:55:00 EEST' ),
         'live_url: livejournal.com'
     );
+
+    # _guess_by_class_date() snatches this one
+    # is(
+    #     _gt_url('http://beyondchron.org/news/index.php?itemid=10530'),
+    #     _ts('Mon, 24 Sep 2012 12:00:00 GMT'),
+    #     'live_url: beyondchron.org'
+    # );
 }
 
 sub test_date_matching
@@ -277,6 +284,11 @@ EOF
     );
 }
 
+sub test_inapplicable
+{
+    is( _gt_url( 'http://www.easyvoterguide.org/propositions/' ), undef, 'inapplicable: no digits in URL' );
+}
+
 sub main
 {
     my $builder = Test::More->builder;
@@ -287,6 +299,7 @@ sub main
     test_dates();
     test_live_urls();
     test_date_matching();
+    test_inapplicable();
 }
 
 main();
