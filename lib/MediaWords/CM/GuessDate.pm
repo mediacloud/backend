@@ -66,6 +66,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_abbr_published_updated_date
     },
     {
+        name     => 'guess_by_span_published_updated_date',
+        function => \&_guess_by_span_published_updated_date
+    },
+    {
         name     => 'guess_by_storydate',
         function => \&_guess_by_storydate
     },
@@ -236,11 +240,26 @@ sub _guess_by_abbr_published_updated_date
 {
     my ( $story, $html, $html_tree ) = @_;
 
-    if ( my $node = _find_first_node( $html_tree, '//abbr[@class="published"]' ) )
+    if ( my $node = _find_first_node( $html_tree, '//abbr[@class="published"][string-length(@title)=25]' ) )
     {
         return $node->attr( 'title' );
     }
-    if ( my $node = _find_first_node( $html_tree, '//abbr[@class="updated"]' ) )
+    if ( my $node = _find_first_node( $html_tree, '//abbr[@class="updated"][string-length(@title)=25]' ) )
+    {
+        return $node->attr( 'title' );
+    }
+}
+
+# <span class="updated" title="2012-11-10T20:47:00-08:00">Posted November 10, 2012 at 8:47 p.m.</span> (vcstar.com)
+sub _guess_by_span_published_updated_date
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//span[@class="published"][string-length(@title)=25]' ) )
+    {
+        return $node->attr( 'title' );
+    }
+    if ( my $node = _find_first_node( $html_tree, '//span[@class="updated"][string-length(@title)=25]' ) )
     {
         return $node->attr( 'title' );
     }

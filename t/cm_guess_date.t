@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 58 + 1;
+use Test::More tests => 59 + 1;
 use Test::Deep;
 
 use utf8;
@@ -291,6 +291,12 @@ sub test_live_urls
         _gt_url( 'http://www.capitolweekly.net/article.php?_c=1110hzwl54nlhxu&xid=10woa7oeut2dafe&done=.1110iuznul4hofj' ),
         _ts( 'Sat, 13 Oct 2012 20:00:00 -0800' ),
         'live_url: capitolweekly.net'
+    );
+
+    is(
+        _gt_url( 'http://www.vcstar.com/news/2012/nov/10/da-defense-lawyers-to-start-reviewing-3-strikes/' ),
+        _ts( '2012-11-10T20:47:00-08:00' ),
+        'live_url: vcstar.com'
     );
 }
 
