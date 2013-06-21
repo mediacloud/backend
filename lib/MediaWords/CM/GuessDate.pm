@@ -711,10 +711,21 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    my $host = URI->new( $story->{ url } )->host;
+    my $uri = URI->new( $story->{ url } );
+    unless ( $uri )
+    {
+        # Invalid URL
+        return 1;
+    }
+
+    unless ( $uri->path =~ /[\w\d]/ )
+    {
+        # Empty path, frontpage of the website
+        return 1;
+    }
 
     if (    $story->{ url }
-        and $host !~ /example\.(com|net|org)$/gi
+        and $uri->host !~ /example\.(com|net|org)$/gi
         and $story->{ url } !~ /[0-9]/ )
     {
         # Assume that a dateable story will have a numeric component in its URL
@@ -723,7 +734,7 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    if ( $host =~ /wikipedia\.org$/gi )
+    if ( $uri->host =~ /wikipedia\.org$/gi )
     {
         # Ignore Wikipedia pages
         return 1;

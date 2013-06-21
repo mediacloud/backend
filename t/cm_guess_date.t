@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 48 + 1;
+use Test::More tests => 49 + 1;
 use Test::Deep;
 
 use utf8;
@@ -21,15 +21,23 @@ BEGIN { use_ok 'LWP::Simple' }
 
 my $db = MediaWords::DB::connect_to_db();
 
-# Shorthand for guess_timestamp()
-sub _gt($;$$)
+# Returns URL dating result
+sub _gr($;$$)
 {
     my ( $html, $story_url, $story_publish_date ) = @_;
     $story_url          ||= 'http://www.example.com/story.html';
     $story_publish_date ||= 'unknown';
     my $story = { url => $story_url, publish_date => $story_publish_date };
 
-    my $result = MediaWords::CM::GuessDate::guess_date( $db, $story, $html );
+    return MediaWords::CM::GuessDate::guess_date( $db, $story, $html );
+}
+
+# Returns timestamp of the page or undef
+sub _gt($;$$)
+{
+    my ( $html, $story_url, $story_publish_date ) = @_;
+
+    my $result = _gr( $html, $story_url, $story_publish_date );
     if ( $result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
     {
         return $result->{ timestamp };
@@ -40,16 +48,35 @@ sub _gt($;$$)
     }
 }
 
-# Shorthand for guess_timestamp() by fetching the URL
+# Returns dating result of the page; also fetches the URL
+sub _gr_url($;$)
+{
+    my ( $story_url, $story_publish_date ) = @_;
+
+    my $html = '';
+    unless ( $story_url =~ /example\.(com|net|org)$/gi )
+    {
+        # 404 Not Found pages will be empty
+        $html = get( $story_url ) || '';
+    }
+
+    return _gr( $html, $story_url, $story_publish_date );
+}
+
+# Returns timestamp of the page or undef; also fetches the URL
 sub _gt_url($;$)
 {
     my ( $story_url, $story_publish_date ) = @_;
 
-    my $html = get( $story_url );
-
-    #die "Unable to fetch URL $story_url because: $!\n" unless defined $html;
-
-    return _gt( $html, $story_url, $story_publish_date );
+    my $result = _gr_url( $story_url, $story_publish_date );
+    if ( $result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+    {
+        return $result->{ timestamp };
+    }
+    else
+    {
+        return undef;
+    }
 }
 
 # Shorthand for timestamp_from_html()
@@ -321,8 +348,21 @@ EOF
 
 sub test_inapplicable
 {
-    is( _gt_url( 'http://www.easyvoterguide.org/propositions/' ),                 undef, 'inapplicable: no digits in URL' );
-    is( _gt_url( 'http://www.calchannel.com/proposition-36-three-strikes-law/' ), undef, 'inapplicable: 404 Not Found' );
+    is(
+        _gr_url( 'http://www.easyvoterguide.org/propositions/' )->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: no digits in URL'
+    );
+    is(
+        _gr_url( 'http://www.calchannel.com/proposition-36-three-strikes-law/' )->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: 404 Not Found'
+    );
+    is(
+        _gr_url( 'http://www.15min.lt/////' )->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: no path in URL'
+    );
 }
 
 sub main
