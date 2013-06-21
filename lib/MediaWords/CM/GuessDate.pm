@@ -106,7 +106,7 @@ sub _find_first_node
 
     my @nodes = $html_tree->findnodes( $xpath );
 
-    my $node = pop @nodes;
+    my $node = shift @nodes;
 
     return $node;
 }
