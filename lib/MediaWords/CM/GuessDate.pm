@@ -754,7 +754,7 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    if ( $normalized_url =~ /viewforum\.php/ or $normalized_url =~ /viewtopic\.php/ )
+    if ( $normalized_url =~ /viewforum\.php/ or $normalized_url =~ /viewtopic\.php/ or $normalized_url =~ /memberlist\.php/ )
     {
         # Ignore phpBB forums
         return 1;
