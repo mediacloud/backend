@@ -42,6 +42,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_dc_created
     },
     {
+        name     => 'guess_by_meta_date',
+        function => \&_guess_by_meta_date
+    },
+    {
         name     => 'guess_by_meta_pubdate',
         function => \&_guess_by_meta_pubdate
     },
@@ -171,6 +175,17 @@ sub _guess_by_dc_created
     my ( $story, $html, $html_tree ) = @_;
 
     if ( my $node = _find_first_node( $html_tree, '//li[@property="dc:date dc:created"]' ) )
+    {
+        return $node->attr( 'content' );
+    }
+}
+
+# <meta name="date" content="2012-11-08 04:10:04" />
+sub _guess_by_meta_date
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if ( my $node = _find_first_node( $html_tree, '//meta[@name="date"]' ) )
     {
         return $node->attr( 'content' );
     }

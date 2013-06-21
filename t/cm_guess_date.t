@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 64 + 1;
+use Test::More tests => 67 + 1;
 use Test::Deep;
 
 use utf8;
@@ -309,6 +309,12 @@ sub test_live_urls
         _gt_url( 'http://www.montereyherald.com/opinion/ci_21884602/prop-36-tough-crime-not-taxpayers' ),
         _ts( 'Mon, 29 Oct 2012 20:12:30 PDT' ),
         'live_url: montereyherald.com'
+    );
+
+    is(
+        _gt_url( 'http://blogs.sfweekly.com/thesnitch/2012/11/prop_34_death_penalty.php' ),
+        _ts( 'Thu, 8 Nov 2012 04:10:04 GMT' ),
+        'live_url: blogs.sfweekly.com'
     );
 }
 
