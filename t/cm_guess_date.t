@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 57 + 1;
+use Test::More tests => 58 + 1;
 use Test::Deep;
 
 use utf8;
@@ -411,6 +411,12 @@ sub test_inapplicable
         _gr_url( 'http://vimeo.com/blog/archive/year:2013' )->{ result },
         MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: looks like URL of archive'
+    );
+    is(
+        _gr_url( 'http://www.timesunion.com/news/crime/article/3-strikes-law-reformed-fewer-harsh-sentences-4013514.php' )
+          ->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: timesunion.com HTTP 404 Not Found'
     );
 }
 
