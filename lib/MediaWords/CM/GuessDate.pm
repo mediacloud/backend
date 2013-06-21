@@ -306,9 +306,22 @@ sub _guess_by_class_date
 
     if ( my $node = _find_first_node( $html_tree, '//*[@class="date"]' ) )
     {
-        return $node->as_text;
+        my $date_string = $node->as_text;
+
+        # Don't trust a date that looks more or less like now
+        # (+/- 1 day to reduce timezone ambiguity), then it's probably a website's header
+        # with today's date and it should be ignored
+        if ( my $timestamp = _make_unix_timestamp( $date_string ) )
+        {
+            unless ( max( time(), $timestamp ) - min( time(), $timestamp ) <= ( 60 * 60 * 24 ) )
+            {
+                return $date_string;
+            }
+
+        }
     }
 
+    return undef;
 }
 
 # Matches a list of date (or date+time) patterns from the arrayref provided
@@ -409,8 +422,12 @@ sub timestamp_from_html($)
         return undef;
     }
 
-    $html =~ s/&nbsp;/ /g;
-    $html =~ s|<br ?/?>| |g;
+    # Remove spaces and line breaks
+    $html =~ s/&nbsp;/ /gi;
+    $html =~ s|<br ?/?>| |gi;
+
+    # Remove huge <select>s (spotted in event calendars)
+    $html =~ s|<select.*?</select>||gis;
 
     my $month_names   = [ qw/january february march april may june july august september october november december/ ];
     my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];

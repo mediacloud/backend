@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 54 + 1;
+use Test::More tests => 55 + 1;
 use Test::Deep;
 
 use utf8;
@@ -69,6 +69,8 @@ sub _gt_url($;$)
     my ( $story_url, $story_publish_date ) = @_;
 
     my $result = _gr_url( $story_url, $story_publish_date );
+
+    # say STDERR Dumper($result);
     if ( $result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
     {
         return $result->{ timestamp };
@@ -270,6 +272,13 @@ sub test_live_urls
         _ts( 'Thu, 8 Nov 2012 09:40:01 GMT' ),
         'live_url: yubanet.com'
     );
+
+    is(
+        _gt_url( 'http://www.sdcitybeat.com/sandiego/article-11025-another-whack-at-cha.html' ),
+        _ts( 'Wed, 3 Oct 2012 12:00:00 GMT' ),
+        'live_url: sdcitybeat.com'
+    );
+
 }
 
 sub test_date_matching
