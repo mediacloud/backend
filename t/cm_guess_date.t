@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 50 + 1;
+use Test::More tests => 51 + 1;
 use Test::Deep;
 
 use utf8;
@@ -367,6 +367,11 @@ sub test_inapplicable
         _gr_url( 'http://en.wikipedia.org/wiki/1980s_in_fashion' )->{ result },
         MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: Wikipedia URL'
+    );
+    is(
+        _gr_url( 'https://www.phpbb.com/community/viewforum.php?f=14' )->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: phpBB forum'
     );
 }
 
