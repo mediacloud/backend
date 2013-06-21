@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 63 + 1;
+use Test::More tests => 64 + 1;
 use Test::Deep;
 
 use utf8;
@@ -386,6 +386,15 @@ EOF
     );
 }
 
+sub test_not_found
+{
+    is(
+        _gr_url( 'http://bendthearc.us/voterguide/36' )->{ result },
+        MediaWords::CM::GuessDate::Result::NOT_FOUND,
+        'not found: bendthearc.us'
+    );
+}
+
 sub test_inapplicable
 {
     is(
@@ -459,6 +468,7 @@ sub main
     test_dates();
     test_live_urls();
     test_date_matching();
+    test_not_found();
     test_inapplicable();
 }
 
