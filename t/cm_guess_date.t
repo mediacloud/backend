@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 51 + 1;
+use Test::More tests => 52 + 1;
 use Test::Deep;
 
 use utf8;
@@ -372,6 +372,11 @@ sub test_inapplicable
         _gr_url( 'https://www.phpbb.com/community/viewforum.php?f=14' )->{ result },
         MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: phpBB forum'
+    );
+    is(
+        _gr_url( 'https://twitter.com/ladygaga/status/318537311698694144' )->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: Twitter URL'
     );
 }
 

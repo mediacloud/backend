@@ -740,6 +740,12 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
+    if ( $uri->host =~ /twitter\.com$/gi and lc( $uri->host ) ne 'blog.twitter.com' )
+    {
+        # Ignore Twitter pages
+        return 1;
+    }
+
     if ( $story->{ url } =~ /viewforum\.php/ or $story->{ url } =~ /viewtopic\.php/ )
     {
         # Ignore phpBB forums
