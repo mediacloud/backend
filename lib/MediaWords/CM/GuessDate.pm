@@ -754,6 +754,27 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
+    my @url_segments              = $uri->path_segments;
+    my @segments_for_invalidation = qw/
+      archive
+      archives
+      blog-archive
+      blog_archive
+      search
+      tag
+      profile
+      user
+      /;
+
+    for my $segment ( @segments_for_invalidation )
+    {
+        if ( $segment ~~ @url_segments )
+        {
+            # URL contains a segment that increases its chances of being undateable
+            return 1;
+        }
+    }
+
     return 0;
 }
 
