@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 59 + 1;
+use Test::More tests => 60 + 1;
 use Test::Deep;
 
 use utf8;
@@ -423,6 +423,12 @@ sub test_inapplicable
           ->{ result },
         MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: timesunion.com HTTP 404 Not Found'
+    );
+    is(
+        _gr_url( 'http://www.seattlepi.com/news/crime/article/ACLU-challenges-human-trafficking-initiative-4018819.php' )
+          ->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: seattlepi.com HTTP 404 Not Found'
     );
 }
 
