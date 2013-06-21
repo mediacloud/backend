@@ -1235,61 +1235,6 @@
          "target" : "Bit::Vector",
          "version" : "7.3"
       },
-      "CGI::Expand" : {
-         "dist" : "CGI-Expand-2.03",
-         "mymeta" : {
-            "abstract" : "convert flat hash to nested data using TT2's dot convention",
-            "author" : [
-               "Brad Bowman <cgi-expand@bereft.net>"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.55_02, CPAN::Meta::Converter version 2.131560",
-            "license" : [
-               "unknown"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "CGI-Expand",
-            "no_index" : {
-               "directory" : [
-                  "t",
-                  "inc"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "0"
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "0"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "Test::Exception" : "0",
-                     "Test::More" : "0"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "version" : "2.03"
-         },
-         "name" : "CGI::Expand",
-         "pathname" : "B/BO/BOWMANBS/CGI-Expand-2.03.tar.gz",
-         "provides" : {
-            "CGI::Expand" : {
-               "file" : "CGI/Expand.pm",
-               "version" : "2.03"
-            }
-         },
-         "target" : "CGI::Expand",
-         "version" : "2.03"
-      },
       "CGI::Simple" : {
          "dist" : "CGI-Simple-1.113",
          "mymeta" : {
@@ -2760,7 +2705,6 @@
                      "Moose" : "1.03",
                      "Params::Validate" : "0.76",
                      "URI::Find" : "0",
-                     "XML::Simple" : "0",
                      "YAML::Syck" : "0.67",
                      "namespace::autoclean" : "0",
                      "perl" : "5.008001"
@@ -8356,6 +8300,60 @@
          },
          "target" : "Data::Serializer",
          "version" : "0.59"
+      },
+      "Data::Sorting" : {
+         "dist" : "Data-Sorting-0.9",
+         "mymeta" : {
+            "abstract" : "Multi-key sort using function results",
+            "author" : [
+               "Matthew Simon Cavalletto <simonm@cavalletto.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.131560",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Data-Sorting",
+            "no_index" : {
+               "directory" : [
+                  "t",
+                  "inc"
+               ]
+            },
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "0"
+                  }
+               },
+               "configure" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "0"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Test::More" : "0"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.9"
+         },
+         "name" : "Data::Sorting",
+         "pathname" : "E/EV/EVO/Data-Sorting-0.9.tar.gz",
+         "provides" : {
+            "Data::Sorting" : {
+               "file" : "Data/Sorting.pm",
+               "version" : "0.9"
+            }
+         },
+         "target" : "Data::Sorting",
+         "version" : "0.9"
       },
       "Data::Types" : {
          "dist" : "Data-Types-0.09",
@@ -16859,163 +16857,6 @@
          "target" : "Email::Valid",
          "version" : "0.190"
       },
-      "Encode" : {
-         "dist" : "Encode-2.51",
-         "mymeta" : {
-            "abstract" : "unknown",
-            "author" : [
-               "unknown"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.130880, CPAN::Meta::Converter version 2.131560",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "Encode",
-            "no_index" : {
-               "directory" : [
-                  "t",
-                  "inc"
-               ]
-            },
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "0"
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "0"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {}
-               }
-            },
-            "release_status" : "stable",
-            "version" : "2.51"
-         },
-         "name" : "Encode",
-         "pathname" : "D/DA/DANKOGAI/Encode-2.51.tar.gz",
-         "provides" : {
-            "Encode" : {
-               "file" : "Encode.pm",
-               "version" : "2.51"
-            },
-            "Encode::Alias" : {
-               "file" : "Encode/Alias.pm",
-               "version" : "2.16"
-            },
-            "Encode::Byte" : {
-               "file" : "Encode/Byte.pm",
-               "version" : "2.04"
-            },
-            "Encode::CJKConstants" : {
-               "file" : "Encode/CJKConstants.pm",
-               "version" : "2.02"
-            },
-            "Encode::CN" : {
-               "file" : "Encode/CN.pm",
-               "version" : "2.03"
-            },
-            "Encode::CN::HZ" : {
-               "file" : "Encode/CN/HZ.pm",
-               "version" : "2.06"
-            },
-            "Encode::Config" : {
-               "file" : "Encode/Config.pm",
-               "version" : "2.05"
-            },
-            "Encode::EBCDIC" : {
-               "file" : "Encode/EBCDIC.pm",
-               "version" : "2.02"
-            },
-            "Encode::Encoder" : {
-               "file" : "Encode/Encoder.pm",
-               "version" : "2.02"
-            },
-            "Encode::Encoding" : {
-               "file" : "Encode/Encoding.pm",
-               "version" : "2.05"
-            },
-            "Encode::GSM0338" : {
-               "file" : "Encode/GSM0338.pm",
-               "version" : "2.03"
-            },
-            "Encode::Guess" : {
-               "file" : "Encode/Guess.pm",
-               "version" : "2.05"
-            },
-            "Encode::Internal" : {
-               "file" : "Encode.pm"
-            },
-            "Encode::JP" : {
-               "file" : "Encode/JP.pm",
-               "version" : "2.04"
-            },
-            "Encode::JP::H2Z" : {
-               "file" : "Encode/JP/H2Z.pm",
-               "version" : "2.02"
-            },
-            "Encode::JP::JIS7" : {
-               "file" : "Encode/JP/JIS7.pm",
-               "version" : "2.04"
-            },
-            "Encode::KR" : {
-               "file" : "Encode/KR.pm",
-               "version" : "2.03"
-            },
-            "Encode::KR::2022_KR" : {
-               "file" : "Encode/KR/2022_KR.pm",
-               "version" : "2.02"
-            },
-            "Encode::MIME::Header" : {
-               "file" : "Encode/MIME/Header.pm",
-               "version" : "2.13"
-            },
-            "Encode::MIME::Header::ISO_2022_JP" : {
-               "file" : "Encode/MIME/Header/ISO_2022_JP.pm",
-               "version" : "1.03"
-            },
-            "Encode::MIME::Name" : {
-               "file" : "Encode/MIME/Name.pm",
-               "version" : "1.01"
-            },
-            "Encode::Symbol" : {
-               "file" : "Encode/Symbol.pm",
-               "version" : "2.02"
-            },
-            "Encode::TW" : {
-               "file" : "Encode/TW.pm",
-               "version" : "2.03"
-            },
-            "Encode::UTF_EBCDIC" : {
-               "file" : "Encode.pm"
-            },
-            "Encode::Unicode" : {
-               "file" : "Encode/Unicode.pm",
-               "version" : "2.07"
-            },
-            "Encode::Unicode::UTF7" : {
-               "file" : "Encode/Unicode/UTF7.pm",
-               "version" : "2.07"
-            },
-            "Encode::utf8" : {
-               "file" : "Encode.pm"
-            },
-            "encoding" : {
-               "file" : "encoding.pm",
-               "version" : "2.12"
-            }
-         },
-         "target" : "Encode",
-         "version" : "2.51"
-      },
       "Encode::HanConvert" : {
          "dist" : "Encode-HanConvert-0.35",
          "mymeta" : {
@@ -22407,7 +22248,7 @@
                "version" : "6.03"
             }
          },
-         "target" : "HTTP::Status",
+         "target" : "HTTP::Headers",
          "version" : "6.06"
       },
       "HTTP::Negotiate" : {
@@ -23589,6 +23430,112 @@
             }
          },
          "target" : "Inline",
+         "version" : "0.53"
+      },
+      "Inline::Java" : {
+         "dist" : "Inline-Java-0.53",
+         "mymeta" : {
+            "abstract" : "Write Perl classes in Java.",
+            "author" : [
+               "Patrick LeBoutillier <patl@cpan.org>"
+            ],
+            "dynamic_config" : 0,
+            "generated_by" : "ExtUtils::MakeMaker version 6.42, CPAN::Meta::Converter version 2.131560",
+            "license" : [
+               "unknown"
+            ],
+            "meta-spec" : {
+               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+               "version" : "2"
+            },
+            "name" : "Inline-Java",
+            "prereqs" : {
+               "build" : {
+                  "requires" : {
+                     "ExtUtils::MakeMaker" : "0"
+                  }
+               },
+               "runtime" : {
+                  "requires" : {
+                     "Inline" : "0.44",
+                     "MIME::Base64" : "0",
+                     "Test" : "1.13"
+                  }
+               }
+            },
+            "release_status" : "stable",
+            "version" : "0.53"
+         },
+         "name" : "Inline::Java",
+         "pathname" : "P/PA/PATL/Inline-Java-0.53.tar.gz",
+         "provides" : {
+            "Inline::Java" : {
+               "file" : "Inline/Java.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Array" : {
+               "file" : "Inline/Java/Array.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Array::Normalizer" : {
+               "file" : "Inline/Java/Array.pm"
+            },
+            "Inline::Java::Array::Tie" : {
+               "file" : "Inline/Java/Array.pm"
+            },
+            "Inline::Java::Callback" : {
+               "file" : "Inline/Java/Callback.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Class" : {
+               "file" : "Inline/Java/Class.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Class::Coerce" : {
+               "file" : "Inline/Java/Class.pm"
+            },
+            "Inline::Java::Handle" : {
+               "file" : "Inline/Java/Handle.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Handle::Tie" : {
+               "file" : "Inline/Java/Handle.pm"
+            },
+            "Inline::Java::JNI" : {
+               "file" : "Inline/Java/JNI.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::JVM" : {
+               "file" : "Inline/Java/JVM.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Object" : {
+               "file" : "Inline/Java/Object.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Object::Private" : {
+               "file" : "Inline/Java/Object.pm"
+            },
+            "Inline::Java::Object::StaticMember" : {
+               "file" : "Inline/Java/Object.pm"
+            },
+            "Inline::Java::Object::Tie" : {
+               "file" : "Inline/Java/Object.pm"
+            },
+            "Inline::Java::Portable" : {
+               "file" : "Inline/Java/Portable.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Protocol" : {
+               "file" : "Inline/Java/Protocol.pm",
+               "version" : "0.53"
+            },
+            "Inline::Java::Server" : {
+               "file" : "Inline/Java/Server.pm",
+               "version" : "0.53"
+            }
+         },
+         "target" : "Inline::Java",
          "version" : "0.53"
       },
       "JSON" : {
@@ -37490,82 +37437,6 @@
          "target" : "Test::Manifest",
          "version" : "1.23"
       },
-      "Test::MockObject" : {
-         "dist" : "Test-MockObject-1.20120301",
-         "mymeta" : {
-            "abstract" : "Perl extension for emulating troublesome interfaces",
-            "author" : [
-               "chromatic"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Dist::Zilla version 4.300009, CPAN::Meta::Converter version 2.120530, CPAN::Meta::Converter version 2.131560",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "Test-MockObject",
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "Test::Exception" : "0",
-                     "Test::More" : "0.98",
-                     "Test::Warn" : "0.23",
-                     "base" : "0",
-                     "overload" : "0",
-                     "vars" : "0"
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.30"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "CGI" : "0",
-                     "Carp" : "0",
-                     "Devel::Peek" : "0",
-                     "Scalar::Util" : "0",
-                     "Test::Builder" : "0",
-                     "Test::Exception" : "0.31",
-                     "Test::More" : "0.98",
-                     "Test::Warn" : "0.23",
-                     "UNIVERSAL::can" : "1.20110617",
-                     "UNIVERSAL::isa" : "1.20110614",
-                     "strict" : "0",
-                     "warnings" : "0"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "bugtracker" : {
-                  "web" : "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-MockObject"
-               },
-               "repository" : {
-                  "url" : "https://github.com/chromatic/Test-MockObject.git"
-               }
-            },
-            "version" : "1.20120301"
-         },
-         "name" : "Test::MockObject",
-         "pathname" : "C/CH/CHROMATIC/Test-MockObject-1.20120301.tar.gz",
-         "provides" : {
-            "Test::MockObject" : {
-               "file" : "Test/MockObject.pm",
-               "version" : "1.20120301"
-            },
-            "Test::MockObject::Extends" : {
-               "file" : "Test/MockObject/Extends.pm",
-               "version" : "1.20120301"
-            }
-         },
-         "target" : "Test::MockObject",
-         "version" : "1.20120301"
-      },
       "Test::MockTime" : {
          "dist" : "Test-MockTime-0.12",
          "mymeta" : {
@@ -40274,65 +40145,6 @@
          },
          "target" : "Try::Tiny",
          "version" : "0.12"
-      },
-      "UNIVERSAL::can" : {
-         "dist" : "UNIVERSAL-can-1.20120726",
-         "mymeta" : {
-            "abstract" : "work around buggy code calling UNIVERSAL::can() as a function",
-            "author" : [
-               "chromatic"
-            ],
-            "dynamic_config" : 0,
-            "generated_by" : "Dist::Zilla version 4.300020, CPAN::Meta::Converter version 2.120921, CPAN::Meta::Converter version 2.131560",
-            "license" : [
-               "perl_5"
-            ],
-            "meta-spec" : {
-               "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-               "version" : "2"
-            },
-            "name" : "UNIVERSAL-can",
-            "prereqs" : {
-               "build" : {
-                  "requires" : {
-                     "Test::More" : "0",
-                     "overload" : "0"
-                  }
-               },
-               "configure" : {
-                  "requires" : {
-                     "ExtUtils::MakeMaker" : "6.30"
-                  }
-               },
-               "runtime" : {
-                  "requires" : {
-                     "Scalar::Util" : "0",
-                     "strict" : "0",
-                     "vars" : "0",
-                     "warnings" : "0",
-                     "warnings::register" : "0"
-                  }
-               }
-            },
-            "release_status" : "stable",
-            "resources" : {
-               "homepage" : "https://github.com/chromatic/UNIVERSAL-can",
-               "repository" : {
-                  "url" : "https://github.com/chromatic/UNIVERSAL-can.git"
-               }
-            },
-            "version" : "1.20120726"
-         },
-         "name" : "UNIVERSAL::can",
-         "pathname" : "C/CH/CHROMATIC/UNIVERSAL-can-1.20120726.tar.gz",
-         "provides" : {
-            "UNIVERSAL::can" : {
-               "file" : "UNIVERSAL/can.pm",
-               "version" : "1.20120726"
-            }
-         },
-         "target" : "UNIVERSAL::can",
-         "version" : "1.20120726"
       },
       "UNIVERSAL::isa" : {
          "dist" : "UNIVERSAL-isa-1.20120726",

@@ -132,6 +132,8 @@ sub get_value_of_base_64_node
           map { $_->{ line_number } } grep { $_->{ is_story } } @{ $extract_results->{ scores } };
 
         is( $story_line_numbers_actual, $story_line_numbers_expected, "story line numbers" );
+
+        last;
     }
 }
 

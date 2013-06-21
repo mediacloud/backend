@@ -17,6 +17,9 @@ use MediaWords::DBI::Downloads::Store::Remote;
 use MediaWords::DBI::Downloads::Store::Tar;
 use MediaWords::DBI::Downloads::Store::GridFS;
 use Carp;
+use MediaWords::Util::ExtractorFactory;
+use MediaWords::Util::HeuristicExtractor;
+use MediaWords::Util::CrfExtractor;
 
 use Data::Dumper;
 
@@ -284,20 +287,9 @@ sub extract_preprocessed_lines_for_story($$$)
 {
     my ( $lines, $story_title, $story_description ) = @_;
 
-    my $scores = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description );
+    my $old_extractor = MediaWords::Util::ExtractorFactory::createExtractor();
 
-    my $included_line_numbers = _get_included_line_numbers( $scores );
-
-    #my $extracted_html =  get_extracted_html( $lines, $included_line_numbers );
-
-    return {
-
-        #extracted_html => $extracted_html,
-        #extracted_text => html_strip( $extracted_html ),
-        included_line_numbers => $included_line_numbers,
-        download_lines        => $lines,
-        scores                => $scores,
-    };
+    return $old_extractor->extract_preprocessed_lines_for_story( $lines, $story_title, $story_description );
 }
 
 # store the download content in the file system
