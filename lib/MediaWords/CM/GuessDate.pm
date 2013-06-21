@@ -717,7 +717,9 @@ sub _guessing_is_inapplicable($$$)
         # Invalid URL
         return 1;
     }
+
     $uri = $uri->canonical;
+    $uri->fragment( '' );    # remove '#...' ("anchor")
     my $normalized_url = $uri->as_string;
 
     unless ( $uri->path =~ /[\w\d]/ )
@@ -728,9 +730,9 @@ sub _guessing_is_inapplicable($$$)
 
     if (    $normalized_url
         and $uri->host !~ /example\.(com|net|org)$/gi
-        and $normalized_url !~ /[0-9]/ )
+        and $uri->path_query !~ /[0-9]/ )
     {
-        # Assume that a dateable story will have a numeric component in its URL
+        # Assume that a dateable story will have a numeric component in its URL's path
         # (either a part of the date like in WordPress's case, or a story ID or something).
         # Tags, search pages, static pages usually don't have a numerals in their URLs
         return 1;
