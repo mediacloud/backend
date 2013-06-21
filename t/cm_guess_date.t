@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 62 + 1;
+use Test::More tests => 63 + 1;
 use Test::Deep;
 
 use utf8;
@@ -441,6 +441,11 @@ sub test_inapplicable
           ->{ result },
         MediaWords::CM::GuessDate::Result::INAPPLICABLE,
         'inapplicable: seattlepi.com HTTP 404 Not Found'
+    );
+    is(
+        _gr_url( 'http://www.kgoam810.com/Article.asp?id=2569360&spid=' )->{ result },
+        MediaWords::CM::GuessDate::Result::INAPPLICABLE,
+        'inapplicable: kgoam810.com HTTP access denied'
     );
 }
 
