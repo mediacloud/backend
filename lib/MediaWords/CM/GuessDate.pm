@@ -748,6 +748,12 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
+    if ( $uri->host =~ /facebook\.com$/gi and $uri->host ne 'blog.facebook.com' )
+    {
+        # Ignore Facebook pages
+        return 1;
+    }
+
     if ( $normalized_url =~ /viewforum\.php/ or $normalized_url =~ /viewtopic\.php/ )
     {
         # Ignore phpBB forums
