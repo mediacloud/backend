@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 61 + 1;
+use Test::More tests => 62 + 1;
 use Test::Deep;
 
 use utf8;
@@ -303,6 +303,12 @@ sub test_live_urls
         _gt_url( 'http://www.sbsun.com/news/ci_21761985/proposition-36-act-would-ease-three-strikes-sentences' ),
         _ts( 'Sat, 13 Oct 2012 20:00:54 PDT' ),
         'live_url: sbsun.com'
+    );
+
+    is(
+        _gt_url( 'http://www.montereyherald.com/opinion/ci_21884602/prop-36-tough-crime-not-taxpayers' ),
+        _ts( 'Mon, 29 Oct 2012 20:12:30 PDT' ),
+        'live_url: montereyherald.com'
     );
 }
 
