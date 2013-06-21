@@ -717,6 +717,8 @@ sub _guessing_is_inapplicable($$$)
         # Invalid URL
         return 1;
     }
+    $uri = $uri->canonical;
+    my $normalized_url = $uri->as_string;
 
     unless ( $uri->path =~ /[\w\d]/ )
     {
@@ -724,9 +726,9 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    if (    $story->{ url }
+    if (    $normalized_url
         and $uri->host !~ /example\.(com|net|org)$/gi
-        and $story->{ url } !~ /[0-9]/ )
+        and $normalized_url !~ /[0-9]/ )
     {
         # Assume that a dateable story will have a numeric component in its URL
         # (either a part of the date like in WordPress's case, or a story ID or something).
@@ -740,13 +742,13 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    if ( $uri->host =~ /twitter\.com$/gi and lc( $uri->host ) ne 'blog.twitter.com' )
+    if ( $uri->host =~ /twitter\.com$/gi and $uri->host ne 'blog.twitter.com' )
     {
         # Ignore Twitter pages
         return 1;
     }
 
-    if ( $story->{ url } =~ /viewforum\.php/ or $story->{ url } =~ /viewtopic\.php/ )
+    if ( $normalized_url =~ /viewforum\.php/ or $normalized_url =~ /viewtopic\.php/ )
     {
         # Ignore phpBB forums
         return 1;
