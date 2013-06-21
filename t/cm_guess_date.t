@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 60 + 1;
+use Test::More tests => 61 + 1;
 use Test::Deep;
 
 use utf8;
@@ -297,6 +297,12 @@ sub test_live_urls
         _gt_url( 'http://www.vcstar.com/news/2012/nov/10/da-defense-lawyers-to-start-reviewing-3-strikes/' ),
         _ts( '2012-11-10T20:47:00-08:00' ),
         'live_url: vcstar.com'
+    );
+
+    is(
+        _gt_url( 'http://www.sbsun.com/news/ci_21761985/proposition-36-act-would-ease-three-strikes-sentences' ),
+        _ts( 'Sat, 13 Oct 2012 20:00:54 PDT' ),
+        'live_url: sbsun.com'
     );
 }
 
