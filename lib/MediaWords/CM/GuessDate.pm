@@ -352,15 +352,19 @@ sub _results_from_matching_date_patterns($$)
             next;
         }
 
+        # Might get overriden rater
+        my %result = %+;
+
         # say STDERR "Matched string: $1";
 
         # Collect date parts
-        my $d_year = $+{ year } + 0;
+        my $d_year = $result{ year } + 0;
         if ( $d_year < 100 )
         {    # two digits, e.g. "12"
             $d_year += 2000;
         }
-        my $d_month = lc( $+{ month } );
+        my $d_month = lc( $result{ month } );
+        $d_month =~ s/\.//gs;    # in case it's "jan."
         if ( $mon2num{ $d_month } )
         {
             $d_month = $mon2num{ $d_month };
@@ -369,12 +373,12 @@ sub _results_from_matching_date_patterns($$)
         {
             $d_month = ( $d_month + 0 );
         }
-        my $d_day      = ( defined $+{ day } ? $+{ day } + 0     : 0 );
-        my $d_am_pm    = ( $+{ am_pm }       ? lc( $+{ am_pm } ) : '' );
-        my $d_hour     = ( $+{ hour }        ? $+{ hour } + 0    : DEFAULT_HOUR );
-        my $d_minute   = ( $+{ minute }      ? $+{ minute } + 0  : 0 );
-        my $d_second   = ( $+{ second }      ? $+{ second } + 0  : 0 );
-        my $d_timezone = ( $+{ timezone }    ? $+{ timezone }    : 'GMT' );
+        my $d_day      = ( defined $result{ day } ? $result{ day } + 0     : 0 );
+        my $d_am_pm    = ( $result{ am_pm }       ? lc( $result{ am_pm } ) : '' );
+        my $d_hour     = ( $result{ hour }        ? $result{ hour } + 0    : DEFAULT_HOUR );
+        my $d_minute   = ( $result{ minute }      ? $result{ minute } + 0  : 0 );
+        my $d_second   = ( $result{ second }      ? $result{ second } + 0  : 0 );
+        my $d_timezone = ( $result{ timezone }    ? $result{ timezone }    : 'GMT' );
 
         if ( uc( $d_timezone ) eq 'PT' )
         {
@@ -432,20 +436,21 @@ sub timestamp_from_html($)
     my $month_names   = [ qw/january february march april may june july august september october november december/ ];
     my $weekday_names = [ qw/monday tuesday wednesday thursday friday saturday sunday/ ];
 
-    push( @{ $month_names },   map { substr( $_, 0, 3 ) } @{ $month_names } );
-    push( @{ $weekday_names }, map { substr( $_, 0, 3 ) } @{ $weekday_names } );
+    push( @{ $month_names },   map { substr( $_, 0, 3 ) } @{ $month_names } );            # "jan", "feb", ...
+    push( @{ $month_names },   map { substr( $_, 0, 3 ) . '\.?' } @{ $month_names } );    # "jan.", "feb.", ...
+    push( @{ $weekday_names }, map { substr( $_, 0, 3 ) } @{ $weekday_names } );          # "mon", "tue", ...
 
     my $month_names_pattern   = join( '|', @{ $month_names } );
     my $weekday_names_pattern = join( '|', @{ $weekday_names } );
 
     # Common patterns for date / time parts
-    my $pattern_timezone    = qr/(?<timezone>\w{1,4}T)/i;                               # e.g. "PT", "GMT", "EEST", "AZOST"
-    my $pattern_hour        = qr/(?<hour>\d\d?)/i;                                      # e.g. "12", "9", "24"
-    my $pattern_minute      = qr/(?<minute>\d\d)/i;                                     # e.g. "01", "59"
-    my $pattern_second      = qr/(?<second>\d\d)/i;                                     # e.g. "01", "59"
-    my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;    # e.g. "12:50", "9:39"
+    my $pattern_timezone    = qr/(?<timezone>\w{1,4}T)/i;                                 # e.g. "PT", "GMT", "EEST", "AZOST"
+    my $pattern_hour        = qr/(?<hour>\d\d?)/i;                                        # e.g. "12", "9", "24"
+    my $pattern_minute      = qr/(?<minute>\d\d)/i;                                       # e.g. "01", "59"
+    my $pattern_second      = qr/(?<second>\d\d)/i;                                       # e.g. "01", "59"
+    my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;      # e.g. "12:50", "9:39"
     my $pattern_hour_minute_second =
-      qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;    # e.g. "12:50:00"
+      qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;     # e.g. "12:50:00"
     my $pattern_month         = qr/(?<month>(:?0?[1-9]|1[012]))/i;          # e.g. "12", "01", "7"
     my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
     my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 55 + 1;
+use Test::More tests => 56 + 1;
 use Test::Deep;
 
 use utf8;
@@ -279,6 +279,13 @@ sub test_live_urls
         'live_url: sdcitybeat.com'
     );
 
+    is(
+        _gt_url(
+            'http://www.ktvu.com/news/news/local-govt-politics/if-passed-prop-36-could-drastically-transform-thre/nSRCn/'
+        ),
+        _ts( 'Mon, 1 Oct 2012 18:10:00 GMT' ),
+        'live_url: ktvu.com'
+    );
 }
 
 sub test_date_matching
