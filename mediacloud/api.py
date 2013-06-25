@@ -4,8 +4,7 @@ import json
 import requests
 import os
 import re
-import csv
-import codecs
+import unicodecsv as csv
 import logging
 
 media_info = None
@@ -17,15 +16,18 @@ def mediaSource(media_id):
     global media_info
     if media_info == None: 
         media_info = {}
-        MEDIA_FILE = os.path.dirname(mediacloud.__file__)+'/data/media_ids.csv'
-        csv_reader = csv.reader(codecs.open(MEDIA_FILE, 'rU'))
+        MEDIA_FILE_PATH = os.path.dirname(mediacloud.__file__)+'/data/media_ids.csv'
+        media_file = open(MEDIA_FILE_PATH, 'rb')
+        csv_reader = csv.reader(media_file, encoding='utf-8')
         header = csv_reader.next() # skip header
         for row in csv_reader:
-            m_id = str(row[0])
+            m_id = int(row[0])
             media_info[m_id] = {}
             for idx, column_name in enumerate(header):
-                media_info[m_id][ column_name ] = row[idx]
-    return media_info[str(media_id)]
+                media_info[m_id][column_name] = row[idx]
+            if m_id==1847:
+                print media_info[1847]
+    return media_info[int(media_id)]
 
 class MediaCloud(object):
     '''
