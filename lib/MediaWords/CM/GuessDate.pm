@@ -70,7 +70,7 @@ my $_date_guess_functions = [
     {
         name     => 'guess_by_date_text',
         function => \&guess_by_date_text,
-        test     => '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST'
+        test     => '<p>foo bar</p><p class="dateline">published on Jan 17th, 2012, 12:00 PM EST'
     },
     {
         name     => 'guess_by_existing_story_date',
