@@ -89,6 +89,7 @@ requires 'RDF::Simple::Parser';
 requires 'Readonly';
 requires 'Regexp::Common';
 requires 'Smart::Comments';
+requires 'Statistics::Basic';
 requires 'Term::Prompt';
 requires 'Test::Differences';
 requires 'Test::NoWarnings';
