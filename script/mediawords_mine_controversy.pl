@@ -679,23 +679,24 @@ END
         my $story_epoch     = MediaWords::Util::SQL::get_epoch_from_sql_date( $story->{ publish_date } );
 
         # if the stories aren't within a week, be more careful about matching
-        if (   ( $dup_story_epoch < ( $story_epoch - ( 7 * 86400 ) ) )
-            || ( $dup_story_epoch > ( $story_epoch + ( 7 * 86400 ) ) ) )
+        if ( ( $dup_story_epoch >= ( $story_epoch - ( 7 * 86400 ) ) ) &&
+             ( $dup_story_epoch <= ( $story_epoch + ( 7 * 86400 ) ) ) )
         {
-
-            # if the stories aren't in the same week, require that the length be greater than 32
-            next if ( length( $story->{ title } ) < 32 );
-
-            # and require that the urls match minus parameters
-            my $dup_story_url_no_p = $dup_story->{ url };
-            my $story_url_no_p     = $story->{ url };
-            $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-            $story_url_no_p =~ s/(.*)\?(.*)/$1/;
-
-            next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
-
             return $dup_story;
         }
+
+        # if the stories aren't in the same week, require that the length be greater than 32
+        next if ( length( $story->{ title } ) < 32 );
+
+        # and require that the urls match minus parameters
+        my $dup_story_url_no_p = $dup_story->{ url };
+        my $story_url_no_p     = $story->{ url };
+        $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
+        $story_url_no_p =~ s/(.*)\?(.*)/$1/;
+
+        next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
+
+        return $dup_story;
     }
 
     # return the original story if no dups were found.
