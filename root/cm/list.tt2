@@ -1,0 +1,34 @@
+[% title = 'CM: Controversies List' %]
+[% INCLUDE include/header.tt2 %]
+
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+
+<table>
+
+<tr>
+<th>Controversy</th>
+<th>Pattern</th>
+<th>Dates</th>
+</tr>
+
+    [% FOREACH controversy IN controversies -%]
+
+        <tr [% IF even %]id="even"[% END %]>
+
+<td>
+<a href="[%  c.uri_for('/admin/cm/view/'  _ controversy.controversies_id ) %]">[% controversy.name | html %]</a>
+</td>
+
+            <td>[% controversy.pattern | truncate( 32 ) | html %]</td>
+
+            <td>[% date.format( controversy.start_date ) %] - [% date.format( controversy.end_date ) %]</td>
+
+        </tr>
+
+    [% SET even = !even %]
+    [% END # FOREACH stories -%]
+
+</table>
+
+[% INCLUDE include/footer.tt2 %]
