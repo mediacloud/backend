@@ -1221,6 +1221,12 @@ create table controversies (
 
 create unique index controversies_name on controversies( name );
     
+create view controversies_with_search_info as
+    select c.*, q.start_date::date, q.end_date::date, qss.pattern, qss.queries_id
+        from controversies c
+            left join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
+            left join queries q on ( qss.queries_id = q.queries_id );
+    
 create table controversy_dates (
     controversy_dates_id    serial primary key,
     controversies_id        int not null references controversies on delete cascade,
@@ -1274,6 +1280,9 @@ alter table controversy_links add constraint controversy_links_controversy_story
 
 create unique index controversy_links_scr on controversy_links ( stories_id, controversies_id, ref_stories_id );
 
+create view controversy_links_cross_media as
+  select s.stories_id, sm.name as media_name, r.stories_id as ref_stories_id, rm.name as ref_media_name, cl.url as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
+
 create table controversy_seed_urls (
     controversy_seed_urls_id        serial primary key,
     controversies_id                int not null references controversies on delete cascade,
@@ -1287,6 +1296,159 @@ create table controversy_seed_urls (
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 create index controversy_seed_urls_url on controversy_seed_urls( url );
 
+create table controversy_dumps (
+    controversy_dumps_id            serial primary key,
+    controversies_id                int not null references controversies on delete cascade,
+    dump_date                       timestamp not null,
+    start_date                      timestamp not null,
+    end_date                        timestamp not null,
+    note                            text,
+    daily_counts_csv                text,
+    weekly_counts_csv               text
+);
+
+create index controversy_dumps_controversy on controversy_dumps ( controversies_id );
+
+create type cd_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
+
+-- individual time slices within a controversy dump
+create table controversy_dump_time_slices (
+    controversy_dump_time_slices_id serial primary key,
+    controversy_dumps_id            int not null references controversy_dumps on delete cascade,
+    start_date                      timestamp not null,
+    end_date                        timestamp not null,
+    period                          cd_period_type not null,
+    gexf                            text,
+    stories_csv                     text,
+    story_links_csv                 text,
+    media_csv                       text,
+    medium_links_csv                text,
+    model_r2_mean                   float,
+    model_r2_stddev                 float,
+    model_num_media                 int
+);
+
+alter table controversy_dump_time_slices add constraint cdts_confidence 
+    check ( confidence is null or ( confidence >= 0 and confidence <= 100 ) );
+
+create index controversy_dump_time_slices_dump on controversy_dump_time_slices ( controversy_dumps_id );
+
+-- schema to hold all of the controversy dump snapshot tables
+create schema cd;
+
+-- ease the process of copying the schema of each table and adding a controversy_dumps_id field and index
+create or replace function create_dump_snapshot_table ( table_name text ) returns void as
+$$
+BEGIN
+    EXECUTE 'create table cd.' || table_name || ' as select * from ' || table_name || ' where 1 = 0';
+    EXECUTE 'alter table cd.' || table_name || ' add controversy_dumps_id int not null references controversy_dumps on delete cascade';
+    EXECUTE 'create index ' || table_name || '_dump on cd.' || table_name || ' ( controversy_dumps_id )';
+    return;
+END;
+$$
+LANGUAGE 'plpgsql' VOLATILE;
+
+-- create a table for each of these tables to hold a snapshot of stories relevant
+-- to a controversy for each dump for that controversy
+select create_dump_snapshot_table( 'stories' );
+create index stories_id on cd.stories ( controversy_dumps_id, stories_id );
+    
+select create_dump_snapshot_table( 'controversy_stories' );
+create index controversy_stories_id on cd.controversy_stories ( controversy_dumps_id, stories_id );
+    
+select create_dump_snapshot_table( 'controversy_links_cross_media' );
+create index controversy_links_story on cd.controversy_links_cross_media ( controversy_dumps_id, stories_id );
+create index controversy_links_ref on cd.controversy_links_cross_media ( controversy_dumps_id, ref_stories_id );
+
+select create_dump_snapshot_table( 'controversy_media_codes' );
+create index controversy_media_codes_medium on cd.controversy_media_codes ( controversy_dumps_id, media_id );
+    
+select create_dump_snapshot_table( 'media' );
+create index media_id on cd.media ( controversy_dumps_id, media_id );
+    
+select create_dump_snapshot_table( 'media_tags_map' );
+create index media_tags_map_medium on cd.media_tags_map ( controversy_dumps_id, media_id );
+create index media_tags_map_tag on cd.media_tags_map ( controversy_dumps_id, tags_id );
+    
+select create_dump_snapshot_table( 'stories_tags_map' );
+create index stories_tags_map_story on cd.stories_tags_map ( controversy_dumps_id, stories_id );
+create index stories_tags_map_tag on cd.stories_tags_map ( controversy_dumps_id, tags_id );
+
+select create_dump_snapshot_table( 'tags' );
+create index tags_id on cd.tags ( controversy_dumps_id, tags_id );
+
+select create_dump_snapshot_table( 'tag_sets' );
+create index tag_sets_id on cd.tag_sets ( controversy_dumps_id, tag_sets_id );
+
+-- story -> story links within a cdts
+create table cd.story_links (
+    controversy_dump_time_slices_id         int not null
+                                            references controversy_dump_time_slices on delete cascade,
+    source_stories_id                       int not null,
+    ref_stories_id                          int not null
+);
+
+-- TODO: add complex foreign key to check that *_stories_id exist for the controversy_dump stories snapshot    
+create index story_links_source on cd.story_links( controversy_dump_time_slices_id, source_stories_id );
+create index story_links_ref on cd.story_links( controversy_dump_time_slices_id, ref_stories_id );
+
+-- link counts for stories within a cdts
+create table cd.story_link_counts (
+    controversy_dump_time_slices_id         int not null 
+                                            references controversy_dump_time_slices on delete cascade,
+    stories_id                              int not null,
+    inlink_count                            int not null,
+    outlink_count                           int not null
+);
+
+-- TODO: add complex foreign key to check that stories_id exists for the controversy_dump stories snapshot
+create index story_link_counts_story on cd.story_link_counts ( controversy_dump_time_slices_id, stories_id );
+
+-- links counts for media within a cdts
+create table cd.medium_link_counts (
+    controversy_dump_time_slices_id int not null
+                                    references controversy_dump_time_slices on delete cascade,
+    media_id                        int not null,
+    inlink_count                    int not null,
+    outlink_count                   int not null,
+    story_count                     int not null
+);
+
+-- TODO: add complex foreign key to check that media_id exists for the controversy_dump media snapshot
+create index medium_link_counts_medium on cd.medium_link_counts ( controversy_dump_time_slices_id, media_id );
+
+create table cd.medium_links (
+    controversy_dump_time_slices_id int not null
+                                    references controversy_dump_time_slices on delete cascade,
+    source_media_id                 int not null,
+    ref_media_id                    int not null,
+    link_count                      int not null
+);
+
+-- TODO: add complex foreign key to check that *_media_id exist for the controversy_dump media snapshot
+create index medium_links_source on cd.medium_links( controversy_dump_time_slices_id, source_media_id );
+create index medium_links_ref on cd.medium_links( controversy_dump_time_slices_id, ref_media_id );
+
+create table cd.daily_date_counts (
+    controversy_dumps_id            int not null references controversy_dumps on delete cascade,
+    publish_date                    date not null,
+    story_count                     int not null,
+    tags_id                         int
+);
+
+create index daily_date_counts_date on cd.daily_date_counts( controversy_dumps_id, publish_date );
+create index daily_date_counts_tag on cd.daily_date_counts( controversy_dumps_id, tags_id );
+
+create table cd.weekly_date_counts (
+    controversy_dumps_id            int not null references controversy_dumps on delete cascade,
+    publish_date                    date not null,
+    story_count                     int not null,
+    tags_id                         int
+);
+
+create index weekly_date_counts_date on cd.weekly_date_counts( controversy_dumps_id, publish_date );
+create index weekly_date_counts_tag on cd.weekly_date_counts( controversy_dumps_id, tags_id );
+                                        
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
     stories_id                  bigint             not null references stories on delete cascade
@@ -1309,10 +1471,6 @@ CREATE TABLE story_subsets_processed_stories_map (
    story_subsets_id bigint NOT NULL references story_subsets on delete cascade,
    processed_stories_id bigint NOT NULL references processed_stories on delete cascade
 );
-
-
-create view controversy_links_cross_media as
-  select s.stories_id, substr(sm.name::text, 0, 24) as media_name, r.stories_id as ref_stories_id, substr(rm.name::text, 0, 24) as ref_media_name, substr(cl.url, 0, 144) as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
 
 create table controversy_query_story_searches_imported_stories_map (
     controversies_id            int not null references controversies on delete cascade,
