@@ -70,6 +70,11 @@ __PACKAGE__->config(
         }
     }
 );
+__PACKAGE__->config(
+        static => {
+            dirs => [ 'gexf' ]
+        }
+    );
 
 # Start the application
 __PACKAGE__->setup;
@@ -298,7 +303,7 @@ sub uri_for
     {
         shift( @_ );
         return $self->SUPER::uri_for( @_ );
-    }
+    } 
 
     my $uri = URI->new( $self->config->{ mediawords }->{ base_url } . $path );
 
