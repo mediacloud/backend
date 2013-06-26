@@ -1,0 +1,82 @@
+Manual test case for authentication
+
+PREREQ
+
+* basic.txt
+
+TEST
+
+* load /admin
+
+VERIFY
+
+* verify that login with jdoe@cyber.law.harvard.edu user is required to load page
+
+TEST
+
+* logout of jdoe user
+* load /dashboard page
+
+VERIFY
+
+* dashboard loads without user logged in
+
+TEST
+
+* return to /admin
+* login with jdoe user
+* click on Users link
+* create a new user with the following info:
+
+email: authtest@cyber.law.harvard.edu
+full name: auth test
+password: authtest
+role: <none>
+
+* logout of jdoe user
+* try to load /admin page
+
+VERIFY
+
+* loading /admin page gives 'You are not allowed to access page' error
+
+TEST
+
+* go to /logout to log out authtest user
+* go to /admin
+* login jdoe user
+* go to /users/list
+* click on 'edit' for authtest user
+* add 'admin-readonly' role
+* logout jdoe user
+* go to /admin
+* login authtest user
+* go to /admin/media/create_batch
+
+VERIFY
+
+* media list page loads normally as authtest
+* 'add media' link does not appear when /admin is loaded as authtest
+* /admin/media/create_batch gives a 'You are not allowed to access page' error
+
+TEST
+
+* log out authtest user
+* go to /admin
+* login jdoe user
+* go to /users/list
+* click on 'edit' for authtest user
+* add 'media-edit' role
+* logout jdoe user
+* go to /admin
+* login authtest user
+* click on 'edit' link for a media source
+* append test to the end of the media source name
+
+VERIFY
+
+* 'edit' link appears after each media source on /admin page
+* edit media source page loads
+* media source name is changed on submit
+
+
