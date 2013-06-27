@@ -22,6 +22,7 @@ use Getopt::Long;
 use Statistics::Basic;
 use XML::Simple;
 
+use MediaWords::CM::Dump;
 use MediaWords::DB;
 use MediaWords::DBI::Media;
 use MediaWords::Util::CSV;
@@ -36,9 +37,9 @@ use constant MODEL_PERCENT_TOP_MEDIA => 10;
 use constant PERCENT_DATE_MISDATED => 37;
 
 # percentages that a wrong date is wrong by the given number of days
-use constant PERCENT_DATE_WRONG_BY_1 => 50;
-use constant PERCENT_DATE_WRONG_BY_3 => 25;
-use constant PERCENT_DATE_WRONG_BY_7 => 15;
+use constant PERCENT_DATE_WRONG_BY_1    => 50;
+use constant PERCENT_DATE_WRONG_BY_3    => 25;
+use constant PERCENT_DATE_WRONG_BY_7    => 15;
 use constant PERCENT_DATE_WRONG_BY_MORE => 10;
 
 # percent of stories guessed to be undateable that are actually dateable
@@ -57,18 +58,15 @@ use constant MIN_NODE_SIZE => 5;
 # max map width for gexf dump
 use constant MAX_MAP_WIDTH => 800;
 
-# list of all snapshotted tables
-my $_snapshot_tables;
-
 # consistent colors for media types
 my $_media_type_color_map;
 
 # attributes to include in gexf dump
 my $_media_static_gexf_attribute_types = {
-    url                 => 'string',
-    inlink_count        => 'integer',
-    story_count         => 'integer',
-    view_medium         => 'string'
+    url          => 'string',
+    inlink_count => 'integer',
+    story_count  => 'integer',
+    view_medium  => 'string'
 };
 
 # write dump table that holds list of all stories that should be included in the
@@ -103,7 +101,7 @@ create or replace view dump_undateable_stories as
             ts.name = 'date_guess_invalid' and
             t.tag = 'undateable'
 END
-        
+
         $db->query( <<'END', $cdts->{ start_date }, $cdts->{ end_date } );
 create temporary table dump_period_stories as
     select distinct s.stories_id
@@ -116,7 +114,7 @@ create temporary table dump_period_stories as
             ( ss.publish_date between $1::timestamp and $2::timestamp - interval '1 second'
                 and ss.stories_id not in ( select stories_id from dump_undateable_stories ) )
 END
-    
+
         $db->query( "drop view dump_undateable_stories" );
     }
 }
@@ -138,8 +136,8 @@ create temporary table dump_story_inlink_counts as
         group by ref_stories_id
 END
 
-# add this back above to re-enable removing post-dated links
-#   s.publish_date > r.publish_date - interval '1 day' and
+    # add this back above to re-enable removing post-dated links
+    #   s.publish_date > r.publish_date - interval '1 day' and
 
     $db->query( "drop table if exists dump_story_outlink_counts" );
 
@@ -153,8 +151,8 @@ create temporary table dump_story_outlink_counts as
       group by cl.stories_id
 END
 
-# add this back above to re-enable removing post-dated links
-#  s.publish_date > r.publish_date - interval '1 day'
+    # add this back above to re-enable removing post-dated links
+    #  s.publish_date > r.publish_date - interval '1 day'
 
 }
 
@@ -162,11 +160,8 @@ END
 sub update_cdts
 {
     my ( $db, $cdts, $field, $val ) = @_;
-    
-    $db->update_by_id( 
-        'controversy_dump_time_slices', 
-        $cdts->{ controversy_dump_time_slices_id },
-        { $field => $val } );
+
+    $db->update_by_id( 'controversy_dump_time_slices', $cdts->{ controversy_dump_time_slices_id }, { $field => $val } );
 }
 
 sub write_story_links_csv
@@ -203,8 +198,8 @@ create temporary table dump_story_links as
     	    ss.stories_id = ps.stories_id
 END
 
-# re-enable above to prevent post-dated links
-#          ss.publish_date > rs.publish_date - interval '1 day' and
+    # re-enable above to prevent post-dated links
+    #          ss.publish_date > rs.publish_date - interval '1 day' and
 
     if ( !$is_model )
     {
@@ -276,7 +271,7 @@ END
 
     if ( !$is_model )
     {
-        create_cdts_snapshot( $db, $cdts, 'story_link_counts' );    
+        create_cdts_snapshot( $db, $cdts, 'story_link_counts' );
         write_stories_csv( $db, $cdts );
     }
 }
@@ -370,9 +365,9 @@ END
 sub write_medium_link_counts_dump
 {
     my ( $db, $cdts, $is_model ) = @_;
-    
+
     $db->query( "drop table if exists dump_medium_link_counts" );
-    
+
     $db->query( <<END );
 create temporary table dump_medium_link_counts as   
     select m.media_id, sum( slc.inlink_count) inlink_count, sum( slc.outlink_count) outlink_count,
@@ -382,7 +377,7 @@ create temporary table dump_medium_link_counts as
         group by m.media_id
 END
 
-    if ( !$is_model ) 
+    if ( !$is_model )
     {
         create_cdts_snapshot( $db, $cdts, 'medium_link_counts' );
         write_media_csv( $db, $cdts );
@@ -406,7 +401,7 @@ END
 sub write_medium_links_dump
 {
     my ( $db, $cdts, $is_model ) = @_;
-    
+
     $db->query( "drop table if exists dump_medium_links" );
 
     $db->query( <<END );
@@ -416,7 +411,7 @@ create temporary table dump_medium_links as
         where sl.source_stories_id = s.stories_id and sl.ref_stories_id = r.stories_id
         group by s.media_id, r.media_id
 END
-    
+
     if ( !$is_model )
     {
         create_cdts_snapshot( $db, $cdts, 'medium_links' );
@@ -435,10 +430,7 @@ select dc.publish_date, t.tag, t.tags_id, dc.story_count
     order by t.tag, dc.publish_date
 END
 
-    $db->update_by_id( 
-        'controversy_dumps', 
-        $cd->{ controversy_dumps_id }, 
-        { "${ period }_counts_csv" => $csv } );
+    $db->update_by_id( 'controversy_dumps', $cd->{ controversy_dumps_id }, { "${ period }_counts_csv" => $csv } );
 }
 
 sub write_date_counts_dump
@@ -458,7 +450,7 @@ create temporary table dump_${ period }_date_counts as
 END
 
     create_cd_snapshot( $db, $cd, "${ period }_date_counts" );
-    
+
     write_date_counts_csv( $db, $cd, $period );
 }
 
@@ -570,15 +562,15 @@ sub add_weights_to_gexf_edges
     my ( $db, $gexf ) = @_;
 
     my $edges = $gexf->{ graph }->[ 0 ]->{ edges }->[ 0 ]->{ edge };
-    
+
     my $medium_links = $db->query( "select * from dump_medium_links" )->hashes;
-    
+
     my $edge_weight_lookup = {};
     for my $m ( @{ $medium_links } )
     {
         $edge_weight_lookup->{ $m->{ source_media_id } }->{ $m->{ ref_media_id } } = $m->{ link_count };
     }
-    
+
     for my $edge ( @{ $edges } )
     {
         $edge->{ weight } = $edge_weight_lookup->{ $edge->{ source } }->{ $edge->{ target } };
@@ -620,7 +612,7 @@ sub scale_gexf_nodes
     }
 }
 
-# post process gexf file.  gephi mucks up the gexf file by making it too big and 
+# post process gexf file.  gephi mucks up the gexf file by making it too big and
 # removing the weights from the gexf export.  I can't figure out how to get the gephi toolkit
 # to fix these things, so I just fix them in perl
 sub post_process_gexf
@@ -630,7 +622,7 @@ sub post_process_gexf
     my $gexf = XML::Simple::XMLin( $gexf_file, ForceArray => 1, ForceContent => 1, KeyAttr => [] );
 
     add_weights_to_gexf_edges( $db, $gexf );
-    
+
     scale_gexf_nodes( $db, $gexf );
 
     open( FILE, ">$gexf_file" ) || die( "Unable to open file '$gexf_file': $!" );
@@ -643,18 +635,18 @@ sub post_process_gexf
 
 # call java program to lay out graph.  the java program accepts a gexf file as input and
 # outputs a gexf file with the lay out included
-sub layout_gexf 
+sub layout_gexf
 {
     my ( $db, $cdts, $nolayout_gexf ) = @_;
 
     print STDERR "generating gephi layout ...\n";
 
-    my $tmp_dir = File::Temp::tempdir( "dump_layout_$cdts->{ controversy_dump_time_slices_id }_XXXX", CLEANUP => 1);
-    
+    my $tmp_dir = File::Temp::tempdir( "dump_layout_$cdts->{ controversy_dump_time_slices_id }_XXXX", CLEANUP => 1 );
+
     my $nolayout_path = "$tmp_dir/nolayout.gexf";
-    my $layout_path = "$tmp_dir/layout.gexf";
-    
-    my $fh = FileHandle->new( ">$nolayout_path" ) || die( "Unable to open file '$nolayout_path': $!" );    
+    my $layout_path   = "$tmp_dir/layout.gexf";
+
+    my $fh = FileHandle->new( ">$nolayout_path" ) || die( "Unable to open file '$nolayout_path': $!" );
     $fh->print( encode( 'utf8', $nolayout_gexf ) );
     $fh->close();
 
@@ -663,19 +655,19 @@ sub layout_gexf
 
     # print STDERR "$cmd\n";
     system( $cmd );
-    
+
     post_process_gexf( $db, $layout_path );
-    
+
     $fh = FileHandle->new( $layout_path ) || die( "Unable to open file '$layout_path': $!" );
-    
+
     my $layout_gexf;
     while ( my $line = $fh->getline )
     {
         $layout_gexf .= decode( 'utf8', $line );
     }
-    
+
     $fh->close;
-    
+
     return $layout_gexf;
 }
 
@@ -755,8 +747,8 @@ END
     my $meta = { 'lastmodifieddate' => Date::Format::time2str( '%Y-%m-%d', time ) };
     push( @{ $gexf->{ meta } }, $meta );
 
-    push( @{ $meta->{ creator } },     'Berkman Center' );
-    
+    push( @{ $meta->{ creator } }, 'Berkman Center' );
+
     my $controversy = $cdts->{ controversy_dump }->{ controversy };
     push( @{ $meta->{ description } }, "Media discussions of $controversy->{ name }" );
 
@@ -796,7 +788,8 @@ END
             label => $medium->{ name },
         };
 
-        $medium->{ view_medium } = "[_mc_base_url_]/admin/cm/medium/$cdts->{ controversy_dump_time_slices_id }/$medium->{ media_id }";
+        $medium->{ view_medium } =
+          "[_mc_base_url_]/admin/cm/medium/$cdts->{ controversy_dump_time_slices_id }/$medium->{ media_id }";
 
         my $j = 0;
         while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
@@ -821,7 +814,7 @@ END
     my $nolayout_gexf = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
 
     my $layout_gexf = layout_gexf( $db, $cdts, $nolayout_gexf );
-    
+
     update_cdts( $db, $cdts, 'gexf', $layout_gexf );
 }
 
@@ -957,7 +950,7 @@ END
 sub generate_period_dump_data ($$;$)
 {
     my ( $db, $cdts, $is_model ) = @_;
-    
+
     write_period_stories( $db, $cdts );
     write_story_link_counts( $db, $cdts );
     write_story_links_dump( $db, $cdts, $is_model );
@@ -973,22 +966,22 @@ sub generate_period_dump_data ($$;$)
 sub get_top_media_link_counts
 {
     my ( $db, $cdts, $size_factor ) = @_;
-    
+
     my ( $num_media ) = $db->query( "select count(*) from dump_medium_link_counts" )->flat;
 
     return [] unless ( $num_media > 0 );
 
-    my $num_top_media = POSIX::ceil( $num_media * ( MODEL_PERCENT_TOP_MEDIA  / 100 ) );
+    my $num_top_media = POSIX::ceil( $num_media * ( MODEL_PERCENT_TOP_MEDIA / 100 ) );
     $num_top_media *= $size_factor if ( $size_factor );
-    
+
     my $top_media = $db->query( <<END, $num_top_media + 1 )->hashes;
 select * from dump_medium_link_counts order by inlink_count desc limit ?
 END
 
     # the last medium included must have more inlinks than the first medium not included
     my $first_miss_medium = pop( @{ $top_media } );
-    my $min_inlink_count = $first_miss_medium->{ inlink_count } + 1;
-    my $pruned_top_media = [ grep { $_->{ inlink_count } > $min_inlink_count } @{ $top_media } ];
+    my $min_inlink_count  = $first_miss_medium->{ inlink_count } + 1;
+    my $pruned_top_media  = [ grep { $_->{ inlink_count } > $min_inlink_count } @{ $top_media } ];
 
     return $pruned_top_media;
 }
@@ -997,11 +990,11 @@ END
 sub tweak_dateable_story
 {
     my ( $db, $cdts, $story ) = @_;
-    
+
     # print "tweak_dateable_story: $story->{ stories_id }\n";
 
     my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_invalid:undateable' );
-    
+
     $db->query( <<END, $story->{ stories_id }, $undateable_tag->{ tags_id } );
 insert into dump_stories_tags_map
     ( stories_id, tags_id )
@@ -1015,8 +1008,8 @@ END
 sub tweak_dateable_stories
 {
     my ( $db, $cdts ) = @_;
-    
-    my $stories = $db->query( <<END, PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;   
+
+    my $stories = $db->query( <<END, PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
 select * from  
 (
     select s.*
@@ -1047,9 +1040,9 @@ END
 sub tweak_undateable_story
 {
     my ( $db, $cdts, $story ) = @_;
-    
+
     # print "tweak_undateable_story: $story->{ stories_id }\n";
-    
+
     $db->query( <<END, $story->{ stories_id } );
 delete from dump_stories_tags_map stm
     using dump_tags t, dump_tag_sets ts
@@ -1066,7 +1059,7 @@ END
 sub tweak_undateable_stories
 {
     my ( $db, $cdts ) = @_;
-    
+
     my $stories = $db->query( <<END, PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
 select s.* 
     from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
@@ -1081,7 +1074,6 @@ END
     map { tweak_undateable_story( $db, $cdts, $_ ) } @{ $stories };
 }
 
-
 # get the new story date according to our validation data of how dates
 # are typically wrong
 sub get_tweaked_story_date
@@ -1089,30 +1081,30 @@ sub get_tweaked_story_date
     my ( $old_date ) = @_;
 
     my $past = ( rand( 2 ) < 1 ) ? -1 : 1;
-    
+
     # roll a die to see how wrong the date is, according to stats about wrong date distribution
     my $wrong_by_dist = rand( 100 );
-    
+
     my $new_date;
     if ( $wrong_by_dist < PERCENT_DATE_WRONG_BY_1 )
     {
         return MediaWords::Util::SQL::increment_day( $old_date, $past );
     }
     $wrong_by_dist -= PERCENT_DATE_WRONG_BY_1;
-    
+
     if ( $wrong_by_dist < PERCENT_DATE_WRONG_BY_3 )
     {
-        my $days = POSIX::ceil( rand( 2 )  ) + 1;
+        my $days = POSIX::ceil( rand( 2 ) ) + 1;
         return MediaWords::Util::SQL::increment_day( $old_date, $past * $days );
     }
     $wrong_by_dist -= PERCENT_DATE_WRONG_BY_3;
 
     if ( $wrong_by_dist < PERCENT_DATE_WRONG_BY_7 )
     {
-        my $days = POSIX::ceil( rand( 4 )  ) + 3;
+        my $days = POSIX::ceil( rand( 4 ) ) + 3;
         return MediaWords::Util::SQL::increment_day( $old_date, $past * $days );
     }
-    
+
     my $days = POSIX::ceil( rand( 53 ) + 7 );
     return MediaWords::Util::SQL::increment_day( $old_date, $past * $days );
 }
@@ -1122,15 +1114,15 @@ sub get_tweaked_story_date
 sub tweak_story_date
 {
     my ( $db, $cdts, $story ) = @_;
-    
+
     my $new_date = get_tweaked_story_date( $story->{ publish_date } );
-    
+
     # print "tweak story: $story->{ stories_id } $story->{ publish_date } -> $new_date\n";
-    
+
     $db->query( <<END, $new_date, $story->{ stories_id } );
 update dump_stories set publish_date = ? where stories_id = ?
 END
-    
+
 }
 
 # chagne the dates of stories according to our data of how often guess dates
@@ -1138,7 +1130,7 @@ END
 sub tweak_misdated_stories
 {
     my ( $db, $cdts ) = @_;
-                
+
     my $stories = $db->query( <<END, PERCENT_DATE_MISDATED )->hashes;
 select s.*, t.tag 
     from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
@@ -1157,13 +1149,13 @@ END
 sub tweak_story_dates
 {
     my ( $db, $cdts ) = @_;
-    
+
     $db->begin;
-    
+
     tweak_misdated_stories( $db, $cdts );
     tweak_undateable_stories( $db, $cdts );
-    tweak_dateable_stories( $db, $cdts );  
-    
+    tweak_dateable_stories( $db, $cdts );
+
     $db->commit;
 }
 
@@ -1174,28 +1166,28 @@ sub tweak_story_dates
 sub model_confidence_data
 {
     my ( $db, $cdts ) = @_;
-    
+
     tweak_story_dates( $db, $cdts );
-    
+
     generate_period_dump_data( $db, $cdts, 1 );
-    
+
     my $top_media_link_counts = get_top_media_link_counts( $db, $cdts, 2 );
-    
-    return $top_media_link_counts;    
+
+    return $top_media_link_counts;
 }
 
-# given an ordered list of medium_counts, return a hash with the media_id of each 
+# given an ordered list of medium_counts, return a hash with the media_id of each
 # as the key and the order in the list as the value
 sub get_medium_count_ranks
 {
     my ( $media_counts ) = @_;
 
     my $ranks = {};
-    for ( my $i = 0; $i < @{ $media_counts }; $i++ )
+    for ( my $i = 0 ; $i < @{ $media_counts } ; $i++ )
     {
         $ranks->{ $media_counts->[ $i ]->{ media_id } } = $i;
     }
-    
+
     return $ranks;
 }
 
@@ -1204,11 +1196,11 @@ sub get_medium_count_ranks
 sub model_rank_within_error_interval
 {
     my ( $clean_rank, $model_rank ) = @_;
-    
+
     return 0 unless ( defined( $model_rank ) );
-    
+
     my $interval = POSIX::ceil( $clean_rank / 3 ) + 2;
-        
+
     return ( abs( $clean_rank - $model_rank ) <= $interval );
 }
 
@@ -1216,59 +1208,59 @@ sub model_rank_within_error_interval
 sub get_model_correlation_p_value
 {
     my ( $clean_vector, $model_vector, $r ) = @_;
-    
-    my $p_hits = 0;
+
+    my $p_hits   = 0;
     my $num_reps = 10000;
     for my $i ( 1 .. $num_reps )
     {
         my $randomized_model = [ List::Util::shuffle( @{ $model_vector } ) ];
-        
+
         my $p_r = Statistics::Basic::correlation( $clean_vector, $randomized_model );
-        
+
         $p_hits++ if ( $p_r >= $r );
     }
-    
+
     return ( $p_hits / $num_reps );
 }
 
-# return the correlation between the clean data repeated CONFIDENCE_REPS times and 
+# return the correlation between the clean data repeated CONFIDENCE_REPS times and
 # the concatenation of all models
 sub update_model_correlation
 {
     my ( $db, $cdts, $all_models_top_media ) = @_;
-    
+
     my $clean_top_media = get_top_media_link_counts( $db, $cdts );
-    
+
     update_cdts( $db, $cdts, 'model_num_media', scalar( @{ $clean_top_media } ) );
 
     return unless ( @{ $clean_top_media } > 1 );
 
-    my $clean_vector = [];    
-    for ( my $i = 0; $i < @{ $clean_top_media }; $i++ )
+    my $clean_vector = [];
+    for ( my $i = 0 ; $i < @{ $clean_top_media } ; $i++ )
     {
         push( @{ $clean_vector }, $i );
     }
-    
+
     my $model_r2s = [];
     for my $model_top_media ( @{ $all_models_top_media } )
     {
         my $model_medium_ranks = get_medium_count_ranks( $model_top_media );
-        my $model_vector = [];
+        my $model_vector       = [];
         for my $clean_top_medium ( @{ $clean_top_media } )
         {
             my $model_medium_rank = $model_medium_ranks->{ $clean_top_medium->{ media_id } };
             $model_medium_rank = scalar( @{ $model_top_media } + 1 ) unless ( defined( $model_medium_rank ) );
             push( @{ $model_vector }, $model_medium_rank );
         }
-        
+
         my $r = Statistics::Basic::correlation( $clean_vector, $model_vector );
-        push( @{ $model_r2s }, $r*$r );
+        push( @{ $model_r2s }, $r * $r );
     }
-    
-    my $r2_mean = Statistics::Basic::mean( $model_r2s );
+
+    my $r2_mean   = Statistics::Basic::mean( $model_r2s );
     my $r2_stddev = Statistics::Basic::stddev( $model_r2s );
-    
-    update_cdts( $db, $cdts, 'model_r2_mean', $r2_mean );
+
+    update_cdts( $db, $cdts, 'model_r2_mean',   $r2_mean );
     update_cdts( $db, $cdts, 'model_r2_stddev', $r2_stddev );
 }
 
@@ -1276,16 +1268,16 @@ sub update_model_correlation
 sub print_model_matches
 {
     my ( $db, $cdts, $all_models_top_media ) = @_;
-    
+
     my $clean_top_media = get_top_media_link_counts( $db, $cdts );
     my $clean_medium_ranks = get_medium_count_ranks( $clean_top_media );
-    
+
     print "evaluating models ...\n";
-    
+
     my $num_model_matches = 0;
     for my $model_top_media ( @{ $all_models_top_media } )
     {
-        my $match = 1;
+        my $match              = 1;
         my $model_medium_ranks = get_medium_count_ranks( $model_top_media );
         while ( my ( $clean_media_id, $clean_rank ) = each( %{ $clean_medium_ranks } ) )
         {
@@ -1302,12 +1294,12 @@ sub print_model_matches
             }
         }
         print "\n";
-        
+
         $num_model_matches++ if ( $match );
     }
-      
+
     # update_cdts( $db, $cdts, 'confidence', $num_model_matches );
-    # 
+    #
     # return $num_model_matches;
 }
 
@@ -1315,33 +1307,34 @@ sub print_model_matches
 sub generate_period_dump ($$$$$)
 {
     my ( $db, $cd, $start_date, $end_date, $period ) = @_;
-    
-    my $cdts = create_controversy_dump_time_slice( $db, $cd, $start_date, $end_date, $period ); 
-    
+
+    my $cdts = create_controversy_dump_time_slice( $db, $cd, $start_date, $end_date, $period );
+
     my $dump_label = "${ period }: ${ start_date } - ${ end_date }";
     print "generating $dump_label ...\n";
 
     print "copying temporary tables ...\n";
     copy_temporary_tables( $db );
 
-    print "running models: ";        
+    print "running models: ";
     my $all_models_top_media = [];
     for my $i ( 1 .. CONFIDENCE_REPS )
-    {   
-        push( @{ $all_models_top_media }, model_confidence_data( $db, $cdts ) );        
+    {
+        push( @{ $all_models_top_media }, model_confidence_data( $db, $cdts ) );
         print ".";
         restore_temporary_tables( $db );
     }
-    
+
     print "\ngenerating dump data ...\n";
     generate_period_dump_data( $db, $cdts );
-    
+
     print_model_matches( $db, $cdts, $all_models_top_media );
-    
+
     update_model_correlation( $db, $cdts, $all_models_top_media );
+
     # my $confidence = get_model_confidence( $db, $cdts, $all_models_top_media );
     # print "confidence: $confidence\n";
-    
+
     write_gexf_dump( $db, $cdts );
 }
 
@@ -1395,7 +1388,7 @@ sub generate_all_period_dumps ($$$)
     my ( $db, $cd, $period ) = @_;
 
     my $start_date = $cd->{ start_date };
-    my $end_date = $cd->{ end_date };
+    my $end_date   = $cd->{ end_date };
 
     if ( $period eq 'overall' )
     {
@@ -1409,7 +1402,7 @@ sub generate_all_period_dumps ($$$)
             my $w_end_date = MediaWords::Util::SQL::increment_day( $w_start_date, 7 );
 
             generate_period_dump( $db, $cd, $w_start_date, $w_end_date, $period );
-            
+
             $w_start_date = $w_end_date;
         }
     }
@@ -1466,17 +1459,18 @@ sub write_cleanup_dumps
     write_dup_stories_dump( $db, $controversy );
 }
 
-# create temporary table copies of temporary tables so that we can copy 
+# create temporary table copies of temporary tables so that we can copy
 # the data back into the main temporary tables after tweaking the main temporary tables
 sub copy_temporary_tables
 {
     my ( $db ) = @_;
-    
-    for my $snapshot_table ( @{ $_snapshot_tables } )
+
+    my $snapshot_tables = MediaWords::CM::Dump::get_snapshot_tables();
+    for my $snapshot_table ( @{ $snapshot_tables } )
     {
         my $dump_table = "dump_${ snapshot_table }";
         my $copy_table = "_copy_${ dump_table }";
-        
+
         $db->query( "drop table if exists $copy_table" );
         $db->query( "create temporary table $copy_table as select * from $dump_table" );
     }
@@ -1487,15 +1481,16 @@ sub restore_temporary_tables
 {
     my ( $db ) = @_;
 
-    for my $snapshot_table ( @{ $_snapshot_tables } )
+    my $snapshot_tables = MediaWords::CM::Dump::get_snapshot_tables();
+    for my $snapshot_table ( @{ $snapshot_tables } )
     {
         my $dump_table = "dump_${ snapshot_table }";
         my $copy_table = "_copy_${ dump_table }";
-        
+
         $db->query( "drop table if exists $dump_table" );
         $db->query( "create temporary table $dump_table as select * from $copy_table" );
     }
-    
+
     # these make the data tweaking process much faster
     $db->query( "create index dump_stories_story on dump_stories ( stories_id )" );
     $db->query( "create index dump_tags_tag on dump_tags ( tags_id )" );
@@ -1509,10 +1504,10 @@ sub restore_temporary_tables
 # use the $key from $obj as an additional field in the snapshot table.
 sub create_snapshot
 {
-    my ( $db,  $obj, $key, $table ) = @_;
-    
+    my ( $db, $obj, $key, $table ) = @_;
+
     say STDERR "snapshot $table...";
-    
+
     my $column_names = [ $db->query( <<END, $table, $key )->flat ];
 select column_name from information_schema.columns 
     where table_name = ? and table_schema = 'cd' and
@@ -1523,7 +1518,7 @@ END
     die( "Field names can only have letters and underscores" ) if ( grep { /[^a-z_]/i } @{ $column_names } );
     die( "Table name can only have letters and underscores" ) if ( $table =~ /[^a-z_]/i );
 
-    my $column_list = join( ",", @{ $column_names } ); 
+    my $column_list = join( ",", @{ $column_names } );
 
     $db->query( <<END, $obj->{ $key } );
 insert into cd.${ table } ( $column_list, $key ) select $column_list, ? from dump_${ table }
@@ -1535,7 +1530,7 @@ END
 sub create_cdts_snapshot
 {
     my ( $db, $cdts, $table ) = @_;
-    
+
     create_snapshot( $db, $cdts, 'controversy_dump_time_slices_id', $table );
 }
 
@@ -1543,14 +1538,12 @@ sub create_cdts_snapshot
 sub create_cd_snapshot
 {
     my ( $db, $cd, $table ) = @_;
-    
+
     create_snapshot( $db, $cd, 'controversy_dumps_id', $table );
 }
 
-
-
 # make snapshots of all the data used by the dump in the cd.* tables and
-# make temporary versions of the tables 
+# make temporary versions of the tables
 sub generate_snapshots_and_temporary_tables
 {
     my ( $db, $cd, $start_date, $end_date ) = @_;
@@ -1621,9 +1614,7 @@ create temporary table dump_tag_sets as
     where ts.tag_sets_id in ( select tag_sets_id from dump_tags )
 END
 
-    $_snapshot_tables = 
-        [ qw/controversy_stories controversy_links_cross_media controversy_media_codes
-             stories media stories_tags_map media_tags_map tags tag_sets/ ]; 
+    my $snapshot_tables = MediaWords::CM::Dump::get_snapshot_tables();
 
     map { create_cd_snapshot( $db, $cd, $_ ) } @{ $_snapshot_tables };
 }
@@ -1632,7 +1623,7 @@ END
 sub create_controversy_dump ($$$$)
 {
     my ( $db, $controversy, $start_date, $end_date ) = @_;
-    
+
     my $cd = $db->query( <<END, $controversy->{ controversies_id }, $start_date, $end_date )->hash;
 insert into controversy_dumps 
     ( controversies_id, start_date, end_date, dump_date )
@@ -1653,7 +1644,7 @@ sub main
     binmode( STDERR, 'utf8' );
     $| = 1;
 
-    $period    = 'all';
+    $period = 'all';
 
     Getopt::Long::GetOptions(
         "start_date=s"  => \$start_date,
@@ -1667,7 +1658,7 @@ sub main
 "Usage: $0 --controversy < id > [ --start_date < start date > --end_date < end date > --period < overall|weekly|monthly|all|custom > --cleanup_data ]"
     ) unless ( $controversies_id );
 
-    my $all_periods    = [ qw(custom overall weekly monthly) ];
+    my $all_periods = [ qw(custom overall weekly monthly) ];
 
     die( "period must be all, custom, overall, weekly, or monthly" )
       if ( $period && !grep { $_ eq $period } ( 'all', @{ $all_periods } ) );
@@ -1684,18 +1675,18 @@ sub main
         $start_date ||= $default_start_date;
         $end_date   ||= $default_end_date;
     }
-    
+
     my $cd = create_controversy_dump( $db, $controversy, $start_date, $end_date );
-    
+
     generate_snapshots_and_temporary_tables( $db, $cd, $start_date, $end_date );
-        
+
     my $periods = ( $period eq 'all' ) ? $all_periods : [ $period ];
 
     for my $p ( @{ $periods } )
     {
         generate_all_period_dumps( $db, $cd, $p );
     }
-    
+
     write_date_counts_dump( $db, $cd, 'daily' );
     write_date_counts_dump( $db, $cd, 'weekly' );
 

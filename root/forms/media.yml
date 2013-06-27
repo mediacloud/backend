@@ -1,3 +1,4 @@
+---
 auto_fieldset:
 
 elements:
@@ -8,7 +9,9 @@ elements:
     comment: name of media source (New York Times)
     constraints:
         - Required
-
+    validators:
+        - MediumNameIsUnique
+ 
   - type: Text
     name: url
     label: URL
@@ -18,6 +21,8 @@ elements:
         - Required
         - type: URL
           message: This is not a url
+    validators:
+        - MediumUrlIsUnique
 
   - type: Checkbox
     name: full_text_rss
@@ -42,4 +47,5 @@ elements:
         - Required
 
   - type: Submit
+    name: submit
     value: Save

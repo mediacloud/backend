@@ -10,7 +10,6 @@ use Date::Parse;
 use HTML::TreeBuilder::LibXML;
 
 use MediaWords::CommonLibs;
-use MediaWords::CM::GuessDate;
 use MediaWords::DB;
 
 # each of the test dates in the $_date_guess_functions should resolve to this date

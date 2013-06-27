@@ -4,10 +4,11 @@ package MediaWords::CM::Dump;
 
 use strict;
 
-my $_snapshot_tables =
-    [ qw/controversy_stories controversy_links_cross_media controversy_media_codes
-         stories media stories_tags_map media_tags_map tags tag_sets/ ]; 
-         
+my $_snapshot_tables = [
+    qw/controversy_stories controversy_links_cross_media controversy_media_codes
+      stories media stories_tags_map media_tags_map tags tag_sets/
+];
+
 sub get_snapshot_tables
 {
     return [ @{ $_snapshot_tables } ];
