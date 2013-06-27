@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4409;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4410;
     
 BEGIN
 
@@ -1327,9 +1327,6 @@ create table controversy_dump_time_slices (
     model_r2_stddev                 float,
     model_num_media                 int
 );
-
-alter table controversy_dump_time_slices add constraint cdts_confidence 
-    check ( confidence is null or ( confidence >= 0 and confidence <= 100 ) );
 
 create index controversy_dump_time_slices_dump on controversy_dump_time_slices ( controversy_dumps_id );
 
