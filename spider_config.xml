@@ -1,6 +1,6 @@
 <spidered_sites>
   <site base_domain="24open.ru">
-      <url_to_blog_home_conversion>
+       <url_to_blog_home_conversion>
       <regular_expression_replace_url_path>
         <find_expression>^(\/[^\/]*\/blog)\/.*</find_expression>
         <replace_expression>$1</replace_expression>
