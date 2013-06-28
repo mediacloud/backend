@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 65 + 1;
+use Test::More tests => 67 + 1;
 use Test::Deep;
 
 use utf8;
@@ -317,6 +317,12 @@ sub test_live_urls
         _ts( 'Thu, 8 Nov 2012 04:10:04 GMT' ),
         'live_url: blogs.sfweekly.com'
     );
+
+    is(
+        _gt_url( 'https://twitter.com/ladygaga/status/318537311698694144' ),
+        _ts( 'Mon, 01 Apr 2013 01:36:28 GMT' ),
+        'live_url: twitter.com single tweet'
+    );
 }
 
 sub test_date_matching
@@ -430,9 +436,9 @@ sub test_inapplicable
         'inapplicable: phpBB forum'
     );
     is(
-        _gr_url( 'https://twitter.com/ladygaga/status/318537311698694144' )->{ result },
+        _gr_url( 'https://twitter.com/ladygaga' )->{ result },
         MediaWords::CM::GuessDate::Result::INAPPLICABLE,
-        'inapplicable: Twitter URL'
+        'inapplicable: Twitter user URL'
     );
     is(
         _gr_url(

@@ -82,6 +82,10 @@ my $_date_guess_functions = [
         function => \&_guess_by_datatime
     },
     {
+        name     => 'guess_by_twitter_datatime',
+        function => \&_guess_by_twitter_datatime
+    },
+    {
         name     => 'guess_by_datetime_pubdate',
         function => \&_guess_by_datetime_pubdate
     },
@@ -297,6 +301,25 @@ sub _guess_by_datatime
     my ( $story, $html, $html_tree ) = @_;
 
     if ( my $node = _find_first_node( $html_tree, '//span[@class="date" and @data-time]' ) )
+    {
+        return $node->attr( 'data-time' );
+    }
+}
+
+# <small class="time">
+#     <a href="/ladygaga/status/318537311698694144" class="tweet-timestamp js-permalink js-nav" title="6:36 PM - 31 Mar 13" >
+#         <span class="_timestamp js-short-timestamp " data-time="1364780188" data-long-form="true">31 Mar</span>
+#     </a>
+# </small>
+sub _guess_by_twitter_datatime
+{
+    my ( $story, $html, $html_tree ) = @_;
+
+    if (
+        my $node = _find_first_node(
+            $html_tree, '//a[contains(@class, "tweet-timestamp")]/span[contains(@class, "_timestamp") and @data-time]'
+        )
+      )
     {
         return $node->attr( 'data-time' );
     }
@@ -800,11 +823,11 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    if ( $uri->host =~ /twitter\.com$/gi and $uri->host ne 'blog.twitter.com' )
-    {
-        # Ignore Twitter pages
-        return 1;
-    }
+    # if ( $uri->host =~ /twitter\.com$/gi and $uri->path !~ /\/?.+?\/status\//gi and $uri->host ne 'blog.twitter.com' )
+    # {
+    #     # Ignore Twitter user pages (e.g. "twitter.com/ladygaga", not "twitter.com/ladygaga/status/\d*")
+    #     return 1;
+    # }
 
     if ( $uri->host =~ /facebook\.com$/gi and $uri->host ne 'blog.facebook.com' )
     {
