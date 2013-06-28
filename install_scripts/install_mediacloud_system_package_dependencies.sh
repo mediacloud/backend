@@ -69,7 +69,7 @@ else
         postgresql-server-dev-all postgresql-client libdb-dev libtest-www-mechanize-perl libtidy-dev \
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev \
         libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
-        build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl
+        build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk
 
     # Install CLD separately
     if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then     # Not installed manually?

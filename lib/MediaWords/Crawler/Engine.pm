@@ -53,15 +53,15 @@ sub _fetch_and_handle_download
         die( "fetcher " . $self->fetcher_number . ": Unable to find download_id: $download->{downloads_id}" );
     }
 
-    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } .
-      " starting";
+    say STDERR "fetcher " .
+      $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " starting";
 
     my $start_fetch_time = [ Time::HiRes::gettimeofday ];
     my $response         = $fetcher->fetch_download( $download );
     my $end_fetch_time   = [ Time::HiRes::gettimeofday ];
 
-    say STDERR "fetcher " . $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } .
-      " fetched";
+    say STDERR "fetcher " .
+      $self->fetcher_number . " get downloads_id: '$download->{downloads_id}' " . $download->{ url } . " fetched";
 
     $DB::single = 1;
     eval { $handler->handle_response( $download, $response ); };

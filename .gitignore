@@ -1,0 +1,20 @@
+data.old
+matrix
+mediawords.yml
+mediacloud.tmproj
+cache
+data
+jons_stuff
+.carton
+local
+cache/translate
+data/content
+
+# Perl::Tidy backup files
+*.pm.bak
+*.t.bak
+
+# OS X
+.DS_Store
+*.pl.bak
+

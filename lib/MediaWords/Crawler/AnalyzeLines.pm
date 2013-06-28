@@ -10,6 +10,7 @@ use MediaWords::Util::HTML;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
+use Carp;
 
 # extract substantive new story text from html pages
 
@@ -101,7 +102,7 @@ sub lineStartsWithTitleText($$)
 {
     my ( $line_text, $title_text ) = @_;
 
-    $line_text  =~ s/[^\w .]//g;
+    $line_text =~ s/[^\w .]//g;
     $title_text =~ s/[^\w .]//g;
 
     if ( $line_text eq $title_text )
@@ -488,6 +489,72 @@ sub get_feature_string_from_line_info($$;$)
     if ( defined( $line_info->{ class } ) )
     {
         $ret .= $line_info->{ class };
+    }
+
+    return $ret;
+}
+
+sub _mark_auto_excluded_previous_lines
+{
+    my ( $line_infos ) = ( @_ );
+
+    my $previous_line_auto_excluded = 0;
+    foreach my $line_info ( @{ $line_infos } )
+    {
+        if ( $previous_line_auto_excluded )
+        {
+            $line_info->{ previous_line_auto_excluded } = 1;
+        }
+
+        $previous_line_auto_excluded = $line_info->{ auto_excluded };
+    }
+
+    return;
+}
+
+sub get_feature_strings_for_download
+{
+    my ( $line_infos, $preprocessed_lines, $top_words ) = @_;
+
+    confess unless defined( $line_infos ) and defined( $preprocessed_lines );
+
+    my $ret = [];
+
+    _mark_auto_excluded_previous_lines( $line_infos );
+
+    my $ea = each_arrayref( $line_infos, $preprocessed_lines );
+
+    #TODO DRY out this code
+    #my $previous_states = [ qw ( prestart start ) ];
+    while ( my ( $line_info, $line_text ) = $ea->() )
+    {
+        my $current_state = $line_info->{ class };
+
+        if ( $line_info->{ auto_excluded } == 1 )
+        {
+            $current_state = 'auto_excluded';
+        }
+
+        # my $prior_state_string = join '_', @$previous_states;
+
+        # #$line_info->{ "priors_$prior_state_string" } = 1;
+
+        # if ( $previous_states->[ 1 ] eq 'auto_excluded' )
+        # {
+        #     $line_info->{ previous_line_auto_excluded } = 1;
+        # }
+
+        # shift $previous_states;
+
+        # push $previous_states, $current_state;
+
+        next if $line_info->{ auto_excluded } == 1;
+
+        MediaWords::Crawler::AnalyzeLines::add_additional_features( $line_info, $line_text );
+
+        my $feature_string =
+          MediaWords::Crawler::AnalyzeLines::get_feature_string_from_line_info( $line_info, $line_text, $top_words );
+        push $ret, $feature_string;
     }
 
     return $ret;

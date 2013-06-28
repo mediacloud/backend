@@ -76,8 +76,8 @@ sub index : Path : Args(0)
     else
     {
         $c->stash->{ form } = $form;
-        $c->stash( status_msg => "Your password has been changed. An email was sent to " . "'" . $c->user->username .
-              "' to inform you about this change." );
+        $c->stash( status_msg => "Your password has been changed. An email was sent to " .
+              "'" . $c->user->username . "' to inform you about this change." );
     }
 }
 

@@ -267,8 +267,8 @@ sub _queue_author_extraction
 {
     my ( $self, $download, $response ) = @_;
 
-    say STDERR "fetcher " . $self->engine->fetcher_number . " starting _queue_author_extraction for download " .
-      $download->{ downloads_id };
+    say STDERR "fetcher " .
+      $self->engine->fetcher_number . " starting _queue_author_extraction for download " . $download->{ downloads_id };
 
     if ( $download->{ sequence } > 1 )
     {
@@ -319,8 +319,8 @@ sub _set_spider_download_state_as_success
 {
     my ( $self, $download ) = @_;
 
-    print STDERR "setting state to success for download: " . $download->{ downloads_id } . " fetcher: " .
-      $self->engine->fetcher_number . "\n";
+    print STDERR "setting state to success for download: " .
+      $download->{ downloads_id } . " fetcher: " . $self->engine->fetcher_number . "\n";
     $self->engine->dbs->query( "update downloads set state = 'success', path = 'foo' where downloads_id = ?",
         $download->{ downloads_id } );
 

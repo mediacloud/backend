@@ -1,12 +1,8 @@
 #
-# This file lists *direct* Perl module dependencies of Media Cloud.
-#
-# See:
-#
 #     doc/carton.txt
-#
 # for instructions on how to add a new Perl module dependency.
-#
+# See:
+# This file lists *direct* Perl module dependencies of Media Cloud.
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
@@ -33,6 +29,7 @@ requires 'Crypt::SaltedHash';
 requires 'Data::Dumper';
 requires 'Data::Page';
 requires 'Data::Serializer';
+requires 'Data::Sorting';
 requires 'Data::Validate::URI';
 requires 'DateTime::Format::Pg';
 requires 'DBD::Pg', '2.19.3';
@@ -59,6 +56,8 @@ requires 'HTML::LinkExtractor';
 requires 'HTML::Strip';
 requires 'HTML::TagCloud';
 requires 'HTML::TreeBuilder::LibXML';
+requires 'Inline';
+requires 'Inline::Java';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
 requires 'Lingua::Identify::CLD';
@@ -87,6 +86,7 @@ requires 'Readonly';
 requires 'Regexp::Common';
 requires 'Regexp::Common::time';
 requires 'Smart::Comments';
+requires 'Statistics::Basic';
 requires 'Term::Prompt';
 requires 'Test::Differences';
 requires 'Test::NoWarnings';

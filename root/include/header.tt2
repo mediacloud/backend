@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -51,72 +52,52 @@
 [% INCLUDE 'include/google_analytics.tt2' %]
   </head>
   <body>
-    <h1>
-      [% title | html %]
-    </h1>
-
     [% IF c.user %]
 
       <div id="user">
         Logged in as <code>[% c.user.username | html %]</code>.<br />
         <a href="[% c.uri_for('/logout') %]">Logout</a> | <a href="[% c.uri_for('/admin/profile') %]">Profile</a>
       </div>
-      <div id="menu">
-        <ul>
+      <div id="menu">          
+          [% IF c.acl_user_can_visit('/admin/cm/list') %]
+              <a href="[% c.uri_for('/admin/cm/list') %]">CM</a>
+          [% END -%]
           [% IF c.acl_user_can_visit('/admin/media/list') %]
-            <li>
-              <a href="[% c.uri_for('/admin/media/list') %]">Home</a>
-            </li>
+              <a href="[% c.uri_for('/admin/media/list') %]">Search Media</a>
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/media/create_batch') %]
-            <li>
               <a href="[% c.uri_for('/admin/media/create_batch') %]">Add Media</a>
-            </li>
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/media/moderate') %]
-            <li>
               <a href="[% c.uri_for('/media/moderate_tags') %]">Moderate Media</a>
-            </li>
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/downloads/list') %]
-            <li>
               <a href="[% c.uri_for('/admin/downloads/list') %]">All Downloads</a>
-            </li>
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/queries/list') %]
-            <li>
               <a href="[% c.uri_for('/admin/queries/list') %]">Queries</a>
-            </li>
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/dashboards/list') %]
-            <li>
               <a href="[% c.uri_for('/admin/dashboards/list') %]">Dashboards</a>
-            </li>
           [% END -%]
           [% IF c.acl_user_can_visit('/admin/users/list') %]
-            <li>
               <a href="[% c.uri_for('/admin/users/list') %]">Users</a>
-            </li>
           [% END -%]
           [% IF submenu_items -%]
-          <li style="list-style: none">
-          </li>
-          <li>|
-          </li>
-          <li style="list-style: none">[% FOREACH item IN submenu_items -%]
-          </li>
+          |
+          [% FOREACH item IN submenu_items -%]
           [% IF c.acl_user_can_visit(item.0) %]
-          <li>
             <a href="[% c.uri_for(item.0) _ '/' _ item.1 _ '?' _ item.2 %]">[% item.3 %]</a>
-          </li>
           [% END -%]
-          <li style="list-style: none">[% END #[% FOREACH i IN submenu_items -%]
-          </li>
+          [% END #[% FOREACH i IN submenu_items -%]
           [% END #[% IF menu_items -%]
-         </ul>
       </div>
 
     [% END #[% IF c.user -%]
+    <h1>
+      [% title | html %]
+    </h1>
+
     
     <p>
       [% IF status_msg || c.request.params.status_msg -%] [% SET msgs = status_msg || c.request.params.status_msg -%] [% SET msg_list = msgs.split("\n") -%]
@@ -133,4 +114,6 @@
       [% END #[% FOREACH msg IN msg_list -%]
     </div>
     <p>[% END #[% IF error_msg || c.request.params.error_msg -%]</p>
+    
+
 

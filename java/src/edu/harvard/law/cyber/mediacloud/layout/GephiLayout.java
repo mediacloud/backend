@@ -28,6 +28,7 @@ import org.gephi.graph.api.GraphController;
 import org.gephi.graph.api.GraphModel;
 import org.gephi.graph.api.Node;
 import org.gephi.io.exporter.api.ExportController;
+import org.gephi.io.exporter.plugin.ExporterGEXF;
 import org.gephi.io.importer.api.Container;
 import org.gephi.io.importer.api.EdgeDefault;
 import org.gephi.io.importer.api.ImportController;
@@ -123,11 +124,13 @@ public class GephiLayout
         }
 
         ExportController ec = Lookup.getDefault().lookup( ExportController.class );
-        
+        ExporterGEXF exporter = (ExporterGEXF) ec.getExporter("gexf");
+        exporter.setExportDynamic( false );
+        exporter.setWorkspace( workspace );
         try 
         {
             System.out.println( "export ..." );
-            ec.exportFile( exportFile );
+            ec.exportFile( exportFile, exporter );
         } 
         catch (IOException ex) 
         {

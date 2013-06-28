@@ -135,32 +135,74 @@ sub edit : Local
 {
     my ( $self, $c, $id ) = @_;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+    $self->edit_do( $c, $id );
+}
 
-    $id += 0;
+# if the name or url already exists for another media source, set an error message and invalidate the form
+sub _require_unique_name_and_url
+{
+    my ( $c, $form, $medium ) = @_;
 
-    my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) . "?media_tags_id=$media_tags_id",
-        $media_tags_id );
+    my $db = $c->dbis;
+    my $p  = $form->params;
 
-    my $medium = $c->dbis->find_by_id( 'media', $id );
+    my $dup_fields = [];
+    for my $field ( qw(name url) )
+    {
+        my $dup = $db->query( <<END, $medium->{ media_id }, $p->{ $field } )->hash;
+select * from media where media_id <> ? and $field = ?
+END
+        push( @{ $dup_fields }, $field ) if ( $dup );
+    }
 
-    $form->default_values( $medium );
+    if ( @{ $dup_fields } )
+    {
+        $c->stash->{ error_msg } = join( '.', map { "Another medium with the $_ '$p->{ $_ }'" } @{ $dup_fields } );
+        $form->invalidate();
+    }
+}
 
-    $form->process;
+# story a session variable if the cdts_id param is set so that we can know to go back
+# to the cdts after the edit once the form is submitted
+sub _remember_cdts_edit
+{
+    my ( $c, $media_id ) = @_;
 
-    $c->stash->{ form }     = $form;
-    $c->stash->{ template } = 'media/edit.tt2';
-    $c->stash->{ title }    = 'Edit Media Source';
+    my $cdts_id = $c->req->param( 'cdts_id' );
+
+    return unless ( $cdts_id );
+
+    $c->session->{ media_edit_cdts_ids }->{ $media_id } = { cdts_id => $cdts_id, time => time() };
+}
+
+# if the session data says this is a cdts edit that has not timed out, return the cdts_id
+# and forget the cdts edit for this media_id.  otherwise return false.
+sub _is_cdts_edit
+{
+    my ( $c, $media_id ) = @_;
+
+    my $cdts_edit = $c->session->{ media_edit_cdts_ids }->{ $media_id };
+
+    return unless ( $cdts_edit );
+
+    $c->session->{ media_edit_cdts_ids }->{ $media_id } = undef;
+
+    return ( $cdts_edit->{ time } > ( time() + 3600 ) ) ? undef : $cdts_edit->{ cdts_id };
 }
 
 sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
 
+    $id += 0;
+
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
 
+    _remember_cdts_edit( $c, $id );
+
     my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
-    my $medium = $c->dbis->find_by_id( 'media', $id );
+    my $medium = $c->dbis->find_by_id( 'media', $id ) || die( "unknown medium: $id" );
+    $form->default_values( $medium );
 
     if ( !$form->submitted_and_valid )
     {
@@ -185,10 +227,17 @@ sub edit_do : Local
         $c->dbis->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edits', $form->params->{ reason },
             $c->user->username );
 
-        if ( $medium->{ moderated } )
+        if ( my $cdts_id = _is_cdts_edit( $c, $id ) )
+        {
+            $c->response->redirect(
+                $c->uri_for( "/admin/cm/medium/$cdts_id/$id", { status_msg => 'Media source updated' } ) );
+            return;
+        }
+        elsif ( $medium->{ moderated } )
         {
             $c->response->redirect(
                 $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => 'Media source updated.' } ) );
+            return;
         }
         else
         {
@@ -198,6 +247,7 @@ sub edit_do : Local
                     { status_msg => 'Media source updated.', media_tags_id => $media_tags_id }
                 )
             );
+            return;
         }
     }
 }
@@ -796,8 +846,8 @@ sub _rate_full_text_rss_likely_hood
     ( my $medium ) = @_;
 
     my $ret =
-      ( $medium->{ avg_similarity } || 0 ) * 10 - 5 *
-      (
+      ( $medium->{ avg_similarity } || 0 ) * 10 -
+      5 * (
         abs( $medium->{ avg_extracted_length } - $medium->{ avg_rss_length } ) /
           ( $medium->{ avg_extracted_length } != 0.0 ? $medium->{ avg_extracted_length } : 0.01 ) );
 

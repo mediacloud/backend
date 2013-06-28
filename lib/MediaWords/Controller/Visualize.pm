@@ -102,7 +102,7 @@ sub generate_line_chart_url
             ',',
             map {
                 join( '', map { $enc->{ int( $_ * ( 60 / $max ) ) } } @{ $_ } )
-              } @{ $time_slicely_data }
+            } @{ $time_slicely_data }
         )
     );
 

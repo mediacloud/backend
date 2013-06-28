@@ -548,7 +548,7 @@ sub batch_create_do : Local
             grep {
                 my $a = $_;
                 !( grep { $a eq lc( $_->{ url } ) } @{ $links } )
-              } @{ $urls }
+            } @{ $urls }
         ];
         $status_msg = "The following urls were skipped: " . join( ', ', @{ $skipped_urls } );
     }

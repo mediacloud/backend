@@ -12,6 +12,9 @@ if pwd | grep ' ' ; then
     exit 1
 fi
 
+## Assumes Ubuntu
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+
 # Install the rest of the modules
 ./script/run_carton.sh install --deployment
 

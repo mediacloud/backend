@@ -140,8 +140,8 @@ sub dump_story_words
 
         ( $_stories_id_start, $_stories_id_stop ) =
           scroll_stories_id_window( $_stories_id_start, $_stories_id_stop, $last_dumped_id );
-        print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_dumped_id: " . $last_dumped_id .
-          ")  -- " .
+        print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_dumped_id: " .
+          $last_dumped_id . ")  -- " .
           localtime() . "\n";
 
     }

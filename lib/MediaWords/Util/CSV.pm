@@ -76,4 +76,21 @@ sub get_csv_as_hashes
     return $hashes;
 }
 
+# Given a database handle and a query string and some parameters, execute the query with the parameters
+# and return the results as a csv with the fields in the query order
+sub get_query_as_csv
+{
+    my ( $db, $query, @params ) = @_;
+
+    my $res = $db->query( $query, @params );
+
+    my $fields = $res->columns;
+
+    my $data = $res->hashes;
+
+    my $csv_string = get_hashes_as_encoded_csv( $data, $fields );
+
+    return $csv_string;
+}
+
 1;

@@ -151,8 +151,8 @@ EOF
             )->hash
           )
         {
-            print STDERR "Using existing medium with duplicate title '" . $media_to_add->{ name } . "' or URL '" .
-              $media_to_add->{ url } . "'.\n";
+            print STDERR "Using existing medium with duplicate title '" .
+              $media_to_add->{ name } . "' or URL '" . $media_to_add->{ url } . "'.\n";
         }
         else
         {
@@ -178,8 +178,8 @@ EOF
               )
             {
                 $dbis->rollback;
-                die "Unable to assign '$tag_set_and_tag' to media '" . $medium->{ name } . "' (" . $medium->{ media_id } .
-                  ").\n";
+                die "Unable to assign '$tag_set_and_tag' to media '" .
+                  $medium->{ name } . "' (" . $medium->{ media_id } . ").\n";
             }
 
         }

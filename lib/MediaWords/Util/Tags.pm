@@ -41,8 +41,8 @@ sub make_edit_tags_form
 
     my @tag_sets =
       $c->dbis->query( "select distinct ts.* from tag_sets ts, tags t, $map_table m " .
-          "where ts.tag_sets_id = t.tag_sets_id and t.tags_id = m.tags_id and " . "m.tags_id is not null " .
-          "order by ts.name" )->hashes;
+          "where ts.tag_sets_id = t.tag_sets_id and t.tags_id = m.tags_id and " .
+          "m.tags_id is not null " . "order by ts.name" )->hashes;
 
     for my $tag_set ( @tag_sets )
     {

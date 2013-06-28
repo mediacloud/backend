@@ -6,13 +6,26 @@ use strict;
 
 use Data::Dumper;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
-use List::MoreUtils qw( :all);
+
+#use List::MoreUtils qw( :all);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use IPC::Open2;
 
 use Moose;
 
 with 'MediaWords::Util::Extractor';
+
+sub getScoresAndLines
+{
+    my ( $self, $line_infos, $preprocessed_lines ) = @_;
+
+    my $extracted_lines = get_extracted_line_with_maxent( $line_infos, $preprocessed_lines );
+
+    return {
+        included_line_numbers => $extracted_lines,
+        scores                => [],
+    };
+}
 
 sub getExtractedLines
 {

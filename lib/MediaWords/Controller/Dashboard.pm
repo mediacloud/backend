@@ -158,8 +158,8 @@ sub _redirect_to_default_page
                       AND dashboards_id = ?
 EOF
                 $media_sets_id, $dashboard->{ dashboards_id }
-              )->hashes
-          }
+            )->hashes
+        }
     );
 
     if ( !$media_sets_id_in_dashboard )
@@ -801,7 +801,7 @@ sub _country_counts_to_csv_array
         map {
             uc( $lcm->country2code( $lcm->code2country( $_, 'en' ), 'LOCALE_CODE_ALPHA_3', 'en' ) ) =>
               $country_counts->{ $_ }
-          } ( sort keys %{ $country_counts } )
+        } ( sort keys %{ $country_counts } )
     };
 
     my $country_count_csv_array = [
@@ -1393,7 +1393,7 @@ sub data_dumps : Local
             my $file_date = $_;
             $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/;
             [ $_, $file_date, _get_dump_file_info( $_ ) ]
-          } @$data_dump_files
+        } @$data_dump_files
     ];
 
     $data_dumps = [ sort { _unix_time_for_file( $a ) <=> _unix_time_for_file( $b ) } @{ $data_dumps } ];
@@ -1563,7 +1563,7 @@ sub author_publish_weeks_json : Local
             ORDER BY publish_week
 EOF
             $authors_id
-          )->flat
+        )->flat
     ];
 
     #say STDERR Dumper( $publish_weeks );
@@ -2171,8 +2171,8 @@ sub compare_media_set_terms : Local
         $stem = @{ $stem }[ 0 ];
 
         push( @stems_clauses,
-            '(dw.stem = ' . $c->dbis->dbh->quote( $stem ) . ' AND dw.language = ' . $c->dbis->dbh->quote( $lang_code ) .
-              ')' );
+            '(dw.stem = ' .
+              $c->dbis->dbh->quote( $stem ) . ' AND dw.language = ' . $c->dbis->dbh->quote( $lang_code ) . ')' );
     }
     my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
 

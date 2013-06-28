@@ -70,6 +70,7 @@ __PACKAGE__->config(
         }
     }
 );
+__PACKAGE__->config( static => { dirs => [ 'gexf' ] } );
 
 # Start the application
 __PACKAGE__->setup;

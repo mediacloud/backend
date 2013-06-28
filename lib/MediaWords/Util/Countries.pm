@@ -114,7 +114,7 @@ sub get_country_code_for_stemmed_country_name($$)
             map {
                 _get_country_data_base_value( _get_updated_country_name( $_, $language_code ), $language_code ) =>
                   $lcm->country2code( $_ )
-              } @$non_remapped_names
+            } @$non_remapped_names
         };
 
         #say STDERR Dumper($_country_code_for_stemmed_country_name);
