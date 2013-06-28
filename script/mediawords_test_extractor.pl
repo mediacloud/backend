@@ -135,7 +135,7 @@ sub processDownload
 
     my $extraction_method = 'CRF';
 
-    #$extraction_method = 'old';
+    # $extraction_method = 'old';
 
     if ( $extraction_method eq 'CRF' )
     {
@@ -338,10 +338,18 @@ sub process_download_results
     print "story lines: $all_story_lines story / $all_extra_lines (" . $all_extra_lines / $all_story_lines .
       ") extra / $all_missing_lines (" . $all_missing_lines / $all_story_lines . ") missing\n";
 
+    my $precision = ( $all_story_lines - $all_missing_lines ) / ( $all_story_lines - $all_missing_lines + $all_extra_lines );
+    say "Precision: $precision = ( $all_story_lines - $all_missing_lines ) / ( $all_story_lines - $all_missing_lines + $all_extra_lines );";
+
+    my $recall = ( $all_story_lines - $all_missing_lines ) / $all_story_lines;
+    say "Recall: $recall -- ( $all_story_lines - $all_missing_lines ) / $all_story_lines ";
+
     print "non_ignoreable lines: $non_optional_non_autoexclude_line_count / $all_extra_lines (" .
       $all_extra_lines / $non_optional_non_autoexclude_line_count .
-      ") extra / $all_missing_lines (" . $all_missing_lines / $non_optional_non_autoexclude_line_count . ") missing\n";
+      ") extra / $all_missing_lines (" . $all_missing_lines / $non_optional_non_autoexclude_line_count . ") missing\t";
 
+    say "correct: " . ( 1.0 - ( ( $all_extra_lines + $all_missing_lines ) /   $non_optional_non_autoexclude_line_count ) );
+    
     if ( $all_story_characters == 0 )
     {
         print "Error no story charcters\n";
