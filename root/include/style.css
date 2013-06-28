@@ -21,16 +21,19 @@ table th {
 h1 {
     font-size: 120%;
     font-style: bold;
+    color: #444444;
 }
 
 h2 {
     font-size: 110%;
     font-style: bold;
+    color: #444444;
 }
 
 h3 {
     font-size: 100%;
     font-style: bold;
+    color: #444444;
 }
 
 body td th{
@@ -50,20 +53,16 @@ abbr {
     border-bottom: 1px dotted;
 }
 
-div#menu ul {
-    margin: 0em;
-    margin-bottom: 1em;
-    padding: 1em;
-    border: 1px solid silver;
-}
 
-div#menu li {
+div#menu a {
     font-weight: bold;
     list-style-type: none;
     display: inline;
     padding-right: 1em;
     margin-left: 0em;
+    font-size: smaller;    
     white-space: nowrap;
+    text-decoration: none;
 }
 
 div#story_parse_test {
@@ -84,6 +83,13 @@ div#story_parse_test_broken {
 blockquote {
     padding: 1em;
     background-color: #f5f5f5;
+}
+
+div#warning_box {
+    margin-bottom: 1em;
+    border: 1px solid silver;
+    padding: 1em;    
+    background-color: #dddddd;
 }
 
 fieldset#tag_set .checkbox {
@@ -169,6 +175,12 @@ div#user {
     font-size: smaller;
 }
 
+div#user a {
+    font-size: smaller;
+    font-weight: bold;
+    text-decoration: none;
+}
+
 /* Checkboxgroup options */
 fieldset.checkboxgroup span {
     display: block;
@@ -183,4 +195,19 @@ table#users ul.user_actions li {
 /* Delete action */
 table#users ul.user_actions li.user_action_delete a {
     color: #a00;
+}
+
+/* sortable tables */
+table.tablesorter thead tr .header {
+    background-image: url(/script/jquery.tablesorter-themes/blue/bg.gif);
+    background-repeat: no-repeat;
+    background-position: center right;
+    cursor: pointer;
+    padding-right: 25px;
+}
+table.tablesorter thead tr .headerSortUp {
+    background-image: url(/script/jquery.tablesorter-themes/blue/asc.gif);
+}
+table.tablesorter thead tr .headerSortDown {
+    background-image: url(/script/jquery.tablesorter-themes/blue/desc.gif);
 }

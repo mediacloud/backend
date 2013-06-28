@@ -17,8 +17,7 @@ use Test::More tests => 7 + 1;
 use utf8;
 
 use Data::Dumper;
-use MediaWords::Languages::en_US;
-use MediaWords::Languages::ru_RU;
+use MediaWords::Languages::Language;
 
 #From http://en.wikipedia.org/wiki/Stemming
 my $stemmer_test_en_text = <<'__END_TEST_CASE__';
@@ -31,7 +30,7 @@ my $stemmer_test_ru_text = <<'__END_TEST_CASE__';
 __END_TEST_CASE__
 
 {
-    my $lang_en     = MediaWords::Languages::en_US->new();
+    my $lang_en     = MediaWords::Languages::Language::language_for_code( 'en' );
     my @split_words = @{ $lang_en->tokenize( $stemmer_test_en_text ) };
 
     #print @split_words;
@@ -53,7 +52,7 @@ __END_TEST_CASE__
 {
     ok( utf8::is_utf8( $stemmer_test_ru_text ), "is_utf8" );
 
-    my $lang_ru     = MediaWords::Languages::ru_RU->new();
+    my $lang_ru     = MediaWords::Languages::Language::language_for_code( 'ru' );
     my @split_words = @{ $lang_ru->tokenize( $stemmer_test_ru_text ) };
 
     utf8::upgrade( $stemmer_test_ru_text );

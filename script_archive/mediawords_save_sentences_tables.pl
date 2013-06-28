@@ -28,7 +28,6 @@ use Digest::SHA qw(sha1 sha1_hex sha1_base64);
 #use XML::LibXML::CDATASection;
 use Encode;
 use MIME::Base64;
-use Lingua::EN::Sentence::MediaWords;
 
 #use XML::LibXML::Enhanced;
 

@@ -40,7 +40,8 @@ sub create_query_parts
                     query         => "foo",
                     dashboards_id => $dashboard->{ dashboards_id },
                     start_date    => '2010-01-01',
-                    end_date      => '2020-01-01'
+                    end_date      => '2020-01-01',
+                    language      => 'en'
                 }
             );
             push( @{ $dashboard->{ dashboard_topics } }, $dashboard_topic );
@@ -72,7 +73,7 @@ sub add_test
 
     # print STDERR "add test: $test_name\n";
 
-    $media_sets       = [ $media_sets ]       if ( $media_sets       && ( ref( $media_sets )       ne 'ARRAY' ) );
+    $media_sets       = [ $media_sets ]       if ( $media_sets       && ( ref( $media_sets ) ne 'ARRAY' ) );
     $dashboard_topics = [ $dashboard_topics ] if ( $dashboard_topics && ( ref( $dashboard_topics ) ne 'ARRAY' ) );
 
     my $params = {

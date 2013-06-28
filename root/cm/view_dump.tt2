@@ -1,0 +1,54 @@
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+
+[% title = 'CM: Dump ' _ datetime.format( controversy_dump.dump_date ) %]
+[% INCLUDE include/header.tt2 %]
+
+    
+<p>Time Slices</p>
+<table>
+
+<tr>
+<th>Period</th>
+<th>Dates</th>
+<th>Model Correlation</th>
+<th># Influential Media</th>
+<th># Stories</th>
+<th># Story Links</th>
+<th># Media</th>
+<th># Media Links</th>
+
+</tr>
+
+    [% FOREACH cdts IN controversy_dump_time_slices -%]
+
+        <tr [% IF even %]id="even"[% END %]>
+
+            <td><a href="[% c.uri_for( '/admin/cm/view_time_slice/' _ cdts.controversy_dump_time_slices_id )%]">[% cdts.period | html %]</a></td>
+
+            <td>[% date.format( cdts.start_date ) %] - [% date.format( cdts.end_date ) %]</td>
+            <td>
+                [% IF cdts.model_r2_mean %]r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %]
+                [% ELSE %](not enough data)[% END %]
+            </td>
+            <td>[% cdts.model_num_media %]</td>
+            <td>[% cdts.num_stories | html %]</td>
+            <td>[% cdts.num_story_links | html %]</td>
+            <td>[% cdts.num_media | html %]</td>
+            <td>[% cdts.num_medium_links | html %]</td>
+        </tr>
+
+    [% SET even = !even %]
+    [% END # FOREACH stories -%]
+
+</table>
+
+<p>Stats</p>
+<fieldset>
+    <p><a href="[% c.uri_for( '/admin/cm/dump_daily_counts/' _ controversy_dump.controversy_dumps_id ) %]">Daily Counts CSV</a></p>
+    <p><a href="[% c.uri_for( '/admin/cm/dump_weekly_counts/' _ controversy_dump.controversy_dumps_id ) %]">Weekly Counts CSV</a></p>
+</fieldset>
+
+
+[% INCLUDE include/footer.tt2 %]
+

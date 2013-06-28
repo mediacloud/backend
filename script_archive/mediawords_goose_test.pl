@@ -31,7 +31,7 @@ use Digest::SHA qw(sha1 sha1_hex sha1_base64);
 #use XML::LibXML::CDATASection;
 use Encode;
 use MIME::Base64;
-use Lingua::EN::Sentence::MediaWords;
+use MediaWords::Languages::en;
 use File::Temp;
 use File::Slurp;
 use Time::HiRes qw ( time);
@@ -74,7 +74,8 @@ sub store_preprocessed_result
     #say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
 
     #say STDERR "Starting get_sentences ";
-    #my $sentences = Lingua::EN::Sentence::MediaWords::get_sentences( $extract_results->{ extracted_text } ) || return;
+    #my $lang = MediaWords::Languages::en->new();
+    #my $sentences = $lang->get_sentences( $extract_results->{ extracted_text } ) || return;
 
     #say STDERR "Finished get_sentences ";
 

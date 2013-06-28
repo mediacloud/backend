@@ -1,13 +1,11 @@
 package MediaWords::Languages::Language;
 
 #
-# Generic language plug-in for Media Words, also a singleton to a configured language.
+# Generic language plug-in for Media Words, also a factory of configured + enabled languages.
 #
 # Has to be overloaded by a specific language plugin (think of this as an abstract class).
 #
-# Also, use this to get an instance of a currently configured language, e.g.:
-#   my $lang = MediaWords::Languages::Language::lang();
-#   my $stopwords = $lang->get_tiny_stop_words();
+# See doc/README.languages for instructions.
 #
 
 use strict;
@@ -15,21 +13,48 @@ use warnings;
 
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use utf8;
 
 use Moose::Role;
 use Lingua::Stem::Snowball;
 use Lingua::StopWords;
+use Lingua::Sentence;
 use Locale::Country::Multilingual { use_io_layer => 1 };
-use MediaWords::Util::Config;
+use MediaWords::Util::IdentifyLanguage;    # to check if the language can be identified
 
 use File::Basename ();
 use Cwd            ();
 
 #
+# LIST OF ENABLED LANGUAGES
+#
+my Readonly @_enabled_languages = (
+    'da',    # Danish
+    'de',    # German
+    'en',    # English
+    'es',    # Spanish
+    'fi',    # Finnish
+    'fr',    # French
+    'hu',    # Hungarian
+    'it',    # Italian
+    'lt',    # Lithuanian
+    'nl',    # Dutch
+    'no',    # Norwegian
+    'pt',    # Portuguese
+    'ro',    # Romanian
+    'ru',    # Russian
+    'sv',    # Swedish
+    'tr',    # Turkish
+
+    # Chinese disabled because of poor word segmentation
+    #'zh',                                  # Chinese
+);
+
+#
 # START OF THE SUBCLASS INTERFACE
 #
 
-# Returns a string language code (e.g. 'en_US')
+# Returns a string ISO 639-1 language code (e.g. 'en')
 requires 'get_language_code';
 
 # Returns a hashref to a "tiny" (~200 entries) list of stop words for the language
@@ -48,7 +73,7 @@ requires 'get_language_code';
 #   sub fetch_and_return_tiny_stop_words
 #   {
 #       my $self = shift;
-#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/en_US_stoplist_tiny.txt' );
+#       return $self->_get_stop_words_from_file( 'lib/MediaWords/Languages/resources/en_stoplist_tiny.txt' );
 #   }
 #
 requires 'fetch_and_return_tiny_stop_words';
@@ -79,7 +104,7 @@ requires 'stem';
 # Returns a word length limit of a language (0 -- no limit)
 requires 'get_word_length_limit';
 
-# Returns a list of sentences from a story text
+# Returns a list of sentences from a story text (tokenizes text into sentences)
 requires 'get_sentences';
 
 # Returns a reference to an array with a tokenized sentence for the language
@@ -95,90 +120,131 @@ requires 'get_sentences';
 #
 requires 'tokenize';
 
-# Also, you might want to override 'get_locale_country_object' (see below) to implement your own
-# way to fetch a list of country codes and countries. Do that only if you have problems with
-# country detection.
+# Returns an arrayref of "noise words" for the heuristic line analyzer.
+requires 'get_noise_strings';
+
+# Returns an arrayref of strings which denote that a particular HTML line is
+# likely to be the "copyright" string.
+requires 'get_copyright_strings';
+
+# Returns an object complying with Locale::Codes::API "protocol" (e.g. an instance of
+# Locale::Country::Multilingual) for fetching a list of country codes and countries.
+requires 'get_locale_codes_api_object';
+
+# Gets country name remapping for MediaWords::Util::Countries
+requires 'get_country_name_remapping';
 
 #
 # END OF THE SUBCLASS INTERFACE
 #
 
 # Lingua::Stem::Snowball instance (if needed), lazy-initialized in _stem_with_lingua_stem_snowball()
-has 'stemmer' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'stemmer' => ( is => 'rw', default => 0 );
 
 # Lingua::Stem::Snowball language and encoding
-has 'stemmer_language' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'stemmer_encoding' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'stemmer_language' => ( is => 'rw', default => 0 );
+has 'stemmer_encoding' => ( is => 'rw', default => 0 );
 
-# Instance of Locale::Country::Multilingual (if needed), lazy-initialized in get_locale_country_object()
-has 'locale_country_object' => (
-    is      => 'rw',
-    default => 0,
-);
+# Lingua::Sentence instance (if needed), lazy-initialized in _tokenize_text_with_lingua_sentence()
+has 'sentence_tokenizer' => ( is => 'rw', default => 0 );
+
+# Lingua::Sentence language
+has 'sentence_tokenizer_language' => ( is => 'rw', default => 0 );
+
+# Instance of Locale::Country::Multilingual (if needed), lazy-initialized in _get_locale_country_multilingual_object()
+has 'locale_country_multilingual_object' => ( is => 'rw', default => 0 );
 
 # Cached stopwords
-has 'cached_tiny_stop_words' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_short_stop_words' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_long_stop_words' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'cached_tiny_stop_words'  => ( is => 'rw', default => 0 );
+has 'cached_short_stop_words' => ( is => 'rw', default => 0 );
+has 'cached_long_stop_words'  => ( is => 'rw', default => 0 );
 
 # Cached stopword stems
-has 'cached_tiny_stop_word_stems' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_short_stop_word_stems' => (
-    is      => 'rw',
-    default => 0,
-);
-has 'cached_long_stop_word_stems' => (
-    is      => 'rw',
-    default => 0,
-);
+has 'cached_tiny_stop_word_stems'  => ( is => 'rw', default => 0 );
+has 'cached_short_stop_word_stems' => ( is => 'rw', default => 0 );
+has 'cached_long_stop_word_stems'  => ( is => 'rw', default => 0 );
 
-# Instance of a configured language (e.g. MediaWords::Languages::en_US), lazy-initialized in lang()
-my $_instance = 0;
+# Instances of each of the enabled languages (e.g. MediaWords::Languages::en, MediaWords::Languages::lt, ...)
+my %_lang_instances;
 
-# Returns a (singleton) instance of a particular configured language
-sub lang
+# Load enabled language modules
+foreach my $language_to_load ( @_enabled_languages )
 {
-    if ( $_instance == 0 )
+
+    # Check if the language is supported by the language identifier
+    unless ( MediaWords::Util::IdentifyLanguage::language_is_supported( $language_to_load ) )
     {
-
-        # Load a module of a configured language
-        my $module = 'MediaWords::Languages::' . MediaWords::Util::Config::get_config->{ mediawords }->{ language };
-        eval {
-            ( my $file = $module ) =~ s|::|/|g;
-            require $file . '.pm';
-            $module->import();
-            1;
-        } or do
-        {
-            my $error = $@;
-            die( "Error while loading module: $error" );
-        };
-
-        $_instance = $module->new();
+        die(
+            "Language module '$language_to_load' is enabled but the language is not supported by the language identifier." );
     }
 
-    return $_instance;
+    # Load module
+    my $module = 'MediaWords::Languages::' . $language_to_load;
+    eval {
+        ( my $file = $module ) =~ s|::|/|g;
+        require $file . '.pm';
+        $module->import();
+        1;
+    } or do
+    {
+        my $error = $@;
+        die( "Error while loading module for language '$language_to_load': $error" );
+    };
+
+    # Initialize an instance of the particular language module
+    $_lang_instances{ $language_to_load } = $module->new();
+}
+
+# (static) Returns 1 if language is enabled, 0 if not
+sub language_is_enabled($)
+{
+    my $language_code = shift;
+
+    if ( exists $_lang_instances{ $language_code } )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+# (static) Returns language module instance for the language code, 0 on error
+sub language_for_code($)
+{
+    my $language_code = shift;
+
+    unless ( language_is_enabled( $language_code ) )
+    {
+        return 0;
+    }
+
+    return $_lang_instances{ $language_code };
+}
+
+# (static) Returns default language module instance (English)
+sub default_language
+{
+    my $language = language_for_code( default_language_code() );
+    unless ( $language )
+    {
+        die "Default language 'en' is not enabled.";
+    }
+
+    return $language;
+}
+
+# (static) Returns default language code ('en' for English)
+sub default_language_code
+{
+    return 'en';
+}
+
+# (static) Get an array of enabled languages
+sub enabled_languages
+{
+    return @_enabled_languages;
 }
 
 # Cached stop words
@@ -285,21 +351,18 @@ sub get_long_stop_word_stems
     return $self->cached_long_stop_word_stems;
 }
 
-# Returns an object complying with Locale::Codes::API "protocol" (e.g. an instance of
-# Locale::Country::Multilingual) for fetching a list of country codes and countries.
-# Might be overriden; the default implementation returns an instance of
-# Locale::Country::Multilingual initialized with whatever is returned by 'get_language_code'.
-sub get_locale_country_object
+# Returns an instance of Locale::Country::Multilingual for the language code
+sub _get_locale_country_multilingual_object
 {
-    my $self = shift;
+    my ( $self, $language ) = @_;
 
-    if ( $self->locale_country_object == 0 )
+    if ( $self->locale_country_multilingual_object == 0 )
     {
-        $self->locale_country_object( Locale::Country::Multilingual->new() );
-        $self->locale_country_object->set_lang( $self->get_language_code() );
+        $self->locale_country_multilingual_object( Locale::Country::Multilingual->new() );
+        $self->locale_country_multilingual_object->set_lang( $language );
     }
 
-    return $self->locale_country_object;
+    return $self->locale_country_multilingual_object;
 }
 
 # Lingua::Stem::Snowball helper
@@ -327,8 +390,77 @@ sub _stem_with_lingua_stem_snowball
 sub _get_stop_words_with_lingua_stopwords
 {
     my ( $self, $language, $encoding ) = @_;
-
     return Lingua::StopWords::getStopWords( $language, $encoding );
+}
+
+# Lingua::Sentence helper
+sub _tokenize_text_with_lingua_sentence
+{
+    my ( $self, $language, $nonbreaking_prefixes_file, $text ) = @_;
+
+    # (Re-)initialize stemmer if needed
+    if ( $self->sentence_tokenizer == 0 or $self->sentence_tokenizer ne $language )
+    {
+        $self->sentence_tokenizer( Lingua::Sentence->new( $language, $nonbreaking_prefixes_file ) );
+    }
+
+    return [] unless defined $text;
+
+    # Only "\n\n" (not a single "\n") denotes the end of sentence, so remove single line breaks
+    $text =~ s/([^\n])\n([^\n])/$1 $2/gs;
+
+    # Remove asterisks from lists
+    $text =~ s/  */ /gs;
+
+    $text =~ s/\n\s*\n/\n\n/gso;
+    $text =~ s/\n\n\n*/\n\n/gso;
+    $text =~ s/\n\n/\n/gso;
+
+    # Replace tabs with spaces
+    $text =~ s/\t/ /gs;
+
+    # Replace non-breaking spaces with normal spaces
+    $text =~ s/\x{a0}/ /gs;
+
+    # Replace multiple spaces with a single space
+    $text =~ s/  +/ /gs;
+
+    # The above regexp and html stripping often leave a space before the period at the end of a sentence
+    $text =~ s/ +\./\./g;
+
+    # We see lots of cases of missing spaces after sentence ending periods
+    # (has a hardcoded lower limit of characters because otherwise it breaks Portuguese "a.C.." abbreviations and such)
+    $text =~ s/([[:lower:]]{2,})\.([[:upper:]][[:lower:]]{1,})/$1. $2/g;
+
+    # Trim whitespace from start / end of the whole string
+    $text =~ s/^\s*//g;
+    $text =~ s/\s*$//g;
+
+    # Replace Unicode's "…" with "..."
+    $text =~ s/…/.../g;
+
+    # FIXME: fix "bla bla... yada yada"? is it two sentences?
+    # FIXME: fix "text . . some more text."?
+
+    # Split to sentences
+    my @sentences = $self->sentence_tokenizer->split_array( $text );
+
+    # Trim whitespace from start / end of each of the sentences
+    @sentences = grep( s/^\s*//g, @sentences );
+    @sentences = grep( s/\s*$//g, @sentences );
+
+    # Remove empty sentences (buggy Lingua::Sentence I guess)
+    @sentences = grep( /\S/, @sentences );
+
+    return \@sentences;
+}
+
+# Returns the root directory
+sub _base_dir
+{
+    my $relative_path = '../../../';    # Path to base of project relative to the current file
+    my $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
+    return $base_dir;
 }
 
 # Returns stopwords read from a file
@@ -336,9 +468,7 @@ sub _get_stop_words_from_file
 {
     my ( $self, $filename ) = @_;
 
-    my $relative_path = '../../../';    # Path to base of project relative to the current file
-    my $base_dir = Cwd::realpath( File::Basename::dirname( __FILE__ ) . '/' . $relative_path );
-    $filename = $base_dir . '/' . $filename;
+    $filename = _base_dir() . '/' . $filename;
 
     my %stopwords;
 

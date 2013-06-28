@@ -45,8 +45,8 @@ sub scroll_stories_id_window
     $_stories_id_start = $_stories_id_stop;
     $_stories_id_stop  = $_stories_id_start + $_stories_id_window_size;
 
-    print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " . $_cached_max_stories_id .
-      ")  -- " .
+    print STDERR "story_id windows: $_stories_id_start -- $_stories_id_stop   (max_stories_id: " .
+      $_cached_max_stories_id . ")  -- " .
       localtime() . "\n";
 }
 
@@ -98,9 +98,9 @@ sub create_foreign_key_query_string
     my ( $altered_table, $referenced_table, $referenced_column ) = @_;
 
     my $query =
-      " ALTER TABLE ONLY $altered_table " . ' ADD CONSTRAINT ' . $altered_table . '_fkey_' . $referenced_column .
-      ' FOREIGN KEY (' . $referenced_column . ')' . ' REFERENCES ' . " $referenced_table($referenced_column) " .
-      ' ON DELETE CASCADE ';
+      " ALTER TABLE ONLY $altered_table " .
+      ' ADD CONSTRAINT ' . $altered_table . '_fkey_' . $referenced_column . ' FOREIGN KEY (' .
+      $referenced_column . ')' . ' REFERENCES ' . " $referenced_table($referenced_column) " . ' ON DELETE CASCADE ';
 
     return $query;
 }

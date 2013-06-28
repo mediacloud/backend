@@ -12,17 +12,10 @@ if pwd | grep ' ' ; then
     exit 1
 fi
 
-if [ `uname` == 'Darwin' ]; then
-	# On OS X, these modules get lost in the process for some reason
-	./script/run_carton.sh install YAML::Syck
+## Assumes Ubuntu
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
 
-	# Install BerkeleyDB correctly before installing the remaining modules from carton.lock
-	BERKELEYDB_INCLUDE=/usr/local/include \
-	BERKELEYDB_LIB=/usr/local/lib \
-	./script/run_carton.sh install BerkeleyDB
-fi
-
-./script/run_carton.sh install --deployment || echo "initial carton run "
+# Install the rest of the modules
 ./script/run_carton.sh install --deployment
 
 echo "Successfully installed Perl and modules for MediaCloud"

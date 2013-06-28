@@ -8,10 +8,16 @@ elements:
   - type: Text
     name: url
     label: URL
+          
+  - type: Select
+    name: feed_type
+    label: Feed Type
+    comment: Syndicated feeds are rss/atom/rdf feeds that list urls to download.  Web page feeds are urls that are just redownloaded as content themselves once a day
     constraints:
         - Required
-        - type: FeedURL
-          message: This is not an rss feed
+    options:
+        - [ 'syndicated', 'Syndicated' ]
+        - [ 'web_page', 'Web Page' ]
 
   - type: Submit
     name: submit

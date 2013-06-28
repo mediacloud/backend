@@ -4,7 +4,7 @@ use warnings;
 use Test::NoWarnings;
 use Test::More tests => 13 + 1;
 use MediaWords::Util::HTML;
-use Lingua::EN::Sentence::MediaWords;
+use MediaWords::Languages::en;
 use Test::More;
 use Test::Differences;
 use Test::Deep;
@@ -32,9 +32,9 @@ my $test_text = "<h1>Title</h1>\n<p>1st sentence. 2nd sentence.</p>";
 
 #say Dumper ( MediaWords::DBI::DownloadTexts::_new_lines_around_block_level_tags($test_text) );
 
+my $lang = MediaWords::Languages::en->new();
 my $sentences =
-  Lingua::EN::Sentence::MediaWords::get_sentences(
-    html_strip( MediaWords::DBI::DownloadTexts::_new_lines_around_block_level_tags( $test_text ) ) );
+  $lang->get_sentences( html_strip( MediaWords::DBI::DownloadTexts::_new_lines_around_block_level_tags( $test_text ) ) );
 
 #say Dumper( $sentences );
 

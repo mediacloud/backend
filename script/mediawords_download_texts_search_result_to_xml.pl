@@ -167,7 +167,8 @@ sub add_feeds_to_media_element
 {
     ( my $db, my $media_element, my $media_id ) = @_;
 
-    my $feeds_matching_media_id = $db->query( "select feeds_id, name, url from feeds where media_id = ?", $media_id );
+    my $feeds_matching_media_id =
+      $db->query( "select feeds_id, name, url from feeds where media_id = ? and feed_status = 'active'", $media_id );
 
     $feeds_matching_media_id->bind( my $feeds_id, my $feed_name, my $feed_url );
 

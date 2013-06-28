@@ -286,8 +286,8 @@ sub get_polar_map_url
 
     my $cluster_map = find_or_create_polar_map( $db, $cluster_run, $polar_query );
 
-    return "$_base_url/clusters/view/" . $cluster_run->{ media_cluster_runs_id } . "?media_cluster_maps_id=" .
-      $cluster_map->{ media_cluster_maps_id };
+    return "$_base_url/clusters/view/" .
+      $cluster_run->{ media_cluster_runs_id } . "?media_cluster_maps_id=" . $cluster_map->{ media_cluster_maps_id };
 }
 
 # get the term freq for the given term within the overall query

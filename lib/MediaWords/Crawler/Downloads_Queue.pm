@@ -144,7 +144,13 @@ sub _pop_download
 
     if ( $download )
     {
-        $_downloads->{ $media_id }->{ map }->{ $download->{ downloads_id } } = 0;
+
+        # this causes a race condition which results in us redownloading a lot of
+        # duplicate downloads.  The easiest thing is just to comment this line,
+        # with the effect that no download can be redownloaded until the crawler
+        # is restarted.  That shouldn't happen in any case unless someone is manually
+        # fiddling with download rows in the database. -hal
+        #$_downloads->{ $media_id }->{ map }->{ $download->{ downloads_id } } = 0;
         $_downloads_count--;
     }
 

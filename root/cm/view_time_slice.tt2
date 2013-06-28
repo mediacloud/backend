@@ -1,0 +1,46 @@
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+
+[% title = 'CM: Dump ' _ datetime.format( controversy_dump.dump_date ) _ ' ' _ cdts.period _ ' ' _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
+[% INCLUDE include/header.tt2 %]
+
+<p>Network Map</p>
+<fieldset>
+    <p>
+        Model Correlation: 
+        [% IF cdts.model_r %]
+            r2=[% cdts.model_r * cdts.model_r %] p=[% cdts.model_p %]
+        [% ELSE %]
+            (not enough data to generate model correlation)
+        [% END %]
+    </p>
+    <p><a href="[% c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">View Network Map</a></p>
+    <p><a href="[% c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">Download GEXF</a></p>
+</fieldset>
+
+<p>Stats</p>
+<table>
+    <tr>
+        <td># Stories</td>
+        <td>[% cdts.num_stories %]</td>
+        <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+    </tr>
+    <tr id="even">
+        <td># Story Links</td>
+        <td>[% cdts.num_story_links %]</td>
+        <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+    </tr>
+    <tr>
+        <td># Media</td>
+        <td>[% cdts.num_media %]</td>
+        <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></tr>
+    </tr>
+    <tr id="even">
+        <td># Medium Links</td>
+        <td>[% cdts.num_medium_links %]</td>
+        <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+    </tr>
+</table>
+
+[% INCLUDE include/footer.tt2 %]
+

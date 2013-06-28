@@ -28,6 +28,9 @@ use constant SAMPLE_END_DATE   => '2011-04-01';
 use constant SAMPLE_KEYWORDS =>
   qw(путин Медведев кудрин Египет Тунис протест беспорядки пожар смог добровольцы лес мигалки ведерки метро Взрывы теракт культуры Лубянка домодедово взрыв теракт аеропорт Кашин Химки Селигер Наши Ходорковский ЮКОС модернизация Скoлково инновация инноград коррупция прозрачность подотчетность);
 
+# language code for sample keywords
+use constant SAMPLE_KEYWORDS_LANGUAGE => 'ru';
+
 # the range to use to sample the story pairs by similarity -- so a range of 0.25
 # means that we will pull equal numbers of story pairs from those pairs that
 # have similarities of 0 - 0.25, 0.25 - 0.5, 0.5 - 0.75, 0.75 - 1.0
@@ -236,7 +239,7 @@ sub filter_for_keywords
 
     return $stories if ( !SAMPLE_KEYWORDS );
 
-    my $lang = MediaWords::Languages::Language::lang();
+    my $lang = MediaWords::Languages::Language::language_for_code( SAMPLE_KEYWORDS_LANGUAGE );
 
     my $keystem_lookup = {};
     map { print STDERR "keystem: $_ " . lc( $_ ) . "\n"; $keystem_lookup->{ lc( $_ ) } = 1 }

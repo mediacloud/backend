@@ -63,8 +63,8 @@ sub create_do : Local
     }
 
     my ( $source_tags_id ) = $c->dbis->query(
-        "select t.tags_id from tags t, tag_sets ts " . "  where t.tag_sets_id = ts.tag_sets_id " .
-          "    and t.tag = ? and ts.name = 'word_cloud'",
+        "select t.tags_id from tags t, tag_sets ts " .
+          "  where t.tag_sets_id = ts.tag_sets_id " . "    and t.tag = ? and ts.name = 'word_cloud'",
         $source_tag_name
     )->flat;
     if ( !$source_tags_id )

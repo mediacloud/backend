@@ -72,7 +72,7 @@ sub end : ActionClass('RenderView')
         print STDERR "Handling error:\n";
         print STDERR Dumper( $c->stash->{ errors } );
 
-        my $config = MediaWords::Util::Config::get_config;
+        my $config                   = MediaWords::Util::Config::get_config;
         my $always_show_stack_traces = $config->{ mediawords }->{ always_show_stack_traces } eq 'yes';
 
         if ( $always_show_stack_traces )

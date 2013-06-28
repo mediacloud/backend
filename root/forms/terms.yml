@@ -1,7 +1,7 @@
 auto_fieldset:
 
 elements:
-  - type: Text
+  - type: Textarea
     name: terms
     label: terms
     constraints:

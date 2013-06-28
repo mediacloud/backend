@@ -9,6 +9,7 @@
     </p>
 
     <form action="[% c.uri_for('/admin/media/delete/') _ medium.media_id _ '/' _ 'yes' %]">
+    <input type="hidden" name="media_tags_id" value="[% media_tags_id %]" />
     <input type="submit" value="Delete" />
     </form>
 

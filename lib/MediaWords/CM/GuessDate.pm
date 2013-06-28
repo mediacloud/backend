@@ -10,7 +10,6 @@ use Date::Parse;
 use HTML::TreeBuilder::LibXML;
 
 use MediaWords::CommonLibs;
-use MediaWords::CM::GuessDate;
 use MediaWords::DB;
 
 # each of the test dates in the $_date_guess_functions should resolve to this date
@@ -70,7 +69,7 @@ my $_date_guess_functions = [
     {
         name     => 'guess_by_date_text',
         function => \&guess_by_date_text,
-        test     => '<p>foo bar</p><p class="dateline>published on Jan 17th, 2012, 12:00 PM EST'
+        test     => '<p>foo bar</p><p class="dateline">published on Jan 17th, 2012, 12:00 PM EST'
     },
     {
         name     => 'guess_by_existing_story_date',

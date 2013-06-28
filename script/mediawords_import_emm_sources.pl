@@ -107,7 +107,7 @@ sub main
         }
 
         # 'hhttp://www.beta.rs/' fix
-        if ( $media_url =~ /hhttp:\/\//i )
+        if ( $media_url =~ /^hhttp:\/\//i )
         {
             $media_url =~ s/^hhttp:\/\//http:\/\//;
         }
@@ -151,8 +151,8 @@ EOF
             )->hash
           )
         {
-            print STDERR "Using existing medium with duplicate title '" . $media_to_add->{ name } . "' or URL '" .
-              $media_to_add->{ url } . "'.\n";
+            print STDERR "Using existing medium with duplicate title '" .
+              $media_to_add->{ name } . "' or URL '" . $media_to_add->{ url } . "'.\n";
         }
         else
         {
@@ -178,13 +178,13 @@ EOF
               )
             {
                 $dbis->rollback;
-                die "Unable to assign '$tag_set_and_tag' to media '" . $medium->{ name } . "' (" . $medium->{ media_id } .
-                  ").\n";
+                die "Unable to assign '$tag_set_and_tag' to media '" .
+                  $medium->{ name } . "' (" . $medium->{ media_id } . ").\n";
             }
 
         }
 
-        print STDERR "Added / updated media '" . $medium->{ name } . "'\n";
+        print STDERR "Will add / update media '" . $medium->{ name } . "'\n";
     }
 
     print STDERR "Committing...\n";

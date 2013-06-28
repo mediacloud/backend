@@ -126,8 +126,8 @@ sub main
 
             my $extracted_text_end_time = time();
 
-            print STDERR "Got extracted text took " . ( $extracted_text_end_time - $extracted_text_start_time ) .
-              " secs : " .
+            print STDERR "Got extracted text took " .
+              ( $extracted_text_end_time - $extracted_text_start_time ) . " secs : " .
               length( $extracted_text ) . "characters\n";
 
             print STDERR "Completed storing updated download text information for  download $download->{downloads_id}\n";

@@ -5,7 +5,20 @@ use warnings;
 use Data::Dumper;
 use Modern::Perl "2012";
 
-# basic sanity test of crawler functionality
+#
+# Basic sanity test of crawler functionality
+#
+# ---
+#
+# If you run t/test_crawler.t with the -d command it rewrites the files. E.g.:
+#
+#     ./script/run_with_carton.sh ./t/test_crawler.t  -d
+#
+# This changes the expected results so it's important to make sure that you're
+# not masking bugs in the code. Also it's a good idea to manually examine the
+# changes in t/data/top_500_weekly_words.pl and t/data/crawler_stories.pl
+# before committing them.
+#
 
 BEGIN
 {
@@ -274,15 +287,28 @@ sub test_stories
                 }
             }
 
-            eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" );
+            unless ( eq_or_diff( $story->{ content }, $test_story->{ content }, "story content matches" ) )
+            {
+
+                #print STDERR "Expected content: " . Dumper( $test_story->{ content } );
+                #print STDERR "Got content: " . Dumper( $story->{ content } );
+            }
 
             is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "story tags count" );
 
-            is(
-                scalar( @{ $story->{ story_sentences } } ),
-                scalar( @{ $test_story->{ story_sentences } } ),
-                "story sentence count" . $story->{ stories_id }
-            );
+            unless (
+                is(
+                    scalar( @{ $story->{ story_sentences } } ),
+                    scalar( @{ $test_story->{ story_sentences } } ),
+                    "story sentence count" . $story->{ stories_id }
+                )
+              )
+            {
+                print STDERR "Expected sentence count: " . scalar( @{ $test_story->{ story_sentences } } ) . "\n";
+                print STDERR "Expected sentences: " . Dumper( $test_story->{ story_sentences } );
+                print STDERR "Got sentence count: " . scalar( @{ $story->{ story_sentences } } ) . "\n";
+                print STDERR "Got sentences: " . Dumper( $story->{ story_sentences } );
+            }
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
@@ -307,11 +333,16 @@ sub test_stories
                 my $test_story_sentence_words_count = scalar( @{ $test_story->{ story_sentence_words } } );
                 my $story_sentence_words_count      = scalar( @{ $story->{ story_sentence_words } } );
 
-                is(
-                    $story_sentence_words_count,
-                    $test_story_sentence_words_count,
-                    "story words count for " . $story->{ stories_id }
-                );
+                unless (
+                    is(
+                        $story_sentence_words_count, $test_story_sentence_words_count,
+                        "story words count for " . $story->{ stories_id }
+                    )
+                  )
+                {
+                    print STDERR "Expected words: " . Dumper( $test_story->{ story_sentence_words } );
+                    print STDERR "Got words: " . Dumper( $story->{ story_sentence_words } );
+                }
             }
         }
 
@@ -340,6 +371,7 @@ sub generate_aggregate_words
             dashboards_id => $dashboard->{ dashboards_id },
             name          => 'obama_topic',
             query         => 'obama',
+            language      => 'en',
             start_date    => $start_date,
             end_date      => $end_date
         }
@@ -362,7 +394,8 @@ sub dump_top_500_weekly_words
 {
     my ( $db ) = @_;
 
-    my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
+    my $top_500_weekly_words =
+      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term, language', )->hashes;
     _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
 
     MediaWords::Test::Data::store_test_data( 'top_500_weekly_words', $top_500_weekly_words );
@@ -376,7 +409,7 @@ sub sort_top_500_weekly_words
 
     #ensure that the order is deterministic
     #first sort on the important fields then sort on everything just to be sure...
-    my @keys = qw (publish_week stem dashboard_topics_id term );
+    my @keys = qw (publish_week stem dashboard_topics_id term language );
 
     my @hash_fields = sort keys %{ $array->[ 0 ] };
 
@@ -388,7 +421,7 @@ sub test_top_500_weekly_words
     my ( $db ) = @_;
 
     my $top_500_weekly_words_actual =
-      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term' )->hashes;
+      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term, language' )->hashes;
     _process_top_500_weekly_words_for_testing( $top_500_weekly_words_actual );
 
     my $top_500_weekly_words_expected = MediaWords::Test::Data::fetch_test_data( 'top_500_weekly_words' );
@@ -467,13 +500,16 @@ sub get_crawler_data_directory
 
 sub main
 {
-
     my ( $dump ) = @ARGV;
 
     MediaWords::Test::DB::test_on_test_database(
         sub {
             use Encode;
             my ( $db ) = @_;
+
+            # Errors might want to print out UTF-8 characters
+            binmode( STDOUT, ":utf8" );
+            binmode( STDERR, ":utf8" );
 
             my $crawler_data_location = get_crawler_data_directory();
 

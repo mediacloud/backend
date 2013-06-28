@@ -1,0 +1,11 @@
+Manual test case for logged editing of media and stories
+
+PREREQ
+
+* basic.txt
+* assumes user is logged on as jdoe user for whole test
+
+TEST
+
+* go to /admin
+* click on 'edit' 

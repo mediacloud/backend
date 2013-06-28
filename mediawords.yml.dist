@@ -59,7 +59,7 @@ amazon_s3:
 
 #session:
     #expires: 3600
-    
+
     ### directory where web app sessions are stored.  default to $homedir/tmp
     #storage: "~/tmp/mediawords-session"
 
@@ -105,11 +105,6 @@ amazon_s3:
     #fetch_remote_content_password : password
     #fetch_remote_content_url      : "http://admin.mediacloud.org/admin/downloads/view/"
 
-    ### language of the media that is being analysed, e.g. "en_US"
-    ### (see lib/MediaWords/Languages/*.pm for supported languages)
-    ### (you can add support for your own language -- see doc/README.Languages)
-    #language : "en_US"
-
     #### Defaults to kmeans uncomment to use Cluto
     #clustering_engine: "cluto"
     #cluto_binary: "/usr/local/cluto/bin/vcluster"
@@ -143,7 +138,7 @@ amazon_s3:
     # Uncommit to speed up slow queries by setting the Postgresql work_mem parameter to this value
     # By default the initial Postgresql value of work_mem is used
     # large_work_mem: "3GB"
-    
+
     # An experiment parameter to dump stack traces in error message even if not in debug mode
     # NOTE: may leak DB passwords and is not to be use in production
     #always_show_stack_traces: "yes"
@@ -158,7 +153,6 @@ amazon_s3:
 
     #uncomment to make the public homepage the default start page    
     #default_home_page: "dashboard/view"
-    
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789
     
@@ -166,4 +160,3 @@ amazon_s3:
     # web_store_num_parallel: 10
     # web_store_timeout: 90
     # web_store_per_domain_timeout: 1
-

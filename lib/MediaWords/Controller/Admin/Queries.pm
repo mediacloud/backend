@@ -24,8 +24,16 @@ sub list : Local
 {
     my ( $self, $c ) = @_;
 
-    my $queries_ids =
-      [ $c->dbis->query( "select queries_id from queries where generate_page = 't' order by start_date" )->flat ];
+    my $queries_ids = [
+        $c->dbis->query(
+            <<"EOF"
+        SELECT queries_id
+        FROM queries
+        WHERE generate_page = 't'
+        ORDER BY start_date
+EOF
+        )->flat
+    ];
 
     my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];
 
@@ -41,19 +49,37 @@ sub get_query_form
     my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/query.yml' } );
 
     my $media_sets = $c->dbis->query(
-        "select ms.*, d.name as dashboard_name " . "  from media_sets ms, dashboard_media_sets dms, dashboards d " .
-          "  where set_type = 'collection' and ms.media_sets_id = dms.media_sets_id and " .
-          "    dms.dashboards_id = d.dashboards_id " . "  order by d.name, ms.name" )->hashes;
+        <<"EOF"
+        SELECT ms.*,
+               d.name AS dashboard_name
+        FROM media_sets AS ms,
+             dashboard_media_sets AS dms,
+             dashboards AS d
+        WHERE set_type = 'collection'
+              AND ms.media_sets_id = dms.media_sets_id
+              AND dms.dashboards_id = d.dashboards_id
+        ORDER BY d.name, ms.name
+EOF
+    )->hashes;
     my $media_set_options = [ map { [ $_->{ media_sets_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $media_sets } ];
     $form->get_field( 'media_sets_ids' )->options( $media_set_options );
 
-    my $dashboard_topics = $c->dbis->query( "select dt.*, d.name as dashboard_name from dashboard_topics dt, dashboards d " .
-          "  where dt.dashboards_id = d.dashboards_id order by d.name, dt.name" )->hashes;
+    my $dashboard_topics = $c->dbis->query(
+        <<"EOF"
+        SELECT dt.*,
+               d.name AS dashboard_name
+        FROM dashboard_topics AS dt,
+             dashboards AS d
+        WHERE dt.dashboards_id = d.dashboards_id
+        ORDER BY d.name, dt.name
+EOF
+    )->hashes;
     my $dashboard_topic_options =
-      [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } ($_->{ dashboard_name })" ] } @{ $dashboard_topics } ];
+      [ map { [ $_->{ dashboard_topics_id }, "$_->{ name } [$_->{ language }] ($_->{ dashboard_name })" ] }
+          @{ $dashboard_topics } ];
     $form->get_field( 'dashboard_topics_ids' )->options( $dashboard_topic_options );
 
-    my $dashboards = $c->dbis->query( "select * from dashboards order by name" )->hashes;
+    my $dashboards = $c->dbis->query( "SELECT * FROM dashboards ORDER BY name" )->hashes;
     my $dashboard_options = [ [ 0, '(none)' ], map { [ $_->{ dashboards_id }, $_->{ name } ] } @{ $dashboards } ];
     $form->get_field( 'dashboards_id' )->options( $dashboard_options );
 
@@ -86,7 +112,7 @@ sub create : Local
 
     die( 'Unable to create query' ) if ( !$query );
 
-    $c->dbis->query( "update queries set generate_page = 't' where queries_id = ?", $query->{ queries_id } );
+    $c->dbis->query( "UPDATE QUERIES SET generate_page = 't' WHERE queries_id = ?", $query->{ queries_id } );
 
     $c->response->redirect(
         $c->uri_for( "/admin/queries/view/$query->{ queries_id }", { status_msg => 'Query created.' } ) );
@@ -123,23 +149,31 @@ sub _get_topic_chart_url_date_term_counts
     if ( $num_term_combinations < 5 )
     {
         $media_set_group  = ', ms.media_sets_id';
-        $media_set_legend = " || ' - ' || min( ms.name )";
+        $media_set_legend = " || ' - ' || MIN( ms.name )";
     }
     else
     {
         $media_set_group = $media_set_legend = '';
     }
 
-    my $sql =
-      "select topic_words.publish_day, min( dt.query ) $media_set_legend as term, " .
-      "    sum( topic_words.total_count::float / all_words.total_count::float )::float as term_count " .
-      "  from total_daily_words topic_words, total_daily_words all_words, dashboard_topics dt, media_sets ms " .
-      "  where topic_words.media_sets_id in ( $media_sets_ids_list ) " .
-      "    and topic_words.dashboard_topics_id in ( $dashboard_topics_ids_list ) " .
-      "    and topic_words.publish_day = all_words.publish_day and topic_words.media_sets_id = all_words.media_sets_id " .
-      "    and all_words.dashboard_topics_id is null and dt.dashboard_topics_id = topic_words.dashboard_topics_id " .
-      "    and $date_clause " . "    and ms.media_sets_id = topic_words.media_sets_id " .
-      "  group by topic_words.publish_day, dt.dashboard_topics_id $media_set_group";
+    my $sql = <<"EOF";
+        SELECT topic_words.publish_day,
+               MIN( dt.query ) $media_set_legend AS term,
+               SUM( topic_words.total_count::float / all_words.total_count::float )::float AS term_count
+        FROM total_daily_words AS topic_words,
+             total_daily_words AS all_words,
+             dashboard_topics AS dt,
+             media_sets AS ms
+        WHERE topic_words.media_sets_id IN ( $media_sets_ids_list )
+              AND topic_words.dashboard_topics_id IN ( $dashboard_topics_ids_list )
+              AND topic_words.publish_day = all_words.publish_day
+              AND topic_words.media_sets_id = all_words.media_sets_id
+              AND all_words.dashboard_topics_id IS NULL
+              AND dt.dashboard_topics_id = topic_words.dashboard_topics_id
+              AND $date_clause
+              AND ms.media_sets_id = topic_words.media_sets_id
+        GROUP BY topic_words.publish_day, dt.dashboard_topics_id $media_set_group
+EOF
 
     say STDERR "$sql";
     my $date_term_counts = [ $c->dbis->query( $sql )->arrays ];
@@ -155,11 +189,11 @@ sub view : Local
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id )
       || die( "query '$queries_id' not found" );
 
-    my $cluster_runs = $c->dbis->query( "select * from media_cluster_runs where queries_id = ?", $queries_id )->hashes;
+    my $cluster_runs = $c->dbis->query( "SELECT * FROM media_cluster_runs WHERE queries_id = ?", $queries_id )->hashes;
 
     my $words = MediaWords::DBI::Queries::get_top_500_weekly_words( $c->dbis, $query );
 
-    my $dashboard = $c->dbis->query( "select * from dashboards where dashboards_id = 1" )->hash;
+    my $dashboard = $c->dbis->query( "SELECT * FROM dashboards WHERE dashboards_id = 1" )->hash;
 
     my $word_cloud = MediaWords::Util::WordCloud_Legacy::get_word_cloud( $c, '/queries/sentences', $words, $query );
 
@@ -211,8 +245,7 @@ sub view : Local
     if ( @{ $query->{ dashboard_topics } } )
     {
         $topic_chart_url = $self->_get_topic_chart_url( $c, $query );
-        my $topic_terms = [ map { $_->{ query } } @{ $query->{ dashboard_topics } } ];
-        $max_topic_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, $topic_terms, 1 );
+        $max_topic_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, 1 );
     }
 
     say STDERR "load template";
@@ -250,11 +283,20 @@ sub terms : Local
 
     my $terms_string = $c->req->param( 'terms' ) || die( "no terms" );
 
-    my $terms = [ split( /[,\s]+/, $terms_string ) ];
+    #my $terms = [ split( /[,\s]+/, $terms_string ) ];
+    chomp( $terms_string );
+    my $terms = [ split( /\n/, $terms_string ) ];
+    my $terms_languages = [];
+
+    foreach my $term_language ( @{ $terms } )
+    {
+        my ( $term, $language ) = split( ' ', $term_language );
+        push( $terms_languages, { 'term' => $term, 'language' => $language } );
+    }
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id );
 
-    my $date_term_counts = MediaWords::DBI::Queries::get_term_counts( $c->dbis, $query, $terms );
+    my $date_term_counts = MediaWords::DBI::Queries::get_term_counts( $c->dbis, $query, $terms_languages );
 
     if ( $c->req->param( 'csv' ) )
     {
@@ -278,22 +320,30 @@ sub terms : Local
 
         $c->res->body( $json_output );
         return;
+
     }
+    else
+    {
 
-    my $max_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, $terms );
+        my $max_term_ratios = MediaWords::DBI::Queries::get_max_term_ratios( $c->dbis, $query, $terms_languages );
 
-    my $term_chart_url = MediaWords::Util::Chart::generate_line_chart_url_from_dates(
-        $date_term_counts,
-        $query->{ start_date },
-        MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 )
-    );
+        print STDERR "DATE TERM COUNTS:\n";
+        print STDERR Dumper( $date_term_counts );
 
-    $c->stash->{ query }           = $query;
-    $c->stash->{ term_chart_url }  = $term_chart_url;
-    $c->stash->{ terms }           = $terms;
-    $c->stash->{ terms_string }    = $terms_string;
-    $c->stash->{ max_term_ratios } = $max_term_ratios;
-    $c->stash->{ template }        = 'queries/terms.tt2';
+        my $term_chart_url = MediaWords::Util::Chart::generate_line_chart_url_from_dates(
+            $date_term_counts,
+            $query->{ start_date },
+            MediaWords::Util::SQL::increment_day( $query->{ end_date }, 6 )
+        );
+
+        $c->stash->{ query }           = $query;
+        $c->stash->{ term_chart_url }  = $term_chart_url;
+        $c->stash->{ terms }           = $terms;
+        $c->stash->{ terms_string }    = $terms_string;
+        $c->stash->{ max_term_ratios } = $max_term_ratios;
+        $c->stash->{ template }        = 'queries/terms.tt2';
+        return;
+    }
 }
 
 sub sentences : Local
@@ -301,25 +351,26 @@ sub sentences : Local
     my ( $self, $c ) = @_;
 
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
-
     die( "no queries_ids" ) if ( !defined( $queries_ids->[ 0 ] ) );
 
     my $queries =
       [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) || die( "no query $_" ) } @{ $queries_ids } ];
 
-    my $stem = $c->req->param( 'stem' );
-    my $term = $c->req->param( 'term' );
+    my $stem      = $c->req->param( 'stem' );
+    my $term      = $c->req->param( 'term' );
+    my $lang_code = $c->req->param( 'language' );
+    die( "no language code" ) if ( !$lang_code );
 
     if ( $term && !$stem )
     {
-        my $lang = MediaWords::Languages::Language::lang();
+        my $lang = MediaWords::Languages::Language::language_for_code( $lang_code );
         $stem = ( $lang->stem( $term ) )->[ 0 ];
     }
 
     my $stories;
     if ( $stem )
     {
-        $stories = MediaWords::DBI::Queries::get_stem_stories_with_sentences( $c->dbis, $stem, $queries );
+        $stories = MediaWords::DBI::Queries::get_stem_stories_with_sentences( $c->dbis, $stem, $lang_code, $queries );
     }
     else
     {
@@ -439,9 +490,15 @@ sub queue_story_search : Local
 
     if ( !$form->submitted_and_valid() )
     {
-        my $searches =
-          $c->dbis->query( "select * from query_story_searches where queries_id = ? order by query_story_searches_id asc",
-            $queries_id )->hashes;
+        my $searches = $c->dbis->query(
+            <<"EOF",
+            SELECT *
+            FROM query_story_searches
+            WHERE queries_id = ?
+            ORDER BY query_story_searches_id ASC
+EOF
+            $queries_id
+        )->hashes;
 
         $c->stash->{ query }    = $query;
         $c->stash->{ searches } = $searches;
@@ -452,9 +509,15 @@ sub queue_story_search : Local
 
     my $pattern = $c->req->param( 'pattern' );
 
-    my $existing_search =
-      $c->dbis->query( "select * from query_story_searches where queries_id = ? and pattern = ?", $queries_id, $pattern )
-      ->hash;
+    my $existing_search = $c->dbis->query(
+        <<EOF,
+        SELECT *
+        FROM query_story_searches
+        WHERE queries_id = ?
+              AND pattern = ?
+EOF
+        $queries_id, $pattern
+    )->hash;
 
     if ( $existing_search )
     {

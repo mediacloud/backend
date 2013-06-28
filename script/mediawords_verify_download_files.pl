@@ -42,6 +42,21 @@ sub verify_downloads_files
 
         while ( my $relative_file_path_hash = $relative_file_paths->hash() )
         {
+            $pm->start and next;
+
+            my $db = MediaWords::DB::connect_to_db;
+
+            $pm->start and next;
+
+            my $db = MediaWords::DB::connect_to_db;
+
+            $pm->start and next;
+
+            my $db = MediaWords::DB::connect_to_db;
+
+            $pm->start and next;
+
+            my $db = MediaWords::DB::connect_to_db;
 
             $pm->start and next;
 
@@ -67,6 +82,8 @@ sub verify_downloads_files
 
             $pm->finish;
         }
+
+        $pm->wait_all_children;
     }
 
     $pm->wait_all_children;

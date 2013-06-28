@@ -31,7 +31,6 @@ use MediaWords::CommonLibs;
 #use XML::LibXML::CDATASection;
 use Encode;
 use MIME::Base64;
-use Lingua::EN::Sentence::MediaWords;
 
 use XML::FeedPP;
 use XML::TreePP;

@@ -72,8 +72,6 @@ Tie::Cache::LRU
 
 CHI
 
-Lingua::Stem
-
 Lingua::Stem::Snowball
 
 HTML::TagCloud
@@ -96,9 +94,9 @@ Math::Round
 
 Math::Random
 
-Lingua::EN::Sentence
-
 Lingua::StopWords
+
+Lingua::Sentence
 
 List::Compare::Functional
 List::Pairwise
@@ -210,9 +208,9 @@ IO::Socket
 
 IO::Uncompress::Gunzip
 
-Lingua::Stem::En
-
 Lingua::ZH::WordSegmenter
+
+Lingua::Identify::CLD
 
 List::Compare
 

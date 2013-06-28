@@ -45,8 +45,8 @@ sub get_country_code_to_tag_count
         return;
     }
 
-    my $lang = MediaWords::Languages::Language::lang();
-    my $lcm  = $lang->get_locale_country_object();
+    my $lang = MediaWords::Languages::Language::language_for_code( 'en' );
+    my $lcm  = $lang->get_locale_codes_api_object();
 
     my $country_code_count = {};
 
@@ -509,8 +509,8 @@ sub main
     my $table_name      = "media_google_charts_map_url";
     my $temp_table_name = $table_name . time();
 
-    my $lang = MediaWords::Languages::Language::lang();
-    my $lcm  = $lang->get_locale_country_object();
+    my $lang = MediaWords::Languages::Language::language_for_code( 'en' );
+    my $lcm  = $lang->get_locale_codes_api_object();
 
     my $db = TableCreationUtils::get_database_handle();
 
@@ -606,9 +606,9 @@ sub main
         {
             my @media_tag_counts = (
                 $db->query(
-                    "select c.*, t.tag from media_tag_counts c, tags t " . "where c.tags_id = t.tags_id and c.media_id = " .
-                      ( $media_id + 0 ) . " and t.tag_sets_id = " . ( $tag_sets_id + 0 ) . " and  t.tag in (??) " .
-                      " order by t.tag, c.tag_count desc",
+                    "select c.*, t.tag from media_tag_counts c, tags t " .
+                      "where c.tags_id = t.tags_id and c.media_id = " . ( $media_id + 0 ) . " and t.tag_sets_id = " .
+                      ( $tag_sets_id + 0 ) . " and  t.tag in (??) " . " order by t.tag, c.tag_count desc",
                     @all_countries
                   )
                   || die $db->error
@@ -642,8 +642,8 @@ sub main
 
     $db->query( "DROP TABLE if exists $temp_table_name" );    # or warn $db->error;
     $db->query( "CREATE TABLE $temp_table_name ( " . "  media_id integer NOT NULL REFERENCES media ON DELETE CASCADE" .
-          ", tag_sets_id integer NOT NULL REFERENCES  media ON DELETE CASCADE" . ", chart_type_is_log  BOOLEAN NOT NULL" .
-          ", chart_url text) " )
+          ", tag_sets_id integer NOT NULL REFERENCES  media ON DELETE CASCADE" .
+          ", chart_type_is_log  BOOLEAN NOT NULL" . ", chart_url text) " )
       or die $db->error;
 
     $i = 0;

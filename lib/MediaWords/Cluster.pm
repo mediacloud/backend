@@ -98,8 +98,8 @@ sub _get_media_word_vectors
           "      and mw.media_sets_id = tw.media_sets_id and mw.publish_week = tw.publish_week " .
           "      and coalesce( mw.dashboard_topics_id, 0 ) = coalesce( tw.dashboard_topics_id, 0 ) " .
           "    group by medium_ms.media_id, mw.stem " .
-          "    order by sum( mw.stem_count::float / tw.total_count::float )::float desc ) q " . "  where medium_rank <= " .
-          NUM_MEDIUM_WORDS . " " . "  order by media_id, medium_rank" )->hashes;
+          "    order by sum( mw.stem_count::float / tw.total_count::float )::float desc ) q " .
+          "  where medium_rank <= " . NUM_MEDIUM_WORDS . " " . "  order by media_id, medium_rank" )->hashes;
 
     for my $word ( @{ $words } )
     {

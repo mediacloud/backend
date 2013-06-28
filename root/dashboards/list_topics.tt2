@@ -17,13 +17,14 @@
 
 <table>
 
-    <tr>
-        <th>name</th>
-        <th>query</th>
-        <th>start date</th>
-        <th>end date</th>
-        <th>vectors added</th>
-    </tr>
+<tr>
+<th>name</th>
+<th>query</th>
+<th>language</th>
+<th>start date</th>
+<th>end date</th>
+<th>vectors added</th>
+</tr>
 
     [% FOREACH dashboard_topic IN dashboard_topics -%]
 
@@ -33,7 +34,9 @@
 
         <td>[% dashboard_topic.query | html %]</td>
 
-        <td>[% dashboard_topic.start_date | html %]</td>
+<td>[% dashboard_topic.language | html %]</td>
+
+<td>[% dashboard_topic.start_date | html %]</td>
 
         <td>[% dashboard_topic.end_date | html %]</td>
 

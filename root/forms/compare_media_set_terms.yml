@@ -1,10 +1,10 @@
 auto_fieldset:
 
 elements:
-  - type: Text
+  - type: Textarea
     name: term_list
     label: Terms
-    comment: space separated list of terms to compare
+    comment: list of terms to compare; one "term language_code" pair per line
     constraints:
         - Required
 

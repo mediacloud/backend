@@ -1,0 +1,62 @@
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+
+[% title = 'CM: Medium ' _ medium.name | html %]
+
+[% INCLUDE include/header.tt2 %]
+
+<div id="warning_box">
+
+[% IF cdts %]
+
+[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
+
+This page is displaying a frozen snapshot of the [% medium.name %] medium, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
+
+[% IF live_medium_diffs %]
+<p>
+<b>
+This medium differs in the following ways from the live version: [% live_medium_diffs %].  To view the live version of this medium, go 
+<a href="[% c.uri_for( '/admin/cm/live_medium/' _ controversy.controversies_id _ '/' _ medium.media_id ) | html %]">here</a>.
+</b>
+</p>
+[% END %]
+
+[% IF latest_controversy_dump %]
+<p>
+This is not the latest dump of this controversy, created [% datetime.format( latest_controversy_dump.dump_date ) | html %].  To view the latest dump, go <a href="[% c.uri_for( '/admin/cm/view_dump/' _ latest_controversy_dump.controversy_dumps_id ) | html %]">here</a>.
+</p>
+[% END %]
+
+[% ELSE %]
+You are viewing the live medium, as it currently exists in the database.
+[% END %]
+</div>
+    
+<p>Basic Data for [% medium.name %] [% IF cdts %] during [% cdts_date_range %] [% END %]
+[<a href="[% c.uri_for( '/admin/media/edit_do/' ) _ medium.media_id _'?cdts_id=' _ cdts.controversy_dump_time_slices_id | html %]">edit</a>]</p>
+<table>
+
+    <tr><td>Media_id</td><td>[% medium.media_id %]</td></tr>
+    <tr id="even"><td>Name</td><td>[% medium.name | html %]</td></tr>
+    <tr><td>Url</td><td><a href="[% medium.url | html %]" target="blank">[% medium.url | html %]</td></tr>
+    <tr id="even"><td># Stories</td><td>[% medium.story_count %]</td></tr>
+    <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %]</td></tr>
+    <tr id="even"><td># Outgoing Story Links</td><td>[% medium.outlink_count %]</td></tr>
+    
+</table>
+
+[% INCLUDE cm/stories_table.tt2
+    display_stories = medium.stories
+    display_stories_title = controversy.name _ " Stories in " _ medium.name %]
+    
+[% INCLUDE cm/stories_table.tt2 
+    display_stories = medium.inlink_stories
+    display_stories_title = controversy.name _ " Stories Linking to " _ medium.name %]
+
+[% INCLUDE cm/stories_table.tt2
+    display_stories = medium.outlink_stories
+    display_stories_title = controversy.name _ " Stories to which " _ medium.name _ " Links "%]
+
+[% INCLUDE include/footer.tt2 %]
+

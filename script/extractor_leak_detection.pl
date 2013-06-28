@@ -23,17 +23,19 @@ use Readonly;
 use Test::More;
 require Test::NoWarnings;
 
-use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;
-use MediaWords::DBI::Downloads;
-use MediaWords::DB;
-use MediaWords::DBI::DownloadTexts;
 use XML::LibXML;
 use Encode;
 use MIME::Base64;
 use Carp qw (confess);
 use Data::Dumper;
+
+use MediaWords::Crawler::Extractor qw (preprocess);
+use MediaWords::DB;
+use MediaWords::DBI::Downloads;
+use MediaWords::DBI::DownloadTexts;
 use MediaWords::Util::HTML;
+use MediaWords::Util::IdentifyLanguage;
 
 Readonly my $output_dir => "$cwd/download_content_test_data";
 
@@ -174,14 +176,17 @@ sub _heuristically_scored_lines_impl
 
 sub get_info_for_lines_inner_loop
 {
-    my ( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint, $auto_excluded_lines, $markers )
-      = @_;
+    my (
+        $info_for_lines, $lines,               $title_text, $description, $sphereit_map,
+        $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+    ) = @_;
 
     my $line = defined( $lines->[ 0 ] ) ? $lines->[ 0 ] : '';
 
-    my $line_info =
-      MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics( $line, 0, $title_text, $description, $sphereit_map,
-        $has_clickprint, $auto_excluded_lines, $markers );
+    my $line_info = MediaWords::Crawler::AnalyzeLines::calculate_full_line_metrics(
+        $line,           0,                    $title_text, $description, $sphereit_map,
+        $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+    );
 
     # $info_for_lines->[ 0 ] = $line_info;
 
@@ -213,10 +218,6 @@ sub get_info_for_lines
 {
     my ( $lines, $title, $description ) = @_;
 
-    my $auto_excluded_lines =
-
-      MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
-
     my $info_for_lines = [];
 
     #my $title_text = html_strip( $title );
@@ -227,16 +228,31 @@ sub get_info_for_lines
     #$title_text =~ s/\s*$//;
     #$title_text =~ s/\s+/ /;
 
-    my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines );
+    my $full_text = join( "\n", @{ $lines } );
+    my $language_code = MediaWords::Util::IdentifyLanguage::language_code_for_text( $full_text, undef, 1 );
+    unless ( MediaWords::Languages::Language::language_for_code( $language_code ) )
+    {
+
+        # Unknown language, fallback to English
+        $language_code = MediaWords::Languages::Language::default_language_code();
+        say STDERR "Language for the story '$title' was not determined / enabled," .
+          " falling back to default language '$language_code'.";
+    }
+
+    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code );
+
+    my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
     my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
-    my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers );
+    my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
 
     #MediaWords::Crawler::Extractor::print_time( "find_markers" );
 
     while ( 1 )
     {
-        get_info_for_lines_inner_loop( $info_for_lines, $lines, $title_text, $description, $sphereit_map, $has_clickprint,
-            $auto_excluded_lines, $markers );
+        get_info_for_lines_inner_loop(
+            $info_for_lines, $lines,               $title_text, $description, $sphereit_map,
+            $has_clickprint, $auto_excluded_lines, $markers,    $language_code
+        );
 
     }
 
@@ -379,6 +395,16 @@ my $stripped_description = "bar";
 
         my $download_content = get_value_of_base_64_node( $root, 'download_content_base64' );
 
+        my $language_code = MediaWords::Util::IdentifyLanguage::language_code_for_text( $download_content, undef, 1 );
+        unless ( MediaWords::Languages::Language::language_for_code( $language_code ) )
+        {
+
+            # Unknown language, fallback to English
+            $language_code = MediaWords::Languages::Language::default_language_code();
+            say STDERR "Language for the story '$xml_file' was not determined / enabled," .
+              " falling back to default language '$language_code'.";
+        }
+
         my $expected_preprocessed_text = get_value_of_base_64_node( $root, 'preprocessed_lines_base64' );
 
         my $actual_preprocessed_text_array = HTML::CruftText::clearCruftText( $download_content );
@@ -397,7 +423,7 @@ my $stripped_description = "bar";
         my $title       = $story_title;
         my $description = $story_description;
 
-        my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines );
+        my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code );
 
         my $info_for_lines = [];
 
@@ -409,9 +435,9 @@ my $stripped_description = "bar";
         #$title_text =~ s/\s*$//;
         #$title_text =~ s/\s+/ /;
 
-        my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines );
+        my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
         my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
-        my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers );
+        my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
 
         #MediaWords::Crawler::Extractor::print_time( "find_markers" );
 
