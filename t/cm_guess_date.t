@@ -18,6 +18,7 @@ BEGIN { use_ok 'MediaWords::CM::GuessDate' }
 BEGIN { use_ok 'MediaWords::CM::GuessDate::Result' }
 BEGIN { use_ok 'Date::Parse' }
 BEGIN { use_ok 'LWP::Simple' }
+BEGIN { use_ok 'LWP::Protocol::https' }
 
 my $db = MediaWords::DB::connect_to_db();
 
