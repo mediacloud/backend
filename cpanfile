@@ -73,6 +73,7 @@ requires 'List::MoreUtils';
 requires 'List::Pairwise';
 requires 'List::Uniq';
 requires 'Locale::Country::Multilingual';
+requires 'LWP::Protocol::https';
 requires 'Math::Random';
 requires 'Modern::Perl';
 requires 'MongoDB', '0.700.0';
