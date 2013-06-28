@@ -7,20 +7,30 @@
 
 <div id="warning_box">
 
-[% IF cdts %]
+[% IF live %]
+You are viewing the live medium, as it currently exists in the database.
+[% ELSE %]
 
 [% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
 
 This page is displaying a frozen snapshot of the [% medium.name %] medium, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
 
-[% IF live_medium_diffs %]
+[% live_medium_url = 
+    c.uri_for( '/admin/cm/live_medium/' _ medium.media_id, 
+               { c => controversy.controversies_id, 
+                 cdts => cdts.controversy_dump_time_slices_id } ) %]
 <p>
+[% IF live_medium_diffs %]
 <b>
-This medium differs in the following ways from the live version: [% live_medium_diffs %].  To view the live version of this medium, go 
-<a href="[% c.uri_for( '/admin/cm/live_medium/' _ controversy.controversies_id _ '/' _ medium.media_id ) | html %]">here</a>.
+This medium differs in the following ways from the live version: [% live_medium_diffs %].
 </b>
-</p>
+[% ELSE %]
+This medium is the same as the live version.
 [% END %]
+
+The details of stories (but not links) below may be different. To view the live version of this medium, go 
+<a href="[%  live_medium_url  | html %]">here</a>.
+</p>
 
 [% IF latest_controversy_dump %]
 <p>
@@ -28,9 +38,8 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 </p>
 [% END %]
 
-[% ELSE %]
-You are viewing the live medium, as it currently exists in the database.
 [% END %]
+
 </div>
     
 <p>Basic Data for [% medium.name %] [% IF cdts %] during [% cdts_date_range %] [% END %]
