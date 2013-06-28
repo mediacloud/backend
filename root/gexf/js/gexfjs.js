@@ -179,7 +179,7 @@ function replaceURLWithHyperlinks(text) {
         return text.replace(_urlExp, function(_found) {
             return '<a href="'
                 + ( _protocolExp.test(_found) ? '' : 'http://' )
-                + _found + '" target="_blank">'
+                + _found + '" target="gexfjs">'
                 + _found.replace(_protocolExp,'')
                 + "</a>";
         });

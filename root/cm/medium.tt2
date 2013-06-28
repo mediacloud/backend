@@ -7,11 +7,12 @@
 
 <div id="warning_box">
 
+
+[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
+
 [% IF live %]
 You are viewing the live medium, as it currently exists in the database.
 [% ELSE %]
-
-[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
 
 This page is displaying a frozen snapshot of the [% medium.name %] medium, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
 

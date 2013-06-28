@@ -72,6 +72,60 @@ sub get_snapshot_tables
     return [ @{ $_snapshot_tables } ];
 }
 
+# create all of the temporary tables needed to create the dump_story_link_counts
+# tables, inclusive
+sub write_story_link_counts_dump_tables
+{
+    my ( $db, $controversy, $cdts ) = @_;
+
+    write_temporary_dump_tables( $db, $controversy->{ controversies_id } );
+    write_period_stories( $db, $cdts );
+    write_story_link_counts_dump( $db, $cdts, 1 );
+}
+
+# create temporary view of all the dump_* tables that call into the cd.* tables.
+# this is useful for writing queries on the cd.* tables without lots of ugly
+# joins and clauses to cd and cdts
+sub create_temporary_dump_views
+{
+    my ( $db, $cdts ) = @_;
+
+    my $snapshot_tables = get_snapshot_tables();
+
+    for my $t ( @{ $snapshot_tables } )
+    {
+        $db->query( <<END );
+create temporary view dump_$t as select * from cd.$t 
+    where controversy_dumps_id = $cdts->{ controversy_dumps_id }
+END
+    }
+
+    for my $t ( qw(story_link_counts story_links medium_link_counts medium_links) )
+    {
+        $db->query( <<END )
+create temporary view dump_$t as select * from cd.$t 
+    where controversy_dump_time_slices_id = $cdts->{ controversy_dump_time_slices_id }
+END
+    }
+}
+
+# period stories may be a view or a table, and postgres complains if we try to do
+# a 'drop table|view if exits' if the object type doesn't match.  so we have to
+# figure out if dump_period_stories exists and if so drop the appropriate
+# object
+sub drop_dump_period_stories
+{
+    my ( $db ) = @_;
+
+    my $pg = $db->query( "select * from pg_class where relname = 'dump_period_stories'" )->hash;
+
+    return unless ( $pg );
+
+    my $kind = ( $pg->{ relkind } eq 'v' ) ? 'view' : 'table';
+
+    $db->query( "drop $kind dump_period_stories" );
+}
+
 # write dump_period_stories table that holds list of all stories that should be included in the
 # current period.  For an overall dump, every story should be in the current period.
 # For other dumps, a story should be in the current dump if either its date is within
@@ -86,7 +140,7 @@ sub write_period_stories
 {
     my ( $db, $cdts ) = @_;
 
-    $db->query( "drop table if exists dump_period_stories" );
+    drop_dump_period_stories( $db );
 
     if ( !$cdts || ( $cdts->{ period } eq 'overall' ) )
     {
@@ -158,8 +212,9 @@ sub write_story_links_dump
     $db->query( <<END );
 create temporary table dump_story_links as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
-	    from dump_controversy_links_cross_media cl, dump_period_stories ps
-    	where cl.stories_id = ps.stories_id
+	    from dump_controversy_links_cross_media cl, dump_period_stories sps, dump_period_stories rps
+    	where cl.stories_id = sps.stories_id and
+    	    cl.ref_stories_id = rps.stories_id
 END
 
     # re-enable above to prevent post-dated links
@@ -223,17 +278,19 @@ sub write_story_link_counts_dump
 
     $db->query( <<END );
 create temporary table dump_story_link_counts as
-    select ps.stories_id, 
+    select distinct ps.stories_id, 
             coalesce( ilc.inlink_count, 0 ) inlink_count, 
             coalesce( olc.outlink_count, 0 ) outlink_count
         from dump_period_stories ps
             left join 
-                ( select cl.ref_stories_id, count(*) inlink_count 
-                    from dump_controversy_links_cross_media cl
+                ( select cl.ref_stories_id, count( distinct cl.stories_id ) inlink_count 
+                    from dump_controversy_links_cross_media cl, dump_period_stories ps
+                    where cl.stories_id = ps.stories_id
                     group by cl.ref_stories_id ) ilc on ( ps.stories_id = ilc.ref_stories_id )
             left join 
-                ( select cl.stories_id, count(*) outlink_count 
-                    from dump_controversy_links_cross_media cl
+                ( select cl.stories_id, count( distinct cl.ref_stories_id ) outlink_count 
+                    from dump_controversy_links_cross_media cl, dump_period_stories ps
+                    where cl.ref_stories_id = ps.stories_id
                     group by cl.stories_id ) olc on ( ps.stories_id = olc.stories_id )
 END
 
