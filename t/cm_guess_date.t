@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 67 + 1;
+use Test::More tests => 65 + 1;
 use Test::Deep;
 
 use utf8;
