@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 67 + 1;
+use Test::More tests => 66 + 1;
 use Test::Deep;
 
 use utf8;
@@ -167,12 +167,6 @@ sub test_live_urls
         _gt_url( 'http://www.sfgate.com/opinion/openforum/article/Prop-36-reforms-three-strikes-3822862.php' ),
         _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
         'live_url: sfgate.com'
-    );
-
-    is(
-        _gt_url( 'http://www.noozhawk.com/article/california_election_statewide_propositions_prop_30/' ),
-        _ts( 'Wed, 7 Nov 2012 02:56:00 GMT' ),
-        'live_url: noozhawk.com'
     );
 
     is(
