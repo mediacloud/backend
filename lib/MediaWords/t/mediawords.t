@@ -31,7 +31,7 @@ my $dbs = MediaWords::DB::connect_to_db( 'test', 1 );
 isa_ok( $dbs, "DBIx::Simple::MediaWords" );
 
 # clear the DB
-MediaWords::Pg::Schema::_reset_schema( $dbs );
+MediaWords::Pg::Schema::reset_all_schemas( $dbs );
 
 my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir };
 MediaWords::Pg::Schema::add_functions( $dbs );
