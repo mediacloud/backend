@@ -3,8 +3,6 @@ package MediaWords::CM::GuessDate;
 # guess the date of a spidered story using a combination of the story url, html, and
 # a first guess date
 
-# FIXME EST to GMT
-
 use strict;
 use warnings;
 
