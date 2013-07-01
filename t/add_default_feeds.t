@@ -615,9 +615,9 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
-    cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
-
     kill 9, $pid;
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
 }
 
 sub test_rss_immediate_redirect_via_http_header
@@ -697,12 +697,12 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    kill 9, $pid_1;
+    kill 9, $pid_2;
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_immediate_redirect_via_http_header existing_urls' );
-
-    kill 9, $pid_1;
-    kill 9, $pid_2;
 }
 
 sub test_rss_immediate_redirect_via_html_meta_refresh
@@ -789,13 +789,13 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    kill 9, $pid_1;
+    kill 9, $pid_2;
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate,
         'test_rss_immediate_redirect_via_html_meta_refresh need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_immediate_redirect_via_html_meta_refresh existing_urls' );
-
-    kill 9, $pid_1;
-    kill 9, $pid_2;
 }
 
 # <base href="" />, like in http://www.thejakartaglobe.com
@@ -878,9 +878,9 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
-    cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
-
     kill 9, $pid;
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
 }
 
 sub test_rss_unlinked_urls
@@ -949,9 +949,9 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
-    cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
-
     kill 9, $pid;
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
 }
 
 sub test_rss_image_link
@@ -1019,9 +1019,9 @@ EOF
     my $db         = MediaWords::DB::connect_to_db();
     my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
 
-    cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
-
     kill 9, $pid;
+
+    cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
 }
 
 sub test_rss_external_feeds
@@ -1077,11 +1077,11 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    kill 9, $pid;
+
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_rss_external_feeds existing_urls' );
-
-    kill 9, $pid;
 }
 
 sub test_get_feed_links_and_need_to_moderate_and_existing_urls
@@ -1150,13 +1150,13 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    kill 9, $pid;
+
     cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate_and_existing_urls feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate,
         'test_get_feed_links_and_need_to_moderate_and_existing_urls need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls,
         'test_get_feed_links_and_need_to_moderate_and_existing_urls existing_urls' );
-
-    kill 9, $pid;
 }
 
 sub test_feeds_with_common_prefix
@@ -1245,11 +1245,11 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    kill 9, $pid;
+
     cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_feeds_with_common_prefix existing_urls' );
-
-    kill 9, $pid;
 }
 
 sub test_feed_aggregator_urls
@@ -1314,11 +1314,11 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    kill 9, $pid;
+
     cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_feed_aggregator_urls existing_urls' );
-
-    kill 9, $pid;
 }
 
 sub test_web_page_feed
@@ -1360,11 +1360,11 @@ EOF
     my ( $feed_links, $need_to_moderate, $existing_urls ) =
       Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
+    kill 9, $pid;
+
     cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_web_page_feed need_to_moderate' );
     cmp_bag( $existing_urls, $expected_existing_urls, 'test_web_page_feed existing_urls' );
-
-    kill 9, $pid;
 }
 
 sub main
