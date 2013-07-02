@@ -9,6 +9,10 @@
 #     * "actual_publication_date" -- manually dated story publication date (in format readable by Date::Parse::str2time())
 #
 # Example:
+#      # Will use locally cached copies of stories
+#      ./script/run_with_carton.sh ./script/evaluate_date_guessing.pl t/data/cm_date_guessing_sample.csv t/data/cm_date_guessing_sample/ 2>&1 | tee date_guessing.log
+#  or
+#      # Will download stories from the web
 #      ./script/run_with_carton.sh ./script/evaluate_date_guessing.pl t/data/cm_date_guessing_sample.csv 2>&1 | tee date_guessing.log
 #
 
@@ -33,6 +37,7 @@ use POSIX;
 use LWP::Simple;
 use Text::CSV;
 use List::Util qw(max min);
+use File::Slurp;
 
 sub _timestamp_to_date($)
 {
@@ -44,7 +49,21 @@ sub main()
 {
     unless ( $ARGV[ 0 ] )
     {
-        die "Usage: $0 urls_and_manual_dates.csv\n";
+        die "Usage: $0 urls_and_manual_dates.csv [input_folder/]\n";
+    }
+
+    my Readonly $urls_and_manual_dates_file = $ARGV[ 0 ];
+    unless ( -e $urls_and_manual_dates_file )
+    {
+        die "File '$urls_and_manual_dates_file' does not exist.\n";
+    }
+    my Readonly $output_folder = $ARGV[ 1 ];
+    if ( $output_folder )
+    {
+        unless ( -d $output_folder )
+        {
+            die "Output folder '$output_folder' does not exist.\n";
+        }
     }
 
     my $db = MediaWords::DB::connect_to_db();
@@ -125,8 +144,16 @@ sub main()
           ( $actual_result->{ timestamp } || 'undef' ) . ")";
 
         # Try to guess a date
-        my $html           = get( $url );
-        my $story          = { url => $url };
+        my $html;
+        if ( $output_folder )
+        {
+            $html = read_file( $output_folder . '/' . $stories_id );
+        }
+        else
+        {
+            $html = get( $url );
+        }
+        my $story = { url => $url };
         my $guessed_result = MediaWords::CM::GuessDate::guess_date( $db, $story, $html );
 
         # Old API (e.g. "013-06-17T05:00:00")?
@@ -245,7 +272,7 @@ sub main()
             {
 
                 say STDERR "\tMismatch (expected: " .
-                  $actual_result->{ result } . "; got: " . $guessed_result->{ result } . " )";
+                  $actual_result->{ result } . "; got: " . $guessed_result->{ result } . ")";
 
                 ++$guesses->{ incorrect }->{ _total };
                 ++$guesses->{ incorrect }->{ undateable }->{ _total };
