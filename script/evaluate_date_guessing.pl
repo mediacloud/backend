@@ -344,7 +344,45 @@ sub main()
     $csv->eof or $csv->error_diag();
     close $fh;
 
-    say STDERR Dumper( $guesses );
+    # Pretty-print the results
+    say STDERR <<"EOF";
+
+TOTAL guesses: $guesses->{ _total }, among those:
+
+    CORRECT guesses: $guesses->{ correct }->{ _total }, among those:
+
+        CORRECT guesses where both sides are DATEABLE: $guesses->{ correct }->{ dateable }->{ _total }, among those:
+            CORRECT guesses where both sides are DATEABLE and the date is EXACTLY THE SAME: $guesses->{ correct }->{ dateable }->{ exact }
+            CORRECT guesses where both sides are DATEABLE and the date is WITHIN THE SAME CALENDAR DAY: $guesses->{ correct }->{ dateable }->{ same_day }
+
+        CORRECT guesses where both sides are UNDATEABLE: $guesses->{ correct }->{ undateable }->{ _total }, among those:
+            CORRECT guesses where both sides are UNDATEABLE and the DATE WAS NOT FOUND: $guesses->{ correct }->{ undateable }->{ not_found }
+            CORRECT guesses where both sides are UNDATEABLE and the DATING IS INAPPLICABLE: $guesses->{ correct }->{ undateable }->{ inapplicable }
+
+    INCORRECT guesses: $guesses->{ incorrect }->{ _total }, among those:
+
+        INCORRECT guesses where BOTH SIDES ARE DATEABLE: $guesses->{ incorrect }->{ dateable }->{ _total }, among those:
+            INCORRECT guesses where BOTH SIDES ARE DATEABLE and the difference is UP TO 1 DAY ((0; 24) hours): $guesses->{ incorrect }->{ dateable }->{ up_to_1_day }
+            INCORRECT guesses where BOTH SIDES ARE DATEABLE and the difference is FROM 1 DAY TO 3 DAYS ([24; 72) hours): $guesses->{ incorrect }->{ dateable }->{ from_1_day_to_3_days }
+            INCORRECT guesses where BOTH SIDES ARE DATEABLE and the difference is FROM 3 DAYS TO 7 DAYS ([72; 168) hours): $guesses->{ incorrect }->{ dateable }->{ from_3_days_to_7_days }
+            INCORRECT guesses where BOTH SIDES ARE DATEABLE and the difference is 7 DAYS OR MORE ([168; inf) hours): $guesses->{ incorrect }->{ dateable }->{ more_than_7_days }
+
+        INCORRECT guesses where ONE SIDE IS NOT DATEABLE: $guesses->{ incorrect }->{ undateable }->{ _total }, among those:
+
+            INCORRECT guesses where one side IS NOT DATEABLE and the expected result is A DATE:
+                INCORRECT guesses where one side IS NOT DATEABLE and the expected result is A DATE but the guessed result is "DATE NOT FOUND": $guesses->{ incorrect }->{ undateable }->{ expected_date }->{ got_not_found }
+                INCORRECT guesses where one side IS NOT DATEABLE and the expected result is A DATE but the guessed result is "DATING IS INAPPLICABLE": $guesses->{ incorrect }->{ undateable }->{ expected_date }->{ got_inapplicable }
+
+            INCORRECT guesses where one side IS NOT DATEABLE and the expected result is "DATE NOT FOUND":
+                INCORRECT guesses where one side IS NOT DATEABLE and the expected result is "DATE NOT FOUND" but the guessed result is A DATE: $guesses->{ incorrect }->{ undateable }->{ expected_not_found }->{ got_date }
+                INCORRECT guesses where one side IS NOT DATEABLE and the expected result is "DATE NOT FOUND" but the guessed result is "DATING IS INAPPLICABLE": $guesses->{ incorrect }->{ undateable }->{ expected_not_found }->{ got_inapplicable }
+                
+            INCORRECT guesses where one side IS NOT DATEABLE and the expected result is "DATING IS INAPPLICABLE":
+                INCORRECT guesses where one side IS NOT DATEABLE and the expected result is "DATING IS INAPPLICABLE" but the guessed result is A DATE: $guesses->{ incorrect }->{ undateable }->{ expected_inapplicable }->{ got_date }
+                INCORRECT guesses where one side IS NOT DATEABLE and the expected result is "DATING IS INAPPLICABLE" but the guessed result is "DATE NOT FOUND": $guesses->{ incorrect }->{ undateable }->{ expected_inapplicable }->{ got_not_found }
+
+EOF
+
 }
 
 main();
