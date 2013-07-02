@@ -34,10 +34,13 @@ my $content_ref;
 #
 
 my $s3_path;
+my $expected_path;
 eval { $s3_path = $s3->store_content( $db, $test_download, \$test_content ); };
 ok( ( !$@ ), "Storing content failed: $@" );
-ok( $s3_path,                                                                 'Object ID was returned' );
-ok( length( $s3_path ) == length( 's3:' . $test_download->{ downloads_id } ), 'Object ID is of the valid size' );
+ok( $s3_path, 'Object ID was returned' );
+$expected_path = 's3:' . $settings->{ downloads_folder_name } .
+  ( substr( $settings->{ downloads_folder_name }, -1, 1 ) ne '/' ? '/' : '' ) . $test_download->{ downloads_id };
+is( $s3_path, $expected_path, 'Object ID matches' );
 
 #
 # Fetch content, compare
@@ -74,8 +77,10 @@ eval {
     $s3_path = $s3->store_content( $db, $test_download, \$test_content );
 };
 ok( ( !$@ ), "Storing content twice failed: $@" );
-ok( $s3_path,                                                                 'Object ID was returned' );
-ok( length( $s3_path ) == length( 's3:' . $test_download->{ downloads_id } ), 'Object ID is of the valid size' );
+ok( $s3_path, 'Object ID was returned' );
+$expected_path = 's3:' . $settings->{ downloads_folder_name } .
+  ( substr( $settings->{ downloads_folder_name }, -1, 1 ) ne '/' ? '/' : '' ) . $test_download->{ downloads_id };
+is( $s3_path, $expected_path, 'Object ID matches' );
 
 # Fetch content again, compare
 eval { $content_ref = $s3->fetch_content( $test_download ); };
