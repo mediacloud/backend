@@ -23,6 +23,7 @@ use URI;
 use URI::Escape;
 
 use MediaWords::CM::GuessDate;
+use MediaWords::CM::GuessDate::Result;
 use MediaWords::DB;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
@@ -448,10 +449,10 @@ END
         return ( $old_story_method, $old_story->{ publish_date } );
     }
 
-    my ( $date_method, $publish_date ) = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content );
-    if ( $publish_date )
+    my $date = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content );
+    if ( $date->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
     {
-        return ( $date_method, $publish_date );
+        return ( $date->{ guess_method }, $date->{ date } );
     }
 
     if ( $source_link && $source_link->{ stories_id } )
@@ -679,8 +680,8 @@ END
         my $story_epoch     = MediaWords::Util::SQL::get_epoch_from_sql_date( $story->{ publish_date } );
 
         # if the stories aren't within a week, be more careful about matching
-        if ( ( $dup_story_epoch >= ( $story_epoch - ( 7 * 86400 ) ) ) &&
-             ( $dup_story_epoch <= ( $story_epoch + ( 7 * 86400 ) ) ) )
+        if (   ( $dup_story_epoch >= ( $story_epoch - ( 7 * 86400 ) ) )
+            && ( $dup_story_epoch <= ( $story_epoch + ( 7 * 86400 ) ) ) )
         {
             return $dup_story;
         }
