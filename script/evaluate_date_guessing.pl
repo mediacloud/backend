@@ -50,10 +50,47 @@ sub main()
     my $db = MediaWords::DB::connect_to_db();
 
     # Counts
-    my $guesses_total                 = 0;
-    my $guesses_correct_exact         = 0;
-    my $guesses_correct_sameday       = 0;    # same calendar day
-    my $guesses_correct_within24hours = 0;    # +/- 24 hours
+    my $guesses = {
+        _total  => 0,
+        correct => {
+            _total   => 0,
+            dateable => {    # both stories are dateable
+                _total   => 0,    # either exact match or within the same calendar day
+                exact    => 0,    # exact match
+                same_day => 0,    # within the same calendar day
+            },
+            undateable => {
+                _total       => 0,
+                not_found    => 0,    # date not found on both stories
+                inapplicable => 0,    # date not applicable to both stories
+            },
+        },
+        incorrect => {
+            _total   => 0,            # any kind of incorrect matches
+            dateable => {             # when both stories are dateable
+                _total                => 0,
+                up_to_1_day           => 0,    # (0; 24) hours
+                from_1_day_to_3_days  => 0,    # [24; 72) hours
+                from_3_days_to_7_days => 0,    # [72; 168) hours
+                more_than_7_days      => 0,    # [168; inf) hours
+            },
+            undateable => {                    # when one of the stories is undateable
+                _total        => 0,
+                expected_date => {
+                    got_not_found    => 0,
+                    got_inapplicable => 0,
+                },
+                expected_not_found => {
+                    got_date         => 0,
+                    got_inapplicable => 0,
+                },
+                expected_inapplicable => {
+                    got_date      => 0,
+                    got_not_found => 0,
+                },
+            },
+        },
+    };
 
     my $csv = Text::CSV->new( { binary => 1 } ) or die "Cannot use CSV: " . Text::CSV->error_diag();
     open my $fh, "<:encoding(utf8)", $ARGV[ 0 ] or die $ARGV[ 0 ] . ": $!";
@@ -96,7 +133,6 @@ sub main()
         my $do_not_differentiate_between_not_found_and_inapplicable = 0;
         unless ( ref( $guessed_result ) )
         {
-            $do_not_differentiate_between_not_found_and_inapplicable = 1;
             my $guessed_timestamp = Date::Parse::str2time( $guessed_result, 'GMT' );
             $guessed_result = MediaWords::CM::GuessDate::Result->new();
             if ( $guessed_timestamp )
@@ -114,60 +150,163 @@ sub main()
           " (" . ( $guessed_result->{ timestamp } || 'undef' ) . "), guessed with '" .
           ( $guessed_result->{ guess_method } || '-' ) . "'";
 
-        ++$guesses_total;
+        # Write down numbers
+        ++$guesses->{ _total };
         if (    $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND
             and $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
         {
+            # Both are dateable
 
             if ( $actual_result->{ timestamp } == $guessed_result->{ timestamp } )
             {
                 say STDERR "\tExact match";
-                ++$guesses_correct_exact;
+                ++$guesses->{ correct }->{ _total };
+                ++$guesses->{ correct }->{ dateable }->{ _total };
+                ++$guesses->{ correct }->{ dateable }->{ exact };
             }
 
             elsif ( strftime( "%a %b %e", gmtime( $actual_result->{ timestamp } ) ) eq
                 strftime( "%a %b %e", gmtime( $guessed_result->{ timestamp } ) ) )
             {
                 say STDERR "\tMatch within the same calendar day";
-                ++$guesses_correct_sameday;
-            }
+                ++$guesses->{ correct }->{ _total };
+                ++$guesses->{ correct }->{ dateable }->{ _total };
+                ++$guesses->{ correct }->{ dateable }->{ same_day };
 
-            elsif ( max( $actual_result->{ timestamp }, $guessed_result->{ timestamp } ) -
-                min( $actual_result->{ timestamp }, $guessed_result->{ timestamp } ) < 60 * 60 * 24 )
+            }
+            else
             {
-                say STDERR "\tMatch within 24 hours";
-                ++$guesses_correct_within24hours;
+
+                ++$guesses->{ incorrect }->{ _total };
+                ++$guesses->{ incorrect }->{ dateable }->{ _total };
+
+                my $difference =
+                  max( $actual_result->{ timestamp }, $guessed_result->{ timestamp } ) -
+                  min( $actual_result->{ timestamp }, $guessed_result->{ timestamp } );
+
+                if ( $difference < 60 * 60 * 24 )
+                {
+                    say STDERR "\tMatch within (0; 24) hours";
+                    ++$guesses->{ incorrect }->{ dateable }->{ up_to_1_day };
+
+                }
+                elsif ( $difference >= 60 * 60 * 24 and $difference < 60 * 60 * 24 * 3 )
+                {
+                    say STDERR "\tMatch within [24; 72) hours";
+                    ++$guesses->{ incorrect }->{ dateable }->{ from_1_day_to_3_days };
+
+                }
+                elsif ( $difference >= 60 * 60 * 24 * 3 and $difference < 60 * 60 * 24 * 7 )
+                {
+                    say STDERR "\tMatch within [72; 168) hours";
+                    ++$guesses->{ incorrect }->{ dateable }->{ from_3_days_to_7_days };
+
+                }
+                else
+                {
+                    say STDERR "\tMatch within [168; inf) hours";
+                    ++$guesses->{ incorrect }->{ dateable }->{ more_than_7_days };
+
+                }
 
             }
 
         }
         else
         {
+            # One of the stories is undateable (either date not found or dating is inapplicable)
 
-            unless ( $do_not_differentiate_between_not_found_and_inapplicable )
+            if ( $actual_result->{ result } eq $guessed_result->{ result } )
             {
-                # If both are undefined, that might be a correct match too
-                if ( $actual_result->{ result } eq $guessed_result->{ result } )
+                say STDERR "\tExact match (both '" . $actual_result->{ result } . "')";
+
+                if ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
                 {
-                    say STDERR "\tExact match (both '" . $actual_result->{ result } . "')";
-                    ++$guesses_correct_exact;
+                    ++$guesses->{ correct }->{ _total };
+                    ++$guesses->{ correct }->{ undateable }->{ _total };
+                    ++$guesses->{ correct }->{ undateable }->{ not_found };
+
                 }
+                elsif ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                {
+                    ++$guesses->{ correct }->{ _total };
+                    ++$guesses->{ correct }->{ undateable }->{ _total };
+                    ++$guesses->{ correct }->{ undateable }->{ inapplicable };
+
+                }
+                else
+                {
+                    die "Not configured for result " . $actual_result->{ result };
+
+                }
+
             }
             else
             {
 
-                if (
-                    (
-                           $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND
-                        or $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE
-                    )
-                    and (  $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND
-                        or $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
-                  )
+                say STDERR "\tMismatch (expected: " .
+                  $actual_result->{ result } . "; got: " . $guessed_result->{ result } . " )";
+
+                ++$guesses->{ incorrect }->{ _total };
+                ++$guesses->{ incorrect }->{ undateable }->{ _total };
+
+                if ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
                 {
-                    say STDERR "\tExact match (both either 'not found' or 'inapplicable')";
-                    ++$guesses_correct_exact;
+
+                    if ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
+                    {
+                        ++$guesses->{ incorrect }->{ undateable }->{ expected_date }->{ got_not_found };
+                    }
+                    elsif ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                    {
+                        ++$guesses->{ incorrect }->{ undateable }->{ expected_date }->{ got_inapplicable };
+                    }
+                    else
+                    {
+                        die "Not configured for result " . $guessed_result->{ result };
+                    }
+
                 }
+                elsif ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
+                {
+
+                    if ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+                    {
+                        ++$guesses->{ incorrect }->{ undateable }->{ expected_not_found }->{ got_date };
+                    }
+                    elsif ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                    {
+                        ++$guesses->{ incorrect }->{ undateable }->{ expected_not_found }->{ got_inapplicable };
+                    }
+                    else
+                    {
+                        die "Not configured for result " . $guessed_result->{ result };
+                    }
+
+                }
+                elsif ( $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+                {
+
+                    if ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
+                    {
+                        ++$guesses->{ incorrect }->{ undateable }->{ expected_inapplicable }->{ got_date };
+                    }
+                    elsif ( $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::NOT_FOUND )
+                    {
+                        ++$guesses->{ incorrect }->{ undateable }->{ expected_inapplicable }->{ got_not_found };
+                    }
+                    else
+                    {
+                        die "Not configured for result " . $guessed_result->{ result };
+                    }
+
+                }
+                else
+                {
+                    die "Not configured for result " . $actual_result->{ result };
+
+                }
+
             }
 
         }
@@ -178,10 +317,7 @@ sub main()
     $csv->eof or $csv->error_diag();
     close $fh;
 
-    say STDERR "Total dates guessed: $guesses_total";
-    say STDERR "Correct guesses - exact: $guesses_correct_exact";
-    say STDERR "Correct guesses - same calendar day: $guesses_correct_sameday";
-    say STDERR "Correct guesses - within 24 hours: $guesses_correct_within24hours";
+    say STDERR Dumper( $guesses );
 }
 
 main();
