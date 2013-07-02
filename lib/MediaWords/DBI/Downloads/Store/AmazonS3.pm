@@ -15,18 +15,30 @@ use MediaWords::Util::Config;
 use Net::Amazon::S3;
 use Net::Amazon::S3::Client;
 use Net::Amazon::S3::Client::Bucket;
+use POSIX qw(floor);
 
 # Should the Amazon S3 module use secure (SSL-encrypted) connections?
 use constant AMAZON_S3_USE_SSL => 0;
 
 # How many seconds should the module wait before bailing on a request to S3 (in seconds)
-use constant AMAZON_S3_TIMEOUT => 10;
+# (Timeout should "fit in" at least AMAZON_S3_READ_ATTEMPTS number of retries
+# within the time period)
+use constant AMAZON_S3_TIMEOUT => 60;
 
 # Check if content exists before storing (good for debugging, slows down the stores)
 use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING => 1;
 
 # Check if content exists before fetching (good for debugging, slows down the fetches)
 use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING => 1;
+
+# Check if content exists before deleting (good for debugging, slows down the deletes)
+use constant AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING => 1;
+
+# S3's number of read / write attempts
+# (in case waiting 20 seconds for the read / write to happen doesn't help, the instance should
+# retry writing a couple of times)
+use constant AMAZON_S3_READ_ATTEMPTS  => 3;
+use constant AMAZON_S3_WRITE_ATTEMPTS => 3;
 
 # Net::Amazon::S3 instance, bucket (lazy-initialized to prevent multiple forks using the same object)
 has '_s3'                       => ( is => 'rw' );
@@ -53,6 +65,15 @@ sub BUILD
     else
     {
         $self->_use_testing_database( 0 );
+    }
+
+    if ( AMAZON_S3_READ_ATTEMPTS < 1 )
+    {
+        die "AMAZON_S3_READ_ATTEMPTS must be >= 1\n";
+    }
+    if ( AMAZON_S3_WRITE_ATTEMPTS < 1 )
+    {
+        die "AMAZON_S3_WRITE_ATTEMPTS must be >= 1\n";
     }
 
     $self->_pid( $$ );
@@ -106,6 +127,14 @@ sub _initialize_s3_or_die($)
         $downloads_folder_name .= '/';
     }
 
+    # Timeout should "fit in" at least AMAZON_S3_READ_ATTEMPTS number of retries
+    # within the time period
+    my $request_timeout = floor( ( AMAZON_S3_TIMEOUT / AMAZON_S3_READ_ATTEMPTS ) - 1 );
+    if ( $request_timeout < 10 )
+    {
+        die "Amazon S3 request timeout ($request_timeout) too small.\n";
+    }
+
     # Initialize
     $self->_s3_downloads_folder_name( $downloads_folder_name || '' );
     $self->_s3(
@@ -114,7 +143,7 @@ sub _initialize_s3_or_die($)
             aws_secret_access_key => $secret_access_key,
             retry                 => 1,
             secure                => AMAZON_S3_USE_SSL,
-            timeout               => AMAZON_S3_TIMEOUT
+            timeout               => $request_timeout
         )
     );
     unless ( $self->_s3 )
@@ -184,9 +213,12 @@ sub remove_content($$)
 
     $self->_initialize_s3_or_die();
 
-    unless ( $self->content_exists( $download ) )
+    if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING )
     {
-        die "AmazonS3: download ID " . $download->{ downloads_id } . " does not exist.\n";
+        unless ( $self->content_exists( $download ) )
+        {
+            die "AmazonS3: download ID " . $download->{ downloads_id } . " does not exist.\n";
+        }
     }
 
     my $object = $self->_object_for_download( $download );
@@ -223,11 +255,43 @@ sub store_content($$$$;$)
         $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
     }
 
-    # Store; will die() on failure
-    my $object = $self->_object_for_download( $download );
-    $object->put( $content_to_store );
+    my $write_was_successful = 0;
+    my $object;
 
-    return 's3:' . $download->{ downloads_id };
+    # S3 sometimes times out when writing, so we'll try to write several times
+    for ( my $retry = 0 ; $retry < AMAZON_S3_WRITE_ATTEMPTS ; ++$retry )
+    {
+        if ( $retry > 0 )
+        {
+            say STDERR "Retrying ($retry)...";
+        }
+
+        eval {
+
+            # Store; will die() on failure
+            $object = $self->_object_for_download( $download );
+            $object->put( $content_to_store );
+            $write_was_successful = 1;
+
+        };
+
+        if ( $@ )
+        {
+            say STDERR "Attempt to write to '" . $download->{ downloads_id } . "' didn't succeed because: $@";
+        }
+        else
+        {
+            last;
+        }
+    }
+
+    unless ( $write_was_successful )
+    {
+        die "Unable to write '" .
+          $download->{ downloads_id } . "' from Amazon S3 after " . AMAZON_S3_WRITE_ATTEMPTS . " retries.\n";
+    }
+
+    return 's3:' . $object->key;
 }
 
 # Moose method
@@ -245,9 +309,40 @@ sub fetch_content($$;$)
         }
     }
 
-    # Read; will die() on failure
-    my $object          = $self->_object_for_download( $download );
-    my $gzipped_content = $object->get;
+    my $object;
+    my $gzipped_content;
+
+    # S3 sometimes times out when reading, so we'll try to read several times
+    for ( my $retry = 0 ; $retry < AMAZON_S3_READ_ATTEMPTS ; ++$retry )
+    {
+        if ( $retry > 0 )
+        {
+            say STDERR "Retrying ($retry)...";
+        }
+
+        eval {
+
+            # Read; will die() on failure
+            $object          = $self->_object_for_download( $download );
+            $gzipped_content = $object->get;
+
+        };
+
+        if ( $@ )
+        {
+            say STDERR "Attempt to read from '" . $download->{ downloads_id } . "' didn't succeed because: $@";
+        }
+        else
+        {
+            last;
+        }
+    }
+
+    unless ( defined $gzipped_content )
+    {
+        die "Unable to read '" .
+          $download->{ downloads_id } . "' from Amazon S3 after " . AMAZON_S3_READ_ATTEMPTS . " retries.\n";
+    }
 
     # Gunzip + decode
     my $decoded_content;
