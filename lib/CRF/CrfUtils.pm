@@ -30,7 +30,7 @@ BEGIN
     #Assumes Unix fix later.
     $class_path = scalar( join ':', ( map { "$jar_dir/$_" } @{ $jars } ) );
 
-    say STDERR "classpath: $class_path";
+    #say STDERR "classpath: $class_path";
 }
 
 sub output_testing_and_training
@@ -151,7 +151,7 @@ sub _create_tmp_file_from_array
     print $test_data_fh join "\n", @{ $test_data_array };
 
     close( $test_data_fh );
-    
+
     return $test_data_file_name;
 }
 
@@ -165,7 +165,6 @@ sub run_model_with_tmp_file
 
     return $foo;
 }
-
 
 sub run_model_with_separate_exec
 {

@@ -1,8 +1,12 @@
 #
-#     doc/carton.txt
-# for instructions on how to add a new Perl module dependency.
-# See:
 # This file lists *direct* Perl module dependencies of Media Cloud.
+#
+# See:
+#
+#     doc/carton.txt
+#
+# for instructions on how to add a new Perl module dependency.
+#
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
@@ -74,6 +78,7 @@ requires 'List::Pairwise';
 requires 'List::Uniq';
 requires 'Locale::Country::Multilingual';
 requires 'Log::Log4perl';
+requires 'LWP::Protocol::https';
 requires 'Math::Random';
 requires 'Modern::Perl';
 requires 'MongoDB', '0.700.0';
@@ -86,6 +91,7 @@ requires 'Perl::Tidy';
 requires 'RDF::Simple::Parser';
 requires 'Readonly';
 requires 'Regexp::Common';
+requires 'Regexp::Common::time';
 requires 'Smart::Comments';
 requires 'Statistics::Basic';
 requires 'Term::Prompt';

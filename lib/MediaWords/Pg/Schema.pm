@@ -197,7 +197,7 @@ sub add_functions
 
 # removes all relations belonging to a given schema
 # default schema is 'public'
-sub _reset_schema
+sub reset_schema($;$)
 {
     my ( $db, $schema ) = @_;
 
@@ -223,10 +223,6 @@ sub _reset_schema
 
         $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
 
-        #removes schema used by dklab enum procedures
-        #schema will be re-added in dklab sqlfile
-        $db->query( "DROP SCHEMA IF EXISTS enum CASCADE" );
-
         my $postgres_version = $db->query( 'SELECT VERSION() AS version' )->hash;
         $postgres_version = $postgres_version->{ version };
         $postgres_version =~ s/^\s+//;
@@ -239,15 +235,36 @@ sub _reset_schema
             $db->query( "DROP EXTENSION IF EXISTS plpgsql CASCADE" );
         }
         $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE" );
-        $db->query( "DROP SCHEMA IF EXISTS stories_tags_map_media_sub_tables CASCADE" );
 
         $SIG{ __WARN__ } = $old_handler;
     }
 
     $db->query( "CREATE LANGUAGE plpgsql" );
-    $db->query( "CREATE SCHEMA $schema" );
+
+    # "enum" schema will be created later so don't recreate it here
+    if ( $schema ne 'enum' )
+    {
+        $db->query( "CREATE SCHEMA $schema" );
+    }
 
     return undef;
+}
+
+# recreates all schemas
+sub reset_all_schemas($)
+{
+    my ( $db ) = @_;
+
+    reset_schema( $db, 'public' );
+
+    # removes schema used by dklab enum procedures
+    # schema will be re-added in dklab sqlfile
+    reset_schema( $db, 'enum' );
+
+    # schema to hold all of the controversy dump snapshot tables
+    reset_schema( $db, 'cd' );
+
+    reset_schema( $db, 'stories_tags_map_media_sub_tables' );
 }
 
 # loads and runs a given SQL file
@@ -317,7 +334,7 @@ sub recreate_db
 
         say STDERR "reset schema ...";
 
-        _reset_schema( $db );
+        reset_all_schemas( $db );
         say STDERR "add functions ...";
         MediaWords::Pg::Schema::add_functions( $db );
 

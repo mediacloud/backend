@@ -8,6 +8,8 @@ use parent 'Catalyst::Controller';
 
 use List::Compare;
 
+use MediaWords::CM::Dump;
+
 sub index : Path : Args(0)
 {
 
@@ -259,6 +261,62 @@ END
     return $latest_dump;
 }
 
+# medium_stories, inlink_stories, and outlink_stories and associated
+# counts to the medium.
+#
+# assumes the existence of dump_* stories as created by either:
+# MediaWords::CM::Dump::create_temporary_dump_view or
+sub _add_medium_stories_from_dump_tables
+{
+    my ( $db, $medium ) = @_;
+
+    my $media_id = $medium->{ media_id };
+
+    $medium->{ stories } = $db->query( <<'END', $media_id )->hashes;
+select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
+    from dump_stories s, dump_media m, dump_story_link_counts slc
+    where 
+        s.stories_id = slc.stories_id and
+        s.media_id = m.media_id and
+        s.media_id = ?
+    order by slc.inlink_count desc
+END
+
+    $medium->{ inlink_stories } = $db->query( <<'END', $media_id )->hashes;
+select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, dump_media sm, 
+        dump_stories r, dump_story_link_counts rslc,
+        dump_controversy_links_cross_media cl
+    where 
+        s.stories_id = sslc.stories_id and
+        r.stories_id = rslc.stories_id and
+        s.media_id = sm.media_id and
+        s.stories_id = cl.stories_id and
+        r.stories_id = cl.ref_stories_id and
+        r.media_id = ?        
+    order by sslc.inlink_count desc
+END
+
+    $medium->{ outlink_stories } = $db->query( <<'END', $media_id )->hashes;
+select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, 
+        dump_stories r, dump_story_link_counts rslc, dump_media rm, 
+        dump_controversy_links_cross_media cl
+    where 
+        s.stories_id = sslc.stories_id and
+        r.stories_id = rslc.stories_id and
+        r.media_id = rm.media_id and
+        s.stories_id = cl.stories_id and
+        r.stories_id = cl.ref_stories_id and
+        s.media_id = ?
+    order by rslc.inlink_count desc
+END
+
+    $medium->{ story_count }   = scalar( @{ $medium->{ stories } } );
+    $medium->{ inlink_count }  = scalar( @{ $medium->{ inlink_stories } } );
+    $medium->{ outlink_count } = scalar( @{ $medium->{ outlink_stories } } );
+}
+
 # get data about the medium as it existed in the given time slice.  include medium_stories,
 # inlink_stories, and outlink_stories from the time slice as well.
 sub _get_cdts_medium_and_stories
@@ -267,74 +325,14 @@ sub _get_cdts_medium_and_stories
 
     my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
 
-    my $medium = $db->query( <<END, $cdts_id, $media_id )->hash;
-select m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
-    from cd.media m, cd.medium_link_counts mlc, controversy_dump_time_slices cdts
-    where m.media_id = mlc.media_id and
-        cdts.controversy_dump_time_slices_id = ? and
-        m.media_id = ? and
-        mlc.controversy_dump_time_slices_id = cdts.controversy_dump_time_slices_id and
-        m.controversy_dumps_id = cdts.controversy_dumps_id
-END
+    MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
 
-    $medium->{ stories } = $db->query( <<END, $cdts_id, $media_id )->hashes;
-select s.*, slc.inlink_count, slc.outlink_count, m.name medium_name
-    from cd.stories s, cd.story_link_counts slc, controversy_dump_time_slices cdts, cd.media m
-    where s.stories_id = slc.stories_id and
-        cdts.controversy_dump_time_slices_id = ? and
-        s.media_id = ? and
-        s.controversy_dumps_id = cdts.controversy_dumps_id and
-        slc.controversy_dump_time_slices_id = cdts.controversy_dump_time_slices_id and
-        m.media_id = s.media_id and
-        m.controversy_dumps_id = cdts.controversy_dumps_id
-    order by slc.inlink_count desc
-END
+    my $medium = $db->query( "select * from dump_media where media_id = ?", $media_id )->hash;
 
-    $medium->{ inlink_stories } = $db->query( <<'END', $media_id, $cdts_id )->hashes;
-select a.*, q.story_count, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from cd.stories a, cd.media m, cd.story_link_counts slc, 
-        ( select cdts.controversy_dumps_id, s.stories_id, count(*) story_count
-            from cd.stories s, cd.stories r, 
-                cd.controversy_links_cross_media cl, controversy_dump_time_slices cdts
-            where s.stories_id = cl.stories_id and
-                cl.ref_stories_id = r.stories_id and
-                r.media_id = $1 and
-                cdts.controversy_dump_time_slices_id = $2 and
-                s.controversy_dumps_id = cdts.controversy_dumps_id and
-                r.controversy_dumps_id = cdts.controversy_dumps_id
-            group by cdts.controversy_dumps_id, s.stories_id
-        ) q
-    where q.stories_id = a.stories_id and
-        a.controversy_dumps_id = q.controversy_dumps_id and
-        a.media_id = m.media_id and
-        m.controversy_dumps_id = q.controversy_dumps_id and
-        slc.stories_id = q.stories_id and
-        slc.controversy_dump_time_slices_id = $2
-    order by slc.inlink_count desc
-END
+    _add_medium_stories_from_dump_tables( $db, $medium );
 
-    $medium->{ outlink_stories } = $db->query( <<'END', $media_id, $cdts_id )->hashes;
-select a.*, q.story_count, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from cd.stories a, cd.media m, cd.story_link_counts slc, 
-        ( select cdts.controversy_dumps_id, r.stories_id, count(*) story_count
-            from cd.stories s, cd.stories r, 
-                cd.controversy_links_cross_media cl, controversy_dump_time_slices cdts
-            where s.stories_id = cl.stories_id and
-                cl.ref_stories_id = r.stories_id and
-                s.media_id = $1 and
-                cdts.controversy_dump_time_slices_id = $2 and
-                s.controversy_dumps_id = cdts.controversy_dumps_id and
-                r.controversy_dumps_id = cdts.controversy_dumps_id
-            group by cdts.controversy_dumps_id, r.stories_id
-        ) q
-    where q.stories_id = a.stories_id and
-        a.controversy_dumps_id = q.controversy_dumps_id and
-        a.media_id = m.media_id and
-        m.controversy_dumps_id = q.controversy_dumps_id and
-        slc.stories_id = q.stories_id and 
-        slc.controversy_dump_time_slices_id = $2
-    order by slc.inlink_count desc
-END
+    # discard temp tables
+    $db->query( "discard temp" );
 
     return $medium;
 }
@@ -343,81 +341,18 @@ END
 # inlink_stories, and outlink_stories.
 sub _get_live_medium_and_stories
 {
-    my ( $db, $controversy, $media_id ) = @_;
+    my ( $db, $controversy, $cdts, $media_id ) = @_;
 
     my $c_id = $controversy->{ controversies_id };
 
-    my $medium = $db->find_by_id( 'media', $media_id );
+    MediaWords::CM::Dump::write_story_link_counts_dump_tables( $db, $controversy, $cdts );
 
-    $db->begin;
+    my $medium = $db->query( "select * from media where media_id = ?", $media_id )->hash;
 
-    # cache a few tables that we use repeatedly below;
-    $db->query( <<END, $c_id );
-create temporary table cached_controversy_links_cross_media on commit drop as 
-    select * from controversy_links_cross_media
-        where controversies_id = ?
-END
+    _add_medium_stories_from_dump_tables( $db, $medium );
 
-    $db->query( <<'END' );
-create temporary table cached_story_link_counts on commit drop as
-    select csa.stories_id, coalesce( ilc.inlink_count, 0 ) inlink_count, 
-            coalesce( olc.outlink_count, 0 ) outlink_count
-        from controversy_stories csa 
-            left join 
-                ( select cl.ref_stories_id, count(*) inlink_count 
-                    from cached_controversy_links_cross_media cl
-                    group by cl.ref_stories_id ) ilc on ( csa.stories_id = ilc.ref_stories_id )
-            left join 
-                ( select cl.stories_id, count(*) outlink_count 
-                    from cached_controversy_links_cross_media cl
-                    group by cl.stories_id ) olc on ( csa.stories_id = olc.stories_id )
-END
-
-    $medium->{ stories } = $db->query( <<'END', $c_id, $media_id )->hashes;
-select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from stories s, controversy_stories cs, media m, cached_story_link_counts slc
-    where s.stories_id = cs.stories_id and
-        s.stories_id = slc.stories_id and
-        s.media_id = m.media_id and
-        cs.controversies_id = $1 and
-        s.media_id = $2 
-    order by slc.inlink_count desc
-END
-
-    $medium->{ inlink_stories } = $db->query( <<'END', $media_id, $c_id )->hashes;
-select s.*, sm.name medium_name, slc.inlink_count, slc.outlink_count
-    from stories s, media sm, stories r, cached_controversy_links_cross_media cl,
-        cached_story_link_counts slc
-    where 
-        s.media_id = sm.media_id and
-        s.stories_id = cl.stories_id and
-        r.stories_id = cl.ref_stories_id and
-        s.stories_id = slc.stories_id and
-        r.media_id = ? and
-        cl.controversies_id = ?
-    order by slc.inlink_count desc
-END
-
-    $medium->{ outlink_stories } = $db->query( <<'END', $media_id, $c_id )->hashes;
-select r.*, rm.name medium_name, slc.inlink_count, slc.outlink_count
-    from stories s, stories r, media rm, cached_controversy_links_cross_media cl,
-        cached_story_link_counts slc
-    where 
-        r.media_id = rm.media_id and
-        s.stories_id = cl.stories_id and
-        r.stories_id = cl.ref_stories_id and
-        s.stories_id = slc.stories_id and
-        s.media_id = ? and
-        cl.controversies_id = ?
-    order by slc.inlink_count desc
-END
-
-    $medium->{ story_count }   = scalar( @{ $medium->{ stories } } );
-    $medium->{ inlink_count }  = scalar( @{ $medium->{ inlink_stories } } );
-    $medium->{ outlink_count } = scalar( @{ $medium->{ outlink_stories } } );
-
-    # commit to drop the temp tables
-    $db->commit;
+    # discard temp tables
+    $db->query( "discard temp" );
 
     return $medium;
 }
@@ -425,16 +360,31 @@ END
 # view live data for medium
 sub live_medium : Local
 {
-    my ( $self, $c, $controversies_id, $media_id ) = @_;
+    my ( $self, $c, $media_id ) = @_;
 
     my $db = $c->dbis;
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id );
+    my ( $controversy, $cdts );
+    if ( my $cdts_id = $c->req->param( 'cdts' ) )
+    {
+        $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
+        $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
+select c.* from controversies c, controversy_dumps cd
+    where c.controversies_id = cd.controversies_id and 
+        cd.controversy_dumps_id = ?
+END
+    }
+    else
+    {
+        $controversy = $db->find_by_id( 'controversies', $c->req->param( 'c' ) );
+    }
 
-    my $medium = _get_live_medium_and_stories( $db, $controversy, $media_id );
+    my $medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
 
     $c->stash->{ controversy } = $controversy;
+    $c->stash->{ cdts }        = $cdts;
     $c->stash->{ medium }      = $medium;
+    $c->stash->{ live }        = 1;
     $c->stash->{ template }    = 'cm/medium.tt2';
 }
 
@@ -487,7 +437,7 @@ sub medium : Local
     my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
 
     my $medium = _get_cdts_medium_and_stories( $db, $cdts, $media_id );
-    my $live_medium = _get_live_medium_and_stories( $db, $controversy, $media_id );
+    my $live_medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
 
     my $live_medium_diffs = _get_live_medium_diffs( $medium, $live_medium );
 
