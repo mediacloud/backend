@@ -13,6 +13,7 @@ use MediaWords::Util::HTML;
 use MediaWords::Util::Web;
 use MediaWords::Tagger;
 use MediaWords::Util::Config;
+use MediaWords::Util::Tags;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 use MediaWords::DBI::Downloads;
 use List::Compare;
@@ -838,6 +839,27 @@ END
     {
         restore_download_content( $db, $download, $download->{ content } );
     }
+}
+
+# confirm that the date for the story is correct by changing the date_guess_method of the given
+# story to 'manual'
+sub confirm_date
+{
+    my ( $db, $story ) = @_;
+
+    $db->query( <<END, $story->{ stories_id } );
+delete from stories_tags_map stm
+    using tags t, tag_sets ts
+    where t.tag_sets_id = ts.tag_sets_id and
+        stm.tags_id = t.tags_id and
+        ts.name = 'date_guess_method' and
+        stm.stories_id = ?
+END
+
+    my $t = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
+    $db->query( <<END, $story->{ stories_id }, $t->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+END
 }
 
 1;

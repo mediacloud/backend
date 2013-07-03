@@ -1,25 +1,22 @@
 [% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
 [% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
 
-[% title = 'CM: Medium ' _ medium.name | html %]
+[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
+
+[% title = "CM: Medium $medium.name for the $cdts_date_range Time Slice" | html %]
 
 [% INCLUDE include/header.tt2 %]
 
 <div id="warning_box">
 
 
-[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
 
 [% IF live %]
-You are viewing the live medium, as it currently exists in the database.
+You are viewing the live medium, as it currently exists in the database, for the [% cdts_date_range %] time slice.
 [% ELSE %]
 
-This page is displaying a frozen snapshot of the [% medium.name %] medium, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
+This page is displaying a frozen snapshot of the [% medium.name | html %] medium, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this medium will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
 
-[% live_medium_url = 
-    c.uri_for( '/admin/cm/live_medium/' _ medium.media_id, 
-               { c => controversy.controversies_id, 
-                 cdts => cdts.controversy_dump_time_slices_id } ) %]
 <p>
 [% IF live_medium_diffs %]
 <b>
@@ -29,8 +26,14 @@ This medium differs in the following ways from the live version: [% live_medium_
 This medium is the same as the live version.
 [% END %]
 
-The details of stories (but not links) below may be different. To view the live version of this medium, go 
-<a href="[%  live_medium_url  | html %]">here</a>.
+The details of stories (but not links) below may be different. 
+
+[% IF live_medium %]
+    [% live_medium_url = 
+        c.uri_for( '/admin/cm/medium/' _ medium.media_id, { cdts => cdts.controversy_dump_time_slices_id, l => 1 } ) %]
+To view the live version of this medium, go <a href="[%  live_medium_url  | html %]">here</a>.
+[% END %]
+
 </p>
 
 [% IF latest_controversy_dump %]
@@ -42,17 +45,33 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 [% END %]
 
 </div>
-    
-<p>Basic Data for [% medium.name %] [% IF cdts %] during [% cdts_date_range %] [% END %]
-[<a href="[% c.uri_for( '/admin/media/edit_do/' ) _ medium.media_id _'?cdts_id=' _ cdts.controversy_dump_time_slices_id | html %]">edit</a>]</p>
+
+[% MACRO live_medium_diff( field )
+       IF !live;
+            IF medium.$field != live_medium.$field;
+                '(live: ' _ live_medium.$field _ ' )';
+            END;
+       END;
+%]
+
+[% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id ) %]
+
+<p>Basic Data for [% medium.name | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
+[<a href="[% edit_url | html %]">edit</a>]</p>
 <table>
 
     <tr><td>Media_id</td><td>[% medium.media_id %]</td></tr>
-    <tr id="even"><td>Name</td><td>[% medium.name | html %]</td></tr>
-    <tr><td>Url</td><td><a href="[% medium.url | html %]" target="blank">[% medium.url | html %]</td></tr>
-    <tr id="even"><td># Stories</td><td>[% medium.story_count %]</td></tr>
-    <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %]</td></tr>
-    <tr id="even"><td># Outgoing Story Links</td><td>[% medium.outlink_count %]</td></tr>
+    <tr id="even"><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
+    <tr>
+        <td>Url</td>
+        <td>
+            <a href="[% medium.url | html %]" target="blank">[% medium.url | html %]</a> 
+            [% live_medium_diff( 'url' ) | html %]
+        </td>
+    </tr>
+    <tr id="even"><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
+    <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %] [% live_medium_diff( 'inlink_count' ) | html %]</td></tr>
+    <tr id="even"><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
     
 </table>
 

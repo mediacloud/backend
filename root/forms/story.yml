@@ -18,8 +18,6 @@ elements:
     cols: 30
     rows: 10
     comment: description of the story
-    constraints:
-        - Required
 
   - type: DateTime
     name: publish_date
@@ -32,6 +30,13 @@ elements:
     comment: publish date of the story
     constraints:
         - Required
+        
+  - type: Checkbox
+    name: confirm_date
+    label: Confirm Date
+    comment: confirm that the above date is the publication date for this story
+    value: 1
+    default_empty_value: true
 
   - type: Text
     name: reason
@@ -42,4 +47,5 @@ elements:
         - Required
 
   - type: Submit
+    name: submit
     value: Save

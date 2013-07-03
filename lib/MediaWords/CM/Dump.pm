@@ -72,20 +72,33 @@ sub get_snapshot_tables
     return [ @{ $_snapshot_tables } ];
 }
 
-# create all of the temporary tables needed to create the dump_story_link_counts
-# tables, inclusive
-sub write_story_link_counts_dump_tables
+# create all of the temporary dump* tables other than medium_links and story_links
+sub write_live_dump_tables
 {
     my ( $db, $controversy, $cdts ) = @_;
 
-    write_temporary_dump_tables( $db, $controversy->{ controversies_id } );
+    my $controversies_id;
+    if ( $controversy )
+    {
+        $controversies_id = $controversy->{ controversies_id };
+    }
+    else
+    {
+        my $cd = $db->find_by_id( 'controversy_dumps', $cdts->{ controversy_dumps_id } );
+        $controversies_id = $cd->{ controversies_id };
+    }
+
+    write_temporary_dump_tables( $db, $controversies_id );
     write_period_stories( $db, $cdts );
     write_story_link_counts_dump( $db, $cdts, 1 );
+    write_medium_link_counts_dump( $db, $cdts, 1 );
 }
 
 # create temporary view of all the dump_* tables that call into the cd.* tables.
 # this is useful for writing queries on the cd.* tables without lots of ugly
-# joins and clauses to cd and cdts
+# joins and clauses to cd and cdts.  It also provides the same set of dump_*
+# tables as provided by write_story_link_counts_dump_tables, so that the same
+# set of queries can run against either.
 sub create_temporary_dump_views
 {
     my ( $db, $cdts ) = @_;
@@ -816,7 +829,7 @@ END
         };
 
         $medium->{ view_medium } =
-          "[_mc_base_url_]/admin/cm/medium/$cdts->{ controversy_dump_time_slices_id }/$medium->{ media_id }";
+          "[_mc_base_url_]/admin/cm/medium/$medium->{ media_id }?cdts=$cdts->{ controversy_dump_time_slices_id }";
 
         my $j = 0;
         while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
@@ -1666,6 +1679,23 @@ END
     return $cd;
 }
 
+# analyze all of the snapshot tables because otherwise immediate queries to the
+# new dump ids offer trigger seq scans
+sub analyze_snapshot_tables
+{
+    my ( $db ) = @_;
+
+    print STDERR "analyzing tables...\n";
+
+    my $snapshot_tables   = get_snapshot_tables();
+    my $time_slice_tables = qw(story_links story_link_counts media_links media_link_counts);
+
+    for my $t ( @{ $snapshot_tables } )
+    {
+        $db->query( "analyze $t" );
+    }
+}
+
 # create a controversy_dump for the given controversy, start_date, end_date, and period
 sub dump_controversy ($$$$$)
 {
@@ -1707,6 +1737,8 @@ sub dump_controversy ($$$$$)
 
     write_date_counts_dump( $db, $cd, 'daily' );
     write_date_counts_dump( $db, $cd, 'weekly' );
+
+    analyze_snapshot_tables( $db );
 
     # write_cleanup_dumps( $db, $controversy ) if ( $cleanup_data );
 }

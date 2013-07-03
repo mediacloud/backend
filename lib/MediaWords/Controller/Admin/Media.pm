@@ -44,11 +44,7 @@ sub _make_edit_form
         }
     );
 
-    #print STDERR Dumper($c->request);
-
     $form->stash->{ c } = $c;
-
-    $form->process( $c->request );
 
     return $form;
 }
@@ -162,47 +158,22 @@ END
     }
 }
 
-# story a session variable if the cdts_id param is set so that we can know to go back
-# to the cdts after the edit once the form is submitted
-sub _remember_cdts_edit
-{
-    my ( $c, $media_id ) = @_;
-
-    my $cdts_id = $c->req->param( 'cdts_id' );
-
-    return unless ( $cdts_id );
-
-    $c->session->{ media_edit_cdts_ids }->{ $media_id } = { cdts_id => $cdts_id, time => time() };
-}
-
-# if the session data says this is a cdts edit that has not timed out, return the cdts_id
-# and forget the cdts edit for this media_id.  otherwise return false.
-sub _is_cdts_edit
-{
-    my ( $c, $media_id ) = @_;
-
-    my $cdts_edit = $c->session->{ media_edit_cdts_ids }->{ $media_id };
-
-    return unless ( $cdts_edit );
-
-    $c->session->{ media_edit_cdts_ids }->{ $media_id } = undef;
-
-    return ( $cdts_edit->{ time } > ( time() + 3600 ) ) ? undef : $cdts_edit->{ cdts_id };
-}
-
 sub edit_do : Local
 {
     my ( $self, $c, $id ) = @_;
 
     $id += 0;
 
-    my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
-
-    _remember_cdts_edit( $c, $id );
-
     my $form = $self->_make_edit_form( $c, $c->uri_for( "/admin/media/edit_do/$id" ) );
     my $medium = $c->dbis->find_by_id( 'media', $id ) || die( "unknown medium: $id" );
+
     $form->default_values( $medium );
+
+    $form->process( $c->req );
+
+    # # Save the original referer to the edit form so we can get back to that URL later on
+    my $el_referer = $form->get_element( { name => 'referer', type => 'Hidden' } );
+    $el_referer->value( $c->req->referer ) unless ( $el_referer->value );
 
     if ( !$form->submitted_and_valid )
     {
@@ -216,6 +187,7 @@ sub edit_do : Local
 
         # remove from copy so update_by_id doesn't try to update non-existent media field
         delete( $form_params->{ reason } );
+        delete( $form_params->{ referer } );
 
         # Set the database-compatible boolean checkbox values (otherwise they're empty strings)
         $form_params->{ full_text_rss }     ||= 0;
@@ -227,27 +199,27 @@ sub edit_do : Local
         $c->dbis->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edits', $form->params->{ reason },
             $c->user->username );
 
-        if ( my $cdts_id = _is_cdts_edit( $c, $id ) )
+        my $msg = "Media source updated.";
+        if ( $form->params->{ referer } )
         {
-            $c->response->redirect(
-                $c->uri_for( "/admin/cm/medium/$cdts_id/$id", { status_msg => 'Media source updated' } ) );
-            return;
+            my $uri = URI->new( $form->params->{ referer } );
+            $uri->query_param_delete( 'status_msg' );
+            $uri->query_param_append( 'status_msg' => $msg );
+            $c->res->redirect( $uri->as_string );
         }
         elsif ( $medium->{ moderated } )
         {
-            $c->response->redirect(
-                $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => 'Media source updated.' } ) );
-            return;
+            $c->res->redirect( $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => $msg } ) );
         }
         else
         {
-            $c->response->redirect(
+            my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
+            $c->res->redirect(
                 $c->uri_for(
                     '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
-                    { status_msg => 'Media source updated.', media_tags_id => $media_tags_id }
+                    { status_msg => $msg, media_tags_id => $media_tags_id }
                 )
             );
-            return;
         }
     }
 }
@@ -258,7 +230,6 @@ sub delete : Local
     my ( $self, $c, $id, $confirm ) = @_;
 
     my $media_tags_id = $c->request->param( 'media_tags_id' ) || 0;
-    say STDERR "Media tags ID for deletion: $media_tags_id";
 
     my $medium = $c->dbis->find_by_id( 'media', $id );
 

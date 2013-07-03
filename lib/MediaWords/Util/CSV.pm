@@ -55,17 +55,25 @@ sub send_hashes_as_csv_page
 }
 
 # given a file name, open the file, parse it as a csv, and return a list of hashes.
-# assumes that the csv includes a header line.
+# assumes that the csv includes a header line.  If normalize_column_names is true,
+# lowercase and underline column names ( 'Media type' -> 'media_type' )
 sub get_csv_as_hashes
 {
-    my ( $file ) = @_;
+    my ( $file, $normalize_column_names ) = @_;
 
     my $csv = Text::CSV_XS->new( { binary => 1, sep_char => "," } )
       || die "error using CSV_XS: " . Text::CSV_XS->error_diag();
 
     open my $fh, "<:encoding(utf8)", $file || die "Unable to open file $file: $!\n";
 
-    $csv->column_names( $csv->getline( $fh ) );
+    my $column_names = $csv->getline( $fh );
+
+    if ( $normalize_column_names )
+    {
+        $column_names = [ map { s/ /_/g; lc( $_ ) } @{ $column_names } ];
+    }
+
+    $csv->column_names( $column_names );
 
     my $hashes = [];
     while ( my $hash = $csv->getline_hr( $fh ) )
@@ -80,17 +88,17 @@ sub get_csv_as_hashes
 # and return the results as a csv with the fields in the query order
 sub get_query_as_csv
 {
-   my ( $db, $query, @params ) = @_;
-   
-   my $res = $db->query( $query, @params );
-   
-   my $fields = $res->columns;
+    my ( $db, $query, @params ) = @_;
 
-   my $data = $res->hashes;
+    my $res = $db->query( $query, @params );
 
-   my $csv_string = get_hashes_as_encoded_csv( $data, $fields );
-    
-   return $csv_string;
+    my $fields = $res->columns;
+
+    my $data = $res->hashes;
+
+    my $csv_string = get_hashes_as_encoded_csv( $data, $fields );
+
+    return $csv_string;
 }
 
 1;

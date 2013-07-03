@@ -42,7 +42,43 @@ select distinct period from controversy_dump_time_slices
     order by period;
 END
 
-    $controversy_dump->{ periods } = join( ", ", map { $_->{ period } } @{ $periods } );
+    if ( @{ $periods } == 4 )
+    {
+        $controversy_dump->{ periods } = 'all';
+    }
+    else
+    {
+        $controversy_dump->{ periods } = join( ", ", map { $_->{ period } } @{ $periods } );
+    }
+}
+
+sub _get_latest_full_dump_with_time_slices
+{
+    my ( $db, $controversy_dumps ) = @_;
+
+    my $latest_full_dump;
+    for my $cd ( @{ $controversy_dumps } )
+    {
+        if ( $cd->{ periods } eq 'all' )
+        {
+            $latest_full_dump = $cd;
+            last;
+        }
+    }
+
+    return unless ( $latest_full_dump );
+
+    my $controversy_dump_time_slices = $db->query( <<END, $latest_full_dump->{ controversy_dumps_id } )->hashes;
+select * from controversy_dump_time_slices 
+    where controversy_dumps_id = ? 
+    order by period, start_date, end_date
+END
+
+    map { _add_media_and_story_counts_to_cdts( $db, $_ ) } @{ $controversy_dump_time_slices };
+
+    $latest_full_dump->{ controversy_dump_time_slices } = $controversy_dump_time_slices;
+
+    return $latest_full_dump;
 }
 
 # view the details of a single controversy
@@ -66,9 +102,12 @@ END
 
     map { _add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
+    my $latest_full_dump = _get_latest_full_dump_with_time_slices( $db, $controversy_dumps );
+
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
     $c->stash->{ controversy_dumps } = $controversy_dumps;
+    $c->stash->{ latest_full_dump }  = $latest_full_dump;
     $c->stash->{ template }          = 'cm/view.tt2';
 }
 
@@ -119,6 +158,43 @@ END
     $c->stash->{ template }                     = 'cm/view_dump.tt2';
 }
 
+# get the media marked as the most influential media for the current time slice
+sub _get_top_media_for_time_slice
+{
+    my ( $db, $cdts ) = @_;
+
+    my $num_media = $cdts->{ model_num_media };
+
+    return unless ( $num_media );
+
+    my $top_media = $db->query( <<END, $num_media )->hashes;
+select m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
+    from dump_media m, dump_medium_link_counts mlc
+    where m.media_id = mlc.media_id
+    order by mlc.inlink_count desc
+    limit ?
+END
+
+    return $top_media;
+}
+
+# get the top 20 stories for the current time slice
+sub _get_top_stories_for_time_slice
+{
+    my ( $db ) = @_;
+
+    my $top_stories = $db->query( <<END, 20 )->hashes;
+select s.*, slc.inlink_count, slc.outlink_count, m.name as medium_name
+    from dump_stories s, dump_story_link_counts slc, dump_media m
+    where s.stories_id = slc.stories_id and
+        s.media_id = m.media_id
+    order by slc.inlink_count desc
+    limit ?
+END
+
+    return $top_stories;
+}
+
 # view timelices, with links to csv and gexf files
 sub view_time_slice : Local
 {
@@ -126,12 +202,31 @@ sub view_time_slice : Local
 
     my $db = $c->dbis;
 
+    my $live = $c->req->param( 'l' );
+
     my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
 
     _add_media_and_story_counts_to_cdts( $db, $cdts );
 
-    $c->stash->{ cdts }     = $cdts;
-    $c->stash->{ template } = 'cm/view_time_slice.tt2';
+    if ( $live )
+    {
+        MediaWords::CM::Dump::write_live_dump_tables( $db, undef, $cdts );
+    }
+    else
+    {
+        MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
+    }
+
+    my $top_media = _get_top_media_for_time_slice( $db, $cdts );
+    my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );
+
+    $db->query( "discard temp" );
+
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ top_media }   = $top_media;
+    $c->stash->{ top_stories } = $top_stories;
+    $c->stash->{ live }        = $live;
+    $c->stash->{ template }    = 'cm/view_time_slice.tt2';
 }
 
 # download a csv field from controversy_dump_time_slices_id
@@ -261,16 +356,19 @@ END
     return $latest_dump;
 }
 
-# medium_stories, inlink_stories, and outlink_stories and associated
-# counts to the medium.
+# get the medium with the medium_stories, inlink_stories, and outlink_stories and associated
+# counts.
 #
 # assumes the existence of dump_* stories as created by either:
 # MediaWords::CM::Dump::create_temporary_dump_view or
-sub _add_medium_stories_from_dump_tables
+# MediaWords::CM::Dump::write_story_link_counts_dump_tables
+sub _get_medium_and_stories_from_dump_tables
 {
-    my ( $db, $medium ) = @_;
+    my ( $db, $media_id ) = @_;
 
-    my $media_id = $medium->{ media_id };
+    my $medium = $db->query( "select * from dump_media where media_id = ?", $media_id )->hash;
+
+    return unless ( $medium );
 
     $medium->{ stories } = $db->query( <<'END', $media_id )->hashes;
 select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
@@ -315,6 +413,8 @@ END
     $medium->{ story_count }   = scalar( @{ $medium->{ stories } } );
     $medium->{ inlink_count }  = scalar( @{ $medium->{ inlink_stories } } );
     $medium->{ outlink_count } = scalar( @{ $medium->{ outlink_stories } } );
+
+    return $medium;
 }
 
 # get data about the medium as it existed in the given time slice.  include medium_stories,
@@ -327,9 +427,7 @@ sub _get_cdts_medium_and_stories
 
     MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
 
-    my $medium = $db->query( "select * from dump_media where media_id = ?", $media_id )->hash;
-
-    _add_medium_stories_from_dump_tables( $db, $medium );
+    my $medium = _get_medium_and_stories_from_dump_tables( $db, $media_id );
 
     # discard temp tables
     $db->query( "discard temp" );
@@ -345,11 +443,9 @@ sub _get_live_medium_and_stories
 
     my $c_id = $controversy->{ controversies_id };
 
-    MediaWords::CM::Dump::write_story_link_counts_dump_tables( $db, $controversy, $cdts );
+    MediaWords::CM::Dump::write_live_dump_tables( $db, $controversy, $cdts );
 
-    my $medium = $db->query( "select * from media where media_id = ?", $media_id )->hash;
-
-    _add_medium_stories_from_dump_tables( $db, $medium );
+    my $medium = _get_medium_and_stories_from_dump_tables( $db, $media_id );
 
     # discard temp tables
     $db->query( "discard temp" );
@@ -357,35 +453,35 @@ sub _get_live_medium_and_stories
     return $medium;
 }
 
-# view live data for medium
-sub live_medium : Local
+# return undef if given fields in the given objects are the same and the
+# list_field in the given lists are the same.   Otherwise return a string list
+# of the fields and lists for which there are differences.
+sub _get_object_diffs
 {
-    my ( $self, $c, $media_id ) = @_;
+    my ( $a, $b, $fields, $lists, $list_field ) = @_;
 
-    my $db = $c->dbis;
+    my $diffs = [];
 
-    my ( $controversy, $cdts );
-    if ( my $cdts_id = $c->req->param( 'cdts' ) )
+    for my $field ( @{ $fields } )
     {
-        $cdts = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
-        $controversy = $db->query( <<END, $cdts->{ controversy_dumps_id } )->hash;
-select c.* from controversies c, controversy_dumps cd
-    where c.controversies_id = cd.controversies_id and 
-        cd.controversy_dumps_id = ?
-END
-    }
-    else
-    {
-        $controversy = $db->find_by_id( 'controversies', $c->req->param( 'c' ) );
+        push( @{ $diffs }, $field ) if ( $a->{ $field } ne $b->{ $field } );
     }
 
-    my $medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
+    for my $list ( @{ $lists } )
+    {
+        my $a_ids = [ map { $_->{ $list_field } } @{ $a->{ $list } } ];
+        my $b_ids = [ map { $_->{ $list_field } } @{ $b->{ $list } } ];
 
-    $c->stash->{ controversy } = $controversy;
-    $c->stash->{ cdts }        = $cdts;
-    $c->stash->{ medium }      = $medium;
-    $c->stash->{ live }        = 1;
-    $c->stash->{ template }    = 'cm/medium.tt2';
+        my $lc = List::Compare->new( $a_ids, $b_ids );
+        if ( !$lc->is_LequivalentR() )
+        {
+            my $list_name = $list;
+            $list_name =~ s/_/ /g;
+            push( @{ $diffs }, $list_name );
+        }
+    }
+
+    return ( @{ $diffs } ) ? join( ", ", @{ $diffs } ) : undef;
 }
 
 # check each of the following for differences between the live and dump medium:
@@ -401,47 +497,54 @@ sub _get_live_medium_diffs
 {
     my ( $dump_medium, $live_medium ) = @_;
 
-    my $live_medium_diffs = [];
-
-    for my $field ( qw(name url) )
+    if ( !$live_medium )
     {
-        push( @{ $live_medium_diffs }, $field ) if ( $dump_medium->{ $field } ne $live_medium->{ $field } );
+        return 'medium is no longer in controversy';
     }
 
-    for my $list ( qw(stories inlink_stories outlink_stories) )
-    {
-        my $live_ids = [ map { $_->{ stories_id } } @{ $live_medium->{ $list } } ];
-        my $dump_ids = [ map { $_->{ stories_id } } @{ $dump_medium->{ $list } } ];
-
-        my $lc = List::Compare->new( $live_ids, $dump_ids );
-        if ( !$lc->is_LequivalentR() )
-        {
-            my $list_name = $list;
-            $list_name =~ s/_/ /g;
-            push( @{ $live_medium_diffs }, $list_name );
-        }
-    }
-
-    return ( @{ $live_medium_diffs } ) ? join( ", ", @{ $live_medium_diffs } ) : undef;
+    return _get_object_diffs(
+        $dump_medium, $live_medium,
+        [ qw(name url) ],
+        [ qw(stories inlink_stories outlink_stories) ], 'stories_id'
+    );
 }
 
-# view medium as it existed at the time of the dump
+# view medium:
+# * live if l=1 is specified, otherwise as a snapshot
+# * within the context of a time slice if a time slice is specific
+#   via cdts=<id>, otherwise within a whole controversy if 'c=<id>'
 sub medium : Local
 {
-    my ( $self, $c, $controversy_dump_time_slices_id, $media_id ) = @_;
+    my ( $self, $c, $media_id ) = @_;
 
     my $db = $c->dbis;
 
-    my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
-    my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
-    my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
+    my ( $controversy, $cd, $cdts );
+    if ( my $cdts_id = $c->req->param( 'cdts' ) )
+    {
+        $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
+        $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
+        $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
+    }
+    else
+    {
+        $controversy = $db->find_by_id( 'controversies', $c->req->param( 'c' ) );
+    }
 
-    my $medium = _get_cdts_medium_and_stories( $db, $cdts, $media_id );
+    my $live = $c->req->param( 'l' );
     my $live_medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
 
-    my $live_medium_diffs = _get_live_medium_diffs( $medium, $live_medium );
-
-    my $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
+    my ( $medium, $live_medium_diffs, $latest_controversy_dump );
+    if ( $live )
+    {
+        $medium = $live_medium;
+    }
+    else
+    {
+        $medium = _get_cdts_medium_and_stories( $db, $cdts, $media_id );
+        $live_medium_diffs = _get_live_medium_diffs( $medium, $live_medium );
+        $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
+    }
 
     $c->stash->{ cdts }                    = $cdts;
     $c->stash->{ cd }                      = $cd;
@@ -449,7 +552,188 @@ sub medium : Local
     $c->stash->{ medium }                  = $medium;
     $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
     $c->stash->{ live_medium_diffs }       = $live_medium_diffs;
+    $c->stash->{ live }                    = $live;
+    $c->stash->{ live_medium }             = $live_medium;
     $c->stash->{ template }                = 'cm/medium.tt2';
+}
+
+# is the given date guess method reliable?
+sub _story_date_is_reliable
+{
+    my ( $method ) = @_;
+
+    return ( !$method || ( grep { $_ eq $method } qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ) );
+}
+
+# get the story along with inlink_stories and outlink_stories and the associated
+# counts.
+#
+# assumes the existence of dump_* stories as created by either:
+# MediaWords::CM::Dump::create_temporary_dump_view or
+# MediaWords::CM::Dump::write_story_link_counts_dump_tables
+sub _get_story_and_links_from_dump_tables
+{
+    my ( $db, $stories_id ) = @_;
+
+    # if the below query returns nothing, the return type of the server prepared statement
+    # may differ from the first call, which throws a postgres error, so we need to
+    # disable server side prepares
+    $db->dbh->{ pg_server_prepare } = 0;
+
+    my $story = $db->query( "select * from dump_stories where stories_id = ?", $stories_id )->hash;
+
+    return unless ( $story );
+
+    $story->{ medium } = $db->query( "select * from dump_media where media_id = ?", $story->{ media_id } )->hash;
+    ( $story->{ date_guess_method } ) = $db->query( <<END, $stories_id )->flat;
+select tag from dump_tags t, dump_stories_tags_map stm, dump_tag_sets ts
+    where ts.name = 'date_guess_method' and
+        ts.tag_sets_id = t.tag_sets_id and
+        t.tags_id = stm.tags_id and
+        stm.stories_id = ?
+END
+    $story->{ date_is_reliable } = _story_date_is_reliable( $story->{ date_guess_method } );
+
+    $story->{ inlink_stories } = $db->query( <<'END', $stories_id )->hashes;
+select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, dump_media sm, 
+        dump_stories r, dump_story_link_counts rslc,
+        dump_controversy_links_cross_media cl
+    where 
+        s.stories_id = sslc.stories_id and
+        r.stories_id = rslc.stories_id and
+        s.media_id = sm.media_id and
+        s.stories_id = cl.stories_id and
+        r.stories_id = cl.ref_stories_id and
+        cl.ref_stories_id = ?       
+    order by sslc.inlink_count desc
+END
+
+    $story->{ outlink_stories } = $db->query( <<'END', $stories_id )->hashes;
+select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
+    from dump_stories s, dump_story_link_counts sslc, 
+        dump_stories r, dump_story_link_counts rslc, dump_media rm, 
+        dump_controversy_links_cross_media cl
+    where 
+        s.stories_id = sslc.stories_id and
+        r.stories_id = rslc.stories_id and
+        r.media_id = rm.media_id and
+        s.stories_id = cl.stories_id and
+        r.stories_id = cl.ref_stories_id and
+        cl.stories_id = ?
+    order by rslc.inlink_count desc
+END
+
+    $story->{ inlink_count }  = scalar( @{ $story->{ inlink_stories } } );
+    $story->{ outlink_count } = scalar( @{ $story->{ outlink_stories } } );
+
+    return $story;
+}
+
+# get data about the story as it existed in the given time slice.  include
+# outlinks and inlinks, as well as the date guess method.
+sub _get_cdts_story_and_links
+{
+    my ( $db, $cdts, $stories_id ) = @_;
+
+    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
+
+    MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
+
+    my $story = _get_story_and_links_from_dump_tables( $db, $stories_id );
+
+    # discard temp tables
+    $db->query( "discard temp" );
+
+    return $story;
+}
+
+# get data about the story as it exists now in the database, optionally
+# in the date range of the if specified
+sub _get_live_story_and_links
+{
+    my ( $db, $controversy, $cdts, $stories_id ) = @_;
+
+    my $c_id = $controversy->{ controversies_id };
+
+    MediaWords::CM::Dump::write_live_dump_tables( $db, $controversy, $cdts );
+
+    my $story = _get_story_and_links_from_dump_tables( $db, $stories_id );
+
+    # discard temp tables
+    $db->query( "discard temp" );
+
+    return $story;
+}
+
+# check each of the following for differences between the live and dump story:
+# * title
+# * url
+# * publish_date
+# * ids of inlink_stories
+# * ids of outlink_stories
+#
+# return undef if there are no diffs and otherwise a string list of the
+# attributes (above) for which there are differences
+sub _get_live_story_diffs
+{
+    my ( $dump_story, $live_story ) = @_;
+
+    if ( !$live_story )
+    {
+        return 'story is no longer in controversy';
+    }
+
+    return _get_object_diffs(
+        $dump_story, $live_story,
+        [ qw(title url publish_date date_is_reliable) ],
+        [ qw(inlink_stories outlink_stories) ], 'stories_id'
+    );
+}
+
+# view story as it existed in a dump time slice
+sub story : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy );
+    if ( my $cdts_id = $c->req->param( 'cdts' ) )
+    {
+        $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
+        $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
+        $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
+    }
+    else
+    {
+        $controversy = $db->find_by_id( 'controversies', $c->req->param( 'controversies_id ' ) );
+    }
+
+    my $live = $c->req->param( 'l' );
+    my $live_story = _get_live_story_and_links( $db, $controversy, $cdts, $stories_id );
+
+    my ( $story, $live_story_diffs, $latest_controversy_dump );
+    if ( $live )
+    {
+        $story = $live_story;
+    }
+    else
+    {
+        $story = _get_cdts_story_and_links( $db, $cdts, $stories_id );
+        $live_story_diffs = _get_live_story_diffs( $story, $live_story );
+        $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
+    }
+
+    $c->stash->{ cdts }                    = $cdts;
+    $c->stash->{ cd }                      = $cd;
+    $c->stash->{ controversy }             = $controversy;
+    $c->stash->{ story }                   = $story;
+    $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
+    $c->stash->{ live_story_diffs }        = $live_story_diffs;
+    $c->stash->{ live }                    = $live;
+    $c->stash->{ live_story }              = $live_story;
+    $c->stash->{ template }                = 'cm/story.tt2';
 }
 
 1;

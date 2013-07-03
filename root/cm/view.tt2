@@ -22,6 +22,20 @@
     </tr>
 </table>
 
+[% IF latest_full_dump %]
+    [% INCLUDE cm/time_slices_table.tt2
+        controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
+        live_periods = 1 %]
+[% ELSE %]
+<fieldset>
+<p>
+    To browse live data, first generate at least one dump.
+</p>
+
+</fieldset> 
+[% END %]
+
+
 <p>Dumps</p>
 <table>
 

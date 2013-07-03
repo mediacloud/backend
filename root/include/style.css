@@ -211,3 +211,28 @@ table.tablesorter thead tr .headerSortUp {
 table.tablesorter thead tr .headerSortDown {
     background-image: url(/script/jquery.tablesorter-themes/blue/desc.gif);
 }
+
+div#halfcolumn {
+    padding-right: 5px;
+    width: 49%; 
+    float: left;
+}
+
+div#narrowcolumn {
+    padding-right: 5px;
+    width: 24%; 
+    float: left;
+}
+
+div#widecolumn {
+    padding-right: 5px;
+    width: 74%; 
+    float: left;
+}
+
+div#wholecolumn {
+    width: 100%; 
+    float: left;
+}
+
+    
