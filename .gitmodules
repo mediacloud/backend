@@ -1,0 +1,3 @@
+[submodule "script/gridfs-to-s3"]
+	path = script/gridfs-to-s3
+	url = https://github.com/pypt/gridfs-to-s3

@@ -1038,9 +1038,6 @@ INSERT INTO total_weekly_words(media_sets_id, dashboard_topics_id, publish_week,
 
 create view daily_words_with_totals as select d.*, t.total_count from daily_words d, total_daily_words t where d.media_sets_id = t.media_sets_id and d.publish_day = t.publish_day and ( ( d.dashboard_topics_id = t.dashboard_topics_id ) or ( d.dashboard_topics_id is null and t.dashboard_topics_id is null ) );
 
-             
-create schema stories_tags_map_media_sub_tables;
-
 create view story_extracted_texts as select stories_id, array_to_string(array_agg(download_text), ' ') as extracted_text 
        from (select * from downloads natural join download_texts order by downloads_id) as downloads group by stories_id;
 
@@ -1329,9 +1326,6 @@ create table controversy_dump_time_slices (
 );
 
 create index controversy_dump_time_slices_dump on controversy_dump_time_slices ( controversy_dumps_id );
-
--- schema to hold all of the controversy dump snapshot tables
-create schema cd;
 
 -- ease the process of copying the schema of each table and adding a controversy_dumps_id field and index
 create or replace function create_dump_snapshot_table ( table_name text ) returns void as

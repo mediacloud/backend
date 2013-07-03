@@ -1,17 +1,48 @@
 use strict;
 
 use MediaWords::Util::Config;
+use IO::Socket;
 
 use Test::More;
+
+sub host_port_is_available($$)
+{
+    my ( $host, $port ) = @_;
+
+    my $socket = IO::Socket::INET->new(
+        PeerAddr => $host,
+        PeerPort => $port,
+        Proto    => 'tcp',
+        Type     => SOCK_STREAM
+    );
+    if ( $socket )
+    {
+        close( $socket );
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 my $mongodb_settings = MediaWords::Util::Config::get_config->{ mongodb_gridfs }->{ test };
 unless ( $mongodb_settings )
 {
-    plan skip_all => 'MongoDB\'s testing database is not configured';
+    plan skip_all => "MongoDB's testing database is not configured";
 }
 else
 {
-    plan tests => 20;
+    unless ( host_port_is_available( $mongodb_settings->{ host }, $mongodb_settings->{ port } ) )
+    {
+        # Skipping test if "mongod" is not running because the point of this test is to validate
+        # download storage handler and not service availability
+        plan skip_all => "Unable to connect to MongoDB's testing database";
+    }
+    else
+    {
+        plan tests => 20;
+    }
 }
 
 use Data::Dumper;

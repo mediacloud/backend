@@ -12,8 +12,17 @@ if pwd | grep ' ' ; then
     exit 1
 fi
 
-## Assumes Ubuntu
-export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+if [ `uname` == 'Darwin' ]; then
+
+    # Mac OS X
+    JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/
+
+else
+
+    # Assume Ubuntu
+    JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+
+fi
 
 # Install the rest of the modules
 ./script/run_carton.sh install --deployment
