@@ -1,9 +1,9 @@
-<p>
+<div id="boxtitle">
 [% display_stories_title %]
 [% IF cdts_date_range %]
     in [% cdts_date_range %] Time Slice
 [% END %]
-</p>
+</div>
 
 <table>
     <tr>

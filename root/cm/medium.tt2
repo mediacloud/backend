@@ -1,15 +1,6 @@
-[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
-[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
-
-[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
-
-[% title = "CM: Medium $medium.name for the $cdts_date_range Time Slice" | html %]
-
-[% INCLUDE include/header.tt2 %]
+[% PROCESS cm/header.tt2 title="Medium '$medium.name'" %]
 
 <div id="warning_box">
-
-
 
 [% IF live %]
 You are viewing the live medium, as it currently exists in the database, for the [% cdts_date_range %] time slice.
@@ -56,8 +47,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 
 [% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id ) %]
 
-<p>Basic Data for [% medium.name | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
-[<a href="[% edit_url | html %]">edit</a>]</p>
+<div id="boxtitle">
+Basic Data for [% medium.name | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
+[<a href="[% edit_url | html %]">edit</a>]
+</div>
 <table>
 
     <tr><td>Media_id</td><td>[% medium.media_id %]</td></tr>

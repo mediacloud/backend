@@ -122,6 +122,33 @@ END
     }
 }
 
+# setup dump_* tables by either creating views for the relevant cd.*
+# tables for a dump snapshot or by copying live data for live requests.
+sub setup_temporary_dump_tables
+{
+    my ( $db, $cdts, $controversy, $live ) = @_;
+    
+    # postgres prints lots of 'NOTICE's when deleting temp tables
+    $db->dbh->{ PrintWarn } = 0;
+    
+    if ( $live ) 
+    {
+        MediaWords::CM::Dump::write_live_dump_tables( $db, $controversy, $cdts );
+    }
+    else
+    {
+        MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
+    }
+}
+
+# run $db->query( "discard temp" ) to clean up temp tables and views
+sub discard_temp_tables
+{
+    my ( $db ) = @_;
+    
+    $db->query( "discard temp" );
+}
+
 # period stories may be a view or a table, and postgres complains if we try to do
 # a 'drop table|view if exits' if the object type doesn't match.  so we have to
 # figure out if dump_period_stories exists and if so drop the appropriate

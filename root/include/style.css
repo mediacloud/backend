@@ -2,6 +2,7 @@ table {
     background: #f4f4f4;
     border-collapse: collapse;
     width: 100%;
+    padding-bottom: 5px;
 }
 
 table th, table td {
@@ -21,19 +22,19 @@ table th {
 h1 {
     font-size: 120%;
     font-style: bold;
-    color: #444444;
+    color: #2790B0;
 }
 
 h2 {
     font-size: 110%;
     font-style: bold;
-    color: #444444;
+    color: #2790B0;
 }
 
 h3 {
     font-size: 100%;
     font-style: bold;
-    color: #444444;
+    color: #2790B0;
 }
 
 body td th{
@@ -42,7 +43,7 @@ body td th{
 }
 
 a {
-    color: #000088;
+    color: #2B4E72;
 }
 
 img {
@@ -65,6 +66,22 @@ div#menu a {
     text-decoration: none;
 }
 
+div#breadcrumbs {
+    display: inline;
+    padding-right: 1em;
+    margin-left: 0em;
+    white-space: nowrap;
+    border: 0px;
+    background-color: #FFFFFF;
+    color: #94BA65;
+    clear: both;
+}
+
+div#breadcrumbs a {
+    color: #94BA65;
+    text-decoration: none;
+}
+
 div#story_parse_test {
     margin: 0em;
     margin-bottom: 1em;
@@ -77,19 +94,20 @@ div#story_parse_test_broken {
     margin-bottom: 1em;
     padding: 1em;
     border: 1px solid silver;
-    background-color: #fff5f5;
+    background-color: #dddddd;
 }
 
 blockquote {
     padding: 1em;
-    background-color: #f5f5f5;
+    background-color: #dddddd;
 }
 
 div#warning_box {
     margin-bottom: 1em;
     border: 1px solid silver;
-    padding: 1em;    
+    padding: 1em;
     background-color: #dddddd;
+    margin-top: 20px;
 }
 
 fieldset#tag_set .checkbox {
@@ -130,7 +148,6 @@ div#error {
     font-size: 14px;
     color: #333333;
     background-color: #F9F9F9;
-    float: left;
     width: 30%;
     height: 500px;
     margin: 0;
@@ -220,19 +237,21 @@ div#halfcolumn {
 
 div#narrowcolumn {
     padding-right: 5px;
-    width: 24%; 
+    width: 20%; 
     float: left;
 }
 
 div#widecolumn {
     padding-right: 5px;
-    width: 74%; 
+    width: 79%; 
     float: left;
 }
 
 div#wholecolumn {
     width: 100%; 
-    float: left;
+    clear: both;
 }
 
-    
+div#boxtitle {
+    padding-top: 20px;
+}   

@@ -1,55 +1,61 @@
-[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
-[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
 
-[% IF live %]
-    [% title = 'CM: Live Data for ' _ cdts.period _ ' ' _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
-[% ELSE %]
-    [% title = 'CM: Dump ' _ datetime.format( controversy_dump.dump_date ) _ ' for ' _ cdts.period _ ' ' _ date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
-[% END %]
-[% INCLUDE include/header.tt2 %]
+[% PROCESS cm/header.tt2
+    title=date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) _ ' Time Slice' %]
 
-<div id="halfcolumn">
-    <p>Network Map</p>
-    <fieldset>
-        <p>
+<div id="wholecolumn">
+    <div id="widecolumn">
+        <div id="boxtitle">Network Map</div>
+        <fieldset>
+            [% map_url= c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]
+            <iframe src="[% map_url | html %]" height="400" style="width:100%; border:0"></iframe>
             Model Correlation: 
             [% IF cdts.model_r2_mean %]r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %]
             [% ELSE %](not enough data)[% END %]
+            | <a href="[% map_url | html %]">View Map Full Screen</a>
+            | <a href="[% c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">Download GEXF</a><br />
+        </fieldset>
+    </div>
 
-        </p>
-        <p><a href="[% c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">View Network Map</a></p>
-        <p><a href="[% c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">Download GEXF</a></p>
-    </fieldset>
-</div>
-
-<div id="halfcolumn">
-    <p>Stats</p>
-    <table>
-        <tr>
-            <td># Stories</td>
-            <td>[% cdts.num_stories %]</td>
-            <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
-        </tr>
-        <tr id="even">
-            <td># Story Links</td>
-            <td>[% cdts.num_story_links %]</td>
-            <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
-        </tr>
-        <tr>
-            <td># Media</td>
-            <td>[% cdts.num_media %]</td>
-            <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></tr>
-        </tr>
-        <tr id="even">
-            <td># Medium Links</td>
-            <td>[% cdts.num_medium_links %]</td>
-            <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
-        </tr>
-        <tr>
-            <td># Modeled Top Media</td>
-            <td>[% cdts.model_num_media %]</td>
-            <td />
-    </table>
+    <div id="narrowcolumn">
+        <div id="boxtitle">Stats</div>
+        <table>
+            <tr>
+                <td># Stories</td>
+                <td>[% cdts.num_stories %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+            </tr>
+            <tr id="even">
+                <td># Story Links</td>
+                <td>[% cdts.num_story_links %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+            </tr>
+            <tr>
+                <td># Media</td>
+                <td>[% cdts.num_media %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></tr>
+            </tr>
+            <tr id="even">
+                <td># Medium Links</td>
+                <td>[% cdts.num_medium_links %]</td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+            </tr>
+            <tr>
+                <td># Modeled Top Media</td>
+                <td>[% cdts.model_num_media %]</td>
+                <td />
+        </table>
+        
+        <div id="boxtitle">Search Stories</div>
+        <fieldset>
+            [% search_url = c.uri_for( "/admin/cm/search_stories" ) %]
+            <form method="get" action="[% search_url | html %]">
+                <input type="hidden" name="l" value="[% live | html %]" />
+                <input type="hidden" name="cdts" value="[% cdts.controversy_dump_time_slices_id %]" />
+                <input type="text" name="q" style="width:100%" />
+            </form>
+        </fieldset>
+    </div>
 </div>
 
 <div id="wholecolumn">
@@ -57,10 +63,14 @@
     [% INCLUDE cm/media_table.tt2
         display_media = top_media
         display_media_title = "Top Media" %]
-    
+
     [% INCLUDE cm/stories_table.tt2
         display_stories = top_stories
         display_stories_title = "Top Stories" %]
+    [% all_stories_url = c.uri_for( '/admin/cm/search_stories', 
+                                    { cdts => cdts.controversy_dump_time_slices_id,
+                                      l => live } ) %]
+    <a href="[% all_stories_url | html %]">View All Stories</a>
 
 </div>
 

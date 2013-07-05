@@ -1,4 +1,4 @@
-<p>[% display_media_title | html %]</p>
+<div id="boxtitle">[% display_media_title | html %]</span>
 
 <table>
     

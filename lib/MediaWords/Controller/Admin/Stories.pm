@@ -169,6 +169,7 @@ sub edit : Local
     {
         $form->stash->{ c }     = $c;
         $c->stash->{ form }     = $form;
+        $c->stash->{ story }    = $story;
         $c->stash->{ template } = 'stories/edit.tt2';
         $c->stash->{ title }    = 'Edit Story';
     }

@@ -144,6 +144,7 @@ sub view_dump : Local
     my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
 select * from controversy_dumps where controversy_dumps_id = ?
 END
+    my $controversy = $db->find_by_id( 'controversies', $controversy_dump->{ controversies_id } );
 
     my $controversy_dump_time_slices = $db->query( <<END, $controversy_dumps_id )->hashes;
 select * from controversy_dump_time_slices 
@@ -154,6 +155,7 @@ END
     map { _add_media_and_story_counts_to_cdts( $db, $_ ) } @{ $controversy_dump_time_slices };
 
     $c->stash->{ controversy_dump }             = $controversy_dump;
+    $c->stash->{ controversy }                  = $controversy;
     $c->stash->{ controversy_dump_time_slices } = $controversy_dump_time_slices;
     $c->stash->{ template }                     = 'cm/view_dump.tt2';
 }
@@ -195,38 +197,48 @@ END
     return $top_stories;
 }
 
+# get the controversy_dump_time_slice, controversy_dump, and controversy
+# for the current request
+sub _get_controversy_objects
+{
+    my ( $db, $cdts_id ) = @_;
+
+    die( "cdts param is required" ) unless ( $cdts_id );
+    
+    my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
+    my $cd          = $db->find_by_id( 'controversy_dumps', $cdts->{ controversy_dumps_id } );
+    my $controversy = $db->find_by_id( 'controversies', $cd->{ controversies_id } );
+    
+    return ( $cdts, $cd, $controversy );
+}
+
 # view timelices, with links to csv and gexf files
 sub view_time_slice : Local
 {
-    my ( $self, $c, $controversy_dump_time_slices_id ) = @_;
+    my ( $self, $c, $cdts_id ) = @_;
 
     my $db = $c->dbis;
 
     my $live = $c->req->param( 'l' );
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
     _add_media_and_story_counts_to_cdts( $db, $cdts );
 
-    if ( $live )
-    {
-        MediaWords::CM::Dump::write_live_dump_tables( $db, undef, $cdts );
-    }
-    else
-    {
-        MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
-    }
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
     my $top_media = _get_top_media_for_time_slice( $db, $cdts );
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );
 
-    $db->query( "discard temp" );
+    MediaWords::CM::Dump::discard_temp_tables( $db );
 
-    $c->stash->{ cdts }        = $cdts;
-    $c->stash->{ top_media }   = $top_media;
-    $c->stash->{ top_stories } = $top_stories;
-    $c->stash->{ live }        = $live;
-    $c->stash->{ template }    = 'cm/view_time_slice.tt2';
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ top_media }        = $top_media;
+    $c->stash->{ top_stories }      = $top_stories;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ template }         = 'cm/view_time_slice.tt2';
 }
 
 # download a csv field from controversy_dump_time_slices_id
@@ -357,11 +369,8 @@ END
 }
 
 # get the medium with the medium_stories, inlink_stories, and outlink_stories and associated
-# counts.
-#
-# assumes the existence of dump_* stories as created by either:
-# MediaWords::CM::Dump::create_temporary_dump_view or
-# MediaWords::CM::Dump::write_story_link_counts_dump_tables
+# counts. assumes the existence of dump_* stories as created by
+# MediaWords::CM::Dump::setup_temporary_dump_tables
 sub _get_medium_and_stories_from_dump_tables
 {
     my ( $db, $media_id ) = @_;
@@ -423,14 +432,11 @@ sub _get_cdts_medium_and_stories
 {
     my ( $db, $cdts, $media_id ) = @_;
 
-    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
-
-    MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts );
 
     my $medium = _get_medium_and_stories_from_dump_tables( $db, $media_id );
 
-    # discard temp tables
-    $db->query( "discard temp" );
+    MediaWords::CM::Dump::discard_temp_tables( $db );
 
     return $medium;
 }
@@ -441,14 +447,11 @@ sub _get_live_medium_and_stories
 {
     my ( $db, $controversy, $cdts, $media_id ) = @_;
 
-    my $c_id = $controversy->{ controversies_id };
-
-    MediaWords::CM::Dump::write_live_dump_tables( $db, $controversy, $cdts );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
 
     my $medium = _get_medium_and_stories_from_dump_tables( $db, $media_id );
 
-    # discard temp tables
-    $db->query( "discard temp" );
+    MediaWords::CM::Dump::discard_temp_tables( $db );
 
     return $medium;
 }
@@ -519,17 +522,7 @@ sub medium : Local
 
     my $db = $c->dbis;
 
-    my ( $controversy, $cd, $cdts );
-    if ( my $cdts_id = $c->req->param( 'cdts' ) )
-    {
-        $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
-        $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
-        $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
-    }
-    else
-    {
-        $controversy = $db->find_by_id( 'controversies', $c->req->param( 'c' ) );
-    }
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
     my $live_medium = _get_live_medium_and_stories( $db, $controversy, $cdts, $media_id );
@@ -546,15 +539,15 @@ sub medium : Local
         $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
-    $c->stash->{ cdts }                    = $cdts;
-    $c->stash->{ cd }                      = $cd;
-    $c->stash->{ controversy }             = $controversy;
-    $c->stash->{ medium }                  = $medium;
-    $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
-    $c->stash->{ live_medium_diffs }       = $live_medium_diffs;
-    $c->stash->{ live }                    = $live;
-    $c->stash->{ live_medium }             = $live_medium;
-    $c->stash->{ template }                = 'cm/medium.tt2';
+    $c->stash->{ cdts }                     = $cdts;
+    $c->stash->{ controversy_dump }         = $cd;
+    $c->stash->{ controversy }              = $controversy;
+    $c->stash->{ medium }                   = $medium;
+    $c->stash->{ latest_controversy_dump }  = $latest_controversy_dump;
+    $c->stash->{ live_medium_diffs }        = $live_medium_diffs;
+    $c->stash->{ live }                     = $live;
+    $c->stash->{ live_medium }              = $live_medium;
+    $c->stash->{ template }                 = 'cm/medium.tt2';
 }
 
 # is the given date guess method reliable?
@@ -566,11 +559,8 @@ sub _story_date_is_reliable
 }
 
 # get the story along with inlink_stories and outlink_stories and the associated
-# counts.
-#
-# assumes the existence of dump_* stories as created by either:
-# MediaWords::CM::Dump::create_temporary_dump_view or
-# MediaWords::CM::Dump::write_story_link_counts_dump_tables
+# counts.  assumes the existence of dump_* stories as created by
+# MediaWords::CM::Dump::setup_temporary_dump_tables
 sub _get_story_and_links_from_dump_tables
 {
     my ( $db, $stories_id ) = @_;
@@ -636,14 +626,11 @@ sub _get_cdts_story_and_links
 {
     my ( $db, $cdts, $stories_id ) = @_;
 
-    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
-
-    MediaWords::CM::Dump::create_temporary_dump_views( $db, $cdts );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts );
 
     my $story = _get_story_and_links_from_dump_tables( $db, $stories_id );
 
-    # discard temp tables
-    $db->query( "discard temp" );
+    MediaWords::CM::Dump::discard_temp_tables( $db );
 
     return $story;
 }
@@ -654,14 +641,11 @@ sub _get_live_story_and_links
 {
     my ( $db, $controversy, $cdts, $stories_id ) = @_;
 
-    my $c_id = $controversy->{ controversies_id };
-
-    MediaWords::CM::Dump::write_live_dump_tables( $db, $controversy, $cdts );
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, 1 );
 
     my $story = _get_story_and_links_from_dump_tables( $db, $stories_id );
 
-    # discard temp tables
-    $db->query( "discard temp" );
+    MediaWords::CM::Dump::discard_temp_tables( $db );
 
     return $story;
 }
@@ -698,17 +682,7 @@ sub story : Local
 
     my $db = $c->dbis;
 
-    my ( $cdts, $cd, $controversy );
-    if ( my $cdts_id = $c->req->param( 'cdts' ) )
-    {
-        $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
-        $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
-        $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
-    }
-    else
-    {
-        $controversy = $db->find_by_id( 'controversies', $c->req->param( 'controversies_id ' ) );
-    }
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
     my $live_story = _get_live_story_and_links( $db, $controversy, $cdts, $stories_id );
@@ -734,6 +708,76 @@ sub story : Local
     $c->stash->{ live }                    = $live;
     $c->stash->{ live_story }              = $live_story;
     $c->stash->{ template }                = 'cm/story.tt2';
+}
+
+# get the text for a sql query that returns all of the story ids that
+# match the given search query.  the search query uses a simplistic
+# plan of removing quote characters, splitting the line on spaces,
+# and finding all stories that include sentences that match all
+# of the given terms
+sub _get_stories_id_search_query
+{
+    my ( $db, $q ) = @_;
+    
+    $q =~ s/['"%]//g;
+    
+    my $terms = [ split( /\s/, $q ) ];
+
+    return 'select stories_id from dump_story_link_counts' unless ( @{ $terms } );
+    
+    my $queries = [];
+    for my $term ( @{ $terms } )
+    {
+        my $qterm = $db->dbh->quote( lc( "%${ term }%" ) );
+        my $query = <<END;
+select slc.stories_id 
+    from dump_story_link_counts slc
+        join dump_stories s on ( s.stories_id = slc.stories_id )
+        left join story_sentences ss on ( slc.stories_id = s.stories_id )
+    where ( ss.sentence like $qterm or 
+            lower( s.title ) like $qterm or
+            lower( s.url ) like $qterm )
+END
+        push( @{ $queries }, $query );
+    }
+    
+    return join( ' intersect ', map { "( $_ )" } @{ $queries } );
+}
+
+# do a basic story search based on the 
+sub search_stories : Local
+{
+    my ( $self, $c ) = @_;
+    
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
+
+    my $live = $c->req->param( 'l' );
+    
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+    
+    my $query = $c->req->param( 'q' );
+    my $search_query = _get_stories_id_search_query( $db, $query );
+    
+    my $stories = $db->query( <<END )->hashes;
+select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
+    from dump_stories s, dump_media m, dump_story_link_counts slc
+    where
+        s.stories_id = slc.stories_id and
+        s.media_id = m.media_id and
+        s.stories_id in ( $search_query )
+    order by slc.inlink_count desc
+END
+    
+    MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ stories }          = $stories;
+    $c->stash->{ query }            = $query;
+    $c->stash->{ template }         = 'cm/stories.tt2';
 }
 
 1;

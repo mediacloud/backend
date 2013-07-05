@@ -83,6 +83,7 @@ requires 'Math::Random';
 requires 'Modern::Perl';
 requires 'MongoDB', '0.700.0';
 requires 'namespace::autoclean';
+requires 'Net::Amazon::S3';
 requires 'Net::Calais';
 requires 'Parallel::Fork::BossWorkerAsync';
 requires 'Parallel::ForkManager';

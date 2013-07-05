@@ -1,10 +1,10 @@
-<p>
+<div id="boxtitle">
 Time Slices
 [% IF live_periods %]
      - all #s in the below table, including reliability data, is from the latest full dump made 
      [% datetime.format( latest_full_dump.dump_date ) | html %]</b>
 [% END %]
-</p>
+</div>
 <table>
 
 <tr>
