@@ -15,7 +15,7 @@ elements:
   - type: Textarea
     name: description
     label: Description
-    cols: 30
+    cols: 80
     rows: 10
     comment: description of the story
 

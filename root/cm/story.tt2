@@ -6,7 +6,7 @@
 You are viewing the live story, as it currently exists in the database.
 [% ELSE %]
 
-This page is displaying a frozen snapshot of the [% story.title | html %] stiory, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this story will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
+This page is displaying a frozen snapshot of the [% story.title | html %] story, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this story will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
 
 <p>
 [% IF live_story_diffs %]

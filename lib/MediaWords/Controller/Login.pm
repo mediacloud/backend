@@ -37,6 +37,10 @@ sub index : Path : Args(0)
         }
     );
 
+    # Save the original referer to the edit form so we can get back to that URL later on
+    my $el_referer = $form->get_element( { name => 'referer', type => 'Hidden' } );
+    $el_referer->value( $c->req->params->{ url } ) unless ( $el_referer->value );
+
     # In case we're coming here from /logout
     if ( $c->request->param( 'email' ) )
     {
@@ -79,10 +83,18 @@ sub index : Path : Args(0)
         # Run post-successful login tasks
         MediaWords::DBI::Auth::post_successful_login( $c->dbis, $email );
 
-        # Redirect to default homepage
-        my $config            = MediaWords::Util::Config::get_config;
-        my $default_home_page = $config->{ mediawords }->{ default_home_page };
-        $c->response->redirect( $c->uri_for( $default_home_page ) );
+        if ( $form->params->{ referer } )
+        {
+            $c->response->redirect( $form->params->{ referer } );
+        }
+        else
+        {
+
+            # Redirect to default homepage
+            my $config            = MediaWords::Util::Config::get_config;
+            my $default_home_page = $config->{ mediawords }->{ default_home_page };
+            $c->response->redirect( $c->uri_for( $default_home_page ) );
+        }
     }
     else
     {
@@ -148,8 +160,8 @@ sub forgot : Local
 
         # Do not stash the form because the link has already been sent
         $c->stash( template => 'auth/forgot.tt2' );
-        $c->stash( status_msg => "The password reset link was sent to email address '" .
-              $email . "' (given that such user exists in the user database)." );
+        $c->stash( status_msg => "The password reset link was sent to email address '" . $email .
+              "' (given that such user exists in the user database)." );
     }
 
 }
@@ -235,8 +247,8 @@ sub reset : Local
             $c->uri_for(
                 '/login',
                 {
-                    status_msg => "Your password has been changed. An email was sent to " .
-                      "'" . $email . "' to inform you about this change."
+                    status_msg => "Your password has been changed. An email was sent to " . "'" . $email .
+                      "' to inform you about this change."
                 }
             )
         );

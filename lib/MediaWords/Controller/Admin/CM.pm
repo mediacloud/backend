@@ -204,11 +204,11 @@ sub _get_controversy_objects
     my ( $db, $cdts_id ) = @_;
 
     die( "cdts param is required" ) unless ( $cdts_id );
-    
+
     my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
-    my $cd          = $db->find_by_id( 'controversy_dumps', $cdts->{ controversy_dumps_id } );
-    my $controversy = $db->find_by_id( 'controversies', $cd->{ controversies_id } );
-    
+    my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
+    my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
+
     return ( $cdts, $cd, $controversy );
 }
 
@@ -539,15 +539,15 @@ sub medium : Local
         $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
-    $c->stash->{ cdts }                     = $cdts;
-    $c->stash->{ controversy_dump }         = $cd;
-    $c->stash->{ controversy }              = $controversy;
-    $c->stash->{ medium }                   = $medium;
-    $c->stash->{ latest_controversy_dump }  = $latest_controversy_dump;
-    $c->stash->{ live_medium_diffs }        = $live_medium_diffs;
-    $c->stash->{ live }                     = $live;
-    $c->stash->{ live_medium }              = $live_medium;
-    $c->stash->{ template }                 = 'cm/medium.tt2';
+    $c->stash->{ cdts }                    = $cdts;
+    $c->stash->{ controversy_dump }        = $cd;
+    $c->stash->{ controversy }             = $controversy;
+    $c->stash->{ medium }                  = $medium;
+    $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
+    $c->stash->{ live_medium_diffs }       = $live_medium_diffs;
+    $c->stash->{ live }                    = $live;
+    $c->stash->{ live_medium }             = $live_medium;
+    $c->stash->{ template }                = 'cm/medium.tt2';
 }
 
 # is the given date guess method reliable?
@@ -718,13 +718,15 @@ sub story : Local
 sub _get_stories_id_search_query
 {
     my ( $db, $q ) = @_;
-    
+
+    $q ||= '';
+
     $q =~ s/['"%]//g;
-    
+
     my $terms = [ split( /\s/, $q ) ];
 
     return 'select stories_id from dump_story_link_counts' unless ( @{ $terms } );
-    
+
     my $queries = [];
     for my $term ( @{ $terms } )
     {
@@ -740,26 +742,26 @@ select slc.stories_id
 END
         push( @{ $queries }, $query );
     }
-    
+
     return join( ' intersect ', map { "( $_ )" } @{ $queries } );
 }
 
-# do a basic story search based on the 
+# do a basic story search based on the
 sub search_stories : Local
 {
     my ( $self, $c ) = @_;
-    
+
     my $db = $c->dbis;
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
-    
+
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
-    
+
     my $query = $c->req->param( 'q' );
     my $search_query = _get_stories_id_search_query( $db, $query );
-    
+
     my $stories = $db->query( <<END )->hashes;
 select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
     from dump_stories s, dump_media m, dump_story_link_counts slc
@@ -769,7 +771,7 @@ select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
         s.stories_id in ( $search_query )
     order by slc.inlink_count desc
 END
-    
+
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
     $c->stash->{ cdts }             = $cdts;

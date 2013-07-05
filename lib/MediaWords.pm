@@ -70,11 +70,7 @@ __PACKAGE__->config(
         }
     }
 );
-__PACKAGE__->config(
-        static => {
-            dirs => [ 'gexf' ]
-        }
-    );
+__PACKAGE__->config( static => { dirs => [ 'gexf' ] } );
 
 # Start the application
 __PACKAGE__->setup;
@@ -303,7 +299,7 @@ sub uri_for
     {
         shift( @_ );
         return $self->SUPER::uri_for( @_ );
-    } 
+    }
 
     my $uri = URI->new( $self->config->{ mediawords }->{ base_url } . $path );
 
@@ -342,7 +338,7 @@ sub acl_access_denied
         $c->log->debug( 'User not found, forwarding to /login' );
 
         # Redirect the user to the login page
-        $c->response->redirect( $c->uri_for( '/login' ) );
+        $c->response->redirect( $c->uri_for( '/login', { url => $c->req->uri } ) );
     }
 
     # Continue denying access
