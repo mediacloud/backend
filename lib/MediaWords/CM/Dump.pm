@@ -91,7 +91,9 @@ sub write_live_dump_tables
     write_temporary_dump_tables( $db, $controversies_id );
     write_period_stories( $db, $cdts );
     write_story_link_counts_dump( $db, $cdts, 1 );
+    write_story_links_dump( $db, $cdts, 1 );
     write_medium_link_counts_dump( $db, $cdts, 1 );
+    write_medium_links_dump( $db, $cdts, 1 );
 }
 
 # create temporary view of all the dump_* tables that call into the cd.* tables.
@@ -127,11 +129,11 @@ END
 sub setup_temporary_dump_tables
 {
     my ( $db, $cdts, $controversy, $live ) = @_;
-    
+
     # postgres prints lots of 'NOTICE's when deleting temp tables
     $db->dbh->{ PrintWarn } = 0;
-    
-    if ( $live ) 
+
+    if ( $live )
     {
         MediaWords::CM::Dump::write_live_dump_tables( $db, $controversy, $cdts );
     }
@@ -145,7 +147,7 @@ sub setup_temporary_dump_tables
 sub discard_temp_tables
 {
     my ( $db ) = @_;
-    
+
     $db->query( "discard temp" );
 }
 
@@ -224,7 +226,7 @@ sub update_cdts
     $db->update_by_id( 'controversy_dump_time_slices', $cdts->{ controversy_dump_time_slices_id }, { $field => $val } );
 }
 
-sub write_story_links_csv
+sub get_story_links_csv
 {
     my ( $db, $cdts ) = @_;
 
@@ -239,6 +241,15 @@ select distinct sl.source_stories_id source_stories_id, ss.title source_title, s
 	    sl.ref_stories_id = rs.stories_id and 
 	    rs.media_id = rm.media_id
 END
+
+    return $csv;
+}
+
+sub write_story_links_csv
+{
+    my ( $db, $cdts ) = @_;
+
+    my $csv = get_story_links_csv( $db, $cdts );
 
     update_cdts( $db, $cdts, 'story_links_csv', $csv );
 }
@@ -267,7 +278,7 @@ END
     }
 }
 
-sub write_stories_csv
+sub get_stories_csv
 {
     my ( $db, $cdts ) = @_;
 
@@ -306,6 +317,15 @@ select distinct s.stories_id, s.title, s.url, s.publish_date,
 	where s.media_id = m.media_id and s.stories_id = slc.stories_id
 	order by slc.inlink_count;
 END
+
+    return $csv;
+}
+
+sub write_stories_csv
+{
+    my ( $db, $cdts ) = @_;
+
+    my $csv = get_stories_csv( $db, $cdts );
 
     update_cdts( $db, $cdts, 'stories_csv', $csv );
 }
@@ -402,7 +422,7 @@ END
     return $code_fields;
 }
 
-sub write_media_csv
+sub get_media_csv
 {
     my ( $db, $cdts ) = @_;
 
@@ -423,6 +443,15 @@ END
     push( @{ $fields }, @{ $tag_fields } );
 
     my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
+
+    return $csv;
+}
+
+sub write_media_csv
+{
+    my ( $db, $cdts ) = @_;
+
+    my $csv = get_media_csv( $db, $cdts );
 
     update_cdts( $db, $cdts, 'media_csv', $csv );
 }
@@ -449,7 +478,7 @@ END
     }
 }
 
-sub write_medium_links_csv
+sub get_medium_links_csv
 {
     my ( $db, $cdts ) = @_;
 
@@ -459,6 +488,15 @@ select ml.source_media_id, sm.name source_name, sm.url source_url,
     from dump_medium_links ml, media sm, media rm
     where ml.source_media_id = sm.media_id and ml.ref_media_id = rm.media_id
 END
+
+    return $csv;
+}
+
+sub write_medium_links_csv
+{
+    my ( $db, $cdts ) = @_;
+
+    my $csv = get_medium_links_csv( $db, $cdts );
 
     update_cdts( $db, $cdts, 'medium_links_csv', $csv );
 }

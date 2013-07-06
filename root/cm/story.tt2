@@ -1,12 +1,39 @@
 [% PROCESS cm/header.tt2 title="Story '$story.title'" %]
 
+<script type="text/javascript">
+$(document).ready(function () {
+
+  $("#confirmDialog").dialog({ autoOpen: false });
+
+  $(".remove_story").click(function (e) {
+    e.preventDefault();
+    var hrefAttribute = $(this).attr("href");
+
+    $("#confirmDialog").dialog('option', 'buttons', {
+      "Confirm": function () { window.location.href = hrefAttribute; },
+      "Cancel": function () { $(this).dialog("close"); }
+    });
+
+    $("#confirmDialog").dialog("open");
+  });
+  
+});
+
+</script>
+
+<div id="confirmDialog">
+    Are you sure you want to remove the story from the [% controversy.name | html %] controversy?  
+    After removal, the story will still appear in existing dumps, but it will not be in live views 
+    or new dumps of the controversy.
+</div>
+
 <div id="warning_box">
 
 [% IF live %]
 You are viewing the live story, as it currently exists in the database.
 [% ELSE %]
 
-This page is displaying a frozen snapshot of the [% story.title | html %] story, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( cd.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this story will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
+This page is displaying a frozen snapshot of the [% story.title | html %] story, as it existed in the [% cdts_date_range | html %] [% cdts.period | html %] time slice from the [% datetime.format( controversy_dump.dump_date ) %] dump of the [% controversy.name %] controversy.  Because this data is a frozen snapshot, edits to this story will not appear on this page.  Links and link counts are only for links that occur during [% cdts_date_range %].  
 
 <p>
 [% IF live_story_diffs %]
@@ -40,29 +67,34 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 </div>
 
 [% MACRO live_story_diff( field )
-       IF !live;
+       IF !live && live_story;
             IF story.$field != live_story.$field;
                 '(live: ' _ live_story.$field _ ' )';
             END;
        END;
 %]
 [% MACRO live_story_date_diff( field )
-       IF !live;
+       IF !live && live_story;
             IF story.publish_date != live_story.publish_date;
                 '(live: ' _ datetime.format( live_story.publish_date ) _ ' )';
             END;
        END;
 %]
 
-[% medium_url = c.uri_for( '/admin/cm/medium/' _ story.media_id, 
+[% medium_url = c.uri_for( "/admin/cm/medium/'$story.media_id", 
                            { cdts => cdts.controversy_dump_time_slices_id, 
-                             c => controversies_id, 
                              l => live } ) %]
-    
-<p>Basic Data for [% story.title | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
-[<a href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">edit</a>]</p>
-<table>
+                             
+[% remove_story_url = c.uri_for( "/admin/cm/remove_story/$story.stories_id", 
+                                 { cdts => cdts.controversy_dump_time_slices_id, 
+                                   l => live } ) %]
 
+<div id="boxtitle">
+    Basic Data for [% story.title | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
+    <a id="boxcommand" class="remove_story" href="[% remove_story_url | html %]">remove</a>
+    <a id="boxcommand" href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">edit</a>
+</div>
+<table>
     <tr>
         <td>Stories_id</td><td>[% story.stories_id %]</td>
     </tr>

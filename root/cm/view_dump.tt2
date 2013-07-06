@@ -1,14 +1,18 @@
 [% PROCESS cm/header.tt2
     title = 'Dump ' _ datetime.format( controversy_dump.dump_date ) %]
 
-[% INCLUDE cm/time_slices_table.tt2 %]
-
-<p>Stats</p>
-<fieldset>
-    <p><a href="[% c.uri_for( '/admin/cm/dump_daily_counts/' _ controversy_dump.controversy_dumps_id ) %]">Daily Counts CSV</a></p>
-    <p><a href="[% c.uri_for( '/admin/cm/dump_weekly_counts/' _ controversy_dump.controversy_dumps_id ) %]">Weekly Counts CSV</a></p>
-</fieldset>
-
+<div id="wholecolumn">
+    <div id="widecolumn">
+        [% INCLUDE cm/time_slices_table.tt2 %]
+    </div>
+    <div id="narrowcolumn">
+        <div id="boxtitle">Stats</div>
+        <fieldset>
+            <p><a href="[% c.uri_for( '/admin/cm/dump_daily_counts/' _ controversy_dump.controversy_dumps_id ) %]">Daily Counts CSV</a></p>
+            <p><a href="[% c.uri_for( '/admin/cm/dump_weekly_counts/' _ controversy_dump.controversy_dumps_id ) %]">Weekly Counts CSV</a></p>
+        </fieldset>
+    </div>
+<div>
 
 [% INCLUDE include/footer.tt2 %]
 

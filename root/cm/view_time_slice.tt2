@@ -7,13 +7,21 @@
     <div id="widecolumn">
         <div id="boxtitle">Network Map</div>
         <fieldset>
-            [% map_url= c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]
-            <iframe src="[% map_url | html %]" height="400" style="width:100%; border:0"></iframe>
-            Model Correlation: 
-            [% IF cdts.model_r2_mean %]r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %]
-            [% ELSE %](not enough data)[% END %]
-            | <a href="[% map_url | html %]">View Map Full Screen</a>
-            | <a href="[% c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">Download GEXF</a><br />
+        
+            [% IF live %]
+                <p>No network map is available for live data.  To see a network map, view this time slice in the 
+                <a href="[% c.uri_for( "/admin/cm/view_time_slice/$cdts.controversy_dump_time_slices_id" ) %]">latest dump</a>.  For that latest dump, the modeled reliability for this data is below.</p>
+            [% ELSE %]
+                [% map_url= c.uri_for( '/gexf/index.html#' ) _ c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]
+                <iframe src="[% map_url | html %]" height="400" style="width:100%; border:0"></iframe>
+                <a href="[% map_url | html %]">View Map Full Screen</a>
+                | <a href="[% c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">Download GEXF</a><br />
+            [% END %]
+            <p>
+                Model Correlation: 
+                [% IF cdts.model_r2_mean %]r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %]
+                [% ELSE %](not enough data)[% END %]
+            </p>
         </fieldset>
     </div>
 
@@ -23,22 +31,22 @@
             <tr>
                 <td># Stories</td>
                 <td>[% cdts.num_stories %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr id="even">
                 <td># Story Links</td>
                 <td>[% cdts.num_story_links %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
                 <td># Media</td>
                 <td>[% cdts.num_media %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></tr>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></tr>
             </tr>
             <tr id="even">
                 <td># Medium Links</td>
                 <td>[% cdts.num_medium_links %]</td>
-                <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id ) %]">CSV</a></td>
+                <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
                 <td># Modeled Top Media</td>
@@ -48,8 +56,18 @@
         
         <div id="boxtitle">Search Stories</div>
         <fieldset>
-            [% search_url = c.uri_for( "/admin/cm/search_stories" ) %]
-            <form method="get" action="[% search_url | html %]">
+            [% story_search_url = c.uri_for( "/admin/cm/search_stories" ) %]
+            <form method="get" action="[% story_search_url | html %]">
+                <input type="hidden" name="l" value="[% live | html %]" />
+                <input type="hidden" name="cdts" value="[% cdts.controversy_dump_time_slices_id %]" />
+                <input type="text" name="q" style="width:100%" />
+            </form>
+        </fieldset>
+
+        <div id="boxtitle">Search Media</div>
+        <fieldset>
+            [% medium_search_url = c.uri_for( "/admin/cm/search_media" ) %]
+            <form method="get" action="[% medium_search_url | html %]">
                 <input type="hidden" name="l" value="[% live | html %]" />
                 <input type="hidden" name="cdts" value="[% cdts.controversy_dump_time_slices_id %]" />
                 <input type="text" name="q" style="width:100%" />
@@ -63,6 +81,10 @@
     [% INCLUDE cm/media_table.tt2
         display_media = top_media
         display_media_title = "Top Media" %]
+    [% all_media_url = c.uri_for( '/admin/cm/search_media', 
+                                  { cdts => cdts.controversy_dump_time_slices_id,
+                                    l => live } ) %]
+    <a href="[% all_media_url | html %]">View All Media</a>
 
     [% INCLUDE cm/stories_table.tt2
         display_stories = top_stories

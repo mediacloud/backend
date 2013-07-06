@@ -1,3 +1,9 @@
+body {
+    font-color: red;
+    font-family: verdana, helvetica, arial;
+    font-size: 80%;    
+}
+
 table {
     background: #f4f4f4;
     border-collapse: collapse;
@@ -35,11 +41,6 @@ h3 {
     font-size: 100%;
     font-style: bold;
     color: #2790B0;
-}
-
-body td th{
-    font-family: verdana, helvetica, arial;
-    font-size: 80%;    
 }
 
 a {
@@ -130,6 +131,7 @@ fieldset#edit_tags .submit {
 }
 
 div#status {
+    margin-top: 1em;
     margin-bottom: 1em;
     border: 1px solid silver;
     padding: 1em;    
@@ -138,13 +140,13 @@ div#status {
 div#error {
     font-weight: bold;
     color: red;
+    margin-top: 1em;
     margin-bottom: 1em;
     border: 1px solid red;
     padding: 1em;    
 }
 
 #navigation {
-    font-family: verdana, helvetica, arial;
     font-size: 14px;
     color: #333333;
     background-color: #F9F9F9;
@@ -156,7 +158,6 @@ div#error {
 }
 
 #centerDoc {
-    font-family: verdana, helvetica, arial;
     font-size: 14px;
     color: #333333;
     background-color: #F9F9F9;
@@ -254,4 +255,37 @@ div#wholecolumn {
 
 div#boxtitle {
     padding-top: 20px;
-}   
+    margin-bottom: 5px;
+    height: auto;
+}
+
+a#boxcommand {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin-bottom: 5px;
+  margin-left: 1px;
+  background-color: #ffffff;
+  border: 1px solid silver;
+  color: #2B4E72;
+  float: right;
+  text-decoration:none;
+}
+
+a#command {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin-bottom: 5px;
+  margin-left: 1px;
+  background-color: #ffffff;
+  border: 1px solid silver;
+  color: #2B4E72;
+  text-decoration:none;
+}
+
+.ui-dialog-titlebar { 
+    display:none; 
+}

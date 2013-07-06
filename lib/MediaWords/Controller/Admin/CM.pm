@@ -54,7 +54,7 @@ END
 
 sub _get_latest_full_dump_with_time_slices
 {
-    my ( $db, $controversy_dumps ) = @_;
+    my ( $db, $controversy_dumps, $controversy ) = @_;
 
     my $latest_full_dump;
     for my $cd ( @{ $controversy_dumps } )
@@ -74,7 +74,14 @@ select * from controversy_dump_time_slices
     order by period, start_date, end_date
 END
 
-    map { _add_media_and_story_counts_to_cdts( $db, $_ ) } @{ $controversy_dump_time_slices };
+    # this just gets counts from the snapshot tables because
+    # live counts for every time slice is too slow
+    for my $cdts ( @{ $controversy_dump_time_slices } )
+    {
+        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy );
+        _add_media_and_story_counts_to_cdts( $db, $cdts );
+        MediaWords::CM::Dump::discard_temp_tables( $db );
+    }
 
     $latest_full_dump->{ controversy_dump_time_slices } = $controversy_dump_time_slices;
 
@@ -102,7 +109,7 @@ END
 
     map { _add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
-    my $latest_full_dump = _get_latest_full_dump_with_time_slices( $db, $controversy_dumps );
+    my $latest_full_dump = _get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
 
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
@@ -117,21 +124,13 @@ sub _add_media_and_story_counts_to_cdts
 {
     my ( $db, $cdts ) = @_;
 
-    ( $cdts->{ num_stories } ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
-select count(*) from cd.story_link_counts where controversy_dump_time_slices_id = ?
-END
+    ( $cdts->{ num_stories } ) = $db->query( "select count(*) from dump_story_link_counts" )->flat;
 
-    ( $cdts->{ num_story_links } ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
-select count(*) from cd.story_links where controversy_dump_time_slices_id = ?
-END
+    ( $cdts->{ num_story_links } ) = $db->query( "select count(*) from dump_story_links" )->flat;
 
-    ( $cdts->{ num_media } ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
-select count(*) from cd.medium_link_counts where controversy_dump_time_slices_id = ?
-END
+    ( $cdts->{ num_media } ) = $db->query( "select count(*) from dump_medium_link_counts" )->flat;
 
-    ( $cdts->{ num_medium_links } ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
-select count(*) from cd.medium_links where controversy_dump_time_slices_id = ?
-END
+    ( $cdts->{ num_medium_links } ) = $db->query( "select count(*) from dump_medium_links" )->flat;
 }
 
 # view a controversy dump, with a list of its time slices
@@ -152,7 +151,12 @@ select * from controversy_dump_time_slices
     order by period, start_date, end_date
 END
 
-    map { _add_media_and_story_counts_to_cdts( $db, $_ ) } @{ $controversy_dump_time_slices };
+    for my $cdts ( @{ $controversy_dump_time_slices } )
+    {
+        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy );
+        _add_media_and_story_counts_to_cdts( $db, $cdts );
+        MediaWords::CM::Dump::discard_temp_tables( $db );
+    }
 
     $c->stash->{ controversy_dump }             = $controversy_dump;
     $c->stash->{ controversy }                  = $controversy;
@@ -223,9 +227,9 @@ sub view_time_slice : Local
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    _add_media_and_story_counts_to_cdts( $db, $cdts );
-
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    _add_media_and_story_counts_to_cdts( $db, $cdts );
 
     my $top_media = _get_top_media_for_time_slice( $db, $cdts );
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );
@@ -241,23 +245,38 @@ sub view_time_slice : Local
     $c->stash->{ template }         = 'cm/view_time_slice.tt2';
 }
 
-# download a csv field from controversy_dump_time_slices_id
+# download a csv field from controversy_dump_time_slices_id or generate the
+# csv for the same data live from the controversy data.
 sub _download_cdts_csv
 {
-    my ( $c, $controversy_dump_time_slices_id, $csv ) = @_;
-
-    my $field = $csv . '_csv';
+    my ( $c, $cdts_id, $table, $live ) = @_;
 
     my $db = $c->dbis;
 
-    my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $file = "${ csv }_$cdts->{ controversy_dump_time_slices_id }.csv";
+    my ( $csv, $file );
+    if ( $live )
+    {
+        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+        $csv  = eval( 'MediaWords::CM::Dump::get_' . $table . '_csv( $db, $cdts )' );
+        $file = "${ table }_$cdts->{ controversy_dump_time_slices_id }_live.csv";
+
+        MediaWords::CM::Dump::discard_temp_tables( $db );
+    }
+    else
+    {
+        my $field = $table . '_csv';
+
+        $file = "${ table }_$cdts->{ controversy_dump_time_slices_id }.csv";
+        $csv  = $cdts->{ $field };
+    }
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
     $c->response->content_type( 'text/csv; charset=UTF-8' );
-    $c->response->content_length( bytes::length( $cdts->{ $field } ) );
-    $c->response->body( $cdts->{ $field } );
+    $c->response->content_length( bytes::length( $csv ) );
+    $c->response->body( $csv );
 }
 
 # download the stories_csv for the given time slice
@@ -265,7 +284,7 @@ sub dump_stories : Local
 {
     my ( $self, $c, $controversy_dump_time_slices_id ) = @_;
 
-    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'stories' );
+    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'stories', $c->req->params->{ l } );
 }
 
 # download the story_links_csv for the given time slice
@@ -273,7 +292,7 @@ sub dump_story_links : Local
 {
     my ( $self, $c, $controversy_dump_time_slices_id ) = @_;
 
-    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'story_links' );
+    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'story_links', $c->req->params->{ l } );
 }
 
 # download the media_csv for the given time slice
@@ -281,7 +300,7 @@ sub dump_media : Local
 {
     my ( $self, $c, $controversy_dump_time_slices_id ) = @_;
 
-    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'media' );
+    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'media', $c->req->params->{ l } );
 }
 
 # download the medium_links_csv for the given time slice
@@ -289,7 +308,7 @@ sub dump_medium_links : Local
 {
     my ( $self, $c, $controversy_dump_time_slices_id ) = @_;
 
-    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'medium_links' );
+    _download_cdts_csv( $c, $controversy_dump_time_slices_id, 'medium_links', $c->req->params->{ l } );
 }
 
 # download the gexf file for the time slice
@@ -699,14 +718,17 @@ sub story : Local
         $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
+    my $confirm_remove = $c->req->params->{ confirm_remove };
+
     $c->stash->{ cdts }                    = $cdts;
-    $c->stash->{ cd }                      = $cd;
+    $c->stash->{ controversy_dump }        = $cd;
     $c->stash->{ controversy }             = $controversy;
     $c->stash->{ story }                   = $story;
     $c->stash->{ latest_controversy_dump } = $latest_controversy_dump;
     $c->stash->{ live_story_diffs }        = $live_story_diffs;
     $c->stash->{ live }                    = $live;
     $c->stash->{ live_story }              = $live_story;
+    $c->stash->{ confirm_remove }          = $confirm_remove;
     $c->stash->{ template }                = 'cm/story.tt2';
 }
 
@@ -735,10 +757,13 @@ sub _get_stories_id_search_query
 select slc.stories_id 
     from dump_story_link_counts slc
         join dump_stories s on ( s.stories_id = slc.stories_id )
+        join dump_media m on ( s.media_id = m.media_id )
         left join story_sentences ss on ( slc.stories_id = s.stories_id )
     where ( ss.sentence like $qterm or 
             lower( s.title ) like $qterm or
-            lower( s.url ) like $qterm )
+            lower( s.url ) like $qterm or 
+            lower( m.url ) like $qterm or
+            lower( m.name ) like $qterm )
 END
         push( @{ $queries }, $query );
     }
@@ -746,20 +771,21 @@ END
     return join( ' intersect ', map { "( $_ )" } @{ $queries } );
 }
 
-# do a basic story search based on the
+# do a basic story search based on the story sentences, title, url, media name, and media url
 sub search_stories : Local
 {
     my ( $self, $c ) = @_;
 
     my $db = $c->dbis;
 
-    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
+    my $cdts_id = $c->req->params->{ cdts };
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    my $live = $c->req->param( 'l' );
+    my $live = $c->req->params->{ l };
 
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
-    my $query = $c->req->param( 'q' );
+    my $query = $c->req->params->{ q };
     my $search_query = _get_stories_id_search_query( $db, $query );
 
     my $stories = $db->query( <<END )->hashes;
@@ -774,12 +800,88 @@ END
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
+    my $controversies_id = $controversy->{ controversies_id };
+    if ( $c->req->params->{ remove_stories } )
+    {
+        map { _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id ) } @{ $stories };
+        my $status_msg = "stories removed from controversy.";
+        $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
+        return;
+    }
+
     $c->stash->{ cdts }             = $cdts;
     $c->stash->{ controversy_dump } = $cd;
     $c->stash->{ controversy }      = $controversy;
     $c->stash->{ stories }          = $stories;
     $c->stash->{ query }            = $query;
     $c->stash->{ template }         = 'cm/stories.tt2';
+}
+
+# do a basic media search based on the story sentences, title, url, media name, and media url
+sub search_media : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
+
+    my $live = $c->req->param( 'l' );
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    my $query = $c->req->param( 'q' );
+    my $search_query = _get_stories_id_search_query( $db, $query );
+
+    my $media = $db->query( <<END )->hashes;
+select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
+    from dump_stories s, dump_media m, dump_story_link_counts slc, dump_medium_link_counts mlc
+    where
+        s.stories_id = slc.stories_id and
+        s.media_id = m.media_id and
+        s.media_id = mlc.media_id and
+        s.stories_id in ( $search_query )
+    order by mlc.inlink_count desc
+END
+
+    MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ media }            = $media;
+    $c->stash->{ query }            = $query;
+    $c->stash->{ template }         = 'cm/media.tt2';
+}
+
+# remove the given story from the given controversy
+sub _remove_story_from_controversy
+{
+    my ( $db, $stories_id, $controversies_id ) = @_;
+
+    $db->query( <<END, $stories_id, $controversies_id );
+delete from controversy_stories where stories_id = ? and controversies_id = ?
+END
+
+}
+
+# remove the given story from the controversy
+sub remove_story : Local
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my $cdts_id = $c->req->params->{ cdts };
+    my $live    = $c->req->params->{ l };
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    _remove_story_from_controversy( $db, $stories_id, $controversy->{ controversies_id } );
+
+    my $status_msg = "story has been removed from the live version of the controversy.";
+
+    $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
 }
 
 1;
