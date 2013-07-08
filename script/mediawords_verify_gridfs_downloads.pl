@@ -68,6 +68,7 @@ use Data::Dumper;
         my $_start_downloads_id  = 0;
         my $_finish_downloads_id = 0;
         my $_tar_store           = undef;
+        my $_gridfs_store        = undef;
         my $_localfile_store     = undef;
         my $_db                  = undef;
 
@@ -88,6 +89,7 @@ use Data::Dumper;
 
             # Create stores for reading
             $_tar_store       = MediaWords::DBI::Downloads::Store::Tar->new();
+            $_gridfs_store    = MediaWords::DBI::Downloads::Store::GridFS->new();
             $_localfile_store = MediaWords::DBI::Downloads::Store::LocalFile->new();
 
             # Connect to database
@@ -178,8 +180,8 @@ EOF
             elsif ( $db_download->{ path } =~ /^gridfs:(.*)/ )
             {
 
-                # GridFS content -- shouldn't be accessed that way
-                die "Content in GridFS shouldn't be compared against the very same content in GridFS.\n";
+                # GridFS
+                $store = $_gridfs_store;
             }
             elsif ( $db_download->{ path } =~ /^tar:/ )
             {
@@ -355,8 +357,9 @@ sub verify_downloads($$$)
             else
             {
 
-                die "Content mismatch.\n" . "Source content: " . ( $source_content ? $source_content : 'undef' ) . "\n" .
-                  "Destination content: " . ( $destination_content ? $destination_content : 'undef' ) . "\n";
+                die "Content mismatch.\n" .
+                  "Source content: " . ( $source_content ? $source_content : 'undef' ) . "\n" . "Destination content: " .
+                  ( $destination_content ? $destination_content : 'undef' ) . "\n";
             }
         }
     }
@@ -382,8 +385,8 @@ sub main
                                      # the end of all downlads
 
     my Readonly $usage =
-      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' . ' [--start_downloads_id=i]' .
-      ' [--finish_downloads_id=i]';
+      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' .
+      ' [--start_downloads_id=i]' . ' [--finish_downloads_id=i]';
 
     GetOptions(
         'mode=s'                => \$mode,
