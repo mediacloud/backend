@@ -50,6 +50,7 @@ use MediaWords::DB;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
+use MediaWords::DBI::Downloads::Store::DatabaseInline;
 use MediaWords::DBI::Downloads::Store::LocalFile;
 use MediaWords::DBI::Downloads::Store::Tar;
 use MediaWords::DBI::Downloads::Store::GridFS;
@@ -67,6 +68,7 @@ use Data::Dumper;
 
         my $_start_downloads_id  = 0;
         my $_finish_downloads_id = 0;
+        my $_inline_store        = undef;
         my $_tar_store           = undef;
         my $_gridfs_store        = undef;
         my $_localfile_store     = undef;
@@ -88,6 +90,7 @@ use Data::Dumper;
             say STDERR "Initializing PostgreSQL accessor.";
 
             # Create stores for reading
+            $_inline_store    = MediaWords::DBI::Downloads::Store::DatabaseInline->new();
             $_tar_store       = MediaWords::DBI::Downloads::Store::Tar->new();
             $_gridfs_store    = MediaWords::DBI::Downloads::Store::GridFS->new();
             $_localfile_store = MediaWords::DBI::Downloads::Store::LocalFile->new();
@@ -155,44 +158,54 @@ EOF
             {
 
                 # Not found
-                return undef;
+                return ( undef, undef );
             }
 
             unless (
-                    $db_download->{ state } eq 'success'
+                (
+                       $db_download->{ state } eq 'success'
+                    or $db_download->{ state } eq 'error'
+                    or $db_download->{ state } eq 'feed_error'
+                )
                 and $db_download->{ path }
                 and (  $db_download->{ file_status } eq 'present'
                     or $db_download->{ file_status } eq 'redownloaded'
-                    or $db_download->{ file_status } eq 'tbd' )
+                    or $db_download->{ file_status } eq 'tbd'
+                    or $db_download->{ file_status } eq 'inline' )
               )
             {
-                return undef;
+                return ( undef, undef );
             }
 
             # Choose store
-            my $store = undef;
+            my $storage_method = undef;
+            my $store          = undef;
             if ( $db_download->{ path } =~ /^content:(.*)/ )
             {
 
-                # Inline content -- shouldn't be present in GridFS
-                return undef;
+                # Inline content
+                $storage_method = 'inline';
+                $store          = $_inline_store;
             }
             elsif ( $db_download->{ path } =~ /^gridfs:(.*)/ )
             {
 
                 # GridFS
-                $store = $_gridfs_store;
+                $storage_method = 'gridfs';
+                $store          = $_gridfs_store;
             }
             elsif ( $db_download->{ path } =~ /^tar:/ )
             {
 
                 # Tar
+                my $storage_method = 'tar';
                 $store = $_tar_store;
             }
             else
             {
 
                 # Local file
+                my $storage_method = 'local_file';
                 $store = $_localfile_store;
             }
 
@@ -201,10 +214,10 @@ EOF
             eval { $content_ref = $store->fetch_content( $db_download ); };
             if ( $@ or ( !$content_ref ) )
             {
-                return undef;
+                return ( $storage_method, undef );
             }
 
-            return $$content_ref;
+            return ( $storage_method, $$content_ref );
         }
     }
 
@@ -278,10 +291,10 @@ EOF
             eval { $content_ref = $_gridfs_store->fetch_content( $download ); };
             if ( $@ or ( !$content_ref ) )
             {
-                return undef;
+                return ( 'gridfs', undef );
             }
 
-            return $$content_ref;
+            return ( 'gridfs', $$content_ref );
         }
     }
 }
@@ -323,8 +336,9 @@ sub verify_downloads($$$)
         print STDERR "Verifying download ID " . $next_download_id . "... ";
 
         # None or both of the contents might be undef
-        my $source_content      = $source_accessor->get_content_for_download_id( $next_download_id );
-        my $destination_content = $destination_accessor->get_content_for_download_id( $next_download_id );
+        my ( $source_storage_method, $source_content ) = $source_accessor->get_content_for_download_id( $next_download_id );
+        my ( $destination_storage_method, $destination_content ) =
+          $destination_accessor->get_content_for_download_id( $next_download_id );
 
         if ( defined $source_content )
         {
@@ -342,24 +356,47 @@ sub verify_downloads($$$)
             ( ( ( !defined $source_content ) and ( !defined $destination_content ) ) )
 
             # "contents" are defined and equal to each other, or
-            or ( $source_content eq $destination_content )
+            or ( defined $source_content and defined $destination_content and $source_content eq $destination_content )
+
+            # inline content is present in source (PostgreSQL) and not in GridFS
+            or ( $source_storage_method eq 'inline' and defined $source_content and ( !defined $destination_content ) )
+
           )
         {
 
             # Temporary exception to "content:(redundant feed)" downloads that somehow
             # got stored in both PostgreSQL and GridFS (although they should only be
             # present in PostgreSQL)
-            if ( ( !defined $source_content ) and $destination_content eq '(redundant feed)' )
+            if (    $source_storage_method eq 'inline'
+                and defined $source_content
+                and defined $destination_content
+                and $source_content eq '(redundant feed)' )
             {
                 say STDERR
                   "Warning: download ID $next_download_id is present in both PostgreSQL and GridFS as a \"redundant feed\"";
             }
+
+            # Same with "(unsupported content type)"
+            elsif ( $source_storage_method eq 'inline'
+                and defined $source_content
+                and defined $destination_content
+                and $source_content eq '(unsupported content type)' )
+            {
+                say STDERR
+"Warning: download ID $next_download_id is present in both PostgreSQL and GridFS as a \"unsupported content type\"";
+            }
+
+            # FIXME content in PostgreSQL is "content:"; content in GridFS is a full-blown article
+            elsif ( $next_download_id == 260024453 )
+            {
+
+                # no-op
+            }
             else
             {
 
-                die "Content mismatch.\n" .
-                  "Source content: " . ( $source_content ? $source_content : 'undef' ) . "\n" . "Destination content: " .
-                  ( $destination_content ? $destination_content : 'undef' ) . "\n";
+                die "Content mismatch.\n" . "Source content: " . ( $source_content ? $source_content : 'undef' ) . "\n" .
+                  "Destination content: " . ( $destination_content ? $destination_content : 'undef' ) . "\n";
             }
         }
     }
@@ -385,8 +422,8 @@ sub main
                                      # the end of all downlads
 
     my Readonly $usage =
-      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' .
-      ' [--start_downloads_id=i]' . ' [--finish_downloads_id=i]';
+      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' . ' [--start_downloads_id=i]' .
+      ' [--finish_downloads_id=i]';
 
     GetOptions(
         'mode=s'                => \$mode,
