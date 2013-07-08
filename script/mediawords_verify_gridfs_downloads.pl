@@ -339,13 +339,25 @@ sub verify_downloads($$$)
             # Both "contents" are undefined, or
             ( ( ( !defined $source_content ) and ( !defined $destination_content ) ) )
 
-            # "contents" are defined and equal to each other
+            # "contents" are defined and equal to each other, or
             or ( $source_content eq $destination_content )
           )
         {
-            die "Content mismatch.\n" .
-              "Source content: " . ( $source_content ? $source_content : 'undef' ) . "\n" . "Destination content: " .
-              ( $destination_content ? $destination_content : 'undef' ) . "\n";
+
+            # Temporary exception to "content:(redundant feed)" downloads that somehow
+            # got stored in both PostgreSQL and GridFS (although they should only be
+            # present in PostgreSQL)
+            if ( ( !defined $source_content ) and $destination_content eq '(redundant feed)' )
+            {
+                say STDERR
+                  "Warning: download ID $next_download_id is present in both PostgreSQL and GridFS as a \"redundant feed\"";
+            }
+            else
+            {
+
+                die "Content mismatch.\n" . "Source content: " . ( $source_content ? $source_content : 'undef' ) . "\n" .
+                  "Destination content: " . ( $destination_content ? $destination_content : 'undef' ) . "\n";
+            }
         }
     }
 
@@ -370,8 +382,8 @@ sub main
                                      # the end of all downlads
 
     my Readonly $usage =
-      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' .
-      ' [--start_downloads_id=i]' . ' [--finish_downloads_id=i]';
+      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' . ' [--start_downloads_id=i]' .
+      ' [--finish_downloads_id=i]';
 
     GetOptions(
         'mode=s'                => \$mode,
