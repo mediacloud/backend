@@ -254,7 +254,8 @@ sub fetch_content($$;$)
         eval {
 
             # Read
-            $file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
+            my $gridfs_file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
+            $file                      = $gridfs_file->slurp;
             $attempt_to_read_succeeded = 1;
         };
 
@@ -278,7 +279,7 @@ sub fetch_content($$;$)
         die "GridFS: Could not get file from GridFS for filename " . $filename . "\n";
     }
 
-    my $gzipped_content = $file->slurp;
+    my $gzipped_content = $file;
 
     # Gunzip + decode
     my $decoded_content;
