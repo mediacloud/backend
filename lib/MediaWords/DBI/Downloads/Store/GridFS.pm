@@ -255,6 +255,10 @@ sub fetch_content($$;$)
 
             # Read
             my $gridfs_file = $self->_mongodb_gridfs->find_one( { 'filename' => $filename } );
+            unless ( defined $gridfs_file )
+            {
+                die "GridFS: unable to find file with filename '$filename'.";
+            }
             $file                      = $gridfs_file->slurp;
             $attempt_to_read_succeeded = 1;
         };
