@@ -386,11 +386,15 @@ sub verify_downloads($$$)
 "Warning: download ID $next_download_id is present in both PostgreSQL and GridFS as a \"unsupported content type\"";
             }
 
-            # FIXME content in PostgreSQL is "content:"; content in GridFS is a full-blown article
-            elsif ( $next_download_id == 260024453 )
+            # Content in PostgreSQL is "content:"; content in GridFS is a full-blown article
+            # (e.g. downloads 260024453 and 260159325)
+            elsif ( $source_storage_method eq 'inline'
+                and defined $source_content
+                and $source_content eq ''
+                and defined $destination_content
+                and $destination_content ne '' )
             {
-
-                # no-op
+                say STDERR "Warning: download ID $next_download_id is empty in PostgreSQL and downloaded to GridFS";
             }
             else
             {
