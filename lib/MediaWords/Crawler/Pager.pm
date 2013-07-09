@@ -77,7 +77,7 @@ sub _link_is_next_page
     }
 
     # these indicate that the next link goes to the next story rather than the next page
-    if ( $text =~ /(?:in|photo|story|topic)/is )
+    if ( $text =~ /(?:in|photo|story|topic|article)/is )
     {
         return 0;
     }

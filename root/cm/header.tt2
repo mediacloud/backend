@@ -1,0 +1,22 @@
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]
+[% USE HTML %]    
+
+[% cdts_date_range = date.format( cdts.start_date ) _ ' - ' _ date.format( cdts.end_date ) %]
+
+[% controversy_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">' _ HTML.escape( controversy.name ) _ '</a>' %]
+
+[% IF live %]
+    [% dump_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">Live</a>' %]
+[% ELSIF controversy_dump %]
+    [% dump_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view_dump/" _ controversy_dump.controversy_dumps_id ) _ '">Dump ' _ date.format( controversy_dump.dump_date ) _ '</a>' %]
+[% END %]
+
+[% IF cdts %]
+    [% cdts_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view_time_slice/" _ cdts.controversy_dump_time_slices_id, { l => live } ) _ '">' _ cdts_date_range _ ' Time Slice</a>' %]
+[% END %]
+
+
+[% INCLUDE include/header.tt2
+    title = "CM: $title"
+    breadcrumbs = "[ $controversy_link $dump_link $cdts_link ]" %]

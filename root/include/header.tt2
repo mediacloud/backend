@@ -52,68 +52,71 @@
 [% INCLUDE 'include/google_analytics.tt2' %]
   </head>
   <body>
-    [% IF c.user %]
+      [% IF c.user %]
 
-      <div id="user">
-        Logged in as <code>[% c.user.username | html %]</code>.<br />
-        <a href="[% c.uri_for('/logout') %]">Logout</a> | <a href="[% c.uri_for('/admin/profile') %]">Profile</a>
-      </div>
-      <div id="menu">          
-          [% IF c.acl_user_can_visit('/admin/cm/list') %]
-              <a href="[% c.uri_for('/admin/cm/list') %]">CM</a>
-          [% END -%]
-          [% IF c.acl_user_can_visit('/admin/media/list') %]
-              <a href="[% c.uri_for('/admin/media/list') %]">Search Media</a>
-          [% END -%]
-          [% IF c.acl_user_can_visit('/admin/media/create_batch') %]
-              <a href="[% c.uri_for('/admin/media/create_batch') %]">Add Media</a>
-          [% END -%]
-          [% IF c.acl_user_can_visit('/admin/media/moderate') %]
-              <a href="[% c.uri_for('/media/moderate_tags') %]">Moderate Media</a>
-          [% END -%]
-          [% IF c.acl_user_can_visit('/admin/downloads/list') %]
-              <a href="[% c.uri_for('/admin/downloads/list') %]">All Downloads</a>
-          [% END -%]
-          [% IF c.acl_user_can_visit('/admin/queries/list') %]
-              <a href="[% c.uri_for('/admin/queries/list') %]">Queries</a>
-          [% END -%]
-          [% IF c.acl_user_can_visit('/admin/dashboards/list') %]
-              <a href="[% c.uri_for('/admin/dashboards/list') %]">Dashboards</a>
-          [% END -%]
-          [% IF c.acl_user_can_visit('/admin/users/list') %]
-              <a href="[% c.uri_for('/admin/users/list') %]">Users</a>
-          [% END -%]
-          [% IF submenu_items -%]
-          |
-          [% FOREACH item IN submenu_items -%]
-          [% IF c.acl_user_can_visit(item.0) %]
-            <a href="[% c.uri_for(item.0) _ '/' _ item.1 _ '?' _ item.2 %]">[% item.3 %]</a>
-          [% END -%]
-          [% END #[% FOREACH i IN submenu_items -%]
-          [% END #[% IF menu_items -%]
+        <div id="user">
+            Logged in as <code>[% c.user.username | html %]</code>.<br />
+            <a href="[% c.uri_for('/logout') %]">Logout</a> | <a href="[% c.uri_for('/admin/profile') %]">Profile</a>
+        </div>
+        <div id="menu">          
+            [% IF c.acl_user_can_visit('/admin/cm/list') %]
+                <a href="[% c.uri_for('/admin/cm/list') %]">CM</a>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/list') %]
+                <a href="[% c.uri_for('/admin/media/list') %]">Search Media</a>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/create_batch') %]
+                <a href="[% c.uri_for('/admin/media/create_batch') %]">Add Media</a>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/media/moderate') %]
+                <a href="[% c.uri_for('/media/moderate_tags') %]">Moderate Media</a>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/downloads/list') %]
+                <a href="[% c.uri_for('/admin/downloads/list') %]">All Downloads</a>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/queries/list') %]
+                <a href="[% c.uri_for('/admin/queries/list') %]">Queries</a>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/dashboards/list') %]
+                <a href="[% c.uri_for('/admin/dashboards/list') %]">Dashboards</a>
+            [% END -%]
+            [% IF c.acl_user_can_visit('/admin/users/list') %]
+                <a href="[% c.uri_for('/admin/users/list') %]">Users</a>
+            [% END -%]
+            [% IF submenu_items -%]
+                |
+                [% FOREACH item IN submenu_items -%]
+                    [% IF c.acl_user_can_visit(item.0) %]
+                        <a href="[% c.uri_for(item.0) _ '/' _ item.1 _ '?' _ item.2 %]">[% item.3 %]</a>
+                    [% END -%]
+                [% END #[% FOREACH i IN submenu_items -%]
+            [% END #[% IF menu_items -%]
       </div>
 
     [% END #[% IF c.user -%]
-    <h1>
-      [% title | html %]
-    </h1>
+    
+    <h1>[% title | html %]</h1>
+    
+    [% IF breadcrumbs %]
+        <div id="breadcrumbs">[% breadcrumbs %]</div>
+    [% END %]
 
     
-    <p>
-      [% IF status_msg || c.request.params.status_msg -%] [% SET msgs = status_msg || c.request.params.status_msg -%] [% SET msg_list = msgs.split("\n") -%]
-    </p>
-    <div id="status">
-      [% FOREACH msg IN msg_list -%] [% msg | html %]<br />
-      [% END #[% FOREACH msg IN msg_list -%]
-    </div>
-    <p>
-      [% END #[% IF status_msg || c.request.params.status_msg -%] [% IF error_msg || c.request.params.error_msg -%] [% SET msgs = error_msg || c.request.params.error_msg -%] [% SET msg_list = msgs.split("\n") -%]
-    </p>
-    <div id="error">
-      [% FOREACH msg IN msg_list -%] [% msg | html %]<br />
-      [% END #[% FOREACH msg IN msg_list -%]
-    </div>
-    <p>[% END #[% IF error_msg || c.request.params.error_msg -%]</p>
+    [% IF status_msg || c.request.params.status_msg -%] 
+        [% SET msgs = status_msg || c.request.params.status_msg -%] 
+        [% SET msg_list = msgs.split("\n") -%]
+        <div id="status">
+            [% FOREACH msg IN msg_list -%] [% msg | html %]<br />[% END %]
+        </div>
+    [% END %]
+      
+    [% IF error_msg || c.request.params.error_msg -%] 
+        [% SET msgs = error_msg || c.request.params.error_msg -%] 
+        [% SET msg_list = msgs.split("\n") -%]
+        <div id="error">
+            [% FOREACH msg IN msg_list -%] [% msg | html %]<br />[% END %]
+        </div>
+    [% END %]
     
 
 

@@ -1,28 +1,38 @@
-[% title = 'CM: ' _ controversy.name | html %]
-[% INCLUDE include/header.tt2 %]
+[% PROCESS cm/header.tt2 title=controversy.name %]
+   
+<div id="wholecolumn">
+    <div id="boxtitle">Query</div>
+    <table>
+        <tr>
+            <td>Pattern
+            <td>[% controversy.pattern | html %]</td>
+        </tr>
 
-[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
-[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
-    
-<p>Query</p>
-<table>
-    <tr>
-        <td>Pattern
-        <td>[% controversy.pattern | html %]</td>
-    </tr>
-    
-    <tr id="even">
-        <td>Dates</td>
-        <td>[% date.format( controversy.start_date ) %] - [% date.format( controversy.end_date ) %]</td>
-    </tr>
+        <tr id="even">
+            <td>Dates</td>
+            <td>[% date.format( controversy.start_date ) %] - [% date.format( controversy.end_date ) %]</td>
+        </tr>
 
-    <tr>
-        <td>Media Sets</td>
-        <td>[% query.media_set_names.join( ' / ') | html %]</td>
-    </tr>
-</table>
+        <tr>
+            <td>Media Sets</td>
+            <td>[% query.media_set_names.join( ' / ') | html %]</td>
+        </tr>
+    </table>
+</div>
 
-<p>Dumps</p>
+[% IF latest_full_dump %]
+    [% INCLUDE cm/time_slices_table.tt2
+        controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
+        live_periods = 1 %]
+[% ELSE %]
+    <div id="boxtitle">Time Slices</div>
+    <fieldset>
+        <p>To browse live data, first generate at least one dump.</p>
+    </fieldset> 
+[% END %]
+
+
+<div id="boxtitle">Dumps</div>
 <table>
 
 <tr>
@@ -52,6 +62,8 @@
     [% END # FOREACH stories -%]
 
 </table>
+
+</div>
 
 [% INCLUDE include/footer.tt2 %]
 

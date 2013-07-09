@@ -2,6 +2,9 @@
 auto_fieldset:
 
 elements:
+  - type: Hidden
+    name: referer
+
   - type: Text
     name: name
     label: Name

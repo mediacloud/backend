@@ -1,0 +1,65 @@
+[% IF query %]
+    [% title = "Story Search '$query'" %]
+[% ELSE %]
+    [% title = "All Stories" %]
+[% END %]
+
+[% PROCESS cm/header.tt2 %]
+    
+<script type="text/javascript">
+$(document).ready(function () {
+
+  $("#confirmDialog").dialog({ autoOpen: false });
+
+  $(".remove_story").click(function (e) {
+    e.preventDefault();
+    var hrefAttribute = $(this).attr("href");
+
+    $("#confirmDialog").dialog('option', 'buttons', {
+      "Confirm": function () { window.location.href = hrefAttribute; },
+      "Cancel": function () { $(this).dialog("close"); }
+    });
+
+    $("#confirmDialog").dialog("open");
+  });
+  
+});
+</script>
+
+<div id="confirmDialog">
+    Are you sure you want to remove all of the listed stories from the [% controversy.name | html %] controversy?  
+    After removal, the stories will still appear in existing dumps but will not be in live views 
+    or new dumps of the controversy.
+</div>
+
+[% remove_stories_url = c.uri_for( '/admin/cm/search_stories'
+                                   { cdts => cdts.controversy_dump_time_slices_id,
+                                     l => live,
+                                     q => query,
+                                     remove_stories => 1 } ) %]
+
+<div id="wholecolumn">
+
+    <div id="boxtitle">
+        Search Stories
+    </div>
+    <fieldset>
+        [% search_url = c.uri_for( "/admin/cm/search_stories" ) %]
+        <form method="get" action="[% search_url | html %]">
+            <input type="hidden" name="l" value="[% live | html %]" />
+            <input type="hidden" name="cdts" value="[% cdts.controversy_dump_time_slices_id %]" />
+            <input type="text" name="q" width="64" value="[% query | html %]" />
+            <input type="submit" name="submit" value="Search" />
+        </form>
+    </fieldset>
+
+    <div id="boxtitle">
+        Search Results
+        <a id="boxcommand" class="remove_story" href="[% remove_stories_url | html %]">remove all</a>
+    </div>
+    [% INCLUDE cm/stories_table.tt2
+        display_stories=stories %]
+
+</div>
+
+[% INCLUDE include/footer.tt2 %]

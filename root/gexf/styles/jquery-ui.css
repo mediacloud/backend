@@ -13,9 +13,9 @@
 
 /* Component containers
 ----------------------------------*/
-.ui-widget { font-family: sans-serif; font-size: 1.1em; }
-.ui-widget .ui-widget { font-size: 1em; }
-.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: sans-serif; font-size: 1em; }
+.ui-widget { font-family: verdana, helvetica, arial; font-size: 80%; }
+.ui-widget .ui-widget { font-size: 80%; }
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button { font-family: verdana, helvetica, arial; font-size: 80%; }
 .ui-widget-content { border: 1px solid #dddddd; background: #eeeeee; color: #333333; }
 .ui-widget-content a { color: #333333; }
 .ui-widget-header { border: 1px solid #e78f08; background: #f6a828; color: #ffffff; font-weight: bold; }
@@ -77,3 +77,4 @@
 .ui-slider-vertical .ui-slider-range { left: 0; width: 100%; }
 .ui-slider-vertical .ui-slider-range-min { bottom: 0; }
 .ui-slider-vertical .ui-slider-range-max { top: 0; }
+

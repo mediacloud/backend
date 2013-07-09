@@ -1,0 +1,44 @@
+<div id="boxtitle">
+Time Slices
+[% IF live_periods %]
+     - all numbers in the below table, including reliability data, are from the latest full dump made 
+     [% datetime.format( latest_full_dump.dump_date ) | html %].
+[% END %]
+</div>
+<table>
+
+<tr>
+<th>Period</th>
+<th>Dates</th>
+<th>Model Correlation</th>
+<th># Influential Media</th>
+<th># Stories</th>
+<th># Story Links</th>
+<th># Media</th>
+<th># Media Links</th>
+
+</tr>
+
+    [% FOREACH cdts IN controversy_dump_time_slices -%]
+        [% cdts_url = c.uri_for( '/admin/cm/view_time_slice/' _ cdts.controversy_dump_time_slices_id, { l => live_periods } ) %]
+
+        <tr [% IF even %]id="even"[% END %]>
+
+            <td><a href="[% cdts_url | html %]">[% cdts.period | html %]</a></td>
+
+            <td>[% date.format( cdts.start_date ) %] - [% date.format( cdts.end_date ) %]</td>
+            <td>
+                [% IF cdts.model_r2_mean %]r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %]
+                [% ELSE %](not enough data)[% END %]
+            </td>
+            <td>[% cdts.model_num_media %]</td>
+            <td>[% cdts.num_stories | html %]</td>
+            <td>[% cdts.num_story_links | html %]</td>
+            <td>[% cdts.num_media | html %]</td>
+            <td>[% cdts.num_medium_links | html %]</td>
+        </tr>
+
+    [% SET even = !even %]
+    [% END # FOREACH stories -%]
+
+</table>
