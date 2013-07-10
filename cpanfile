@@ -50,6 +50,7 @@ requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
 requires 'File::Touch';
+requires 'Gearman::Client';
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';
 requires 'GraphViz';
