@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4410;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4411;
     
 BEGIN
 
@@ -259,18 +259,30 @@ create table feeds (
     feed_status         feed_feed_status    not null default 'active',
     last_checksum       text                null,
 
-    -- Add column to allow more active feeds to be downloaded more frequently.
-    last_download_time  timestamp with time zone,
-    last_new_story_time timestamp with time zone
+    -- Last time the feed was *attempted* to be downloaded and parsed
+    -- (null -- feed was never attempted to be downloaded and parsed)
+    -- (used to allow more active feeds to be downloaded more frequently)
+    last_attempted_download_time    timestamp with time zone,
+
+    -- Last time the feed was *successfully* downloaded and parsed
+    -- (null -- feed was either never attempted to be downloaded or parsed,
+    -- or feed was never successfully downloaded and parsed)
+    -- (used to find feeds that are broken)
+    last_successful_download_time   timestamp with time zone,
+
+    -- Last time the feed provided a new story
+    -- (null -- feed has never provided any stories)
+    last_new_story_time             timestamp with time zone
 );
 
-UPDATE feeds SET last_new_story_time = greatest( last_download_time, last_new_story_time );
+UPDATE feeds SET last_new_story_time = greatest( last_attempted_download_time, last_new_story_time );
 
 create index feeds_media on feeds(media_id);
 create index feeds_name on feeds(name);
 create unique index feeds_url on feeds (url, media_id);
 create index feeds_reparse on feeds(reparse);
-create index feeds_last_download_time on feeds(last_download_time);
+create index feeds_last_attempted_download_time on feeds(last_attempted_download_time);
+create index feeds_last_successful_download_time on feeds(last_successful_download_time);
 
 create table tag_sets (
     tag_sets_id            serial            primary key,

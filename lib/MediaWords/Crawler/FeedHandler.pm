@@ -318,7 +318,7 @@ sub handle_syndicated_content
 
     if ( $num_new_stories > 0 )
     {
-        $dbs->query( "UPDATE feeds set last_new_story_time = last_download_time where feeds_id = ? ",
+        $dbs->query( "UPDATE feeds set last_new_story_time = last_attempted_download_time where feeds_id = ? ",
             $download->{ feeds_id } );
     }
 
@@ -352,6 +352,10 @@ sub handle_feed_content
     }
     finally
     {
+        if ($download->{state} ne 'feed_error') {
+            $dbs->query( "UPDATE feeds SET last_successful_download_time = NOW() WHERE feeds_id = ?", $download->{ feeds_id } );
+        }
+
         MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );
     };
 
