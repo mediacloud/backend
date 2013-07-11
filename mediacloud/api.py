@@ -25,8 +25,6 @@ def mediaSource(media_id):
             media_info[m_id] = {}
             for idx, column_name in enumerate(header):
                 media_info[m_id][column_name] = row[idx]
-            if m_id==1847:
-                print media_info[1847]
     return media_info[int(media_id)]
 
 class MediaCloud(object):
