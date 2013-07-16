@@ -364,44 +364,8 @@ sub verify_downloads($$$)
           )
         {
 
-            # Temporary exception to "content:(redundant feed)" downloads that somehow
-            # got stored in both PostgreSQL and GridFS (although they should only be
-            # present in PostgreSQL)
-            if (    $source_storage_method eq 'inline'
-                and defined $source_content
-                and defined $destination_content
-                and $source_content eq '(redundant feed)' )
-            {
-                say STDERR
-                  "Warning: download ID $next_download_id is present in both PostgreSQL and GridFS as a \"redundant feed\"";
-            }
-
-            # Same with "(unsupported content type)"
-            elsif ( $source_storage_method eq 'inline'
-                and defined $source_content
-                and defined $destination_content
-                and $source_content eq '(unsupported content type)' )
-            {
-                say STDERR
-"Warning: download ID $next_download_id is present in both PostgreSQL and GridFS as a \"unsupported content type\"";
-            }
-
-            # Content in PostgreSQL is "content:"; content in GridFS is a full-blown article
-            # (e.g. downloads 260024453 and 260159325)
-            elsif ( $source_storage_method eq 'inline'
-                and defined $source_content
-                and $source_content eq ''
-                and defined $destination_content
-                and $destination_content ne '' )
-            {
-                say STDERR "Warning: download ID $next_download_id is empty in PostgreSQL and downloaded to GridFS";
-            }
-            else
-            {
-
-                die "Content mismatch.\n" . "Source content: " . ( $source_content ? $source_content : 'undef' ) . "\n" .
-                  "Destination content: " . ( $destination_content ? $destination_content : 'undef' ) . "\n";
-            }
+            say STDERR "Warning: Content mismatch for download ID $next_download_id.\n" . "Source content: " .
+              ( $source_content || 'undef' ) . "\n" . "Destination content: " . ( $destination_content || 'undef' ) . "\n";
         }
     }
 
