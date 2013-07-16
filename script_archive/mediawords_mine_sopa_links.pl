@@ -431,7 +431,7 @@ sub get_spider_feed
     return $feed if ( $feed );
 
     $db->query(
-        "insert into feeds ( media_id, url, last_download_time, name ) " .
+        "insert into feeds ( media_id, url, last_attempted_download_time, name ) " .
           "  values ( ?, ?, now() + interval '10 years', 'Sopa Spider Feed' )",
         $medium->{ media_id },
         $medium->{ url }

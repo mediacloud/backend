@@ -140,14 +140,14 @@ sub _add_stale_feeds
     my $dbs = $self->engine->dbs;
 
     my $last_new_story_time_clause =
-      " ( now() > last_download_time + ( last_download_time - last_new_story_time ) + interval '5 minutes' ) ";
+      " ( now() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes' ) ";
 
     my $constraint =
-      "((last_download_time IS NULL " . "OR (last_download_time < (NOW() - interval ' " .
+      "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
       STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
     my $feeds = $dbs->query( <<END )->hashes;
-UPDATE feeds SET last_download_time = now()
+UPDATE feeds SET last_attempted_download_time = now()
     WHERE $constraint
     RETURNING *
 END
@@ -174,7 +174,7 @@ sub _create_download_for_feed
     my ( $feed, $dbs ) = @_;
 
     my $priority = 0;
-    if ( !$feed->{ last_download_time } )
+    if ( !$feed->{ last_attempted_download_time } )
     {
         $priority = 10;
     }

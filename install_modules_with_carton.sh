@@ -15,7 +15,18 @@ fi
 if [ `uname` == 'Darwin' ]; then
 
     # Mac OS X
-    JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/
+    JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/
+
+	if     [ ! -d $JAVA_HOME ] \
+		|| [ ! -f $JAVA_HOME/Commands/javac ] \
+		|| [ ! -f $JAVA_HOME/Headers/jni.h ] \
+		|| [ ! -f $JAVA_HOME/Libraries/libjvm.dylib ]; then
+
+		echo "Proper Java deployment was not found in $JAVA_HOME."
+		echo "Please download and install Java for OS X Developer Package from"
+		echo "https://developer.apple.com/downloads/ or via the Software Update."
+		exit 1
+	fi
 
 else
 
@@ -25,6 +36,6 @@ else
 fi
 
 # Install the rest of the modules
-./script/run_carton.sh install --deployment
+JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install --deployment
 
 echo "Successfully installed Perl and modules for MediaCloud"
