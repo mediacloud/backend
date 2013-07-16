@@ -166,13 +166,30 @@ sub _download_store_for_reading($)
         {
 
             # Tar
-            $store = $_tar_store;
+            if ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } ) eq 'yes' )
+            {
+                # Force reading Tar downloads from GridFS (after the migration)
+                $store = $_gridfs_store;
+            }
+            else
+            {
+                $store = $_tar_store;
+            }
         }
         else
         {
 
             # Local file
-            $store = $_localfile_store;
+            if ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } ) eq 'yes' )
+            {
+                # Force reading file downloads from GridFS (after the migration)
+                $store = $_gridfs_store;
+            }
+            else
+            {
+                $store = $_localfile_store;
+            }
+
         }
     }
 

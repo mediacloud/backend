@@ -99,6 +99,12 @@ amazon_s3:
         ## store downloads to a MongoDB GridFS database
         #- gridfs
 
+    ### Uncomment both to force reading Tar and file downloads from GridFS
+    ### (useful if you moved downloads from Tar archives into GridFS and don't
+    ### want to / can't change 'downloads.path' on PostgreSQL just now)
+    #read_tar_downloads_from_gridfs  : "no"
+    #read_file_downloads_from_gridfs : "no"
+
     ### fetch content from another instance of MediaCloud?
     #fetch_remote_content          : "yes"
     #fetch_remote_content_user     : username
