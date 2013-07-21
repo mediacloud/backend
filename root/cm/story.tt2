@@ -18,7 +18,6 @@ $(document).ready(function () {
   });
   
 });
-
 </script>
 
 <div id="confirmDialog">
@@ -81,7 +80,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
        END;
 %]
 
-[% medium_url = c.uri_for( "/admin/cm/medium/'$story.media_id", 
+[% medium_url = c.uri_for( "/admin/cm/medium/$story.media_id", 
                            { cdts => cdts.controversy_dump_time_slices_id, 
                              l => live } ) %]
                              
@@ -90,7 +89,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
                                    l => live } ) %]
 
 <div id="boxtitle">
-    Basic Data for [% story.title | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
+    Basic Data for [% story.title | truncate( 96 ) | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
     <a id="boxcommand" class="remove_story" href="[% remove_story_url | html %]">remove</a>
     <a id="boxcommand" href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">edit</a>
 </div>
@@ -101,20 +100,23 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr id="even">
         <td>Title</td>
         <td>
-            [% story.title | truncate( 96 )| html %] [% live_story_diff( 'title' ) | html %]
+            [% story.title | truncate( 128 )| html %] [% live_story_diff( 'title' ) | html %]
         </td>
     </tr>
     <tr>
         <td>Url</td><td><a href="[% story.url| html %]" target="blank">[% story.url | truncate( 96 ) | html %]</td>
     </tr>
     <tr id="even">
-        <td>Publish Date</td><td>[% datetime.format( story.publish_date ) %] 
-        [% IF story.date_is_reliable %]
-            (reliable)
-        [% ELSE %]
-            (unreliable - <a href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">check now</a>)
-        [% END %]
-        [% live_story_date_diff() | html %]
+        <td>Publish Date</td>
+        <td id="[% story.date_is_reliable ? 'reliable_story_date' : 'unreliable_story_date' %]">
+            [% datetime.format( story.publish_date ) %] 
+            [% IF story.date_is_reliable %]
+                (reliable)
+            [% ELSE %]
+                (unreliable - <a href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">check now</a>)
+            [% END %]
+            [% live_story_date_diff() | html %]
+        </td>
     </tr>
     <tr>
         <td>Medium</td><td><a href="[% medium_url | html %]">[% story.medium.name | truncate( 96 ) | html %]</a>
