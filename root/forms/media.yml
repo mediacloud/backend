@@ -46,8 +46,6 @@ elements:
     label: Reason
     size: 48
     comment: reason for the modification that you are making
-    constraints:
-        - Required
 
   - type: Submit
     name: submit
