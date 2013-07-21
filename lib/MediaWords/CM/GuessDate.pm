@@ -102,11 +102,7 @@ my $_date_guess_functions = [
     {
         name     => 'guess_by_date_text',
         function => \&_guess_by_date_text
-    },
-    {
-        name     => 'guess_by_existing_story_date',
-        function => \&_guess_by_existing_story_date
-    },
+    }
 ];
 
 # return the first in a list of nodes matching the xpath pattern
@@ -402,15 +398,12 @@ sub _results_from_matching_date_patterns($$)
     # Attempt to match both date *and* time first for better accuracy
     while ( $html =~ /$date_pattern/g )
     {
-        unless ( $1 )
-        {
-            next;
-        }
+        my $whole_date = $& || next;
 
-        # Might get overriden rater
+        # say STDERR "Matched string: '$whole_date'";
+
+        # Might get overriden later
         my %result = %+;
-
-        # say STDERR "Matched string: $1";
 
         # Collect date parts
         my $d_year = $result{ year } + 0;
@@ -453,13 +446,15 @@ sub _results_from_matching_date_patterns($$)
         # Create a date parseable by Date::Parse correctly, e.g. 2013-05-13 23:52:00 GMT
         my $date_string = sprintf( '%04d-%02d-%02d %02d:%02d:%02d %s',
             $d_year, $d_month, $d_day, $d_hour, $d_minute, $d_second, $d_timezone );
-        my $time = str2time( $date_string );
+        my $time = str2time( $date_string ) || str2time( $whole_date );
 
         if ( $time )
         {
+
             # Ignore timestamps that are later than "now" (because publication dates are in the past)
             if ( $time < time() )
             {
+
                 # say STDERR "Adding that one";
                 push( @matched_timestamps, $time );
             }
@@ -558,9 +553,9 @@ sub timestamp_from_html($)
             $pattern_not_digit_or_word_start
             (
                 $pattern_month
-                [\./]
+                [\./-]
                 $pattern_day_of_month
-                [\./]
+                [\./-]
                 $pattern_year
                 \s+
                 $pattern_hour_minute
@@ -671,9 +666,22 @@ sub timestamp_from_html($)
             $pattern_not_digit_or_word_start
             (
                 $pattern_month
-                [\./]
+                [\./-]
                 $pattern_day_of_month
-                [\./]
+                [\./-]
+                $pattern_year
+            )
+            $pattern_not_digit_or_word_end
+        }ix,
+
+        # 05-may-2012
+        qr{
+            $pattern_not_digit_or_word_start
+            (
+                $pattern_day_of_month
+                [\./-]
+                $pattern_month_names
+                [\./-]
                 $pattern_year
             )
             $pattern_not_digit_or_word_end
@@ -690,6 +698,7 @@ sub timestamp_from_html($)
 
         if ( scalar( @matched_timestamps ) == 0 )
         {
+
             # no timestamps found
             return undef;
         }
@@ -784,6 +793,7 @@ sub _guessing_is_inapplicable($$$)
 
     unless ( $html )
     {
+
         # Empty page, nothing to date
         return 1;
     }
@@ -791,6 +801,7 @@ sub _guessing_is_inapplicable($$$)
     my $uri = URI->new( $story->{ url } );
     unless ( $uri )
     {
+
         # Invalid URL
         return 1;
     }
@@ -801,40 +812,52 @@ sub _guessing_is_inapplicable($$$)
 
     unless ( $uri->path =~ /[\w\d]/ )
     {
+
         # Empty path, frontpage of the website
         return 1;
     }
 
+    # for some badly formed urls, ->host() throws an error
+    my $host = '';
+    eval { $host = $uri->host };
+
+    my $path_for_digit_check = $uri->path_query;
+    $path_for_digit_check =~ s/201\d//;
+
     if (    $normalized_url
-        and $uri->host !~ /example\.(com|net|org)$/gi
-        and $uri->path_query !~ /[0-9]/ )
+        and $host !~ /example\.(com|net|org)$/gi
+        and $path_for_digit_check !~ /[0-9]/ )
     {
+
         # Assume that a dateable story will have a numeric component in its URL's path
         # (either a part of the date like in WordPress's case, or a story ID or something).
         # Tags, search pages, static pages usually don't have a numerals in their URLs
         return 1;
     }
 
-    if ( $uri->host =~ /wikipedia\.org$/gi )
+    if ( $host =~ /wikipedia\.org$/gi )
     {
+
         # Ignore Wikipedia pages
         return 1;
     }
 
-    # if ( $uri->host =~ /twitter\.com$/gi and $uri->path !~ /\/?.+?\/status\//gi and $uri->host ne 'blog.twitter.com' )
+    # if ( $host =~ /twitter\.com$/gi and $uri->path !~ /\/?.+?\/status\//gi and $host ne 'blog.twitter.com' )
     # {
     #     # Ignore Twitter user pages (e.g. "twitter.com/ladygaga", not "twitter.com/ladygaga/status/\d*")
     #     return 1;
     # }
 
-    if ( $uri->host =~ /facebook\.com$/gi and $uri->host ne 'blog.facebook.com' )
+    if ( $host =~ /facebook\.com$/gi and $host ne 'blog.facebook.com' )
     {
+
         # Ignore Facebook pages
         return 1;
     }
 
     if ( $normalized_url =~ /viewforum\.php/ or $normalized_url =~ /viewtopic\.php/ or $normalized_url =~ /memberlist\.php/ )
     {
+
         # Ignore phpBB forums
         return 1;
     }
@@ -855,6 +878,7 @@ sub _guessing_is_inapplicable($$$)
     {
         if ( $segment ~~ @url_segments )
         {
+
             # URL contains a segment that increases its chances of being undateable
             return 1;
         }
@@ -873,6 +897,7 @@ sub guess_date($$$;$)
 
     if ( _guessing_is_inapplicable( $db, $story, $html ) )
     {
+
         # Inapplicable
         $result->{ result } = MediaWords::CM::GuessDate::Result::INAPPLICABLE;
         return $result;
@@ -880,14 +905,19 @@ sub guess_date($$$;$)
 
     my $html_tree = _get_html_tree( $html );
 
-    my $story_timestamp = _make_unix_timestamp( $story->{ publish_date } );
+    my $story_timestamp = $story->{ publish_date } ? _make_unix_timestamp( $story->{ publish_date } ) : undef;
+
+# print STDERR "story timestamp: " . DateTime->from_epoch( epoch => $story_timestamp )->datetime . "\n" if ( $story_timestamp );
 
     for my $date_guess_function ( @{ $_date_guess_functions } )
     {
         if ( my $timestamp = _make_unix_timestamp( $date_guess_function->{ function }->( $story, $html, $html_tree ) ) )
         {
-            if ( $use_threshold && ( abs( $timestamp - $story_timestamp ) < ( DATE_GUESS_THRESHOLD * 86400 ) ) )
+            if (   $story_timestamp
+                && $use_threshold
+                && ( abs( $timestamp - $story_timestamp ) > ( DATE_GUESS_THRESHOLD * 86400 ) ) )
             {
+                print STDERR "MISSED THRESHOLD: " . DateTime->from_epoch( epoch => $timestamp )->datetime . "\n";
                 next;
             }
 
@@ -898,6 +928,17 @@ sub guess_date($$$;$)
             $result->{ date }         = DateTime->from_epoch( epoch => $timestamp )->datetime;
             return $result;
         }
+    }
+
+    if ( $story_timestamp )
+    {
+
+        # print STDERR "SOURCE LINK\n";
+        $result->{ result }       = MediaWords::CM::GuessDate::Result::FOUND;
+        $result->{ guess_method } = 'source_link';
+        $result->{ timestamp }    = $story_timestamp;
+        $result->{ date }         = DateTime->from_epoch( epoch => $story_timestamp )->datetime;
+        return $result;
     }
 
     # Not found
