@@ -28,13 +28,20 @@
                               { cdts => cdts.controversy_dump_time_slices_id, 
                                 c => controversy.controversies_id
                                 l => live } ) %]
+    [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]
 
     <tr [% IF even %]id="even"[% END %]>
 
         <td><a href="[% story_url  | html %]">[% s.stories_id %]</a></td>
         <td>[% s.title | truncate( 48 ) | html %]</td>
         <td><a href="[% s.url | html %]" target="blank">[% s.url | truncate ( 32 ) | html %]</td>   
-        <td>[% datetime.format( s.publish_date ) | html %]</td>     
+        [% IF s.date_is_reliable %]
+            <td id="reliable_story_date">[% datetime.format( s.publish_date ) | html %]</td>
+        [% ELSE %]
+            <td id="unreliable_story_date">
+                <a href="[% edit_url | html %]">[% datetime.format( s.publish_date ) | html %]</a>
+            </td>
+        [% END %]        
         <td>[% s.medium_name | truncate( 32 ) | html %]</td>
         <td>[% s.inlink_count %]</td>
         <td>[% s.outlink_count %]</td>
