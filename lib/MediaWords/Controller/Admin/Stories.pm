@@ -161,6 +161,7 @@ sub edit : Local
     $el_referer->value( $c->req->referer ) unless ( $el_referer->value );
 
     my $story = $c->dbis->find_by_id( 'stories', $stories_id );
+    $story->{ confirm_date } = MediaWords::DBI::Stories::date_is_confirmed( $c->dbis, $story );
 
     $form->default_values( $story );
     $form->process( $c->request );
@@ -190,7 +191,14 @@ sub edit : Local
             $stories_id
         );
 
-        MediaWords::DBI::Stories::confirm_date( $c->dbis, $story ) if ( $c->req->param( 'confirm_date' ) );
+        if ( $c->req->params->{ confirm_date } )
+        {
+            MediaWords::DBI::Stories::confirm_date( $c->dbis, $story );
+        }
+        else
+        {
+            MediaWords::DBI::Stories::unconfirm_date( $c->dbis, $story );
+        }
 
         # Redirect back to the referer or a story
         my $status_msg = 'story has been updated.';
