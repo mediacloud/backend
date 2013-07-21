@@ -32,6 +32,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::CM::GuessDate;
 use MediaWords::CM::GuessDate::Result;
+use MediaWords::DBI::Stories;
 use Date::Parse;
 use POSIX;
 use LWP::Simple;
@@ -43,6 +44,54 @@ sub _timestamp_to_date($)
 {
     my $timestamp = shift;
     return DateTime->from_epoch( epoch => $timestamp )->datetime;
+}
+
+sub get_non_russian_rows ($$)
+{
+    my ( $db, $rows ) = @_;
+
+    my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $rows } );
+
+    my $russian_stories = $db->query( <<END )->hashes;
+select s.stories_id
+    from stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+        join controversies c on ( cs.controversies_id = c.controversies_id )
+    where
+        lower( c.name ) like '%russia%' and
+        s.stories_id in ( $stories_ids_list )
+END
+
+    my $non_controversy_stories = $db->query( <<END )->hashes;
+select s.stories_id
+    from stories s
+        left join controversy_stories cs on ( s.stories_id = cs.stories_id )
+    where
+        s.stories_id in ( $stories_ids_list ) and
+        cs.stories_id is null
+END
+
+    my $skip_story_lookup = {};
+    map { $skip_story_lookup->{ $_->{ stories_id } } = 1 } @{ $russian_stories };
+    map { $skip_story_lookup->{ $_->{ stories_id } } = 1 } @{ $non_controversy_stories };
+
+    my $nrr = [];
+    for my $row ( @{ $rows } )
+    {
+        if ( $skip_story_lookup->{ $row->{ stories_id } } )
+        {
+
+            # print STDERR "skip story: $row->{ url }\n";
+        }
+        else
+        {
+            push( @{ $nrr }, $row );
+        }
+    }
+
+    print STDERR "skip stories: " . scalar( @{ $nrr } ) . " / " . scalar( @{ $rows } ) . " stories\n";
+
+    return $nrr;
 }
 
 sub main()
@@ -111,12 +160,30 @@ sub main()
         },
     };
 
+    my $stories_dump = '';
+
+    my $file = $ARGV[ 0 ];
+    open( FILE, $file ) || die( "Unable to open file '$file': $!" );
+
+    while ( my $line = <FILE> )
+    {
+        $stories_dump .= $line;
+    }
+    close FILE;
+
     my $csv = Text::CSV->new( { binary => 1 } ) or die "Cannot use CSV: " . Text::CSV->error_diag();
     open my $fh, "<:encoding(utf8)", $ARGV[ 0 ] or die $ARGV[ 0 ] . ": $!";
     $csv->column_names( $csv->getline( $fh ) );
+    my $rows = [];
     while ( my $row = $csv->getline_hr( $fh ) )
     {
+        push( @{ $rows }, $row );
+    }
 
+    my $non_russian_rows = get_non_russian_rows( $db, $rows );
+
+    for my $row ( @{ $non_russian_rows } )
+    {
         my $stories_id = $row->{ stories_id };
         my $url        = $row->{ url };
 
@@ -129,6 +196,7 @@ sub main()
         }
         elsif ( $actual_date eq 'unavailable' or $actual_date eq 'inapplicable' )
         {
+
             # Treat HTTP 404 errors as "inapplicable"
             $actual_result->{ result } = MediaWords::CM::GuessDate::Result::INAPPLICABLE;
         }
@@ -173,8 +241,8 @@ sub main()
                 $guessed_result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
             }
         }
-        say STDERR "\tGuessed date: " . ( $guessed_result->{ date } || $guessed_result->{ result } ) .
-          " (" . ( $guessed_result->{ timestamp } || 'undef' ) . "), guessed with '" .
+        say STDERR "\tGuessed date: " . ( $guessed_result->{ date } || $guessed_result->{ result } ) . " (" .
+          ( $guessed_result->{ timestamp } || 'undef' ) . "), guessed with '" .
           ( $guessed_result->{ guess_method } || '-' ) . "'";
 
         # Write down numbers
@@ -182,6 +250,7 @@ sub main()
         if (    $actual_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND
             and $guessed_result->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
         {
+
             # Both are dateable
 
             if ( $actual_result->{ timestamp } == $guessed_result->{ timestamp } )
@@ -241,6 +310,7 @@ sub main()
         }
         else
         {
+
             # One of the stories is undateable (either date not found or dating is inapplicable)
 
             if ( $actual_result->{ result } eq $guessed_result->{ result } )
@@ -271,8 +341,8 @@ sub main()
             else
             {
 
-                say STDERR "\tMismatch (expected: " .
-                  $actual_result->{ result } . "; got: " . $guessed_result->{ result } . ")";
+                say STDERR "\tMismatch (expected: " . $actual_result->{ result } . "; got: " . $guessed_result->{ result } .
+                  ")";
 
                 ++$guesses->{ incorrect }->{ _total };
                 ++$guesses->{ incorrect }->{ undateable }->{ _total };
@@ -340,9 +410,6 @@ sub main()
 
         say STDERR "";
     }
-
-    $csv->eof or $csv->error_diag();
-    close $fh;
 
     # Pretty-print the results
     say STDERR <<"EOF";
