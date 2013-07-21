@@ -289,3 +289,8 @@ a#command {
 .ui-dialog-titlebar { 
     display:none; 
 }
+
+#unreliable_story_date {
+    background: #BA6569;
+}
+
