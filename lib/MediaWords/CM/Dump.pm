@@ -25,19 +25,19 @@ use MediaWords::Util::Tags;
 use constant MODEL_PERCENT_TOP_MEDIA => 10;
 
 # percentage of guessed dates that are misdated
-use constant PERCENT_DATE_MISDATED => 37;
+use constant PERCENT_DATE_MISDATED => 22;
 
 # percentages that a wrong date is wrong by the given number of days
-use constant PERCENT_DATE_WRONG_BY_1    => 50;
-use constant PERCENT_DATE_WRONG_BY_3    => 25;
-use constant PERCENT_DATE_WRONG_BY_7    => 15;
-use constant PERCENT_DATE_WRONG_BY_MORE => 10;
+use constant PERCENT_DATE_WRONG_BY_1    => 0;
+use constant PERCENT_DATE_WRONG_BY_3    => 0;
+use constant PERCENT_DATE_WRONG_BY_7    => 0;
+use constant PERCENT_DATE_WRONG_BY_MORE => 100;
 
 # percent of stories guessed to be undateable that are actually dateable
-use constant PERCENT_UNDATEABLE_DATE_DATEABLE => 25;
+use constant PERCENT_UNDATEABLE_DATE_DATEABLE => 30;
 
 # percent of stories guessed to be dateable that are actually undateable
-use constant PERCENT_DATE_UNDATEABLE => 25;
+use constant PERCENT_DATE_UNDATEABLE => 13;
 
 # number of times to run the confidence model
 use constant CONFIDENCE_REPS => 1;
@@ -172,7 +172,7 @@ sub drop_dump_period_stories
 # current period.  For an overall dump, every story should be in the current period.
 # For other dumps, a story should be in the current dump if either its date is within
 # the period dates or if a story that links to it has a date within the period dates.
-# For this purpose, stories tagged with the 'date_guess_invalid:undateable' tag
+# For this purpose, stories tagged with the 'date_guess_method:undateable' tag
 # are considered to have an invalid tag, so their dates cannot be used to pass
 # either of the above tests.
 #
@@ -197,7 +197,7 @@ create or replace view dump_undateable_stories as
         where s.stories_id = stm.stories_id and
             stm.tags_id = t.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
-            ts.name = 'date_guess_invalid' and
+            ts.name = 'date_guess_method' and
             t.tag = 'undateable'
 END
 
@@ -1097,7 +1097,7 @@ sub tweak_dateable_story
 
     # print "tweak_dateable_story: $story->{ stories_id }\n";
 
-    my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_invalid:undateable' );
+    my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:undateable' );
 
     $db->query( <<END, $story->{ stories_id }, $undateable_tag->{ tags_id } );
 insert into dump_stories_tags_map
@@ -1107,13 +1107,12 @@ END
 
 }
 
-# change dated stories to be undateable based on our data on how many
-# dated stories are undateable
-sub tweak_dateable_stories
+# get random sample of stories with guessed dates
+sub sample_guessed_date_stories
 {
-    my ( $db, $cdts ) = @_;
+    my ( $db, $cdts, $percent_sample ) = @_;
 
-    my $stories = $db->query( <<END, PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
+    my $stories = $db->query( <<END, $percent_sample )->hashes;
 select * from  
 (
     select s.*
@@ -1122,7 +1121,7 @@ select * from
             t.tags_id = stm.tags_id and 
             t.tag_sets_id = ts.tag_sets_id and 
             ts.name = 'date_guess_method' and 
-            t.tag not in ( 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' )
+            t.tag not in ( 'manual', 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' )
 
     except
 
@@ -1131,16 +1130,28 @@ select * from
         where s.stories_id = stm.stories_id and 
             t.tags_id = stm.tags_id and 
             t.tag_sets_id = ts.tag_sets_id and 
-            ts.name = 'date_guess_invalid' and 
+            ts.name = 'date_guess_method' and 
             t.tag = 'undateable'
 ) q
     where ( random() *  100 ) < ?
 END
 
+    return $stories;
+
+}
+
+# change dated stories to be undateable based on our data on how many
+# dated stories are undateable
+sub tweak_dateable_stories
+{
+    my ( $db, $cdts ) = @_;
+
+    my $stories = sample_guessed_date_stories( $db, $cdts, PERCENT_DATE_UNDATEABLE );
+
     map { tweak_dateable_story( $db, $cdts, $_ ) } @{ $stories };
 }
 
-# change an undateable story to a dateable one by deleting the date_guess_invalid:undateable tag
+# change an undateable story to a dateable one by deleting the date_guess_method:undateable tag
 sub tweak_undateable_story
 {
     my ( $db, $cdts, $story ) = @_;
@@ -1153,7 +1164,7 @@ delete from dump_stories_tags_map stm
     where stm.stories_id =? and
         stm.tags_id = t.tags_id and 
         t.tag_sets_id = ts.tag_sets_id and
-        ts.name = 'date_guess_invalid' and
+        ts.name = 'date_guess_method' and
         t.tag = 'undateable'
 END
 }
@@ -1165,14 +1176,28 @@ sub tweak_undateable_stories
     my ( $db, $cdts ) = @_;
 
     my $stories = $db->query( <<END, PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
-select s.* 
-    from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
-    where s.stories_id = stm.stories_id and 
-        t.tags_id = stm.tags_id and 
-        t.tag_sets_id = ts.tag_sets_id and 
-        ts.name = 'date_guess_invalid' and 
-        t.tag = 'undateable' and
-        ( random() *  100 ) < ?
+select * from
+(
+    select s.* 
+        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
+        where s.stories_id = stm.stories_id and 
+            t.tags_id = stm.tags_id and 
+            t.tag_sets_id = ts.tag_sets_id and 
+            ts.name = 'date_guess_method' and 
+            t.tag = 'undateable'
+            
+    except
+    
+    select s.*
+        from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
+        where s.stories_id = stm.stories_id and 
+            t.tags_id = stm.tags_id and 
+            t.tag_sets_id = ts.tag_sets_id and 
+            ts.name = 'date_guess_method' and 
+            t.tag = 'manual'
+) q
+    where ( random() *  100 ) < ?
+
 END
 
     map { tweak_undateable_story( $db, $cdts, $_ ) } @{ $stories };
@@ -1235,16 +1260,7 @@ sub tweak_misdated_stories
 {
     my ( $db, $cdts ) = @_;
 
-    my $stories = $db->query( <<END, PERCENT_DATE_MISDATED )->hashes;
-select s.*, t.tag 
-    from dump_stories s, dump_tags t, dump_tag_sets ts, dump_stories_tags_map stm 
-    where s.stories_id = stm.stories_id and 
-        t.tags_id = stm.tags_id and 
-        t.tag_sets_id = ts.tag_sets_id and 
-        ts.name = 'date_guess_method' and 
-        t.tag not in ( 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' ) and
-        ( random() * 100 ) < ?
-END
+    my $stories = sample_guessed_date_stories( $db, $cdts, PERCENT_DATE_MISDATED );
 
     map { tweak_story_date( $db, $cdts, $_ ) } @{ $stories };
 }
