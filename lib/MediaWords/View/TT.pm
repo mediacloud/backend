@@ -43,10 +43,12 @@ sub new
             #$Data::Dumper::Purity = 1;
             #$Data::Dumper::Useperl = 1;
             my $nr = shift;
-            say STDERR "encoding: '$nr'" if ( length( $nr ) > 0 );
+
+            # say STDERR "encoding: '$nr'" if ( length( $nr ) > 0 );
 
             $nr =~ s/&/&amp;/g;
-            say STDERR "returning: '$nr'" if ( length( $nr ) > 0 );
+
+            # say STDERR "returning: '$nr'" if ( length( $nr ) > 0 );
 
             return $nr;
             ##say STDERR Dumper($nr)  if (length($nr) > 0 );
