@@ -89,7 +89,7 @@ END
         }
     }
 
-    print STDERR "skip stories: " . scalar( @{ $nrr } ) . " / " . scalar( @{ $rows } ) . " stories\n";
+    print STDERR "skip stories: keep " . scalar( @{ $nrr } ) . " / " . scalar( @{ $rows } ) . " stories\n";
 
     return $nrr;
 }
@@ -187,6 +187,15 @@ sub main()
         my $stories_id = $row->{ stories_id };
         my $url        = $row->{ url };
 
+        my $source_story = $db->query( <<END, $row->{ stories_id } )->hash;
+select s.* 
+    from controversy_links cl 
+        join stories s on ( cl.stories_id = s.stories_id )
+    where 
+        ref_stories_id = ? 
+    order by controversy_links_id asc
+END
+
         # Reformat date
         my $actual_date   = $row->{ actual_publication_date };
         my $actual_result = MediaWords::CM::GuessDate::Result->new();
@@ -221,8 +230,8 @@ sub main()
         {
             $html = get( $url );
         }
-        my $story = { url => $url };
-        my $guessed_result = MediaWords::CM::GuessDate::guess_date( $db, $story, $html );
+        my $story = { url => $url, publish_date => $source_story->{ publish_date } };
+        my $guessed_result = MediaWords::CM::GuessDate::guess_date( $db, $story, $html, 1 );
 
         # Old API (e.g. "013-06-17T05:00:00")?
         my $do_not_differentiate_between_not_found_and_inapplicable = 0;
@@ -282,27 +291,26 @@ sub main()
 
                 if ( $difference < 60 * 60 * 24 )
                 {
-                    say STDERR "\tMatch within (0; 24) hours";
+                    say STDERR "\tMatch within [0; 24] hours";
                     ++$guesses->{ incorrect }->{ dateable }->{ up_to_1_day };
 
                 }
                 elsif ( $difference >= 60 * 60 * 24 and $difference < 60 * 60 * 24 * 3 )
                 {
-                    say STDERR "\tMatch within [24; 72) hours";
+                    say STDERR "\tMatch within [24; 72] hours";
                     ++$guesses->{ incorrect }->{ dateable }->{ from_1_day_to_3_days };
 
                 }
                 elsif ( $difference >= 60 * 60 * 24 * 3 and $difference < 60 * 60 * 24 * 7 )
                 {
-                    say STDERR "\tMatch within [72; 168) hours";
+                    say STDERR "\tMatch within [72; 168] hours";
                     ++$guesses->{ incorrect }->{ dateable }->{ from_3_days_to_7_days };
 
                 }
                 else
                 {
-                    say STDERR "\tMatch within [168; inf) hours";
+                    say STDERR "\tMatch within [168; inf] hours";
                     ++$guesses->{ incorrect }->{ dateable }->{ more_than_7_days };
-
                 }
 
             }
