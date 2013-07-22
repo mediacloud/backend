@@ -162,6 +162,7 @@ sub edit : Local
 
     my $story = $c->dbis->find_by_id( 'stories', $stories_id );
     $story->{ confirm_date } = MediaWords::DBI::Stories::date_is_confirmed( $c->dbis, $story );
+    $story->{ undateable } = MediaWords::DBI::Stories::is_undateable( $c->dbis, $story );
 
     $form->default_values( $story );
     $form->process( $c->request );
@@ -184,6 +185,7 @@ sub edit : Local
         # Only 'publish_date' is needed
         map { delete $form_params->{ "publish_date_$_" } } qw(year month day hour minute second);
         delete $form_params->{ confirm_date };
+        delete $form_params->{ undateable };
 
         $c->dbis->update_by_id_and_log(
             'stories',     $stories_id,               $story,             $form_params,
@@ -199,6 +201,8 @@ sub edit : Local
         {
             MediaWords::DBI::Stories::unconfirm_date( $c->dbis, $story );
         }
+
+        MediaWords::DBI::Stories::mark_undateable( $c->dbis, $story, $c->req->params->{ undateable } );
 
         # Redirect back to the referer or a story
         my $status_msg = 'story has been updated.';
