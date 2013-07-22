@@ -494,14 +494,13 @@ sub timestamp_from_html($)
     my $weekday_names_pattern = join( '|', @{ $weekday_names } );
 
     # Common patterns for date / time parts
-    my $pattern_timezone    = qr/(?<timezone>\w{1,4}T)/i;                                 # e.g. "PT", "GMT", "EEST", "AZOST"
-    my $pattern_hour        = qr/(?<hour>\d\d?)/i;                                        # e.g. "12", "9", "24"
-    my $pattern_minute      = qr/(?<minute>\d\d)/i;                                       # e.g. "01", "59"
-    my $pattern_second      = qr/(?<second>\d\d)/i;                                       # e.g. "01", "59"
-    my $pattern_hour_minute = qr/(?<hours_minutes>$pattern_hour\:$pattern_minute)/i;      # e.g. "12:50", "9:39"
-    my $pattern_hour_minute_second =
-      qr/(?<hours_minutes_seconds>$pattern_hour\:$pattern_minute\:$pattern_second)/i;     # e.g. "12:50:00"
-    my $pattern_month         = qr/(?<month>(:?0?[1-9]|1[012]))/i;          # e.g. "12", "01", "7"
+    my $pattern_timezone           = qr/(?<timezone>\w{1,4}T)/i;                          # e.g. "PT", "GMT", "EEST", "AZOST"
+    my $pattern_hour               = qr/(?<hour>\d\d?)/i;                                 # e.g. "12", "9", "24"
+    my $pattern_minute             = qr/(?<minute>\d\d)/i;                                # e.g. "01", "59"
+    my $pattern_second             = qr/(?<second>\d\d)/i;                                # e.g. "01", "59"
+    my $pattern_hour_minute        = qr/(?:$pattern_hour\:$pattern_minute)/i;             # e.g. "12:50", "9:39"
+    my $pattern_hour_minute_second = qr/(?:$pattern_hour_minute\:$pattern_second)/i;      # e.g. "12:50:00"
+    my $pattern_month              = qr/(?<month>(:?0?[1-9]|1[012]))/i;                   # e.g. "12", "01", "7"
     my $pattern_month_names   = qr/(?<month>$month_names_pattern)/i;        # e.g. "January", "February", "Jan", "Feb"
     my $pattern_weekday_names = qr/(?<weekday>$weekday_names_pattern)/i;    # e.g. "Monday", "Tuesday", "Mon", "Tue"
     my $pattern_day_of_month        = qr/(?:(?<day>(?:0?[1-9]|[12][0-9]|3[01]))(?:st|th)?)/i; # e.g. "23", "02", "9th", "1st"
