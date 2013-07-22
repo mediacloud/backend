@@ -57,6 +57,7 @@ sub _gr_url($;$)
     my $html = '';
     unless ( $story_url =~ /example\.(com|net|org)$/gi )
     {
+
         # 404 Not Found pages will be empty
         $html = get( $story_url ) || '';
     }
@@ -313,8 +314,8 @@ sub test_live_urls
     );
 
     is(
-        _gt_url( 'https://twitter.com/ladygaga/status/318537311698694144' ),
-        _ts( 'Mon, 01 Apr 2013 01:36:28 GMT' ),
+        _gt_url( 'https://twitter.com/cyberhalroberts/status/350009295598911490' ),
+        _ts( 'Wed, 26 Jun 2013 21:54:53 GMT' ),
         'live_url: twitter.com single tweet'
     );
 }
