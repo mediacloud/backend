@@ -449,15 +449,20 @@ END
         return ( $old_story_method, $old_story->{ publish_date } );
     }
 
-    my $date = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content );
+    if ( $source_link && $source_link->{ stories_id } )
+    {
+        my $source_story = $db->find_by_id( 'stories', $source_link->{ stories_id } );
+        $story->{ publish_date } = $source_story->{ publish_date };
+    }
+
+    my $date = MediaWords::CM::GuessDate::guess_date( $db, $story, $story_content, 1 );
     if ( $date->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
     {
         return ( $date->{ guess_method }, $date->{ date } );
     }
-
-    if ( $source_link && $source_link->{ stories_id } )
+    elsif ( $result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
     {
-        return ( 'source_link', $db->find_by_id( 'stories', $source_link->{ stories_id } )->{ publish_date } );
+        return ( 'undateable', $source_story ? $source_story->{ publish_date } : DateTime->new->datetime );
     }
 
     return ( 'current_time', DateTime->now->datetime );
@@ -506,7 +511,7 @@ sub get_dup_medium
 # add a new story and download corresponding to the given link or existing story
 sub add_new_story
 {
-    my ( $db, $link, $old_story ) = @_;
+    my ( $db, $link, $old_story, $controversy ) = @_;
 
     die( "only one of $link or $old_story should be set" ) if ( $link && $old_story );
 
@@ -693,7 +698,7 @@ END
         my $dup_story_url_no_p = $dup_story->{ url };
         my $story_url_no_p     = $story->{ url };
         $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-        $story_url_no_p =~ s/(.*)\?(.*)/$1/;
+        $story_url_no_p     =~ s/(.*)\?(.*)/$1/;
 
         next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
 
@@ -732,7 +737,7 @@ select s.* from stories s
 END
 
     # replace with dup story if there's one already added to controversy_stories
-    $story = get_dup_story( $db, $story ) || $story;
+    $story = get_dup_story( $db, $story, $controversy ) || $story;
 
     if ( $story )
     {
@@ -880,7 +885,7 @@ sub add_new_links
         print STDERR "fetch spidering $link->{ url } ...\n";
 
         add_redirect_url_to_link( $db, $link );
-        my $story = get_matching_story_from_db( $db, $link, $controversy ) || add_new_story( $db, $link );
+        my $story = get_matching_story_from_db( $db, $link, $controversy ) || add_new_story( $db, $link, $controversy );
 
         $link->{ story } = $story;
 
@@ -1293,7 +1298,8 @@ sub merge_foreign_rss_story
     my $link = { url => $story->{ url } };
 
     # note that get_matching_story_from_db will not return $story b/c it now checkes for foreign_rss_links = true
-    my $merge_into_story = get_matching_story_from_db( $db, $link, $controversy ) || add_new_story( $db, undef, $story );
+    my $merge_into_story = get_matching_story_from_db( $db, $link, $controversy )
+      || add_new_story( $db, undef, $story, $controversy );
 
     merge_dup_story( $db, $controversy, $story, $merge_into_story );
 }
@@ -1331,7 +1337,7 @@ SELECT s.* FROM stories s
         ( ( ? in ( s.url, s.guid ) ) or ( s.title = ? and date_trunc( 'day', s.publish_date ) = ? ) )
 END
 
-    $new_story ||= add_new_story( $db, undef, $story );
+    $new_story ||= add_new_story( $db, undef, $story, $controversy );
 
     merge_dup_story( $db, $controversy, $story, $new_story );
 }
@@ -1483,24 +1489,87 @@ END
     }
 }
 
+# find any stories in the controversy that are dups according to get_dup_story
+sub dedup_stories
+{
+    my ( $db, $controversy ) = @_;
+
+    my $dgm = $db->query( <<END )->hash;
+select ts.* from tag_sets ts where name = 'date_guess_method'
+END
+
+    print STDERR "dedup_stories: fetching stories...\n";
+
+    # order stories so that stories with reliable dates are first and then stories with earlier publish
+    # dates are first because that the order of preference for which dup to keep
+    my $stories = $db->query( <<'END', $dgm->{ tag_sets_id }, $controversy->{ controversies_id } )->hashes;
+select s.*, 
+        ( t.tags_id is null or t.tag in ( 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' ) ) date_is_reliable
+    from stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+        left join 
+            ( stories_tags_map stm 
+                join tags t on ( stm.tags_id = t.tags_id and t.tag_sets_id = $1 ) 
+                join controversy_stories csb on ( csb.stories_id = stm.stories_id and csb.controversies_id = $2 ) )
+            on ( s.stories_id = stm.stories_id )
+    where cs.controversies_id = $2
+    order by date_is_reliable desc, s.publish_date asc
+END
+
+    print STDERR "dedup_stories: processing stories...\n";
+    my $dups        = {};
+    my $i           = 0;
+    my $num_stories = @{ $stories };
+    for my $story ( @{ $stories } )
+    {
+        print STDERR "$i / $num_stories\n" if ( !( ++$i % 100 ) );
+        if ( !$dups->{ $story->{ stories_id } } && ( my $dup_story = get_dup_story( $db, $story, $controversy ) ) )
+        {
+            my $earliest_story = $story;
+            while ( my $earlier_story = $dups->{ $earliest_story->{ stories_id } } )
+            {
+                $earliest_story = $earlier_story;
+            }
+
+            $dups->{ $dup_story->{ stories_id } } = $earliest_story;
+        }
+    }
+
+    while ( my ( $delete_stories_id, $keep_story ) = each( %{ $dups } ) )
+    {
+        my $delete_story = $db->find_by_id( 'stories', $delete_stories_id );
+        merge_dup_story( $db, $controversy, $delete_story, $keep_story );
+    }
+}
+
 sub main
 {
-    my ( $controversies_id, $dedup_media );
+    my ( $controversies_id, $dedup_media, $dedup_stories );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
     Getopt::Long::GetOptions(
-        "controversy=s" => \$controversies_id,
-        "dedup_media!"  => \$dedup_media
+        "controversy=s"  => \$controversies_id,
+        "dedup_media!"   => \$dedup_media,
+        "dedup_stories!" => \$dedup_stories,
     ) || return;
 
-    die( "usage: $0 --controversy < controversies_id > [ --dedup_media ]" ) unless ( $controversies_id );
+    die( "usage: $0 --controversy < controversies_id > [ --dedup_media --dedup_stories ]" ) unless ( $controversies_id );
 
     my $db = MediaWords::DB::connect_to_db;
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       || die( "Unable to find controversy '$controversies_id'" );
+
+    # if dedup_stories is set, just dedup stories in the controversy
+    # and exit.  dedup_stories should only have to be run if something
+    # in get_dup_story has been changed since the spider was last run
+    if ( $dedup_stories )
+    {
+        dedup_stories( $db, $controversy );
+        return;
+    }
 
     print STDERR "importing seed urls ...\n";
     import_seed_urls( $db, $controversy );
@@ -1535,13 +1604,17 @@ sub main
     print STDERR "updating story_tags ...\n";
     update_controversy_tags( $db, $controversy );
 
-    my $stories = get_stories_with_sources( $db, $controversy );
+    # my $stories = get_stories_with_sources( $db, $controversy );
 
     # print STDERR "generating link weights ...\n";
     # generate_link_weights( $db, $controversy, $stories );
 
     # print STDERR "generating link text similarities ...\n";
     # generate_link_text_similarities( $db, $stories );
+
+    print STDERR "analyzing controversy tables...\n";
+    $db->query( "analyze controversy_stories" );
+    $db->query( "analyze controversy_links" );
 }
 
 main();
