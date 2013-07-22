@@ -273,6 +273,70 @@ alter table media_edits drop constraint reason_not_empty;
 alter table story_edits alter reason drop not null;
 alter table story_edits drop constraint reason_not_empty;
 
+CREATE OR REPLACE FUNCTION is_stop_stem(p_size TEXT, p_stem TEXT, p_language TEXT)
+    RETURNS BOOLEAN AS \$\$
+DECLARE
+    result BOOLEAN;
+BEGIN
+
+    -- Tiny
+    IF p_size = 'tiny' THEN
+        IF p_language IS NULL THEN
+            SELECT 't' INTO result FROM stopword_stems_tiny
+                WHERE stopword_stem = p_stem;
+            IF NOT FOUND THEN
+                result := 'f';
+            END IF;
+        ELSE
+            SELECT 't' INTO result FROM stopword_stems_tiny
+                WHERE stopword_stem = p_stem AND language = p_language;
+            IF NOT FOUND THEN
+                result := 'f';
+            END IF;
+        END IF;
+
+    -- Short
+    ELSIF p_size = 'short' THEN
+        IF p_language IS NULL THEN
+            SELECT 't' INTO result FROM stopword_stems_short
+                WHERE stopword_stem = p_stem;
+            IF NOT FOUND THEN
+                result := 'f';
+            END IF;
+        ELSE
+            SELECT 't' INTO result FROM stopword_stems_short
+                WHERE stopword_stem = p_stem AND language = p_language;
+            IF NOT FOUND THEN
+                result := 'f';
+            END IF;
+        END IF;
+
+    -- Long
+    ELSIF p_size = 'long' THEN
+        IF p_language IS NULL THEN
+            SELECT 't' INTO result FROM stopword_stems_long
+                WHERE stopword_stem = p_stem;
+            IF NOT FOUND THEN
+                result := 'f';
+            END IF;
+        ELSE
+            SELECT 't' INTO result FROM stopword_stems_long
+                WHERE stopword_stem = p_stem AND language = p_language;
+            IF NOT FOUND THEN
+                result := 'f';
+            END IF;
+        END IF;
+
+    -- unknown size
+    ELSE
+        RAISE EXCEPTION 'Unknown stopword stem size: "%" (expected "tiny", "short" or "long")', p_size;
+        result := 'f';
+    END IF;
+
+    RETURN result;
+END;
+\$\$ LANGUAGE plpgsql;
+
 --
 -- 2 of 2. Reset the database version.
 --
