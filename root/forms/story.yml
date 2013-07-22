@@ -32,9 +32,16 @@ elements:
         - Required
         
   - type: Checkbox
+    name: undateable
+    label: Undateable
+    comment: if checked this story is treated is undateable (for instance a wikipedia page that has no publish date)
+    value: 1
+    default_empty_value: true
+
+  - type: Checkbox
     name: confirm_date
     label: Confirm Date
-    comment: confirm that the above date is the publication date for this story
+    comment: confirm that the above date (or undateable status) is the publication date for this story
     value: 1
     default_empty_value: true
 
