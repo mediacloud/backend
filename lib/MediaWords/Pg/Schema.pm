@@ -135,26 +135,50 @@ END
 
             -- Tiny
             IF p_size = 'tiny' THEN
-                SELECT 't' INTO result FROM stopword_stems_tiny
-                    WHERE stopword_stem = p_stem AND language = p_language;
-                IF NOT FOUND THEN
-                    result := 'f';
+                IF p_language IS NULL THEN
+                    SELECT 't' INTO result FROM stopword_stems_tiny
+                        WHERE stopword_stem = p_stem;
+                    IF NOT FOUND THEN
+                        result := 'f';
+                    END IF;
+                ELSE
+                    SELECT 't' INTO result FROM stopword_stems_tiny
+                        WHERE stopword_stem = p_stem AND language = p_language;
+                    IF NOT FOUND THEN
+                        result := 'f';
+                    END IF;
                 END IF;
 
             -- Short
             ELSIF p_size = 'short' THEN
-                SELECT 't' INTO result FROM stopword_stems_short
-                    WHERE stopword_stem = p_stem AND language = p_language;
-                IF NOT FOUND THEN
-                    result := 'f';
+                IF p_language IS NULL THEN
+                    SELECT 't' INTO result FROM stopword_stems_short
+                        WHERE stopword_stem = p_stem;
+                    IF NOT FOUND THEN
+                        result := 'f';
+                    END IF;
+                ELSE
+                    SELECT 't' INTO result FROM stopword_stems_short
+                        WHERE stopword_stem = p_stem AND language = p_language;
+                    IF NOT FOUND THEN
+                        result := 'f';
+                    END IF;
                 END IF;
 
             -- Long
             ELSIF p_size = 'long' THEN
-                SELECT 't' INTO result FROM stopword_stems_long
-                    WHERE stopword_stem = p_stem AND language = p_language;
-                IF NOT FOUND THEN
-                    result := 'f';
+                IF p_language IS NULL THEN
+                    SELECT 't' INTO result FROM stopword_stems_long
+                        WHERE stopword_stem = p_stem;
+                    IF NOT FOUND THEN
+                        result := 'f';
+                    END IF;
+                ELSE
+                    SELECT 't' INTO result FROM stopword_stems_long
+                        WHERE stopword_stem = p_stem AND language = p_language;
+                    IF NOT FOUND THEN
+                        result := 'f';
+                    END IF;
                 END IF;
 
             -- unknown size

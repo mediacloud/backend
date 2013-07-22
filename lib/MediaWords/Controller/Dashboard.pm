@@ -116,7 +116,6 @@ sub get_default_dashboards_id
 EOF
     )->flat;
 
-    say STDERR Dumper( $dashboards_id );
     return $dashboards_id;
 }
 
@@ -158,8 +157,8 @@ sub _redirect_to_default_page
                       AND dashboards_id = ?
 EOF
                 $media_sets_id, $dashboard->{ dashboards_id }
-            )->hashes
-        }
+              )->hashes
+          }
     );
 
     if ( !$media_sets_id_in_dashboard )
@@ -262,13 +261,10 @@ sub get_dashboard
         $dashboard = $dbis->find_by_id( 'dashboards', $dashboards_id ) || die( "no dashboard '$dashboards_id'" );
 
         die "Invalid dashboard " unless $dashboard->{ dashboards_id };
-        say STDERR "get_dashboard: storing " . Dumper( $dashboard );
         $_dashboard_cache->set( $dashboards_id, $dashboard );
     }
 
     die "Invalid dashboard " unless $dashboard->{ dashboards_id };
-
-    say STDERR "get_dashboard: Returning" . Dumper( $dashboard );
 
     return $dashboard;
 }
@@ -289,7 +285,8 @@ sub get_query_by_id
 {
     my ( $dbis, $c, $queries_id ) = @_;
 
-    my $ret = $_query_cache->get( $queries_id );
+    my $ret;
+    $ret = $_query_cache->get( $queries_id ) unless ( $c->req->params->{ dont_cache_query } );
 
     if ( !defined( $ret ) )
     {
@@ -376,7 +373,7 @@ sub _get_author_words
                MIN(term) AS term,
                SUM( stem_count ) AS stem_count
         FROM top_500_weekly_author_words
-        WHERE NOT is_stop_stem( 'long', stem, language )
+        WHERE NOT is_stop_stem( 'long', stem, null::text )
               AND authors_id = $authors_id
               AND publish_week = DATE_TRUNC('week', '$date'::date)
         GROUP BY stem
@@ -444,8 +441,7 @@ sub get_word_list : Local
     }
     else
     {
-        my $fields =
-          [ qw ( stem term language stem_count raw_stem_count stem_count_factor total_words query_id query_description ) ];
+        my $fields = [ qw ( stem term stem_count raw_stem_count stem_count_factor total_words query_id query_description ) ];
 
         my $csv = Class::CSV->new( fields => $fields );
 
@@ -553,20 +549,16 @@ sub get_country_counts_all_dates : Local
             FROM daily_country_counts
                 INNER JOIN dashboard_topics
                     ON daily_country_counts.dashboard_topics_id = dashboard_topics.dashboard_topics_id
-                    AND daily_country_counts.language = dashboard_topics.language
             WHERE media_sets_id = $media_set->{ media_sets_id }
                   AND $dashboard_topic_clause
                   AND publish_day >= ?
                   AND publish_day <= ?
-                  AND language = '$language_code'
             GROUP BY publish_day,
                      media_sets_id,
                      daily_country_counts.dashboard_topics_id,
-                     country,
-                     dashboard_topics.language
+                     country
             ORDER BY publish_day,
-                     country,
-                     dashboard_topics.language
+                     country
 EOF
 
         #say STDERR "SQL query: '$country_count_query'";
@@ -582,23 +574,18 @@ EOF
                    daily_country_counts.dashboard_topics_id,
                    country,
                    SUM(country_count) AS country_count,
-                   publish_day,
-                   dashboard_topics.language
+                   publish_day
             FROM daily_country_counts
                 INNER JOIN dashboard_topics
                     ON daily_country_counts.dashboard_topics_id = dashboard_topics.dashboard_topics_id
-                    AND daily_country_counts.language = dashboard_topics.language
             WHERE media_sets_id = $media_set->{ media_sets_id }
                   AND $dashboard_topic_clause
-                  AND language = '$language_code'
             GROUP BY publish_day,
                      media_sets_id,
                      daily_country_counts.dashboard_topics_id,
-                     country,
-                     dashboard_topics.language
+                     country
             ORDER BY publish_day,
-                     country,
-                     dashboard_topics.language
+                     country
 EOF
 
         #say STDERR "SQL query: '$country_count_query'";
@@ -611,8 +598,6 @@ EOF
     print_time( "finished country_count_query" );
 
     my $ret = {};
-
-    say STDERR "total country count rows: " . scalar( @$country_counts );
 
     foreach my $country_count ( @$country_counts )
     {
@@ -628,8 +613,6 @@ EOF
         $country_count->{ time }         = $country_count->{ publish_day };
         $country_count->{ value }        = $country_count->{ country_count };
     }
-
-    say STDERR "updated country count rows";
 
     my $data_level = $c->req->param( "data_level" );
 
@@ -661,7 +644,6 @@ EOF
         if ( $data_level eq 'week' )
         {
             my $monday_of_week = sprintf( "%d-%02d-%02d", ( Monday_of_Week( $week_of_year, $year ) ) );
-            say STDERR "$count_date truncated to $monday_of_week";
 
             #say STDERR Dumper( [ str2time( $monday_of_week ) ] );
             $new_time = $monday_of_week;
@@ -689,11 +671,7 @@ EOF
 
         my $count_hash_for_date = $count_hash->{ $count_time };
 
-        say STDERR ( Dumper( $count_hash_for_date ) );
-
         my $count_hash_array = [ values %$count_hash_for_date ];
-
-        say STDERR ( Dumper( $count_hash_array ) );
 
         my $max_count = max( map { $_->{ value } } @$count_hash_array );
         foreach my $count_hash ( @$count_hash_array )
@@ -702,12 +680,7 @@ EOF
         }
     }
 
-    say STDERR "Dumping count_hash";
-    say STDERR Dumper( $count_hash );
-
-    say STDERR "country_counts_days";
     my $country_counts_days = [ values %{ $count_hash } ];
-    say STDERR Dumper( $country_counts_days );
 
     my $country_counts_merged = [
         sort { str2time( $a->{ time } ) cmp str2time( $b->{ publish_day } ) }
@@ -727,8 +700,6 @@ EOF
         #say STDERR Dumper [ @temp{ @$fields } ];
         $csv->add_line( [ @temp{ @$fields } ] );
     }
-
-    say STDERR "added country count rows to csv";
 
     my $csv_string    = $csv->string;
     my $response_body = $csv_string;
@@ -763,11 +734,7 @@ sub _get_tag_count_map_url
     my $data =
       join( ',', map { int( ( $country_code_count->{ $_ } / $max_tag_count ) * 100 ) } sort keys %{ $country_code_count } );
 
-    say STDERR "date: $data";
-
     my $countrycodes = join( '', sort keys %{ $country_code_count } );
-
-    say STDERR "country_codes: $countrycodes";
 
     my $esc_title = uri_escape( $title );
 
@@ -801,7 +768,7 @@ sub _country_counts_to_csv_array
         map {
             uc( $lcm->country2code( $lcm->code2country( $_, 'en' ), 'LOCALE_CODE_ALPHA_3', 'en' ) ) =>
               $country_counts->{ $_ }
-        } ( sort keys %{ $country_counts } )
+          } ( sort keys %{ $country_counts } )
     };
 
     my $country_count_csv_array = [
@@ -961,7 +928,7 @@ sub _localize_option_labels
         eval { $option->{ label } = $c->loc( $option->{ label } ); };
     }
 
-    say STDERR Dumper( $options );
+    # say STDERR Dumper( $options );
     return;
 }
 
@@ -1393,7 +1360,7 @@ sub data_dumps : Local
             my $file_date = $_;
             $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/;
             [ $_, $file_date, _get_dump_file_info( $_ ) ]
-        } @$data_dump_files
+          } @$data_dump_files
     ];
 
     $data_dumps = [ sort { _unix_time_for_file( $a ) <=> _unix_time_for_file( $b ) } @{ $data_dumps } ];
@@ -1405,9 +1372,6 @@ sub data_dumps : Local
     {
         $incremental_data_dumps = [ ( ( @{ $incremental_data_dumps } )[ -60 .. -1 ] ) ];
     }
-
-    say STDERR Dumper( $data_dump_files );
-    say STDERR Dumper( $data_dumps );
 
     $c->stash->{ dump_dir } = "$web_root_dir/include/data_dumps";
 
@@ -1474,13 +1438,12 @@ sub localize_hash_json : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    say STDERR "Starting localize_hash_json";
-
-    say STDERR 'URI: ' . $c->req->uri;
+    # say STDERR "Starting localize_hash_json";
+    # say STDERR 'URI: ' . $c->req->uri;
 
     my $json_hash_string = $c->req->param( 'hash' );
 
-    say STDERR "localize_hash_json: got json string: $json_hash_string";
+    # say STDERR "localize_hash_json: got json string: $json_hash_string";
 
     my $json_hash = decode_json( $json_hash_string );
 
@@ -1563,7 +1526,7 @@ sub author_publish_weeks_json : Local
             ORDER BY publish_week
 EOF
             $authors_id
-        )->flat
+          )->flat
     ];
 
     #say STDERR Dumper( $publish_weeks );
@@ -1832,13 +1795,11 @@ sub sentences_author : Local
     my $authors_id = $c->req->param( 'authors_id' ) || die( 'no authors_id' );
     my $stem       = $c->req->param( 'stem' )       || die( 'no stem' );
     my $term       = $c->req->param( 'term' )       || die( 'no term' );
-    my $lang_code  = $c->req->param( 'language' )   || die( 'no language code' );
 
     $authors_id += 0;
     my $author = $c->dbis->find_by_id( 'authors', $authors_id ) || die( "can't find author $authors_id" );
 
-    my $quoted_stem      = $c->dbis->dbh->quote( $stem );
-    my $quoted_lang_code = $c->dbis->dbh->quote( $lang_code );
+    my $quoted_stem = $c->dbis->dbh->quote( $stem );
 
     my $sentences = $c->dbis->query(
         <<"EOF"
@@ -1853,7 +1814,6 @@ sub sentences_author : Local
               AND ssw.stories_id = asm.stories_id
               AND asm.authors_id = $authors_id
               AND ssw.stem = $quoted_stem
-              AND ssw.language = $quoted_lang_code
         ORDER BY ss.publish_date,
                  ss.stories_id,
                  ss.sentence ASC
@@ -1896,10 +1856,9 @@ sub sentences_medium : Local
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    my $media_id  = $c->req->param( 'media_id' ) || die( 'no media_id' );
-    my $stem      = $c->req->param( 'stem' )     || die( 'no stem' );
-    my $term      = $c->req->param( 'term' )     || die( 'no term' );
-    my $lang_code = $c->req->param( 'language' ) || die( 'no language code' );
+    my $media_id = $c->req->param( 'media_id' ) || die( 'no media_id' );
+    my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
+    my $term     = $c->req->param( 'term' )     || die( 'no term' );
 
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
 
@@ -1913,8 +1872,7 @@ sub sentences_medium : Local
 
     my $queries = [ map { $self->get_query_by_id( $c, $_ ) } @{ $queries_ids } ];
 
-    my $stories =
-      MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $lang_code, $medium, $queries );
+    my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
 
     my $queries_description = join( " or ", map { $_->{ description } } @{ $queries } );
 
@@ -1934,9 +1892,8 @@ sub sentences_medium_json : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
-    my $media_id  = $c->req->param( 'media_id' ) || die( 'no media_id' );
-    my $stem      = $c->req->param( 'stem' )     || die( 'no stem' );
-    my $lang_code = $c->req->param( 'language' ) || die( 'no language code' );
+    my $media_id = $c->req->param( 'media_id' ) || die( 'no media_id' );
+    my $stem     = $c->req->param( 'stem' )     || die( 'no stem' );
 
     my $queries_ids = [ $c->req->param( 'queries_ids' ) ];
 
@@ -1948,8 +1905,7 @@ sub sentences_medium_json : Local
 
     my $queries = [ map { $self->get_query_by_id( $c, $_ ) } @{ $queries_ids } ];
 
-    my $stories =
-      MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $lang_code, $medium, $queries );
+    my $stories = MediaWords::DBI::Queries::get_medium_stem_stories_with_sentences( $c->dbis, $stem, $medium, $queries );
 
     return $c->res->body( encode_json( $stories ) );
 }
@@ -2087,18 +2043,16 @@ sub sentences : Local
 
     my $dashboard = $self->_get_dashboard( $c, $dashboards_id );
 
-    my $stem      = $c->req->param( 'stem' )     || die( 'no stem' );
-    my $term      = $c->req->param( 'term' )     || die( 'no term' );
-    my $lang_code = $c->req->param( 'language' ) || die( 'no language code' );
+    my $stem = $c->req->param( 'stem' ) || die( 'no stem' );
+    my $term = $c->req->param( 'term' ) || die( 'no term' );
 
     my $queries = [ map { $self->get_query_by_id( $c, $_ ) } $c->req->param( 'queries_ids' ) ];
     my $queries_description = join( " or ", map { $_->{ description } } @{ $queries } );
-    my $media = MediaWords::DBI::Queries::get_media_matching_stems( $c->dbis, $stem, $lang_code, $queries );
+    my $media = MediaWords::DBI::Queries::get_media_matching_stems( $c->dbis, $stem, $queries );
 
     $c->stash->{ dashboard }           = $dashboard;
     $c->stash->{ stem }                = $stem;
     $c->stash->{ term }                = $term;
-    $c->stash->{ language }            = $lang_code;
     $c->stash->{ queries_description } = $queries_description;
     $c->stash->{ queries_ids }         = [ $c->req->param( 'queries_ids' ) ];
     $c->stash->{ media }               = $media;
@@ -2161,7 +2115,7 @@ sub compare_media_set_terms : Local
     }
 
     # Create a stems clause
-    my @stems_clauses;    # "(stem = 'x1' AND language = 'y1') OR (stem = 'x2' AND language = 'y2') OR ..."
+    my @stems_clauses;    # "(stem = 'x1') OR (stem = 'x2') OR ..."
     for my $term_language ( @{ $terms_languages } )
     {
         my @term      = ( $term_language->{ term } );
@@ -2170,9 +2124,7 @@ sub compare_media_set_terms : Local
         my $stem      = $lang->stem( @term );
         $stem = @{ $stem }[ 0 ];
 
-        push( @stems_clauses,
-            '(dw.stem = ' .
-              $c->dbis->dbh->quote( $stem ) . ' AND dw.language = ' . $c->dbis->dbh->quote( $lang_code ) . ')' );
+        push( @stems_clauses, '(dw.stem = ' . $c->dbis->dbh->quote( $stem ) . ')' );
     }
     my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
 

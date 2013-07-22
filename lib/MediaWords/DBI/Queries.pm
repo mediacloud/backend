@@ -168,7 +168,7 @@ sub _add_mapped_table_fields
                 WHERE ${table}_id IN ( $ids_list )
                 ORDER BY ${table}_id
 EOF
-                )->hashes
+                  )->hashes
             ];
         }
     }
@@ -374,7 +374,7 @@ sub find_or_create_query_by_request
 # media_sets => <associated media sets>
 # media_sets_ids => <associated media set ids >
 # dashboards_topics => <associated dashboard topics>
-# dashboard_topics_ids => <assocaited dashboard topic ids>
+# dashboard_topics_ids => <associated dashboard topic ids>
 # dashboard => <associated dashboard if any>
 sub find_query_by_id
 {
@@ -399,7 +399,7 @@ sub find_query_by_id
                       AND qm.queries_id = $queries_id
                 ORDER BY m.${table}_id
 EOF
-            )->hashes
+              )->hashes
         ];
         $query->{ $table . "_names" } = [ map { $_->{ name } } @{ $query->{ $table } } ];
         $query->{ $table . "_ids" }   = [ map { $_->{ $table . "_id" } } @{ $query->{ $table } } ];
@@ -573,7 +573,7 @@ sub get_daily_date_clause
 # If no dashboard_topics_id is specified, the query requires a null dashboard_topics_id.
 # start_date and end_date are rounded down to the beginning of the week.
 #
-# Returns a list of words in the form { stem => $s, term => $s, language = $s, stem_count => $c }.
+# Returns a list of words in the form { stem => $s, term => $s, stem_count => $c }.
 # The stem_count is normalized each week against the total counts of all top 500 words for that week
 # and is averaged over the number of weeks, media sets, and dashboard topics queried.
 sub _get_top_500_weekly_words_impl
@@ -615,7 +615,6 @@ sub _get_top_500_weekly_words_impl
         <<"EOF"
         SELECT w.stem,
                MIN( w.term ) AS term,
-               w.language AS language,
                SUM( w.stem_count::float / tw.total_count::float )::float / ${ stem_count_factor }::float AS stem_count,
                SUM( w.stem_count::float) AS raw_stem_count,
                SUM( tw.total_count::float ) AS total_words,
@@ -630,7 +629,7 @@ sub _get_top_500_weekly_words_impl
               AND $tw_date_clause
               AND $dashboard_topics_clause
               AND COALESCE( w.dashboard_topics_id, 0 ) = COALESCE( tw.dashboard_topics_id, 0 )
-        GROUP BY w.stem, w.language
+        GROUP BY w.stem
         ORDER BY SUM( w.stem_count::float / tw.total_count::float )::float DESC
         LIMIT 500
 EOF
@@ -746,15 +745,14 @@ sub get_top_500_weekly_words
 }
 
 # get the list of media that include the given stem within the given single query
-sub _get_media_matching_stems_single_query($$$$)
+sub _get_media_matching_stems_single_query($$$)
 {
-    my ( $db, $stem, $lang_code, $query ) = @_;
+    my ( $db, $stem, $query ) = @_;
 
     my $media_sets_ids_list     = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
     my $date_clause             = get_daily_date_clause( $query, 'tw' );
     my $quoted_stem             = $db->dbh->quote( $stem );
-    my $quoted_lang_code        = $db->dbh->quote( $lang_code );
 
     my $sql_query = <<"EOF";
         SELECT ( SUM(w.stem_count)::float / SUM(tw.total_count)::float ) AS stem_percentage,
@@ -768,7 +766,6 @@ sub _get_media_matching_stems_single_query($$$$)
         WHERE w.media_sets_id = tw.media_sets_id
               AND w.publish_day = tw.publish_day
               AND w.stem = $quoted_stem
-              AND w.language = $quoted_lang_code
               AND $dashboard_topics_clause
               AND COALESCE( w.dashboard_topics_id, 0 ) = COALESCE( tw.dashboard_topics_id, 0 )
               AND w.media_sets_id = medium_ms.media_sets_id
@@ -779,12 +776,6 @@ sub _get_media_matching_stems_single_query($$$$)
         GROUP BY m.media_id, m.name
         ORDER BY stem_percentage DESC
 EOF
-
-    eval {
-
-        #wrap in eval to work around FCGI::Stream bug.
-        say STDERR "_get_media_matching_stems_single_query running query: $sql_query";
-    };
 
     my $media = $db->query( $sql_query )->hashes;
 
@@ -797,14 +788,14 @@ EOF
 #   queries => <list of matching queries >
 #   stem_percentage => < average percentage of stem out of total top 500 words for all matching queries >
 # }
-sub get_media_matching_stems($$$$)
+sub get_media_matching_stems($$$)
 {
-    my ( $db, $stem, $lang_code, $queries ) = @_;
+    my ( $db, $stem, $queries ) = @_;
 
     my $media_hash;
     for my $query ( @{ $queries } )
     {
-        my $query_media = _get_media_matching_stems_single_query( $db, $stem, $lang_code, $query );
+        my $query_media = _get_media_matching_stems_single_query( $db, $stem, $query );
 
         for my $qm ( @{ $query_media } )
         {
@@ -927,12 +918,11 @@ sub _get_daily_results
 }
 
 # get all story_sentences that match the given stem and media within the given query dashboard topic and date.
-sub _get_medium_stem_sentences_day($$$$$$$)
+sub _get_medium_stem_sentences_day($$$$$$)
 {
-    my ( $db, $query, $day, $max_sentences, $stem, $lang_code, $medium ) = @_;
+    my ( $db, $query, $day, $max_sentences, $stem, $medium ) = @_;
 
-    my $quoted_stem      = $db->dbh->quote( $stem );
-    my $quoted_lang_code = $db->dbh->quote( $lang_code );
+    my $quoted_stem = $db->dbh->quote( $stem );
 
     my $query_sentences;
     if ( @{ $query->{ dashboard_topics_ids } } )
@@ -950,7 +940,6 @@ sub _get_medium_stem_sentences_day($$$$$$$)
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = $medium->{ media_id }
                   AND ssw.stem = $quoted_stem
-                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
                   AND ssw.stories_id = sswq.stories_id
                   AND ssw.sentence_number = sswq.sentence_number
@@ -972,7 +961,6 @@ EOF
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = $medium->{ media_id }
                   AND ssw.stem = $quoted_stem
-                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
             ORDER BY ss.publish_date, ss.stories_id, ss.sentence_number, ss.sentence ASC
             LIMIT $max_sentences
@@ -988,23 +976,22 @@ EOF
 # get all stories and sentences that match the given stem and media within the given query dashboard topic and date.
 # return a list of stories sorted by publish date and with each story the list of matching
 # sentences within the { sentences } field of each story
-sub get_medium_stem_stories_with_sentences($$$$$)
+sub get_medium_stem_stories_with_sentences($$$$)
 {
-    my ( $db, $stem, $lang_code, $medium, $queries ) = @_;
+    my ( $db, $stem, $medium, $queries ) = @_;
 
     my $sentences =
-      _get_daily_results( $db, $queries, \&_get_medium_stem_sentences_day, MAX_QUERY_SENTENCES, $stem, $lang_code, $medium );
+      _get_daily_results( $db, $queries, \&_get_medium_stem_sentences_day, MAX_QUERY_SENTENCES, $stem, $medium );
 
     return _get_stories_from_sentences( $db, $sentences );
 }
 
 # get all story_sentences within the given queries, dup to MAX_QUERY_SENTENCES for each query
-sub _get_stem_sentences_day($$$$$$)
+sub _get_stem_sentences_day($$$$$)
 {
-    my ( $db, $query, $day, $max_sentences, $stem, $lang_code ) = @_;
+    my ( $db, $query, $day, $max_sentences, $stem ) = @_;
 
-    my $quoted_stem      = $db->dbh->quote( $stem );
-    my $quoted_lang_code = $db->dbh->quote( $lang_code );
+    my $quoted_stem = $db->dbh->quote( $stem );
 
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
 
@@ -1025,12 +1012,10 @@ sub _get_stem_sentences_day($$$$$$)
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = msmm.media_id
                   AND ssw.stem = $quoted_stem
-                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
                   AND ssw.stories_id = sswq.stories_id
                   AND ssw.sentence_number = sswq.sentence_number
                   AND sswq.stem = dt.query
-                  AND sswq.language = dt.language
                   AND dt.dashboard_topics_id IN ( $dashboard_topics_ids_list )
                   AND msmm.media_sets_id IN ( $media_sets_ids_list )
             ORDER BY ss.publish_date, ss.stories_id, ss.sentence ASC
@@ -1050,7 +1035,6 @@ EOF
                   AND ss.sentence_number = ssw.sentence_number
                   AND ssw.media_id = msmm.media_id
                   AND ssw.stem = $quoted_stem
-                  AND ssw.language = $quoted_lang_code
                   AND ssw.publish_day = '$day'::date
                   AND msmm.media_sets_id IN ( $media_sets_ids_list )
             ORDER BY ss.publish_date, ss.stories_id, ss.sentence ASC
@@ -1067,11 +1051,11 @@ EOF
 # get all stories and sentences that match the given stem within the given queries.
 # return a list of stories sorted by publish date and with each story the list of matching
 # sentences within the { sentences } field of each story
-sub get_stem_stories_with_sentences($$$$)
+sub get_stem_stories_with_sentences($$$)
 {
-    my ( $db, $stem, $lang_code, $queries ) = @_;
+    my ( $db, $stem, $queries ) = @_;
 
-    my $sentences = _get_daily_results( $db, $queries, \&_get_stem_sentences_day, MAX_QUERY_SENTENCES, $stem, $lang_code );
+    my $sentences = _get_daily_results( $db, $queries, \&_get_stem_sentences_day, MAX_QUERY_SENTENCES, $stem );
 
     return _get_stories_from_sentences( $db, $sentences );
 }
@@ -1098,7 +1082,6 @@ sub _get_sentences_day
             WHERE ssw.publish_day = '$day'::date
                   AND ssw.media_id = msmm.media_id
                   AND ssw.stem = dt.query
-                  AND ssw.language = dt.language
                   AND ssw.stories_id = ss.stories_id
                   AND ssw.sentence_number = ss.sentence_number
                   AND dt.dashboard_topics_id IN ( $dashboard_topics_ids_list )
@@ -1226,8 +1209,7 @@ sub get_term_counts
         # "term [language_code]"
         $term_lookup->{ $stem } = $term[ 0 ] . ' [' . $lang_code . ']';
 
-        push( @stems_clauses,
-            '(dw.stem = ' . $db->dbh->quote( $stem ) . ' AND dw.language = ' . $db->dbh->quote( $lang_code ) . ')' );
+        push( @stems_clauses, '(dw.stem = ' . $db->dbh->quote( $stem ) . ')' );
     }
     my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
 
@@ -1248,7 +1230,6 @@ sub get_term_counts
             <<"EOF"
         SELECT dw.publish_day,
                dw.stem $media_set_legend AS term,
-               dw.language,
                SUM( dw.stem_count::float / tw.total_count::float )::float AS count
         FROM daily_words AS dw,
              total_daily_words AS tw,
@@ -1261,10 +1242,10 @@ sub get_term_counts
               AND dw.publish_day = tw.publish_day
               AND $stems_clause
               AND ms.media_sets_id = dw.media_sets_id
-        GROUP BY dw.publish_day, dw.stem, dw.language $media_set_group
+        GROUP BY dw.publish_day, dw.stem $media_set_group
         ORDER BY dw.publish_day, dw.stem
 EOF
-        )->arrays
+          )->arrays
     ];
 
     for my $d ( @{ $date_term_counts } )
@@ -1300,7 +1281,7 @@ sub get_max_term_ratios($$;$)
 
     # my $terms = [ map { $_->{ query } } @{ $query->{ dashboard_topics } } ];
 
-    my @stems_clauses;    # "(stem = 'x1' AND language = 'y1') OR (stem = 'x2' AND language = 'y2') OR ..."
+    my @stems_clauses;    # "(stem = 'x1') OR (stem = 'x2') OR ..."
     my $term_lookup = {}; # 'stem [language]' => 'term [language]', 'stem [language]' => 'term [language]', ...
     foreach my $dashboard_topic ( @{ $query->{ dashboard_topics } } )
     {
@@ -1312,14 +1293,9 @@ sub get_max_term_ratios($$;$)
 
         $term_lookup->{ $stem } = $term[ 0 ] . ' [' . $lang_code . ']';
 
-        push( @stems_clauses,
-            '(stem = ' . $db->dbh->quote( $stem ) . ' AND language = ' . $db->dbh->quote( $lang_code ) . ')' );
+        push( @stems_clauses, '(stem = ' . $db->dbh->quote( $stem ) . ')' );
     }
     my $stems_clause = '(' . join( ' OR ', @stems_clauses ) . ')';
-
-    print STDERR Dumper( $query );
-    print STDERR Dumper( $stems_clause );
-    print STDERR Dumper( $ignore_topics );
 
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause =
@@ -1331,13 +1307,13 @@ sub get_max_term_ratios($$;$)
         SELECT stem,
                MIN( term ) AS term,
                SUM( stem_count ) AS stem_count,
-               language,
+               'en' AS language,
                1 AS max_term_ratio
         FROM top_500_weekly_words AS w
         WHERE media_sets_id IN ( $media_sets_ids_list )
               AND $dashboard_topics_clause
               AND $date_clause
-        GROUP BY stem, language
+        GROUP BY stem
         ORDER BY SUM(stem_count) DESC
         LIMIT 1
 EOF
@@ -1347,13 +1323,13 @@ EOF
         <<"EOF"
         SELECT stem,
                SUM( stem_count ) AS stem_count,
-               language
+               'en' as language
         FROM weekly_words AS w
         WHERE media_sets_id IN ( $media_sets_ids_list )
               AND $dashboard_topics_clause
               AND $stems_clause
               AND $date_clause
-        GROUP BY stem, language
+        GROUP BY stem
         ORDER BY stem_count DESC
 EOF
     )->hashes;
@@ -1388,7 +1364,7 @@ sub find_or_create_media_sub_query
         FROM media_sets
         WHERE media_id IN ( $media_ids_list )
 EOF
-        )->flat
+          )->flat
     ];
 
     return MediaWords::DBI::Queries::find_or_create_query_by_params(
@@ -1548,9 +1524,9 @@ EOF
     return $dashboard_topic_options;
 }
 
-sub _get_json_country_counts_for_query($$$)
+sub _get_json_country_counts_for_query($$)
 {
-    my ( $db, $query, $language_code ) = @_;
+    my ( $db, $query ) = @_;
 
     ( my $country_counts_json ) = $db->query(
         <<"EOF",
@@ -1581,9 +1557,9 @@ EOF
     return;
 }
 
-sub _store_country_counts_for_query($$$$)
+sub _store_country_counts_for_query($$$)
 {
-    my ( $db, $query, $language_code, $country_counts ) = @_;
+    my ( $db, $query, $country_counts ) = @_;
 
     #eval {
     my $country_counts_json = encode_json( $country_counts );
@@ -1613,9 +1589,9 @@ EOF
 
 # get the country counts for the given query normalized by the total daily words
 # in each media set / dashboard topic
-sub _get_country_counts_impl($$$)
+sub _get_country_counts_impl($$)
 {
-    my ( $db, $query, $language_code ) = @_;
+    my ( $db, $query ) = @_;
 
     my $media_sets_ids_list       = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause_2 = get_dashboard_topics_clause( $query );
@@ -1632,7 +1608,6 @@ sub _get_country_counts_impl($$$)
         FROM (SELECT *
               FROM daily_country_counts
               WHERE $shared_where_clauses
-                    AND language = '$language_code'
         ) AS dcc,
              (SELECT SUM(total_count) AS total_count
               FROM total_daily_words
@@ -1649,16 +1624,16 @@ EOF
     return $ret;
 }
 
-sub get_country_counts($$$)
+sub get_country_counts($$)
 {
-    my ( $db, $query, $language_code ) = @_;
+    my ( $db, $query ) = @_;
 
-    my $ret = _get_json_country_counts_for_query( $db, $query, $language_code );
+    my $ret = _get_json_country_counts_for_query( $db, $query );
 
     if ( !$ret )
     {
-        $ret = _get_country_counts_impl( $db, $query, $language_code );
-        _store_country_counts_for_query( $db, $query, $language_code, $ret );
+        $ret = _get_country_counts_impl( $db, $query );
+        _store_country_counts_for_query( $db, $query, $ret );
     }
 
     return $ret;
@@ -1802,10 +1777,6 @@ sub query_has_sw_data
     my ( $db, $query ) = @_;
 
     my $ret = 1;
-
-    say STDERR Dumper( $query );
-    say STDERR "media_sets_ids ";
-    say STDERR Dumper( $query->{ media_sets_ids } );
 
     foreach my $media_sets_id ( @{ $query->{ media_sets_ids } } )
     {

@@ -32,7 +32,7 @@ sub list : Local
         WHERE generate_page = 't'
         ORDER BY start_date
 EOF
-        )->flat
+          )->flat
     ];
 
     my $queries = [ map { MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $_ ) } @{ $queries_ids } ];
@@ -370,7 +370,7 @@ sub sentences : Local
     my $stories;
     if ( $stem )
     {
-        $stories = MediaWords::DBI::Queries::get_stem_stories_with_sentences( $c->dbis, $stem, $lang_code, $queries );
+        $stories = MediaWords::DBI::Queries::get_stem_stories_with_sentences( $c->dbis, $stem, $queries );
     }
     else
     {

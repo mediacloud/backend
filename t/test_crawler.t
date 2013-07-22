@@ -390,15 +390,24 @@ sub _process_top_500_weekly_words_for_testing
     }
 }
 
+# simple test to verify that top 500 weekly words has at least 500 words
+sub sanity_test_top_500_weekly_words
+{
+    my ( $words ) = @_;
+
+    ok( scalar( @{ $words } ) >= 500, "top 500 weekly words has at least 500 words" );
+}
+
 sub dump_top_500_weekly_words
 {
     my ( $db ) = @_;
 
-    my $top_500_weekly_words =
-      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term, language', )->hashes;
+    my $top_500_weekly_words = $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term', )->hashes;
     _process_top_500_weekly_words_for_testing( $top_500_weekly_words );
 
     MediaWords::Test::Data::store_test_data( 'top_500_weekly_words', $top_500_weekly_words );
+
+    sanity_test_top_500_weekly_words( $top_500_weekly_words );
 
     return;
 }
@@ -409,7 +418,7 @@ sub sort_top_500_weekly_words
 
     #ensure that the order is deterministic
     #first sort on the important fields then sort on everything just to be sure...
-    my @keys = qw (publish_week stem dashboard_topics_id term language );
+    my @keys = qw (publish_week stem dashboard_topics_id term );
 
     my @hash_fields = sort keys %{ $array->[ 0 ] };
 
@@ -421,7 +430,7 @@ sub test_top_500_weekly_words
     my ( $db ) = @_;
 
     my $top_500_weekly_words_actual =
-      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term, language' )->hashes;
+      $db->query( 'SELECT * FROM top_500_weekly_words order by publish_week, stem, term' )->hashes;
     _process_top_500_weekly_words_for_testing( $top_500_weekly_words_actual );
 
     my $top_500_weekly_words_expected = MediaWords::Test::Data::fetch_test_data( 'top_500_weekly_words' );
@@ -456,6 +465,17 @@ sub test_top_500_weekly_words
     }
 }
 
+# simple test to verify that each story has at least 10 words
+sub sanity_test_stories
+{
+    my ( $stories ) = @_;
+
+    for my $story ( @{ $stories } )
+    {
+        ok( scalar( @{ $story->{ story_sentence_words } } ) >= 10, "story '$story->{ url }' has at least 10 words" );
+    }
+}
+
 # store the stories as test data to compare against in subsequent runs
 sub dump_stories
 {
@@ -464,6 +484,8 @@ sub dump_stories
     my $stories = get_expanded_stories( $db );
 
     MediaWords::Test::Data::store_test_data( 'crawler_stories', $stories );
+
+    sanity_test_stories( $stories );
 }
 
 sub kill_local_server
