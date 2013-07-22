@@ -29,9 +29,9 @@ use constant PERCENT_DATE_MISDATED => 22;
 
 # percentages that a wrong date is wrong by the given number of days
 use constant PERCENT_DATE_WRONG_BY_1    => 0;
-use constant PERCENT_DATE_WRONG_BY_3    => 0;
+use constant PERCENT_DATE_WRONG_BY_3    => 25;
 use constant PERCENT_DATE_WRONG_BY_7    => 0;
-use constant PERCENT_DATE_WRONG_BY_MORE => 100;
+use constant PERCENT_DATE_WRONG_BY_MORE => 75;
 
 # percent of stories guessed to be undateable that are actually dateable
 use constant PERCENT_UNDATEABLE_DATE_DATEABLE => 30;
