@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4411;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4412;
     
 BEGIN
 
@@ -635,7 +635,7 @@ create table dashboard_topics (
     dashboard_topics_id         serial          primary key,
     name                        varchar(256)    not null,
     query                       varchar(1024)   not null,
-    language                    varchar(3)      not null,   -- 2- or 3-character ISO 690 language code
+    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code
     dashboards_id               int             not null references dashboards on delete cascade,
     start_date                  timestamp       not null,
     end_date                    timestamp       not null,
@@ -938,7 +938,6 @@ create table story_sentence_words (
        stories_id                   int             not null, -- references stories on delete cascade,
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
-       language                     varchar(3)      null,     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
        stem_count                   smallint        not null,
        sentence_number              smallint        not null,
        media_id                     int             not null, -- references media on delete cascade,
@@ -958,7 +957,6 @@ create table daily_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_day                  date            not null
 );
 
@@ -975,7 +973,6 @@ create table weekly_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -992,7 +989,6 @@ create table top_500_weekly_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -1059,7 +1055,6 @@ CREATE VIEW media_feed_counts as (SELECT media_id, count(*) as feed_count FROM f
 
 CREATE TABLE daily_country_counts (
     media_sets_id integer  not null references media_sets on delete cascade,
-    language varchar(3) not null, -- 2- or 3-character ISO 690 language code
     publish_day date not null,
     country character varying not null,
     country_count bigint not null,
@@ -1109,7 +1104,6 @@ CREATE TABLE daily_author_words (
     term                            character varying(256)  not null,
     stem                            character varying(256)  not null,
     stem_count                      int                     not null,
-    language                        varchar(3)              not null, -- 2- or 3-character ISO 690 language code
     publish_day                     date                    not null
 );
 
@@ -1134,7 +1128,6 @@ create table weekly_author_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -1150,7 +1143,6 @@ create table top_500_weekly_author_words (
        term                         varchar(256)    not null,
        stem                         varchar(256)    not null,
        stem_count                   int             not null,
-       language                     varchar(3)      not null, -- 2- or 3-character ISO 690 language code
        publish_week                 date            not null
 );
 
@@ -1339,48 +1331,114 @@ create table controversy_dump_time_slices (
 
 create index controversy_dump_time_slices_dump on controversy_dump_time_slices ( controversy_dumps_id );
 
--- ease the process of copying the schema of each table and adding a controversy_dumps_id field and index
-create or replace function create_dump_snapshot_table ( table_name text ) returns void as
-$$
-BEGIN
-    EXECUTE 'create table cd.' || table_name || ' as select * from ' || table_name || ' where 1 = 0';
-    EXECUTE 'alter table cd.' || table_name || ' add controversy_dumps_id int not null references controversy_dumps on delete cascade';
-    EXECUTE 'create index ' || table_name || '_dump on cd.' || table_name || ' ( controversy_dumps_id )';
-    return;
-END;
-$$
-LANGUAGE 'plpgsql' VOLATILE;
+-- schema to hold the various controversy dump snapshot tables
+create schema cd;
 
 -- create a table for each of these tables to hold a snapshot of stories relevant
 -- to a controversy for each dump for that controversy
-select create_dump_snapshot_table( 'stories' );
+create table cd.stories (
+    controversy_dumps_id        int             not null references controversy_dumps on delete cascade,
+    stories_id                  int,
+    media_id                    int             not null,
+    url                         varchar(1024)   not null,
+    guid                        varchar(1024)   not null,
+    title                       text            not null,
+    description                 text            null,
+    publish_date                timestamp       not null,
+    collect_date                timestamp       not null,
+    full_text_rss               boolean         not null default 'f',
+    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+);
 create index stories_id on cd.stories ( controversy_dumps_id, stories_id );
     
-select create_dump_snapshot_table( 'controversy_stories' );
+
+create table cd.controversy_stories (
+    controversy_dumps_id            int not null references controversy_dumps on delete cascade,    
+    controversy_stories_id          int,
+    controversies_id                int not null,
+    stories_id                      int not null,
+    link_mined                      boolean,
+    iteration                       int,
+    link_weight                     real,
+    redirect_url                    text,
+    valid_foreign_rss_story         boolean
+);
 create index controversy_stories_id on cd.controversy_stories ( controversy_dumps_id, stories_id );
-    
-select create_dump_snapshot_table( 'controversy_links_cross_media' );
+
+create table cd.controversy_links_cross_media (
+    controversy_dumps_id        int not null references controversy_dumps on delete cascade,    
+    controversy_links_id        int,
+    controversies_id            int not null,
+    stories_id                  int not null,
+    url                         text not null,
+    ref_stories_id              int,
+    media_name                  text,
+    ref_media_name              text    
+);
 create index controversy_links_story on cd.controversy_links_cross_media ( controversy_dumps_id, stories_id );
 create index controversy_links_ref on cd.controversy_links_cross_media ( controversy_dumps_id, ref_stories_id );
 
-select create_dump_snapshot_table( 'controversy_media_codes' );
+create table cd.controversy_media_codes (
+    controversy_dumps_id    int not null references controversy_dumps on delete cascade,    
+    controversies_id        int not null,
+    media_id                int not null,
+    code_type               text,
+    code                    text
+);
 create index controversy_media_codes_medium on cd.controversy_media_codes ( controversy_dumps_id, media_id );
     
-select create_dump_snapshot_table( 'media' );
+create table cd.media (
+    controversy_dumps_id    int not null references controversy_dumps on delete cascade,    
+    media_id                int,
+    url                     varchar(1024)   not null,
+    name                    varchar(128)    not null,
+    moderated               boolean         not null,
+    feeds_added             boolean         not null,
+    moderation_notes        text            null,       
+    full_text_rss           boolean,
+    extract_author          boolean         default(false),
+    sw_data_start_date      date            default(null),
+    sw_data_end_date        date            default(null),
+    foreign_rss_links       boolean         not null default( false ),
+    dup_media_id            int             null,
+    is_not_dup              boolean         null,
+    use_pager               boolean         null,
+    unpaged_stories         int             not null default 0
+);
 create index media_id on cd.media ( controversy_dumps_id, media_id );
     
-select create_dump_snapshot_table( 'media_tags_map' );
+create table cd.media_tags_map (
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    media_tags_map_id       int,
+    media_id                int             not null,
+    tags_id                 int             not null
+);
 create index media_tags_map_medium on cd.media_tags_map ( controversy_dumps_id, media_id );
 create index media_tags_map_tag on cd.media_tags_map ( controversy_dumps_id, tags_id );
     
-select create_dump_snapshot_table( 'stories_tags_map' );
+create table cd.stories_tags_map
+(
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    stories_tags_map_id     int,
+    stories_id              int,
+    tags_id                 int
+);
 create index stories_tags_map_story on cd.stories_tags_map ( controversy_dumps_id, stories_id );
 create index stories_tags_map_tag on cd.stories_tags_map ( controversy_dumps_id, tags_id );
 
-select create_dump_snapshot_table( 'tags' );
+create table cd.tags (
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    tags_id                 int,
+    tag_sets_id             int,
+    tag                     varchar(512)
+);
 create index tags_id on cd.tags ( controversy_dumps_id, tags_id );
 
-select create_dump_snapshot_table( 'tag_sets' );
+create table cd.tag_sets (
+    controversy_dumps_id    int not null    references controversy_dumps on delete cascade,    
+    tag_sets_id             int,
+    name                    varchar(512)    
+);
 create index tag_sets_id on cd.tag_sets ( controversy_dumps_id, tag_sets_id );
 
 -- story -> story links within a cdts
@@ -1712,8 +1770,7 @@ CREATE TABLE media_edits (
                                     CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
     old_value           TEXT        NOT NULL,
     new_value           TEXT        NOT NULL,
-    reason              TEXT        NOT NULL
-                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
+    reason              TEXT,
 
     -- Store user's email instead of ID in case the user gets deleted
     users_email         TEXT        NOT NULL REFERENCES auth_users(email)
@@ -1735,8 +1792,7 @@ CREATE TABLE story_edits (
                                     CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
     old_value           TEXT        NOT NULL,
     new_value           TEXT        NOT NULL,
-    reason              TEXT        NOT NULL
-                                    CONSTRAINT reason_not_empty CHECK(LENGTH(reason) > 0),
+    reason              TEXT,
 
     -- Store user's email instead of ID in case the user gets deleted
     users_email         TEXT        NOT NULL REFERENCES auth_users(email)
