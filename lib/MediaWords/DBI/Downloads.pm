@@ -168,9 +168,8 @@ sub _download_store_for_reading($)
             # Tar
             if ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } ) eq 'yes' )
             {
-
                 # Force reading Tar downloads from GridFS (after the migration)
-                return [ $_gridfs_store, $_tar_store ];
+                $store = $_gridfs_store;
             }
             else
             {
@@ -183,9 +182,8 @@ sub _download_store_for_reading($)
             # Local file
             if ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } ) eq 'yes' )
             {
-
                 # Force reading file downloads from GridFS (after the migration)
-                return [ $_gridfs_store, $_localfile_store ];
+                $store = $_gridfs_store;
             }
             else
             {
@@ -211,30 +209,24 @@ sub fetch_content($)
         die "No download path or the state is not 'success' for download ID " . $download->{ downloads_id };
     }
 
-    my $stores = ( ref( $store ) eq 'ARRAY' ) ? $store : [ $store ];
-
-    for my $s ( @{ $stores } )
+    # Fetch content
+    if ( my $content_ref = $store->fetch_content( $download ) )
     {
 
-        # Fetch content
-        my $content_ref;
-        eval {
-            if ( $content_ref = $s->fetch_content( $download ) )
-            {
+        # horrible hack to fix old content that is not stored in unicode
+        my $ascii_hack_downloads_id = $_config->{ mediawords }->{ ascii_hack_downloads_id };
+        if ( $ascii_hack_downloads_id && ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
+        {
+            $$content_ref =~ s/[^[:ascii:]]/ /g;
+        }
 
-                # horrible hack to fix old content that is not stored in unicode
-                my $ascii_hack_downloads_id = $_config->{ mediawords }->{ ascii_hack_downloads_id };
-                if ( $ascii_hack_downloads_id && ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
-                {
-                    $$content_ref =~ s/[^[:ascii:]]/ /g;
-                }
-            }
-        };
-        return $content_ref if ( $content_ref );
+        return $content_ref;
     }
-
-    my $ret = '';
-    return \$ret;
+    else
+    {
+        my $ret = '';
+        return \$ret;
+    }
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor
