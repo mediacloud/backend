@@ -37,4 +37,4 @@ cd $working_dir
 
 cd ..
 
-exec ./script/run_carton.sh exec -Ilib/ -- prove -r lib/ script/ t/
+exec ./script/run_carton.sh exec -Ilib/ -Iscript/gridfs-to-s3/ -- prove $* `find lib/ script/ t/ -name '*.t' ! -path 'script/gridfs-to-s3/*'`
