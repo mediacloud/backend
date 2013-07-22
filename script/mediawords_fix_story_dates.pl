@@ -14,14 +14,44 @@ BEGIN
 use Data::Dumper;
 use Date::Parse;
 use DateTime;
+use Getopt::Long;
 use Text::CSV_XS;
 
+use MediaWords::CM::GuessDate;
 use MediaWords::DB;
+use MediaWords::Util::Tags;
 
 # hash of fixed stories to avoid resetting a story once it has been fixed
 my $_fixed_stories_map = {};
 
-# parse the csv file and return a hash with a stories_id and publish_date field
+# if debug is set by the --debug option, do not run sql commands
+my $_debug;
+
+# assign a tag to the story for the date guess method
+sub assign_date_guess_method
+{
+    my ( $db, $story, $date_guess_methods ) = @_;
+
+    if ( !$_debug )
+    {
+        $db->query( <<END, $story->{ stories_id } );
+delete from stories_tags_map stm
+    using tags t, tag_sets ts
+    where stm.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and 
+        ts.name = 'date_guess_method' and stm.stories_id = ?    
+END
+    }
+
+    for my $date_guess_method ( @{ $date_guess_methods } )
+    {
+        my $date_guess_method_tag =
+          MediaWords::Util::Tags::lookup_or_create_tag( $db, "date_guess_method:$date_guess_method" );
+        my $stm = { stories_id => $story->{ stories_id }, tags_id => $date_guess_method_tag->{ tags_id } };
+        $db->create( 'stories_tags_map', $stm ) unless ( $_debug );
+    }
+}
+
+# parse the csv file and return a hash with a stories_id, publish_date, and option dateable field
 sub get_csv_dates
 {
     my ( $file ) = @_;
@@ -51,6 +81,41 @@ sub get_csv_dates
     return $csv_dates;
 }
 
+sub set_story_date
+{
+    my ( $db, $story, $epoch_csv_date, $publish_date ) = @_;
+
+    my $epoch_db_date = Date::Parse::str2time( $story->{ publish_date } );
+
+    if ( abs( $epoch_csv_date - $epoch_db_date ) > 60 )
+    {
+        my $sql_date = DateTime->from_epoch( epoch => ( $epoch_csv_date - ( 4 * 3600 ) ) )->datetime;
+
+        print STDERR <<END;
+$story->{ stories_id }: $story->{ publish_date } [ $epoch_db_date ] -> $sql_date / $publish_date [ $epoch_csv_date ]
+END
+
+        $db->query( "update stories set publish_date = ? where stories_id = ?", $sql_date, $story->{ stories_id } )
+          unless ( $_debug );
+        assign_date_guess_method( $db, $story, [ 'manual' ] );
+
+        $_fixed_stories_map->{ $story->{ stories_id } } = 1;
+    }
+
+}
+
+sub set_story_undateable
+{
+    my ( $db, $story ) = @_;
+
+    assign_date_guess_method( $db, $story, [ 'undateable', 'manual' ] );
+
+    print STDERR "$story->{ stories_id }: $story->{ publish_date } -> undateable\n";
+
+    $_fixed_stories_map->{ $story->{ stories_id } } = 1;
+
+}
+
 # if the date in the csv_date is different from the date in the databse, set the
 # date in the database
 sub fix_date
@@ -69,30 +134,65 @@ sub fix_date
         return;
     }
 
-    my $epoch_csv_date = Date::Parse::str2time( $csv_date->{ publish_date } );
-    my $epoch_db_date  = Date::Parse::str2time( $story->{ publish_date } );
-
-    if ( abs( $epoch_csv_date - $epoch_db_date ) > 60 )
+    if ( $csv_date->{ dateable } && ( lc( $csv_date->{ dateable } ) eq 'no' ) )
     {
-        my $sql_date = DateTime->from_epoch( epoch => ( $epoch_csv_date - ( 4 * 3600 ) ) )->datetime;
-
-        print STDERR
-"$story->{ stories_id }: $story->{ publish_date } [ $epoch_db_date ] -> $sql_date / $csv_date->{ publish_date } [ $epoch_csv_date ]\n";
-        $db->query( "update stories set publish_date = ? where stories_id = ?", $sql_date, $story->{ stories_id } );
-
-        $_fixed_stories_map->{ $csv_date->{ stories_id } } = 1;
+        set_story_undateable( $db, $story );
     }
+    else
+    {
+        set_story_date( $db, $story, $csv_date->{ epoch_csv_date }, $csv_date->{ publish_date } );
+    }
+}
+
+# parse all publish_date fields in the csv_dates and put the epoch date
+# into epoch_publish_date.  we run this first, separately from the update
+# to make sure that all dates will parse before updating anything.  this
+# function will return 1 if all dates parse and undef otherwise.
+sub parse_all_dates
+{
+    my ( $csv_dates ) = @_;
+
+    my $all_dates_parsed = 1;
+    my $i                = 0;
+    for my $csv_date ( @{ $csv_dates } )
+    {
+        $i++;
+        next if ( $csv_date->{ dateable } && ( lc( $csv_date->{ dateable } ) eq 'no' ) );
+        my $publish_date = $csv_date->{ publish_date };
+
+        # $csv_date->{ epoch_csv_date } = Date::Parse::str2time( $publish_date ) ||
+        #     MediaWords::CM::GuessDate::timestamp_from_html( $publish_date );
+        $csv_date->{ epoch_csv_date } = MediaWords::CM::GuessDate::timestamp_from_html( $publish_date );
+
+        if ( !defined( $csv_date->{ epoch_csv_date } ) )
+        {
+            print STDERR "line [ $i ]: Unable to parse date '$publish_date'\n";
+            $all_dates_parsed = undef;
+        }
+    }
+
+    return $all_dates_parsed;
 }
 
 sub main
 {
-    my ( $csv_file ) = @ARGV;
+    my ( $csv, $_debug );
 
-    die( "usage: $0 <csv file>" ) unless ( $csv_file );
+    binmode( STDOUT, 'utf8' );
+    binmode( STDERR, 'utf8' );
+
+    Getopt::Long::GetOptions(
+        "csv=s"  => \$csv,
+        "debug!" => \$_debug,
+    ) || return;
+
+    die( "usage: $0 --csv < csv file > [ --debug ]" ) unless ( $csv );
+
+    my $csv_dates = get_csv_dates( $csv );
+
+    return unless ( parse_all_dates( $csv_dates ) );
 
     my $db = MediaWords::DB::connect_to_db;
-
-    my $csv_dates = get_csv_dates( $csv_file );
 
     map { fix_date( $db, $_ ) } @{ $csv_dates };
 }
