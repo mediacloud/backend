@@ -109,7 +109,12 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr id="even">
         <td>Publish Date</td>
         <td id="[% story.date_is_reliable ? 'reliable_story_date' : 'unreliable_story_date' %]">
-            [% datetime.format( story.publish_date ) %] 
+            [% IF story.undateable %]
+                undateable story
+            [% ELSE %]
+                [% datetime.format( story.publish_date ) %] 
+            [% END %]
+            
             [% IF story.date_is_reliable %]
                 (reliable)
             [% ELSE %]

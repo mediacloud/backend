@@ -467,24 +467,7 @@ END
 
     return ( 'current_time', DateTime->now->datetime );
 }
-
-# assign a tag to the story for the date guess method
-sub assign_date_guess_method_to_story
-{
-    my ( $db, $story, $date_guess_method ) = @_;
-
-    my $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "date_guess_method:$date_guess_method" );
-
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t, tag_sets ts
-    where stm.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and 
-        ts.name = 'date_guess_method' and stm.stories_id = ?    
-END
-
-    $db->create( 'stories_tags_map',
-        { stories_id => $story->{ stories_id }, tags_id => $date_guess_method_tag->{ tags_id } } );
-}
+my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
 
 # recursively search for the medium pointed to by dup_media_id
 # by the media_id medium.  return the first medium that does not have a dup_media_id.
@@ -561,7 +544,7 @@ sub add_new_story
     my $spidered_tag = get_spidered_tag( $db );
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
 
-    assign_date_guess_method_to_story( $db, $story, $date_guess_method );
+    MediaWords::DBI::Stories::MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date_guess_method );
 
     print STDERR "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }\n";
 
@@ -1417,7 +1400,7 @@ END
         $db->query( <<END, $source_link->{ publish_date }, $controversy->{ controversies_id } );
 update stories set publish_date = ? where stories_id = ?
 END
-        assign_date_guess_method_to_story( $db, $story, 'source_link' );
+        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, 'source_link' );
     }
 }
 

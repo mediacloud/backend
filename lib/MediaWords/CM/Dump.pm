@@ -172,7 +172,7 @@ sub drop_dump_period_stories
 # current period.  For an overall dump, every story should be in the current period.
 # For other dumps, a story should be in the current dump if either its date is within
 # the period dates or if a story that links to it has a date within the period dates.
-# For this purpose, stories tagged with the 'date_guess_method:undateable' tag
+# For this purpose, stories tagged with the 'date_invalid:undateable' tag
 # are considered to have an invalid tag, so their dates cannot be used to pass
 # either of the above tests.
 #
@@ -197,7 +197,7 @@ create or replace view dump_undateable_stories as
         where s.stories_id = stm.stories_id and
             stm.tags_id = t.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
-            ts.name = 'date_guess_method' and
+            ts.name = 'date_invalid' and
             t.tag = 'undateable'
 END
 
@@ -1097,7 +1097,7 @@ sub tweak_dateable_story
 
     # print "tweak_dateable_story: $story->{ stories_id }\n";
 
-    my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:undateable' );
+    my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
 
     $db->query( <<END, $story->{ stories_id }, $undateable_tag->{ tags_id } );
 insert into dump_stories_tags_map
@@ -1130,7 +1130,7 @@ select * from
         where s.stories_id = stm.stories_id and 
             t.tags_id = stm.tags_id and 
             t.tag_sets_id = ts.tag_sets_id and 
-            ts.name = 'date_guess_method' and 
+            ts.name = 'date_invalid' and 
             t.tag = 'undateable'
 ) q
     where ( random() *  100 ) < ?
@@ -1161,10 +1161,10 @@ sub tweak_undateable_story
     $db->query( <<END, $story->{ stories_id } );
 delete from dump_stories_tags_map stm
     using dump_tags t, dump_tag_sets ts
-    where stm.stories_id =? and
+    where stm.stories_id = ? and
         stm.tags_id = t.tags_id and 
         t.tag_sets_id = ts.tag_sets_id and
-        ts.name = 'date_guess_method' and
+        ts.name = 'date_invalid' and
         t.tag = 'undateable'
 END
 }
@@ -1183,7 +1183,7 @@ select * from
         where s.stories_id = stm.stories_id and 
             t.tags_id = stm.tags_id and 
             t.tag_sets_id = ts.tag_sets_id and 
-            ts.name = 'date_guess_method' and 
+            ts.name = 'date_invalid' and 
             t.tag = 'undateable'
             
     except

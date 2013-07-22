@@ -330,7 +330,7 @@ EOF
     $db->query(
         <<"EOF",
         DELETE FROM $subtable_name AS stm USING tags AS t
-        WHERE stm.tags_id = t.tags_id
+        WHERE stm.tags_id = t.tags_ids
               AND t.tag_sets_id = ?
               AND stm.stories_id = ?
 EOF
@@ -860,6 +860,139 @@ END
     $db->query( <<END, $story->{ stories_id }, $t->{ tags_id } );
 insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
 END
+}
+
+# if the date guess method is manual, remove and replace with an ;unconfirmed' method tag
+sub unconfirm_date
+{
+    my ( $db, $story ) = @_;
+
+    return unless ( date_is_confirmed( $db, $story ) );
+
+    my $manual      = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:manual' );
+    my $unconfirmed = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_guess_method:unconfirmed' );
+
+    $db->query( <<END, $story->{ stories_id }, $manual->{ tags_id } );
+delete from stories_tags_map where stories_id = ? and tags_id = ?
+END
+
+    $db->query( <<END, $story->{ stories_id }, $unconfirmed->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+END
+
+}
+
+# return true if the date guess method is manual, which means that the date has been confirmed
+sub date_is_confirmed
+{
+    my ( $db, $story ) = @_;
+
+    my $r = $db->query( <<END, $story->{ stories_id } )->hash;
+select 1 from stories_tags_map stm, tags t, tag_sets ts
+    where stm.tags_id = t.tags_id and
+        ts.tag_sets_id = t.tag_sets_id and
+        t.tag = 'manual' and
+        ts.name = 'date_guess_method' and
+        stm.stories_id = ?
+END
+
+    return $r ? 1 : 0;
+}
+
+# return true if the date is reliable
+sub date_is_reliable
+{
+    my ( $db, $story ) = @_;
+
+    my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
+    my $reliable_methods_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $reliable_methods } );
+
+    my $unreliable_method = $db->query( <<END, $story->{ stories_id } )->hash;
+select stm.* 
+    from stories_tags_map stm
+        join tags t on ( stm.tags_id = t.tags_id ) 
+        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
+    where
+        t.tag not in ( $reliable_methods_list ) and
+        ts.name = 'date_guess_method' and
+        stm.stories_id = ?
+END
+
+    return $unreliable_method ? 0 : 1;
+}
+
+# set the undateable status of the story by adding or removing the 'date_guess_method:undateable' tage
+sub mark_undateable
+{
+    my ( $db, $story, $undateable ) = @_;
+
+    my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
+
+    $db->query( <<END, $story->{ stories_id } );
+delete from stories_tags_map stm
+    using tags t
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id ) 
+    where
+        t.tags_id = stm.tags_id and
+        ts.name = 'date_invalid' and
+        stories_id = ?
+END
+
+    if ( $undateable )
+    {
+        $db->query( <<END, $story->{ stories_id }, $tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+END
+    }
+}
+
+# return true if the story has been marked as undateable
+sub is_undateable
+{
+    my ( $db, $story ) = @_;
+
+    my $tag = $db->query( <<END, $story->{ stories_id } )->hash;
+select 1
+    from stories_tags_map stm
+        join tags t on ( stm.tags_id = t.tags_id )
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+    where
+        stm.stories_id = ? and
+        ts.name = 'date_invalid' and
+        t.tag = 'undateable'
+END
+
+    return $tag ? 1 : 0;
+}
+
+# assign a tag to the story for the date guess method
+sub assign_date_guess_method
+{
+    my ( $db, $story, $date_guess_method, $no_delete ) = @_;
+
+    if ( !$no_delete )
+    {
+        for my $tag_set_name ( 'date_guess_method', 'date_invalid' )
+        {
+            $db->query( <<END, $tag_set_name, $story->{ stories_id } );
+delete from stories_tags_map stm
+    using tags t
+        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
+    where 
+        t.tags_id = stm.tags_id and
+        ts.name = ? and
+        s.stories_id = ?
+END
+        }
+    }
+
+    my $tag_set_name = ( $date_guess_method eq 'undateable' ) ? 'date_invalid' : 'date_guess_method';
+
+    my $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$tag_set_name:$date_guess_method" );
+    $db->query( <<END, $story->{ stories_id }, $date_guess_method_tag->{ tags_id } );
+insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+END
+
 }
 
 1;

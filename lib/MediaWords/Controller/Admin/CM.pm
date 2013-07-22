@@ -198,7 +198,7 @@ select s.*, slc.inlink_count, slc.outlink_count, m.name as medium_name
     limit ?
 END
 
-    map { _add_story_date_is_reliable( $db, $_ ) } @{ $top_stories };
+    map { _add_story_date_info( $db, $_ ) } @{ $top_stories };
 
     return $top_stories;
 }
@@ -409,7 +409,7 @@ select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
         s.media_id = ?
     order by slc.inlink_count desc
 END
-    map { _add_story_date_is_reliable( $db, $_ ) } @{ $medium->{ stories } };
+    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ stories } };
 
     $medium->{ inlink_stories } = $db->query( <<'END', $media_id )->hashes;
 select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
@@ -425,7 +425,7 @@ select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
         r.media_id = ?        
     order by sslc.inlink_count desc
 END
-    map { _add_story_date_is_reliable( $db, $_ ) } @{ $medium->{ inlink_stories } };
+    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ inlink_stories } };
 
     $medium->{ outlink_stories } = $db->query( <<'END', $media_id )->hashes;
 select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
@@ -441,7 +441,7 @@ select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
         s.media_id = ?
     order by rslc.inlink_count desc
 END
-    map { _add_story_date_is_reliable( $db, $_ ) } @{ $medium->{ outlink_stories } };
+    map { _add_story_date_info( $db, $_ ) } @{ $medium->{ outlink_stories } };
 
     $medium->{ story_count }   = scalar( @{ $medium->{ stories } } );
     $medium->{ inlink_count }  = scalar( @{ $medium->{ inlink_stories } } );
@@ -574,27 +574,15 @@ sub medium : Local
     $c->stash->{ template }                = 'cm/medium.tt2';
 }
 
-# is the given date guess method reliable?
-sub _add_story_date_is_reliable
+# add the following fields to the story:
+# * date_is_reliable
+# * undateable
+sub _add_story_date_info
 {
     my ( $db, $story ) = @_;
 
-    my ( $method ) = $db->query( <<END, $story->{ stories_id } )->flat;
-select tag from dump_tags t, dump_stories_tags_map stm, dump_tag_sets ts
-    where ts.name = 'date_guess_method' and
-        ts.tag_sets_id = t.tag_sets_id and
-        t.tags_id = stm.tags_id and
-        stm.stories_id = ?
-END
-
-    if ( !$method || ( grep { $_ eq $method } qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ) )
-    {
-        $story->{ date_is_reliable } = 1;
-    }
-    else
-    {
-        $story->{ date_is_reliable } = 0;
-    }
+    $story->{ date_is_reliable } = MediaWords::DBI::Stories::date_is_reliable( $db, $story );
+    $story->{ undateable } = MediaWords::DBI::Stories::is_undateable( $db, $story );
 }
 
 # get the story along with inlink_stories and outlink_stories and the associated
@@ -615,7 +603,7 @@ sub _get_story_and_links_from_dump_tables
 
     $story->{ medium } = $db->query( "select * from dump_media where media_id = ?", $story->{ media_id } )->hash;
 
-    _add_story_date_is_reliable( $db, $story );
+    _add_story_date_info( $db, $story );
 
     $story->{ inlink_stories } = $db->query( <<'END', $stories_id )->hashes;
 select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
@@ -631,7 +619,7 @@ select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
         cl.ref_stories_id = ?       
     order by sslc.inlink_count desc
 END
-    map { _add_story_date_is_reliable( $db, $_ ) } @{ $story->{ outlink_stories } };
+    map { _add_story_date_info( $db, $_ ) } @{ $story->{ outlink_stories } };
 
     $story->{ outlink_stories } = $db->query( <<'END', $stories_id )->hashes;
 select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
@@ -647,7 +635,7 @@ select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
         cl.stories_id = ?
     order by rslc.inlink_count desc
 END
-    map { _add_story_date_is_reliable( $db, $_ ) } @{ $story->{ inlink_stories } };
+    map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
 
     $story->{ inlink_count }  = scalar( @{ $story->{ inlink_stories } } );
     $story->{ outlink_count } = scalar( @{ $story->{ outlink_stories } } );
@@ -691,6 +679,8 @@ sub _get_live_story_and_links
 # * publish_date
 # * ids of inlink_stories
 # * ids of outlink_stories
+# * date_is_reliable
+# * undateable
 #
 # return undef if there are no diffs and otherwise a string list of the
 # attributes (above) for which there are differences
@@ -705,7 +695,7 @@ sub _get_live_story_diffs
 
     return _get_object_diffs(
         $dump_story, $live_story,
-        [ qw(title url publish_date date_is_reliable) ],
+        [ qw(title url publish_date date_is_reliable undateable) ],
         [ qw(inlink_stories outlink_stories) ], 'stories_id'
     );
 }
@@ -813,7 +803,7 @@ select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
         s.stories_id in ( $search_query )
     order by slc.inlink_count desc
 END
-    map { _add_story_date_is_reliable( $db, $_ ) } @{ $stories };
+    map { _add_story_date_info( $db, $_ ) } @{ $stories };
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 

@@ -40,24 +40,6 @@ sub get_story_html
     }
 }
 
-# assign a tag to the story for the date guess method
-sub assign_date_guess_method
-{
-    my ( $db, $story, $date_guess_method ) = @_;
-
-    my $date_guess_method_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "date_guess_method:$date_guess_method" );
-
-    $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t, tag_sets ts
-    where stm.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and 
-        ts.name = 'date_guess_method' and stm.stories_id = ?    
-END
-
-    $db->create( 'stories_tags_map',
-        { stories_id => $story->{ stories_id }, tags_id => $date_guess_method_tag->{ tags_id } } );
-}
-
 # guess the date for the story and update it in the db
 sub fix_date
 {
@@ -86,12 +68,12 @@ END
     if ( $date->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
     {
         $db->query( "update stories set publish_date = ? where stories_id = ?", $date->{ date }, $story->{ stories_id } );
-        assign_date_guess_method( $db, $story, $date->{ guess_method } );
+        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date->{ guess_method } );
         print STDERR "$story->{ url }\t$story->{ publish_date }\t$date->{ date }\t$date->{ guess_method }\n";
     }
     elsif ( $date->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
     {
-        assign_date_guess_method( $db, $story, 'undateable' );
+        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, 'undateable' );
         print STDERR "$story->{ url }\t$story->{ publish_date }\tundateable\n";
     }
     else

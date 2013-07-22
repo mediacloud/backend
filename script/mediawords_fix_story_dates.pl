@@ -19,6 +19,7 @@ use Text::CSV_XS;
 
 use MediaWords::CM::GuessDate;
 use MediaWords::DB;
+use MediaWords::DBI::Stories;
 use MediaWords::Util::Tags;
 
 # hash of fixed stories to avoid resetting a story once it has been fixed
@@ -26,30 +27,6 @@ my $_fixed_stories_map = {};
 
 # if debug is set by the --debug option, do not run sql commands
 my $_debug;
-
-# assign a tag to the story for the date guess method
-sub assign_date_guess_method
-{
-    my ( $db, $story, $date_guess_methods ) = @_;
-
-    if ( !$_debug )
-    {
-        $db->query( <<END, $story->{ stories_id } );
-delete from stories_tags_map stm
-    using tags t, tag_sets ts
-    where stm.tags_id = t.tags_id and t.tag_sets_id = ts.tag_sets_id and 
-        ts.name = 'date_guess_method' and stm.stories_id = ?    
-END
-    }
-
-    for my $date_guess_method ( @{ $date_guess_methods } )
-    {
-        my $date_guess_method_tag =
-          MediaWords::Util::Tags::lookup_or_create_tag( $db, "date_guess_method:$date_guess_method" );
-        my $stm = { stories_id => $story->{ stories_id }, tags_id => $date_guess_method_tag->{ tags_id } };
-        $db->create( 'stories_tags_map', $stm ) unless ( $_debug );
-    }
-}
 
 # parse the csv file and return a hash with a stories_id, publish_date, and option dateable field
 sub get_csv_dates
@@ -97,7 +74,7 @@ END
 
         $db->query( "update stories set publish_date = ? where stories_id = ?", $sql_date, $story->{ stories_id } )
           unless ( $_debug );
-        assign_date_guess_method( $db, $story, [ 'manual' ] );
+        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, [ 'manual' ] );
 
         $_fixed_stories_map->{ $story->{ stories_id } } = 1;
     }
@@ -108,7 +85,8 @@ sub set_story_undateable
 {
     my ( $db, $story ) = @_;
 
-    assign_date_guess_method( $db, $story, [ 'undateable', 'manual' ] );
+    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, 'undateable' );
+    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, 'manual', 1 );
 
     print STDERR "$story->{ stories_id }: $story->{ publish_date } -> undateable\n";
 
