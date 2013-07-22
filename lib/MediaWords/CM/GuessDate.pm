@@ -22,7 +22,7 @@ use MediaWords::DB;
 
 # threshold of number of days a guess date can be off from the existing
 # story date without dropping the guess
-use constant DATE_GUESS_THRESHOLD => 14;
+use constant DATE_GUESS_THRESHOLD => 60;
 
 # Default hour to use when no time is present (minutes and seconds are going to both be 0)
 # (12:00:00 because it looks nice and more or less fits within the same day in both California and Moscow)
