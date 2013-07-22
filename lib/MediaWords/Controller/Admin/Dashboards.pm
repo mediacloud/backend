@@ -83,7 +83,7 @@ sub create_topic : Local
     $form->process( $c->request );
 
     my $query = $c->req->param( 'query' );
-    if ( $query =~ /\W/ )
+    if ( defined( $query ) && ( $query =~ /\W/ ) )
     {
         $c->stash->{ form }      = $form;
         $c->stash->{ template }  = 'dashboards/create_topic.tt2';
