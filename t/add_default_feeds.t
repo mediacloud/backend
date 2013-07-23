@@ -1121,7 +1121,7 @@ EOF
                 </p>
                 <ul>
                     <!-- "?format=html" was present in http://www.eldis.org/go/subscribe, elsewhere too -->
-                    <li><a href="http://feeds2.feedburner.com/essentialknowledge?format=html">Wile E. Coyote</a></li>
+                    <li><a href="http://feeds.feedburner.com/feedburnerstatus?format=html">Wile E. Coyote</a></li>
 
                     <li><a href="http://feeds.feedburner.com/thesartorialist">The Road Runner</a></li>
                 </ul>
@@ -1131,8 +1131,8 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = 'http://feeds2.feedburner.com/essentialknowledge' ) }, 'URI::http' ),
-            'name'      => 'Essential Knowledge',
+            'url' => bless( do { \( my $o = 'http://feeds.feedburner.com/feedburnerstatus' ) }, 'URI::http' ),
+            'name'      => 'FeedBurner Status',
             'feed_type' => 'syndicated',
         },
         {
