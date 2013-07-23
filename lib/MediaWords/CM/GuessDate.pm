@@ -508,6 +508,7 @@ sub timestamp_from_html($)
     my $pattern_am_pm               = qr/(?<am_pm>[AP]\.?M\.?)/i;                             # e.g. "AM", "PM"
     my $pattern_comma               = qr/(?:,)/i;                                             # e.g. ","
     my $pattern_comma_or_at_or_dash = qr/(?:,|\s+at|\s*\-\s*)/i;                              # e.g. ",", "at", "-"
+    my $pattern_date_part_separators = qr/[\.\/\-\s]/;                                        # date part separators
     my $pattern_not_digit_or_word_start =
       qr/(?:^|[^\w\d])/i;    # pattern to prevent matching dates in the middle of URLs and such
     my $pattern_not_digit_or_word_end =
@@ -552,9 +553,9 @@ sub timestamp_from_html($)
             $pattern_not_digit_or_word_start
             (
                 $pattern_month
-                [\./-]
+                $pattern_date_part_separators                
                 $pattern_day_of_month
-                [\./-]
+                $pattern_date_part_separators
                 $pattern_year
                 \s+
                 $pattern_hour_minute
@@ -665,9 +666,9 @@ sub timestamp_from_html($)
             $pattern_not_digit_or_word_start
             (
                 $pattern_month
-                [\./-]
+                $pattern_date_part_separators
                 $pattern_day_of_month
-                [\./-]
+                $pattern_date_part_separators
                 $pattern_year
             )
             $pattern_not_digit_or_word_end
@@ -678,9 +679,9 @@ sub timestamp_from_html($)
             $pattern_not_digit_or_word_start
             (
                 $pattern_day_of_month
-                [\./-]
+                $pattern_date_part_separators
                 $pattern_month_names
-                [\./-]
+                $pattern_date_part_separators
                 $pattern_year
             )
             $pattern_not_digit_or_word_end
@@ -916,7 +917,8 @@ sub guess_date($$$;$)
                 && $use_threshold
                 && ( abs( $timestamp - $story_timestamp ) > ( DATE_GUESS_THRESHOLD * 86400 ) ) )
             {
-                print STDERR "MISSED THRESHOLD: " . DateTime->from_epoch( epoch => $timestamp )->datetime . "\n";
+
+                # print STDERR "MISSED THRESHOLD: " . DateTime->from_epoch( epoch => $timestamp )->datetime . "\n";
                 next;
             }
 
