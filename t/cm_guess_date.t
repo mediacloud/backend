@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 66 + 1;
+use Test::More tests => 65 + 1;
 use Test::Deep;
 
 use utf8;
@@ -194,12 +194,6 @@ sub test_live_urls
         ),
         _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
         'live_url: registerguard.com'
-    );
-
-    is(
-        _gt_url( 'http://witnessla.com/crime-and-punishment/2012/admin/three-strikes-reform-the-joy-of-the-right-to-vote/' ),
-        _ts( 'Wed, 7 Nov 2012 12:00:00 GMT' ),
-        'live_url: witnessla.com'
     );
 
     is(
