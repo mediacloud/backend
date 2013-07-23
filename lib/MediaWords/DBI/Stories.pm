@@ -330,7 +330,7 @@ EOF
     $db->query(
         <<"EOF",
         DELETE FROM $subtable_name AS stm USING tags AS t
-        WHERE stm.tags_id = t.tags_ids
+        WHERE stm.tags_id = t.tags_id
               AND t.tag_sets_id = ?
               AND stm.stories_id = ?
 EOF
