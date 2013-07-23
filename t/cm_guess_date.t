@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 65 + 1;
+use Test::More tests => 64 + 1;
 use Test::Deep;
 
 use utf8;
@@ -261,12 +261,6 @@ sub test_live_urls
         ),
         _ts( 'Thu, 8 Nov 2012 09:40:01 GMT' ),
         'live_url: yubanet.com'
-    );
-
-    is(
-        _gt_url( 'http://www.sdcitybeat.com/sandiego/article-11025-another-whack-at-cha.html' ),
-        _ts( 'Wed, 3 Oct 2012 12:00:00 GMT' ),
-        'live_url: sdcitybeat.com'
     );
 
     is(
