@@ -18376,7 +18376,7 @@ $VAR1 = [
             'dashboard_topics_id' => undef,
             'term' => 'venezuela'
           },
-          {
+{
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'verdict',
