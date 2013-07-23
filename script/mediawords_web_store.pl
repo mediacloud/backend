@@ -117,9 +117,12 @@ sub main
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel }       || DEFAULT_NUM_PARALLEL;
-    my $timeout            = $config->{ mediawords }->{ web_store_timeout }            || DEFAULT_TIMEOUT;
-    my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout } || DEFAULT_PER_DOMAIN_TIMEOUT;
+    my $num_parallel       = $config->{ mediawords }->{ web_store_num_parallel } || DEFAULT_NUM_PARALLEL;
+    my $timeout            = $config->{ mediawords }->{ web_store_timeout };
+    my $per_domain_timeout = $config->{ mediawords }->{ web_store_per_domain_timeout };
+
+    $timeout            = DEFAULT_TIMEOUT            unless ( defined( $timeout ) );
+    $per_domain_timeout = DEFAULT_PER_DOMAIN_TIMEOUT unless ( defined( $per_domain_timeout ) );
 
     my $pm = new Parallel::ForkManager( $num_parallel );
 
