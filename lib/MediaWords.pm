@@ -80,8 +80,7 @@ __PACKAGE__->setup;
 sub setup_acl()
 {
 
-    # Admin read-only interface
-    my @acl_admin_readonly = qw|
+    my @acl_stories_api = qw|
       /admin/api/stories/all_processed
       /admin/api/stories/all_processed_GET
       /admin/api/stories/list
@@ -94,6 +93,14 @@ sub setup_acl()
       /admin/api/stories/subset_processed_GET
       /admin/api/stories/tag
       /admin/api/stories/view
+      /admin/api/stories/add
+      /admin/api/stories/add_do
+      /admin/api/stories/delete
+      /admin/api/stories/subset_PUT
+      |;
+
+    # Admin read-only interface
+    my @acl_admin_readonly = qw|
       /admin/clusters/index
       /admin/clusters/view
       /admin/clusters/view_time_slice_map
@@ -135,11 +142,6 @@ sub setup_acl()
       /admin/visualize
       |;
 
-    foreach my $path ( @acl_admin_readonly )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/admin-readonly/ ] );
-    }
-
     # query-create role; can do everything admin-readonly can + create queries, dashboards,
     # dashboard topics, media sets
     my @acl_query_create = qw|
@@ -154,15 +156,6 @@ sub setup_acl()
       /admin/queries/create
       /admin/topics/create_do
       |;
-
-    foreach my $path ( @acl_admin_readonly )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
-    }
-    foreach my $path ( @acl_query_create )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
-    }
 
     # media-edit role; can do everything admin-readonly can + add / edit media / feeds
     my @acl_media_edit = qw|
@@ -206,34 +199,62 @@ sub setup_acl()
       /admin/mediasets/edit_cluster_run_do
       |;
 
-    foreach my $path ( @acl_admin_readonly )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit/ ] );
-    }
-    foreach my $path ( @acl_media_edit )
-    {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit/ ] );
-    }
-
     # stories-edit role; can do everything admin-readonly can + add / edit stories
     my @acl_stories_edit = qw|
-      /admin/api/stories/add
-      /admin/api/stories/add_do
-      /admin/api/stories/delete
-      /admin/api/stories/subset_PUT
       /admin/stories/add_tag
       /admin/stories/add_tag_do
       /admin/stories/delete_tag
       /admin/stories/edit
       |;
 
+    # cm role; can access all cm pages + admin-readonly + media-edit + stories-edi
+    my @acl_cm = qw|
+      /admin/cm/list
+      /admin/cm/view
+      /admin/cm/view_dump
+      /admin/cm/view_time_slice
+      /admin/cm/dump_stories
+      /admin/cm/dump_story_links
+      /admin/cm/dump_media
+      /admin/cm/dump_medium_links
+      /admin/cm/gexf
+      /admin/cm/dump_daily_counts
+      /admin/cm/dump_weekly_counts
+      /admin/cm/medium
+      /admin/cm/story
+      /admin/cm/search_stories
+      /admin/cm/search_media
+      /admin/cm/remove_story
+      |;
+
+    foreach my $path ( @acl_stories_api )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-api/ ] );
+    }
+
     foreach my $path ( @acl_admin_readonly )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit/ ] );
+        __PACKAGE__->allow_access_if_any( $path, [ qw/admin-readonly query-create media-edit stories-edit cm/ ] );
     }
+
+    foreach my $path ( @acl_query_create )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/query-create/ ] );
+    }
+
+    foreach my $path ( @acl_media_edit )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/media-edit cm/ ] );
+    }
+
     foreach my $path ( @acl_stories_edit )
     {
-        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit/ ] );
+        __PACKAGE__->allow_access_if_any( $path, [ qw/stories-edit cm/ ] );
+    }
+
+    for my $path ( @acl_cm )
+    {
+        __PACKAGE__->allow_access_if_any( $path, [ qw/cm/ ] );
     }
 
     # ---
@@ -248,6 +269,8 @@ sub setup_acl()
               query-create
               media-edit
               stories-edit
+              cm
+              stories-api
               /
         ]
     );
@@ -259,6 +282,10 @@ sub setup_acl()
     __PACKAGE__->allow_access( "/dashboard" );
     __PACKAGE__->allow_access( "/login" );
     __PACKAGE__->allow_access( "/logout" );
+
+    # we need to protect this with .htaccess until we can implement an easy to login via the api
+    __PACKAGE__->allow_access( "/admin/api/stories" );
+
 }
 
 setup_acl();
