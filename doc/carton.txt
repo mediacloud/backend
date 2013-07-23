@@ -1,10 +1,14 @@
 Adding new modules (dependencies)
 =================================
 
-The Carton module dependency manager depends on `cpanfile` file. `cpanfile` is
-a human-edited list of Perl module dependencies for Media Cloud.
+The Carton module dependency manager depends on two files:
 
-To add a new Perl module dependency:
+* `cpanfile` -- human-edited list of Perl module dependencies for Media Cloud.
+* `carton.lock` -- auto-generated list of modules, their versions and
+  dependencies used by Carton to install a specific version of the module in
+  each of the developer's machines.
+
+So, to add a new Perl module dependency:
 
 1. Add a dependency to this `cpanfile` (make sure to keep the list in
 alphabetical order for easier merges):
@@ -13,14 +17,18 @@ alphabetical order for easier merges):
     requires 'Your::Module';
     ...
 
-2. Install the newly added dependency(-ies) using Carton:
+2. Install the dependency using Carton while also regenerating `carton.lock`
+   file:
 
     ./script/run_carton.sh install --deployment
 
-3. Commit the updated `cpanfile`:
+3. Commit both files:
+
+    # SVN
+    svn commit cpanfile carton.lock
      
     # Git
-    git add cpanfile
+    git add cpanfile carton.lock
     git commit
 
 See:
@@ -28,12 +36,6 @@ See:
     http://search.cpan.org/~miyagawa/Module-CPANfile-0.9031/lib/cpanfile.pod
 
 for more information about the `cpanfile` file format.
-
-NOTE: Carton might decide to create an additional file `carton.lock`. This file
-is an auto-generated list of modules, their versions and dependencies used by
-Carton to install a specific version of the module in each of the developer's
-machines. The file is non-essential and it is advised for you to remove this
-file.
 
 
 Running Scripts

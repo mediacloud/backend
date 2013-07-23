@@ -18,6 +18,3 @@ cache/translate
 # Inline::Java
 _Inline/
 
-# carton.lock doesn't carry any important information since Carton 0.9.x; also,
-# it doesn't seem to be compatible between Ubuntu and OS X versions
-carton.lock
