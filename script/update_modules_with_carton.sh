@@ -21,7 +21,3 @@ rm -rf local/
 rm carton.lock
 ./script/run_carton.sh install  # running with "--deployment" would not regenerate carton.lock
 
-# Add new carton.lock to SCM
-if [ -d .git ]; then
-    git add carton.lock
-fi

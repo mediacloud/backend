@@ -38,6 +38,30 @@ See:
 for more information about the `cpanfile` file format.
 
 
+Updating modules to new versions
+================================
+
+To update Perl modules to their new versions:
+
+1. Run the updater script:
+
+    ./script/update_modules_with_carton.sh
+
+2. Run the test suite to make sure the modules work alright:
+
+    ./script/run_carton.sh exec -Ilib/ -- prove -r t/compile.t
+    ./script/run_test_suite.sh
+
+3. Commit the updated `carton.lock`:
+
+    # SVN
+    svn commit carton.lock
+     
+    # Git
+    git add carton.lock
+    git commit
+
+
 Running Scripts
 ===============
 
