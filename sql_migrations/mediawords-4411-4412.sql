@@ -36,7 +36,7 @@ LANGUAGE 'plpgsql';
 
 
 alter table dashboard_topics alter language drop not null;
-alter table story_sentence_sords alter language drop not null;
+alter table story_sentence_words alter language drop not null;
 alter table daily_words drop language;
 alter table weekly_words drop language;
 alter table top_500_weekly_words drop language;
@@ -50,7 +50,8 @@ create view controversies_with_search_info as
         from controversies c
             left join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
             left join queries q on ( qss.queries_id = q.queries_id );
-create view controversy_links_cross_media as
+            
+create or replace view controversy_links_cross_media as
   select s.stories_id, sm.name as media_name, r.stories_id as ref_stories_id, rm.name as ref_media_name, cl.url as url, cs.controversies_id from media sm, media rm, controversy_links cl, stories s, stories r, controversy_stories cs where cl.ref_stories_id <> cl.stories_id and s.stories_id = cl.stories_id and cl.ref_stories_id = r.stories_id and s.media_id <> r.media_id and sm.media_id = s.media_id and rm.media_id = r.media_id and cs.stories_id = cl.ref_stories_id and cs.controversies_id = cl.controversies_id;
 
 create table controversy_dumps (
