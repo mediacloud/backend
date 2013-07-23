@@ -265,8 +265,8 @@ sub reset_schema($;$)
 
     $db->query( "CREATE LANGUAGE plpgsql" );
 
-    # "enum" schema will be created later so don't recreate it here
-    if ( $schema ne 'enum' )
+    # these schemas will be created later so don't recreate it here
+    if ( ( $schema ne 'enum' ) && ( $schema ne 'cd' ) )
     {
         $db->query( "CREATE SCHEMA $schema" );
     }
