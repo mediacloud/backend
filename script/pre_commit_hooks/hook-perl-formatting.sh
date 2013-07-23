@@ -31,6 +31,11 @@ for filepath in $ADDED_MODIFIED_FILES; do
     filename=$(basename "$filepath")
     extension=`echo "${filename##*.}" | tr '[A-Z]' '[a-z]'`
 
+    # skip perl test data b/c it takes a long time to process and doesn't need pretty formatting
+    if echo "$filepath" | grep -q 't/data'; then
+        continue;
+    fi
+
     if [[ "$extension" == "pl" || "$extension" == "pm" || "$extension" == "t" ]]; then
         #echo "File '$filepath' is Perl source."
 
