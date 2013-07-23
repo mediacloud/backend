@@ -449,9 +449,10 @@ END
         return ( $old_story_method, $old_story->{ publish_date } );
     }
 
+    my $source_story;
     if ( $source_link && $source_link->{ stories_id } )
     {
-        my $source_story = $db->find_by_id( 'stories', $source_link->{ stories_id } );
+        $source_story = $db->find_by_id( 'stories', $source_link->{ stories_id } );
         $story->{ publish_date } = $source_story->{ publish_date };
     }
 
@@ -460,7 +461,7 @@ END
     {
         return ( $date->{ guess_method }, $date->{ date } );
     }
-    elsif ( $result->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
+    elsif ( $date->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
     {
         return ( 'undateable', $source_story ? $source_story->{ publish_date } : DateTime->new->datetime );
     }
