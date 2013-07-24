@@ -86,6 +86,21 @@ sub set_defaults
     $config->{ mail }->{ bug_email }                              ||= "";
     $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
 
+    my $auth = {
+        default_realm => 'users',
+        users         => {
+            credential => {
+                class              => 'Password',
+                password_field     => 'password',
+                password_type      => 'salted_hash',
+                password_hash_type => 'SHA-256',
+                password_salt_len  => 64
+            },
+            store => { class => 'MediaWords' }
+        }
+    };
+    $config->{ 'Plugin::Authentication' } ||= $auth;
+
     return $config;
 }
 
