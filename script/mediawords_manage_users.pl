@@ -90,8 +90,6 @@ use MediaWords::DBI::Auth;
 use MediaWords::Util::Config;
 use Term::ReadKey;
 
-use MediaWords;    # load Catalyst's configuration incl. the password hashing algorithm
-
 # Helper to read passwords from CLI without showing them
 # (http://stackoverflow.com/a/701234/200603 plus http://search.cpan.org/dist/TermReadKey/ReadKey.pm)
 sub _read_password
@@ -148,9 +146,9 @@ sub user_add($)
     my $user_password    = undef;
 
     my Readonly $user_add_usage =
-      "Usage: $0" . ' --action=add' .
-      ' --email=jdoe@cyber.law.harvard.edu' . ' --full_name="John Doe"' . ' [--notes="Media Cloud developer."]' .
-      ' [--inactive]' . ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"]';
+      "Usage: $0" . ' --action=add' . ' --email=jdoe@cyber.law.harvard.edu' . ' --full_name="John Doe"' .
+      ' [--notes="Media Cloud developer."]' . ' [--inactive]' . ' [--roles="query-create,media-edit,stories-edit"]' .
+      ' [--password="correct horse battery staple"]';
 
     GetOptions(
         'email=s'     => \$user_email,
@@ -228,8 +226,8 @@ sub user_modify($)
     my $user_set_password = undef;
 
     my Readonly $user_modify_usage =
-      "Usage: $0" . ' --action=modify' . ' --email=jdoe@cyber.law.harvard.edu' .
-      ' [--full_name="John Doe"]' . ' [--notes="Media Cloud developer."]' . ' [--active|--inactive]' .
+      "Usage: $0" . ' --action=modify' . ' --email=jdoe@cyber.law.harvard.edu' . ' [--full_name="John Doe"]' .
+      ' [--notes="Media Cloud developer."]' . ' [--active|--inactive]' .
       ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"|--set-password]';
 
     GetOptions(
