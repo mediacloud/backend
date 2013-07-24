@@ -97,6 +97,22 @@ sub setup_acl()
       /admin/api/stories/add_do
       /admin/api/stories/delete
       /admin/api/stories/subset_PUT
+      /api/stories/all_processed
+      /api/stories/all_processed_GET
+      /api/stories/list
+      /api/stories/retag
+      /api/stories/stories_query
+      /api/stories/stories_query_GET
+      /api/stories/subset
+      /api/stories/subset_GET
+      /api/stories/subset_processed
+      /api/stories/subset_processed_GET
+      /api/stories/tag
+      /api/stories/view
+      /api/stories/add
+      /api/stories/add_do
+      /api/stories/delete
+      /api/stories/subset_PUT
       |;
 
     # Admin read-only interface

@@ -23,7 +23,7 @@ __PACKAGE__->config( 'default' => 'application/json' );
 use constant ROWS_PER_PAGE => 20;
 
 # list of stories with the given feed id
-sub list : Local
+sub list : Local : PathPrefix( '/api' )
 {
 
     my ( $self, $c, $feeds_id ) = @_;
@@ -63,7 +63,7 @@ sub list : Local
 }
 
 # list of stories with the given tag id
-sub tag : Local
+sub tag : Local : PathPrefix( '/api' )
 {
 
     my ( $self, $c, $tags_id ) = @_;
@@ -88,7 +88,7 @@ sub tag : Local
 }
 
 # detail page for single story
-sub view : Local
+sub view : Local : PathPrefix( '/api' )
 {
     my ( $self, $c, $stories_id ) = @_;
 
@@ -126,7 +126,7 @@ sub view : Local
 }
 
 # delete tag
-sub delete : Local
+sub delete : Local : PathPrefix( '/api' )
 {
     my ( $self, $c, $stories_id, $tags_id, $confirm ) = @_;
 
@@ -166,7 +166,7 @@ sub delete : Local
 }
 
 # sets up add tag
-sub add : Local
+sub add : Local : PathPrefix( '/api' )
 {
     my ( $self, $c, $stories_id ) = @_;
 
@@ -185,7 +185,7 @@ sub add : Local
 }
 
 # executes add tag
-sub add_do : Local
+sub add_do : Local : PathPrefix( '/api' )
 {
     my ( $self, $c, $stories_id ) = @_;
 
@@ -278,11 +278,11 @@ sub _add_data_to_stories
     return $stories;
 }
 
-sub stories_query : Local : ActionClass('REST')
+sub stories_query : Local : PathPrefix( '/api' ) : ActionClass('REST')
 {
 }
 
-sub stories_query_GET : Local
+sub stories_query_GET : Local : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
@@ -298,7 +298,7 @@ sub stories_query_GET : Local
 
     die " Cannot use both last_stories_id and start_stories_id"
       if defined( $last_stories_id )
-      and defined( $start_stories_id );
+          and defined( $start_stories_id );
 
     if ( defined( $start_stories_id ) && !( defined( $last_stories_id ) ) )
     {
@@ -331,11 +331,11 @@ sub stories_query_GET : Local
     #return $c->res->body( encode_json( $stories ) );
 }
 
-sub all_processed : Local : ActionClass('REST')
+sub all_processed : Local : ActionClass('REST') : PathPrefix( '/api' )
 {
 }
 
-sub all_processed_GET : Local
+sub all_processed_GET : Local : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
@@ -358,11 +358,11 @@ sub all_processed_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub subset_processed : Local : ActionClass('REST')
+sub subset_processed : Local : PathPrefix( '/api' ) : ActionClass('REST')
 {
 }
 
-sub subset_processed_GET : Local
+sub subset_processed_GET : Local : PathPrefix( '/api' )
 {
     my ( $self, $c, $story_subsets_id ) = @_;
 
@@ -383,11 +383,11 @@ sub subset_processed_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub subset : Local : ActionClass('REST')
+sub subset : Local : PathPrefix( '/api' ) : ActionClass('REST')
 {
 }
 
-sub subset_PUT : Local
+sub subset_PUT : Local : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
@@ -425,7 +425,7 @@ sub subset_PUT : Local
 
 }
 
-sub subset_GET : Local
+sub subset_GET : Local : PathPrefix( '/api' )
 {
     my ( $self, $c, $id ) = @_;
     my $subset = $c->req->data;
@@ -441,7 +441,7 @@ sub subset_GET : Local
 }
 
 # display regenerated tags for story
-sub retag : Local
+sub retag : Local : PathPrefix( '/api' )
 {
     my ( $self, $c, $stories_id ) = @_;
 
