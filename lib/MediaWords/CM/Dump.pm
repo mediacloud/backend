@@ -40,7 +40,7 @@ use constant PERCENT_UNDATEABLE_DATE_DATEABLE => 30;
 use constant PERCENT_DATE_UNDATEABLE => 13;
 
 # number of times to run the confidence model
-use constant CONFIDENCE_REPS => 1;
+use constant CONFIDENCE_REPS => 10;
 
 # max and mind node sizes for gexf dump
 use constant MAX_NODE_SIZE => 50;
@@ -1773,7 +1773,7 @@ sub analyze_snapshot_tables
 
     for my $t ( @{ $snapshot_tables } )
     {
-        $db->query( "analyze $t" );
+        $db->query( "analyze cd.$t" );
     }
 }
 
