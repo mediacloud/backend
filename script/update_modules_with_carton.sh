@@ -19,9 +19,6 @@ cpanm Carton
 rm -rf .carton/
 rm -rf local/
 rm carton.lock
-./script/run_carton.sh install  # running with "--deployment" would not regenerate carton.lock
 
-# Add new carton.lock to SCM
-if [ -d .git ]; then
-    git add carton.lock
-fi
+source ./script/set_java_home.sh
+JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install  # running with "--deployment" would not regenerate carton.lock
