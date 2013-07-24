@@ -22,7 +22,7 @@
 
             <td>[% controversy.pattern | truncate( 32 ) | html %]</td>
 
-            <td>[% date.format( controversy.start_date ) %] - [% date.format( controversy.end_date ) %]</td>
+            <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
 
         </tr>
 
