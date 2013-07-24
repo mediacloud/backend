@@ -42,7 +42,13 @@ select distinct period from controversy_dump_time_slices
     order by period;
 END
 
-    if ( @{ $periods } == 4 )
+    my $custom_dates = $db->query( <<END, $controversy_dump->{ controversies_id } )->hash;
+select * from controversy_dates where controversies_id = ?
+END
+
+    my $expected_periods = ( $custom_dates ) ? 4 : 3;
+
+    if ( @{ $periods } == $expected_periods )
     {
         $controversy_dump->{ periods } = 'all';
     }
@@ -95,6 +101,8 @@ sub view : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my $controversy = $db->query( <<END, $controversies_id )->hash;
 select * from controversies_with_search_info where controversies_id = ?
 END
@@ -110,6 +118,8 @@ END
     map { _add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
     my $latest_full_dump = _get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
+
+    $db->commit;
 
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
@@ -140,6 +150,8 @@ sub view_dump : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
 select * from controversy_dumps where controversy_dumps_id = ?
 END
@@ -157,6 +169,7 @@ END
         _add_media_and_story_counts_to_cdts( $db, $cdts );
         MediaWords::CM::Dump::discard_temp_tables( $db );
     }
+    $db->commit;
 
     $c->stash->{ controversy_dump }             = $controversy_dump;
     $c->stash->{ controversy }                  = $controversy;
@@ -225,6 +238,8 @@ sub view_time_slice : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my $live = $c->req->param( 'l' );
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
@@ -237,6 +252,8 @@ sub view_time_slice : Local
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $db->commit;
 
     $c->stash->{ cdts }             = $cdts;
     $c->stash->{ controversy_dump } = $cd;
@@ -260,12 +277,16 @@ sub _download_cdts_csv
     my ( $csv, $file );
     if ( $live )
     {
+        $db->begin;
+
         MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
         $csv  = eval( 'MediaWords::CM::Dump::get_' . $table . '_csv( $db, $cdts )' );
         $file = "${ table }_$cdts->{ controversy_dump_time_slices_id }_live.csv";
 
         MediaWords::CM::Dump::discard_temp_tables( $db );
+
+        $db->commit;
     }
     else
     {
@@ -546,6 +567,8 @@ sub medium : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
@@ -562,6 +585,8 @@ sub medium : Local
         $live_medium_diffs = _get_live_medium_diffs( $medium, $live_medium );
         $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
+
+    $db->commit;
 
     $c->stash->{ cdts }                    = $cdts;
     $c->stash->{ controversy_dump }        = $cd;
@@ -707,6 +732,8 @@ sub story : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
@@ -723,6 +750,8 @@ sub story : Local
         $live_story_diffs = _get_live_story_diffs( $story, $live_story );
         $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
+
+    $db->commit;
 
     my $confirm_remove = $c->req->params->{ confirm_remove };
 
@@ -784,6 +813,8 @@ sub search_stories : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my $cdts_id = $c->req->params->{ cdts };
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
@@ -806,6 +837,8 @@ END
     map { _add_story_date_info( $db, $_ ) } @{ $stories };
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $db->commit;
 
     my $controversies_id = $controversy->{ controversies_id };
     if ( $c->req->params->{ remove_stories } )
@@ -832,6 +865,8 @@ sub search_media : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
 
     my $live = $c->req->param( 'l' );
@@ -853,6 +888,8 @@ select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
 END
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $db->commit;
 
     $c->stash->{ cdts }             = $cdts;
     $c->stash->{ controversy_dump } = $cd;
@@ -881,12 +918,16 @@ sub remove_story : Local
 
     my $db = $c->dbis;
 
+    $db->begin;
+
     my $cdts_id = $c->req->params->{ cdts };
     my $live    = $c->req->params->{ l };
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
     _remove_story_from_controversy( $db, $stories_id, $controversy->{ controversies_id } );
+
+    $db->commit;
 
     my $status_msg = "story has been removed from the live version of the controversy.";
 
