@@ -11,7 +11,7 @@ Time Slices
 <th>Period</th>
 <th>Dates</th>
 <th>Model Correlation</th>
-<th># Influential Media</th>
+<th># Top Media</th>
 <th># Stories</th>
 <th># Story Links</th>
 <th># Media</th>
@@ -27,10 +27,7 @@ Time Slices
             <td><a href="[% cdts_url | html %]">[% cdts.period | html %]</a></td>
 
             <td>[% date.format( cdts.start_date ) %] - [% date.format( cdts.end_date ) %]</td>
-            <td>
-                [% IF cdts.model_r2_mean %]r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %]
-                [% ELSE %](not enough data)[% END %]
-            </td>
+            <td>[% INCLUDE cm/model_reliability.tt2 %]</td>
             <td>[% cdts.model_num_media %]</td>
             <td>[% cdts.story_count | html %]</td>
             <td>[% cdts.story_link_count | html %]</td>

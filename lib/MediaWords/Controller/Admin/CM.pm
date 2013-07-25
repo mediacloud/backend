@@ -80,6 +80,8 @@ select * from controversy_dump_time_slices
     order by period, start_date, end_date
 END
 
+    map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
+
     $latest_full_dump->{ controversy_dump_time_slices } = $controversy_dump_time_slices;
 
     return $latest_full_dump;
@@ -148,6 +150,8 @@ select * from controversy_dump_time_slices
     order by period, start_date, end_date
 END
 
+    map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
+
     $c->stash->{ controversy_dump }             = $controversy_dump;
     $c->stash->{ controversy }                  = $controversy;
     $c->stash->{ controversy_dump_time_slices } = $controversy_dump_time_slices;
@@ -193,6 +197,35 @@ END
     return $top_stories;
 }
 
+# given the model r2 mean and sd values, return a string indicating whether the
+# time slice is reliable, somewhat reliable, or not reliable
+sub _add_cdts_model_reliability
+{
+    my ( $db, $cdts ) = @_;
+
+    my $r2_mean   = $cdts->{ model_r2_mean }   || 0;
+    my $r2_stddev = $cdts->{ model_r2_stddev } || 0;
+
+    # compute the lowest standard reliability among the model runs
+    my $lsr = $r2_mean - $r2_stddev;
+
+    my $reliability;
+    if ( $lsr > 0.85 )
+    {
+        $reliability = 'reliable';
+    }
+    elsif ( $lsr > 0.75 )
+    {
+        $reliability = 'somewhat';
+    }
+    else
+    {
+        $reliability = 'not';
+    }
+
+    $cdts->{ model_reliability } = $reliability;
+}
+
 # get the controversy_dump_time_slice, controversy_dump, and controversy
 # for the current request
 sub _get_controversy_objects
@@ -204,6 +237,8 @@ sub _get_controversy_objects
     my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
     my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
     my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
+
+    _add_cdts_model_reliability( $db, $cdts );
 
     return ( $cdts, $cd, $controversy );
 }

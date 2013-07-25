@@ -18,9 +18,7 @@
                 | <a href="[% c.uri_for( '/admin/cm/gexf/' _ cdts.controversy_dump_time_slices_id ) %]">Download GEXF</a><br />
             [% END %]
             <p>
-                Model Correlation: 
-                [% IF cdts.model_r2_mean %]r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %]
-                [% ELSE %](not enough data)[% END %]
+                <b>Model Reliability: [% INCLUDE cm/model_reliability.tt2 model_reliability_include_numbers=1 %]</b>
             </p>
         </fieldset>
     </div>
