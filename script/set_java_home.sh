@@ -8,10 +8,10 @@ if [ `uname` == 'Darwin' ]; then
     # Mac OS X
     POSSIBLE_JDK_PATH=/System/Library/Frameworks/JavaVM.framework/
 
-    if     [ -d "$POSSIBLE_JDK_PATH" ] \
-        && [ -f "$POSSIBLE_JDK_PATH/Commands/javac" ] \
-        && [ -f "$POSSIBLE_JDK_PATH/Headers/jni.h" ] \
-        && [ -f "$POSSIBLE_JDK_PATH/Libraries/libjvm.dylib" ]; then
+    if     [[ -d "$POSSIBLE_JDK_PATH"
+        &&    -f "$POSSIBLE_JDK_PATH/Commands/javac"
+        &&    -f "$POSSIBLE_JDK_PATH/Headers/jni.h" 
+        &&    -f "$POSSIBLE_JDK_PATH/Libraries/libjvm.dylib" ]]; then
 
         JAVA_HOME="$POSSIBLE_JDK_PATH"
 
@@ -31,9 +31,9 @@ else
     )
 
     for path in ${POSSIBLE_JDK_PATHS[@]}; do
-        if     [ -d "$path" ]
-            && [ ! -f "$path/bin/javac" ]
-            && [ ! -f "$path/include/jni.h" ]; then
+        if     [[ -d "$path"
+            &&    -f "$path/bin/javac"
+            &&    -f "$path/include/jni.h" ]] ; then
             
             JAVA_HOME="$path"
         fi
