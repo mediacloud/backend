@@ -11,8 +11,8 @@ with 'MediaWords::DBI::Downloads::Store';
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config;
-use File::Path;
+use File::Path qw(make_path);
+use File::Basename;
 use File::Slurp;
 use Carp;
 
@@ -24,21 +24,14 @@ sub BUILD
     # say STDERR "New local file download storage.";
 }
 
-sub _expand_path($)
+# (static) Returns a directory path for a given path
+# (dirname() doesn't cut here because it has "quirks" according to the documentation)
+sub _directory_name($)
 {
     my $path = shift;
 
-    # note redefine delimitor from '/' to '~'
-    $path =~ s~^.*/(content/.*.gz)$~$1~;
-
-    my $config = MediaWords::Util::Config::get_config;
-    my $data_dir = $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir };
-
-    $data_dir = "" if ( !$data_dir );
-    $path     = "" if ( !$path );
-    $path     = "$data_dir/$path";
-
-    return $path;
+    my ( $filename, $directories, $suffix ) = fileparse( $path );
+    return $directories;
 }
 
 # Moose method
@@ -48,33 +41,35 @@ sub store_content($$$$;$)
 
     # Encode + gzip
     my $content_to_store;
-    my $path;
     if ( $skip_encode_and_gzip )
     {
         $content_to_store = $$content_ref;
-        $path             = '' . $download->{ downloads_id };    # e.g. "<downloads_id>"
     }
     else
     {
         $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
-        $path = '' . $download->{ downloads_id } . '.gz';    # e.g. "<downloads_id>.gz"
     }
 
-    my $full_path = _expand_path( $path );    # e.g. <...>/data/<downloads_id>.gz
+    # e.g. "<media_id>/<year>/<month>/<day>/<hour>/<minute>[/<parent download_id>]/<download_id>[.gz]"
+    my $relative_path = $self->get_download_path( $db, $download, $skip_encode_and_gzip );
+    my $full_path = $self->get_data_content_dir . $relative_path;
 
     if ( -f $full_path )
     {
-        die "File at path '$path' already exists.";
+        die "File at path '$full_path' already exists.";
     }
 
     # say STDERR "Will write to file '$full_path'.";
 
-    unless ( write_file( $full_path, $content_to_store ) )
+    # Create missing directories for the path
+    make_path( _directory_name( $full_path ) );
+
+    unless ( write_file( $full_path, { binmode => ':raw' }, $content_to_store ) )
     {
         die "Unable to write a file to path '$full_path'.";
     }
 
-    return $path;
+    return $relative_path;
 }
 
 # Moose method
@@ -82,21 +77,22 @@ sub fetch_content($$)
 {
     my ( $self, $download ) = @_;
 
-    my $path = $download->{ path };
     if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
     {
         return undef;
     }
 
-    $path = _expand_path( $path );
+    my $relative_path = $download->{ path };
+    my $full_path     = $self->get_data_content_dir . $relative_path;
 
+    my $content;
     my $decoded_content = '';
 
-    if ( -f $path )
+    if ( -f $full_path )
     {
 
         # Read file
-        my $gzipped_content = read_file( $path );
+        my $gzipped_content = read_file( $full_path, binmode => ':raw' );
 
         # Gunzip + decode
         $decoded_content = $self->gunzip_and_decode( \$gzipped_content, $download->{ downloads_id } );
@@ -104,10 +100,10 @@ sub fetch_content($$)
     }
     else
     {
-        $path =~ s/\.gz$/.dl/;
+        $full_path =~ s/\.gz$/.dl/;
 
         # Read file
-        my $content = read_file( $path );
+        my $content = read_file( $full_path, binmode => ':raw' );
 
         # Decode
         $decoded_content = Encode::decode( 'utf-8', $content );
