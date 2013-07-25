@@ -373,16 +373,6 @@ sub test_top_500_weekly_words
     }
 }
 
-# store the stories as test data to compare against in subsequent runs
-sub dump_stories
-{
-    my ( $db, $feed ) = @_;
-
-    my $stories = get_expanded_stories( $db, $feed );
-
-    MediaWords::Test::Data::store_test_data( 'crawler_stories', $stories );
-}
-
 sub kill_local_server
 {
     my ( $server_url ) = @_;
@@ -466,7 +456,6 @@ sub main
 	        die ( "Dumping of stories is only supported within t/test_crawler.t \n" .
 		"test_crawler.t and test_single_crawler_download.t share data"
 		);		
-                dump_stories( $db, $feed );
             }
 
             test_stories( $db, $feed );
