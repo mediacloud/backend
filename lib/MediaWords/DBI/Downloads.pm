@@ -58,7 +58,7 @@ BEGIN
     foreach my $download_storage_location ( @{ $download_storage_locations } )
     {
         my $location = lc( $download_storage_location );
-        unless ( $location eq 'tar' or $location eq 'gridfs' or $location eq 'amazon_s3' )
+        unless ( grep { $_ eq $location } ( 'tar', 'gridfs', 'amazon_s3', 'localfile' ) )
         {
             die "Download storage location '$download_storage_location' is not valid.\n";
         }
@@ -92,6 +92,13 @@ sub _download_stores_for_writing($)
 
                 #say STDERR "Will store to Tar.";
                 push( @{ $stores }, $_tar_store );
+
+            }
+            elsif ( $location eq 'localfile' )
+            {
+
+                #say STDERR "Will store to local files.";
+                push( @{ $stores }, $_localfile_store );
 
             }
             elsif ( $location eq 'gridfs' )

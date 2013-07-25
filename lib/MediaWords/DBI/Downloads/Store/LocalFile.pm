@@ -42,13 +42,39 @@ sub _expand_path($)
 }
 
 # Moose method
-sub store_content($$$$)
+sub store_content($$$$;$)
 {
-    my ( $self, $db, $download, $content_ref ) = @_;
+    my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
 
-    croak 'Not implemented.';
+    # Encode + gzip
+    my $content_to_store;
+    my $path;
+    if ( $skip_encode_and_gzip )
+    {
+        $content_to_store = $$content_ref;
+        $path             = '' . $download->{ downloads_id };    # e.g. "<downloads_id>"
+    }
+    else
+    {
+        $content_to_store = $self->encode_and_gzip( $content_ref, $download->{ downloads_id } );
+        $path = '' . $download->{ downloads_id } . '.gz';    # e.g. "<downloads_id>.gz"
+    }
 
-    return '';
+    my $full_path = _expand_path( $path );    # e.g. <...>/data/<downloads_id>.gz
+
+    if ( -f $full_path )
+    {
+        die "File at path '$path' already exists.";
+    }
+
+    # say STDERR "Will write to file '$full_path'.";
+
+    unless ( write_file( $full_path, $content_to_store ) )
+    {
+        die "Unable to write a file to path '$full_path'.";
+    }
+
+    return $path;
 }
 
 # Moose method
