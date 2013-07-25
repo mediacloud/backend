@@ -835,10 +835,10 @@ sub _guessing_is_inapplicable($$$)
         return 1;
     }
 
-    if ( $host =~ /wikipedia\.org$/gi )
+    if ( $host =~ /wikipedia\.org$/gi || $normalized_url =~ /wiki\/index.php/ )
     {
 
-        # Ignore Wikipedia pages
+        # ignore wiki pages
         return 1;
     }
 
