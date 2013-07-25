@@ -80,15 +80,6 @@ select * from controversy_dump_time_slices
     order by period, start_date, end_date
 END
 
-    # this just gets counts from the snapshot tables because
-    # live counts for every time slice is too slow
-    for my $cdts ( @{ $controversy_dump_time_slices } )
-    {
-        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy );
-        _add_media_and_story_counts_to_cdts( $db, $cdts );
-        MediaWords::CM::Dump::discard_temp_tables( $db );
-    }
-
     $latest_full_dump->{ controversy_dump_time_slices } = $controversy_dump_time_slices;
 
     return $latest_full_dump;
@@ -100,8 +91,6 @@ sub view : Local
     my ( $self, $c, $controversies_id ) = @_;
 
     my $db = $c->dbis;
-
-    $db->begin;
 
     my $controversy = $db->query( <<END, $controversies_id )->hash;
 select * from controversies_with_search_info where controversies_id = ?
@@ -118,8 +107,6 @@ END
     map { _add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
     my $latest_full_dump = _get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
-
-    $db->commit;
 
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
@@ -150,8 +137,6 @@ sub view_dump : Local
 
     my $db = $c->dbis;
 
-    $db->begin;
-
     my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
 select * from controversy_dumps where controversy_dumps_id = ?
 END
@@ -162,14 +147,6 @@ select * from controversy_dump_time_slices
     where controversy_dumps_id = ? 
     order by period, start_date, end_date
 END
-
-    for my $cdts ( @{ $controversy_dump_time_slices } )
-    {
-        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy );
-        _add_media_and_story_counts_to_cdts( $db, $cdts );
-        MediaWords::CM::Dump::discard_temp_tables( $db );
-    }
-    $db->commit;
 
     $c->stash->{ controversy_dump }             = $controversy_dump;
     $c->stash->{ controversy }                  = $controversy;
@@ -246,7 +223,7 @@ sub view_time_slice : Local
 
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
-    _add_media_and_story_counts_to_cdts( $db, $cdts );
+    MediaWords::CM::Dump::update_cdts_counts( $db, $cdts, $live ) if ( $live );
 
     my $top_media = _get_top_media_for_time_slice( $db, $cdts );
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );

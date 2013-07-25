@@ -32,10 +32,10 @@ Time Slices
                 [% ELSE %](not enough data)[% END %]
             </td>
             <td>[% cdts.model_num_media %]</td>
-            <td>[% cdts.num_stories | html %]</td>
-            <td>[% cdts.num_story_links | html %]</td>
-            <td>[% cdts.num_media | html %]</td>
-            <td>[% cdts.num_medium_links | html %]</td>
+            <td>[% cdts.story_count | html %]</td>
+            <td>[% cdts.story_link_count | html %]</td>
+            <td>[% cdts.medium_count | html %]</td>
+            <td>[% cdts.medium_link_count | html %]</td>
         </tr>
 
     [% SET even = !even %]

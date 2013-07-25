@@ -1064,6 +1064,7 @@ sub generate_period_dump_data ($$;$)
 
     write_medium_link_counts_dump( $db, $cdts, $is_model );
     write_medium_links_dump( $db, $cdts, $is_model );
+
 }
 
 # get the top MODEL_PERCENT_TOP_MEDIA of media sources from the current dump by incoming links
@@ -1423,6 +1424,27 @@ sub print_model_matches
     # return $num_model_matches;
 }
 
+# update *_count fields in cdts.  save to db unless $live is specified.
+sub update_cdts_counts ($$;$)
+{
+    my ( $db, $cdts, $live ) = @_;
+    
+    ( $cdts->{ num_stories } ) = $db->query( "select count(*) from dump_story_link_counts" )->flat;
+
+    ( $cdts->{ num_story_links } ) = $db->query( "select count(*) from dump_story_links" )->flat;
+
+    ( $cdts->{ num_media } ) = $db->query( "select count(*) from dump_medium_link_counts" )->flat;
+
+    ( $cdts->{ num_medium_links } ) = $db->query( "select count(*) from dump_medium_links" )->flat;
+    
+    return if ( $live );
+    
+    for my $field ( qw(num_stories num_story_links num_media num_medium_links) )
+    {
+        update_cdts( $db, $cdts, $field, $cdts->{ $field } );
+    }
+}
+
 # generate the dumps for the given period and dates
 sub generate_period_dump ($$$$$)
 {
@@ -1453,6 +1475,8 @@ sub generate_period_dump ($$$$$)
 
     print "\ngenerating dump data ...\n";
     generate_period_dump_data( $db, $cdts );
+    
+    update_cdts_counts( $db, $cdts );
 
     print_model_matches( $db, $cdts, $all_models_top_media );
 

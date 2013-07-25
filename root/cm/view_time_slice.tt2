@@ -30,22 +30,22 @@
         <table>
             <tr>
                 <td># Stories</td>
-                <td>[% cdts.num_stories %]</td>
+                <td>[% cdts.story_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr id="even">
                 <td># Story Links</td>
-                <td>[% cdts.num_story_links %]</td>
+                <td>[% cdts.story_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
                 <td># Media</td>
-                <td>[% cdts.num_media %]</td>
+                <td>[% cdts.medium_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></tr>
             </tr>
             <tr id="even">
                 <td># Medium Links</td>
-                <td>[% cdts.num_medium_links %]</td>
+                <td>[% cdts.medium_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
             <tr>
