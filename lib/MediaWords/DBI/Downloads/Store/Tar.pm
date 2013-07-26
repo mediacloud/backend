@@ -11,18 +11,12 @@ with 'MediaWords::DBI::Downloads::Store';
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config;
 use Archive::Tar::Indexed;
-
-has '_data_dir' => ( is => 'rw' );
 
 # Constructor
 sub BUILD
 {
     my ( $self, $args ) = @_;
-
-    my $config = MediaWords::Util::Config::get_config;
-    $self->_data_dir( $config->{ mediawords }->{ data_content_dir } || $config->{ mediawords }->{ data_dir } );
 
     # say STDERR "New Tar download storage.";
 }
@@ -39,51 +33,15 @@ sub _get_tar_file($$)
     return $file;
 }
 
-# get the parent of this download
-sub _get_parent($$)
-{
-    my ( $db, $download ) = @_;
-
-    if ( !$download->{ parent } )
-    {
-        return undef;
-    }
-
-    return $db->query( "select * from downloads where downloads_id = ?", $download->{ parent } )->hash;
-}
-
-# get the relative path (to be used within the tarball) to store the given download
-# the path for a download is:
-# <media_id>/<year>/<month>/<day>/<hour>/<minute>[/<parent download_id>]/<download_id
-sub _get_download_path($$)
-{
-    my ( $db, $download ) = @_;
-
-    my $feed = $db->query( "SELECT * FROM feeds WHERE feeds_id = ?", $download->{ feeds_id } )->hash;
-
-    my @date = ( $download->{ download_time } =~ /(\d\d\d\d)-(\d\d)-(\d\d).(\d\d):(\d\d):(\d\d)/ );
-
-    my @path = ( sprintf( "%06d", $feed->{ media_id } ), sprintf( "%06d", $feed->{ feeds_id } ), @date );
-
-    for ( my $p = _get_parent( $db, $download ) ; $p ; $p = _get_parent( $db, $p ) )
-    {
-        push( @path, $p->{ downloads_id } );
-    }
-
-    push( @path, $download->{ downloads_id } . '.gz' );
-
-    return join( '/', @path );
-}
-
 # Moose method
 sub store_content($$$$;$)
 {
     my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
 
-    my $download_path = _get_download_path( $db, $download );
+    my $download_path = $self->get_download_path( $db, $download, $skip_encode_and_gzip );
 
     my $tar_file = _get_tar_file( $db, $download );
-    my $tar_path = $self->_data_dir . "/content/$tar_file";
+    my $tar_path = $self->get_data_content_dir . $tar_file;
 
     # Encode + gzip
     my $content_to_store;
@@ -124,7 +82,7 @@ sub fetch_content($$;$)
 
     my ( $starting_block, $num_blocks, $tar_file, $download_file ) = ( $1, $2, $3, $4 );
 
-    my $tar_path = $self->_data_dir . "/content/$tar_file";
+    my $tar_path = $self->get_data_content_dir . $tar_file;
 
     # Read from Tar
     my $gzipped_content_ref = Archive::Tar::Indexed::read_file( $tar_path, $download_file, $starting_block, $num_blocks );
