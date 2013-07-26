@@ -25,7 +25,7 @@
         controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
         live_periods = 1 %]
 [% ELSE %]
-    <div id="boxtitle">Time Slices</div>
+    <div id="boxtitle">Live Time Slices</div>
     <fieldset>
         <p>To browse live data, first generate at least one dump.</p>
     </fieldset> 

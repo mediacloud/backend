@@ -80,14 +80,7 @@ select * from controversy_dump_time_slices
     order by period, start_date, end_date
 END
 
-    # this just gets counts from the snapshot tables because
-    # live counts for every time slice is too slow
-    for my $cdts ( @{ $controversy_dump_time_slices } )
-    {
-        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy );
-        _add_media_and_story_counts_to_cdts( $db, $cdts );
-        MediaWords::CM::Dump::discard_temp_tables( $db );
-    }
+    map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 
     $latest_full_dump->{ controversy_dump_time_slices } = $controversy_dump_time_slices;
 
@@ -100,8 +93,6 @@ sub view : Local
     my ( $self, $c, $controversies_id ) = @_;
 
     my $db = $c->dbis;
-
-    $db->begin;
 
     my $controversy = $db->query( <<END, $controversies_id )->hash;
 select * from controversies_with_search_info where controversies_id = ?
@@ -118,8 +109,6 @@ END
     map { _add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
     my $latest_full_dump = _get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
-
-    $db->commit;
 
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
@@ -150,8 +139,6 @@ sub view_dump : Local
 
     my $db = $c->dbis;
 
-    $db->begin;
-
     my $controversy_dump = $db->query( <<END, $controversy_dumps_id )->hash;
 select * from controversy_dumps where controversy_dumps_id = ?
 END
@@ -163,13 +150,7 @@ select * from controversy_dump_time_slices
     order by period, start_date, end_date
 END
 
-    for my $cdts ( @{ $controversy_dump_time_slices } )
-    {
-        MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy );
-        _add_media_and_story_counts_to_cdts( $db, $cdts );
-        MediaWords::CM::Dump::discard_temp_tables( $db );
-    }
-    $db->commit;
+    map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 
     $c->stash->{ controversy_dump }             = $controversy_dump;
     $c->stash->{ controversy }                  = $controversy;
@@ -216,6 +197,35 @@ END
     return $top_stories;
 }
 
+# given the model r2 mean and sd values, return a string indicating whether the
+# time slice is reliable, somewhat reliable, or not reliable
+sub _add_cdts_model_reliability
+{
+    my ( $db, $cdts ) = @_;
+
+    my $r2_mean   = $cdts->{ model_r2_mean }   || 0;
+    my $r2_stddev = $cdts->{ model_r2_stddev } || 0;
+
+    # compute the lowest standard reliability among the model runs
+    my $lsr = $r2_mean - $r2_stddev;
+
+    my $reliability;
+    if ( $lsr > 0.85 )
+    {
+        $reliability = 'reliable';
+    }
+    elsif ( $lsr > 0.75 )
+    {
+        $reliability = 'somewhat';
+    }
+    else
+    {
+        $reliability = 'not';
+    }
+
+    $cdts->{ model_reliability } = $reliability;
+}
+
 # get the controversy_dump_time_slice, controversy_dump, and controversy
 # for the current request
 sub _get_controversy_objects
@@ -227,6 +237,8 @@ sub _get_controversy_objects
     my $cdts        = $db->find_by_id( 'controversy_dump_time_slices', $cdts_id );
     my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
     my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
+
+    _add_cdts_model_reliability( $db, $cdts );
 
     return ( $cdts, $cd, $controversy );
 }
@@ -246,7 +258,7 @@ sub view_time_slice : Local
 
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
-    _add_media_and_story_counts_to_cdts( $db, $cdts );
+    MediaWords::CM::Dump::update_cdts_counts( $db, $cdts, $live ) if ( $live );
 
     my $top_media = _get_top_media_for_time_slice( $db, $cdts );
     my $top_stories = _get_top_stories_for_time_slice( $db, $cdts );

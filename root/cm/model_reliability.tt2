@@ -1,0 +1,8 @@
+[% IF cdts.model_r2_mean %]
+    [% cdts.model_reliability %] 
+    [% IF model_reliability_include_numbers %]
+        (r2 mean=[% cdts.model_r2_mean %] sd=[% cdts.model_r2_stddev %])
+    [% END %]
+[% ELSE %]
+    (not enough data)
+[% END %]
