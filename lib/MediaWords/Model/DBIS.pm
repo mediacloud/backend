@@ -29,6 +29,7 @@ sub dbis
       or die DBIx::Simple::MediaWords->error;
 
     $db->dbh->{ RaiseError } = 1;
+    $db->dbh->{ Profile }    = 2;
 
     return $db;
 }
