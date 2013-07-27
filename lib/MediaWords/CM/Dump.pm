@@ -43,10 +43,24 @@ my $_snapshot_tables = [
       stories media stories_tags_map media_tags_map tags tag_sets/
 ];
 
+# tablespace clause for temporary tables
+my $_temporary_tablespace;
+
 # get the list of all snapshot tables
 sub get_snapshot_tables
 {
     return [ @{ $_snapshot_tables } ];
+}
+
+# if the temporary_table_tablespace config is present, set $_temporary_tablespace
+# to a tablespace clause for the tablespace, otherwise set it to ''
+sub set_temporary_table_tablespace
+{
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $tablespace = $config->{ mediawords }->{ temporary_table_tablespace };
+
+    $_temporary_tablespace = $tablespace ? "tablespace $tablespace" : '';
 }
 
 # create all of the temporary dump* tables other than medium_links and story_links
@@ -178,16 +192,16 @@ create or replace view dump_undateable_stories as
             t.tag = 'undateable'
 END
 
-        $db->query( <<'END', $cdts->{ start_date }, $cdts->{ end_date } );
-create temporary table dump_period_stories as
+        $db->query( <<"END", $cdts->{ start_date }, $cdts->{ end_date } );
+create temporary table dump_period_stories $_temporary_tablespace as
     select distinct s.stories_id
         from dump_stories s
             left join dump_controversy_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
             left join dump_stories ss on ( cl.stories_id = ss.stories_id )
         where 
-            ( s.publish_date between $1::timestamp and $2::timestamp - interval '1 second' 
+            ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' 
                 and s.stories_id not in ( select stories_id from dump_undateable_stories ) ) or
-            ( ss.publish_date between $1::timestamp and $2::timestamp - interval '1 second'
+            ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
                 and ss.stories_id not in ( select stories_id from dump_undateable_stories ) )
 END
 
@@ -264,7 +278,7 @@ sub write_story_links_dump
     $db->query( "drop table if exists dump_story_links" );
 
     $db->query( <<END );
-create temporary table dump_story_links as
+create temporary table dump_story_links $_temporary_tablespace as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
 	    from dump_controversy_links_cross_media cl, dump_period_stories sps, dump_period_stories rps
     	where cl.stories_id = sps.stories_id and
@@ -340,7 +354,7 @@ sub write_story_link_counts_dump
     $db->query( "drop table if exists dump_story_link_counts" );
 
     $db->query( <<END );
-create temporary table dump_story_link_counts as
+create temporary table dump_story_link_counts $_temporary_tablespace as
     select distinct ps.stories_id, 
             coalesce( ilc.inlink_count, 0 ) inlink_count, 
             coalesce( olc.outlink_count, 0 ) outlink_count
@@ -466,7 +480,7 @@ sub write_medium_link_counts_dump
     $db->query( "drop table if exists dump_medium_link_counts" );
 
     $db->query( <<END );
-create temporary table dump_medium_link_counts as   
+create temporary table dump_medium_link_counts $_temporary_tablespace as   
     select m.media_id, sum( slc.inlink_count) inlink_count, sum( slc.outlink_count) outlink_count,
             count(*) story_count
         from dump_media m, dump_stories s, dump_story_link_counts slc 
@@ -511,7 +525,7 @@ sub write_medium_links_dump
     $db->query( "drop table if exists dump_medium_links" );
 
     $db->query( <<END );
-create temporary table dump_medium_links as
+create temporary table dump_medium_links $_temporary_tablespace as
     select s.media_id source_media_id, r.media_id ref_media_id, count(*) link_count
         from dump_story_links sl, dump_stories s, dump_stories r
         where sl.source_stories_id = s.stories_id and sl.ref_stories_id = r.stories_id
@@ -547,7 +561,7 @@ sub write_date_counts_dump
     my $date_trunc = ( $period eq 'daily' ) ? 'day' : 'week';
 
     $db->query( <<END, $date_trunc, $date_trunc );
-create temporary table dump_${ period }_date_counts as
+create temporary table dump_${ period }_date_counts $_temporary_tablespace as
     select date_trunc( ?, s.publish_date ) publish_date, t.tags_id, count(*) story_count
         from dump_stories s, dump_stories_tags_map stm, dump_tags t
         where s.stories_id = stm.stories_id and
@@ -1258,7 +1272,7 @@ sub copy_temporary_tables
         my $copy_table = "_copy_${ dump_table }";
 
         $db->query( "drop table if exists $copy_table" );
-        $db->query( "create temporary table $copy_table as select * from $dump_table" );
+        $db->query( "create temporary table $copy_table $_temporary_tablespace as select * from $dump_table" );
     }
 }
 
@@ -1274,7 +1288,7 @@ sub restore_temporary_tables
         my $copy_table = "_copy_${ dump_table }";
 
         $db->query( "drop table if exists $dump_table cascade" );
-        $db->query( "create temporary table $dump_table as select * from $copy_table" );
+        $db->query( "create temporary table $dump_table $_temporary_tablespace as select * from $copy_table" );
     }
 }
 
@@ -1328,36 +1342,38 @@ sub write_temporary_dump_tables
 {
     my ( $db, $controversies_id ) = @_;
 
+    set_temporary_table_tablespace();
+
     $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_stories as 
+create temporary table dump_controversy_stories $_temporary_tablespace as 
     select cs.*
         from controversy_stories cs
         where cs.controversies_id = ?
 END
 
     $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_media_codes as 
+create temporary table dump_controversy_media_codes $_temporary_tablespace as 
     select cmc.*
         from controversy_media_codes cmc
         where cmc.controversies_id = ?
 END
 
     $db->query( <<END );
-create temporary table dump_stories as
+create temporary table dump_stories $_temporary_tablespace as
     select s.*
         from stories s, dump_controversy_stories dcs
         where s.stories_id = dcs.stories_id
 END
 
     $db->query( <<END );
-create temporary table dump_media as
+create temporary table dump_media $_temporary_tablespace as
     select distinct m.* 
         from media m, dump_stories ds
         where ds.media_id = m.media_id
 END
 
     $db->query( <<END, $controversies_id );
-create temporary table dump_controversy_links_cross_media as
+create temporary table dump_controversy_links_cross_media $_temporary_tablespace as
     select s.stories_id, r.stories_id ref_stories_id, cl.url, cs.controversies_id, cl.controversy_links_id
         from controversy_links cl
             join dump_controversy_stories cs on ( cs.stories_id = cl.ref_stories_id )
@@ -1369,21 +1385,21 @@ create temporary table dump_controversy_links_cross_media as
 END
 
     $db->query( <<END );
-create temporary table dump_stories_tags_map as
+create temporary table dump_stories_tags_map $_temporary_tablespace as
     select distinct stm.*
     from stories_tags_map stm, dump_stories ds
     where stm.stories_id = ds.stories_id
 END
 
     $db->query( <<END );
-create temporary table dump_media_tags_map as
+create temporary table dump_media_tags_map $_temporary_tablespace as
     select distinct mtm.*
     from media_tags_map mtm, dump_media dm
     where mtm.media_id = dm.media_id
 END
 
     $db->query( <<END );
-create temporary table dump_tags as
+create temporary table dump_tags $_temporary_tablespace as
     select distinct t.*
         from tags t
             join dump_media_tags_map dmtm on ( t.tags_id = dmtm.tags_id )
@@ -1397,7 +1413,7 @@ create temporary table dump_tags as
 END
 
     $db->query( <<END );
-create temporary table dump_tag_sets as
+create temporary table dump_tag_sets $_temporary_tablespace as
     select ts.*
     from tag_sets ts
     where ts.tag_sets_id in ( select tag_sets_id from dump_tags )
