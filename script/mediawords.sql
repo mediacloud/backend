@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4415;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4416;
     
 BEGIN
 
@@ -1304,8 +1304,6 @@ create table controversy_dumps (
     start_date                      timestamp not null,
     end_date                        timestamp not null,
     note                            text,
-    daily_counts_csv                text,
-    weekly_counts_csv               text
 );
 
 create index controversy_dumps_controversy on controversy_dumps ( controversies_id );
@@ -1319,11 +1317,6 @@ create table controversy_dump_time_slices (
     start_date                      timestamp not null,
     end_date                        timestamp not null,
     period                          cd_period_type not null,
-    gexf                            text,
-    stories_csv                     text,
-    story_links_csv                 text,
-    media_csv                       text,
-    medium_links_csv                text,
     model_r2_mean                   float,
     model_r2_stddev                 float,
     model_num_media                 int,
@@ -1334,7 +1327,25 @@ create table controversy_dump_time_slices (
 );
 
 create index controversy_dump_time_slices_dump on controversy_dump_time_slices ( controversy_dumps_id );
+    
+create table cdts_files (
+    cdts_files_id                   serial primary key,
+    controversy_dump_time_slices_id int not null reference controversy_dump_time_slices on delete cascade,
+    file_name                       text,
+    file_content                    text
+);
 
+create index cdts_files_cdts on cdts_files ( controversy_dump_time_slices_id );
+
+create table cd_files (
+    cd_files_id                     serial primary key,
+    controversy_dumps_id            int not null reference controversy_dumps on delete cascade,
+    file_name                       text,
+    file_content                    text
+);
+
+create index cd_files_cd on cd_files_cd ( controversy_dumps_id );
+    
 -- schema to hold the various controversy dump snapshot tables
 create schema cd;
 

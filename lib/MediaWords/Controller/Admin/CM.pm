@@ -282,6 +282,8 @@ sub _download_cdts_csv
 {
     my ( $c, $cdts_id, $table, $live ) = @_;
 
+    die( "illegal table name '$table'" ) unless ( grep { $_ eq $table } qw(stories story_links media medium_links) );
+
     my $db = $c->dbis;
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
@@ -294,7 +296,7 @@ sub _download_cdts_csv
         MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
         $csv  = eval( 'MediaWords::CM::Dump::get_' . $table . '_csv( $db, $cdts )' );
-        $file = "${ table }_$cdts->{ controversy_dump_time_slices_id }_live.csv";
+        $file = "${ table }.csv";
 
         MediaWords::CM::Dump::discard_temp_tables( $db );
 
@@ -302,10 +304,10 @@ sub _download_cdts_csv
     }
     else
     {
-        my $field = $table . '_csv';
-
-        $file = "${ table }_$cdts->{ controversy_dump_time_slices_id }.csv";
-        $csv  = $cdts->{ $field };
+        $file = $table . '.csv';
+        ( $csv ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id }, $file )->flat;
+select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = ?
+END
     }
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
@@ -355,13 +357,15 @@ sub gexf : Local
 
     my $cdts = $db->find_by_id( 'controversy_dump_time_slices', $controversy_dump_time_slices_id );
 
-    my $gexf = $cdts->{ gexf };
+    my ( $gexf ) = $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } )->flat;
+select file_content from cdts_files where controversy_dump_time_slices_id = ? and file_name = 'media.gexf'
+END
 
     my $base_url = $c->uri_for( '/' );
 
     $gexf =~ s/\[_mc_base_url_\]/$base_url/g;
 
-    my $file = "media_$cdts->{ controversy_dump_time_slices_id }.gexf";
+    my $file = "media.gexf";
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$file" );
     $c->response->content_type( 'text/gexf; charset=UTF-8' );

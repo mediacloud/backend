@@ -195,6 +195,32 @@ END
     }
 }
 
+sub create_cdts_file
+{
+    my ( $db, $cdts, $file_name, $file_content ) = @_;
+
+    my $cdts_file = {
+        controversy_dump_time_slices_id => $cdts->{ controversy_dump_time_slices_id },
+        file_name                       => $file_name,
+        file_content                    => $file_content
+    };
+
+    return $db->create( 'cdts_files', $cdts_file );
+}
+
+sub create_cd_file
+{
+    my ( $db, $cd, $file_name, $file_content ) = @_;
+
+    my $cd_file = {
+        controversy_dumps_id => $cd->{ controversy_dumps_id },
+        file_name            => $file_name,
+        file_content         => $file_content
+    };
+
+    return $db->create( 'cd_files', $cd_file );
+}
+
 # convenience function to update a field in the cdts table
 sub update_cdts
 {
@@ -228,7 +254,7 @@ sub write_story_links_csv
 
     my $csv = get_story_links_csv( $db, $cdts );
 
-    update_cdts( $db, $cdts, 'story_links_csv', $csv );
+    create_cdts_file( $db, $cdts, 'story_links.csv', $csv );
 }
 
 sub write_story_links_dump
@@ -304,7 +330,7 @@ sub write_stories_csv
 
     my $csv = get_stories_csv( $db, $cdts );
 
-    update_cdts( $db, $cdts, 'stories_csv', $csv );
+    create_cdts_file( $db, $cdts, 'stories.csv', $csv );
 }
 
 sub write_story_link_counts_dump
@@ -430,7 +456,7 @@ sub write_media_csv
 
     my $csv = get_media_csv( $db, $cdts );
 
-    update_cdts( $db, $cdts, 'media_csv', $csv );
+    create_cdts_file( $db, $cdts, 'media.csv', $csv );
 }
 
 sub write_medium_link_counts_dump
@@ -475,7 +501,7 @@ sub write_medium_links_csv
 
     my $csv = get_medium_links_csv( $db, $cdts );
 
-    update_cdts( $db, $cdts, 'medium_links_csv', $csv );
+    create_cdts_file( $db, $cdts, 'medium_links.csv', $csv );
 }
 
 sub write_medium_links_dump
@@ -510,7 +536,7 @@ select dc.publish_date, t.tag, t.tags_id, dc.story_count
     order by t.tag, dc.publish_date
 END
 
-    $db->update_by_id( 'controversy_dumps', $cd->{ controversy_dumps_id }, { "${ period }_counts_csv" => $csv } );
+    create_cd_file( $db, $cd, "${ period }_counts.csv", $csv );
 }
 
 sub write_date_counts_dump
@@ -897,7 +923,7 @@ END
 
     my $layout_gexf = layout_gexf( $db, $cdts, $nolayout_gexf );
 
-    update_cdts( $db, $cdts, 'gexf', $layout_gexf );
+    create_cdts_file( $db, $cdts, 'media.gexf', encode( 'utf8', $layout_gexf ) );
 }
 
 # return true if there are any stories in the current controversy_stories_dump_ table
