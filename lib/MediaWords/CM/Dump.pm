@@ -1360,7 +1360,7 @@ END
 
     $db->query( <<END );
 create temporary table dump_stories $_temporary_tablespace as
-    select s.*
+    select s.stories_id, s.media_id, s.url, s.guid, s.title, s.publish_date, s.collect_date, s.full_text_rss, s.language
         from stories s, dump_controversy_stories dcs
         where s.stories_id = dcs.stories_id
 END
