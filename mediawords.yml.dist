@@ -169,3 +169,6 @@ amazon_s3:
     # web_store_num_parallel: 10
     # web_store_timeout: 90
     # web_store_per_domain_timeout: 1
+    
+    # tablespace in which to create temporary tables -- defaults to the postgres default
+    # temporary_table_tablespace: temporary_tablespace
