@@ -30,7 +30,7 @@ fi
 if [ ! -z "$CPANFILE_DIFF" ]; then
 
     # Check for tabs
-    if grep -q "\t" "${CPANFILE}"; then
+    if grep -q $'\t' "${CPANFILE}"; then
         echo "Perl module dependency list '${CPANFILE}' contains tabs."
         echo "Please use spaces instead of tabs."
         exit 1
