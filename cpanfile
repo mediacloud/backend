@@ -48,6 +48,7 @@ requires 'Email::Sender::Simple';
 requires 'Encode::HanConvert';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
+requires 'F/FL/FLORA/FCGI-0.74.tar.gz';
 requires 'File::Touch';
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';
