@@ -252,7 +252,7 @@ select distinct sl.source_stories_id source_stories_id, ss.title source_title, s
         sm.name source_media_name, sm.url source_media_url, sm.media_id source_media_id,
 		sl.ref_stories_id ref_stories_id, rs.title ref_title, rs.url ref_url, rm.name ref_media_name, rm.url ref_media_url, 
 		rm.media_id ref_media_id
-	from dump_story_links sl, stories ss, media sm, stories rs, media rm
+	from dump_story_links sl, cd.live_stories ss, media sm, cd.live_stories rs, media rm
 	where sl.source_stories_id = ss.stories_id and 
 	    ss.media_id = sm.media_id and 
 	    sl.ref_stories_id = rs.stories_id and 
@@ -1361,7 +1361,7 @@ END
     $db->query( <<END );
 create temporary table dump_stories $_temporary_tablespace as
     select s.stories_id, s.media_id, s.url, s.guid, s.title, s.publish_date, s.collect_date, s.full_text_rss, s.language
-        from stories s, dump_controversy_stories dcs
+        from cd.live_stories s, dump_controversy_stories dcs
         where s.stories_id = dcs.stories_id
 END
 

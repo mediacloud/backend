@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4417;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4418;
     
 BEGIN
 
@@ -1260,7 +1260,7 @@ create table controversy_stories (
     valid_foreign_rss_story         boolean default false
 );
 
-create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id ) ;
+create unique index controversy_stories_sc on controversy_stories ( stories_id, controversies_id );
 
 -- no foreign key constraints on controversies_id and stories_id because
 --   we have the combined foreign key constraint pointing to controversy_stories
@@ -1304,7 +1304,7 @@ create table controversy_dumps (
     dump_date                       timestamp not null,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
-    note                            text,
+    note                            text
 );
 
 create index controversy_dumps_controversy on controversy_dumps ( controversies_id );
@@ -1331,7 +1331,7 @@ create index controversy_dump_time_slices_dump on controversy_dump_time_slices (
     
 create table cdts_files (
     cdts_files_id                   serial primary key,
-    controversy_dump_time_slices_id int not null reference controversy_dump_time_slices on delete cascade,
+    controversy_dump_time_slices_id int not null references controversy_dump_time_slices on delete cascade,
     file_name                       text,
     file_content                    text
 );
@@ -1340,12 +1340,12 @@ create index cdts_files_cdts on cdts_files ( controversy_dump_time_slices_id );
 
 create table cd_files (
     cd_files_id                     serial primary key,
-    controversy_dumps_id            int not null reference controversy_dumps on delete cascade,
+    controversy_dumps_id            int not null references controversy_dumps on delete cascade,
     file_name                       text,
     file_content                    text
 );
 
-create index cd_files_cd on cd_files_cd ( controversy_dumps_id );
+create index cd_files_cd on cd_files ( controversy_dumps_id );
     
 -- schema to hold the various controversy dump snapshot tables
 create schema cd;
@@ -1365,8 +1365,7 @@ create table cd.stories (
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
-create index stories_id on cd.stories ( controversy_dumps_id, stories_id );
-    
+create index stories_id on cd.stories ( controversy_dumps_id, stories_id );    
 
 create table cd.controversy_stories (
     controversy_dumps_id            int not null references controversy_dumps on delete cascade,    
@@ -1525,6 +1524,73 @@ create table cd.weekly_date_counts (
 
 create index weekly_date_counts_date on cd.weekly_date_counts( controversy_dumps_id, publish_date );
 create index weekly_date_counts_tag on cd.weekly_date_counts( controversy_dumps_id, tags_id );
+    
+-- create a mirror of the stories table with the stories for each controversy.  this is to make
+-- it much faster to query the stories associated with a given controversy, rather than querying the
+-- contested and bloated stories table.  only inserts and updates on stories are triggered, because
+-- deleted cascading stories_id and controversies_id fields take care of deletes.
+create table cd.live_stories (
+    controversies_id            int             not null references controversies on delete cascade,
+    controversy_stories_id      int             not null references controversy_stories on delete cascade,
+    stories_id                  int             not null references stories on delete cascade,
+    media_id                    int             not null,
+    url                         varchar(1024)   not null,
+    guid                        varchar(1024)   not null,
+    title                       text            not null,
+    description                 text            null,
+    publish_date                timestamp       not null,
+    collect_date                timestamp       not null,
+    full_text_rss               boolean         not null default 'f',
+    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+);
+create index live_story_controversy on cd.live_stories ( controversies_id );
+create unique index live_stories_story on cd.live_stories ( controversies_id, stories_id );
+
+create function insert_live_story() returns trigger as $insert_live_story$
+    begin
+
+        insert into cd.live_stories 
+            ( controversies_id, controversy_stories_id, stories_id, media_id, url, guid, title, description, 
+                publish_date, collect_date, full_text_rss, language )
+            select NEW.controversies_id, NEW.controversy_stories_id, NEW.stories_id, s.media_id, s.url, s.guid, 
+                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language
+                from controversy_stories cs
+                    join stories s on ( cs.stories_id = s.stories_id )
+                where 
+                    cs.stories_id = NEW.stories_id and 
+                    cs.controversies_id = NEW.controversies_id;
+
+        return NEW;
+    END;
+$insert_live_story$ LANGUAGE plpgsql;
+
+create trigger controversy_stories_insert_live_story after insert on controversy_stories 
+    for each row execute procedure insert_live_story();
+
+create function update_live_story() returns trigger as $update_live_story$
+    declare
+        controversy record;
+    begin
+
+        update cd.live_stories set
+                media_id = NEW.media_id,
+                url = NEW.url,
+                guid = NEW.guid,
+                title = NEW.title,
+                description = NEW.description,
+                publish_date = NEW.publish_date,
+                collect_date = NEW.collect_date,
+                full_text_rss = NEW.full_text_rss,
+                language = NEW.language
+            where
+                stories_id = NEW.stories_id;         
+        
+        return NEW;
+    END;
+$update_live_story$ LANGUAGE plpgsql;
+        
+create trigger stories_update_live_story after update on stories 
+    for each row execute procedure update_live_story();
                                         
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
