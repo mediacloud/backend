@@ -32,7 +32,7 @@
 
     <tr [% IF even %]id="even"[% END %]>
 
-        <td>[% user.users_id | html %]</td>
+        <td>[% user.auth_users_id | html %]</td>
 
         <td><code>[% user.email | html %]</code></td>
 

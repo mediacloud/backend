@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4418;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4419;
     
 BEGIN
 
@@ -1794,7 +1794,7 @@ $$;
 
 -- List of users
 CREATE TABLE auth_users (
-    users_id        SERIAL  PRIMARY KEY,
+    auth_users_id   SERIAL  PRIMARY KEY,
     email           TEXT    UNIQUE NOT NULL,
 
     -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
@@ -1815,22 +1815,22 @@ CREATE TABLE auth_users (
 
 -- List of roles the users can perform
 CREATE TABLE auth_roles (
-    roles_id        SERIAL  PRIMARY KEY,
+    auth_roles_id   SERIAL  PRIMARY KEY,
     role            TEXT    UNIQUE NOT NULL CONSTRAINT role_name_can_not_contain_spaces CHECK(role NOT LIKE '% %'),
     description     TEXT    NOT NULL
 );
 
 -- Map of user IDs and roles that are allowed to each of the user
 CREATE TABLE auth_users_roles_map (
-    auth_users_roles_map    SERIAL      PRIMARY KEY,
-    users_id                INTEGER     NOT NULL REFERENCES auth_users(users_id)
+    auth_users_roles_map_id SERIAL      PRIMARY KEY,
+    auth_users_id           INTEGER     NOT NULL REFERENCES auth_users(auth_users_id)
                                         ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
-    roles_id                INTEGER     NOT NULL REFERENCES auth_roles(roles_id)
+    auth_roles_id           INTEGER     NOT NULL REFERENCES auth_roles(auth_roles_id)
                                         ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
-    CONSTRAINT no_duplicate_entries UNIQUE (users_id, roles_id)
+    CONSTRAINT no_duplicate_entries UNIQUE (auth_users_id, auth_roles_id)
 );
-CREATE INDEX auth_users_roles_map_users_id_roles_id
-    ON auth_users_roles_map (users_id, roles_id);
+CREATE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
+    ON auth_users_roles_map (auth_users_id, auth_roles_id);
 
 -- Roles
 INSERT INTO auth_roles (role, description) VALUES
