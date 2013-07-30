@@ -146,9 +146,9 @@ sub user_add($)
     my $user_password    = undef;
 
     my Readonly $user_add_usage =
-      "Usage: $0" . ' --action=add' . ' --email=jdoe@cyber.law.harvard.edu' . ' --full_name="John Doe"' .
-      ' [--notes="Media Cloud developer."]' . ' [--inactive]' . ' [--roles="query-create,media-edit,stories-edit"]' .
-      ' [--password="correct horse battery staple"]';
+      "Usage: $0" . ' --action=add' .
+      ' --email=jdoe@cyber.law.harvard.edu' . ' --full_name="John Doe"' . ' [--notes="Media Cloud developer."]' .
+      ' [--inactive]' . ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"]';
 
     GetOptions(
         'email=s'     => \$user_email,
@@ -226,8 +226,8 @@ sub user_modify($)
     my $user_set_password = undef;
 
     my Readonly $user_modify_usage =
-      "Usage: $0" . ' --action=modify' . ' --email=jdoe@cyber.law.harvard.edu' . ' [--full_name="John Doe"]' .
-      ' [--notes="Media Cloud developer."]' . ' [--active|--inactive]' .
+      "Usage: $0" . ' --action=modify' . ' --email=jdoe@cyber.law.harvard.edu' .
+      ' [--full_name="John Doe"]' . ' [--notes="Media Cloud developer."]' . ' [--active|--inactive]' .
       ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"|--set-password]';
 
     GetOptions(
@@ -420,7 +420,7 @@ sub user_show($)
         return 1;
     }
 
-    say "User ID:\t" . $db_user->{ users_id };
+    say "User ID:\t" . $db_user->{ auth_users_id };
     say "Email (username):\t" . $db_user->{ email };
     say "Full name:\t" . $db_user->{ full_name };
     say "Notes:\t" . $db_user->{ notes };

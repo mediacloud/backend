@@ -52,11 +52,11 @@ sub delete : Local
         die "Unable to find user '$email' in the database.";
     }
 
-    $c->stash->{ users_id }  = $userinfo->{ users_id };
-    $c->stash->{ email }     = $userinfo->{ email };
-    $c->stash->{ full_name } = $userinfo->{ full_name };
-    $c->stash->{ c }         = $c;
-    $c->stash->{ template }  = 'users/delete.tt2';
+    $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
+    $c->stash->{ email }         = $userinfo->{ email };
+    $c->stash->{ full_name }     = $userinfo->{ full_name };
+    $c->stash->{ c }             = $c;
+    $c->stash->{ template }      = 'users/delete.tt2';
 }
 
 # delete user
@@ -112,7 +112,7 @@ sub create : Local
         push(
             @roles_options,
             {
-                value => $role->{ roles_id },
+                value => $role->{ auth_roles_id },
                 label => $role->{ role } . ': ' . $role->{ description }
             }
         );
@@ -271,7 +271,7 @@ sub edit : Local
             push(
                 @roles_options,
                 {
-                    value      => $role->{ roles_id },
+                    value      => $role->{ auth_roles_id },
                     label      => $role->{ role } . ': ' . $role->{ description },
                     attributes => $html_role_attributes
                 }
@@ -294,14 +294,14 @@ sub edit : Local
         $form->process( $c->request );
 
         # Show the form
-        $c->stash->{ users_id }  = $userinfo->{ users_id };
-        $c->stash->{ email }     = $userinfo->{ email };
-        $c->stash->{ full_name } = $userinfo->{ full_name };
-        $c->stash->{ notes }     = $userinfo->{ notes };
-        $c->stash->{ active }    = $userinfo->{ active };
-        $c->stash->{ c }         = $c;
-        $c->stash->{ form }      = $form;
-        $c->stash->{ template }  = 'users/edit.tt2';
+        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
+        $c->stash->{ email }         = $userinfo->{ email };
+        $c->stash->{ full_name }     = $userinfo->{ full_name };
+        $c->stash->{ notes }         = $userinfo->{ notes };
+        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ c }             = $c;
+        $c->stash->{ form }          = $form;
+        $c->stash->{ template }      = 'users/edit.tt2';
 
         return;
     }
@@ -318,14 +318,14 @@ sub edit : Local
     # Check if user is trying to deactivate oneself
     if ( $userinfo->{ email } eq $c->user->username and ( !$user_is_active ) )
     {
-        $c->stash->{ users_id }  = $userinfo->{ users_id };
-        $c->stash->{ email }     = $userinfo->{ email };
-        $c->stash->{ full_name } = $userinfo->{ full_name };
-        $c->stash->{ notes }     = $userinfo->{ notes };
-        $c->stash->{ active }    = $userinfo->{ active };
-        $c->stash->{ c }         = $c;
-        $c->stash->{ form }      = $form;
-        $c->stash->{ template }  = 'users/edit.tt2';
+        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
+        $c->stash->{ email }         = $userinfo->{ email };
+        $c->stash->{ full_name }     = $userinfo->{ full_name };
+        $c->stash->{ notes }         = $userinfo->{ notes };
+        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ c }             = $c;
+        $c->stash->{ form }          = $form;
+        $c->stash->{ template }      = 'users/edit.tt2';
         $c->stash( error_msg => "You're trying to deactivate yourself!" );
         return;
     }
@@ -336,14 +336,14 @@ sub edit : Local
         $user_roles, $user_is_active, $user_password, $user_password_repeat );
     if ( $update_user_error_message )
     {
-        $c->stash->{ users_id }  = $userinfo->{ users_id };
-        $c->stash->{ email }     = $userinfo->{ email };
-        $c->stash->{ full_name } = $userinfo->{ full_name };
-        $c->stash->{ notes }     = $userinfo->{ notes };
-        $c->stash->{ active }    = $userinfo->{ active };
-        $c->stash->{ c }         = $c;
-        $c->stash->{ form }      = $form;
-        $c->stash->{ template }  = 'users/edit.tt2';
+        $c->stash->{ auth_users_id } = $userinfo->{ auth_users_id };
+        $c->stash->{ email }         = $userinfo->{ email };
+        $c->stash->{ full_name }     = $userinfo->{ full_name };
+        $c->stash->{ notes }         = $userinfo->{ notes };
+        $c->stash->{ active }        = $userinfo->{ active };
+        $c->stash->{ c }             = $c;
+        $c->stash->{ form }          = $form;
+        $c->stash->{ template }      = 'users/edit.tt2';
         $c->stash( error_msg => $update_user_error_message );
         return;
     }

@@ -48,7 +48,7 @@ sub find_user
     if ( $user and $user->{ active } )
     {
         return Catalyst::Authentication::User::Hash->new(
-            'id'       => $user->{ users_id },
+            'id'       => $user->{ auth_users_id },
             'username' => $user->{ email },
             'password' => $user->{ password_hash },
 

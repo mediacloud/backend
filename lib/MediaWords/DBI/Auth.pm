@@ -100,11 +100,11 @@ sub all_user_roles($)
 
     my $roles = $db->query(
         <<"EOF"
-        SELECT roles_id,
+        SELECT auth_roles_id,
                role,
                description
         FROM auth_roles
-        ORDER BY roles_id
+        ORDER BY auth_roles_id
 EOF
     )->hashes;
 
@@ -122,21 +122,21 @@ sub role_id_for_role($$)
         return 0;
     }
 
-    my $roles_id = $db->query(
+    my $auth_roles_id = $db->query(
         <<"EOF",
-        SELECT roles_id
+        SELECT auth_roles_id
         FROM auth_roles
         WHERE role = ?
         LIMIT 1
 EOF
         $role
     )->hash;
-    if ( !( ref( $roles_id ) eq 'HASH' and $roles_id->{ roles_id } ) )
+    if ( !( ref( $auth_roles_id ) eq 'HASH' and $auth_roles_id->{ auth_roles_id } ) )
     {
         return 0;
     }
 
-    return $roles_id->{ roles_id };
+    return $auth_roles_id->{ auth_roles_id };
 }
 
 # Fetch a hash of basic user information (email, full name, notes); returns 0 on error
@@ -147,7 +147,7 @@ sub user_info($$)
     # Fetch readonly information about the user
     my $userinfo = $db->query(
         <<"EOF",
-        SELECT users_id,
+        SELECT auth_users_id,
                email,
                full_name,
                notes,
@@ -158,7 +158,7 @@ sub user_info($$)
 EOF
         $email
     )->hash;
-    if ( !( ref( $userinfo ) eq 'HASH' and $userinfo->{ users_id } ) )
+    if ( !( ref( $userinfo ) eq 'HASH' and $userinfo->{ auth_users_id } ) )
     {
         return 0;
     }
@@ -176,18 +176,18 @@ sub user_is_trying_to_login_too_soon($$)
 
     my $user = $db->query(
         <<"EOF",
-        SELECT users_id,
+        SELECT auth_users_id,
                email
         FROM auth_users
         WHERE email = ?
               AND last_unsuccessful_login_attempt >= LOCALTIMESTAMP - INTERVAL '$interval'
-        ORDER BY users_id
+        ORDER BY auth_users_id
         LIMIT 1
 EOF
         $email
     )->hash;
 
-    if ( ref( $user ) eq 'HASH' and $user->{ users_id } )
+    if ( ref( $user ) eq 'HASH' and $user->{ auth_users_id } )
     {
         return 1;
     }
@@ -206,28 +206,28 @@ sub user_auth($$)
     # Checking whether or not the user is active is left to the controller.
     my $user = $db->query(
         <<"EOF",
-        SELECT auth_users.users_id,
+        SELECT auth_users.auth_users_id,
                auth_users.email,
                auth_users.password_hash,
                auth_users.active,
                ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
         FROM auth_users
             LEFT JOIN auth_users_roles_map
-                ON auth_users.users_id = auth_users_roles_map.users_id
+                ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
             LEFT JOIN auth_roles
-                ON auth_users_roles_map.roles_id = auth_roles.roles_id
+                ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
         WHERE auth_users.email = ?
-        GROUP BY auth_users.users_id,
+        GROUP BY auth_users.auth_users_id,
                  auth_users.email,
                  auth_users.password_hash,
                  auth_users.active
-        ORDER BY auth_users.users_id
+        ORDER BY auth_users.auth_users_id
         LIMIT 1
 EOF
         $email
     )->hash;
 
-    if ( !( ref( $user ) eq 'HASH' and $user->{ users_id } ) )
+    if ( !( ref( $user ) eq 'HASH' and $user->{ auth_users_id } ) )
     {
         return 0;
     }
@@ -299,7 +299,7 @@ sub validate_password_reset_token($$$)
     # Fetch readonly information about the user
     my $password_reset_token_hash = $db->query(
         <<"EOF",
-        SELECT users_id,
+        SELECT auth_users_id,
                email,
                password_reset_token_hash
         FROM auth_users
@@ -308,7 +308,7 @@ sub validate_password_reset_token($$$)
 EOF
         $email
     )->hash;
-    if ( !( ref( $password_reset_token_hash ) eq 'HASH' and $password_reset_token_hash->{ users_id } ) )
+    if ( !( ref( $password_reset_token_hash ) eq 'HASH' and $password_reset_token_hash->{ auth_users_id } ) )
     {
         say STDERR 'Unable to find user ' . $email . ' in the database.';
         return 0;
@@ -433,7 +433,7 @@ sub change_password_via_profile_or_return_error_message($$$$$)
     # password has been changed already))
     my $db_password_old = $db->query(
         <<"EOF",
-        SELECT users_id,
+        SELECT auth_users_id,
                email,
                password_hash
         FROM auth_users
@@ -443,7 +443,7 @@ EOF
         $email
     )->hash;
 
-    if ( !( ref( $db_password_old ) eq 'HASH' and $db_password_old->{ users_id } ) )
+    if ( !( ref( $db_password_old ) eq 'HASH' and $db_password_old->{ auth_users_id } ) )
     {
         return 'Unable to find the user in the database.';
     }
@@ -498,7 +498,7 @@ sub all_users($)
     my $users = $db->query(
         <<"EOF"
         SELECT
-            auth_users.users_id,
+            auth_users.auth_users_id,
             auth_users.email,
             auth_users.full_name,
             auth_users.notes,
@@ -512,16 +512,16 @@ sub all_users($)
                 SELECT r_auth_roles.role
                 FROM auth_users AS r_auth_users
                     INNER JOIN auth_users_roles_map AS r_auth_users_roles_map
-                        ON r_auth_users.users_id = r_auth_users_roles_map.users_id
+                        ON r_auth_users.auth_users_id = r_auth_users_roles_map.auth_users_id
                     INNER JOIN auth_roles AS r_auth_roles
-                        ON r_auth_users_roles_map.roles_id = r_auth_roles.roles_id
-                WHERE auth_users.users_id = r_auth_users.users_id
+                        ON r_auth_users_roles_map.auth_roles_id = r_auth_roles.auth_roles_id
+                WHERE auth_users.auth_users_id = r_auth_users.auth_users_id
             ) @> ARRAY[all_user_roles.role] AS user_has_that_role
 
         FROM auth_users,
-             (SELECT role FROM auth_roles ORDER BY roles_id) AS all_user_roles
+             (SELECT role FROM auth_roles ORDER BY auth_roles_id) AS all_user_roles
 
-        ORDER BY auth_users.users_id
+        ORDER BY auth_users.auth_users_id
 EOF
     )->hashes;
 
@@ -530,25 +530,25 @@ EOF
     # Make a hash of unique users and their rules
     for my $user ( @{ $users } )
     {
-        my $users_id = $user->{ users_id } + 0;
-        $unique_users->{ $users_id }->{ 'users_id' }  = $users_id;
-        $unique_users->{ $users_id }->{ 'email' }     = $user->{ email };
-        $unique_users->{ $users_id }->{ 'full_name' } = $user->{ full_name };
-        $unique_users->{ $users_id }->{ 'notes' }     = $user->{ notes };
-        $unique_users->{ $users_id }->{ 'active' }    = $user->{ active };
+        my $auth_users_id = $user->{ auth_users_id } + 0;
+        $unique_users->{ $auth_users_id }->{ 'auth_users_id' } = $auth_users_id;
+        $unique_users->{ $auth_users_id }->{ 'email' }         = $user->{ email };
+        $unique_users->{ $auth_users_id }->{ 'full_name' }     = $user->{ full_name };
+        $unique_users->{ $auth_users_id }->{ 'notes' }         = $user->{ notes };
+        $unique_users->{ $auth_users_id }->{ 'active' }        = $user->{ active };
 
-        if ( !ref( $unique_users->{ $users_id }->{ 'roles' } ) eq 'HASH' )
+        if ( !ref( $unique_users->{ $auth_users_id }->{ 'roles' } ) eq 'HASH' )
         {
-            $unique_users->{ $users_id }->{ 'roles' } = {};
+            $unique_users->{ $auth_users_id }->{ 'roles' } = {};
         }
 
-        $unique_users->{ $users_id }->{ 'roles' }->{ $user->{ role } } = $user->{ user_has_that_role };
+        $unique_users->{ $auth_users_id }->{ 'roles' }->{ $user->{ role } } = $user->{ user_has_that_role };
     }
 
     $users = [];
-    foreach my $users_id ( sort { $a <=> $b } keys %{ $unique_users } )
+    foreach my $auth_users_id ( sort { $a <=> $b } keys %{ $unique_users } )
     {
-        push( @{ $users }, $unique_users->{ $users_id } );
+        push( @{ $users }, $unique_users->{ $auth_users_id } );
     }
 
     return $users;
@@ -608,14 +608,14 @@ EOF
         $db->dbh->rollback;
         return "I've attempted to create the user but it doesn't exist.";
     }
-    my $users_id = $userinfo->{ users_id };
+    my $auth_users_id = $userinfo->{ auth_users_id };
 
     # Create roles
-    my $sql = 'INSERT INTO auth_users_roles_map (users_id, roles_id) VALUES (?, ?)';
+    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
     my $sth = $db->dbh->prepare_cached( $sql );
-    for my $roles_id ( @{ $role_ids } )
+    for my $auth_roles_id ( @{ $role_ids } )
     {
-        $sth->execute( $users_id, $roles_id );
+        $sth->execute( $auth_users_id, $auth_roles_id );
     }
     $sth->finish;
 
@@ -669,15 +669,15 @@ EOF
     $db->query(
         <<"EOF",
         DELETE FROM auth_users_roles_map
-        WHERE users_id = ?
+        WHERE auth_users_id = ?
 EOF
-        $userinfo->{ users_id }
+        $userinfo->{ auth_users_id }
     );
-    my $sql = 'INSERT INTO auth_users_roles_map (users_id, roles_id) VALUES (?, ?)';
+    my $sql = 'INSERT INTO auth_users_roles_map (auth_users_id, auth_roles_id) VALUES (?, ?)';
     my $sth = $db->dbh->prepare_cached( $sql );
-    for my $roles_id ( @{ $roles } )
+    for my $auth_roles_id ( @{ $roles } )
     {
-        $sth->execute( $userinfo->{ users_id }, $roles_id );
+        $sth->execute( $userinfo->{ auth_users_id }, $auth_roles_id );
     }
     $sth->finish;
 
@@ -735,7 +735,7 @@ sub send_password_reset_token_or_return_error_message($$$)
     # time in both cases to avoid timing attacks)
     my $user_exists = $db->query(
         <<"EOF",
-        SELECT users_id,
+        SELECT auth_users_id,
                email
         FROM auth_users
         WHERE email = ?
@@ -744,7 +744,7 @@ EOF
         $email
     )->hash;
 
-    if ( !( ref( $user_exists ) eq 'HASH' and $user_exists->{ users_id } ) )
+    if ( !( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } ) )
     {
 
         # User was not found, so set the email address to an empty string, but don't

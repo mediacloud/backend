@@ -388,14 +388,14 @@ sub update_by_id_and_log($$$$$$$$;$$)
     # Check if user making a change exists
     my $user_exists = $self->query(
         <<"EOF",
-        SELECT users_id
+        SELECT auth_users_id
         FROM auth_users
         WHERE email = ?
         LIMIT 1
 EOF
         $username
     )->hash;
-    unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ users_id } )
+    unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } )
     {
         die "User '$username' does not exist.\n";
     }
