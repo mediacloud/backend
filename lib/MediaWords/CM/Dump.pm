@@ -407,9 +407,7 @@ sub add_tags_to_dump_media
 
     my $tags = $db->query( <<END, $tagset_name )->hashes;
 select * from dump_tags t, dump_tag_sets ts
-  where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all' and
-    exists ( select 1 from dump_stories_tags_map stm, dump_story_link_counts slc 
-                 where stm.tags_id = t.tags_id and slc.stories_id = stm.stories_id )
+  where t.tag_sets_id = ts.tag_sets_id and ts.name = ? and t.tag <> 'all'
 END
 
     my $tag_fields = [];
