@@ -1380,11 +1380,11 @@ create temporary table dump_controversy_media_codes $_temporary_tablespace as
         where cmc.controversies_id = ?
 END
 
-    $db->query( <<END );
+    $db->query( <<END, $controversies_id );
 create temporary table dump_stories $_temporary_tablespace as
     select s.stories_id, s.media_id, s.url, s.guid, s.title, s.publish_date, s.collect_date, s.full_text_rss, s.language
-        from cd.live_stories s, dump_controversy_stories dcs
-        where s.stories_id = dcs.stories_id
+        from cd.live_stories s
+            join dump_controversy_stories dcs on ( s.stories_id = dcs.stories_id and s.controversies_id = ? )
 END
 
     $db->query( <<END );
