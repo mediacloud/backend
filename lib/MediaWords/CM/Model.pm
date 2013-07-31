@@ -317,7 +317,7 @@ sub update_model_correlation
 
     MediaWords::CM::Dump::update_cdts( $db, $cdts, 'model_num_media', scalar( @{ $clean_top_media } ) );
 
-    return unless ( @{ $clean_top_media } > 1 );
+    return unless ( @{ $clean_top_media } > 1 && $all_models_top_media );
 
     my $clean_vector = [];
     for ( my $i = 0 ; $i < @{ $clean_top_media } ; $i++ )
@@ -409,9 +409,13 @@ sub get_all_models_top_media ($$)
         $db->query( "create index dump_tags_tag on dump_tags ( tags_id )" );
         $db->query( "create index dump_stories_tags_map_story on dump_stories_tags_map ( stories_id )" );
 
-        push( @{ $all_models_top_media }, model_confidence_data( $db, $cdts ) );
-        print ".";
+        my $model_top_media = model_confidence_data( $db, $cdts );
         MediaWords::CM::Dump::restore_temporary_tables( $db );
+
+        return unless ( @{ $model_top_media } );
+
+        push( @{ $all_models_top_media }, $model_top_media );
+        print ".";
     }
 
     return $all_models_top_media;

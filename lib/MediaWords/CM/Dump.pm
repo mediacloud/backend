@@ -1148,9 +1148,11 @@ sub generate_cdts ($$$$$$)
 
     update_cdts_counts( $db, $cdts );
 
-    MediaWords::CM::Model::print_model_matches( $db, $cdts, $all_models_top_media );
-
-    MediaWords::CM::Model::update_model_correlation( $db, $cdts, $all_models_top_media );
+    if ( $all_models_top_media )
+    {
+        MediaWords::CM::Model::print_model_matches( $db, $cdts, $all_models_top_media );
+        MediaWords::CM::Model::update_model_correlation( $db, $cdts, $all_models_top_media );
+    }
 
     # my $confidence = get_model_confidence( $db, $cdts, $all_models_top_media );
     # print "confidence: $confidence\n";
