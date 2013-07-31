@@ -899,26 +899,40 @@ END
     return $r ? 1 : 0;
 }
 
-# return true if the date is reliable
+# return true if the date is reliable.  a date is reliable if either of the following are true:
+# * the story has one of the date_guess_method:* tags listed in reliable_methods below;
+# * no date_guess_method:* tag and no date_invalid:undateable tag is associated with the story
+# otherwise, the date is unreliable
 sub date_is_reliable
 {
     my ( $db, $story ) = @_;
 
-    my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
-    my $reliable_methods_list = join( ',', map { $db->dbh->quote( $_ ) } @{ $reliable_methods } );
-
-    my $unreliable_method = $db->query( <<END, $story->{ stories_id } )->hash;
-select stm.* 
+    my $tags = $db->query( <<END, $story->{ stories_id } )->hashes;
+select t.tag, ts.name tag_set_name
     from stories_tags_map stm
-        join tags t on ( stm.tags_id = t.tags_id ) 
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where
-        t.tag not in ( $reliable_methods_list ) and
-        ts.name = 'date_guess_method' and
-        stm.stories_id = ?
+        join tags t on ( stm.tags_id = t.tags_id and stm.stories_id = ? )
+        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name in ( 'date_guess_method', 'date_invalid' ) )
 END
 
-    return $unreliable_method ? 0 : 1;
+    my $tag_lookup = { date_guess_method => {}, date_invalid => {} };
+    for my $tag ( @{ $tags } )
+    {
+        $tag_lookup->{ $tag->{ tag_set_name } }->{ $tag->{ tag } } = 1;
+    }
+
+    my $reliable_methods = [ qw(guess_by_url guess_by_url_and_date_text merged_story_rss manual) ];
+
+    if ( grep { $tag_lookup->{ date_guess_method }->{ $_ } } @{ $reliable_methods } )
+    {
+        return 1;
+    }
+
+    if ( !$tag_lookup->{ date_invalid }->{ undateable } && !%{ $tag_lookup->{ date_guess_method } } )
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 # set the undateable status of the story by adding or removing the 'date_guess_method:undateable' tage
