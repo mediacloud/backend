@@ -58,6 +58,21 @@ END
     }
 }
 
+# get all cdtss associated with a dump, sorted consistenty and
+# with a tag_name field added
+sub _get_cdts_from_cd
+{
+    my ( $db, $cd ) = @_;
+
+    return $db->query( <<END, $cd->{ controversy_dumps_id } )->hashes;
+select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
+    from controversy_dump_time_slices cdts
+        left join tags t on ( cdts.tags_id = t.tags_id )
+    where controversy_dumps_id = ? 
+    order by cdts.tags_id desc, period, start_date, end_date
+END
+}
+
 sub _get_latest_full_dump_with_time_slices
 {
     my ( $db, $controversy_dumps, $controversy ) = @_;
@@ -74,11 +89,7 @@ sub _get_latest_full_dump_with_time_slices
 
     return unless ( $latest_full_dump );
 
-    my $controversy_dump_time_slices = $db->query( <<END, $latest_full_dump->{ controversy_dumps_id } )->hashes;
-select * from controversy_dump_time_slices 
-    where controversy_dumps_id = ? 
-    order by period, start_date, end_date
-END
+    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $latest_full_dump );
 
     map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 
@@ -144,11 +155,7 @@ select * from controversy_dumps where controversy_dumps_id = ?
 END
     my $controversy = $db->find_by_id( 'controversies', $controversy_dump->{ controversies_id } );
 
-    my $controversy_dump_time_slices = $db->query( <<END, $controversy_dumps_id )->hashes;
-select * from controversy_dump_time_slices 
-    where controversy_dumps_id = ? 
-    order by period, start_date, end_date
-END
+    my $controversy_dump_time_slices = _get_cdts_from_cd( $db, $controversy_dump );
 
     map { _add_cdts_model_reliability( $db, $_ ) } @{ $controversy_dump_time_slices };
 

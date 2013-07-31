@@ -9,6 +9,7 @@ Time Slices
 
 <tr>
 <th>Period</th>
+<th>Tag</th>
 <th>Dates</th>
 <th>Model Correlation</th>
 <th># Top Media</th>
@@ -25,7 +26,7 @@ Time Slices
         <tr [% IF even %]id="even"[% END %]>
 
             <td><a href="[% cdts_url | html %]">[% cdts.period | html %]</a></td>
-
+            <td>[% cdts.tag_name | html %]</td>
             <td>[% date.format( cdts.start_date ) %] - [% date.format( cdts.end_date ) %]</td>
             <td>[% INCLUDE cm/model_reliability.tt2 %]</td>
             <td>[% cdts.model_num_media %]</td>

@@ -10,6 +10,7 @@ use POSIX;
 use Statistics::Basic;
 
 use MediaWords::CM::Dump;
+use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 
 # percentage of media sources in a given dump for which to generate a confidence interval
@@ -29,9 +30,6 @@ use constant PERCENT_UNDATEABLE_DATE_DATEABLE => 30;
 
 # percent of stories guessed to be dateable that are actually undateable
 use constant PERCENT_DATE_UNDATEABLE => 13;
-
-# number of times to run the confidence model
-use constant CONFIDENCE_REPS => 10;
 
 # get the top MODEL_PERCENT_TOP_MEDIA of media sources from the current dump by incoming links
 sub get_top_media_link_counts
@@ -255,7 +253,7 @@ sub model_confidence_data
 
     tweak_story_dates( $db, $cdts );
 
-    MediaWords::CM::Dump::generate_period_dump_data( $db, $cdts, 1 );
+    MediaWords::CM::Dump::generate_cdts_data( $db, $cdts, 1 );
 
     my $top_media_link_counts = get_top_media_link_counts( $db, $cdts, 2 );
 
@@ -309,8 +307,8 @@ sub get_model_correlation_p_value
     return ( $p_hits / $num_reps );
 }
 
-# return the correlation between the clean data repeated CONFIDENCE_REPS times and
-# the concatenation of all models
+# generate and store the mean and sd of the correlations between the ranks
+# of the top media of the clean data and of each of the models
 sub update_model_correlation
 {
     my ( $db, $cdts, $all_models_top_media ) = @_;
@@ -389,18 +387,21 @@ sub print_model_matches
     # return $num_model_matches;
 }
 
-# run CONFIDENCE_REPS models and return a list of ordered lists
+# run $config->{ mediawords }->{ controversy_model_reps } models and return a list of ordered lists
 # of top_media, one list of top media for each model run
 sub get_all_models_top_media ($$)
 {
     my ( $db, $cdts ) = @_;
+
+    my $config     = MediaWords::Util::Config::get_config;
+    my $model_reps = $config->{ mediawords }->{ controversy_model_reps };
 
     print "copying temporary tables ...\n";
     MediaWords::CM::Dump::copy_temporary_tables( $db );
 
     print "running models: ";
     my $all_models_top_media = [];
-    for my $i ( 1 .. CONFIDENCE_REPS )
+    for my $i ( 1 .. $model_reps )
     {
 
         # these make the data tweaking process and other operations much faster

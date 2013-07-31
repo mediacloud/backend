@@ -172,3 +172,6 @@ amazon_s3:
     
     # tablespace in which to create temporary tables -- defaults to the postgres default
     # temporary_table_tablespace: temporary_tablespace
+    
+    # number of times to run each controversy_dump_time_slice model in MediaWords::CM::Model
+    # controversy_model_reps: 25

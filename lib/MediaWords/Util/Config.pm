@@ -82,6 +82,7 @@ sub set_defaults
     $config->{ mediawords }->{ read_tar_downloads_from_gridfs }   ||= 'no';
     $config->{ mediawords }->{ read_file_downloads_from_gridfs }  ||= 'no';
     $config->{ mediawords }->{ extractor_method }                 ||= 'HeuristicExtractor';
+    $config->{ mediawords }->{ controversy_model_reps }           ||= '25';
     $config->{ mail }->{ from_address }                           ||= "noreply\@mediacloud.org";
     $config->{ mail }->{ bug_email }                              ||= "";
     $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";

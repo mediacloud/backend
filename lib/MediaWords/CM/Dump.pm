@@ -16,6 +16,7 @@ use MediaWords::CM::Model;
 use MediaWords::DBI::Media;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
+use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
@@ -142,21 +143,37 @@ sub discard_temp_tables
     $db->query( "discard temp" );
 }
 
-# period stories may be a view or a table, and postgres complains if we try to do
-# a 'drop table|view if exits' if the object type doesn't match.  so we have to
-# figure out if dump_period_stories exists and if so drop the appropriate
-# object
-sub drop_dump_period_stories
+# remove stories from dump_period_stories that don't match the $csts->{ tags_id }, if present
+sub restrict_period_stories_to_tag
 {
-    my ( $db ) = @_;
+    my ( $db, $cdts ) = @_;
 
-    my $pg = $db->query( "select * from pg_class where relname = 'dump_period_stories'" )->hash;
+    return unless ( $cdts->{ tags_id } );
 
-    return unless ( $pg );
+    # it may be a little slower to add all the rows and then delete them, but
+    # it makes the code much cleaner
+    $db->query( <<END, $cdts->{ tags_id } );
+delete from dump_period_stories s where not exists
+        ( select 1 from stories_tags_map stm where stm.stories_id = s.stories_id and stm.tags_id = ? )
+END
 
-    my $kind = ( $pg->{ relkind } eq 'v' ) ? 'view' : 'table';
+}
 
-    $db->query( "drop $kind dump_period_stories" );
+# get the where clause that will restrict the dump_period_stories creation
+# to only stories within the cdts time frame
+sub get_period_stories_date_where_clause
+{
+    my ( $cdts ) = @_;
+
+    my $date_clause = <<END;
+( ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' 
+      and s.stories_id not in ( select stories_id from dump_undateable_stories ) ) or
+  ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
+      and ss.stories_id not in ( select stories_id from dump_undateable_stories ) )
+)
+END
+
+    return $date_clause;
 }
 
 # write dump_period_stories table that holds list of all stories that should be included in the
@@ -173,11 +190,11 @@ sub write_period_stories
 {
     my ( $db, $cdts ) = @_;
 
-    drop_dump_period_stories( $db );
+    $db->query( "drop table if exists dump_period_stories" );
 
-    if ( !$cdts || ( $cdts->{ period } eq 'overall' ) )
+    if ( !$cdts || ( !$cdts->{ tags_id } && ( $cdts->{ period } eq 'overall' ) ) )
     {
-        $db->query( "create temporary view dump_period_stories as select stories_id from dump_stories" );
+        $db->query( "create table dump_period_stories as select stories_id from dump_stories" );
     }
     else
     {
@@ -192,6 +209,8 @@ create or replace view dump_undateable_stories as
             t.tag = 'undateable'
 END
 
+        my $date_where_clause = get_period_stories_date_where_clause( $cdts );
+
         $db->query( <<"END", $cdts->{ start_date }, $cdts->{ end_date } );
 create temporary table dump_period_stories $_temporary_tablespace as
     select distinct s.stories_id
@@ -199,13 +218,15 @@ create temporary table dump_period_stories $_temporary_tablespace as
             left join dump_controversy_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
             left join dump_stories ss on ( cl.stories_id = ss.stories_id )
         where 
-            ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' 
-                and s.stories_id not in ( select stories_id from dump_undateable_stories ) ) or
-            ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
-                and ss.stories_id not in ( select stories_id from dump_undateable_stories ) )
+            $date_where_clause
 END
 
         $db->query( "drop view dump_undateable_stories" );
+    }
+
+    if ( $cdts->{ tags_id } )
+    {
+        restrict_period_stories_to_tag( $db, $cdts );
     }
 }
 
@@ -1051,9 +1072,9 @@ select sa.title, sa.stories_id stories_id_a, sa.publish_date publish_date_a, sa.
 END
 }
 
-sub create_controversy_dump_time_slice ($$$$$)
+sub create_controversy_dump_time_slice ($$$$$$)
 {
-    my ( $db, $cd, $start_date, $end_date, $period ) = @_;
+    my ( $db, $cd, $start_date, $end_date, $period, $tag ) = @_;
 
     my $cdts = {
         controversy_dumps_id => $cd->{ controversy_dumps_id },
@@ -1063,7 +1084,8 @@ sub create_controversy_dump_time_slice ($$$$$)
         story_count          => 0,
         story_link_count     => 0,
         medium_count         => 0,
-        medium_link_count    => 0
+        medium_link_count    => 0,
+        tags_id              => $tag ? $tag->{ tags_id } : undef
     };
 
     $cdts = $db->create( 'controversy_dump_time_slices', $cdts );
@@ -1075,7 +1097,7 @@ sub create_controversy_dump_time_slice ($$$$$)
 
 # generate data for the story_links, story_link_counts, media_links, media_link_counts tables
 # based on the data in the temporary dump_* tables
-sub generate_period_dump_data ($$;$)
+sub generate_cdts_data ($$;$)
 {
     my ( $db, $cdts, $is_model ) = @_;
 
@@ -1111,20 +1133,20 @@ sub update_cdts_counts ($$;$)
     }
 }
 
-# generate the dumps for the given period and dates
-sub generate_period_dump ($$$$$)
+# generate the dump time slices for the given period, dates, and tag
+sub generate_cdts ($$$$$$)
 {
-    my ( $db, $cd, $start_date, $end_date, $period ) = @_;
+    my ( $db, $cd, $start_date, $end_date, $period, $tag ) = @_;
 
-    my $cdts = create_controversy_dump_time_slice( $db, $cd, $start_date, $end_date, $period );
+    my $cdts = create_controversy_dump_time_slice( $db, $cd, $start_date, $end_date, $period, $tag );
 
-    my $dump_label = "${ period }: ${ start_date } - ${ end_date }";
+    my $dump_label = "${ period }: ${ start_date } - ${ end_date } " . ( $tag ? "[ $tag->{ tag } ]" : "" );
     print "generating $dump_label ...\n";
 
     my $all_models_top_media = MediaWords::CM::Model::get_all_models_top_media( $db, $cdts );
 
     print "\ngenerating dump data ...\n";
-    generate_period_dump_data( $db, $cdts );
+    generate_cdts_data( $db, $cdts );
 
     update_cdts_counts( $db, $cdts );
 
@@ -1166,9 +1188,9 @@ sub truncate_to_start_of_month ($)
 }
 
 # generate dumps for the periods in controversy_dates
-sub generate_custom_period_dumps ($$)
+sub generate_custom_period_dump ($$$ )
 {
-    my ( $db, $cd ) = @_;
+    my ( $db, $cd, $tag ) = @_;
 
     my $controversy_dates = $db->query( <<END, $cd->{ controversies_id } )->hashes;
 select * from controversy_dates where controversies_id = ? order by start_date, end_date
@@ -1178,21 +1200,21 @@ END
     {
         my $start_date = $controversy_date->{ start_date };
         my $end_date   = $controversy_date->{ end_date };
-        generate_period_dump( $db, $cd, $start_date, $end_date, 'custom' );
+        generate_cdts( $db, $cd, $start_date, $end_date, 'custom', $tag );
     }
 }
 
-# generate dumps for the given period (overall, monthly, weekly, or custom)
-sub generate_all_period_dumps ($$$)
+# generate dump for the given period (overall, monthly, weekly, or custom) and the given tag
+sub generate_period_dump ($$$$)
 {
-    my ( $db, $cd, $period ) = @_;
+    my ( $db, $cd, $period, $tag ) = @_;
 
     my $start_date = $cd->{ start_date };
     my $end_date   = $cd->{ end_date };
 
     if ( $period eq 'overall' )
     {
-        generate_period_dump( $db, $cd, $start_date, $end_date, $period );
+        generate_cdts( $db, $cd, $start_date, $end_date, $period, $tag );
     }
     elsif ( $period eq 'weekly' )
     {
@@ -1201,7 +1223,7 @@ sub generate_all_period_dumps ($$$)
         {
             my $w_end_date = MediaWords::Util::SQL::increment_day( $w_start_date, 7 );
 
-            generate_period_dump( $db, $cd, $w_start_date, $w_end_date, $period );
+            generate_cdts( $db, $cd, $w_start_date, $w_end_date, $period, $tag );
 
             $w_start_date = $w_end_date;
         }
@@ -1214,14 +1236,14 @@ sub generate_all_period_dumps ($$$)
             my $m_end_date = MediaWords::Util::SQL::increment_day( $m_start_date, 32 );
             $m_end_date = truncate_to_start_of_month( $m_end_date );
 
-            generate_period_dump( $db, $cd, $m_start_date, $m_end_date, $period );
+            generate_cdts( $db, $cd, $m_start_date, $m_end_date, $period, $tag );
 
             $m_start_date = $m_end_date;
         }
     }
     elsif ( $period eq 'custom' )
     {
-        generate_custom_period_dumps( $db, $cd );
+        generate_custom_period_dump( $db, $cd, $tag );
     }
     else
     {
@@ -1367,9 +1389,8 @@ END
 
     $db->query( <<END );
 create temporary table dump_media $_temporary_tablespace as
-    select distinct m.* 
-        from media m, dump_stories ds
-        where ds.media_id = m.media_id
+    select m.* from media m
+        where m.media_id in ( select media_id from dump_stories )
 END
 
     $db->query( <<END, $controversies_id );
@@ -1386,29 +1407,31 @@ END
 
     $db->query( <<END );
 create temporary table dump_stories_tags_map $_temporary_tablespace as
-    select distinct stm.*
+    select stm.*
     from stories_tags_map stm, dump_stories ds
     where stm.stories_id = ds.stories_id
 END
 
     $db->query( <<END );
 create temporary table dump_media_tags_map $_temporary_tablespace as
-    select distinct mtm.*
+    select mtm.*
     from media_tags_map mtm, dump_media dm
     where mtm.media_id = dm.media_id
 END
 
     $db->query( <<END );
 create temporary table dump_tags $_temporary_tablespace as
-    select distinct t.*
-        from tags t
-            join dump_media_tags_map dmtm on ( t.tags_id = dmtm.tags_id )
+    select distinct t.* from tags t where t.tags_id in
+        ( select distinct a.tags_id
+            from tags a
+                join dump_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
         
-    union
+          union
 
-    select distinct t.*
-        from tags t
-            join dump_stories_tags_map dstm on ( t.tags_id = dstm.tags_id )
+          select distinct b.tags_id
+            from tags b
+                join dump_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
+        )
      
 END
 
@@ -1423,7 +1446,7 @@ END
 # generate snapshots for all of the get_snapshot_tables from the temporary dump tables
 sub generate_snapshots_from_temporary_dump_tables
 {
-    my ( $db, $cd, $start_date, $end_date ) = @_;
+    my ( $db, $cd ) = @_;
 
     my $snapshot_tables = get_snapshot_tables();
 
@@ -1464,12 +1487,10 @@ sub analyze_snapshot_tables
     }
 }
 
-# create a controversy_dump for the given controversy, start_date, end_date, and period
-sub dump_controversy ($$$$$)
+# validate and set the periods for the dump based on the period parameter
+sub get_periods ($)
 {
-    my ( $db, $controversies_id, $start_date, $end_date, $period ) = @_;
-
-    $| = 1;
+    my ( $period ) = @_;
 
     $period ||= 'all';
 
@@ -1478,11 +1499,13 @@ sub dump_controversy ($$$$$)
     die( "period must be all, custom, overall, weekly, or monthly" )
       if ( $period && !grep { $_ eq $period } ( 'all', @{ $all_periods } ) );
 
-    # we do lots of dropping tables and views that produce noisy, extraneous postgres notices
-    $db->dbh->{ PrintWarn } = 0;
+    return ( $period eq 'all' ) ? $all_periods : [ $period ];
+}
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
-      || die( "Unable to find controversy '$controversies_id'" );
+# validate and set the date parameters for the dump
+sub get_dates ($$$$)
+{
+    my ( $db, $controversy, $start_date, $end_date ) = @_;
 
     if ( !$start_date || !$end_date )
     {
@@ -1491,16 +1514,48 @@ sub dump_controversy ($$$$$)
         $end_date   ||= $default_end_date;
     }
 
+    return ( $start_date, $end_date );
+}
+
+# get the tags associated with the controversy through controversy_dump_tags
+sub get_dump_tags
+{
+    my ( $db, $controversy ) = @_;
+
+    my $tags = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
+select distinct t.*
+    from tags t
+        join controversy_dump_tags cdt on ( t.tags_id = cdt.tags_id and cdt.controversies_id = ? )
+END
+}
+
+# create a controversy_dump for the given controversy
+sub dump_controversy ($$)
+{
+    my ( $db, $controversies_id ) = @_;
+
+    my $periods = [ qw(custom overall weekly monthly) ];
+
+    $db->dbh->{ PrintWarn } = 0;    # avoid noisy, extraneous postgres notices from drops
+
+    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
+      || die( "Unable to find controversy '$controversies_id'" );
+
+    my ( $start_date, $end_date ) = get_default_dates( $db, $controversy );
+
+    my $dump_tags = get_dump_tags( $db, $controversy );
+
     my $cd = create_controversy_dump( $db, $controversy, $start_date, $end_date );
 
     write_temporary_dump_tables( $db, $controversy->{ controversies_id } );
-    generate_snapshots_from_temporary_dump_tables( $db, $cd, $start_date, $end_date );
+    generate_snapshots_from_temporary_dump_tables( $db, $cd );
 
-    my $periods = ( $period eq 'all' ) ? $all_periods : [ $period ];
-
-    for my $p ( @{ $periods } )
+    for my $t ( undef, @{ $dump_tags } )
     {
-        generate_all_period_dumps( $db, $cd, $p );
+        for my $p ( @{ $periods } )
+        {
+            generate_period_dump( $db, $cd, $p, $t );
+        }
     }
 
     write_date_counts_dump( $db, $cd, 'daily' );

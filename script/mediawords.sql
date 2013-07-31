@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4419;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4420;
     
 BEGIN
 
@@ -1235,6 +1235,12 @@ create table controversy_dates (
     end_date                date not null
 );
 
+create table controversy_dump_tags (
+    controversy_dump_tags_id    serial primary key,
+    controversies_id            int not null references controversies on delete cascade,
+    tags_id                     int not null references tags
+);
+
 create table controversy_media_codes (
     controversies_id        int not null references controversies on delete cascade,
     media_id                int not null references media on delete cascade,
@@ -1324,7 +1330,8 @@ create table controversy_dump_time_slices (
     story_count                     int not null,
     story_link_count                int not null,
     medium_count                    int not null,
-    medium_link_count               int not null
+    medium_link_count               int not null,
+    tags_id                         int references tags -- keep on cascade to avoid accidental deletion
 );
 
 create index controversy_dump_time_slices_dump on controversy_dump_time_slices ( controversy_dumps_id );
@@ -1359,7 +1366,6 @@ create table cd.stories (
     url                         varchar(1024)   not null,
     guid                        varchar(1024)   not null,
     title                       text            not null,
-    description                 text            null,
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
@@ -1386,9 +1392,7 @@ create table cd.controversy_links_cross_media (
     controversies_id            int not null,
     stories_id                  int not null,
     url                         text not null,
-    ref_stories_id              int,
-    media_name                  text,
-    ref_media_name              text    
+    ref_stories_id              int
 );
 create index controversy_links_story on cd.controversy_links_cross_media ( controversy_dumps_id, stories_id );
 create index controversy_links_ref on cd.controversy_links_cross_media ( controversy_dumps_id, ref_stories_id );
