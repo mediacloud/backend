@@ -129,7 +129,7 @@ sub _get_merged_word_count
 
     my $set = _get_set_for_word( $words_1_hash, $words_2_hash, $word );
 
-    say STDERR Dumper( $words_1_hash->{ $word }, $words_2_hash->{ $word }, $set );
+    # say STDERR Dumper( $words_1_hash->{ $word }, $words_2_hash->{ $word }, $set );
 
     my $ret;
 
@@ -202,8 +202,8 @@ sub get_multi_set_word_cloud
         my $word_record = _get_merged_word_count( $words_1_hash, $words_2_hash, $word );
         my $set = _get_set_for_word( $words_1_hash, $words_2_hash, $word );
 
-        say STDERR "WORD: " . Dumper( $word, $words_1_hash->{ $word }, $words_2_hash->{ $word } );
-        say STDERR "SET: $set\n";
+        # say STDERR "WORD: " . Dumper( $word, $words_1_hash->{ $word }, $words_2_hash->{ $word } );
+        # say STDERR "SET: $set\n";
 
         my $queries_ids = [ map { $_->{ queries_id } } @{ $queries } ];
 
