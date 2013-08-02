@@ -667,7 +667,7 @@ select distinct s.*, sm.name medium_name, sslc.inlink_count, sslc.outlink_count
         cl.ref_stories_id = ?       
     order by sslc.inlink_count desc
 END
-    map { _add_story_date_info( $db, $_ ) } @{ $story->{ outlink_stories } };
+    map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
 
     $story->{ outlink_stories } = $db->query( <<'END', $stories_id )->hashes;
 select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
@@ -683,7 +683,7 @@ select distinct r.*, rm.name medium_name, rslc.inlink_count, rslc.outlink_count
         cl.stories_id = ?
     order by rslc.inlink_count desc
 END
-    map { _add_story_date_info( $db, $_ ) } @{ $story->{ inlink_stories } };
+    map { _add_story_date_info( $db, $_ ) } @{ $story->{ outlink_stories } };
 
     $story->{ inlink_count }  = scalar( @{ $story->{ inlink_stories } } );
     $story->{ outlink_count } = scalar( @{ $story->{ outlink_stories } } );
