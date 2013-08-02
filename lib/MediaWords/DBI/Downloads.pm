@@ -374,9 +374,17 @@ sub store_content($$$)
     }
 
     # Update database
-    $db->query(
-        "update downloads set state = ?, path = ?, error_message = ? where downloads_id = ?",
-        $new_state, $path,
+    $db->query(<<"EOF",
+        UPDATE downloads
+        SET state = ?,
+            path = ?,
+            error_message = ?,
+            file_status = DEFAULT       -- Reset the file_status in case
+                                        -- this download is being redownloaded
+        WHERE downloads_id = ?
+EOF
+        $new_state,
+        $path,
         $download->{ error_message },
         $download->{ downloads_id }
     );
