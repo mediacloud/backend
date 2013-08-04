@@ -32,7 +32,7 @@ END
 }
 
 # add a periods field to the controversy dump
-sub _add_periods_to_controversy_dump
+sub add_periods_to_controversy_dump
 {
     my ( $db, $controversy_dump ) = @_;
 
@@ -73,7 +73,7 @@ select cdts.*, coalesce( t.tag, '(all stories/no tag)' ) tag_name
 END
 }
 
-sub _get_latest_full_dump_with_time_slices
+sub get_latest_full_dump_with_time_slices
 {
     my ( $db, $controversy_dumps, $controversy ) = @_;
 
@@ -117,9 +117,9 @@ select * from controversy_dumps where controversies_id = ?
     order by controversy_dumps_id desc
 END
 
-    map { _add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
+    map { add_periods_to_controversy_dump( $db, $_ ) } @{ $controversy_dumps };
 
-    my $latest_full_dump = _get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
+    my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
 
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
@@ -816,17 +816,44 @@ select slc.stories_id
     from dump_story_link_counts slc
         join dump_stories s on ( s.stories_id = slc.stories_id )
         join dump_media m on ( s.media_id = m.media_id )
-        left join story_sentences ss on ( slc.stories_id = s.stories_id )
-    where ( ss.sentence like $qterm or 
-            lower( s.title ) like $qterm or
+    where ( lower( s.title ) like $qterm or
             lower( s.url ) like $qterm or 
             lower( m.url ) like $qterm or
-            lower( m.name ) like $qterm )
+            lower( m.name ) like $qterm or )
+
+union
+
+select slc.stories_id 
+    from dump_story_link_counts slc
+        join stories_tags_map stm on ( slc.stories_id = stm.stories_id )
+        join tags t ( on stm.tags_id = t.tags_id )                
+    where ( lower( t.tag ) like $qterm )
 END
         push( @{ $queries }, $query );
     }
 
     return join( ' intersect ', map { "( $_ )" } @{ $queries } );
+}
+
+# if the serach query is a number and returns a story in the controversy,
+# add the story to the beginning of the search results
+sub _add_id_story_to_search_results ($$$)
+{
+    my ( $db, $stories, $query ) = @_;
+
+    return unless ( $query =~ /^[0-9]+$/ );
+
+    my $id_story = $db->query( <<END, $query )->hash;
+select s.* 
+    from dump_stories s
+        join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
+    where s.stories_id = ?
+END
+
+    if ( $id_story )
+    {
+        unshift( @{ $stories }, $id_story );
+    }
 }
 
 # do a basic story search based on the story sentences, title, url, media name, and media url
@@ -857,6 +884,9 @@ select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
         s.stories_id in ( $search_query )
     order by slc.inlink_count desc
 END
+
+    _add_id_story_to_search_results( $db, $stories, $query );
+
     map { _add_story_date_info( $db, $_ ) } @{ $stories };
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
