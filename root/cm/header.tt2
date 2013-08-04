@@ -16,7 +16,6 @@
     [% cdts_link = '&gt; <a href="' _ c.uri_for( "/admin/cm/view_time_slice/" _ cdts.controversy_dump_time_slices_id, { l => live } ) _ '">' _ cdts_date_range _ ' Time Slice</a>' %]
 [% END %]
 
-
 [% INCLUDE include/header.tt2
     title = "CM: $title"
     breadcrumbs = "[ $controversy_link $dump_link $cdts_link ]" %]
