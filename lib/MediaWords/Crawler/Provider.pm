@@ -34,9 +34,10 @@ use constant MAX_QUEUED_DOWNLOADS => 50000;
 # and thus can be filled with missing downloads
 use constant QUEUED_DOWNLOADS_IDLE_COUNT => 1000;
 
-# how many broken (missing) downloads to enqueue each and every
-# time the queue is idle
-use constant BROKEN_DOWNLOADS_CHUNK_COUNT => 10000;
+# how many missing downloads to enqueue each and every time the queue is idle
+# (has to fit in memory because this is how much downloads are passed to
+# _queue_download_list_with_per_site_limit())
+use constant MISSING_DOWNLOADS_CHUNK_COUNT => 1000;
 
 # how often to check the database for new pending downloads (seconds)
 use constant DEFAULT_PENDING_CHECK_INTERVAL => 10 * ONE_MINUTE;
@@ -140,7 +141,7 @@ sub _add_stale_feeds
     my $dbs = $self->engine->dbs;
 
     my $last_new_story_time_clause =
-      " ( now() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes' ) ";
+" ( now() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes' ) ";
 
     my $constraint =
       "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
@@ -237,32 +238,62 @@ sub _queue_download_list_with_per_site_limit
     return;
 }
 
-# enqueue broken (missing) downloads if queue size is less than QUEUED_DOWNLOADS_IDLE_COUNT
-sub _enqueue_broken_downloads_if_idle($)
+# add missing downloads
+sub _add_missing_downloads($$)
 {
-    my ( $self ) = @_;
+    my ( $self, $missing_downloads_chunk_count ) = @_;
 
-    return unless ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT );
+    unless ( $missing_downloads_chunk_count )
+    {
+        say STDERR "Missing downloads chunk count is 0";
+        return;
+    }
 
-    print STDERR "queue contains less than " . QUEUED_DOWNLOADS_IDLE_COUNT .
-      " pending downloads, adding missing downloads\n";
+    say STDERR "adding missing downloads";
 
     my $db = $self->engine->dbs;
 
     # Enqueue some of the missing downloads to the redownloaded
-    my $downloads = $db->query(
+    my $missing_downloads = $db->query(
         <<END,
-        UPDATE downloads
-        SET state = 'pending'
-        WHERE downloads_id IN (
-            SELECT downloads_id
-            FROM downloads
-            WHERE type = 'content' AND file_status = 'missing'
-            LIMIT ?
-        )
+        SELECT d.*,
+               f.media_id AS _media_id,
+               COALESCE( site_from_host( d.host ), 'non-media' ) AS site
+        FROM downloads AS d
+            LEFT JOIN feeds AS f ON f.feeds_id = d.feeds_id
+
+        -- enqueue only "content" downloads, skip the "feed" downloads
+        -- (because we do not expect we will get the same feed as it was
+        -- in 2009)
+        WHERE d.type = 'content'
+
+          -- and the download is missing from the filesystem
+          AND d.file_status = 'missing'
+
+          -- the download was successful the first time it was fetched
+          -- (do not attempt to redownload errorneous downloads)
+          AND d.state = 'success'
+        ORDER BY downloads_id ASC
+        LIMIT ?
 END
-        BROKEN_DOWNLOADS_CHUNK_COUNT
-    );
+        $missing_downloads_chunk_count
+    )->hashes;
+
+    my $missing_download_sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $missing_downloads } ) ];
+
+    my $site_missing_downloads = {};
+    map { push( @{ $site_missing_downloads->{ $_->{ site } } }, $_ ) } @{ $missing_downloads };
+
+    if ( @{ $missing_download_sites } )
+    {
+        my $site_missing_download_queue_limit = int( MAX_QUEUED_DOWNLOADS / scalar( @{ $missing_download_sites } ) );
+
+        for my $missing_download_site ( @{ $missing_download_sites } )
+        {
+            $self->_queue_download_list_with_per_site_limit( $site_missing_downloads->{ $missing_download_site },
+                $site_missing_download_queue_limit );
+        }
+    }
 }
 
 # add all pending downloads to the $_downloads list
@@ -312,8 +343,6 @@ END
             $self->_queue_download_list_with_per_site_limit( $site_downloads->{ $site }, $site_download_queue_limit );
         }
     }
-
-    $self->_enqueue_broken_downloads_if_idle();
 }
 
 # add all pending downloads to the $_downloads list
@@ -358,6 +387,12 @@ sub provide_downloads
 
     #$self->_retry_timed_out_spider_downloads();
     $self->_add_pending_downloads();
+
+    # Add some missing downloads if the functions above didn't fill up the queue
+    if ( $self->{ downloads }->_get_downloads_size < QUEUED_DOWNLOADS_IDLE_COUNT )
+    {
+        $self->_add_missing_downloads( MISSING_DOWNLOADS_CHUNK_COUNT );
+    }
 
     my @downloads;
   MEDIA_ID:
