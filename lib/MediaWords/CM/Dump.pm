@@ -194,7 +194,7 @@ sub write_period_stories
 
     if ( !$cdts || ( !$cdts->{ tags_id } && ( $cdts->{ period } eq 'overall' ) ) )
     {
-        $db->query( "create table dump_period_stories as select stories_id from dump_stories" );
+        $db->query( "create temporary table dump_period_stories as select stories_id from dump_stories" );
     }
     else
     {
