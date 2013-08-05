@@ -538,7 +538,7 @@ sub add_new_story
     my $spidered_tag = get_spidered_tag( $db );
     $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $spidered_tag->{ tags_id } } );
 
-    MediaWords::DBI::Stories::MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date_guess_method );
+    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date_guess_method );
 
     print STDERR "add story: $story->{ title } / $story->{ url } / $story->{ publish_date } / $story->{ stories_id }\n";
 
