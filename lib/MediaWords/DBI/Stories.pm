@@ -995,7 +995,7 @@ delete from stories_tags_map stm
     where 
         t.tags_id = stm.tags_id and
         ts.name = ? and
-        s.stories_id = ?
+        stm.stories_id = ?
 END
         }
     }
