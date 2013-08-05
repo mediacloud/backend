@@ -47,6 +47,9 @@ my $_snapshot_tables = [
 # tablespace clause for temporary tables
 my $_temporary_tablespace;
 
+# temporary hack to get around dump_period_stories lock
+my $_drop_dump_period_stories = 1;
+
 # get the list of all snapshot tables
 sub get_snapshot_tables
 {
@@ -176,6 +179,22 @@ END
     return $date_clause;
 }
 
+# only run drop table on dump_period_stories if the table exists and is temporary.
+# this is a temporary hack to get around a lock on amanda
+sub drop_temporary_period_stories
+{
+    my ( $db ) = @_;
+
+    my $temp_table_exists = $db->query( <<END )->hash;
+select * from pg_class where relname = 'dump_period_stories' and relistemp = 't'
+END
+
+    if ( $temp_table_exists )
+    {
+        $db->query( "drop table dump_period_stories" );
+    }
+}
+
 # write dump_period_stories table that holds list of all stories that should be included in the
 # current period.  For an overall dump, every story should be in the current period.
 # For other dumps, a story should be in the current dump if either its date is within
@@ -190,7 +209,7 @@ sub write_period_stories
 {
     my ( $db, $cdts ) = @_;
 
-    $db->query( "drop table if exists dump_period_stories" );
+    drop_temporary_period_stories( $db );
 
     if ( !$cdts || ( !$cdts->{ tags_id } && ( $cdts->{ period } eq 'overall' ) ) )
     {
@@ -199,7 +218,7 @@ sub write_period_stories
     else
     {
         $db->query( <<END );
-create or replace view dump_undateable_stories as
+create or replace temporary view dump_undateable_stories as
     select distinct s.stories_id
         from dump_stories s, dump_stories_tags_map stm, dump_tags t, dump_tag_sets ts
         where s.stories_id = stm.stories_id and
