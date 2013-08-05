@@ -21,9 +21,8 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::SQL;
 
-# if pending downloads are greater than this number, do not reindex because it will take a long time
-# and lock the tables.  The recent indexes are fast enough even with millions of entries.
-use constant MAX_PENDING_DOWNLOADS => 10000;
+# number of recent ids to index
+use constant INDEX_SIZE => 10000;
 
 # drop the index if it already exists
 sub drop_index_if_exists
@@ -51,7 +50,7 @@ sub recreate_index
 
     $predicate = "${ table }_id >= $predicate" if ( $predicate =~ /^\d+$/ );
 
-    my $query = "create index $name on $table ( $fields ) where $predicate";
+    my $query = "create index concurrently $name on $table ( $fields ) where $predicate";
 
     say STDERR $query;
 
@@ -62,35 +61,13 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    # use a limit in this query so it doesn't take forever when there are lots of pending downloads
-    my ( $pending_downloads ) = $db->query( <<END, MAX_PENDING_DOWNLOADS + 1 )->flat;
-select count(*) from ( select 1 from downloads where state = 'pending' limit ? ) q
-END
-
-    if ( $pending_downloads > MAX_PENDING_DOWNLOADS )
-    {
-        say STDERR "Refusing to recreate indexes because there are more than " . MAX_PENDING_DOWNLOADS .
-          " pending downloads";
-        return;
-    }
-
-    my ( $min_downloads_id ) = $db->query( "select min( downloads_id ) from downloads where state = 'pending'" )->flat;
-    $min_downloads_id ||= 0;
+    my ( $max_downloads_id ) = $db->query( "select max( downloads_id ) from downloads" )->flat;
+    my $min_downloads_id = $max_downloads_id - INDEX_SIZE;
 
     recreate_index( $db, 'downloads_downloads_id_recent', 'downloads', 'downloads_id', $min_downloads_id );
 
-    my ( $min_stories_id ) = $db->query( "select min( stories_id ) from downloads where state = 'pending'" )->flat;
-    $min_stories_id ||= 0;
-
-    # in theory, we might end up with a very small stories_id and try to reindex the whole stories table, which
-    # would lock up the database, so just guess if the stories_id is too low
     my ( $max_stories_id ) = $db->query( "select max( stories_id ) from stories" )->flat;
-    $max_stories_id ||= 0;
-
-    if ( ( $max_stories_id - $min_stories_id ) > ( MAX_PENDING_DOWNLOADS * 10 ) )
-    {
-        $min_stories_id = $max_stories_id - MAX_PENDING_DOWNLOADS;
-    }
+    my $min_stories_id = $max_stories_id - INDEX_SIZE;
 
     recreate_index( $db, 'stories_stories_id_recent', 'stories', 'stories_id', $min_stories_id );
 
@@ -100,7 +77,6 @@ END
 
     recreate_index( $db, 'stories_guid_recent',          'stories', 'guid, media_id',      $yesterday );
     recreate_index( $db, 'stories_title_pubdate_recent', 'stories', 'title, publish_date', $yesterday );
-
 }
 
 main();
