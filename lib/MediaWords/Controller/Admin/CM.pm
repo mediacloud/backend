@@ -819,14 +819,14 @@ select slc.stories_id
     where ( lower( s.title ) like $qterm or
             lower( s.url ) like $qterm or 
             lower( m.url ) like $qterm or
-            lower( m.name ) like $qterm or )
+            lower( m.name ) like $qterm )
 
 union
 
 select slc.stories_id 
     from dump_story_link_counts slc
         join stories_tags_map stm on ( slc.stories_id = stm.stories_id )
-        join tags t ( on stm.tags_id = t.tags_id )                
+        join tags t on ( stm.tags_id = t.tags_id )                
     where ( lower( t.tag ) like $qterm )
 END
         push( @{ $queries }, $query );
@@ -844,10 +844,11 @@ sub _add_id_story_to_search_results ($$$)
     return unless ( $query =~ /^[0-9]+$/ );
 
     my $id_story = $db->query( <<END, $query )->hash;
-select s.* 
+select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
     from dump_stories s
         join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
-    where s.stories_id = ?
+        join dump_media m on ( s.media_id = m.media_id )
+     where s.stories_id = ?
 END
 
     if ( $id_story )
@@ -911,6 +912,29 @@ END
     $c->stash->{ template }         = 'cm/stories.tt2';
 }
 
+# if the search query is a number and returns a medium in the controversy,
+# add the medium to the beginning of the search results
+sub _add_id_medium_to_search_results ($$$)
+{
+    my ( $db, $media, $query ) = @_;
+
+    return unless ( $query =~ /^[0-9]+$/ );
+
+    my $id_medium = $db->query( <<END, $query )->hash;
+select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
+    from dump_story_link_counts slc
+        join stories s on ( slc.stories_id = s.stories_id ) 
+        join dump_media m on ( s.media_id = m.media_id )
+        join dump_medium_link_counts mlc on ( m.media_id = mlc.media_id )
+     where s.media_id = ?
+END
+
+    if ( $id_medium )
+    {
+        unshift( @{ $media }, $id_medium );
+    }
+}
+
 # do a basic media search based on the story sentences, title, url, media name, and media url
 sub search_media : Local
 {
@@ -939,6 +963,8 @@ select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
         s.stories_id in ( $search_query )
     order by mlc.inlink_count desc
 END
+
+    _add_id_medium_to_search_results( $db, $media, $query );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
