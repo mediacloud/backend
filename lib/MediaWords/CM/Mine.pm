@@ -1427,20 +1427,25 @@ END
 # import stories from the query_story_searches associated with this controversy
 sub import_query_story_search
 {
-    my ( $db, $controversy ) = @_;
+    my ( $db, $controversy, $cache_broken_story_downloads ) = @_;
 
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select distinct s.* from stories s, query_story_searches_stories_map qsssm, controversies c
-    where s.stories_id = qsssm.stories_id and 
-        qsssm.query_story_searches_id = c.query_story_searches_id and
+select distinct s.* 
+    from stories s
+        join query_story_searches_stories_map qsssm on ( qsssm.stories_id = s.stories_id )
+        join controversies c on ( qsssm.query_story_searches_id = c.query_story_searches_id )
+        left join controversy_query_story_searches_imported_stories_map cm
+            on ( cm.stories_id = s.stories_id and cm.controversies_id = c.controversies_id )
+    where
         c.controversies_id = ? and
-        not exists 
-            ( select 1 from controversy_query_story_searches_imported_stories_map cm 
-                  where cm.controversies_id = c.controversies_id and cm.stories_id = s.stories_id )
+        cm.stories_id is null
 END
 
-    print STDERR "caching broken downloads ...\n";
-    cache_broken_story_downloads( $db, $stories );
+    if ( $cache_broken_story_downloads )
+    {
+        print STDERR "caching broken downloads ...\n";
+        cache_broken_story_downloads( $db, $stories );
+    }
 
     for my $story ( @{ $stories } )
     {
@@ -1519,16 +1524,24 @@ END
     }
 }
 
-# mine the given controversy for links and to recursively discover new stories on the web
+# mine the given controversy for links and to recursively discover new stories on the web.
+# options:
+#   dedup_stories - run story deduping on controversy; should only be necessary of deduping algorithm changes
+#   import_only - only run import_seed_urls and import_query_story_search and exit
+#   cache_broken_downloads - speed up fixing broken downloads, but add time if there are no broken downloads
 sub mine_controversy ($$;$)
 {
-    my ( $db, $controversy, $dedup_stories ) = @_;
+    my ( $db, $controversy, $options ) = @_;
 
     print STDERR "importing seed urls ...\n";
     import_seed_urls( $db, $controversy );
 
     print STDERR "importing query stories search ...\n";
-    import_query_story_search( $db, $controversy );
+    import_query_story_search( $db, $controversy, $options->{ cache_broken_downloads } );
+
+    dedup_stories( $db, $controversy ) if ( $options->{ dedup_stories } );
+
+    return if ( $options->{ import_only } );
 
     print STDERR "merging foreign_rss stories ...\n";
     merge_foreign_rss_stories( $db, $controversy );
