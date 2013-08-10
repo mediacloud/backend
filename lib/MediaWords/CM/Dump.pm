@@ -452,7 +452,7 @@ END
 
 sub add_codes_to_dump_media
 {
-    my ( $db, $controversy, $media ) = @_;
+    my ( $db, $cdts, $media ) = @_;
 
     my $code_types = $db->query( <<END )->flat;
 select distinct code_type from dump_controversy_media_codes
@@ -896,6 +896,8 @@ sub write_gexf_dump
 select * from dump_media m, dump_medium_link_counts mlc where m.media_id = mlc.media_id
 END
 
+    add_codes_to_dump_media( $db, $cdts, $media );
+
     my $gexf = {
         'xmlns'              => "http://www.gexf.net/1.2draft",
         'xmlns:xsi'          => "http://www.w3.org/2001/XMLSchema-instance",
@@ -983,7 +985,7 @@ sub stories_exist_for_period
 {
     my ( $db, $controversy ) = @_;
 
-    return $db->query( "select 1 from dump_stories" )->hash;
+    return $db->query( "select 1 from dump_period_stories" )->hash;
 }
 
 # dump csv of all links from one story to another in the given story's future
@@ -1119,14 +1121,11 @@ sub generate_cdts_data ($$;$)
     my ( $db, $cdts, $is_model ) = @_;
 
     write_period_stories( $db, $cdts );
+
     write_story_link_counts_dump( $db, $cdts, $is_model );
     write_story_links_dump( $db, $cdts, $is_model );
-
-    return unless ( stories_exist_for_period( $db, $cdts ) );
-
     write_medium_link_counts_dump( $db, $cdts, $is_model );
     write_medium_links_dump( $db, $cdts, $is_model );
-
 }
 
 # update *_count fields in cdts.  save to db unless $live is specified.
