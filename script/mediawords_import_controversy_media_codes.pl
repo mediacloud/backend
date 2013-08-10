@@ -79,13 +79,7 @@ sub add_codes_to_media
     my $medium = get_medium_from_csv_code( $db, $controversy, $csv_code );
     return unless ( $medium );
 
-    $db->query(
-        "delete from controversy_media_codes where controversies_id = ? and media_id = ? and code_type = ?",
-        $controversy->{ controversies_id },
-        $medium->{ media_id }, $code_type
-    );
-
-    if ( $csv_code ne 'null' )
+    if ( $csv_code->{ code } && ( $csv_code->{ code } ne 'null' ) )
     {
         $db->query(
             "insert into controversy_media_codes ( controversies_id, media_id, code_type, code ) values ( ?, ?, ?, ? )",
@@ -120,6 +114,10 @@ sub main
       || die( "Unable to find controversy '$controversies_id'" );
 
     my $csv_codes = get_csv_codes( $csv );
+
+    $db->query( <<END, $controversy->{ controversies_id }, $code_type );
+delete from controversy_media_codes where controversies_id = ? and code_type = ?
+END
 
     map { add_codes_to_media( $db, $controversy, $code_type, $_ ) } @{ $csv_codes };
 }
