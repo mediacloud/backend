@@ -179,9 +179,9 @@ END
     return $date_clause;
 }
 
-# only run drop table on dump_period_stories if the table exists and is temporary.
-# this is a temporary hack to get around a lock on amanda
-sub drop_temporary_period_stories
+# create an empty dump_period_stories table if it does not already exist.
+# always truncate the dump_period_stories table.
+sub create_empty_dump_period_stories
 {
     my ( $db ) = @_;
 
@@ -189,10 +189,12 @@ sub drop_temporary_period_stories
 select * from pg_class where relname = 'dump_period_stories' and relistemp = 't'
 END
 
-    if ( $temp_table_exists )
+    if ( !$temp_table_exists )
     {
-        $db->query( "drop table dump_period_stories" );
+        $db->query( "create temporary table $_temporary_tablespace dump_period_stories ( stories_id int )" );
     }
+
+    $db->query( "delete from dump_period_stories" );
 }
 
 # write dump_period_stories table that holds list of all stories that should be included in the
@@ -209,11 +211,11 @@ sub write_period_stories
 {
     my ( $db, $cdts ) = @_;
 
-    drop_temporary_period_stories( $db );
+    create_empty_dump_period_stories( $db );
 
     if ( !$cdts || ( !$cdts->{ tags_id } && ( $cdts->{ period } eq 'overall' ) ) )
     {
-        $db->query( "create temporary table dump_period_stories as select stories_id from dump_stories" );
+        $db->query( "insert into dump_period_stories select stories_id from dump_stories" );
     }
     else
     {
@@ -231,7 +233,7 @@ END
         my $date_where_clause = get_period_stories_date_where_clause( $cdts );
 
         $db->query( <<"END", $cdts->{ start_date }, $cdts->{ end_date } );
-create temporary table dump_period_stories $_temporary_tablespace as
+insert into dump_period_stories
     select distinct s.stories_id
         from dump_stories s
             left join dump_controversy_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
