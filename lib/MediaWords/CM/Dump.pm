@@ -191,7 +191,7 @@ END
 
     if ( !$temp_table_exists )
     {
-        $db->query( "create temporary table $_temporary_tablespace dump_period_stories ( stories_id int )" );
+        $db->query( "create temporary table dump_period_stories $_temporary_tablespace ( stories_id int )" );
     }
 
     $db->query( "delete from dump_period_stories" );
