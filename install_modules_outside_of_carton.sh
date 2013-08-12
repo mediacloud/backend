@@ -26,6 +26,9 @@ fi
 # (https://rt.cpan.org/Public/Bug/Display.html?id=85861)
 $CPANM --notest ExtUtils::MakeMaker
 
-$CPANM Carton~0.9.15
+# enforce the 0.9.15 version because that's the latest one which
+# currently works on Chloe
+$CPANM Carton@0.9.15
+
 $CPANM List::MoreUtils
 $CPANM Devel::NYTProf
