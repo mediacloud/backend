@@ -9,5 +9,5 @@ cd $working_dir
 
 cd ..
 
-svn up
+git pull
 ./script/run_test_suite.sh 
