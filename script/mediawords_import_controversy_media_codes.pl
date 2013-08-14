@@ -15,6 +15,7 @@ use Getopt::Long;
 use Text::CSV_XS;
 
 use MediaWords::DB;
+use MediaWords::DBI::Controversies;
 
 # get a list of hashes from the csv. validate that each row has a media_id or name field and a code field
 sub get_csv_codes
@@ -32,6 +33,8 @@ sub get_csv_codes
     die( "no rows found in csv" ) unless ( $csv_codes && @{ $csv_codes } );
 
     die( "no url column in csv" ) unless ( grep { $csv_codes->[ 0 ]->{ $_ } } qw(url name media_id) );
+
+    close( $fh );
 
     return $csv_codes;
 }
@@ -94,32 +97,35 @@ sub add_codes_to_media
 
 sub main
 {
-    my ( $controversies_id, $code_type, $csv );
+    my ( $controversy_opt, $code_type, $csv );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
     Getopt::Long::GetOptions(
-        "controversy=s" => \$controversies_id,
+        "controversy=s" => \$controversy_opt,
         "code_type=s"   => \$code_type,
         "csv=s"         => \$csv
     ) || return;
 
-    die( "usage: $0 --controversy < controversies_id > --code_type < code type > --csv < csv file >" )
-      unless ( $controversies_id && $code_type && $csv );
+    die( "usage: $0 --controversy < controversies_id | pattern > --code_type < code type > --csv < csv file >" )
+      unless ( $controversy_opt && $code_type && $csv );
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $controversy = $db->query( "select * from controversies where controversies_id = ?", $controversies_id )->hash
-      || die( "Unable to find controversy '$controversies_id'" );
+    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db, $controversy_opt );
 
-    my $csv_codes = get_csv_codes( $csv );
+    for my $controversy ( @{ $controversies } )
+    {
+        print STDERR "CONTROVERSY $controversy->{ name }\n";
+        my $csv_codes = get_csv_codes( $csv );
 
-    $db->query( <<END, $controversy->{ controversies_id }, $code_type );
+        $db->query( <<END, $controversy->{ controversies_id }, $code_type );
 delete from controversy_media_codes where controversies_id = ? and code_type = ?
 END
 
-    map { add_codes_to_media( $db, $controversy, $code_type, $_ ) } @{ $csv_codes };
+        map { add_codes_to_media( $db, $controversy, $code_type, $_ ) } @{ $csv_codes };
+    }
 }
 
 main();

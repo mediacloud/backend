@@ -14,23 +14,31 @@ use Getopt::Long;
 
 use MediaWords::CM::Dump;
 use MediaWords::DB;
+use MediaWords::DBI::Controversies;
 
 sub main
 {
-    my ( $controversies_id );
+    my ( $controversy_opt );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
+    $| = 1;
 
-    Getopt::Long::GetOptions( "controversy=s" => \$controversies_id, ) || return;
+    Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt ) || return;
 
-    die( "Usage: $0 --controversy < id >" ) unless ( $controversies_id );
+    die( "Usage: $0 --controversy < id >" ) unless ( $controversy_opt );
 
     my $db = MediaWords::DB::connect_to_db;
 
-    $| = 1;
+    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db, $controversy_opt );
 
-    return MediaWords::CM::Dump::dump_controversy( $db, $controversies_id );
+    for my $controversy ( @{ $controversies } )
+    {
+        $db->disconnect;
+        $db = MediaWords::DB::connect_to_db;
+        print STDERR "CONTROVERSY $controversy->{ name } \n";
+        MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
+    }
 }
 
 main();
