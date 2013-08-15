@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4420;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4421;
     
 BEGIN
 
@@ -905,6 +905,7 @@ create table story_sentences (
        sentence                     text            not null,
        media_id                     int             not null, -- references media on delete cascade,
        publish_date                 timestamp       not null,
+       last_updated                 timestamp with time zone not null,
        language                     varchar(3)      null      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
@@ -915,6 +916,29 @@ create index story_sentences_media_id    on story_sentences( media_id );
 
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
+
+
+CREATE OR REPLACE FUNCTION story_sentences_last_updated_trigger () RETURNS trigger AS
+$$
+   DECLARE
+      path_change boolean;
+   BEGIN
+      -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') then
+
+      	 NEW.last_updated = now();
+      ELSE
+               -- RAISE NOTICE 'NO path change % = %', OLD.path, NEW.path;                                                                                  
+      END IF;
+
+      RETURN NEW;
+   END;
+$$
+LANGUAGE 'plpgsql';
+
+DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences CASCADE;
+CREATE TRIGGER story_sentences_last_updated_trigger BEFORE INSERT OR UPDATE ON story_sentences FOR EACH ROW EXECUTE PROCEDURE story_sentences_last_update_trigger() ;
     
 create table story_sentence_counts (
        story_sentence_counts_id     bigserial       primary key,
@@ -947,6 +971,8 @@ create table story_sentence_words (
 create index story_sentence_words_story on story_sentence_words (stories_id, sentence_number);
 create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
 create index story_sentence_words_dm on story_sentence_words (publish_day, media_id);
+
+
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
