@@ -1847,8 +1847,6 @@ ORDER BY ms.name, s.publish_date, s.stories_id ASC
 LIMIT 100000
 END
 
-    print STDERR $sql;
-
     my $stories = $db->query( $sql )->hashes;
 
     return $stories;
