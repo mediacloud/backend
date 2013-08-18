@@ -113,7 +113,7 @@ div#warning_box {
 
 fieldset#tag_set .checkbox {
     float: left;
-    width: 15em;
+    width: 80em;
     display: inline;
 }
 
@@ -264,6 +264,7 @@ a#boxcommand {
   padding-bottom: 0px;
   padding-left: 5px;
   padding-right: 5px;
+  margin-top: 5px;
   margin-bottom: 5px;
   margin-left: 1px;
   background-color: #ffffff;
