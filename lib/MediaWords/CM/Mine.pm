@@ -33,7 +33,9 @@ use constant LINK_WEIGHT_ITERATIONS => 3;
 use constant ALL_TAG => 'all';
 
 # ignore links that match this pattern
-my $_ignore_link_pattern = 'sfbayview.com/tag';
+my $_ignore_link_pattern =
+  '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
+  '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)';
 
 # cache of media by media id
 my $_media_cache = {};
@@ -81,10 +83,6 @@ sub get_links_from_html
         next if ( !$link->{ href } );
 
         next if ( $link->{ href } !~ /^http/i );
-
-        next
-          if (
-            $link->{ href } =~ /(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|(livejournal.com\/(tag|profile))/ );
 
         next if ( $link->{ href } =~ $_ignore_link_pattern );
 
