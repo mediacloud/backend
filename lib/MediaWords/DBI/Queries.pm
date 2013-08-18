@@ -1833,7 +1833,8 @@ sub search_stories
                   FROM story_sentence_words AS ssw,
                        media_sets_media_map AS msmm,
                        story_sentences AS ss,
-                       query_story_searches AS qss
+                       query_story_searches AS qss,
+                       story_sentence_counts ssc
                   WHERE $date_clause
                         AND ssw.media_id = msmm.media_id
                         AND ssw.stem IN ( $topics )
@@ -1841,6 +1842,9 @@ sub search_stories
                         AND ss.sentence ~* qss.pattern
                         AND ss.stories_id = ssw.stories_id
                         AND qss.query_story_searches_id = $query_story_search->{ query_story_searches_id }
+                        AND ss.stories_id = ssc.first_stories_id
+                        AND ss.sentence_number = ssc.first_sentence_number
+                        AND ss.sentence_count < 2
                  ) AS q
             WHERE q.stories_id = s.stories_id
                   AND s.media_id = m.media_id
