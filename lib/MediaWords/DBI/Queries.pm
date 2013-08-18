@@ -1806,93 +1806,50 @@ sub search_stories
 
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
 
-    my $stories = [];
-    if ( @{ $query->{ dashboard_topics_ids } } )
-    {
-        my $date_clause = get_daily_date_clause( $query, 'ssw' );
-        my $topics = join( ',', map { $db->{ dbh }->quote( $_->{ query } ) } @{ $query->{ dashboard_topics } } );
+    # we're switching to lucene queries soon, and nothing uses topic story searches any way
+    die( "story search on topic queries not supported" ) if ( @{ $query->{ dashboard_topics_ids } } );
 
-        # I think download_texts in the distinct is slowing this down.  try a subquery for the distinct stories_id and
-        # joining everything else to that
-        $stories = $db->query(
-            <<"EOF"
-            SELECT q.stories_id,
-                   s.url,
-                   s.title,
-                   s.publish_date,
-                   s.language,
-                   m.media_id,
-                   m.name AS media_name,
-                   m.url AS media_url,
-                   ms.name AS media_set_name
-            FROM stories AS s,
-                 media AS m,
-                 media_sets AS ms,
-                 (SELECT DISTINCT ssw.stories_id,
-                                  msmm.media_sets_id
-                  FROM story_sentence_words AS ssw,
-                       media_sets_media_map AS msmm,
-                       story_sentences AS ss,
-                       query_story_searches AS qss,
-                       story_sentence_counts ssc
-                  WHERE $date_clause
-                        AND ssw.media_id = msmm.media_id
-                        AND ssw.stem IN ( $topics )
-                        AND msmm.media_sets_id IN ( $media_sets_ids_list )
-                        AND ss.sentence ~* qss.pattern
-                        AND ss.stories_id = ssw.stories_id
-                        AND qss.query_story_searches_id = $query_story_search->{ query_story_searches_id }
-                        AND ss.stories_id = ssc.first_stories_id
-                        AND ss.sentence_number = ssc.first_sentence_number
-                        AND ss.sentence_count < 2
-                 ) AS q
-            WHERE q.stories_id = s.stories_id
-                  AND s.media_id = m.media_id
-                  AND q.media_sets_id = ms.media_sets_id
-            ORDER BY ms.name, s.publish_date, s.stories_id ASC
-            LIMIT 100000
-EOF
-        )->hashes;
-    }
-    else
-    {
-        my $date_clause =
-          get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
-        $stories = $db->query(
-            <<"EOF"
-            SELECT q.stories_id,
-                   s.url,
-                   s.title,
-                   s.publish_date,
-                   s.language,
-                   m.media_id,
-                   m.name AS media_name,
-                   m.url AS media_url,
-                   ms.name AS media_set_name
-            FROM stories AS s,
-                 media AS m,
-                 media_sets AS ms,
-                 (SELECT DISTINCT ss.stories_id,
-                                  msmm.media_sets_id
-                  FROM story_sentences AS ss,
-                       media_sets_media_map AS msmm,
-                       query_story_searches AS qss,
-                       queries AS q
-                  WHERE ss.media_id = msmm.media_id
-                        AND msmm.media_sets_id IN ( $media_sets_ids_list )
-                        AND ss.sentence ~* qss.pattern
-                        AND qss.query_story_searches_id = $query_story_search->{ query_story_searches_id }
-                        AND qss.queries_id = q.queries_id
-                        AND $date_clause
-                 ) AS q
-            WHERE q.stories_id = s.stories_id
-                  AND s.media_id = m.media_id
-                  AND q.media_sets_id = ms.media_sets_id
-            ORDER BY ms.name, s.publish_date, s.stories_id ASC
-            LIMIT 100000
-EOF
-        )->hashes;
-    }
+#my $date_clause = get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
+    my $date_clause = get_date_clause( '2013-07-01', '2013-07-02', 1, "DATE_TRUNC( 'day', ss.publish_date )" );
+
+    my $sql = <<END;
+SELECT q.stories_id,
+       s.url,
+       s.title,
+       s.publish_date,
+       s.language,
+       m.media_id,
+       m.name AS media_name,
+       m.url AS media_url,
+       ms.name AS media_set_name
+FROM 
+    ( 
+        SELECT DISTINCT ss.stories_id, msmm.media_sets_id
+            FROM 
+                stories s
+                    join story_sentences ss on ( ss.stories_id = s.stories_id )
+                    join media_sets_media_map msmm on ( msmm.media_id = ss.media_id )
+                    join query_story_searches qss on 
+                        ( qss.query_story_searches_id = $query_story_search->{ query_story_searches_id } )
+                    join queries AS q on ( qss.queries_id = q.queries_id )
+                    left join story_sentence_counts ssc on 
+                        ( ss.stories_id = ssc.first_stories_id and ss.sentence_number = ssc.first_sentence_number )
+            WHERE 
+                msmm.media_sets_id IN ( $media_sets_ids_list ) AND
+                $date_clause AND
+                ( ( ss.sentence ~* qss.pattern AND ssc.sentence_count < 2 ) OR 
+                    s.title ~* qss.pattern )
+        ) q 
+    join stories s on ( q.stories_id = s.stories_id )
+    join media m on ( s.media_id = m.media_id )
+    join media_sets ms on ( ms.media_sets_id = q.media_sets_id )
+ORDER BY ms.name, s.publish_date, s.stories_id ASC
+LIMIT 100000
+END
+
+    print STDERR $sql;
+
+    my $stories = $db->query( $sql )->hashes;
 
     return $stories;
 }
