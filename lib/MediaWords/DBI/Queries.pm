@@ -1809,8 +1809,8 @@ sub search_stories
     # we're switching to lucene queries soon, and nothing uses topic story searches any way
     die( "story search on topic queries not supported" ) if ( @{ $query->{ dashboard_topics_ids } } );
 
-#my $date_clause = get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
-    my $date_clause = get_date_clause( '2013-07-01', '2013-07-02', 1, "DATE_TRUNC( 'day', ss.publish_date )" );
+    my $date_clause =
+      get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
 
     my $sql = <<END;
 SELECT q.stories_id,
