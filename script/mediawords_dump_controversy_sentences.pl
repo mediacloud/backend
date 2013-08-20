@@ -36,12 +36,15 @@ copy (
     select s.publish_date, s.media_id, s.stories_id, ss.sentence_number, ss.sentence
         from stories s
             join controversy_stories cs on ( s.stories_id = cs.stories_id )
+            join controversies c on ( c.controversies_id = cs.controversies_id )
+            join query_story_searches qss on ( c.query_story_searches_id = qss.query_story_searches_id )
             join story_sentences ss on ( s.stories_id = ss.stories_id )
             join story_sentence_counts ssc on 
                 ( ss.stories_id = ssc.first_stories_id and ss.sentence_number = ssc.first_sentence_number )
         where
             cs.controversies_id = $controversy->{ controversies_id } and
-            ssc.sentence_count < 2
+            ssc.sentence_count < 2 and
+            ss.sentence ~* qss.pattern
         order by ss.stories_id, ss.sentence_number
     ) to STDOUT
     with csv header
@@ -50,7 +53,7 @@ END
     my $buffer;
     while ( $db->dbh->pg_getcopydata( $buffer ) > -1 )
     {
-        print STDERR $buffer;
+        print $buffer;
     }
 }
 
