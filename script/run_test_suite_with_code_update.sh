@@ -3,11 +3,7 @@
 set -u
 set -o  errexit
 
-working_dir=`dirname $0`
+cd `dirname $0`/../
+source ./script/update_code_from_git.sh
+./script/run_test_suite.sh
 
-cd $working_dir
-
-cd ..
-
-git pull
-./script/run_test_suite.sh 
