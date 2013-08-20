@@ -860,7 +860,8 @@ sub add_new_links
         print STDERR "fetch spidering $link->{ url } ...\n";
 
         add_redirect_url_to_link( $db, $link );
-        my $story = get_matching_story_from_db( $db, $link, $controversy ) || add_new_story( $db, $link, $controversy );
+        my $story = get_matching_story_from_db( $db, $link, $controversy )
+          || add_new_story( $db, $link, undef, $controversy );
 
         $link->{ story } = $story;
 
