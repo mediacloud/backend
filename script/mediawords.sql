@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4421;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4422;
     
 BEGIN
 
@@ -204,6 +204,24 @@ END;
 $$
 LANGUAGE 'plpgsql'
  ;
+
+CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
+$$
+   DECLARE
+      path_change boolean;
+   BEGIN
+      -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') then
+
+      	 NEW.last_updated = now();
+
+      END IF;
+
+      RETURN NEW;
+   END;
+$$
+LANGUAGE 'plpgsql';
 
 create table media (
     media_id            serial          primary key,
@@ -657,6 +675,7 @@ create table stories (
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
+    last_updated                timestamp with time zone not null,
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
@@ -669,7 +688,10 @@ create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 create index stories_language on stories(language);
+create index stories_last_updated on stories( last_updated );
 
+DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
+CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
@@ -913,32 +935,13 @@ create index story_sentences_story on story_sentences (stories_id, sentence_numb
 create index story_sentences_publish_day on story_sentences( date_trunc( 'day', publish_date ), media_id );
 create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
+create index story_sentences_last_updated    on story_sentences( last_updated );
 
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
-
-CREATE OR REPLACE FUNCTION story_sentences_last_updated_trigger () RETURNS trigger AS
-$$
-   DECLARE
-      path_change boolean;
-   BEGIN
-      -- RAISE NOTICE 'BEGIN ';                                                                                                                            
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') then
-
-      	 NEW.last_updated = now();
-      ELSE
-               -- RAISE NOTICE 'NO path change % = %', OLD.path, NEW.path;                                                                                  
-      END IF;
-
-      RETURN NEW;
-   END;
-$$
-LANGUAGE 'plpgsql';
-
 DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences CASCADE;
-CREATE TRIGGER story_sentences_last_updated_trigger BEFORE INSERT OR UPDATE ON story_sentences FOR EACH ROW EXECUTE PROCEDURE story_sentences_last_update_trigger() ;
+CREATE TRIGGER story_sentences_last_updated_trigger BEFORE INSERT OR UPDATE ON story_sentences FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
     
 create table story_sentence_counts (
        story_sentence_counts_id     bigserial       primary key,
