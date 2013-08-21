@@ -6,127 +6,39 @@ import time
 import csv
 import sys
 import pysolr
+import dateutil.parser
 
-def _fetch_all( solr, arg1 ) :
+def get_word_counts( solr, query, date_str, count=1000 ) :
+    date = dateutil.parser.parse( date_str )
     documents = []
-    num_matching_documents = solr.search( arg1 ).hits
+    
+    date_str = date.isoformat() + 'Z'
+    date_query = "publish_date:[{0} TO {0}+7DAYS]".format(date_str)
 
-    start = 0
-    rows = num_matching_documents
+    sys.stderr.write( ' starting fetch for ' + query )
+    sys.stderr.write( "\n");
 
-    sys.stderr.write( ' starting fetch for ' + arg1 )
-    if 1==1 :
-        results = solr.search( arg1, **{ 
-                'start': start,
-           #     'rows': rows,
-                'facet':"true",
-                "facet.limit":"100",
-                "facet.field":"includes",
-                "facet.method":"enum",
-            #    "rows":"0"
-               # 'fl' : 'media_id',
-                })
-     #   documents.extend( results.docs )
-        start += rows
+    facet_field = "includes"
 
-     #   assert len( documents ) <= num_matching_documents
+    results = solr.search( query, **{ 
+            'facet':"true",
+            "facet.limit":count,
+            "facet.field": facet_field,
+            "facet.method":"enum",
+            "fq": date_query,
+            })
 
-    #assert len( documents ) == num_matching_documents
-    return results
+    facets = results.facets['facet_fields']['includes']
 
-def time_to_fetch_all( solr, arg1 ) :
-    start = time.time()
-    _fetch_all( solr, arg1 )
-    end = time.time()
-    return end - start
+    counts = dict(zip(facets[0::2],facets[1::2]))
 
-
-url_file = 'urls.txt'
+    return counts
 
 solr = pysolr.Solr('http://localhost:8983/solr/')
 
-queries = [ 'sentence:obama',
-            'sentence:mccain', 
-            'sentence:snowden', 
-            'sentence:trayvon', 
-            'sentence:benghazi',
-            'sentence:the'
-            ]
+results = get_word_counts(solr, 'sentence:the', '2013-08-10', count=100);
 
-dates = [
-    None,
-    'publish_date:[2013-04-01T00:00:00.000Z TO 2013-04-01T00:00:00.000Z+1DAY]',
-    'publish_date:[2013-04-01T00:00:00.000Z TO 2013-04-01T00:00:00.000Z+7DAYS]',
-    'publish_date:[2013-04-01T00:00:00.000Z TO 2013-04-01T00:00:00.000Z+1MONTH]',
-    ]
-
-results = _fetch_all(solr, 'sentence:best');
+print results
+#print results.facets['facet_fields']['includes']
 
 ipdb.set_trace()
-
-time = time_to_fetch_all(solr, 'sentence:best');
-
-for result in results:
-	print("The result is '{0}'.".format(result))
-print "time: ", time
-
-#with open('/tmp/query_count.csv', 'wb' ) as csvfile:
-#    resultswriter = csv.DictWriter( csvfile, ['query', 'count', 'fetch_time'], extrasaction='ignore' )
-#    resultswriter.writeheader()
-#    for date in dates:
-#        for query in queries:
-#            if date:
-#                query += " AND " + date
-
-#           results = solr.search(query,  **{ 
-#                'fl' : 'id',
-#                })
-
-#            hits = results.hits
-#            qtime = results.qtime
-
-#            if query.startswith('sentence:the') or query.find(' AND ') == -1 :
-#                fetch_time = 'N/A'
-#            else:
-#                fetch_time = time_to_fetch_all( solr, query )
-
-            #print " {0} hits: {1} time {2} ".format( query, hits, qtime)
-#            resultswriter.writerow( { 'query' : query, 'count': hits, 'fetch_time': fetch_time  } )
-
-
-# with open('/tmp/url_time.csv', 'wb' ) as csvfile:
-#     resultswriter = csv.DictWriter( csvfile, ['url', 'qtime', 'total_time'], extrasaction='ignore' )
-#     resultswriter.writeheader()
-#     for result in results:
-#         resultswriter.writerow( result )
-
-
-
-
-# results = []
-# sys.stderr.write('Starting')
-# with open ( url_file, 'r' ) as f:
-#     for url in f:
-#         url = url.rstrip()
-#         start_time = time.clock()
-#         sys.stderr.write( 'requesting ' + url )
-#         r = requests.get( url )
-#         end_time = time.clock()
-#         total_time = end_time = start_time
-#         json = r.json()
-#         qtime = json['responseHeader']['QTime']
-
-#         result = { 'url' : url, 'qtime' : qtime, 'total_time': total_time,  'json' : json }
-#         print "got:"
-#         print result
-#         results.append( result )
-
-# with open('/tmp/url_time.csv', 'wb' ) as csvfile:
-#     resultswriter = csv.DictWriter( csvfile, ['url', 'qtime', 'total_time'], extrasaction='ignore' )
-#     resultswriter.writeheader()
-#     for result in results:
-#         resultswriter.writerow( result )
-
-
-        
-
