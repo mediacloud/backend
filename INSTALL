@@ -34,7 +34,7 @@ We recommend that you read through this entire file. Nevertheless most users wil
      sudo ./install_scripts/create_default_db_user_and_databases.sh 
      cp  mediawords.yml.dist mediawords.yml
      ./install_mc_perlbrew_and_modules.sh
-     ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
+     ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
      ./script/run_with_carton.sh ./script/mediawords_create_db.pl
      ./script/run_with_carton.sh ./script/mediawords_manage_users.pl \
          --action=add \
@@ -80,7 +80,7 @@ NOTE this script will fail if you aren't running a 64 bit OS.
 
 * SUGGESTED: Verify that the necessary modules are installed. Run the media cloud compile test to verify that all required modules have been installed. Run:
 
-      ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
+      ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
 
 If there are errors determine which modules are missing and install them by running carton install.
 

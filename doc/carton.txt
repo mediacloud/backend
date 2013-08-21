@@ -49,7 +49,7 @@ To update Perl modules to their new versions:
 
 2. Run the test suite to make sure the modules work alright:
 
-    ./script/run_carton.sh exec -Ilib/ -- prove -r t/compile.t
+    ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
     ./script/run_test_suite.sh
 
 3. Commit the updated `carton.lock`:

@@ -24,7 +24,7 @@ fi
 echo "install complete"
 echo "running compile test"
 
-./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
+./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
 
 echo "compile test succeeded"
 echo "creating new database"
