@@ -335,10 +335,17 @@ sub handle_response
 
     my $dbs = $self->engine->dbs;
 
-    if ( !$response->is_success )
+    unless ( $response->is_success )
     {
         $dbs->query(
-            "update downloads set state = 'error', error_message = ? where downloads_id = ?",
+            <<EOF,
+            UPDATE downloads
+            SET state = 'error',
+                error_message = ?,
+                -- reset the file status in case it's one of the "missing" downloads:
+                file_status = DEFAULT
+            WHERE downloads_id = ?
+EOF
             encode( 'utf-8', $response->status_line ),
             $download->{ downloads_id }
         );
