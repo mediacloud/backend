@@ -1,12 +1,6 @@
 #
-# This file lists *direct* Perl module dependencies of Media Cloud.
-#
-# See:
-#
 #     doc/carton.txt
-#
 # for instructions on how to add a new Perl module dependency.
-#
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
@@ -46,9 +40,9 @@ requires 'Domain::PublicSuffix';
 requires 'Email::MIME';
 requires 'Email::Sender::Simple';
 requires 'Encode::HanConvert';
+requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
-requires 'F/FL/FLORA/FCGI-0.74.tar.gz';
 requires 'File::Touch';
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';
@@ -65,6 +59,7 @@ requires 'Inline';
 requires 'Inline::Java';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
+requires 'YAML::Syck';
 requires 'Lingua::Identify::CLD';
 requires 'Lingua::Sentence';
 requires 'Lingua::Stem';
@@ -110,4 +105,5 @@ requires 'WebService::Google::Language';
 requires 'XML::FeedPP';
 requires 'XML::LibXML';
 requires 'XML::Simple';
-requires 'YAML::Syck';
+# See:
+# This file lists *direct* Perl module dependencies of Media Cloud.
