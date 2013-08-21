@@ -69,7 +69,7 @@
                 <a href="[% c.uri_for('/admin/media/create_batch') %]">Add Media</a>
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/media/moderate') %]
-                <a href="[% c.uri_for('/media/moderate_tags') %]">Moderate Media</a>
+                <a href="[% c.uri_for('/admin/media/moderate_tags') %]">Moderate Media</a>
             [% END -%]
             [% IF c.acl_user_can_visit('/admin/downloads/list') %]
                 <a href="[% c.uri_for('/admin/downloads/list') %]">All Downloads</a>

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::NoWarnings;
-use Test::More tests => 64 + 1;
+use Test::More tests => 41 + 1;
 use Test::Deep;
 
 use utf8;
@@ -151,163 +151,6 @@ sub test_dates
         _TIMESTAMP_12_00_EST, '_guess_by_abbr_published_updated_date' );
 }
 
-# Redo into local tests
-sub test_live_urls
-{
-
-    # Wednesday, 29 August 2012 03:55
-    is(
-        _gt_url(
-'http://davisvanguard.org/index.php?option=com_content&view=article&id=5650:proposition-36-would-modify-californias-three-strikes-law&Itemid=100'
-        ),
-        _ts( 'Wed, 29 Aug 12 03:55:00 +0000' ),
-        'live_url: W, [dj] F Y H:i'
-    );
-
-    is(
-        _gt_url( 'http://www.sfgate.com/opinion/openforum/article/Prop-36-reforms-three-strikes-3822862.php' ),
-        _ts( 'Tue, 28 Aug 2012 21:24:00 GMT' ),
-        'live_url: sfgate.com'
-    );
-
-    is(
-        _gt_url( 'http://punkpedagogy.tumblr.com/post/35204551491/proposition-36-placed-on-the-ballot-in-hopes-of' ),
-        _ts( 'Wed, 7 Nov 2012 12:00:00 GMT' ),
-        'live_url: punkpedagogy.tumblr.com'
-    );
-
-    is(
-        _gt_url( 'http://www.cjcj.org/post/adult/corrections/prop/36/modest/and/necessary/three/strikes/reform/index.html' ),
-        undef,
-        'live_url: 404 Not Found'
-    );
-
-    is(
-        _gt_url( 'http://www.mercurynews.com/crime-courts/ci_21943951/prop-36-huge-lead-early-returns' ),
-        _ts( 'Tue, 6 Nov 2012 20:30:20 PST' ),
-        'live_url: mercurynews.com'
-    );
-
-    is(
-        _gt_url(
-            'http://www2.registerguard.com/cms/index.php/duck-football/comments/third-quarter-oregon-38-california-17/'
-        ),
-        _ts( 'Sat, 10 Nov 2012 23:29:00 GMT' ),
-        'live_url: registerguard.com'
-    );
-
-    is(
-        _gt_url( 'http://www.santacruzsentinel.com/elections/ci_21943951/prop-36-huge-lead-early-returns' ),
-        _ts( 'Tue, 6 Nov 2012 20:30:20 PST' ),
-        'live_url: santacruzsentinel.com'
-    );
-
-    is(
-        _gt_url(
-'http://www.policymic.com/articles/18212/california-propositions-prop-34-and-prop-36-could-have-national-reprecussions'
-        ),
-        _ts( 'Tue, 6 Nov 2012 08:59:00 EST' ),
-        'live_url: policymic.com'
-    );
-
-    is(
-        _gt_url( 'http://www.turnto23.com/news/local-news/balloon-launch-in-support-of-prop-36' ),
-        _ts( 'Mon, 5 Nov 2012 12:00:00 GMT' ),
-        'live_url: turnto23.com'
-    );
-
-    is(
-        _gt_url( 'http://ligaclub.livejournal.com/254432.html' ),
-        _ts( 'Wed, 19 Jun 2013 16:55:00 EEST' ),
-        'live_url: livejournal.com'
-    );
-
-    # _guess_by_class_date() snatches this one
-    # is(
-    #     _gt_url('http://beyondchron.org/news/index.php?itemid=10530'),
-    #     _ts('Mon, 24 Sep 2012 12:00:00 GMT'),
-    #     'live_url: beyondchron.org'
-    # );
-
-    is(
-        _gt_url(
-'http://sentencing.typepad.com/sentencing_law_and_policy/2012/09/californias-proposition-34-and-proposition-36-expose-red-meat-in-a-blue-state.html'
-        ),
-        _ts( 'Thu, 27 Sep 2012 09:03:00 GMT' ),
-        'live_url: sentencing.typepad.com'
-    );
-
-    is(
-        _gt_url( 'http://www.laweekly.com/2012-11-01/news/Proposition-36-three-strikes-excon-reaction/2/' ),
-        _ts( 'Wed, 31 Oct 2012 13:10:31 GMT' ),
-        'live_url: laweekly.com'
-    );
-
-    is(
-        _gt_url( 'http://www.pewstates.org/projects/stateline/headlines/california-reconsiders-three-strikes-85899418707' ),
-        _ts( 'Fri, 21 Sep 2012 12:00:00 GMT' ),
-        'live_url: pewstates.org'
-    );
-
-    is(
-        _gt_url( 'http://www.huffingtonpost.com/lynne-lyman/california-votes-to-refor_b_2089469.html' ),
-        _ts( 'Wed, 7 Nov 2012 15:11:54 -0500' ),
-        'live_url: huffingtonpost.com'
-    );
-
-    is(
-        _gt_url(
-            'http://yubanet.com/california/Human-Rights-Watch-39-Three-Strikes-39-Vote-a-Humane-Step.php#.UcJ1VfYY2rh'
-        ),
-        _ts( 'Thu, 8 Nov 2012 09:40:01 GMT' ),
-        'live_url: yubanet.com'
-    );
-
-    is(
-        _gt_url(
-            'http://www.ktvu.com/news/news/local-govt-politics/if-passed-prop-36-could-drastically-transform-thre/nSRCn/'
-        ),
-        _ts( 'Mon, 1 Oct 2012 18:10:00 GMT' ),
-        'live_url: ktvu.com'
-    );
-
-    is(
-        _gt_url( 'http://www.capitolweekly.net/article.php?_c=1110hzwl54nlhxu&xid=10woa7oeut2dafe&done=.1110iuznul4hofj' ),
-        _ts( 'Sat, 13 Oct 2012 20:00:00 -0800' ),
-        'live_url: capitolweekly.net'
-    );
-
-    is(
-        _gt_url( 'http://www.vcstar.com/news/2012/nov/10/da-defense-lawyers-to-start-reviewing-3-strikes/' ),
-        _ts( '2012-11-10T20:47:00-08:00' ),
-        'live_url: vcstar.com'
-    );
-
-    is(
-        _gt_url( 'http://www.sbsun.com/news/ci_21761985/proposition-36-act-would-ease-three-strikes-sentences' ),
-        _ts( 'Sat, 13 Oct 2012 20:00:54 PDT' ),
-        'live_url: sbsun.com'
-    );
-
-    is(
-        _gt_url( 'http://www.montereyherald.com/opinion/ci_21884602/prop-36-tough-crime-not-taxpayers' ),
-        _ts( 'Mon, 29 Oct 2012 20:12:30 PDT' ),
-        'live_url: montereyherald.com'
-    );
-
-    is(
-        _gt_url( 'http://blogs.sfweekly.com/thesnitch/2012/11/prop_34_death_penalty.php' ),
-        _ts( 'Thu, 8 Nov 2012 04:10:04 GMT' ),
-        'live_url: blogs.sfweekly.com'
-    );
-
-    is(
-        _gt_url( 'https://twitter.com/cyberhalroberts/status/350009295598911490' ),
-        _ts( 'Wed, 26 Jun 2013 21:54:53 GMT' ),
-        'live_url: twitter.com single tweet'
-    );
-}
-
 sub test_date_matching
 {
     is(
@@ -382,15 +225,6 @@ EOF
     );
 }
 
-sub test_not_found
-{
-    is(
-        _gr_url( 'http://bendthearc.us/voterguide/36' )->{ result },
-        MediaWords::CM::GuessDate::Result::NOT_FOUND,
-        'not found: bendthearc.us'
-    );
-}
-
 sub test_inapplicable
 {
     is(
@@ -462,9 +296,7 @@ sub main
     binmode $builder->todo_output,    ":utf8";
 
     test_dates();
-    test_live_urls();
     test_date_matching();
-    test_not_found();
     test_inapplicable();
 }
 

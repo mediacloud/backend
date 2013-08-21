@@ -20,7 +20,7 @@ use Bundle::MediaWords;
 #         -Debug: activates the debug mode for very useful log messages
 #   ConfigLoader: will load the configuration from a YAML file in the
 #                 application's home directory
-# Static::Simple: will serve static files from the application's root
+# Plugin::Static::Simple: will serve static files from the application's root
 #                 directory
 
 use Catalyst qw/
@@ -55,7 +55,7 @@ use HTML::FormFu::Unicode;
 my $config = __PACKAGE__->config( -name => 'MediaWords' );
 
 # Configure authentication scheme
-__PACKAGE__->config( static => { dirs => [ 'gexf' ] } );
+__PACKAGE__->config( 'Plugin::Static::Simple' => { dirs => [ 'gexf' ] } );
 
 # Start the application
 __PACKAGE__->setup;

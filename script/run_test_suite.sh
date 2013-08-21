@@ -31,10 +31,5 @@ if [[ "$system_hostname" =~ ^[0-9]+$ || "$shell_hostname" =~ ^[0-9]+$ ]] ; then
 fi
 
 # Run test suite
-working_dir=`dirname $0`
-
-cd $working_dir
-
-cd ..
-
+cd `dirname $0`/../
 exec ./script/run_carton.sh exec -Ilib/ -Iscript/gridfs-to-s3/ -- prove $* `find lib/ script/ t/ -name '*.t' ! -path 'script/gridfs-to-s3/*'`

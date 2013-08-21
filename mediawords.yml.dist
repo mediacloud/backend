@@ -18,34 +18,34 @@ database:
       pass  : "mediacloud"
 
 ### MongoDB connection settings for storing downloads in GridFS
-mongodb_gridfs:
-    # Production database
-    mediawords:
-        host      : "localhost" 
-        port      : "27017" 
-        database  : "mediacloud_downloads_gridfs"
-    # Testing database
-    test:
-        host      : "localhost" 
-        port      : "27017" 
-        database  : "mediacloud_downloads_gridfs_test"
+#mongodb_gridfs:
+    ### Production database
+    #mediawords:
+        #host      : "localhost" 
+        #port      : "27017" 
+        #database  : "mediacloud_downloads_gridfs"
+    ### Testing database
+    #test:
+        #host      : "localhost" 
+        #port      : "27017" 
+        #database  : "mediacloud_downloads_gridfs_test"
 
 ### Amazon S3 connection settings
-amazon_s3:
+#amazon_s3:
 
     ### Authentication credentials
-    access_key_id       : "AKIAIOSFODNN7EXAMPLE"
-    secret_access_key   : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+    #access_key_id       : "AKIAIOSFODNN7EXAMPLE"
+    #secret_access_key   : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 
     ### Production bucket
-    mediawords:
-        bucket_name             : "mediacloud"
-        downloads_folder_name   : "downloads"
+    #mediawords:
+        #bucket_name             : "mediacloud"
+        #downloads_folder_name   : "downloads"
 
     ### Testing bucket
-    test:
-        bucket_name             : "mediacloud_test"
-        downloads_folder_name   : "downloads_test"
+    #test:
+        #bucket_name             : "mediacloud_test"
+        #downloads_folder_name   : "downloads_test"
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email

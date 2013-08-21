@@ -876,12 +876,11 @@ sub _guessing_is_inapplicable($$$)
 
     for my $segment ( @segments_for_invalidation )
     {
-        if ( $segment ~~ @url_segments )
-        {
 
-            # URL contains a segment that increases its chances of being undateable
-            return 1;
-        }
+        # ~~ dies sometimes with 'Smart matching a non-overloaded object breaks encapsulation'
+        my $r = 0;
+        eval { $r = 1 if ( $segment ~~ @url_segments ) };
+        return $r if ( $r == 1 );
     }
 
     return 0;

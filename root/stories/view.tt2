@@ -52,7 +52,9 @@
         <th>Downloads:</th>
         <td>
             [% FOREACH d IN downloads -%]
-                [% IF (d.state == 'success') -%]
+                [% IF (d.file_status == 'missing') %]
+                    ( missing )
+                [% ELSIF (d.state == 'success') -%]
                     [% d.downloads_id %]:
                     [% IF c.acl_user_can_visit('/admin/downloads/view') %]
                         <a href="[% c.uri_for('/admin/downloads/view/')  _  d.downloads_id %]">view download</a> |
