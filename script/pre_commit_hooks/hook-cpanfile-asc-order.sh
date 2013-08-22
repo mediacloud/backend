@@ -42,7 +42,7 @@ if [ ! -z "$CPANFILE_DIFF" ]; then
     sorted_path="${TEMPDIR}/cpanfile.should_be"
 
     grep -v "^#" "${CPANFILE}" > "${orig_path}"     # don't attempt to sort comments
-    cat "${orig_path}" | sort -f | uniq > "${sorted_path}"
+    cat "${orig_path}" | LC_ALL=C sort -f | uniq > "${sorted_path}"
 
     SORTED_DIFF=`diff -uN ${orig_path} ${sorted_path}`
     if [ ! -z "$SORTED_DIFF" ]; then
@@ -54,7 +54,7 @@ if [ ! -z "$CPANFILE_DIFF" ]; then
         echo
         echo "Please sort the dependency list in a non-case sensitive alphabetical order:"
         echo
-        echo "    cat ${CPANFILE} | sort -f | uniq > ${CPANFILE}.sorted"
+        echo "    cat ${CPANFILE} | LC_ALL=C sort -f | uniq > ${CPANFILE}.sorted"
         echo "    mv ${CPANFILE}.sorted ${CPANFILE}"
         if [ "$REPOSITORY" == "git" ]; then
             echo "    git add ${CPANFILE}"
