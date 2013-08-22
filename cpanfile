@@ -1,6 +1,10 @@
+# This file lists *direct* Perl module dependencies of Media Cloud.
+# See:
 #
 #     doc/carton.txt
+#
 # for instructions on how to add a new Perl module dependency.
+#
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
@@ -105,5 +109,3 @@ requires 'WebService::Google::Language';
 requires 'XML::FeedPP';
 requires 'XML::LibXML';
 requires 'XML::Simple';
-# See:
-# This file lists *direct* Perl module dependencies of Media Cloud.
