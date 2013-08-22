@@ -92,6 +92,21 @@ sub get_links_from_html
     return $links;
 }
 
+sub get_cached_medium_by_id
+{
+    my ( $db, $media_id ) = @_;
+
+    if ( !$_media_cache )
+    {
+        my $all_media = $db->query( "select * from media" )->hashes;
+        map { $_media_cache->{ $_->{ media_id } } = $_ } @{ $all_media };
+    }
+
+    $_media_cache->{ $media_id } ||= $db->find_by_id( 'media', $media_id );
+
+    return $_media_cache->{ $media_id };
+}
+
 # return true if the media the story belongs to has full_text_rss set to true
 sub story_media_has_full_text_rss
 {
@@ -99,12 +114,7 @@ sub story_media_has_full_text_rss
 
     my $media_id = $story->{ media_id };
 
-    my $medium = $_media_cache->{ $story->{ media_id } };
-    if ( !$medium )
-    {
-        $medium = $db->query( "select * from media where media_id = ?", $story->{ media_id } )->hash;
-        $_media_cache->{ $story->{ media_id } } = $medium;
-    }
+    my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
 
     return $medium->{ full_text_rss };
 }
@@ -360,7 +370,6 @@ sub get_spider_feed
     my $feed_query = <<"END";
 select * from feeds 
     where media_id = ? and url = ? and 
-        feed_status in ( 'active', 'inactive' )
     order by ( name = 'Controversy Spider Feed' )
 END
 
@@ -471,7 +480,7 @@ sub get_dup_medium
 
     return undef unless ( $media_id );
 
-    my $medium = $db->find_by_id( 'media', $media_id );
+    my $medium = get_cached_medium_by_id( $db, $media_id );
 
     if ( $medium->{ dup_media_id } )
     {
@@ -494,6 +503,7 @@ sub add_new_story
     if ( $link )
     {
         $story_content = MediaWords::Util::Web::get_cached_link_download( $link );
+        $link->{ redirect_url } ||= MediaWords::Util::Web::get_cached_link_download_redirect_url( $link );
         $old_story->{ url } = $link->{ redirect_url } || $link->{ url };
         $old_story->{ title } = get_story_title_from_content( $story_content, $old_story->{ url } );
     }
@@ -1212,8 +1222,11 @@ sub merge_dup_story
 {
     my ( $db, $controversy, $delete_story, $keep_story ) = @_;
 
-    print STDERR
-"dup $keep_story->{ title } [ $keep_story->{ stories_id } ] <- $delete_story->{ title } [ $delete_story->{ stories_id } ]\n";
+    print STDERR <<END;
+dup $keep_story->{ title } [ $keep_story->{ stories_id } ] <- $delete_story->{ title } [ $delete_story->{ stories_id } ]
+END
+
+    die( "refusing to merge identical story" ) if ( $delete_story->{ stories_id } == $keep_story->{ stories_id } );
 
     my $controversies_id = $controversy->{ controversies_id };
 
@@ -1264,7 +1277,7 @@ sub merge_foreign_rss_story
 {
     my ( $db, $controversy, $story ) = @_;
 
-    my $medium = $db->find_by_id( 'media', $story->{ media_id } );
+    my $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
 
     my $medium_domain = MediaWords::DBI::Media::get_medium_domain( $medium );
 
@@ -1318,7 +1331,37 @@ END
     merge_dup_story( $db, $controversy, $story, $new_story );
 }
 
-# merge all stories belonging to dup_media_id media to the dup_media_id
+# mark delete_medium as a dup of keep_medium and merge
+# all stories from all controversies in delete_medium into
+# keep_medium
+sub merge_dup_medium_all_controversies
+{
+    my ( $db, $delete_medium, $keep_medium ) = @_;
+
+    $db->query( <<END, $keep_medium->{ media_id }, $delete_medium->{ media_id } );
+update media set dup_media_id = ? where media_id = ?
+END
+
+    my $stories = $db->query( <<END, $delete_medium->{ media_id } )->hashes;
+SELECT distinct s.*, cs.controversies_id 
+    FROM stories s
+        join controversy_stories cs on ( s.stories_id = cs.stories_id )
+    WHERE 
+        s.media_id = ?
+END
+
+    my $controversies_map = {};
+    my $controversies     = $db->query( "select * from controversies" )->hashes;
+    map { $controversies_map->{ $_->{ controversies_id } } = $_ } @{ $controversies };
+
+    for my $story ( @{ $stories } )
+    {
+        my $controversy = $controversies_map->{ $story->{ controversies_id } };
+        merge_dup_media_story( $db, $controversy, $story );
+    }
+}
+
+# merge all stories belonging to dup_media_id media to the dup_media_id in the current controversy
 sub merge_dup_media_stories
 {
     my ( $db, $controversy ) = @_;
