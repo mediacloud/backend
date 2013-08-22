@@ -29,7 +29,10 @@ sub dbis
       or die DBIx::Simple::MediaWords->error;
 
     $db->dbh->{ RaiseError } = 1;
-    $db->dbh->{ Profile }    = 2;
+
+    ## UNCOMMENT to enable database profiling
+    ## Eventually we may wish to make this a config option in mediawords.yml
+    # $db->dbh->{ Profile }    = 2;
 
     return $db;
 }
