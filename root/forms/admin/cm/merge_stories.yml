@@ -1,0 +1,14 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: to_stories_id
+    label: Destination Story ID
+    comment: id of story into which to merge
+    constraints:
+        - Required
+        - Integer
+
+  - type: Submit
+    name: submit
+    value: Merge
