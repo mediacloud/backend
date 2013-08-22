@@ -369,7 +369,7 @@ sub get_spider_feed
 
     my $feed_query = <<"END";
 select * from feeds 
-    where media_id = ? and url = ? and 
+    where media_id = ? and url = ?
     order by ( name = 'Controversy Spider Feed' )
 END
 
