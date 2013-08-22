@@ -36,7 +36,7 @@ sub main
     {
         $db->disconnect;
         $db = MediaWords::DB::connect_to_db;
-        print STDERR "CONTROVERSY $controversy->{ name } \n";
+        print "CONTROVERSY $controversy->{ name } \n";
         MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
     }
 }
