@@ -660,13 +660,13 @@ sub add_to_controversy_stories_and_links
     generate_controversy_links( $db, $controversy, [ $story ] );
 }
 
-# check for a story with the same title within a week of the given story in the same or duplicate media source.
-# return the duplicate story or undef if one is not found
-sub get_dup_story
+# check for stories with the same title within a week of the given story in the same or duplicate media source.
+# return all duplicates stories found.
+sub get_dup_stories
 {
     my ( $db, $story, $controversy ) = @_;
 
-    return undef if ( length( $story->{ title } ) < 16 );
+    return [] if ( length( $story->{ title } ) < 16 );
 
     my $query = <<END;
 select distinct s.* from stories s, controversy_stories cs
@@ -674,7 +674,7 @@ select distinct s.* from stories s, controversy_stories cs
         s.media_id = ? and cs.controversies_id = ?    
 END
 
-    my $dup_stories = $db->query(
+    my $possible_dup_stories = $db->query(
         $query,
         $story->{ title },
         $story->{ stories_id } || -1,
@@ -682,7 +682,8 @@ END
         $controversy->{ controversies_id }
     )->hashes;
 
-    for my $dup_story ( @{ $dup_stories } )
+    my $dup_stories = [];
+    for my $dup_story ( @{ $possible_dup_stories } )
     {
         my $dup_story_epoch = MediaWords::Util::SQL::get_epoch_from_sql_date( $dup_story->{ publish_date } );
         my $story_epoch     = MediaWords::Util::SQL::get_epoch_from_sql_date( $story->{ publish_date } );
@@ -691,7 +692,8 @@ END
         if (   ( $dup_story_epoch >= ( $story_epoch - ( 7 * 86400 ) ) )
             && ( $dup_story_epoch <= ( $story_epoch + ( 7 * 86400 ) ) ) )
         {
-            return $dup_story;
+            push( @{ $dup_stories }, $dup_story );
+            next;
         }
 
         # if the stories aren't in the same week, require that the length be greater than 32
@@ -705,11 +707,21 @@ END
 
         next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
 
-        return $dup_story;
+        push( @{ $dup_stories }, $dup_story );
     }
 
-    # return the original story if no dups were found.
-    return undef;
+    return $dup_stories;
+}
+
+# check for stories with the same title within a week of the given story in the same or duplicate media source.
+# return all duplicates stories found.
+sub get_dup_story
+{
+    my ( $db, $story, $controversy ) = @_;
+
+    my $dup_stories = get_dup_stories( $db, $story, $controversy );
+
+    return @{ $dup_stories } ? $dup_stories->[ 0 ] : undef;
 }
 
 # look for a story matching the link url in the db
@@ -1531,7 +1543,64 @@ END
     }
 }
 
-# find any stories in the controversy that are dups according to get_dup_story
+# get the story in pick_list that appears first in ref_list
+sub pick_first_matched_story
+{
+    my ( $ref_list, $pick_list ) = @_;
+
+    for my $ref ( @{ $ref_list } )
+    {
+        for my $pick ( @{ $pick_list } )
+        {
+            return $pick if ( $ref->{ stories_id } == $pick->{ stories_id } );
+        }
+    }
+
+    die( "can't find any pick element in reference list" );
+}
+
+# loop through each story, finding the earliest dup story that is earlier in the sort order of
+# the above query than the current story.  put that earliest story in the dups hash where
+# the key is the stories_id to delete and the value is the story to keep.  before putting each
+# keep story in the array, look it up in the existing dups hash
+sub get_stories_dups
+{
+    my ( $db, $controversy, $stories ) = @_;
+
+    my $dups              = {};
+    my $processed_stories = {};
+    my $i                 = 0;
+    my $num_stories       = @{ $stories };
+
+    for my $story ( @{ $stories } )
+    {
+        print STDERR "$i / $num_stories\n" unless ( ++$i % 100 );
+
+        $processed_stories->{ $story->{ stories_id } } = 1;
+        next if ( $dups->{ $story->{ stories_id } } );
+
+        my $dup_stories = get_dup_stories( $db, $story, $controversy );
+        next unless ( @{ $dup_stories } );
+
+        my $dup_story = pick_first_matched_story( $stories, $dup_stories );
+
+        next unless ( $processed_stories->{ $dup_story->{ stories_id } } );
+
+        my $earliest_dup_story = $dup_story;
+        while ( my $earlier_dup_story = $dups->{ $earliest_dup_story->{ stories_id } } )
+        {
+            $earliest_dup_story = $earlier_dup_story;
+        }
+
+        $dups->{ $story->{ stories_id } } = $earliest_dup_story;
+    }
+
+    return $dups;
+}
+
+# find any stories in the controversy that are dups according to get_dup_story and
+# merge them.  be sure to merge to the best dated / earliest story and to handle recursive
+# duplicates.
 sub dedup_stories
 {
     my ( $db, $controversy ) = @_;
@@ -1559,25 +1628,10 @@ select s.*,
 END
 
     print STDERR "dedup_stories: processing stories...\n";
-    my $dups        = {};
-    my $i           = 0;
-    my $num_stories = @{ $stories };
-    for my $story ( @{ $stories } )
-    {
-        print STDERR "$i / $num_stories\n" if ( !( ++$i % 100 ) );
-        if ( !$dups->{ $story->{ stories_id } } && ( my $dup_story = get_dup_story( $db, $story, $controversy ) ) )
-        {
-            my $earliest_story = $story;
-            while ( my $earlier_story = $dups->{ $earliest_story->{ stories_id } } )
-            {
-                $earliest_story = $earlier_story;
-            }
 
-            $dups->{ $dup_story->{ stories_id } } = $earliest_story;
-        }
-    }
+    my $story_dups = get_stories_dups( $db, $controversy, $stories );
 
-    while ( my ( $delete_stories_id, $keep_story ) = each( %{ $dups } ) )
+    while ( my ( $delete_stories_id, $keep_story ) = each( %{ $story_dups } ) )
     {
         my $delete_story = $db->find_by_id( 'stories', $delete_stories_id );
         merge_dup_story( $db, $controversy, $delete_story, $keep_story );
