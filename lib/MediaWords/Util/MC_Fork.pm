@@ -21,7 +21,7 @@ sub mc_fork
     {
         my @arr = @{ $child_pids };
         push( @{ $child_pids }, $pid );
-	$SIG{ TERM } = \&_handle_sig;
+        $SIG{ TERM } = \&_handle_sig;
     }
     else
     {
@@ -53,11 +53,11 @@ sub _handle_sig
 
     if ( scalar( @$child_pids ) > 0 )
     {
-	say STDERR "waiting for children";
-	while ( wait > -1 )
-	{
-	    
-	}
+        say STDERR "waiting for children";
+        while ( wait > -1 )
+        {
+
+        }
     }
 
     say STDERR "exiting";
