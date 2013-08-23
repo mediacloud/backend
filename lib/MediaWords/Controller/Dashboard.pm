@@ -1161,8 +1161,8 @@ sub view : Local
         {
             $dashboards_id = $self->_default_dashboards_id( $c );
         }
-	
-	say STDERR "redirecting to default page";
+
+        say STDERR "redirecting to default page";
 
         $self->_redirect_to_default_page( $c, $dashboards_id );
 
