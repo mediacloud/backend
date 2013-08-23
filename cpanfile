@@ -63,6 +63,7 @@ requires 'HTML::TagCloud';
 requires 'HTML::TreeBuilder::LibXML';
 requires 'Inline';
 requires 'Inline::Java';
+requires 'Inline::Python';
 requires 'IPC::Run3';
 requires 'IPC::System::Simple';
 requires 'Lingua::Identify::CLD';
