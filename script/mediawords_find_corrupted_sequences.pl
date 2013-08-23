@@ -59,9 +59,9 @@ SQL
         next if "story_similarities_100_short" eq $table->{ tablename };
 
         my $sequence_query =
-          'select * from (select max(' . $table->{ id_column } . ' ) as max_id, nextval( ' . "'" .
-          $table->{ pg_get_serial_sequence } . "'" . ' ) as sequence_val from  ' . $table->{ tablename } .
-          ' ) as id_and_sequence where max_id >= sequence_val ';
+          'select * from (select max(' .
+          $table->{ id_column } . ' ) as max_id, nextval( ' . "'" . $table->{ pg_get_serial_sequence } .
+          "'" . ' ) as sequence_val from  ' . $table->{ tablename } . ' ) as id_and_sequence where max_id >= sequence_val ';
 
         #say STDERR $sequence_query;
 

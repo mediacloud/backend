@@ -160,8 +160,8 @@ sub forgot : Local
 
         # Do not stash the form because the link has already been sent
         $c->stash( template => 'auth/forgot.tt2' );
-        $c->stash( status_msg => "The password reset link was sent to email address '" . $email .
-              "' (given that such user exists in the user database)." );
+        $c->stash( status_msg => "The password reset link was sent to email address '" .
+              $email . "' (given that such user exists in the user database)." );
     }
 
 }
@@ -247,8 +247,8 @@ sub reset : Local
             $c->uri_for(
                 '/login',
                 {
-                    status_msg => "Your password has been changed. An email was sent to " . "'" . $email .
-                      "' to inform you about this change."
+                    status_msg => "Your password has been changed. An email was sent to " .
+                      "'" . $email . "' to inform you about this change."
                 }
             )
         );

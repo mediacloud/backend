@@ -703,7 +703,7 @@ END
         my $dup_story_url_no_p = $dup_story->{ url };
         my $story_url_no_p     = $story->{ url };
         $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-        $story_url_no_p     =~ s/(.*)\?(.*)/$1/;
+        $story_url_no_p =~ s/(.*)\?(.*)/$1/;
 
         next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
 
