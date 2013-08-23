@@ -16,7 +16,18 @@ use File::Path qw(make_path remove_tree);
 use File::Spec;
 use File::Basename;
 
-use Inline Python => '/home/dlarochelle/git_dev/mediacloud/python_scripts/solr_query_wordcount_timer.py';
+my $python_script_path;
+
+BEGIN
+{
+    my $_dirname      = dirname( __FILE__ );
+    my $_dirname_full = File::Spec->rel2abs( $_dirname );
+
+    $python_script_path = "$_dirname_full/../../../python_scripts";
+}
+
+
+use Inline Python => "$python_script_path/solr_query_wordcount_timer.py";
 
 # do a test run of the text extractor
 sub wc
