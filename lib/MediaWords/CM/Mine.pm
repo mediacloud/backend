@@ -391,15 +391,33 @@ END
 sub get_story_title_from_content
 {
 
-    # my ( $content, $url ) = @_;
+    my ( $content, $url ) = @_;
 
-    if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si ) { return $1; }
+    my $title;
 
-    if ( $_[ 0 ] =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si ) { return $1; }
+    if ( $content =~ m~<meta property=\"og:title\" content=\"([^\"]+)\"~si )
+    {
+        $title = $1;
+    }
+    elsif ( $content =~ m~<meta property=\"og:title\" content=\'([^\']+)\'~si )
+    {
+        $title = $1;
+    }
+    elsif ( $content =~ m~<title>([^<]+)</title>~si )
+    {
+        $title = $1;
+    }
+    else
+    {
+        $title = $url;
+    }
 
-    if ( $_[ 0 ] =~ m~<title>([^<]+)</title>~si ) { return $1; }
+    if ( length( $title ) > 1024 )
+    {
+        $title = substr( $title, 0, 1024 );
+    }
 
-    return $_[ 1 ];
+    return $title;
 }
 
 # return true if the args are valid date arguments.  assume a date has to be between 2000 and 2040.
