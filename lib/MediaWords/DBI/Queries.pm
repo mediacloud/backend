@@ -17,6 +17,7 @@ use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
 use MediaWords::StoryVectors;
 use MediaWords::Languages::Language;
+use MediaWords::Solr::WordCounts;
 
 use Readonly;
 
@@ -589,6 +590,14 @@ sub _get_top_500_weekly_words_impl
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
     my $date_clause             = get_weekly_date_clause( $query, 'w' );
     my $tw_date_clause          = get_weekly_date_clause( $query, 'tw' );
+
+
+    my $ret = MediaWords::Solr::WordCounts::word_count('*:*' , $query->{ start_date }, 500);
+
+    say STDERR $ret;
+
+    return $ret;
+    
 
     # we have to divide stem_count by the number of media_sets to get the correct ratio b/c
     # the query below sum()s the stem for all media_sets

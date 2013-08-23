@@ -1153,23 +1153,31 @@ sub view : Local
 {
     my ( $self, $c, $dashboards_id ) = @_;
 
+    say STDERR "starting view";
+
     if ( scalar( keys %{ $c->req->parameters() } ) == 0 )
     {
         if ( !defined( $dashboards_id ) )
         {
             $dashboards_id = $self->_default_dashboards_id( $c );
         }
+	
+	say STDERR "redirecting to default page";
 
         $self->_redirect_to_default_page( $c, $dashboards_id );
 
         return;
     }
 
+    say STDERR "not redirecting";
+
     if ( !$c->req->param( 'q1' ) )
     {
         $self->_redirect_to_query_url( $c, $dashboards_id );
         return;
     }
+
+    say STDERR "starting process_and_stash_dashboard_data";
 
     $self->_process_and_stash_dashboard_data( $c, $dashboards_id );
 
