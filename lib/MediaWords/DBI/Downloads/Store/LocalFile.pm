@@ -54,13 +54,6 @@ sub store_content($$$$;$)
     my $relative_path = $self->get_download_path( $db, $download, $skip_encode_and_gzip );
     my $full_path = $self->get_data_content_dir . $relative_path;
 
-    if ( -f $full_path )
-    {
-        die "File at path '$full_path' already exists.";
-    }
-
-    # say STDERR "Will write to file '$full_path'.";
-
     # Create missing directories for the path
     make_path( _directory_name( $full_path ) );
 

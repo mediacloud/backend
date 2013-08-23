@@ -1,12 +1,12 @@
-#
-# This file lists *direct* Perl module dependencies of Media Cloud.
-#
-# See:
-#
-#     doc/carton.txt
-#
-# for instructions on how to add a new Perl module dependency.
-#
+# 1. 
+# 2. This file lists *direct* Perl module dependencies of Media Cloud.
+# 3. 
+# 4. See:
+# 5. 
+# 6.     doc/carton.txt
+# 7. 
+# 8. for instructions on how to add a new Perl module dependency.
+# 9. 
 requires 'Algorithm::FeatureSelection';
 requires 'Archive::Zip';
 requires 'Array::Compare';
@@ -46,9 +46,9 @@ requires 'Domain::PublicSuffix';
 requires 'Email::MIME';
 requires 'Email::Sender::Simple';
 requires 'Encode::HanConvert';
+requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
-requires 'F/FL/FLORA/FCGI-0.74.tar.gz';
 requires 'File::Touch';
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';

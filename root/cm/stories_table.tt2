@@ -1,9 +1,17 @@
 [% IF display_stories_title %]
     <div id="boxtitle">
+
     [% display_stories_title %]
+
     [% IF cdts_date_range %]
         in [% cdts_date_range %] Time Slice
     [% END %]
+
+    [% IF display_stories_remove_button %]
+        [% remove_stories_url = c.req.uri _ '&remove_stories=1' %]
+        <a id="boxcommand" class="remove_story" href="[% remove_stories_url | html %]">remove all</a>        
+    [% END %]
+
     </div>
 [% END %]
 

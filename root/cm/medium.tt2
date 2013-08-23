@@ -46,9 +46,11 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 %]
 
 [% edit_url = c.uri_for( '/admin/media/edit_do/' _ medium.media_id ) %]
+[% merge_url = c.uri_for( '/admin/cm/merge_media/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
 
 <div id="boxtitle">
     Basic Data for [% medium.name | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
+    <a id="boxcommand" href="[% merge_url | html %]">merge</a>
     <a id="boxcommand" href="[% edit_url | html %]">edit</a>
 </div>
 <table>

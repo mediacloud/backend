@@ -134,7 +134,8 @@ sub get_cached_link_download
 {
     my ( $link ) = @_;
 
-    die( "no { _link_num } field in $link } " ) if ( !defined( $link->{ _link_num } ) );
+    die( "no { _link_num } field in $link->{ url }: did you call cache_link_downloads? " )
+      if ( !defined( $link->{ _link_num } ) );
 
     my $link_num = $link->{ _link_num };
 

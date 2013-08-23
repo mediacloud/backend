@@ -888,7 +888,7 @@ sub _guessing_is_inapplicable($$$)
 
 # guess the date for the story by cycling through the $_date_guess_functions one at a time.
 # returns MediaWords::CM::GuessDate::Result object
-sub guess_date($$$;$)
+sub guess_date_impl
 {
     my ( $db, $story, $html, $use_threshold ) = @_;
 
@@ -944,6 +944,23 @@ sub guess_date($$$;$)
     # Not found
     $result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
     return $result;
+}
+
+# guess the date for the story by cycling through the $_date_guess_functions one at a time.
+# returns MediaWords::CM::GuessDate::Result object
+sub guess_date($$$;$)
+{
+
+    # we have to wrap everything in an eval, because the xml treebuilder stuff is liable to dying
+    # in unpredictable ways
+    my $r;
+    eval { $r = guess_date_impl( @_ ) };
+
+    return $r if ( $r );
+
+    $r = MediaWords::CM::GuessDate::Result->new();
+    $r->{ result } = MediaWords::CM::GuessDate::Result::INAPPLICABLE;
+    return $r;
 }
 
 1;
