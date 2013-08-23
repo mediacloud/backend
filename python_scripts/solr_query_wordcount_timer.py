@@ -34,11 +34,12 @@ def get_word_counts( solr, query, date_str, count=1000 ) :
 
     return counts
 
-solr = pysolr.Solr('http://localhost:8983/solr/')
+def solr_connection() :
+    return pysolr.Solr('http://localhost:8983/solr/')
 
-results = get_word_counts(solr, 'sentence:the', '2013-08-10', count=100);
 
-print results
+#results = get_word_counts(solr_connection(), 'sentence:the', '2013-08-10', count=100);
+
+#print results
 #print results.facets['facet_fields']['includes']
 
-ipdb.set_trace()
