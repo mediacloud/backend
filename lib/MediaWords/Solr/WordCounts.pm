@@ -26,31 +26,29 @@ BEGIN
     $python_script_path = "$_dirname_full/../../../python_scripts";
 }
 
-
 use Inline Python => "$python_script_path/solr_query_wordcount_timer.py";
-
-# do a test run of the text extractor
-sub wc
-{
-    say "Foo ";
-    my $solr = solr_connection();
-    my $result = get_word_counts($solr, 'sentence:the', '2013-08-10', 100);
-
-    say Dumper( $result );
-}
 
 my $solr;
 
 sub word_count
 {
-    my ( $query, $date, $count) = @_;
+    my ( $query, $date, $count ) = @_;
 
-    if ( ! defined( $solr ) )
+    say STDERR "starting word_count";
+
+    if ( !defined( $solr ) )
     {
-	$solr = solr_connection();
+        $solr = solr_connection();
     }
 
-    my $result = get_word_count( $solr, '*:*', $date, $count )
+    say STDERR "calling python";
+    my $counts = get_word_counts( $solr, '*:*', $date, $count );
+
+    say STDERR "returned from python";
+
+    my $result = counts_to_db_style( $counts );
+
+    return $result;
 }
 
 my $class_path;
@@ -69,7 +67,5 @@ BEGIN
 
     #say STDERR "classpath: $class_path";
 }
-
-
 
 1;
