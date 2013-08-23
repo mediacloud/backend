@@ -28,8 +28,7 @@ BEGIN
 
 use Inline Python => "$python_script_path/solr_query_wordcount_timer.py";
 
-undef($SIG{'INT'});
-
+undef( $SIG{ 'INT' } );
 
 my $solr;
 
