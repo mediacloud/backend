@@ -43,7 +43,7 @@ sub main
 {
     say "Foo";
     my $solr = solr_connection();
-    my $result = get_word_counts($solr, 'sentence:the', '2013-08-10', 100);
+    my $result = get_word_counts( $solr, 'sentence:the', '2013-08-10', 100 );
 
     say Dumper( $result );
 }

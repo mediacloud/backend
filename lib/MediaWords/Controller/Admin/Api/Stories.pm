@@ -298,7 +298,7 @@ sub stories_query_GET : Local : PathPrefix( '/api' )
 
     die " Cannot use both last_stories_id and start_stories_id"
       if defined( $last_stories_id )
-          and defined( $start_stories_id );
+      and defined( $start_stories_id );
 
     if ( defined( $start_stories_id ) && !( defined( $last_stories_id ) ) )
     {
