@@ -352,8 +352,10 @@ sub handle_feed_content
     }
     finally
     {
-        if ($download->{state} ne 'feed_error') {
-            $dbs->query( "UPDATE feeds SET last_successful_download_time = NOW() WHERE feeds_id = ?", $download->{ feeds_id } );
+        if ( $download->{ state } ne 'feed_error' )
+        {
+            $dbs->query( "UPDATE feeds SET last_successful_download_time = NOW() WHERE feeds_id = ?",
+                $download->{ feeds_id } );
         }
 
         MediaWords::DBI::Downloads::store_content( $dbs, $download, $content_ref );

@@ -374,7 +374,8 @@ sub store_content($$$)
     }
 
     # Update database
-    $db->query(<<"EOF",
+    $db->query(
+        <<"EOF",
         UPDATE downloads
         SET state = ?,
             path = ?,

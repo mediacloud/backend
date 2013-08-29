@@ -168,7 +168,7 @@ sub _add_mapped_table_fields
                 WHERE ${table}_id IN ( $ids_list )
                 ORDER BY ${table}_id
 EOF
-                  )->hashes
+                )->hashes
             ];
         }
     }
@@ -399,7 +399,7 @@ sub find_query_by_id
                       AND qm.queries_id = $queries_id
                 ORDER BY m.${table}_id
 EOF
-              )->hashes
+            )->hashes
         ];
         $query->{ $table . "_names" } = [ map { $_->{ name } } @{ $query->{ $table } } ];
         $query->{ $table . "_ids" }   = [ map { $_->{ $table . "_id" } } @{ $query->{ $table } } ];
@@ -1245,7 +1245,7 @@ sub get_term_counts
         GROUP BY dw.publish_day, dw.stem $media_set_group
         ORDER BY dw.publish_day, dw.stem
 EOF
-          )->arrays
+        )->arrays
     ];
 
     for my $d ( @{ $date_term_counts } )
@@ -1364,7 +1364,7 @@ sub find_or_create_media_sub_query
         FROM media_sets
         WHERE media_id IN ( $media_ids_list )
 EOF
-          )->flat
+        )->flat
     ];
 
     return MediaWords::DBI::Queries::find_or_create_query_by_params(

@@ -453,9 +453,8 @@ sub main
 
             if ( defined( $dump ) && ( $dump eq '-d' ) )
             {
-	        die ( "Dumping of stories is only supported within t/test_crawler.t \n" .
-		"test_crawler.t and test_single_crawler_download.t share data"
-		);		
+                die( "Dumping of stories is only supported within t/test_crawler.t \n" .
+                      "test_crawler.t and test_single_crawler_download.t share data" );
             }
 
             test_stories( $db, $feed );

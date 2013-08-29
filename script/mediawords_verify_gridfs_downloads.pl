@@ -364,8 +364,9 @@ sub verify_downloads($$$)
           )
         {
 
-            say STDERR "Warning: Content mismatch for download ID $next_download_id.\n" . "Source content: " .
-              ( $source_content || 'undef' ) . "\n" . "Destination content: " . ( $destination_content || 'undef' ) . "\n";
+            say STDERR "Warning: Content mismatch for download ID $next_download_id.\n" .
+              "Source content: " . ( $source_content || 'undef' ) . "\n" . "Destination content: " .
+              ( $destination_content || 'undef' ) . "\n";
         }
     }
 
@@ -390,8 +391,8 @@ sub main
                                      # the end of all downlads
 
     my Readonly $usage =
-      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' . ' [--start_downloads_id=i]' .
-      ' [--finish_downloads_id=i]';
+      'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' .
+      ' [--start_downloads_id=i]' . ' [--finish_downloads_id=i]';
 
     GetOptions(
         'mode=s'                => \$mode,

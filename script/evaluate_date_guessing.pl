@@ -250,8 +250,8 @@ END
                 $guessed_result->{ result } = MediaWords::CM::GuessDate::Result::NOT_FOUND;
             }
         }
-        say STDERR "\tGuessed date: " . ( $guessed_result->{ date } || $guessed_result->{ result } ) . " (" .
-          ( $guessed_result->{ timestamp } || 'undef' ) . "), guessed with '" .
+        say STDERR "\tGuessed date: " . ( $guessed_result->{ date } || $guessed_result->{ result } ) .
+          " (" . ( $guessed_result->{ timestamp } || 'undef' ) . "), guessed with '" .
           ( $guessed_result->{ guess_method } || '-' ) . "'";
 
         # Write down numbers
@@ -349,8 +349,8 @@ END
             else
             {
 
-                say STDERR "\tMismatch (expected: " . $actual_result->{ result } . "; got: " . $guessed_result->{ result } .
-                  ")";
+                say STDERR "\tMismatch (expected: " .
+                  $actual_result->{ result } . "; got: " . $guessed_result->{ result } . ")";
 
                 ++$guesses->{ incorrect }->{ _total };
                 ++$guesses->{ incorrect }->{ undateable }->{ _total };
