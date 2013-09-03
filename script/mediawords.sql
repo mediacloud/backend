@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4420;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4421;
     
 BEGIN
 
@@ -1303,6 +1303,13 @@ create table controversy_seed_urls (
 
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 create index controversy_seed_urls_url on controversy_seed_urls( url );
+    
+create table controversy_ignore_redirects (
+    controversy_ignore_redirects_id     serial primary key,
+    url                                 varchar( 1024 )
+);
+
+create index controversy_ignore_redirects_url on controversy_ignore_redirects ( url );
 
 create table controversy_dumps (
     controversy_dumps_id            serial primary key,
@@ -1549,6 +1556,15 @@ create table cd.live_stories (
 );
 create index live_story_controversy on cd.live_stories ( controversies_id );
 create unique index live_stories_story on cd.live_stories ( controversies_id, stories_id );
+    
+create table cd.word_counts (
+    controversy_dump_time_slices_id int             not null references controversy_dump_time_slices on delete cascade,
+    term                            varchar(256)    not null,
+    stem                            varchar(256)    not null,
+    stem_count                      smallint        not null    
+);
+
+create index word_counts_cdts_stem on cd.word_counts ( controversy_dump_time_slices_id, stem );
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin

@@ -175,6 +175,7 @@ sub _download_store_for_reading($)
             # Tar
             if ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } ) eq 'yes' )
             {
+
                 # Force reading Tar downloads from GridFS (after the migration)
                 $store = $_gridfs_store;
             }
@@ -189,6 +190,7 @@ sub _download_store_for_reading($)
             # Local file
             if ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } ) eq 'yes' )
             {
+
                 # Force reading file downloads from GridFS (after the migration)
                 $store = $_gridfs_store;
             }
@@ -394,6 +396,31 @@ EOF
     $download->{ path }  = $path;
 
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+}
+
+# try to store content determinedly by retrying on a failed eval at doubling increments up to 32 seconds
+sub store_content_determinedly
+{
+    my ( $db, $download, $content ) = @_;
+
+    my $interval = 1;
+    while ( 1 )
+    {
+        eval { MediaWords::DBI::Downloads::store_content( $db, $download, \$content ) };
+        return unless ( $@ );
+
+        if ( $interval < 33 )
+        {
+            warn( "store_content failed: $@\ntrying again..." );
+            $interval *= 2;
+            sleep( $interval );
+        }
+        else
+        {
+            warn( "store_content_determinedly failed: $@" );
+            return;
+        }
+    }
 }
 
 # convenience method to get the media_id for the download
