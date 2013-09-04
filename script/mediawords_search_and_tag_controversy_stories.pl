@@ -74,8 +74,7 @@ END
     my $match_columns_list = join( ", ", @{ $match_columns } );
 
     my $query =
-      "select s.stories_id, s.title, $match_columns_list from stories s, controversy_stories cs " .
-      "  where s.stories_id = cs.stories_id and cs.controversies_id = ?";
+      "select s.stories_id, s.title, $match_columns_list from cd.live_stories s " . "  where s.controversies_id = ?";
     print STDERR "query: $query\n";
     my $story_matches = $db->query( $query, $controversy->{ controversies_id } )->hashes;
 
@@ -85,6 +84,7 @@ END
         print "$patterns->[ $i ]->{ tag }->{ tag }: " . scalar( grep { $_->{ "match_$i" } } @{ $story_matches } ) . "\n";
     }
 
+    print STDERR "writing tags ...\n";
     $db->{ dbh }->{ AutoCommit } = 0;
     my $c = 0;
     for my $story_match ( @{ $story_matches } )
@@ -111,8 +111,14 @@ END
             }
         }
 
-        $db->commit if ( !( $c % 100 ) );
+        if ( !( $c % 100 ) )
+        {
+            $db->commit;
+            print STDERR "[ $c / " . scalar( @{ $story_matches } ) . " ]\n";
+        }
     }
+
+    $db->commit;
 }
 
 sub main
