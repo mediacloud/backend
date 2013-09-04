@@ -7,6 +7,7 @@ import sys
 import pysolr
 import dateutil.parser
 import copy
+import pickle
 
 def get_word_counts( solr, query, date_str, count=1000 ) :
     date = dateutil.parser.parse( date_str )
@@ -139,6 +140,24 @@ def get_stories_ids( solr, query_specific_filters ) :
 
     return stories_ids
 
+def fetch_from_stories_ids( solr, stories_ids ) :
+
+    rows = 100000
+
+    docs = []
+
+    for stories_id in sorted(stories_ids):
+        query = "stories_id:{0}".format( stories_id )
+        result = solr.search( query, **{
+                'rows': rows
+            })
+
+        assert result.hits < rows
+
+        docs.extend(result.docs)
+
+    return docs
+
 def main():
     solr = solr_connection()
 
@@ -159,6 +178,13 @@ def main():
     stories_ids = get_stories_ids( solr, query_specific_filters ) 
 
     print "got stories_ids"
+
+    docs = fetch_from_stories_ids( solr, stories_ids )
+
+    for doc in docs:
+        doc['media_sets_id'] = [ 1 ]
+
+    pickle.dump( docs, open("docs.p", "wb" ) )
 
     exit()
 
