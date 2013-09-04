@@ -58,11 +58,16 @@ sub search_and_tag_stories
         my $pattern = $patterns->[ $i ];
 
         # gotta do this weird sub-sub-query to get the planner not to seq scan story_sentences
-        my $clause =
-          "( s.url ~* '$pattern->{ regex }' or s.title ~* '$pattern->{ regex }' or " .
-          "  s.description ~* '$pattern->{ regex }' or " . "  exists ( select 1 " .
-          "             from ( select * from story_sentences ssa_$i where s.stories_id = ssa_$i.stories_id ) as ss_$i " .
-          "             where ss_$i.sentence ~* '$pattern->{ regex }' ) ) match_$i";
+        my $clause = <<END;
+( s.url ~* '$pattern->{ regex }' or s.title ~* '$pattern->{ regex }' or
+  s.description ~* '$pattern->{ regex }' or exists ( select 1
+             from ( 
+                 select * 
+                    from download_texts dta_$i join downloads d_$i on dta_$i.downloads_id = d_$i.downloads_id
+                    where s.stories_id = d_$i.stories_id ) as dt_$i
+             where dt_$i.download_text ~* '$pattern->{ regex }' ) ) match_$i
+END
+
         push( @{ $match_columns }, $clause );
     }
 
