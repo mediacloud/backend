@@ -103,9 +103,10 @@ def get_stories_ids_for_query( solr, query_specific_fq_params ):
 
 
 def query_top25msm_for_range_body( solr, query_specific_fq_params ):
-    common_fq_params = ['field_type:ss', 'publish_date:[2012-01-01T00:00:00Z TO NOW]', "sentence:'illegal immigrant'"]
+    common_fq_params = ['field_type:ss', 'publish_date:[2012-01-01T00:00:00Z TO NOW]', 'sentence:"illegal immigrant" OR sentence:"illegal immigrants"']
 
-    join_params = [ '{!join from=stories_id to=stories_id}' + param for param in query_specific_fq_params ]
+    join_params = map ( lambda param: '-{!join from=stories_id to=stories_id}' + param[1:] if param.startswith('-') else '{!join from=stories_id to=stories_id}' + param,
+          query_specific_fq_params )
     
     fq_params = common_fq_params + join_params
 
@@ -208,7 +209,13 @@ def main():
     #exit()
 
     for query_specific_filter in query_specific_filters:
-        counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
+        #counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
+        counts = query_top25msm_for_range_body( solr, query_specific_filter )
+
+        for date in counts.keys():
+            trunc_date = date.replace( 'T00:00:00Z', '')
+            counts[ trunc_date ] = counts.pop( date )
+
         #counts['query'] = str(  query_specific_filter )
         results[ str( query_specific_filter ) ] = counts
 
@@ -217,6 +224,8 @@ def main():
 
     for query in results.keys():
         results[query]['query'] = query
+
+    #print  results
 
     with open("/tmp/sample.csv", 'wb') as csvfile:
         samplewriter = csv.DictWriter(csvfile, row_titles )
