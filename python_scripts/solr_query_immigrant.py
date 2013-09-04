@@ -158,6 +158,32 @@ def fetch_from_stories_ids( solr, stories_ids ) :
 
     return docs
 
+
+def download_and_pickle( solr, query_specific_filters ):
+    stories_ids = get_stories_ids( solr, query_specific_filters ) 
+
+    print "got stories_ids"
+
+    docs = fetch_from_stories_ids( solr, stories_ids )
+
+    for doc in docs:
+        doc['media_sets_id'] = [ 1 ]
+        del doc['_version_']
+
+    pickle.dump( docs, open("docs.p", "wb" ) )
+
+def unpickle_and_upload( solr ) :
+    docs = pickle.load( open( "docs.p", "rb" ) )
+
+    print "pickle load COMPLETE"
+
+    for doc in docs:
+        del doc['_version_']
+
+    solr.add( docs )
+
+
+
 def main():
     solr = solr_connection()
 
@@ -175,16 +201,9 @@ def main():
 
     results = {}
 
-    stories_ids = get_stories_ids( solr, query_specific_filters ) 
+    #download_and_pickle( solr, query_specific_filters )
 
-    print "got stories_ids"
-
-    docs = fetch_from_stories_ids( solr, stories_ids )
-
-    for doc in docs:
-        doc['media_sets_id'] = [ 1 ]
-
-    pickle.dump( docs, open("docs.p", "wb" ) )
+    unpickle_and_upload( solr )
 
     exit()
 
