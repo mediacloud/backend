@@ -66,7 +66,7 @@ def query_top25msm_for_range_title_only( solr, query_specific_fq_params ):
             'facet':"true",
             'facet.range.start':'2012-01-01T00:00:00Z',
             'facet.range':'publish_date',
-            'facet.range.end':['NOW','NOW'],
+            'facet.range.end':['2013-08-31T00:00:00Z','2013-08-31T00:00:00Z'],
             'facet.range.gap':'+1MONTH',
             'fq': fq_params,
             })
@@ -203,12 +203,12 @@ def main():
 
     #download_and_pickle( solr, query_specific_filters )
 
-    unpickle_and_upload( solr )
+   # unpickle_and_upload( solr )
 
-    exit()
+    #exit()
 
     for query_specific_filter in query_specific_filters:
-        counts = query_top25msm_for_range_body( solr, query_specific_filter )
+        counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
         #counts['query'] = str(  query_specific_filter )
         results[ str( query_specific_filter ) ] = counts
 
@@ -225,7 +225,13 @@ def main():
 
     #print results
 
-join_query = '{!join from=media_id_inner to=media_id}media_sets_id:1'
+OLD_SCHEMA = False
+
+if OLD_SCHEMA:
+    join_query = '{!join from=media_id_inner to=media_id}media_sets_id:1'
+else:
+    join_query = '*:*'
+
 
 if __name__ == "__main__":
     main()
