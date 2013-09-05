@@ -161,20 +161,31 @@ def count_by_month( docs ) :
     trunc_dates = [ date[:7]  for date in dates ]
     return Counter( trunc_dates )
     
-
-def query_top25msm_for_range_body_by_filters( docs,  query_specific_fq_params ):
+def get_story_docs_for_query( docs, query_specific_fq_params):
     story_docs = filter ( doc_is_story_in_range, docs )
 
     query_docs = story_docs
-    
+
+    assert len( query_specific_fq_params ) > 0
+
     for query in query_specific_fq_params:
         query_docs = filter( lambda doc: doc_matches_solr_query( doc, query), query_docs )
+
+    return query_docs
+
+def query_top25msm_for_range_body_by_filters( docs,  query_specific_fq_params ):
+
+    query_docs = get_story_docs_for_query( docs, query_specific_fq_params )
 
     counts = count_by_month( query_docs )
 
     return counts
             
-    
+def get_stories_ids_from_docs( docs ) :
+    return set( [ doc[ 'stories_id' ] for doc in docs ] )
+
+
+
 
 def get_stories_ids( solr, query_specific_filters ) :
     print "start get_stories_ids"
