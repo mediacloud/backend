@@ -8,6 +8,8 @@ import pysolr
 import dateutil.parser
 import copy
 import pickle
+from collections import Counter
+import re
 
 def get_word_counts( solr, query, date_str, count=1000 ) :
     date = dateutil.parser.parse( date_str )
@@ -126,6 +128,54 @@ def query_top25msm_for_range_body( solr, query_specific_fq_params ):
     counts = dict(zip(facet_counts[0::2],facet_counts[1::2]))
     return counts
 
+def doc_is_story_in_range( doc ):
+    return doc['field_type'] == 'st' and doc['publish_date'] >= '2012-01-01T00:00:00Z'
+
+def doc_matches_solr_query( doc, query ) :
+    invert_result = False
+
+    if '-' == query[0]:
+        invert_result = True
+        query = query[1:]
+
+    str_tmp = query.split(":")
+    field = str_tmp[0]
+    clause = str_tmp[1]
+
+    assert clause[0] != '['
+
+    regex_clause = "\\b{0}\\b".format( clause )
+
+   # ipdb.set_trace()
+   # ret = doc[ field ].lower().find(clause.lower() ) != -1
+
+    ret = re.search( regex_clause, doc[field], re.IGNORECASE )
+
+    if invert_result:
+        ret = not ret
+
+    return ret        
+
+def count_by_month( docs ) :
+    dates = [ doc['publish_date'] for doc in docs ]
+    trunc_dates = [ date[:7]  for date in dates ]
+    return Counter( trunc_dates )
+    
+
+def query_top25msm_for_range_body_by_filters( docs,  query_specific_fq_params ):
+    story_docs = filter ( doc_is_story_in_range, docs )
+
+    query_docs = story_docs
+    
+    for query in query_specific_fq_params:
+        query_docs = filter( lambda doc: doc_matches_solr_query( doc, query), query_docs )
+
+    counts = count_by_month( query_docs )
+
+    return counts
+            
+    
+
 def get_stories_ids( solr, query_specific_filters ) :
     print "start get_stories_ids"
 
@@ -208,18 +258,24 @@ def main():
 
     #exit()
 
+    docs = pickle.load( open( "docs.p", "rb" ) )
+
     for query_specific_filter in query_specific_filters:
         #counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
-        counts = query_top25msm_for_range_body( solr, query_specific_filter )
-
+        #counts = query_top25msm_for_range_body( solr, query_specific_filter )
+        counts = query_top25msm_for_range_body_by_filters( docs, query_specific_filter )
+        
         for date in counts.keys():
-            trunc_date = date.replace( 'T00:00:00Z', '')
+            trunc_date = date.replace( '-01T00:00:00Z', '')
             counts[ trunc_date ] = counts.pop( date )
 
         #counts['query'] = str(  query_specific_filter )
         results[ str( query_specific_filter ) ] = counts
 
-    row_titles = sorted(results.values()[0].keys())
+    row_titles = sorted( reduce ( lambda x,y : x.union(y) , 
+                                  map( lambda result: set( result.keys() ) , results.values() ) )
+                         )
+
     row_titles.insert(0, 'query')
 
     for query in results.keys():
