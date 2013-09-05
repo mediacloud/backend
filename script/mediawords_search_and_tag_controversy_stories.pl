@@ -111,7 +111,7 @@ END
             }
         }
 
-        if ( !( $c % 100 ) )
+        if ( !( $c++ % 100 ) )
         {
             $db->commit;
             print STDERR "[ $c / " . scalar( @{ $story_matches } ) . " ]\n";
