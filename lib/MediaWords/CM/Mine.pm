@@ -36,7 +36,7 @@ use constant ALL_TAG => 'all';
 # ignore links that match this pattern
 my $_ignore_link_pattern =
   '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
-  '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)';
+  '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)';
 
 # cache of media by media id
 my $_media_cache = {};
@@ -644,7 +644,46 @@ sub add_new_story
     return $story;
 }
 
-# return true if the story_sentences for the controversy search pattern
+# return true if any of the download_texts for the story matches the controversy search pattern
+sub story_download_text_matches_pattern
+{
+    my ( $db, $story, $query_story_search ) = @_;
+
+    my $dt = $db->query( <<END, $story->{ stories_id }, $query_story_search->{ query_story_searches_id } )->hash;
+select 1 
+    from download_texts dt 
+        join downloads d on ( dt.downloads_id = d.downloads_id )
+        join query_story_searches qss on ( qss.query_story_searches_id = \$2 )
+    where 
+        d.stories_id = \$1 and
+        dt.download_text ~* qss.pattern
+    limit 1
+END
+    return $dt ? 1 : 0;
+}
+
+# return true if any of the story_sentences with no duplicates for the story matches the controversy search pattern
+sub story_sentence_matches_pattern
+{
+    my ( $db, $story, $query_story_search ) = @_;
+
+    my $ss = $db->query( <<END, $story->{ stories_id }, $query_story_search->{ query_story_searches_id } )->hash;
+select 1 
+    from story_sentences ss
+        join story_sentence_counts ssc 
+            on ( ss.stories_id = ssc.first_stories_id and ss.sentence_number = ssc.first_sentence_number )
+        join query_story_searches qss on ( qss.query_story_searches_id = \$2 )
+    where 
+        ss.stories_id = \$1 and
+        ss.sentence ~* qss.pattern and
+        ssc.sentence_count < 2
+    limit 1
+END
+
+    return $ss ? 1 : 0;
+}
+
+# return true if the story title, url, description, or sentences match controversy search pattern
 sub story_matches_controversy_pattern
 {
     my ( $db, $controversy, $story, $metadata_only ) = @_;
@@ -660,24 +699,13 @@ sub story_matches_controversy_pattern
 
     return 0 if ( $metadata_only );
 
-    # changing this to use download texts so that we don't have to hit the story vectors,
-    # which are horribly slow until we fix them - hal 20130316
-    my $query = <<END;
-select 1 from download_texts dt, downloads d 
-    where d.stories_id = $story->{ stories_id } and d.downloads_id = dt.downloads_id and 
-        lower( dt.download_text ) ~ ?
-END
+    # check for download_texts match first because some stories don't have
+    # story_sentences, and it is expensive to generate the missing story_sentences
+    return 0 unless ( story_download_text_matches_pattern( $db, $story, $query_story_search ) );
 
-   # my $query =
-   #   "select 1 from story_sentences ss where ss.stories_id = $story->{ stories_id } and " . "    lower( ss.sentence ) ~ ?";
+    MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
-    # print STDERR "match query: $query\n";
-
-    my ( $matches_pattern ) = $db->query( $query, $query_story_search->{ pattern } )->flat;
-
-    # print STDERR "MATCH\n" if ( $matches_pattern );
-
-    return $matches_pattern;
+    return story_sentence_matches_pattern( $db, $story, $query_story_search );
 }
 
 # add to controversy_stories table
