@@ -118,7 +118,7 @@ def query_top25msm_for_range_body( solr, query_specific_fq_params ):
             'facet':"true",
             'facet.range.start':'2012-01-01T00:00:00Z',
             'facet.range':'publish_date',
-            'facet.range.end':['NOW','NOW'],
+            'facet.range.end':['2013-08-31T00:00:00Z','2013-08-31T00:00:00Z'],
             'facet.range.gap':'+1MONTH',
             'fq': fq_params,
             })
@@ -184,7 +184,78 @@ def query_top25msm_for_range_body_by_filters( docs,  query_specific_fq_params ):
 def get_stories_ids_from_docs( docs ) :
     return set( [ doc[ 'stories_id' ] for doc in docs ] )
 
+def get_sentences_with_stories_ids( docs, stories_id) :
+    return filter( lambda doc: ( doc[ 'stories_id'] in stories_id ) and ( doc[ 'field_type' ] == 'ss' ), docs )
 
+def get_stories_with_stories_ids( docs, stories_id) :
+
+    return filter( lambda doc: ( doc[ 'stories_id'] in stories_id ) and ( doc[ 'field_type' ] == 'st' ), docs )
+
+def get_illegal_immigrant_sentences( docs ):  
+    sentences = docs
+    regex1 = re.compile( "\\billegal[\\b\\W\"]+immigrant\\b", re.IGNORECASE )
+    regex2 = re.compile( "\\billegal[\\b\\W\"]+immigrants\\b", re.IGNORECASE )
+
+    matching_sentences = filter( lambda s: regex1.search(s['sentence']) or 
+                                 regex2.search(s['sentence']), sentences )
+
+    return matching_sentences
+
+def get_set_2( docs, query_specific_fq_params ) :
+    story_docs =  get_story_docs_for_query( docs, query_specific_fq_params )
+    stories_id = get_stories_ids_from_docs( story_docs )
+
+    sentences = get_sentences_with_stories_ids( docs, stories_id)
+
+    # regex1 = re.compile( "\\billegal[\\b\\W\"]+immigrant\\b", re.IGNORECASE )
+    # regex2 = re.compile( "\\billegal[\\b\\W\"]+immigrants\\b", re.IGNORECASE )
+
+    # matching_sentences = filter( lambda s: regex1.search(s['sentence']) or 
+    #                              regex2.search(s['sentence']), sentences )
+
+    matching_sentences = get_illegal_immigrant_sentences( sentences )
+
+    counts = count_by_month( matching_sentences )
+
+    return counts
+
+def get_ap_byline_docs ( docs ) :
+    associated_press_regex = re.compile("associated[\\b\\W\"]+press", re.IGNORECASE )
+    ap_regex = re.compile("\\bap\\b", re.IGNORECASE )
+
+    ap_docs = filter( lambda doc: doc['field_type'] == 'ss' and ( ap_regex.search( doc[ 'sentence'] ) or 
+                      associated_press_regex.search( doc[ 'sentence' ] ) )
+                      and doc[ 'sentence_number'] <= 3, docs )
+
+    return ap_docs
+
+def get_ap_byline_stories_ids( docs ) :
+    ap_docs = get_ap_byline_docs( docs )
+    return get_stories_ids_from_docs( ap_docs )
+
+def get_set_3_docs( docs, query_specific_fq_params ) :
+    ap_stories_ids = get_ap_byline_stories_ids( docs )
+    ap_story_docs = get_stories_with_stories_ids( docs, ap_stories_ids )
+    query_docs = get_story_docs_for_query( ap_story_docs, query_specific_fq_params )
+
+    return query_docs
+
+def get_ap_doc_counts( docs, query_specific_fq_params ) :
+    ap_stories_ids = get_ap_byline_stories_ids( docs )
+    ap_story_docs = get_stories_with_stories_ids( docs, ap_stories_ids )
+    counts = count_by_month ( ap_story_docs )
+    return counts
+
+def get_set_3_counts ( docs, query_specific_fq_params ) :
+    query_docs = get_set_3_docs( docs, query_specific_fq_params )
+    
+    counts = count_by_month( query_docs )
+
+    return counts
+
+def get_set_4_counts ( docs, query_specific_fq_params ) :
+    set_3_docs = get_set_3_docs( docs, query_specific_fq_params )
+    
 
 
 def get_stories_ids( solr, query_specific_filters ) :
@@ -274,7 +345,9 @@ def main():
     for query_specific_filter in query_specific_filters:
         #counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
         #counts = query_top25msm_for_range_body( solr, query_specific_filter )
-        counts = query_top25msm_for_range_body_by_filters( docs, query_specific_filter )
+        #counts = query_top25msm_for_range_body_by_filters( docs, query_specific_filter )
+        counts =  get_set_2( docs, query_specific_filter )
+        #counts =  get_ap_doc_counts( docs, query_specific_filter )
         
         for date in counts.keys():
             trunc_date = date.replace( '-01T00:00:00Z', '')
@@ -294,8 +367,8 @@ def main():
 
     #print  results
 
-    with open("/tmp/sample.csv", 'wb') as csvfile:
-        samplewriter = csv.DictWriter(csvfile, row_titles )
+    with open("/tmp/set2_a.csv", 'wb') as csvfile:
+        samplewriter = csv.DictWriter(csvfile, row_titles, restval=0 )
         samplewriter.writeheader()
         samplewriter.writerows(results.values())
 
