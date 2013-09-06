@@ -201,13 +201,19 @@ def get_illegal_immigrant_sentences( docs ):
 
     return matching_sentences
 
-def get_set_2( docs, query_specific_fq_params ) :
-    story_docs =  get_story_docs_for_query( docs, query_specific_fq_params )
+def get_illegal_immigrant_sentences_from_story_docs( docs, story_docs ):
     stories_id = get_stories_ids_from_docs( story_docs )
 
     sentences = get_sentences_with_stories_ids( docs, stories_id)
 
     matching_sentences = get_illegal_immigrant_sentences( sentences )
+
+    return matching_sentences
+    
+def get_set_2( docs, query_specific_fq_params ) :
+    story_docs =  get_story_docs_for_query( docs, query_specific_fq_params )
+
+    matching_sentences = get_illegal_immigrant_sentences_from_story_docs( docs, story_docs )
 
     counts = count_by_month( matching_sentences )
 
