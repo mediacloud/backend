@@ -207,12 +207,6 @@ def get_set_2( docs, query_specific_fq_params ) :
 
     sentences = get_sentences_with_stories_ids( docs, stories_id)
 
-    # regex1 = re.compile( "\\billegal[\\b\\W\"]+immigrant\\b", re.IGNORECASE )
-    # regex2 = re.compile( "\\billegal[\\b\\W\"]+immigrants\\b", re.IGNORECASE )
-
-    # matching_sentences = filter( lambda s: regex1.search(s['sentence']) or 
-    #                              regex2.search(s['sentence']), sentences )
-
     matching_sentences = get_illegal_immigrant_sentences( sentences )
 
     counts = count_by_month( matching_sentences )
