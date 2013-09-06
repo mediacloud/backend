@@ -254,8 +254,12 @@ def get_set_3_counts ( docs, query_specific_fq_params ) :
     return counts
 
 def get_set_4_counts ( docs, query_specific_fq_params ) :
-    set_3_docs = get_set_3_docs( docs, query_specific_fq_params )
-    
+    story_docs = get_set_3_docs( docs, query_specific_fq_params )
+    matching_sentences = get_illegal_immigrant_sentences_from_story_docs( docs, story_docs )
+
+    counts = count_by_month( matching_sentences )
+
+    return counts
 
 
 def get_stories_ids( solr, query_specific_filters ) :
@@ -346,7 +350,7 @@ def main():
         #counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
         #counts = query_top25msm_for_range_body( solr, query_specific_filter )
         #counts = query_top25msm_for_range_body_by_filters( docs, query_specific_filter )
-        counts =  get_set_2( docs, query_specific_filter )
+        counts =  get_set_4_counts( docs, query_specific_filter )
         #counts =  get_ap_doc_counts( docs, query_specific_filter )
         
         for date in counts.keys():
@@ -367,7 +371,7 @@ def main():
 
     #print  results
 
-    with open("/tmp/set2_a.csv", 'wb') as csvfile:
+    with open("/tmp/set4.csv", 'wb') as csvfile:
         samplewriter = csv.DictWriter(csvfile, row_titles, restval=0 )
         samplewriter.writeheader()
         samplewriter.writerows(results.values())
