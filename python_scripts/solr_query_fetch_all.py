@@ -15,6 +15,7 @@ def fetch_all( solr, query ) :
     rows = num_matching_documents
 
     sys.stderr.write( ' starting fetch for ' + query )
+    sys.stderr.write( 'fetching {0} documents'.format( rows ) )
     while ( len( documents ) < num_matching_documents ) :
         results = solr.search( query, **{ 
                 'start': start,
@@ -33,14 +34,19 @@ def fetch_all( solr, query ) :
 
 solr = pysolr.Solr('http://localhost:8983/solr/')
 
-queries = [ '*:*',
+queries = [ 'sentence:obama',
             ]
+file=open('out.txt','wb')
 
 for query in queries:
    print query
    results = fetch_all( solr, query )
    print "got " + query
-   print results
+   print len( results )
 
-      
+   sentences = [ result['sentence'].encode('utf-8') for result in results ]
+   file.write("\n".join( sentences))
+   #file.writelines( sentences )
 
+   #ipdb.set_trace()
+   #file.writelines(str(results))
