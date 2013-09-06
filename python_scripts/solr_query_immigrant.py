@@ -131,6 +131,9 @@ def query_top25msm_for_range_body( solr, query_specific_fq_params ):
 def doc_is_story_in_range( doc ):
     return doc['field_type'] == 'st' and doc['publish_date'] >= '2012-01-01T00:00:00Z'
 
+def doc_is_sentence_in_range( doc ):
+    return doc['field_type'] == 'ss' and doc['publish_date'] >= '2012-01-01T00:00:00Z'
+
 def doc_matches_solr_query( doc, query ) :
     invert_result = False
 
@@ -173,7 +176,22 @@ def get_story_docs_for_query( docs, query_specific_fq_params):
 
     return query_docs
 
-def query_top25msm_for_range_body_by_filters( docs,  query_specific_fq_params ):
+def get_sentence_docs_for_query( docs, query_specific_fq_params):
+    sentence_docs = filter ( doc_is_sentence_in_range, docs )
+
+    query_docs = sentence_docs
+
+    assert len( query_specific_fq_params ) > 0
+
+    query_specific_fq_params = copy.deepcopy( query_specific_fq_params )
+    
+    for query in query_specific_fq_params:
+        query = query.replace('title:', 'sentence:' )
+        query_docs = filter( lambda doc: doc_matches_solr_query( doc, query), query_docs )
+
+    return query_docs
+
+def get_set_1_counts( docs,  query_specific_fq_params ):
 
     query_docs = get_story_docs_for_query( docs, query_specific_fq_params )
 
@@ -210,7 +228,7 @@ def get_illegal_immigrant_sentences_from_story_docs( docs, story_docs ):
 
     return matching_sentences
     
-def get_set_2( docs, query_specific_fq_params ) :
+def get_set_2_counts( docs, query_specific_fq_params ) :
     story_docs =  get_story_docs_for_query( docs, query_specific_fq_params )
 
     matching_sentences = get_illegal_immigrant_sentences_from_story_docs( docs, story_docs )
@@ -261,6 +279,21 @@ def get_set_4_counts ( docs, query_specific_fq_params ) :
 
     return counts
 
+def get_set_5_counts ( docs, query_specific_fq_params ) :
+    query_docs = get_sentence_docs_for_query( docs, query_specific_fq_params )
+
+    counts = count_by_month( query_docs )
+
+    return counts
+
+def get_set_6_counts( docs, query_specific_fq_params ) :
+    ap_stories_ids = get_ap_byline_stories_ids( docs )
+    ap_sentence_docs = get_sentences_with_stories_ids( docs, ap_stories_ids )
+    query_docs = get_sentence_docs_for_query( ap_sentence_docs, query_specific_fq_params )
+
+    counts = count_by_month( query_docs )
+
+    return counts
 
 def get_stories_ids( solr, query_specific_filters ) :
     print "start get_stories_ids"
@@ -350,7 +383,7 @@ def main():
         #counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
         #counts = query_top25msm_for_range_body( solr, query_specific_filter )
         #counts = query_top25msm_for_range_body_by_filters( docs, query_specific_filter )
-        counts =  get_set_4_counts( docs, query_specific_filter )
+        counts =  get_set_6_counts( docs, query_specific_filter )
         #counts =  get_ap_doc_counts( docs, query_specific_filter )
         
         for date in counts.keys():
@@ -371,7 +404,7 @@ def main():
 
     #print  results
 
-    with open("/tmp/set4.csv", 'wb') as csvfile:
+    with open("/tmp/set6.csv", 'wb') as csvfile:
         samplewriter = csv.DictWriter(csvfile, row_titles, restval=0 )
         samplewriter.writeheader()
         samplewriter.writerows(results.values())
