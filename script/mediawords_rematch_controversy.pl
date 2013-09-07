@@ -37,7 +37,7 @@ sub main
     for my $controversy ( @{ $controversies } )
     {
         my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select s.* from cd.live_stories s where controversies_id = ? order by stories_id desc limit 1000
+select s.* from cd.live_stories s where controversies_id = ? order by stories_id desc
 END
         for my $story ( @{ $stories } )
         {
