@@ -379,35 +379,39 @@ def main():
 
     docs = pickle.load( open( "docs.p", "rb" ) )
 
-    for query_specific_filter in query_specific_filters:
-        #counts = query_top25msm_for_range_title_only( solr, query_specific_filter )
-        #counts = query_top25msm_for_range_body( solr, query_specific_filter )
-        #counts = query_top25msm_for_range_body_by_filters( docs, query_specific_filter )
-        counts =  get_set_6_counts( docs, query_specific_filter )
-        #counts =  get_ap_doc_counts( docs, query_specific_filter )
-        
-        for date in counts.keys():
-            trunc_date = date.replace( '-01T00:00:00Z', '')
-            counts[ trunc_date ] = counts.pop( date )
 
-        #counts['query'] = str(  query_specific_filter )
-        results[ str( query_specific_filter ) ] = counts
+    functions_and_files =  [
+        ( get_set_1_counts, '/tmp/immigrant_output/set1.csv'),
+        ( get_set_2_counts, '/tmp/immigrant_output/set2.csv'),
+        ( get_set_3_counts, '/tmp/immigrant_output/set3.csv'),
+        ( get_set_4_counts, '/tmp/immigrant_output/set4.csv'),
+        ( get_set_5_counts, '/tmp/immigrant_output/set5.csv'),
+        ( get_set_6_counts, '/tmp/immigrant_output/set6.csv'),
+        ]
 
-    row_titles = sorted( reduce ( lambda x,y : x.union(y) , 
-                                  map( lambda result: set( result.keys() ) , results.values() ) )
-                         )
+    for func, filename in functions_and_files :
+        for query_specific_filter in query_specific_filters:
+            counts =  func( docs, query_specific_filter )
 
-    row_titles.insert(0, 'query')
+            for date in counts.keys():
+                trunc_date = date.replace( '-01T00:00:00Z', '')
+                counts[ trunc_date ] = counts.pop( date )
 
-    for query in results.keys():
-        results[query]['query'] = query
+            #counts['query'] = str(  query_specific_filter )
+            results[ str( query_specific_filter ) ] = counts
 
-    #print  results
 
-    with open("/tmp/set6.csv", 'wb') as csvfile:
-        samplewriter = csv.DictWriter(csvfile, row_titles, restval=0 )
-        samplewriter.writeheader()
-        samplewriter.writerows(results.values())
+        row_titles = sorted( reduce ( lambda x,y : x.union(y) , map( lambda result: set( result.keys() ) , results.values() ) ) )
+
+        row_titles.insert(0, 'query')
+
+        for query in results.keys():
+            results[query]['query'] = query
+
+        with open(filename, 'wb') as csvfile:
+            samplewriter = csv.DictWriter(csvfile, row_titles, restval=0 )
+            samplewriter.writeheader()
+            samplewriter.writerows(results.values())
 
     #print results
 
