@@ -29,6 +29,8 @@ sub get_story_downloads
 {
     my ( $db, $story ) = @_;
 
+    die unless defined( $story->{ stories_id } );
+
     my $story_downloads =
       $db->query( " SELECT * FROM downloads where stories_id = ? order by sequence asc ", $story->{ stories_id } )->hashes;
 
@@ -92,6 +94,10 @@ sub process_feed_download
 
         #say STDERR Dumper ( $child_story );
         my $story_downloads = get_story_downloads( $db, $story_child );
+
+        # SKIP stories with incomplete downloads
+        next if scalar( @{ $story_downloads } ) == 0;
+        next if scalar( grep { $_->{ state } ne 'success' } @{ $story_downloads } ) != 0;
 
         my $story_downloads_xml = XML::LibXML::Element->new( 'story_downloads' );
 
