@@ -53,21 +53,4 @@ sub word_count
     return $result;
 }
 
-my $class_path;
-
-BEGIN
-{
-    my $_dirname      = dirname( __FILE__ );
-    my $_dirname_full = File::Spec->rel2abs( $_dirname );
-
-    my $jar_dir = "$_dirname_full/jars";
-
-    my $jars = [ 'mallet-deps.jar', 'mallet.jar' ];
-
-    #Assumes Unix fix later.
-    $class_path = scalar( join ':', ( map { "$jar_dir/$_" } @{ $jars } ) );
-
-    #say STDERR "classpath: $class_path";
-}
-
 1;
