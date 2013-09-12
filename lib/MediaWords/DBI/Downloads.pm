@@ -394,6 +394,8 @@ EOF
     $download->{ path }  = $path;
 
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+
+    return $download;
 }
 
 # convenience method to get the media_id for the download
