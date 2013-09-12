@@ -396,6 +396,8 @@ EOF
     $download->{ path }  = $path;
 
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+
+    return $download;
 }
 
 # try to store content determinedly by retrying on a failed eval at doubling increments up to 32 seconds
