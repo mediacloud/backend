@@ -212,6 +212,9 @@ sub fetch_content($)
 
     carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
 
+    confess "attempt to fetch content for unsuccessful download $download->{ downloads_id } "
+      unless $download->{ state } eq 'success';
+
     my $store = _download_store_for_reading( $download );
     unless ( defined $store )
     {
