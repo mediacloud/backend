@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4423;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4424;
     
 BEGIN
 
@@ -540,7 +540,7 @@ create table media_sets_media_map (
     last_updated                timestamp with time zone not null
 );
 
-DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on stories CASCADE;
+DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on media_sets_media_map CASCADE;
 CREATE TRIGGER media_sets_media_map_last_updated_trigger BEFORE INSERT OR UPDATE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
