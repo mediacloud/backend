@@ -113,6 +113,8 @@ sub process_feed_download
         $child_stories_xml->appendChild( $story_xml );
     }
 
+    die "Empty child_stories " unless $child_stories_xml->hasChildNodes();
+
     $download_xml->appendChild( $child_stories_xml );
 
     return $download_xml;
