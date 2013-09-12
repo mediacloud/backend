@@ -84,6 +84,8 @@ sub process_feed_download
 
     my $download_xml = get_xml_element_for_download( $download );
 
+    die if scalar( @{ $story_children } ) <= 0;
+
     my $child_stories_xml = XML::LibXML::Element->new( 'child_stories' );
 
     foreach my $story_child ( @{ $story_children } )
@@ -176,7 +178,7 @@ sub export_downloads
 
         last unless $download;
 
-        my $download_content_base64 = _get_base_64_encoded_download_content( $download );
+        # my $download_content_base64 = _get_base_64_encoded_download_content( $download );
 
         $cur_downloads_id = $download->{ downloads_id } + 1;
 
@@ -216,6 +218,8 @@ sub export_all_downloads
       $db->query( " SELECT max( downloads_id) from downloads where type = 'feed' and state = 'success' " )->flat();
 
     my ( $min_downloads_id ) = $db->query( " SELECT min( downloads_id) from downloads " )->flat();
+
+    die "No downloads " unless defined( $min_downloads_id );
 
     #Make sure the file start and end ranges are multiples of 1000
     my $start_downloads_id = int( $min_downloads_id / 1000 ) * 1000;
