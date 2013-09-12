@@ -242,8 +242,6 @@ sub import_downloads
                   && decode_base64( $download_hash->{ encoded_download_content_base_64 } );
                 delete( $download_hash->{ encoded_download_content_base_64 } );
 
-                say STDERR "download contenct:\n$story_download_decoded_content";
-
                 if ( !defined( $download_hash->{ host } ) )
                 {
                     $download_hash->{ host } = '';
