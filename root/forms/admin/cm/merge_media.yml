@@ -1,0 +1,14 @@
+auto_fieldset:
+
+elements:
+  - type: Text
+    name: to_media_id
+    label: Destination Media ID
+    comment: id of media into which to merge
+    constraints:
+        - Required
+        - Integer
+
+  - type: Submit
+    name: submit
+    value: Merge

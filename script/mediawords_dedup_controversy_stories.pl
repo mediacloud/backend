@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
-# dump various controversy queries to csv and build a gexf file
+# dedup stories in a given controversy.  should only have to be run on a controversy if the deduping
+# code in CM::Mine has changed.
 
 use strict;
 
@@ -12,7 +13,7 @@ BEGIN
 
 use Getopt::Long;
 
-use MediaWords::CM::Dump;
+use MediaWords::CM::Mine;
 use MediaWords::DB;
 use MediaWords::DBI::Controversies;
 
@@ -22,11 +23,10 @@ sub main
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
-    $| = 1;
 
-    Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt ) || return;
+    Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt, ) || return;
 
-    die( "Usage: $0 --controversy < id >" ) unless ( $controversy_opt );
+    die( "usage: $0 --controversy < controversy id or pattern >" ) unless ( $controversy_opt );
 
     my $db = MediaWords::DB::connect_to_db;
 
@@ -37,10 +37,8 @@ sub main
         $db->disconnect;
         $db = MediaWords::DB::connect_to_db;
         print "CONTROVERSY $controversy->{ name } \n";
-        MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
+        MediaWords::CM::Mine::dedup_stories( $db, $controversy );
     }
 }
 
 main();
-
-__END__

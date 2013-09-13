@@ -32,12 +32,6 @@ $(document).ready(function () {
     or new dumps of the controversy.
 </div>
 
-[% remove_stories_url = c.uri_for( '/admin/cm/search_stories'
-                                   { cdts => cdts.controversy_dump_time_slices_id,
-                                     l => live,
-                                     q => query,
-                                     remove_stories => 1 } ) %]
-
 <div id="wholecolumn">
 
     <div id="boxtitle">
@@ -53,12 +47,13 @@ $(document).ready(function () {
         </form>
     </fieldset>
 
-    <div id="boxtitle">
-        Search Results
-        <a id="boxcommand" class="remove_story" href="[% remove_stories_url | html %]">remove all</a>
-    </div>
-    [% INCLUDE cm/stories_table.tt2
-        display_stories=stories %]
+    [% INCLUDE cm/stories_table.tt2 
+        display_stories=stories
+        display_stories_title="Search Results"
+        display_stories_remove_button=1 %]
+    
+    [% word_cloud_url = c.uri_for( '/admin/cm/search_stories_words', { cdts => cdts.cdts_id, l => live, q => query } ) %]
+    <!-- <a id="boxcommand" href="[% word_cloud_url | html %]">word cloud</a> -->
 
 </div>
 

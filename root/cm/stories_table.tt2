@@ -1,9 +1,17 @@
 [% IF display_stories_title %]
     <div id="boxtitle">
+
     [% display_stories_title %]
+
     [% IF cdts_date_range %]
         in [% cdts_date_range %] Time Slice
     [% END %]
+
+    [% IF display_stories_remove_button %]
+        [% remove_stories_url = c.req.uri _ '&remove_stories=1' %]
+        <a id="boxcommand" class="remove_story" href="[% remove_stories_url | html %]">remove all</a>        
+    [% END %]
+
     </div>
 [% END %]
 
@@ -26,7 +34,9 @@
 
     [% story_url = c.uri_for( '/admin/cm/story/' _ s.stories_id,
                               { cdts => cdts.controversy_dump_time_slices_id, 
-                                c => controversy.controversies_id
+                                l => live } ) %]
+    [% medium_url = c.uri_for( '/admin/cm/medium/' _ s.media_id,
+                              { cdts => cdts.controversy_dump_time_slices_id, 
                                 l => live } ) %]
     [% edit_url = c.uri_for( "/admin/stories/edit/$s.stories_id" ) %]
 
@@ -34,7 +44,7 @@
 
         <td><a href="[% story_url  | html %]">[% s.stories_id %]</a></td>
         <td>[% s.title | truncate( 48 ) | html %]</td>
-        <td><a href="[% s.url | html %]" target="blank">[% s.url | truncate ( 32 ) | html %]</td>   
+        <td><a href="[% s.url | html %]" target="blank">[% s.url | truncate ( 32 ) | html %]</a></td>   
         [% story_date = s.undateable ? 'undateable' : datetime.format( s.publish_date ) %]
         [% IF s.date_is_reliable %]
             <td id="reliable_story_date">[% story_date | html %]</td>
@@ -43,7 +53,7 @@
                 <a href="[% edit_url | html %]">[% story_date | html %]</a>
             </td>
         [% END %]        
-        <td>[% s.medium_name | truncate( 32 ) | html %]</td>
+        <td><a href="[% medium_url | html %]">[% s.medium_name | truncate( 32 ) | html %]</a></td>
         <td>[% s.inlink_count %]</td>
         <td>[% s.outlink_count %]</td>
     </tr>

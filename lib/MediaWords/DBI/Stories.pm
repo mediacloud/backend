@@ -1009,4 +1009,18 @@ END
 
 }
 
+# if no story_sentences exist for the story, add them
+sub add_missing_story_sentences
+{
+    my ( $db, $story ) = @_;
+
+    my $ss = $db->query( "select 1 from story_sentences ss where stories_id = ?", $story->{ stories_id } )->hash;
+
+    return if ( $ss );
+
+    print STDERR "ADD SENTENCES\n";
+
+    MediaWords::StoryVectors::update_story_sentence_words_and_language( $db, $story, 0, 0, 1 );
+}
+
 1;

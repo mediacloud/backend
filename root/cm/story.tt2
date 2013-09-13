@@ -80,18 +80,16 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
        END;
 %]
 
-[% medium_url = c.uri_for( "/admin/cm/medium/$story.media_id", 
-                           { cdts => cdts.controversy_dump_time_slices_id, 
-                             l => live } ) %]
-                             
-[% remove_story_url = c.uri_for( "/admin/cm/remove_story/$story.stories_id", 
-                                 { cdts => cdts.controversy_dump_time_slices_id, 
-                                   l => live } ) %]
-
+[% medium_url = c.uri_for( "/admin/cm/medium/$story.media_id", { cdts => cdts.cdts_id, l => live } ) %]
+[% remove_story_url = c.uri_for( "/admin/cm/remove_story/$story.stories_id", { cdts => cdts.cdts_id, l => live } ) %]
+[% merge_story_url = c.uri_for( "/admin/cm/merge_stories/$story.stories_id", { cdts => cdts.cdts_id } ) %]
+[% edit_story_url = c.uri_for( "/admin/stories/edit/$story.stories_id" ) %]
+                                   
 <div id="boxtitle">
     Basic Data for [% story.title | truncate( 96 ) | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
     <a id="boxcommand" class="remove_story" href="[% remove_story_url | html %]">remove</a>
-    <a id="boxcommand" href="[% c.uri_for( '/admin/stories/edit/' _ story.stories_id ) | html %]">edit</a>
+    <a id="boxcommand" href="[% merge_story_url | html %]">merge</a>
+    <a id="boxcommand" href="[% edit_story_url | html %]">edit</a>
 </div>
 <table>
     <tr>

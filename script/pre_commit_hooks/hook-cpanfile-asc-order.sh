@@ -10,12 +10,7 @@
 
 CPANFILE="cpanfile"
 
-if [ -d .svn ]; then
-    #echo "This is a Subversion repository."
-    REPOSITORY="svn"
-    CPANFILE_DIFF=`svn diff $CPANFILE`
-
-elif [ -d .git ]; then
+if [ -d .git ]; then
     #echo "This is a Git repository."
     # FIXME the version of a file that is staged might be different from the file that exists in the filesystem
     REPOSITORY="git"

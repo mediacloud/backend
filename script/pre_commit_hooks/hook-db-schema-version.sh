@@ -11,13 +11,7 @@
 
 SCHEMA_FILE="script/mediawords.sql"
 
-if [ -d .svn ]; then
-    #echo "This is a Subversion repository."
-    REPOSITORY="svn"
-    ADDED_MODIFIED_FILES=`svn status -q | grep "^[M|A]" | awk '{ print $2}'`
-    SCHEMA_DIFF=`svn diff $SCHEMA_FILE`
-
-elif [ -d .git ]; then
+if [ -d .git ]; then
     #echo "This is a Git repository."
     # FIXME the version of a file that is staged might be different from the file that exists in the filesystem
     REPOSITORY="git"

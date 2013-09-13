@@ -4,11 +4,14 @@ use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
-use parent 'Catalyst::Controller';
 
+use Digest::MD5;
 use List::Compare;
 
 use MediaWords::CM::Dump;
+use MediaWords::CM::Mine;
+
+use base 'Catalyst::Controller::HTML::FormFu';
 
 sub index : Path : Args(0)
 {
@@ -245,6 +248,11 @@ sub _get_controversy_objects
     my $cd          = $db->find_by_id( 'controversy_dumps',            $cdts->{ controversy_dumps_id } );
     my $controversy = $db->find_by_id( 'controversies',                $cd->{ controversies_id } );
 
+    # add shortcut field names to make it easier to refer to in tt2
+    $cdts->{ cdts_id } = $cdts->{ controversy_dump_time_slices_id };
+    $cdts->{ cd_id }   = $cdts->{ controversy_dumps_id };
+    $cd->{ cd_id }     = $cdts->{ controversy_dumps_id };
+
     _add_cdts_model_reliability( $db, $cdts );
 
     return ( $cdts, $cd, $controversy );
@@ -433,6 +441,14 @@ END
     return $latest_dump;
 }
 
+# fetch the medium from the dump_media table
+sub _get_medium_from_dump_tables
+{
+    my ( $db, $media_id ) = @_;
+
+    return $db->query( "select * from dump_media where media_id = ?", $media_id )->hash;
+}
+
 # get the medium with the medium_stories, inlink_stories, and outlink_stories and associated
 # counts. assumes the existence of dump_* stories as created by
 # MediaWords::CM::Dump::setup_temporary_dump_tables
@@ -440,7 +456,7 @@ sub _get_medium_and_stories_from_dump_tables
 {
     my ( $db, $media_id ) = @_;
 
-    my $medium = $db->query( "select * from dump_media where media_id = ?", $media_id )->hash;
+    my $medium = _get_medium_from_dump_tables( $db, $media_id );
 
     return unless ( $medium );
 
@@ -857,6 +873,67 @@ END
     }
 }
 
+# get the top 1000 words used by the given set of stories, sorted by tfidf against all words
+# in the controversy
+sub _get_story_words ($$$)
+{
+    my ( $db, $c, $stories ) = @_;
+
+    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
+
+    my $order_by = $c->req->params->{ raw_word_count } ? 'stem_count' : 'tfidf';
+    my $num_words = int( log( scalar( @{ $stories } ) + 1 ) * 100 );
+    $num_words = ( $num_words < 1000 ) ? $num_words : 1000;
+
+    # make sure the query planner knows that dump_period_stories is relatively small.
+    $db->query( "analyze dump_period_stories" );
+
+    $db->query( <<END );
+create table web_story_words as
+    select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count
+        from story_sentence_words ssw
+        where 
+            ssw.stories_id in ( $stories_id_list ) and
+            not is_stop_stem( 'short', ssw.stem, null::text )
+        group by ssw.stem
+        order by stem_count desc
+        limit $num_words
+END
+
+    my $words = $db->query( <<END )->hashes;
+select query.stem, query.term, ( query.stem_count::float / corpus.stem_count::float )::float tfidf, 
+        query.stem_count query_stem_count, corpus.stem_count corpus_stem_count
+    from 
+        web_story_words query
+        join
+            ( 
+                select ssw.stem, sum( ssw.stem_count ) stem_count
+                    from story_sentence_words ssw
+                    where
+                        ssw.stem in ( select stem from web_story_words ) and
+                        ssw.stories_id in ( select stories_id from dump_period_stories )
+                    group by ssw.stem
+            ) corpus on query.stem = corpus.stem
+    order by $order_by desc
+END
+
+    return $words;
+}
+
+# display a word cloud of story search results
+sub search_stories_words : Local
+{
+    my ( $self, $c ) = @_;
+
+    $c->stash->{ generate_words } = 1;
+
+    $self->search_stories( $c );
+
+    $c->stash->{ title }    = "Words in Story Search for " . $c->stash->{ query };
+    $c->stash->{ template } = 'cm/words.tt2';
+
+}
+
 # do a basic story search based on the story sentences, title, url, media name, and media url
 sub search_stories : Local
 {
@@ -890,11 +967,14 @@ END
 
     map { _add_story_date_info( $db, $_ ) } @{ $stories };
 
+    $c->stash->{ words } = _get_story_words( $db, $c, $stories ) if ( $c->stash->{ generate_words } );
+
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
     $db->commit;
 
     my $controversies_id = $controversy->{ controversies_id };
+
     if ( $c->req->params->{ remove_stories } )
     {
         map { _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id ) } @{ $stories };
@@ -1011,6 +1091,219 @@ sub remove_story : Local
     my $status_msg = "story has been removed from the live version of the controversy.";
 
     $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
+}
+
+# merge source_media_id into target_media_id
+sub merge_media : Local : FormConfig
+{
+    my ( $self, $c, $media_id ) = @_;
+
+    my $db = $c->dbis;
+
+    $db->begin;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
+
+    my $live = 1;
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ live }        = $live;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    my $medium = _get_medium_from_dump_tables( $db, $media_id );
+
+    my $to_media_id = $c->req->param( 'to_media_id' );
+    my $to_medium = _get_medium_from_dump_tables( $db, $to_media_id ) if ( $to_media_id );
+
+    MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $db->commit;
+
+    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
+
+    if ( !$medium )
+    {
+        my $error = 'This medium no longer exists in the live data';
+        my $u = $c->uri_for( "/admin/cm/view/$controversy->{ controversies_id }", { error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    # my $form = $self->form;
+    #
+    # $form->load_config_filestem('root/forms/my/controller/bar');
+    #
+    # $form->process;
+    #
+    # $c->stash->{form} = $form;
+    my $form = $c->stash->{ form };
+
+    if ( !$form->submitted_and_valid )
+    {
+        $c->stash->{ medium }   = $medium;
+        $c->stash->{ template } = 'cm/merge_media.tt2';
+        return;
+    }
+
+    if ( !$to_medium )
+    {
+        my $error = 'The destination medium no longer exists in the live data';
+        my $u = $c->uri_for( "/admin/cm/medium/$media_id", { cdts => $cdts_id, error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    MediaWords::CM::Mine::merge_dup_medium_all_controversies( $db, $medium, $to_medium );
+
+    my $status_msg = 'The media have been merged in all controversies.';
+    my $u = $c->uri_for( "/admin/cm/medium/$to_media_id", { cdts => $cdts_id, status_msg => $status_msg, l => 1 } );
+    $c->response->redirect( $u );
+    return;
+}
+
+# merge stories_id into to_stories_id
+sub merge_stories : Local : FormConfig
+{
+    my ( $self, $c, $stories_id ) = @_;
+
+    my $db = $c->dbis;
+
+    $db->begin;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
+
+    my $live = 1;
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ live }        = $live;
+
+    MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
+
+    my $story = $db->query( "select * from dump_stories where stories_id = ?", $stories_id )->hash;
+
+    my $to_stories_id = $c->req->param( 'to_stories_id' );
+    my $to_story = $db->query( "select * from dump_stories where stories_id = ?", $to_stories_id )->hash
+      if ( $to_stories_id );
+
+    MediaWords::CM::Dump::discard_temp_tables( $db );
+
+    $db->commit;
+
+    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
+
+    if ( !$story )
+    {
+        my $error = 'The requested story no longer exists in the live data';
+        my $u = $c->uri_for( "/admin/cm/view/$controversy->{ controversies_id }", { error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    my $form = $c->stash->{ form };
+
+    if ( !$form->submitted_and_valid )
+    {
+        $c->stash->{ story }    = $story;
+        $c->stash->{ template } = 'cm/merge_stories.tt2';
+        return;
+    }
+
+    if ( !$story )
+    {
+        my $error = 'The destination story no longer exists in the live data';
+        my $u = $c->uri_for( "/admin/cm/story/$stories_id", { cdts => $cdts_id, error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    MediaWords::CM::Mine::merge_dup_story( $db, $controversy, $story, $to_story );
+
+    my $status_msg = 'The stories have been merged in this controversy.';
+    my $u = $c->uri_for( "/admin/cm/story/$to_stories_id", { cdts => $cdts_id, status_msg => $status_msg, l => 1 } );
+    $c->response->redirect( $u );
+    return;
+}
+
+# parse story ids and associated urls from param names, along
+# with the associated assume_match and manual_redirect options for
+# each url.  call MediaWords::Util::URL::unredirect_story on
+# each story and its urls and associated options.
+sub unredirect_param_stories
+{
+    my ( $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $story_urls = {};
+    for my $name ( keys( %{ $c->req->params } ) )
+    {
+        next unless ( $name =~ /^include_url_(\d+)_(\d+)_(.*)$/ );
+        my ( $stories_id, $controversies_id, $url ) = ( $1, $2, $3 );
+
+        my $param_tag = "${ stories_id }_${ controversies_id }_${ url }";
+
+        my $url_options = {
+            url             => $url,
+            assume_match    => $c->req->params->{ "assume_match_${ param_tag }" },
+            manual_redirect => $c->req->params->{ "manual_redirect_${ param_tag }" }
+        };
+
+        push( @{ $story_urls->{ $stories_id }->{ $controversies_id } }, $url_options );
+    }
+
+    while ( my ( $stories_id, $controversy_urls ) = each( %{ $story_urls } ) )
+    {
+        while ( my ( $controversies_id, $urls ) = each( %{ $controversy_urls } ) )
+        {
+            my $story = $db->find_by_id( 'stories', $stories_id )
+              || die( "Unable to find story '$stories_id'" );
+
+            my $controversy = $db->find_by_id( 'controversies', $controversies_id )
+              || die( "Unable to find controversy '$controversies_id'" );
+
+            MediaWords::CM::Mine::unredirect_story( $db, $controversy, $story, $urls );
+        }
+    }
+}
+
+# action to confirm splitting up media source based on its stories' original, unredirected urls
+sub unredirect_medium : Local
+{
+    my ( $self, $c, $media_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
+    my $live = 1;
+
+    my $medium = $db->find_by_id( 'media', $media_id ) || die( "Unable to find medium '$media_id'" );
+
+    if ( $c->req->params->{ submit } )
+    {
+        MediaWords::CM::Mine::add_medium_url_to_ignore_redirects( $db, $medium );
+        unredirect_param_stories( $c );
+
+        my $msg = "The medium has been reprocessed to use the original urls of its stories.";
+        $c->res->redirect( $c->uri_for( "/admin/cm/view/$controversy->{ controversies_id }", { status_msg => $msg } ) );
+        return;
+    }
+
+    my $stories = $db->query( "select * from stories where media_id = ?", $media_id )->hashes;
+
+    map { $_->{ original_urls } = MediaWords::CM::Mine::get_story_original_urls( $db, $_ ) } @{ $stories };
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ live }        = $live;
+    $c->stash->{ stories }     = $stories;
+    $c->stash->{ medium }      = $medium;
+    $c->stash->{ template }    = 'cm/unredirect_medium.tt2';
 }
 
 1;

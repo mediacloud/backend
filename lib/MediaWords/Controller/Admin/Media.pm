@@ -817,8 +817,8 @@ sub _rate_full_text_rss_likely_hood
     ( my $medium ) = @_;
 
     my $ret =
-      ( $medium->{ avg_similarity } || 0 ) * 10 - 5 *
-      (
+      ( $medium->{ avg_similarity } || 0 ) * 10 -
+      5 * (
         abs( $medium->{ avg_extracted_length } - $medium->{ avg_rss_length } ) /
           ( $medium->{ avg_extracted_length } != 0.0 ? $medium->{ avg_extracted_length } : 0.01 ) );
 

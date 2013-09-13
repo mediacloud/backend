@@ -1,3 +1,3 @@
 [submodule "script/gridfs-to-s3"]
 	path = script/gridfs-to-s3
-	url = https://github.com/berkmancenter/gridfs-to-s3.git
+	url = http://github.com/berkmancenter/gridfs-to-s3.git

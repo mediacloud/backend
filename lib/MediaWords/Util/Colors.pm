@@ -18,7 +18,7 @@ sub get_colors
     my ( $num_colors, $format ) = @_;
 
     my $colors;
-    if ( $num_colors < @{ $_mc_colors } )
+    if ( $num_colors <= @{ $_mc_colors } )
     {
         $colors = [ ( @{ $_mc_colors } )[ 0 .. ( $num_colors - 1 ) ] ];
     }
@@ -26,7 +26,7 @@ sub get_colors
     {
         use Color::Mix;
         my $color_mix = Color::Mix->new;
-        $colors = $color_mix->analogous( '0000ff', $num_colors, $num_colors );
+        $colors = [ $color_mix->analogous( '0000ff', $num_colors, $num_colors ) ];
     }
 
     if ( !$format || $format eq 'hex' )
@@ -48,10 +48,8 @@ sub get_rgbp_format
 {
     my ( $hex ) = @_;
 
-    return 'rgb(' .
-      hex( substr( $hex, 0, 2 ) ) . ',' .
-      hex( substr( $hex, 2, 2 ) ) . ',' .
-      hex( substr( $hex, 4, 2 ) ) . ')';
+    return 'rgb(' . hex( substr( $hex, 0, 2 ) ) . ',' . hex( substr( $hex, 2, 2 ) ) . ',' . hex( substr( $hex, 4, 2 ) ) .
+      ')';
 }
 
 1;

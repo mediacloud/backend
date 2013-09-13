@@ -135,6 +135,21 @@ sub _get_topic_chart_url
         $end_date );
 }
 
+# get a csv of the date,term,count data that is used to generate a chart
+sub _get_topic_chart_csv
+{
+    my ( $self, $c, $query ) = @_;
+
+    if ( !@{ $query->{ dashboard_topics } } )
+    {
+        return undef;
+    }
+
+    my $date_term_counts = $self->_get_topic_chart_url_date_term_counts( $c, $query );
+
+    return MediaWords::Util::CSV::get_hashes_as_encoded_csv( $date_term_counts );
+}
+
 sub _get_topic_chart_url_date_term_counts
 {
     my ( $self, $c, $query ) = @_;
@@ -188,6 +203,13 @@ sub view : Local
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $c->dbis, $queries_id )
       || die( "query '$queries_id' not found" );
+
+    if ( $c->req->params->{ 'topic_chart_csv' } )
+    {
+        my $date_term_counts = $self->_get_topic_chart_url_date_term_counts( $c, $query );
+        my $csv_hashes = [ map { { day => $_->[ 0 ], term => $_->[ 1 ], count => $_->[ 2 ] } } @{ $date_term_counts } ];
+        MediaWords::Util::CSV::send_hashes_as_csv_page( $c, $csv_hashes, 'term_counts.csv' );
+    }
 
     my $cluster_runs = $c->dbis->query( "SELECT * FROM media_cluster_runs WHERE queries_id = ?", $queries_id )->hashes;
 

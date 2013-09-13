@@ -179,24 +179,6 @@ END
     return $date_clause;
 }
 
-# create an empty dump_period_stories table if it does not already exist.
-# always truncate the dump_period_stories table.
-sub create_empty_dump_period_stories
-{
-    my ( $db ) = @_;
-
-    my $temp_table_exists = $db->query( <<END )->hash;
-select * from pg_class where relname = 'dump_period_stories' and relistemp = 't'
-END
-
-    if ( !$temp_table_exists )
-    {
-        $db->query( "create temporary table dump_period_stories ( stories_id int )  $_temporary_tablespace" );
-    }
-
-    $db->query( "delete from dump_period_stories" );
-}
-
 # write dump_period_stories table that holds list of all stories that should be included in the
 # current period.  For an overall dump, every story should be in the current period.
 # For other dumps, a story should be in the current dump if either its date is within
@@ -211,11 +193,13 @@ sub write_period_stories
 {
     my ( $db, $cdts ) = @_;
 
-    create_empty_dump_period_stories( $db );
+    $db->query( "drop table if exists dump_period_stories" );
 
     if ( !$cdts || ( !$cdts->{ tags_id } && ( $cdts->{ period } eq 'overall' ) ) )
     {
-        $db->query( "insert into dump_period_stories select stories_id from dump_stories" );
+        $db->query( <<END );
+create temporary table dump_period_stories $_temporary_tablespace as select stories_id from dump_stories
+END
     }
     else
     {
@@ -233,7 +217,7 @@ END
         my $date_where_clause = get_period_stories_date_where_clause( $cdts );
 
         $db->query( <<"END", $cdts->{ start_date }, $cdts->{ end_date } );
-insert into dump_period_stories
+create temporary table dump_period_stories $_temporary_tablespace as
     select distinct s.stories_id
         from dump_stories s
             left join dump_controversy_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
@@ -1116,6 +1100,21 @@ sub create_controversy_dump_time_slice ($$$$$$)
     return $cdts;
 }
 
+# write cd.word_counts table for time slice
+sub write_word_counts
+{
+    my ( $db, $cdts ) = @_;
+
+    $db->query( <<END, $cdts->{ controversy_dump_time_slices_id } );
+insert into cd.word_counts 
+    ( controversy_dump_time_slices_id, stem, term, stem_count )
+    select ?, ssw.stem, min( term ) term, sum( ssw.stem_count ) stem_count
+        from story_sentence_words ssw
+            join dump_period_stories ps on ( ssw.stories_id = ps.stories_id )
+        group by ssw.stem
+END
+}
+
 # generate data for the story_links, story_link_counts, media_links, media_link_counts tables
 # based on the data in the temporary dump_* tables
 sub generate_cdts_data ($$;$)
@@ -1128,6 +1127,8 @@ sub generate_cdts_data ($$;$)
     write_story_links_dump( $db, $cdts, $is_model );
     write_medium_link_counts_dump( $db, $cdts, $is_model );
     write_medium_links_dump( $db, $cdts, $is_model );
+
+    #write_word_counts( $db, $cdts ) unless ( $is_model );
 }
 
 # update *_count fields in cdts.  save to db unless $live is specified.

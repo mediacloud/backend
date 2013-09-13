@@ -17,11 +17,7 @@ set -o errexit
 set -e
 
 # Version control
-if [ -d .svn ]; then
-    #echo "This is a Subversion repository."
-    SCHEMA_DIFF=`svn diff ${SCHEMA_FILE}`
-
-elif [ -d .git ]; then
+if [ -d .git ]; then
     #echo "This is a Git repository."
     # FIXME the version of a file that is staged might be different from the file that exists in the filesystem
     SCHEMA_DIFF=`git diff --staged ${SCHEMA_FILE}`
