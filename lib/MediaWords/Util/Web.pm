@@ -160,7 +160,7 @@ sub get_cached_link_download
     my $responses = ParallelGet( $urls );
 
     my $url_lookup = {};
-    map { $url_lookup->{ $_->{ _fetch_url } } = $_ } @{ $_link_downloads_list };
+    map { $url_lookup->{ URI->new( $_->{ _fetch_url } )->as_string } = $_ } @{ $_link_downloads_list };
 
     $_link_downloads_cache = {};
     for my $response ( @{ $responses } )
