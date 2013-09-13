@@ -29,6 +29,8 @@ sub get_story_downloads
 {
     my ( $db, $story ) = @_;
 
+    die unless defined( $story->{ stories_id } );
+
     my $story_downloads =
       $db->query( " SELECT * FROM downloads where stories_id = ? order by sequence asc ", $story->{ stories_id } )->hashes;
 
@@ -84,7 +86,11 @@ sub process_feed_download
 
     my $download_xml = get_xml_element_for_download( $download );
 
+    die if scalar( @{ $story_children } ) <= 0;
+
     my $child_stories_xml = XML::LibXML::Element->new( 'child_stories' );
+
+    my $stories_added = 0;
 
     foreach my $story_child ( @{ $story_children } )
     {
@@ -92,6 +98,10 @@ sub process_feed_download
 
         #say STDERR Dumper ( $child_story );
         my $story_downloads = get_story_downloads( $db, $story_child );
+
+        # SKIP stories with incomplete downloads
+        next if scalar( @{ $story_downloads } ) == 0;
+        next if scalar( grep { $_->{ state } ne 'success' } @{ $story_downloads } ) != 0;
 
         my $story_downloads_xml = XML::LibXML::Element->new( 'story_downloads' );
 
@@ -103,7 +113,13 @@ sub process_feed_download
         $story_xml->appendChild( $story_downloads_xml );
 
         $child_stories_xml->appendChild( $story_xml );
+
+        $stories_added = 1;
     }
+
+    return if !$stories_added;    # No completely downloaded stories, skip the download
+
+    die "Empty child_stories " unless $child_stories_xml->hasChildNodes();
 
     $download_xml->appendChild( $child_stories_xml );
 
@@ -176,7 +192,7 @@ sub export_downloads
 
         last unless $download;
 
-        my $download_content_base64 = _get_base_64_encoded_download_content( $download );
+        # my $download_content_base64 = _get_base_64_encoded_download_content( $download );
 
         $cur_downloads_id = $download->{ downloads_id } + 1;
 
@@ -216,6 +232,8 @@ sub export_all_downloads
       $db->query( " SELECT max( downloads_id) from downloads where type = 'feed' and state = 'success' " )->flat();
 
     my ( $min_downloads_id ) = $db->query( " SELECT min( downloads_id) from downloads " )->flat();
+
+    die "No downloads " unless defined( $min_downloads_id );
 
     #Make sure the file start and end ranges are multiples of 1000
     my $start_downloads_id = int( $min_downloads_id / 1000 ) * 1000;

@@ -212,6 +212,9 @@ sub fetch_content($)
 
     carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
 
+    confess "attempt to fetch content for unsuccessful download $download->{ downloads_id } "
+      unless $download->{ state } eq 'success';
+
     my $store = _download_store_for_reading( $download );
     unless ( defined $store )
     {
@@ -396,6 +399,8 @@ EOF
     $download->{ path }  = $path;
 
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+
+    return $download;
 }
 
 # try to store content determinedly by retrying on a failed eval at doubling increments up to 32 seconds
