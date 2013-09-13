@@ -90,6 +90,8 @@ sub process_feed_download
 
     my $child_stories_xml = XML::LibXML::Element->new( 'child_stories' );
 
+    my $stories_added = 0;
+
     foreach my $story_child ( @{ $story_children } )
     {
         my $story_xml = xml_tree_from_hash( $story_child, 'story' );
@@ -98,8 +100,8 @@ sub process_feed_download
         my $story_downloads = get_story_downloads( $db, $story_child );
 
         # SKIP stories with incomplete downloads
-        # next if scalar( @{ $story_downloads } ) == 0;
-        # next if scalar( grep { $_->{ state } ne 'success' } @{ $story_downloads } ) != 0;
+        next if scalar( @{ $story_downloads } ) == 0;
+        next if scalar( grep { $_->{ state } ne 'success' } @{ $story_downloads } ) != 0;
 
         my $story_downloads_xml = XML::LibXML::Element->new( 'story_downloads' );
 
@@ -111,7 +113,11 @@ sub process_feed_download
         $story_xml->appendChild( $story_downloads_xml );
 
         $child_stories_xml->appendChild( $story_xml );
+
+        $stories_added = 1;
     }
+
+    return if !$stories_added;    # No completely downloaded stories, skip the download
 
     die "Empty child_stories " unless $child_stories_xml->hasChildNodes();
 
