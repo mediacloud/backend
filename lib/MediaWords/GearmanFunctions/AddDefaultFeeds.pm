@@ -45,11 +45,12 @@ BEGIN
     use lib "$FindBin::Bin/../../lib";
 }
 
+use Modern::Perl "2012";
+use MediaWords::CommonLibs;
+
 use DBIx::Simple::MediaWords;
 use Feed::Scrape::MediaWords;
 use MediaWords::DB;
-use Modern::Perl "2012";
-use MediaWords::CommonLibs;
 
 # Run job
 sub run($;$)
