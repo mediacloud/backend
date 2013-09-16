@@ -1,14 +1,34 @@
 package MediaWords::GearmanFunctions::AddDefaultFeeds;
 
 #
-# periodically check for new media sources that have not had default feeds added to them and add the default feeds.
-# look for feeds that are most likely to be real feeds.  If we find more than one but no more than MAX_DEFAULT_FEEDS
-# of those feeds, use the first such one and do not moderate the source.  Else, do a more expansive search
-# and mark for moderation.
+# Periodically check for new media sources that have not had default feeds
+# added to them and add the default feeds.  Look for feeds that are most likely
+# to be real feeds.  If we find more than one but no more than
+# MAX_DEFAULT_FEEDS of those feeds, use the first such one and do not moderate
+# the source.  Else, do a more expansive search and mark for moderation.
 #
-# start with:
+# Start this worker script with with:
 #
 # ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunctions/AddDefaultFeeds.pm
+#
+# FIXME some output of the job is still logged to STDOUT and not to the log:
+#
+#    fetch [1/1] : http://www.delfi.lt/
+#    got [1/1]: http://www.delfi.lt/
+#    fetch [1/22] : http://www.delfi.lt/index.xml
+#    got [1/22]: http://www.delfi.lt/index.xml
+#    fetch [2/22] : http://www.delfi.lt/atom.xml
+#    got [2/22]: http://www.delfi.lt/atom.xml
+#    fetch [3/22] : http://www.delfi.lt/feeds
+#    got [3/22]: http://www.delfi.lt/feeds
+#    fetch [4/22] : http://www.delfi.lt/feeds/default
+#    got [4/22]: http://www.delfi.lt/feeds/default
+#    fetch [5/22] : http://www.delfi.lt/feed
+#    got [5/22]: http://www.delfi.lt/feed
+#    fetch [6/22] : http://www.delfi.lt/feed/default
+#
+# That's because MediaWords::Util::Web::ParallelGet() starts a child process
+# for fetching URLs (instead of a fork()).
 #
 
 use strict;
@@ -90,14 +110,6 @@ sub run($;$)
     }
 
     $db->disconnect;
-}
-
-# Don't allow two or more jobs with the same parameters to run at once?
-sub unique()
-{
-    # The effect of the "uniqueness" of this job is that only a single instance
-    # of add_default_feeds() will be run at a time
-    return 1;
 }
 
 no Moose;    # gets rid of scaffolding
