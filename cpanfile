@@ -83,6 +83,7 @@ requires 'Log::Log4perl';
 requires 'LWP::Protocol::https';
 requires 'Math::Random';
 requires 'Modern::Perl';
+requires 'Module::Install';
 requires 'MongoDB', '0.700.0';
 requires 'namespace::autoclean';
 requires 'Net::Amazon::S3';
