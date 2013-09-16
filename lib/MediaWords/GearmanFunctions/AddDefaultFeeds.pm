@@ -8,7 +8,7 @@ package MediaWords::GearmanFunctions::AddDefaultFeeds;
 #
 # start with:
 #
-# /script/run_with_carton.sh ./script/gjs_worker.pl lib/MediaWords/GearmanFunctions/AddDefaultFeeds.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunctions/AddDefaultFeeds.pm
 #
 
 use strict;
@@ -20,7 +20,9 @@ with 'Gearman::JobScheduler::AbstractFunction';
 BEGIN
 {
     use FindBin;
-    use lib "$FindBin::Bin/../lib";
+
+    # "lib/" relative to "local/bin/gjs_worker.pl":
+    use lib "$FindBin::Bin/../../lib";
 }
 
 use DBIx::Simple::MediaWords;
