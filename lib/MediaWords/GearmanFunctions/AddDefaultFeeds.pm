@@ -7,7 +7,7 @@ package MediaWords::GearmanFunctions::AddDefaultFeeds;
 # MAX_DEFAULT_FEEDS of those feeds, use the first such one and do not moderate
 # the source.  Else, do a more expansive search and mark for moderation.
 #
-# Start this worker script with with:
+# Start this worker script by running:
 #
 # ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunctions/AddDefaultFeeds.pm
 #
