@@ -10,10 +10,25 @@ Installing Gearman
 On Ubuntu, install Gearman with:
 
     apt-get install gearman
+    apt-get install libgearman-dev  # for Gearman::XS
 
 On OS X, install Gearman with:
 
     brew install gearman
+
+
+Installing `Gearman-JobScheduler`
+---------------------------------
+
+`Gearman-JobScheduler` is a normal Carton dependency. Installation of it should be as easy as:
+
+    ./script/run_carton.sh install --deployment
+
+If it doesn't work (likely because of an old "cpanm" version), install it manually:
+
+    $ source ./script/set_perl_brew_environment.sh 
+    $ cpanm -L local/ Module::Install
+    $ cpanm -L local/ git://github.com/pypt/p5-Gearman-JobScheduler.git@0.01
 
 
 Configuring Gearman to use PostgreSQL for storing the job queue
