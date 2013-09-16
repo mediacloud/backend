@@ -58,6 +58,8 @@ sub run($;$)
 
     my $db = MediaWords::DB::connect_to_db();
 
+    $db->begin_work;
+
     my $media = $db->query( "select * from media where feeds_added = false order by media_id" )->hashes;
 
     for my $medium ( @{ $media } )
@@ -108,6 +110,8 @@ sub run($;$)
         );
 
     }
+
+    $db->commit;
 
     $db->disconnect;
 }
