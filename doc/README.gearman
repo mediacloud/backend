@@ -88,3 +88,28 @@ and make sure it is being stored in the queue:
     -------
          1
     (1 row)
+
+
+Monitoring Gearman
+------------------
+
+To monitor Gearman, you can use either the `gearadmin` tool or the "Gearman-Monitor" PHP script.
+
+
+### `gearadmin`
+
+For example:
+
+    $ gearadmin --status
+    wc  2   0   0
+
+(Function "wc", 2 jobs enqueued, 0 currently running, 0 workers registered)
+
+Run `gearadmin --help` for more options.
+
+
+### "Gearman-Monitor"
+
+[Gearman-Monitor](https://github.com/yugene/Gearman-Monitor) is a tool to watch Gearman servers. 
+
+Screenshots: http://imgur.com/a/RjJWc
