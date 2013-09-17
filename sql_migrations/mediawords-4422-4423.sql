@@ -73,8 +73,8 @@ INSERT INTO activities
         media_id,
         reason,
         '{ "field": "' || REPLACE(edited_field, '"', '\"') || '", '
-            || '"old_value": "' || REPLACE(old_value, '"', '\"') || '", '
-            || '"new_value": "' || REPLACE(new_value, '"', '\"') || '" }'
+            || '"new_value": "' || REPLACE(new_value, '"', '\"') || '", '
+            || '"old_value": "' || REPLACE(old_value, '"', '\"') || '" }'
     FROM media_edits
     ORDER BY media_edits_id;
 
@@ -96,8 +96,8 @@ INSERT INTO activities
         stories_id,
         reason,
         '{ "field": "' || REPLACE(edited_field, '"', '\"') || '", '
-            || '"old_value": "' || REPLACE(old_value, '"', '\"') || '", '
-            || '"new_value": "' || REPLACE(new_value, '"', '\"') || '" }'
+            || '"new_value": "' || REPLACE(new_value, '"', '\"') || '", '
+            || '"old_value": "' || REPLACE(old_value, '"', '\"') || '" }'
     FROM story_edits
     ORDER BY story_edits_id;
 
