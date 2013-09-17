@@ -187,11 +187,9 @@ sub edit : Local
         delete $form_params->{ confirm_date };
         delete $form_params->{ undateable };
 
-        $c->dbis->update_by_id_and_log(
-            'stories',     $stories_id,               $story,             $form_params,
-            'story_edits', $form->params->{ reason }, $c->user->username, 'stories_id',
-            $stories_id
-        );
+        $c->dbis->update_by_id_and_log( 'stories', $stories_id, $story, $form_params,
+            'story_edit', $form->params->{ reason },
+            $c->user->username );
 
         if ( $c->req->params->{ confirm_date } )
         {
@@ -273,15 +271,12 @@ sub delete_tag : Local
             my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
 
             # Log the new set of tags
-            my @changes;
             my $change = {
-                edited_field => '_tags',
-                old_value    => $old_tags,
-                new_value    => $new_tags,
+                field     => '_tags',
+                old_value => $old_tags,
+                new_value => $new_tags,
             };
-            push( @changes, $change );
-            unless (
-                $c->dbis->log_changes( 'story_edits', $reason, $c->user->username, \@changes, 'stories_id', $stories_id ) )
+            unless ( $c->dbis->log_activity( 'story_edit', $c->user->username, $stories_id, $reason, $change ) )
             {
                 $c->dbis->dbh->rollback;
                 die "Unable to log addition of new tags.\n";
@@ -378,14 +373,13 @@ sub add_tag_do : Local
     my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
 
     # Log the new set of tags
-    my @changes;
     my $change = {
-        edited_field => '_tags',
-        old_value    => $old_tags,
-        new_value    => $new_tags,
+        field     => '_tags',
+        old_value => $old_tags,
+        new_value => $new_tags,
     };
-    push( @changes, $change );
-    unless ( $c->dbis->log_changes( 'story_edits', $reason, $c->user->username, \@changes, 'stories_id', $stories_id ) )
+
+    unless ( $c->dbis->log_activity( 'story_edit', $c->user->username, $stories_id, $reason, $change ) )
     {
         $c->dbis->dbh->rollback;
         die "Unable to log addition of new tags.\n";
@@ -396,7 +390,7 @@ sub add_tag_do : Local
 
     $c->response->redirect(
         $c->uri_for(
-            '/admin/stories/add_tag/' . $story->{ stories_id },
+            '/admin/stories/add_tag/' . $stories_id,
             { status_msg => 'Tag \'' . $added_tag->{ tag } . '\' added.' }
         )
     );
