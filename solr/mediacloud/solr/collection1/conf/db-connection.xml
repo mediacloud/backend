@@ -1,0 +1,9 @@
+<dataSource type="JdbcDataSource" 
+	    driver="org.postgresql.Driver"
+	    url="jdbc:postgresql://localhost/mediacloud" 
+	    user="mediaclouduser" 
+	    password="mediacloud" 
+	    readOnly="true" 
+	    autoCommit="false" 
+	    transactionIsolation="TRANSACTION_READ_COMMITTED" 
+	    holdability="CLOSE_CURSORS_AT_COMMIT"/>
