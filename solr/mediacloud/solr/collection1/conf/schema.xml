@@ -120,6 +120,9 @@
   <field name="publish_date" type="date" indexed="true" stored="true"/>
  
    <field name="media_sets_id" type="int" indexed="true" stored="true" multiValued="true" />
+   <field name="tags_id_story" type="int" indexed="true" stored="true" multiValued="true" />
+   <field name="tags_id_media" type="int" indexed="true" stored="true" multiValued="true" />
+
    <field name="field_type" type="string" indexed="true" stored="true" />
    
    <field name="includes" type="text_en" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" />
