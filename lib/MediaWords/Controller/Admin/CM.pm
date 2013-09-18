@@ -1115,14 +1115,15 @@ sub merge_media : Local : FormConfig
 
     my $medium = _get_medium_from_dump_tables( $db, $media_id );
 
-    my $to_media_id = $c->req->param( 'to_media_id' );
+    my $to_media_id = $c->req->param( 'to_media_id' ) // 0;
+    $to_media_id = $to_media_id + 0;
     my $to_medium = _get_medium_from_dump_tables( $db, $to_media_id ) if ( $to_media_id );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
     $db->commit;
 
-    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
+    my $cdts_id = $cdts->{ controversy_dump_time_slices_id } + 0;
 
     if ( !$medium )
     {
@@ -1132,13 +1133,6 @@ sub merge_media : Local : FormConfig
         return;
     }
 
-    # my $form = $self->form;
-    #
-    # $form->load_config_filestem('root/forms/my/controller/bar');
-    #
-    # $form->process;
-    #
-    # $c->stash->{form} = $form;
     my $form = $c->stash->{ form };
 
     if ( !$form->submitted_and_valid )
@@ -1156,7 +1150,40 @@ sub merge_media : Local : FormConfig
         return;
     }
 
-    MediaWords::CM::Mine::merge_dup_medium_all_controversies( $db, $medium, $to_medium );
+    # Start transaction
+    $db->begin;
+
+    my $reason = $c->req->param( 'reason' ) || '';
+
+    # Make the merge
+    eval { MediaWords::CM::Mine::merge_dup_medium_all_controversies( $db, $medium, $to_medium ); };
+    if ( $@ )
+    {
+        $db->rollback;
+
+        my $error = "Unable to merge media: $@";
+        my $u = $c->uri_for( "/admin/cm/medium/$media_id", { cdts => $cdts_id, error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    # Log the activity
+    my $change = {
+        'to_media_id' => $to_media_id,
+        'cdts_id'     => $cdts_id
+    };
+    unless ( $db->log_activity( 'cm_media_merge', $c->user->username, $media_id, $reason, $change ) )
+    {
+        $db->rollback;
+
+        my $error = "Unable to log the activity of merging media.";
+        my $u = $c->uri_for( "/admin/cm/medium/$media_id", { cdts => $cdts_id, error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    # Things went fine
+    $db->commit;
 
     my $status_msg = 'The media have been merged in all controversies.';
     my $u = $c->uri_for( "/admin/cm/medium/$to_media_id", { cdts => $cdts_id, status_msg => $status_msg, l => 1 } );
