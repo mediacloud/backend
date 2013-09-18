@@ -1088,14 +1088,7 @@ sub _remove_story_from_controversy($$$$$$)
     eval {
 
         # Do the change
-        $db->query(
-            <<EOF,
-            DELETE FROM controversy_stories
-            WHERE stories_id = ?
-              AND controversies_id = ?
-EOF
-            $stories_id, $controversies_id
-        );
+        MediaWords::CM::Mine::remove_story_from_controversy( $db, $stories_id, $controversies_id );
 
         # Log the activity
         my $change = {

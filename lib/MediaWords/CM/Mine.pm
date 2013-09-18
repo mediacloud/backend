@@ -643,6 +643,21 @@ sub add_new_story
     return $story;
 }
 
+# remove the given story from the given controversy
+sub remove_story_from_controversy($$$)
+{
+    my ( $db, $stories_id, $controversies_id ) = @_;
+
+    $db->query(
+        <<EOF,
+        DELETE FROM controversy_stories
+        WHERE stories_id = ?
+          AND controversies_id = ?
+EOF
+        $stories_id, $controversies_id
+    );
+}
+
 # return true if any of the download_texts for the story matches the controversy search pattern
 sub story_download_text_matches_pattern
 {
