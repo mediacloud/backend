@@ -943,10 +943,11 @@ sub search_stories : Local
 
     $db->begin;
 
-    my $cdts_id = $c->req->params->{ cdts };
+    my $cdts_id = $c->req->params->{ cdts } + 0;
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
     my $live = $c->req->params->{ l };
+    my $reason = $c->req->params->{ reason } || '';
 
     MediaWords::CM::Dump::setup_temporary_dump_tables( $db, $cdts, $controversy, $live );
 
@@ -977,7 +978,25 @@ END
 
     if ( $c->req->params->{ remove_stories } )
     {
-        map { _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id ) } @{ $stories };
+        $db->begin;
+
+        eval {
+            map {
+                _remove_story_from_controversy( $db, $_->{ stories_id },
+                    $controversies_id, $c->user->username, $reason, $cdts_id )
+            } @{ $stories };
+        };
+        if ( $@ )
+        {
+            $db->rollback;
+
+            my $error = "Unable to remove stories: $@";
+            $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $error } ) );
+            return;
+        }
+
+        $db->commit;
+
         my $status_msg = "stories removed from controversy.";
         $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
         return;
@@ -1059,15 +1078,40 @@ END
     $c->stash->{ template }         = 'cm/media.tt2';
 }
 
-# remove the given story from the given controversy
-sub _remove_story_from_controversy
+# remove the given story from the given controversy; die()s on error
+sub _remove_story_from_controversy($$$$$$)
 {
-    my ( $db, $stories_id, $controversies_id ) = @_;
+    my ( $db, $stories_id, $controversies_id, $users_email, $reason, $cdts_id ) = @_;
 
-    $db->query( <<END, $stories_id, $controversies_id );
-delete from controversy_stories where stories_id = ? and controversies_id = ?
-END
+    $reason ||= '';
 
+    eval {
+
+        # Do the change
+        $db->query(
+            <<EOF,
+            DELETE FROM controversy_stories
+            WHERE stories_id = ?
+              AND controversies_id = ?
+EOF
+            $stories_id, $controversies_id
+        );
+
+        # Log the activity
+        my $change = {
+            'from_controversies_id' => $controversies_id,
+            'cdts_id'               => $cdts_id
+        };
+        unless ( $db->log_activity( 'cm_remove_story_from_controversy', $users_email, $stories_id, $reason, $change ) )
+        {
+            die "Unable to log the story removal activity.";
+        }
+
+    };
+    if ( $@ )
+    {
+        die "Unable to remove story $stories_id from controversy $controversies_id: $@";
+    }
 }
 
 # remove the given story from the controversy
@@ -1079,12 +1123,25 @@ sub remove_story : Local
 
     $db->begin;
 
-    my $cdts_id = $c->req->params->{ cdts };
+    my $cdts_id = $c->req->params->{ cdts } + 0;
     my $live    = $c->req->params->{ l };
+    my $reason  = $c->req->params->{ reason } || '';
 
     my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    _remove_story_from_controversy( $db, $stories_id, $controversy->{ controversies_id } );
+    eval {
+        _remove_story_from_controversy( $db, $stories_id, $controversy->{ controversies_id },
+            $c->user->username, $reason, $cdts_id );
+    };
+    if ( $@ )
+    {
+        $db->rollback;
+
+        my $error = "Unable to remove story: $@";
+        my $u = $c->uri_for( "/admin/cm/story/$stories_id", { cdts => $cdts_id, error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
 
     $db->commit;
 

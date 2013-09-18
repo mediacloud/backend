@@ -10,7 +10,15 @@ $(document).ready(function () {
     var hrefAttribute = $(this).attr("href");
 
     $("#confirmDialog").dialog('option', 'buttons', {
-      "Confirm": function () { window.location.href = hrefAttribute; },
+      "Confirm": function () {
+
+        // Append the "reason" GET parameter to the URL
+        if ( hrefAttribute.indexOf('?') == -1 ) {
+          alert("I have expected the target URL to have some query parameters at this point.");
+        }
+        hrefAttribute = hrefAttribute + "&reason=" + encodeURIComponent($("#cm_remove_story_from_controversy_reason").val());
+        window.location.href = hrefAttribute;
+      },
       "Cancel": function () { $(this).dialog("close"); }
     });
 
@@ -21,9 +29,18 @@ $(document).ready(function () {
 </script>
 
 <div id="confirmDialog">
-    Are you sure you want to remove the story from the [% controversy.name | html %] controversy?  
-    After removal, the story will still appear in existing dumps, but it will not be in live views 
-    or new dumps of the controversy.
+    <p>
+        Are you sure you want to remove the story from the [% controversy.name | html %] controversy?  
+        After removal, the story will still appear in existing dumps, but it will not be in live views 
+        or new dumps of the controversy.
+    </p>
+    <p>
+        <label for="cm_remove_story_from_controversy_reason">Reason:</label>
+        <input type="text"
+               id="cm_remove_story_from_controversy_reason"
+               size="24"
+               placeholder="reason for the modification that you are making" />
+    </p>
 </div>
 
 <div id="warning_box">
