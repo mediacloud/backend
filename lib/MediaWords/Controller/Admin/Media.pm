@@ -197,7 +197,7 @@ sub edit_do : Local
 
         # Make a logged update
         $c->dbis->update_by_id_and_log( 'media', $id, $medium, $form_params, 'media_edits', $form->params->{ reason },
-            $c->user->username );
+            $c->user->username, 'media_id', $id );
 
         my $msg = "Media source updated.";
         if ( $form->params->{ referer } )
