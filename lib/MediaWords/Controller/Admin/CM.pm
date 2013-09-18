@@ -1186,7 +1186,7 @@ sub merge_stories : Local : FormConfig
 
     my $story = $db->query( "select * from dump_stories where stories_id = ?", $stories_id )->hash;
 
-    my $to_stories_id = $c->req->param( 'to_stories_id' );
+    my $to_stories_id = $c->req->param( 'to_stories_id' ) + 0;
     my $to_story = $db->query( "select * from dump_stories where stories_id = ?", $to_stories_id )->hash
       if ( $to_stories_id );
 
@@ -1194,7 +1194,7 @@ sub merge_stories : Local : FormConfig
 
     $db->commit;
 
-    my $cdts_id = $cdts->{ controversy_dump_time_slices_id };
+    my $cdts_id = $cdts->{ controversy_dump_time_slices_id } + 0;
 
     if ( !$story )
     {
@@ -1213,20 +1213,54 @@ sub merge_stories : Local : FormConfig
         return;
     }
 
+    # Start transaction
+    $db->begin;
+
+    my $reason = $c->req->param( 'reason' ) || '';
+
     if ( !$story )
     {
+        $db->rollback;
+
         my $error = 'The destination story no longer exists in the live data';
         my $u = $c->uri_for( "/admin/cm/story/$stories_id", { cdts => $cdts_id, error_msg => $error } );
         $c->response->redirect( $u );
         return;
     }
 
-    MediaWords::CM::Mine::merge_dup_story( $db, $controversy, $story, $to_story );
+    # Make the merge
+    eval { MediaWords::CM::Mine::merge_dup_story( $db, $controversy, $story, $to_story ); };
+    if ( $@ )
+    {
+        $db->rollback;
+
+        my $error = "Unable to merge stories: $@";
+        my $u = $c->uri_for( "/admin/cm/story/$stories_id", { cdts => $cdts_id, error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    # Log the activity
+    my $change = {
+        'to_stories_id' => $to_stories_id,
+        'cdts_id'       => $cdts_id
+    };
+    unless ( $db->log_activity( 'cm_story_merge', $c->user->username, $stories_id, $reason, $change ) )
+    {
+        $db->rollback;
+
+        my $error = "Unable to log the activity of merging stories.";
+        my $u = $c->uri_for( "/admin/cm/story/$stories_id", { cdts => $cdts_id, error_msg => $error } );
+        $c->response->redirect( $u );
+        return;
+    }
+
+    # Things went fine
+    $db->commit;
 
     my $status_msg = 'The stories have been merged in this controversy.';
     my $u = $c->uri_for( "/admin/cm/story/$to_stories_id", { cdts => $cdts_id, status_msg => $status_msg, l => 1 } );
     $c->response->redirect( $u );
-    return;
 }
 
 # parse story ids and associated urls from param names, along
