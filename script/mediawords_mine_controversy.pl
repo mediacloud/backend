@@ -48,11 +48,19 @@ sub main
       || die( "Unable to find controversy '$controversies_id'" );
 
     my $options = {
-        dedup_stories          => $dedup_stories,
-        import_only            => $import_only,
-        cache_broken_downloads => $cache_broken_downloads
+        dedup_stories          => $dedup_stories          ? 1 : 0,
+        import_only            => $import_only            ? 1 : 0,
+        cache_broken_downloads => $cache_broken_downloads ? 1 : 0
     };
 
+    # Log activity that's about to start
+    my $username = getpwuid( $< ) || 'unknown';
+    unless ( $db->log_activity( 'cm_mine_controversy', 'system:' . $username, $controversies_id + 0, '', $options ) )
+    {
+        die "Unable to log the 'cm_mine_controversy' activity.";
+    }
+
+    # Do the work
     MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
 }
 

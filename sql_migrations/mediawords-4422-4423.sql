@@ -29,11 +29,11 @@ CREATE TABLE activities (
     -- When did the activity happen
     timestamp           TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
 
-    -- User that executed the activity
+    -- User that executed the activity, either:
+    --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
+    --     * username that initiated the action (e.g. "system:lvaliukas")
     -- (store user's email instead of ID in case the user gets deleted)
-    users_email         TEXT            NOT NULL REFERENCES auth_users(email)
-                                        ON DELETE NO ACTION
-                                        ON UPDATE NO ACTION DEFERRABLE,
+    users_email         VARCHAR(255)    NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
     -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
