@@ -8,6 +8,7 @@
 # takes an input file on stdin with one regex per line
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -84,6 +85,8 @@ END
         print "$patterns->[ $i ]->{ tag }->{ tag }: " . scalar( grep { $_->{ "match_$i" } } @{ $story_matches } ) . "\n";
     }
 
+    my $username = getpwuid( $< ) || 'unknown';
+
     print STDERR "writing tags ...\n";
     $db->{ dbh }->{ AutoCommit } = 0;
     my $c = 0;
@@ -108,6 +111,19 @@ END
                     $story_match->{ stories_id },
                     $pattern->{ tag }->{ tags_id }
                 );
+            }
+
+            # Log activity
+            unless (
+                $db->log_activity(
+                    'cm_search_tag_change',
+                    'system:' . $username,
+                    $story_match->{ stories_id } + 0,
+                    '', $pattern
+                )
+              )
+            {
+                die "Unable to log the 'cm_search_tag_change' activity.";
             }
         }
 

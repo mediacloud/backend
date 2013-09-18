@@ -465,7 +465,7 @@ sub log_activity($$$$$$)
         }
         unless ( ref $description_hash eq 'HASH' )
         {
-            die "Invalid activity description: " . Dumper( $description_hash );
+            die "Invalid activity description (" . ref( $description_hash ) . "): " . Dumper( $description_hash );
         }
         my $description_json = JSON->new->canonical( 1 )->utf8( 1 )->encode( $description_hash );
 
@@ -481,6 +481,7 @@ EOF
     if ( $@ )
     {
         # Writing the change failed
+        say STDERR "Writing activity failed: $@";
         return 0;
     }
 
