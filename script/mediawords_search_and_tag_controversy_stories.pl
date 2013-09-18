@@ -135,6 +135,18 @@ sub main
     my $controversy = $db->query( "select * from controversies where name = ?", $controversy_name )->hash
       || die( "Unable to find controversy '$controversy_name'" );
 
+    # Log activity that's about to start
+    my $username = getpwuid( $< ) || 'unknown';
+    my $options = { 'controversy_name' => $controversy_name };
+    unless (
+        $db->log_activity(
+            'cm_search_tag_run', 'system:' . $username, $controversy->{ controversies_id } + 0, '', $options
+        )
+      )
+    {
+        die "Unable to log the 'cm_search_tag_run' activity.";
+    }
+
     my $patterns = get_patterns_from_input( $db, $controversy );
 
     die( "no patterns found in input" ) if ( !@{ $patterns } );
