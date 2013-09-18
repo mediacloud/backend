@@ -36,6 +36,23 @@ sub main
     {
         $db->disconnect;
         $db = MediaWords::DB::connect_to_db;
+
+        # Log activity that's about to start
+        my $username = getpwuid( $< ) || 'unknown';
+        my $changes = { 'controversy_opt' => $controversy_opt };
+        unless (
+            $db->log_activity(
+                'cm_dump_controversy',
+                'system:' . $username,
+                $controversy->{ controversies_id } + 0,
+                '', $changes
+            )
+          )
+        {
+            die "Unable to log the 'cm_dump_controversy' activity.";
+        }
+
+        # Dump controversy
         print "CONTROVERSY $controversy->{ name } \n";
         MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
     }
