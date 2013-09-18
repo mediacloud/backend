@@ -1884,7 +1884,7 @@ CREATE TABLE activities (
 
     -- Indexed ID of the object that was modified in some way by the activity
     -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
-    object_id           INT             NULL,
+    object_id           BIGINT          NULL,
 
     -- User-provided reason explaining why the activity was made
     reason              TEXT            NULL,
