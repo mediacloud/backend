@@ -17,7 +17,7 @@
       </entity>
       <entity name="media_tags_map" 
 	      pk="media_tags_map_id"
-	      query="select tags_id as tags_id_media from media_tags_map where stories_id = '${story_sentences.stories_id}' ; "
+	      query="select tags_id as tags_id_media from media_tags_map where media_id = '${story_sentences.media_id}' ; "
 	      deltaQuery="select stories_tags_map_id, tags_id from media_tags_map where last_updated &gt; '${dih.last_index_time}'"
 	      parentDeltaQuery="select story_sentences_id as id from story_sentences where stories_id = ${media_tags_map.stories_id}"
               >
