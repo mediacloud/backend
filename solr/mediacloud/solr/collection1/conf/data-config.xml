@@ -4,52 +4,35 @@
   <document>
 
     <entity name="story_sentences" 
-	    pk="story_sentences_id"
+            pk="story_sentences_id"
             query="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences"
- 	    deltaImportQuery="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where story_sentences_id=${dataimporter.delta.id}"
-	    deltaQuery="SELECT story_sentences_id as id, story_sentences_id from story_sentences where last_updated &gt; '${dih.last_index_time}' ">
-      <entity name="media_sets_media_map" 
-	      pk="media_sets_media_map_id"
-	      query="select media_sets_id from media_sets_media_map where media_id = '${story_sentences.media_id}' ; "
-	      deltaQuery="select media_sets_media_map_id, media_id from media_sets_media_map where last_updated &gt; '${dih.last_index_time}'"
-	      parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_sets_media_map.media_id}"
+            deltaImportQuery="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where story_sentences_id=${dataimporter.delta.id}"
+            deltaQuery="SELECT story_sentences_id as id, story_sentences_id from story_sentences where last_updated &gt; '${dih.last_index_time}' ">
+   <entity name="media_sets_media_map" 
+              pk="media_sets_media_map_id"
+              query="select * from media_sets_media_map"
+              processor="CachedSqlEntityProcessor"
+              where="media_id=story_sentences.media_id"
+              deltaQuery="select media_sets_media_map_id, media_id from media_sets_media_map where last_updated &gt; '${dih.last_index_time}'"
+              parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_sets_media_map.media_id}"
               >
       </entity>
       <entity name="media_tags_map" 
-	      pk="media_tags_map_id"
-	      query="select tags_id as tags_id_media from media_tags_map where media_id = '${story_sentences.media_id}' ; "
-	      deltaQuery="select stories_tags_map_id, tags_id from media_tags_map where last_updated &gt; '${dih.last_index_time}'"
-	      parentDeltaQuery="select story_sentences_id as id from story_sentences where stories_id = ${media_tags_map.stories_id}"
+              pk="media_tags_map_id"
+              query="select * from media_tags_map"
+              processor="CachedSqlEntityProcessor"
+              where="media_id=story_sentences.media_id"
+              deltaQuery="select media_tags_map_id, tags_id from media_tags_map where last_updated &gt; '${dih.last_index_time}'"
+              parentDeltaQuery="select story_sentences_id as id from story_sentences where stories_id = ${media_tags_map.stories_id}"
               >
       </entity>
-    </entity>
-
-
-    <entity name="stories" 
-	    pk="stories_id"
-            query="select stories_id || '_st' as id, 'st' as field_type, * from stories"
- 	    deltaImportQuery="select stories_id || '_st' as id, 'st' as field_type, * from stories where stories_id=${dataimporter.delta.id}"
-	    deltaQuery="SELECT stories_id as id, stories_id from stories where last_updated &gt; '${dih.last_index_time}' ">
-      <entity name="media_sets_media_map" 
-	      pk="media_sets_media_map_id"
-	      query="select media_sets_id from media_sets_media_map where media_id = '${stories.media_id}' ; "
-	      deltaQuery="select media_sets_media_map_id, media_id from media_sets_media_map where last_updated &gt; '${dih.last_index_time}'"
-	      parentDeltaQuery="select stories_id as id from stories where media_id = ${media_sets_media_map.media_id}"
-              >
-      </entity>
-<!--      <entity name="stories_tags_map" 
-	      pk="stories_tags_map"
-	      query="select tags_id as tags_id_story from stories_tags_map where stories_id = '${stories.stories_id}' ; "
-	      deltaQuery="select stories_tags_map_id, tags_id from stories_tags_map where last_updated &gt; '${dih.last_index_time}'"
-	      parentDeltaQuery="select stories_id as id from stories where stories_id = ${stories_tags_map.stories_id}"
-              >
-      </entity>
--->
-   <entity name="media_tags_map" 
-	      pk="media_tags_map_id"
-	      query="select tags_id as tags_id_media from media_tags_map where media_id = '${stories.media_id}' ; "
-	      deltaQuery="select stories_tags_map_id, tags_id from media_tags_map where last_updated &gt; '${dih.last_index_time}'"
-	      parentDeltaQuery="select story_sentences_id as id from stories where stories_id = ${media_tags_map.stories_id}"
+      <entity name="stories_tags_map" 
+              pk="stories_tags_map_id"
+              query="select * from stories_tags_map"
+              processor="CachedSqlEntityProcessor"
+              where="stories_id=story_sentences.stories_id"
+              deltaQuery="select stories_tags_map_id, tags_id from stories_tags_map where last_updated &gt; '${dih.last_index_time}'"
+              parentDeltaQuery="select story_sentences_id as id from story_sentences where stories_id = ${stories_tags_map.stories_id}"
               >
       </entity>
     </entity>
