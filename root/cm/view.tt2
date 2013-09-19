@@ -4,7 +4,7 @@
     <div class="boxtitle">Query</div>
     <table>
         <tr>
-            <td>Pattern
+            <td>Pattern</td>
             <td>[% controversy.pattern | html %]</td>
         </tr>
 
