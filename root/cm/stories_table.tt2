@@ -1,5 +1,5 @@
 [% IF display_stories_title %]
-    <div id="boxtitle">
+    <div class="boxtitle">
 
     [% display_stories_title %]
 
