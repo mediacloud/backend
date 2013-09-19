@@ -34,7 +34,7 @@
 
     [% FOREACH set IN media_sets -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>[% set.name | html %]</td>
 

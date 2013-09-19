@@ -30,7 +30,7 @@
 
 [% FOREACH user IN users -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>[% user.auth_users_id | html %]</td>
 

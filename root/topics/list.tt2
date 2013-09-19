@@ -15,7 +15,7 @@
 
     [% FOREACH topic IN topics -%]
 
-        <tr [% IF even %]id="even"[% END %]>
+        <tr [% IF even %]class="even"[% END %]>
 
 <td>
 [% IF topic.state == 'completed' -%]

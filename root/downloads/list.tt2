@@ -18,7 +18,7 @@
 
     [%- FOREACH d IN downloads -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
         <td>
             [% IF c.acl_user_can_visit('/admin/downloads/list') %]
                 <a href="[% c.uri_for('/admin/downloads/list') %]?m=[% d.medium.media_id %]">[% d.medium.name | html %]</a>

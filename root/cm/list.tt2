@@ -14,7 +14,7 @@
 
     [% FOREACH controversy IN controversies -%]
 
-        <tr [% IF even %]id="even"[% END %]>
+        <tr [% IF even %]class="even"[% END %]>
 
 <td>
 <a href="[%  c.uri_for('/admin/cm/view/'  _ controversy.controversies_id ) %]">[% controversy.name | html %]</a>
