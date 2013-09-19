@@ -6,7 +6,7 @@
         [% INCLUDE cm/time_slices_table.tt2 %]
     </div>
     <div id="narrowcolumn">
-        <div id="boxtitle">Stats</div>
+        <div class="boxtitle">Stats</div>
         <fieldset>
             <p><a href="[% c.uri_for( '/admin/cm/dump_daily_counts/' _ controversy_dump.controversy_dumps_id ) %]">Daily Counts CSV</a></p>
             <p><a href="[% c.uri_for( '/admin/cm/dump_weekly_counts/' _ controversy_dump.controversy_dumps_id ) %]">Weekly Counts CSV</a></p>

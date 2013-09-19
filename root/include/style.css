@@ -253,7 +253,7 @@ div#wholecolumn {
     clear: both;
 }
 
-div#boxtitle {
+div.boxtitle {
     padding-top: 20px;
     margin-bottom: 5px;
     height: auto;
