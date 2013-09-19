@@ -1219,10 +1219,12 @@ sub merge_media : Local : FormConfig
 
     # Log the activity
     my $change = {
+        'media_id'    => $media_id,
         'to_media_id' => $to_media_id,
         'cdts_id'     => $cdts_id
     };
-    unless ( $db->log_activity( 'cm_media_merge', $c->user->username, $media_id, $reason, $change ) )
+    unless (
+        $db->log_activity( 'cm_media_merge', $c->user->username, $controversy->{ controversies_id }, $reason, $change ) )
     {
         $db->rollback;
 
