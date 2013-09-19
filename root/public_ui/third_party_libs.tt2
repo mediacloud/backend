@@ -16,7 +16,7 @@
 
 <script src="[% c.uri_for('/include/libs/aehlke-tag-it-d64a794/js/tag-it.js') %]" type="text/javascript" charset="utf-8"></script>
 
-<link href="[% c.uri_for('/include/libs/aehlke-tag-it-d64a794/css/jquery.tagit.css') %]" rel="stylesheet" type="text/css">
+<link href="[% c.uri_for('/include/libs/aehlke-tag-it-d64a794/css/jquery.tagit.css') %]" rel="stylesheet" type="text/css" />
 
 <!--
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jsTree/jquery.jstree.js') %]"></script> 
