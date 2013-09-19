@@ -1,6 +1,6 @@
 <dataConfig>
- <xi:include href="db-connection.xml"
-      xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="db-connection.xml"
+	      xmlns:xi="http://www.w3.org/2001/XInclude"/>
   <document>
 
     <entity name="story_sentences" 
@@ -8,7 +8,7 @@
             query="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences"
             deltaImportQuery="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where story_sentences_id=${dataimporter.delta.id}"
             deltaQuery="SELECT story_sentences_id as id, story_sentences_id from story_sentences where last_updated &gt; '${dih.last_index_time}' ">
-   <entity name="media_sets_media_map" 
+      <entity name="media_sets_media_map" 
               pk="media_sets_media_map_id"
               query="select * from media_sets_media_map"
               processor="CachedSqlEntityProcessor"
@@ -36,7 +36,5 @@
               >
       </entity>
     </entity>
-
   </document>
 </dataConfig>
-
