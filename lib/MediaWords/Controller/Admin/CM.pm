@@ -1092,10 +1092,10 @@ sub _remove_story_from_controversy($$$$$$)
 
         # Log the activity
         my $change = {
-            'from_controversies_id' => $controversies_id,
-            'cdts_id'               => $cdts_id
+            'stories_id' => $stories_id,
+            'cdts_id'    => $cdts_id
         };
-        unless ( $db->log_activity( 'cm_remove_story_from_controversy', $users_email, $stories_id, $reason, $change ) )
+        unless ( $db->log_activity( 'cm_remove_story_from_controversy', $users_email, $controversies_id, $reason, $change ) )
         {
             die "Unable to log the story removal activity.";
         }
