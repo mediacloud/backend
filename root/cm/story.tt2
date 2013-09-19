@@ -95,7 +95,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr>
         <td>Stories_id</td><td>[% story.stories_id %]</td>
     </tr>
-    <tr id="even">
+    <tr class="even">
         <td>Title</td>
         <td>
             [% story.title | truncate( 128 )| html %] [% live_story_diff( 'title' ) | html %]
@@ -104,7 +104,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr>
         <td>Url</td><td><a href="[% story.url| html %]" target="blank">[% story.url | truncate( 96 ) | html %]</td>
     </tr>
-    <tr id="even">
+    <tr class="even">
         <td>Publish Date</td>
         <td id="[% story.date_is_reliable ? 'reliable_story_date' : 'unreliable_story_date' %]">
             [% IF story.undateable %]
@@ -124,7 +124,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr>
         <td>Medium</td><td><a href="[% medium_url | html %]">[% story.medium.name | truncate( 96 ) | html %]</a>
     </td>
-    <tr id ="even">
+    <tr class="even">
         <td># Incoming Story Links</td><td>[% story.inlink_count %] [% live_story_diff( 'inlink_count' ) | html %]</td>
     </tr>
     <tr>

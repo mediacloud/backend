@@ -28,7 +28,7 @@
 
     [% FOREACH run IN cluster_runs -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>[% run.start_date.substr(0, 10) %]</td>
 

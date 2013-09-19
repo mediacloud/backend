@@ -28,7 +28,7 @@
 
     [% FOREACH dashboard_topic IN dashboard_topics -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>[% dashboard_topic.name | html %]</td>
 

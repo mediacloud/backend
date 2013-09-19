@@ -16,7 +16,7 @@ table th, table td {
     padding: 0.2em;
 }
 
-table tr#even {
+table tr.even {
     background: #fcfcfc;
 }
 

@@ -32,7 +32,7 @@
 
     [% FOREACH dashboard IN dashboards -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>[% dashboard.name | html %]</td>
 

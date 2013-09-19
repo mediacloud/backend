@@ -8,7 +8,7 @@
             <td>[% controversy.pattern | html %]</td>
         </tr>
 
-        <tr id="even">
+        <tr class="even">
             <td>Dates</td>
             <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
         </tr>
@@ -45,7 +45,7 @@
 
     [% FOREACH cd IN controversy_dumps -%]
 
-        <tr [% IF even %]id="even"[% END %]>
+        <tr [% IF even %]class="even"[% END %]>
 
             <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id )%]">[% datetime.format( cd.dump_date ) %]</a></td>
 

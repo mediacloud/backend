@@ -35,7 +35,7 @@
 
     [% FOREACH query IN queries -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>[% query.start_date | html %]</td>
 

@@ -31,7 +31,7 @@
                 <td>[% cdts.story_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
-            <tr id="even">
+            <tr class="even">
                 <td># Story Links</td>
                 <td>[% cdts.story_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
@@ -41,7 +41,7 @@
                 <td>[% cdts.medium_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></tr>
             </tr>
-            <tr id="even">
+            <tr class="even">
                 <td># Medium Links</td>
                 <td>[% cdts.medium_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
