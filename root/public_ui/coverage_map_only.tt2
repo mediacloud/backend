@@ -6,7 +6,7 @@
 
 [% INCLUDE 'public_ui/html_head.tt2' %]
 <body>
-<script language="javascript" type="text/javascript">
+<script type="text/javascript">
 //<![CDATA[
 
 	function show_sentences_for_word_cloud_item(word_cloud_item)
