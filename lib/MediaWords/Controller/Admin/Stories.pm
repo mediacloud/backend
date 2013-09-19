@@ -271,6 +271,7 @@ sub delete_tag : Local
             my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
 
             # Log the new set of tags
+            # FIXME move to a new "story_add_tag" activity
             my $change = {
                 field     => '_tags',
                 old_value => $old_tags,
@@ -373,6 +374,7 @@ sub add_tag_do : Local
     my $new_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
 
     # Log the new set of tags
+    # FIXME move to a new "story_add_tag" activity
     my $change = {
         field     => '_tags',
         old_value => $old_tags,
