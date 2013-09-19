@@ -106,6 +106,7 @@ END
             {
 
                 # print STDERR "$pattern->{ tag }->{ tag }\n";
+
                 $db->query(
                     "insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )",
                     $story_match->{ stories_id },
@@ -114,12 +115,19 @@ END
             }
 
             # Log activity
+            my $options = {
+                'stories_id'  => $story_match->{ stories_id } + 0,
+                'regex'       => $pattern->{ regex },
+                'tag_sets_id' => $pattern->{ tag }->{ tag_sets_id },
+                'tags_id'     => $pattern->{ tag }->{ tags_id },
+                'tag'         => $pattern->{ tag }->{ tag }
+            };
             unless (
                 $db->log_activity(
                     'cm_search_tag_change',
                     'system:' . $username,
-                    $story_match->{ stories_id } + 0,
-                    '', $pattern
+                    $controversy->{ controversies_id },
+                    '', $options
                 )
               )
             {
