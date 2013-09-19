@@ -6,7 +6,7 @@
 [% hide_coverage_map = 1 %]
 [% INCLUDE 'public_ui/html_head.tt2' %]
 <body>
-<script language="javascript" type="text/javascript">
+<script type="text/javascript">
 
    function update_dates_for_author() 
    {

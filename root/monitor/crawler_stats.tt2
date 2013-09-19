@@ -3,7 +3,7 @@
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
  <script type="text/javascript"  src="[% c.uri_for('/include/libs/jquery.gvChart-1.0.1.js') %]"></script> 
  <script type="text/javascript"  src="[% c.uri_for('/include/annotatedTimeLineChart.js') %]"></script> 
-<script language="javascript" type="text/javascript">
+<script type="text/javascript">
 <!--
 
     function update_chart()
