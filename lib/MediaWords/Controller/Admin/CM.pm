@@ -1321,10 +1321,12 @@ sub merge_stories : Local : FormConfig
 
     # Log the activity
     my $change = {
+        'stories_id'    => $stories_id,
         'to_stories_id' => $to_stories_id,
         'cdts_id'       => $cdts_id
     };
-    unless ( $db->log_activity( 'cm_story_merge', $c->user->username, $stories_id, $reason, $change ) )
+    unless (
+        $db->log_activity( 'cm_story_merge', $c->user->username, $controversy->{ controversies_id }, $reason, $change ) )
     {
         $db->rollback;
 
