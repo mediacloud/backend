@@ -31,7 +31,7 @@
 
     [% FOREACH medium IN media -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
         <td>[% medium.name | html %]</td>
         <td><a href="[% medium.url | url %]">[% medium.url | html %]</a></td>
         <td>

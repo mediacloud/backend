@@ -5,7 +5,7 @@
 
 <div id="wholecolumn">
     <div id="widecolumn">
-        <div id="boxtitle">Network Map</div>
+        <div class="boxtitle">Network Map</div>
         <fieldset>
         
             [% IF live %]
@@ -24,14 +24,14 @@
     </div>
 
     <div id="narrowcolumn">
-        <div id="boxtitle">Stats</div>
+        <div class="boxtitle">Stats</div>
         <table>
             <tr>
                 <td># Stories</td>
                 <td>[% cdts.story_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_stories/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
             </tr>
-            <tr id="even">
+            <tr class="even">
                 <td># Story Links</td>
                 <td>[% cdts.story_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_story_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
@@ -41,7 +41,7 @@
                 <td>[% cdts.medium_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_media/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></tr>
             </tr>
-            <tr id="even">
+            <tr class="even">
                 <td># Medium Links</td>
                 <td>[% cdts.medium_link_count %]</td>
                 <td><a href="[% c.uri_for( '/admin/cm/dump_medium_links/' _ cdts.controversy_dump_time_slices_id, { l => live } ) %]">CSV</a></td>
@@ -52,7 +52,7 @@
                 <td />
         </table>
         
-        <div id="boxtitle">Search Stories</div>
+        <div class="boxtitle">Search Stories</div>
         <fieldset>
             [% story_search_url = c.uri_for( "/admin/cm/search_stories" ) %]
             <form method="get" action="[% story_search_url | html %]">
@@ -62,7 +62,7 @@
             </form>
         </fieldset>
 
-        <div id="boxtitle">Search Media</div>
+        <div class="boxtitle">Search Media</div>
         <fieldset>
             [% medium_search_url = c.uri_for( "/admin/cm/search_media" ) %]
             <form method="get" action="[% medium_search_url | html %]">

@@ -1,14 +1,14 @@
 [% PROCESS cm/header.tt2 title=controversy.name %]
    
 <div id="wholecolumn">
-    <div id="boxtitle">Query</div>
+    <div class="boxtitle">Query</div>
     <table>
         <tr>
-            <td>Pattern
+            <td>Pattern</td>
             <td>[% controversy.pattern | html %]</td>
         </tr>
 
-        <tr id="even">
+        <tr class="even">
             <td>Dates</td>
             <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
         </tr>
@@ -25,14 +25,14 @@
         controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
         live_periods = 1 %]
 [% ELSE %]
-    <div id="boxtitle">Live Time Slices</div>
+    <div class="boxtitle">Live Time Slices</div>
     <fieldset>
         <p>To browse live data, first generate at least one dump.</p>
     </fieldset> 
 [% END %]
 
 
-<div id="boxtitle">Dumps</div>
+<div class="boxtitle">Dumps</div>
 <table>
 
 <tr>
@@ -45,7 +45,7 @@
 
     [% FOREACH cd IN controversy_dumps -%]
 
-        <tr [% IF even %]id="even"[% END %]>
+        <tr [% IF even %]class="even"[% END %]>
 
             <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id )%]">[% datetime.format( cd.dump_date ) %]</a></td>
 
@@ -62,8 +62,6 @@
     [% END # FOREACH stories -%]
 
 </table>
-
-</div>
 
 [% INCLUDE include/footer.tt2 %]
 

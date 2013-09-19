@@ -1,7 +1,7 @@
 [% INCLUDE 'public_ui/html_head.tt2' %]
 
 <body>
-<script language="javascript" type="text/javascript">
+<script type="text/javascript">
    $(document).ready(function() 
     {
        $('#authors_id1').hide();

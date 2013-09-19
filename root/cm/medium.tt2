@@ -49,7 +49,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 [% merge_url = c.uri_for( '/admin/cm/merge_media/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
 [% unredirect_url = c.uri_for( '/admin/cm/unredirect_medium/' _ medium.media_id, { cdts => cdts.cdts_id } ) %]
 
-<div id="boxtitle">
+<div class="boxtitle">
     Basic Data for [% medium.name | html %] [% IF cdts %] in [% cdts_date_range %] Time Slice[% END %]
     <a id="boxcommand" href="[% merge_url | html %]">merge</a>
     <a id="boxcommand" href="[% unredirect_url | html %]">un-redirect</a>
@@ -58,7 +58,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 <table>
 
     <tr><td>Media_id</td><td>[% medium.media_id %]</td></tr>
-    <tr id="even"><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
+    <tr class="even"><td>Name</td><td>[% medium.name | html %] [% live_medium_diff( 'name' ) | html %]</td></tr>
     <tr>
         <td>Url</td>
         <td>
@@ -66,9 +66,9 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
             [% live_medium_diff( 'url' ) | html %]
         </td>
     </tr>
-    <tr id="even"><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
+    <tr class="even"><td># Stories</td><td>[% medium.story_count %] [% live_medium_diff( 'story_count' ) | html %]</td></tr>
     <tr><td># Incoming Story Links</td><td>[% medium.inlink_count %] [% live_medium_diff( 'inlink_count' ) | html %]</td></tr>
-    <tr id="even"><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
+    <tr class="even"><td># Outgoing Story Links</td><td>[% medium.outlink_count %] [% live_medium_diff( 'outlink_count' ) | html %]</td></tr>
     
 </table>
 

@@ -1,4 +1,4 @@
-<div id="boxtitle">
+<div class="boxtitle">
 Time Slices
 [% IF live_periods %]
      - all numbers in the below table, including reliability data, are from the latest full dump made 
@@ -23,7 +23,7 @@ Time Slices
     [% FOREACH cdts IN controversy_dump_time_slices -%]
         [% cdts_url = c.uri_for( '/admin/cm/view_time_slice/' _ cdts.controversy_dump_time_slices_id, { l => live_periods } ) %]
 
-        <tr [% IF even %]id="even"[% END %]>
+        <tr [% IF even %]class="even"[% END %]>
 
             <td><a href="[% cdts_url | html %]">[% cdts.period | html %]</a></td>
             <td>[% cdts.tag_name | truncate( 32 ) | html %]</td>

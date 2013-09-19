@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4421;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4422;
     
 BEGIN
 
@@ -1869,6 +1869,12 @@ INSERT INTO auth_roles (role, description) VALUES
 -- Media edits log
 CREATE TABLE media_edits (
     media_edits_id      SERIAL      PRIMARY KEY,
+
+    -- Media that was edited
+    media_id            INT         NOT NULL REFERENCES media(media_id)
+                                    -- don't remove the logged edits when the media gets removed
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
+
     edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
     edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
                                     CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
@@ -1882,11 +1888,15 @@ CREATE TABLE media_edits (
 
 );
 
+CREATE INDEX media_edits_media_id ON media_edits(media_id);
+CREATE INDEX media_edits_edited_field ON media_edits(edited_field);
+CREATE INDEX media_edits_users_email ON media_edits(users_email);
+
 -- Story edits log
 CREATE TABLE story_edits (
     story_edits_id      SERIAL      PRIMARY KEY,
 
-    -- Store user's email instead of ID in case the user gets deleted
+    -- Story that was edited
     stories_id          INT         NOT NULL REFERENCES stories(stories_id)
                                     -- don't remove the logged edits when the story gets removed
                                     ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
@@ -1903,3 +1913,7 @@ CREATE TABLE story_edits (
                                     ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
 
 );
+
+CREATE INDEX story_edits_stories_id ON story_edits(stories_id);
+CREATE INDEX story_edits_edited_field ON story_edits(edited_field);
+CREATE INDEX story_edits_users_email ON story_edits(users_email);

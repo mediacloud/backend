@@ -16,7 +16,7 @@ table th, table td {
     padding: 0.2em;
 }
 
-table tr#even {
+table tr.even {
     background: #fcfcfc;
 }
 
@@ -253,7 +253,7 @@ div#wholecolumn {
     clear: both;
 }
 
-div#boxtitle {
+div.boxtitle {
     padding-top: 20px;
     margin-bottom: 5px;
     height: auto;

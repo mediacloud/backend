@@ -8,7 +8,7 @@
     
 <div id="wholecolumn">
 
-    <div id="boxtitle">Search Media</div>
+    <div class="boxtitle">Search Media</div>
     <fieldset>
         [% search_url = c.uri_for( "/admin/cm/search_media" ) %]
         <form method="get" action="[% search_url | html %]">

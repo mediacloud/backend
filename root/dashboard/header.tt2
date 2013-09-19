@@ -41,9 +41,9 @@
 
 <link rel="stylesheet" href="[% c.uri_for( '/dashboard/treeview.css' ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( '/include/word_cloud.css' ) %]" type="text/css" />
-<script language="javascript" type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
-<script src="[% c.uri_for( '/dashboard/jquery.highlight.js' ) %]"></script>
-<script type="text/javascript"  src="[% c.uri_for('/include/jquery.treeview.js') %]"></script> 
+<script type="text/javascript" src="[% c.uri_for('/include/jquery-1.4.3.js') %]"></script>
+<script type="text/javascript" src="[% c.uri_for( '/dashboard/jquery.highlight.js' ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for('/include/jquery.treeview.js') %]"></script> 
 
 [% IF term %]
 

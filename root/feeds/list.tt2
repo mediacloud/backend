@@ -23,7 +23,7 @@
 
     [% FOREACH feed IN feeds -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>
             [% IF c.acl_user_can_visit('/admin/stories/list') %]

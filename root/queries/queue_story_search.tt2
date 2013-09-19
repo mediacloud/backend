@@ -26,7 +26,7 @@ This form will only queue up a job to do the search in the background, since the
 
     [% FOREACH search IN searches -%]
 
-    <tr [% IF even %]id="even"[% END %]>
+    <tr [% IF even %]class="even"[% END %]>
 
         <td>[% search.pattern | html %]</td>
         [% IF search.search_completed %]

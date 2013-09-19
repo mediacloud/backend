@@ -21,10 +21,8 @@ Running a Single Test
 
 Sometimes it's useful to only run a simple test. To do this use the ./script/run_carton.sh to invoke the prove program dirrectly as follows:
 
-     ./script/run_carton.sh  exec -Ilib/ -- prove -r <TEST_FILE_NAME>
+    ./script/run_carton.sh exec prove -Ilib/ -r <TEST_FILE_NAME>
 
 e.g.
-     ./script/run_carton.sh  exec -Ilib/ -- prove -r t/compile.t
-
-
+    ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
 
