@@ -58,19 +58,23 @@ sub search_and_tag_stories
         my $pattern = $patterns->[ $i ];
 
         # gotta do this weird sub-sub-query to get the planner not to seq scan story_sentences
-        my $clause =
-          "( s.url ~* '$pattern->{ regex }' or s.title ~* '$pattern->{ regex }' or " .
-          "  s.description ~* '$pattern->{ regex }' or " . "  exists ( select 1 " .
-          "             from ( select * from story_sentences ssa_$i where s.stories_id = ssa_$i.stories_id ) as ss_$i " .
-          "             where ss_$i.sentence ~* '$pattern->{ regex }' ) ) match_$i";
+        my $clause = <<END;
+( s.url ~* '$pattern->{ regex }' or s.title ~* '$pattern->{ regex }' or
+  s.description ~* '$pattern->{ regex }' or exists ( select 1
+             from ( 
+                 select * 
+                    from download_texts dta_$i join downloads d_$i on dta_$i.downloads_id = d_$i.downloads_id
+                    where s.stories_id = d_$i.stories_id ) as dt_$i
+             where dt_$i.download_text ~* '$pattern->{ regex }' ) ) match_$i
+END
+
         push( @{ $match_columns }, $clause );
     }
 
     my $match_columns_list = join( ", ", @{ $match_columns } );
 
     my $query =
-      "select s.stories_id, s.title, $match_columns_list from stories s, controversy_stories cs " .
-      "  where s.stories_id = cs.stories_id and cs.controversies_id = ?";
+      "select s.stories_id, s.title, $match_columns_list from cd.live_stories s " . "  where s.controversies_id = ?";
     print STDERR "query: $query\n";
     my $story_matches = $db->query( $query, $controversy->{ controversies_id } )->hashes;
 
@@ -80,6 +84,7 @@ sub search_and_tag_stories
         print "$patterns->[ $i ]->{ tag }->{ tag }: " . scalar( grep { $_->{ "match_$i" } } @{ $story_matches } ) . "\n";
     }
 
+    print STDERR "writing tags ...\n";
     $db->{ dbh }->{ AutoCommit } = 0;
     my $c = 0;
     for my $story_match ( @{ $story_matches } )
@@ -106,8 +111,14 @@ sub search_and_tag_stories
             }
         }
 
-        $db->commit if ( !( $c % 100 ) );
+        if ( !( $c++ % 100 ) )
+        {
+            $db->commit;
+            print STDERR "[ $c / " . scalar( @{ $story_matches } ) . " ]\n";
+        }
     }
+
+    $db->commit;
 }
 
 sub main

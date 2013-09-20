@@ -17,6 +17,9 @@ use Text::CSV_XS;
 use MediaWords::DB;
 use MediaWords::DBI::Controversies;
 
+# hash of all media with stories in a controversy, hashed by media_id and controversies_id
+my $_medium_controversy_lookup;
+
 # get a list of hashes from the csv. validate that each row has a media_id or name field and a code field
 sub get_csv_codes
 {
@@ -39,39 +42,36 @@ sub get_csv_codes
     return $csv_codes;
 }
 
+# return a lookup table with every media source that is part of any controversy, hashed by media_id and controversies_id
+sub get_medium_controversy_lookup
+{
+    my ( $db ) = @_;
+
+    return $_medium_controversy_lookup if ( $_medium_controversy_lookup );
+
+    my $media = $db->query( <<END )->hashes;
+select distinct m.*, s.controversies_id
+    from
+        media m
+        join cd.live_stories s on ( m.media_id = s.media_id )
+END
+
+    for my $medium ( @{ $media } )
+    {
+        $_medium_controversy_lookup->{ $medium->{ media_id } }->{ $medium->{ controversies_id } } = $medium;
+    }
+
+    return $_medium_controversy_lookup;
+}
+
 # lookup the medium in the controversy by id, name, or url
 sub get_medium_from_csv_code
 {
     my ( $db, $controversy, $csv_code ) = @_;
 
-    my $cc = $csv_code;
+    my $lookup = get_medium_controversy_lookup( $db );
 
-    my $media =
-      $db->query( <<END, $controversy->{ controversies_id }, $cc->{ media_id }, $cc->{ name }, $cc->{ url } )->hashes;
-select distinct m.* 
-    from media m
-        join stories s on ( s.media_id = m.media_id )
-        join controversy_stories cs on ( cs.stories_id = s.stories_id and cs.controversies_id = ? )
-    where 
-        m.dup_media_id is null and
-            ( m.media_id = ? or
-                m.name = ? or
-                m.url = ? )
-END
-
-    if ( !$media )
-    {
-        print STDERR "Unable to find medium for csv_code: " . Dumper( $csv_code ) . "\n";
-        return undef;
-    }
-
-    if ( @{ $media } > 1 )
-    {
-        print STDERR "Found more than one medium for csv_code: " . Dumper( $csv_code ) . "\n" . Dumper( $media ) . "\n";
-        return undef;
-    }
-
-    return $media->[ 0 ];
+    return $lookup->{ $csv_code->{ media_id } }->{ $controversy->{ controversies_id } };
 }
 
 # add nan codes to the controversy_media_codes
@@ -92,7 +92,7 @@ sub add_codes_to_media
         );
     }
 
-    # print STDERR "add $medium->{ name } $code_type: $csv_code->{ code }\n";
+    print STDERR "add $controversy->{ name }: $medium->{ name } $code_type = $csv_code->{ code }\n";
 }
 
 sub main

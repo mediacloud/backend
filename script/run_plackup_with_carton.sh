@@ -22,5 +22,5 @@ cd ..
 #echo "$BASHPID"
 echo $$ run_plackup_with_carton.sh pid >&2
 
-echo carton exec -- plackup -I lib $@
-exec carton exec -- plackup -I lib $@
+echo carton exec plackup -I lib $@
+exec carton exec plackup -I lib $@

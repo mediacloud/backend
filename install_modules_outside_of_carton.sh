@@ -26,9 +26,12 @@ fi
 # (https://rt.cpan.org/Public/Bug/Display.html?id=85861)
 $CPANM --notest ExtUtils::MakeMaker
 
-# Carton's tarball is hardcoded in case v0.9.15 becomes unavailable
-# at some time in the future
-$CPANM ./foreign_modules/carton-v0.9.15.tar.gz
+# 1.0.9 or newer
+# (if the install of Carton 1.0.9 fails because of CPAN::Meta failure,
+# purge Perl with ./install_scripts/purge_mc_perl_brew.sh and
+# ./install_scripts/purge_carton_install.sh)
+$CPANM Carton~1.0.9
 
 $CPANM List::MoreUtils
 $CPANM Devel::NYTProf
+

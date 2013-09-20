@@ -10,11 +10,15 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+<<<<<<< HEAD
 SET search_path = public, pg_catalog;
 
 ALTER TABLE story_sentences
@@ -22,6 +26,11 @@ ALTER TABLE story_sentences
 
 ALTER TABLE story_sentences
         ALTER COLUMN last_updated DROP DEFAULT;
+=======
+--
+-- 2 of 2. Reset the database version.
+--
+>>>>>>> master
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
@@ -42,6 +51,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+<<<<<<< HEAD
 CREATE OR REPLACE FUNCTION story_sentences_last_updated_trigger() RETURNS trigger AS
 $$
    DECLARE
@@ -70,4 +80,18 @@ CREATE TRIGGER story_sentences_last_updated_trigger
 -- 2 of 2. Reset the database version.
 --
 SELECT set_database_schema_version();
+=======
+SELECT set_database_schema_version();
+
+create table controversy_ignore_redirects (
+    controversy_ignore_redirects_id     serial primary key,
+    url                                 varchar( 1024 )
+);
+
+create index controversy_ignore_redirects_url on controversy_ignore_redirects ( url );
+
+
+
+
+>>>>>>> master
 

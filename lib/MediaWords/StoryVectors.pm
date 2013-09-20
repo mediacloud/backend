@@ -422,7 +422,7 @@ EOF
 # small set of stories)
 sub update_story_sentence_words_and_language
 {
-    my ( $db, $story_ref, $no_delete, $no_dedup_sentences ) = @_;
+    my ( $db, $story_ref, $no_delete, $no_dedup_sentences, $ignore_date_range ) = @_;
     my $sentence_word_counts;
     my $story = _get_story( $db, $story_ref );
 
@@ -433,7 +433,7 @@ sub update_story_sentence_words_and_language
         $db->query( "DELETE FROM story_sentence_counts WHERE first_stories_id = ?", $story->{ stories_id } );
     }
 
-    return if ( !_story_within_media_source_story_words_date_range( $db, $story ) );
+    return unless ( $ignore_date_range || _story_within_media_source_story_words_date_range( $db, $story ) );
 
     # Get story text
     my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );

@@ -171,10 +171,13 @@ END
         elsif ( @{ $command } eq 2 )
         {
             my ( $s, $t ) = @{ $command };
-            if ( ( $s =~ /^(a|\d+)$/ ) && ( $t =~ /^\d+$/ ) && ( $s eq 'a' || $media->[ $s ] ) && $media->[ $t ] )
+            if (   ( $s =~ /^(a|\d+)$/ )
+                && ( $t =~ /^\d+$/ )
+                && ( $s eq 'a' || $ordered_media->[ $s ] )
+                && $ordered_media->[ $t ] )
             {
-                my $target_medium = $media->[ $t ];
-                my $source_media = ( $s eq 'a' ) ? [ grep { !$_->{ hide } } @{ $media } ] : [ $media->[ $s ] ];
+                my $target_medium = $ordered_media->[ $t ];
+                my $source_media = ( $s eq 'a' ) ? [ grep { !$_->{ hide } } @{ $media } ] : [ $ordered_media->[ $s ] ];
 
                 return ( $source_media, $target_medium );
             }

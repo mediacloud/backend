@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4424;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4422;
     
 BEGIN
 
@@ -204,24 +204,6 @@ END;
 $$
 LANGUAGE 'plpgsql'
  ;
-
-CREATE OR REPLACE FUNCTION last_updated_trigger () RETURNS trigger AS
-$$
-   DECLARE
-      path_change boolean;
-   BEGIN
-      -- RAISE NOTICE 'BEGIN ';                                                                                                                            
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') then
-
-      	 NEW.last_updated = now();
-
-      END IF;
-
-      RETURN NEW;
-   END;
-$$
-LANGUAGE 'plpgsql';
 
 create table media (
     media_id            serial          primary key,
@@ -536,12 +518,8 @@ create index media_sets_vectors_added on media_sets ( vectors_added );
 create table media_sets_media_map (
     media_sets_media_map_id     serial  primary key,
     media_sets_id               int     not null references media_sets on delete cascade,    
-    media_id                    int     not null references media on delete cascade,
-    last_updated                timestamp with time zone not null
+    media_id                    int     not null references media on delete cascade
 );
-
-DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on media_sets_media_map CASCADE;
-CREATE TRIGGER media_sets_media_map_last_updated_trigger BEFORE INSERT OR UPDATE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
 create index media_sets_media_map_media on media_sets_media_map ( media_id );
@@ -679,7 +657,6 @@ create table stories (
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
-    last_updated                timestamp with time zone not null,
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
@@ -692,10 +669,7 @@ create index stories_collect_date on stories (collect_date);
 create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 create index stories_language on stories(language);
-create index stories_last_updated on stories( last_updated );
 
-DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
@@ -931,7 +905,6 @@ create table story_sentences (
        sentence                     text            not null,
        media_id                     int             not null, -- references media on delete cascade,
        publish_date                 timestamp       not null,
-       last_updated                 timestamp with time zone not null,
        language                     varchar(3)      null      -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
@@ -939,13 +912,9 @@ create index story_sentences_story on story_sentences (stories_id, sentence_numb
 create index story_sentences_publish_day on story_sentences( date_trunc( 'day', publish_date ), media_id );
 create index story_sentences_language on story_sentences(language);
 create index story_sentences_media_id    on story_sentences( media_id );
-create index story_sentences_last_updated    on story_sentences( last_updated );
 
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 ALTER TABLE  story_sentences ADD CONSTRAINT story_sentences_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
-
-DROP TRIGGER IF EXISTS story_sentences_last_updated_trigger on story_sentences CASCADE;
-CREATE TRIGGER story_sentences_last_updated_trigger BEFORE INSERT OR UPDATE ON story_sentences FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
     
 create table story_sentence_counts (
        story_sentence_counts_id     bigserial       primary key,
@@ -978,8 +947,6 @@ create table story_sentence_words (
 create index story_sentence_words_story on story_sentence_words (stories_id, sentence_number);
 create index story_sentence_words_dsm on story_sentence_words (publish_day, stem, media_id);
 create index story_sentence_words_dm on story_sentence_words (publish_day, media_id);
-
-
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_media_id_fkey FOREIGN KEY (media_id) REFERENCES media(media_id) ON DELETE CASCADE;
 --ALTER TABLE  story_sentence_words ADD CONSTRAINT story_sentence_words_stories_id_fkey FOREIGN KEY (stories_id) REFERENCES stories(stories_id) ON DELETE CASCADE;
 
@@ -1336,6 +1303,13 @@ create table controversy_seed_urls (
 
 create index controversy_seed_urls_controversy on controversy_seed_urls( controversies_id );
 create index controversy_seed_urls_url on controversy_seed_urls( url );
+    
+create table controversy_ignore_redirects (
+    controversy_ignore_redirects_id     serial primary key,
+    url                                 varchar( 1024 )
+);
+
+create index controversy_ignore_redirects_url on controversy_ignore_redirects ( url );
 
 create table controversy_dumps (
     controversy_dumps_id            serial primary key,
@@ -1582,6 +1556,15 @@ create table cd.live_stories (
 );
 create index live_story_controversy on cd.live_stories ( controversies_id );
 create unique index live_stories_story on cd.live_stories ( controversies_id, stories_id );
+    
+create table cd.word_counts (
+    controversy_dump_time_slices_id int             not null references controversy_dump_time_slices on delete cascade,
+    term                            varchar(256)    not null,
+    stem                            varchar(256)    not null,
+    stem_count                      smallint        not null    
+);
+
+create index word_counts_cdts_stem on cd.word_counts ( controversy_dump_time_slices_id, stem );
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
@@ -1886,6 +1869,12 @@ INSERT INTO auth_roles (role, description) VALUES
 -- Media edits log
 CREATE TABLE media_edits (
     media_edits_id      SERIAL      PRIMARY KEY,
+
+    -- Media that was edited
+    media_id            INT         NOT NULL REFERENCES media(media_id)
+                                    -- don't remove the logged edits when the media gets removed
+                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
+
     edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
     edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
                                     CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
@@ -1899,11 +1888,15 @@ CREATE TABLE media_edits (
 
 );
 
+CREATE INDEX media_edits_media_id ON media_edits(media_id);
+CREATE INDEX media_edits_edited_field ON media_edits(edited_field);
+CREATE INDEX media_edits_users_email ON media_edits(users_email);
+
 -- Story edits log
 CREATE TABLE story_edits (
     story_edits_id      SERIAL      PRIMARY KEY,
 
-    -- Store user's email instead of ID in case the user gets deleted
+    -- Story that was edited
     stories_id          INT         NOT NULL REFERENCES stories(stories_id)
                                     -- don't remove the logged edits when the story gets removed
                                     ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
@@ -1920,3 +1913,7 @@ CREATE TABLE story_edits (
                                     ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
 
 );
+
+CREATE INDEX story_edits_stories_id ON story_edits(stories_id);
+CREATE INDEX story_edits_edited_field ON story_edits(edited_field);
+CREATE INDEX story_edits_users_email ON story_edits(users_email);

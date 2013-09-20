@@ -5,6 +5,7 @@ use MediaWords::CommonLibs;
 use strict;
 use warnings;
 
+use Digest::MD5;
 use List::Compare;
 
 use MediaWords::CM::Dump;
@@ -1226,6 +1227,83 @@ sub merge_stories : Local : FormConfig
     my $u = $c->uri_for( "/admin/cm/story/$to_stories_id", { cdts => $cdts_id, status_msg => $status_msg, l => 1 } );
     $c->response->redirect( $u );
     return;
+}
+
+# parse story ids and associated urls from param names, along
+# with the associated assume_match and manual_redirect options for
+# each url.  call MediaWords::Util::URL::unredirect_story on
+# each story and its urls and associated options.
+sub unredirect_param_stories
+{
+    my ( $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $story_urls = {};
+    for my $name ( keys( %{ $c->req->params } ) )
+    {
+        next unless ( $name =~ /^include_url_(\d+)_(\d+)_(.*)$/ );
+        my ( $stories_id, $controversies_id, $url ) = ( $1, $2, $3 );
+
+        my $param_tag = "${ stories_id }_${ controversies_id }_${ url }";
+
+        my $url_options = {
+            url             => $url,
+            assume_match    => $c->req->params->{ "assume_match_${ param_tag }" },
+            manual_redirect => $c->req->params->{ "manual_redirect_${ param_tag }" }
+        };
+
+        push( @{ $story_urls->{ $stories_id }->{ $controversies_id } }, $url_options );
+    }
+
+    while ( my ( $stories_id, $controversy_urls ) = each( %{ $story_urls } ) )
+    {
+        while ( my ( $controversies_id, $urls ) = each( %{ $controversy_urls } ) )
+        {
+            my $story = $db->find_by_id( 'stories', $stories_id )
+              || die( "Unable to find story '$stories_id'" );
+
+            my $controversy = $db->find_by_id( 'controversies', $controversies_id )
+              || die( "Unable to find controversy '$controversies_id'" );
+
+            MediaWords::CM::Mine::unredirect_story( $db, $controversy, $story, $urls );
+        }
+    }
+}
+
+# action to confirm splitting up media source based on its stories' original, unredirected urls
+sub unredirect_medium : Local
+{
+    my ( $self, $c, $media_id ) = @_;
+
+    my $db = $c->dbis;
+
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $c->req->param( 'cdts' ) );
+    my $live = 1;
+
+    my $medium = $db->find_by_id( 'media', $media_id ) || die( "Unable to find medium '$media_id'" );
+
+    if ( $c->req->params->{ submit } )
+    {
+        MediaWords::CM::Mine::add_medium_url_to_ignore_redirects( $db, $medium );
+        unredirect_param_stories( $c );
+
+        my $msg = "The medium has been reprocessed to use the original urls of its stories.";
+        $c->res->redirect( $c->uri_for( "/admin/cm/view/$controversy->{ controversies_id }", { status_msg => $msg } ) );
+        return;
+    }
+
+    my $stories = $db->query( "select * from stories where media_id = ?", $media_id )->hashes;
+
+    map { $_->{ original_urls } = MediaWords::CM::Mine::get_story_original_urls( $db, $_ ) } @{ $stories };
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ cd }          = $cd;
+    $c->stash->{ cdts }        = $cdts;
+    $c->stash->{ live }        = $live;
+    $c->stash->{ stories }     = $stories;
+    $c->stash->{ medium }      = $medium;
+    $c->stash->{ template }    = 'cm/unredirect_medium.tt2';
 }
 
 1;

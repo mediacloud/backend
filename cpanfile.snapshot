@@ -2869,13 +2869,13 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Sub::Exporter::Progressive 0.001006
       perl 5.006
-  Devel-NYTProf-5.06
-    pathname: T/TI/TIMB/Devel-NYTProf-5.06.tar.gz
+  Devel-NYTProf-5.05
+    pathname: T/TI/TIMB/Devel-NYTProf-5.05.tar.gz
     provides:
-      Devel::NYTProf 5.06
+      Devel::NYTProf 5.05
       Devel::NYTProf::Apache 4.00
       Devel::NYTProf::Constants undef
-      Devel::NYTProf::Core 5.06
+      Devel::NYTProf::Core 5.05
       Devel::NYTProf::Data 4.02
       Devel::NYTProf::FileHandle undef
       Devel::NYTProf::FileInfo undef
@@ -3220,44 +3220,43 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Mail::Address 0
+      Net::DNS 0
       Scalar::Util 0
       Test::More 0
       perl 5.006
-  Encode-2.55
-    pathname: D/DA/DANKOGAI/Encode-2.55.tar.gz
+  Encode-2.54
+    pathname: D/DA/DANKOGAI/Encode-2.54.tar.gz
     provides:
-      Encode 2.55
-      Encode::Alias 2.18
+      Encode 2.54
+      Encode::Alias 2.17
       Encode::Byte 2.04
       Encode::CJKConstants 2.02
       Encode::CN 2.03
-      Encode::CN::HZ 2.07
+      Encode::CN::HZ 2.06
       Encode::Config 2.05
       Encode::EBCDIC 2.02
-      Encode::Encoder 2.03
-      Encode::Encoding 2.07
-      Encode::GSM0338 2.05
-      Encode::Guess 2.06
-      Encode::Internal 2.55
+      Encode::Encoder 2.02
+      Encode::Encoding 2.06
+      Encode::GSM0338 2.04
+      Encode::Guess 2.05
+      Encode::Internal 2.54
       Encode::JP 2.04
       Encode::JP::H2Z 2.02
-      Encode::JP::JIS7 2.05
+      Encode::JP::JIS7 2.04
       Encode::KR 2.03
-      Encode::KR::2022_KR 2.03
-      Encode::MIME::Header 2.15
-      Encode::MIME::Header::ISO_2022_JP 1.04
+      Encode::KR::2022_KR 2.02
+      Encode::MIME::Header 2.14
+      Encode::MIME::Header::ISO_2022_JP 1.03
       Encode::MIME::Name 1.01
       Encode::Symbol 2.02
       Encode::TW 2.03
-      Encode::UTF_EBCDIC 2.55
-      Encode::Unicode 2.09
-      Encode::Unicode::UTF7 2.08
-      Encode::utf8 2.55
+      Encode::UTF_EBCDIC 2.54
+      Encode::Unicode 2.08
+      Encode::Unicode::UTF7 2.07
+      Encode::utf8 2.54
       encoding 2.12
     requirements:
-      Exporter 5.57
       ExtUtils::MakeMaker 0
-      parent 0.221
   Encode-HanConvert-0.35
     pathname: A/AU/AUDREYT/Encode-HanConvert-0.35.tar.gz
     provides:
@@ -4373,14 +4372,14 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Test::More 0
       version 0
-  IO-Socket-SSL-1.954
-    pathname: S/SU/SULLR/IO-Socket-SSL-1.954.tar.gz
+  IO-Socket-SSL-1.953
+    pathname: S/SU/SULLR/IO-Socket-SSL-1.953.tar.gz
     provides:
-      IO::Socket::SSL 1.954
+      IO::Socket::SSL 1.953
       IO::Socket::SSL::Intercept 1.93
-      IO::Socket::SSL::SSL_Context 1.954
-      IO::Socket::SSL::SSL_HANDLE 1.954
-      IO::Socket::SSL::Session_Cache 1.954
+      IO::Socket::SSL::SSL_Context 1.953
+      IO::Socket::SSL::SSL_HANDLE 1.953
+      IO::Socket::SSL::Session_Cache 1.953
       IO::Socket::SSL::Utils 0.01
     requirements:
       ExtUtils::MakeMaker 0
@@ -4485,21 +4484,6 @@ DISTRIBUTIONS
       Inline 0.44
       MIME::Base64 0
       Test 1.13
-  Inline-Python-0.43
-    pathname: N/NI/NINE/Inline-Python-0.43.tar.gz
-    provides:
-      Inline::Python 0.43
-      Inline::Python::Boolean 0.43
-      Inline::Python::Function 0.43
-      Inline::Python::Object 0.43
-      Inline::Python::Object::Data 0.43
-    requirements:
-      Data::Dumper 0
-      Digest::MD5 2.5
-      ExtUtils::MakeMaker 0
-      Inline 0.46
-      Test 0
-      Test::More 0
   JSON-2.59
     pathname: M/MA/MAKAMAKA/JSON-2.59.tar.gz
     provides:
@@ -5432,25 +5416,25 @@ DISTRIBUTIONS
       Test::Exception 0
       Test::More 0
       namespace::clean 0
-  MooseX-Getopt-0.58
-    pathname: E/ET/ETHER/MooseX-Getopt-0.58.tar.gz
+  MooseX-Getopt-0.57
+    pathname: E/ET/ETHER/MooseX-Getopt-0.57.tar.gz
     provides:
-      MooseX::Getopt 0.58
-      MooseX::Getopt::Basic 0.58
-      MooseX::Getopt::Dashes 0.58
-      MooseX::Getopt::GLD 0.58
-      MooseX::Getopt::Meta::Attribute 0.58
-      MooseX::Getopt::Meta::Attribute::NoGetopt 0.58
-      MooseX::Getopt::Meta::Attribute::Trait 0.58
-      MooseX::Getopt::Meta::Attribute::Trait::NoGetopt 0.58
-      MooseX::Getopt::OptionTypeMap 0.58
-      MooseX::Getopt::ProcessedArgv 0.58
-      MooseX::Getopt::Strict 0.58
+      MooseX::Getopt 0.57
+      MooseX::Getopt::Basic 0.57
+      MooseX::Getopt::Dashes 0.57
+      MooseX::Getopt::GLD 0.57
+      MooseX::Getopt::Meta::Attribute 0.57
+      MooseX::Getopt::Meta::Attribute::NoGetopt 0.57
+      MooseX::Getopt::Meta::Attribute::Trait 0.57
+      MooseX::Getopt::Meta::Attribute::Trait::NoGetopt 0.57
+      MooseX::Getopt::OptionTypeMap 0.57
+      MooseX::Getopt::ProcessedArgv 0.57
+      MooseX::Getopt::Strict 0.57
     requirements:
       Carp 0
       Getopt::Long 2.37
       Getopt::Long::Descriptive 0.081
-      Module::Build::Tiny 0.027
+      Module::Build::Tiny 0.026
       Moose 0
       Moose::Meta::Attribute 0
       Moose::Role 0.56
@@ -5710,6 +5694,87 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       LWP 5.09
       XML::Writer 0
+  Net-DNS-0.72
+    pathname: N/NL/NLNETLABS/Net-DNS-0.72.tar.gz
+    provides:
+      Net::DNS 0.72
+      Net::DNS::Domain 1096
+      Net::DNS::DomainName 1096
+      Net::DNS::DomainName1035 1096
+      Net::DNS::DomainName2535 1096
+      Net::DNS::Header 1086
+      Net::DNS::Mailbox 1096
+      Net::DNS::Mailbox1035 1096
+      Net::DNS::Mailbox2535 1096
+      Net::DNS::Nameserver 1096
+      Net::DNS::Packet 1086
+      Net::DNS::Parameters 1074
+      Net::DNS::Question 1074
+      Net::DNS::RR 1094
+      Net::DNS::RR::A 1096
+      Net::DNS::RR::AAAA 1096
+      Net::DNS::RR::AFSDB 1096
+      Net::DNS::RR::APL 1096
+      Net::DNS::RR::APL::Item 1096
+      Net::DNS::RR::CERT 1073
+      Net::DNS::RR::CNAME 1096
+      Net::DNS::RR::DHCID 1096
+      Net::DNS::RR::DNAME 1096
+      Net::DNS::RR::EID 1096
+      Net::DNS::RR::HINFO 1096
+      Net::DNS::RR::HIP 1096
+      Net::DNS::RR::IPSECKEY 1096
+      Net::DNS::RR::ISDN 1096
+      Net::DNS::RR::KX 1096
+      Net::DNS::RR::L32 1096
+      Net::DNS::RR::L64 1096
+      Net::DNS::RR::LOC 1075
+      Net::DNS::RR::LP 1096
+      Net::DNS::RR::MB 1096
+      Net::DNS::RR::MG 1096
+      Net::DNS::RR::MINFO 1096
+      Net::DNS::RR::MR 1096
+      Net::DNS::RR::MX 1096
+      Net::DNS::RR::NAPTR 1096
+      Net::DNS::RR::NID 1096
+      Net::DNS::RR::NIMLOC 1096
+      Net::DNS::RR::NS 1096
+      Net::DNS::RR::NSAP 1096
+      Net::DNS::RR::NULL 1096
+      Net::DNS::RR::OPT 1096
+      Net::DNS::RR::PTR 1096
+      Net::DNS::RR::PX 1096
+      Net::DNS::RR::RP 1096
+      Net::DNS::RR::RT 1096
+      Net::DNS::RR::SOA 1096
+      Net::DNS::RR::SPF 1096
+      Net::DNS::RR::SRV 1096
+      Net::DNS::RR::SSHFP 1096
+      Net::DNS::RR::TKEY 1096
+      Net::DNS::RR::TLSA 1096
+      Net::DNS::RR::TSIG 1090
+      Net::DNS::RR::TXT 1079
+      Net::DNS::RR::X25 1096
+      Net::DNS::Resolver 1088
+      Net::DNS::Resolver::Base 1094
+      Net::DNS::Resolver::MSWin32 1096
+      Net::DNS::Resolver::Recurse 1096
+      Net::DNS::Resolver::UNIX 1096
+      Net::DNS::Resolver::cygwin 1096
+      Net::DNS::Resolver::os2 1096
+      Net::DNS::Text 1079
+      Net::DNS::Update 1096
+      Net::DNS::ZoneFile 1094
+      Net::DNS::ZoneFile::Generator 1094
+      Net::DNS::ZoneFile::Text 1094
+    requirements:
+      Digest::HMAC_MD5 1
+      Digest::MD5 2.12
+      Digest::SHA 5.23
+      ExtUtils::MakeMaker 0
+      IO::Socket 0
+      MIME::Base64 2.11
+      Test::More 0.18
   Net-Domain-TLD-1.70
     pathname: A/AL/ALEXP/Net-Domain-TLD-1.70.tar.gz
     provides:
@@ -7374,10 +7439,10 @@ DISTRIBUTIONS
       Time::Zone 2.24
     requirements:
       ExtUtils::MakeMaker 0
-  Tree-DAG_Node-1.17
-    pathname: R/RS/RSAVAGE/Tree-DAG_Node-1.17.tgz
+  Tree-DAG_Node-1.16
+    pathname: R/RS/RSAVAGE/Tree-DAG_Node-1.16.tgz
     provides:
-      Tree::DAG_Node 1.17
+      Tree::DAG_Node 1.16
     requirements:
       File::Slurp 9999.19
       File::Spec 3.4
