@@ -127,8 +127,8 @@
 
    <field name="field_type" type="string" indexed="true" stored="true" />
    
-   <field name="includes" type="text_en" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" />
-   <field name="sen_text_ws" type="text_ws" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" />
+   <field name="includes" type="text_en" indexed="true" stored="false" termVectors="true" termPositions="true" termOffsets="true" />
+   <field name="sen_text_ws" type="text_ws" indexed="true" stored="false" termVectors="true" termPositions="true" termOffsets="true" />
    <field name="sen_string" type="string" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" />
 
    <field name="includes_docvalues" type="string" indexed="true" stored="true" multiValued="true"  docValues="true" />
