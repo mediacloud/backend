@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4423;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4424;
     
 BEGIN
 
@@ -340,9 +340,14 @@ create index feeds_tags_map_tag on feeds_tags_map (tags_id);
 create table media_tags_map (
     media_tags_map_id    serial            primary key,
     media_id            int                not null references media on delete cascade,
-    tags_id                int                not null references tags on delete cascade
+    tags_id                int                not null references tags on delete cascade,
+    db_row_last_updated                timestamp with time zone not null
 );
 
+DROP TRIGGER IF EXISTS media_tags_map_last_updated_trigger on media_tags_map CASCADE;
+CREATE TRIGGER media_tags_last_updated_trigger BEFORE INSERT OR UPDATE ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+
+CREATE index media_tags_map_db_row_last_updated on media_tags_map ( db_row_last_updated );
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
@@ -812,9 +817,14 @@ create table stories_tags_map
 (
     stories_tags_map_id     serial  primary key,
     stories_id              int     not null references stories on delete cascade,
-    tags_id                 int     not null references tags on delete cascade
+    tags_id                 int     not null references tags on delete cascade,
+    db_row_last_updated                timestamp with time zone not null
 );
 
+DROP TRIGGER IF EXISTS stories_tags_map_last_updated_trigger on stories_tags_map CASCADE;
+CREATE TRIGGER stories_tags_map_last_updated_trigger BEFORE INSERT OR UPDATE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+
+CREATE index stories_tags_map_db_row_last_updated on stories_tags_map ( db_row_last_updated );
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);
 create index stories_tags_map_tag on stories_tags_map (tags_id);
 CREATE INDEX stories_tags_map_story_id ON stories_tags_map USING btree (stories_id);
