@@ -1,0 +1,42 @@
+[% title = 'CM: List activities: ' _ controversy.name %]
+[% controversy_link = '<a href="' _ c.uri_for( "/admin/cm/view/" _ controversy.controversies_id ) _ '">' _ controversy.name _ '</a>' %]
+[% breadcrumbs = "[ $controversy_link &gt; activities ]" %]
+[% INCLUDE include/header.tt2 %]
+
+<table>
+
+    <tr>
+        <th>activity</th>
+        <th>date</th>
+        <th>user</th>
+        <th>description</th>
+    </tr>
+
+    [% IF activities.size > 0 -%]
+
+        [% FOREACH activity IN activities -%]
+
+            <tr [% IF even %]class="even"[% END %]>
+
+                <td>[% activity.name %]</td>
+                <td>[% activity.timestamp %]</td>
+                <td>[% activity.users_email %]</td>
+                <td>[% activity.description_json %]</td>
+
+            </tr>
+
+            [%  SET even = !even %]
+            
+        [% END # FOREACH activities -%]
+
+        [% INCLUDE include/pager.tt2 %] 
+
+    [% ELSE # IF activities.size > 0 -%]
+
+        <tr><td colspan="99">(no activities found for controversy [% controversy.name | html %])</td></tr>
+
+    [% END # IF activities.size > 0 -%]
+
+</table>
+
+[% INCLUDE include/footer.tt2 %]

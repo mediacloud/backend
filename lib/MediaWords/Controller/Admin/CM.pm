@@ -12,6 +12,8 @@ use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
 
+use constant ROWS_PER_PAGE => 25;
+
 use base 'Catalyst::Controller::HTML::FormFu';
 
 sub index : Path : Args(0)
@@ -1451,6 +1453,52 @@ sub unredirect_medium : Local
     $c->stash->{ stories }     = $stories;
     $c->stash->{ medium }      = $medium;
     $c->stash->{ template }    = 'cm/unredirect_medium.tt2';
+}
+
+# List all activities
+sub activities : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $p = $c->request->param( 'p' ) || 1;
+
+    my $controversy = $c->dbis->query(
+        <<END,
+        SELECT *
+        FROM controversies
+        WHERE controversies_id = ?
+END
+        $controversies_id
+    )->hash;
+
+    my @controversy_activities =
+      MediaWords::DBI::Activities::activities_which_reference_column( 'controversies.controversies_id' );
+    my $sql_controversy_activities = "'" . join( "', '", @controversy_activities ) . "'";
+
+    my ( $activities, $pager ) = $c->dbis->query_paged_hashes(
+        <<EOF,
+        SELECT *
+        FROM activities
+        WHERE name IN ($sql_controversy_activities)
+          AND object_id = ?
+        ORDER BY timestamp DESC
+EOF
+        [ $controversies_id ], $p, ROWS_PER_PAGE
+    );
+
+    # Decode activity descriptions from JSON
+    for my $activity ( @{ $activities } )
+    {
+        $activity->{ description } =
+          MediaWords::DBI::Activities::decode_activity_description( $activity->{ name }, $activity->{ description_json } );
+    }
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ activities }  = $activities;
+    $c->stash->{ pager }       = $pager;
+    $c->stash->{ pager_url }   = $c->uri_for( '/admin/cm/activities/' . $controversies_id ) . '?';
+
+    $c->stash->{ template } = 'cm/activities.tt2';
 }
 
 1;
