@@ -9,8 +9,11 @@ use warnings;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
+use JSON;
+
 # Available activities
-our $ACTIVITIES = {
+# (FIXME make it possible to check the activity on the compile time)
+Readonly::Hash our %ACTIVITIES => {
 
     'cm_remove_story_from_controversy' => {
         description => 'Remove story from a controversy',
@@ -169,5 +172,111 @@ our $ACTIVITIES = {
     },
 
 };
+
+# Write many activity log entries
+sub log_activities($$$$$$)
+{
+    my ( $db, $activity_name, $users_email, $object_id, $reason, $description_hashes ) = @_;
+
+    foreach my $description_hash ( @{ $description_hashes } )
+    {
+        unless ( log_activity( $db, $activity_name, $users_email, $object_id, $reason, $description_hash ) )
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+# Write system activity log entry (doesn't have an user's email nor reason)
+sub log_system_activity($$$$)
+{
+    my ( $db, $activity_name, $object_id, $description_hash ) = @_;
+
+    my $username = getpwuid( $< ) || 'unknown';
+
+    return log_activity( $db, $activity_name, 'system:' . $username, $object_id, '', $description_hash );
+}
+
+# Write activity log entry
+sub log_activity($$$$$$)
+{
+    my ( $db, $activity_name, $users_email, $object_id, $reason, $description_hash ) = @_;
+
+    eval {
+
+        # Validate activity name
+        unless ( exists $ACTIVITIES{ $activity_name } )
+        {
+            die "Activity '$activity_name' is not configured.";
+        }
+
+        # Check if user making a change exists (unless it's a system user)
+        unless ( $users_email =~ /^system:.+?$/ )
+        {
+            my $user_exists = $db->query(
+                <<"EOF",
+                SELECT auth_users_id
+                FROM auth_users
+                WHERE email = ?
+                LIMIT 1
+EOF
+                $users_email
+            )->hash;
+            unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } )
+            {
+                die "User '$users_email' does not exist.";
+            }
+        }
+
+        # Validate activity's description
+        unless ( $description_hash )
+        {
+            $description_hash = {};
+        }
+        unless ( ref $description_hash eq 'HASH' )
+        {
+            die "Invalid activity description (" . ref( $description_hash ) . "): " . Dumper( $description_hash );
+        }
+        my @expected_parameters = sort( keys %{ $ACTIVITIES{ $activity_name }{ parameters } } );
+        my @actual_parameters   = sort( keys %{ $description_hash } );
+        unless ( @expected_parameters ~~ @actual_parameters )
+        {
+            die "Expected parameters: " .
+              join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .
+              join( ' ', @actual_parameters );
+        }
+
+        # Encode description into JSON
+        my $description_json = JSON->new->canonical( 1 )->utf8( 1 )->encode( $description_hash );
+        unless ( $description_json )
+        {
+            die "Unable to encode activity description to JSON: $!";
+        }
+
+        # Save
+        $db->query(
+            <<EOF,
+            INSERT INTO activities (name, users_email, object_id, reason, description_json)
+            VALUES (?, ?, ?, ?, ?)
+EOF
+            $activity_name, $users_email, $object_id, $reason, $description_json
+        );
+    };
+    if ( $@ )
+    {
+        # Writing the change failed
+        say STDERR "Writing activity failed: $@";
+        return 0;
+    }
+
+    return 1;
+}
+
+sub activities()
+{
+    return \%ACTIVITIES;
+}
 
 1;

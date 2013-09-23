@@ -24,6 +24,7 @@ use Getopt::Long;
 
 use MediaWords::CM::Mine;
 use MediaWords::DB;
+use MediaWords::DBI::Activities;
 
 sub main
 {
@@ -54,8 +55,8 @@ sub main
     };
 
     # Log activity that's about to start
-    my $username = getpwuid( $< ) || 'unknown';
-    unless ( $db->log_activity( 'cm_mine_controversy', 'system:' . $username, $controversies_id + 0, '', $options ) )
+    unless (
+        MediaWords::DBI::Activities::log_system_activity( $db, 'cm_mine_controversy', $controversies_id + 0, $options ) )
     {
         die "Unable to log the 'cm_mine_controversy' activity.";
     }

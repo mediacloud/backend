@@ -12,6 +12,7 @@ use URI::Escape;
 use URI::QueryParam;
 
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Activities;
 
 =head1 NAME
 
@@ -277,7 +278,11 @@ sub delete_tag : Local
                 old_value => $old_tags,
                 new_value => $new_tags,
             };
-            unless ( $c->dbis->log_activity( 'story_edit', $c->user->username, $stories_id, $reason, $change ) )
+            unless (
+                MediaWords::DBI::Activities::log_activity(
+                    $c->dbis, 'story_edit', $c->user->username, $stories_id, $reason, $change
+                )
+              )
             {
                 $c->dbis->dbh->rollback;
                 die "Unable to log addition of new tags.\n";
@@ -381,7 +386,11 @@ sub add_tag_do : Local
         new_value => $new_tags,
     };
 
-    unless ( $c->dbis->log_activity( 'story_edit', $c->user->username, $stories_id, $reason, $change ) )
+    unless (
+        MediaWords::DBI::Activities::log_activity(
+            $c->dbis, 'story_edit', $c->user->username, $stories_id, $reason, $change
+        )
+      )
     {
         $c->dbis->dbh->rollback;
         die "Unable to log addition of new tags.\n";

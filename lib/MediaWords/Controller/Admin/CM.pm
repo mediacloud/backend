@@ -10,6 +10,7 @@ use List::Compare;
 
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
+use MediaWords::DBI::Activities;
 
 use base 'Catalyst::Controller::HTML::FormFu';
 
@@ -1092,10 +1093,15 @@ sub _remove_story_from_controversy($$$$$$)
 
         # Log the activity
         my $change = {
-            'stories_id' => $stories_id,
-            'cdts_id'    => $cdts_id
+            'stories_id' => $stories_id + 0,
+            'cdts_id'    => $cdts_id + 0
         };
-        unless ( $db->log_activity( 'cm_remove_story_from_controversy', $users_email, $controversies_id, $reason, $change ) )
+        unless (
+            MediaWords::DBI::Activities::log_activity(
+                $db, 'cm_remove_story_from_controversy',
+                $users_email, $controversies_id, $reason, $change
+            )
+          )
         {
             die "Unable to log the story removal activity.";
         }
@@ -1219,12 +1225,16 @@ sub merge_media : Local : FormConfig
 
     # Log the activity
     my $change = {
-        'media_id'    => $media_id,
-        'to_media_id' => $to_media_id,
-        'cdts_id'     => $cdts_id
+        'media_id'    => $media_id + 0,
+        'to_media_id' => $to_media_id + 0,
+        'cdts_id'     => $cdts_id + 0
     };
     unless (
-        $db->log_activity( 'cm_media_merge', $c->user->username, $controversy->{ controversies_id }, $reason, $change ) )
+        MediaWords::DBI::Activities::log_activity(
+            $db, 'cm_media_merge', $c->user->username, $controversy->{ controversies_id } + 0,
+            $reason, $change
+        )
+      )
     {
         $db->rollback;
 
@@ -1321,12 +1331,16 @@ sub merge_stories : Local : FormConfig
 
     # Log the activity
     my $change = {
-        'stories_id'    => $stories_id,
-        'to_stories_id' => $to_stories_id,
-        'cdts_id'       => $cdts_id
+        'stories_id'    => $stories_id + 0,
+        'to_stories_id' => $to_stories_id + 0,
+        'cdts_id'       => $cdts_id + 0
     };
     unless (
-        $db->log_activity( 'cm_story_merge', $c->user->username, $controversy->{ controversies_id }, $reason, $change ) )
+        MediaWords::DBI::Activities::log_activity(
+            $db, 'cm_story_merge', $c->user->username, $controversy->{ controversies_id } + 0,
+            $reason, $change
+        )
+      )
     {
         $db->rollback;
 

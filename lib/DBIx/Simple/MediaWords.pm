@@ -13,6 +13,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 use MediaWords::DB;
+use MediaWords::DBI::Activities;
 
 use Data::Page;
 use JSON;
@@ -355,21 +356,6 @@ sub update_by_id_and_log($$$$$$$$)
     # to $reason variable
     delete( $new_hash->{ reason } );
 
-    # Check if user making a change exists
-    my $user_exists = $self->query(
-        <<"EOF",
-        SELECT auth_users_id
-        FROM auth_users
-        WHERE email = ?
-        LIMIT 1
-EOF
-        $username
-    )->hash;
-    unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } )
-    {
-        die "User '$username' does not exist.\n";
-    }
-
     # Find out which fields were changed
     my @changes;
     foreach my $field_name ( keys %{ $old_hash } )
@@ -423,69 +409,16 @@ EOF
     }
 
     # Update succeeded, write the activity log
-    unless ( $self->log_activities( $activity_name, $username, $id, $reason, \@changes ) )
+    unless ( MediaWords::DBI::Activities::log_activities( $self, $activity_name, $username, $id, $reason, \@changes ) )
     {
         $self->dbh->rollback;
-        die "Writing one of the changes failed: $@";
+        die "Logging one of the changes failed: $@";
     }
 
     # Things went fine at this point, commit
     $self->dbh->commit;
 
     return $r;
-}
-
-# Write many activity log entries
-sub log_activities($$$$$$)
-{
-    my ( $self, $activity_name, $users_email, $object_id, $reason, $description_hashes ) = @_;
-
-    foreach my $description_hash ( @{ $description_hashes } )
-    {
-        unless ( $self->log_activity( $activity_name, $users_email, $object_id, $reason, $description_hash ) )
-        {
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-# Write activity log entry
-sub log_activity($$$$$$)
-{
-    my ( $self, $activity_name, $users_email, $object_id, $reason, $description_hash ) = @_;
-
-    eval {
-
-        # Encode description into JSON
-        unless ( $description_hash )
-        {
-            $description_hash = {};
-        }
-        unless ( ref $description_hash eq 'HASH' )
-        {
-            die "Invalid activity description (" . ref( $description_hash ) . "): " . Dumper( $description_hash );
-        }
-        my $description_json = JSON->new->canonical( 1 )->utf8( 1 )->encode( $description_hash );
-
-        # Save
-        $self->query(
-            <<EOF,
-            INSERT INTO activities (name, users_email, object_id, reason, description_json)
-            VALUES (?, ?, ?, ?, ?)
-EOF
-            $activity_name, $users_email, $object_id, $reason, $description_json
-        );
-    };
-    if ( $@ )
-    {
-        # Writing the change failed
-        say STDERR "Writing activity failed: $@";
-        return 0;
-    }
-
-    return 1;
 }
 
 # delete the row in the table with the given id
