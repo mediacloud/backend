@@ -149,33 +149,41 @@ sub get_cached_link_download
         return ( ref( $response ) ? $response->decoded_content : $response );
     }
 
-    my $links = $_link_downloads_list;
-    my $urls  = [];
+    my $links      = $_link_downloads_list;
+    my $urls       = [];
+    my $url_lookup = {};
     for ( my $i = 0 ; $links->[ $link_num + $i ] && $i < LINK_CACHE_SIZE ; $i++ )
     {
         my $link = $links->[ $link_num + $i ];
-        push( @{ $urls }, URI->new( $link->{ _fetch_url } )->as_string );
+        my $u    = URI->new( $link->{ _fetch_url } )->as_string;
+
+        # handle duplicate urls within the same set of urls
+        push( @{ $urls }, $u ) unless ( $url_lookup->{ $u } );
+        push( @{ $url_lookup->{ $u } }, $link );
+
+        $link->{ _cached_link_downloads }++;
     }
 
     my $responses = ParallelGet( $urls );
 
-    my $url_lookup = {};
-    map { $url_lookup->{ URI->new( $_->{ _fetch_url } )->as_string } = $_ } @{ $_link_downloads_list };
-
     $_link_downloads_cache = {};
     for my $response ( @{ $responses } )
     {
-        my $original_url      = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
-        my $response_link_num = $url_lookup->{ $original_url }->{ _link_num };
-        if ( $response->is_success )
+        my $original_url = MediaWords::Util::Web->get_original_request( $response )->uri->as_string;
+        my $response_link_nums = [ map { $_->{ _link_num } } @{ $url_lookup->{ $original_url } } ];
+
+        for my $response_link_num ( @{ $response_link_nums } )
         {
-            $_link_downloads_cache->{ $response_link_num } = $response;
-        }
-        else
-        {
-            my $msg = "error retrieving content for $original_url: " . $response->status_line;
-            warn( $msg );
-            $_link_downloads_cache->{ $response_link_num } = $msg;
+            if ( $response->is_success )
+            {
+                $_link_downloads_cache->{ $response_link_num } = $response;
+            }
+            else
+            {
+                my $msg = "error retrieving content for $original_url: " . $response->status_line;
+                warn( $msg );
+                $_link_downloads_cache->{ $response_link_num } = $msg;
+            }
         }
     }
 
