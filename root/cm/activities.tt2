@@ -20,7 +20,7 @@
 
                 <td>[% activity.name %]</td>
                 <td>[% activity.timestamp %]</td>
-                <td>[% activity.users_email %]</td>
+                <td>[% activity.user %]</td>
                 <td>[% activity.description_json %]</td>
 
             </tr>

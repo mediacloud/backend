@@ -176,11 +176,11 @@ Readonly::Hash my %ACTIVITIES => {
 # Write many activity log entries
 sub log_activities($$$$$$)
 {
-    my ( $db, $activity_name, $users_email, $object_id, $reason, $description_hashes ) = @_;
+    my ( $db, $activity_name, $user, $object_id, $reason, $description_hashes ) = @_;
 
     foreach my $description_hash ( @{ $description_hashes } )
     {
-        unless ( log_activity( $db, $activity_name, $users_email, $object_id, $reason, $description_hash ) )
+        unless ( log_activity( $db, $activity_name, $user, $object_id, $reason, $description_hash ) )
         {
             return 0;
         }
@@ -202,7 +202,7 @@ sub log_system_activity($$$$)
 # Write activity log entry
 sub log_activity($$$$$$)
 {
-    my ( $db, $activity_name, $users_email, $object_id, $reason, $description_hash ) = @_;
+    my ( $db, $activity_name, $user, $object_id, $reason, $description_hash ) = @_;
 
     eval {
 
@@ -213,7 +213,7 @@ sub log_activity($$$$$$)
         }
 
         # Check if user making a change exists (unless it's a system user)
-        unless ( $users_email =~ /^system:.+?$/ )
+        unless ( $user =~ /^system:.+?$/ )
         {
             my $user_exists = $db->query(
                 <<"EOF",
@@ -222,11 +222,11 @@ sub log_activity($$$$$$)
                 WHERE email = ?
                 LIMIT 1
 EOF
-                $users_email
+                $user
             )->hash;
             unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } )
             {
-                die "User '$users_email' does not exist.";
+                die "User '$user' does not exist.";
             }
         }
 
@@ -240,10 +240,10 @@ EOF
         # Save
         $db->query(
             <<EOF,
-            INSERT INTO activities (name, users_email, object_id, reason, description_json)
+            INSERT INTO activities (name, user, object_id, reason, description_json)
             VALUES (?, ?, ?, ?, ?)
 EOF
-            $activity_name, $users_email, $object_id, $reason, $description_json
+            $activity_name, $user, $object_id, $reason, $description_json
         );
     };
     if ( $@ )

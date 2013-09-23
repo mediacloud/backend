@@ -1102,7 +1102,7 @@ END
 # remove the given story from the given controversy; die()s on error
 sub _remove_story_from_controversy($$$$$$)
 {
-    my ( $db, $stories_id, $controversies_id, $users_email, $reason, $cdts_id ) = @_;
+    my ( $db, $stories_id, $controversies_id, $user, $reason, $cdts_id ) = @_;
 
     $reason ||= '';
 
@@ -1119,7 +1119,7 @@ sub _remove_story_from_controversy($$$$$$)
         unless (
             MediaWords::DBI::Activities::log_activity(
                 $db, 'cm_remove_story_from_controversy',
-                $users_email, $controversies_id, $reason, $change
+                $user, $controversies_id, $reason, $change
             )
           )
         {
