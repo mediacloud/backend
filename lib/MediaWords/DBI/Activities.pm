@@ -13,7 +13,7 @@ use JSON;
 
 # Available activities
 # (FIXME make it possible to check the activity on the compile time)
-Readonly::Hash our %ACTIVITIES => {
+Readonly::Hash my %ACTIVITIES => {
 
     'cm_remove_story_from_controversy' => {
         description => 'Remove story from a controversy',
@@ -230,26 +230,8 @@ EOF
             }
         }
 
-        # Validate activity's description
-        unless ( $description_hash )
-        {
-            $description_hash = {};
-        }
-        unless ( ref $description_hash eq 'HASH' )
-        {
-            die "Invalid activity description (" . ref( $description_hash ) . "): " . Dumper( $description_hash );
-        }
-        my @expected_parameters = sort( keys %{ $ACTIVITIES{ $activity_name }{ parameters } } );
-        my @actual_parameters   = sort( keys %{ $description_hash } );
-        unless ( @expected_parameters ~~ @actual_parameters )
-        {
-            die "Expected parameters: " .
-              join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .
-              join( ' ', @actual_parameters );
-        }
-
         # Encode description into JSON
-        my $description_json = JSON->new->canonical( 1 )->utf8( 1 )->encode( $description_hash );
+        my $description_json = encode_activity_description( $activity_name, $description_hash );
         unless ( $description_json )
         {
             die "Unable to encode activity description to JSON: $!";
@@ -274,9 +256,85 @@ EOF
     return 1;
 }
 
-sub activities()
+# Encode activity description's hash (to JSON)
+sub encode_activity_description($$)
 {
-    return \%ACTIVITIES;
+    my ( $activity_name, $description_hash ) = @_;
+
+    unless ( $description_hash )
+    {
+        $description_hash = {};
+    }
+    unless ( ref $description_hash eq 'HASH' )
+    {
+        die "Invalid activity description (" . ref( $description_hash ) . "): " . Dumper( $description_hash );
+    }
+    my $activity            = $ACTIVITIES{ $activity_name };
+    my @expected_parameters = sort( keys %{ $activity->{ parameters } } );
+    my @actual_parameters   = sort( keys %{ $description_hash } );
+    unless ( @expected_parameters ~~ @actual_parameters )
+    {
+        die "Expected parameters: " .
+          join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .
+          join( ' ', @actual_parameters );
+    }
+
+    my $description_json = JSON->new->canonical( 1 )->utf8( 1 )->encode( $description_hash );
+    unless ( $description_json )
+    {
+        die "Unable to encode activity description to JSON: $!";
+    }
+
+    return $description_json;
+}
+
+# Decode activity description's hash (from JSON)
+sub decode_activity_description($$)
+{
+    my ( $activity_name, $description_json ) = @_;
+
+    my $description_hash = JSON->new->canonical( 1 )->utf8( 1 )->decode( $description_json );
+    unless ( $description_hash )
+    {
+        die "Unable to decode activity description from JSON: $!";
+    }
+
+    return $description_hash;
+}
+
+# Return a list of all activities
+sub all_activities()
+{
+    return keys( %ACTIVITIES );
+}
+
+# Return an activity for key
+sub activity($)
+{
+    my $activity_name = shift;
+    return $ACTIVITIES{ $activity_name };
+}
+
+# Return a list of activities of which the object ID references a specific
+# table (e.g. 'controversies.controversies_id')
+sub activities_which_reference_column($)
+{
+    my $column_name = shift;
+
+    my @activities;
+    foreach my $activity_name ( %ACTIVITIES )
+    {
+        my $activity = $ACTIVITIES{ $activity_name };
+        if ( defined $activity->{ object_id }->{ references } )
+        {
+            if ( $activity->{ object_id }->{ references } eq $column_name )
+            {
+                push( @activities, $activity_name );
+            }
+        }
+    }
+
+    return @activities;
 }
 
 1;

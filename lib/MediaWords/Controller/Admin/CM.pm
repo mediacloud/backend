@@ -125,10 +125,28 @@ END
 
     my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
 
+    # Latest activities
+    my Readonly $LATEST_ACTIVITIES_COUNT = 20;
+    my @controversy_activities =
+      MediaWords::DBI::Activities::activities_which_reference_column( 'controversies.controversies_id' );
+    my $sql_controversy_activities = "'" . join( "', '", @controversy_activities ) . "'";
+    my $latest_activities = $db->query(
+        <<"EOF",
+        SELECT *
+        FROM activities
+        WHERE object_id = ?
+          AND name IN ($sql_controversy_activities)
+        ORDER BY timestamp DESC
+        LIMIT ?
+EOF
+        $controversies_id, $LATEST_ACTIVITIES_COUNT
+    )->hashes;
+
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
     $c->stash->{ controversy_dumps } = $controversy_dumps;
     $c->stash->{ latest_full_dump }  = $latest_full_dump;
+    $c->stash->{ latest_activities } = $latest_activities;
     $c->stash->{ template }          = 'cm/view.tt2';
 }
 
