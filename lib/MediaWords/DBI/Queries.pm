@@ -523,7 +523,7 @@ sub get_time_range
 # $i is the number of days to increment each date by (7 for weekly dates) and
 # $date_field is the sql field to use for the in clause (eg. 'publish_week')
 
-sub get_date_clause
+sub _get_date_clause
 {
     my ( $start_date, $end_date, $i, $date_field ) = @_;
 
@@ -543,7 +543,7 @@ sub get_weekly_date_clause
 {
     my ( $query, $prefix ) = @_;
 
-    return get_date_clause( $query->{ start_date }, $query->{ end_date }, 7, "${ prefix }.publish_week" );
+    return _get_date_clause( $query->{ start_date }, $query->{ end_date }, 7, "${ prefix }.publish_week" );
 }
 
 # get clause restricting dates all daily dates within the query's dates.
@@ -567,7 +567,7 @@ sub get_daily_date_clause
         $date_field = 'publish_day';
     }
 
-    return get_date_clause( $query->{ start_date }, $end_date, 1, $date_field );
+    return _get_date_clause( $query->{ start_date }, $end_date, 1, $date_field );
 }
 
 # Gets the top 500 weekly words matching the given query.
@@ -591,7 +591,7 @@ sub _get_top_500_weekly_words_impl
     my $date_clause             = get_weekly_date_clause( $query, 'w' );
     my $tw_date_clause          = get_weekly_date_clause( $query, 'tw' );
 
-    my $ret = MediaWords::Solr::WordCounts::word_count( '*:*', $query->{ start_date }, 500 );
+    my $ret = MediaWords::Solr::WordCounts::word_count( $query, $query->{ start_date }, 500 );
 
     say STDERR Dumper( $ret );
 
@@ -1817,7 +1817,7 @@ sub search_stories
     die( "story search on topic queries not supported" ) if ( @{ $query->{ dashboard_topics_ids } } );
 
     my $date_clause =
-      get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
+      _get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
 
     my $sql = <<END;
 SELECT q.stories_id,
