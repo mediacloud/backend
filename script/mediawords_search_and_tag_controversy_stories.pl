@@ -18,6 +18,7 @@ BEGIN
 
 use MediaWords::DB;
 use MediaWords::Util::Tags;
+use MediaWords::DBI::Activities;
 
 sub get_patterns_from_input
 {
@@ -85,8 +86,6 @@ END
         print "$patterns->[ $i ]->{ tag }->{ tag }: " . scalar( grep { $_->{ "match_$i" } } @{ $story_matches } ) . "\n";
     }
 
-    my $username = getpwuid( $< ) || 'unknown';
-
     print STDERR "writing tags ...\n";
     $db->{ dbh }->{ AutoCommit } = 0;
     my $c = 0;
@@ -123,11 +122,8 @@ END
                 'tag'         => $pattern->{ tag }->{ tag }
             };
             unless (
-                $db->log_activity(
-                    'cm_search_tag_change',
-                    'system:' . $username,
-                    $controversy->{ controversies_id },
-                    '', $options
+                MediaWords::DBI::Activities::log_system_activity(
+                    $db, 'cm_search_tag_change', $controversy->{ controversies_id } + 0, $options
                 )
               )
             {
@@ -160,11 +156,10 @@ sub main
       || die( "Unable to find controversy '$controversy_name'" );
 
     # Log activity that's about to start
-    my $username = getpwuid( $< ) || 'unknown';
     my $options = { 'controversy_name' => $controversy_name };
     unless (
-        $db->log_activity(
-            'cm_search_tag_run', 'system:' . $username, $controversy->{ controversies_id } + 0, '', $options
+        MediaWords::DBI::Activities::log_system_activity(
+            $db, 'cm_search_tag_run', $controversy->{ controversies_id } + 0, $options
         )
       )
     {

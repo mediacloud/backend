@@ -15,6 +15,7 @@ use Getopt::Long;
 use MediaWords::CM::Dump;
 use MediaWords::DB;
 use MediaWords::DBI::Controversies;
+use MediaWords::DBI::Activities;
 
 sub main
 {
@@ -38,14 +39,10 @@ sub main
         $db = MediaWords::DB::connect_to_db;
 
         # Log activity that's about to start
-        my $username = getpwuid( $< ) || 'unknown';
         my $changes = { 'controversy_opt' => $controversy_opt };
         unless (
-            $db->log_activity(
-                'cm_dump_controversy',
-                'system:' . $username,
-                $controversy->{ controversies_id } + 0,
-                '', $changes
+            MediaWords::DBI::Activities::log_system_activity(
+                $db, 'cm_dump_controversy', $controversy->{ controversies_id } + 0, $changes
             )
           )
         {

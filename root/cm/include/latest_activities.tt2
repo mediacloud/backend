@@ -1,0 +1,25 @@
+<div class="boxtitle">Latest [% activities.size %] activities</div>
+<table>
+
+    <tr>
+        <th>Activity</th>
+        <th>Date</th>
+    </tr>
+
+    [% FOREACH activity IN activities -%]
+
+        <tr [% IF even %]class="even"[% END %]>
+
+            <td style="word-wrap: break-word; overflow-wrap: break-word">[% activity.name | html %]</td>
+
+            <td>[% datetime.format( activity.timestamp ) %]</td>
+        </tr>
+
+    [% SET even = !even %]
+    [% END # FOREACH activities -%]
+
+</table>
+
+<p>
+    <a href="[%  c.uri_for('/admin/cm/activities/'  _ controversy.controversies_id ) %]">see all activities</a>
+</p>

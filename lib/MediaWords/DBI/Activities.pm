@@ -9,8 +9,11 @@ use warnings;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
+use JSON;
+
 # Available activities
-our $ACTIVITIES = {
+# (FIXME make it possible to check the activity on the compile time)
+Readonly::Hash my %ACTIVITIES => {
 
     'cm_remove_story_from_controversy' => {
         description => 'Remove story from a controversy',
@@ -169,5 +172,169 @@ our $ACTIVITIES = {
     },
 
 };
+
+# Write many activity log entries
+sub log_activities($$$$$$)
+{
+    my ( $db, $activity_name, $user, $object_id, $reason, $description_hashes ) = @_;
+
+    foreach my $description_hash ( @{ $description_hashes } )
+    {
+        unless ( log_activity( $db, $activity_name, $user, $object_id, $reason, $description_hash ) )
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+# Write system activity log entry (doesn't have an user's email nor reason)
+sub log_system_activity($$$$)
+{
+    my ( $db, $activity_name, $object_id, $description_hash ) = @_;
+
+    my $username = getpwuid( $< ) || 'unknown';
+
+    return log_activity( $db, $activity_name, 'system:' . $username, $object_id, '', $description_hash );
+}
+
+# Write activity log entry
+sub log_activity($$$$$$)
+{
+    my ( $db, $activity_name, $user, $object_id, $reason, $description_hash ) = @_;
+
+    eval {
+
+        # Validate activity name
+        unless ( exists $ACTIVITIES{ $activity_name } )
+        {
+            die "Activity '$activity_name' is not configured.";
+        }
+
+        # Check if user making a change exists (unless it's a system user)
+        unless ( $user =~ /^system:.+?$/ )
+        {
+            my $user_exists = $db->query(
+                <<"EOF",
+                SELECT auth_users_id
+                FROM auth_users
+                WHERE email = ?
+                LIMIT 1
+EOF
+                $user
+            )->hash;
+            unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } )
+            {
+                die "User '$user' does not exist.";
+            }
+        }
+
+        # Encode description into JSON
+        my $description_json = encode_activity_description( $activity_name, $description_hash );
+        unless ( $description_json )
+        {
+            die "Unable to encode activity description to JSON: $!";
+        }
+
+        # Save
+        $db->query(
+            <<EOF,
+            INSERT INTO activities (name, user, object_id, reason, description_json)
+            VALUES (?, ?, ?, ?, ?)
+EOF
+            $activity_name, $user, $object_id, $reason, $description_json
+        );
+    };
+    if ( $@ )
+    {
+        # Writing the change failed
+        say STDERR "Writing activity failed: $@";
+        return 0;
+    }
+
+    return 1;
+}
+
+# Encode activity description's hash (to JSON)
+sub encode_activity_description($$)
+{
+    my ( $activity_name, $description_hash ) = @_;
+
+    unless ( $description_hash )
+    {
+        $description_hash = {};
+    }
+    unless ( ref $description_hash eq 'HASH' )
+    {
+        die "Invalid activity description (" . ref( $description_hash ) . "): " . Dumper( $description_hash );
+    }
+    my $activity            = $ACTIVITIES{ $activity_name };
+    my @expected_parameters = sort( keys %{ $activity->{ parameters } } );
+    my @actual_parameters   = sort( keys %{ $description_hash } );
+    unless ( @expected_parameters ~~ @actual_parameters )
+    {
+        die "Expected parameters: " .
+          join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .
+          join( ' ', @actual_parameters );
+    }
+
+    my $description_json = JSON->new->canonical( 1 )->utf8( 1 )->encode( $description_hash );
+    unless ( $description_json )
+    {
+        die "Unable to encode activity description to JSON: $!";
+    }
+
+    return $description_json;
+}
+
+# Decode activity description's hash (from JSON)
+sub decode_activity_description($$)
+{
+    my ( $activity_name, $description_json ) = @_;
+
+    my $description_hash = JSON->new->canonical( 1 )->utf8( 1 )->decode( $description_json );
+    unless ( $description_hash )
+    {
+        die "Unable to decode activity description from JSON: $!";
+    }
+
+    return $description_hash;
+}
+
+# Return a list of all activities
+sub all_activities()
+{
+    return keys( %ACTIVITIES );
+}
+
+# Return an activity for key
+sub activity($)
+{
+    my $activity_name = shift;
+    return $ACTIVITIES{ $activity_name };
+}
+
+# Return a list of activities of which the object ID references a specific
+# table (e.g. 'controversies.controversies_id')
+sub activities_which_reference_column($)
+{
+    my $column_name = shift;
+
+    my @activities;
+    foreach my $activity_name ( %ACTIVITIES )
+    {
+        my $activity = $ACTIVITIES{ $activity_name };
+        if ( defined $activity->{ object_id }->{ references } )
+        {
+            if ( $activity->{ object_id }->{ references } eq $column_name )
+            {
+                push( @activities, $activity_name );
+            }
+        }
+    }
+
+    return @activities;
+}
 
 1;

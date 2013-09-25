@@ -10,6 +10,9 @@ use List::Compare;
 
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
+use MediaWords::DBI::Activities;
+
+use constant ROWS_PER_PAGE => 25;
 
 use base 'Catalyst::Controller::HTML::FormFu';
 
@@ -124,10 +127,28 @@ END
 
     my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
 
+    # Latest activities
+    my Readonly $LATEST_ACTIVITIES_COUNT = 20;
+    my @controversy_activities =
+      MediaWords::DBI::Activities::activities_which_reference_column( 'controversies.controversies_id' );
+    my $sql_controversy_activities = "'" . join( "', '", @controversy_activities ) . "'";
+    my $latest_activities = $db->query(
+        <<"EOF",
+        SELECT *
+        FROM activities
+        WHERE object_id = ?
+          AND name IN ($sql_controversy_activities)
+        ORDER BY timestamp DESC
+        LIMIT ?
+EOF
+        $controversies_id, $LATEST_ACTIVITIES_COUNT
+    )->hashes;
+
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
     $c->stash->{ controversy_dumps } = $controversy_dumps;
     $c->stash->{ latest_full_dump }  = $latest_full_dump;
+    $c->stash->{ latest_activities } = $latest_activities;
     $c->stash->{ template }          = 'cm/view.tt2';
 }
 
@@ -1081,7 +1102,7 @@ END
 # remove the given story from the given controversy; die()s on error
 sub _remove_story_from_controversy($$$$$$)
 {
-    my ( $db, $stories_id, $controversies_id, $users_email, $reason, $cdts_id ) = @_;
+    my ( $db, $stories_id, $controversies_id, $user, $reason, $cdts_id ) = @_;
 
     $reason ||= '';
 
@@ -1092,10 +1113,15 @@ sub _remove_story_from_controversy($$$$$$)
 
         # Log the activity
         my $change = {
-            'stories_id' => $stories_id,
-            'cdts_id'    => $cdts_id
+            'stories_id' => $stories_id + 0,
+            'cdts_id'    => $cdts_id + 0
         };
-        unless ( $db->log_activity( 'cm_remove_story_from_controversy', $users_email, $controversies_id, $reason, $change ) )
+        unless (
+            MediaWords::DBI::Activities::log_activity(
+                $db, 'cm_remove_story_from_controversy',
+                $user, $controversies_id, $reason, $change
+            )
+          )
         {
             die "Unable to log the story removal activity.";
         }
@@ -1219,12 +1245,16 @@ sub merge_media : Local : FormConfig
 
     # Log the activity
     my $change = {
-        'media_id'    => $media_id,
-        'to_media_id' => $to_media_id,
-        'cdts_id'     => $cdts_id
+        'media_id'    => $media_id + 0,
+        'to_media_id' => $to_media_id + 0,
+        'cdts_id'     => $cdts_id + 0
     };
     unless (
-        $db->log_activity( 'cm_media_merge', $c->user->username, $controversy->{ controversies_id }, $reason, $change ) )
+        MediaWords::DBI::Activities::log_activity(
+            $db, 'cm_media_merge', $c->user->username, $controversy->{ controversies_id } + 0,
+            $reason, $change
+        )
+      )
     {
         $db->rollback;
 
@@ -1321,12 +1351,16 @@ sub merge_stories : Local : FormConfig
 
     # Log the activity
     my $change = {
-        'stories_id'    => $stories_id,
-        'to_stories_id' => $to_stories_id,
-        'cdts_id'       => $cdts_id
+        'stories_id'    => $stories_id + 0,
+        'to_stories_id' => $to_stories_id + 0,
+        'cdts_id'       => $cdts_id + 0
     };
     unless (
-        $db->log_activity( 'cm_story_merge', $c->user->username, $controversy->{ controversies_id }, $reason, $change ) )
+        MediaWords::DBI::Activities::log_activity(
+            $db, 'cm_story_merge', $c->user->username, $controversy->{ controversies_id } + 0,
+            $reason, $change
+        )
+      )
     {
         $db->rollback;
 
@@ -1419,6 +1453,52 @@ sub unredirect_medium : Local
     $c->stash->{ stories }     = $stories;
     $c->stash->{ medium }      = $medium;
     $c->stash->{ template }    = 'cm/unredirect_medium.tt2';
+}
+
+# List all activities
+sub activities : Local
+{
+    my ( $self, $c, $controversies_id ) = @_;
+
+    my $p = $c->request->param( 'p' ) || 1;
+
+    my $controversy = $c->dbis->query(
+        <<END,
+        SELECT *
+        FROM controversies
+        WHERE controversies_id = ?
+END
+        $controversies_id
+    )->hash;
+
+    my @controversy_activities =
+      MediaWords::DBI::Activities::activities_which_reference_column( 'controversies.controversies_id' );
+    my $sql_controversy_activities = "'" . join( "', '", @controversy_activities ) . "'";
+
+    my ( $activities, $pager ) = $c->dbis->query_paged_hashes(
+        <<EOF,
+        SELECT *
+        FROM activities
+        WHERE name IN ($sql_controversy_activities)
+          AND object_id = ?
+        ORDER BY timestamp DESC
+EOF
+        [ $controversies_id ], $p, ROWS_PER_PAGE
+    );
+
+    # Decode activity descriptions from JSON
+    for my $activity ( @{ $activities } )
+    {
+        $activity->{ description } =
+          MediaWords::DBI::Activities::decode_activity_description( $activity->{ name }, $activity->{ description_json } );
+    }
+
+    $c->stash->{ controversy } = $controversy;
+    $c->stash->{ activities }  = $activities;
+    $c->stash->{ pager }       = $pager;
+    $c->stash->{ pager_url }   = $c->uri_for( '/admin/cm/activities/' . $controversies_id ) . '?';
+
+    $c->stash->{ template } = 'cm/activities.tt2';
 }
 
 1;

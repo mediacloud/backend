@@ -33,7 +33,7 @@ CREATE TABLE activities (
     --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
     --     * username that initiated the action (e.g. "system:lvaliukas")
     -- (store user's email instead of ID in case the user gets deleted)
-    users_email         VARCHAR(255)    NOT NULL,
+    user                VARCHAR(255)    NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
     -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
@@ -52,7 +52,7 @@ CREATE TABLE activities (
 
 CREATE INDEX activities_name ON activities (name);
 CREATE INDEX activities_timestamp ON activities (timestamp);
-CREATE INDEX activities_users_email ON activities (users_email);
+CREATE INDEX activities_user ON activities (user);
 CREATE INDEX activities_object_id ON activities (object_id);
 
 
@@ -61,7 +61,7 @@ INSERT INTO activities
     (
         name,
         timestamp,
-        users_email,
+        user,
         object_id,
         reason,
         description_json
@@ -84,7 +84,7 @@ INSERT INTO activities
     (
         name,
         timestamp,
-        users_email,
+        user,
         object_id,
         reason,
         description_json
