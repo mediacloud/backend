@@ -1,8 +1,7 @@
 use strict;
+use warnings;
 
 # test HTTP::HashServer
-
-use English '-no_match_vars';
 
 use Test::More tests => 9;
 
@@ -14,7 +13,7 @@ BEGIN
 
 my $_port = 8899;
 
-# verify that a request for the given page on the test server returnes the
+# verify that a request for the given page on the test server returns the
 # given content
 sub test_page
 {
@@ -29,18 +28,20 @@ sub test_page
 
 sub main
 {
+    my $pages = {
+        '/'          => 'home',
+        '/foo'       => 'foo',
+        '/bar'       => 'bar',
+        '/foo-bar'   => { redirect => '/bar' },
+        '/localhost' => { redirect => "http://localhost:$_port/" },
+        '/127-foo'   => { redirect => "http://127.0.0.1:$_port/foo" }
+    };
+
     my $hs = HTTP::HashServer->new( $_port, $pages );
 
     ok( $hs, 'hashserver object returned' );
 
     $hs->start();
-
-    while ( my ( $path, $page ) = each( %{ $pages } ) )
-    {
-        my $expected_content = "page-$page->{ page_num } content";
-        test_page( "http://localhost:$_port/$path", $expected_content );
-        test_page( "http://127.0.0.1:$_port/$path", $expected_content );
-    }
 
     test_page( "http://localhost:$_port/",          'home' );
     test_page( "http://localhost:$_port/foo",       'foo' );
