@@ -514,7 +514,7 @@ sub get_time_range
     return $ret;
 }
 
-# use get_weekly_date_clause or get_daily_date_clause instead
+# use _get_weekly_date_clause or get_daily_date_clause instead
 # of using this directly (get_daily_date_clause adds 6 days to
 # the end date of the query).
 # get clause restricting dates all dates within the query's dates.
@@ -539,7 +539,7 @@ sub _get_date_clause
 # get clause restricting dates all weekly dates within the query's dates.
 # uses an in list of dates to work around slow postgres handling of
 # date ranges.
-sub get_weekly_date_clause
+sub _get_weekly_date_clause
 {
     my ( $query, $prefix ) = @_;
 
@@ -588,8 +588,8 @@ sub _get_top_500_weekly_words_impl
 
     my $media_sets_ids_list     = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
-    my $date_clause             = get_weekly_date_clause( $query, 'w' );
-    my $tw_date_clause          = get_weekly_date_clause( $query, 'tw' );
+    my $date_clause             = _get_weekly_date_clause( $query, 'w' );
+    my $tw_date_clause          = _get_weekly_date_clause( $query, 'tw' );
 
     my $ret = MediaWords::Solr::WordCounts::word_count( $query, $query->{ start_date }, 500 );
 
@@ -1307,7 +1307,7 @@ sub get_max_term_ratios($$;$)
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause =
       $ignore_topics ? "w.dashboard_topics_id IS NULL" : get_dashboard_topics_clause( $query, 'w' );
-    my $date_clause = get_weekly_date_clause( $query, 'w' );
+    my $date_clause = _get_weekly_date_clause( $query, 'w' );
 
     my $max_term_count = $db->query(
         <<"EOF"
