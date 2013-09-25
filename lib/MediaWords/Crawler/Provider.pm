@@ -143,8 +143,7 @@ sub _add_stale_feeds
     my $last_new_story_time_clause =
 " ( now() > last_attempted_download_time + ( last_attempted_download_time - last_new_story_time ) + interval '5 minutes' ) ";
 
-    my $constraint =
-      "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
+    my $constraint = "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
       STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
     my $feeds = $dbs->query( <<END )->hashes;
@@ -273,7 +272,6 @@ sub _add_missing_downloads($$)
           -- the download was successful the first time it was fetched
           -- (do not attempt to redownload errorneous downloads)
           AND d.state = 'success'
-        ORDER BY downloads_id ASC
         LIMIT ?
 END
         $missing_downloads_chunk_count

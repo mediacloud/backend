@@ -9,8 +9,6 @@ require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(xml_tree_from_hash);
 
-# various functions for editing feed and medium tags
-
 use strict;
 use XML::LibXML;
 

@@ -2,6 +2,8 @@ package MediaWords::DBI::Controversies;
 
 # various functions dealing with the controversies table
 
+use Getopt::Long;
+
 use strict;
 
 # get a list controversies that match the controversy option, which can either be an id
@@ -9,6 +11,13 @@ use strict;
 sub require_controversies_by_opt
 {
     my ( $db, $controversy_opt ) = @_;
+
+    if ( !defined( $controversy_opt ) )
+    {
+        Getopt::Long::GetOptions( "controversy=s" => \$controversy_opt ) || return;
+    }
+
+    die( "Usage: $0 --controversy < id or pattern >" ) unless ( $controversy_opt );
 
     my $controversies;
     if ( $controversy_opt =~ /^\d+$/ )

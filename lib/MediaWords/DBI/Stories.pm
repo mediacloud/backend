@@ -446,7 +446,8 @@ sub fetch_content
 EOF
         $story->{ stories_id }
     )->hash;
-    return MediaWords::DBI::Downloads::fetch_content( $download );
+
+    return $download ? MediaWords::DBI::Downloads::fetch_content( $download ) : \'';
 }
 
 # get the tags for the given module associated with the given story from the db

@@ -1,0 +1,45 @@
+[% PROCESS cm/header.tt2 %]
+
+<div id="boxtitle">
+
+[% title %]
+
+[% IF cdts_date_range %]
+    in [% cdts_date_range %] Time Slice
+[% END %]
+
+[% IF c.req.params.raw_word_count %]
+    <a id="boxcommand" href="[% remove_stories_url | html %]">remove all</a>        
+</div>
+
+<table>
+    <tr>
+        <th>Word</th>
+        <th>TFIDF</th>
+        <th>Query Stem Count</th>
+        <th>Corpus Stem Count</th>
+        <th>Stem</th>
+    </tr>
+
+[% IF words.size() < 1 %]
+    <tr><td colspan="7">(no words)</td></tr>
+[% END %]
+
+[% FOREACH w IN words -%]
+
+    <tr [% IF even %]id="even"[% END %]>
+
+        <td>[% w.term | html %]</td>
+        <td>[% w.tfidf | html %]</td>
+        <td>[% w.query_stem_count | html %]</td>
+        <td>[% w.corpus_stem_count | html %]</td>
+        <td>[% w.stem | html %]</td>
+
+    </tr>
+
+    [% SET even = !even %]
+    [% END # FOREACH s -%]
+
+</table>
+
+[% INCLUDE include/footer.tt2 %]

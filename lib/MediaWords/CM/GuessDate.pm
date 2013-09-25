@@ -20,7 +20,7 @@ use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
 use MediaWords::DB;
 
-# threshold of number of days a guess date can be off from the existing
+# threshold of number of days a guess date can be before the source link
 # story date without dropping the guess
 use constant DATE_GUESS_THRESHOLD => 60;
 
@@ -914,7 +914,7 @@ sub guess_date_impl
         {
             if (   $story_timestamp
                 && $use_threshold
-                && ( abs( $timestamp - $story_timestamp ) > ( DATE_GUESS_THRESHOLD * 86400 ) ) )
+                && ( ( $timestamp - $story_timestamp ) > ( DATE_GUESS_THRESHOLD * 86400 ) ) )
             {
 
                 # print STDERR "MISSED THRESHOLD: " . DateTime->from_epoch( epoch => $timestamp )->datetime . "\n";

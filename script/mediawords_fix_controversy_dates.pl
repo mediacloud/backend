@@ -12,113 +12,86 @@ BEGIN
 
 use Data::Dumper;
 use DateTime;
-use MediaWords::CM::GuessDate;
-use MediaWords::CM::GuessDate::Result;
-use MediaWords::DBI::Stories;
 use LWP::UserAgent;
 
+use MediaWords::CM::GuessDate;
+use MediaWords::CM::Mine;
 use MediaWords::DB;
+use MediaWords::DBI::Controversies;
+use MediaWords::DBI::Stories;
 
-# get the html for the story.  while downloads are not available, redownload the story.
-sub get_story_html
-{
-    my ( $db, $story ) = @_;
-
-    my $url = $story->{ redirect_url } || $story->{ url };
-
-    my $ua = LWP::UserAgent->new;
-
-    my $response = $ua->get( $url );
-
-    if ( $response->is_success )
-    {
-        return $response->decoded_content;
-    }
-    else
-    {
-        return undef;
-    }
-}
-
-# guess the date for the story and update it in the db
+# guess the date for the story and update it in the db, using
 sub fix_date
 {
     my ( $db, $story, $controversy ) = @_;
 
-    my $html_ref = MediaWords::DBI::Stories::get_initial_download_content( $db, $story );
+    print STDERR "$story->{ url }\n";
 
-    my $linking_story = $db->query( <<'END', $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
-select s.*
-    from stories s
-        join controversy_links cl on ( cl.controversies_id = $2 and s.stories_id = cl.stories_id )
-    where 
-        cl.ref_stories_id = $1
-    order by cl.controversy_links_id
+    my $story_content = ${ MediaWords::DBI::Stories::fetch_content( $db, $story ) };
+
+    my $source_link = $db->query( <<'END', $story->{ stories_id }, $controversy->{ controversies_id } )->hash;
+select * from controversy_links where ref_stories_id = ? and controversies_id = ? order by controversy_links_id limit 1
 END
 
-    my $use_threshold = 0;
-    if ( $linking_story )
-    {
-        $story->{ publish_date } = $linking_story->{ publish_date };
-        $use_threshold = 1;
-    }
+    my ( $method, $date ) = MediaWords::CM::Mine::get_new_story_date( $db, $story, $story_content, undef, $source_link );
 
-    my $date = MediaWords::CM::GuessDate::guess_date( $db, $story, ${ $html_ref }, $use_threshold );
+    $date =~ s/(\d)T(\d)/$1 $2/;
 
-    if ( $date->{ result } eq MediaWords::CM::GuessDate::Result::FOUND )
-    {
-        $db->query( "update stories set publish_date = ? where stories_id = ?", $date->{ date }, $story->{ stories_id } );
-        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $date->{ guess_method } );
-        print STDERR "$story->{ url }\t$story->{ publish_date }\t$date->{ date }\t$date->{ guess_method }\n";
-    }
-    elsif ( $date->{ result } eq MediaWords::CM::GuessDate::Result::INAPPLICABLE )
-    {
-        MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, 'undateable' );
-        print STDERR "$story->{ url }\t$story->{ publish_date }\tundateable\n";
-    }
-    else
-    {
-        $date->{ date } = $date->{ method } = '(no guess)';
-        print STDERR "$story->{ url }\t$story->{ publish_date }\tno guess\n";
-    }
+    return if ( $story->{ publish_date } eq $date );
 
+    print STDERR "fix: $story->{ publish_date } -> $date [ $method ]\n";
+
+    $db->query( "update stories set publish_date = ? where stories_id = ? ", $date, $story->{ stories_id } );
+
+    MediaWords::DBI::Stories::assign_date_guess_method( $db, $story, $method );
 }
 
-# get all sopa stories
-sub get_controversy_stories
+# get controverys stories in need of redating
+sub get_controversy_stories_to_date
 {
     my ( $db, $controversy ) = @_;
 
     print STDERR "getting stories ...\n";
 
     my $stories = $db->query( <<END, $controversy->{ controversies_id } )->hashes;
-select distinct s.* 
-    from stories s 
-        join controversy_stories cs on ( s.stories_id = cs.stories_id and cs.controversies_id = ? ) 
-        join stories_tags_map stm on ( s.stories_id = stm.stories_id ) 
-        join tags t on ( t.tags_id = stm.tags_id and 
-            t.tag not in ( 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' ) ) join 
-        tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'date_guess_method' )
+select s.* from cd.live_stories s where s.controversies_id = ? limit 1000
 END
 
-    return $stories;
+    print STDERR "filtering for unreliable stories: ";
+    my $unreliable_stories = [];
+    for my $story ( @{ $stories } )
+    {
+        print STDERR ".";
+        if ( !MediaWords::DBI::Stories::date_is_reliable( $db, $story ) )
+        {
+            push( @{ $unreliable_stories }, $story );
+        }
+    }
+
+    print STDERR "\n";
+
+    return $unreliable_stories;
 }
 
 sub main
 {
-    my ( $controversies_id ) = @ARGV;
-
-    die( "usage: $0 < controversies_id >" ) unless ( $controversies_id );
+    binmode( STDOUT, 'utf8' );
+    binmode( STDERR, 'utf8' );
+    $| = 1;
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
-      || die( "Unable to find controversy '$controversies_id'" );
+    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db );
 
-    my $stories = get_controversy_stories( $db, $controversy );
+    for my $controversy ( @{ $controversies } )
+    {
+        print "CONTROVERSY $controversy->{ name } \n";
+        my $stories = get_controversy_stories_to_date( $db, $controversy );
 
-    map { fix_date( $db, $_, $controversy ) } @{ $stories };
-
+        map { fix_date( $db, $_, $controversy ) } @{ $stories };
+    }
 }
 
 main();
+
+__END__
