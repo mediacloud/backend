@@ -47,13 +47,10 @@ sub UserAgent
     return $ua;
 }
 
-# get urls in parallel
-#
-# FIXME maybe it's worth reimplementing this with, say, LWP::Parallel::UserAgent
-# instead of running a third-party script because:
-#  1) it's presumably more safe that way, and
-#  2) MediaWords::GearmanJobs::AddDefaultFeeds would be able to log the job's
-#     output to the file
+# get urls in parallel by using an external, forking script.
+# we use this approach because LWP is not thread safe and
+# LWP::Parallel::User is not fully parallel and no longer
+# works with modern LWP in any case.
 sub ParallelGet
 {
     my ( $urls ) = @_;
