@@ -7,6 +7,8 @@ import sys
 import pysolr
 import dateutil.parser
 
+in_memory_word_count_threshold = -1
+
 def get_word_counts( solr, query, date_str, num_words=1000 ) :
     documents = []
 
@@ -16,9 +18,20 @@ def get_word_counts( solr, query, date_str, num_words=1000 ) :
 
 def _get_word_counts_impl( solr, fq, num_words ):
 
-    facet_field = "includes"
-
     num_words = max ( num_words, 5000 )
+
+    matching_documents = solr.search( '*:*', **{ 'fq': fq } ).hits
+
+    print "{0} matching documents ".format( matching_documents )
+
+    if (matching_documents < in_memory_word_count_threshold) and (in_memory_word_count_threshold > 0):
+        print in_memory_word_count_threshold
+        return in_memory_word_count(  solr, fq, num_words )
+    else:
+        return in_solr_word_count( solr, fq, num_words )
+
+def in_solr_word_count( solr, fq, num_words ):
+    facet_field = "includes"
 
     query_params = { 
             'facet':"true",
@@ -39,7 +52,10 @@ def _get_word_counts_impl( solr, fq, num_words ):
     counts = dict(zip(facets[0::2],facets[1::2]))
 
     return counts
+    
 
+def in_memory_word_count( solr, fq, num_words ):
+    raise Exception( 'unimplemented' )
 
 def get_fq(  query ) :
     start_date = dateutil.parser.parse( query['start_date'] )
