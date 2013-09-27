@@ -31,9 +31,9 @@ def _get_word_counts_impl( solr, fq, num_words, q='*:*' ):
         print in_memory_word_count_threshold
         return in_memory_word_count(  solr, fq, num_words )
     else:
-        return in_solr_word_count( solr, fq, num_words )
+        return in_solr_word_count( solr, fq, num_words, q )
 
-def in_solr_word_count( solr, fq, num_words ):
+def in_solr_word_count( solr, fq, num_words, q='*:*' ):
     facet_field = "includes"
 
     query_params = { 
@@ -46,7 +46,7 @@ def in_solr_word_count( solr, fq, num_words ):
 
     #query_params['fq'] = " AND ".join( query_params['fq'] )
 
-    results = solr.search( '*:*', ** query_params)
+    results = solr.search( q, ** query_params)
 
     #ipdb.set_trace()
 
