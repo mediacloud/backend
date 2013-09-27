@@ -16,11 +16,14 @@ def get_word_counts( solr, query, date_str, num_words=1000 ) :
 
     return _get_word_counts_impl( solr, fq, num_words )
 
-def _get_word_counts_impl( solr, fq, num_words ):
+def get_word_counts_for_service( solr, fq, num_words, q='*:*' ):
+    return _get_word_counts_impl( solr, fq, num_words )
+
+def _get_word_counts_impl( solr, fq, num_words, q='*:*' ):
 
     num_words = max ( num_words, 5000 )
 
-    matching_documents = solr.search( '*:*', **{ 'fq': fq } ).hits
+    matching_documents = solr.search( q, **{ 'fq': fq } ).hits
 
     print "{0} matching documents ".format( matching_documents )
 
