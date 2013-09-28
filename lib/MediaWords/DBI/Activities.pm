@@ -24,7 +24,7 @@ Readonly::Hash my %ACTIVITIES => {
         parameters => {
             'stories_id' => {
                 description => 'Story ID that was removed from the controversy',
-                references  => 'story.stories_id'
+                references  => 'stories.stories_id'
             },
             'cdts_id' => {
                 description => 'Controversy dump time slice',
