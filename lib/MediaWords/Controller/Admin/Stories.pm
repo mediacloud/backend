@@ -252,15 +252,15 @@ sub delete_tag : Local
         }
         else
         {
+            # Start transaction
+            $c->dbis->dbh->begin_work;
+
             my $reason = $c->request->params->{ reason };
             unless ( $reason )
             {
                 $c->dbis->dbh->rollback;
                 die( "Tag NOT deleted.  Reason left blank." );
             }
-
-            # Start transaction
-            $c->dbis->dbh->begin_work;
 
             # Fetch old tags
             my $old_tags = MediaWords::DBI::Stories::get_existing_tags_as_string( $c->dbis, $stories_id );
