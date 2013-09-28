@@ -1,7 +1,84 @@
+
+=head1 NAME
+
+C<MediaWords::DBI::Activities> - Package to log various activities (story
+edits, media edits, etc.)
+
+=head1 NOTES
+
+=over 4
+
+=item * It is advised to manually C<BEGIN TRANSACTION> before logging an
+activity and C<COMMIT> after the logging is successful. C<log_activity()>
+doesn't initiate its own transaction in order to not disturb the transaction
+that the caller of might have initiated.
+
+=back
+
+=head1 SYNOPSIS
+
+=head2 Logging a single activity from web UI's controller
+
+    $c->dbis->dbh->begin_work;
+
+    # Save story edit
+    save_story_edit();
+
+    # Log activity
+    my $change = {
+        'field' => 'description',
+        'old_value' => $old_description,
+        'new_value' => $new_description
+    };
+    unless (
+        MediaWords::DBI::Activities::log_activity(
+            $c->dbis, 'story_edit', $c->user->username, $stories_id, $reason, $change
+        )
+      )
+    {
+        $c->dbis->dbh->rollback;
+        die "Unable to log addition of new tags.\n";
+    }
+
+    $c->dbis->dbh->commit;
+
+=head2 Logging a system activity from a CLI script
+
+    #!/usr/bin/env perl
+
+    sub main()
+    {
+        my $db = MediaWords::DB::connect_to_db;
+
+        my $controversies_id = 12345;
+
+        # Do whatever the script needs to do
+        do_something_important($db);
+
+        # Log the activity that was just done
+        my $options = {
+            dedup_stories          => 1
+            import_only            => 0
+            cache_broken_downloads => 0
+        };
+
+        # Log activity that just happened
+        unless ( MediaWords::DBI::Activities::log_system_activity(
+            $db,
+            'something_important',
+            $controversies_id,
+            $options ) )
+        {
+            die "Unable to log the 'something_important' activity.";
+        }
+
+        say STDERR "All good.";
+    }
+
+    main();
+
+=cut
 package MediaWords::DBI::Activities;
-#
-# Package to log various activities (story edits, media edits, etc.)
-#
 
 use strict;
 use warnings;
@@ -11,8 +88,61 @@ use MediaWords::CommonLibs;
 
 use JSON;
 
-# Available activities
-# (FIXME make it possible to check the activity on the compile time)
+=head1 LIST OF ACTIVITIES
+
+=head2 (static) C<%ACTIVITIES>
+
+List of available activities that can be logged, their descriptions, pointers
+to what the object ID refers to and parameters.
+
+All activities that are logged *must* be added to this hash.
+
+To add a new activity, add a sub-entry to this hash using the example below.
+
+Example:
+
+    # Activity name that identifies the activity:
+    'cm_remove_story_from_controversy' => {
+
+        # Human-readable description of the activity that is going to be presented
+        # in the web UI
+        description => 'Remove story from a controversy',
+
+        # Logged activity may provide an integer "object ID" which identifies the
+        # object that was changed by the activity.
+        #
+        # For example, an object ID should probably contain a story ID
+        # (stories.stories_id) if the activity is a story edit.
+        object_id   => {
+
+            # Human-readable description of the object ID
+            description => 'Controversy ID from which the story was removed',
+
+            # (optional) Table and column that the object ID references
+            references  => 'controversies.controversies_id'
+        },
+
+        # Logged activity may provide other parameters that describe the particular
+        # activity in better detail. These parameters are going to be encoded in
+        # JSON and stored as an activity's description.
+        parameters => {
+
+            # JSON key of the parameter
+            'stories_id' => {
+
+                # Human-readable description of the value of the parameter
+                description => 'Story ID that was removed from the controversy',
+
+                # (optional) Table and column that the value of the parameter
+                # references
+                references  => 'stories.stories_id'
+            },
+            <...>
+        }
+    },
+    <...>
+
+=cut
 Readonly::Hash my %ACTIVITIES => {
 
     'cm_remove_story_from_controversy' => {
@@ -173,33 +303,47 @@ Readonly::Hash my %ACTIVITIES => {
 
 };
 
-# Write many activity log entries
-sub log_activities($$$$$$)
-{
-    my ( $db, $activity_name, $user, $object_id, $reason, $description_hashes ) = @_;
+=head1 METHODS
 
-    foreach my $description_hash ( @{ $description_hashes } )
+=head2 (static) C<log_activity($db, $activity_name, $user, $object_id, $reason, $description_hash)>
+
+Log activity.
+
+Parameters:
+
+=over 4
+
+=item * C<$db> - Reference to the database object.
+
+=item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
+C<cm_mine_controversy>.
+
+=item * C<$user> - User that initiated the activity, either: a) user's email,
+e.g. C<jdoe@cyber.law.harvard.edu>, or b) system username if the activity was
+initiated from the shell and not from the web UI, e.g. C<system:jdoe>.
+
+=item * C<$object_id> - integer ID of an object (e.g. story ID, media ID) that
+was modified by the activity (e.g. if the activity was C<story_edit>, this
+parameter should be a story ID that was edited). Pass 0 if there's no objects
+to refer to.
+
+=item * C<$reason> - Reason the activity was made. Pass empty string ('') if
+there was no reason provided.
+
+=item * C<$description_hash> - hashref of miscellaneous parameters that
+describe the activity, e.g.:
+
     {
-        unless ( log_activity( $db, $activity_name, $user, $object_id, $reason, $description_hash ) )
-        {
-            return 0;
-        }
+        'field' => 'description',   # Field that was edited
+        'old_value' => 'Foo...',    # Old value of the field
+        'new_value' => 'Bar!'       # New value of the field
     }
 
-    return 1;
-}
+=back
 
-# Write system activity log entry (doesn't have an user's email nor reason)
-sub log_system_activity($$$$)
-{
-    my ( $db, $activity_name, $object_id, $description_hash ) = @_;
+Returns 1 if the activity was logged. Returns 0 on error.
 
-    my $username = getpwuid( $< ) || 'unknown';
-
-    return log_activity( $db, $activity_name, 'system:' . $username, $object_id, '', $description_hash );
-}
-
-# Write activity log entry
+=cut
 sub log_activity($$$$$$)
 {
     my ( $db, $activity_name, $user, $object_id, $reason, $description_hash ) = @_;
@@ -256,7 +400,98 @@ EOF
     return 1;
 }
 
-# Encode activity description's hash (to JSON)
+=head2 (static) C<log_system_activity($db, $activity_name, $object_id, $description_hash)>
+
+Log system activity (the one that was initiated on the shell and not from the
+web UI).
+
+See C<log_activity()> for the description of other parameters of this
+subroutine.
+
+Returns 1 if the activity was logged. Returns 0 on error.
+
+=cut
+sub log_system_activity($$$$)
+{
+    my ( $db, $activity_name, $object_id, $description_hash ) = @_;
+
+    my $username = getpwuid( $< ) || 'unknown';
+
+    return log_activity( $db, $activity_name, 'system:' . $username, $object_id, '', $description_hash );
+}
+
+=head2 (static) C<log_activities($db, $activity_name, $user, $object_id, $reason, $description_hashes)>
+
+Log multiple activities of the same type and the same object at once.
+
+For example, if you're making multiple changes on the same story, you can use
+this helper subroutine.
+
+C<$description_hashes> is an arrayref of hashrefs of miscellaneous parameters
+that describe each of the activities, e.g.:
+
+    [
+        {
+            'field' => 'title',   # Field that was edited
+            'old_value' => 'Foo...',    # Old value of the field
+            'new_value' => 'Bar!'       # New value of the field
+        },
+        {
+            'field' => 'description',
+            'old_value' => 'Loren ipsum dolor sit amet.',
+            'new_value' => 'Consectetur adipiscing elit.'
+        },
+        <...>
+    ]
+
+See C<log_activity()> for the description of other parameters of this
+subroutine.
+
+Returns 1 if the activities were logged. Returns 0 on error.
+
+=cut
+sub log_activities($$$$$$)
+{
+    my ( $db, $activity_name, $user, $object_id, $reason, $description_hashes ) = @_;
+
+    foreach my $description_hash ( @{ $description_hashes } )
+    {
+        unless ( log_activity( $db, $activity_name, $user, $object_id, $reason, $description_hash ) )
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+=head1 HELPERS
+
+The helpers described below are mainly used by the web UI that lists the
+activities from the database.
+
+=head2 (static) C<encode_activity_description($activity_name, $description_hash)>
+
+Validates and encodes an activity description hash to a string value (JSON in
+the current implementation).
+
+Parameters:
+
+=over 4
+
+=item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
+C<cm_mine_controversy>.
+
+=item * C<$description_hash> - hashref of miscellaneous parameters that
+describe the activity.
+
+=back
+
+Returns a (JSON-encoded) string activity description.
+
+C<die()>s on error.
+
+=cut
 sub encode_activity_description($$)
 {
     my ( $activity_name, $description_hash ) = @_;
@@ -288,7 +523,28 @@ sub encode_activity_description($$)
     return $description_json;
 }
 
-# Decode activity description's hash (from JSON)
+=head2 (static) C<decode_activity_description($activity_name, $description_hash)>
+
+Decodes an activity description hash from a string value (JSON in the current
+implementation).
+
+Parameters:
+
+=over 4
+
+=item * C<$activity_name> - Activity name from the C<%ACTIVITIES> hash, e.g.
+C<cm_mine_controversy>.
+
+=item * C<$description_json> - (JSON-encoded) string activity description.
+
+=back
+
+Returns a decoded activity description (hashref of miscellaneous parameters
+that describe the activity).
+
+C<die()>s on error.
+
+=cut
 sub decode_activity_description($$)
 {
     my ( $activity_name, $description_json ) = @_;
@@ -302,21 +558,33 @@ sub decode_activity_description($$)
     return $description_hash;
 }
 
-# Return a list of all activities
+=head2 (static) C<all_activities()>
+
+Returns a array of all activity names.
+
+=cut
 sub all_activities()
 {
     return keys( %ACTIVITIES );
 }
 
-# Return an activity for key
+=head2 (static) C<activity($activity_name)>
+
+Returns an activity description for its name.
+
+=cut
 sub activity($)
 {
     my $activity_name = shift;
     return $ACTIVITIES{ $activity_name };
 }
 
-# Return a list of activities of which the object ID references a specific
-# table (e.g. 'controversies.controversies_id')
+=head2 (static) C<activities_which_reference_column($column_name)>
+
+Return an array of activity names for which the object ID references a specific
+table (e.g. C<controversies.controversies_id>).
+
+=cut
 sub activities_which_reference_column($)
 {
     my $column_name = shift;
