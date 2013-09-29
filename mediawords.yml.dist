@@ -47,6 +47,29 @@ database:
         #bucket_name             : "mediacloud_test"
         #downloads_folder_name   : "downloads_test"
 
+### Gearman (p5-Gearman-JobScheduler) configuration
+#gearman:
+
+    ### Gearman servers (optional; default is ["127.0.0.1:4730"])
+    #servers:
+    #    - "127.0.0.1:4730"
+
+    ### Worker log directory (optional; default is "Sys::Path->logdir . '/gjs/'")
+    #worker_log_dir: "data/gearman_worker_logs/"
+
+    ### Email notifications
+    #notifications:
+
+        ### Email addresses to send notifications to (optional; default is [])
+        #emails:
+        #    - "jdoe@cyber.law.harvard.edu"
+
+        ### "From:" address (optional; default is "gjs_donotreply@example.com")
+        #from_address: "gjs@mediacloud.org"
+
+        ### Email subject prefix (optional; default is "[GJS]")
+        #subject_prefix: "[GJS]"
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
