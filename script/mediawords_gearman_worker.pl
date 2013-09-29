@@ -44,9 +44,8 @@ BEGIN
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
-use Gearman::JobScheduler;
-use Gearman::JobScheduler::Configuration;
 use Gearman::JobScheduler::Worker;
+use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
 use Log::Log4perl qw(:easy);
 Log::Log4perl->easy_init( { level => $DEBUG, utf8 => 1, layout => "%d{ISO8601} [%P]: %m%n" } );
@@ -64,31 +63,8 @@ sub main()
         pod2usage( 1 );
     }
 
-    # Initialize with default GJS configuration (to be customized later)
-    my $gjs_config = Gearman::JobScheduler::_default_configuration();
-
-    # Customize GJS configuration using MC's config
-    my $mc_config = MediaWords::Util::Config::get_config();
-    if ( defined $mc_config->{ gearman }->{ servers } )
-    {
-        $gjs_config->gearman_servers( $mc_config->{ gearman }->{ servers } );
-    }
-    if ( defined $mc_config->{ gearman }->{ worker_log_dir } )
-    {
-        $gjs_config->worker_log_dir( $mc_config->{ gearman }->{ worker_log_dir } );
-    }
-    if ( defined $mc_config->{ gearman }->{ notifications }->{ emails } )
-    {
-        $gjs_config->notifications_emails( $mc_config->{ gearman }->{ notifications }->{ emails } );
-    }
-    if ( defined $mc_config->{ gearman }->{ notifications }->{ from_address } )
-    {
-        $gjs_config->notifications_from_address( $mc_config->{ gearman }->{ notifications }->{ from_address } );
-    }
-    if ( defined $mc_config->{ gearman }->{ notifications }->{ subject_prefix } )
-    {
-        $gjs_config->notifications_subject_prefix( $mc_config->{ gearman }->{ notifications }->{ subject_prefix } );
-    }
+    # Initialize with Media Cloud's GJS configuration
+    my $gjs_config = MediaWords::Util::GearmanJobSchedulerConfiguration->new();
 
     # Function name, path to function module or path to directory with all functions
     my $gearman_function_name_or_directory = $MC_GEARMAN_FUNCTIONS_DIR;
@@ -98,6 +74,7 @@ sub main()
     }
 
     INFO( "Will use Gearman servers: " . join( ' ', @{ $gjs_config->gearman_servers } ) );
+    INFO( "Will write logs to directory: " . $gjs_config->worker_log_dir );
     if ( scalar @{ $gjs_config->notifications_emails } )
     {
         INFO( 'Will send notifications about failed jobs to: ' . join( ' ', @{ $gjs_config->notifications_emails } ) );
