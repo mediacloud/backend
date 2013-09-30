@@ -12,18 +12,18 @@ to the gjs_worker.pl script.
 
 =head1 SYNOPSIS
 
-    # Run all Gearman functions from lib/MediaWords/GearmanFunctions/
+    # Run all Gearman functions from lib/MediaWords/GearmanFunction/
     ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl
 
 or:
 
-    # Run Gearman function "GearmanFunction" from "lib/MediaWords/GearmanFunctions/"
-    ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl GearmanFunction
+    # Run Gearman function "NinetyNineBottlesOfBeer" from "lib/MediaWords/GearmanFunction/"
+    ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl NinetyNineBottlesOfBeer
 
 or:
 
-    # Run Gearman function from "path/to/GearmanFunction.pm"
-    ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl path/to/GearmanFunction.pm
+    # Run Gearman function from "path/to/NinetyNineBottlesOfBeer.pm"
+    ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl path/to/NinetyNineBottlesOfBeer.pm
 
 or:
 
@@ -54,7 +54,7 @@ use Pod::Usage;
 use Readonly;
 
 # Default path to Media Cloud's directory of Gearman functions
-my Readonly $MC_GEARMAN_FUNCTIONS_DIR = 'lib/MediaWords/GearmanFunctions/';
+my Readonly $MC_GEARMAN_FUNCTIONS_DIR = 'lib/MediaWords/GearmanFunction/';
 
 sub main()
 {
@@ -63,9 +63,6 @@ sub main()
         pod2usage( 1 );
     }
 
-    # Initialize with Media Cloud's GJS configuration
-    my $gjs_config = MediaWords::Util::GearmanJobSchedulerConfiguration->new();
-
     # Function name, path to function module or path to directory with all functions
     my $gearman_function_name_or_directory = $MC_GEARMAN_FUNCTIONS_DIR;
     if ( scalar( @ARGV ) == 1 )
@@ -73,31 +70,18 @@ sub main()
         $gearman_function_name_or_directory = $ARGV[ 0 ];
     }
 
-    INFO( "Will use Gearman servers: " . join( ' ', @{ $gjs_config->gearman_servers } ) );
-    INFO( "Will write logs to directory: " . $gjs_config->worker_log_dir );
-    if ( scalar @{ $gjs_config->notifications_emails } )
-    {
-        INFO( 'Will send notifications about failed jobs to: ' . join( ' ', @{ $gjs_config->notifications_emails } ) );
-        INFO( '(emails will be sent from "' . $gjs_config->notifications_from_address .
-              '" and prefixed with "' . $gjs_config->notifications_subject_prefix . '")' );
-    }
-    else
-    {
-        INFO( 'Will not send notifications anywhere about failed jobs.' );
-    }
-
     if ( -d $gearman_function_name_or_directory )
     {
 
         # Run all workers
-        Gearman::JobScheduler::Worker::run_all_workers( $gjs_config, $gearman_function_name_or_directory );
+        Gearman::JobScheduler::Worker::run_all_workers( $gearman_function_name_or_directory );
 
     }
     else
     {
 
         # Run single worker
-        Gearman::JobScheduler::Worker::run_worker( $gjs_config, $gearman_function_name_or_directory );
+        Gearman::JobScheduler::Worker::run_worker( $gearman_function_name_or_directory );
     }
 
 }

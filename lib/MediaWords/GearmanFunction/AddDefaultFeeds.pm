@@ -1,4 +1,4 @@
-package MediaWords::GearmanFunctions::AddDefaultFeeds;
+package MediaWords::GearmanFunction::AddDefaultFeeds;
 
 #
 # Periodically check for new media sources that have not had default feeds
@@ -9,7 +9,7 @@ package MediaWords::GearmanFunctions::AddDefaultFeeds;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunctions/AddDefaultFeeds.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm
 #
 # FIXME some output of the job is still logged to STDOUT and not to the log:
 #
@@ -35,7 +35,7 @@ use strict;
 use warnings;
 
 use Moose;
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::GearmanFunction';
 
 BEGIN
 {

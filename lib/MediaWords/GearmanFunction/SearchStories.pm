@@ -1,18 +1,18 @@
-package MediaWords::GearmanFunctions::SearchStories;
+package MediaWords::GearmanFunction::SearchStories;
 
 #
 # Run a loop running any pending jobs in query_story_searches
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunctions/SearchStories.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/SearchStories.pm
 #
 
 use strict;
 use warnings;
 
 use Moose;
-with 'Gearman::JobScheduler::AbstractFunction';
+with 'MediaWords::GearmanFunction';
 
 BEGIN
 {
@@ -28,7 +28,6 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;
-
 
 # execute the story search, store the results as a csv in the query_story_search, and mark the query_story_search as completed
 sub _execute_and_store_search

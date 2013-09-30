@@ -50,7 +50,7 @@ requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
 requires 'File::Touch';
-requires 'Gearman::JobScheduler', '0.02', git => 'git://github.com/pypt/p5-Gearman-JobScheduler.git@0.02';
+requires 'Gearman::JobScheduler', '0.03', git => 'git://github.com/pypt/p5-Gearman-JobScheduler.git@0.03';
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';
 requires 'GraphViz';
