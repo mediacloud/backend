@@ -138,21 +138,10 @@ def get_word_counts( solr, fq, query, field='sentence' ) :
 def main():
 
     solr = solr_connection()
-    fq = None
-    
-    #publish_date:[2013-09-16T00:00:00Z TO 2013-09-16T00:00:00Z+7DAYS] AND media_sets_id:(5)
     fq = ' publish_date:[2013-04-01T00:00:00.000Z TO 2013-04-01T00:00:00.000Z+1MONTH]'
+    query = 'sentence:mccain'
 
-    #counts = _get_word_counts_impl( solr, fq, 1000 )
-    #print counts
-	
-    #counts = in_memory_word_count( solr, fq, 1000 )
-    #print counts
-
-    queries = [ 'sentence:mccain',
-            ]
-    for query in queries:
-        counts = get_word_counts( solr, fq, query, 'sentence' )
+    counts = get_word_counts( solr, fq, query, 'sentence' )
 
     print 'printing counts'
     print counts
