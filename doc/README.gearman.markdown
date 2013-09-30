@@ -141,13 +141,21 @@ A full example of a Gearman job is located in:
 
 ### Starting a Gearman worker
 
-To start a Gearman worker, run:
+To start a single instance of the Gearman worker, run:
 
     ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm
 
-To start *all* Gearman workers in a subdirectory, run:
+To start a single instance of *all* Gearman workers in a subdirectory, run:
 
     ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/
+
+To start 4 instances of the Gearman worker, run:
+
+    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm 4
+
+To start 4 instances of *all* Gearman workers in a subdirectory, run:
+
+    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/ 4
 
 
 ### Running a job
