@@ -21,7 +21,7 @@ def fetch_all( solr, fq, query, fields=None ) :
 
     start = 0
     #rows = num_matching_documents
-    num_matching_documents=40000
+    num_matching_documents=1000000
     rows = num_matching_documents
 
     sys.stderr.write( ' starting fetch for ' + query )
