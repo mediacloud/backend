@@ -6,8 +6,9 @@ import ipdb
 import sys
 import pysolr
 import dateutil.parser
+import solr_in_memory_wordcount_stemmed
 
-in_memory_word_count_threshold = -1
+in_memory_word_count_threshold = 1000000
 
 def get_word_counts( solr, query, date_str, num_words=1000 ) :
     documents = []
@@ -21,15 +22,17 @@ def get_word_counts_for_service( solr, fq, num_words, q='*:*' ):
 
 def _get_word_counts_impl( solr, fq, num_words, q='*:*' ):
 
-    num_words = max ( num_words, 5000 )
+    print int(num_words )
+    num_words = min ( int(num_words), 5000 )
 
+    print "{0} word will be returned".format( num_words)
     matching_documents = solr.search( q, **{ 'fq': fq } ).hits
 
     print "{0} matching documents ".format( matching_documents )
 
     if (matching_documents < in_memory_word_count_threshold) and (in_memory_word_count_threshold > 0):
         print in_memory_word_count_threshold
-        return in_memory_word_count(  solr, fq, num_words )
+        return in_memory_word_count(  solr, fq, num_words, q )
     else:
         return in_solr_word_count( solr, fq, num_words, q )
 
@@ -57,8 +60,8 @@ def in_solr_word_count( solr, fq, num_words, q='*:*' ):
     return counts
     
 
-def in_memory_word_count( solr, fq, num_words ):
-    raise Exception( 'unimplemented' )
+def in_memory_word_count( solr, fq, num_words, q ):
+    return solr_in_memory_wordcount_stemmed.get_word_counts( solr, fq, q, num_words,'sentence' )
 
 def get_fq(  query ) :
     start_date = dateutil.parser.parse( query['start_date'] )
