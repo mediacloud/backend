@@ -9,7 +9,7 @@ package MediaWords::GearmanFunction::AddDefaultFeeds;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm
+# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm
 #
 # FIXME some output of the job is still logged to STDOUT and not to the log:
 #
@@ -40,7 +40,9 @@ with 'MediaWords::GearmanFunction';
 BEGIN
 {
     use FindBin;
-    use lib "$FindBin::Bin/../lib";
+
+    # "lib/" relative to "local/bin/gjs_worker.pl":
+    use lib "$FindBin::Bin/../../lib";
 }
 
 use Modern::Perl "2012";
