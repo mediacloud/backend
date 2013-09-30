@@ -15,7 +15,7 @@ from nltk.stem.lancaster import LancasterStemmer
 
 in_memory_word_count_threshold = 0
 
-def fetch_all( solr, fq, query ) :
+def fetch_all( solr, fq, query, fields=None ) :
     documents = []
     num_matching_documents = solr.search( query, **{ 'fq': fq } ).hits
 
@@ -30,7 +30,7 @@ def fetch_all( solr, fq, query ) :
         results = solr.search( query, **{
                 'start': start,
                 'rows': rows,
-               # 'fl' : 'media_id',
+                'fl' : fields,
                 })
         documents.extend( results.docs )
         start += rows
@@ -126,16 +126,24 @@ def main():
 
     for query in queries:
        print query
-       results = fetch_all( solr, fq, query )
+       results = fetch_all( solr, fq, query, 'sentence' )
        print "got " + query
        print len( results )
 
+    print 'converting in utf8';
     sentences = [ result['sentence'].encode('utf-8') for result in results ]
+    print 'writing to file';
     file.write("\n".join( sentences))
     filename = 'out.txt'
+
+    print 'stemming';
+
     stem_file( filename )
     filename = 'out_stemmed.txt'
-    print in_memory_word_count( filename )
+    print 'counting'
+    counts = in_memory_word_count( filename )
+    print 'printing counts'
+    print counts
 
 if __name__ == "__main__":
     main()
