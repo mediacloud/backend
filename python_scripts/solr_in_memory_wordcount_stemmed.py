@@ -113,6 +113,28 @@ def counts_to_db_style( counts ) :
 def solr_connection() :
     return pysolr.Solr('http://localhost:8983/solr/')
 
+def get_word_counts( solr, fq, query, field='sentence' ) :
+    print query
+    results = fetch_all( solr, fq, query, 'sentence' )
+    print "got " + query
+    print len( results )
+    
+    print 'converting in utf8';
+    sentences = [ result['sentence'].encode('utf-8') for result in results ]
+    print 'writing to file';
+    file=open('out.txt','wb')
+    file.write("\n".join( sentences))
+    filename = 'out.txt'
+
+    print 'stemming';
+
+    stem_file( filename )
+    filename = 'out_stemmed.txt'
+    print 'counting'
+    counts = in_memory_word_count( filename )
+    return counts
+    
+
 def main():
 
     solr = solr_connection()
@@ -127,28 +149,11 @@ def main():
     #counts = in_memory_word_count( solr, fq, 1000 )
     #print counts
 
-    queries = [ 'includes:obama',
+    queries = [ 'sentence:mccain',
             ]
-    file=open('out.txt','wb')
-
     for query in queries:
-       print query
-       results = fetch_all( solr, fq, query, 'sentence' )
-       print "got " + query
-       print len( results )
+        counts = get_word_counts( solr, fq, query, 'sentence' )
 
-    print 'converting in utf8';
-    sentences = [ result['sentence'].encode('utf-8') for result in results ]
-    print 'writing to file';
-    file.write("\n".join( sentences))
-    filename = 'out.txt'
-
-    print 'stemming';
-
-    stem_file( filename )
-    filename = 'out_stemmed.txt'
-    print 'counting'
-    counts = in_memory_word_count( filename )
     print 'printing counts'
     print counts
 
