@@ -314,3 +314,13 @@ a#command {
     background: #BA6569;
 }
 
+/* "Latest CM activites" box */
+table.cm_latest_activities {
+    /* Required for word-wrap to work properly */
+    table-layout: fixed;
+}
+
+table.cm_latest_activities td {
+    /* Activity names might get lengthy */
+    word-wrap: break-word;
+}

@@ -1,5 +1,5 @@
 <div class="boxtitle">Latest [% activities.size %] activities</div>
-<table>
+<table class="cm_latest_activities">
 
     <tr>
         <th>Activity</th>
@@ -10,7 +10,7 @@
 
         <tr [% IF even %]class="even"[% END %]>
 
-            <td style="word-wrap: break-word; overflow-wrap: break-word">[% activity.name | html %]</td>
+            <td>[% activity.name | html %]</td>
 
             <td>[% datetime.format( activity.timestamp ) %]</td>
         </tr>
