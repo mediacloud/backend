@@ -76,31 +76,6 @@ def in_memory_word_count( stemmed_sentences ):
     
     return freq
 
-             #raise Exception( 'unimplemented' )
-
-def get_fq(  query ) :
-    start_date = dateutil.parser.parse( query['start_date'] )
-    end_date = dateutil.parser.parse( query['end_date'] )
-
-    date_str_start = start_date.isoformat() + 'Z'
-    date_str_end   = end_date.isoformat() + 'Z'
-
-    if query['start_date'] == query['end_date']:
-        date_query = "publish_date:[{0} TO {1}+7DAYS]".format(date_str_start, date_str_end)
-    else:
-        date_query = "publish_date:[{0} TO {1}]".format(date_str_start, date_str_end)
-
-    media_sets_ids = query[ 'media_sets_ids' ]
-
-    media_sets_query = 'media_sets_id:({0})'.format( " OR ".join([ "{:d}".format(id) for id in media_sets_ids ]) )
-    
-    #sys.stderr.write( media_sets_query )
-    #sys.stderr.write( date_query )
-
-    ret =  [date_query, media_sets_query]
-
-    return ret
-
 def solr_connection() :
     return pysolr.Solr('http://localhost:8983/solr/')
 
