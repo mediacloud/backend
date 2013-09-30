@@ -32,7 +32,7 @@ def fetch_all( solr, fq, query, fields=None ) :
         sys.stderr.write( 'fetching {0} documents'.format( rows ) )
         sys.stderr.write( "\n" );
         results = solr.search( query, **{
-                'fq': fq
+                'fq': fq,
                 'start': start,
                 'rows': rows,
                 'fl' : fields,
