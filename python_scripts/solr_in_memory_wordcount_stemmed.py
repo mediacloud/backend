@@ -13,6 +13,8 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
 from nltk.stem.porter import PorterStemmer
+import multiprocessing
+from nltk.tokenize import RegexpTokenizer
 
 in_memory_word_count_threshold = 0
 
@@ -68,11 +70,22 @@ def stem_sentences( sentences ):
 
     return stemmed_sentences
 
+def tokenize( str ):
+    tokenizer = RegexpTokenizer(r'\w+')
+    return filter( lambda word : word not in { '-',',','.','!' }, word_tokenize( str ) )
 
-def in_memory_word_count( stemmed_sentences ):
+def non_stemmed_word_count( sentences ):
     freq = collections.Counter()
-    for stemmed_sentence in stemmed_sentences:
-        freq.update(stemmed_sentence.split())
+    tokenizer = RegexpTokenizer(r'\w+')
+    for sentence in sentences:
+        freq.update( tokenize(sentence))
+    
+    return freq
+
+def in_memory_word_count( sentences ):
+    freq = collections.Counter()
+    for sentence in sentences:
+        freq.update(sentence.split())
     
     return freq
 
@@ -86,7 +99,17 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print len( results )
     
     print 'converting in utf8';
-    sentences = [ result['sentence'].encode('utf-8') for result in results ]
+    sentences = [ result['sentence'].encode('utf-8').lower() for result in results ]
+
+    term_counts = non_stemmed_word_count( sentences )
+    
+    st = PorterStemmer()
+
+    stems = [ st.stem_word(term) for term in term_counts.elements() ]
+
+    stem_counts = collections.Counter( stems )
+
+    return stem_counts.most_common( num_words )
 
     results = None
 
@@ -98,7 +121,6 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     counts = in_memory_word_count( stemmed_sentences )
     
     return counts.most_common( num_words )
-    
 
 def main():
 
