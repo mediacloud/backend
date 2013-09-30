@@ -60,26 +60,37 @@ def stem_file( filename ):
 
 def stem_sentences( sentences ):
     g = open('out_stemmed.txt','w')
+    
     st = PorterStemmer()
+
+    stemmed_sentences = []
     lines = 0
     for line in sentences:
 	    sentence = word_tokenize(line)
+            output = ""
 	    for word in sentence:
-		output = st.stem_word(word)
+		output += st.stem_word(word)
 		s = str(output)
+
+                output += " "
+                
 		g.write(s + "\n")
+            
+            stemmed_sentences.append( output )
 
             lines += 1
             if lines % 1000 == 0 :
                 print "Stemmed {} ".format( lines )
 
+    return stemmed_sentences
 
-def in_memory_word_count( filename ):
-    with open(filename) as f:
-        freq = collections.Counter()
-        for line in f:
-	    freq.update(line.split())
-        return freq
+
+def in_memory_word_count( stemmed_sentences ):
+    freq = collections.Counter()
+    for stemmed_sentence in stemmed_sentences:
+        freq.update(stemmed_sentence.split())
+    
+    return freq
 
              #raise Exception( 'unimplemented' )
 
@@ -127,10 +138,10 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     print 'stemming';
 
-    stem_sentences( sentences )
+    stemmed_sentences = stem_sentences( sentences )
     filename = 'out_stemmed.txt'
     print 'counting'
-    counts = in_memory_word_count( filename )
+    counts = in_memory_word_count( stemmed_sentences )
     
     return counts.most_common( num_words )
     
