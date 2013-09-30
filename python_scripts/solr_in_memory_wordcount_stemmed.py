@@ -58,6 +58,22 @@ def stem_file( filename ):
             if lines % 1000 == 0 :
                 print "Stemmed {} ".format( lines )
 
+def stem_sentences( sentences ):
+    g = open('out_stemmed.txt','w')
+    st = PorterStemmer()
+    lines = 0
+    for line in sentences:
+	    sentence = word_tokenize(line)
+	    for word in sentence:
+		output = st.stem_word(word)
+		s = str(output)
+		g.write(s + "\n")
+
+            lines += 1
+            if lines % 1000 == 0 :
+                print "Stemmed {} ".format( lines )
+
+
 def in_memory_word_count( filename ):
     with open(filename) as f:
         freq = collections.Counter()
@@ -101,6 +117,9 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     
     print 'converting in utf8';
     sentences = [ result['sentence'].encode('utf-8') for result in results ]
+
+    results = None
+
     print 'writing to file';
     file=open('out.txt','wb')
     file.write("\n".join( sentences))
@@ -108,7 +127,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     print 'stemming';
 
-    stem_file( filename )
+    stem_sentences( sentences )
     filename = 'out_stemmed.txt'
     print 'counting'
     counts = in_memory_word_count( filename )
