@@ -18,10 +18,18 @@
 
             <tr [% IF even %]class="even"[% END %]>
 
-                <td>[% activity.name %]</td>
+                <td>
+                    <abbr title="[% activity.activity.description %]">[% activity.name | html %]</abbr>
+                </td>
                 <td>[% activity.timestamp %]</td>
                 <td>[% activity.user %]</td>
-                <td>[% activity.description_json %]</td>
+                <td>
+                    <ul>
+                        [% FOREACH key IN activity.description.keys %]
+                            <li><abbr title="[% activity.activity.parameters.$key.description %]">[% key %]</abbr> = "[% activity.description.$key %]"</li>
+                        [% END %]
+                    </ul>
+                </td>
 
             </tr>
 

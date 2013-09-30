@@ -7,6 +7,7 @@ use warnings;
 
 use Digest::MD5;
 use List::Compare;
+use Data::Dumper;
 
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
@@ -143,6 +144,18 @@ END
 EOF
         $controversies_id, $LATEST_ACTIVITIES_COUNT
     )->hashes;
+
+    # FIXME put activity preparation (JSON decoding, description fetching) into
+    # a subroutine in order to not repeat oneself.
+    for ( my $x = 0 ; $x < scalar @{ $latest_activities } ; ++$x )
+    {
+        my $activity = $latest_activities->[ $x ];
+
+        # Get activity description
+        $activity->{ activity } = MediaWords::DBI::Activities::activity( $activity->{ name } );
+
+        $latest_activities->[ $x ] = $activity;
+    }
 
     $c->stash->{ controversy }       = $controversy;
     $c->stash->{ query }             = $query;
@@ -1486,11 +1499,20 @@ EOF
         [ $controversies_id ], $p, ROWS_PER_PAGE
     );
 
-    # Decode activity descriptions from JSON
-    for my $activity ( @{ $activities } )
+    # FIXME put activity preparation (JSON decoding, description fetching) into
+    # a subroutine in order to not repeat oneself.
+    for ( my $x = 0 ; $x < scalar @{ $activities } ; ++$x )
     {
+        my $activity = $activities->[ $x ];
+
+        # Get activity description
+        $activity->{ activity } = MediaWords::DBI::Activities::activity( $activity->{ name } );
+
+        # Decode activity descriptions from JSON
         $activity->{ description } =
           MediaWords::DBI::Activities::decode_activity_description( $activity->{ name }, $activity->{ description_json } );
+
+        $activities->[ $x ] = $activity;
     }
 
     $c->stash->{ controversy } = $controversy;

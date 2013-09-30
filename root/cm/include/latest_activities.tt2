@@ -10,7 +10,9 @@
 
         <tr [% IF even %]class="even"[% END %]>
 
-            <td>[% activity.name | html %]</td>
+            <td>
+                <abbr title="[% activity.activity.description | html %]">[% activity.name | html %]</abbr>
+            </td>
 
             <td>[% datetime.format( activity.timestamp ) %]</td>
         </tr>
