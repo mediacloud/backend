@@ -78,6 +78,7 @@ that the caller of might have initiated.
     main();
 
 =cut
+
 package MediaWords::DBI::Activities;
 
 use strict;
@@ -143,6 +144,7 @@ Example:
     <...>
 
 =cut
+
 Readonly::Hash my %ACTIVITIES => {
 
     'cm_remove_story_from_controversy' => {
@@ -276,6 +278,10 @@ Readonly::Hash my %ACTIVITIES => {
     'story_edit' => {
         description => 'Edit a story',
         object_id   => {
+
+            # Note: because this activity is *not* referenced by its
+            # controversy.controversies_id, it won't be visible in the CM
+            # activity listing
             description => 'Story ID that was edited',
             references  => 'stories.stories_id'
         },
@@ -291,6 +297,10 @@ Readonly::Hash my %ACTIVITIES => {
     'media_edit' => {
         description => 'Edit a medium',
         object_id   => {
+
+            # Note: because this activity is *not* referenced by its
+            # controversy.controversies_id, it won't be visible in the CM
+            # activity listing
             description => 'Media ID that was edited',
             references  => 'media.media_id'
         },
@@ -344,6 +354,7 @@ describe the activity, e.g.:
 Returns 1 if the activity was logged. Returns 0 on error.
 
 =cut
+
 sub log_activity($$$$$$)
 {
     my ( $db, $activity_name, $user, $object_id, $reason, $description_hash ) = @_;
@@ -411,6 +422,7 @@ subroutine.
 Returns 1 if the activity was logged. Returns 0 on error.
 
 =cut
+
 sub log_system_activity($$$$)
 {
     my ( $db, $activity_name, $object_id, $description_hash ) = @_;
@@ -450,6 +462,7 @@ subroutine.
 Returns 1 if the activities were logged. Returns 0 on error.
 
 =cut
+
 sub log_activities($$$$$$)
 {
     my ( $db, $activity_name, $user, $object_id, $reason, $description_hashes ) = @_;
@@ -492,6 +505,7 @@ Returns a (JSON-encoded) string activity description.
 C<die()>s on error.
 
 =cut
+
 sub encode_activity_description($$)
 {
     my ( $activity_name, $description_hash ) = @_;
@@ -545,6 +559,7 @@ that describe the activity).
 C<die()>s on error.
 
 =cut
+
 sub decode_activity_description($$)
 {
     my ( $activity_name, $description_json ) = @_;
@@ -563,6 +578,7 @@ sub decode_activity_description($$)
 Returns a array of all activity names.
 
 =cut
+
 sub all_activities()
 {
     return keys( %ACTIVITIES );
@@ -573,6 +589,7 @@ sub all_activities()
 Returns an activity description for its name.
 
 =cut
+
 sub activity($)
 {
     my $activity_name = shift;
@@ -585,6 +602,7 @@ Return an array of activity names for which the object ID references a specific
 table (e.g. C<controversies.controversies_id>).
 
 =cut
+
 sub activities_which_reference_column($)
 {
     my $column_name = shift;
