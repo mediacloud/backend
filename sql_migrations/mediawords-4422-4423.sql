@@ -20,51 +20,51 @@ SET search_path = public, pg_catalog;
 
 -- Create the new activity table
 CREATE TABLE activities (
-    activities_id       SERIAL          PRIMARY KEY,
+    "activities_id"     SERIAL          PRIMARY KEY,
 
     -- Activity's name (e.g. "media_edit", "story_edit", etc.)
-    name                VARCHAR(255)    NOT NULL
+    "name"              VARCHAR(255)    NOT NULL
                                         CONSTRAINT activities_name_can_not_contain_spaces CHECK(name NOT LIKE '% %'),
 
     -- When did the activity happen
-    timestamp           TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
+    "timestamp"         TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
 
     -- User that executed the activity, either:
     --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
     --     * username that initiated the action (e.g. "system:lvaliukas")
     -- (store user's email instead of ID in case the user gets deleted)
-    user                VARCHAR(255)    NOT NULL,
+    "user"              VARCHAR(255)    NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
     -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
-    object_id           BIGINT          NULL,
+    "object_id"         BIGINT          NULL,
 
     -- User-provided reason explaining why the activity was made
-    reason              TEXT            NULL,
+    "reason"            TEXT            NULL,
 
     -- Other free-form data describing the action in the JSON format
     -- (e.g.: '{ "field": "name", "old_value": "Foo.", "new_value": "Bar." }')
     -- FIXME: has potential to use 'JSON' type instead of 'TEXT' in
     -- PostgreSQL 9.2+
-    description_json    TEXT            NOT NULL DEFAULT '{ }'
+    "description_json"  TEXT            NOT NULL DEFAULT '{ }'
 
 );
 
-CREATE INDEX activities_name ON activities (name);
-CREATE INDEX activities_timestamp ON activities (timestamp);
-CREATE INDEX activities_user ON activities (user);
-CREATE INDEX activities_object_id ON activities (object_id);
+CREATE INDEX activities_name ON activities ("name");
+CREATE INDEX activities_timestamp ON activities ("timestamp");
+CREATE INDEX activities_user ON activities ("user");
+CREATE INDEX activities_object_id ON activities ("object_id");
 
 
 -- Migrate "media_edits" to "activities"
 INSERT INTO activities
     (
-        name,
-        timestamp,
-        user,
-        object_id,
-        reason,
-        description_json
+        "name",
+        "timestamp",
+        "user",
+        "object_id",
+        "reason",
+        "description_json"
     )
     SELECT
         'media_edit',
@@ -82,12 +82,12 @@ INSERT INTO activities
 -- Migrate "story_edits" to "activities"
 INSERT INTO activities
     (
-        name,
-        timestamp,
-        user,
-        object_id,
-        reason,
-        description_json
+        "name",
+        "timestamp",
+        "user",
+        "object_id",
+        "reason",
+        "description_json"
     )
     SELECT
         'story_edit',

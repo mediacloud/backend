@@ -384,7 +384,7 @@ EOF
         # Save
         $db->query(
             <<EOF,
-            INSERT INTO activities (name, user, object_id, reason, description_json)
+            INSERT INTO activities ("name", "user", "object_id", "reason", "description_json")
             VALUES (?, ?, ?, ?, ?)
 EOF
             $activity_name, $user, $object_id, $reason, $description_json
