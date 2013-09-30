@@ -139,7 +139,7 @@ END
         FROM activities
         WHERE object_id = ?
           AND name IN ($sql_controversy_activities)
-        ORDER BY timestamp DESC
+        ORDER BY creation_date DESC
         LIMIT ?
 EOF
         $controversies_id, $LATEST_ACTIVITIES_COUNT
@@ -1494,7 +1494,7 @@ END
         FROM activities
         WHERE name IN ($sql_controversy_activities)
           AND object_id = ?
-        ORDER BY timestamp DESC
+        ORDER BY creation_date DESC
 EOF
         [ $controversies_id ], $p, ROWS_PER_PAGE
     );

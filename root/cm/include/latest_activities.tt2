@@ -14,7 +14,7 @@
                 <abbr title="[% activity.activity.description | html %]">[% activity.name | html %]</abbr>
             </td>
 
-            <td>[% datetime.format( activity.timestamp ) %]</td>
+            <td>[% datetime.format( activity.creation_date ) %]</td>
         </tr>
 
     [% SET even = !even %]

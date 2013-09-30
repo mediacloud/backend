@@ -21,8 +21,8 @@
                 <td>
                     <abbr title="[% activity.activity.description %]">[% activity.name | html %]</abbr>
                 </td>
-                <td>[% activity.timestamp %]</td>
-                <td>[% activity.user %]</td>
+                <td>[% activity.creation_date %]</td>
+                <td>[% activity.user_identifier %]</td>
                 <td>
                     <ul>
                         [% FOREACH key IN activity.description.keys %]
