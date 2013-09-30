@@ -12,6 +12,7 @@ import re
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
+from nltk.stemmer.porter import PorterStemmer
 
 in_memory_word_count_threshold = 0
 
@@ -22,12 +23,16 @@ def fetch_all( solr, fq, query, fields=None ) :
     start = 0
     #rows = num_matching_documents
     num_matching_documents=1000000
+
+    matching_documents = solr.search( q, **{ 'fq': fq } ).hits
     rows = num_matching_documents
 
-    sys.stderr.write( ' starting fetch for ' + query )
-    sys.stderr.write( 'fetching {0} documents'.format( rows ) )
+    sys.stderr.write( " starting fetch for \n" + query )
     while (len( documents ) < num_matching_documents):
+        sys.stderr.write( 'fetching {0} documents'.format( rows ) )
+        sys.stderr.write( "\n" );
         results = solr.search( query, **{
+                'fq': fq
                 'start': start,
                 'rows': rows,
                 'fl' : fields,
@@ -42,14 +47,19 @@ def fetch_all( solr, fq, query, fields=None ) :
 
 def stem_file( filename ):
     g = open('out_stemmed.txt','w')
+    st = PorterStemmer()
+    lines = 0
     with open( filename ) as f:
         for line in f:
 	    sentence = word_tokenize(line)
 	    for word in sentence:
-		st = LancasterStemmer()
-		output = st.stem(word)
+		output = st.stem_word(word)
 		s = str(output)
-		g.write(s + ' ')
+		g.write(s + "\n")
+
+            lines += 1
+            if lines % 1000 == 0 :
+                print "Stemmed {} ".format( lines )
 
 def in_memory_word_count( filename ):
     with open(filename) as f:
