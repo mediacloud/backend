@@ -42,22 +42,6 @@ def fetch_all( solr, fq, query, fields=None ) :
     assert len( documents ) == num_matching_documents
     return documents
 
-def stem_file( filename ):
-    g = open('out_stemmed.txt','w')
-    st = PorterStemmer()
-    lines = 0
-    with open( filename ) as f:
-        for line in f:
-	    sentence = word_tokenize(line)
-	    for word in sentence:
-		output = st.stem_word(word)
-		s = str(output)
-		g.write(s + "\n")
-
-            lines += 1
-            if lines % 1000 == 0 :
-                print "Stemmed {} ".format( lines )
-
 def stem_sentences( sentences ):
     g = open('out_stemmed.txt','w')
     
@@ -131,15 +115,10 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     results = None
 
-    print 'writing to file';
-    file=open('out.txt','wb')
-    file.write("\n".join( sentences))
-    filename = 'out.txt'
-
     print 'stemming';
 
     stemmed_sentences = stem_sentences( sentences )
-    filename = 'out_stemmed.txt'
+
     print 'counting'
     counts = in_memory_word_count( stemmed_sentences )
     
