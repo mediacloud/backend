@@ -90,30 +90,10 @@ def get_fq(  query ) :
 
     return ret
 
-def counts_to_db_style( counts ) :
-    ret = []
-    total_words = sum( counts.values() )
-
-    total_words = max( total_words, 1 )
-    
-    stem_count_factor = 1
-
-    for word,count in counts.iteritems() :
-        ret.append( { 'term': word,
-                      'stem_count': float(count)/float(total_words),
-                      'raw_stem_count': count,
-                      'total_words': total_words,
-                      'stem_count_factor': stem_count_factor,
-                      }
-                    )
-
-    return ret
-                      
-
 def solr_connection() :
     return pysolr.Solr('http://localhost:8983/solr/')
 
-def get_word_counts( solr, fq, query, field='sentence' ) :
+def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print query
     results = fetch_all( solr, fq, query, 'sentence' )
     print "got " + query
@@ -132,7 +112,8 @@ def get_word_counts( solr, fq, query, field='sentence' ) :
     filename = 'out_stemmed.txt'
     print 'counting'
     counts = in_memory_word_count( filename )
-    return counts
+    
+    return counts.most_common( num_words )
     
 
 def main():
