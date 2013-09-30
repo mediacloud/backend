@@ -12,7 +12,7 @@ import re
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
-from nltk.stemmer.porter import PorterStemmer
+from nltk.stem.porter import PorterStemmer
 
 in_memory_word_count_threshold = 0
 
