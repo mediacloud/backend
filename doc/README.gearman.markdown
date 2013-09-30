@@ -143,11 +143,15 @@ A full example of a Gearman job is located in:
 
 To start a Gearman worker, run:
 
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm
+    ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl lib/MediaWords/GearmanFunction/AddDefaultFeeds.pm 
 
 To start *all* Gearman workers in a subdirectory, run:
 
-    ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/
+    ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl lib/MediaWords/GearmanFunction/
+
+To start *all* Gearman workers from the default lib/MediaWords/GearmanFunction/ subdirectory, run:
+
+    ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl
 
 
 ### Running a job
@@ -167,14 +171,20 @@ To pass arguments to the worker, add them as a hashref parameter:
 You can use the job ID to *get the path to the log of the running job*:
 
     my $log_path = Gearman::JobScheduler::log_path_for_gearman_job(
-        'MediaWords::GearmanFunction::AddDefaultFeeds',
+        MediaWords::GearmanFunction::AddDefaultFeeds->name(),
         $gearman_job_id
     );
 
 Or to *cancel an enqueued job which isn't running yet*:
 
-    Gearman::JobScheduler::cancel_gearman_job( $gearman_job_id );
+    Gearman::JobScheduler::cancel_gearman_job(
+        MediaWords::GearmanFunction::AddDefaultFeeds->name(),
+        $gearman_job_id
+    );
 
 Or to *get the job status of enqueued / running Gearman job*:
 
-    print Dumper( Gearman::JobScheduler::job_status( $gearman_job_id ) );
+    print Dumper( Gearman::JobScheduler::job_status(
+        MediaWords::GearmanFunction::AddDefaultFeeds->name(),
+        $gearman_job_id
+    ));

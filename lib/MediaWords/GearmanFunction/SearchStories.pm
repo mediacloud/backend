@@ -5,7 +5,7 @@ package MediaWords::GearmanFunction::SearchStories;
 #
 # Start this worker script by running:
 #
-# ./script/run_with_carton.sh local/bin/gjs_worker.pl lib/MediaWords/GearmanFunction/SearchStories.pm
+# ./script/run_with_carton.sh ./script/mediawords_gearman_worker.pl lib/MediaWords/GearmanFunction/SearchStories.pm
 #
 
 use strict;
@@ -17,9 +17,7 @@ with 'MediaWords::GearmanFunction';
 BEGIN
 {
     use FindBin;
-
-    # "lib/" relative to "local/bin/gjs_worker.pl":
-    use lib "$FindBin::Bin/../../lib";
+    use lib "$FindBin::Bin/../lib";
 }
 
 use Modern::Perl "2012";
