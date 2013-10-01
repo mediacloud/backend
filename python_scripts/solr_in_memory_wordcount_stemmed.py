@@ -48,8 +48,10 @@ def fetch_all( solr, fq, query, fields=None ) :
     assert len( documents ) == num_matching_documents
     return documents
 
+
+#tokenizer = RegexpTokenizer(r'\w+')
+
 def tokenize( str ):
-    tokenizer = RegexpTokenizer(r'\w+')
     return filter( lambda word : word not in { '-',',','.','!' }, word_tokenize( str ) )
 
 def non_stemmed_word_count( sentences ):
@@ -57,9 +59,17 @@ def non_stemmed_word_count( sentences ):
 
     print 'tokenizing '
 
-    token_lists = Parallel(n_jobs=-2, verbose=5)(delayed ( tokenize)( sentence) for sentence in sentences )
+    start_time = time.clock()
+
+
+    token_lists = Parallel(n_jobs=8, verbose=5, pre_dispatch='3*n_jobs')(delayed ( tokenize)( sentence) for sentence in sentences )
+
+    end_time = time.clock()
+    start_time = end_time
 
     print 'done tokenizing'
+    print "time {}".format( str(end_time - start_time) )
+
 
     print 'counting '
 
@@ -67,9 +77,16 @@ def non_stemmed_word_count( sentences ):
 
     for token_list in token_lists:
         sentences_processed += 1
-        if sentences_processed % 1000 == 0 :
+        if sentences_processed % 10000 == 0 :
             print "Processed {} ".format( sentences_processed )
         freq.update( token_list )
+
+    end_time = time.clock()
+    start_time = end_time
+
+    print 'counting'
+    print "time {}".format( str(end_time - start_time) )
+
     
     return freq
 
