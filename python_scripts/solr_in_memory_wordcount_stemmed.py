@@ -19,6 +19,8 @@ import multiprocessing
 from nltk.tokenize import RegexpTokenizer
 
 from joblib import Parallel, delayed
+import multiprocessing
+
 
 in_memory_word_count_threshold = 0
 
@@ -62,7 +64,14 @@ def non_stemmed_word_count( sentences ):
     start_time = time.clock()
 
 
-    token_lists = Parallel(n_jobs=8, verbose=5, pre_dispatch='3*n_jobs')(delayed ( tokenize)( sentence) for sentence in sentences )
+   # token_lists = Parallel(n_jobs=8, verbose=5, pre_dispatch='3*n_jobs')(delayed ( tokenize)( sentence) for sentence in sentences )
+
+    pool = multiprocessing.Pool() 
+
+    token_lists = pool.map( tokenize, sentences )
+
+    pool.close()
+    pool.join()
 
     end_time = time.clock()
     start_time = end_time
