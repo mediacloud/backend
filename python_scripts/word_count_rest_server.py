@@ -31,7 +31,8 @@ def word_count():
         return ret
     else:
         ret = solr_query_wordcount_timer.get_word_counts_for_service( solr, fq, num_words, q )
-        ret = jsonify( ret )
+
+        ret = jsonify( { 'counts': ret } )
 
         store_in_cache( key, ret )
 
