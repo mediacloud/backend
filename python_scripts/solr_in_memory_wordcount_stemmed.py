@@ -68,7 +68,7 @@ def stem_sentences( sentences ):
 
             lines += 1
             if lines % 1000 == 0 :
-                print "Stemmed {} ".format( lines )
+                print "processed {} sentences".format( lines )
 
     return stemmed_sentences
 
@@ -110,7 +110,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print len( results )
 
     end_time = time.clock()
-    print "time {}".format( end_time - start_time )
+    print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
 
@@ -120,7 +120,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     results = None
 
     end_time = time.clock()
-    print "time {}".format( end_time - start_time )
+    print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
 
@@ -133,24 +133,31 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     st = PorterStemmer()
 
     end_time = time.clock()
-    print "time {}".format( end_time - start_time )
+    print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
 
     print 'stemming'
 
-    stems = [ st.stem_word(term) for term in term_counts.elements() ]
+    stem_counts = collections.Counter()
+
+    for term in term_counts.keys():
+        #ipdb.set_trace()
+        stem = st.stem_word( term )
+        stem_counts[ stem ] += term_counts[ term ]
+
+    #stems = [ st.stem_word(term) for term in term_counts.elements() ]
+
+    # end_time = time.clock()
+    # print "time {}".format( str(end_time - start_time) )
+
+    # start_time = end_time
+
+    # print 'counting stemms'
+    # stem_counts = collections.Counter( stems )
 
     end_time = time.clock()
-    print "time {}".format( end_time - start_time )
-
-    start_time = end_time
-
-    print 'counting stemms'
-    stem_counts = collections.Counter( stems )
-
-    end_time = time.clock()
-    print "time {}".format( end_time - start_time )
+    print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
 
@@ -185,7 +192,6 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print ret
 
     return ret
-
 
 def main():
 
