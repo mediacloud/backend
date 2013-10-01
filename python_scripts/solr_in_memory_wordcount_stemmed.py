@@ -146,15 +146,6 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
         stem = st.stem_word( term )
         stem_counts[ stem ] += term_counts[ term ]
 
-    #stems = [ st.stem_word(term) for term in term_counts.elements() ]
-
-    # end_time = time.clock()
-    # print "time {}".format( str(end_time - start_time) )
-
-    # start_time = end_time
-
-    # print 'counting stemms'
-    # stem_counts = collections.Counter( stems )
 
     end_time = time.clock()
     print "time {}".format( str(end_time - start_time) )
