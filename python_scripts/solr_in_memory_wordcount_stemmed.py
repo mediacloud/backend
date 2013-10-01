@@ -102,14 +102,45 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     sentences = [ result['sentence'].encode('utf-8').lower() for result in results ]
 
     term_counts = non_stemmed_word_count( sentences )
-    
+
+    sentences = None
+
     st = PorterStemmer()
 
     stems = [ st.stem_word(term) for term in term_counts.elements() ]
 
     stem_counts = collections.Counter( stems )
 
-    return stem_counts.most_common( num_words )
+    stem_to_terms = {}
+    for term in term_counts.keys():
+        stem = st.stem_word( term )
+        if stem not in stem_to_terms:
+            stem_to_terms[ stem ] = []
+
+        stem_to_terms[stem].append( term )
+
+    counts = stem_counts.most_common( num_words )
+
+    ret = [ ]
+    for stem, count in counts:
+        if len( stem_to_terms[ stem ] ) < 2:
+            term = stem_to_terms[ stem][0]
+        else:
+            best_count = 0
+            for possible_best in stem_to_terms[ stem ] :
+                if term_counts[ possible_best ] > best_count:
+                    term = possible_best
+                    best_count = term_counts[ possible_best ]
+
+        ret.append( 
+            { 'stem': stem, 
+              'term': term,
+              'count': count
+              } )
+    
+    print ret
+
+    return ret
 
     results = None
 
