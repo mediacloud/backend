@@ -31,9 +31,9 @@ def _get_word_counts_impl( solr, fq, num_words, q='*:*' ):
     print "{0} matching documents ".format( matching_documents )
 
     if (matching_documents < in_memory_word_count_threshold) and (in_memory_word_count_threshold > 0):
-        print in_memory_word_count_threshold
         return in_memory_word_count(  solr, fq, num_words, q )
     else:
+        raise Exception ("unimplemented")
         return in_solr_word_count( solr, fq, num_words, q )
 
 def in_solr_word_count( solr, fq, num_words, q='*:*' ):
