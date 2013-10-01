@@ -18,6 +18,8 @@ from nltk.stem.porter import PorterStemmer
 import multiprocessing
 from nltk.tokenize import RegexpTokenizer
 
+from joblib import Parallel, delayed
+
 in_memory_word_count_threshold = 0
 
 def fetch_all( solr, fq, query, fields=None ) :
@@ -46,47 +48,28 @@ def fetch_all( solr, fq, query, fields=None ) :
     assert len( documents ) == num_matching_documents
     return documents
 
-def stem_sentences( sentences ):
-    g = open('out_stemmed.txt','w')
-    
-    st = PorterStemmer()
-
-    stemmed_sentences = []
-    lines = 0
-    for line in sentences:
-	    sentence = word_tokenize(line)
-            output = ""
-	    for word in sentence:
-		output += st.stem_word(word)
-		s = str(output)
-
-                output += " "
-                
-		g.write(s + "\n")
-            
-            stemmed_sentences.append( output )
-
-            lines += 1
-            if lines % 1000 == 0 :
-                print "processed {} sentences".format( lines )
-
-    return stemmed_sentences
-
 def tokenize( str ):
     tokenizer = RegexpTokenizer(r'\w+')
     return filter( lambda word : word not in { '-',',','.','!' }, word_tokenize( str ) )
 
 def non_stemmed_word_count( sentences ):
     freq = collections.Counter()
-    tokenizer = RegexpTokenizer(r'\w+')
+
+    print 'tokenizing '
+
+    token_lists = Parallel(n_jobs=-2, verbose=5)(delayed ( tokenize)( sentence) for sentence in sentences )
+
+    print 'done tokenizing'
+
+    print 'counting '
 
     sentences_processed = 0
 
-    for sentence in sentences:
-        freq.update( tokenize(sentence))
+    for token_list in token_lists:
         sentences_processed += 1
         if sentences_processed % 1000 == 0 :
-            print "Stemmed {} ".format( sentences_processed )
+            print "Processed {} ".format( sentences_processed )
+        freq.update( token_list )
     
     return freq
 
