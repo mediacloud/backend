@@ -8,7 +8,7 @@ import pysolr
 import dateutil.parser
 import solr_in_memory_wordcount_stemmed
 
-in_memory_word_count_threshold = 1000000
+in_memory_word_count_threshold = 10000000
 
 def get_word_counts( solr, query, date_str, num_words=1000 ) :
     documents = []
