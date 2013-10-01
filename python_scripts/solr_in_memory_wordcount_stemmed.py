@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import time
+
 import ipdb
 #import time
 #import csv
@@ -77,8 +79,14 @@ def tokenize( str ):
 def non_stemmed_word_count( sentences ):
     freq = collections.Counter()
     tokenizer = RegexpTokenizer(r'\w+')
+
+    sentences_processed = 0
+
     for sentence in sentences:
         freq.update( tokenize(sentence))
+        sentences_processed += 1
+        if sentences_processed % 1000 == 0 :
+            print "Stemmed {} ".format( sentences_processed )
     
     return freq
 
@@ -94,14 +102,28 @@ def solr_connection() :
 
 def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print query
+
+    start_time = time.clock()
+    
     results = fetch_all( solr, fq, query, 'sentence' )
     print "got " + query
     print len( results )
-    
+
+    end_time = time.clock()
+    print "time {}".format( end_time - start_time )
+
+    start_time = end_time
+
     print 'converting to utf8 and lowercasing';
     sentences = [ result['sentence'].encode('utf-8').lower() for result in results ]
 
     results = None
+
+    end_time = time.clock()
+    print "time {}".format( end_time - start_time )
+
+    start_time = end_time
+
 
     print 'calculating non_stemmed_wordcounts'
     term_counts = non_stemmed_word_count( sentences )
@@ -110,12 +132,27 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     st = PorterStemmer()
 
+    end_time = time.clock()
+    print "time {}".format( end_time - start_time )
+
+    start_time = end_time
+
     print 'stemming'
 
     stems = [ st.stem_word(term) for term in term_counts.elements() ]
 
+    end_time = time.clock()
+    print "time {}".format( end_time - start_time )
+
+    start_time = end_time
+
     print 'counting stemms'
     stem_counts = collections.Counter( stems )
+
+    end_time = time.clock()
+    print "time {}".format( end_time - start_time )
+
+    start_time = end_time
 
     print ' calcuating stem to term map '
     stem_to_terms = {}
