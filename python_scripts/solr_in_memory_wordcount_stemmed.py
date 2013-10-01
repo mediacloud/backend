@@ -74,9 +74,7 @@ def non_stemmed_word_count( sentences ):
     pool.join()
 
     end_time = time.clock()
-    start_time = end_time
-
-    print 'done tokenizing'
+     print 'done tokenizing'
     print "time {}".format( str(end_time - start_time) )
 
 
