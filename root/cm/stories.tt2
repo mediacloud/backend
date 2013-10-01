@@ -53,7 +53,7 @@ $(document).ready(function () {
         display_stories_remove_button=1 %]
     
     [% word_cloud_url = c.uri_for( '/admin/cm/search_stories_words', { cdts => cdts.cdts_id, l => live, q => query } ) %]
-    <!-- <a id="boxcommand" href="[% word_cloud_url | html %]">word cloud</a> -->
+    <a id="boxcommand" href="[% word_cloud_url | html %]">word cloud</a>
 
 </div>
 
