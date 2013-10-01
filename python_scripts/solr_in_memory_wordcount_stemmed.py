@@ -98,19 +98,26 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print "got " + query
     print len( results )
     
-    print 'converting in utf8';
+    print 'converting to utf8 and lowercasing';
     sentences = [ result['sentence'].encode('utf-8').lower() for result in results ]
 
+    results = None
+
+    print 'calculating non_stemmed_wordcounts'
     term_counts = non_stemmed_word_count( sentences )
 
     sentences = None
 
     st = PorterStemmer()
 
+    print 'stemming'
+
     stems = [ st.stem_word(term) for term in term_counts.elements() ]
 
+    print 'counting stemms'
     stem_counts = collections.Counter( stems )
 
+    print ' calcuating stem to term map '
     stem_to_terms = {}
     for term in term_counts.keys():
         stem = st.stem_word( term )
@@ -142,16 +149,6 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     return ret
 
-    results = None
-
-    print 'stemming';
-
-    stemmed_sentences = stem_sentences( sentences )
-
-    print 'counting'
-    counts = in_memory_word_count( stemmed_sentences )
-    
-    return counts.most_common( num_words )
 
 def main():
 
