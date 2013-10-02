@@ -80,12 +80,12 @@ def get_frequency_counts( token_lists ):
     
     
 def non_stemmed_word_count( sentences ):
-    freq = collections.Counter()
+    start_time = time.time()
+    non_stemmed_word_count_start_time = start_time
+    print "starting  non_stemmed_word_count "
+    print time.asctime()
 
     print 'tokenizing '
-
-    start_time = time.time()
-
 
    # token_lists = Parallel(n_jobs=8, verbose=5, pre_dispatch='3*n_jobs')(delayed ( tokenize)( sentence) for sentence in sentences )
 
@@ -99,9 +99,6 @@ def non_stemmed_word_count( sentences ):
     end_time = time.time()
     print 'done tokenizing'
     print "time {}".format( str(end_time - start_time) )
-
-
-    sentences_processed = 0
 
     print 'chunking '
     start_time = time.time()
@@ -126,11 +123,14 @@ def non_stemmed_word_count( sentences ):
 
     pool = None
 
+    end_time = time.time()
     print "time {}".format( str(end_time - start_time) )
     print 'done getting freq counts'
 
     print "summing freq_counts "
-    start_time = time.time()
+    start_time = end_time
+
+    freq = collections.Counter()
 
     for freq_count in freq_counts:
         freq += freq_count
@@ -142,6 +142,7 @@ def non_stemmed_word_count( sentences ):
 
     print "Returning"
     print time.asctime()
+    print "total subroution time: {} ".format( end_time - non_stemmed_word_count_start_time )
     return freq
 
 def in_memory_word_count( sentences ):
