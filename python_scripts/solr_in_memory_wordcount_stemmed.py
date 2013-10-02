@@ -12,7 +12,7 @@ import collections
 from collections import defaultdict
 import re
 import nltk
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, regexp_tokenize
 from nltk.stem.lancaster import LancasterStemmer
 from nltk.stem.porter import PorterStemmer
 import multiprocessing
@@ -54,7 +54,7 @@ def fetch_all( solr, fq, query, fields=None ) :
 #tokenizer = RegexpTokenizer(r'\w+')
 
 def tokenize( str ):
-    return filter( lambda word : word not in { '-',',','.','!' }, word_tokenize( str ) )
+    return filter( lambda word : word not in { '-',',','.','!' }, regexp_tokenize(str, r'\w+' ) )
 
 def split_into_chunks( list, partitions ):
     print "starting split_into_chunks"
@@ -167,7 +167,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     start_time = end_time
 
     print 'converting to utf8 and lowercasing';
-    sentences = [ result['sentence'].encode('utf-8').lower() for result in results ]
+    sentences = [ result['sentence'].lower() for result in results ]
 
     results = None
 
