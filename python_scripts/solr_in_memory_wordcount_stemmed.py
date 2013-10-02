@@ -124,6 +124,8 @@ def non_stemmed_word_count( sentences ):
     pool.close()
     pool.join()
 
+    pool = None
+
     print "time {}".format( str(end_time - start_time) )
     print 'done getting freq counts'
 
@@ -134,8 +136,12 @@ def non_stemmed_word_count( sentences ):
         freq += freq_count
 
     end_time = time.time()
+
+    print "done summing freq_counts "
     print "time {}".format( str(end_time - start_time) )
 
+    print "Returning"
+    print time.asctime()
     return freq
 
 def in_memory_word_count( sentences ):
@@ -181,12 +187,18 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print 'calculating non_stemmed_wordcounts'
     term_counts = non_stemmed_word_count( sentences )
 
-    sentences = None
-
-    st = PorterStemmer()
-
+    print "Returned from non_stemmed_word_count"
+    print time.asctime()
     end_time = time.time()
     print "time {}".format( str(end_time - start_time) )
+
+    start_time = end_time
+    print "freeing sentences "
+    sentences = None
+    
+    end_time = time.time()
+    print "time {}".format( str(end_time - start_time) )
+
 
     start_time = end_time
 
@@ -194,6 +206,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     stem_counts = collections.Counter()
 
+    st = PorterStemmer()
     for term in term_counts.keys():
         #ipdb.set_trace()
         stem = st.stem_word( term )
