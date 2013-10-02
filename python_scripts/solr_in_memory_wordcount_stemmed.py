@@ -54,7 +54,8 @@ def fetch_all( solr, fq, query, fields=None ) :
 #tokenizer = RegexpTokenizer(r'\w+')
 
 def tokenize( str ):
-    return filter( lambda word : word not in { '-',',','.','!' }, regexp_tokenize(str, r'\w+' ) )
+#    return filter( lambda word : word not in { '-',',','.','!' }, regexp_tokenize(str, r'\w+' ) )
+    return  filter( lambda word : word not in { '-',',','.','!', 's' },  re.split( r'\W+', str )  )
 
 def split_into_chunks( list, partitions ):
     print "starting split_into_chunks"
