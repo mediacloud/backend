@@ -83,7 +83,7 @@ def non_stemmed_word_count( sentences ):
 
     print 'tokenizing '
 
-    start_time = time.clock()
+    start_time = time.time()
 
 
    # token_lists = Parallel(n_jobs=8, verbose=5, pre_dispatch='3*n_jobs')(delayed ( tokenize)( sentence) for sentence in sentences )
@@ -95,7 +95,7 @@ def non_stemmed_word_count( sentences ):
     pool.close()
     pool.join()
 
-    end_time = time.clock()
+    end_time = time.time()
     print 'done tokenizing'
     print "time {}".format( str(end_time - start_time) )
 
@@ -103,11 +103,11 @@ def non_stemmed_word_count( sentences ):
     sentences_processed = 0
 
     print 'chunking '
-    start_time = time.clock()
+    start_time = time.time()
 
     chunks = split_into_chunks( token_lists, 20 )
 
-    end_time = time.clock()
+    end_time = time.time()
 
     print 'done chunking '
     print "time {}".format( str(end_time - start_time) )
@@ -115,7 +115,7 @@ def non_stemmed_word_count( sentences ):
 
     print 'getting freq counts'
 
-    start_time = time.clock()
+    start_time = time.time()
     pool =  multiprocessing.Pool() 
 
     freq_counts = pool.map( get_frequency_counts, chunks )
@@ -127,12 +127,12 @@ def non_stemmed_word_count( sentences ):
     print 'done getting freq counts'
 
     print "summing freq_counts "
-    start_time = time.clock()
+    start_time = time.time()
 
     for freq_count in freq_counts:
         freq += freq_count
 
-    end_time = time.clock()
+    end_time = time.time()
     print "time {}".format( str(end_time - start_time) )
 
     return freq
@@ -152,7 +152,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     print str(time.asctime())
 
-    start_time = time.clock()
+    start_time = time.time()
 
     function_start_time = start_time
     
@@ -161,7 +161,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print len( results )
     print time.asctime()
 
-    end_time = time.clock()
+    end_time = time.time()
     print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
@@ -171,7 +171,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     results = None
 
-    end_time = time.clock()
+    end_time = time.time()
     print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
@@ -184,7 +184,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     st = PorterStemmer()
 
-    end_time = time.clock()
+    end_time = time.time()
     print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
@@ -199,7 +199,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
         stem_counts[ stem ] += term_counts[ term ]
 
 
-    end_time = time.clock()
+    end_time = time.time()
     print "done stemming and counting "
     print "time {}".format( str(end_time - start_time) )
 
@@ -238,7 +238,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
               } )
 
 
-    end_time  = time.clock()
+    end_time  = time.time()
     print "total time {}".format( str(end_time - function_start_time) )
 
     return ret
