@@ -100,29 +100,40 @@ def non_stemmed_word_count( sentences ):
     print "time {}".format( str(end_time - start_time) )
 
 
-    print 'counting '
-   
     sentences_processed = 0
 
     print 'chunking '
+    start_time = time.clock()
 
     chunks = split_into_chunks( token_lists, 20 )
 
-    print 'done chunking '
+    end_time = time.clock()
 
-    pool =  multiprocessing.Pool() 
+    print 'done chunking '
+    print "time {}".format( str(end_time - start_time) )
+
 
     print 'getting freq counts'
+
+    start_time = time.clock()
+    pool =  multiprocessing.Pool() 
 
     freq_counts = pool.map( get_frequency_counts, chunks )
 
     pool.close()
     pool.join()
 
+    print "time {}".format( str(end_time - start_time) )
     print 'done getting freq counts'
+
+    print "summing freq_counts "
+    start_time = time.clock()
 
     for freq_count in freq_counts:
         freq += freq_count
+
+    end_time = time.clock()
+    print "time {}".format( str(end_time - start_time) )
 
     return freq
 
@@ -139,11 +150,16 @@ def solr_connection() :
 def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
     print query
 
+    print str(time.asctime())
+
     start_time = time.clock()
+
+    function_start_time = start_time
     
     results = fetch_all( solr, fq, query, 'sentence' )
     print "got " + query
     print len( results )
+    print time.asctime()
 
     end_time = time.clock()
     print "time {}".format( str(end_time - start_time) )
@@ -173,7 +189,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     start_time = end_time
 
-    print 'stemming'
+    print 'stemming and counting'
 
     stem_counts = collections.Counter()
 
@@ -184,6 +200,7 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
 
     end_time = time.clock()
+    print "done stemming and counting "
     print "time {}".format( str(end_time - start_time) )
 
     start_time = end_time
@@ -196,6 +213,10 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
             stem_to_terms[ stem ] = []
 
         stem_to_terms[stem].append( term )
+
+    print "done calcuating stem to term map "
+    print "time {}".format( str(end_time - start_time) )
+
 
     counts = stem_counts.most_common( num_words )
 
@@ -215,8 +236,10 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
               'term': term,
               'count': count
               } )
-    
-    print ret
+
+
+    end_time  = time.clock()
+    print "total time {}".format( str(end_time - function_start_time) )
 
     return ret
 
