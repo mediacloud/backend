@@ -20,7 +20,7 @@ def word_count():
     if not num_words:
         num_words = 500
 
-    print "num_words: {0} q:{1} fq:{2}".format( num_words, q, fq )
+    print "num_words: {0} q={1} fq={2}".format( num_words, q, fq )
 
     key = get_key( q, fq, num_words )
 
