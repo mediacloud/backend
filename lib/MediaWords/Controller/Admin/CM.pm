@@ -6,6 +6,7 @@ use strict;
 use warnings;
 
 use Digest::MD5;
+use JSON;
 use List::Compare;
 
 use MediaWords::CM::Dump;
@@ -873,51 +874,153 @@ END
     }
 }
 
+sub _get_doc_count_from_solr
+{
+    my ( $solr_query_params ) = @_;
+
+    my $ua = MediaWords::Util::Web::UserAgent();
+
+    $ua->timeout( 300 );
+
+    my $url = "http://localhost:8983/solr/collection1/select";
+
+    my $params = { %{ $solr_query_params } };
+    $params->{ rows } = 0;
+    $params->{ wt }   = 'json';
+
+    print STDERR Dumper( $params );
+
+    my $res = $ua->post( $url, $params );
+
+    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
+
+    my $content = $res->content;
+    print STDERR $content;
+
+    my $data = from_json( $res->content, { utf8 => 1 } );
+
+    die( "Unable to parse json" ) unless ( ( ref( $data ) eq 'HASH' ) && ( $data->{ response } ) );
+
+    return $data->{ response }->{ numFound };
+}
+
+# get sorted list of words from solr
+sub _get_words_from_solr
+{
+    my ( $solr_query_params ) = @_;
+
+    my $ua = MediaWords::Util::Web::UserAgent();
+
+    $ua->timeout( 300 );
+
+    my $url = "http://localhost:8080/wc";
+
+    print STDERR Dumper( $solr_query_params );
+
+    my $res = $ua->post( $url, $solr_query_params );
+
+    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
+
+    my $content = $res->content;
+    print STDERR $content;
+
+    my $words = from_json( $res->content, { utf8 => 1 } );
+
+    die( "Unable to parse json" ) unless ( ( ref( $words ) eq 'HASH' ) && ( $words->{ words } ) );
+
+    $words = $words->{ words };
+
+    my $stopstems = MediaWords::Languages::Language::language_for_code( 'en' )->get_long_stop_word_stems();
+
+    # print STDERR Dumper( $stopstems );
+
+    my $stopworded_words = [];
+    for my $word ( @{ $words } )
+    {
+        if ( ( length( $word->{ stem } ) > 1 ) && !$stopstems->{ $word->{ stem } } )
+        {
+            push( @{ $stopworded_words }, $word );
+        }
+    }
+
+    return $stopworded_words;
+}
+
 # get the top 1000 words used by the given set of stories, sorted by tfidf against all words
 # in the controversy
-sub _get_story_words ($$$)
+sub _get_story_words ($$$$)
 {
-    my ( $db, $c, $stories ) = @_;
+    my ( $db, $c, $stories, $controversy ) = @_;
 
     my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
 
-    my $order_by = $c->req->params->{ raw_word_count } ? 'stem_count' : 'tfidf';
     my $num_words = int( log( scalar( @{ $stories } ) + 1 ) * 100 );
     $num_words = ( $num_words < 1000 ) ? $num_words : 1000;
 
-    # make sure the query planner knows that dump_period_stories is relatively small.
-    $db->query( "analyze dump_period_stories" );
+    my $tag = MediaWords::Util::Tags::lookup_tag( $db, "controversy_$controversy->{ name }:all" );
 
-    $db->query( <<END );
-create table web_story_words as
-    select ssw.stem, min( ssw.term ) term, sum( stem_count ) stem_count
-        from story_sentence_words ssw
-        where 
-            ssw.stories_id in ( $stories_id_list ) and
-            not is_stop_stem( 'short', ssw.stem, null::text )
-        group by ssw.stem
-        order by stem_count desc
-        limit $num_words
-END
+    die( "Unable to find controversy tag" ) unless ( $tag );
 
-    my $words = $db->query( <<END )->hashes;
-select query.stem, query.term, ( query.stem_count::float / corpus.stem_count::float )::float tfidf, 
-        query.stem_count query_stem_count, corpus.stem_count corpus_stem_count
-    from 
-        web_story_words query
-        join
-            ( 
-                select ssw.stem, sum( ssw.stem_count ) stem_count
-                    from story_sentence_words ssw
-                    where
-                        ssw.stem in ( select stem from web_story_words ) and
-                        ssw.stories_id in ( select stories_id from dump_period_stories )
-                    group by ssw.stem
-            ) corpus on query.stem = corpus.stem
-    order by $order_by desc
-END
+    my $stories_solr_query = "stories_id:(" . join( ' ', map { $_->{ stories_id } } @{ $stories } ) . ")";
+    my $story_words = _get_words_from_solr( { q => $stories_solr_query } );
 
-    return $words;
+    splice( @{ $story_words }, $num_words );
+
+    # print STDERR Dumper( $story_words );
+    #
+    # my $controversy_solr_query = "tags_id_stories:" . $tag->{ tags_id };
+    # #my $controversy_solr_query = "tags_id_stories:8875839";
+    # my $controversy_words = _get_words_from_solr( { q => $controversy_solr_query } );
+    #
+    # print STDERR Dumper( $controversy_words );
+    #
+    # return [] unless ( @{ $story_words } && @{ $controversy_words } );
+    #
+    # my $controversy_words_lookup = {};
+    # map { $controversy_words_lookup->{ $_->{ stem } } = $_->{ count } } @{ $controversy_words };
+    #
+    # my $missing_controversy_words = [];
+    # for my $story_word ( @{ $story_words } )
+    # {
+    #     if ( !$controversy_words_lookup->{ $story_word->{ stem } } )
+    #     {
+    #         push( @{ $missing_controversy_words }, $story_word->{ term } );
+    #     }
+    # }
+    #
+    # my $missing_words_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND " .
+    #     "+sentence:(" . join( ' ', @{ $missing_controversy_words } ) . ")";
+    # my $missing_words = _get_words_from_solr( { q => $missing_words_query } );
+    # for my $missing_word ( @{ $missing_words } )
+    # {
+    #     if ( grep { $missing_word->{ stem } eq $_ } @{ $missing_controversy_words } )
+    #     {
+    #         $controversy_words_lookup->{ $missing_word->{ stem } } = $missing_word->{ count };
+    #     }
+    # }
+    #
+    for my $story_word ( @{ $story_words } )
+    {
+        my $solr_df_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND +sentence:" . $story_word->{ term };
+        my $df = _get_doc_count_from_solr( { q => $solr_df_query } );
+
+        if ( $df )
+        {
+            $story_word->{ tfidf }       = $story_word->{ count } / $df;
+            $story_word->{ total_count } = $df;
+        }
+        else
+        {
+            $story_word->{ tfidf } = 0;
+        }
+    }
+
+    if ( !$c->req->params->{ raw_word_count } )
+    {
+        @{ $story_words } = sort { $b->{ tfidf } <=> $a->{ tfidf } } @{ $story_words };
+    }
+
+    return $story_words;
 }
 
 # display a word cloud of story search results
@@ -967,7 +1070,7 @@ END
 
     map { _add_story_date_info( $db, $_ ) } @{ $stories };
 
-    $c->stash->{ words } = _get_story_words( $db, $c, $stories ) if ( $c->stash->{ generate_words } );
+    $c->stash->{ words } = _get_story_words( $db, $c, $stories, $controversy ) if ( $c->stash->{ generate_words } );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
