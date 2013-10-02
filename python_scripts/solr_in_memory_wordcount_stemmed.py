@@ -56,6 +56,28 @@ def fetch_all( solr, fq, query, fields=None ) :
 def tokenize( str ):
     return filter( lambda word : word not in { '-',',','.','!' }, word_tokenize( str ) )
 
+def split_into_chunks( list, partitions ):
+    print "starting split_into_chunks"
+    partition_size = len( list ) / partitions
+    chunks = [ list[start:start+partition_size] for start in xrange( 0, len(list), partition_size ) ]
+
+    print "returning from split_into_chunks"
+    return chunks
+
+def get_frequency_counts( token_lists ):
+
+    sentences_processed = 0
+    freq = collections.Counter()
+
+    for token_list in token_lists:
+        #sentences_processed += 1
+        #if sentences_processed % 10000 == 0 :
+        #    print "Processed {} ".format( sentences_processed )
+        freq.update( token_list )
+
+    return freq
+    
+    
 def non_stemmed_word_count( sentences ):
     freq = collections.Counter()
 
@@ -74,27 +96,34 @@ def non_stemmed_word_count( sentences ):
     pool.join()
 
     end_time = time.clock()
-     print 'done tokenizing'
+    print 'done tokenizing'
     print "time {}".format( str(end_time - start_time) )
 
 
     print 'counting '
-
+   
     sentences_processed = 0
 
-    for token_list in token_lists:
-        sentences_processed += 1
-        if sentences_processed % 10000 == 0 :
-            print "Processed {} ".format( sentences_processed )
-        freq.update( token_list )
+    print 'chunking '
 
-    end_time = time.clock()
-    start_time = end_time
+    chunks = split_into_chunks( token_lists, 20 )
 
-    print 'counting'
-    print "time {}".format( str(end_time - start_time) )
+    print 'done chunking '
 
-    
+    pool =  multiprocessing.Pool() 
+
+    print 'getting freq counts'
+
+    freq_counts = pool.map( get_frequency_counts, chunks )
+
+    pool.close()
+    pool.join()
+
+    print 'done getting freq counts'
+
+    for freq_count in freq_counts:
+        freq += freq_count
+
     return freq
 
 def in_memory_word_count( sentences ):
