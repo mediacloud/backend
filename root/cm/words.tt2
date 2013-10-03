@@ -8,7 +8,6 @@
     in [% cdts_date_range %] Time Slice
 [% END %]
 
-[% IF c.req.params.raw_word_count %]
     <a id="boxcommand" href="[% remove_stories_url | html %]">remove all</a>        
 </div>
 
@@ -31,14 +30,14 @@
 
         <td>[% w.term | html %]</td>
         <td>[% w.tfidf | html %]</td>
-        <td>[% w.query_stem_count | html %]</td>
-        <td>[% w.corpus_stem_count | html %]</td>
+        <td>[% w.count | html %]</td>
+        <td>[% w.total_count | html %]</td>
         <td>[% w.stem | html %]</td>
 
     </tr>
 
     [% SET even = !even %]
-    [% END # FOREACH s -%]
+[% END # FOREACH s -%]
 
 </table>
 
