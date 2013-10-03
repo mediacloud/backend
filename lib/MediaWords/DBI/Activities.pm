@@ -262,11 +262,21 @@ Readonly::Hash my %ACTIVITIES => {
         description => 'Edit a story',
         object_id   => {
 
-            # Note: because this activity is *not* referenced by its
-            # controversy.controversies_id, it won't be visible in the CM
-            # activity listing
             description => 'Story ID that was edited',
-            references  => 'stories.stories_id'
+            references  => 'stories.stories_id',
+
+            foreign_reference_subqueries => {
+                'controversies.controversies_id' => <<EOF
+
+                    SELECT DISTINCT activities.activities_id
+                    FROM activities
+                        INNER JOIN controversy_stories
+                            ON activities.object_id = controversy_stories.stories_id
+                    WHERE activities.name = 'story_edit'
+                      AND controversy_stories.controversies_id = ?
+EOF
+              }
+
         },
         parameters => {
             'field' => {
@@ -281,11 +291,23 @@ Readonly::Hash my %ACTIVITIES => {
         description => 'Edit a medium',
         object_id   => {
 
-            # Note: because this activity is *not* referenced by its
-            # controversy.controversies_id, it won't be visible in the CM
-            # activity listing
             description => 'Media ID that was edited',
-            references  => 'media.media_id'
+            references  => 'media.media_id',
+
+            foreign_reference_subqueries => {
+                'controversies.controversies_id' => <<EOF
+
+                    SELECT DISTINCT activities.activities_id
+                    FROM activities
+                        INNER JOIN stories
+                            ON activities.object_id = stories.media_id
+                        INNER JOIN controversy_stories
+                            ON stories.stories_id = controversy_stories.stories_id
+                    WHERE activities.name = 'media_edit'
+                      AND controversy_stories.controversies_id = ?
+EOF
+              }
+
         },
         parameters => {
             'field'     => { description => 'Database field that was edited' },
@@ -579,14 +601,14 @@ sub activity($)
     return $ACTIVITIES{ $activity_name };
 }
 
-=head2 (static) C<activities_which_reference_column($column_name)>
+=head2 (static) C<activities_which_directly_reference_column($column_name)>
 
-Return an array of activity names for which the object ID references a specific
-table (e.g. C<controversies.controversies_id>).
+Return an array of activity names for which the object ID directly references
+a specific table (e.g. C<controversies.controversies_id>).
 
 =cut
 
-sub activities_which_reference_column($)
+sub activities_which_directly_reference_column($)
 {
     my $column_name = shift;
 
@@ -599,6 +621,39 @@ sub activities_which_reference_column($)
             if ( $activity->{ object_id }->{ references } eq $column_name )
             {
                 push( @activities, $activity_name );
+            }
+        }
+    }
+
+    return @activities;
+}
+
+=head2 (static) C<activities_which_can_reference_column_with_subquery($column_name)>
+
+Return an array of activity names for which the object ID is not referenced
+directly but can be referenced using a subquery (e.g. referencing C<story_edit>
+and C<media_edit> actions from C<controversies.controversies_id>).
+
+=cut
+
+sub activities_which_can_reference_column_with_subquery($)
+{
+    my $column_name = shift;
+
+    my @activities;
+    foreach my $activity_name ( %ACTIVITIES )
+    {
+        my $activity = $ACTIVITIES{ $activity_name };
+        if ( defined $activity->{ object_id }->{ references } )
+        {
+            # Not referenced directly...
+            unless ( $activity->{ object_id }->{ references } eq $column_name )
+            {
+                # ...but using a subquery
+                if ( defined $activity->{ object_id }->{ foreign_reference_subqueries }{ $column_name } )
+                {
+                    push( @activities, $activity_name );
+                }
             }
         }
     }
