@@ -55,7 +55,7 @@ def fetch_all( solr, fq, query, fields=None ) :
 
 def tokenize( str ):
 #    return filter( lambda word : word not in { '-',',','.','!' }, regexp_tokenize(str, r'\w+' ) )
-    return  filter( lambda word : word not in { '-',',','.','!', 's' },  re.split( r'\W+', str )  )
+    return re.split( r'[\W\']+', str ) 
 
 def split_into_chunks( list, partitions ):
     print "starting split_into_chunks"
@@ -187,6 +187,9 @@ def get_word_counts( solr, fq, query, num_words, field='sentence' ) :
 
     print 'calculating non_stemmed_wordcounts'
     term_counts = non_stemmed_word_count( sentences )
+
+    if '' in term_counts:
+        del term_counts['']
 
     print "Returned from non_stemmed_word_count"
     print time.asctime()
