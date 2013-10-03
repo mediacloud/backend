@@ -9,6 +9,7 @@
         <th>activity</th>
         <th>date</th>
         <th>user</th>
+        <th>object ID</th>
         <th>description</th>
     </tr>
 
@@ -24,9 +25,16 @@
                 <td>[% activity.creation_date %]</td>
                 <td>[% activity.user_identifier %]</td>
                 <td>
+                    [% IF activity.activity.object_id.references %]
+                        <abbr title="[% activity.activity.object_id.description | html %]">[% activity.activity.object_id.references | html %]</abbr>
+                    [% ELSE %]
+                        [% activity.activity.object_id.description | html %]
+                    [% END %]
+                    = "[% activity.object_id | html %]"</td>
+                <td>
                     <ul>
                         [% FOREACH key IN activity.description.keys %]
-                            <li><abbr title="[% activity.activity.parameters.$key.description %]">[% key %]</abbr> = "[% activity.description.$key %]"</li>
+                            <li><abbr title="[% activity.activity.parameters.$key.description | html %]">[% key | html %]</abbr> = "[% activity.description.$key | html %]"</li>
                         [% END %]
                     </ul>
                 </td>
