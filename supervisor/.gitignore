@@ -1,0 +1,7 @@
+# Ignore files created by supervisord
+supervisord.pid
+supervisord.sock
+
+# Ignore custom user configuration
+supervisord.user.*.conf
+
