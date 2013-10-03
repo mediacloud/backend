@@ -98,34 +98,37 @@ to what the object ID refers to and parameters.
 
 All activities that are logged *must* be added to this hash.
 
-To add a new activity, add a sub-entry to this hash using the example below.
+To add a new activity, add a sub-entry to this hash using the example of
+"cm_remove_story_from_controversy".
 
-Example:
+=cut
+
+Readonly::Hash my %ACTIVITIES => {
 
     # Activity name that identifies the activity:
     'cm_remove_story_from_controversy' => {
 
-        # Human-readable description of the activity that is going to be presented
-        # in the web UI
+        # Human-readable description of the activity that is going to be
+        # presented in the web UI
         description => 'Remove story from a controversy',
 
-        # Logged activity may provide an integer "object ID" which identifies the
-        # object that was changed by the activity.
+        # Logged activity may provide an integer "object ID" which identifies
+        # the object that was changed by the activity.
         #
         # For example, an object ID should probably contain a story ID
         # (stories.stories_id) if the activity is a story edit.
-        object_id   => {
+        object_id => {
 
             # Human-readable description of the object ID
             description => 'Controversy ID from which the story was removed',
 
             # (optional) Table and column that the object ID references
-            references  => 'controversies.controversies_id'
+            references => 'controversies.controversies_id'
         },
 
-        # Logged activity may provide other parameters that describe the particular
-        # activity in better detail. These parameters are going to be encoded in
-        # JSON and stored as an activity's description.
+        # Logged activity may provide other parameters that describe the
+        # particular activity in better detail. These parameters are going to
+        # be encoded in JSON and stored as an activity's description.
         parameters => {
 
             # JSON key of the parameter
@@ -136,27 +139,7 @@ Example:
 
                 # (optional) Table and column that the value of the parameter
                 # references
-                references  => 'stories.stories_id'
-            },
-            <...>
-        }
-    },
-    <...>
-
-=cut
-
-Readonly::Hash my %ACTIVITIES => {
-
-    'cm_remove_story_from_controversy' => {
-        description => 'Remove story from a controversy',
-        object_id   => {
-            description => 'Controversy ID from which the story was removed',
-            references  => 'controversies.controversies_id'
-        },
-        parameters => {
-            'stories_id' => {
-                description => 'Story ID that was removed from the controversy',
-                references  => 'stories.stories_id'
+                references => 'stories.stories_id'
             },
             'cdts_id' => {
                 description => 'Controversy dump time slice',
