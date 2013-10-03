@@ -132,45 +132,13 @@ END
     # Latest activities
     my Readonly $LATEST_ACTIVITIES_COUNT = 20;
 
-    my @direct_controversy_activities =
-      MediaWords::DBI::Activities::activities_which_directly_reference_column( 'controversies.controversies_id' );
-    my $sql_direct_controversy_activities = "'" . join( "', '", @direct_controversy_activities ) . "'";
+    # Latest activities which directly or indirectly reference "controversies.controversies_id" = $controversies_id
+    my $sql_latest_activities =
+      MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
+        $controversies_id );
+    $sql_latest_activities .= ' LIMIT ?';
 
-    my @indirect_controversy_activities =
-      MediaWords::DBI::Activities::activities_which_can_reference_column_with_subquery( 'controversies.controversies_id' );
-    my @sql_indirect_controversy_activities;
-    foreach my $indirect_controversy_activity ( @indirect_controversy_activities )
-    {
-        my $activity                          = MediaWords::DBI::Activities::activity( $indirect_controversy_activity );
-        my $sql_indirect_controversy_activity = '';
-        $sql_indirect_controversy_activity .= "(name = '$indirect_controversy_activity' AND ";
-        my $subquery = $activity->{ object_id }->{ foreign_reference_subqueries }{ 'controversies.controversies_id' };
-        $subquery =~ s/\?/$controversies_id/gs;
-        $sql_indirect_controversy_activity .= 'activities_id IN (' . $subquery . '))';
-        push( @sql_indirect_controversy_activities, $sql_indirect_controversy_activity );
-    }
-
-    my $sql_indirect_controversy_activities_subquery = '';
-    if ( scalar @sql_indirect_controversy_activities > 0 )
-    {
-        $sql_indirect_controversy_activities_subquery = ' OR ' . join( ' OR ', @sql_indirect_controversy_activities );
-    }
-
-    my $sql_latest_activities = <<"EOF";
-        SELECT *
-        FROM activities
-        WHERE
-            -- Direct references
-            (name IN ($sql_direct_controversy_activities) AND object_id = ?)
-
-            -- Indirect references
-            $sql_indirect_controversy_activities_subquery
-
-        ORDER BY creation_date DESC
-        LIMIT ?
-EOF
-
-    my $latest_activities = $db->query( $sql_latest_activities, $controversies_id, $LATEST_ACTIVITIES_COUNT )->hashes;
+    my $latest_activities = $db->query( $sql_latest_activities, $LATEST_ACTIVITIES_COUNT )->hashes;
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.
@@ -1613,44 +1581,12 @@ END
         $controversies_id
     )->hash;
 
-    my @direct_controversy_activities =
-      MediaWords::DBI::Activities::activities_which_directly_reference_column( 'controversies.controversies_id' );
-    my $sql_direct_controversy_activities = "'" . join( "', '", @direct_controversy_activities ) . "'";
+    # Activities which directly or indirectly reference "controversies.controversies_id" = $controversies_id
+    my $sql_activities =
+      MediaWords::DBI::Activities::sql_activities_which_reference_column( 'controversies.controversies_id',
+        $controversies_id );
 
-    my @indirect_controversy_activities =
-      MediaWords::DBI::Activities::activities_which_can_reference_column_with_subquery( 'controversies.controversies_id' );
-    my @sql_indirect_controversy_activities;
-    foreach my $indirect_controversy_activity ( @indirect_controversy_activities )
-    {
-        my $activity                          = MediaWords::DBI::Activities::activity( $indirect_controversy_activity );
-        my $sql_indirect_controversy_activity = '';
-        $sql_indirect_controversy_activity .= "(name = '$indirect_controversy_activity' AND ";
-        my $subquery = $activity->{ object_id }->{ foreign_reference_subqueries }{ 'controversies.controversies_id' };
-        $subquery =~ s/\?/$controversies_id/gs;
-        $sql_indirect_controversy_activity .= 'activities_id IN (' . $subquery . '))';
-        push( @sql_indirect_controversy_activities, $sql_indirect_controversy_activity );
-    }
-
-    my $sql_indirect_controversy_activities_subquery = '';
-    if ( scalar @sql_indirect_controversy_activities > 0 )
-    {
-        $sql_indirect_controversy_activities_subquery = ' OR ' . join( ' OR ', @sql_indirect_controversy_activities );
-    }
-
-    my $sql_activities = <<"EOF";
-        SELECT *
-        FROM activities
-        WHERE
-            -- Direct references
-            (name IN ($sql_direct_controversy_activities) AND object_id = ?)
-
-            -- Indirect references
-            $sql_indirect_controversy_activities_subquery
-
-        ORDER BY creation_date DESC
-EOF
-
-    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, [ $controversies_id ], $p, ROWS_PER_PAGE );
+    my ( $activities, $pager ) = $c->dbis->query_paged_hashes( $sql_activities, [], $p, ROWS_PER_PAGE );
 
     # FIXME put activity preparation (JSON decoding, description fetching) into
     # a subroutine in order to not repeat oneself.

@@ -89,6 +89,8 @@ use MediaWords::CommonLibs;
 
 use JSON;
 
+my Readonly $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER = '##OBJECT_ID##';
+
 =head1 LIST OF ACTIVITIES
 
 =head2 (static) C<%ACTIVITIES>
@@ -100,6 +102,9 @@ All activities that are logged *must* be added to this hash.
 
 To add a new activity, add a sub-entry to this hash using the example of
 "cm_remove_story_from_controversy".
+
+Also see "media_edit" and "story_edit" activities below for an example of how
+the activity can be referenced by a foreign key.
 
 =cut
 
@@ -265,7 +270,19 @@ Readonly::Hash my %ACTIVITIES => {
             description => 'Story ID that was edited',
             references  => 'stories.stories_id',
 
+            # To reference activities by a foreign key (e.g. story edits by the
+            # controversies to which they belong), you can add a subquery
+            # (subqueries) here to let the activities package know how to use
+            # those foreign keys.
             foreign_reference_subqueries => {
+
+                # Key: foreign table and column that will be used to reference
+                # an activity
+                #
+                # Value: SQL query that returns a list of
+                # "activities.activities_id" for the foreign key. The SQL query
+                # will be used as a subquery to get a list of valid activities
+                # for the foreign key.
                 'controversies.controversies_id' => <<EOF
 
                     SELECT DISTINCT activities.activities_id
@@ -273,7 +290,7 @@ Readonly::Hash my %ACTIVITIES => {
                         INNER JOIN controversy_stories
                             ON activities.object_id = controversy_stories.stories_id
                     WHERE activities.name = 'story_edit'
-                      AND controversy_stories.controversies_id = ?
+                      AND controversy_stories.controversies_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
 EOF
               }
 
@@ -304,7 +321,7 @@ EOF
                         INNER JOIN controversy_stories
                             ON stories.stories_id = controversy_stories.stories_id
                     WHERE activities.name = 'media_edit'
-                      AND controversy_stories.controversies_id = ?
+                      AND controversy_stories.controversies_id = $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER
 EOF
               }
 
@@ -659,6 +676,86 @@ sub activities_which_can_reference_column_with_subquery($)
     }
 
     return @activities;
+}
+
+=head2 (static) C<sql_activities_which_reference_column($column_name, $object_id)>
+
+Return a SQL query that, when executed, would return:
+
+=over 4
+
+=item * activities that can be directly referenced by their object ID, e.g.
+C<cm_mine_controversy> for column name C<controversies.controversies_id>, and
+
+=item * activities that can be indirectly referenced by a foreign key using a
+SQL subquery, e.g. C<story_edit> for a column name
+C<controversies.controversies_id>.
+
+=back
+
+Parameters:
+
+=over 4
+
+=item * Column name as present in C<%ACTIVITIES> hash (e.g.
+C<controversies.controversies_id>).
+
+=item * Object ID value (e.g. controversies ID) by which the activities should
+be matched.
+
+=back
+
+Returns ready-to-run SQL query.
+
+=cut
+
+sub sql_activities_which_reference_column($$)
+{
+    my ( $column_name, $object_id ) = @_;
+
+    $object_id = $object_id + 0;
+
+    # Activities which directly reference $column_name
+    my @direct_activities = activities_which_directly_reference_column( $column_name );
+    my $sql_direct_activities = "'" . join( "', '", @direct_activities ) . "'";
+
+    # Activities which reference $column_name with subquery
+    my @indirect_activities = activities_which_can_reference_column_with_subquery( $column_name );
+    my @sql_indirect_activity_statements;
+    foreach my $indirect_activity ( @indirect_activities )
+    {
+        my $activity = activity( $indirect_activity );
+
+        my $subquery = $activity->{ object_id }->{ foreign_reference_subqueries }{ $column_name };
+        $subquery =~ s/$ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER/$object_id/gs;
+
+        my $sql_indirect_activity = '';
+        $sql_indirect_activity .= "(name = '$indirect_activity' AND ";
+        $sql_indirect_activity .= 'activities_id IN (' . $subquery . '))';
+
+        push( @sql_indirect_activity_statements, $sql_indirect_activity );
+    }
+
+    my $sql_indirect_activities = '';
+    if ( scalar @sql_indirect_activity_statements > 0 )
+    {
+        $sql_indirect_activities = ' OR ' . join( ' OR ', @sql_indirect_activity_statements );
+    }
+
+    my $sql_activities = <<"EOF";
+        SELECT *
+        FROM activities
+        WHERE
+            -- Direct references
+            (name IN ($sql_direct_activities) AND object_id = $object_id)
+
+            -- Indirect references
+            $sql_indirect_activities
+
+        ORDER BY creation_date DESC
+EOF
+
+    return $sql_activities;
 }
 
 1;
