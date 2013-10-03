@@ -8,7 +8,6 @@
     in [% cdts_date_range %] Time Slice
 [% END %]
 
-    <a id="boxcommand" href="[% remove_stories_url | html %]">remove all</a>        
 </div>
 
 <table>

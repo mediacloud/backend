@@ -175,3 +175,9 @@ database:
     
     # number of times to run each controversy_dump_time_slice model in MediaWords::CM::Model
     # controversy_model_reps: 25
+    
+    # url for solr word counting url
+    # solr_wc_url: http://localhost:8080/wc
+    
+    # url for solr queries
+    # solr_select_url: http://localhost:8983/solr/collection1/select

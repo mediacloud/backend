@@ -11,6 +11,7 @@ use List::Compare;
 
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
+use MediaWords::Solr;
 
 use base 'Catalyst::Controller::HTML::FormFu';
 
@@ -808,100 +809,23 @@ sub story : Local
 }
 
 # get the text for a sql query that returns all of the story ids that
-# match the given search query.  the search query uses a simplistic
-# plan of removing quote characters, splitting the line on spaces,
-# and finding all stories that include sentences that match all
-# of the given terms
+# match the given search query within solr.
 sub _get_stories_id_search_query
 {
     my ( $db, $q ) = @_;
 
-    $q ||= '';
+    $q =~ s/^\s+//;
+    $q =~ s/\s+$//;
 
-    $q =~ s/['"%]//g;
+    return 'select stories_id from dump_story_link_counts' unless ( $q );
 
-    my $terms = [ split( /\s/, $q ) ];
+    my $period_stories_ids = $db->query( "select stories_id from dump_story_link_counts" )->flat;
 
-    return 'select stories_id from dump_story_link_counts' unless ( @{ $terms } );
+    my $stories_clause = "stories_id:(" . join( ' ', @{ $period_stories_ids } ) . ")";
 
-    my $queries = [];
-    for my $term ( @{ $terms } )
-    {
-        my $qterm = $db->dbh->quote( lc( "%${ term }%" ) );
-        my $query = <<END;
-select slc.stories_id 
-    from dump_story_link_counts slc
-        join dump_stories s on ( s.stories_id = slc.stories_id )
-        join dump_media m on ( s.media_id = m.media_id )
-    where ( lower( s.title ) like $qterm or
-            lower( s.url ) like $qterm or 
-            lower( m.url ) like $qterm or
-            lower( m.name ) like $qterm )
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( { q => $q, fq => $stories_clause } );
 
-union
-
-select slc.stories_id 
-    from dump_story_link_counts slc
-        join stories_tags_map stm on ( slc.stories_id = stm.stories_id )
-        join tags t on ( stm.tags_id = t.tags_id )                
-    where ( lower( t.tag ) like $qterm )
-END
-        push( @{ $queries }, $query );
-    }
-
-    return join( ' intersect ', map { "( $_ )" } @{ $queries } );
-}
-
-# if the serach query is a number and returns a story in the controversy,
-# add the story to the beginning of the search results
-sub _add_id_story_to_search_results ($$$)
-{
-    my ( $db, $stories, $query ) = @_;
-
-    return unless ( $query =~ /^[0-9]+$/ );
-
-    my $id_story = $db->query( <<END, $query )->hash;
-select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
-    from dump_stories s
-        join dump_story_link_counts slc on ( s.stories_id = slc.stories_id )
-        join dump_media m on ( s.media_id = m.media_id )
-     where s.stories_id = ?
-END
-
-    if ( $id_story )
-    {
-        unshift( @{ $stories }, $id_story );
-    }
-}
-
-sub _get_doc_count_from_solr
-{
-    my ( $solr_query_params ) = @_;
-
-    my $ua = MediaWords::Util::Web::UserAgent();
-
-    $ua->timeout( 300 );
-
-    my $url = "http://localhost:8983/solr/collection1/select";
-
-    my $params = { %{ $solr_query_params } };
-    $params->{ rows } = 0;
-    $params->{ wt }   = 'json';
-
-    print STDERR Dumper( $params );
-
-    my $res = $ua->post( $url, $params );
-
-    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
-
-    my $content = $res->content;
-    print STDERR $content;
-
-    my $data = from_json( $res->content, { utf8 => 1 } );
-
-    die( "Unable to parse json" ) unless ( ( ref( $data ) eq 'HASH' ) && ( $data->{ response } ) );
-
-    return $data->{ response }->{ numFound };
+    return @{ $stories_ids } ? join( ',', @{ $stories_ids } ) : -1;
 }
 
 # get sorted list of words from solr
@@ -913,16 +837,11 @@ sub _get_words_from_solr
 
     $ua->timeout( 300 );
 
-    my $url = "http://localhost:8080/wc";
-
-    print STDERR Dumper( $solr_query_params );
+    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_url };
 
     my $res = $ua->post( $url, $solr_query_params );
 
     die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
-
-    my $content = $res->content;
-    print STDERR $content;
 
     my $words = from_json( $res->content, { utf8 => 1 } );
 
@@ -950,18 +869,16 @@ sub _get_words_from_solr
 # in the controversy
 sub _get_story_words ($$$$)
 {
-    my ( $db, $c, $stories, $controversy ) = @_;
+    my ( $db, $c, $stories_ids, $controversy ) = @_;
 
-    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
-
-    my $num_words = int( log( scalar( @{ $stories } ) + 1 ) * 100 );
+    my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 100 );
     $num_words = ( $num_words < 1000 ) ? $num_words : 1000;
 
     my $tag = MediaWords::Util::Tags::lookup_tag( $db, "controversy_$controversy->{ name }:all" );
 
     die( "Unable to find controversy tag" ) unless ( $tag );
 
-    my $stories_solr_query = "stories_id:(" . join( ' ', map { $_->{ stories_id } } @{ $stories } ) . ")";
+    my $stories_solr_query = "stories_id:(" . join( ' ', @{ $stories_ids } ) . ")";
     my $story_words = _get_words_from_solr( { q => $stories_solr_query } );
 
     splice( @{ $story_words }, $num_words );
@@ -1002,11 +919,11 @@ sub _get_story_words ($$$$)
     for my $story_word ( @{ $story_words } )
     {
         my $solr_df_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND +sentence:" . $story_word->{ term };
-        my $df = _get_doc_count_from_solr( { q => $solr_df_query } );
+        my $df = MediaWords::Solr::get_num_found( { q => $solr_df_query } );
 
         if ( $df )
         {
-            $story_word->{ tfidf }       = $story_word->{ count } / $df;
+            $story_word->{ tfidf }       = $story_word->{ count } / sqrt( $df );
             $story_word->{ total_count } = $df;
         }
         else
@@ -1023,18 +940,54 @@ sub _get_story_words ($$$$)
     return $story_words;
 }
 
-# display a word cloud of story search results
-sub search_stories_words : Local
+# remove all stories in the stories_ids cgi param from the controversy
+sub remove_stories : Local
 {
     my ( $self, $c ) = @_;
 
-    $c->stash->{ generate_words } = 1;
+    my $db = $c->dbis;
 
-    $self->search_stories( $c );
+    my $cdts_id = $c->req->params->{ cdts };
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
 
-    $c->stash->{ title }    = "Words in Story Search for " . $c->stash->{ query };
-    $c->stash->{ template } = 'cm/words.tt2';
+    my $live             = $c->req->params->{ l };
+    my $stories_ids      = $c->req->params->{ stories_ids };
+    my $controversies_id = $controversy->{ controversies_id };
 
+    map { _remove_story_from_controversy( $db, $_, $controversies_id ) } @{ $stories_ids };
+
+    my $status_msg = scalar( @{ $stories_ids } ) . " stories removed from controversy.";
+    $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
+}
+
+# display a tfidf word cloud of the words in the stories given in the stories_ids cgi param
+# compared to all stories in the given time slice
+sub word_cloud : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    $db->begin;
+
+    my $cdts_id = $c->req->params->{ cdts };
+    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
+
+    my $live        = $c->req->params->{ l };
+    my $title       = $c->req->params->{ title };
+    my $stories_ids = $c->req->params->{ stories_ids };
+
+    print STDERR "word_cloud stories_ids: " . Dumper( $stories_ids ) . "\n";
+
+    my $words = _get_story_words( $db, $c, $stories_ids, $controversy );
+
+    $c->stash->{ cdts }             = $cdts;
+    $c->stash->{ controversy_dump } = $cd;
+    $c->stash->{ controversy }      = $controversy;
+    $c->stash->{ live }             = $live;
+    $c->stash->{ words }            = $words;
+    $c->stash->{ title }            = $title;
+    $c->stash->{ template }         = 'cm/words.tt2';
 }
 
 # do a basic story search based on the story sentences, title, url, media name, and media url
@@ -1066,11 +1019,7 @@ select s.*, m.name medium_name, slc.inlink_count, slc.outlink_count
     order by slc.inlink_count desc
 END
 
-    _add_id_story_to_search_results( $db, $stories, $query );
-
     map { _add_story_date_info( $db, $_ ) } @{ $stories };
-
-    $c->stash->{ words } = _get_story_words( $db, $c, $stories, $controversy ) if ( $c->stash->{ generate_words } );
 
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
@@ -1147,8 +1096,6 @@ select distinct m.*, mlc.inlink_count, mlc.outlink_count, mlc.story_count
     order by mlc.inlink_count desc
 END
 
-    _add_id_medium_to_search_results( $db, $media, $query );
-
     MediaWords::CM::Dump::discard_temp_tables( $db );
 
     $db->commit;
@@ -1171,29 +1118,6 @@ sub _remove_story_from_controversy
 delete from controversy_stories where stories_id = ? and controversies_id = ?
 END
 
-}
-
-# remove the given story from the controversy
-sub remove_story : Local
-{
-    my ( $self, $c, $stories_id ) = @_;
-
-    my $db = $c->dbis;
-
-    $db->begin;
-
-    my $cdts_id = $c->req->params->{ cdts };
-    my $live    = $c->req->params->{ l };
-
-    my ( $cdts, $cd, $controversy ) = _get_controversy_objects( $db, $cdts_id );
-
-    _remove_story_from_controversy( $db, $stories_id, $controversy->{ controversies_id } );
-
-    $db->commit;
-
-    my $status_msg = "story has been removed from the live version of the controversy.";
-
-    $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
 }
 
 # merge source_media_id into target_media_id

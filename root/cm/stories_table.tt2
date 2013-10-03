@@ -1,16 +1,36 @@
-[% IF display_stories_title %]
+<script langauge="javascript">
+    function [% display_stories_id %]_submit_stories( action )
+    {
+        form = document.getElementById( '[% display_stories_id %]_stories_ids_form' );
+        form.action = "[% c.uri_for( '/' ) | url %]" + action;
+        form.submit();
+    }
+</script>
+
+<form id="[% display_stories_id %]_stories_ids_form" method="post">
+    <input type="hidden" name="cdts" value="[% cdts.cdts_id | html %]" />
+    <input type="hidden" name="l" value="[% live | html %]" />
+    <input type="hidden" name="title" value="[% display_stories_full_title | html %]" />
+    [% FOREACH s IN display_stories  %]
+        <input type="hidden" name="stories_ids" value="[% s.stories_id | html %]" />
+    [% END %]
+</form>
+
+
+[% IF display_stories_short_title %]
     <div class="boxtitle">
 
-    [% display_stories_title %]
+    [% display_stories_short_title %]
 
     [% IF cdts_date_range %]
         in [% cdts_date_range %] Time Slice
     [% END %]
 
     [% IF display_stories_remove_button %]
-        [% remove_stories_url = c.req.uri _ '&remove_stories=1' %]
-        <a id="boxcommand" class="remove_story" href="[% remove_stories_url | html %]">remove all</a>        
+        <a id="boxcommand" href="javascript:void(0);" onclick="[% display_stories_id %]_submit_stories( '/admin/cm/remove_stories' );" class="remove_story">remove all</a>        
     [% END %]
+
+    <a id="boxcommand" href="javascript:void(0);" onclick="[% display_stories_id %]_submit_stories( '/admin/cm/word_cloud' );">word cloud</a>
 
     </div>
 [% END %]
@@ -62,3 +82,4 @@
     [% END # FOREACH s -%]
 
 </table>
+

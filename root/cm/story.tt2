@@ -81,7 +81,7 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 %]
 
 [% medium_url = c.uri_for( "/admin/cm/medium/$story.media_id", { cdts => cdts.cdts_id, l => live } ) %]
-[% remove_story_url = c.uri_for( "/admin/cm/remove_story/$story.stories_id", { cdts => cdts.cdts_id, l => live } ) %]
+[% remove_story_url = c.uri_for( "/admin/cm/remove_stories", { stories_ids => story.stories_id, cdts => cdts.cdts_id, l => live } ) %]
 [% merge_story_url = c.uri_for( "/admin/cm/merge_stories/$story.stories_id", { cdts => cdts.cdts_id } ) %]
 [% edit_story_url = c.uri_for( "/admin/stories/edit/$story.stories_id" ) %]
                                    
@@ -135,11 +135,15 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 
 [% INCLUDE cm/stories_table.tt2 
     display_stories = story.inlink_stories
-    display_stories_title = controversy.name _ " Stories Linking to This Story" %]
+    display_stories_short_title = controversy.name _ " Stories Linking to this Story"
+    display_stories_full_title = controversy.name _ " Stories Linking to Story " _ story.title
+    display_stories_id = 'inlink_stories' %]
 
 [% INCLUDE cm/stories_table.tt2
     display_stories = story.outlink_stories
-    display_stories_title = controversy.name _ " Stories to which This Story Links "%]
+    display_stories_short_title = controversy.name _ " Stories Linked from this Story"
+    display_stories_full_title = controversy.name _ " Stories Linked from Story '" _ story.title _ "'"
+    display_stories_id = 'outlink_stories' %]
 
 [% INCLUDE include/footer.tt2 %]
 
