@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4425;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4426;
     
 BEGIN
 
@@ -234,6 +234,16 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
+CREATE OR REPLACE FUNCTION update_stories_updated_time_trigger () RETURNS trigger AS
+$$
+   DECLARE
+      path_change boolean;
+   BEGIN
+	UPDATE stories set db_row_last_updated = now() where stories_id = NEW.stories_id;
+	RETURN NULL;
+   END;
+$$
+LANGUAGE 'plpgsql';
 
 create table media (
     media_id            serial          primary key,
@@ -837,6 +847,8 @@ create table stories_tags_map
 
 DROP TRIGGER IF EXISTS stories_tags_map_last_updated_trigger on stories_tags_map CASCADE;
 CREATE TRIGGER stories_tags_map_last_updated_trigger BEFORE INSERT OR UPDATE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+DROP TRIGGER IF EXISTS stories_tags_map_update_stories_last_updated_trigger on stories_tags_map;
+CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger AFTER DELETE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_trigger();
 
 CREATE index stories_tags_map_db_row_last_updated on stories_tags_map ( db_row_last_updated );
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);
