@@ -8,7 +8,6 @@
     in [% cdts_date_range %] Time Slice
 [% END %]
 
-    <a id="boxcommand" href="[% remove_stories_url | html %]">remove all</a>        
 </div>
 
 <table>
@@ -16,7 +15,7 @@
         <th>Word</th>
         <th>TFIDF</th>
         <th>Query Stem Count</th>
-        <th>Corpus Stem Count</th>
+        <th>Controversy Sentence Count</th>
         <th>Stem</th>
     </tr>
 
