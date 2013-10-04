@@ -831,7 +831,7 @@ sub _get_stories_id_search_query
     return @{ $stories_ids } ? join( ',', @{ $stories_ids } ) : -1;
 }
 
-# get the top 1000 words used by the given set of stories, sorted by tfidf against all words
+# get the top words used by the given set of stories, sorted by tfidf against all words
 # in the controversy
 sub _get_story_words ($$$$)
 {
