@@ -83,7 +83,8 @@ sub get_num_found
     return $res->{ response }->{ numFound };
 }
 
-# get sorted list of most common words in sentences matching a solr query
+# get sorted list of most common words in sentences matching a solr query.  exclude stop words from the
+# long_stop_word list.  assumes english stemming and stopwording for now.
 sub count_words
 {
     my ( $params ) = @_;
@@ -105,17 +106,19 @@ sub count_words
 
     $words = $words->{ words };
 
-    my $stopstems = MediaWords::Languages::Language::language_for_code( 'en' )->get_long_stop_word_stems();
-
-    # print STDERR Dumper( $stopstems );
+    # only support english for now
+    my $language  = MediaWords::Languages::Language::language_for_code( 'en' );
+    my $stopstems = $language->get_long_stop_word_stems();
 
     my $stopworded_words = [];
     for my $word ( @{ $words } )
     {
-        if ( ( length( $word->{ stem } ) > 2 ) && !$stopstems->{ $word->{ stem } } )
-        {
-            push( @{ $stopworded_words }, $word );
-        }
+        next if ( length( $word->{ stem } ) < 3 );
+
+        # we have restem the word because solr uses a different stemming implementation
+        my $stem = $language->stem( $word->{ term } )->[ 0 ];
+
+        push( @{ $stopworded_words }, $word ) unless ( $stopstems->{ $stem } );
     }
 
     return $stopworded_words;
