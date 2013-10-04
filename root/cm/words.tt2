@@ -15,7 +15,7 @@
         <th>Word</th>
         <th>TFIDF</th>
         <th>Query Stem Count</th>
-        <th>Corpus Stem Count</th>
+        <th>Controversy Sentence Count</th>
         <th>Stem</th>
     </tr>
 
