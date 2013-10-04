@@ -814,8 +814,11 @@ sub _get_stories_id_search_query
 {
     my ( $db, $q ) = @_;
 
-    $q =~ s/^\s+//;
-    $q =~ s/\s+$//;
+    if ( defined( $q ) )
+    {
+        $q =~ s/^\s+//;
+        $q =~ s/\s+$//;
+    }
 
     return 'select stories_id from dump_story_link_counts' unless ( $q );
 
@@ -828,50 +831,13 @@ sub _get_stories_id_search_query
     return @{ $stories_ids } ? join( ',', @{ $stories_ids } ) : -1;
 }
 
-# get sorted list of words from solr
-sub _get_words_from_solr
-{
-    my ( $solr_query_params ) = @_;
-
-    my $ua = MediaWords::Util::Web::UserAgent();
-
-    $ua->timeout( 300 );
-
-    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_url };
-
-    my $res = $ua->post( $url, $solr_query_params );
-
-    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
-
-    my $words = from_json( $res->content, { utf8 => 1 } );
-
-    die( "Unable to parse json" ) unless ( ( ref( $words ) eq 'HASH' ) && ( $words->{ words } ) );
-
-    $words = $words->{ words };
-
-    my $stopstems = MediaWords::Languages::Language::language_for_code( 'en' )->get_long_stop_word_stems();
-
-    # print STDERR Dumper( $stopstems );
-
-    my $stopworded_words = [];
-    for my $word ( @{ $words } )
-    {
-        if ( ( length( $word->{ stem } ) > 1 ) && !$stopstems->{ $word->{ stem } } )
-        {
-            push( @{ $stopworded_words }, $word );
-        }
-    }
-
-    return $stopworded_words;
-}
-
 # get the top 1000 words used by the given set of stories, sorted by tfidf against all words
 # in the controversy
 sub _get_story_words ($$$$)
 {
     my ( $db, $c, $stories_ids, $controversy ) = @_;
 
-    my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 100 );
+    my $num_words = int( log( scalar( @{ $stories_ids } ) + 1 ) * 10 );
     $num_words = ( $num_words < 1000 ) ? $num_words : 1000;
 
     my $tag = MediaWords::Util::Tags::lookup_tag( $db, "controversy_$controversy->{ name }:all" );
@@ -879,43 +845,10 @@ sub _get_story_words ($$$$)
     die( "Unable to find controversy tag" ) unless ( $tag );
 
     my $stories_solr_query = "stories_id:(" . join( ' ', @{ $stories_ids } ) . ")";
-    my $story_words = _get_words_from_solr( { q => $stories_solr_query } );
+    my $story_words = MediaWords::Solr::count_words( { q => $stories_solr_query } );
 
     splice( @{ $story_words }, $num_words );
 
-    # print STDERR Dumper( $story_words );
-    #
-    # my $controversy_solr_query = "tags_id_stories:" . $tag->{ tags_id };
-    # #my $controversy_solr_query = "tags_id_stories:8875839";
-    # my $controversy_words = _get_words_from_solr( { q => $controversy_solr_query } );
-    #
-    # print STDERR Dumper( $controversy_words );
-    #
-    # return [] unless ( @{ $story_words } && @{ $controversy_words } );
-    #
-    # my $controversy_words_lookup = {};
-    # map { $controversy_words_lookup->{ $_->{ stem } } = $_->{ count } } @{ $controversy_words };
-    #
-    # my $missing_controversy_words = [];
-    # for my $story_word ( @{ $story_words } )
-    # {
-    #     if ( !$controversy_words_lookup->{ $story_word->{ stem } } )
-    #     {
-    #         push( @{ $missing_controversy_words }, $story_word->{ term } );
-    #     }
-    # }
-    #
-    # my $missing_words_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND " .
-    #     "+sentence:(" . join( ' ', @{ $missing_controversy_words } ) . ")";
-    # my $missing_words = _get_words_from_solr( { q => $missing_words_query } );
-    # for my $missing_word ( @{ $missing_words } )
-    # {
-    #     if ( grep { $missing_word->{ stem } eq $_ } @{ $missing_controversy_words } )
-    #     {
-    #         $controversy_words_lookup->{ $missing_word->{ stem } } = $missing_word->{ count };
-    #     }
-    # }
-    #
     for my $story_word ( @{ $story_words } )
     {
         my $solr_df_query = "+tags_id_stories:" . $tag->{ tags_id } . " AND +sentence:" . $story_word->{ term };

@@ -6,6 +6,7 @@ use MediaWords::CommonLibs;
 
 use JSON;
 
+use MediaWords::Languages::Language;
 use MediaWords::Util::Web;
 
 # execute a query on the solr server using the given params.
@@ -80,6 +81,44 @@ sub get_num_found
     my $res = query( $params );
 
     return $res->{ response }->{ numFound };
+}
+
+# get sorted list of most common words in sentences matching a solr query
+sub count_words
+{
+    my ( $params ) = @_;
+
+    my $ua = MediaWords::Util::Web::UserAgent();
+
+    $ua->timeout( 300 );
+    $ua->max_size( undef );
+
+    my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_wc_url };
+
+    my $res = $ua->post( $url, $params );
+
+    die( "error retrieving words from solr: " . $res->as_string ) unless ( $res->is_success );
+
+    my $words = from_json( $res->content, { utf8 => 1 } );
+
+    die( "Unable to parse json" ) unless ( ( ref( $words ) eq 'HASH' ) && ( $words->{ words } ) );
+
+    $words = $words->{ words };
+
+    my $stopstems = MediaWords::Languages::Language::language_for_code( 'en' )->get_long_stop_word_stems();
+
+    # print STDERR Dumper( $stopstems );
+
+    my $stopworded_words = [];
+    for my $word ( @{ $words } )
+    {
+        if ( ( length( $word->{ stem } ) > 2 ) && !$stopstems->{ $word->{ stem } } )
+        {
+            push( @{ $stopworded_words }, $word );
+        }
+    }
+
+    return $stopworded_words;
 }
 
 1;
