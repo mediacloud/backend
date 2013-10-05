@@ -210,22 +210,7 @@ sub setup_acl()
 
     # cm role; can access all cm pages + admin-readonly + media-edit + stories-edi
     my @acl_cm = qw|
-      /admin/cm/list
-      /admin/cm/view
-      /admin/cm/view_dump
-      /admin/cm/view_time_slice
-      /admin/cm/dump_stories
-      /admin/cm/dump_story_links
-      /admin/cm/dump_media
-      /admin/cm/dump_medium_links
-      /admin/cm/gexf
-      /admin/cm/dump_daily_counts
-      /admin/cm/dump_weekly_counts
-      /admin/cm/medium
-      /admin/cm/story
-      /admin/cm/search_stories
-      /admin/cm/search_media
-      /admin/cm/remove_story
+      /admin/cm/
       |;
 
     foreach my $path ( @acl_stories_api )

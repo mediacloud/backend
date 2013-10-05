@@ -86,7 +86,9 @@
 
     [% INCLUDE cm/stories_table.tt2
         display_stories = top_stories
-        display_stories_title = "Top Stories" %]
+        display_stories_short_title = "Top Stories"
+        display_stories_full_title = title _ ": Top Stories" 
+        display_stories_id = "top_stories" %]
     [% all_stories_url = c.uri_for( '/admin/cm/search_stories', 
                                     { cdts => cdts.controversy_dump_time_slices_id,
                                       l => live } ) %]
