@@ -74,15 +74,22 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
 
 [% INCLUDE cm/stories_table.tt2
     display_stories = medium.stories
-    display_stories_title = controversy.name _ " Stories in " _ medium.name %]
+    display_stories_short_title = controversy.name _ " Stories in " _ medium.name
+    display_stories_full_title = controversy.name _ " Stories in Medium '" _ medium.name _ "'"
+    display_stories_id = "medium_stories" %]
     
 [% INCLUDE cm/stories_table.tt2 
     display_stories = medium.inlink_stories
-    display_stories_title = controversy.name _ " Stories Linking to " _ medium.name %]
+    display_stories_short_title = controversy.name _ " Stories Linking to " _ medium.name
+    display_stories_full_title = controversy.name _ " Stories Linking to Medium '" _ medium.name _ "'" 
+    display_stories_id = 'inlink_stories' %]
 
-[% INCLUDE cm/stories_table.tt2
+[% INCLUDE cm/stories_table.tt2 
     display_stories = medium.outlink_stories
-    display_stories_title = controversy.name _ " Stories to which " _ medium.name _ " Links "%]
+    display_stories_short_title = controversy.name _ " Stories Linked from " _ medium.name
+    display_stories_full_title = controversy.name _ " Stories Linked from Medium '" _ medium.name _ "'" 
+    display_stories_id = 'outlink_stories' %]
+
 
 [% INCLUDE include/footer.tt2 %]
 
