@@ -32,4 +32,4 @@ fi
 
 # Run test suite
 cd `dirname $0`/../
-exec ./script/run_carton.sh exec prove -Ilib/ -Iscript/gridfs-to-s3/ $* `find lib/ script/ t/ -name '*.t' ! -path 'script/gridfs-to-s3/*'`
+exec ./script/run_carton.sh exec prove -Ilib/ $* `find lib/ script/ t/ -name '*.t'`
