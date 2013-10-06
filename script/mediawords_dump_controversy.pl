@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 
-# Dump various controversy queries to csv and build a gexf file
+#
+# Enqueue MediaWords::GearmanFunction::CM::DumpControversy job
+#
 
 use strict;
 

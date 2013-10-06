@@ -1,5 +1,9 @@
 #!/usr/bin/env perl
 
+#
+# Enqueue MediaWords::GearmanFunction::SearchStories job
+#
+
 use strict;
 use warnings;
 
