@@ -23,6 +23,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::DBI::Activities;
 
 # number of times to iterate through spider
 use constant NUM_SPIDER_ITERATIONS => 500;
@@ -1897,6 +1898,16 @@ END
 sub mine_controversy ($$;$)
 {
     my ( $db, $controversy, $options ) = @_;
+
+    # Log activity that's about to start
+    unless (
+        MediaWords::DBI::Activities::log_system_activity(
+            $db, 'cm_mine_controversy', $controversy->{ controversies_id } + 0, $options
+        )
+      )
+    {
+        die "Unable to log the 'cm_mine_controversy' activity.";
+    }
 
     print STDERR "importing seed urls ...\n";
     import_seed_urls( $db, $controversy );

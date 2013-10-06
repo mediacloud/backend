@@ -24,7 +24,6 @@ use Getopt::Long;
 
 use MediaWords::CM::Mine;
 use MediaWords::DB;
-use MediaWords::DBI::Activities;
 
 sub main
 {
@@ -54,14 +53,6 @@ sub main
         cache_broken_downloads => $cache_broken_downloads ? 1 : 0
     };
 
-    # Log activity that's about to start
-    unless (
-        MediaWords::DBI::Activities::log_system_activity( $db, 'cm_mine_controversy', $controversies_id + 0, $options ) )
-    {
-        die "Unable to log the 'cm_mine_controversy' activity.";
-    }
-
-    # Do the work
     MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
 }
 

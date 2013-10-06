@@ -15,7 +15,6 @@ use Getopt::Long;
 use MediaWords::CM::Dump;
 use MediaWords::DB;
 use MediaWords::DBI::Controversies;
-use MediaWords::DBI::Activities;
 
 sub main
 {
@@ -38,20 +37,8 @@ sub main
         $db->disconnect;
         $db = MediaWords::DB::connect_to_db;
 
-        # Log activity that's about to start
-        my $changes = { 'controversy_opt' => $controversy_opt };
-        unless (
-            MediaWords::DBI::Activities::log_system_activity(
-                $db, 'cm_dump_controversy', $controversy->{ controversies_id } + 0, $changes
-            )
-          )
-        {
-            die "Unable to log the 'cm_dump_controversy' activity.";
-        }
-
-        # Dump controversy
         print "CONTROVERSY $controversy->{ name } \n";
-        MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
+        MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id }, $controversy_opt );
     }
 }
 
