@@ -168,6 +168,8 @@ sub get_solr_results_socket
 
     my $post = "POST " . SOLR_SELECT_URL;
 
+    # for some reason, the HTTP::Request::as_string method does not include
+    # the HTTP protocol id at the end of the HTTP POST line
     $request_string =~ s/^$post/$post HTTP\/1.0/;
 
     $sock->print( $request_string );
