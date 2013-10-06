@@ -6,17 +6,23 @@
 if [ `uname` == 'Darwin' ]; then
 
     # Mac OS X
-    POSSIBLE_JDK_PATH=/System/Library/Frameworks/JavaVM.framework/
+    declare -a POSSIBLE_JDK_PATHS=(
+        /System/Library/Frameworks/JavaVM.framework/                        # OS X 10.8
+        /Library/Java/JavaVirtualMachines/1.6.0_51-b11-457.jdk/Contents/    # OS X 10.9
+    )
 
-    if     [[ -d "$POSSIBLE_JDK_PATH"
-        &&    -f "$POSSIBLE_JDK_PATH/Commands/javac"
-        &&    -f "$POSSIBLE_JDK_PATH/Headers/jni.h" 
-        &&    -f "$POSSIBLE_JDK_PATH/Libraries/libjvm.dylib" ]]; then
+    for path in ${POSSIBLE_JDK_PATHS[@]}; do
+        if     [[ -d "$POSSIBLE_JDK_PATH"
+            &&    -f "$POSSIBLE_JDK_PATH/Commands/javac"
+            &&    -f "$POSSIBLE_JDK_PATH/Headers/jni.h" 
+            &&    -f "$POSSIBLE_JDK_PATH/Libraries/libjvm.dylib" ]]; then
+            
+            JAVA_HOME="$path"
+        fi
+    done
 
-        JAVA_HOME="$POSSIBLE_JDK_PATH"
-
-    else
-        echo "Proper Java deployment was not found in $POSSIBLE_JDK_PATH."
+    if [ -z "$JAVA_HOME" ]; then
+        echo "Proper Java deployment was not found anywhere."
         echo "Please download and install Java for OS X Developer Package from"
         echo "https://developer.apple.com/downloads/ or via the Software Update."
         exit 1
@@ -38,6 +44,7 @@ else
             JAVA_HOME="$path"
         fi
     done
+
     if [ -z "$JAVA_HOME" ]; then
         echo "Proper Java deployment was not found anywhere."
         echo "Please download and install Java for OS X Developer Package by running:"
