@@ -28,7 +28,7 @@ If it doesn't work (likely because of an old "cpanm" version), install it manual
 
     $ source ./script/set_perl_brew_environment.sh 
     $ cpanm -L local/ Module::Install
-    $ cpanm -L local/ git://github.com/pypt/p5-Gearman-JobScheduler.git@0.01
+    $ cpanm -L local/ git://github.com/pypt/p5-Gearman-JobScheduler.git@0.04
 
 
 Configuring Gearman to use PostgreSQL for storing the job queue
