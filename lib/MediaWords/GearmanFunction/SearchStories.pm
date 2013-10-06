@@ -29,12 +29,34 @@ use MediaWords::DB;
 use MediaWords::DBI::Queries;
 use MediaWords::Util::CSV;
 
-# execute the story search, store the results as a csv in the query_story_search, and mark the query_story_search as completed
-sub _execute_and_store_search
+# execute the story search, store the results as a csv in the
+# query_story_search, and mark the query_story_search as completed
+sub run($;$)
 {
-    my ( $db, $query_story_search ) = @_;
+    my ( $self, $args ) = @_;
+
+    my $query_story_searches_id = $args->{ query_story_searches_id };
+    unless ( defined $query_story_searches_id )
+    {
+        die "'query_story_searches_id' is undefined.";
+    }
+
+    my $db = MediaWords::DB::connect_to_db();
+
+    $db->begin_work;
+
+    my $query_story_search = $db->find_by_id( 'query_story_searches', $query_story_searches_id );
+    unless ( $query_story_search->{ query_story_searches_id } )
+    {
+        die "Story search query with ID $query_story_searches_id was not found.";
+    }
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $db, $query_story_search->{ queries_id } );
+    unless ( $query->{ queries_id } )
+    {
+        die "Query with ID " . $query_story_search->{ queries_id } .
+          " for story search query " . $query_story_search->{ query_story_searches_id } . " was not found.";
+    }
 
     say STDERR "searching for $query_story_search->{ pattern } in $query->{ description } ...";
 
@@ -56,22 +78,6 @@ sub _execute_and_store_search
         $query_story_search->{ query_story_searches_id } );
 
     say STDERR "done.";
-}
-
-# Run job
-sub run($;$)
-{
-    my ( $self, $args ) = @_;
-
-    my $db = MediaWords::DB::connect_to_db();
-
-    $db->begin_work;
-
-    my $query_story_searches = $db->query( "select * from query_story_searches where search_completed = 'f'" )->hashes;
-    if ( @{ $query_story_searches } )
-    {
-        map { _execute_and_store_search( $db, $_ ) } @{ $query_story_searches };
-    }
 
     $db->commit;
 

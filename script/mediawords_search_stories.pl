@@ -17,28 +17,44 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::GearmanFunction::SearchStories;
 use Gearman::JobScheduler;
+use MediaWords::DB;
 
 sub main
 {
     while ( 1 )
     {
-        my $gearman_job_id = MediaWords::GearmanFunction::SearchStories->enqueue_on_gearman();
-        say STDERR "Enqueued Gearman job with ID: $gearman_job_id";
+        my $db = MediaWords::DB::connect_to_db();
 
-        eval {
-            # The following call might fail if the job takes some time to start,
-            # so consider adding:
-            #     sleep(1);
-            # before calling log_path_for_gearman_job()
-            my $log_path =
-              Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::SearchStories->name(),
-                $gearman_job_id );
-            say STDERR "The job is writing its log to: $log_path";
-        };
-        if ( $@ )
+        my $query_story_searches =
+          $db->query( "SELECT query_story_searches_id FROM query_story_searches WHERE search_completed = 'f'" )->hashes;
+        if ( scalar @{ $query_story_searches } )
         {
-            say STDERR "The job probably hasn't started yet, so I don't know where does the log reside";
+            # Enqueue one Gearman job for every story search query
+            foreach my $query_story_search ( @{ $query_story_searches } )
+            {
+                my $query_story_searches_id = $query_story_search->{ query_story_searches_id };
+                my $args = { query_story_searches_id => $query_story_searches_id };
+
+                my $gearman_job_id = MediaWords::GearmanFunction::SearchStories->enqueue_on_gearman( $args );
+                say STDERR "Enqueued story search query '$query_story_searches_id' with Gearman job ID: $gearman_job_id";
+
+                eval {
+                    # The following call might fail if the job takes some time to start,
+                    # so consider adding:
+                    #     sleep(1);
+                    # before calling log_path_for_gearman_job()
+                    my $log_path =
+                      Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::SearchStories->name(),
+                        $gearman_job_id );
+                    say STDERR "The job is writing its log to: $log_path";
+                };
+                if ( $@ )
+                {
+                    say STDERR "The job probably hasn't started yet, so I don't know where does the log reside";
+                }
+            }
         }
+
         sleep( 60 );
     }
 }
