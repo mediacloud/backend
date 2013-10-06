@@ -30,7 +30,7 @@ if [ `uname` == 'Darwin' ]; then
         echo
         echo "http://code.google.com/p/chromium-compact-language-detector/"
         echo
-        echo "When you have done that, make sure that you have libcld.0.dylib somewhere (e.g. in "
+        echo "When you have done that, make usre that you have libcld.0.dylib somewhere (e.g. in "
         echo "/usr/local/lib/libcld.0.dylib) and run this script again with the environment variable "
         echo "I_HAVE_INSTALLED_CLD being set as such:"
         echo
@@ -69,7 +69,8 @@ else
         postgresql-server-dev-all postgresql-client libdb-dev libtest-www-mechanize-perl libtidy-dev \
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev \
         libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
-        build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk
+        build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk supervisor \
+        gearman libgearman-dev
 
     # Install CLD separately
     if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then     # Not installed manually?
