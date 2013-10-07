@@ -84,6 +84,8 @@ sub find_or_create_media_from_urls
 
     _add_media_tags_from_strings( $dbis, $url_media, $tags_string );
 
+    enqueue_add_default_feeds_for_unmoderated_media( $dbis );
+
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
 }
 
