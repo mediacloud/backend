@@ -1552,9 +1552,9 @@ END
 }
 
 # create a controversy_dump for the given controversy
-sub dump_controversy ($$;$)
+sub dump_controversy ($$)
 {
-    my ( $db, $controversies_id, $controversy_opt ) = @_;
+    my ( $db, $controversies_id ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
@@ -1564,7 +1564,7 @@ sub dump_controversy ($$;$)
       || die( "Unable to find controversy '$controversies_id'" );
 
     # Log activity that's about to start
-    my $changes = { 'controversy_opt' => $controversy_opt };
+    my $changes = {};
     unless (
         MediaWords::DBI::Activities::log_system_activity( $db, 'cm_dump_controversy', $controversies_id + 0, $changes ) )
     {
