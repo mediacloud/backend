@@ -203,10 +203,7 @@ Readonly::Hash my %ACTIVITIES => {
             description => 'Controversy ID for which the dump was made',
             references  => 'controversies.controversies_id'
         },
-        parameters => {
-            'controversy_opt' =>
-              { description => 'Options that were passed as arguments to the "mediawords_dump_controversy.pl" script' }
-        }
+        parameters => {}
     },
 
     'cm_mine_controversy' => {
