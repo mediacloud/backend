@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4422;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4423;
     
 BEGIN
 
@@ -1863,57 +1863,41 @@ INSERT INTO auth_roles (role, description) VALUES
     ('stories-api', 'Access to the stories api');
 
 --
--- Edit logs
+-- Activity log
 --
 
--- Media edits log
-CREATE TABLE media_edits (
-    media_edits_id      SERIAL      PRIMARY KEY,
+CREATE TABLE activities (
+    activities_id       SERIAL          PRIMARY KEY,
 
-    -- Media that was edited
-    media_id            INT         NOT NULL REFERENCES media(media_id)
-                                    -- don't remove the logged edits when the media gets removed
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
+    -- Activity's name (e.g. "media_edit", "story_edit", etc.)
+    name                VARCHAR(255)    NOT NULL
+                                        CONSTRAINT activities_name_can_not_contain_spaces CHECK(name NOT LIKE '% %'),
 
-    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
-    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
-                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
-    old_value           TEXT        NOT NULL,
-    new_value           TEXT        NOT NULL,
-    reason              TEXT,
+    -- When did the activity happen
+    creation_date       TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
 
-    -- Store user's email instead of ID in case the user gets deleted
-    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
+    -- User that executed the activity, either:
+    --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
+    --     * username that initiated the action (e.g. "system:lvaliukas")
+    -- (store user's email instead of ID in case the user gets deleted)
+    user_identifier     VARCHAR(255)    NOT NULL,
 
-);
+    -- Indexed ID of the object that was modified in some way by the activity
+    -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
+    object_id           BIGINT          NULL,
 
-CREATE INDEX media_edits_media_id ON media_edits(media_id);
-CREATE INDEX media_edits_edited_field ON media_edits(edited_field);
-CREATE INDEX media_edits_users_email ON media_edits(users_email);
+    -- User-provided reason explaining why the activity was made
+    reason              TEXT            NULL,
 
--- Story edits log
-CREATE TABLE story_edits (
-    story_edits_id      SERIAL      PRIMARY KEY,
-
-    -- Story that was edited
-    stories_id          INT         NOT NULL REFERENCES stories(stories_id)
-                                    -- don't remove the logged edits when the story gets removed
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE,
-
-    edit_timestamp      TIMESTAMP   NOT NULL DEFAULT LOCALTIMESTAMP,
-    edited_field        VARCHAR(64) NOT NULL    -- By default, NAMEDATALEN is 64
-                                    CONSTRAINT edited_field_not_empty CHECK(LENGTH(edited_field) > 0),
-    old_value           TEXT        NOT NULL,
-    new_value           TEXT        NOT NULL,
-    reason              TEXT,
-
-    -- Store user's email instead of ID in case the user gets deleted
-    users_email         TEXT        NOT NULL REFERENCES auth_users(email)
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE
+    -- Other free-form data describing the action in the JSON format
+    -- (e.g.: '{ "field": "name", "old_value": "Foo.", "new_value": "Bar." }')
+    -- FIXME: has potential to use 'JSON' type instead of 'TEXT' in
+    -- PostgreSQL 9.2+
+    description_json    TEXT            NOT NULL DEFAULT '{ }'
 
 );
 
-CREATE INDEX story_edits_stories_id ON story_edits(stories_id);
-CREATE INDEX story_edits_edited_field ON story_edits(edited_field);
-CREATE INDEX story_edits_users_email ON story_edits(users_email);
+CREATE INDEX activities_name ON activities (name);
+CREATE INDEX activities_creation_date ON activities (creation_date);
+CREATE INDEX activities_user_identifier ON activities (user_identifier);
+CREATE INDEX activities_object_id ON activities (object_id);
