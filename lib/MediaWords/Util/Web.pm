@@ -47,7 +47,10 @@ sub UserAgent
     return $ua;
 }
 
-# get urls in parallel
+# get urls in parallel by using an external, forking script.
+# we use this approach because LWP is not thread safe and
+# LWP::Parallel::User is not fully parallel and no longer
+# works with modern LWP in any case.
 sub ParallelGet
 {
     my ( $urls ) = @_;

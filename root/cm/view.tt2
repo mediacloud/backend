@@ -1,67 +1,81 @@
 [% PROCESS cm/header.tt2 title=controversy.name %]
    
-<div id="wholecolumn">
-    <div class="boxtitle">Query</div>
-    <table>
-        <tr>
-            <td>Pattern</td>
-            <td>[% controversy.pattern | html %]</td>
-        </tr>
+<div id="wholecolumn" class="clearfix">
 
-        <tr class="even">
-            <td>Dates</td>
-            <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
-        </tr>
+    <div id="widecolumn">
 
-        <tr>
-            <td>Media Sets</td>
-            <td>[% query.media_set_names.join( ' / ') | html %]</td>
-        </tr>
-    </table>
+        <div class="boxtitle">Query</div>
+        <table>
+            <tr>
+                <td>Pattern</td>
+                <td>[% controversy.pattern | html %]</td>
+            </tr>
+
+            <tr class="even">
+                <td>Dates</td>
+                <td>[% controversy.start_date | html %] - [% controversy.end_date | html %]</td>
+            </tr>
+
+            <tr>
+                <td>Media Sets</td>
+                <td>[% query.media_set_names.join( ' / ') | html %]</td>
+            </tr>
+        </table>
+
+        [% IF latest_full_dump %]
+            [% INCLUDE cm/time_slices_table.tt2
+                controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
+                live_periods = 1 %]
+        [% ELSE %]
+            <div class="boxtitle">Live Time Slices</div>
+            <fieldset>
+                <p>To browse live data, first generate at least one dump.</p>
+            </fieldset> 
+        [% END %]
+
+
+        <div class="boxtitle">Dumps</div>
+        <table>
+
+            <tr>
+                <th>Dump Date</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Periods</th>
+                <th>Note</th>
+            </tr>
+
+            [% FOREACH cd IN controversy_dumps -%]
+
+                <tr [% IF even %]class="even"[% END %]>
+
+                    <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id )%]">[% datetime.format( cd.dump_date ) %]</a></td>
+
+                    <td>[% date.format( cd.start_date ) %]</td>
+
+                    <td>[% date.format( cd.end_date ) %]</td>
+                    
+                    <td>[% cd.periods | html %]</td>
+                    
+                    <td>[% cd.note | html %]</td>
+                </tr>
+
+            [% SET even = !even %]
+            [% END # FOREACH stories -%]
+
+        </table>
+
+    </div>
+
+    <div id="narrowcolumn">
+
+        [% INCLUDE cm/include/latest_activities.tt2
+                   activities=latest_activities
+                   controversy=controversy %]
+
+    </div>
+
 </div>
-
-[% IF latest_full_dump %]
-    [% INCLUDE cm/time_slices_table.tt2
-        controversy_dump_time_slices = latest_full_dump.controversy_dump_time_slices 
-        live_periods = 1 %]
-[% ELSE %]
-    <div class="boxtitle">Live Time Slices</div>
-    <fieldset>
-        <p>To browse live data, first generate at least one dump.</p>
-    </fieldset> 
-[% END %]
-
-
-<div class="boxtitle">Dumps</div>
-<table>
-
-<tr>
-<th>Dump Date</th>
-<th>Start Date</th>
-<th>End Date</th>
-<th>Periods</th>
-<th>Note</th>
-</tr>
-
-    [% FOREACH cd IN controversy_dumps -%]
-
-        <tr [% IF even %]class="even"[% END %]>
-
-            <td><a href="[% c.uri_for( '/admin/cm/view_dump/' _ cd.controversy_dumps_id )%]">[% datetime.format( cd.dump_date ) %]</a></td>
-
-            <td>[% date.format( cd.start_date ) %]</td>
-
-            <td>[% date.format( cd.end_date ) %]</td>
-            
-            <td>[% cd.periods | html %]</td>
-            
-            <td>[% cd.note | html %]</td>
-        </tr>
-
-    [% SET even = !even %]
-    [% END # FOREACH stories -%]
-
-</table>
 
 [% INCLUDE include/footer.tt2 %]
 

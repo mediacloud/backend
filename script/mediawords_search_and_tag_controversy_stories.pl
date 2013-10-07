@@ -8,6 +8,7 @@
 # takes an input file on stdin with one regex per line
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -17,6 +18,7 @@ BEGIN
 
 use MediaWords::DB;
 use MediaWords::Util::Tags;
+use MediaWords::DBI::Activities;
 
 sub get_patterns_from_input
 {
@@ -103,11 +105,29 @@ END
             {
 
                 # print STDERR "$pattern->{ tag }->{ tag }\n";
+
                 $db->query(
                     "insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )",
                     $story_match->{ stories_id },
                     $pattern->{ tag }->{ tags_id }
                 );
+            }
+
+            # Log activity
+            my $options = {
+                'stories_id'  => $story_match->{ stories_id } + 0,
+                'regex'       => $pattern->{ regex },
+                'tag_sets_id' => $pattern->{ tag }->{ tag_sets_id },
+                'tags_id'     => $pattern->{ tag }->{ tags_id },
+                'tag'         => $pattern->{ tag }->{ tag }
+            };
+            unless (
+                MediaWords::DBI::Activities::log_system_activity(
+                    $db, 'cm_search_tag_change', $controversy->{ controversies_id } + 0, $options
+                )
+              )
+            {
+                die "Unable to log the 'cm_search_tag_change' activity.";
             }
         }
 
@@ -134,6 +154,17 @@ sub main
 
     my $controversy = $db->query( "select * from controversies where name = ?", $controversy_name )->hash
       || die( "Unable to find controversy '$controversy_name'" );
+
+    # Log activity that's about to start
+    my $options = { 'controversy_name' => $controversy_name };
+    unless (
+        MediaWords::DBI::Activities::log_system_activity(
+            $db, 'cm_search_tag_run', $controversy->{ controversies_id } + 0, $options
+        )
+      )
+    {
+        die "Unable to log the 'cm_search_tag_run' activity.";
+    }
 
     my $patterns = get_patterns_from_input( $db, $controversy );
 

@@ -1,16 +1,8 @@
 #!/usr/bin/env perl
 
-# Run through stories found for the given controversy and find all the links in each story.
-# For each link, try to find whether it matches any given story.  If it doesn't, create a
-# new story.  Add that story's links to the queue if it matches the pattern for the
-# controversy.  Write the resulting stories and links to controversy_stories and controversy_links.
 #
-# options:
-# dedup_stories - run story deduping code over existing controversy stories; only necessary to rerun
-#  new dedup code
-# import_only - only import query_story_searches and controversy_seed_urls; do not run spider
-# cache_broken_downloads - cache broken downloads found in query_story_search; speeds up
-#  spider if there are many broken downloads; slows it down considerably if there are not
+# Enqueue MediaWords::GearmanFunction::CM::MineControversy job
+#
 
 use strict;
 
@@ -22,8 +14,9 @@ BEGIN
 
 use Getopt::Long;
 
-use MediaWords::CM::Mine;
-use MediaWords::DB;
+use MediaWords::CommonLibs;
+use MediaWords::GearmanFunction::CM::MineControversy;
+use Gearman::JobScheduler;
 
 sub main
 {
@@ -42,18 +35,30 @@ sub main
     die( "usage: $0 --controversy < controversies_id > [ --dedup_stories ] [ --import_only ] [ --cache_broken_downloads ]" )
       unless ( $controversies_id );
 
-    my $db = MediaWords::DB::connect_to_db;
-
-    my $controversy = $db->find_by_id( 'controversies', $controversies_id )
-      || die( "Unable to find controversy '$controversies_id'" );
-
-    my $options = {
+    my $args = {
+        controversies_id       => $controversies_id,
         dedup_stories          => $dedup_stories,
         import_only            => $import_only,
         cache_broken_downloads => $cache_broken_downloads
     };
+    my $gearman_job_id = MediaWords::GearmanFunction::CM::MineControversy->enqueue_on_gearman( $args );
+    say STDERR "Enqueued Gearman job with ID: $gearman_job_id";
 
-    MediaWords::CM::Mine::mine_controversy( $db, $controversy, $options );
+    eval {
+        # The following call might fail if the job takes some time to start,
+        # so consider adding:
+        #     sleep(1);
+        # before calling log_path_for_gearman_job()
+        my $log_path =
+          Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::MineControversy->name(),
+            $gearman_job_id );
+        say STDERR "The job is writing its log to: $log_path";
+    };
+    if ( $@ )
+    {
+        say STDERR "The job probably hasn't started yet, so I don't know where does the log reside";
+    }
+
 }
 
 main();

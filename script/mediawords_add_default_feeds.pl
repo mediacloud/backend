@@ -1,9 +1,8 @@
 #!/usr/bin/env perl
 
-# periodically check for new media sources that have not had default feeds added to them and add the default feeds.
-# look for feeds that are most likely to be real feeds.  If we find more than one but no more than MAX_DEFAULT_FEEDS
-# of those feeds, use the first such one and do not moderate the source.  Else, do a more expansive search
-# and mark for moderation.
+#
+# Enqueue MediaWords::GearmanFunction::AddDefaultFeeds job
+#
 
 use strict;
 use warnings;
@@ -14,74 +13,20 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use DBIx::Simple::MediaWords;
-use Feed::Scrape::MediaWords;
-use MediaWords::DB;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use MediaWords::GearmanFunction;
 
 sub main
 {
-    binmode STDOUT, ":utf8";
-    binmode STDERR, ":utf8";
+    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
+    {
+        die "Gearman is disabled.";
+    }
 
     while ( 1 )
     {
-        my $db = MediaWords::DB::connect_to_db();
-
-        my $media = $db->query( "select * from media where feeds_added = false order by media_id" )->hashes;
-
-        for my $medium ( @{ $media } )
-        {
-            my ( $feed_links, $need_to_moderate, $existing_urls ) =
-              Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
-
-            for my $feed_link ( @{ $feed_links } )
-            {
-                my $feed = {
-                    name        => $feed_link->{ name },
-                    url         => $feed_link->{ url },
-                    media_id    => $medium->{ media_id },
-                    feed_type   => $feed_link->{ feed_type } || 'syndicated',
-                    feed_status => $need_to_moderate ? 'inactive' : 'active',
-                };
-
-                eval { $db->create( 'feeds', $feed ); };
-
-                if ( $@ )
-                {
-                    my $error = "Error adding feed $feed_link->{ url }: $@\n";
-                    $medium->{ moderation_notes } .= $error;
-                    print $error;
-                    next;
-                }
-                else
-                {
-                    say STDERR "ADDED $medium->{ name }: $feed->{ name } " .
-                      "[$feed->{ feed_type }, $feed->{ feed_status }]" . " - $feed->{ url }\n";
-                }
-            }
-
-            if ( @{ $existing_urls } )
-            {
-                my $error = "These urls were found but already exist in the database:\n" .
-                  join( "\n", map { "\t$_" } @{ $existing_urls } ) . "\n";
-                $medium->{ moderation_notes } .= $error;
-                print $error;
-            }
-
-            my $moderated = $need_to_moderate ? 'f' : 't';
-
-            $db->query(
-                "update media set feeds_added = true, moderation_notes = ?, moderated = ? where media_id = ?",
-                $medium->{ moderation_notes },
-                $moderated, $medium->{ media_id }
-            );
-
-        }
-
-        $db->disconnect;
-
+        MediaWords::DBI::Media::enqueue_add_default_feeds_for_unmoderated_media();
         sleep( 60 );
     }
 }

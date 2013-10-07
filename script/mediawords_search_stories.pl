@@ -1,10 +1,11 @@
 #!/usr/bin/env perl
 
-# run a loop running any pending jobs in query_story_searches
-
-# usage: mediawords_search_stories.pl
+#
+# Enqueue MediaWords::GearmanFunction::SearchStories job
+#
 
 use strict;
+use warnings;
 
 BEGIN
 {
@@ -12,61 +13,50 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Modern::Perl "2012";
+use MediaWords::CommonLibs;
+use MediaWords::GearmanFunction::SearchStories;
+use Gearman::JobScheduler;
 use MediaWords::DB;
-use MediaWords::DBI::Queries;
-use MediaWords::Util::CSV;
-
-# execute the story search, store the results as a csv in the query_story_search, and mark the query_story_search as completed
-sub execute_and_store_search
-{
-    my ( $db, $query_story_search ) = @_;
-
-    my $query = MediaWords::DBI::Queries::find_query_by_id( $db, $query_story_search->{ queries_id } );
-
-    print STDERR "searching for $query_story_search->{ pattern } in $query->{ description } ...\n";
-
-    my $stories = MediaWords::DBI::Queries::search_stories( $db, $query, $query_story_search );
-
-    my $stories_inserted = {};
-    for my $story ( @{ $stories } )
-    {
-        next if ( $stories_inserted->{ $story->{ stories_id } } );
-        $db->query(
-            "insert into query_story_searches_stories_map ( query_story_searches_id, stories_id ) values ( ?, ? )",
-            $query_story_search->{ query_story_searches_id },
-            $story->{ stories_id }
-        );
-        $stories_inserted->{ $story->{ stories_id } } = 1;
-    }
-
-    $db->query( "update query_story_searches set search_completed = 't' where query_story_searches_id = ?",
-        $query_story_search->{ query_story_searches_id } );
-
-    print STDERR "done.\n";
-}
 
 sub main
 {
-    binmode( STDERR, 'utf8' );
-    binmode( STDOUT, 'utf8' );
-
     while ( 1 )
     {
-        my $db = MediaWords::DB::connect_to_db;
+        my $db = MediaWords::DB::connect_to_db();
 
-        $db->begin_work;
-        my $query_story_searches = $db->query( "select * from query_story_searches where search_completed = 'f'" )->hashes;
-        if ( @{ $query_story_searches } )
+        my $query_story_searches =
+          $db->query( "SELECT query_story_searches_id FROM query_story_searches WHERE search_completed = 'f'" )->hashes;
+        if ( scalar @{ $query_story_searches } )
         {
-            map { execute_and_store_search( $db, $_ ) } @{ $query_story_searches };
+            # Enqueue one Gearman job for every story search query
+            foreach my $query_story_search ( @{ $query_story_searches } )
+            {
+                my $query_story_searches_id = $query_story_search->{ query_story_searches_id };
+                my $args = { query_story_searches_id => $query_story_searches_id };
+
+                my $gearman_job_id = MediaWords::GearmanFunction::SearchStories->enqueue_on_gearman( $args );
+                say STDERR "Enqueued story search query '$query_story_searches_id' with Gearman job ID: $gearman_job_id";
+
+                eval {
+                    # The following call might fail if the job takes some time to start,
+                    # so consider adding:
+                    #     sleep(1);
+                    # before calling log_path_for_gearman_job()
+                    my $log_path =
+                      Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::SearchStories->name(),
+                        $gearman_job_id );
+                    say STDERR "The job is writing its log to: $log_path";
+                };
+                if ( $@ )
+                {
+                    say STDERR "The job probably hasn't started yet, so I don't know where does the log reside";
+                }
+            }
         }
-        else
-        {
-            sleep 60;
-        }
-        $db->commit;
+
+        sleep( 60 );
     }
-
 }
 
 main();
