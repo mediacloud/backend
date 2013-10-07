@@ -27,32 +27,22 @@ use MediaWords::CommonLibs;
 
 use MediaWords::CM::Dump;
 use MediaWords::DB;
-use MediaWords::DBI::Controversies;
 
 # Run job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
 
-    my $controversy_opt = $args->{ controversy_opt };
-    unless ( $controversy_opt )
+    my $controversies_id = $args->{ controversies_id };
+    unless ( defined $controversies_id )
     {
-        die "'controversy_opt' argument is missing.";
+        die "'controversies_id' is undefined.";
     }
 
     my $db = MediaWords::DB::connect_to_db();
-    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db, $controversy_opt );
-    $db->disconnect;
 
-    for my $controversy ( @{ $controversies } )
-    {
-        $db = MediaWords::DB::connect_to_db();
-
-        print "CONTROVERSY $controversy->{ name } \n";
-        MediaWords::CM::Dump::dump_controversy( $db, $controversy->{ controversies_id } );
-
-        $db->disconnect;
-    }
+    # No transaction started because apparently dump_controversy() does start one itself
+    MediaWords::CM::Dump::dump_controversy( $db, $controversies_id );
 }
 
 no Moose;    # gets rid of scaffolding
