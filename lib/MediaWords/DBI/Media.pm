@@ -3,6 +3,8 @@ package MediaWords::DBI::Media;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
+use MediaWords::GearmanFunction;
+use MediaWords::GearmanFunction::AddDefaultFeeds;
 use Text::Trim;
 
 use strict;
@@ -350,6 +352,30 @@ sub get_medium_domain
     }
 
     return lc( $domain );
+}
+
+# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
+# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
+# IDs that are already enqueued)
+sub enqueue_add_default_feeds_for_unmoderated_media($)
+{
+    my ( $dbis ) = @_;
+
+    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
+    {
+        say STDERR "Gearman is disabled, so doing nothing.";
+        return;
+    }
+
+    my $media = $dbis->query( "SELECT media_id FROM media WHERE feeds_added = 'f' ORDER BY media_id" )->hashes;
+
+    for my $medium ( @{ $media } )
+    {
+        my $media_id       = $medium->{ media_id };
+        my $args           = { media_id => $media_id };
+        my $gearman_job_id = MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( $args );
+        say STDERR "Enqueued AddDefaultFeeds(media_id = $media_id) on Gearman with job ID: $gearman_job_id";
+    }
 }
 
 1;
