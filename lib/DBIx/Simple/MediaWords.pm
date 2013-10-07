@@ -13,8 +13,10 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::SchemaVersion;
 use MediaWords::DB;
+use MediaWords::DBI::Activities;
 
 use Data::Page;
+use JSON;
 
 use Encode;
 
@@ -346,12 +348,12 @@ sub update_by_id($$$$)
 
 # update the row in the table with the given id
 # and make note of the changes that were made
-sub update_by_id_and_log($$$$$$$$;$$)
+sub update_by_id_and_log($$$$$$$$)
 {
-    my ( $self, $table, $id, $old_hash, $new_hash, $log_table_name, $log_reason, $username, $additional_column_name,
-        $additional_column_value )
-      = @_;
+    my ( $self, $table, $id, $old_hash, $new_hash, $activity_name, $reason, $username ) = @_;
 
+    # Delete the "reason" from the HTTP parameters as it has already been copied
+    # to $reason variable
     delete( $new_hash->{ reason } );
 
     # Find out which fields were changed
@@ -374,9 +376,9 @@ sub update_by_id_and_log($$$$$$$$;$$)
                     #     "; to: " . $new_hash->{$field_name};
 
                     my $change = {
-                        edited_field => $field_name,
-                        old_value    => $old_hash->{ $field_name },
-                        new_value    => $new_hash->{ $field_name },
+                        field     => $field_name,
+                        old_value => $old_hash->{ $field_name },
+                        new_value => $new_hash->{ $field_name },
                     };
                     push( @changes, $change );
                 }
@@ -385,19 +387,11 @@ sub update_by_id_and_log($$$$$$$$;$$)
         }
     }
 
-    # Check if user making a change exists
-    my $user_exists = $self->query(
-        <<"EOF",
-        SELECT auth_users_id
-        FROM auth_users
-        WHERE email = ?
-        LIMIT 1
-EOF
-        $username
-    )->hash;
-    unless ( ref( $user_exists ) eq 'HASH' and $user_exists->{ auth_users_id } )
+    # If there are no changes, there is nothing to do
+    if ( scalar( @changes ) == 0 )
     {
-        die "User '$username' does not exist.\n";
+        say STDERR "Nothing to do.";
+        return 1;
     }
 
     # Start transaction
@@ -414,69 +408,17 @@ EOF
         die $@;
     }
 
-    # Update succeeded, write the change log
-    unless (
-        $self->log_changes(
-            $log_table_name, $log_reason, $username, \@changes, $additional_column_name, $additional_column_value
-        )
-      )
+    # Update succeeded, write the activity log
+    unless ( MediaWords::DBI::Activities::log_activities( $self, $activity_name, $username, $id, $reason, \@changes ) )
     {
-
-        # Writing one of the changes failed
         $self->dbh->rollback;
-        die "Writing one of the changes failed.\n";
+        die "Logging one of the changes failed: $@";
     }
 
     # Things went fine at this point, commit
     $self->dbh->commit;
 
     return $r;
-}
-
-# Log table changes
-sub log_changes($$$$$;$$)
-{
-    my ( $self, $log_table_name, $log_reason, $username, $changes, $additional_column_name, $additional_column_value ) = @_;
-
-    my $r = 0;
-
-    # Update succeeded, write the change log
-    foreach my $change ( @{ $changes } )
-    {
-        eval {
-            if ( $additional_column_name )
-            {
-                $r = $self->query(
-                    <<"EOF",
-                    INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email, $additional_column_name)
-                    VALUES (?, ?, ?, ?, ?, ?)
-EOF
-                    $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username,
-                    $additional_column_value
-                );
-            }
-            else
-            {
-                $r = $self->query(
-                    <<"EOF",
-                    INSERT INTO $log_table_name (edited_field, old_value, new_value, reason, users_email)
-                    VALUES (?, ?, ?, ?, ?)
-EOF
-                    $change->{ edited_field }, $change->{ old_value }, $change->{ new_value }, $log_reason, $username
-                );
-            }
-        };
-        if ( $@ )
-        {
-
-            # Writing one of the changes failed
-            return 0;
-
-        }
-
-    }
-
-    return 1;
 }
 
 # delete the row in the table with the given id

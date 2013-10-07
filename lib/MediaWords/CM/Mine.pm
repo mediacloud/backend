@@ -23,6 +23,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::DBI::Activities;
 
 # number of times to iterate through spider
 use constant NUM_SPIDER_ITERATIONS => 500;
@@ -604,7 +605,6 @@ sub add_new_story
     }
     else
     {
-
         # make sure content exists in case content is missing from the existing story
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $old_story );
         $story_content = ${ MediaWords::DBI::Stories::fetch_content( $db, $old_story ) };
@@ -642,6 +642,21 @@ sub add_new_story
     extract_download( $db, $download );
 
     return $story;
+}
+
+# remove the given story from the given controversy
+sub remove_story_from_controversy($$$)
+{
+    my ( $db, $stories_id, $controversies_id ) = @_;
+
+    $db->query(
+        <<EOF,
+        DELETE FROM controversy_stories
+        WHERE stories_id = ?
+          AND controversies_id = ?
+EOF
+        $stories_id, $controversies_id
+    );
 }
 
 # return true if any of the download_texts for the story matches the controversy search pattern
@@ -776,7 +791,7 @@ END
         my $dup_story_url_no_p = $dup_story->{ url };
         my $story_url_no_p     = $story->{ url };
         $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-        $story_url_no_p     =~ s/(.*)\?(.*)/$1/;
+        $story_url_no_p =~ s/(.*)\?(.*)/$1/;
 
         next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
 
@@ -1883,6 +1898,16 @@ END
 sub mine_controversy ($$;$)
 {
     my ( $db, $controversy, $options ) = @_;
+
+    # Log activity that's about to start
+    unless (
+        MediaWords::DBI::Activities::log_system_activity(
+            $db, 'cm_mine_controversy', $controversy->{ controversies_id } + 0, $options
+        )
+      )
+    {
+        die "Unable to log the 'cm_mine_controversy' activity.";
+    }
 
     print STDERR "importing seed urls ...\n";
     import_seed_urls( $db, $controversy );
