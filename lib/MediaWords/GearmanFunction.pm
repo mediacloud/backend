@@ -12,9 +12,10 @@ with 'Gearman::JobScheduler::AbstractFunction';
 
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
+use MediaWords::Util::Config;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
-# Run job
+# (Gearman::JobScheduler::AbstractFunction implementation) Run job
 sub run($;$)
 {
     my ( $self, $args ) = @_;
@@ -22,13 +23,21 @@ sub run($;$)
     die "This is a placeholder implementation of the run() subroutine for the Gearman function.";
 }
 
-# Return default configuration
+# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
 sub configuration()
 {
     # It would be great to place configuration() in some sort of a superclass
     # for all the Media Cloud Gearman functions, but Moose::Role doesn't
     # support that :(
     return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
+}
+
+# (Media Cloud-only helper) Return 1 if Gearman is configured and enabled
+sub gearman_is_enabled()
+{
+    # Enabled when there is at least one configured Gearman server
+    my $config = MediaWords::Util::Config::get_config();
+    return defined $config->{ gearman }->{ servers };
 }
 
 no Moose;    # gets rid of scaffolding
