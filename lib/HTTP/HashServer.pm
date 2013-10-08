@@ -25,6 +25,7 @@ use Data::Dumper;
 use HTML::Entities;
 use HTTP::Server::Simple;
 use HTTP::Server::Simple::CGI;
+use LWP::Simple;
 
 use base qw(HTTP::Server::Simple::CGI);
 
