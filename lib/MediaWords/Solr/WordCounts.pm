@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 package MediaWords::Solr::WordCounts;
 
 use strict;
@@ -26,7 +24,7 @@ BEGIN
     $python_script_path = "$_dirname_full/../../../python_scripts";
 }
 
-use Inline Python => "$python_script_path/solr_query_wordcount_timer.py";
+#use Inline Python => "$python_script_path/solr_query_wordcount_timer.py";
 
 undef( $SIG{ 'INT' } );
 
