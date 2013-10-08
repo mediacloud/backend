@@ -1,0 +1,75 @@
+<dataConfig>
+  <xi:include href="db-connection.xml"
+	      xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <document>
+
+    <entity name="story_sentences" 
+            pk="story_sentences_id"
+            query="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences"
+            deltaImportQuery="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where story_sentences_id=${dataimporter.delta.id}"
+            deltaQuery="SELECT story_sentences_id as id, story_sentences_id from story_sentences where db_row_last_updated &gt; '${dih.last_index_time}' ">
+      <entity name="media_sets_media_map" 
+              pk="media_sets_media_map_id"
+              query="select * from media_sets_media_map"
+              processor="CachedSqlEntityProcessor"
+	      cacheKey="media_id"
+	      cacheLookup="story_sentences.media_id"
+              deltaQuery="select media_sets_media_map_id, media_id::varchar from media_sets_media_map where db_row_last_updated &gt; '${dih.last_index_time}'"
+              parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_sets_media_map.media_id}"
+              >
+      </entity>
+      <entity name="media_tags_map" 
+              pk="media_tags_map_id"
+              query="select tags_id as tags_id_media, * from media_tags_map"
+	      cacheKey="media_id"
+	      cacheLookup="story_sentences.media_id"
+	      processor="CachedSqlEntityProcessor"
+              deltaQuery="select media_tags_map_id, media_id::varchar from media_tags_map where db_row_last_updated &gt; '${dih.last_index_time}' "
+              parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_tags_map.media_id}"
+              >
+      </entity>
+      <entity name="stories_tags_map" 
+              pk="stories_tags_map_id"
+              query="select tags_id as tags_id_stories, * from stories_tags_map"
+              processor="CachedSqlEntityProcessor"
+	      cacheKey="stories_id"
+	      cacheLookup="story_sentences.stories_id"
+              deltaQuery="select stories_tags_map_id, stories_id::varchar from stories_tags_map where db_row_last_updated &gt; '${dih.last_index_time}' "
+              parentDeltaQuery="select story_sentences_id as id from story_sentences where stories_id = ${stories_tags_map.stories_id}"
+              >
+      </entity>
+    </entity>
+
+    <!-- Kludge to get delta import of nested tables to work:
+	 For some reason Child entities don't work with CachedSqlEnitytProcessor so we're creating a new entity just for the purposes of delta imports.
+    -->
+   <entity name="story_sentences_d" 
+            pk="story_sentences_id"
+            query="select 1 limit 0"
+            deltaImportQuery="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where story_sentences_id=${dataimporter.delta.id} "
+            deltaQuery="SELECT 1 limit 0 ">
+     <entity name="media_sets_media_map" 
+              pk="media_sets_media_map_id"
+              query="select * from media_sets_media_map where media_id=${story_sentences_d.media_id}"
+              deltaQuery="select media_sets_media_map_id, media_id from media_sets_media_map where db_row_last_updated &gt; '${dih.last_index_time}'"
+              parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_sets_media_map.media_id}"
+              >
+     </entity>
+     <entity name="media_tags_map" 
+	     pk="media_tags_map_id"
+	     query="select tags_id as tags_id_media, * from media_tags_map where media_id=${story_sentences_d.media_id}"
+	     deltaQuery="select media_tags_map_id, media_id from media_tags_map where db_row_last_updated &gt; '${dih.last_index_time}' "
+	     parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_tags_map.media_id}"
+	     >
+     </entity>
+     <entity name="stories_tags_map" 
+	     pk="stories_tags_map_id"
+	     query="select tags_id as tags_id_stories, * from stories_tags_map where stories_id=${story_sentences_d.stories_id}"
+	     deltaQuery="select stories_tags_map_id, stories_id from stories_tags_map where db_row_last_updated &gt; '${dih.last_index_time}' "
+	     parentDeltaQuery="select story_sentences_id as id from story_sentences where stories_id = ${stories_tags_map.stories_id}"
+	     >
+     </entity>
+   </entity>
+   
+  </document>
+</dataConfig>

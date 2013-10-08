@@ -17,6 +17,7 @@ use MediaWords::Util::BigPDLVector qw(vector_new vector_set vector_cos_sim);
 use MediaWords::Util::SQL;
 use MediaWords::StoryVectors;
 use MediaWords::Languages::Language;
+use MediaWords::Solr::WordCounts;
 
 use Readonly;
 
@@ -513,7 +514,7 @@ sub get_time_range
     return $ret;
 }
 
-# use get_weekly_date_clause or get_daily_date_clause instead
+# use _get_weekly_date_clause or get_daily_date_clause instead
 # of using this directly (get_daily_date_clause adds 6 days to
 # the end date of the query).
 # get clause restricting dates all dates within the query's dates.
@@ -522,7 +523,7 @@ sub get_time_range
 # $i is the number of days to increment each date by (7 for weekly dates) and
 # $date_field is the sql field to use for the in clause (eg. 'publish_week')
 
-sub get_date_clause
+sub _get_date_clause
 {
     my ( $start_date, $end_date, $i, $date_field ) = @_;
 
@@ -538,11 +539,11 @@ sub get_date_clause
 # get clause restricting dates all weekly dates within the query's dates.
 # uses an in list of dates to work around slow postgres handling of
 # date ranges.
-sub get_weekly_date_clause
+sub _get_weekly_date_clause
 {
     my ( $query, $prefix ) = @_;
 
-    return get_date_clause( $query->{ start_date }, $query->{ end_date }, 7, "${ prefix }.publish_week" );
+    return _get_date_clause( $query->{ start_date }, $query->{ end_date }, 7, "${ prefix }.publish_week" );
 }
 
 # get clause restricting dates all daily dates within the query's dates.
@@ -566,7 +567,7 @@ sub get_daily_date_clause
         $date_field = 'publish_day';
     }
 
-    return get_date_clause( $query->{ start_date }, $end_date, 1, $date_field );
+    return _get_date_clause( $query->{ start_date }, $end_date, 1, $date_field );
 }
 
 # Gets the top 500 weekly words matching the given query.
@@ -587,8 +588,14 @@ sub _get_top_500_weekly_words_impl
 
     my $media_sets_ids_list     = MediaWords::Util::SQL::get_ids_in_list( $query->{ media_sets_ids } );
     my $dashboard_topics_clause = get_dashboard_topics_clause( $query, 'w' );
-    my $date_clause             = get_weekly_date_clause( $query, 'w' );
-    my $tw_date_clause          = get_weekly_date_clause( $query, 'tw' );
+    my $date_clause             = _get_weekly_date_clause( $query, 'w' );
+    my $tw_date_clause          = _get_weekly_date_clause( $query, 'tw' );
+
+    my $ret = MediaWords::Solr::WordCounts::word_count( $query, $query->{ start_date }, 500 );
+
+    say STDERR Dumper( $ret );
+
+    return $ret;
 
     # we have to divide stem_count by the number of media_sets to get the correct ratio b/c
     # the query below sum()s the stem for all media_sets
@@ -1300,7 +1307,7 @@ sub get_max_term_ratios($$;$)
     my $media_sets_ids_list = join( ',', @{ $query->{ media_sets_ids } } );
     my $dashboard_topics_clause =
       $ignore_topics ? "w.dashboard_topics_id IS NULL" : get_dashboard_topics_clause( $query, 'w' );
-    my $date_clause = get_weekly_date_clause( $query, 'w' );
+    my $date_clause = _get_weekly_date_clause( $query, 'w' );
 
     my $max_term_count = $db->query(
         <<"EOF"
@@ -1810,7 +1817,7 @@ sub search_stories
     die( "story search on topic queries not supported" ) if ( @{ $query->{ dashboard_topics_ids } } );
 
     my $date_clause =
-      get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
+      _get_date_clause( $query->{ start_date }, $query->{ end_date }, 1, "DATE_TRUNC( 'day', ss.publish_date )" );
 
     my $sql = <<END;
 SELECT q.stories_id,

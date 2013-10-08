@@ -69,6 +69,8 @@ else
         postgresql-server-dev-all postgresql-client libdb-dev libtest-www-mechanize-perl libtidy-dev \
         libopengl-perl libgraph-writer-graphviz-perl libgraphviz-perl graphviz graphviz-dev graphviz-doc libgraphviz-dev \
         libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
+        python python-dev python-pip \
+	    python-lxml python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1   \
         build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk supervisor \
         gearman libgearman-dev
 

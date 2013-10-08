@@ -10,13 +10,27 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+<<<<<<< HEAD
+SET search_path = public, pg_catalog;
+
+ALTER TABLE story_sentences
+	ADD COLUMN last_updated timestamp with time zone NOT NULL DEFAULT now();
+
+ALTER TABLE story_sentences
+        ALTER COLUMN last_updated DROP DEFAULT;
+=======
 --
 -- 2 of 2. Reset the database version.
 --
+>>>>>>> master
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
@@ -37,6 +51,36 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+<<<<<<< HEAD
+CREATE OR REPLACE FUNCTION story_sentences_last_updated_trigger() RETURNS trigger AS
+$$
+   DECLARE
+      path_change boolean;
+   BEGIN
+      -- RAISE NOTICE 'BEGIN ';                                                                                                                            
+
+      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') then
+
+      	 NEW.last_updated = now();
+      ELSE
+               -- RAISE NOTICE 'NO path change % = %', OLD.path, NEW.path;                                                                                  
+      END IF;
+
+      RETURN NEW;
+   END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER story_sentences_last_updated_trigger
+	BEFORE INSERT OR UPDATE ON story_sentences
+	FOR EACH ROW
+	EXECUTE PROCEDURE story_sentences_last_updated_trigger() ;
+
+--
+-- 2 of 2. Reset the database version.
+--
+SELECT set_database_schema_version();
+=======
 SELECT set_database_schema_version();
 
 create table controversy_ignore_redirects (
@@ -49,4 +93,5 @@ create index controversy_ignore_redirects_url on controversy_ignore_redirects ( 
 
 
 
+>>>>>>> master
 
