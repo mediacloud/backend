@@ -9,8 +9,7 @@ Starting `supervisord`
 
 To start the Supervisor daemon `supervisord`:
 
-    cd ./supervisor
-    supervisord
+    supervisor/supervisord.sh
 
 
 Starting `supervisorctl`
@@ -18,9 +17,8 @@ Starting `supervisorctl`
 
 To start the Supervisor control tool `supervisorctl`:
 
-    cd ./supervisor
-    supervisorctl
-
+    supervisor/supervisorctl.sh
+    
 Using the tool, you can `start`, `stop`, `restart` various services, `reload` configuration and do various other things.
 
 
