@@ -37,3 +37,7 @@ $CPANM Carton~1.0.9
 $CPANM List::MoreUtils
 $CPANM Devel::NYTProf
 
+## Temporarily run script explictly install Gearman::JobScheduler at the Perl level
+## We expect Gearman::JobScheduler to be integrated with carton soon negating the need for this.
+./install_gearman.sh
+
