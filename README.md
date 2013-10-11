@@ -16,6 +16,13 @@ Download the distribution zip, then run
 Install and run [CouchDB](http://couchdb.apache.org) or [MongoDb](http://mongodb.org) to store 
 article info.
 
+*Dependencies*
+
+```
+pip install pypubsub
+```
+
+
 Examples
 --------
 
