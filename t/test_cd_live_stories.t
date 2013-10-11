@@ -43,8 +43,8 @@ END
 
     $live_story->{ publish_date } =~ s/T/ /g;
     $live_story->{ collect_date } =~ s/T/ /g;
-    $story->{ publish_date } =~ s/T/ /g;
-    $story->{ collect_date } =~ s/T/ /g;
+    $story->{ publish_date }      =~ s/T/ /g;
+    $story->{ collect_date }      =~ s/T/ /g;
 
     cmp_deeply( $live_story, $story, "$test_label: $story->{ title } should be in $controversy->{ name } and match story" );
 }
@@ -71,6 +71,8 @@ sub update_story
     $story->{ collect_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( time() - int( rand *100000 ) );
 
     $db->update_by_id( 'stories', $story->{ stories_id }, $story );
+
+    return $db->find_by_id( 'stories', $story->{ stories_id } );
 }
 
 sub test_live_stories
@@ -161,9 +163,9 @@ sub test_live_stories
     test_live_story_matches( $db, $controversy_a, $story_c, "after insert" );
     test_live_story_matches( $db, $controversy_b, $story_c, "after insert" );
 
-    update_story( $db, $story_a );
-    update_story( $db, $story_b );
-    update_story( $db, $story_c );
+    $story_a = update_story( $db, $story_a );
+    $story_b = update_story( $db, $story_b );
+    $story_c = update_story( $db, $story_c );
 
     test_live_story_matches( $db, $controversy_a, $story_a, "after update" );
     test_live_story_absent( $db, $controversy_b, $story_a, "after update" );

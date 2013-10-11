@@ -20,6 +20,7 @@ if [ ! -f mediawords.yml ]; then
 fi
 
 ./install_mc_perlbrew_and_modules.sh
+./python_scripts/pip_installs.sh
 
 echo "install complete"
 echo "running compile test"

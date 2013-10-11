@@ -30,8 +30,10 @@ sub _get_page_content
 
     my $ua = LWP::UserAgent->new;
 
-    $ua->from( 'mediawords@cyber.law.harvard.edu' );
-    $ua->agent( 'mediawords bot (http://cyber.law.harvard.edu)' );
+    my $config = MediaWords::Util::Config::get_config;
+
+    $ua->from( $config->{ mediawords }->{ owner } );
+    $ua->agent( $config->{ mediawords }->{ user_agent } );
 
     $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );

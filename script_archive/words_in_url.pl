@@ -21,6 +21,7 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use LWP::Protocol::https;
 
+use MediaWords::Util::Config;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
 
@@ -33,9 +34,11 @@ sub process_url
 
     print "$url\n" if $debug_print;
 
-    my $ua = LWP::UserAgent->new;
-    $ua->from( 'mediawords@cyber.law.harvard.edu' );
-    $ua->agent( 'mediawords bot (http://cyber.law.harvard.edu)' );
+    my $ua     = LWP::UserAgent->new;
+    my $config = MediaWords::Util::Config::get_config;
+
+    $ua->from( $config->{ mediawords }->{ owner } );
+    $ua->agent( $config->{ mediawords }->{ user_agent } );
 
     $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );

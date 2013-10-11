@@ -9,6 +9,7 @@ use LWP::UserAgent;
 
 use MediaWords::DB;
 use DBIx::Simple::MediaWords;
+use MediaWords::Util::Config;
 
 sub new
 {
@@ -31,10 +32,11 @@ sub do_fetch
 
     $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
 
-    my $ua = LWP::UserAgent->new();
+    my $ua     = LWP::UserAgent->new();
+    my $config = MediaWords::Util::Config::get_config;
 
-    $ua->from( 'mediawords@cyber.law.harvard.edu' );
-    $ua->agent( 'mediawords bot (http://cyber.law.harvard.edu)' );
+    $ua->from( $config->{ mediawords }->{ owner } );
+    $ua->agent( $config->{ mediawords }->{ user_agent } );
 
     $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );
