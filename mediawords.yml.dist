@@ -110,7 +110,7 @@ mediawords:
 
     ### HTTP user agent and the email address of the owner of the bot
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
-    owner: "mediacloud@cyber.law.harvard.edu"
+    owner: "mediawords@cyber.law.harvard.edu"
 
     ### Uncomment one or more storage methods to store downloads to; default is just "localfile"
     ### which would write downloads to separate gzipped files in /data/.
