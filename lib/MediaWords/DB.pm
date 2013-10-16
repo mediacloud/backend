@@ -123,6 +123,7 @@ sub _set_environment_vars_for_db
     my $connect_settings = connect_settings( $label );
 
     $ENV{ 'PGPASSWORD' } = $connect_settings->{ pass };
+    $ENV{ 'PGPORT' }     = $connect_settings->{ port };
     $ENV{ 'PGHOST' }     = $connect_settings->{ host };
     $ENV{ 'PGDATABASE' } = $connect_settings->{ db };
     $ENV{ 'PGUSER' }     = $connect_settings->{ user };
