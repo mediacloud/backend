@@ -873,6 +873,7 @@ sub _process_and_stash_dashboard_data
     $c->stash->{ collection_media_sets } = $consistent_data->{ collection_media_sets };
     $c->stash->{ dashboard_topics }      = $consistent_data->{ dashboard_topics };
     $c->stash->{ dashboard_dates }       = $consistent_data->{ dashboard_dates };
+    say STDERR "finished _process_and_stash_dashboard_data";
 }
 
 # set the default values for the query form according to the stashed queries
