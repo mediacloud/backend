@@ -89,6 +89,13 @@ sub set_defaults
     $config->{ mail }->{ bug_email }                              ||= "";
     $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
 
+    # Gearman
+    $config->{ gearman }->{ worker_log_dir }                    ||= 'data/gearman_worker_logs/';
+    $config->{ gearman }->{ notifications }->{ emails }         ||= [];
+    $config->{ gearman }->{ notifications }->{ from_address }   ||= 'gjs@mediacloud.org';
+    $config->{ gearman }->{ notifications }->{ subject_prefix } ||= '[GJS]';
+
+
     my $auth = {
         default_realm => 'users',
         users         => {

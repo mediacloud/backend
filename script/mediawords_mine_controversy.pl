@@ -44,17 +44,17 @@ sub main
     my $gearman_job_id = MediaWords::GearmanFunction::CM::MineControversy->enqueue_on_gearman( $args );
     say STDERR "Enqueued Gearman job with ID: $gearman_job_id";
 
-    eval {
-        # The following call might fail if the job takes some time to start,
-        # so consider adding:
-        #     sleep(1);
-        # before calling log_path_for_gearman_job()
-        my $log_path =
-          Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::MineControversy->name(),
-            $gearman_job_id );
+    # The following call might fail if the job takes some time to start,
+    # so consider adding:
+    #     sleep(1);
+    # before calling log_path_for_gearman_job()
+    my $log_path = Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::MineControversy->name(),
+        $gearman_job_id );
+    if ( $log_path )
+    {
         say STDERR "The job is writing its log to: $log_path";
-    };
-    if ( $@ )
+    }
+    else
     {
         say STDERR "The job probably hasn't started yet, so I don't know where does the log reside";
     }

@@ -48,9 +48,10 @@ database:
         #downloads_folder_name   : "downloads_test"
 
 ### Gearman (p5-Gearman-JobScheduler) configuration
+### (to enable Gearman, add at least one server)
 #gearman:
 
-    ### Gearman servers (optional; default is ["127.0.0.1:4730"])
+    ### Gearman servers (required)
     #servers:
     #    - "127.0.0.1:4730"
 
