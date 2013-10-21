@@ -403,17 +403,24 @@ sub subset_processed_GET : Local
 {
     my ( $self, $c, $story_subsets_id ) = @_;
 
-    my $page = $c->req->param( 'page' ) // 1;
+    my $last_processed_stories_id = $c->req->param( 'last_processed_stories_id' );
+
+    $last_processed_stories_id //= 0;
+
+    say STDERR "last_processed_stories_id: $last_processed_stories_id";
 
     my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
 
     $show_raw_1st_download //= 0;
 
-    my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
-"select s.* from stories s, processed_stories ps, story_subsets_processed_stories_map sspsm  where s.stories_id = ps.stories_id and ps.processed_stories_id = sspsm.processed_stories_id and sspsm.story_subsets_id = ? "
-          . "order by ps.processed_stories_id  asc",
-        [ $story_subsets_id ], $page, ROWS_PER_PAGE
-    );
+    my $query =
+      "select s.*, ps.processed_stories_id from stories s, processed_stories ps, story_subsets_processed_stories_map sspsm  "
+      . "where s.stories_id = ps.stories_id and ps.processed_stories_id = sspsm.processed_stories_id and sspsm.story_subsets_id = ? and ps.processed_stories_id > ? "
+      . "order by ps.processed_stories_id  asc limit ?";
+
+    say STDERR "QUERY $query";
+
+    my $stories = $c->dbis->query( $query, $story_subsets_id, $last_processed_stories_id, ROWS_PER_PAGE )->hashes();
 
     $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
 
@@ -452,11 +459,18 @@ sub subset_GET : Local
 
     my $story_subset = $c->dbis->find_by_id( 'story_subsets', $id );
 
-    $self->status_created(
-        $c,
-        location => $c->req->uri->as_string,
-        entity   => $story_subset,
-    );
+    if ( !defined( $story_subset ) )
+    {
+        $self->status_not_found( $c, message => "no story_subset $story_subset", );
+    }
+    else
+    {
+        $self->status_created(
+            $c,
+            location => $c->req->uri->as_string,
+            entity   => $story_subset,
+        );
+    }
 
 }
 
