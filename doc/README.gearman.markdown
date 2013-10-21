@@ -34,9 +34,9 @@ If it doesn't work (likely because of an old "cpanm" version), install it manual
 Configuring Gearman to use PostgreSQL for storing the job queue
 ---------------------------------------------------------------
 
-You might want Gearman to [store its job queue in PostgreSQL](http://gearman.org/manual:job_server#postgresql).
+You need to set Gearman up to store its job queue in a permanent storage (as opposed to storing the queue in memory). If you do not do that, Media Cloud might be unable to correctly keep track of the currently enqueued / running / finished / failed jobs (see the `gearman_job_queue` table definition in `script/mediawords.sql` for the explanation).
 
-To do that, create a PostgreSQL database `gearman` for storing the queue, and allow user `gearman` to access it:
+You might want Gearman to [store its job queue in PostgreSQL](http://gearman.org/manual:job_server#postgresql). To do that, create a PostgreSQL database `gearman` for storing the queue, and allow user `gearman` to access it:
 
     # sudo -u postgres createuser -D -A -P gearman
     Enter password for new role: 
