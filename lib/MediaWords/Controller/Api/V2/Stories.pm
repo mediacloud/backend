@@ -32,6 +32,29 @@ Catalyst Controller.
 
 BEGIN { extends 'Catalyst::Controller::REST' }
 
+__PACKAGE__->config(
+    'default'   => 'application/json',
+    'stash_key' => 'rest',
+    'map'       => {
+
+        #	   'text/html'          => 'YAML::HTML',
+        'text/xml' => 'XML::Simple',
+
+        # #         'text/x-yaml'        => 'YAML',
+        'application/json'         => 'JSON',
+        'text/x-json'              => 'JSON',
+        'text/x-data-dumper'       => [ 'Data::Serializer', 'Data::Dumper' ],
+        'text/x-data-denter'       => [ 'Data::Serializer', 'Data::Denter' ],
+        'text/x-data-taxi'         => [ 'Data::Serializer', 'Data::Taxi' ],
+        'application/x-storable'   => [ 'Data::Serializer', 'Storable' ],
+        'application/x-freezethaw' => [ 'Data::Serializer', 'FreezeThaw' ],
+        'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
+        'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
+    },
+);
+
+__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 1, space_after => 1 } );
+
 use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
@@ -354,17 +377,18 @@ sub all_processed_GET : Local
 
     say STDERR "starting stories_query_json";
 
-    my $page = $c->req->param( 'page' ) // 1;
+    my $last_processed_stories_id = $c->req->param( 'last_processed_stories_id' );
+    say STDERR "last_processed_stories_id: $last_processed_stories_id";
 
     my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
 
     $show_raw_1st_download //= 0;
 
-    my ( $stories, $pager ) = $c->dbis->query_paged_hashes(
-        "select s.* from stories s, processed_stories ps where s.stories_id = ps.stories_id " .
-          "order by processed_stories_id  asc",
-        [], $page, ROWS_PER_PAGE
-    );
+    my $stories = $c->dbis->query(
+        "select s.*, ps.processed_stories_id from stories s, processed_stories ps where s.stories_id = ps.stories_id " .
+          " AND processed_stories_id > ? order by processed_stories_id  asc limit ?",
+        $last_processed_stories_id, ROWS_PER_PAGE
+    )->hashes;
 
     $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
 
