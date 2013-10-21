@@ -3653,13 +3653,15 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       String::CRC32 0
-  Gearman-JobScheduler-0.07
-    pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.07.tar.gz
+  Gearman-JobScheduler-0.08
+    pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.08.tar.gz
     provides:
-      Gearman::JobScheduler 0.07
-      Gearman::JobScheduler::AbstractFunction 0.07
+      Gearman::JobScheduler 0.08
+      Gearman::JobScheduler::AbstractFunction 0.08
+      Gearman::JobScheduler::Admin 0.08
       Gearman::JobScheduler::Configuration 0.07
       Gearman::JobScheduler::ErrorLogTrapper 0.07
+      Gearman::JobScheduler::Worker 0.08
     requirements:
       Capture::Tiny 0
       Carp 0
