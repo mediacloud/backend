@@ -1,8 +1,12 @@
 #!/usr/bin/env perl
-
-# add plperl functions to database.
-
-# see MediaWords::Pg::Schema for definition of which functions to add
+#
+# Add plperl functions to database.
+#
+# See MediaWords::Pg::Schema for definition of which functions to add
+#
+# Set the MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 environment variable to create
+# the database without confirming the action.
+#
 
 use strict;
 use warnings;
@@ -45,10 +49,24 @@ sub main
         return 1;
     }
 
-    my $warning_message =
-"Warning this script will delete all information in the current media cloud database and create a new database. Are you sure you wish to continue?";
+    my $continue_and_reset_db;
+    unless ( defined $ENV{ 'MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM' } )
+    {
+        my $warning_message = <<EOF;
 
-    my $continue_and_reset_db = &prompt( "y", $warning_message, "", "n" );
+Warning: this script will delete all information in the current
+Media Cloud database and create a new database.
+
+Are you sure you wish to continue?
+
+EOF
+        $Term::Prompt::MULTILINE_INDENT = '';
+        $continue_and_reset_db = &prompt( "y", $warning_message, "", "n" );
+    }
+    else
+    {
+        $continue_and_reset_db = 1;
+    }
 
     exit if !$continue_and_reset_db;
 
