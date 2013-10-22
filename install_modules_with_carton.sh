@@ -17,7 +17,7 @@ fi
 # the list of dependencies (https://rt.cpan.org/Ticket/Display.html?id=89690),
 # so installing it separately
 mkdir -p local/
-cpanm -L local/ Module::Install
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Module::Install
 
 # Install the rest of the modules
 source ./script/set_java_home.sh
