@@ -9,6 +9,11 @@
 # Path to where Media Cloud's repository is mounted on Vagrant
 MEDIACLOUD_ROOT=/mediacloud
 
+
+# Exit on error
+set -u
+set -o errexit
+
 echo "Installing Media Cloud..."
 cd $MEDIACLOUD_ROOT
 ./install.sh

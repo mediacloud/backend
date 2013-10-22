@@ -11,6 +11,11 @@ MC_DOMAINNAME="local"
 MC_LOCALE_LANG="en_US"
 MC_LOCALE_LANG_VARIANT="UTF-8"
 
+
+# Exit on error
+set -u
+set -o errexit
+
 echo "Setting hostname to $MC_HOSTNAME.$MC_DOMAINNAME..."
 echo -n $MC_HOSTNAME.$MC_DOMAINNAME > /etc/hostname
 service hostname restart
