@@ -38,7 +38,7 @@ To create a new Media Cloud instance on Vagrant:
     # Power on the virtual machine
     vagrant up
 
-The initial process of setting up Media Cloud may take a long time (30-60 minutes) as Vagrant will go about upgrading packages, installing a lot of dependencies, compiling and testing Perl, testing Media Cloud itself, etc.
+The initial process of setting up Media Cloud may take a long time (~90 minutes) as Vagrant will go about upgrading packages, installing a lot of dependencies, compiling and testing Perl, testing Media Cloud itself, etc.
 
 
 Running Media Cloud on Vagrant
