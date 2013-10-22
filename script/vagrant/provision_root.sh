@@ -26,7 +26,12 @@ locale-gen $MC_LOCALE_LANG
 locale-gen $MC_LOCALE_LANG.$MC_LOCALE_LANG_VARIANT
 update-locale LANG=$MC_LOCALE_LANG.$MC_LOCALE_LANG_VARIANT LANGUAGE=$MC_LOCALE_LANG
 dpkg-reconfigure locales
-source /etc/profile
+
+# Export locale settings manually for this session; later on, it will be set
+# automatically upon logging in
+export LANG=$MC_LOCALE_LANG.$MC_LOCALE_LANG_VARIANT
+export LANGUAGE=$MC_LOCALE_LANG
+locale
 
 echo "Installing GRUB so that APT doesn't complain..."
 grub-install /dev/sda
