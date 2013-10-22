@@ -54,6 +54,13 @@ To power on the guest machine, run:
     vagrant up
 
 
+### Destroying the virtual machine
+
+To destroy the virtual machine (before recreating), run:
+
+    vagrant destroy
+
+
 ### SSHing to the virtual machine
 
 To SSH to the guest machine, run:
