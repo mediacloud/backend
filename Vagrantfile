@@ -3,12 +3,23 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
+
 #
-# Provision script
+# Provision script for privileged user (root)
 #
-$provision_script = <<EOF
+$provision_script_root = <<EOF
 
 echo Hello.
+
+EOF
+
+
+#
+# Provision script for unprivileged user (vagrant)
+#
+$provision_script_user = <<EOF
+
+echo I am unprivileged.
 
 EOF
 
@@ -25,8 +36,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Hostname
   config.vm.hostname = "mediacloud.local"
 
-  # Run provision script after initializing the box
-  config.vm.provision "shell", inline: $provision_script
+  # Provision scripts
+  config.vm.provision "shell", privileged: true, inline: $provision_script_root
+  config.vm.provision "shell", privileged: false, inline: $provision_script_user
 
   # Access Media Cloud's 5000 port by opening localhost:5001
   config.vm.network :forwarded_port, guest: 5000, host: 5001
