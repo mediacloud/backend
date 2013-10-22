@@ -3249,6 +3249,16 @@ DISTRIBUTIONS
     requirements:
       Encode 1.41
       ExtUtils::MakeMaker 6.8
+  Encode-Locale-1.03
+    pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
+    provides:
+      Encode::Locale 1.03
+    requirements:
+      Encode 2
+      Encode::Alias 0
+      ExtUtils::MakeMaker 0
+      Test 0
+      perl 5.008
   Error-0.17021
     pathname: S/SH/SHLOMIF/Error-0.17021.tar.gz
     provides:
@@ -3297,6 +3307,24 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Test::More 0.34
+  ExtUtils-Config-0.007
+    pathname: L/LE/LEONT/ExtUtils-Config-0.007.tar.gz
+    provides:
+      ExtUtils::Config 0.007
+    requirements:
+  ExtUtils-Helpers-0.021
+    pathname: L/LE/LEONT/ExtUtils-Helpers-0.021.tar.gz
+    provides:
+      ExtUtils::Helpers 0.021
+      ExtUtils::Helpers::Unix 0.021
+      ExtUtils::Helpers::VMS 0.021
+      ExtUtils::Helpers::Windows 0.021
+    requirements:
+  ExtUtils-InstallPaths-0.009
+    pathname: L/LE/LEONT/ExtUtils-InstallPaths-0.009.tar.gz
+    provides:
+      ExtUtils::InstallPaths 0.009
+    requirements:
   ExtUtils-LibBuilder-0.04
     pathname: A/AM/AMBS/ExtUtils/ExtUtils-LibBuilder-0.04.tar.gz
     provides:
@@ -3307,6 +3335,47 @@ DISTRIBUTIONS
       File::Temp 0
       Module::Build 0.36
       Test::More 0
+  ExtUtils-MakeMaker-6.80
+    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.80.tar.gz
+    provides:
+      DynaLoader 6.80
+      ExtUtils::Command::MM 6.80
+      ExtUtils::Liblist 6.80
+      ExtUtils::Liblist::Kid 6.80
+      ExtUtils::MM 6.80
+      ExtUtils::MM_AIX 6.80
+      ExtUtils::MM_Any 6.80
+      ExtUtils::MM_BeOS 6.80
+      ExtUtils::MM_Cygwin 6.80
+      ExtUtils::MM_DOS 6.80
+      ExtUtils::MM_Darwin 6.80
+      ExtUtils::MM_MacOS 6.80
+      ExtUtils::MM_NW5 6.80
+      ExtUtils::MM_OS2 6.80
+      ExtUtils::MM_QNX 6.80
+      ExtUtils::MM_UWIN 6.80
+      ExtUtils::MM_Unix 6.80
+      ExtUtils::MM_VMS 6.80
+      ExtUtils::MM_VOS 6.80
+      ExtUtils::MM_Win32 6.80
+      ExtUtils::MM_Win95 6.80
+      ExtUtils::MY 6.80
+      ExtUtils::MakeMaker 6.80
+      ExtUtils::MakeMaker::Config 6.80
+      ExtUtils::MakeMaker::_version 6.80
+      ExtUtils::Mkbootstrap 6.80
+      ExtUtils::Mksymlists 6.80
+      ExtUtils::testlib 6.80
+      MM 6.80
+      MY 6.80
+      in 6.80
+    requirements:
+      Data::Dumper 0
+      DirHandle 0
+      File::Basename 0
+      File::Spec 0.8
+      Pod::Man 0
+      perl 5.006
   FCGI-0.74
     pathname: F/FL/FLORA/FCGI-0.74.tar.gz
     provides:
@@ -3345,6 +3414,19 @@ DISTRIBUTIONS
       Number::Compare 0
       Test::More 0
       Text::Glob 0.07
+  File-Listing-6.04
+    pathname: G/GA/GAAS/File-Listing-6.04.tar.gz
+    provides:
+      File::Listing 6.04
+      File::Listing::apache 6.04
+      File::Listing::dosftp 6.04
+      File::Listing::netware 6.04
+      File::Listing::unix 6.04
+      File::Listing::vms 6.04
+    requirements:
+      ExtUtils::MakeMaker 0
+      HTTP::Date 6
+      perl 5.006002
   File-Map-0.61
     pathname: L/LE/LEONT/File-Map-0.61.tar.gz
     provides:
@@ -3366,6 +3448,16 @@ DISTRIBUTIONS
       File::ReadBackwards 1.05
     requirements:
       ExtUtils::MakeMaker 0
+  File-Remove-1.52
+    pathname: A/AD/ADAMK/File-Remove-1.52.tar.gz
+    provides:
+      File::Remove 1.52
+    requirements:
+      Cwd 3.29
+      ExtUtils::MakeMaker 6.36
+      File::Spec 3.29
+      Test::More 0.42
+      perl 5.00503
   File-ShareDir-1.03
     pathname: A/AD/ADAMK/File-ShareDir-1.03.tar.gz
     provides:
@@ -4010,6 +4102,12 @@ DISTRIBUTIONS
     requirements:
       Module::Build 0.36
       Test::More 0
+  HTML-Tagset-3.20
+    pathname: P/PE/PETDANCE/HTML-Tagset-3.20.tar.gz
+    provides:
+      HTML::Tagset 3.20
+    requirements:
+      ExtUtils::MakeMaker 0
   HTML-Tiny-1.05
     pathname: A/AN/ANDYA/HTML-Tiny-1.05.tar.gz
     provides:
@@ -4107,6 +4205,81 @@ DISTRIBUTIONS
       IO::File 1.14
       Test::Deep 0
       Test::More 0.86
+  HTTP-Cookies-6.01
+    pathname: G/GA/GAAS/HTTP-Cookies-6.01.tar.gz
+    provides:
+      HTTP::Cookies 6.01
+      HTTP::Cookies::Microsoft 6.00
+      HTTP::Cookies::Netscape 6.00
+    requirements:
+      ExtUtils::MakeMaker 0
+      HTTP::Date 6
+      HTTP::Headers::Util 6
+      Time::Local 0
+      perl 5.008001
+  HTTP-Daemon-6.01
+    pathname: G/GA/GAAS/HTTP-Daemon-6.01.tar.gz
+    provides:
+      HTTP::Daemon 6.01
+      HTTP::Daemon::ClientConn 6.01
+    requirements:
+      ExtUtils::MakeMaker 0
+      HTTP::Date 6
+      HTTP::Request 6
+      HTTP::Response 6
+      HTTP::Status 6
+      IO::Socket 0
+      LWP::MediaTypes 6
+      Sys::Hostname 0
+      perl 5.008001
+  HTTP-Date-6.02
+    pathname: G/GA/GAAS/HTTP-Date-6.02.tar.gz
+    provides:
+      HTTP::Date 6.02
+    requirements:
+      ExtUtils::MakeMaker 0
+      Time::Local 0
+      perl 5.006002
+  HTTP-Message-6.06
+    pathname: G/GA/GAAS/HTTP-Message-6.06.tar.gz
+    provides:
+      HTTP::Config 6.00
+      HTTP::Headers 6.05
+      HTTP::Headers::Auth 6.00
+      HTTP::Headers::ETag 6.00
+      HTTP::Headers::Util 6.03
+      HTTP::Message 6.06
+      HTTP::Request 6.00
+      HTTP::Request::Common 6.04
+      HTTP::Response 6.04
+      HTTP::Status 6.03
+    requirements:
+      Compress::Raw::Zlib 0
+      Encode 2.21
+      Encode::Locale 1
+      ExtUtils::MakeMaker 0
+      HTTP::Date 6
+      IO::Compress::Bzip2 2.021
+      IO::Compress::Deflate 0
+      IO::Compress::Gzip 0
+      IO::HTML 0
+      IO::Uncompress::Bunzip2 2.021
+      IO::Uncompress::Gunzip 0
+      IO::Uncompress::Inflate 0
+      IO::Uncompress::RawInflate 0
+      LWP::MediaTypes 6
+      MIME::Base64 2.1
+      MIME::QuotedPrint 0
+      URI 1.10
+      perl 5.008001
+  HTTP-Negotiate-6.01
+    pathname: G/GA/GAAS/HTTP-Negotiate-6.01.tar.gz
+    provides:
+      HTTP::Negotiate 6.01
+    requirements:
+      ExtUtils::MakeMaker 0
+      HTTP::Headers 6
+      perl 5.008001
   HTTP-Request-AsCGI-1.2
     pathname: F/FL/FLORA/HTTP-Request-AsCGI-1.2.tar.gz
     provides:
@@ -4205,6 +4378,18 @@ DISTRIBUTIONS
       Module::Build 0.36
       Symbol 0
       Test::More 0.62
+  IO-HTML-1.00
+    pathname: C/CJ/CJM/IO-HTML-1.00.tar.gz
+    provides:
+      IO::HTML 1.00
+    requirements:
+      Carp 0
+      Encode 2.10
+      Exporter 5.57
+      ExtUtils::MakeMaker 6.30
+      File::Temp 0
+      Scalar::Util 0
+      Test::More 0.88
   IO-Interactive-0.0.6
     pathname: B/BD/BDFOY/IO-Interactive-0.0.6.tar.gz
     provides:
@@ -4348,6 +4533,16 @@ DISTRIBUTIONS
       Inline 0.46
       Test 0
       Test::More 0
+  JSON-2.61
+    pathname: M/MA/MAKAMAKA/JSON-2.61.tar.gz
+    provides:
+      JSON 2.61
+      JSON::Backend::PP 2.61
+      JSON::Boolean 2.61
+      JSON::backportPP::Boolean 2.27203
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
   JSON-Any-1.30
     pathname: P/PE/PERIGRIN/JSON-Any-1.30.tar.gz
     provides:
@@ -4378,6 +4573,13 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       common::sense 0
+  LWP-MediaTypes-6.02
+    pathname: G/GA/GAAS/LWP-MediaTypes-6.02.tar.gz
+    provides:
+      LWP::MediaTypes 6.02
+    requirements:
+      ExtUtils::MakeMaker 0
+      perl 5.006002
   LWP-Protocol-https-6.04
     pathname: G/GA/GAAS/LWP-Protocol-https-6.04.tar.gz
     provides:
@@ -4855,6 +5057,31 @@ DISTRIBUTIONS
       Text::ParseWords 0
       perl 5.006001
       version 0.87
+  Module-Build-Tiny-0.030
+    pathname: L/LE/LEONT/Module-Build-Tiny-0.030.tar.gz
+    provides:
+      Module::Build::Tiny 0.030
+    requirements:
+      CPAN::Meta 0
+      Exporter 5.57
+      ExtUtils::CBuilder 0
+      ExtUtils::Config 0.003
+      ExtUtils::Helpers 0.020
+      ExtUtils::Install 0
+      ExtUtils::InstallPaths 0.002
+      ExtUtils::ParseXS 0
+      File::Basename 0
+      File::Find 0
+      File::Path 0
+      File::Spec::Functions 0
+      Getopt::Long 0
+      JSON::PP 2
+      Pod::Man 0
+      TAP::Harness 3.29
+      TAP::Harness::Env 0
+      perl 5.006
+      strict 0
+      warnings 0
   Module-CPANfile-1.0002
     pathname: M/MI/MIYAGAWA/Module-CPANfile-1.0002.tar.gz
     provides:
@@ -4905,6 +5132,64 @@ DISTRIBUTIONS
       Try::Tiny 0
       strict 0
       warnings 0
+  Module-Install-1.06
+    pathname: A/AD/ADAMK/Module-Install-1.06.tar.gz
+    provides:
+      Module::AutoInstall 1.06
+      Module::Install 1.06
+      Module::Install::Admin 1.06
+      Module::Install::Admin::Bundle 1.06
+      Module::Install::Admin::Compiler 1.06
+      Module::Install::Admin::Find 1.06
+      Module::Install::Admin::Include 1.06
+      Module::Install::Admin::Makefile 1.06
+      Module::Install::Admin::Manifest 1.06
+      Module::Install::Admin::Metadata 1.06
+      Module::Install::Admin::ScanDeps 1.06
+      Module::Install::Admin::WriteAll 1.06
+      Module::Install::AutoInstall 1.06
+      Module::Install::Base 1.06
+      Module::Install::Base::FakeAdmin 1.06
+      Module::Install::Bundle 1.06
+      Module::Install::Can 1.06
+      Module::Install::Compiler 1.06
+      Module::Install::DSL 1.06
+      Module::Install::Deprecated 1.06
+      Module::Install::External 1.06
+      Module::Install::Fetch 1.06
+      Module::Install::Include 1.06
+      Module::Install::Inline 1.06
+      Module::Install::MakeMaker 1.06
+      Module::Install::Makefile 1.06
+      Module::Install::Metadata 1.06
+      Module::Install::PAR 1.06
+      Module::Install::Run 1.06
+      Module::Install::Scripts 1.06
+      Module::Install::Share 1.06
+      Module::Install::Win32 1.06
+      Module::Install::With 1.06
+      Module::Install::WriteAll 1.06
+      inc::Module::Install 1.06
+      inc::Module::Install::DSL 1.06
+    requirements:
+      Archive::Tar 1.44
+      Devel::PPPort 3.16
+      ExtUtils::Install 1.52
+      ExtUtils::MakeMaker 6.59
+      ExtUtils::ParseXS 2.19
+      File::Remove 1.42
+      File::Spec 3.28
+      JSON 2.14
+      LWP::UserAgent 5.812
+      Module::Build 0.29
+      Module::CoreList 2.17
+      Module::ScanDeps 0.89
+      PAR::Dist 0.29
+      Parse::CPAN::Meta 1.39
+      Test::Harness 3.13
+      Test::More 0.86
+      YAML::Tiny 1.38
+      perl 5.005
   Module-Reader-0.002000
     pathname: H/HA/HAARG/Module-Reader-0.002000.tar.gz
     provides:
@@ -4923,6 +5208,20 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
+  Module-ScanDeps-1.11
+    pathname: R/RS/RSCHUPP/Module-ScanDeps-1.11.tar.gz
+    provides:
+      Module::ScanDeps 1.11
+      Module::ScanDeps::Cache undef
+      Module::ScanDeps::DataFeed undef
+    requirements:
+      ExtUtils::MakeMaker 6.59
+      File::Spec 0
+      File::Temp 0
+      Module::Build::ModuleInfo 0
+      Test::More 0
+      perl 5.008001
+      version 0
   Module-Util-1.09
     pathname: M/MA/MATTLAW/Module-Util-1.09.tar.gz
     provides:
@@ -5540,6 +5839,20 @@ DISTRIBUTIONS
       Carp 0
       ExtUtils::MakeMaker 0
       Storable 0
+  Net-HTTP-6.06
+    pathname: G/GA/GAAS/Net-HTTP-6.06.tar.gz
+    provides:
+      Net::HTTP 6.06
+      Net::HTTP::Methods 6.06
+      Net::HTTP::NB 6.04
+      Net::HTTPS 6.04
+    requirements:
+      Compress::Raw::Zlib 0
+      ExtUtils::MakeMaker 0
+      IO::Compress::Gzip 0
+      IO::Select 0
+      IO::Socket::INET 0
+      perl 5.006002
   Net-SSLeay-1.55
     pathname: M/MI/MIKEM/Net-SSLeay-1.55.tar.gz
     provides:
@@ -5590,6 +5903,16 @@ DISTRIBUTIONS
       Storable 2.11
       Test::More 0.47
       perl 5.005
+  PAR-Dist-0.49
+    pathname: R/RS/RSCHUPP/PAR-Dist-0.49.tar.gz
+    provides:
+      PAR::Dist 0.49
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Find 0
+      File::Path 0
+      File::Spec 0
+      File::Temp 0
   PDL-2.007
     pathname: C/CH/CHM/PDL-2.007.tar.gz
     provides:
@@ -6744,6 +7067,58 @@ DISTRIBUTIONS
       Test::Builder::Tester 1.04
       Test::Manifest 1.14
       Test::More 0.95
+  Test-Harness-3.29
+    pathname: O/OV/OVID/Test-Harness-3.29.tar.gz
+    provides:
+      App::Prove 3.29
+      App::Prove::State 3.29
+      App::Prove::State::Result 3.29
+      App::Prove::State::Result::Test 3.29
+      TAP::Base 3.29
+      TAP::Formatter::Base 3.29
+      TAP::Formatter::Color 3.29
+      TAP::Formatter::Console 3.29
+      TAP::Formatter::Console::ParallelSession 3.29
+      TAP::Formatter::Console::Session 3.29
+      TAP::Formatter::File 3.29
+      TAP::Formatter::File::Session 3.29
+      TAP::Formatter::Session 3.29
+      TAP::Harness 3.29
+      TAP::Harness::Env 3.29
+      TAP::Object 3.29
+      TAP::Parser 3.29
+      TAP::Parser::Aggregator 3.29
+      TAP::Parser::Grammar 3.29
+      TAP::Parser::Iterator 3.29
+      TAP::Parser::Iterator::Array 3.29
+      TAP::Parser::Iterator::Process 3.29
+      TAP::Parser::Iterator::Stream 3.29
+      TAP::Parser::IteratorFactory 3.29
+      TAP::Parser::Multiplexer 3.29
+      TAP::Parser::Result 3.29
+      TAP::Parser::Result::Bailout 3.29
+      TAP::Parser::Result::Comment 3.29
+      TAP::Parser::Result::Plan 3.29
+      TAP::Parser::Result::Pragma 3.29
+      TAP::Parser::Result::Test 3.29
+      TAP::Parser::Result::Unknown 3.29
+      TAP::Parser::Result::Version 3.29
+      TAP::Parser::Result::YAML 3.29
+      TAP::Parser::ResultFactory 3.29
+      TAP::Parser::Scheduler 3.29
+      TAP::Parser::Scheduler::Job 3.29
+      TAP::Parser::Scheduler::Spinner 3.29
+      TAP::Parser::Source 3.29
+      TAP::Parser::SourceHandler 3.29
+      TAP::Parser::SourceHandler::Executable 3.29
+      TAP::Parser::SourceHandler::File 3.29
+      TAP::Parser::SourceHandler::Handle 3.29
+      TAP::Parser::SourceHandler::Perl 3.29
+      TAP::Parser::SourceHandler::RawTAP 3.29
+      TAP::Parser::YAMLish::Reader 3.29
+      TAP::Parser::YAMLish::Writer 3.29
+      Test::Harness 3.29
+    requirements:
   Test-LongString-0.15
     pathname: R/RG/RGARCIA/Test-LongString-0.15.tar.gz
     provides:
@@ -7296,6 +7671,67 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       Test::More 0.47
+  URI-1.60
+    pathname: G/GA/GAAS/URI-1.60.tar.gz
+    provides:
+      URI 1.60
+      URI::Escape 3.31
+      URI::Heuristic 4.20
+      URI::IRI undef
+      URI::QueryParam undef
+      URI::Split undef
+      URI::URL 5.04
+      URI::WithBase 2.20
+      URI::_foreign undef
+      URI::_generic undef
+      URI::_idna undef
+      URI::_ldap 1.12
+      URI::_login undef
+      URI::_punycode 0.04
+      URI::_query undef
+      URI::_segment undef
+      URI::_server undef
+      URI::_userpass undef
+      URI::data undef
+      URI::file 4.21
+      URI::file::Base undef
+      URI::file::FAT undef
+      URI::file::Mac undef
+      URI::file::OS2 undef
+      URI::file::QNX undef
+      URI::file::Unix undef
+      URI::file::Win32 undef
+      URI::ftp undef
+      URI::gopher undef
+      URI::http undef
+      URI::https undef
+      URI::ldap 1.12
+      URI::ldapi undef
+      URI::ldaps undef
+      URI::mailto undef
+      URI::mms undef
+      URI::news undef
+      URI::nntp undef
+      URI::pop undef
+      URI::rlogin undef
+      URI::rsync undef
+      URI::rtsp undef
+      URI::rtspu undef
+      URI::sip 0.11
+      URI::sips undef
+      URI::snews undef
+      URI::ssh undef
+      URI::telnet undef
+      URI::tn3270 undef
+      URI::urn undef
+      URI::urn::isbn undef
+      URI::urn::oid undef
+    requirements:
+      ExtUtils::MakeMaker 0
+      MIME::Base64 2
+      Test 0
+      Test::More 0
+      perl 5.008001
   URI-Find-20111103
     pathname: M/MS/MSCHWERN/URI-Find-20111103.tar.gz
     provides:
@@ -7351,6 +7787,18 @@ DISTRIBUTIONS
       URI::URL 0
       URI::file 0
       perl 5.008
+  WWW-RobotRules-6.02
+    pathname: G/GA/GAAS/WWW-RobotRules-6.02.tar.gz
+    provides:
+      WWW::RobotRules 6.02
+      WWW::RobotRules::AnyDBM_File 6.00
+      WWW::RobotRules::InCore 6.02
+    requirements:
+      AnyDBM_File 0
+      ExtUtils::MakeMaker 0
+      Fcntl 0
+      URI 1.10
+      perl 5.008001
   Web-Scraper-0.37
     pathname: M/MI/MIYAGAWA/Web-Scraper-0.37.tar.gz
     provides:
@@ -7667,6 +8115,19 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 6.59
       perl 5.006
+  YAML-Tiny-1.56
+    pathname: E/ET/ETHER/YAML-Tiny-1.56.tar.gz
+    provides:
+      YAML::Tiny 1.56
+    requirements:
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.30
+      Module::Build::Tiny 0.027
+      Scalar::Util 0
+      perl 5.006
+      strict 0
+      warnings 0
   aliased-0.31
     pathname: O/OV/OVID/aliased-0.31.tar.gz
     provides:
@@ -7733,6 +8194,61 @@ DISTRIBUTIONS
       common::sense 3.72
     requirements:
       ExtUtils::MakeMaker 0
+  libwww-perl-6.05
+    pathname: G/GA/GAAS/libwww-perl-6.05.tar.gz
+    provides:
+      LWP 6.05
+      LWP::Authen::Basic undef
+      LWP::Authen::Digest undef
+      LWP::Authen::Ntlm 6.00
+      LWP::ConnCache 6.02
+      LWP::Debug undef
+      LWP::DebugFile undef
+      LWP::MemberMixin undef
+      LWP::Protocol 6.00
+      LWP::Protocol::GHTTP undef
+      LWP::Protocol::MyFTP undef
+      LWP::Protocol::cpan undef
+      LWP::Protocol::data undef
+      LWP::Protocol::file undef
+      LWP::Protocol::ftp undef
+      LWP::Protocol::gopher undef
+      LWP::Protocol::http undef
+      LWP::Protocol::http::Socket undef
+      LWP::Protocol::http::SocketMethods undef
+      LWP::Protocol::loopback undef
+      LWP::Protocol::mailto undef
+      LWP::Protocol::nntp undef
+      LWP::Protocol::nogo undef
+      LWP::RobotUA 6.03
+      LWP::Simple 6.00
+      LWP::UserAgent 6.05
+    requirements:
+      Digest::MD5 0
+      Encode 2.12
+      Encode::Locale 0
+      ExtUtils::MakeMaker 0
+      File::Listing 6
+      HTML::Entities 0
+      HTML::HeadParser 0
+      HTTP::Cookies 6
+      HTTP::Daemon 6
+      HTTP::Date 6
+      HTTP::Negotiate 6
+      HTTP::Request 6
+      HTTP::Request::Common 6
+      HTTP::Response 6
+      HTTP::Status 6
+      IO::Select 0
+      IO::Socket 0
+      LWP::MediaTypes 6
+      MIME::Base64 2.1
+      Net::FTP 2.58
+      Net::HTTP 6.04
+      URI 1.10
+      URI::Escape 0
+      WWW::RobotRules 6
+      perl 5.008001
   namespace-autoclean-0.14
     pathname: E/ET/ETHER/namespace-autoclean-0.14.tar.gz
     provides:
