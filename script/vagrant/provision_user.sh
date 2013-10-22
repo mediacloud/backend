@@ -16,4 +16,4 @@ set -o errexit
 
 echo "Installing Media Cloud..."
 cd $MEDIACLOUD_ROOT
-./install.sh
+MEDIAWORDS_CREATE_DB_DO_NOT_CONFIRM=1 ./install.sh
