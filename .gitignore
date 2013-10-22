@@ -18,3 +18,6 @@ cache/translate
 # Inline::Java
 _Inline/
 
+# Vagrant
+.vagrant
+
