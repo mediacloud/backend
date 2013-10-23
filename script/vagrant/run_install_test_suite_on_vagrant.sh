@@ -61,7 +61,7 @@ cd "$TEMP_MC_REPO_DIR/script/vagrant/"
 
 echo "Setting up the virtual machine..."
 VAGRANT_SUCCEEDED=1
-vagrant boo || { VAGRANT_SUCCEEDED=0; }
+vagrant up || { VAGRANT_SUCCEEDED=0; }
 
 if [ $VAGRANT_SUCCEEDED == 0 ]; then
     echo
