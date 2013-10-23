@@ -16,8 +16,8 @@
 # prevent other instances of the script running at the same time
 LOCK_FILE="vagrant_test_suite.lock"
 
-# *Relative* directory in which the script will check out Media Cloud's Git
-# repository
+# Directory in which the script will check
+# out Media Cloud's Git repository
 TEMP_MC_REPO_DIR="temp-vagrant-mediacloud/"
 
 # ---
@@ -27,10 +27,19 @@ set -u
 set -o errexit
 
 
+PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+
 if [ -f "$LOCK_FILE" ]; then
     echo "Lock file \"$LOCK_FILE\" exists."
     echo "Either Vagrant is running or it had failed last time."
     exit 1
+fi
+
+if [[ "$TEMP_MC_REPO_DIR" != /* ]]; then
+    # Resolve relative path
+    TEMP_MC_REPO_DIR="$PWD/$TEMP_MC_REPO_DIR"
+    echo "Full path to the repository directory: $TEMP_MC_REPO_DIR"
 fi
 
 if [ -d "$TEMP_MC_REPO_DIR" ]; then
@@ -48,13 +57,11 @@ fi
 
 echo "Cloning the Media Cloud repository..."
 git clone http://github.com/berkmancenter/mediacloud.git "$TEMP_MC_REPO_DIR"
-cd "$TEMP_MC_REPO_DIR/"
-git checkout vagrant
-cd script/vagrant/
+cd "$TEMP_MC_REPO_DIR/script/vagrant/"
 
 echo "Setting up the virtual machine..."
 VAGRANT_SUCCEEDED=1
-vagrant boohoo || { VAGRANT_SUCCEEDED=0; }
+vagrant boo || { VAGRANT_SUCCEEDED=0; }
 
 if [ $VAGRANT_SUCCEEDED == 0 ]; then
     echo
@@ -79,7 +86,7 @@ fi
 echo "Destroying virtual machine..."
 vagrant destroy --force
 
-cd ../../../    # back from "$TEMP_MC_REPO_DIR/script/vagrant/"
+cd "$PWD"
 
 echo "Removing the temporary Media Cloud repository..."
 rm -rf "$TEMP_MC_REPO_DIR"
