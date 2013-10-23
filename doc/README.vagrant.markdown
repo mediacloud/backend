@@ -14,9 +14,11 @@ Media Cloud provides a lean `Vagrantfile` script located in `script/vagrant/` th
 Installing Vagrant and its dependencies
 ---------------------------------------
 
-Download and install Vagrant from the [Vagrant Downloads page](http://downloads.vagrantup.com/).
+Download and install Vagrant 1.3+ from the [Vagrant Downloads page](http://downloads.vagrantup.com/) `*`.
 
 You'll also need a Provider -- `x86_64` virtualization software package of some sort. [VirtualBox](https://www.virtualbox.org/) is a free, good and supported choice.
+
+`*` APT's version is too old at the time of writing
 
 
 Setting up Media Cloud on Vagrant
