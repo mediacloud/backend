@@ -79,3 +79,15 @@ So, to start the Media Cloud web service, run:
     vagrant$ ./script/start_mediacloud_server.sh
 
 and then open `http://127.0.0.1:5001/` on your *host* machine to access Media Cloud web interface on the guest machine.
+
+
+### Testing Media Cloud with Vagrant
+
+Directory `script/vagrant/` contains a script `run_vagrant_test_suite.sh` that:
+
+1. Clones a fresh copy of Media Cloud from Git,
+2. Starts a new temporary instance of Vagrant with the Media Cloud repository attached as a shared folder,
+3. If the Media Cloud installation succeeded, cleans up and returns with a zero exit status code, or
+4. If the Media Cloud installation failed, leaves everything inact, shuts down the Vagrant instance and returns with a non-zero exit code.
+
+You can use the script to automatically and periodically test Media Cloud installation process and run the full test suite.

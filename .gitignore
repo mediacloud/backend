@@ -18,6 +18,7 @@ cache/translate
 # Inline::Java
 _Inline/
 
-# Vagrant
+# Vagrant and test suite temporary files
 .vagrant
-
+script/vagrant/vagrant_test_suite.lock
+script/vagrant/temp-vagrant-mediacloud
