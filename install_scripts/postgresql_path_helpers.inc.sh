@@ -61,12 +61,23 @@ function run_dropdb {
 function run_createdb {
     local db_name="$1"
 
+    CREATEDB_OPTIONS="--owner mediaclouduser"
+
+    # Force UTF-8 encoding because some PostgreSQL installations default to
+    # "LATIN1" and then LENGTH() and similar functions don't work correctly
+    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --encoding=UTF-8"
+    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --lc-collate=en_US.UTF-8"
+    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --lc-ctype=en_US.UTF-8"
+    # "template1" is preinitialized with "LATIN1" encoding on some systems and
+    # thus doesn't work, so using a cleaner "template0":
+    CREATEDB_OPTIONS="$CREATEDB_OPTIONS --template=template0"
+
     if [ `uname` == 'Darwin' ]; then
         # Mac OS X
-        local run_createdb_result=`/usr/local/bin/createdb --owner mediaclouduser $db_name 2>&1 || echo `
+        local run_createdb_result=`/usr/local/bin/createdb $CREATEDB_OPTIONS $db_name 2>&1 || echo `
     else
         # assume Ubuntu
-        local run_createdb_result=`sudo su -l postgres -c "createdb --owner mediaclouduser $db_name 2>&1 " || echo `
+        local run_createdb_result=`sudo su -l postgres -c "createdb $CREATEDB_OPTIONS $db_name 2>&1 " || echo `
     fi
     echo "$run_createdb_result"
 }

@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  # Ubuntu 12.04 (64 bit)
+  config.vm.box = "precise64"
+  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+
+  # Hostname
+  config.vm.hostname = "mediacloud.local"
+
+  # Provision scripts
+  config.vm.provision "shell", privileged: true, path: "provision_root.sh"
+  config.vm.provision "shell", privileged: false, path: "provision_user.sh"
+
+  # Access Media Cloud's 5000 port by opening localhost:5001
+  config.vm.network :forwarded_port, guest: 5000, host: 5001
+
+  # Share Media Cloud's repository as /mediacloud
+  # (path is relative to ./script/vagrant)
+  config.vm.synced_folder "../../", "/mediacloud"
+
+end

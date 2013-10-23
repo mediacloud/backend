@@ -19,8 +19,8 @@ sub query
     my ( $params ) = @_;
 
     $params->{ wt }   = 'json';
-    $params->{ rows } = 1000000 unless ( defined( $params->{ rows } ) );
-    $params->{ df }   = 'sentence' unless ( defined( $params->{ df } ) );
+    $params->{ rows } //= 1000000;
+    $params->{ df }   //= 'sentence';
 
     my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
 
