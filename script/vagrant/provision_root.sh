@@ -37,9 +37,18 @@ echo "Installing GRUB so that APT doesn't complain..."
 grub-install /dev/sda
 update-grub
 
-echo "Upgrading packages with APT..."
+echo "Adding MongoDB 10gen repository and installing MongoDB..."
+echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' \
+	> /etc/apt/sources.list.d/mongodb.list
+
+echo "Fetching a list of APT updates and new repository listings..."
 apt-get update
+
+echo "Upgrading packages with APT..."
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 echo "Installing some basic utilities..."
-apt-get -y install vim git screen mc zip unzip links
+DEBIAN_FRONTEND=noninteractive apt-get -y install vim git screen mc zip unzip links
+
+echo "Installing MongoDB (10gen version)..."
+DEBIAN_FRONTEND=noninteractive apt-get -y install mongodb-10gen
