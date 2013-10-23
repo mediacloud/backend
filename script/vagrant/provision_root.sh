@@ -48,7 +48,7 @@ echo "Upgrading packages with APT..."
 DEBIAN_FRONTEND=noninteractive apt-get -y upgrade
 
 echo "Installing some basic utilities..."
-DEBIAN_FRONTEND=noninteractive apt-get -y install vim git screen mc zip unzip links
+DEBIAN_FRONTEND=noninteractive apt-get -y install vim git screen mc zip unzip links htop
 
 echo "Installing MongoDB (10gen version)..."
 DEBIAN_FRONTEND=noninteractive apt-get -y install mongodb-10gen
