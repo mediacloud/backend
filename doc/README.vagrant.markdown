@@ -83,7 +83,7 @@ and then open `http://127.0.0.1:5001/` on your *host* machine to access Media Cl
 
 ### Testing Media Cloud with Vagrant
 
-Directory `script/vagrant/` contains a script `run_vagrant_test_suite.sh` that:
+Directory `script/vagrant/` contains a script `run_install_test_suite_on_vagrant.sh` that:
 
 1. Clones a fresh copy of Media Cloud from Git,
 2. Starts a new temporary instance of Vagrant with the Media Cloud repository attached as a shared folder,
