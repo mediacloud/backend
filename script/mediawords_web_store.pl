@@ -46,20 +46,19 @@ sub get_request_domain
     my $n = @{ $name_parts } - 1;
 
     my $domain;
-    if ( $host =~ /\.co.uk$/ )
-    {
-        $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
-    }
-    elsif ( $host =~ /blogspot.com|livejournal.com|wordpress.com/ )
-    {
-        $domain = $request->{ url };
-    }
-    else
-    {
-        $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
-    }
+    if ( $host =~ /\...$/ )    # for country domains, use last three parts of name
+      $domain = join( ".", ( $name_parts->[ $n - 2 ], $name_parts->[ $n - 1 ], $name_parts->[ $n ] ) );
+}
+elsif ( $host =~ /blogspot.com|livejournal.com|wordpress.com/ )
+{
+    $domain = $request->{ url };
+}
+else
+{
+    $domain = join( ".", $name_parts->[ $n - 1 ], $name_parts->[ $n ] );
+}
 
-    return lc( $domain );
+return lc( $domain );
 }
 
 # schedule the requests by adding a { time => $time } field to each request
