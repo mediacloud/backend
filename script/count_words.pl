@@ -101,6 +101,7 @@ sub get_num_sentences_from_solr
 
     $params->{ rows } = 0;
     $params->{ wt }   = 'json';
+    $params->{ df }   = 'sentence';
 
     my $res = $ua->post( SOLR_SELECT_URL, $params );
 
@@ -161,6 +162,7 @@ sub get_solr_results_socket
 
     $params->{ rows } = $num_sentences;
     $params->{ wt }   = 'csv';
+    $params->{ df }   = 'sentence';
 
     my $full_request = POST( SOLR_SELECT_URL, $params );
 
