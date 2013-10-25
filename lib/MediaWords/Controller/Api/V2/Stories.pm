@@ -311,6 +311,16 @@ sub _add_data_to_stories
         $story->{ story_sentences } = $story_sentences;
     }
 
+    foreach my $story ( @{ $stories } )
+    {
+        say STDERR "adding story tags ";
+        my $story_tags = $db->query(
+"select tags.tags_id, tags.tag, tag_sets.tag_sets_id, tag_sets.name as tag_set from stories_tags_map natural join tags natural join tag_sets where stories_id = ? ORDER by tags_id",
+            $story->{ stories_id }
+        )->hashes;
+        $story->{ story_tags } = $story_tags;
+    }
+
     return $stories;
 }
 
@@ -320,51 +330,21 @@ sub stories_query : Local : ActionClass('REST')
 
 sub stories_query_GET : Local
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, $stories_id ) = @_;
 
-    say STDERR "starting stories_query_json";
+    my $query = "select s.* from stories s where stories_id = ? ";
 
-    my $last_stories_id = $c->req->param( 'last_stories_id' );
+    say STDERR "QUERY $query";
 
-    my $start_stories_id = $c->req->param( 'start_stories_id' );
+    my $stories = $c->dbis->query( $query, $stories_id )->hashes();
 
     my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
 
-    $show_raw_1st_download //= 1;
-
-    die " Cannot use both last_stories_id and start_stories_id"
-      if defined( $last_stories_id )
-      and defined( $start_stories_id );
-
-    if ( defined( $start_stories_id ) && !( defined( $last_stories_id ) ) )
-    {
-        $last_stories_id = $start_stories_id - 1;
-    }
-    elsif ( !( defined( $last_stories_id ) ) )
-    {
-        ( $last_stories_id ) = $c->dbis->query(
-" select stories_id from stories where collect_date < now() - interval '1 days' order by collect_date desc limit 1 "
-        )->flat;
-        $last_stories_id--;
-    }
-
-    say STDERR "Last_stories_id is $last_stories_id";
-
-    Readonly my $stories_to_return => min( $c->req->param( 'story_count' ) // 25, 1000 );
-
-    my $query = " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ";
-
-    # say STDERR "Running query '$query' with $last_stories_id, $stories_to_return ";
-
-    my $stories = $c->dbis->query( $query, $last_stories_id, $stories_to_return )->hashes;
+    $show_raw_1st_download //= 0;
 
     $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
 
-    say STDERR "finished stories_query_json";
     $self->status_ok( $c, entity => $stories );
-
-    #$c->response->content_type( 'application/json; charset=UTF-8' );
-    #return $c->res->body( encode_json( $stories ) );
 }
 
 sub all_processed : Local : ActionClass('REST')
