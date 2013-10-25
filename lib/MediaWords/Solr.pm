@@ -18,7 +18,7 @@ sub query
 {
     my ( $params ) = @_;
 
-    $params->{ wt }   = 'json';
+    $params->{ wt } = 'json';
     $params->{ rows } //= 1000000;
     $params->{ df }   //= 'sentence';
 
@@ -29,10 +29,11 @@ sub query
     $ua->timeout( 300 );
     $ua->max_size( undef );
 
-    print STDERR "executing solr query ...\n";
-    print STDERR Dumper( $params );
+    # print STDERR "executing solr query ...\n";
+    # print STDERR Dumper( $params );
     my $res = $ua->post( $url, $params );
-    print STDERR "solr query response received.\n";
+
+    # print STDERR "solr query response received.\n";
 
     if ( !$res->is_success )
     {
