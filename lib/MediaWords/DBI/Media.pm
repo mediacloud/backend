@@ -235,7 +235,7 @@ sub _add_media_tags_from_strings
         {
             for my $tag_string ( split( /;/, $url_medium->{ tags_string } ) )
             {
-                my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, lc( $tag_string ) );
+                my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $dbis, lc( $tag_string ) );
                 return unless ( $tag );
 
                 my $media_id = $url_medium->{ medium }->{ media_id };
