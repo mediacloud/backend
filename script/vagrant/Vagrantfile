@@ -14,12 +14,14 @@ VAGRANTFILE_API_VERSION = "2"
 # 5. Append "ebs" to the search box (e.g. "amd64 us-east-1 12.04 ebs")
 # 6. Click the AMI to open up AWS website in order to make sure that the instance is supported
 # 7. Copy the region and AMI here
-AWS_AMI           = ENV['AWS_AMI']                || "ami-69f5a900"
-AWS_REGION        = ENV['AWS_REGION']             || "us-east-1"
+AWS_AMI           = ENV['AWS_AMI']            || "ami-69f5a900"
+AWS_REGION        = ENV['AWS_REGION']         || "us-east-1"
+AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "t1.micro"
+AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 
-AWS_INSTANCE_TYPE   = ENV['AWS_AMI']              || "t1.micro"
-AWS_INSTANCE_NAME   = ENV['AWS_INSTANCE_NAME']    || "Media Cloud Vagrant test box"
-
+#
+# Main configuration
+#
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #
@@ -92,7 +94,7 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     # 2. Allow Inbound SSH traffic from 0.0.0.0/0
     # 3. Allow Inbound SSH traffic of type "All" from 0.0.0.0/0
     # 4. Click "Apply Rule Changes"
-    aws.security_groups = [ AWS_SECURITY_GROUP ]
+    aws.security_groups = [ ENV["AWS_SECURITY_GROUP"] ]
 
   end
 
