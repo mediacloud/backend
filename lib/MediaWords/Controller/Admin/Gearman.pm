@@ -35,8 +35,7 @@ EOF
     if ( $job->{ status } ne 'enqueued' )
     {
         $job->{ log_path } =
-          Gearman::JobScheduler::log_path_for_gearman_job( MediaWords::GearmanFunction::CM::DumpControversy->name(),
-            $job->{ job_handle } );
+          Gearman::JobScheduler::log_path_for_gearman_job( $job->{ function_name }, $job->{ job_handle } );
     }
     else
     {
