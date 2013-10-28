@@ -16,6 +16,7 @@ BEGIN
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::GearmanFunction;
+use MediaWords::DBI::Media;
 
 sub main
 {
@@ -24,9 +25,11 @@ sub main
         die "Gearman is disabled.";
     }
 
+    my $db = MediaWords::DB::connect_to_db;
+
     while ( 1 )
     {
-        MediaWords::DBI::Media::enqueue_add_default_feeds_for_unmoderated_media();
+        MediaWords::DBI::Media::enqueue_add_default_feeds_for_unmoderated_media( $db );
         sleep( 60 );
     }
 }
