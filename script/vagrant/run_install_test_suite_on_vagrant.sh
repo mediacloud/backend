@@ -41,11 +41,11 @@ USAGE=$( cat <<EOF
 Usage:
     ./run_install_test_suite_on_vagrant.sh virtualbox
 or:
-    AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \\
-    AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" \\
-    AWS_KEYPAIR_NAME="development" \\
-    AWS_SSH_PRIVKEY="~/development.pem" \\
-    AWS_SECURITY_GROUP="default" \\
+    AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \\ 
+    AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" \\ 
+    AWS_KEYPAIR_NAME="development" \\ 
+    AWS_SSH_PRIVKEY="~/development.pem" \\ 
+    AWS_SECURITY_GROUP="default" \\ 
     ./run_install_test_suite_on_vagrant.sh aws
 EOF
 )
