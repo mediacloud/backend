@@ -11,6 +11,17 @@
 # The script is path-independent (you can copy / symlink it to any location on
 # the system).
 #
+# Usage:
+# 
+#     ./run_install_test_suite_on_vagrant.sh virtualbox
+# or:
+#     AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
+#     AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" \
+#     AWS_KEYPAIR_NAME="development" \
+#     AWS_SSH_PRIVKEY="~/development.pem" \
+#     AWS_SECURITY_GROUP="default" \
+#     ./run_install_test_suite_on_vagrant.sh aws
+#
 
 # Lock file that will be created while the script is running in order to
 # prevent other instances of the script running at the same time
@@ -25,6 +36,30 @@ TEMP_MC_REPO_DIR="temp-vagrant-mediacloud/"
 set -e
 set -u
 set -o errexit
+
+USAGE=$( cat <<EOF
+Usage:
+    ./run_install_test_suite_on_vagrant.sh virtualbox
+or:
+    AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \\ 
+    AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" \\ 
+    AWS_KEYPAIR_NAME="development" \\ 
+    AWS_SSH_PRIVKEY="~/development.pem" \\ 
+    AWS_SECURITY_GROUP="default" \\ 
+    ./run_install_test_suite_on_vagrant.sh aws
+EOF
+)
+
+if [ $# -ne 1 ]; then
+    echo "$USAGE"
+    exit 1
+fi
+
+PROVIDER="$1"
+if [ "$PROVIDER" != "virtualbox" ] && [ "$PROVIDER" != "aws" ]; then
+    echo "$USAGE"
+    exit 1
+fi
 
 
 PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -61,7 +96,7 @@ cd "$TEMP_MC_REPO_DIR/script/vagrant/"
 
 echo "Setting up the virtual machine..."
 VAGRANT_SUCCEEDED=1
-vagrant up || { VAGRANT_SUCCEEDED=0; }
+vagrant up --provider="$PROVIDER" || { VAGRANT_SUCCEEDED=0; }
 
 if [ $VAGRANT_SUCCEEDED == 0 ]; then
     echo
