@@ -324,3 +324,26 @@ table.cm_latest_activities td {
     /* Activity names might get lengthy */
     word-wrap: break-word;
 }
+
+/* Force word wrap on cells that might contain long content */
+.force-word-wrap {
+    word-wrap: break-word;
+    white-space: -moz-pre-wrap; /* Mozilla */
+    white-space: -hp-pre-wrap;  /* HP printers */
+    white-space: -o-pre-wrap;   /* Opera 7 */
+    white-space: -pre-wrap; /* Opera 4-6 */
+    white-space: pre-wrap;  /* CSS 2.1 */
+    white-space: pre-line;  /* CSS 3 (and 2.1 as well, actually) */
+    word-wrap: break-word;  /* IE */
+    word-break: break-all;
+}
+
+/* Gearman job log in /gearman/view_log */
+pre.gearman_job_log {
+    height: auto;
+    overflow: auto;
+    background-color: #eeeeee;
+    word-break: normal !important;
+    word-wrap: normal !important;
+    white-space: pre !important;
+}
