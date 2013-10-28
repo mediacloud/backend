@@ -46,30 +46,33 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #
   config.vm.provider :aws do |aws, override|
 
-    if ENV["AWS_ACCESS_KEY_ID"].nil? ||
-       ENV["AWS_SECRET_ACCESS_KEY"].nil? ||
-       ENV["AWS_KEYPAIR_NAME"].nil? ||
-       ENV["AWS_SSH_PRIVKEY"].nil? ||
-       ENV["AWS_SECURITY_GROUP"].nil?
+    if ARGV.include? '--provider=aws'
 
-      err_message = <<-eos
+      if ENV["AWS_ACCESS_KEY_ID"].nil? ||
+         ENV["AWS_SECRET_ACCESS_KEY"].nil? ||
+         ENV["AWS_KEYPAIR_NAME"].nil? ||
+         ENV["AWS_SSH_PRIVKEY"].nil? ||
+         ENV["AWS_SECURITY_GROUP"].nil?
+
+        err_message = <<-eos
 Set the following environment variables before continuing:
 
     export AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" # The API key used to make requests to AWS
     export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG" # The secret key to make AWS API requests
     export AWS_KEYPAIR_NAME="development" # The name of the keypair used for this EC2 instance
-    export AWS_SSH_PRIVKEY="~/.ssh/aws.pem" # The path to the private key for the named keypair
+    export AWS_SSH_PRIVKEY="~/development.pem" # The path to the private key for the named keypair
     export AWS_SECURITY_GROUP="default" # Security group to assign to this EC2 instance
 
 See doc/README.vagrant.markdown for instructions on how to set those variables.
-       eos
+        eos
 
-      abort(err_message)
+        abort(err_message)
 
+      end
     end
 
-    config.vm.box = "ubuntu_aws"
-    config.vm.box_url = "aws_ec2_dummy.box"
+    override.vm.box = "ubuntu_aws"
+    override.vm.box_url = "aws_ec2_dummy.box"
 
     # default username of Ubuntu ABIs
     override.ssh.username = "ubuntu"
@@ -103,6 +106,7 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
 
   # Share Media Cloud's repository as /mediacloud
   # (path is relative to ./script/vagrant)
+  # Will mount on VirtualBox, rsync on AWS EC2
   config.vm.synced_folder "../../", "/mediacloud"
 
   # Provision scripts
