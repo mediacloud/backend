@@ -3,7 +3,7 @@
 #
 # Provisioning script for the *privileged* user (root).
 #
-# Tested on "precise64" (Ubuntu 12.04, 64 bit; http://files.vagrantup.com/precise64.box)
+# Tested on Ubuntu 12.04, 64 bit
 #
 
 MC_HOSTNAME="mediacloud"
@@ -33,14 +33,16 @@ export LANG=$MC_LOCALE_LANG.$MC_LOCALE_LANG_VARIANT
 export LANGUAGE=$MC_LOCALE_LANG
 locale
 
-echo "Installing GRUB so that APT doesn't complain..."
-grub-install /dev/sda
-update-grub
+if [ -b /dev/sda ]; then
+    echo "Installing GRUB so that APT doesn't complain..."
+    grub-install /dev/sda
+    update-grub
+fi
 
 echo "Adding MongoDB 10gen repository and installing MongoDB..."
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
 echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' \
-	> /etc/apt/sources.list.d/mongodb.list
+    > /etc/apt/sources.list.d/mongodb.list
 
 echo "Fetching a list of APT updates and new repository listings..."
 apt-get update
