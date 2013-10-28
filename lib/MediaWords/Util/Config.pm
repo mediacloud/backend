@@ -81,7 +81,7 @@ sub set_defaults
     $config->{ mediawords }->{ download_storage_locations }       ||= [ 'localfile' ];
     $config->{ mediawords }->{ read_tar_downloads_from_gridfs }   ||= 'no';
     $config->{ mediawords }->{ read_file_downloads_from_gridfs }  ||= 'no';
-    $config->{ mediawords }->{ extractor_method }                 ||= 'HeuristicExtractor';
+    $config->{ mediawords }->{ extractor_method }                 ||= 'CrfExtractor';
     $config->{ mediawords }->{ controversy_model_reps }           ||= '25';
     $config->{ mediawords }->{ solr_wc_url }                      ||= 'http://localhost:8080/wc';
     $config->{ mediawords }->{ solr_select_url }                  ||= 'http://localhost:8983/solr/collection1/select';
