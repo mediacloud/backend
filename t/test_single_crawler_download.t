@@ -244,6 +244,10 @@ sub test_stories
             _purge_stories_id_field( $story->{ story_sentences } );
             _purge_stories_id_field( $test_story->{ story_sentences } );
 
+            # don't compare timestamp-dependent "db_row_last_updated" fields
+            map { delete( $_->{ db_row_last_updated } ) }
+              ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
+
             cmp_deeply(
                 $story->{ story_sentences },
                 $test_story->{ story_sentences },

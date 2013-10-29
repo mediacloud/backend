@@ -320,6 +320,10 @@ sub test_stories
                   ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
             }
 
+            # don't compare timestamp-dependent "db_row_last_updated" fields
+            map { delete( $_->{ db_row_last_updated } ) }
+              ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
+
             cmp_deeply(
                 $story->{ story_sentences },
                 $test_story->{ story_sentences },

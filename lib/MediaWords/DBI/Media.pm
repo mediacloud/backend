@@ -172,7 +172,7 @@ sub _add_missing_media_from_urls
             next;
         }
 
-        my $title = _get_medium_title_from_response( $response );
+        my $title = _get_medium_title_from_response( $response ) || $url;
 
         my $medium = _find_medium_by_response( $dbis, $response );
 
@@ -235,21 +235,12 @@ sub _add_media_tags_from_strings
         {
             for my $tag_string ( split( /;/, $url_medium->{ tags_string } ) )
             {
-                my ( $tag_set_name, $tag_name ) = split( ':', lc( $tag_string ) );
+                my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $dbis, lc( $tag_string ) );
+                return unless ( $tag );
 
-                my $tag_sets_id =
-                  $dbis->query( "select tag_sets_id from tag_sets where name = ?", lc( $tag_set_name ) )->list;
-                if ( !$tag_sets_id )
-                {
-                    $url_medium->{ message } .= " Unable to find tag set '$tag_set_name'";
-                    next;
-                }
-
-                my $tags_id =
-                  $dbis->find_or_create( 'tags', { tag => $tag_name, tag_sets_id => $tag_sets_id } )->{ tags_id };
                 my $media_id = $url_medium->{ medium }->{ media_id };
 
-                $dbis->find_or_create( 'media_tags_map', { tags_id => $tags_id, media_id => $media_id } );
+                $dbis->find_or_create( 'media_tags_map', { tags_id => $tag->{ tags_id }, media_id => $media_id } );
             }
         }
     }

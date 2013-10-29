@@ -24,7 +24,7 @@ use MediaWords::Util::Config;
 my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
 
 my $cache = CHI->new(
-    driver           => 'FastMmap',
+    driver           => 'File',
     expires_in       => '1 week',
     expires_variance => '0.1',
     root_dir         => "${ mediacloud_data_dir }/cache/translate",
