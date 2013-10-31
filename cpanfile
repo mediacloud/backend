@@ -35,6 +35,7 @@ requires 'Data::Dumper';
 requires 'Data::Page';
 requires 'Data::Serializer';
 requires 'Data::Sorting';
+requires 'Data::Structure::Util';
 requires 'Data::Validate::URI';
 requires 'DateTime::Format::Pg';
 requires 'DBD::Pg', '2.19.3';

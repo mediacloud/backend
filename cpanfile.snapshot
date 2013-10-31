@@ -1576,6 +1576,20 @@ DISTRIBUTIONS
       Test::More 0.88
       Test::Requires 0
       namespace::clean 0
+  Data-Structure-Util-0.15
+    pathname: A/AN/ANDYA/Data-Structure-Util-0.15.tar.gz
+    provides:
+      Data::Structure::Util 0.15
+      Devel::CheckLib 0.3
+      IO::CaptureOutput 1.0801
+      IO::CaptureOutput::_proxy 1.0801
+    requirements:
+      Digest::MD5 0
+      ExtUtils::MakeMaker 0
+      Scalar::Util 1.01
+      Test::More 0
+      Test::Pod 0
+      Test::Simple 0
   Data-Types-0.09
     pathname: D/DW/DWHEELER/Data-Types-0.09.tar.gz
     provides:
