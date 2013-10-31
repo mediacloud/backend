@@ -25,6 +25,7 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Util::Config;
+use Gearman::JobScheduler;
 use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
 # (Gearman::JobScheduler::AbstractFunction implementation) Run job
@@ -35,9 +36,9 @@ sub run($;$)
     die "This is a placeholder implementation of the run() subroutine for the Gearman function.";
 }
 
-sub _insert_job_if_does_not_exist($$$)
+sub _insert_job_if_does_not_exist($$$$)
 {
-    my ( $db, $function_name, $job_handle ) = @_;
+    my ( $db, $function_name, $job_handle, $unique_job_id ) = @_;
 
     # Vanilla INSERTing a job handle into "gearman_job_queue" right after
     # enqueueing the job on Gearman would have some potential for race
@@ -54,15 +55,15 @@ sub _insert_job_if_does_not_exist($$$)
 
     $db->query(
         <<EOF,
-        INSERT INTO gearman_job_queue (function_name, job_handle, status)
-            SELECT ?, ?, 'enqueued'
+        INSERT INTO gearman_job_queue (function_name, job_handle, unique_job_id, status)
+            SELECT ?, ?, ?, 'enqueued'
             WHERE NOT EXISTS (
                 SELECT 1
                 FROM gearman_job_queue
                 WHERE job_handle = ?
             )
 EOF
-        $function_name, $job_handle, $job_handle
+        $function_name, $job_handle, $unique_job_id, $job_handle
     );
 
 }
@@ -72,18 +73,29 @@ around 'enqueue_on_gearman' => sub {
     my $orig = shift;
     my $self = shift;
 
+    my $args;
+    if ( scalar @_ )
+    {
+        $args = $_[ 0 ];
+    }
+
     my $db = MediaWords::DB::connect_to_db;
 
     # Enqueue the job
     my $job_handle    = $self->$orig( @_ );
     my $function_name = $self . '';
+    my $unique_job_id = Gearman::JobScheduler::unique_job_id( $function_name, $args );
+    unless ( $unique_job_id )
+    {
+        die "Unable to generate an unique job ID for Gearman function '$function_name'";
+    }
 
     # Log in the database
     if ( $job_handle )
     {
 
         # Successfully enqueued
-        _insert_job_if_does_not_exist( $db, $function_name, $job_handle );
+        _insert_job_if_does_not_exist( $db, $function_name, $job_handle, $unique_job_id );
 
     }
     else
@@ -92,10 +104,10 @@ around 'enqueue_on_gearman' => sub {
         # Failed to enqueue
         $db->query(
             <<EOF,
-            INSERT INTO gearman_job_queue (function_name, job_handle, status, error_message)
-            VALUES (?, ?, 'enqueued', 'Unable to get Gearman job handle.')
+            INSERT INTO gearman_job_queue (function_name, job_handle, unique_job_id, status, error_message)
+            VALUES (?, ?, ?, 'enqueued', 'Unable to get Gearman job handle.')
 EOF
-            $function_name, $job_handle
+            $function_name, $job_handle, $unique_job_id
         );
 
     }
@@ -119,6 +131,12 @@ around 'run' => sub {
     my $orig = shift;
     my $self = shift;
 
+    my $args;
+    if ( scalar @_ )
+    {
+        $args = $_[ 0 ];
+    }
+
     my $ret_value = undef;
 
     if ( defined $self->_gearman_job )
@@ -128,9 +146,14 @@ around 'run' => sub {
 
         my $job_handle    = $self->_gearman_job->handle();
         my $function_name = $self . '';
+        my $unique_job_id = Gearman::JobScheduler::unique_job_id( $function_name, $args );
+        unless ( $unique_job_id )
+        {
+            die "Unable to generate an unique job ID for Gearman function '$function_name'";
+        }
 
         # Make sure the job is enqueued at this point
-        _insert_job_if_does_not_exist( $db, $function_name, $job_handle );
+        _insert_job_if_does_not_exist( $db, $function_name, $job_handle, $unique_job_id );
 
         # Set state to "running"
         $db->query(
