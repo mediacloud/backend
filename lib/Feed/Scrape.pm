@@ -360,14 +360,7 @@ sub get_feed_urls_from_html_links
                 }
 
                 _log_message( "match link: $url" );
-                push(
-                    @{ $urls },
-                    {
-                        name      => $link_title,
-                        url       => $url,
-                        feed_type => 'syndicated'
-                    }
-                );
+                push( @{ $urls }, $url );
             }
         }
     }
@@ -384,9 +377,9 @@ sub get_main_feed_urls_from_html($$$)
 
     my $link_feed_urls = $class->get_feed_urls_from_html_links( $url, $html );
 
-    my $valid_link_feed_urls = $class->get_valid_feeds_from_urls( $link_feed_urls );
+    my $valid_link_feeds = $class->get_valid_feeds_from_urls( $link_feed_urls );
 
-    return $valid_link_feed_urls if ( @{ $valid_link_feed_urls } );
+    return $valid_link_feeds if ( @{ $valid_link_feeds } );
 
     my $suffixes = [
 
