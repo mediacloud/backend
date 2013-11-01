@@ -2,11 +2,13 @@ Manual testing script for basic mediacloud functionality.
 
 TEST
 
-* run script/mediawords_create_db.sh to create a fresh database
+* run the following to create a fresh database
+
+script/run_with_carton.sh script/mediawords_create_db.pl 
 
 VERIFY
 
-* no errors during db creation
+* no errors during db creation (NOTICEs are okay)
 
 TEST
 
@@ -19,83 +21,157 @@ TEST
          --notes="test" \
          --roles="admin" \
          --password="testtest"
+
 VERIFY
 
 * script returns with no errors
 
 TEST
 
-* run script/run_server_with_carton.sh to start web app
+* run the following command to start the various backend daemons:
+
+./supervisor/supervisord.sh
+
+* run the following command to verify that supervisord has started the background jobs:
+
+./supervisor/supervisorctl.sh
+
+VERIFY
+
+* verify that the following scripts are list as RUNNING:
+
+gearman:add_default_feeds_00     RUNNING
+gearman:add_default_feeds_01     RUNNING
+gearman:search_stories_00        RUNNING
+gearman:search_stories_01        RUNNING
+mc:crawler                       RUNNING
+mc:extract_and_vector            RUNNING
+mc:process_story_subsets         RUNNING
+mc:update_processed_stories      RUNNING
+
+TEST
+
+* run the below to start the web app
+
+script/run_server_with_carton.sh 
+ 
 * bring up mediacloud admin site in browser (http://localhost:3000/)
 * login with the above test user
 * click add media
-* in the large box enter 'nytimes.com'
+* in the large box enter the following:
+
+nytimes.com collection:newspapers
+washingtonpost.com collection:newspapers
+orlandosentinel.com collection:newspapers
+boingboing.net collection:blogs
+redstate.com collection:blogs;collection:conservative_blogs
+
 * click the Add Media button
 
 VERIFY
 
 * login is successful
 * all pages load without errors
-* the New York Times appears in the list of media after nytimes.com is added
+* each of the above sources appears in the media list, each with the associated tags
 
 TEST
 
-* In the media list screen click ‘edit’ in the tags column for the new york times.
-* For tagset enter ‘collection’
-* For tag enter ‘newspapers’
-* Click Go
-* Click Home
+* wait about ten minutes for the background feed scraping jobs to complete their work
 
 VERIFY
 
-* 'collection:newspapers' appears in the tags field for the new york times
+* verify that each media source has at least one feed associated with it
 
 TEST
 
-* Click Add Media
-* Enter the following for sources:
+* restart the crawler by running the following command:
 
-washingtonpost.com
-latimes.com
+supervisor/supervisorctl.sh restart mc:crawler
 
-* In the tags box enter:
+* then watch the output of the crawler by running this command:
 
-collection:newpapers
+supervisor/supervisorctl.sh tail -f mc:crawler stderr
 
-* Click the Add Media button
-* Click Home
+* wait a few minutes until you see this starting repeating and hit ctl-c to exit the tail
+
+refill queued downloads ...
+adding missing downloads
+provide downloads: 0 downloads
 
 VERIFY
 
-* washington post and la times appear in the media list, and both have 'collection:newspapers' in as a tag
+* verify that the crawler is downloading content, with log entries that look something like this:
+
+fetcher 0 get downloads_id: '240' http://feeds.washingtonpost.com/rss/sports/dcunited processing complete [ 0.515178 / 2.190159 ]
+fetcher 3 get downloads_id: '56' http://www.nytimes.com/services/xml/rss/nyt/Soccer.xml starting
+fetcher 0 get downloads_id: '241' http://feeds.washingtonpost.com/rss/world/war-zones starting
+fetcher 2 completed handle response: http://feeds.washingtonpost.com/rss/politics/polling
+fetcher 2 get downloads_id: '249' http://feeds.washingtonpost.com/rss/politics/polling processing complete [ 0.55863 / 1.927545 ]
+fetcher 4 get downloads_id: '55' http://www.nytimes.com/services/xml/rss/nyt/Movies.xml fetched
+fetcher 4 starting handle response: http://www.nytimes.com/services/xml/rss/nyt/Movies.xml
+refill queued downloads ...
+fetcher 2 get downloads_id: '250' http://feeds.washingtonpost.com/rss/rss_rosenwald-md starting
+fetcher 1 completed handle response: http://feeds.washingtonpost.com/rss/local/obituaries
 
 TEST
 
-* Click Add media
-* In the first box enter:
+* restart and tail the crawler again:
 
-boingboing.net collection:blogs
-redstate.com collection:blogs;collection:conservative_blogs
+supervisor/supervisorctl.sh restart mc:crawler
+supervisor/supervisorctl.sh tail -f mc:crawler stderr
 
-* Click the Add Media button
-* Click Home
+* hit ctl-c after a couple of minutes
 
 VERIFY
 
-* boingboing and redstate appear in the media list and are associated with the relevant tags above
+* verify that the crawler is downloading content with entries something like this:
+
+fetcher 4 get downloads_id: '365' http://well.blogs.nytimes.com/2013/10/31/a-fat-dad-halloween-hide-the-candy/ fetched
+fetcher 4 starting handle response: http://well.blogs.nytimes.com/2013/10/31/a-fat-dad-halloween-hide-the-candy/
+fetcher 2 get downloads_id: '363' http://boss.blogs.nytimes.com/2013/10/29/how-a-burned-out-owner-got-back-into-the-game/ fetched
+fetcher 2 starting handle response: http://boss.blogs.nytimes.com/2013/10/29/how-a-burned-out-owner-got-back-into-the-game/
+fetcher 4 get downloads_id: '365' http://well.blogs.nytimes.com/2013/10/31/a-fat-dad-halloween-hide-the-candy/ processing complete [ 2.155058 / 0.009765 ]
+fetcher 2 get downloads_id: '363' http://boss.blogs.nytimes.com/2013/10/29/how-a-burned-out-owner-got-back-into-the-game/ processing complete [ 2.128335 / 0.005992 ]
+fetcher 2 get downloads_id: '520' http://feedproxy.google.com/~r/orlandosentinel/~3/NSx0pz94TGQ/story01.htm starting
+fetcher 4 get downloads_id: '518' http://feedproxy.google.com/~r/orlandosentinel/~3/f2SGiWpXPLg/story01.htm starting
+fetcher 3 get downloads_id: '361' http://boss.blogs.nytimes.com/2013/10/30/today-in-small-business-adwords-or-bing/ fetched
+fetcher 3 starting handle response: http://boss.blogs.nytimes.com/2013/10/30/today-in-small-business-adwords-or-bing/
 
 TEST
 
-* For each of the sources do the following:
-    * Click Feeds in the ‘feeds’ column
-    * Click scrape but don’t check recurse
-    * After the scraping is complete, leave the first feed checked and click import
-    
-NOTE: To speed things up, process each source in a separate tab so feeds can be imported in parallel. To do this on browsers such as chrome or firefox, middle click on the Feeds link in the feeds column on the home scree.
+* load http://localhost:3000/admin/downloads/view/<id>, where <id> is one of the single quoted numbers from the tail above
 
 VERIFY
 
-* Verify that each source has 1 feed associated with it by clicking on the 'feeds' link of each media source from the /admin/media page
+* verify that the html of the given download displays in the browser
+
+TEST
+
+* tail the extractor:
+
+supervisor/supervisorctl.sh tail -f mc:extract_and_vector stderr
+
+* hit ctl-c after about a minute
+
+VERIFY
+
+* verify that the extractor is extracting content with log entries that look like this:
+
+[2, 2] extract: 3030 2708 http://www.nytimes.com/reuters/2013/10/30/sports/golf/30reuters-golf-pga.html?partner=rss&emc=rss
+[3, 3] extract: 3419 3097 http://feeds.washingtonpost.com/c/34656/f/636604/s/32eee77c/sc/1/l/0L0Swashingtonpost0N0Clifestyle0Cstyle0Cask0Eamy0Ekids0Edo0Eend0Erun0Earound0Edads0Ewife0C20A130C10A0C250C23bbf310A0E31f70E11e30E9c680E1cf643210A30A0A0Istory0Bhtml0Dwprss0Frss0Iadvice/story01.htm
+[1, 1] extract: 3381 3059 http://www.nytimes.com/2013/11/01/world/europe/secular-turkish-government-permits-religious-symbol.html?partner=rss&emc=rss
+[6, 6] extract: 2997 2674 http://www.nytimes.com/2013/11/03/books/review/how-has-twitter-changed-the-role-of-the-literary-critic.html?partner=rss&emc=rss
+[5, 5] extract: 3217 2895 http://www.nytimes.com/2013/10/31/business/in-dispute-over-a-song-marvin-gayes-family-files-a-countersuit.html?partner=rss&emc=rss
+[2, 2] extract: 3050 2728 http://www.nytimes.com/aponline/2013/10/28/sports/golf/ap-glf-lpga-ko.html?partner=rss&emc=rss
+[9, 9] extract: 3113 2791 http://www.nytimes.com/2013/08/16/science/space/nasas-kepler-mended-but-may-never-fully-recover.html?partner=rss&emc=rss
+
+TEST
+
+* load http://localhost:3000/admin/stories/view/<id> where <id> is the second of the id in one of the numbers above (eg. 2708)
+
+VERIFY
+
+* verify that reasonable extracted text appears in the Extracted Text field
 
 TEST
 
@@ -105,8 +181,8 @@ TEST
 * Fill out the fields as follows:
 
 name: mydash
-Start Date : 2008-01-01
-End Date: 2014-01-01
+Start Date : 2000-01-01
+End Date: 2020-01-01
 
 * Click on Create
 
@@ -142,40 +218,30 @@ VERIFY
 
 TEST
 
-* Run the following command:
-
-nice ./script/run_with_carton.sh ./script/mediawords_crawl.pl -t 10
-
-* Wait a few minutes for the crawler to start repeating 'provide downloads: 0 downloads', indicating that all urls in the feeds for the media sources added to the system have been downloaded
-* Ctl-c to kill the script
+* click on 'Search Media'
+* click on the 'feeds' link for boingboing
+* click on the first feed in the boingboing list
+* click on the bottom story in the list of feeds
+* click on the 'view download' link on the story page
 
 VERIFY
 
-* Verify that stories have been downloaded for each of the 5 media sources by going to the 'feeds' link for each media source on the home page and clicking on the name of the single feed for each media source
+* verify that there is a list of stories on the feed page
+* verify that the extracted text from the story appears after the second *** 
+  in the Extracted Text section of the story page
+* verify that the raw text of the download appears on the 'view download' page
+
 
 TEST
 
-* run the following command:
-
-nice ./script/run_with_carton.sh ./script/mediawords_extract_and_vector.pl 10
-
-* Wait a few minutes until you see 'no downloads found. sleeping ...' repeatedly
-* Ctl-c to kill the script
-
-VERIFY
-
-* Verify that a few stories have been extracted by listing the stories within a feed as above and the clicking on a few of the story titles.  The extracted text should appear after the second line of '***' in the 'Extracted text:' field.
-
-Test
-
 * run the following command and wait until it exits (should be a couple of minutes at most):
 
-nice ./script/run_with_carton.sh ./script/mediawords_update_aggregate_vectors.pl 
+./script/run_with_carton.sh ./script/mediawords_update_aggregate_vectors.pl 
 
 VERIFY
 
 * Click ‘Dashboards’
-* Click the ‘view’ link for the dashboard called MyDashboard
+* Click the ‘view’ link for the 'mydash' dashboard
 * Verify that a word cloud appears
 * Select the current week and click submit
 * Select each media set and click submit for each
