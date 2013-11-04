@@ -13,7 +13,7 @@ sub normalize_url
     my ( $url ) = @_;
     $url = lc( $url );
 
-    $url =~ s/^(https?:\/\/)(www.?|article|news|archives?)\./$1/;
+    $url =~ s/^(https?:\/\/)(media|data|image|www|cdn|topic|article|news|archive|blog|video|\d+?).?\./$1/i;
 
     $url =~ s/\#.*//;
 

@@ -8,19 +8,22 @@ use MediaWords::CommonLibs;
 # functions for searching the solr server
 
 use JSON;
+use List::Util;
 
 use MediaWords::Languages::Language;
 use MediaWords::Util::Web;
 
 # execute a query on the solr server using the given params.
-# return a hash generated from the json results
-sub query
+# return the raw encoded json from solr
+sub query_encoded_json
 {
     my ( $params ) = @_;
 
     $params->{ wt } = 'json';
-    $params->{ rows } //= 1000000;
+    $params->{ rows } //= 1000;
     $params->{ df }   //= 'sentence';
+
+    $params->{ rows } = List::Util::min( $params->{ rows }, 1000000 );
 
     my $url = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_select_url };
 
@@ -40,7 +43,16 @@ sub query
         die( "Error fetching solr response: " . $res->as_string );
     }
 
-    my $json = $res->content;
+    return $res->content;
+}
+
+# execute a query on the solr server using the given params.
+# return a hash generated from the json results
+sub query
+{
+    my ( $params ) = @_;
+
+    my $json = query_encoded_json( $params );
 
     my $data;
     eval { $data = decode_json( $json ) };

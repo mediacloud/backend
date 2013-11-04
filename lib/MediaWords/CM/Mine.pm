@@ -23,7 +23,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
-use MediaWords::DBI::Activities;
 
 # number of times to iterate through spider
 use constant NUM_SPIDER_ITERATIONS => 500;
@@ -265,7 +264,13 @@ sub lookup_medium_by_url
 
     if ( !$_media_url_lookup->{ MediaWords::Util::URL::normalize_url( $url ) } )
     {
-        my $media = $db->query( "select * from media where foreign_rss_links = false" )->hashes;
+        my $max_media_id = 0;
+        if ( $_media_url_lookup )
+        {
+            $max_media_id = List::Util::max( map( { $_->{ media_id } } values( %{ $_media_url_lookup } ) ) );
+        }
+        my $media =
+          $db->query( "select * from media where foreign_rss_links = false and media_id > ?", $max_media_id )->hashes;
         for my $medium ( @{ $media } )
         {
             my $dup_medium = get_dup_medium( $db, $medium->{ media_id } );
@@ -293,13 +298,15 @@ sub generate_medium_url_and_name_from_url
 {
     my ( $story_url ) = @_;
 
-    if ( !( $story_url =~ m~(http.?://(www\.)?([^/]+))~i ) )
+    my $normalized_url = MediaWords::Util::URL::normalize_url( $story_url );
+
+    if ( !( $normalized_url =~ m~(http.?://([^/]+))~i ) )
     {
-        warn( "Unable to find host name in url: $story_url" );
+        warn( "Unable to find host name in url: $normalized_url ($story_url)" );
         return ( $story_url, $story_url );
     }
 
-    my ( $medium_url, $medium_name ) = ( $1, $3 );
+    my ( $medium_url, $medium_name ) = ( $1, $2 );
 
     $medium_url  = lc( $medium_url );
     $medium_name = lc( $medium_name );
@@ -605,6 +612,7 @@ sub add_new_story
     }
     else
     {
+
         # make sure content exists in case content is missing from the existing story
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $old_story );
         $story_content = ${ MediaWords::DBI::Stories::fetch_content( $db, $old_story ) };
@@ -791,7 +799,7 @@ END
         my $dup_story_url_no_p = $dup_story->{ url };
         my $story_url_no_p     = $story->{ url };
         $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-        $story_url_no_p =~ s/(.*)\?(.*)/$1/;
+        $story_url_no_p     =~ s/(.*)\?(.*)/$1/;
 
         next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
 
@@ -1900,14 +1908,9 @@ sub mine_controversy ($$;$)
     my ( $db, $controversy, $options ) = @_;
 
     # Log activity that's about to start
-    unless (
-        MediaWords::DBI::Activities::log_system_activity(
-            $db, 'cm_mine_controversy', $controversy->{ controversies_id } + 0, $options
-        )
-      )
-    {
-        die "Unable to log the 'cm_mine_controversy' activity.";
-    }
+    MediaWords::DBI::Activities::log_system_activity( $db, 'cm_mine_controversy', $controversy->{ controversies_id },
+        $options )
+      || die( "Unable to log the 'cm_mine_controversy' activity." );
 
     print STDERR "importing seed urls ...\n";
     import_seed_urls( $db, $controversy );

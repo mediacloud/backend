@@ -146,10 +146,6 @@ Readonly::Hash my %ACTIVITIES => {
                 # references
                 references => 'stories.stories_id'
             },
-            'cdts_id' => {
-                description => 'Controversy dump time slice',
-                references  => 'controversy_dump_time_slices.controversy_dump_time_slices_id'
-            }
         }
     },
 

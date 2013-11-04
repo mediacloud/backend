@@ -194,6 +194,7 @@ sub _add_missing_media_from_urls
                         feeds_added => 'f'
                     }
                 );
+                enqueue_add_default_feeds( $medium );
             }
         }
 
@@ -348,6 +349,16 @@ sub get_medium_domain
 # (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
 # ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
 # IDs that are already enqueued)
+sub enqueue_add_default_feeds($)
+{
+    my ( $medium ) = @_;
+
+    return MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
+}
+
+# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
+# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
+# IDs that are already enqueued)
 sub enqueue_add_default_feeds_for_unmoderated_media($)
 {
     my ( $dbis ) = @_;
@@ -360,13 +371,7 @@ sub enqueue_add_default_feeds_for_unmoderated_media($)
 
     my $media = $dbis->query( "SELECT media_id FROM media WHERE feeds_added = 'f' ORDER BY media_id" )->hashes;
 
-    for my $medium ( @{ $media } )
-    {
-        my $media_id       = $medium->{ media_id };
-        my $args           = { media_id => $media_id };
-        my $gearman_job_id = MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( $args );
-        say STDERR "Enqueued AddDefaultFeeds(media_id = $media_id) on Gearman with job ID: $gearman_job_id";
-    }
+    map { enqueue_add_default_feeds( $_ ) } @{ $media };
 }
 
 1;
