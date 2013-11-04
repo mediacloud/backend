@@ -84,8 +84,6 @@ sub find_or_create_media_from_urls
 
     _add_media_tags_from_strings( $dbis, $url_media, $tags_string );
 
-    enqueue_add_default_feeds_for_unmoderated_media( $dbis );
-
     return [ grep { $_ } map { $_->{ message } } @{ $url_media } ];
 }
 
@@ -356,24 +354,6 @@ sub enqueue_add_default_feeds($)
     my ( $medium ) = @_;
 
     return MediaWords::GearmanFunction::AddDefaultFeeds->enqueue_on_gearman( { media_id => $medium->{ media_id } } );
-}
-
-# (re-)enqueue AddDefaultFeeds jobs for all unmoderated media
-# ("AddDefaultFeeds" Gearman function is "unique", so Gearman will skip media
-# IDs that are already enqueued)
-sub enqueue_add_default_feeds_for_unmoderated_media($)
-{
-    my ( $dbis ) = @_;
-
-    unless ( MediaWords::GearmanFunction::gearman_is_enabled() )
-    {
-        say STDERR "Gearman is disabled, so doing nothing.";
-        return;
-    }
-
-    my $media = $dbis->query( "SELECT media_id FROM media WHERE feeds_added = 'f' ORDER BY media_id" )->hashes;
-
-    map { enqueue_add_default_feeds( $_ ) } @{ $media };
 }
 
 1;
