@@ -813,4 +813,36 @@ EOF
     return '';
 }
 
+# Regenerate API token
+sub regenerate_api_token_or_return_error_message($$)
+{
+    my ( $db, $email ) = @_;
+
+    if ( !$email )
+    {
+        return 'Email address is empty.';
+    }
+
+    # Check if user exists
+    my $userinfo = MediaWords::DBI::Auth::user_info( $db, $email );
+    if ( !$userinfo )
+    {
+        return "User with email address '$email' does not exist.";
+    }
+
+    # Regenerate API token
+    $db->query(
+        <<"EOF",
+        UPDATE auth_users
+        -- DEFAULT points to a generation function
+        SET api_token = DEFAULT
+        WHERE email = ?
+EOF
+        $email
+    );
+
+    # Success
+    return '';
+}
+
 1;

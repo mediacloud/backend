@@ -39,19 +39,12 @@ elements:
     cols: 30
     rows: 10
 
-  - type: Text
-    id: api_token
-    name: api_token
+  - type: Button
+    id: regenerate_api_token
+    name: regenerate_api_token
     label: API token
+    default: Regenerate API token
     size: 64
-    attributes:
-    constraints:
-      - Required
-    attributes:
-      # jQuery validator classes
-      class: required
-      # Unable to change email address once the user has been created
-      readonly: readonly
 
   - type: Checkbox
     id: active
