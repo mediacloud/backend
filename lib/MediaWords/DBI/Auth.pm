@@ -12,6 +12,9 @@ use warnings;
 # Post-unsuccessful login delay (in seconds)
 use constant POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
+# API token HTTP GET parameter
+use constant API_TOKEN_PARAMETER => 'api';
+
 use Digest::SHA qw/sha256_hex/;
 use Crypt::SaltedHash;
 use MediaWords::Util::Mail;
@@ -244,7 +247,7 @@ EOF
 # Fetch a hash of basic user information and an array of assigned roles based on the API token.
 # Only active users are fetched.
 # Returns 0 on error
-sub user_auth_api_token($$)
+sub user_for_api_token($$)
 {
     my ( $db, $api_token ) = @_;
 
@@ -277,6 +280,17 @@ EOF
     $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
 
     return $user;
+}
+
+# Same as above, just with the Catalyst's $c object
+sub user_for_api_token_catalyst($)
+{
+    my $c = shift;
+
+    my $dbis      = $c->dbis;
+    my $api_token = $c->request->param( API_TOKEN_PARAMETER . '' );
+
+    return user_for_api_token( $dbis, $api_token );
 }
 
 # Post-successful login database tasks
