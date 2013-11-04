@@ -11,6 +11,9 @@
     <label for="full_name">Full name:</label>
     <input type="text" name="full_name" id="full_name" value="[% full_name | html %]" size="40" readonly="readonly" /><br />
 
+    <label for="full_name">API token:</label>
+    <input type="text" name="api_token" id="api_token" value="[% api_token | html %]" size="64" readonly="readonly" /><br />
+
     <label for="notes">Notes:</label>
     <textarea name="notes" id="notes" cols="30" rows="10" readonly="readonly">[% notes | html %]</textarea><br />
 </div>

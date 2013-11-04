@@ -39,6 +39,7 @@ sub index : Path : Args(0)
     $c->stash->{ c }         = $c;
     $c->stash->{ email }     = $userinfo->{ email };
     $c->stash->{ full_name } = $userinfo->{ full_name };
+    $c->stash->{ api_token } = $userinfo->{ api_token };
     $c->stash->{ notes }     = $userinfo->{ notes };
     $c->stash( template => 'auth/profile.tt2' );
 

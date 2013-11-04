@@ -150,6 +150,7 @@ sub user_info($$)
         SELECT auth_users_id,
                email,
                full_name,
+               api_token,
                notes,
                active
         FROM auth_users

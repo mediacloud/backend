@@ -3,6 +3,7 @@ use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::DBI::Auth;
+use Data::Dumper;
 
 use strict;
 use warnings;
@@ -20,6 +21,8 @@ sub list : Local
 
     # Fetch list of users and their roles
     my $users = MediaWords::DBI::Auth::all_users( $c->dbis );
+
+    say STDERR Dumper( $users );
 
     # Fetch role descriptions
     my $roles = MediaWords::DBI::Auth::all_user_roles( $c->dbis );
@@ -286,6 +289,7 @@ sub edit : Local
                 email     => $user_email,
                 full_name => $userinfo->{ full_name },
                 notes     => $userinfo->{ notes },
+                api_token => $userinfo->{ api_token },
                 active    => $userinfo->{ active }
             }
         );
