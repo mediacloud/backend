@@ -27,7 +27,7 @@
 
         <td>
             [% IF c.acl_user_can_visit('/admin/stories/list') %]
-                <a href="[% c.uri_for('/admin/stories/list/') _ feed.feeds_id %]">[% feed.name | html %]</a>
+                <a href="[% c.uri_for('/admin/stories/list/') _ feed.feeds_id %]">[% ( feed.name || 'feed' ) | html %]</a>
             [% ELSE %]
                 [% feed.name | html %]
             [% END -%]

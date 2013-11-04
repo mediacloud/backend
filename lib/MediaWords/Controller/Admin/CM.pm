@@ -915,7 +915,12 @@ sub remove_stories : Local
     my $stories_ids      = $c->req->params->{ stories_ids };
     my $controversies_id = $controversy->{ controversies_id };
 
-    map { _remove_story_from_controversy( $db, $_, $controversies_id ) } @{ $stories_ids };
+    $stories_ids = [ $stories_ids ] if ( $stories_ids && !ref( $stories_ids ) );
+
+    for my $stories_id ( @{ $stories_ids } )
+    {
+        _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username, $c->req->params->{ reason } );
+    }
 
     my $status_msg = scalar( @{ $stories_ids } ) . " stories removed from controversy.";
     $c->res->redirect( $c->uri_for( "/admin/cm/view_time_slice/$cdts_id", { l => $live, status_msg => $status_msg } ) );
@@ -995,8 +1000,7 @@ END
 
         eval {
             map {
-                _remove_story_from_controversy( $db, $_->{ stories_id },
-                    $controversies_id, $c->user->username, $reason, $cdts_id )
+                _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id, $c->user->username, $reason )
             } @{ $stories };
         };
         if ( $@ )
@@ -1092,7 +1096,7 @@ END
 # remove the given story from the given controversy; die()s on error
 sub _remove_story_from_controversy($$$$$$)
 {
-    my ( $db, $stories_id, $controversies_id, $user, $reason, $cdts_id ) = @_;
+    my ( $db, $stories_id, $controversies_id, $user, $reason ) = @_;
 
     $reason ||= '';
 
@@ -1103,8 +1107,7 @@ sub _remove_story_from_controversy($$$$$$)
 
         # Log the activity
         my $change = {
-            'stories_id' => $stories_id + 0,
-            'cdts_id'    => $cdts_id + 0
+            'stories_id' => $stories_id + 0
         };
         unless (
             MediaWords::DBI::Activities::log_activity(

@@ -34,8 +34,6 @@ sub find_user
 
     my $username = $userinfo->{ 'username' } || '';
 
-    say STDERR "find_user User '$username' ";
-
     # Check if user has tried to log in unsuccessfully before and now is trying
     # again too fast
     if ( MediaWords::DBI::Auth::user_is_trying_to_login_too_soon( $c->dbis, $username ) )

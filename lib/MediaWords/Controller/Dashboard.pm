@@ -157,8 +157,8 @@ sub _redirect_to_default_page
                       AND dashboards_id = ?
 EOF
                 $media_sets_id, $dashboard->{ dashboards_id }
-            )->hashes
-        }
+              )->hashes
+          }
     );
 
     if ( !$media_sets_id_in_dashboard )
@@ -330,15 +330,15 @@ sub _get_dashboard_dates
         LIMIT 1
 EOF
 
-    my $start_date;
-    for ( my $d = $dashboard->{ start_date } ; $d le $end_date ; $d = MediaWords::Util::SQL::increment_day( $d, 1 ) )
-    {
-        if ( $c->dbis->query( $date_exists_query, $d )->hash )
-        {
-            $start_date = $d;
-            last;
-        }
-    }
+    my ( $start_date ) = $c->dbis->query( <<END, $dashboard->{ dashboards_id } )->flat;
+        SELECT t.publish_week
+        FROM total_top_500_weekly_words AS t,
+             dashboard_media_sets AS dms
+        WHERE 
+             dms.dashboards_id = ?
+             AND dms.media_sets_id = t.media_sets_id
+        LIMIT 1
+END
 
     return [] if ( !$start_date );
 
@@ -768,7 +768,7 @@ sub _country_counts_to_csv_array
         map {
             uc( $lcm->country2code( $lcm->code2country( $_, 'en' ), 'LOCALE_CODE_ALPHA_3', 'en' ) ) =>
               $country_counts->{ $_ }
-        } ( sort keys %{ $country_counts } )
+          } ( sort keys %{ $country_counts } )
     };
 
     my $country_count_csv_array = [
@@ -1369,7 +1369,7 @@ sub data_dumps : Local
             my $file_date = $_;
             $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/;
             [ $_, $file_date, _get_dump_file_info( $_ ) ]
-        } @$data_dump_files
+          } @$data_dump_files
     ];
 
     $data_dumps = [ sort { _unix_time_for_file( $a ) <=> _unix_time_for_file( $b ) } @{ $data_dumps } ];
@@ -1535,7 +1535,7 @@ sub author_publish_weeks_json : Local
             ORDER BY publish_week
 EOF
             $authors_id
-        )->flat
+          )->flat
     ];
 
     #say STDERR Dumper( $publish_weeks );

@@ -47,6 +47,19 @@ sub UserAgent
     return $ua;
 }
 
+# simple get for a url using the UserAgent above. return the decoded content
+# if the response is successful and undef if not.
+sub get_decoded_content
+{
+    my ( $url ) = @_;
+
+    my $ua = UserAgent();
+
+    my $res = $ua->get( $url );
+
+    return $res->is_success ? $res->decoded_content : undef;
+}
+
 # get urls in parallel by using an external, forking script.
 # we use this approach because LWP is not thread safe and
 # LWP::Parallel::User is not fully parallel and no longer

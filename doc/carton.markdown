@@ -13,25 +13,22 @@ So, to add a new Perl module dependency:
 1. Add a dependency to this `cpanfile` (make sure to keep the list in
 alphabetical order for easier merges):
 
-    ...
-    requires 'Your::Module';
-    ...
+        ...
+        requires 'Your::Module';
+        ...
 
 2. Install the dependency using Carton while also regenerating the
    `cpanfile.snapshot` file:
 
-    ./script/run_carton.sh install
+        ./script/run_carton.sh install
 
 3. Commit both files:
 
-    # Git
-    git add cpanfile cpanfile.snapshot
-    git commit
+        # Git
+        git add cpanfile cpanfile.snapshot
+        git commit
 
-See:
-
-    http://search.cpan.org/~miyagawa/Module-CPANfile-0.9031/lib/cpanfile.pod
-
+See [cpanfile documentation on CPAN](http://search.cpan.org/~miyagawa/Module-CPANfile-0.9031/lib/cpanfile.pod)
 for more information about the `cpanfile` file format.
 
 
@@ -42,18 +39,18 @@ To update Perl modules to their new versions:
 
 1. Run the updater script:
 
-    ./script/update_modules_with_carton.sh
+        ./script/update_modules_with_carton.sh
 
 2. Run the test suite to make sure the modules work alright:
 
-    ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
-    ./script/run_test_suite.sh
+        ./script/run_carton.sh exec prove -Ilib/ -r t/compile.t
+        ./script/run_test_suite.sh
 
 3. Commit the updated `cpanfile.snapshot`:
 
-    # Git
-    git add cpanfile.snapshot
-    git commit
+        # Git
+        git add cpanfile.snapshot
+        git commit
 
 
 Running Scripts

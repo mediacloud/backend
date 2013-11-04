@@ -71,7 +71,7 @@ sub set_defaults
     $config->{ mediawords }->{ script_dir }                       ||= "$_base_dir/script";
     $config->{ mediawords }->{ data_dir }                         ||= "$_base_dir/data";
     $config->{ mediawords }->{ language }                         ||= "en_US_and_ru_RU";
-    $config->{ mediawords }->{ user_agent }                       ||= "Mozilla/5.0 (Linux) MediaCloud/1.0";
+    $config->{ mediawords }->{ user_agent }                       ||= "mediawords bot (http://cyber.law.harvard.edu)";
     $config->{ mediawords }->{ owner }                            ||= "mediacloud\@cyber.law.harvard.edu";
     $config->{ mediawords }->{ always_show_stack_traces }         ||= "no";
     $config->{ mediawords }->{ disable_json_top_500_words_cache } ||= "no";
@@ -94,7 +94,6 @@ sub set_defaults
     $config->{ gearman }->{ notifications }->{ emails }         ||= [];
     $config->{ gearman }->{ notifications }->{ from_address }   ||= 'gjs@mediacloud.org';
     $config->{ gearman }->{ notifications }->{ subject_prefix } ||= '[GJS]';
-
 
     my $auth = {
         default_realm => 'users',

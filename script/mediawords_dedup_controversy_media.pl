@@ -16,6 +16,7 @@ use URI;
 use MediaWords::DB;
 use MediaWords::DBI::Media;
 use MediaWords::Util::Tags;
+use MediaWords::Util::URL;
 
 sub mark_medium_as_dup
 {
@@ -55,27 +56,13 @@ sub mark_medium_is_not_dup
     $db->query( "update media set is_not_dup = true where media_id = ?", $medium->{ media_id } );
 }
 
-# normalize a url for slashes and common generic host names
-sub normalize_url
-{
-    my ( $url ) = @_;
-
-    $url =~ s/^(https?:\/\/)(www.?|article|news|archives|blogs?|video|\d+?)\./$1/i;
-
-    $url =~ s/\#spider$//;
-
-    my $url_c = URI->new( $url )->canonical;
-
-    return $url_c;
-}
-
 # check for media that are canonical url duplicates and mark one of each
 # pair as a duplicate
 sub mark_canonical_url_duplicates
 {
     my ( $db, $domain, $media ) = @_;
 
-    map { $_->{ url_c } = normalize_url( $_->{ url } ) } @{ $media };
+    map { $_->{ url_c } = MediaWords::Util::URL::normalize_url( $_->{ url } ) } @{ $media };
 
     my $media = [ sort { length( $a->{ url } ) <=> length( $b->{ url } ) } @{ $media } ];
 
