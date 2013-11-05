@@ -25,7 +25,7 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
 # number of times to iterate through spider
-use constant NUM_SPIDER_ITERATIONS => 500;
+use constant NUM_SPIDER_ITERATIONS => 15;
 
 # number of times to run through the recursive link weight process
 use constant LINK_WEIGHT_ITERATIONS => 3;
