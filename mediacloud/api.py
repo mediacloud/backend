@@ -32,7 +32,7 @@ class MediaCloud(object):
     Simple client library for the nascent MediaCloud story feed API
     '''
 
-    API_URL = "http://amanda.law.harvard.edu/admin/api/stories/"
+    API_URL = "http://www.mediacloud.org/admin/api/stories/"
 
     DEFAULT_STORY_COUNT = 25
 
