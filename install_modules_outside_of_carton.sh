@@ -37,3 +37,6 @@ $CPANM Carton~1.0.9
 $CPANM List::MoreUtils
 $CPANM Devel::NYTProf
 
+$CPANM Module::Install
+
+$CPANM Gearman::XS
