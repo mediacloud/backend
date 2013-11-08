@@ -9,6 +9,7 @@ use Digest::MD5;
 use JSON;
 use List::Compare;
 use Data::Dumper;
+use Gearman::JobScheduler;
 
 use MediaWords::Solr;
 use MediaWords::CM;
@@ -16,6 +17,7 @@ use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Queries;
+use MediaWords::GearmanFunction::SearchStories;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -196,6 +198,59 @@ sub view : Local
     my $controversy = $db->query( <<END, $controversies_id )->hash;
 select * from controversies_with_search_info where controversies_id = ?
 END
+
+    # Check if the (initial) story search for the controversy has been completed
+    my $incomplete_query_story_search = $db->query(
+        <<EOF,
+        SELECT 1
+        FROM query_story_searches
+        WHERE query_story_searches_id = ?
+          AND search_completed = 'f'
+EOF
+        $controversy->{ query_story_searches_id }
+    )->hash;
+    if ( $incomplete_query_story_search )
+    {
+
+        my $status_msg =
+          "The initial story search for the controversy has not " .
+          "been completed, and this is why you don't see anything here.\n\n";
+
+        # Get the current Gearman job status
+        my $args = { query_story_searches_id => $controversy->{ query_story_searches_id } };
+        my $unique_job_id =
+          Gearman::JobScheduler::unique_job_id( MediaWords::GearmanFunction::SearchStories->name(), $args );
+        my $gearman_job_status = $db->query(
+            <<EOF,
+            SELECT *
+            FROM gearman_job_queue
+            WHERE function_name = ?
+              AND unique_job_id = ?
+EOF
+            MediaWords::GearmanFunction::SearchStories->name(),
+            $unique_job_id
+        )->hash;
+
+        if ( $gearman_job_status )
+        {
+
+            $status_msg .=
+              'The initial search job is enqueued on Gearman as "' . $gearman_job_status->{ job_handle } .
+              '", the current status of ' . 'the job is "' . $gearman_job_status->{ status } . '".' . "\n";
+
+            if ( $gearman_job_status->{ error } )
+            {
+                $status_msg .= 'The job failed with error message: ' . $gearman_job_status->{ error_msg };
+            }
+
+        }
+        else
+        {
+            $status_msg .= 'The status of the initial search job on Gearman is unknown.';
+        }
+
+        $c->stash->{ status_msg } = $status_msg;
+    }
 
     my $query = MediaWords::DBI::Queries::find_query_by_id( $db, $controversy->{ queries_id } );
     $query->{ media_set_names } = MediaWords::DBI::Queries::get_media_set_names( $db, $query ) if ( $query );
