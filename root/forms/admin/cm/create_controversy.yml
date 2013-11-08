@@ -39,12 +39,10 @@ elements:
           parser:
             strptime: '%Y-%d-%m'
 
-  - type: Select
+  - type: Checkboxgroup
     name: media_sets_ids
+    id: media_sets_ids
     label: Media Sets
-    comment: Ctrl-click (Windows) or Cmd-click (Mac) to select multiple
-    attributes:
-        multiple: 1
 
   - type: Submit
     value: Create

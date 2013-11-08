@@ -59,7 +59,8 @@ sub create : Local
         SELECT
             ms.media_sets_id,
             d.name AS dashboard_name,
-            ms.name AS media_set_name
+            ms.name AS media_set_name,
+            ms.description AS media_set_description
         FROM dashboards AS d
             INNER JOIN dashboard_media_sets AS dms
                 ON d.dashboards_id = dms.dashboards_id
@@ -72,7 +73,8 @@ sub create : Local
 EOF
     )->hashes;
     my $media_set_options =
-      [ map { [ $_->{ media_sets_id }, "$_->{ dashboard_name }:$_->{ media_set_name }" ] } @{ $media_sets } ];
+      [ map { [ $_->{ media_sets_id }, "$_->{ dashboard_name }:$_->{ media_set_name } -- $_->{ media_set_description }" ] }
+          @{ $media_sets } ];
     $form->get_field( 'media_sets_ids' )->options( $media_set_options );
 
     $c->stash->{ form }     = $form;
