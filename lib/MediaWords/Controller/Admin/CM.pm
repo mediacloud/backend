@@ -53,7 +53,7 @@ sub create : Local
 
     my $db = $c->dbis;
 
-    # Fill in a list of media sets
+    # Fill in a list of media sets (show only the "public" dashboards)
     my $media_sets = $db->query(
         <<EOF
         SELECT
@@ -65,6 +65,7 @@ sub create : Local
                 ON d.dashboards_id = dms.dashboards_id
             INNER JOIN media_sets AS ms
                 ON dms.media_sets_id = ms.media_sets_id
+        WHERE d.public = 't'
         ORDER BY
             d.name,
             ms.name

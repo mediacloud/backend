@@ -22,5 +22,11 @@ elements:
     constraints:
         - Required
 
+  - type: Checkbox
+    id: public
+    name: public
+    label: Dashboard is public
+    default: 1
+
   - type: Submit
     value: Create
