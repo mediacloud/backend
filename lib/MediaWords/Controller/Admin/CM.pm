@@ -11,9 +11,11 @@ use List::Compare;
 use Data::Dumper;
 
 use MediaWords::Solr;
+use MediaWords::CM;
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
+use MediaWords::DBI::Queries;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -38,6 +40,83 @@ END
 
     $c->stash->{ controversies } = $controversies;
     $c->stash->{ template }      = 'cm/list.tt2';
+}
+
+# show a new controversy form
+sub create : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $form = $c->create_form( { load_config_file => $c->path_to() . '/root/forms/admin/cm/create_controversy.yml' } );
+
+    my $db = $c->dbis;
+
+    # Fill in a list of media sets
+    my $media_sets = $db->query(
+        <<EOF
+        SELECT
+            ms.media_sets_id,
+            d.name AS dashboard_name,
+            ms.name AS media_set_name
+        FROM dashboards AS d
+            INNER JOIN dashboard_media_sets AS dms
+                ON d.dashboards_id = dms.dashboards_id
+            INNER JOIN media_sets AS ms
+                ON dms.media_sets_id = ms.media_sets_id
+        ORDER BY
+            d.name,
+            ms.name
+EOF
+    )->hashes;
+    my $media_set_options =
+      [ map { [ $_->{ media_sets_id }, "$_->{ dashboard_name }:$_->{ media_set_name }" ] } @{ $media_sets } ];
+    $form->get_field( 'media_sets_ids' )->options( $media_set_options );
+
+    $c->stash->{ form }     = $form;
+    $c->stash->{ template } = 'cm/create_controversy.tt2';
+
+    $form->process( $c->request );
+
+    if ( !$form->submitted_and_valid )
+    {
+        # Just show the form
+        return;
+    }
+
+    # At this point the form is submitted
+
+    my $c_name           = $c->req->parameters->{ name } . '';
+    my $c_pattern        = $c->req->parameters->{ pattern } . '';
+    my $c_start_date     = $c->req->parameters->{ start_date } . '';
+    my $c_end_date       = $c->req->parameters->{ end_date } . '';
+    my $c_media_sets_ids = $c->req->parameters->{ media_sets_ids };
+    unless ( ref $c_media_sets_ids )
+    {
+        # Single media set ID (scalar)
+        $c_media_sets_ids = [ $c_media_sets_ids ];
+    }
+
+    unless ( $c_name and $c_pattern and $c_start_date and $c_end_date and $c_media_sets_ids )
+    {
+        $c->stash->{ error_msg } = 'Please fill the form.';
+        return;
+    }
+
+    # Create controversy
+    my $controversies_id = undef;
+    eval {
+        $controversies_id =
+          MediaWords::CM::create_controversy( $db, $c_name, $c_pattern, $c_start_date, $c_end_date, $c_media_sets_ids );
+    };
+    if ( $@ )
+    {
+        my $error_msg = $@;
+        $c->stash->{ error_msg } = 'Unable to create controversy because: ' . $error_msg;
+        return;
+    }
+
+    my $status_msg = "Controversy \"$c_name\" (controversies_id = $controversies_id) has been created.";
+    $c->res->redirect( $c->uri_for( "/admin/cm/list", { status_msg => $status_msg } ) );
 }
 
 # add a periods field to the controversy dump
@@ -919,7 +998,8 @@ sub remove_stories : Local
 
     for my $stories_id ( @{ $stories_ids } )
     {
-        _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username, $c->req->params->{ reason } );
+        _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username,
+            $c->req->params->{ reason } );
     }
 
     my $status_msg = scalar( @{ $stories_ids } ) . " stories removed from controversy.";
@@ -999,9 +1079,8 @@ END
         $db->begin;
 
         eval {
-            map {
-                _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id, $c->user->username, $reason )
-            } @{ $stories };
+            map { _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id, $c->user->username, $reason ) }
+              @{ $stories };
         };
         if ( $@ )
         {
@@ -1106,9 +1185,7 @@ sub _remove_story_from_controversy($$$$$$)
         MediaWords::CM::Mine::remove_story_from_controversy( $db, $stories_id, $controversies_id );
 
         # Log the activity
-        my $change = {
-            'stories_id' => $stories_id + 0
-        };
+        my $change = { 'stories_id' => $stories_id + 0 };
         unless (
             MediaWords::DBI::Activities::log_activity(
                 $db, 'cm_remove_story_from_controversy',

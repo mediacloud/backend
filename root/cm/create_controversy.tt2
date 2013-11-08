@@ -1,0 +1,11 @@
+[% title = 'CM: Create Controversy' %]
+[% INCLUDE include/header.tt2 %]
+
+[% USE datetime = date(format => '%Y-%m-%d %H:%M:%S', locale => 'en_GB') %]
+[% USE date = date(format => '%Y-%m-%d', locale => 'en_GB') %]    
+
+<fieldset>
+[% form.render %]
+</fieldset>
+
+[% INCLUDE include/footer.tt2 %]
