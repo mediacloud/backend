@@ -18,6 +18,8 @@ use File::Basename;
 
 my $class_path;
 
+my $pid_connected_to_jvm = $$;
+
 BEGIN
 {
     my $_dirname      = dirname( __FILE__ );
@@ -109,9 +111,12 @@ sub create_model_inline_java
               java.io.FileReader java.io.File )
         ],
         AUTOSTUDY => 1,
+        JNI       => 1,
         CLASSPATH => $class_path,
         PACKAGE   => 'main'
     );
+
+    reconnect_to_jvm_if_necessary();
 
     my $model_file_name = $training_data_file;
 
@@ -125,6 +130,18 @@ sub create_model_inline_java
     return;
 }
 
+# reconnect to the JVM if the PID of this process changes
+# I'm not sure this is necessary since we're not running in shared JVM mode but better safe -- DRL
+sub reconnect_to_jvm_if_necessary()
+{
+    if ( $pid_connected_to_jvm != $$ )
+    {
+        say STDERR "reconnecting to JVM: expected pid $pid_connected_to_jvm actual pid $$";
+        Inline::Java->reconnect_JVM();
+        $pid_connected_to_jvm = $$;
+    }
+}
+
 my $crf;
 
 sub run_model_inline_java_data_array
@@ -132,6 +149,8 @@ sub run_model_inline_java_data_array
     my ( $model_file_name, $test_data_array ) = @_;
 
     #undef( $crf );
+
+    reconnect_to_jvm_if_necessary();
 
     if ( !defined( $crf ) )
     {
@@ -159,6 +178,8 @@ sub run_model_with_tmp_file
 {
     my ( $model_file_name, $test_data_array ) = @_;
 
+    reconnect_to_jvm_if_necessary();
+
     my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
 
     my $foo = model_runner->run_model( $test_data_file_name, $model_file_name );
@@ -180,6 +201,8 @@ sub run_model_with_separate_exec
 sub run_model_on_array
 {
     my ( $crf, $test_data_array ) = @_;
+
+    reconnect_to_jvm_if_necessary();
 
     my $test_data = join "\n", @{ $test_data_array };
 
@@ -243,7 +266,7 @@ sub train_and_test
 }
 
 use Inline
-  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, PACKAGE => 'main';
+  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, JNI => 1, PACKAGE => 'main';
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -42,6 +42,7 @@ else
             &&    -f "$path/include/jni.h" ]] ; then
             
             JAVA_HOME="$path"
+	    break
         fi
     done
 

@@ -321,7 +321,6 @@ sub _add_pending_downloads
         FROM downloads AS d
             LEFT JOIN feeds AS f ON f.feeds_id = d.feeds_id
         WHERE state = 'pending'
-        ORDER BY downloads_id ASC
         LIMIT ?
 END
         MAX_QUEUED_DOWNLOADS
