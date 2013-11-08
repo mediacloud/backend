@@ -20,6 +20,13 @@ rm -rf .carton/
 rm -rf local/
 rm cpanfile.snapshot
 
+# Gearman::XS, the dependency of Gearman::JobScheduler, depends on
+# Module::Install, but the author of the module (probably) forgot to add it so
+# the list of dependencies (https://rt.cpan.org/Ticket/Display.html?id=89690),
+# so installing it separately
+mkdir -p local/
+./script/run_with_carton.sh ~/perl5/perlbrew/bin/cpanm -L local/ Module::Install
+
 source ./script/set_java_home.sh
 JAVA_HOME=$JAVA_HOME ./script/run_carton.sh install  # running with "--deployment" would not regenerate cpanfile.snapshot
 
