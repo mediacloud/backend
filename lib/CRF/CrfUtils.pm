@@ -111,6 +111,7 @@ sub create_model_inline_java
               java.io.FileReader java.io.File )
         ],
         AUTOSTUDY => 1,
+        JNI       => 1,
         CLASSPATH => $class_path,
         PACKAGE   => 'main'
     );
@@ -265,7 +266,7 @@ sub train_and_test
 }
 
 use Inline
-  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, PACKAGE => 'main';
+  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, JNI => 1, PACKAGE => 'main';
 
 import java.io.File;
 import java.io.FileInputStream;
