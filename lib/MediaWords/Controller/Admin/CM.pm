@@ -95,16 +95,17 @@ EOF
     my $c_start_date     = $c->req->parameters->{ start_date } . '';
     my $c_end_date       = $c->req->parameters->{ end_date } . '';
     my $c_media_sets_ids = $c->req->parameters->{ media_sets_ids };
-    unless ( ref $c_media_sets_ids )
-    {
-        # Single media set ID (scalar)
-        $c_media_sets_ids = [ $c_media_sets_ids ];
-    }
 
     unless ( $c_name and $c_pattern and $c_start_date and $c_end_date and $c_media_sets_ids )
     {
         $c->stash->{ error_msg } = 'Please fill the form.';
         return;
+    }
+
+    unless ( ref $c_media_sets_ids )
+    {
+        # Single media set ID (scalar)
+        $c_media_sets_ids = [ $c_media_sets_ids ];
     }
 
     # Create controversy
