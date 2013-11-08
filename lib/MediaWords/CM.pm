@@ -1,10 +1,14 @@
-package MediaWords::DBI::Controversies;
+package MediaWords::CM;
 
-# various functions dealing with the controversies table
-
-use Getopt::Long;
+# General controversy mapper utilities
 
 use strict;
+use warnings;
+
+use Modern::Perl "2012";
+use MediaWords::CommonLibs;
+
+use Getopt::Long;
 
 # get a list controversies that match the controversy option, which can either be an id
 # or a pattern that matches controversy names. Die if no controversies are found.

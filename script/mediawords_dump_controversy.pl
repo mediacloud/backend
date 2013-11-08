@@ -17,7 +17,7 @@ use Getopt::Long;
 use MediaWords::CommonLibs;
 use MediaWords::CM::Dump;
 use MediaWords::DB;
-use MediaWords::DBI::Controversies;
+use MediaWords::CM;
 use MediaWords::GearmanFunction;
 use MediaWords::GearmanFunction::CM::DumpControversy;
 use Gearman::JobScheduler;
@@ -40,7 +40,7 @@ sub main
     die( "Usage: $0 --controversy < id >" ) unless ( $controversy_opt );
 
     my $db = MediaWords::DB::connect_to_db();
-    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db, $controversy_opt );
+    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
     $db->disconnect;
 
     for my $controversy ( @{ $controversies } )

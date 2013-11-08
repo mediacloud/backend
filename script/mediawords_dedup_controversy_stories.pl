@@ -15,7 +15,7 @@ use Getopt::Long;
 
 use MediaWords::CM::Mine;
 use MediaWords::DB;
-use MediaWords::DBI::Controversies;
+use MediaWords::CM;
 
 sub main
 {
@@ -30,7 +30,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $controversies = MediaWords::DBI::Controversies::require_controversies_by_opt( $db, $controversy_opt );
+    my $controversies = MediaWords::CM::require_controversies_by_opt( $db, $controversy_opt );
 
     for my $controversy ( @{ $controversies } )
     {
