@@ -24,9 +24,6 @@ use MediaWords::DB;
 use Modern::Perl "2012";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::DownloadTexts;
-use MediaWords::DBI::Stories;
-use MediaWords::StoryVectors;
 use MediaWords::Util::MC_Fork;
 
 # extract, story, and tag downloaded text a slice of downloads.
@@ -42,6 +39,10 @@ sub extract_text
     $db->dbh->{ AutoCommit } = 0;
 
     my $job_process_num = $process_num + int( ( $num_total_processes / $num_total_jobs ) * ( $job_number - 1 ) );
+
+    use MediaWords::DBI::DownloadTexts;
+    use MediaWords::DBI::Stories;
+    use MediaWords::StoryVectors;
 
     while ( 1 )
     {
@@ -96,6 +97,18 @@ sub extract_text
 # fork of $num_processes
 sub main
 {
+    my $mod;
+
+    if ( scalar( @ARGV ) >= 2 )
+    {
+        if ( $ARGV[ 0 ] eq '--mod' )
+        {
+            shift @ARGV;
+
+            $mod = shift @ARGV;
+        }
+    }
+
     my ( $num_total_processes, $num_total_jobs, $job_number ) = @ARGV;
 
     binmode STDOUT, ":utf8";
@@ -110,28 +123,35 @@ sub main
 
     my $num_processes = int( $num_total_processes / $num_total_jobs );
 
-    for ( my $i = 0 ; $i < $num_processes ; $i++ )
+    if ( defined( $mod ) )
     {
-        if ( !mc_fork )
+        while ( 1 )
         {
-            while ( 1 )
+            eval {
+                print STDERR "[$mod] START\n";
+                extract_text( $mod, $num_total_processes, $num_total_jobs, $job_number );
+            };
+            if ( $@ )
             {
-                eval {
-                    print STDERR "[$i] START\n";
-                    extract_text( $i, $num_total_processes, $num_total_jobs, $job_number );
-                };
-                if ( $@ )
-                {
-                    print STDERR "[$i] extract_text failed with error: $@\n";
-                    print STDERR "[$i] sleeping before restart ...\n";
-                    sleep 60;
-                }
+                print STDERR "[$mod] extract_text failed with error: $@\n";
+                print STDERR "[$mod] sleeping before restart ...\n";
+                sleep 60;
             }
         }
     }
-
-    while ( wait > -1 )
+    else
     {
+        for ( my $i = 0 ; $i < $num_processes ; $i++ )
+        {
+            if ( !mc_fork )
+            {
+                exec( __FILE__, '--mod', $i, $num_total_processes, $num_total_jobs, $job_number );
+            }
+        }
+
+        while ( wait > -1 )
+        {
+        }
     }
 }
 
