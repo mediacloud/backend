@@ -15,10 +15,13 @@ use Env qw(HOME);
 use File::Path qw(make_path remove_tree);
 use File::Spec;
 use File::Basename;
+use MediaWords::Util::Config;
 
 my $class_path;
 
 my $pid_connected_to_jvm = $$;
+
+my $use_jni = 0;
 
 BEGIN
 {
@@ -31,6 +34,17 @@ BEGIN
 
     #Assumes Unix fix later.
     $class_path = scalar( join ':', ( map { "$jar_dir/$_" } @{ $jars } ) );
+
+    my $config = MediaWords::Util::Config::get_config();
+
+    if ( $config->{ mediawords }->{ inline_java_jni } eq 'yes' )
+    {
+        $use_jni = 1;
+    }
+    else
+    {
+        $use_jni = 0;
+    }
 
     #say STDERR "classpath: $class_path";
 }
@@ -111,7 +125,7 @@ sub create_model_inline_java
               java.io.FileReader java.io.File )
         ],
         AUTOSTUDY => 1,
-        JNI       => 1,
+        JNI       => $use_jni,
         CLASSPATH => $class_path,
         PACKAGE   => 'main'
     );
@@ -266,7 +280,7 @@ sub train_and_test
 }
 
 use Inline
-  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, JNI => 1, PACKAGE => 'main';
+  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, JNI => $use_jni, PACKAGE => 'main';
 
 import java.io.File;
 import java.io.FileInputStream;

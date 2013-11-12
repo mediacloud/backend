@@ -85,9 +85,11 @@ sub set_defaults
     $config->{ mediawords }->{ controversy_model_reps }           ||= '25';
     $config->{ mediawords }->{ solr_wc_url }                      ||= 'http://localhost:8080/wc';
     $config->{ mediawords }->{ solr_select_url }                  ||= 'http://localhost:8983/solr/collection1/select';
-    $config->{ mail }->{ from_address }                           ||= "noreply\@mediacloud.org";
-    $config->{ mail }->{ bug_email }                              ||= "";
-    $config->{ session }->{ storage }                             ||= "$ENV{HOME}/tmp/mediacloud-session";
+    $config->{ mediawords }->{ inline_java_jni }                  ||= 'no';
+
+    $config->{ mail }->{ from_address } ||= "noreply\@mediacloud.org";
+    $config->{ mail }->{ bug_email }    ||= "";
+    $config->{ session }->{ storage }   ||= "$ENV{HOME}/tmp/mediacloud-session";
 
     # Gearman
     $config->{ gearman }->{ worker_log_dir }                    ||= 'data/gearman_worker_logs/';

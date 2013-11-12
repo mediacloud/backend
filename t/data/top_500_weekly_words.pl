@@ -43,42 +43,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'abaix',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'abaixo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'abi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'aby'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'absurd',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'absurd'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'absurdo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'absurdo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'abund',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'abundant'
           },
           {
             'publish_week' => '2009-06-01',
@@ -91,18 +59,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'acabar',
+            'stem' => 'accident',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'acabar'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'acentu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acentuando'
+            'term' => 'accident'
           },
           {
             'publish_week' => '2009-06-01',
@@ -122,7 +82,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'stem_count' => 4,
             'stem' => 'acident',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -163,10 +123,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'acord',
+            'stem' => 'adel',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'acordo'
+            'term' => 'adel'
           },
           {
             'publish_week' => '2009-06-01',
@@ -219,14 +179,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'african',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'african'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'agreement',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -234,7 +186,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'ahm',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -242,7 +194,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'ahm',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -250,15 +202,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "a\x{ee}n",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "a\x{ee}n\x{e9}s"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'aind',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -266,7 +210,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 6,
+            'stem_count' => 5,
             'stem' => 'airbus',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -274,7 +218,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'stem_count' => 3,
             'stem' => 'aircraft',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -291,26 +235,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'airmen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'airmen'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'airplan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'airplane'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'airport',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'airport'
           },
           {
             'publish_week' => '2009-06-01',
@@ -322,11 +250,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'alarm',
+            'stem_count' => 2,
+            'stem' => 'airport',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'alarming'
+            'term' => 'airport'
           },
           {
             'publish_week' => '2009-06-01',
@@ -347,34 +275,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'alberto',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alberto'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'albright',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'albright'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'algui',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alguien'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'alhe',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alheia'
           },
           {
             'publish_week' => '2009-06-01',
@@ -386,19 +290,27 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'amazon',
+            'stem_count' => 1,
+            'stem' => 'aloud',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'amazon'
+            'term' => 'aloud'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'amazonian',
+            'stem' => 'alredi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'amazonian'
+            'term' => 'alredy'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'amazon',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'amazon'
           },
           {
             'publish_week' => '2009-06-01',
@@ -435,14 +347,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'american',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'american'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'ameryka',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -451,18 +355,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'amis',
+            'stem' => 'amira',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'amis'
+            'term' => 'amira'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'analis',
+            'stem' => 'analyz',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'analisou'
+            'term' => 'analyzed'
           },
           {
             'publish_week' => '2009-06-01',
@@ -470,14 +374,6 @@ $VAR1 = [
             'stem' => 'analyz',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'analyzed'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'analyz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
             'term' => 'analyzed'
           },
           {
@@ -491,10 +387,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'antonio',
+            'stem' => 'annonc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'antonio'
+            'term' => 'annonce'
           },
           {
             'publish_week' => '2009-06-01',
@@ -539,22 +435,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'apoy',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'apoyo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'appal',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'appalling'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'appropri',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -563,30 +443,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'apra',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'apra'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'aqu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aqui'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
-            'stem' => 'arab',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arab'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'arab',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -594,18 +450,34 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
+            'stem_count' => 3,
+            'stem' => 'arab',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'arab'
+          },
+          {
+            'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'arabia',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'arabia'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 2,
             'stem' => 'arabist',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'arabist'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'arabist',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'arabist'
           },
           {
@@ -667,22 +539,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'asia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'asia'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'asian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'asians'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'aspir',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -695,22 +551,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'asserting'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'assoc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'associe'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'assunt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'assunto'
           },
           {
             'publish_week' => '2009-06-01',
@@ -754,27 +594,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'aun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "a\x{fa}n"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 9,
+            'stem_count' => 10,
             'stem' => 'aung',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'aung'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'auss',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aussi'
           },
           {
             'publish_week' => '2009-06-01',
@@ -802,27 +626,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "avi\x{e3}ozinh",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "avi\x{e3}ozinho"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'aviat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'aviation'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "awaj\x{fa}n",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "awaj\x{fa}n"
           },
           {
             'publish_week' => '2009-06-01',
@@ -842,23 +650,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'bagu',
+            'stem_count' => 2,
+            'stem' => 'bahraini',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bagua'
+            'term' => 'bahraini'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 8,
-            'stem' => 'bagua',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bagua'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'barack',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -866,7 +666,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'barack',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -891,14 +691,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'bastant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bastante'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'beckham',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -914,7 +706,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 6,
+            'stem_count' => 7,
             'stem' => 'bermuda',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -931,14 +723,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'bien',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bien'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
             'stem' => 'birthday',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -955,14 +739,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'blather',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blathering'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "blisk\x{105}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -970,15 +746,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'blockad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blockading'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 8,
+            'stem_count' => 6,
             'stem' => 'blogger',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -986,27 +754,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'blogger',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'blogger'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'blogospher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blogosphere'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'blogospher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'blogosphere'
+            'term' => 'bloggers'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1015,30 +767,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "b\x{142}ogostan"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'blogspher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'blogsphere'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'blogspher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blogsphere'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'bloodi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bloody'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1066,14 +794,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'brack',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brack'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'brad',
             'media_sets_id' => 1,
@@ -1082,15 +802,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'brasileir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brasileiro'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 6,
+            'stem_count' => 5,
             'stem' => 'brazil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1098,11 +810,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'brazilian',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'brazilian'
+            'term' => 'brazilians'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'britannica',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'britannica'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1123,22 +843,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'bruno',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bruno'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'brutal',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brutalement'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'bullock',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1154,35 +858,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'burma',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'burma'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'burmes',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'burmese'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'burr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'burros'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'caid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'caido'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1194,11 +874,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'cair',
+            'stem_count' => 3,
+            'stem' => 'cairo',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cair'
+            'dashboard_topics_id' => 1,
+            'term' => 'cairo'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1206,14 +886,6 @@ $VAR1 = [
             'stem' => 'cairo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'cairo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
-            'stem' => 'cairo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
             'term' => 'cairo'
           },
           {
@@ -1227,14 +899,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'cajamarca',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cajamarca'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'camerini',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1242,15 +906,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'camin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'caminos'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 4,
             'stem' => 'campaign',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1266,22 +922,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'campin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'campinas'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'campina',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'campinas'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'caraca',
             'media_sets_id' => 1,
@@ -1291,30 +931,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'cariz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cariz'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'cartoon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cartoon'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'cas',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'caso'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
             'stem' => "cat\x{e1}strof",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1322,7 +938,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'catastroph',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1347,34 +963,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'centen',
+            'stem' => 'cet',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'centenas'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'cerr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cerrando'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ceux',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ceux'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'chacun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chacun'
+            'term' => 'cet'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1386,15 +978,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'charisma',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'charisma'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'charl',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1407,22 +991,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'cheering'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'chei',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cheio'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'chorus',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chorus'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1443,22 +1011,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'clamour',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'clamour'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'clar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'claro'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'clash',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1475,17 +1027,9 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'cleanup',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cleanup'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'clockwis',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'clockwise'
           },
           {
@@ -1493,7 +1037,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'clockwis',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'clockwise'
           },
           {
@@ -1523,38 +1067,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'cois',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'coisas'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "coll\x{e8}gu",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "coll\x{e8}gues"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'coloc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'colocar'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'comercio',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comercio'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'comic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -1567,14 +1079,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'comic'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'comm',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comme'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1586,27 +1090,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'condol',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'condolences'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "conjun\x{e7}\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "conjun\x{e7}\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'conjunct',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'conjunction'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1618,51 +1106,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'contradict',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'contradicting'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'contradict',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'contradicting'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "cora\x{e7}\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "cora\x{e7}\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'corja',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'corja'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'corporacraci',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'corporacracy'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'countrymen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'countrymen'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1715,6 +1163,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'cynthia',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'cynthia'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => 'czarna',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1746,14 +1202,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'david',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'david'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'david',
             'media_sets_id' => 1,
@@ -1763,6 +1211,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 2,
+            'stem' => 'david',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'david'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => 'deaf',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1770,7 +1226,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'deaf',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -1794,22 +1250,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'deepen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deepening'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'dej',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dejando'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'democrat',
             'media_sets_id' => 1,
@@ -1827,14 +1267,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'derech',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'derecho'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'derrub',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1843,34 +1275,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'desafortun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'desafortunado'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'desastr',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'desastre'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'desbord',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'desbordado'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'descar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'descaradamente'
           },
           {
             'publish_week' => '2009-06-01',
@@ -1891,26 +1299,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'deserv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deserve'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'desfil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'desfilando'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'desgrac',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "desgra\x{e7}a"
           },
           {
             'publish_week' => '2009-06-01',
@@ -1939,14 +1331,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'detalh',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'detalhe'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'deterior',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1954,7 +1338,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'deu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -1971,34 +1355,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'diabl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'diablo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'diment',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'dimention'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'diner',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dinero'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'dinheir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dinheiro'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2027,14 +1387,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'disrespect',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'disrespectful'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'divert',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2043,22 +1395,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'division',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "divisi\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'divulg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'divulgar'
+            'term' => 'divulgando'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 1,
             'stem' => 'diz',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2079,6 +1423,22 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'dni'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'doaa',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'doaa'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'doaa',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'doaa'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2106,7 +1466,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'domain',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2135,6 +1495,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "dos\x{142}ownie"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'drescher',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'drescher'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2178,14 +1546,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'efeit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'efeito'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'egypt',
             'media_sets_id' => 1,
@@ -2210,19 +1570,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 6,
+            'stem_count' => 4,
             'stem' => 'egyptian',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
             'term' => 'egyptian'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'elder',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'elders'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2234,19 +1586,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'stem_count' => 1,
             'stem' => 'eloqu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'eloquence'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'emot',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'emotion'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2275,42 +1619,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'energ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'energias'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'enfim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'enfim'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'enfrent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'enfrentamiento'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'enhanc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'enhancing'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'enlac',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'enlace'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2323,42 +1635,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'entend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'entendimiento'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'environment',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'environmental'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'enxerg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'enxergar'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "epis\x{f3}di",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "epis\x{f3}dio"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'erich',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'erich'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2375,14 +1655,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "esc\x{e2}ndalo"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'escond',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'esconde'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2403,14 +1675,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'esquec',
+            'stem' => 'esra\'a',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'esquecimento'
+            'term' => 'esra\'a'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'europ',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2426,26 +1698,18 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'everywher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'everywhere'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'exam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'exams'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'exam',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'term' => 'exams'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 2,
+            'stem' => 'exam',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'exams'
           },
           {
@@ -2467,22 +1731,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'exploit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'exploiting'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "extr\x{ea}m",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "extr\x{ea}me"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'extremist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2490,7 +1738,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'fact',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2498,7 +1746,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'fal',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2506,7 +1754,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'stem_count' => 2,
             'stem' => 'famili',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2522,7 +1770,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 3,
             'stem' => 'fattract',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2546,7 +1794,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'faz',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2554,11 +1802,27 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 1,
             'stem' => 'fic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ficou'
+            'term' => 'ficar'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'flirt',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'flirt'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'flirt',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'flirt'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2594,7 +1858,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'forgotten',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2626,7 +1890,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 17,
+            'stem_count' => 13,
             'stem' => 'franc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2642,7 +1906,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 1,
             'stem' => 'free',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2650,7 +1914,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'freedom',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2663,30 +1927,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'french'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'futura',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'futura'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'gan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ganar'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ganh',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ganha'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2723,42 +1963,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'gender',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gender'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'genocid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'genocide'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'gent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gente'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'georg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'george'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ghandi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ghandi'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2770,19 +1978,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'glimps',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'glimpse'
+          },
+          {
+            'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'global',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'global'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'gobern',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "gobernaci\x{f3}n"
           },
           {
             'publish_week' => '2009-06-01',
@@ -2818,7 +2026,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'gorenberg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -2835,18 +2043,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'gravit',
+            'stem' => 'gresghom',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "gravit\x{e9}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'grief',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'grief'
+            'term' => 'gresghom'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2867,18 +2067,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'gwiazdi',
+            'stem' => 'gvo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'gwiazdy'
+            'term' => 'gvo'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'hac',
+            'stem' => 'gvo',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'gvo'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'gwiazdi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "haci\x{e9}ndose"
+            'term' => 'gwiazdy'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2891,10 +2099,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'harvard',
+            'stem' => 'hagg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'harvard'
+            'term' => 'hagg'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'hagg',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'hagg'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2907,10 +2123,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'hashtag',
+            'stem' => 'harvard',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'hashtag'
+            'term' => 'harvard'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2927,22 +2143,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'haven'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'heartless',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'heartless'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'hech',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hecho'
           },
           {
             'publish_week' => '2009-06-01',
@@ -2987,30 +2187,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'highway',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'highway'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'holist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'holistic'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "hol\x{ed}st",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "hol\x{ed}stica"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'homm',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3029,7 +2205,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'honour',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'honour'
           },
           {
@@ -3037,7 +2213,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'honour',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'honour'
           },
           {
@@ -3066,11 +2242,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'hunger',
+            'stem_count' => 1,
+            'stem' => 'hussaini',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'hunger'
+            'term' => 'hussaini'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3139,38 +2315,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'independ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'independent'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "ind\x{e9}pend",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "ind\x{e9}pendamment"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 10,
-            'stem' => 'indigen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'indigenous'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'indign',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'indignada'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'inerti',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3203,50 +2347,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'injustic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'injustice'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'innym',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'innym'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'insens',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "insens\x{ed}vel"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'intellig',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'intelligent'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'intellig',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intelligent'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'interes',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'interesante'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3258,43 +2362,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'intoler',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intolerable'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "irr\x{e9}m\x{e9}di",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "irr\x{e9}m\x{e9}diable"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'irrepar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'irreparable'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'islam',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'islamic'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'islam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'islamic'
+            'term' => 'islam'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3314,27 +2386,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
+            'stem_count' => 4,
+            'stem' => 'israel',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'israel'
+          },
+          {
+            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'israel',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
             'term' => 'israel'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'israel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'israel'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "ja\x{e9}n",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "ja\x{e9}n"
           },
           {
             'publish_week' => '2009-06-01',
@@ -3355,10 +2419,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'jao',
+            'stem' => 'jarbou',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'jao'
+            'term' => 'jarbou'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3375,6 +2439,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'jeja'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'jerusalem',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'jerusalem'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3434,35 +2506,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'jornal',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jornalistas'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'journal',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'journal'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'journalist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'journalists'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'julg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'julgando'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3493,7 +2541,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'kennedi',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'kennedy'
           },
           {
@@ -3501,7 +2549,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'kennedi',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'kennedy'
           },
           {
@@ -3511,6 +2559,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'kerimel'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'khaldoun',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'khaldoun'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3549,7 +2605,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'knesset',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'knesset'
           },
           {
@@ -3557,7 +2613,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'knesset',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'knesset'
           },
           {
@@ -3578,7 +2634,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'kuwait',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3674,27 +2730,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'lieu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lieu'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 2,
             'stem' => 'lightn',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'lightning'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'llam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'llamada'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3714,7 +2754,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'love',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3731,14 +2771,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'lueg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'luego'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'lug',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3762,19 +2794,27 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'mal',
+            'stem_count' => 1,
+            'stem' => 'mahmood',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mal'
+            'term' => 'mahmood'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'malaysia',
+            'stem' => 'mahmoud25x',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'mahmoud25x'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'mahmoud25x',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'malaysia'
+            'term' => 'mahmoud25x'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3787,26 +2827,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'mand',
+            'stem' => 'marwa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mandar'
+            'term' => 'marwa'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'mandela',
+            'stem' => 'marwa',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mandela'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'maneir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'maneira'
+            'dashboard_topics_id' => 1,
+            'term' => 'marwa'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3815,14 +2847,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'maszyna'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'maten'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3850,7 +2874,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'meanwhil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3858,7 +2882,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 6,
+            'stem_count' => 4,
             'stem' => 'media',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3867,42 +2891,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'merci',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mercy'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'meryl',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'meryl'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mesmoo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mesmooo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mestiz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mestizos'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'mestizo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mestizos'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3923,18 +2915,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'miembr',
+            'stem' => 'mideast',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'miembros'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'mientr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mientras'
+            'term' => 'mideast'
           },
           {
             'publish_week' => '2009-06-01',
@@ -3946,7 +2930,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'mim',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3963,14 +2947,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'miner',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'minerals'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "m\x{ed}nim",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3978,7 +2954,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'minist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -3991,14 +2967,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'mirage'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'misfortun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'misfortune'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4045,7 +3013,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'monger',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'mongering'
           },
           {
@@ -4053,16 +3021,8 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'monger',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'mongering'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'monika',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'monika'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4075,10 +3035,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'morr',
+            'stem' => 'mubarak',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'morrem'
+            'term' => 'mubarak'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4091,18 +3051,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'mubarak',
+            'stem' => 'mundo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mubarak'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'muert',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'muertos'
+            'term' => 'mundo'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4130,7 +3082,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 3,
             'stem' => 'myanmar',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4139,10 +3091,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'nacion',
+            'stem' => 'mysid',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nacional'
+            'term' => 'mysid'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4159,14 +3111,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'nadal'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nadi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nadie'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4210,19 +3154,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'nativ',
+            'stem_count' => 1,
+            'stem' => 'nawara',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nativos'
+            'dashboard_topics_id' => 1,
+            'term' => 'nawara'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'navig',
+            'stem' => 'nawara',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'navigants'
+            'term' => 'nawara'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4235,42 +3179,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'neff',
+            'stem' => 'negm',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'neff'
+            'dashboard_topics_id' => 1,
+            'term' => 'negm'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'neg',
+            'stem' => 'negm',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nego'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nelson',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nelson'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nepumoceno',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nepumoceno'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ness',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nesse'
+            'term' => 'negm'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4279,14 +3199,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'never'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'newsworthi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'newsworthy'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4331,14 +3243,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'ningun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ninguna'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'niro',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4363,50 +3267,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'nobil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nobility'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'noc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'noc'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nombr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nombre'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nord',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nordeste'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'nordestin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nordestinos'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'northeast',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'northeast'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4418,31 +3282,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "n\x{fa}mer",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "n\x{fa}meros"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'numerolog',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'numerologia'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'numerologist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'numerologist'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 24,
+            'stem_count' => 26,
             'stem' => 'obama',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4450,7 +3290,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 24,
+            'stem_count' => 26,
             'stem' => 'obama',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -4483,14 +3323,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'odi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'odio'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "odprowadza\x{142}em",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4515,14 +3347,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{f4}nibus",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{f4}nibus"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
             'stem' => 'onlin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4538,47 +3362,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "opini\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "opini\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'opinion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'opinion'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => 'opinion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'opinion'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'oppress',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'oppression'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'optimist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'optimistic'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 2,
+            'stem' => 'opinion',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'opinion'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => 'optimist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4602,7 +3394,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'outrag',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4623,14 +3415,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'overload'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'paisan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'paisanos'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4699,26 +3483,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'pein',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'peine'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'perenni',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'perennial'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'pert',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'perte'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4730,19 +3498,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 1,
             'stem' => 'peru',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'peru'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'peruvian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'peruvians'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4755,26 +3515,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'pesso',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pessoas'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'pewni',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'pewnie'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'philippin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'philippines'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4787,34 +3531,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'pizang',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pizango'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'pizango',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pizango'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "plant\x{e3}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "plant\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'poblacion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'poblaciones'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4851,26 +3571,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'politiqu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "politiquer\x{ed}a"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "po\x{142}udniowa",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "po\x{142}udniowa"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'posibil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'posibilidad'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4885,7 +3589,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'postpon',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'postponed'
           },
           {
@@ -4893,16 +3597,8 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'postpon',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'postponed'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'poursuivr',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'poursuivre'
+            'term' => 'postponed'
           },
           {
             'publish_week' => '2009-06-01',
@@ -4914,7 +3610,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'pra',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4922,7 +3618,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'prais',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4955,22 +3651,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'premi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'premier'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'preocup',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'preocupa'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'pret',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -4991,30 +3671,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'problemy'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'propi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'propios'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "prop\x{f5}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "prop\x{f5}em"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'protestor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'protestors'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5098,6 +3754,22 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'qahwa',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'qahwa'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'qahwa',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'qahwa'
+          },
+          {
+            'publish_week' => '2009-06-01',
             'stem_count' => 4,
             'stem' => 'qanta',
             'media_sets_id' => 1,
@@ -5131,26 +3803,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'quantidad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'quantidade'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'qued',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'queda'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'quer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'querer'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5171,10 +3827,34 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'rakha',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'rakha'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'rakha',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'rakha'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => 'razi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'razy'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 2,
+            'stem' => 'react',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'reacting'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5186,30 +3866,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'react',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'reacting'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'realis',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'realise'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'receb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'recebemos'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => 'reconcili',
             'media_sets_id' => 1,
@@ -5218,7 +3874,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'regardless',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -5243,6 +3899,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'rempl',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'remplit'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => 'rend',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -5253,7 +3917,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'repress',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'repressive'
           },
           {
@@ -5261,7 +3925,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'repress',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'repressive'
           },
           {
@@ -5355,10 +4019,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'rpp',
+            'stem' => 'rubbish',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'rpp'
+            'term' => 'rubbish'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5367,14 +4031,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'rudder'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'ruins',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ruins'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5402,15 +4058,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sacrif',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sacrificed'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 3,
             'stem' => 'sadat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -5418,7 +4066,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'sadat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -5447,14 +4095,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'salamu'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sald',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'saldo'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5490,7 +4130,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 9,
+            'stem_count' => 10,
             'stem' => 'san',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -5507,18 +4147,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'sandra',
+            'stem' => 'sandmonkey',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sandra'
+            'term' => 'sandmonkey'
           },
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'sangrient',
+            'stem' => 'sandra',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sangriento'
+            'term' => 'sandra'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5535,6 +4175,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'sarah'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => 'saudi',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'saudi'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5578,27 +4226,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'sensat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'sensationalism'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "s\x{e9}ri",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "s\x{e9}rie"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'servindi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'servindi'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5637,15 +4269,15 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'shokier',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'shokier'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'shokier',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'shokier'
           },
           {
@@ -5655,14 +4287,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "si\x{119}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'sieg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'siege'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5677,15 +4301,15 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'sincer',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'sincere'
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'sincer',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'sincere'
           },
           {
@@ -5701,7 +4325,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'sir',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'sir'
           },
           {
@@ -5709,7 +4333,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'sir',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'sir'
           },
           {
@@ -5723,18 +4347,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'siti',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sitiando'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 4,
             'stem' => 'skeptic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'skepticism'
+            'term' => 'skeptics'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5751,14 +4367,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "sk\x{f3}r\x{119}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'snippet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'snippets'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5795,10 +4403,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'southeast',
+            'stem' => 'sorrow',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'southeast'
+            'term' => 'sorrow'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5823,22 +4431,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'spielberg'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'spill',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'spilled'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'spoon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'spoon'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5891,6 +4483,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'stileto',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'stiletos'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => 'stosunek',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -5915,18 +4515,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'suces',
+            'stem' => 'studi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sucesos'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'suficient',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'suficiente'
+            'term' => 'studies'
           },
           {
             'publish_week' => '2009-06-01',
@@ -5943,22 +4535,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'superficially'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'suppress',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'suppressed'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "s\x{fb}r",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "s\x{fb}r"
           },
           {
             'publish_week' => '2009-06-01',
@@ -5986,7 +4562,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'syrian',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -5999,14 +4575,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "szcz\x{119}\x{15b}cie"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "t\x{e2}ch",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "t\x{e2}che"
           },
           {
             'publish_week' => '2009-06-01',
@@ -6043,22 +4611,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'taro',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'taro'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "tar\x{f4}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "tar\x{f4}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'tedious',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6090,22 +4642,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'tens',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tense'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'terapeut',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'terapeuta'
-          },
-          {
-            'publish_week' => '2009-06-01',
             'stem_count' => 3,
             'stem' => 'terror',
             'media_sets_id' => 1,
@@ -6131,26 +4667,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'therapist',
+            'stem' => 'theorist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'therapist'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'thrill',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'thrilled'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'thrive',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'thrive'
+            'term' => 'theorists'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6159,14 +4679,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'throne'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'thumbnail',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'thumbnail'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6187,10 +4699,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'toler',
+            'stem' => 'todo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'tolerant'
+            'term' => 'todo'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6199,14 +4711,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'toll'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'tom',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tomado'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6223,14 +4727,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'tradycyjne'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "trag\x{e9}d",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "trag\x{e9}dia"
           },
           {
             'publish_week' => '2009-06-01',
@@ -6291,6 +4787,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'tristess',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'tristesse'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "tr\x{f3}jk\x{105}tem",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6299,26 +4803,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'trouvent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'trouvent'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'true',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'true'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'tune',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'tuning'
+            'term' => 'tune'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6354,19 +4842,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'twelfth',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'twelfth'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 7,
+            'stem_count' => 6,
             'stem' => 'twitter',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'twitterers'
+            'term' => 'twitter'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6383,14 +4863,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'tym'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'tyranni',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tyranny'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6419,42 +4891,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'unbear',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unbearable'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'unconfirm',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unconfirmed'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'unfinish',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'unfinished'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'unic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{fa}nico"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'unoffici',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unofficial'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6479,14 +4919,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'usa'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'uso',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'uso'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6522,27 +4954,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'vanish',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'vanished'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'vejam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vejam'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'vend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "vendi\x{f3}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -6554,15 +4970,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => 'venu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'venue'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'venu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -6570,11 +4978,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'veo',
+            'stem_count' => 2,
+            'stem' => 'venu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'veo'
+            'term' => 'venue'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6587,14 +4995,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'vergonh',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vergonha'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'vertic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6602,7 +5002,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 6,
+            'stem_count' => 2,
             'stem' => 'victim',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6627,18 +5027,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'vont',
+            'stem' => "voc\x{ea}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'vont'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'vontad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vontade'
+            'term' => "voc\x{ea}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -6651,17 +5043,9 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'wampi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wampis'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'wasn',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'wasn'
           },
           {
@@ -6669,7 +5053,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'wasn',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'wasn'
           },
           {
@@ -6690,7 +5074,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 4,
+            'stem_count' => 5,
             'stem' => 'websit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6731,6 +5115,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'wikiedia',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'wikiedia'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "w\x{142}a\x{15b}ni",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6751,14 +5143,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'wpadam'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'wrap',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wrapping'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6819,14 +5203,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'yend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yendo'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => 'yoko',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6834,7 +5210,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'yousif',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6843,26 +5219,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => 'youth',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'youth'
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => 'youtub',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'youtube'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'yurimagu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yurimaguas'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => 'yurimagua',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yurimaguas'
           },
           {
             'publish_week' => '2009-06-01',
@@ -6917,7 +5285,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'zeinobia',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'zeinobia'
           },
           {
@@ -6925,7 +5293,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'zeinobia',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'zeinobia'
           },
           {
@@ -6963,14 +5331,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => 'zon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'zona'
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "zupe\x{142}ni",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6987,6 +5347,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{627}\x{62a}\x{635}\x{631}\x{641}\x{648}\x{627}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{62a}\x{635}\x{631}\x{641}\x{648}\x{627}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{627}\x{62a}\x{635}\x{648}\x{631}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -6995,10 +5363,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{627}\x{62a}\x{648}\x{642}\x{639}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{62a}\x{648}\x{642}\x{639}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{623}\x{62b}\x{646}\x{627}\x{621}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{623}\x{62b}\x{646}\x{627}\x{621}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 2,
+            'stem' => "\x{627}\x{62d}\x{645}\x{62f}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{62d}\x{645}\x{62f}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7011,10 +5395,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{623}\x{631}\x{648}\x{639}",
+            'stem' => "\x{627}\x{631}\x{647}\x{627}\x{628}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{631}\x{648}\x{639}"
+            'term' => "\x{627}\x{631}\x{647}\x{627}\x{628}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7059,34 +5443,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{627}\x{644}500\x{645}\x{644}\x{64a}\x{648}\x{646}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{644}500\x{645}\x{644}\x{64a}\x{648}\x{646}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{627}\x{628}\x{64a}\x{636}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{627}\x{644}\x{627}\x{628}\x{64a}\x{636}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{623}\x{62f}\x{646}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{623}\x{62f}\x{646}\x{64a}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{627}\x{639}\x{62a}\x{630}\x{627}\x{631}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{627}\x{639}\x{62a}\x{630}\x{627}\x{631}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{623}\x{642}\x{631}\x{628}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{623}\x{642}\x{631}\x{628}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7103,6 +5471,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{627}\x{644}\x{622}\x{646}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{627}\x{646}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{644}\x{627}\x{646}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7154,15 +5530,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{62d}\x{64a}\x{627}\x{62f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{62d}\x{64a}\x{627}\x{62f}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => "\x{627}\x{644}\x{62e}\x{637}\x{627}\x{628}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -7219,6 +5587,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{633}\x{628}\x{628}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -7259,10 +5635,34 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{644}\x{647}\x{62c}\x{629}",
+            'stem' => "\x{627}\x{644}\x{641}\x{639}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{644}\x{647}\x{62c}\x{629}"
+            'term' => "\x{627}\x{644}\x{641}\x{639}\x{644}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{642}\x{627}\x{647}\x{631}\x{647}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{644}\x{642}\x{627}\x{647}\x{631}\x{647}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{644}\x{647}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{644}\x{644}\x{647}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{644}\x{644}\x{649}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{644}\x{644}\x{649}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7283,14 +5683,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{645}\x{641}\x{627}\x{62a}\x{62d}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{645}\x{641}\x{627}\x{62a}\x{62d}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{646}\x{638}\x{631}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -7299,26 +5691,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{627}\x{644}\x{646}\x{647}\x{627}\x{64a}\x{629}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{627}\x{644}\x{646}\x{647}\x{627}\x{64a}\x{629}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{627}\x{644}\x{647}\x{631}\x{645}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{627}\x{644}\x{647}\x{631}\x{645}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 3,
-            'stem' => "\x{625}\x{644}\x{64a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{625}\x{644}\x{64a}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7339,10 +5715,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}",
+            'stem' => "\x{627}\x{645}\x{62a}\x{649}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{645}\x{631}\x{64a}\x{643}\x{64a}"
+            'term' => "\x{627}\x{645}\x{62a}\x{649}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7355,10 +5731,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{623}\x{646}\x{627}",
+            'stem' => "\x{627}\x{645}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{623}\x{646}\x{627}"
+            'term' => "\x{627}\x{645}\x{644}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7379,6 +5755,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{627}\x{646}\x{649}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{646}\x{649}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{623}\x{647}\x{645}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -7395,10 +5779,42 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{627}\x{648}\x{628}\x{627}\x{645}\x{627}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{648}\x{628}\x{627}\x{645}\x{627}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{648}\x{628}\x{645}\x{627}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{648}\x{628}\x{645}\x{627}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{627}\x{648}\x{649}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{627}\x{648}\x{649}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{628}\x{627}\x{628}\x{627}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{628}\x{627}\x{628}\x{627}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{628}\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{628}\x{627}\x{644}\x{633}\x{627}\x{62f}\x{627}\x{62a}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7426,11 +5842,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
-            'stem_count' => 2,
-            'stem' => "\x{628}\x{647}\x{630}\x{647}",
+            'stem_count' => 1,
+            'stem' => "\x{628}\x{645}\x{627}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{628}\x{647}\x{630}\x{647}"
+            'term' => "\x{628}\x{645}\x{627}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7439,6 +5855,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{628}\x{64a}\x{62d}\x{628}\x{646}\x{627}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{628}\x{64a}\x{646}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{628}\x{64a}\x{646}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7455,14 +5879,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{62a}\x{623}\x{62e}\x{630}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62a}\x{630}\x{647}\x{628}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{630}\x{647}\x{628}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7487,14 +5903,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{62a}\x{642}\x{64a}\x{64a}\x{645}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
-            'stem' => "\x{62a}\x{643}\x{646}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{62a}\x{643}\x{646}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7563,10 +5971,34 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{62c}\x{646}\x{64a}\x{647}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{62c}\x{646}\x{64a}\x{647}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{62d}\x{627}\x{637}\x{629}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{62d}\x{627}\x{637}\x{629}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 2,
             'stem' => "\x{62d}\x{62a}\x{649}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{62d}\x{62a}\x{649}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{62d}\x{631}\x{648}\x{628}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{62d}\x{631}\x{648}\x{628}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7583,6 +6015,30 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{62e}\x{627}\x{645}\x{633}\x{627}\x{64b}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{62e}\x{637}\x{627}\x{628}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{62e}\x{637}\x{627}\x{628}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{62f}\x{645}\x{627}\x{631}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{62f}\x{645}\x{627}\x{631}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{62f}\x{645}\x{649}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{62f}\x{645}\x{649}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7643,18 +6099,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{631}\x{626}\x{64a}\x{633}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{631}\x{626}\x{64a}\x{633}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{632}\x{64a}\x{627}\x{631}\x{627}\x{62a}\x{647}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{632}\x{64a}\x{627}\x{631}\x{627}\x{62a}\x{647}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{633}\x{627}\x{639}\x{627}\x{62a}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{633}\x{627}\x{639}\x{627}\x{62a}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{633}\x{644}\x{627}\x{645}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{633}\x{644}\x{627}\x{645}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7699,10 +6163,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{637}\x{645}\x{648}\x{62d}\x{627}\x{62a}\x{64a}",
+            'stem' => "\x{639}\x{627}\x{62f}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{637}\x{645}\x{648}\x{62d}\x{627}\x{62a}\x{64a}"
+            'term' => "\x{639}\x{627}\x{62f}\x{644}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7738,6 +6202,14 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
+            'stem_count' => 2,
+            'stem' => "\x{639}\x{644}\x{649}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{639}\x{644}\x{649}"
+          },
+          {
+            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{639}\x{644}\x{64a}\x{647}",
             'media_sets_id' => 1,
@@ -7755,10 +6227,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{63a}\x{64a}\x{631}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{63a}\x{64a}\x{631}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{641}\x{627}\x{644}\x{639}\x{644}\x{627}\x{642}\x{629}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{641}\x{631}\x{642}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{641}\x{631}\x{642}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7779,10 +6267,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{641}\x{644}\x{645}",
+            'stem' => "\x{641}\x{643}\x{631}\x{62a}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{641}\x{644}\x{645}"
+            'term' => "\x{641}\x{643}\x{631}\x{62a}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{641}\x{643}\x{631}\x{646}\x{64a}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{641}\x{643}\x{631}\x{646}\x{64a}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{641}\x{647}\x{644}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{641}\x{647}\x{644}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7799,6 +6303,22 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{641}\x{648}\x{641}\x{627}\x{629}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{642}\x{627}\x{644}\x{647}\x{627}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{642}\x{627}\x{644}\x{647}\x{627}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{642}\x{636}\x{627}\x{647}\x{645}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{642}\x{636}\x{627}\x{647}\x{645}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7827,6 +6347,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{643}\x{644}\x{627}\x{645}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{643}\x{644}\x{627}\x{645}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{643}\x{644}\x{627}\x{645}\x{647}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -7839,6 +6367,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{643}\x{644}\x{645}\x{62a}\x{64a}\x{646}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{643}\x{646}\x{62a}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{643}\x{646}\x{62a}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7867,6 +6403,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{644}\x{627}\x{646}\x{649}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{644}\x{627}\x{646}\x{649}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{644}\x{628}\x{630}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -7879,6 +6423,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{644}\x{62f}\x{64a}\x{647}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{644}\x{643}\x{646}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{644}\x{643}\x{646}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -7947,14 +6499,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{645}\x{62a}\x{641}\x{627}\x{621}\x{644}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{645}\x{62a}\x{641}\x{627}\x{621}\x{644}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{645}\x{62b}\x{644}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -7975,6 +6519,38 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{645}\x{62c}\x{647}\x{648}\x{62f}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{645}\x{62c}\x{64a}\x{628}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{645}\x{62c}\x{64a}\x{628}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{645}\x{62d}\x{631}\x{648}\x{642}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{645}\x{62d}\x{631}\x{648}\x{642}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{645}\x{62f}\x{631}\x{643}\x{629}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{645}\x{62f}\x{631}\x{643}\x{629}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{645}\x{639}\x{627}\x{644}\x{64a}\x{647}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{645}\x{639}\x{627}\x{644}\x{64a}\x{647}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -8034,11 +6610,27 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-01',
+            'stem_count' => 2,
+            'stem' => "\x{646}\x{639}\x{64a}\x{634}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{646}\x{639}\x{64a}\x{634}"
+          },
+          {
+            'publish_week' => '2009-06-01',
             'stem_count' => 1,
             'stem' => "\x{646}\x{641}\x{633}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{646}\x{641}\x{633}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{646}\x{641}\x{633}\x{646}\x{627}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{646}\x{641}\x{633}\x{646}\x{627}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -8087,6 +6679,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{648}\x{627}\x{644}\x{628}\x{631}\x{648}\x{62a}\x{648}\x{643}\x{648}\x{644}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{648}\x{627}\x{644}\x{62d}\x{627}\x{62c}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{648}\x{627}\x{644}\x{62d}\x{627}\x{62c}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -8203,14 +6803,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => "\x{64a}\x{62a}\x{643}\x{644}\x{645}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64a}\x{62a}\x{643}\x{644}\x{645}"
-          },
-          {
-            'publish_week' => '2009-06-01',
-            'stem_count' => 1,
             'stem' => "\x{64a}\x{62a}\x{645}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -8223,6 +6815,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{64a}\x{62c}\x{628}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
+            'stem' => "\x{64a}\x{631}\x{62d}\x{645}\x{629}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{64a}\x{631}\x{62d}\x{645}\x{629}"
           },
           {
             'publish_week' => '2009-06-01',
@@ -8267,18 +6867,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-01',
             'stem_count' => 1,
+            'stem' => "\x{64a}\x{642}\x{648}\x{644}\x{647}\x{627}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "\x{64a}\x{642}\x{648}\x{644}\x{647}\x{627}"
+          },
+          {
+            'publish_week' => '2009-06-01',
+            'stem_count' => 1,
             'stem' => "\x{64a}\x{646}\x{628}\x{63a}\x{64a}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "\x{64a}\x{646}\x{628}\x{63a}\x{64a}"
           },
           {
-            'publish_week' => '2009-06-08',
+            'publish_week' => '2009-06-01',
             'stem_count' => 1,
-            'stem' => '14th',
+            'stem' => "\x{64a}\x{647}\x{645}\x{646}\x{64a}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => '14th'
+            'term' => "\x{64a}\x{647}\x{645}\x{646}\x{64a}"
           },
           {
             'publish_week' => '2009-06-08',
@@ -8291,50 +6899,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => '1st',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => '1st'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => '25th',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => '25th'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => '30pm',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => '30pm'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "30\x{65b0}\x{805e}\x{7b2c}\x{4e09}\x{6bb5}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "30\x{65b0}\x{805e}\x{7b2c}\x{4e09}\x{6bb5}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => '3alienkoum',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => '3alienkoum'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => '4th',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => '4th'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8347,10 +6915,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'abolish',
+            'stem' => 'abdelhak',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'abolished'
+            'term' => 'abdelhak'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'abdelrahman',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'abdelrahman'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'abdoukili',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'abdoukili'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8362,35 +6946,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
+            'stem' => 'abtahi',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'abtahi'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'abus',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'abuse'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'acced',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "accedi\x{f3}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'accentu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'accentuated'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'acept',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aceptar'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8410,67 +6978,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'actitud',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'actitud'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'activist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'activists'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'acus',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acusa'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'acvistim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'acvistim'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'adapt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'adapted'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'adel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'adelante'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ademas',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "adem\x{e1}s"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "ades\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "ades\x{e3}o"
           },
           {
             'publish_week' => '2009-06-08',
@@ -8499,18 +7011,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'afect',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'afecte'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'affili',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'affiliations'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'afinina',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'afinina'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8522,7 +7034,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 10,
+            'stem_count' => 7,
             'stem' => 'africa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -8538,18 +7050,18 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 12,
-            'stem' => 'african',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'african'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'african',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'term' => 'african'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 8,
+            'stem' => 'african',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'african'
           },
           {
@@ -8571,22 +7083,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'aggreg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aggregate'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aggress',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aggression'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'aggress',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -8594,19 +7090,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'agreement',
+            'stem_count' => 1,
+            'stem' => 'aggress',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'agreements'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'agreg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'agregar'
+            'term' => 'aggression'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8618,82 +7106,18 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'ahor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ahora'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'ai5digit',
+            'stem' => 'akin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ai5digital'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aibai',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aibai'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aifufu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aifufu'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ajud',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ajudar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'alan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'alaoui',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alaoui'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'alaoui',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'alaoui'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'alaykoum',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alaykoum'
+            'term' => 'akin'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'alaykum',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'alaykum'
           },
           {
@@ -8701,7 +7125,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'alaykum',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'alaykum'
           },
           {
@@ -8714,35 +7138,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'alegr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alegre'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "al\x{e9}m",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "al\x{e9}m"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'alguns',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'alguns'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 3,
             'stem' => 'ali',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'ali'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'al\'koush',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'al\'koush'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8763,14 +7171,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'amazilia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'amazilia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'amazon',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -8778,27 +7178,27 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'america',
+            'stem_count' => 1,
+            'stem' => 'amer',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'america'
+            'term' => 'amer'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'america',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'america'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "am\x{e9}ricain",
+            'stem' => 'america',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "am\x{e9}ricain"
+            'dashboard_topics_id' => 1,
+            'term' => 'america'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8810,7 +7210,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 12,
+            'stem_count' => 10,
             'stem' => 'american',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -8826,14 +7226,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'amid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'amid'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'amongst',
             'media_sets_id' => 1,
@@ -8851,18 +7243,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'ana',
+            'stem' => 'amplifi',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'anas'
+            'dashboard_topics_id' => undef,
+            'term' => 'amplified'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'ana',
+            'stem' => 'amr',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'anas'
+            'term' => 'amr'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8874,14 +7266,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "an\x{e1}lis",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "an\x{e1}lise"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'analog',
             'media_sets_id' => 1,
@@ -8890,7 +7274,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'angel',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -8898,11 +7282,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ano',
+            'stem_count' => 2,
+            'stem' => 'anil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'ano'
+            'term' => 'anil'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8914,19 +7298,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'stem_count' => 1,
             'stem' => 'anti',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'anti'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'antonio',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'antonio'
           },
           {
             'publish_week' => '2009-06-08',
@@ -8939,30 +7315,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'apartheid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'apartheid'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'apes',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'apesar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aplast',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aplastar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'appel',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -8970,19 +7322,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'applaud',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'applaudissements'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'applaus',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'applause'
+            'term' => 'applauded'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9002,23 +7346,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aprofund',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aprofundar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'arab',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arabic'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 3,
             'stem' => 'arab',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -9026,19 +7354,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'arl',
+            'stem_count' => 5,
+            'stem' => 'arab',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'arles'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'arlesophia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arlesophia'
+            'term' => 'arabs'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9047,14 +7367,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'army'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'arranc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'arranca'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9083,18 +7395,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'asian',
+            'stem' => 'asia',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'asian'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'assalaamu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'assalaamu'
+            'term' => 'asia'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9106,19 +7410,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'assalamou',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'assalamou'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'assert',
+            'stem' => 'assalaamu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'assert'
+            'term' => 'assalaamu'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9131,74 +7427,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'asum',
+            'stem' => 'atheist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'asume'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'asunt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'asunto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'ato',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ato'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'atos',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'atos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'atrev',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'atreve'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'attende',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'attendees'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'atv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'atv'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'aument',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'aumentando'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'aun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "a\x{fa}n"
+            'term' => 'atheist'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9207,22 +7439,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'aussi'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'autor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'autoridades'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'autoral',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'autoral'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9253,7 +7469,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'azaan',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'azaan'
           },
           {
@@ -9261,40 +7477,16 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'azaan',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'azaan'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'azered',
+            'stem' => 'azraq',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'azeredo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => 'azeredo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'azeredo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "a\x{5c0d}\x{7ae5}\x{5de5}\x{8aaa}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "a\x{5c0d}\x{7ae5}\x{5de5}\x{8aaa}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'bagua',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bagua'
+            'term' => 'azraq'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9307,14 +7499,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'bal',
+            'stem' => 'baleman',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bal'
+            'term' => 'balemans'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'stem_count' => 4,
             'stem' => 'ban',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9331,14 +7523,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'banner',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'banner'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
             'stem' => 'barack',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9346,7 +7530,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'barack',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -9354,7 +7538,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'barcelona',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9370,11 +7554,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'beij',
+            'stem_count' => 1,
+            'stem' => 'bellart',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'beijing'
+            'term' => 'bellart'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9386,27 +7570,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'berlin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'berliner'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'bernard',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'bernard'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bewitch',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bewitched'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9426,6 +7594,14 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'bihari',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'bihari'
+          },
+          {
+            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'bilan',
             'media_sets_id' => 1,
@@ -9442,22 +7618,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bisexu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'bisexual'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bisexu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bisexual'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'blake',
             'media_sets_id' => 1,
@@ -9469,7 +7629,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'blaze',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'blaze'
           },
           {
@@ -9477,40 +7637,8 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'blaze',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'blaze'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'bleak',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bleak'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bless',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bless'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'blockad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blockades'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 21,
-            'stem' => 'blogger',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'blogger'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9522,8 +7650,8 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bloggers',
+            'stem_count' => 11,
+            'stem' => 'blogger',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'bloggers'
@@ -9538,7 +7666,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 3,
             'stem' => 'blogospher',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9547,18 +7675,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'bloque',
+            'stem' => 'bojic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bloqueos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'bodili',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'bodily'
+            'term' => 'bojic'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9578,7 +7698,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 20,
+            'stem_count' => 21,
             'stem' => 'bongo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9595,14 +7715,22 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'bookmark',
+            'stem' => 'boundari',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'bookmarks'
+            'term' => 'boundary'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'stem_count' => 1,
+            'stem' => 'bounti',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'bounty'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 5,
             'stem' => 'boycot',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9619,10 +7747,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'brahman',
+            'stem' => 'boyd',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'brahmans'
+            'term' => 'boyd'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9634,7 +7762,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 36,
+            'stem_count' => 21,
             'stem' => 'brahmin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9650,35 +7778,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'brasil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brasil'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'brasileir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brasileira'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
             'stem' => 'brazil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'brazil'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => 'brazilian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'brazilian'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9698,11 +7802,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'broadcast',
+            'stem_count' => 1,
+            'stem' => 'britney',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'broadcasts'
+            'term' => 'britney'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'brows',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'browse'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9714,30 +7826,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cada'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cage',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cage'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cair',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'caire'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 6,
             'stem' => 'cairo',
             'media_sets_id' => 1,
@@ -9746,7 +7834,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 5,
             'stem' => 'cairo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -9755,18 +7843,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'camb',
+            'stem' => 'cameroon',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'cambio'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'camin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'caminar'
+            'term' => 'cameroon'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9778,19 +7858,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
+            'stem_count' => 2,
             'stem' => 'campaign',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'campaign'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'campesin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'campesinas'
+            'term' => 'campaigns'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9802,19 +7874,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 1,
             'stem' => 'candl',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'candle'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'capaz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'capaz'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9826,7 +7890,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'captur',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9835,26 +7899,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'careless',
+            'stem' => 'carolina',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'careless'
+            'term' => 'carolina'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'carib',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'caribe'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'cas',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "caser\x{ed}a"
+            'term' => 'cas'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9867,6 +7923,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'casualti',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'casualties'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'categor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9875,14 +7939,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'caucasian',
+            'stem' => 'cautious',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'caucasian'
+            'term' => 'cautious'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'cctv',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9890,35 +7954,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 9,
+            'stem_count' => 5,
             'stem' => 'cctvb',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'cctvb'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "cctvb\x{5e73}\x{65e5}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "cctvb\x{5e73}\x{65e5}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "cctvb\x{6240}\x{4f5c}\x{6240}\x{70ba}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "cctvb\x{6240}\x{4f5c}\x{6240}\x{70ba}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'celebr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'celebrate'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9930,27 +7970,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'censor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'censored'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'censorship',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'censorship'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'censur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'censure'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9959,14 +7983,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "centr\x{e9}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ceo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ceo'
           },
           {
             'publish_week' => '2009-06-08',
@@ -9986,7 +8002,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'cet',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -9999,6 +8015,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'ceux'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'chandranayagam',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'chandranayagam'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10018,22 +8042,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'chil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chile'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'child',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'child'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'children',
             'media_sets_id' => 1,
@@ -10042,15 +8050,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'chile',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chile'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'stem_count' => 10,
             'stem' => 'china',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10058,7 +8058,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
+            'stem_count' => 4,
             'stem' => 'chines',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10099,50 +8099,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'chrome',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'chrome'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'chronicl',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'chronicle'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ciberativ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ciberativistas'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cidadan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cidadania'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'citer'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'citizenship',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'citizenship'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10163,58 +8123,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'clam',
+            'stem' => 'clara',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "clam\x{e9}"
+            'term' => 'clara'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'clar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'claro'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'clarifi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'clarify'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'clash',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'clashes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'classifi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'classify'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'clever',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'clever'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cnn',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cnn'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10227,14 +8147,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'cois',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'coisa'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'coitus',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10242,11 +8154,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'collabor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'collaborative'
+            'term' => 'collaboration'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10255,54 +8167,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'combien'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'combo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'combo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'comentar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comentaristas'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'comenz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "comenzar\x{e1}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'comerci',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comercio'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'comercio',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comercio'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'comision',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "comisi\x{f3}n"
           },
           {
             'publish_week' => '2009-06-08',
@@ -10315,58 +8179,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'commemor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'commemorate'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'commenc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'commence'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'commentari',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'commentary'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'commer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'commerical'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "compa\x{f1}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "compa\x{f1}\x{ed}a"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'compil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'compiled'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'comprehens',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comprehensive'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10379,22 +8195,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'comrad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comrades'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => 'comun',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'comunidades'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'confin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10403,58 +8203,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'conflicto',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'conflictos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'confund',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'confundir'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'congres',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'congreso'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'congress',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'congress'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'conjunct',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'conjunction'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "conseq\x{fc}ent",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "conseq\x{fc}entemente"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
             'stem' => 'constitu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "constituci\x{f3}n"
+            'term' => 'constitution'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10463,22 +8215,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'constitutionnel'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 9,
-            'stem' => 'consult',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'consultation'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'continues',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'continues'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10499,10 +8235,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'convey',
+            'stem' => 'contributor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'conveyed'
+            'term' => 'contributors'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10515,50 +8251,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'convien',
+            'stem' => 'convey',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'conviene'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'copyright',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'copyright'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'coran',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'coran'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cos',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cosa'
+            'term' => 'conveyed'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'cosmet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "cosm\x{e9}ticas"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'cosmopolitan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'cosmopolitan'
+            'term' => 'cosmopolitanism'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10578,51 +8282,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'coup',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'coup'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cre',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'creer'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'stem_count' => 2,
             'stem' => 'crime',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'crimes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'crimin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'criminalize'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'criminaliz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "criminaliza\x{e7}\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'crisi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'crisis'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10639,22 +8303,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'crude'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cruel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cruel'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cuest',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cuestas'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10683,30 +8331,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'cyberactiv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cyberactivism'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'cyberactivist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cyberactivists'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'cybercrim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'cybercrimes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'cynic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10730,15 +8354,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'daivadnya',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'daivadnya'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 16,
+            'stem_count' => 15,
             'stem' => 'dalit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10746,7 +8362,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 10,
+            'stem_count' => 2,
             'stem' => 'dam',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10755,42 +8371,50 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'dandol',
+            'stem' => 'danah',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'dandole'
+            'term' => 'danah'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'danish',
+            'stem' => 'dandong',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'danish'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'deb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deben'
+            'term' => 'dandong'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'decision',
+            'stem' => 'daniel',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "decisi\x{f3}n"
+            'term' => 'daniel'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'decre',
+            'stem_count' => 1,
+            'stem' => 'danilo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'decrees'
+            'term' => 'danilo'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'deceas',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'deceased'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'deceas',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'deceased'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10799,54 +8423,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'decreasing'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'decret',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'decretos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'decrimin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'decriminalizing'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'decrimin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'decriminalizing'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'decriminalis',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'decriminalisation'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'deepen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deepen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'defensor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "defensor\x{ed}a"
           },
           {
             'publish_week' => '2009-06-08',
@@ -10875,14 +8451,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'delici',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'delicious'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'delv',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10898,11 +8466,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'democrat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'democrats'
+            'term' => 'democratic'
           },
           {
             'publish_week' => '2009-06-08',
@@ -10931,6 +8499,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'departur',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'departure'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'depuis',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -10947,66 +8523,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'derail',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'derail'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'derech',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'derechos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'desarroll',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'desarrollo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'descend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'descendants'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'deshashtha',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deshashtha'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'desinform',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'desinforman'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'despot',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'despots'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'desproposit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "desprop\x{f3}sitos"
           },
           {
             'publish_week' => '2009-06-08',
@@ -11019,10 +8539,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "d'\x{e9}tat",
+            'stem' => 'detain',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "d'\x{e9}tat"
+            'term' => 'detained'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11031,14 +8551,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'detection'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'deten',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'detenidos'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11058,11 +8570,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'dev',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "dever\x{ed}amos"
+            'term' => 'devait'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11075,14 +8587,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'deviant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'deviant'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'd\'homm',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11091,34 +8595,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'dialog',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "di\x{e1}logo"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dialogu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dialogue'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'dictat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'dictator'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'dictatorship',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dictatorship'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11131,42 +8611,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "difus\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "difus\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 8,
             'stem' => 'digit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'digital'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'digital',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'digital'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dilut',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dilution'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dios',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dios'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11175,22 +8623,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'directories'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'direit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'direito'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'dirigent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dirigencia'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11227,14 +8659,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'discard',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'discard'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'discomfort',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11243,14 +8667,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'discour',
+            'stem' => 'discourt',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'discours'
+            'term' => 'discourteous'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'discov',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11258,27 +8682,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'discrimin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'discrimination'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'discurs',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'discurso'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'discut',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'discutirse'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11291,66 +8699,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'dispar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'disparities'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'disposicion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "disposici\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'disservic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'disservice'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ditabrand',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ditabranda'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ditabranda',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ditabranda'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'ditadur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ditadura'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'divers',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'diversos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'divulg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'divulgar'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11371,14 +8723,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'dolor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dolor'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'd\'omar',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11387,18 +8731,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'donald',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'donald'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'dont',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'dont'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'downplay',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'downplayed'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11435,22 +8779,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'dysfunct',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'dysfunctions'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'eastern',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'eastern'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'eastern',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -11458,19 +8786,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'econom',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'economic'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "econ\x{f4}m",
+            'stem' => 'eastern',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "econ\x{f4}micos"
+            'term' => 'eastern'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11482,7 +8802,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 1,
+            'stem' => 'edgi',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'edgy'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 2,
             'stem' => 'educ',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11491,18 +8819,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'effet',
+            'stem' => 'egypt',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'effet'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{e9}gal",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{e9}galement"
+            'term' => 'egypt'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11511,22 +8831,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
             'term' => 'egypt'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'egypt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'egypt'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ejecut',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ejecutivo'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11555,30 +8859,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'eleg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'elegance'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'eleg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'elegance'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{e9}leg",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{e9}l\x{e9}gance"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'elementari',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11595,10 +8875,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'elicit',
+            'stem' => 'elia',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'eliciting'
+            'term' => 'elia'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11611,10 +8891,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'embarg',
+            'stem' => 'elmafjou',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'embargo'
+            'term' => 'elmafjoue'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11634,7 +8914,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'stem_count' => 1,
+            'stem' => 'emmanuel',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'emmanuel'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 3,
             'stem' => 'emot',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11643,26 +8931,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'empres',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'empresa'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'enact',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'enact'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'encontr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'encontrar'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11707,30 +8979,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'entendr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'entendre'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'entid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'entidad'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'entiti',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'entity'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'entourag',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11747,34 +8995,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'entretant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'entretanto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'entro',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "entr\x{f3}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'erad',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'eradicate'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'erick',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'erick'
           },
           {
             'publish_week' => '2009-06-08',
@@ -11787,46 +9011,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'escond',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'escondiendo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'escort',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'escort'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'especial',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'especial'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'espoir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'espoir'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'establec',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'establece'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'eswn',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11834,7 +9018,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'etc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11866,7 +9050,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 5,
             'stem' => 'euna',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11883,14 +9067,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'everywher',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'everywhere'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "\x{e9}vident",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11899,34 +9075,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'exager',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'exagerando'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'exagger',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'exaggerating'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'exam',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'exam'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "exerc\x{ed}ci",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "exerc\x{ed}cio"
           },
           {
             'publish_week' => '2009-06-08',
@@ -11947,14 +9099,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'extranjer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'extranjera'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'eyegh',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11962,7 +9106,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 1,
+            'stem' => 'fabienn',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'fabienne'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 7,
             'stem' => 'facebook',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11970,7 +9122,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'fact',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -11978,27 +9130,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'fait',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fait'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'fameux',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fameux'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'famili',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'families'
+            'term' => 'family'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12007,6 +9143,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'farhad'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'fellowship',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'fellowship'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12042,91 +9186,35 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 10,
+            'stem_count' => 1,
+            'stem' => 'filip',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'filip'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 2,
             'stem' => 'filter',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'filter'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'firefox',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'firefox'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'flaw',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'flaws'
+            'term' => 'filtering'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'folh',
+            'stem' => 'flessel',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'folha'
+            'term' => 'flessel'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'folha',
+            'stem' => 'forbid',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'folha'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'foment',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fomentar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'fond',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fondo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'fora',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fora'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'forcej',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'forcejeando'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'formul',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'formule'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'foster',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'foster'
+            'term' => 'forbid'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12135,14 +9223,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'founder'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'fracaso',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fracaso'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12159,14 +9239,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "fran\x{e7}afrique"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'francafriqu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'francafrique'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12210,7 +9282,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
+            'stem_count' => 4,
             'stem' => 'free',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12218,7 +9290,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 11,
+            'stem_count' => 3,
             'stem' => 'freedom',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12259,26 +9331,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'frontpag',
+            'stem' => 'frustrat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'frontpage'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'frut',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fruto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'fuerz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'fuerza'
+            'term' => 'frustrating'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12290,7 +9346,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 11,
+            'stem_count' => 12,
             'stem' => 'gabon',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12306,51 +9362,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 1,
+            'stem' => 'gaboneco',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'gaboneco'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 9,
             'stem' => 'gabones',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'gabonese'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'garant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'garantia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'garc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "garc\x{ed}a"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'garcia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'garcia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => "garc\x{ed}a",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "garc\x{ed}a"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'garhwali',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'garhwali'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12371,22 +9395,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'gawd',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gawd'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'gem',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gems'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'gender',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12395,50 +9403,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'gener',
+            'stem' => 'georgia',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "generar\x{e1}n"
+            'term' => 'georgia'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'gent',
+            'stem' => 'gibson',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'gente'
+            'term' => 'gibson'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'geograph',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'geographically'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'gerai',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gerais'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'gfw',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gfw'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'gigant',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'gigantous'
+            'term' => 'gigantic'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12447,22 +9431,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'gigantesque'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'gilm',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gilmar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'gilmar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gilmar'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12483,18 +9451,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
-            'stem' => 'gobiern',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gobierno'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
             'stem' => 'god',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'god'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => "g\x{f3}es",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "g\x{f3}es"
           },
           {
             'publish_week' => '2009-06-08',
@@ -12507,6 +9475,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => "gon\x{e7}alv",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "gon\x{e7}alves"
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'goodby',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12514,7 +9490,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'googl',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12522,7 +9498,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'stem_count' => 7,
             'stem' => 'gore',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12547,42 +9523,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'gran',
+            'stem' => 'gracious',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'gran'
+            'term' => 'graciously'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'grandchildren',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'grandchildren'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'graphic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'graphics'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'greendam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'greendam'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'grim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'grim'
+            'term' => 'graphic'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12595,58 +9547,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'gsb',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'gsb'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'gsbmatch',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'gsbmatch'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'guarante',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'guarantees'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'habl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hablar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'hac',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hacer'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'haci',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hacia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hack',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hacked'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12659,10 +9563,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'haiku',
+            'stem' => 'hamza',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'haiku'
+            'term' => 'hamza'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12675,42 +9579,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'hardwork',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hardworking'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'harmon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'harmonizing'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'harsh',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'harsh'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hashtag',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hashtags'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'haut',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'haute'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12722,7 +9594,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'headlin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12771,22 +9643,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'herebi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hereby'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'herebi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'hereby'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "h\x{e9}riti",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12810,7 +9666,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'hey',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12818,11 +9674,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'highlight',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'highlight'
+            'term' => 'highlighted'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'hilal',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'hilal'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12834,26 +9698,10 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hindutva',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'hindutva'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 3,
             'stem' => 'hisham',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'hisham'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'hisham',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
             'term' => 'hisham'
           },
           {
@@ -12890,15 +9738,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'homophob',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'homophobic'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 23,
+            'stem_count' => 9,
             'stem' => 'homosexu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12907,14 +9747,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'homosexu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'homosexuality'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 12,
             'stem' => 'hong',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -12963,26 +9795,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'idanian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'idanian'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'idiot',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'idiotic'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ifeng',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ifeng'
           },
           {
             'publish_week' => '2009-06-08',
@@ -12994,27 +9810,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 1,
             'stem' => 'illeg',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'illegally'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ilo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ilo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'imf',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'imf'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13027,18 +9827,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "imp\x{e9}ri",
+            'stem' => 'impli',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "imp\x{e9}rio"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'imprens',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'imprensa'
+            'term' => 'imply'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13047,14 +9839,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'inability'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'inaccess',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'inaccessible'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13082,47 +9866,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'inciert',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'incierto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'inclus',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'incluso'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'inconstitucional',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'inconstitucionales'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'independ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'independent'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'independient',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'independientes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 10,
+            'stem_count' => 13,
             'stem' => 'india',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13130,7 +9874,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 7,
             'stem' => 'indian',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13147,34 +9891,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'indiferent',
+            'stem' => 'infiltr',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'indiferencia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'indiffer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'indifference'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 8,
-            'stem' => 'indigen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'indigenous'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ineffect',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ineffective'
+            'term' => 'infiltrations'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13195,6 +9915,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'inherit',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'inherit'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'innov',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13207,14 +9935,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
             'term' => 'innovations'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'instructor',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'instructor'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13226,15 +9946,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'intellectu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'intellectual'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'intellectu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13242,47 +9954,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'intellectuel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intellectuelle'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'intellig',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intelligence'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'inter',
+            'stem' => 'interact',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'interesses'
+            'term' => 'interacted'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
-            'stem' => 'interact',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'interaction'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'internacional',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'internacional'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 28,
             'stem' => 'internet',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13306,55 +9986,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'interven',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intervene'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'intimaci',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intimacy'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'intimid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intimidation'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'intoler',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'intolerante'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'introduz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'introduzir'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'inversion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "inversi\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
             'stem' => 'invis',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13395,25 +10027,17 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'irrat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'irrationality'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'islam',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'islamic'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'islam',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'islamic'
           },
           {
@@ -13431,6 +10055,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
             'term' => 'israeli'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'itinerari',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'itinerary'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13451,26 +10083,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'jade',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jade'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'jame',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'james'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'janeiro',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'janeiro'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13531,26 +10147,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'jfk',
+            'stem' => 'jilin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'jfk'
+            'term' => 'jilin'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'jillian',
+            'stem' => 'john',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'jillian'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'jinhui',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jinhui'
+            'term' => 'john'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13559,14 +10167,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'jomg'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'jomra',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'jomra'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13590,23 +10190,15 @@ $VAR1 = [
             'stem' => 'journal',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'journal'
+            'term' => 'journalism'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 10,
+            'stem_count' => 7,
             'stem' => 'journalist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'journalists'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'juin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'juin'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13618,31 +10210,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'junt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'juntar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'jurid',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "jur\x{ed}dica"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'justif',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'justification'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'kamran',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13674,7 +10242,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 1,
             'stem' => 'kenya',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13682,18 +10250,10 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'kenyan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'kenyan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'kenyan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
             'term' => 'kenyan'
           },
           {
@@ -13714,19 +10274,43 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'keyword',
+            'stem_count' => 1,
+            'stem' => 'kevin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'keywords'
+            'term' => 'kevin'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'kin',
+            'stem' => 'keyword',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'kin'
+            'term' => 'keyword'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'kirk',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'kirk'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 2,
+            'stem' => 'kiss',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'kiss'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 2,
+            'stem' => 'kiss',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'kiss'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13738,15 +10322,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'kokanastha',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'kokanastha'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 12,
+            'stem_count' => 2,
             'stem' => 'kong',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13778,7 +10354,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 13,
+            'stem_count' => 11,
             'stem' => 'korea',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13786,11 +10362,35 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 5,
             'stem' => 'korean',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'koreans'
+            'term' => 'korean'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 5,
+            'stem' => 'koss',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'koss'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{963b}\x{6b62}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{963b}\x{6b62}"
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5bfc}\x{6e38}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{62d8}\x{7559}",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "koss\x{548c}\x{4e00}\x{540d}\x{4e2d}\x{56fd}\x{5bfc}\x{6e38}\x{88ab}\x{4e2d}\x{56fd}\x{8b66}\x{65b9}\x{62d8}\x{7559}"
           },
           {
             'publish_week' => '2009-06-08',
@@ -13810,7 +10410,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 3,
             'stem' => 'labor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13827,10 +10427,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'lahloumi',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'lahloumi'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'l\'aid',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'l\'aidera'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'laila',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'laila'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13850,11 +10466,27 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'lalami',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'lalami'
+          },
+          {
+            'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'stem' => 'lam',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'lam'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'lament',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'lamentablemente'
+            'term' => 'lamentable'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13866,7 +10498,23 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 1,
+            'stem' => 'larsen',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'larsen'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'laughlin',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'laughlin'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 5,
             'stem' => 'laura',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13874,7 +10522,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 2,
+            'stem' => 'leak',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'leaking'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 5,
             'stem' => 'lee',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13906,7 +10562,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'legitim',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13923,22 +10579,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'lej',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lejos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'lenovo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lenovo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'l\'er',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -13946,43 +10586,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'lesbian',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'lesbian'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'lesbian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'lesbian'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'ley',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'leyes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'lgbt',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lgbt'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'liar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'liar'
           },
           {
             'publish_week' => '2009-06-08',
@@ -13994,30 +10602,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'liberdad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'liberdade'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'lifestyl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lifestyle'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'lin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lin'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'liner',
             'media_sets_id' => 1,
@@ -14026,7 +10610,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'stem_count' => 3,
             'stem' => 'ling',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -14035,18 +10619,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'loco',
+            'stem' => 'ljubisa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'locos'
+            'term' => 'ljubisa'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "l\x{f3}gic",
+            'stem' => 'loft',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "l\x{f3}gica"
+            'term' => 'loft'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14074,43 +10658,35 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'looni',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'loony'
+            'term' => 'loonies'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'lova',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'lova'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 4,
+            'stem' => 'love',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'love'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 3,
             'stem' => 'love',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lovely'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'love',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'loving'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'lug',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'lugar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'lumin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'luminoso'
+            'term' => 'love'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14123,14 +10699,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'mackinnon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mackinnon'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'maghreb',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -14147,34 +10715,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'mainstream',
+            'stem' => 'mainland',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mainstream'
+            'term' => 'mainland'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'manifest',
+            'stem_count' => 1,
+            'stem' => 'malouk',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'manifesto'
+            'term' => 'malouk'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'manifesto',
+            'stem_count' => 1,
+            'stem' => 'malouk',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'manifesto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'manipul',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'manipulating'
+            'dashboard_topics_id' => 1,
+            'term' => 'malouk'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14183,22 +10743,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'manque'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'manten',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mantener'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "manuten\x{e7}\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "manuten\x{e7}\x{e3}o"
           },
           {
             'publish_week' => '2009-06-08',
@@ -14219,34 +10763,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'masacr',
+            'stem' => 'marwa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'masacre'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "m\x{e1}sc",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "m\x{e1}scara"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mask',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'masks'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'massacr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'massacre'
+            'term' => 'marwa'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14274,27 +10794,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 1,
             'stem' => 'meanwhil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'meanwhile'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'meber',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mebers'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mecan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mecanismos'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14306,35 +10810,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'medi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'medios'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 11,
+            'stem_count' => 5,
             'stem' => 'media',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'media'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'mega',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mega'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'meganao',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'meganao'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14355,42 +10835,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'memoir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'memoirs'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mendes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mentir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mentiroso'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'merc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'merci'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'meta',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'meta'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14411,34 +10859,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'mezcl',
+            'stem' => 'microphon',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mezcla'
+            'term' => 'microphone'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => "midi\x{e1}t",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "midi\x{e1}ticos"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'miit',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'miit'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 1,
             'stem' => 'milit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'militar'
+            'term' => 'militant'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14451,22 +10883,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'mina',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'minas'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'minimiz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'minimizando'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'miniscul',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -14474,51 +10890,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'minist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'minister'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ministeri',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ministerial'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ministerial',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ministerial'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ministr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ministra'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'ministri',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ministry'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'misinform',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'misinform'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14551,6 +10927,14 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
             'term' => 'mistrust'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 6,
+            'stem' => 'mitch',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'mitch'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14594,23 +10978,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'modif',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'modifications'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 3,
             'stem' => 'moham',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'mohammed'
+            'term' => 'mohamed'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'moham',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
@@ -14619,6 +10995,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
+            'stem' => 'mohammad',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'mohammad'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'monitor',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -14626,27 +11010,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'monopol',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'monopolized'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'monopoli',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'monopoly'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "monop\x{f3}li",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "monop\x{f3}lio"
+            'term' => 'monopolize'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14666,7 +11034,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 7,
             'stem' => 'moroccan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -14674,11 +11042,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 4,
             'stem' => 'moroccan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'moroccan'
+            'term' => 'moroccans'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14731,38 +11099,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'moviment',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'movimentos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'muer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mueren'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'muert',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'muertes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'mugab',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'mugabe'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'muhurtham',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -14787,10 +11123,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'myri',
+            'stem' => 'myspac',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'myris'
+            'term' => 'myspace'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14803,26 +11139,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'nacional',
+            'stem' => 'narrowli',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nacional'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'namibia',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'namibia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => "n\x{e3}o",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "n\x{e3}o"
+            'term' => 'narrowly'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14834,35 +11154,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 15,
-            'stem' => 'nativ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nativos'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'ndong',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'ndong'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'necesari',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'necesarias'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'neglect',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'neglect'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14915,6 +11211,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'newsport',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'newsportal'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'n\'existent',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -14922,11 +11226,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'nigeria',
+            'stem_count' => 1,
+            'stem' => 'nichola',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'nigeria'
+            'term' => 'nicholas'
           },
           {
             'publish_week' => '2009-06-08',
@@ -14962,46 +11266,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'nombreux',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nombreux'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'nonsens',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nonsense'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'notici',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'noticias'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'notori',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'notorious'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "n\x{fa}cl",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "n\x{fa}cleos"
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'nuclear',
             'media_sets_id' => 1,
@@ -15010,31 +11274,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'nuisanc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nuisance'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'nujoma',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'nujoma'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'obam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'obama'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 20,
+            'stem_count' => 23,
             'stem' => 'obama',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15042,27 +11282,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 20,
+            'stem_count' => 23,
             'stem' => 'obama',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
             'term' => 'obama'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'objet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'objetivo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'obscen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'obscenity'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15079,14 +11303,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'octroie'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'odi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'odio'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15115,18 +11331,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'oir',
+            'stem' => 'ogwera',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "o\x{ed}r"
+            'term' => 'ogwera'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'oit',
+            'stem_count' => 2,
+            'stem' => 'oiwan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'oit'
+            'term' => 'oiwan'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15138,27 +11354,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => "oligop\x{f3}li",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "oligop\x{f3}lios"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
+            'stem_count' => 9,
             'stem' => 'omar',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'omar'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ombudsman',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ombudsman'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15178,7 +11378,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 10,
+            'stem_count' => 3,
             'stem' => 'onlin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15187,74 +11387,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'onward',
+            'stem' => 'onofr',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'onward'
+            'term' => 'onofre'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'opinion',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'opinions'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => "opini\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "opini\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'opinion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'opinions'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
             'stem' => 'opinion',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'opinions'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'optimist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'optimistic'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'optimist',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'optimistic'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'orchestr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'orchestrated'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'orden',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'orden'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ordinari',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ordinary'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15275,14 +11427,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{f3}rg\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{f3}rg\x{e3}os"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'organis',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15290,15 +11434,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'organiz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'organizational'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'orient',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15306,27 +11442,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 14,
+            'stem_count' => 8,
             'stem' => 'orkut',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'orkut'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'orquest',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'orquestado'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ouest',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ouest'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15339,34 +11459,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'outlaw',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'outlawed'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'outlet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'outlets'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'outlin',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'outlined'
+            'term' => 'outline'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'outrag',
+            'stem' => 'outright',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'outraged'
+            'term' => 'outright'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15379,14 +11483,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'outright',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'outright'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'ouvr',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15394,11 +11490,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'pacif',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pacifica'
+            'term' => 'pacific'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15407,22 +11503,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'paicorg'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'pais',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "pa\x{ed}ses"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "pa\x{ed}s",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "pa\x{ed}ses"
           },
           {
             'publish_week' => '2009-06-08',
@@ -15443,10 +11523,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'pao',
+            'stem' => 'paparazzi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pao'
+            'term' => 'paparazzi'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15459,26 +11539,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'parlament',
+            'stem' => 'pardon',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'parlamento'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'parliament',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'parliament'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'partnership',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'partnership'
+            'term' => 'pardon'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15490,14 +11554,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'password',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'password'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'patriarch',
             'media_sets_id' => 1,
@@ -15506,19 +11562,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'paulo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'paulo'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'pauloteixeira13',
+            'stem' => 'paula',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pauloteixeira13'
+            'term' => 'paula'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15527,14 +11575,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'pawn'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pcs',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pcs'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15547,14 +11587,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'peasant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'peasant'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'pend',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15562,7 +11594,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'pens',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15579,10 +11611,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'perceiv',
+            'stem' => 'perci',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'perceived'
+            'term' => 'percy'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15595,50 +11627,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'perpetu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'perpetuation'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
             'stem' => 'peru',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "per\x{fa}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => "per\x{fa}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "per\x{fa}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'peru21',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'peru21'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
-            'stem' => 'peruvian',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'peruvian'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pervas',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pervasive'
+            'term' => 'peru'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15650,7 +11642,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'petit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15666,7 +11658,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'peut',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15690,14 +11682,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'physiolog',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'physiological'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'pierr',
             'media_sets_id' => 1,
@@ -15706,7 +11690,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'pig',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15747,82 +11731,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'pizang',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pizango'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pizango',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pizango'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'platitud',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'platitudes'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'poblacion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "poblaci\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pobr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pobres'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pod',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'poder'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'podr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "podr\x{e1}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'poid',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'poids'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'pon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'poner'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ponctu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "ponctu\x{e9}"
           },
           {
             'publish_week' => '2009-06-08',
@@ -15834,15 +11746,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pop',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'popped'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'pornograph',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15850,19 +11754,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 5,
+            'stem_count' => 1,
             'stem' => 'pornographi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'pornography'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'porto',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'porto'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15883,14 +11779,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'possibil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'possibilidade'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'pourr',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15907,10 +11795,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'predecessor',
+            'stem' => 'pre',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'predecessor'
+            'dashboard_topics_id' => undef,
+            'term' => 'pre'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15919,6 +11807,22 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'predecessor'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'predecessor',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'predecessor'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'predict',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'predicted'
           },
           {
             'publish_week' => '2009-06-08',
@@ -15931,14 +11835,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'pregunt',
+            'stem' => 'preisdent',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'pregunto'
+            'term' => 'preisdent'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'prejudic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15947,30 +11851,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'prens',
+            'stem' => 'preppi',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'prensa'
+            'term' => 'preppy'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'presencial',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'presencialmente'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'president',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'presidente'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => "pr\x{e9}sident",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15978,7 +11866,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'presidenti',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -15987,14 +11875,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "press\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "press\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'pretend',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16007,38 +11887,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "pr\x{e9}tendait"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'previ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'previamente'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'primeir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'primeiro'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'primer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'primera'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'prioriti',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'priorities'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16083,34 +11931,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'proclaim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'proclaim'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'proclaim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'proclaim'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
             'stem' => 'procreat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'procreation'
+            'term' => 'procreative'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'professor',
+            'stem' => 'profil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'professor'
+            'term' => 'profiles'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16122,31 +11954,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'projet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'projeto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'projeto',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'projeto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'prononc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "prononc\x{e9}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'propag',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16155,18 +11963,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'propi',
+            'stem' => 'provinc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'propia'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'propost',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'proposta'
+            'term' => 'province'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16175,46 +11975,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'provocative'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pud',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pudo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'puebl',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'pueblos'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'pued',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'puede'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'puerto',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'puerto'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'puest',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'puestos'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16243,22 +12003,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'punctuat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'punctuated'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'pus',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'puso'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'pyongyang',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16275,26 +12019,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'quer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'querendo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "quest\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "quest\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'qu\'il',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'qu\'il'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => "quir\x{f3}n",
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => "quir\x{f3}n"
           },
           {
             'publish_week' => '2009-06-08',
@@ -16317,7 +12053,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'quotat',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'quotations'
           },
           {
@@ -16325,24 +12061,8 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'quotat',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'quotations'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'quran',
-            'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
-            'term' => 'quran'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'quran',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'quran'
+            'term' => 'quotations'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16367,14 +12087,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'racism'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'radic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'radical'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16410,7 +12122,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 8,
+            'stem_count' => 4,
             'stem' => 'rajput',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16419,10 +12131,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'random',
+            'stem' => 'rakha',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'randomly'
+            'term' => 'rakha'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'rakotomalala',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'rakotomalala'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'rami',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'rami'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16431,38 +12159,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'rape'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rappel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rappelle'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ratifi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ratified'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ratific',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "ratific\x{f3}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'razon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "raz\x{f3}n"
           },
           {
             'publish_week' => '2009-06-08',
@@ -16483,22 +12179,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'rebecca',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rebecca'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rechaz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rechazadas'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => "r\x{e9}clam",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16506,7 +12186,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'recognit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16515,26 +12195,18 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'redemocratiz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "redemocratiza\x{e7}\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'redon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'redonner'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'reformist',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'reformist'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'refuge',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'refugees'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16555,22 +12227,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'reglas',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'reglas'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'reli',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'relies'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'remis',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16579,34 +12235,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "rend\x{f3}n",
+            'stem' => 'renni',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "rend\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'repent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'repente'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'repentin',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'repentino'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'repercuss',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'repercussions'
+            'term' => 'rennie'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16615,14 +12247,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "repr\x{e9}senter"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "repress\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "repress\x{e3}o"
           },
           {
             'publish_week' => '2009-06-08',
@@ -16642,27 +12266,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'respet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'respeten'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'respir',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'respirer'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'retreat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'retreat'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16683,30 +12291,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'reviv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'revive'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'revolv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'revolving'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rican',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rican'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'richard',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16747,46 +12331,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'rio',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rio'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ris',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'risa'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'roadblock',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'roadblocks'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'robert',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'robert'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'rod',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rod'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'rodrigu',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16803,38 +12347,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'romer',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'romero'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'romero',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'romero'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'royal',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'royal'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'rpp',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'rpp'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'rsbnet',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16843,10 +12355,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'sab',
+            'stem' => 'rumuat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sabe'
+            'term' => 'rumuat'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16855,22 +12367,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 's\'affaiblira'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'saharan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'saharan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sai',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'saia'
           },
           {
             'publish_week' => '2009-06-08',
@@ -16890,22 +12386,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sam'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'samadeu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'samadeu'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 4,
             'stem' => 'samaj',
             'media_sets_id' => 1,
@@ -16922,15 +12402,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => "s\x{e3}o",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "s\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'saraswat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -16959,14 +12431,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'sarkozy'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'satisfactorili',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'satisfactorily'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17002,23 +12466,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'scorn',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'scorned'
+            'term' => 'scorn'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'scumbag',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'scumbag'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
             'stem' => 'sebaspac',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17035,50 +12491,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'sector',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sector'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'segu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'seguir'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'segund',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'segundo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'segur',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'seguramente'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'semen',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'semen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sena',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sena'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17090,19 +12506,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sender',
+            'stem_count' => 2,
+            'stem' => 'serra',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'sendero'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'seventeen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'seventeen'
+            'term' => 'serra'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17146,14 +12554,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'shiv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'shiv'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'shival',
             'media_sets_id' => 1,
@@ -17170,43 +12570,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'signatur',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'signatures'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'signif',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'significa'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'silvio',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'silvio'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'simon',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "sim\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'simultan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'simultaneous'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17226,7 +12594,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 2,
             'stem' => 'skeptic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17243,22 +12611,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'slogan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'slogan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'sloppi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sloppy'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'smal',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17269,7 +12621,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'sms',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'sms'
           },
           {
@@ -17277,8 +12629,16 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'sms',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'sms'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'snoop',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'snooping'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17298,7 +12658,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 23,
+            'stem_count' => 4,
             'stem' => 'softwar',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17306,27 +12666,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'sol',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'solo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
+            'stem_count' => 3,
             'stem' => 'solana',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'solana'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'solano',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'solano'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17343,14 +12687,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'solitary'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'solucion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "soluci\x{f3}n"
           },
           {
             'publish_week' => '2009-06-08',
@@ -17395,42 +12731,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'southern',
+            'stem' => 'spark',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'southern'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'soviet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'soviet'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "sovi\x{e9}t",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "sovi\x{e9}tico"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'space',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'space'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'spain',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'spain'
+            'dashboard_topics_id' => 1,
+            'term' => 'sparked'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17443,18 +12747,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'spark',
+            'stem' => 'spear',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'sparked'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'spectrum',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'spectrum'
+            'dashboard_topics_id' => undef,
+            'term' => 'spears'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17467,22 +12763,30 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'spectrum',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => 1,
+            'term' => 'spectrum'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 2,
             'stem' => 'specul',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'speculate'
+            'term' => 'speculating'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'spin',
+            'stem_count' => 1,
+            'stem' => 'spelunk',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'spin'
+            'term' => 'spelunker'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 3,
             'stem' => 'splinter',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17507,34 +12811,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'stipul',
+            'stem' => 'stojanovski',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'stipulates'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'stir',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'stir'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'stolen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'stolen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'strength',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'strength'
+            'term' => 'stojanovski'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17546,27 +12826,19 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'studi',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'study'
+          },
+          {
+            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'subsect',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'subsects'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'subsequ',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'subsequent'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'subvers',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'subversive'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17587,66 +12859,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'sufr',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sufrido'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 's\'un',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 's\'unir'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'supervisori',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'supervisory'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'supong',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'supongo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'suppress',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'suppression'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'suprem',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'supreme'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'surg',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'surgindo'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'surveil',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'surveillance'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17659,34 +12875,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'sway',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'sway'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'symptom',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'symptoms'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'tabloid',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'tabloid'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'taboo',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'taboo'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17715,22 +12907,22 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'tamper',
+            'stem' => 'tan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'tamper'
+            'term' => 'tan'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'tao',
+            'stem' => 'tarek',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'tao'
+            'term' => 'tarek'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'tax',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17738,18 +12930,10 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'taxpay',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'taxpayer'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'teach',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'teach'
           },
           {
@@ -17757,7 +12941,7 @@ $VAR1 = [
             'stem_count' => 1,
             'stem' => 'teach',
             'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
+            'dashboard_topics_id' => 1,
             'term' => 'teach'
           },
           {
@@ -17786,14 +12970,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'tentat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tentativa'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'terr',
             'media_sets_id' => 1,
@@ -17803,18 +12979,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'tetric',
+            'stem' => 'territori',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "t\x{e9}trico"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'thakeray',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'thakeray'
+            'term' => 'territory'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17839,38 +13007,6 @@ $VAR1 = [
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => "th\x{e9}ophile"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'thread',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'threads'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'thumbnail',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'thumbnail'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tiananmen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tiananmen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tiemp',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tiempo'
           },
           {
             'publish_week' => '2009-06-08',
@@ -17914,15 +13050,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tom',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "tomar\x{e1}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
+            'stem_count' => 2,
             'stem' => 'topic',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17947,14 +13075,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'toughest',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'toughest'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'tous',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -17971,54 +13091,6 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'transgend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'transgender'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'transgend',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'transgender'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "transmiss\x{e3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "transmiss\x{e3}o"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'trat',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tratados'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'treati',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'treaties'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "tr\x{ea}s",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "tr\x{ea}s"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 4,
             'stem' => 'tribal',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -18058,11 +13130,27 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 6,
+            'stem_count' => 1,
+            'stem' => 'tumen',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'tumen'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'tvb',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'tvb'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'tweet',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'tweets'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18074,23 +13162,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tweet',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tweets'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'tweeter',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'tweeters'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
+            'stem_count' => 2,
             'stem' => 'twitter',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -18098,15 +13170,7 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'typifi',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'typify'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'uganda',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -18114,19 +13178,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'ugandan',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'ugandan'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{fa}ltim",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{fa}ltima"
           },
           {
             'publish_week' => '2009-06-08',
@@ -18139,42 +13195,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'unansw',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'unanswered'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
+            'stem' => 'unask',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'unasked'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'uncertainti',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'uncertainty'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unclear',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unclear'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'unconstitut',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unconstitutional'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'underway',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'underway'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unequivoc',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unequivocally'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18187,26 +13227,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'unic',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{fa}nico"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'unreason',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'unreasonable'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'unreli',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'unreliable'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18234,59 +13258,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'upgrad',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'upgrading'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'uphold',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'uphold'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'uptak',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'uptake'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'usa',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'usa'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'usag',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'usage'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'usand',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'usando'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'usar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'usaram'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18314,22 +13290,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'valu',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'values'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'vam',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vamos'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 2,
             'stem' => 'vampir',
             'media_sets_id' => 1,
@@ -18338,11 +13298,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'vecin',
+            'stem_count' => 2,
+            'stem' => 'varela',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'vecino'
+            'term' => 'varela'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18355,90 +13315,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'vegonz',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vegonzoso'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'venezuel',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'venezuela'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'venezuela',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'venezuela'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
             'stem' => 'verdict',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'verdict'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'verset',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'versets'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'vest',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'vested'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'vest',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vested'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'vez',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vez'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'victim',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'victims'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'victoria',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'victoria'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'vien',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'viene'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18450,27 +13330,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'viewership',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'viewership'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 7,
+            'stem_count' => 4,
             'stem' => 'vigil',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'vigil'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 5,
-            'stem' => 'vigilant',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vigilantismo'
+            'term' => 'vigilants'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18482,31 +13346,15 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'vindic',
+            'stem_count' => 1,
+            'stem' => 'viol',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'vindication'
+            'term' => 'viol'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 2,
-            'stem' => 'viol',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'violando'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'violacion',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "violaci\x{f3}n"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 6,
             'stem' => 'violat',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -18514,35 +13362,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
+            'stem_count' => 2,
             'stem' => 'violenc',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'violences'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'violent',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'violent'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'viv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vivas'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'volv',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "volver\x{e1}"
           },
           {
             'publish_week' => '2009-06-08',
@@ -18562,22 +13386,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'vulgar',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'vulgarity'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'wai',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wai'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'wander',
             'media_sets_id' => 1,
@@ -18587,10 +13395,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'wang',
+            'stem' => 'wari',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'wang'
+            'term' => 'wary'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18618,27 +13426,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 18,
+            'stem_count' => 12,
             'stem' => 'websit',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'websites'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'wei',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wei'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'wen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'wen'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18651,18 +13443,10 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'whenev',
+            'stem' => 'whereabout',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'whenever'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'whilst',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'whilst'
+            'term' => 'whereabouts'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18670,6 +13454,14 @@ $VAR1 = [
             'stem' => 'whilst',
             'media_sets_id' => 1,
             'dashboard_topics_id' => 1,
+            'term' => 'whilst'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 3,
+            'stem' => 'whilst',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
             'term' => 'whilst'
           },
           {
@@ -18683,6 +13475,14 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
+            'stem' => 'winglok',
+            'media_sets_id' => 1,
+            'dashboard_topics_id' => undef,
+            'term' => 'winglok'
+          },
+          {
+            'publish_week' => '2009-06-08',
+            'stem_count' => 1,
             'stem' => 'winner',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
@@ -18691,26 +13491,26 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'witchdoctor',
+            'stem' => 'yadav',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'witchdoctors'
+            'term' => 'yadav'
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => 'wsj',
+            'stem' => 'yahoo',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'wsj'
+            'term' => 'yahoo'
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 4,
-            'stem' => 'yadav',
+            'stem_count' => 6,
+            'stem' => 'yanji',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => 'yadavs'
+            'term' => 'yanji'
           },
           {
             'publish_week' => '2009-06-08',
@@ -18722,22 +13522,6 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'yearn',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yearnings'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'yearn',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => 1,
-            'term' => 'yearnings'
-          },
-          {
-            'publish_week' => '2009-06-08',
             'stem_count' => 1,
             'stem' => 'yeux',
             'media_sets_id' => 1,
@@ -18746,59 +13530,11 @@ $VAR1 = [
           },
           {
             'publish_week' => '2009-06-08',
-            'stem_count' => 3,
-            'stem' => 'youth',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'youth'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
+            'stem_count' => 1,
             'stem' => 'youtub',
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
             'term' => 'youtube'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'yuan',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yuans'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => 'yuen',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'yuen'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'zhao',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'zhao'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'zimbabwean',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'zimbabwean'
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => 'ziyang',
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => 'ziyang'
           },
           {
             'publish_week' => '2009-06-08',
@@ -19811,722 +14547,34 @@ $VAR1 = [
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{4e00}\x{500b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{5427}\x{4e86}",
+            'stem' => "\x{4e0e}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{5219}\x{88ab}\x{4e2d}\x{56fd}\x{8fb9}\x{754c}\x{8b66}\x{536b}\x{62d8}\x{6355}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{4e00}\x{500b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{5427}\x{4e86}"
+            'term' => "\x{4e0e}\x{4e2d}\x{56fd}\x{5411}\x{5bfc}\x{5219}\x{88ab}\x{4e2d}\x{56fd}\x{8fb9}\x{754c}\x{8b66}\x{536b}\x{62d8}\x{6355}"
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{4e0b}\x{4e00}\x{5e74}\x{5ea6}\x{662f}\x{5426}\x{8fd8}\x{8981}\x{82b1}\x{8d39}\x{6570}\x{4ee5}\x{5343}\x{4e07}\x{8ba1}\x{7684}\x{5de8}\x{989d}\x{8d44}\x{91d1}\x{8d2d}\x{4e70}\x{8f6f}\x{4ef6}\x{670d}\x{52a1}",
+            'stem' => "\x{53e6}\x{4e00}\x{540d}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{4e0b}\x{4e00}\x{5e74}\x{5ea6}\x{662f}\x{5426}\x{8fd8}\x{8981}\x{82b1}\x{8d39}\x{6570}\x{4ee5}\x{5343}\x{4e07}\x{8ba1}\x{7684}\x{5de8}\x{989d}\x{8d44}\x{91d1}\x{8d2d}\x{4e70}\x{8f6f}\x{4ef6}\x{670d}\x{52a1}"
+            'term' => "\x{53e6}\x{4e00}\x{540d}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch"
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{4e0d}\x{514d}\x{4ee4}\x{4eba}\x{8d28}\x{7591}",
+            'stem' => "\x{5979}\x{4eec}\x{7684}\x{540c}\x{4e8b}\x{9ad8}\x{65af}",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{4e0d}\x{514d}\x{4ee4}\x{4eba}\x{8d28}\x{7591}"
+            'term' => "\x{5979}\x{4eec}\x{7684}\x{540c}\x{4e8b}\x{9ad8}\x{65af}"
           },
           {
             'publish_week' => '2009-06-08',
             'stem_count' => 1,
-            'stem' => "\x{4e0d}\x{53ef}\x{6d3b}",
+            'stem' => "\x{6709}\x{62a5}\x{5bfc}\x{79f0}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch",
             'media_sets_id' => 1,
             'dashboard_topics_id' => undef,
-            'term' => "\x{4e0d}\x{53ef}\x{6d3b}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4e0d}\x{662f}\x{6881}\x{6d1b}\x{65bd}\x{70ba}\x{674e}\x{6fa4}\x{6977}\x{7522}\x{5b50}\x{76f8}\x{7206}\x{5149}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4e0d}\x{662f}\x{6881}\x{6d1b}\x{65bd}\x{70ba}\x{674e}\x{6fa4}\x{6977}\x{7522}\x{5b50}\x{76f8}\x{7206}\x{5149}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4e0d}\x{6703}\x{88ab}\x{963f}\x{723a}\x{548c}\x{8ae7}\x{6389}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4e0d}\x{6703}\x{88ab}\x{963f}\x{723a}\x{548c}\x{8ae7}\x{6389}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4e8b}\x{4e8b}\x{65e6}\x{65e6}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4e8b}\x{4e8b}\x{65e6}\x{65e6}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4e8c}\x{689d}\x{53ef}\x{662f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4e8c}\x{689d}\x{53ef}\x{662f}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4e9e}\x{8996}\x{6dea}\x{70ba}\x{4e2d}\x{592e}\x{53f0}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4e9e}\x{8996}\x{6dea}\x{70ba}\x{4e2d}\x{592e}\x{53f0}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4eba}\x{4eec}\x{5bf9}\x{653f}\x{6cbb}\x{5c42}\x{9762}\x{7684}\x{62c5}\x{5fe7}\x{5c31}\x{66f4}\x{591a}\x{4e86}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4eba}\x{4eec}\x{5bf9}\x{653f}\x{6cbb}\x{5c42}\x{9762}\x{7684}\x{62c5}\x{5fe7}\x{5c31}\x{66f4}\x{591a}\x{4e86}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4ece}\x{4e0a}\x{8ff0}\x{6d4b}\x{8bd5}\x{6765}\x{770b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4ece}\x{4e0a}\x{8ff0}\x{6d4b}\x{8bd5}\x{6765}\x{770b}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4ece}\x{62a5}\x{9053}\x{4e2d}\x{53ef}\x{77e5}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4ece}\x{62a5}\x{9053}\x{4e2d}\x{53ef}\x{77e5}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4ee5}\x{81f3}cctvb\x{5728}\x{516d}\x{56db}\x{7576}\x{65e5}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4ee5}\x{81f3}cctvb\x{5728}\x{516d}\x{56db}\x{7576}\x{65e5}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4f1a}\x{4e25}\x{91cd}\x{5f71}\x{54cd}\x{5230}\x{4e00}\x{4e9b}\x{7528}\x{6237}\x{7684}\x{6b63}\x{5e38}\x{4f7f}\x{7528}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4f1a}\x{4e25}\x{91cd}\x{5f71}\x{54cd}\x{5230}\x{4e00}\x{4e9b}\x{7528}\x{6237}\x{7684}\x{6b63}\x{5e38}\x{4f7f}\x{7528}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4f1a}\x{53e6}\x{4e00}\x{4e9b}\x{4e0d}\x{719f}\x{6089}\x{7535}\x{8111}\x{7f51}\x{7edc}\x{8bbe}\x{7f6e}\x{7684}\x{4eba}\x{7fa4}\x{6df1}\x{53d7}\x{5176}\x{5bb3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4f1a}\x{53e6}\x{4e00}\x{4e9b}\x{4e0d}\x{719f}\x{6089}\x{7535}\x{8111}\x{7f51}\x{7edc}\x{8bbe}\x{7f6e}\x{7684}\x{4eba}\x{7fa4}\x{6df1}\x{53d7}\x{5176}\x{5bb3}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4f46}\x{662f}\x{4e00}\x{4e9b}\x{8a00}\x{8f9e}\x{5c16}\x{9510}\x{7684}\x{7f51}\x{7ad9}\x{548c}\x{535a}\x{5ba2}\x{5374}\x{5728}\x{8fd0}\x{52a8}\x{4e2d}\x{5012}\x{4e0b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4f46}\x{662f}\x{4e00}\x{4e9b}\x{8a00}\x{8f9e}\x{5c16}\x{9510}\x{7684}\x{7f51}\x{7ad9}\x{548c}\x{535a}\x{5ba2}\x{5374}\x{5728}\x{8fd0}\x{52a8}\x{4e2d}\x{5012}\x{4e0b}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4f46}\x{6b63}\x{5982}a\x{8aaa}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4f46}\x{6b63}\x{5982}a\x{8aaa}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{4f55}\x{4f86}\x{4e00}\x{500b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{4f55}\x{4f86}\x{4e00}\x{500b}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5168}\x{793e}\x{4f1a}\x{514d}\x{8d39}\x{4f7f}\x{7528}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5168}\x{793e}\x{4f1a}\x{514d}\x{8d39}\x{4f7f}\x{7528}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{516d}\x{56db}\x{7576}\x{65e5}cctvb\x{516d}\x{9ede}\x{534a}\x{65b0}\x{982d}\x{689d}\x{662f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{516d}\x{56db}\x{7576}\x{65e5}cctvb\x{516d}\x{9ede}\x{534a}\x{65b0}\x{982d}\x{689d}\x{662f}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5317}\x{4eac}\x{5bf9}\x{4e92}\x{8054}\x{7f51}\x{7684}\x{7ba1}\x{5236}\x{662f}\x{53f8}\x{9a6c}\x{662d}\x{4e4b}\x{5fc3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5317}\x{4eac}\x{5bf9}\x{4e92}\x{8054}\x{7f51}\x{7684}\x{7ba1}\x{5236}\x{662f}\x{53f8}\x{9a6c}\x{662d}\x{4e4b}\x{5fc3}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{53c8}\x{8981}\x{5f3a}\x{5236}\x{63a8}\x{5e7f}\x{4e00}\x{4e2a}\x{6240}\x{8c13}\x{7684}\x{8fc7}\x{6ee4}\x{8272}\x{60c5}\x{7f51}\x{7ad9}\x{7684}\x{8f6f}\x{4ef6}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{53c8}\x{8981}\x{5f3a}\x{5236}\x{63a8}\x{5e7f}\x{4e00}\x{4e2a}\x{6240}\x{8c13}\x{7684}\x{8fc7}\x{6ee4}\x{8272}\x{60c5}\x{7f51}\x{7ad9}\x{7684}\x{8f6f}\x{4ef6}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{53ea}\x{662f}\x{4e00}\x{500b}\x{958b}\x{59cb}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{53ea}\x{662f}\x{4e00}\x{500b}\x{958b}\x{59cb}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{53ef}\x{662f}\x{770b}\x{5728}\x{773c}\x{88e1}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{53ef}\x{662f}\x{770b}\x{5728}\x{773c}\x{88e1}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{56e0}\x{4e3a}\x{5de5}\x{4fe1}\x{90e8}\x{7b49}\x{51e0}\x{90e8}\x{59d4}\x{4f7f}\x{7528}\x{4e2d}\x{592e}\x{8d22}\x{653f}\x{8d44}\x{91d1}4170\x{4e07}\x{5143}\x{4eba}\x{6c11}\x{5e01}\x{4e70}\x{65ad}\x{8fd9}\x{5957}\x{8f6f}\x{4ef6}\x{7684}\x{4e00}\x{5e74}\x{670d}\x{52a1}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{56e0}\x{4e3a}\x{5de5}\x{4fe1}\x{90e8}\x{7b49}\x{51e0}\x{90e8}\x{59d4}\x{4f7f}\x{7528}\x{4e2d}\x{592e}\x{8d22}\x{653f}\x{8d44}\x{91d1}4170\x{4e07}\x{5143}\x{4eba}\x{6c11}\x{5e01}\x{4e70}\x{65ad}\x{8fd9}\x{5957}\x{8f6f}\x{4ef6}\x{7684}\x{4e00}\x{5e74}\x{670d}\x{52a1}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5728}\x{5317}\x{4eac}\x{770b}\x{6765}\x{8272}\x{60c5}\x{662f}\x{5426}\x{4e5f}\x{5305}\x{62ec}\x{653f}\x{6cbb}\x{5462}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5728}\x{5317}\x{4eac}\x{770b}\x{6765}\x{8272}\x{60c5}\x{662f}\x{5426}\x{4e5f}\x{5305}\x{62ec}\x{653f}\x{6cbb}\x{5462}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5929}\x{4f5c}\x{5b7d}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5929}\x{4f5c}\x{5b7d}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5929}\x{6c34}\x{570d}\x{4e09}\x{7537}\x{751f}\x{7591}\x{6feb}\x{85e5}\x{65bc}\x{516c}\x{5712}\x{6688}\x{5012}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5929}\x{6c34}\x{570d}\x{4e09}\x{7537}\x{751f}\x{7591}\x{6feb}\x{85e5}\x{65bc}\x{516c}\x{5712}\x{6688}\x{5012}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5982}\x{4f55}\x{628a}\x{516d}\x{56db}\x{65b0}\x{805e}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5982}\x{4f55}\x{628a}\x{516d}\x{56db}\x{65b0}\x{805e}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5b9e}\x{5219}\x{4e5f}\x{662f}\x{7eb3}\x{7a0e}\x{4eba}\x{81ea}\x{5df1}\x{57cb}\x{5355}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5b9e}\x{5219}\x{4e5f}\x{662f}\x{7eb3}\x{7a0e}\x{4eba}\x{81ea}\x{5df1}\x{57cb}\x{5355}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5c0d}\x{4e8b}\x{4ef6}\x{6012}\x{4e0d}\x{53ef}\x{904f}\x{4e91}\x{4e91}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5c0d}\x{4e8b}\x{4ef6}\x{6012}\x{4e0d}\x{53ef}\x{904f}\x{4e91}\x{4e91}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5c31}\x{662f}cctvb\x{5728}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{65b0}\x{805e}\x{76f4}\x{64ad}\x{4e2d}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5c31}\x{662f}cctvb\x{5728}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{65b0}\x{805e}\x{76f4}\x{64ad}\x{4e2d}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5de5}\x{4fe1}\x{90e8}\x{5982}\x{6b64}\x{5927}\x{624b}\x{7b14}\x{6492}\x{94b1}\x{662f}\x{5426}\x{5408}\x{4e4e}\x{653f}\x{5e9c}\x{8d22}\x{653f}\x{652f}\x{51fa}\x{7684}\x{7a0b}\x{5e8f}\x{6b63}\x{4e49}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5de5}\x{4fe1}\x{90e8}\x{5982}\x{6b64}\x{5927}\x{624b}\x{7b14}\x{6492}\x{94b1}\x{662f}\x{5426}\x{5408}\x{4e4e}\x{653f}\x{5e9c}\x{8d22}\x{653f}\x{652f}\x{51fa}\x{7684}\x{7a0b}\x{5e8f}\x{6b63}\x{4e49}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5df2}\x{6709}\x{8aa4}\x{5c0e}\x{4e4b}\x{5acc}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5df2}\x{6709}\x{8aa4}\x{5c0e}\x{4e4b}\x{5acc}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5e94}\x{8be5}\x{4e0d}\x{4f1a}\x{53ea}\x{7528}\x{4e00}\x{5e74}\x{5c31}\x{64a4}\x{9000}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5e94}\x{8be5}\x{4e0d}\x{4f1a}\x{53ea}\x{7528}\x{4e00}\x{5e74}\x{5c31}\x{64a4}\x{9000}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{5f71}\x{54cd}\x{8fd9}\x{4e48}\x{5e7f}\x{6cdb}\x{7684}\x{653f}\x{7b56}\x{51fa}\x{53f0}\x{524d}\x{53c8}\x{4e0d}\x{7ecf}\x{8fc7}\x{793e}\x{4f1a}\x{7684}\x{5e7f}\x{6cdb}\x{8ba8}\x{8bba}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{5f71}\x{54cd}\x{8fd9}\x{4e48}\x{5e7f}\x{6cdb}\x{7684}\x{653f}\x{7b56}\x{51fa}\x{53f0}\x{524d}\x{53c8}\x{4e0d}\x{7ecf}\x{8fc7}\x{793e}\x{4f1a}\x{7684}\x{5e7f}\x{6cdb}\x{8ba8}\x{8bba}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6050}\x{6015}\x{4e0d}\x{662f}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{6709}\x{591a}\x{5c11}\x{4eba}\x{53c2}\x{52a0}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6050}\x{6015}\x{4e0d}\x{662f}\x{516d}\x{56db}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{6709}\x{591a}\x{5c11}\x{4eba}\x{53c2}\x{52a0}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{608d}\x{885b}\x{9999}\x{6e2f}\x{5a92}\x{9ad4}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{608d}\x{885b}\x{9999}\x{6e2f}\x{5a92}\x{9ad4}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6216}\x{8bb8}\x{5728}\x{5317}\x{4eac}\x{7684}\x{773c}\x{91cc}\x{7684}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6216}\x{8bb8}\x{5728}\x{5317}\x{4eac}\x{7684}\x{773c}\x{91cc}\x{7684}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6240}\x{8c13}\x{4f9b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6240}\x{8c13}\x{4f9b}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{63a5}\x{53d7}\x{4eba}\x{5927}\x{4ee3}\x{8868}\x{7684}\x{5ba1}\x{8bae}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{63a5}\x{53d7}\x{4eba}\x{5927}\x{4ee3}\x{8868}\x{7684}\x{5ba1}\x{8bae}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{64da}\x{805e}cctvb\x{9818}\x{5c0e}\x{4eba}\x{8881}\x{82b1}\x{5fd7}\x{5049}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{64da}\x{805e}cctvb\x{9818}\x{5c0e}\x{4eba}\x{8881}\x{82b1}\x{5fd7}\x{5049}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{653e}\x{5728}\x{516d}\x{56db}15\x{842c}\x{4eba}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{4e4b}\x{524d}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{653e}\x{5728}\x{516d}\x{56db}15\x{842c}\x{4eba}\x{71ed}\x{5149}\x{96c6}\x{6703}\x{4e4b}\x{524d}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{653e}\x{5728}\x{7576}\x{65e5}6",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{653e}\x{5728}\x{7576}\x{65e5}6"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{653f}\x{6cbb}\x{8272}\x{60c5}\x{6bd4}\x{8089}\x{4f53}\x{8272}\x{60c5}\x{66f4}\x{53ef}\x{6015}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{653f}\x{6cbb}\x{8272}\x{60c5}\x{6bd4}\x{8089}\x{4f53}\x{8272}\x{60c5}\x{66f4}\x{53ef}\x{6015}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6574}\x{987f}\x{4e92}\x{8054}\x{7f51}\x{4f4e}\x{4fd7}\x{4e4b}\x{98ce}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6574}\x{987f}\x{4e92}\x{8054}\x{7f51}\x{4f4e}\x{4fd7}\x{4e4b}\x{98ce}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{65f6}\x{4e0d}\x{65f6}\x{501f}\x{52a9}\x{4e00}\x{4e9b}\x{8fd0}\x{52a8}\x{8fdb}\x{884c}\x{6574}\x{6cbb}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{65f6}\x{4e0d}\x{65f6}\x{501f}\x{52a9}\x{4e00}\x{4e9b}\x{8fd0}\x{52a8}\x{8fdb}\x{884c}\x{6574}\x{6cbb}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6628}\x{5929}\x{6700}\x{591a}\x{4eba}\x{8a0e}\x{8ad6}\x{7684}\x{65b0}\x{805e}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6628}\x{5929}\x{6700}\x{591a}\x{4eba}\x{8a0e}\x{8ad6}\x{7684}\x{65b0}\x{805e}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{662f}\x{5426}\x{9700}\x{8981}\x{5217}\x{5165}\x{653f}\x{5e9c}\x{9884}\x{7b97}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{662f}\x{5426}\x{9700}\x{8981}\x{5217}\x{5165}\x{653f}\x{5e9c}\x{9884}\x{7b97}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{66f4}\x{6302}\x{7f8a}\x{5934}\x{5356}\x{72d7}\x{8089}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{66f4}\x{6302}\x{7f8a}\x{5934}\x{5356}\x{72d7}\x{8089}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6703}\x{628a}\x{4e00}\x{500b}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{8f44}\x{4e0b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6c7a}\x{8b70}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6703}\x{628a}\x{4e00}\x{500b}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{8f44}\x{4e0b}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6c7a}\x{8b70}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6709}\x{6c92}\x{6709}\x{4eba}\x{70ba}\x{4ed6}\x{5011}\x{8faf}\x{8b77}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6709}\x{6c92}\x{6709}\x{4eba}\x{70ba}\x{4ed6}\x{5011}\x{8faf}\x{8b77}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6b64}\x{8f6f}\x{4ef6}\x{5bf9}\x{7cfb}\x{7edf}\x{8d44}\x{6e90}\x{7684}\x{5360}\x{7528}\x{662f}\x{5de8}\x{5927}\x{7684}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6b64}\x{8f6f}\x{4ef6}\x{5bf9}\x{7cfb}\x{7edf}\x{8d44}\x{6e90}\x{7684}\x{5360}\x{7528}\x{662f}\x{5de8}\x{5927}\x{7684}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{6bd4}\x{5982}\x{6570}\x{6708}\x{524d}\x{522e}\x{8d77}\x{7684}\x{90a3}\x{573a}\x{58f0}\x{52bf}\x{6d69}\x{5927}\x{7684}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{6bd4}\x{5982}\x{6570}\x{6708}\x{524d}\x{522e}\x{8d77}\x{7684}\x{90a3}\x{573a}\x{58f0}\x{52bf}\x{6d69}\x{5927}\x{7684}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{70ba}\x{4f55}\x{516d}\x{56db}\x{7576}\x{65e5}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{70ba}\x{4f55}\x{516d}\x{56db}\x{7576}\x{65e5}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{70ba}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{76e1}\x{9ede}\x{529b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{70ba}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{76e1}\x{9ede}\x{529b}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7121}\x{7dab}\x{65b0}\x{805e}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7121}\x{7dab}\x{65b0}\x{805e}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7167}\x{5de5}\x{4fe1}\x{90e8}\x{63a8}\x{884c}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7167}\x{5de5}\x{4fe1}\x{90e8}\x{63a8}\x{884c}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{722d}\x{53d6}\x{9999}\x{6e2f}\x{6c11}\x{4e3b}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{722d}\x{53d6}\x{9999}\x{6e2f}\x{6c11}\x{4e3b}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7336}\x{53ef}\x{6055}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7336}\x{53ef}\x{6055}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7576}\x{65e5}cctvb\x{5831}\x{9053}\x{9019}\x{6bb5}\x{65b0}\x{805e}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7576}\x{65e5}cctvb\x{5831}\x{9053}\x{9019}\x{6bb5}\x{65b0}\x{805e}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7684}\x{51b3}\x{5fc3}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7684}\x{51b3}\x{5fc3}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7a31}\x{9019}\x{500b}\x{59d4}\x{54e1}\x{6703}\x{505a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7a31}\x{9019}\x{500b}\x{59d4}\x{54e1}\x{6703}\x{505a}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{773e}\x{591a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{773e}\x{591a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7acb}\x{6cd5}\x{6703}\x{901a}\x{904e}\x{76e1}\x{5feb}\x{8208}\x{5efa}\x{897f}\x{6e2f}\x{5cf6}\x{7dda}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7acb}\x{6cd5}\x{6703}\x{901a}\x{904e}\x{76e1}\x{5feb}\x{8208}\x{5efa}\x{897f}\x{6e2f}\x{5cf6}\x{7dda}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7ae5}\x{5de5}\x{53ef}\x{4ee5}\x{8aaa}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7ae5}\x{5de5}\x{53ef}\x{4ee5}\x{8aaa}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{7ae5}\x{5de5}\x{9084}\x{53ef}\x{4ee5}\x{8a8d}\x{70ba}\x{8aaa}\x{5f97}\x{904e}\x{53bb}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{7ae5}\x{5de5}\x{9084}\x{53ef}\x{4ee5}\x{8a8d}\x{70ba}\x{8aaa}\x{5f97}\x{904e}\x{53bb}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{800c}\x{6240}\x{8fc7}\x{6ee4}\x{7684}\x{5185}\x{5bb9}\x{53c8}\x{4e0d}\x{63d0}\x{4ea4}\x{72ec}\x{7acb}\x{7684}\x{7b2c}\x{4e09}\x{65b9}\x{5ba1}\x{6838}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{800c}\x{6240}\x{8fc7}\x{6ee4}\x{7684}\x{5185}\x{5bb9}\x{53c8}\x{4e0d}\x{63d0}\x{4ea4}\x{72ec}\x{7acb}\x{7684}\x{7b2c}\x{4e09}\x{65b9}\x{5ba1}\x{6838}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{800c}\x{73b0}\x{5728}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{800c}\x{73b0}\x{5728}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{81ea}\x{4f5c}\x{5b7d}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{81ea}\x{4f5c}\x{5b7d}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{82b1}\x{5b63}\x{62a4}\x{822a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{82b1}\x{5b63}\x{62a4}\x{822a}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{82e5}\x{9023}\x{65b0}\x{805e}\x{81ea}\x{7531}\x{4e5f}\x{5b88}\x{4e0d}\x{4f4f}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{82e5}\x{9023}\x{65b0}\x{805e}\x{81ea}\x{7531}\x{4e5f}\x{5b88}\x{4e0d}\x{4f4f}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{82e5}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{4e5f}\x{5728}\x{81ea}\x{6211}\x{5be9}\x{67e5}\x{7684}\x{6642}\x{5019}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{82e5}\x{9999}\x{6e2f}\x{50b3}\x{5a92}\x{4e5f}\x{5728}\x{81ea}\x{6211}\x{5be9}\x{67e5}\x{7684}\x{6642}\x{5019}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{8881}\x{82b1}\x{5fd7}\x{5049}\x{7576}\x{65e5}\x{5982}\x{4f55}\x{8655}\x{7406}\x{8d99}\x{7d2b}\x{967d}\x{56de}\x{61b6}\x{9304}\x{65b0}\x{805e}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{8881}\x{82b1}\x{5fd7}\x{5049}\x{7576}\x{65e5}\x{5982}\x{4f55}\x{8655}\x{7406}\x{8d99}\x{7d2b}\x{967d}\x{56de}\x{61b6}\x{9304}\x{65b0}\x{805e}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{88ab}\x{5728}\x{5834}\x{5e02}\x{6c11}\x{8209}\x{8d77}\x{6297}\x{8b70}\x{724c}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{88ab}\x{5728}\x{5834}\x{5e02}\x{6c11}\x{8209}\x{8d77}\x{6297}\x{8b70}\x{724c}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{8981}\x{5e73}\x{53cd}\x{516d}\x{56db}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{8981}\x{5e73}\x{53cd}\x{516d}\x{56db}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{8def}\x{4eba}\x{7686}\x{77e5}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{8def}\x{4eba}\x{7686}\x{77e5}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{8fd0}\x{52a8}\x{8fc7}\x{540e}\x{4e2d}\x{56fd}\x{7684}\x{4e92}\x{8054}\x{7f51}\x{4f9d}\x{65e7}\x{4f4e}\x{4fd7}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{8fd0}\x{52a8}\x{8fc7}\x{540e}\x{4e2d}\x{56fd}\x{7684}\x{4e92}\x{8054}\x{7f51}\x{4f9d}\x{65e7}\x{4f4e}\x{4fd7}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{8fd9}\x{5c31}\x{662f}\x{5317}\x{4eac}\x{7406}\x{89e3}\x{7684}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{8fd9}\x{5c31}\x{662f}\x{5317}\x{4eac}\x{7406}\x{89e3}\x{7684}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{8fd9}\x{6837}\x{7684}\x{5927}\x{624b}\x{7b14}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{8fd9}\x{6837}\x{7684}\x{5927}\x{624b}\x{7b14}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{9023}\x{6b63}\x{5f0f}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{4e5f}\x{4e0d}\x{6703}\x{5831}\x{9053}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{9023}\x{6b63}\x{5f0f}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{4e5f}\x{4e0d}\x{6703}\x{5831}\x{9053}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{9084}\x{671f}\x{671b}\x{8ab0}\x{70ba}\x{6e2f}\x{4eba}\x{767c}\x{8072}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{9084}\x{671f}\x{671b}\x{8ab0}\x{70ba}\x{6e2f}\x{4eba}\x{767c}\x{8072}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{9084}\x{8ac7}\x{751a}\x{9ebc}\x{722d}\x{53d6}\x{5e73}\x{53cd}\x{516d}\x{56db}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{9084}\x{8ac7}\x{751a}\x{9ebc}\x{722d}\x{53d6}\x{5e73}\x{53cd}\x{516d}\x{56db}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{90a3}\x{53ea}\x{662f}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{5167}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{90a3}\x{53ea}\x{662f}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{5167}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{90a3}\x{53ea}\x{662f}\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{4e4b}\x{4e0b}\x{7684}\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{6c7a}\x{5b9a}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{90a3}\x{53ea}\x{662f}\x{7acb}\x{6cd5}\x{6703}\x{5167}\x{4ea4}\x{901a}\x{4e8b}\x{52d9}\x{59d4}\x{54e1}\x{6703}\x{4e4b}\x{4e0b}\x{7684}\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{5c0f}\x{7d44}\x{59d4}\x{54e1}\x{6703}\x{6703}\x{8b70}\x{6c7a}\x{5b9a}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{91cd}\x{8981}\x{6027}\x{6709}\x{591a}\x{5927}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{91cd}\x{8981}\x{6027}\x{6709}\x{591a}\x{5927}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 2,
-            'stem' => "\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{59d4}\x{54e1}\x{6703}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{9435}\x{8def}\x{4e8b}\x{5b9c}\x{59d4}\x{54e1}\x{6703}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{9664}\x{4e86}\x{79d8}\x{5bc6}\x{7b51}\x{8d77}\x{81ed}\x{540d}\x{662d}\x{8457}\x{7684}\x{9632}\x{706b}\x{5899}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{9664}\x{4e86}\x{79d8}\x{5bc6}\x{7b51}\x{8d77}\x{81ed}\x{540d}\x{662d}\x{8457}\x{7684}\x{9632}\x{706b}\x{5899}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{9996}\x{8981}\x{5b88}\x{4f4f}\x{9999}\x{6e2f}\x{7684}\x{65b0}\x{805e}\x{81ea}\x{7531}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{9996}\x{8981}\x{5b88}\x{4f4f}\x{9999}\x{6e2f}\x{7684}\x{65b0}\x{805e}\x{81ea}\x{7531}"
-          },
-          {
-            'publish_week' => '2009-06-08',
-            'stem_count' => 1,
-            'stem' => "\x{9999}\x{6e2f}\x{4eba}\x{662f}\x{6642}\x{5019}",
-            'media_sets_id' => 1,
-            'dashboard_topics_id' => undef,
-            'term' => "\x{9999}\x{6e2f}\x{4eba}\x{662f}\x{6642}\x{5019}"
+            'term' => "\x{6709}\x{62a5}\x{5bfc}\x{79f0}\x{7f8e}\x{56fd}\x{6444}\x{5f71}\x{5e08}mitch"
           }
         ];
 #>>>
