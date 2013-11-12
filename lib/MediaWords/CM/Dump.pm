@@ -1554,7 +1554,7 @@ END
 }
 
 # create a controversy_dump for the given controversy
-sub dump_controversy ($$;$)
+sub dump_controversy ($$)
 {
     my ( $db, $controversies_id ) = @_;
 
