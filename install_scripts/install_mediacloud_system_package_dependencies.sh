@@ -75,7 +75,10 @@ else
         gearman libgearman-dev
 
     # Apt's version of Supervisor is too old
-    sudo easy_install supervisor
+    sudo apt-get remove -y supervisor
+    
+    # have to change dir or it think you are trying to install from the supervisor/ dir
+    ( cd supervisor; sudo easy_install supervisor ) 
 
     # Install CLD separately
     if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then     # Not installed manually?
