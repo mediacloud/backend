@@ -71,6 +71,13 @@ database:
         ### Email subject prefix (optional; default is "[GJS]")
         #subject_prefix: "[GJS]"
 
+### Supervisor (supervisord) configuration
+#supervisor:
+
+    ### The log directory for child process logs (absolute or relative to Media
+    ### Cloud's root; must already exist)
+    #childlogdir: "data/supervisor_logs/"
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
@@ -108,6 +115,9 @@ mediawords:
 
     ## media_sets_id of the media set to display on the Dashboard home page
     ##default_media_set: 1
+
+    # Uncomment to use JNI mode on Inline::Java. This improves performance but breaks the test suite.
+    #inline_java_jni: "yes"
 
     ### HTTP user agent and the email address of the owner of the bot
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"

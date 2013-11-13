@@ -215,7 +215,7 @@ EOF
 
     my $date = maxstr( grep { $_ le $max_date } @{ $dashboard_dates } );
     $date = $dashboard_dates->[ $#{ $dashboard_dates } ] if ( !$date && $dashboard_dates );
-    die( "no valid date found" ) if ( !$date );
+    die( "no valid date found.  have you added at least one dashboard?" ) if ( !$date );
 
     my $query =
       MediaWords::DBI::Queries::find_or_create_query_by_params( $c->dbis,
