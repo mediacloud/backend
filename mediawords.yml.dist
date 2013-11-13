@@ -71,6 +71,13 @@ database:
         ### Email subject prefix (optional; default is "[GJS]")
         #subject_prefix: "[GJS]"
 
+### Supervisor (supervisord) configuration
+#supervisor:
+
+    ### The log directory for child process logs (absolute or relative to Media
+    ### Cloud's root; must already exist)
+    #childlogdir: "data/supervisor_logs/"
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""

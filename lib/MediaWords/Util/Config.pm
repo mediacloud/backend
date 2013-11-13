@@ -97,6 +97,9 @@ sub set_defaults
     $config->{ gearman }->{ notifications }->{ from_address }   ||= 'gjs@mediacloud.org';
     $config->{ gearman }->{ notifications }->{ subject_prefix } ||= '[GJS]';
 
+    # Supervisor
+    $config->{ supervisor }->{ childlogdir } ||= 'data/supervisor_logs/';
+
     my $auth = {
         default_realm => 'users',
         users         => {
