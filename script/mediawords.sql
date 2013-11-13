@@ -239,7 +239,7 @@ $$
    DECLARE
       path_change boolean;
    BEGIN
-	UPDATE stories set db_row_last_updated = now() where stories_id = NEW.stories_id;
+	UPDATE stories set db_row_last_updated = now() where stories_id = OLD.stories_id;
 	RETURN NULL;
    END;
 $$

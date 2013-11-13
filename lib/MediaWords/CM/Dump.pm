@@ -18,7 +18,6 @@ use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
 use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
-use MediaWords::Util::Tags;
 use MediaWords::DBI::Activities;
 
 # max and mind node sizes for gexf dump
@@ -884,6 +883,7 @@ select * from dump_media m, dump_medium_link_counts mlc where m.media_id = mlc.m
 END
 
     add_codes_to_dump_media( $db, $cdts, $media );
+    add_tags_to_dump_media( $db, $cdts, $media );
 
     my $gexf = {
         'xmlns'              => "http://www.gexf.net/1.2draft",
@@ -932,6 +932,8 @@ END
 
     for my $medium ( @{ $media } )
     {
+        next unless ( $medium->{ inlink_count } || $medium->{ outlink_count } );
+
         my $node = {
             id    => $medium->{ media_id },
             label => $medium->{ name },

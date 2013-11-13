@@ -42,7 +42,7 @@ if [ `uname` == 'Darwin' ]; then
     brew install \
         perl --use-threads \
         graphviz --with-bindings \
-        coreutils postgresql curl tidy libyaml berkeley-db4 gawk
+        coreutils postgresql curl tidy libyaml berkeley-db4 gawk supervisor
 
     sudo cpan XML::Parser XML::SAX::Expat XML::LibXML XML::LibXML::Simple \
         Test::WWW::Mechanize OpenGL \
@@ -71,8 +71,14 @@ else
         libyaml-syck-perl liblist-allutils-perl liblist-moreutils-perl libreadonly-perl libreadonly-xs-perl curl \
         python python-dev python-pip \
 	    python-lxml python-lxml-dbg python-lxml-doc python-libxml2 libxml2-dev libxslt1-dev libxslt1-dbg libxslt1.1   \
-        build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk supervisor \
+        build-essential make gcc g++ cpanminus perl-doc liblocale-maketext-lexicon-perl openjdk-7-jdk \
         gearman libgearman-dev
+
+    # Apt's version of Supervisor is too old
+    sudo apt-get remove -y supervisor
+    
+    # have to change dir or it think you are trying to install from the supervisor/ dir
+    ( cd supervisor; sudo easy_install supervisor ) 
 
     # Install CLD separately
     if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then     # Not installed manually?
