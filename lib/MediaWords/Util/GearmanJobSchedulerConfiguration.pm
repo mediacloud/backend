@@ -11,7 +11,7 @@ use Moose;
 use Gearman::JobScheduler::Configuration;
 extends 'Gearman::JobScheduler::Configuration';
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 

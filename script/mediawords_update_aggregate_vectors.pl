@@ -14,7 +14,7 @@ BEGIN
 }
 
 use MediaWords::DB;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use Parallel::ForkManager;
 

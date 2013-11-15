@@ -1,5 +1,5 @@
 package MediaWords::Tagger;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # analyze text and assign tags using various methods implemented in the MediaWords::Tagger::* modules

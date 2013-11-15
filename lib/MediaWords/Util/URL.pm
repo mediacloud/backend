@@ -2,7 +2,7 @@ package MediaWords::Util::URL;
 
 use URI;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use strict;

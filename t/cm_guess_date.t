@@ -7,7 +7,7 @@ use Test::Deep;
 
 use utf8;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # Integer constants (in case Date::Parse::str2time fails)

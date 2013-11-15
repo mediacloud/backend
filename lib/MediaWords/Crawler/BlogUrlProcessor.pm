@@ -1,5 +1,5 @@
 package MediaWords::Crawler::BlogUrlProcessor;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use strict;

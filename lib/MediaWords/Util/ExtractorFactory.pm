@@ -1,5 +1,5 @@
 package MediaWords::Util::ExtractorFactory;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
 use MediaWords::Util::HeuristicExtractor;

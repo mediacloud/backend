@@ -1,5 +1,5 @@
 package MediaWords::Util::Colors;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # util functions that help dealing with colors, including color pallette generation

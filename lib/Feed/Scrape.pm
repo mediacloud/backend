@@ -12,7 +12,7 @@ use List::Util;
 use Regexp::Common qw /URI/;
 use URI::URL;
 use URI::Escape;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use Domain::PublicSuffix;
 use Carp;

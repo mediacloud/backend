@@ -1,9 +1,9 @@
 All source files must use the CPAN module Modern::Perl and the internal library MediaWords::CommonLibs. Thus the following should be present at the beginning of the file: 
 
-   use Modern::Perl '2012';
+   use Modern::Perl '2013';
    use MediaWords::CommonLibs;
 
-Simply including these modules will, among other things, enable all Perl 5.14 features, provide common and frequently used libraries such as Readonly and Data::Dumper, and ensure use strict is enabled.
+Simply including these modules will, among other things, enable all Perl 5.16 features, provide common and frequently used libraries such as Readonly and Data::Dumper, and ensure use strict is enabled.
 
 The only exception is modules that are used by the plperl stored procedures. 
 
