@@ -28,16 +28,16 @@ use constant SAMPLE_RSS_FEED => <<EOF;
 <rss version="2.0">
     <channel>
         <title>Sample RSS feed</title>
-        <link>http://www.example.com</link>
+        <link>http://blogs.law.harvard.edu</link>
         <description>This is a sample RSS feed.</description>
         <item>
             <title>First post</title>
-            <link>http://www.example.com/first</link>
+            <link>http://blogs.law.harvard.edu/first</link>
             <description>Here goes the first post in a sample RSS feed.</description>
         </item>
         <item>
             <title>Second post</title>
-            <link>http://www.example.com/second</link>
+            <link>http://blogs.law.harvard.edu/second</link>
             <description>Here goes the second post in a sample RSS feed.</description>
         </item>
     </channel>
@@ -49,15 +49,13 @@ BEGIN { use_ok 'Feed::Scrape' }
 # Basic RSS feed URL scraping
 sub test_basic()
 {
-    my $url     = 'http://www.example.com/';
+    my $url     = 'http://blogs.law.harvard.edu/';
     my $content = <<EOF;
         <html>
         <head>
             <title>Basic test</title>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.example.com/feed/" />
-            <link rel="alternate" type="text/xml" title="RSS .92" href="http://www.example.com/feed/rss/" />
-            <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="http://www.example.com/feed/atom/" />
+            <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="http://blogs.law.harvard.edu/feed/atom/" />
         </head>
         <body>
             <p>Hello!</p>
@@ -66,19 +64,9 @@ sub test_basic()
 EOF
     my $expected_result = [
         {
-            'url'       => 'http://www.example.com/feed/',
-            'name'      => 'RSS 2.0',
             'feed_type' => 'syndicated',
-        },
-        {
-            'url'       => 'http://www.example.com/feed/rss/',
-            'name'      => 'RSS .92',
-            'feed_type' => 'syndicated',
-        },
-        {
-            'url'       => 'http://www.example.com/feed/atom/',
-            'name'      => 'Atom 0.3',
-            'feed_type' => 'syndicated',
+            'url'       => 'http://blogs.law.harvard.edu/feed/atom/',
+            'name'      => 'Weblogs at Harvard Law School'
         }
     ];
 
@@ -88,14 +76,13 @@ EOF
 # Basic RSS feed (entities in URLs)
 sub test_basic_entities_in_urls()
 {
-    my $url     = 'http://www.example.com/';
+    my $url     = 'http://blogs.law.harvard.edu/';
     my $content = <<EOF;
         <html>
         <head>
             <title>Basic test</title>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <link href="/index.php?format=feed&amp;type=rss" rel="alternate" type="application/rss+xml" title="RSS 2.0" />
-            <link href="/index.php?format=feed&amp;type=atom" rel="alternate" type="application/atom+xml" title="Atom 1.0" />
+            <link href="http://blogs.law.harvard.edu&#047feed/atom/" rel="alternate" type="application/atom+xml" title="Atom 1.0" />
         </head>
         <body>
             <p>Hello!</p>
@@ -104,32 +91,25 @@ sub test_basic_entities_in_urls()
 EOF
     my $expected_result = [
         {
-            'url'       => 'http://www.example.com/index.php?format=feed&type=rss',
-            'name'      => 'RSS 2.0',
             'feed_type' => 'syndicated',
-        },
-        {
-            'url'       => 'http://www.example.com/index.php?format=feed&type=atom',
-            'name'      => 'Atom 1.0',
-            'feed_type' => 'syndicated',
+            'url'       => 'http://blogs.law.harvard.edu/feed/atom/',
+            'name'      => 'Weblogs at Harvard Law School'
         }
     ];
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test entities' );
 }
 
-# Basic RSS feed (HTTPS; short URLs)
+# Basic RSS feed (short URLs)
 sub test_basic_short_urls()
 {
-    my $url     = 'https://www.example.com/';
+    my $url     = 'http://blogs.law.harvard.edu/';
     my $content = <<EOF;
         <html>
         <head>
             <title>Basic test (short URLs)</title>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="//www.example.com/feed/" />
-            <link rel="alternate" type="text/xml" title="RSS .92" href="//www.example.com/feed/rss/" />
-            <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="//www.example.com/feed/atom/" />
+            <link rel="alternate" type="application/atom+xml" title="Atom 0.3" href="/feed/atom/" />
         </head>
         <body>
             <p>Hello!</p>
@@ -138,37 +118,25 @@ sub test_basic_short_urls()
 EOF
     my $expected_result = [
         {
-            'url'       => 'https://www.example.com/feed/',
-            'name'      => 'RSS 2.0',
             'feed_type' => 'syndicated',
-        },
-        {
-            'url'       => 'https://www.example.com/feed/rss/',
-            'name'      => 'RSS .92',
-            'feed_type' => 'syndicated',
-        },
-        {
-            'url'       => 'https://www.example.com/feed/atom/',
-            'name'      => 'Atom 0.3',
-            'feed_type' => 'syndicated',
+            'url'       => 'http://blogs.law.harvard.edu/feed/atom/',
+            'name'      => 'Weblogs at Harvard Law School'
         }
     ];
 
-    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test' );
+    cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'Basic test short' );
 }
 
 # Basic RSS feed URL scraping (no RSS feed titles)
 sub test_basic_no_titles()
 {
-    my $url     = 'http://www.example.com/';
+    my $url     = 'http://blogs.law.harvard.edu/';
     my $content = <<EOF;
         <html>
         <head>
             <title>Basic test (no titles)</title>
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <link rel="alternate" type="application/rss+xml" href="http://www.example.com/feed/" />
-            <link rel="alternate" type="text/xml" href="http://www.example.com/feed/rss/" />
-            <link rel="alternate" type="application/atom+xml" href="http://www.example.com/feed/atom/" />
+            <link rel="alternate" type="application/atom+xml" href="http://blogs.law.harvard.edu/feed/atom/" />
         </head>
         <body>
             <p>Hello!</p>
@@ -177,19 +145,9 @@ sub test_basic_no_titles()
 EOF
     my $expected_result = [
         {
-            'url'       => 'http://www.example.com/feed/',
-            'name'      => 'Basic test (no titles)',
             'feed_type' => 'syndicated',
-        },
-        {
-            'url'       => 'http://www.example.com/feed/rss/',
-            'name'      => 'Basic test (no titles)',
-            'feed_type' => 'syndicated',
-        },
-        {
-            'url'       => 'http://www.example.com/feed/atom/',
-            'name'      => 'Basic test (no titles)',
-            'feed_type' => 'syndicated',
+            'url'       => 'http://blogs.law.harvard.edu/feed/atom/',
+            'name'      => 'Weblogs at Harvard Law School'
         }
     ];
 
@@ -600,12 +558,12 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed2.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/feed2.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         },
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed1.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/feed1.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         }
@@ -680,7 +638,7 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = $test_url_2 . '/feed.xml' ) }, 'URI::http' ),
+            'url'       => $test_url_2 . '/feed.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         }
@@ -772,7 +730,7 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = $test_url_2 . '/feed.xml' ) }, 'URI::http' ),
+            'url'       => $test_url_2 . '/feed.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         }
@@ -863,12 +821,12 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/path_two/feed1.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/path_two/feed1.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         },
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/path_two/feed2.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/path_two/feed2.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         }
@@ -934,12 +892,12 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed2.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/feed2.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         },
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed1.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/feed1.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         }
@@ -1004,12 +962,12 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed2.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/feed2.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         },
         {
-            'url' => bless( do { \( my $o = TEST_HTTP_SERVER_URL . '/feed1.xml' ) }, 'URI::http' ),
+            'url'       => TEST_HTTP_SERVER_URL . '/feed1.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         }
@@ -1063,7 +1021,7 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = 'http://feeds2.feedburner.com/localhost' ) }, 'URI::http' ),
+            'url'       => 'http://feeds2.feedburner.com/localhost',
             'name'      => '127.0.0.1 » 127.0.0.1',
             'feed_type' => 'syndicated',
         },
@@ -1131,12 +1089,12 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = 'http://feeds.feedburner.com/feedburnerstatus' ) }, 'URI::http' ),
+            'url'       => 'http://feeds.feedburner.com/feedburnerstatus',
             'name'      => 'FeedBurner Status',
             'feed_type' => 'syndicated',
         },
         {
-            'url' => bless( do { \( my $o = 'http://feeds.feedburner.com/thesartorialist' ) }, 'URI::http' ),
+            'url'       => 'http://feeds.feedburner.com/thesartorialist',
             'name'      => 'The Sartorialist',
             'feed_type' => 'syndicated',
         }
@@ -1230,7 +1188,7 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = $test_url . '/feed2.xml' ) }, 'URI::http' ),
+            'url'       => $test_url . '/feed2.xml',
             'name'      => 'Example.com',
             'feed_type' => 'syndicated',
         },
@@ -1299,7 +1257,7 @@ EOF
     };
     my $expected_links = [
         {
-            'url' => bless( do { \( my $o = $test_url . '/feed.xml' ) }, 'URI::http' ),
+            'url'       => $test_url . '/feed.xml',
             'name'      => 'Sample RSS feed',
             'feed_type' => 'syndicated',
         },

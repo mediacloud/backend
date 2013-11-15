@@ -99,7 +99,7 @@ sub _validate_and_name_feed_urls
 
         my $content = $response->decoded_content;
 
-        my $url = MediaWords::Util::Web->get_original_request( $response )->url;
+        my $url = MediaWords::Util::Web->get_original_request( $response )->url->as_string;
 
         say STDERR "Parsing $url";
 
@@ -342,22 +342,6 @@ sub get_feed_urls_from_html_links
             if ( $link =~ m~href\s*=\s*["']([^"']*)["']~i )
             {
                 my $url = $class->_resolve_relative_url( $base_url, $1 );
-                my $link_title = $base_url;
-                if ( $link =~ m~title\s*=\s*["']([^"']*)["']~i )
-                {
-
-                    # <link title="(.+?)" />
-                    $link_title = decode_entities( $1 );
-                }
-                else
-                {
-                    if ( $html =~ m~<\s*title\s*>(.+?)<\s*/\s*title\s*>~i )
-                    {
-
-                        # <title>(.+?)</title>
-                        $link_title = decode_entities( $1 );
-                    }
-                }
 
                 _log_message( "match link: $url" );
                 push( @{ $urls }, $url );
