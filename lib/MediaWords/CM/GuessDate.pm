@@ -877,10 +877,10 @@ sub _guessing_is_inapplicable($$$)
     for my $segment ( @segments_for_invalidation )
     {
 
-        # ~~ dies sometimes with 'Smart matching a non-overloaded object breaks encapsulation'
         my $r = 0;
-        eval { $r = 1 if ( $segment ~~ @url_segments ) };
-        return $r if ( $r == 1 );
+        if (grep { $segment } @url_segments) {
+            return 1;
+        }
     }
 
     return 0;
