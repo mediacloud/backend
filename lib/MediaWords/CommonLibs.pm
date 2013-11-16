@@ -10,7 +10,7 @@ use warnings;
 
 # Don't emit "~~", "given" and "when" warnings
 use feature "lexical_subs";
-no if $] >= 5.017011, warnings qw(experimental::smartmatch experimental::lexical_subs);
+no warnings qw(experimental::smartmatch experimental::lexical_subs);
 
 use Data::Dumper;
 
