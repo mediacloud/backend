@@ -16,11 +16,17 @@ sub createExtractor
     die unless defined( $extractor_method );
 
     my $ret;
-    given ( $extractor_method )
+    if ( $extractor_method eq 'HeuristicExtractor' )
     {
-        when ( 'HeuristicExtractor' ) { $ret = MediaWords::Util::HeuristicExtractor->new(); }
-        when ( 'CrfExtractor' )       { $ret = MediaWords::Util::CrfExtractor->new(); }
-        default { die 'Invalid extractor methods: $extractor_method'; }
+        $ret = MediaWords::Util::HeuristicExtractor->new();
+    }
+    elsif ( $extractor_method eq 'CrfExtractor' )
+    {
+        $ret = MediaWords::Util::CrfExtractor->new();
+    }
+    else
+    {
+        die "Invalid extractor methods: $extractor_method";
     }
 
     die unless defined( $ret );

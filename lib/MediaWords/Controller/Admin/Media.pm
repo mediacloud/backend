@@ -860,14 +860,21 @@ sub do_find_likely_full_text_rss : Local
 
         my $full_text_value = $post_params->{ $medium_full_text_param };
 
-        given ( $full_text_value )
+        if ( $full_text_value == 1 )
         {
-            when ( 1 ) { $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?",  $media_id ); }
-            when ( 0 ) { $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id ); }
-
-            when ( '' ) { $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id ); }
-            default { die "Bad case in switch :'$full_text_value'"; }
-
+            $c->dbis->query( "UPDATE media set full_text_rss = true where media_id = ?", $media_id );
+        }
+        elsif ( $full_text_value == 0 )
+        {
+            $c->dbis->query( "UPDATE media set full_text_rss = false where media_id = ?", $media_id );
+        }
+        elsif ( $full_text_value eq '' )
+        {
+            $c->dbis->query( "UPDATE media set full_text_rss = NULL where media_id = ?", $media_id );
+        }
+        else
+        {
+            die "Bad case in switch :'$full_text_value'";
         }
     }
 
