@@ -8,6 +8,12 @@ our @ISA = qw(Exporter);
 use strict;
 use warnings;
 
+# Don't emit "~~", "given" and "when" warnings
+use 5.018;
+use feature "lexical_subs";
+no if $] >= 5.018, warnings => "experimental::smartmatch";
+no if $] >= 5.018, warnings => "experimental::lexical_subs";
+
 use Data::Dumper;
 
 use List::Util;
