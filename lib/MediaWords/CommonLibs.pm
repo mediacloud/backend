@@ -9,10 +9,8 @@ use strict;
 use warnings;
 
 # Don't emit "~~", "given" and "when" warnings
-use 5.018;
 use feature "lexical_subs";
-no if $] >= 5.018, warnings => "experimental::smartmatch";
-no if $] >= 5.018, warnings => "experimental::lexical_subs";
+no warnings qw(experimental::smartmatch experimental::lexical_subs);
 
 use Data::Dumper;
 
