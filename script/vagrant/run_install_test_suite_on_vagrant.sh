@@ -63,6 +63,7 @@ fi
 
 
 PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+LOCK_FILE="$PWD/$LOCK_FILE"
 
 
 if [ -f "$LOCK_FILE" ]; then
@@ -121,7 +122,8 @@ fi
 echo "Destroying virtual machine..."
 vagrant destroy --force
 
-cd "$PWD"
+# Back from ./$TEMP_MC_REPO_DIR/script/vagrant/
+cd "../../../"
 
 echo "Removing the temporary Media Cloud repository..."
 rm -rf "$TEMP_MC_REPO_DIR"
