@@ -41,4 +41,7 @@ LANGUAGE 'plpgsql';
 --
 SELECT set_database_schema_version();
 
-ALTER TYPE download_type ADD value 'extractor_error';
+ALTER TYPE download_state ADD value 'extractor_error';
+
+-- Fix downloads marked as errors when the problem was with the extractor
+UPDATE downloads set state = 'extractor_error' where state='error' and type='content' and error_message is not null and error_message like 'extractor_error%';
