@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4430;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4431;
     
 BEGIN
 
@@ -727,7 +727,7 @@ CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories F
 DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_update_story_sentences_last_updated_trigger AFTER UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
 
-CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error');    
+CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error', 'extractor_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
 
 CREATE TYPE download_file_status AS ENUM ( 'tbd', 'missing', 'na', 'present', 'inline', 'redownloaded', 'error_redownloading' );
