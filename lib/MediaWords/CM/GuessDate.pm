@@ -15,6 +15,7 @@ use LWP::Simple;
 use Regexp::Common qw(time);
 use Date::Parse;
 use List::Util qw(max min);
+use List::MoreUtils qw(any);
 
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
@@ -878,7 +879,7 @@ sub _guessing_is_inapplicable($$$)
     {
 
         my $r = 0;
-        if (grep { $segment } @url_segments) {
+        if (any {$_ eq $segment} @url_segments) {
             return 1;
         }
     }
