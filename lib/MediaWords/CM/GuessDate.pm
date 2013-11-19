@@ -598,8 +598,7 @@ sub timestamp_from_html($)
         qr{
             $pattern_not_digit_or_word_start
             (
-                (
-                    ?:$pattern_weekday_names
+                (?:$pattern_weekday_names
                     \s*
                     $pattern_comma
                     \s+
@@ -609,8 +608,7 @@ sub timestamp_from_html($)
                 $pattern_month_names
                 \s+
                 $pattern_year
-                (?:
-                    \s+
+                (?:\s+
                     $pattern_hour_minute
                     (?:\:$pattern_second)?
                     (?:\s+$pattern_timezone)?
