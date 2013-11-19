@@ -4,7 +4,7 @@
 
 use strict;
 
-use encoding "utf8";
+use utf8;
 
 BEGIN
 {
