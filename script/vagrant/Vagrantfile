@@ -80,11 +80,6 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     aws.access_key_id = ENV["AWS_ACCESS_KEY_ID"]
     aws.secret_access_key = ENV["AWS_SECRET_ACCESS_KEY"]
 
-    # 1. https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#KeyPairs:
-    # 2. "Create Key Pair", name: "development"
-    # 3. Download "development.pem"
-    # 4. AWS_KEYPAIR_NAME="development"
-    # 5. AWS_SSH_PRIVKEY="~/path/to/development.pem"
     aws.keypair_name = ENV["AWS_KEYPAIR_NAME"]
     override.ssh.private_key_path = ENV["AWS_SSH_PRIVKEY"]
 
@@ -93,10 +88,6 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     aws.instance_type = AWS_INSTANCE_TYPE
     aws.tags = { 'Name' => AWS_INSTANCE_NAME }
 
-    # 1. https://console.aws.amazon.com/ec2/home?region=us-east-1#s=SecurityGroups
-    # 2. Allow Inbound SSH traffic from 0.0.0.0/0
-    # 3. Allow Inbound SSH traffic of type "All" from 0.0.0.0/0
-    # 4. Click "Apply Rule Changes"
     aws.security_groups = [ ENV["AWS_SECURITY_GROUP"] ]
 
   end
