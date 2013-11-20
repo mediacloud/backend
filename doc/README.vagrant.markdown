@@ -69,8 +69,9 @@ To create a new Media Cloud instance on Vagrant using the Amazon EC2 provider:
         3. Allow "Inbound SSH traffic" from `0.0.0.0/0`.
         4. Allow "Inbound ICMP traffic" of type "All" from `0.0.0.0/0`.
         5. Allow "Inbound TCP traffic" through Port Range "5000" from `0.0.0.0/0`.
-        6. Click "Apply Rule Changes".
-        7. `AWS_SECURITY_GROUP="default"`
+        6. Allow "Inbound TCP traffic" through Port Range "3000" from `0.0.0.0/0`.
+        7. Click "Apply Rule Changes".
+        8. `AWS_SECURITY_GROUP="default"`
 2. Run:
 
         # (Run once) Install the "vagrant-aws" plugin
@@ -129,7 +130,10 @@ To SSH to the guest machine, run:
 
 #### On VirtualBox
 
-Port `5000` on the guest machine is automatically forwarded to port `5001` on the host machine.
+Port forwarding is set up as such:
+
+* Port `5000` on the guest machine is automatically forwarded to port `5001` on the host machine.
+* Port `3000` on the guest machine is automatically forwarded to port `3001` on the host machine.
 
 To start the Media Cloud web service, run:
 
