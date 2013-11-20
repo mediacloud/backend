@@ -77,7 +77,7 @@ sub extract_text
                 $db->rollback;
 
                 $db->query(
-                    "update downloads set state = 'error', error_message = ? where downloads_id = ?",
+                    "update downloads set state = 'extractor_error', error_message = ? where downloads_id = ?",
                     "extractor error: $@",
                     $download->{ downloads_id }
                 );
