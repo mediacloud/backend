@@ -5,6 +5,7 @@ set -o errexit
 
 
 CLD_URL_DEBIAN="http://chromium-compact-language-detector.googlecode.com/files/compact-language-detector_0.1-1_amd64.deb"
+VAGRANT_URL_DEBIAN="http://files.vagrantup.com/packages/a40522f5fabccb9ddabad03d836e120ff5d14093/vagrant_1.3.5_x86_64.deb"
 
 
 function echo_cld_instructions {
@@ -14,11 +15,30 @@ Detector library from:
 
 http://code.google.com/p/chromium-compact-language-detector/
 
-When you have done that, make sure that you have libcld.0.dylib somewhere
-(e.g. in /usr/local/lib/libcld.0.dylib) and run this script again with the
-environment variable I_HAVE_INSTALLED_CLD being set as such:
+When you have done that, make sure that you have libcld.dylib somewhere
+(e.g. in /usr/local/lib/libcld.dylib) and run this script again with the
+environment variable SKIP_CLD_TEST being set as such:
 
-I_HAVE_INSTALLED_CLD=1 $0
+SKIP_CLD_TEST=1 $0
+EOF
+}
+
+function echo_vagrant_instructions {
+    cat <<EOF
+You might want to install Vagrant to set up automatic Media Cloud unit testing
+on VirtualBox / Amazon EC2 machines. Download and install Vagrant from:
+
+http://downloads.vagrantup.com/
+
+You don't need Vagrant to run Media Cloud, so install it only if you know what
+you're doing.
+
+When you have installed Vagrant (or chose to not install it at all), make sure
+that you have "vagrant" binary somewhere (e.g. in /usr/bin/vagrant) and run
+this script again with the environment variable SKIP_VAGRANT_TEST being set as
+such:
+
+SKIP_VAGRANT_TEST=1 $0
 EOF
 }
 
@@ -51,11 +71,6 @@ EOF
         exit 1
     fi
 
-    if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then
-        echo_cld_instructions
-        exit 1
-    fi
-
     brew install \
         graphviz --with-bindings \
         coreutils postgresql curl tidy libyaml berkeley-db4 gawk cpanminus
@@ -69,6 +84,18 @@ EOF
         YAML::LibYAML YAML::Syck List::AllUtils List::MoreUtils Readonly \
         Readonly::XS BerkeleyDB GraphViz Graph Graph::Writer::GraphViz \
         HTML::Entities version Lingua::Stem::Snowball
+
+   if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
+        if [ ! -x /usr/bin/vagrant ]; then
+            echo_vagrant_instructions
+            exit 1
+        fi
+    fi
+
+    if [ ! "${SKIP_CLD_TEST:+x}" ]; then
+        echo_cld_instructions
+        exit 1
+    fi
 
 else
 
@@ -87,12 +114,15 @@ else
 
     # Apt's version of Supervisor is too old
     sudo apt-get remove -y supervisor
+
+    # Apt's version of Vagrant is too old
+    sudo apt-get remove -y vagrant
     
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; sudo easy_install supervisor ) 
 
     # Install CLD separately
-    if [ ! "${I_HAVE_INSTALLED_CLD:+x}" ]; then     # Not installed manually?
+    if [ ! "${SKIP_CLD_TEST:+x}" ]; then     # Not installed manually?
         if [ ! -f /usr/lib/libcld.so ]; then        # Library is not installed yet?
 
             # Try to download and install
@@ -105,6 +135,25 @@ else
                 echo "I have tried to install CLD manually but failed."
                 echo
                 echo_cld_instructions
+                exit 1
+            fi
+        fi
+    fi
+
+    # Install an up-to-date version of Vagrant
+    if [ ! "${SKIP_VAGRANT_TEST:+x}" ]; then
+        if [ ! -x /usr/bin/vagrant ]; then
+
+            # Try to download and install
+            VAGRANTTEMPDIR=`mktemp -d -t vagrantXXXXX`
+            wget -O "$VAGRANTTEMPDIR/vagrant.deb" "$VAGRANT_URL_DEBIAN"
+            sudo dpkg -i "$VAGRANTTEMPDIR/vagrant.deb"
+            rm -rf "$VAGRANTTEMPDIR"
+
+            if [ ! -x /usr/bin/vagrant ]; then    # Installed?
+                echo "I have tried to install Vagrant manually but failed."
+                echo
+                echo_vagrant_instructions
                 exit 1
             fi
         fi
