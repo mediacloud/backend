@@ -101,25 +101,7 @@ echo "Setting up the virtual machine..."
 VAGRANT_SUCCEEDED=1
 vagrant up --provider="$PROVIDER" || { VAGRANT_SUCCEEDED=0; }
 
-if [ $VAGRANT_SUCCEEDED == 0 ]; then
-    echo
-    echo "Media Cloud installation on Vagrant has failed."
-    echo "I am shutting down the virtual machine for someone to look at."
-    echo "To connect to the virtual machine:"
-    echo
-    echo "    cd `pwd`"
-    echo "    vagrant up --no-provision"
-    echo "    vagrant ssh"
-    echo
-
-    vagrant halt --force
-
-    exit 1
-fi
-
-#
-# Tests have been run at this point so things look okay; time for the teardown
-#
+# Teardown
 
 echo "Destroying virtual machine..."
 vagrant destroy --force
@@ -136,4 +118,10 @@ rm -rf .vagrant
 echo "Removing lock file..."
 rm "$LOCK_FILE"
 
-echo "All done."
+if [ $VAGRANT_SUCCEEDED == 0 ]; then
+    echo "Vagrant deployment has failed."
+    exit 1
+else
+    echo "Things look fine."
+    exit 0
+fi
