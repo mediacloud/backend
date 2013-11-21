@@ -3664,15 +3664,15 @@ DISTRIBUTIONS
       Font::Metrics::TimesRoman undef
     requirements:
       ExtUtils::MakeMaker 0
-  Gearman-JobScheduler-0.09
-    pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.09.tar.gz
+  Gearman-JobScheduler-0.11
+    pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.11.tar.gz
     provides:
-      Gearman::JobScheduler 0.09
-      Gearman::JobScheduler::AbstractFunction 0.09
-      Gearman::JobScheduler::Admin 0.09
-      Gearman::JobScheduler::Configuration 0.09
-      Gearman::JobScheduler::ErrorLogTrapper 0.09
-      Gearman::JobScheduler::Worker 0.09
+      Gearman::JobScheduler 0.11
+      Gearman::JobScheduler::AbstractFunction 0.11
+      Gearman::JobScheduler::Admin 0.11
+      Gearman::JobScheduler::Configuration 0.11
+      Gearman::JobScheduler::ErrorLogTrapper 0.11
+      Gearman::JobScheduler::Worker 0.11
     requirements:
       Capture::Tiny 0
       Carp 0
@@ -3694,7 +3694,6 @@ DISTRIBUTIONS
       Readonly 0
       Storable 0
       Sys::Hostname 0
-      Sys::Path 0
       Test::More 0
       Time::HiRes 0
       perl v5.12.0
@@ -4415,24 +4414,6 @@ DISTRIBUTIONS
       Hash::MultiValue 0.15
     requirements:
       ExtUtils::MakeMaker 6.30
-  IO-Any-0.06
-    pathname: J/JK/JKUTEJ/IO-Any-0.06.tar.gz
-    provides:
-      IO::Any 0.06
-    requirements:
-      Carp 0
-      Fcntl 0
-      File::Slurp 0
-      File::Spec 0
-      File::Temp 0
-      IO::AtomicFile 0
-      IO::File 0
-      IO::String 0
-      Module::Build 0.36
-      Scalar::Util 0
-      Test::Differences 0
-      Test::Exception 0
-      Test::More 0
   IO-CaptureOutput-1.1102
     pathname: D/DA/DAGOLDEN/IO-CaptureOutput-1.1102.tar.gz
     provides:
@@ -4636,20 +4617,6 @@ DISTRIBUTIONS
       JSON::PP::IncrParser 2.27203
     requirements:
       ExtUtils::MakeMaker 0
-      Test::More 0
-  JSON-Util-0.05
-    pathname: J/JK/JKUTEJ/JSON-Util-0.05.tar.gz
-    provides:
-      JSON::Util 0.05
-    requirements:
-      Carp 0
-      File::Temp 0
-      IO::Any 0
-      JSON::XS 0
-      Module::Build 0.36
-      Scalar::Util 0
-      Test::Differences 0
-      Test::Exception 0
       Test::More 0
   JSON-XS-3.01
     pathname: M/ML/MLEHMANN/JSON-XS-3.01.tar.gz
@@ -6888,25 +6855,6 @@ DISTRIBUTIONS
       constant 0
       strict 0
       warnings 0
-  Sys-Path-0.13
-    pathname: J/JK/JKUTEJ/Sys-Path-0.13.tar.gz
-    provides:
-      Sys::Path 0.13
-      Sys::Path::SPc 0.12
-    requirements:
-      Capture::Tiny 0
-      Cwd 0
-      Digest::MD5 0
-      File::Path 2.07
-      File::Spec 0
-      File::Temp 0
-      JSON::Util 0
-      List::MoreUtils 0
-      Module::Build 0.3607
-      Test::Differences 0
-      Test::Exception 0
-      Test::More 0
-      Text::Diff 0
   Task-Weaken-1.04
     pathname: A/AD/ADAMK/Task-Weaken-1.04.tar.gz
     provides:

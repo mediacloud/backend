@@ -1,5 +1,5 @@
 package MediaWords::Controller::Admin::Dashboards;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # various pages for administering dashboards

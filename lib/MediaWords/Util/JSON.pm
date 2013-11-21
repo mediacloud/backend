@@ -1,5 +1,5 @@
 package MediaWords::Util::JSON;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # very simple module for generating from perl data

@@ -11,7 +11,7 @@ BEGIN
 }
 
 use Getopt::Long;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 
 use MediaWords::DB;
 use MediaWords::DBI::Queries;

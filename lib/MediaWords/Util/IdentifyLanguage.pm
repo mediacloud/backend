@@ -13,7 +13,7 @@ package MediaWords::Util::IdentifyLanguage;
 use strict;
 use warnings;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use utf8;

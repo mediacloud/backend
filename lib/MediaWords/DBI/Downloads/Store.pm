@@ -7,7 +7,7 @@ use warnings;
 
 use Moose::Role;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use Encode;

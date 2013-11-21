@@ -22,7 +22,7 @@ BEGIN
     use lib "$FindBin::Bin/../../lib";
 }
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;

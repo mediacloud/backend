@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Catalyst::Controller';
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use JSON;

@@ -34,6 +34,16 @@ ALTER TABLE auth_users
 
 
 --
+-- Incorporate changes from the 4430->4431 diff from master
+--
+
+ALTER TYPE download_state ADD value 'extractor_error';
+
+-- Fix downloads marked as errors when the problem was with the extractor
+UPDATE downloads set state = 'extractor_error' where state='error' and type='content' and error_message is not null and error_message like 'extractor_error%';
+
+
+--
 -- 2 of 2. Reset the database version.
 --
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$

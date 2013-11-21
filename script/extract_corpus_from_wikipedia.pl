@@ -24,7 +24,7 @@ BEGIN
 }
 
 # 'use MediaWords::CommonLibs' and others are omitted in order to make this tool more universal.
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use Readonly;
 use Data::Dumper;
 

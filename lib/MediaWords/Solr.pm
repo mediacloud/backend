@@ -2,7 +2,7 @@ package MediaWords::Solr;
 
 use strict;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # functions for searching the solr server

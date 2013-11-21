@@ -12,7 +12,7 @@ use Archive::Tar;
 use Cwd;
 use Try::Tiny;
 use MediaWords::CommonLibs;
-use Modern::Perl '2012';
+use Modern::Perl "2013";
 use File::Touch;
 
 sub _dd

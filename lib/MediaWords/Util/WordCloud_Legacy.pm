@@ -1,5 +1,5 @@
 package MediaWords::Util::WordCloud_Legacy;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # generate a word cloud based on a query and a list of words
@@ -130,27 +130,32 @@ sub _get_merged_word_count
 
     my $ret;
 
-    given ( $set )
+    if ( $set eq 'list_1' )
     {
+        $ret = $words_1_hash->{ $word };
 
-        when ( 'list_1' ) { $ret = $words_1_hash->{ $word }; }
-        when ( 'list_2' ) { $ret = $words_2_hash->{ $word }; }
-        when ( 'both' )
-        {
-            my $temp_hash_ref = $words_1_hash->{ $word };
+    }
+    elsif ( $set eq 'list_2' )
+    {
+        $ret = $words_2_hash->{ $word };
 
-            #copy hash
-            # TODO why is this bad?
-            my %temp = ( %$temp_hash_ref );
-            $temp{ stem_count } += $words_2_hash->{ $word }->{ stem_count };
-            $temp{ stem_count } /= 2;
-            $ret = \%temp;
-        }
-        default
-        {
-            die "Invalid case '$set'";
+    }
+    elsif ( $set eq 'both' )
+    {
+        my $temp_hash_ref = $words_1_hash->{ $word };
 
-        }
+        #copy hash
+        # TODO why is this bad?
+        my %temp = ( %$temp_hash_ref );
+        $temp{ stem_count } += $words_2_hash->{ $word }->{ stem_count };
+        $temp{ stem_count } /= 2;
+        $ret = \%temp;
+
+    }
+    else
+    {
+        die "Invalid case '$set'";
+
     }
 
     #TODO copy $ret

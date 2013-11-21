@@ -16,16 +16,16 @@ source ${PERLBREW_ROOT}/etc/bashrc
 
 #Switch to the right version and filter useless message. 
 
-#Amanda server on 08.04 gives warning if we go directly to  perl-5.14.2@mediacloud 
-perlbrew use perl-5.14.2  2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
+#Amanda server on 08.04 gives warning if we go directly to  perl-5.18.1@mediacloud 
+perlbrew use perl-5.18.1  2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
 if [ $? -ne 0 ]; then
-    echo "Unable to run 'perlbrew use perl-5.14.2'"
+    echo "Unable to run 'perlbrew use perl-5.18.1'"
     exit 1
 fi
 
-perlbrew use perl-5.14.2@mediacloud   2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
+perlbrew use perl-5.18.1@mediacloud   2> >(grep -v 'manpath: warning: $MANPATH set, ignoring /etc/manpath.config')
 if [ $? -ne 0 ]; then
-    echo "Unable to run 'perlbrew use perl-5.14.2@mediacloud'"
+    echo "Unable to run 'perlbrew use perl-5.18.1@mediacloud'"
     exit 1
 fi
 

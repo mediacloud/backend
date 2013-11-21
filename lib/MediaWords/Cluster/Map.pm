@@ -1,5 +1,5 @@
 package MediaWords::Cluster::Map;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 # Generate cluster maps from existing media cluster run data.

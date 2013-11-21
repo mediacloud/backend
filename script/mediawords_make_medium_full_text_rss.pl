@@ -9,7 +9,7 @@
 
 use strict;
 
-use encoding "utf8";
+use utf8;
 
 BEGIN
 {
@@ -18,7 +18,7 @@ BEGIN
 }
 
 use MediaWords::DB;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::StoryVectors;

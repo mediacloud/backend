@@ -8,7 +8,7 @@ use warnings;
 use Moose;
 with 'MediaWords::DBI::Downloads::Store';
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use Archive::Tar::Indexed;

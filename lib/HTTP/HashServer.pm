@@ -79,7 +79,6 @@ sub start
     # sometimes the server takes a brief time to startup
     sleep( 1 );
 
-    $SIG{ CHLD } = 'IGNORE';
     $SIG{ INT } = $SIG{ TERM } = sub { kill( 15, $self->{ pid } ); die( "caught ctl-c and killed HTTP::HashServer" ) };
 }
 
