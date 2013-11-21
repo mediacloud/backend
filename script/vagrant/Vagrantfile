@@ -97,6 +97,9 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     aws.instance_type = AWS_INSTANCE_TYPE
     aws.tags = { 'Name' => AWS_INSTANCE_NAME }
 
+    # Wait for more than the default (120 seconds) for the instance to start
+    aws.instance_ready_timeout = 360
+
     aws.security_groups = [ ENV["AWS_SECURITY_GROUP"] ]
 
   end
