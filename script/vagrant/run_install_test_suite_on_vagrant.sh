@@ -86,9 +86,11 @@ fi
 
 touch "$LOCK_FILE"
 
-if [[ ! `vagrant box list | grep precise64` ]]; then
-    echo "\"precise64\" missing in the list of Vagrant boxes, installing..."
-    vagrant box add precise64 http://files.vagrantup.com/precise64.box
+if [ "$PROVIDER" == "virtualbox" ]; then
+    if [[ ! `vagrant box list | grep precise64` ]]; then
+        echo "\"precise64\" missing in the list of Vagrant boxes, installing..."
+        vagrant box add precise64 http://files.vagrantup.com/precise64.box
+    fi
 fi
 
 echo "Cloning the Media Cloud repository..."
