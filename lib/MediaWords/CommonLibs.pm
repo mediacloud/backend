@@ -1,5 +1,5 @@
 package MediaWords::CommonLibs;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 require Exporter;
@@ -17,7 +17,7 @@ sub import
 {
     use Data::Dumper();
 
-    feature->import( ':5.14' );
+    feature->import( ':5.18' );
     warnings->import();
     strict->import();
     Data::Dumper->export_to_level( 1,, @Data::Dumper::Export );

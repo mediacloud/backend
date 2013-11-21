@@ -4,7 +4,7 @@ package CRF::CrfUtils;
 
 use strict;
 
-use 5.14.0;
+use 5.18.1;
 
 use Text::CSV;
 use Class::CSV;

@@ -14,10 +14,16 @@ VAGRANTFILE_API_VERSION = "2"
 # 5. Append "ebs" to the search box (e.g. "amd64 us-east-1 12.04 ebs")
 # 6. Click the AMI to open up AWS website in order to make sure that the instance is supported
 # 7. Copy the region and AMI here
-AWS_AMI           = ENV['AWS_AMI']            || "ami-69f5a900"
+AWS_AMI           = ENV['AWS_AMI']            || "ami-d9a98cb0"
 AWS_REGION        = ENV['AWS_REGION']         || "us-east-1"
-AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "m1.small"
 AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
+
+# "t1.tiny" is not enough to install and run Media Cloud because it doesn't
+# have enough RAM available.
+# "m1.small" is just enough to install Media Cloud and run the full unit test
+# suite. However, you might want to run Media Cloud on a bigger instance with
+# more RAM if you are about to use Media Cloud in production environments.
+AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "m1.small"
 
 #
 # Main configuration
@@ -36,6 +42,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     # Access Media Cloud's 5000 port by opening localhost:5001
     config.vm.network :forwarded_port, guest: 5000, host: 5001
+
+    # Access Media Cloud's 3000 port by opening localhost:3001
+    config.vm.network :forwarded_port, guest: 3000, host: 3001
 
   end
 
@@ -80,11 +89,6 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     aws.access_key_id = ENV["AWS_ACCESS_KEY_ID"]
     aws.secret_access_key = ENV["AWS_SECRET_ACCESS_KEY"]
 
-    # 1. https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#KeyPairs:
-    # 2. "Create Key Pair", name: "development"
-    # 3. Download "development.pem"
-    # 4. AWS_KEYPAIR_NAME="development"
-    # 5. AWS_SSH_PRIVKEY="~/path/to/development.pem"
     aws.keypair_name = ENV["AWS_KEYPAIR_NAME"]
     override.ssh.private_key_path = ENV["AWS_SSH_PRIVKEY"]
 
@@ -93,10 +97,9 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     aws.instance_type = AWS_INSTANCE_TYPE
     aws.tags = { 'Name' => AWS_INSTANCE_NAME }
 
-    # 1. https://console.aws.amazon.com/ec2/home?region=us-east-1#s=SecurityGroups
-    # 2. Allow Inbound SSH traffic from 0.0.0.0/0
-    # 3. Allow Inbound SSH traffic of type "All" from 0.0.0.0/0
-    # 4. Click "Apply Rule Changes"
+    # Wait for more than the default (120 seconds) for the instance to start
+    aws.instance_ready_timeout = 360
+
     aws.security_groups = [ ENV["AWS_SECURITY_GROUP"] ]
 
   end

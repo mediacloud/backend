@@ -84,10 +84,11 @@ package MediaWords::DBI::Activities;
 use strict;
 use warnings;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use JSON;
+use Array::Compare;
 
 my Readonly $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER = '##OBJECT_ID##';
 
@@ -536,7 +537,10 @@ sub encode_activity_description($$)
     my $activity            = $ACTIVITIES{ $activity_name };
     my @expected_parameters = sort( keys %{ $activity->{ parameters } } );
     my @actual_parameters   = sort( keys %{ $description_hash } );
-    unless ( @expected_parameters ~~ @actual_parameters )
+
+    my $comp = Array::Compare->new;
+
+    unless ( $comp->compare(\@expected_parameters, \@actual_parameters) )
     {
         die "Expected parameters: " .
           join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .

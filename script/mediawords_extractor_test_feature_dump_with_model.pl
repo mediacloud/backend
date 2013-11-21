@@ -16,7 +16,7 @@ use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 
@@ -33,7 +33,7 @@ use MediaWords::Util::ExtractorTest;
 use Data::Compare;
 use Storable;
 use 5.14.2;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use File::Temp qw/ tempfile tempdir /;
 

@@ -1,5 +1,5 @@
 package MediaWords::Crawler::FeedHandler;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -335,11 +335,22 @@ sub handle_feed_content
 
     try
     {
-        given ( $feed->{ feed_type } )
+        my $feed_type = $feed->{ feed_type };
+
+        if ( $feed_type eq 'syndicated' )
         {
-            when ( 'syndicated' ) { $content_ref = handle_syndicated_content( $dbs, $download, $decoded_content ) }
-            when ( 'web_page' ) { $content_ref = handle_web_page_content( $dbs, $download, $decoded_content, $feed ) }
-            default { die( "Unknown feed type '$feed->{ feed_type }'" ) }
+            $content_ref = handle_syndicated_content( $dbs, $download, $decoded_content );
+
+        }
+        elsif ( $feed_type eq 'web_page' )
+        {
+            $content_ref = handle_web_page_content( $dbs, $download, $decoded_content, $feed );
+
+        }
+        else
+        {
+            die( "Unknown feed type '$feed_type'" );
+
         }
 
     }

@@ -1,5 +1,5 @@
 package MediaWords::Crawler::BlogPageProcessor;
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use strict;
@@ -56,33 +56,37 @@ sub get_rss_feeds
         $rss_detection_method = 'default';
     }
 
-    given ( $rss_detection_method )
+    if ( $rss_detection_method eq 'feed::scrape-validate' )
     {
-        when ( 'feed::scrape-validate' )
-        {
 
-            #print "Using   'feed::scrape-validate' \n";
-            my $xml_feeds = Feed::Scrape->get_valid_feeds_from_html( $url, $response->content );
+        #print "Using   'feed::scrape-validate' \n";
+        my $xml_feeds = Feed::Scrape->get_valid_feeds_from_html( $url, $response->content );
 
-            #print Dumper($xml_feeds);
-            @feeds = map { $_->{ url } } @{ $xml_feeds };
-        }
-        when ( 'feed::scrape-no-validate' )
-        {
+        #print Dumper($xml_feeds);
+        @feeds = map { $_->{ url } } @{ $xml_feeds };
 
-            #print "Using   'feed::scrape-no-validate' \n";
-            my $xml_feeds = Feed::Scrape->get_feed_urls_from_html( $url, $response->content );
+    }
+    elsif ( $rss_detection_method eq 'feed::scrape-no-validate' )
+    {
 
-            #print Dumper($xml_feeds);
-            @feeds = @{ $xml_feeds };
-        }
-        when ( 'default' )
-        {
+        #print "Using   'feed::scrape-no-validate' \n";
+        my $xml_feeds = Feed::Scrape->get_feed_urls_from_html( $url, $response->content );
 
-            #print "using default feed parsing\n";
-            @feeds = Feed::Find->find_in_html( \$response->content, $url );
-        }
-        default { die "invalid rss detection method " . MediaWords::Crawler::BlogUrlProcessor::get_rss_detection_method; }
+        #print Dumper($xml_feeds);
+        @feeds = @{ $xml_feeds };
+
+    }
+    elsif ( $rss_detection_method eq 'default' )
+    {
+
+        #print "using default feed parsing\n";
+        @feeds = Feed::Find->find_in_html( \$response->content, $url );
+
+    }
+    else
+    {
+        die "invalid rss detection method " . MediaWords::Crawler::BlogUrlProcessor::get_rss_detection_method;
+
     }
 
     #filter out empty string and undefined URLs

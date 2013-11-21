@@ -4,7 +4,7 @@ use List::MoreUtils qw( uniq distinct :all );
 use List::Util qw( sum  );
 use Text::Trim;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 use MediaWords::Crawler::Extractor;

@@ -15,6 +15,7 @@ use LWP::Simple;
 use Regexp::Common qw(time);
 use Date::Parse;
 use List::Util qw(max min);
+use List::MoreUtils qw(any);
 
 use MediaWords::CommonLibs;
 use MediaWords::CM::GuessDate;
@@ -597,8 +598,7 @@ sub timestamp_from_html($)
         qr{
             $pattern_not_digit_or_word_start
             (
-                (
-                    ?:$pattern_weekday_names
+                (?:$pattern_weekday_names
                     \s*
                     $pattern_comma
                     \s+
@@ -608,8 +608,7 @@ sub timestamp_from_html($)
                 $pattern_month_names
                 \s+
                 $pattern_year
-                (?:
-                    \s+
+                (?:\s+
                     $pattern_hour_minute
                     (?:\:$pattern_second)?
                     (?:\s+$pattern_timezone)?
@@ -877,10 +876,10 @@ sub _guessing_is_inapplicable($$$)
     for my $segment ( @segments_for_invalidation )
     {
 
-        # ~~ dies sometimes with 'Smart matching a non-overloaded object breaks encapsulation'
         my $r = 0;
-        eval { $r = 1 if ( $segment ~~ @url_segments ) };
-        return $r if ( $r == 1 );
+        if (any {$_ eq $segment} @url_segments) {
+            return 1;
+        }
     }
 
     return 0;

@@ -7,13 +7,12 @@ use Test::Deep;
 
 use utf8;
 
-use Modern::Perl "2012";
+use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::DB;
 use Feed::Scrape::MediaWords;
 
-use HTTP::Server::Simple;
-use HTTP::Server::Simple::CGI;
+use HTTP::HashServer;
 
 # must contain a hostname ('localhost') because a foreign feed link test requires it
 use constant TEST_HTTP_SERVER_PORT => 9998;
@@ -45,6 +44,11 @@ use constant SAMPLE_RSS_FEED => <<EOF;
 EOF
 
 BEGIN { use_ok 'Feed::Scrape' }
+
+sub _db()
+{
+    return MediaWords::DB::connect_to_db();
+}
 
 # Basic RSS feed URL scraping
 sub test_basic()
@@ -463,96 +467,44 @@ EOF
     cmp_bag( Feed::Scrape->get_main_feed_urls_from_html( $url, $content ), $expected_result, 'GP.se test' );
 }
 
-{
-
-    # Simple HTTP server implementation
-    package WebsiteServer;
-
-    use base qw(HTTP::Server::Simple::CGI);
-    use Data::Dumper;
-
-    my $pages = {};
-
-    sub set_pages
-    {
-        my ( $self, $new_pages ) = @_;
-        $pages = $new_pages;
-        return $self;
-    }
-
-    sub handle_request
-    {
-        my ( $self, $cgi ) = @_;
-
-        my $path = $cgi->path_info();
-
-        if ( exists $pages->{ $path } )
-        {
-            if ( $pages->{ $path }->{ header } =~ /Location: / )
-            {
-                print "HTTP/1.0 301 Moved Permanently\r\n";
-            }
-            else
-            {
-                print "HTTP/1.0 200 OK\r\n";
-            }
-            print $pages->{ $path }->{ header } . "\r\n\r\n";
-            print $pages->{ $path }->{ contents };
-
-        }
-        else
-        {
-            print "HTTP/1.0 404 Not found\r\n";
-            print "Content-Type: text/html\r\n\r\n";
-            print "Not found :(\n";
-        }
-    }
-}
-
 sub test_rss_simple_website
 {
     my $pages = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <li><a href="/feed1.xml">Wile E. Coyote</a></li>
-                    <li><a href="/feed2.xml">The Road Runner</a></li>
-                </ul>
+        '/rss' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <li><a href="/feed1.xml">Wile E. Coyote</a></li>
+                <li><a href="/feed2.xml">The Road Runner</a></li>
+            </ul>
 EOF
-        },
 
         # Sample feeds
         '/feed1.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
         '/feed2.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
 
     };
@@ -569,11 +521,12 @@ EOF
         }
     ];
 
-    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db         = MediaWords::DB::connect_to_db();
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
 
-    kill 9, $pid;
+    $hs->start();
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_simple_website' );
 }
@@ -588,51 +541,41 @@ sub test_rss_immediate_redirect_via_http_header
         '/' => {
 
             # Redirect to a new website
-            header   => 'Content-Type: text/html; charset=UTF-8' . "\r\nLocation: $test_url_2",
-            contents => <<EOF
-                <h1>Website was moved to $test_url_2</h1>
-                <p>See you there!</p>
-EOF
+            redirect => $test_url_2
         }
     };
 
     my $pages_2 = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <li><a href="/feed.xml">Wile E. Coyote</a></li>
-                </ul>
+        '/rss' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <li><a href="/feed.xml">Wile E. Coyote</a></li>
+            </ul>
 EOF
-        },
 
         # Sample feeds
         '/feed.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
 
     };
@@ -646,17 +589,19 @@ EOF
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 
-    my $pid_1 = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages_1 )->background();
-    my $pid_2 = WebsiteServer->new( TEST_HTTP_SERVER_PORT_2 )->set_pages( $pages_2 )->background();
-
-    my $db = MediaWords::DB::connect_to_db();
-
     my $medium = { url => $test_url_1 };
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
-    kill 9, $pid_1;
-    kill 9, $pid_2;
+    my $hs1 = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT,   $pages_1 );
+    my $hs2 = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT_2, $pages_2 );
+
+    $hs1->start();
+    $hs2->start();
+
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+
+    $hs1->stop();
+    $hs2->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_http_header feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_immediate_redirect_via_http_header need_to_moderate' );
@@ -670,61 +615,52 @@ sub test_rss_immediate_redirect_via_html_meta_refresh
 
     my $pages_1 = {
 
-        '/' => {
-
-            # Redirect to a new website
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <html>
-                    <head>
-                        <meta http-equiv="Refresh" content="0; url=$test_url_2">
-                    </head>
-                    <body>
-                        <h1>Website was moved to $test_url_2</h1>
-                        <p>See you there!</p>
-                    </body>
-                </html>
+        # META-redirect to a new website
+        '/' => <<EOF
+            <html>
+                <head>
+                    <meta http-equiv="Refresh" content="0; url=$test_url_2">
+                </head>
+                <body>
+                    <h1>Website was moved to $test_url_2</h1>
+                    <p>See you there!</p>
+                </body>
+            </html>
 EOF
-        }
+
     };
 
     my $pages_2 = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <li><a href="/feed.xml">Wile E. Coyote</a></li>
-                </ul>
+        '/rss' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <li><a href="/feed.xml">Wile E. Coyote</a></li>
+            </ul>
 EOF
-        },
 
         # Sample feeds
         '/feed.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
 
     };
@@ -738,17 +674,19 @@ EOF
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 
-    my $pid_1 = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages_1 )->background();
-    my $pid_2 = WebsiteServer->new( TEST_HTTP_SERVER_PORT_2 )->set_pages( $pages_2 )->background();
-
-    my $db = MediaWords::DB::connect_to_db();
-
     my $medium = { url => $test_url_1 };
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
-    kill 9, $pid_1;
-    kill 9, $pid_2;
+    my $hs1 = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT,   $pages_1 );
+    my $hs2 = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT_2, $pages_2 );
+
+    $hs1->start();
+    $hs2->start();
+
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+
+    $hs1->stop();
+    $hs2->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_immediate_redirect_via_html_meta_refresh feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate,
@@ -763,59 +701,53 @@ sub test_rss_base_href
     my $pages    = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <html>
-                    <head>
-                        <base href="$test_url/path_one/" target="_blank" />
-                    </head>
-                    <body>
-                        <h1>Acme News</h1>
-                        <p>
-                            Blah blah yada yada.
-                        </p>
-                        <hr />
-                        <p>
-                            We didn't bother to add proper &lt;link&gt; links to our pages, but
-                            here's a link to the RSS link listing:<br />
-                            <a href="rss">RSS</a>
-                        </p>
-                    </body>
-                </html>
+        '/' => <<EOF,
+            <html>
+                <head>
+                    <base href="$test_url/path_one/" target="_blank" />
+                </head>
+                <body>
+                    <h1>Acme News</h1>
+                    <p>
+                        Blah blah yada yada.
+                    </p>
+                    <hr />
+                    <p>
+                        We didn't bother to add proper &lt;link&gt; links to our pages, but
+                        here's a link to the RSS link listing:<br />
+                        <a href="rss">RSS</a>
+                    </p>
+                </body>
+            </html>
 EOF
-        },
 
         # RSS listing page
-        '/path_one/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <html>
-                    <head>
-                        <base href="$test_url/path_two/" target="_blank" />
-                    </head>
-                    <body>
-                        <h1>Acme News</h1>
-                        <p>
-                        Our RSS feeds:
-                        </p>
-                        <ul>
-                            <li><a href="feed1.xml">Wile E. Coyote</a></li>
-                            <li><a href="feed2.xml">The Road Runner</a></li>
-                        </ul>
-                    </body>
-                </html>
+        '/path_one/rss' => <<EOF,
+            <html>
+                <head>
+                    <base href="$test_url/path_two/" target="_blank" />
+                </head>
+                <body>
+                    <h1>Acme News</h1>
+                    <p>
+                    Our RSS feeds:
+                    </p>
+                    <ul>
+                        <li><a href="feed1.xml">Wile E. Coyote</a></li>
+                        <li><a href="feed2.xml">The Road Runner</a></li>
+                    </ul>
+                </body>
+            </html>
 EOF
-        },
 
         # Sample feeds
         '/path_two/feed1.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
         '/path_two/feed2.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
 
     };
@@ -832,11 +764,12 @@ EOF
         }
     ];
 
-    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db         = MediaWords::DB::connect_to_db();
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
 
-    kill 9, $pid;
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
 }
@@ -847,46 +780,40 @@ sub test_rss_unlinked_urls
     my $pages    = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <!-- No links -->
-                    $test_url/feed1.xml -- Wile E. Coyote<br />
-                    $test_url/feed2.xml -- The Road Runner<br />
-                </ul>
+        '/rss' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <!-- No links -->
+                $test_url/feed1.xml -- Wile E. Coyote<br />
+                $test_url/feed2.xml -- The Road Runner<br />
+            </ul>
 EOF
-        },
 
         # Sample feeds
         '/feed1.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
         '/feed2.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
 
     };
@@ -903,11 +830,12 @@ EOF
         }
     ];
 
-    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db         = MediaWords::DB::connect_to_db();
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
 
-    kill 9, $pid;
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
 }
@@ -917,46 +845,40 @@ sub test_rss_image_link
     my $pages = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    <!-- Intentionally no mention of R-S-S -->
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the Rich Site Summary link listing:<br />
-                    <a href="/listing"><img src="/rss.png" alt="" /></a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                <!-- Intentionally no mention of R-S-S -->
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the Rich Site Summary link listing:<br />
+                <a href="/listing"><img src="/rss.png" alt="" /></a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/listing' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                Our Rich Site Summary feeds:
-                </p>
-                <ul>
-                    <li><a href="/feed1.xml">Wile E. Coyote</a></li>
-                    <li><a href="/feed2.xml">The Road Runner</a></li>
-                </ul>
+        '/listing' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+            Our Rich Site Summary feeds:
+            </p>
+            <ul>
+                <li><a href="/feed1.xml">Wile E. Coyote</a></li>
+                <li><a href="/feed2.xml">The Road Runner</a></li>
+            </ul>
 EOF
-        },
 
         # Sample feeds
         '/feed1.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
         '/feed2.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
 
     };
@@ -973,11 +895,12 @@ EOF
         }
     ];
 
-    my $pid        = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db         = MediaWords::DB::connect_to_db();
-    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, $db, [], [] );
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
 
-    kill 9, $pid;
+    my $feed_links = Feed::Scrape::MediaWords->get_valid_feeds_from_index_url( [ TEST_HTTP_SERVER_URL ], 1, _db(), [], [] );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );
 }
@@ -987,38 +910,32 @@ sub test_rss_external_feeds
     my $pages = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <li><a href="http://feeds2.feedburner.com/localhost">Wile E. Coyote</a></li> <!-- This one should be declared as main feed -->
-                    <li><a href="http://quotidianohome.feedsportal.com/c/33327/f/565662/index.rss">The Road Runner</a></li> <!-- This one should *not* be declared a main feed -->
-                </ul>
+        '/rss' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <li><a href="http://feeds2.feedburner.com/localhost">Wile E. Coyote</a></li> <!-- This one should be declared as main feed -->
+                <li><a href="http://quotidianohome.feedsportal.com/c/33327/f/565662/index.rss">The Road Runner</a></li> <!-- This one should *not* be declared a main feed -->
+            </ul>
 EOF
-        },
-
     };
+
     my $expected_links = [
         {
             'url'       => 'http://feeds2.feedburner.com/localhost',
@@ -1029,13 +946,15 @@ EOF
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 
-    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db     = MediaWords::DB::connect_to_db();
     my $medium = { url => TEST_HTTP_SERVER_URL };
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
-    kill 9, $pid;
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_rss_external_feeds need_to_moderate' );
@@ -1047,46 +966,39 @@ sub test_get_feed_links_and_need_to_moderate_and_existing_urls
     my $pages = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # URL that looks like a feed but doesn't contain one
-        '/feed' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => 'The feed searcher will look here, but there is no feed to be found at this URL.'
-        },
+        '/feed' => <<EOF,
+            The feed searcher will look here, but there is no feed to be found at this URL.
+EOF
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <!-- "?format=html" was present in http://www.eldis.org/go/subscribe, elsewhere too -->
-                    <li><a href="http://feeds.feedburner.com/feedburnerstatus?format=html">Wile E. Coyote</a></li>
+        '/rss' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <!-- "?format=html" was present in http://www.eldis.org/go/subscribe, elsewhere too -->
+                <li><a href="http://feeds.feedburner.com/feedburnerstatus?format=html">Wile E. Coyote</a></li>
 
-                    <li><a href="http://feeds.feedburner.com/thesartorialist">The Road Runner</a></li>
-                </ul>
+                <li><a href="http://feeds.feedburner.com/thesartorialist">The Road Runner</a></li>
+            </ul>
 EOF
-        },
-
     };
+
     my $expected_links = [
         {
             'url'       => 'http://feeds.feedburner.com/feedburnerstatus',
@@ -1102,13 +1014,15 @@ EOF
     my $expected_need_to_moderate = 1;
     my $expected_existing_urls    = [];
 
-    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db     = MediaWords::DB::connect_to_db();
     my $medium = { url => TEST_HTTP_SERVER_URL };
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
-    kill 9, $pid;
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_get_feed_links_and_need_to_moderate_and_existing_urls feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate,
@@ -1123,42 +1037,36 @@ sub test_feeds_with_common_prefix
     my $pages    = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<"EOF"
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <li><a href="$test_url/feed1.xml">Feed one</a></li>
-                    <li><a href="$test_url/feed2.xml">Feed two</a></li>
-                    <li><a href="$test_url/feed3.xml">Feed three</a></li>
-                </ul>
+        '/rss' => <<"EOF",
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <li><a href="$test_url/feed1.xml">Feed one</a></li>
+                <li><a href="$test_url/feed2.xml">Feed two</a></li>
+                <li><a href="$test_url/feed3.xml">Feed three</a></li>
+            </ul>
 EOF
-        },
 
         # Sample feeds
         '/feed1.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => <<EOF
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com - Sports</title> <!-- One of the sub-feeds -->
@@ -1166,8 +1074,8 @@ EOF
 EOF
         },
         '/feed2.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => <<EOF
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com</title> <!-- This is the "main" feed which is expected to
@@ -1176,8 +1084,8 @@ EOF
 EOF
         },
         '/feed3.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => <<EOF
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel>
         <title>Example.com - Entertainment</title> <!-- One of the sub-feeds -->
@@ -1197,13 +1105,15 @@ EOF
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 
-    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db     = MediaWords::DB::connect_to_db();
     my $medium = { url => TEST_HTTP_SERVER_URL };
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
-    kill 9, $pid;
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feeds_with_common_prefix feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feeds_with_common_prefix need_to_moderate' );
@@ -1216,42 +1126,36 @@ sub test_feed_aggregator_urls
     my $pages    = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    We didn't bother to add proper &lt;link&gt; links to our pages, but
-                    here's a link to the RSS link listing:<br />
-                    <a href="/rss">RSS</a>
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                We didn't bother to add proper &lt;link&gt; links to our pages, but
+                here's a link to the RSS link listing:<br />
+                <a href="/rss">RSS</a>
+            </p>
 EOF
-        },
 
         # RSS listing page
-        '/rss' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<"EOF"
-                <h1>Acme News</h1>
-                <p>
-                Our RSS feeds:
-                </p>
-                <ul>
-                    <li><a href="http://www.google.com/ig/add?feedurl=$test_url/feed.xml">Add to Google</a></li>
-                    <li><a href="http://add.my.yahoo.com/rss?url=$test_url/feed.xml">Add to Yahoo!</a></li>
-                    <li><a href="http://www.netvibes.com/subscribe.php?url=$test_url/feed.xml">Add to NetVibes</a></li>
-                </ul>
+        '/rss' => <<"EOF",
+            <h1>Acme News</h1>
+            <p>
+            Our RSS feeds:
+            </p>
+            <ul>
+                <li><a href="http://www.google.com/ig/add?feedurl=$test_url/feed.xml">Add to Google</a></li>
+                <li><a href="http://add.my.yahoo.com/rss?url=$test_url/feed.xml">Add to Yahoo!</a></li>
+                <li><a href="http://www.netvibes.com/subscribe.php?url=$test_url/feed.xml">Add to NetVibes</a></li>
+            </ul>
 EOF
-        },
 
         # Sample feeds
         '/feed.xml' => {
-            header   => 'Content-Type: application/rss+xml; charset=UTF-8',
-            contents => SAMPLE_RSS_FEED
+            header  => 'Content-Type: application/rss+xml; charset=UTF-8',
+            content => SAMPLE_RSS_FEED
         },
 
     };
@@ -1266,13 +1170,15 @@ EOF
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 
-    my $pid    = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db     = MediaWords::DB::connect_to_db();
     my $medium = { url => TEST_HTTP_SERVER_URL };
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
 
-    kill 9, $pid;
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
+
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_feed_aggregator_urls feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_feed_aggregator_urls need_to_moderate' );
@@ -1287,20 +1193,17 @@ sub test_web_page_feed
     my $pages       = {
 
         # Index page
-        '/' => {
-            header   => 'Content-Type: text/html; charset=UTF-8',
-            contents => <<EOF
-                <h1>Acme News</h1>
-                <p>
-                    Blah blah yada yada.
-                </p>
-                <hr />
-                <p>
-                    This website doesn't have any RSS feeds, so it should be added
-                    as an "web_page" feed.
-                </p>
+        '/' => <<EOF,
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                This website doesn't have any RSS feeds, so it should be added
+                as an "web_page" feed.
+            </p>
 EOF
-        }
     };
     my $expected_links = [
         {
@@ -1313,12 +1216,13 @@ EOF
     my $expected_need_to_moderate = 0;
     my $expected_existing_urls    = [];
 
-    my $pid = WebsiteServer->new( TEST_HTTP_SERVER_PORT )->set_pages( $pages )->background();
-    my $db  = MediaWords::DB::connect_to_db();
-    my ( $feed_links, $need_to_moderate, $existing_urls ) =
-      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( $db, $medium );
+    my $hs = HTTP::HashServer->new( TEST_HTTP_SERVER_PORT, $pages );
+    $hs->start();
 
-    kill 9, $pid;
+    my ( $feed_links, $need_to_moderate, $existing_urls ) =
+      Feed::Scrape::get_feed_links_and_need_to_moderate_and_existing_urls( _db(), $medium );
+
+    $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
     is( $need_to_moderate, $expected_need_to_moderate, 'test_web_page_feed need_to_moderate' );
