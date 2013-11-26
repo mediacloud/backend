@@ -128,8 +128,6 @@ sub media_query_GET : Local
 
     my $query = "select s.* from media s where media_id = ? ";
 
-    say STDERR "QUERY $query";
-
     my $media = $c->dbis->query( $query, $media_id )->hashes();
 
     $self->_add_data_to_media( $c->dbis, $media );
