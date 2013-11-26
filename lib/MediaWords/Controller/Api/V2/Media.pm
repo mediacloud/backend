@@ -150,17 +150,10 @@ sub all_processed_GET : Local
 
     $last_processed_media_id //= 0;
 
-    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
+    my $media = $c->dbis->query( "select s.* from media s where media_id > ? ORDER by media_id asc limit ?",
+        $last_processed_media_id, ROWS_PER_PAGE )->hashes;
 
-    $show_raw_1st_download //= 0;
-
-    my $media = $c->dbis->query(
-        "select s.*, ps.processed_media_id from media s, processed_media ps where s.media_id = ps.media_id " .
-          " AND processed_media_id > ? order by processed_media_id  asc limit ?",
-        $last_processed_media_id, ROWS_PER_PAGE
-    )->hashes;
-
-    $self->_add_data_to_media( $c->dbis, $media, $show_raw_1st_download );
+    $self->_add_data_to_media( $c->dbis, $media );
 
     $self->status_ok( $c, entity => $media );
 }
