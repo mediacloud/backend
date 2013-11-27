@@ -1,12 +1,12 @@
-import couchdb
-import pymongo
-from pubsub import pub
 
 class StoryDatabase(object):
 
     # callbacks you can register listeners against
     EVENT_PRE_STORY_SAVE = "preStorySave"
     EVENT_POST_STORY_SAVE = "postStorySave"
+
+    def __init__(self):
+        None
 
     def connect(self, db_name, host, port, username, password):
         raise NotImplementedError("Subclasses should implement this!")
@@ -18,6 +18,7 @@ class StoryDatabase(object):
         ''' 
         Save a story (python object) to the database.  Return success or failure boolean.
         '''
+        from pubsub import pub
         if self.storyExists(str(story['stories_id'])):
             return False
         story_attributes = {
@@ -67,6 +68,8 @@ class StoryDatabase(object):
 class MongoStoryDatabase(StoryDatabase):
 
     def __init__(self, db_name=None, host='127.0.0.1', port=27017, username=None, password=None):
+        super(MongoStoryDatabase, self).__init__()
+        import pymongo
         self._server = pymongo.MongoClient(host, port)
         if db_name is not None:
             self.selectDatabase(db_name)
@@ -112,6 +115,8 @@ class MongoStoryDatabase(StoryDatabase):
 class CouchStoryDatabase(StoryDatabase):
 
     def __init__(self, db_name=None, host='127.0.0.1', port=5984, username=None, password=None):
+        super(CouchStoryDatabase, self).__init__()
+        import couchdb
         if (username is not None) and (password is not None):
             url = "http://"+username+":"+password+"@"
         else:
@@ -143,6 +148,7 @@ class CouchStoryDatabase(StoryDatabase):
         Is this story id in the database already?
         '''
         try:
+            import couchdb
             self._db[story_id]
         except couchdb.ResourceNotFound:
             return False
