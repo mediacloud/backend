@@ -1,17 +1,14 @@
 
+import re, logging, json, urllib
+import xml.etree.ElementTree, requests
 import mediacloud
-import json
-import requests
-import re
-import logging
 
 class MediaCloud(object):
     '''
     Simple client library for the nascent MediaCloud story feed API
     '''
 
-    API_URL = "http://www.mediacloud.org/admin/api/stories/"
-
+    API_URL = "http://mediacloud.org/admin/"
     DEFAULT_STORY_COUNT = 25
 
     def __init__(self, api_user=None, api_pass=None):
@@ -32,37 +29,42 @@ class MediaCloud(object):
         if not date_format.match(end_date):
             raise ValueError('start_date must be in YYYY-MM-DD')
         params = {'media_id':media_id, 'end_date':end_date, 'start_date':start_date}
-        results = self._query('subset/', {'data':json.dumps(params,separators=(',',':'))} )
+        results = self._queryForJson('api/stories/subset/', {'data':json.dumps(params,separators=(',',':'))}, 'PUT' )
         return results['story_subsets_id']
 
-    def storySubsetDetail(self, subset_id):
-        '''
-        '''
-        return self._query('subset/'+str(subset_id), {}, 'GET')
+    def _storySubsetDetail(self, subset_id):
+        return self._queryForJson('api/stories/subset/'+str(subset_id), {})
 
     def isStorySubsetReady(self, subset_id):
         '''
         Checks if a story subset is complete.  This can take a while.  Returns true or false.
         Once it returns true, you can page through the stories with allProcessedInSubset
         '''
-        subset_info = self.storySubsetDetail(subset_id)
+        subset_info = self._storySubsetDetail(subset_id)
         return (subset_info['ready']==1)
 
     def allProcessedInSubset(self,subset_id, page=1):
         '''
         Retrieve all the processed stories within a certain subset, 20 at a time
         '''
-        return self._query( 'subset_processed/'+str(subset_id), { 'page':page }, 'GET' )
+        return self._queryForJson('api/stories/subset_processed/'+str(subset_id), { 'page':page } )
 
     def allProcessed(self, page=1):
         '''
-        Return the last fully processed 20 stories (ie. with sentences pulled out)
+        Return the lastest fully processed 20 stories (ie. with sentences pulled out)
         '''
-        return self._query( 'all_processed', { 'page':page }, 'GET' )
+        return self._queryForJson('api/stories/all_processed', { 'page':page } )
 
-    def _query(self, method, params={}, http_method='PUT'):
+    def _queryForJson(self, method, params={}, http_method='GET'):
         '''
-        Helper that actually makes the requests
+        Helper that actually makes the requests and returns json
+        '''
+        r = self._query(method, params, http_method)
+        return r.json()
+
+    def _query(self, method, params={}, http_method='GET'):
+        '''
+        Helper that actually makes the requests and returns json
         '''
         url = self.API_URL + method
         logging.debug("query "+url+" with "+str(params))
@@ -71,4 +73,13 @@ class MediaCloud(object):
             auth=(self._api_user, self._api_pass), 
             headers={ 'Accept': 'application/json'}  
         )
-        return r.json()
+        return r
+
+    def wordCount(self, query_str, filter_str):
+        '''
+        I only used this to generate the URLs, not get the actual results (which are in json).
+        query_str should be something like this: "( robots OR android ) AND ( space )".
+        filter_str should be something like this: "+publish_date:[2012-04-01T00:00:00Z TO 2012-04-02T00:00:00Z] AND +media_sets_id:1".
+        This returns an array of things like this: {u'count': 1, u'term': u'versatile', u'stem': u'versatil'}
+        '''
+        return self._queryForJson('query/wc', { 'q': query_str, 'fq': filter_str} )
