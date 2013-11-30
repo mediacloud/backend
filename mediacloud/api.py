@@ -88,8 +88,7 @@ class MediaCloud(object):
     def sentencesMatching(self, query_str, filter_str, start=0, rows=DEFAULT_SOLR_SENTENCES_PER_PAGE):
         '''
         Return an array of sentences matching the query and filter specified.
-        This returns a JSON array of things like this: {u'count': 1, u'term': u'versatile', u'stem': u'versatil'}.
-        query_str should be something like this: "( robots OR android ) AND ( space )".
+        query_str should be something like this: "( robots AND mars ) OR ( space AND mars )".
         filter_str should be something like this: "+publish_date:[2012-04-01T00:00:00Z TO 2012-04-02T00:00:00Z] AND +media_sets_id:1".
         '''
         return self._queryForJson('query/sentences', { 'q': query_str, 'fq': filter_str, 
