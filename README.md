@@ -1,4 +1,4 @@
-MediaCloud Python API Client
+wMediaCloud Python API Client
 ============================
 
 This is the source code of the python MediaCloud API module.  It is a siple *under construction* 
@@ -22,9 +22,15 @@ article info.
 pip install pypubsub
 ```
 
+SOLR Examples
+-------------
 
-Examples
---------
+The SOLR search engine lets us query and filter the giant data set amazingly quickly.
+You can use the `wordCount`, `sentencesMatching`, and `sentencesMatchingByStory` methods
+to access this capability.  Take a look at the `apitest.py` for some basic examples.
+
+Subset Examples
+---------------
 
 ### Getting the Latest Stories from Media Cloud
 
