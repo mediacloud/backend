@@ -23,10 +23,17 @@ class ApiTest(unittest.TestCase):
 
     def testSentencesMatching(self):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
-    	results = mc.sentencesMatching('( robots AND mars ) OR ( space AND mars )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+    	results = mc.sentencesMatching('( mars OR robot )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
     	self.assertEquals(int(results['responseHeader']['status']),0)
-    	self.assertEquals(int(results['response']['numFound']),237)
+    	self.assertEquals(int(results['response']['numFound']),6739)
     	self.assertEquals(len(results['response']['docs']),mediacloud.api.MediaCloud.DEFAULT_SOLR_SENTENCES_PER_PAGE)
+
+    def testSentencesMatchingByStory(self):
+    	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+    	stories = mc.sentencesMatchingByStory('( mars OR robot )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+    	self.assertEquals(len(stories), 602)
+    	for story_id, sentences in stories.iteritems():
+    		self.assertTrue( len(sentences) > 0 )
 
     def suite():
         return unittest.makeSuite(ApiTest, 'test')

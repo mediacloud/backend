@@ -10,7 +10,7 @@ class MediaCloud(object):
 
     API_URL = "http://mediacloud.org/admin/"
     DEFAULT_STORY_COUNT = 25
-    DEFAULT_SOLR_SENTENCES_PER_PAGE = 100
+    DEFAULT_SOLR_SENTENCES_PER_PAGE = 1000
 
     def __init__(self, api_user=None, api_pass=None):
         logging.basicConfig(filename='mediacloud-api.log',level=logging.DEBUG)
@@ -94,3 +94,16 @@ class MediaCloud(object):
         return self._queryForJson('query/sentences', { 'q': query_str, 'fq': filter_str, 
             'start': start, 'rows': rows } )
 
+    def sentencesMatchingByStory(self, query_str, filter_str, start=0, rows=DEFAULT_SOLR_SENTENCES_PER_PAGE):
+        '''
+        Same as sentencesMatching, but groups sentences by story_id for you 
+        (returns as a dict mapping story_id to array of sentence results)
+        '''
+        results = self.sentencesMatching(query_str, filter_str, start, rows)
+        stories = {}
+        for sentence in results['response']['docs']:
+            story_id = sentence['stories_id']
+            if story_id not in stories:
+                stories[story_id] = []
+            stories[story_id].append(sentence)
+        return stories
