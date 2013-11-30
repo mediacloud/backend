@@ -26,12 +26,25 @@ class ApiTest(unittest.TestCase):
     	results = mc.sentencesMatching('( mars OR robot )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
     	self.assertEquals(int(results['responseHeader']['status']),0)
     	self.assertEquals(int(results['response']['numFound']),6739)
-    	self.assertEquals(len(results['response']['docs']),mediacloud.api.MediaCloud.DEFAULT_SOLR_SENTENCES_PER_PAGE)
+    	self.assertEquals(len(results['response']['docs']), 5000)
+
+    def testSentencesMatchingPaging(self):
+    	query_str = '( mars OR robot )'
+    	filter_str = '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1'
+    	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+    	# test limiting rows returned
+    	results = mc.sentencesMatching(query_str, filter_str,0,100)
+    	self.assertEquals(int(results['response']['numFound']), 6739)
+    	self.assertEquals(len(results['response']['docs']), 100)
+    	# test starting offset
+    	results = mc.sentencesMatching(query_str, filter_str,6700)
+    	self.assertEquals(int(results['response']['numFound']), 6739)
+    	self.assertEquals(len(results['response']['docs']), 39)
 
     def testSentencesMatchingByStory(self):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
     	stories = mc.sentencesMatchingByStory('( mars OR robot )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
-    	self.assertEquals(len(stories), 602)
+    	self.assertEquals(len(stories), 2072)
     	for story_id, sentences in stories.iteritems():
     		self.assertTrue( len(sentences) > 0 )
 

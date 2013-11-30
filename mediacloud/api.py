@@ -10,7 +10,7 @@ class MediaCloud(object):
 
     API_URL = "http://mediacloud.org/admin/"
     DEFAULT_STORY_COUNT = 25
-    DEFAULT_SOLR_SENTENCES_PER_PAGE = 1000
+    DEFAULT_SOLR_SENTENCES_PER_PAGE = 5000
 
     def __init__(self, api_user=None, api_pass=None):
         logging.basicConfig(filename='mediacloud-api.log',level=logging.DEBUG)
