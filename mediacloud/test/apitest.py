@@ -21,5 +21,12 @@ class ApiTest(unittest.TestCase):
     	sorted_tf = sorted(term_freq, key=lambda freq: int(freq['count']))
     	self.assertEquals(term_freq[3]['term'],u'drones')
 
+    def testSentencesMatching(self):
+    	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+    	results = mc.sentencesMatching('robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
+    	self.assertEquals(int(results['responseHeader']['status']),0)
+    	self.assertEquals(int(results['response']['numFound']),891)
+    	self.assertEquals(len(results['response']['docs']),mediacloud.api.MediaCloud.DEFAULT_SOLR_SENTENCES_PER_PAGE)
+
     def suite():
         return unittest.makeSuite(ApiTest, 'test')
