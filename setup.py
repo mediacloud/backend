@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='mediacloud',
-  version='0.6',
+  version='1.0',
   description='MediaCloud API Client Library',
   author='Rahul Bhargava',
   author_email='rahulb@media.mit.edu',
@@ -12,5 +12,5 @@ setup(name='mediacloud',
             'mediacloud.test': 'mediacloud/test'},
   package_data={'mediacloud':['data/*.csv'],
                 'mediacloud.test':['fixtures/*.json']},
-  requires=['pypubsub','couchdb','pymongo','requests','unicodecsv']
+  requires=['pypubsub','requests','unicodecsv']
   )
