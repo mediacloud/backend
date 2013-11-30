@@ -1,4 +1,4 @@
-wMediaCloud Python API Client
+MediaCloud Python API Client
 ============================
 
 This is the source code of the python MediaCloud API module.  It is a siple *under construction* 
