@@ -8,7 +8,7 @@ set -u
 set -o  errexit
 
 cd ../../solr/mediacloud/
-exec java -jar start.jar
+exec java -Xmx48G -jar start.jar
 
 
 
