@@ -56,6 +56,12 @@ echo "$SCHEMA_DIFF" > "$TEMP_DIR/mediawords.diff"
 # Apply diff in reverse
 patch --quiet --reverse "$TEMP_DIR/mediawords-old.sql" "$TEMP_DIR/mediawords.diff"
 
+# Check for '#' comments in both files (apgdiff is unable to parse such comments for some reason)
+if grep -q "#" "$TEMP_DIR/mediawords-old.sql" || grep -q "#" "$TEMP_DIR/mediawords-new.sql"; then
+    echo "Don't use comments starting with '#'. apgdiff doesn't like those." 1>&2
+    exit 1
+fi
+
 # Run PostgreSQL diff
 POSTGRES_DIFF=`java -jar ${PATH_TO_AGPDIFF} \
 	"$TEMP_DIR/mediawords-old.sql" "$TEMP_DIR/mediawords-new.sql"`
