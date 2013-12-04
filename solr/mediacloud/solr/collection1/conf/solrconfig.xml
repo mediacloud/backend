@@ -475,7 +475,7 @@
          be based on the last SolrCore to be initialized.
          
       -->
-    <maxBooleanClauses>1024</maxBooleanClauses>
+    <maxBooleanClauses>1000000</maxBooleanClauses>
 
 
     <!-- Solr Internal Query Caches
@@ -511,8 +511,8 @@
       -->
     <filterCache class="solr.FastLRUCache"
                  size="512"
-                 initialSize="512"
-                 autowarmCount="0"/>
+                 initialSize="5120000"
+                 autowarmCount="100000"/>
 
     <!-- Query Result Cache
          
@@ -520,7 +520,7 @@
          (DocList) based on a query, a sort, and the range of documents requested.  
       -->
     <queryResultCache class="solr.LRUCache"
-                     size="512"
+                     size="512000"
                      initialSize="512"
                      autowarmCount="0"/>
    
@@ -543,8 +543,8 @@
       -->
     <!--
        <fieldValueCache class="solr.FastLRUCache"
-                        size="512"
-                        autowarmCount="128"
+                        size="512000"
+                        autowarmCount="12800"
                         showItems="32" />
       -->
 
