@@ -23,11 +23,6 @@ fi
 
 $CPANM CPAN~2.00
 
-# FIXME Install ExtUtils::MakeMaker (a Carton dependency) separately
-# without testing it because t/meta_convert.t fails on some machines
-# (https://rt.cpan.org/Public/Bug/Display.html?id=85861)
-$CPANM --notest ExtUtils::MakeMaker
-
 # 1.0.9 or newer
 # (if the install of Carton 1.0.9 fails because of CPAN::Meta failure,
 # purge Perl with ./install_scripts/purge_mc_perl_brew.sh and

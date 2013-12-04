@@ -12,12 +12,13 @@ if [ `uname` == 'Darwin' ]; then
     )
 
     for path in ${POSSIBLE_JDK_PATHS[@]}; do
-        if     [[ -d "$POSSIBLE_JDK_PATH"
-            &&    -f "$POSSIBLE_JDK_PATH/Commands/javac"
-            &&    -f "$POSSIBLE_JDK_PATH/Headers/jni.h" 
-            &&    -f "$POSSIBLE_JDK_PATH/Libraries/libjvm.dylib" ]]; then
+        if     [[ -d "$path"
+            &&    -f "$path/Commands/javac"
+            &&    -f "$path/Headers/jni.h" 
+            &&    -f "$path/Libraries/libjvm.dylib" ]]; then
             
             JAVA_HOME="$path"
+            break
         fi
     done
 
@@ -42,7 +43,7 @@ else
             &&    -f "$path/include/jni.h" ]] ; then
             
             JAVA_HOME="$path"
-	    break
+	        break
         fi
     done
 
