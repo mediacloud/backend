@@ -145,7 +145,7 @@ sub print_shell_env_commands_for_psql
 
     _set_environment_vars_for_db( $label );
 
-    my $psql_env_vars = [ qw ( PGPASSWORD PGHOST PGDATABASE PGUSER ) ];
+    my $psql_env_vars = [ qw ( PGPASSWORD PGHOST PGDATABASE PGUSER PGPORT) ];
 
     foreach my $psql_env_var ( @{ $psql_env_vars } )
     {
