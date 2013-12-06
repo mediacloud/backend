@@ -30,7 +30,7 @@ use MediaWords::Util::MC_Fork;
 # downloads are extracted by a total of num_total_jobs processings
 # a total of num_total_processes, with a unique 1-indexed job_number
 # for each job
-sub extract_text
+sub extract_text($$$$)
 {
     my ( $process_num, $num_total_processes, $num_total_jobs, $job_number ) = @_;
 
@@ -39,6 +39,7 @@ sub extract_text
     $db->dbh->{ AutoCommit } = 0;
 
     my $job_process_num = $process_num + int( ( $num_total_processes / $num_total_jobs ) * ( $job_number - 1 ) );
+    my $process_id = "$process_num, $job_process_num";
 
     use MediaWords::DBI::DownloadTexts;
     use MediaWords::DBI::Stories;
@@ -69,8 +70,7 @@ EOF
             $download_found = 1;
 
             eval {
-                MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download,
-                    "$process_num, $job_process_num" );
+                MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_id );
 
             };
 
