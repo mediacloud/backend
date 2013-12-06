@@ -52,12 +52,21 @@ sub extract_text
         #    "  where d.extracted='f' and d.type='content' and d.state='success' " )->flat;
 
         my $num_downloads = 0;
-        print STDERR "[$process_num, $job_process_num] find new downloads ($num_downloads remaining) ...\n";
+        say STDERR "[$process_num, $job_process_num] find new downloads ($num_downloads remaining) ...";
 
         my $downloads = $db->query(
-            "SELECT d.* from downloads d " . "  where d.extracted='f' and d.type='content' and d.state='success' " .
-              "    and  (( ( d.stories_id + $job_process_num ) % $num_total_processes ) = 0 ) " .
-              "order by stories_id asc " . "  limit " . PROCESS_SIZE );
+            <<EOF,
+            SELECT d.*
+            FROM downloads d
+            WHERE d.extracted = 'f'
+              AND d.type = 'content'
+              AND d.state = 'success'
+              AND (( ( d.stories_id + ? ) % ? ) = 0 )
+            ORDER BY stories_id ASC
+            LIMIT ?
+EOF
+            $job_process_num, $num_total_processes, PROCESS_SIZE
+        );
 
         # my $downloads = $db->query( "select * from downloads where stories_id = 418981" );
         my $download_found;
@@ -77,9 +86,13 @@ sub extract_text
                 $db->rollback;
 
                 $db->query(
-                    "update downloads set state = 'extractor_error', error_message = ? where downloads_id = ?",
-                    "extractor error: $@",
-                    $download->{ downloads_id }
+                    <<EOF,
+                    UPDATE downloads
+                    SET state = 'extractor_error',
+                        error_message = ?
+                    WHERE downloads_id = ?
+EOF
+                    "extractor error: $@", $download->{ downloads_id }
                 );
             }
             $db->commit;
@@ -87,7 +100,7 @@ sub extract_text
 
         if ( !$download_found )
         {
-            print STDERR "[$process_num] no downloads found. sleeping ...\n";
+            say STDERR "[$process_num] no downloads found. sleeping ...";
             sleep 60;
         }
 
@@ -128,13 +141,13 @@ sub main
         while ( 1 )
         {
             eval {
-                print STDERR "[$mod] START\n";
+                say STDERR "[$mod] START";
                 extract_text( $mod, $num_total_processes, $num_total_jobs, $job_number );
             };
             if ( $@ )
             {
-                print STDERR "[$mod] extract_text failed with error: $@\n";
-                print STDERR "[$mod] sleeping before restart ...\n";
+                say STDERR "[$mod] extract_text failed with error: $@";
+                say STDERR "[$mod] sleeping before restart ...";
                 sleep 60;
             }
         }
