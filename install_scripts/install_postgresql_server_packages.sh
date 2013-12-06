@@ -51,7 +51,7 @@ if [ `uname` == 'Darwin' ]; then
 
 else
 
-    sudo ../foreign_modules/apt.postgresql.org.sh
+    echo | sudo ../foreign_modules/apt.postgresql.org.sh
     # assume Ubuntu
     sudo apt-get --assume-yes install \
         postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3 postgresql-plperl-9.3 postgresql-server-dev-9.3
