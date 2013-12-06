@@ -5,6 +5,8 @@ use warnings;
 use Carton::Environment;
 use parent( 'Carton::CLI' );
 
+our $UseSystem = 0;    # 1 for unit testing
+
 sub cmd_exec
 {
     my ( $self, @args ) = @_;
@@ -30,9 +32,8 @@ sub cmd_exec
         }
     }
 
-    my $system;    # for unit testing
     my @include;
-    $self->parse_options( \@args, 'I=s@', \@include, "system", \$system );
+    $self->parse_options_pass_through( \@args );    # to handle --
 
     unless ( @args )
     {
@@ -50,7 +51,7 @@ sub cmd_exec
     local $ENV{ PERL5OPT } = "-Mlib::core::only -Mlib=$lib $carton_extra_perl5opt";
     local $ENV{ PATH }     = "$path/bin:$ENV{PATH}";
 
-    $system ? system( @args ) : exec( @args );
+    $UseSystem ? system( @args ) : exec( @args );
 }
 
 1;
