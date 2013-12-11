@@ -3824,19 +3824,6 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  HTML-CruftText-0.01
-    pathname: D/DR/DRLARO/HTML/HTML-CruftText-0.01.tar.gz
-    provides:
-      HTML::CruftText 0.01
-    requirements:
-      ExtUtils::MakeMaker 0
-      List::MoreUtils 0.33
-      Readonly 1.03
-      Test::More 0
-      Test::NoWarnings 1.04
-      Test::Pod 1.45
-      Test::Pod::Coverage 1.08
-      Time::HiRes 1.51
   HTML-Form-6.03
     pathname: G/GA/GAAS/HTML-Form-6.03.tar.gz
     provides:

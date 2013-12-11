@@ -13,7 +13,7 @@ BEGIN
 use Readonly;
 
 #use Test::More qw (no_plan);
-use MediaWords::Crawler::Extractor qw (preprocess);
+use MediaWords::Crawler::Extractor;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use XML::LibXML;
