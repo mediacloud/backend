@@ -225,6 +225,9 @@ sub clear_cruft_text($)
         }
         else
         {
+            # Remove newlines in HTML comments
+            $data =~ s/[\r\n]/ /g;
+
             # Remove ">" and "<" in HTML comments
             $data =~ s/[<>]/|/g;
             $comment->setData( $data );
