@@ -8,7 +8,8 @@ class MediaCloud(object):
     Simple client library for the nascent MediaCloud story feed API
     '''
 
-    API_URL = "http://mediacloud.org/admin/"
+    API_URL = "http://mediacloud.org/admin/api/"
+    SOLR_URL = "http://mediacloud.org/admin/query/"
     DEFAULT_STORY_COUNT = 25
     DEFAULT_SOLR_SENTENCES_PER_PAGE = 5000
 
@@ -30,11 +31,11 @@ class MediaCloud(object):
         if not date_format.match(end_date):
             raise ValueError('start_date must be in YYYY-MM-DD')
         params = {'media_id':media_id, 'end_date':end_date, 'start_date':start_date}
-        results = self._queryForJson('api/stories/subset/', {'data':json.dumps(params,separators=(',',':'))}, 'PUT' )
+        results = self._queryForJson(self.API_URL+'stories/subset/', {'data':json.dumps(params,separators=(',',':'))}, 'PUT' )
         return results['story_subsets_id']
 
     def _storySubsetDetail(self, subset_id):
-        return self._queryForJson('api/stories/subset/'+str(subset_id), {})
+        return self._queryForJson(self.API_URL+'stories/subset/'+str(subset_id), {})
 
     def isStorySubsetReady(self, subset_id):
         '''
@@ -48,26 +49,25 @@ class MediaCloud(object):
         '''
         Retrieve all the processed stories within a certain subset, 20 at a time
         '''
-        return self._queryForJson('api/stories/subset_processed/'+str(subset_id), { 'page':page } )
+        return self._queryForJson(self.API_URL+'stories/subset_processed/'+str(subset_id), { 'page':page } )
 
     def allProcessed(self, page=1):
         '''
         Return the lastest fully processed 20 stories (ie. with sentences pulled out)
         '''
-        return self._queryForJson('api/stories/all_processed', { 'page':page } )
+        return self._queryForJson(self.API_URL+'stories/all_processed', { 'page':page } )
 
-    def _queryForJson(self, method, params={}, http_method='GET'):
+    def _queryForJson(self, url, params={}, http_method='GET'):
         '''
         Helper that actually makes the requests and returns json
         '''
-        r = self._query(method, params, http_method)
+        r = self._query(url, params, http_method)
         return r.json()
 
-    def _query(self, method, params={}, http_method='GET'):
+    def _query(self, url, params={}, http_method='GET'):
         '''
         Helper that actually makes the requests and returns json
         '''
-        url = self.API_URL + method
         logging.debug("query "+url+" with "+str(params))
         r = requests.request( http_method, url, 
             params=params,
@@ -83,7 +83,7 @@ class MediaCloud(object):
         query_str should be something like this: "( robots OR android ) AND ( space )".
         filter_str should be something like this: "+publish_date:[2012-04-01T00:00:00Z TO 2012-04-02T00:00:00Z] AND +media_sets_id:1".
         '''
-        return self._queryForJson('query/wc', { 'q': query_str, 'fq': filter_str} )
+        return self._queryForJson(self.SOLR_URL+'wc', { 'q': query_str, 'fq': filter_str} )
 
     def sentencesMatching(self, query_str, filter_str, start=0, rows=DEFAULT_SOLR_SENTENCES_PER_PAGE):
         '''
@@ -91,7 +91,7 @@ class MediaCloud(object):
         query_str should be something like this: "( robots AND mars ) OR ( space AND mars )".
         filter_str should be something like this: "+publish_date:[2012-04-01T00:00:00Z TO 2012-04-02T00:00:00Z] AND +media_sets_id:1".
         '''
-        return self._queryForJson('query/sentences', { 'q': query_str, 'fq': filter_str, 
+        return self._queryForJson(self.SOLR_URL+'sentences', { 'q': query_str, 'fq': filter_str, 
             'start': start, 'rows': rows } )
 
     def sentencesMatchingByStory(self, query_str, filter_str, start=0, rows=DEFAULT_SOLR_SENTENCES_PER_PAGE):
