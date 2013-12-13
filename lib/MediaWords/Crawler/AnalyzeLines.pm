@@ -48,8 +48,7 @@ sub get_html_density($$)
     my $html_length = 0;
     while ( $line =~ /(<\/?([a-z]*) ?[^>]*>)/g )
     {
-        my ( $tag, $tag_name ) = ( $1, lc($2) );
-        my $len = length( $tag );
+        my ( $len, $tag_name ) = ( length($1), lc($2) );
 
         if ( $tag_name eq 'p' )
         {
