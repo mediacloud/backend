@@ -88,10 +88,9 @@ sub get_html_density($$)
 
     for my $noise_word ( @{ $noise_words } )
     {
-        while ( $line =~ /\Q$noise_word\E/ig )
-        {
-            $html_length += length( $noise_word );
-        }
+        # Count the number of times "$noise_word" occurs in "$line"
+        my $noise_word_occurrences = () = $line =~ /\Q$noise_word\E/ig;
+        $html_length += ( $noise_word_occurrences * length( $noise_word ) );
     }
 
     return ( $html_length / ( length( $line ) ) );
