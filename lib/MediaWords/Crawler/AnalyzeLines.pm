@@ -48,18 +48,18 @@ sub get_html_density($$)
     my $html_length = 0;
     while ( $line =~ /(<\/?([a-z]*) ?[^>]*>)/g )
     {
-        my ( $tag, $tag_name ) = ( $1, $2 );
-        my $len = length( $1 );
+        my ( $tag, $tag_name ) = ( $1, lc($2) );
+        my $len = length( $tag );
 
-        if ( lc( $tag_name ) eq 'p' )
+        if ( $tag_name eq 'p' )
         {
             $len *= P_DISCOUNT;
         }
-        elsif ( lc( $tag_name ) eq 'li' )
+        elsif ( $tag_name eq 'li' )
         {
             $len *= LI_DISCOUNT;
         }
-        elsif ( lc( $tag_name ) eq 'a' )
+        elsif ( $tag_name eq 'a' )
         {
             if ( pos( $line ) == 0 )
             {
