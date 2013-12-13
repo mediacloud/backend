@@ -56,6 +56,7 @@ requires 'Gearman::JobScheduler', '0.11';
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';
 requires 'GraphViz';
+requires 'HTML::CruftText';
 requires 'HTML::Entities';
 requires 'HTML::FormatText';
 requires 'HTML::FormFu';

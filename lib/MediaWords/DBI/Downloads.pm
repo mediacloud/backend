@@ -256,9 +256,11 @@ sub fetch_preprocessed_content_lines($)
         return [];
     }
 
-    my $lines = MediaWords::Crawler::Extractor::preprocess( $$content_ref );
+    my @lines = split( /[\n\r]+/, $$content_ref );
 
-    return $lines;
+    MediaWords::Crawler::Extractor::preprocess( \@lines );
+
+    return \@lines;
 }
 
 # run MediaWords::Crawler::Extractor against the download content and return a hash in the form of:
@@ -305,7 +307,9 @@ sub _do_extraction_from_content_ref($$$)
 {
     my ( $content_ref, $title, $description ) = @_;
 
-    my $lines = MediaWords::Crawler::Extractor::preprocess( $$content_ref );
+    my @lines = split( /[\n\r]+/, $$content_ref );
+
+    my $lines = MediaWords::Crawler::Extractor::preprocess( \@lines );
 
     return extract_preprocessed_lines_for_story( $lines, $title, $description );
 }

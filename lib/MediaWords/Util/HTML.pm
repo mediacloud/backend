@@ -8,7 +8,7 @@ use MediaWords::CommonLibs;
 require Exporter;
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(html_strip clear_cruft_text);
+our @EXPORT = qw(html_strip);
 
 # various functions for editing feed and medium tags
 
@@ -18,24 +18,6 @@ use HTML::Entities qw( decode_entities  );
 use Devel::Peek qw(Dump);
 use Encode;
 use List::Util qw(min);
-
-use XML::LibXML;
-
-my $xml_parser = XML::LibXML->new(
-    {
-
-        no_network   => 1,
-        load_ext_dtd => 0,
-        no_defdtd    => 1,
-        recover      => 2,
-
-        # Assume that HTML pages will be full of errors and thus the only thing
-        # that matters is whether or not the module is able to cough up some
-        # sort of an XML file
-        suppress_errors   => 1,
-        suppress_warnings => 1,
-    }
-);
 
 # provide a procedural interface to HTML::Strip
 # use HTML::StripPP instead of HTML::Strip b/c HTML::Strip mucks up the encoding
@@ -178,87 +160,6 @@ sub html_strip_encoding_fix
     #utf8::decode(utf8::encode($decoded_text));
     #say STDERR Dump($decoded_text);
     return $decoded_text;
-}
-
-# Cleans up the UTF-8 markup by tidying it up into a valid XML file.
-# Also removes:
-# * Contents outside "<body>...</body>";
-# * Contents of "<script>", "<style>", "<frame>", "<applet>", "<textarea>";
-# * Empty HTML comments;
-# * "<" and ">" in HTML comments.
-# die()s on error.
-sub clear_cruft_text($)
-{
-    my $html = shift;
-
-    eval { $html = $xml_parser->load_html( string => $html ); };
-
-    # Ignore errors (in $@) because HTML::LibXML is likely to complain a lot
-
-    unless ( $html )
-    {
-        die "LibXML succeeded, but the resulting HTML file is empty.\n";
-    }
-
-    # Scrub contents of various tags
-    my @scrub_tags = qw/script style frame applet textarea/;
-    foreach my $tag ( @scrub_tags )
-    {
-        my @nodelist = $html->getElementsByTagName( $tag );
-        foreach my $node ( @nodelist )
-        {
-            # Set the text contents of the node to ' ' so that the node doesn't get "<closed />"
-            $node->removeChildNodes();
-            $node->appendText( ' ' );
-        }
-    }
-
-    # Process HTML comments
-    for my $comment ( $html->findnodes( '//comment()' ) )
-    {
-        my $data = $comment->data;
-
-        if ( $data eq '' )
-        {
-            # Remove empty HTML comments
-            $comment->parentNode->removeChild( $comment );
-        }
-        else
-        {
-            # Remove ">" and "<" in HTML comments
-            $data =~ s/[<>]/|/g;
-            $comment->setData( $data );
-        }
-    }
-
-    # Try to find only the "<body>" element; if it is present, leave only <body>
-    my @bodies = $html->getElementsByTagName( 'body' );
-    if ( scalar @bodies == 0 )
-    {
-        # No "<body>" - do nothing
-    }
-    elsif ( scalar @bodies == 1 )
-    {
-        # Single "<body>" element - use it
-        $html = $bodies[ 0 ];
-    }
-    elsif ( scalar @bodies > 1 )
-    {
-        # Multiple "<body>" elements - use the last one
-        $html = $bodies[ -1 ];
-    }
-
-    $html = $html->toString( 1 ) . "\n";
-
-    return $html;
-}
-
-# Returns true if HTML has "click print" comments
-sub has_clickprint($)
-{
-    my $html = shift;
-
-    return ( $html =~ /<\!--\s*startclickprintinclude\s*-->/i );
 }
 
 1;

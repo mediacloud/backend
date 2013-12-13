@@ -14,7 +14,7 @@ use Readonly;
 
 #use Test::NoWarnings;
 use Test::More skip_all => 'Not working yet';
-use MediaWords::Crawler::Extractor;
+use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use XML::LibXML;

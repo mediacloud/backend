@@ -16,6 +16,7 @@ use Text::Trim;
 use Time::HiRes;
 use List::MoreUtils qw(first_index indexes last_index);
 use Array::Compare;
+use HTML::CruftText;
 use Carp qw (confess);
 
 # CONSTANTS
@@ -88,15 +89,9 @@ sub get_sphereit_map($$)
     return $sphereit_map;
 }
 
-sub preprocess($)
+sub preprocess
 {
-    my $html = shift;
-
-    $html = MediaWords::Util::HTML::clear_cruft_text( $html );
-
-    my @lines = split( /[\n\r]+/, $html );
-
-    return \@lines;
+    return HTML::CruftText::clearCruftText( @_ );
 }
 
 my $_start_time;

@@ -20,12 +20,11 @@ use Readonly;
 use Test::More skip_all => 'TODO rewrite for the new extractor';
 require Test::NoWarnings;
 
-use MediaWords::Crawler::Extractor;
+use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;
 use MediaWords::DBI::Downloads;
 use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
-use MediaWords::Util::HTML;
 use XML::LibXML;
 use Encode;
 use MIME::Base64;
@@ -82,9 +81,9 @@ sub get_value_of_base_64_node
 
         my $expected_preprocessed_text = get_value_of_base_64_node( $root, 'preprocessed_lines_base64' );
 
-        my $actual_preprocessed_text = MediaWords::Util::HTML::clear_cruft_text( $download_content );
+        my $actual_preprocessed_text_array = HTML::CruftText::clearCruftText( $download_content );
 
-        my $actual_preprocessed_text_array = [ split( /[\n\r]+/, $actual_preprocessed_text ) ];
+        my $actual_preprocessed_text = join( "", map { $_ . "\n" } @{ $actual_preprocessed_text_array } );
 
         is( $actual_preprocessed_text, $expected_preprocessed_text, "preprocessed text $xml_file" );
 

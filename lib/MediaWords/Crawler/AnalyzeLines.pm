@@ -10,7 +10,6 @@ use MediaWords::Util::HTML;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
-use MediaWords::Util::HTML;
 use Carp;
 
 # extract substantive new story text from html pages
@@ -318,7 +317,7 @@ sub get_info_for_lines($$$)
     $title_text =~ s/\s+/ /;
 
     my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
-    my $has_clickprint = MediaWords::Util::HTML::has_clickprint( $full_text );
+    my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
     my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
 
     MediaWords::Crawler::Extractor::print_time( "find_markers" );
