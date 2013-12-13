@@ -1,57 +1,101 @@
-
-Media Cloud Version 2
-
+% Media Cloud Version 2
+% Author David Larochelle
+% December 13, 2013
 
 # Media
   
-To get information on a single media source send a request to
 
-api/v2/media/single/<media_id> where <media_id> is the media_id of a given media source.
+URL                                    Function
+---------------------------------      ------------------------------------------------------------
+api/v2/media/single/<media_id>         Return the media source in which media_id equals <media_id>
+---------------------------------      ------------------------------------------------------------
 
-  
-To get information on multiple media sources, send a request to api/v2/media/list
+##Query Parameters 
 
-This will return information on 20 media sources sorted by media_id. The last_media_id parameter can be used to page through these results.
+None.
+
+URL                                                                       Function
+---------------------------------      -------------------------------------------
+api/v2/media/list                      Return multiple media sources 
+---------------------------------      -------------------------------------------
+
+--------------------------------------------------------------------------------------------------------
+Parameter         Default         Notes
+---------------   ----------      ----------------------------------------------------------------------
+ last_media_id    0               return media sources with a 
+                                  media_id is greater than this value
+
+ rows             20              Number of media sources to return. Can not be larger than 100
+--------------------------------------------------------------------------------------------------------
 
 
 # Media Sets
-  
-To get information on a single media set, send a request to
 
-api/v2/mediasets/single/<media_sets_id> where <media_sets_id> is the media_sets_id of a given media source.
+URL                                    Function
+---------------------------------      ------------------------------------------------------------
+api/v2/media_set/single/<media_sets_id>         Return the media source in which media_sets_id equals <media_sets_id>
+---------------------------------      ------------------------------------------------------------
 
-  
-To get information on multiple  media sets, send a request to api/v2/media_sets/list
+##Query Parameters 
 
-This will return information on 20 media sets sorted by media_sets_id. The last_media_sets_id parameter can be used to page through these results.
+None.
 
+URL                                                                       Function
+---------------------------------      -------------------------------------------
+api/v2/media/list                      Return multiple media sources 
+---------------------------------      -------------------------------------------
+
+--------------------------------------------------------------------------------------------------------
+Parameter             Default         Notes
+-------------------   ----------      ----------------------------------------------------------------------
+ last_media_sets_id    0               return media sets with 
+                                       media_sets_id is greater than this value
+
+ rows                  20              Number of media sets to return. Can not be larger than 100
+--------------------------------------------------------------------------------------------------------
 
 # Stories
-  
-To get information on a single story, send a request to
 
-api/v2/stories/single/<stories_id> where <stories_id> is the stories_id of a given story.
 
+URL                                    Function
+------------------------------------   ------------------------------------------------------------
+api/v2/stories/single/<stories_id>     Return story in which stories_id equals <stories_id>
+------------------------------------   ------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------
+Parameter             Default         Notes
+-------------------   ----------      ----------------------------------------------------------------------
+ raw_1st_download     0                If non-zero include the full html of the first page of the story
+--------------------------------------------------------------------------------------------------------
+
+##Multiple Stories
   
 To get information on multiple stories send get requests to `api/V2/stories/list_processed`
 
-  
-Requests will return 20 results in the order in which the stories were processed.
 
+URL                                                                       Function
+---------------------------------      -------------------------------------------
+api/V2/stories/list_processed           Return multiple processed stories
+---------------------------------      -------------------------------------------
+
+--------------------------------------------------------------------------------------------------------
+Parameter                     Default         Notes
+---------------------------   ----------      ----------------------------------------------------------
+ last_processed_stories_id    0               return stories in which the processed_stories_id 
+                                                is greater than this value
+
+ rows                         20              Number of stories to return. Can not be larger than 100
+
+ raw_1st_download      0                      If non-zero include the full html of the first
+                                              page of the story
+--------------------------------------------------------------------------------------------------------
   
 The ‘last_processed_id’ parameter can be used to page through these results. The api will return 20 stories with a processed_id greater than this value.
 
-  
-I.e.[ ](http://example.com/api/stories/all_processed/page=200)[    http://example.com/api/v2/stories/all_processed/last_processed_id](http://example.com/api/stories/all_processed/last_processed_id)[    =200](http://example.com/api/stories/all_processed/page=200)
-
-  
-For both `stories/single` and `stories/list_processed`, the parameter `raw_1st_download` toggles whether the full html of the first page of the story is included in the response. If `raw_1st_download` is 0 or is omitted the html of the first page in NOT included otherwise the html is included.
-
-  
 NOTE: stories_id and processed_id are separate values. The order in which stories are processed is different than the story_id order. The processing pipeline involves downloading, extracting, and vectoring stories. Since unprocessed stories are of little interest, we have introduced the processed_id field to allow users to stream all stories as they’re processed.
 
-
 # Story_subsets
+
 These who want to only see a subset of stories can create a story subset stream by sending a put request to `api/v2/stories/subset/?data=<JSON> `where <JSON_STRING> is a URL encoded JSON representation of the story subset.
 
   
