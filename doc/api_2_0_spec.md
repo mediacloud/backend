@@ -7,7 +7,7 @@
 
 URL                                    Function
 ---------------------------------      ------------------------------------------------------------
-api/v2/media/single/<media_id>         Return the media source in which media_id equals <media_id>
+api/v2/media/single/\<media_id\>         Return the media source in which media_id equals \<media_id\>
 ---------------------------------      ------------------------------------------------------------
 
 ##Query Parameters 
@@ -31,10 +31,10 @@ Parameter         Default         Notes
 
 # Media Sets
 
-URL                                    Function
----------------------------------      ------------------------------------------------------------
-api/v2/media_set/single/<media_sets_id>         Return the media source in which media_sets_id equals <media_sets_id>
----------------------------------      ------------------------------------------------------------
+URL                                      Function
+---------------------------------        ------------------------------------------------------------
+api/v2/media_set/single/\<media_sets_id\>         Return the media source in which media_sets_id equals \<media_sets_id\>
+---------------------------------        ------------------------------------------------------------
 
 ##Query Parameters 
 
@@ -59,7 +59,7 @@ Parameter             Default         Notes
 
 URL                                    Function
 ------------------------------------   ------------------------------------------------------------
-api/v2/stories/single/<stories_id>     Return story in which stories_id equals <stories_id>
+api/v2/stories/single/\<stories_id\>     Return story in which stories_id equals \<stories_id\>
 ------------------------------------   ------------------------------------------------------------
 
 --------------------------------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ Parameter                     Default         Notes
 
  rows                         20              Number of stories to return. Can not be larger than 100
 
- raw_1st_download      0                      If non-zero include the full html of the first
+ raw_1st_download             0               If non-zero include the full html of the first
                                               page of the story
 --------------------------------------------------------------------------------------------------------
   
@@ -96,39 +96,31 @@ NOTE: stories_id and processed_id are separate values. The order in which storie
 
 # Story_subsets
 
-These who want to only see a subset of stories can create a story subset stream by sending a put request to `api/v2/stories/subset/?data=<JSON> `where <JSON_STRING> is a URL encoded JSON representation of the story subset.
+These who want to only see a subset of stories can create a story subset stream by sending a put request to `api/v2/stories/subset/?data=\<JSON\> `where \<JSON_STRING\> is a URL encoded JSON representation of the story subset.
 
-  
-The story subset can have any of the following fields:
 
-  
-start_date
 
-end_date 
+URL                                                                       Function
+---------------------------------      --------------------------------------------------
+api/v2/stories/subset                    Creates a story subset. Must use a Pur request
+---------------------------------      --------------------------------------------------
 
-media_id
+--------------------------------------------------------------------------------------------------------
+Parameter                     Notes
+---------------------------   --------------------------------------------------------------------------
+ start_date                   Only include stories with a publish date \>= start_date
 
-media_sets_id
+ end_date                     Only include stories with a publish date \<= end_date
 
-  
-`start_date` and `end_date`  restrict stories based on the `publish_date` of the story. `media_id` and `media_sets_id` will restrict the stories to only include a given media source or media set.
 
-  
-For example, the following command would create a story subset for the New York Times for 1 January 2013 to 2 January 2013
+ media_id                     Only include stories from the media source indicated by media_id
 
-    curl -X PUT  --user mediacloud-admin:password http://chloe.law.harvard.edu/admin/api/stories/subset/?data=%7B%22media_id%22%3A1%2C%22end_date%22%3A%222013-01-02%22%2C%22start_date%22%3A%222013-01-01%22%7D
+ media_sets_id                Only include stories from the media set indicated by media_sets_id
+--------------------------------------------------------------------------------------------------------
 
-  
-Here the JSON string '{"media_id":1,"end_date":"2013-01-02","start_date":"2013-01-01"}' is URL encoded to %7B%22media_id%22%3A1%2C%22end_date%22%3A%222013-01-02%22%2C%22start_date%22%3A%222013-01-01%22%7D 
-
-  
-The data included in this request should be a hash with values for one or more of the following: `start_date`, `end_date`, `media_id`, and `media_sets_id`. 
+*_Note:_* At least one of the above paramters must by provided.
 
 The put request will return the meta-data representation of the `story_subset` including its database ID.
-
-  
-(NOTE: In the future the data parameter may be eliminated and data sent in the body of the request.)
-
   
 It will take the backend system a while to generate the stream of stories for the newly created subset. There is a background daemon script (`mediawords_process_story_subsets.pl`) that detects newly created subsets and adds stories to them.
 
