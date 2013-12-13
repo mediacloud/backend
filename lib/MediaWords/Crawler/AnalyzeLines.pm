@@ -88,7 +88,7 @@ sub get_html_density($$)
 
     for my $noise_word ( @{ $noise_words } )
     {
-        while ( $line =~ /$noise_word/ig )
+        while ( $line =~ /\Q$noise_word\E/ig )
         {
             $html_length += length( $noise_word );
         }
