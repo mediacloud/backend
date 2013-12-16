@@ -78,11 +78,11 @@ sub _add_data_to_media
 
 }
 
-sub media_query : Local : ActionClass('REST')
+sub single : Local : ActionClass('REST')
 {
 }
 
-sub media_query_GET : Local
+sub single_GET : Local
 {
     my ( $self, $c, $media_id ) = @_;
 
@@ -95,15 +95,15 @@ sub media_query_GET : Local
     $self->status_ok( $c, entity => $media );
 }
 
-sub all_processed : Local : ActionClass('REST')
+sub list : Local : ActionClass('REST')
 {
 }
 
-sub all_processed_GET : Local
+sub list_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "starting media_query_json";
+    say STDERR "starting list_GET";
 
     my $last_processed_media_id = $c->req->param( 'last_processed_media_id' );
     say STDERR "last_processed_media_id: $last_processed_media_id";
