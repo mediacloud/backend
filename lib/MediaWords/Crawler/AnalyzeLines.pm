@@ -7,6 +7,7 @@ use Text::Trim;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
+use MediaWords::Util::Text;
 use MediaWords::Crawler::Extractor;
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
@@ -48,7 +49,7 @@ sub get_html_density($$)
     my $html_length = 0;
     while ( $line =~ /(<\/?([a-z]*) ?[^>]*>)/g )
     {
-        my ( $len, $tag_name ) = ( length($1), lc($2) );
+        my ( $len, $tag_name ) = ( length( $1 ), lc( $2 ) );
 
         if ( $tag_name eq 'p' )
         {
@@ -122,9 +123,9 @@ sub lineStartsWithTitleText($$)
 }
 
 # get discount based on the similarity to the description
-sub get_description_similarity_discount($$)
+sub get_description_similarity_discount($$$)
 {
-    my ( $line, $description ) = @_;
+    my ( $line, $description, $language_code ) = @_;
 
     if ( !$description )
     {
@@ -144,14 +145,7 @@ sub get_description_similarity_discount($$)
     my $stripped_line        = html_strip( $line );
     my $stripped_description = html_strip( $description );
 
-    ##
-    ## WARNING the Text::Similarity::Overlaps object MUST be assigned to a temporary variable
-    ## calling getSimilarityStrings directly on the result of Text::Similarity::Overlaps->new( ) results in a memory leak.
-    ##  This leak only occurs under certain so it won't show up in toy test programs. However, it consistently occured
-    ## in the MediaWords::DBI::Downloads::extractor_results_for_download() call chain until this fix.
-    ##
-    my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
-    my $score = $sim->getSimilarityStrings( $stripped_line, $stripped_description );
+    my $score = MediaWords::Util::Text::get_similarity_score( $stripped_line, $stripped_description );
 
     if (   ( DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
         || ( DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
@@ -175,9 +169,10 @@ sub calculate_line_extraction_metrics($$$$$$)
 
     Readonly my $article_has_clickprint => $has_clickprint;    #<--- syntax error at (eval 980) line 11, near "Readonly my "
 
-    Readonly my $article_has_sphereit_map        => defined( $sphereit_map );
-    Readonly my $sphereit_map_includes_line      => ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
-    Readonly my $description_similarity_discount => get_description_similarity_discount( $line, $description );
+    Readonly my $article_has_sphereit_map => defined( $sphereit_map );
+    Readonly my $sphereit_map_includes_line => ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
+    Readonly my $description_similarity_discount =>
+      get_description_similarity_discount( $line, $description, $language_code );
 
     return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
         $sphereit_map_includes_line );
