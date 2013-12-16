@@ -74,6 +74,16 @@ sub _add_data_to_media
         $media_source->{ media_source_tags } = $media_source_tags;
     }
 
+    foreach my $media_source ( @{ $media } )
+    {
+        say STDERR "adding media_sets ";
+        my $media_source_tags = $db->query(
+"select media_sets.media_sets_id, media_sets.name, media_sets.description, media_sets.set_type from media_sets_media_map natural join media_sets where media_id = ? ORDER by media_sets_id",
+            $media_source->{ media_id }
+        )->hashes;
+        $media_source->{ media_sets } = $media_source_tags;
+    }
+
     return $media;
 
 }
