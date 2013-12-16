@@ -76,46 +76,6 @@ sub _add_data_to_media
 
     return $media;
 
-    # foreach my $story ( @{ $media } )
-    # {
-    #     my $media_source_text = MediaWords::DBI::Media::get_text_for_word_counts( $db, $media_source );
-    #     $media_source->{ media_source_text } = $media_source_text;
-    # }
-
-    # foreach my $media_source ( @{ $media } )
-    # {
-    #     my $fully_extracted = MediaWords::DBI::Media::is_fully_extracted( $db, $media_source );
-    #     $media_source->{ fully_extracted } = $fully_extracted;
-    # }
-
-    # if ( $show_raw_1st_download )
-    # {
-    #     foreach my $media_source ( @{ $media } )
-    #     {
-    #         my $content_ref = MediaWords::DBI::Media::get_content_for_first_download( $db, $media_source );
-
-    #         if ( !defined( $content_ref ) )
-    #         {
-    #             $media_source->{ first_raw_download_file }->{ missing } = 'true';
-    #         }
-    #         else
-    #         {
-
-    #             #say STDERR "got content_ref $$content_ref";
-
-    #             $media_source->{ first_raw_download_file } = $$content_ref;
-    #         }
-    #     }
-    # }
-
-# foreach my $media_source ( @{ $media } )
-# {
-#     my $media_source_sentences =
-#       $db->query( "SELECT * from media_source_sentences where media_id = ? ORDER by sentence_number", $media_source->{ media_id } )
-#       ->hashes;
-#     $media_source->{ media_source_sentences } = $media_source_sentences;
-# }
-
 }
 
 sub media_query : Local : ActionClass('REST')
