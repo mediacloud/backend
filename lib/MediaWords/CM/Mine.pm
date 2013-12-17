@@ -645,7 +645,7 @@ sub add_new_story
 
     my $download = create_download_for_new_story( $db, $story, $feed );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, \$story_content );
+    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $story_content );
 
     extract_download( $db, $download );
 
