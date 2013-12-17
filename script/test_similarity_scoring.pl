@@ -22,35 +22,29 @@ use Text::Similarity::Overlaps;
 sub main
 {
     my $text_description = <<EOF;
-While Speaker John A. Boehner was harsh in his public criticism of conservative advocacy groups opposed to a new bipartisan budget deal, his attack on the organizations was even more pointed when he was behind closed doors.
-
-“They are not fighting for conservative principles,” Mr. Boehner told rank-and-file House Republicans during a private meeting on Wednesday as he seethed and questioned the motives of the groups for piling on against the plan before it was even made public.
+One morning, when Gregor Samsa woke from troubled dreams, he found himself
+transformed in his bed into a horrible vermin. He lay on his armour-like back,
+and if he lifted his head a little he could see his brown belly, slightly domed
+and divided by arches into stiff sections. The bedding was hardly able to cover
+it and seemed ready to slide off any moment. His many legs, pitifully thin
+compared with the size of the rest of him, waved about helplessly as he looked.
 EOF
 
     my $text_body = <<EOF;
-“They are not fighting for conservative policy,” he continued, according to accounts of those present. “They are fighting to expand their lists, raise more money and grow their organizations, and they are using you to do it. It’s ridiculous.”
+One morning, when Gregor Samsa woke from troubled dreams, he found himself
+transformed in his bed into a horrible vermin. He lay on his armour-like back,
+and if he lifted his head a little he could see his brown belly, slightly domed
+and divided by arches into stiff sections. The bedding was hardly able to cover
+it and seemed ready to slide off any moment. His many legs, pitifully thin
+compared with the size of the rest of him, waved about helplessly as he looked.
 
-Representatives of the activist groups dismissed that assertion and called the speaker’s denunciation a diversion tactic.
-
-Still, Mr. Boehner’s tough talk in taking on interests considered vital to generating Republican voter enthusiasm and building fierce opposition to President Obama’s agenda appeared to represent a turning point in Republican coalition building in the aftermath of the government shutdown.
-
-His break with the groups was magnified because it came after Senator Mitch McConnell of Kentucky, the Republican leader, had condemned a conservative group that has backed one of his opponents. And Mr. Boehner went on the offensive just as the executive director of the Republican Study Committee, the main organization for House conservatives, was dismissed, adding to the appearance that ties between the activist right and elected Republicans were unraveling.
-
-Republican congressional leaders blame advocacy groups like Heritage Action for America and the Senate Conservatives Fund for the shutdown — for goading House and Senate Republicans into a dead-end insistence on financing the government only if the new health law was overturned. The predictable impasse over that demand and the eventual Republican capitulation damaged the standing of Republicans as well as Congress.
-
-“The shutdown was the first time a group largely drove the Republican Party in the Senate towards something that was disadvantageous,” said one top Republican Senate official.
-
-In addition, some congressional leaders are no longer willing to remain silent to avoid antagonizing important political partners. They have seen a clear downside to the rising influence of outside conservative organizations that promote divisive primary fights, producing flawed candidates who lose winnable seats to Democrats.
-
-The 2014 election cycle probably represents Mr. McConnell’s last chance to regain the title of majority leader, and he seems determined not to let conservative activists spoil his chances. His actions and comments both publicly and privately since the shutdown have shown that he does not intend to brook much interference from conservative activists.
-
-Just as important, Mr. McConnell does not want to regain the majority only to find himself surrounded by conservative firebrands like Representative Steve Stockman of Texas, who is now challenging Senator John Cornyn, the No. 2 Senate Republican. Mr. Boehner has proved that presiding over an ungovernable majority is not an enviable job.
-
-Seeming to relish his new liberation, Mr. Boehner on Thursday skewered the organizations for a second straight day, just a few hours before the House overwhelmingly approved the budget plan at the center of the dispute with the support of 169 Republicans. Sixty-two opposed it.
-
-“They’re pushing our members in places where they don’t want to be,” Mr. Boehner said. “And frankly, I just think that they’ve lost all credibility.”
-
-Conservative leaders said they viewed Mr. Boehner’s attacks as tantamount to a declaration of war and accused him of trying to change the subject from a budget plan that increases spending and sacrifices earlier hard-won fiscal victories by House Republicans.
+"What's happened to me?" he thought. It wasn't a dream. His room, a proper
+human room although a little too small, lay peacefully between its four
+familiar walls. A collection of textile samples lay spread out on the table -
+Samsa was a travelling salesman - and above it there hung a picture that he had
+recently cut out of an illustrated magazine and housed in a nice, gilded frame.
+It showed a lady fitted out with a fur hat and fur boa who sat upright, raising
+a heavy fur muff that covered the whole of her lower arm towards the viewer.
 EOF
 
     my $time_before = Time::HiRes::time();
