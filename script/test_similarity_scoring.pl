@@ -17,6 +17,7 @@ use MediaWords::CommonLibs;
 
 use Time::HiRes;
 use MediaWords::Util::Text;
+use Text::Similarity::Overlaps;
 
 sub main
 {
@@ -56,11 +57,15 @@ EOF
     my $score       = MediaWords::Util::Text::get_similarity_score( $text_description, $text_body, 'en' );
     my $time_after  = Time::HiRes::time();
 
-    # Text::Similarity::Overlaps:
-    #   Similarity score: 0.165837479270315
-    #   Time: 0.020255
+    print "MediaWords::Util::Text::get_similarity_score() score: $score\n";
+    printf "Time: %2.6f\n\n", ( $time_after - $time_before );
 
-    print "Similarity score: $score\n";
+    $time_before = Time::HiRes::time();
+    my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
+    $score = $sim->getSimilarityStrings( $text_description, $text_body );
+    $time_after = Time::HiRes::time();
+
+    print "Text::Similarity::Overlaps() score: $score\n";
     printf "Time: %2.6f\n", ( $time_after - $time_before );
 }
 
