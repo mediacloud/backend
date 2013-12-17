@@ -14,6 +14,7 @@ use MediaWords::Solr;
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
+use MediaWords::DBI::Stories;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -819,6 +820,8 @@ sub story : Local
         $live_story_diffs = _get_live_story_diffs( $story, $live_story );
         $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
+
+    $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
 
     $db->commit;
 

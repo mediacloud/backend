@@ -162,5 +162,18 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     display_stories_full_title = controversy.name _ " Stories Linked from Story '" _ story.title _ "'"
     display_stories_id = 'outlink_stories' %]
 
+<div class="boxtitle">Collected Story Text</div>
+<table>
+    <tr>
+        <td>Description (from rss description field)</td>
+        <td>[% story.description | html %]</td>
+    </tr>
+    <tr>
+        <td>Extracted Text (processed from the story html)</td>
+        <td>[% story.extracted_text | html %]</td>
+    </td>
+</div>
+
+
 [% INCLUDE include/footer.tt2 %]
 
