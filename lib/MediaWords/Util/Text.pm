@@ -9,7 +9,6 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
-use Text::Similarity::Overlaps;
 use List::Util qw(min);
 use Memoize;
 use Tie::Cache;
