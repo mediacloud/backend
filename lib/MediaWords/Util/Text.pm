@@ -111,6 +111,9 @@ sub get_similarity_score($$;$)
     my %words_from_text_2_present_in_text_1       = ();
     my $words_from_text_2_present_in_text_1_count = 0;
 
+    # We 'foreach' words_in_text_2, not words_in_text_1, because title+description
+    # (passed as parameter #1) is usually longer than a text line (passed as
+    # parameter #2)
     foreach my $word ( keys %words_in_text_2 )
     {
 
