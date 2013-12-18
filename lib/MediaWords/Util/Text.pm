@@ -58,7 +58,7 @@ sub get_similarity_score($$;$)
 
     # Tokenize into separate words
     # (lowercasing will be done after tokenizing and stemming because tokenizer
-    # uses case hints to do its job)
+    # might use case hints to do its job)
     $text_1 = $lang->tokenize( $text_1 );
     $text_2 = $lang->tokenize( $text_2 );
 
