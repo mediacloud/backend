@@ -3,6 +3,9 @@
 set -u
 set -o errexit
 
+working_dir=`dirname $0`
+cd $working_dir
+
 echo "installing postgresql packages"
 echo
 
@@ -48,9 +51,10 @@ if [ `uname` == 'Darwin' ]; then
 
 else
 
+    echo | sudo ../foreign_modules/apt.postgresql.org.sh
     # assume Ubuntu
     sudo apt-get --assume-yes install \
-        postgresql postgresql-client postgresql-contrib postgresql-plperl postgresql-server-dev-all
+        postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3 postgresql-plperl-9.3 postgresql-server-dev-9.3
 
 fi
 

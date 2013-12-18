@@ -11,8 +11,9 @@ use parent 'Catalyst::Controller';
 use Data::Dumper;
 
 use MediaWords::DBI::Queries;
-use MediaWords::Util::CSV;
+use MediaWords::GearmanFunction::SearchStories;
 use MediaWords::Languages::Language;
+use MediaWords::Util::CSV;
 
 sub index : Path : Args(0)
 {
@@ -552,12 +553,12 @@ EOF
         return;
     }
 
-    $c->dbis->create(
-        'query_story_searches',
-        {
-            queries_id => $queries_id,
-            pattern    => $c->req->param( 'pattern' ),
-        }
+    my $pattern = $c->req->params->{ pattern };
+
+    my $query_story_search = $c->dbis->create( 'query_story_searches', { queries_id => $queries_id, pattern => $pattern } );
+    
+    MediaWords::GearmanFunction::SearchStories->enqueue_on_gearman( 
+        { query_story_searches_id => $query_story_search->{ query_story_searches_id } } 
     );
 
     $c->response->redirect(
