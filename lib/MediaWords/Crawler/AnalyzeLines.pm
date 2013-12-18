@@ -145,7 +145,7 @@ sub get_description_similarity_discount($$$)
     my $stripped_line        = html_strip( $line );
     my $stripped_description = html_strip( $description );
 
-    my $score = MediaWords::Util::Text::get_similarity_score( $stripped_line, $stripped_description );
+    my $score = MediaWords::Util::Text::get_similarity_score( $stripped_line, $stripped_description, $language_code );
 
     if (   ( DESCRIPTION_SIMILARITY_DISCOUNT > 1 )
         || ( DESCRIPTION_SIMILARITY_DISCOUNT < 0 ) )
