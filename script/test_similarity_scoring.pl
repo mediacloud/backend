@@ -19,6 +19,8 @@ use Time::HiRes;
 use MediaWords::Util::Text;
 use Text::Similarity::Overlaps;
 
+use constant TEST_ITERATIONS => 1000;
+
 sub main
 {
     my $text_description = <<EOF;
@@ -47,16 +49,25 @@ It showed a lady fitted out with a fur hat and fur boa who sat upright, raising
 a heavy fur muff that covered the whole of her lower arm towards the viewer.
 EOF
 
+    my $x;
+    my $score;
+
     my $time_before = Time::HiRes::time();
-    my $score       = MediaWords::Util::Text::get_similarity_score( $text_description, $text_body, 'en' );
-    my $time_after  = Time::HiRes::time();
+    for ( $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
+    {
+        $score = MediaWords::Util::Text::get_similarity_score( $text_description, $text_body, 'en' );
+    }
+    my $time_after = Time::HiRes::time();
 
     print "MediaWords::Util::Text::get_similarity_score() score: $score\n";
     printf "Time: %2.6f\n\n", ( $time_after - $time_before );
 
     $time_before = Time::HiRes::time();
     my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
-    $score = $sim->getSimilarityStrings( $text_description, $text_body );
+    for ( $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
+    {
+        $score = $sim->getSimilarityStrings( $text_description, $text_body );
+    }
     $time_after = Time::HiRes::time();
 
     print "Text::Similarity::Overlaps() score: $score\n";
