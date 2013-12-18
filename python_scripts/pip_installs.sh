@@ -7,3 +7,5 @@ sudo pip install lxml
 sudo pip install flask
 sudo pip install nltk
 sudo pip install joblib
+sudo pip install bitly_api
+sudo pip install ipython[all]

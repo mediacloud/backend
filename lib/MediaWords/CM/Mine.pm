@@ -645,7 +645,7 @@ sub add_new_story
 
     my $download = create_download_for_new_story( $db, $story, $feed );
 
-    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, \$story_content );
+    MediaWords::DBI::Downloads::store_content_determinedly( $db, $download, $story_content );
 
     extract_download( $db, $download );
 
@@ -799,7 +799,7 @@ END
         my $dup_story_url_no_p = $dup_story->{ url };
         my $story_url_no_p     = $story->{ url };
         $dup_story_url_no_p =~ s/(.*)\?(.*)/$1/;
-        $story_url_no_p     =~ s/(.*)\?(.*)/$1/;
+        $story_url_no_p =~ s/(.*)\?(.*)/$1/;
 
         next if ( lc( $dup_story_url_no_p ) ne lc( $story_url_no_p ) );
 
