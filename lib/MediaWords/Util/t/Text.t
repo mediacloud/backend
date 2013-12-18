@@ -108,12 +108,17 @@ EOF
     $score = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, 'ru' );
 
     # Text::Similarity::Overlaps score is 0.177
-    cmp_ok( $score, '>=', 0.1, 'Non-English, non-ASCII texts #1' );
+    cmp_ok( $score, '>=', 0,   'Non-English, non-ASCII texts #1' );
     cmp_ok( $score, '<=', 0.2, 'Non-English, non-ASCII texts #2' );
 }
 
 sub main()
 {
+    my $builder = Test::More->builder;
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
     test_get_similarity_score();
 }
 
