@@ -10,7 +10,63 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Languages::Language;
 use Text::Similarity::Overlaps;
+use List::Util qw(min);
+
 use Data::Dumper;
+
+# Get words and their frequencies from text
+# Parameters:
+# * Text string
+# * Language code
+# Returns:
+# * text word count
+# * hash to words and their frequencies in the text (not hashref because
+#   memoize doesn't know how to cache memory addresses)
+# die()s on error
+sub _words_in_text($$)
+{
+    my ( $text, $language_code ) = @_;
+
+    # Languages are preinitialized and thus cached (one hash lookup is being used here)
+    my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
+    unless ( $lang )
+    {
+        die "Language for language code \"$language_code\" is null.\n";
+    }
+
+    # Stopword stems are cached the first time they're accessed
+    my $stopword_stems_hashref = $lang->get_tiny_stop_word_stems();
+
+    # Tokenize into separate words
+    # (lowercasing will be done after tokenizing and stemming because tokenizer
+    # might use case hints to do its job)
+    $text = $lang->tokenize( $text );
+
+    # Stem words
+    $text = $lang->stem( @{ $text } );
+
+    my %words_in_text   = ();
+    my $text_word_count = 0;
+    foreach my $word ( @{ $text } )
+    {
+
+        # $lang->tokenize() usually lowercases the word, but we can't be sure
+        # about that so we do it again here
+        $word = lc( $word );
+
+        # Skip stopwords (assume that stopwords are lowercase already)
+        if ( exists $stopword_stems_hashref->{ $word } )
+        {
+            next;
+        }
+
+        ++$text_word_count;
+
+        ++$words_in_text{ $word };
+    }
+
+    return ( $text_word_count, %words_in_text );
+}
 
 # Get similarity score between two UTF-8 strings
 # Parameters:
@@ -48,70 +104,22 @@ sub get_similarity_score($$;$)
         warn "Language code is undefined, using the default language \"$language_code\".\n";
     }
 
-    my $lang = MediaWords::Languages::Language::language_for_code( $language_code );
-    unless ( $lang )
-    {
-        die "Language for language code \"$language_code\" is null.\n";
-    }
-
-    my $stopword_stems_hashref = $lang->get_tiny_stop_word_stems();
-
-    # Tokenize into separate words
-    # (lowercasing will be done after tokenizing and stemming because tokenizer
-    # might use case hints to do its job)
-    $text_1 = $lang->tokenize( $text_1 );
-    $text_2 = $lang->tokenize( $text_2 );
-
-    # Stem words
-    $text_1 = $lang->stem( @{ $text_1 } );
-    $text_2 = $lang->stem( @{ $text_2 } );
-
-    my %words_in_text_1   = ();
-    my $text_1_word_count = 0;
-    foreach my $word ( @{ $text_1 } )
-    {
-
-        # $lang->tokenize() usually lowercases the word, but we can't be sure
-        # about that so we do it again here
-        $word = lc( $word );
-
-        # Skip stopwords (assume that stopwords are lowercase already)
-        if ( exists $stopword_stems_hashref->{ $word } )
-        {
-            next;
-        }
-
-        ++$text_1_word_count;
-
-        ++$words_in_text_1{ $word };
-    }
+    # Split both texts into words, count frequencies
+    my ( $text_1_word_count, %words_in_text_1 ) = _words_in_text( $text_1, $language_code );
+    my ( $text_2_word_count, %words_in_text_2 ) = _words_in_text( $text_2, $language_code );
 
     my %words_from_text_2_present_in_text_1       = ();
     my $words_from_text_2_present_in_text_1_count = 0;
-    my $text_2_word_count                         = 0;
-    foreach my $word ( @{ $text_2 } )
+
+    foreach my $word ( keys %words_in_text_2 )
     {
-
-        # $lang->tokenize() usually lowercases the word, but we can't be sure
-        # about that so we do it again here
-        $word = lc( $word );
-
-        # Skip stopwords (assume that stopwords are lowercase already)
-        if ( exists $stopword_stems_hashref->{ $word } )
-        {
-            next;
-        }
-
-        ++$text_2_word_count;
 
         if ( exists $words_in_text_1{ $word } )
         {
-            $words_from_text_2_present_in_text_1{ $word } ||= 0;
-            if ( $words_from_text_2_present_in_text_1{ $word } < $words_in_text_1{ $word } )
-            {
-                ++$words_from_text_2_present_in_text_1{ $word };
-                ++$words_from_text_2_present_in_text_1_count;
-            }
+            my $overlapping_word_count = min( $words_in_text_2{ $word }, $words_in_text_1{ $word } );
+
+            $words_from_text_2_present_in_text_1{ $word } = $overlapping_word_count;
+            $words_from_text_2_present_in_text_1_count += $overlapping_word_count;
         }
     }
 
