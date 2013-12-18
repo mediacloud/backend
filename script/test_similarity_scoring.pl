@@ -55,6 +55,11 @@ EOF
     my $time_before = Time::HiRes::time();
     for ( $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
     {
+        # Change the second text parameter a bit so that this manual test
+        # better emulates how it's being used in the real world (first
+        # parameter is usually a constant "title + description" and the second
+        # one is a line from the text)
+        $text_body .= ' ';
         $score = MediaWords::Util::Text::get_similarity_score( $text_description, $text_body, 'en' );
     }
     my $time_after = Time::HiRes::time();
@@ -66,6 +71,7 @@ EOF
     my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
     for ( $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
     {
+        $text_body .= ' ';
         $score = $sim->getSimilarityStrings( $text_description, $text_body );
     }
     $time_after = Time::HiRes::time();
