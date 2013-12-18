@@ -71,6 +71,8 @@ sub get_similarity_score($$;$)
     foreach my $word ( @{ $text_1 } )
     {
 
+        # $lang->tokenize() usually lowercases the word, but we can't be sure
+        # about that so we do it again here
         $word = lc( $word );
 
         # Skip stopwords (assume that stopwords are lowercase already)
@@ -90,6 +92,8 @@ sub get_similarity_score($$;$)
     foreach my $word ( @{ $text_2 } )
     {
 
+        # $lang->tokenize() usually lowercases the word, but we can't be sure
+        # about that so we do it again here
         $word = lc( $word );
 
         # Skip stopwords (assume that stopwords are lowercase already)
