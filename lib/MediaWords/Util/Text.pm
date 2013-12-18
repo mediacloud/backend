@@ -11,8 +11,18 @@ use MediaWords::CommonLibs;
 use MediaWords::Languages::Language;
 use Text::Similarity::Overlaps;
 use List::Util qw(min);
+use Memoize;
+use Tie::Cache;
 
-use Data::Dumper;
+# Cache output of _words_in_text() because get_similarity_score() is called
+# many times with the very same first parameter (which is "title+description")
+my %_words_in_text_cache;
+tie %_words_in_text_cache, 'Tie::Cache', {
+    MaxCount => 1024,          # 1024 entries
+    MaxBytes => 1024 * 1024    # 1 MB of space
+};
+
+memoize '_words_in_text', SCALAR_CACHE => [ HASH => \%_words_in_text_cache ];
 
 # Get words and their frequencies from text
 # Parameters:
