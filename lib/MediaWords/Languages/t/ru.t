@@ -15,7 +15,7 @@ BEGIN
 use Readonly;
 
 use Test::NoWarnings;
-use Test::More tests => 5 + 1;
+use Test::More tests => 6 + 1;
 use utf8;
 
 # Test::More UTF-8 output
@@ -129,4 +129,24 @@ $expected_sentences = [
 
 {
     is( join( '||', @{ $lang->get_sentences( $test_string ) } ), join( '||', @{ $expected_sentences } ), "sentence_split" );
+}
+
+#
+# Word tokenizer
+#
+$test_string = <<'QUOTE';
+Род Моргенстейн (англ. Rod Morgenstein, род. 19.04.1953, Нью-Йорк) —
+американский барабанщик, педагог. Он известен по работе с хеви-метал группой
+конца 80-х Winger и джаз-фьюжн группой Dixie Dregs.
+QUOTE
+
+my $expected_words = [
+    qw/
+      род моргенстейн англ rod morgenstein род 19 04 1953 нью йорк американский
+      барабанщик педагог он известен по работе с хеви метал группой конца 80 х winger
+      и джаз фьюжн группой dixie dregs/
+];
+
+{
+    is( join( '||', @{ $lang->tokenize( $test_string ) } ), join( '||', @{ $expected_words } ), "tokenize" );
 }
