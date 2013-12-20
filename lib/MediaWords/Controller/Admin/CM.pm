@@ -822,7 +822,8 @@ sub story : Local
     }
 
     $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
-
+    $story->{ controversy_match } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $story  );
+    
     $db->commit;
 
     my $confirm_remove = $c->req->params->{ confirm_remove };
