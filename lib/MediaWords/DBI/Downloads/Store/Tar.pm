@@ -70,9 +70,9 @@ sub store_content($$$$;$)
 }
 
 # Moose method
-sub fetch_content($$;$)
+sub fetch_content($$$;$)
 {
-    my ( $self, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
 
     if ( !( $download->{ path } =~ /tar:(\d+):(\d+):([^:]*):(.*)/ ) )
     {

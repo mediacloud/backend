@@ -152,7 +152,7 @@ sub extract_with_goose
 
 sub processDownload
 {
-    ( my $download, my $dbs ) = @_;
+    my ( $download, $dbs ) = @_;
 
     my $errors = 0;
 
@@ -165,7 +165,7 @@ sub processDownload
     my @required_lines = grep { $line_should_be_in_story->{ $_ } eq 'required' } keys %{ $line_should_be_in_story };
     my @optional_lines = grep { $line_should_be_in_story->{ $_ } eq 'optional' } keys %{ $line_should_be_in_story };
 
-    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
+    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $dbs, $download );
 
     my $expected_story_txt = get_story_text_for_lines( $preprocessed_lines, [ keys %{ $line_should_be_in_story } ] );
 
@@ -198,7 +198,7 @@ sub processDownload
 
     my $goose_extractor_start_time = time();
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
+    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $dbs, $download );
 
     my $goose_extracted = extract_with_goose( $content_ref, $download->{ url } );
 

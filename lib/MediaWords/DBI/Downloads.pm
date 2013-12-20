@@ -206,9 +206,9 @@ sub _download_store_for_reading($)
 }
 
 # fetch the content for the given download as a content_ref
-sub fetch_content($)
+sub fetch_content($$)
 {
-    my $download = shift;
+    my ( $db, $download ) = @_;
 
     carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
 
@@ -222,7 +222,7 @@ sub fetch_content($)
     }
 
     # Fetch content
-    if ( my $content_ref = $store->fetch_content( $download ) )
+    if ( my $content_ref = $store->fetch_content( $db, $download ) )
     {
 
         # horrible hack to fix old content that is not stored in unicode
@@ -242,11 +242,11 @@ sub fetch_content($)
 }
 
 # fetch the content as lines in an array after running through the extractor preprocessor
-sub fetch_preprocessed_content_lines($)
+sub fetch_preprocessed_content_lines($$)
 {
-    my $download = shift;
+    my ( $db, $download ) = @_;
 
-    my $content_ref = fetch_content( $download );
+    my $content_ref = fetch_content( $db, $download );
 
     # print "CONTENT:\n**\n${ $content_ref }\n**\n";
 
@@ -274,7 +274,7 @@ sub extractor_results_for_download($$)
 
     my $story = $db->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
 
-    my $lines = fetch_preprocessed_content_lines( $download );
+    my $lines = fetch_preprocessed_content_lines( $db, $download );
 
     # print "PREPROCESSED LINES:\n**\n" . join( "\n", @{ $lines } ) . "\n**\n";
 

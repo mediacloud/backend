@@ -109,9 +109,7 @@ sub main
         # for each download:
         foreach my $download ( @downloads_rs )
         {
-
-            # fetch the content using MediaWords::DB::Downloads->fetch_content()
-            my $content_ref = $download->fetch_content();
+            my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
             if ( defined( $content_ref ) )
             {

@@ -36,7 +36,7 @@ sub migrate_download
 {
     my ( $db, $download ) = @_;
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
+    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
     MediaWords::DBI::Downloads::store_content( $db, $download, $content_ref );
 }
