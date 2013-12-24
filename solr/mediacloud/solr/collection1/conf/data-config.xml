@@ -5,9 +5,9 @@
 
     <entity name="story_sentences" 
             pk="story_sentences_id"
-            query="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences"
-            deltaImportQuery="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where story_sentences_id=${dataimporter.delta.id}"
-            deltaQuery="SELECT story_sentences_id as id, story_sentences_id from story_sentences where db_row_last_updated &gt; '${dih.last_index_time}' ">
+            query="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where '${dataimporter.request.clean}' != 'false'
+      OR db_row_last_updated &gt; '${dataimporter.last_index_time}' "
+	    >
       <entity name="media_sets_media_map" 
               pk="media_sets_media_map_id"
               query="select * from media_sets_media_map"
@@ -43,6 +43,7 @@
     <!-- Kludge to get delta import of nested tables to work:
 	 For some reason Child entities don't work with CachedSqlEnitytProcessor so we're creating a new entity just for the purposes of delta imports.
     -->
+    <!--
    <entity name="story_sentences_d" 
             pk="story_sentences_id"
             query="select 1 limit 0"
@@ -70,6 +71,6 @@
 	     >
      </entity>
    </entity>
-   
+   -->
   </document>
 </dataConfig>
