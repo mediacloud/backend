@@ -83,7 +83,8 @@ class MediaCloud(object):
         query_str should be something like this: "( robots OR android ) AND ( space )".
         filter_str should be something like this: "+publish_date:[2012-04-01T00:00:00Z TO 2012-04-02T00:00:00Z] AND +media_sets_id:1".
         '''
-        return self._queryForJson(self.SOLR_URL+'wc', { 'q': query_str, 'fq': filter_str} )
+        results = self._queryForJson(self.SOLR_URL+'wc', { 'q': query_str, 'fq': filter_str} )
+        return results
 
     def sentencesMatching(self, query_str, filter_str, start=0, rows=DEFAULT_SOLR_SENTENCES_PER_PAGE):
         '''

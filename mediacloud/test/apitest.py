@@ -18,8 +18,12 @@ class ApiTest(unittest.TestCase):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
     	term_freq = mc.wordCount('robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
     	self.assertEquals(len(term_freq),1840)
-    	sorted_tf = sorted(term_freq, key=lambda freq: int(freq['count']))
-    	self.assertEquals(term_freq[3]['term'],u'drones')
+        self.assertEquals(term_freq[3]['term'],u'drones')
+        # verify sorted in desc order
+        last_count = 10000000000
+        for freq in term_freq:
+            self.assertTrue( last_count >= freq['count'] )
+            last_count = freq['count']
 
     def testSentencesMatching(self):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
