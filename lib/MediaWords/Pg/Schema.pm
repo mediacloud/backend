@@ -417,6 +417,7 @@ sub load_sql_file
     my $host        = $db_settings->{ host };
     my $database    = $db_settings->{ db };
     my $username    = $db_settings->{ user };
+    my $port        = $db_settings->{ port };
     my $password    = $db_settings->{ pass } . "\n";
 
     say "$host $database $username $password ";
@@ -429,7 +430,7 @@ sub load_sql_file
     # stdout and stderr go to this script's channels. password is passed on stdin
     # so it doesn't appear in the process table
     say STDERR "loadsql: $script_dir/loadsql.$db_type.sh";
-    run3( [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username ],
+    run3( [ "$script_dir/loadsql.$db_type.sh", $sql_file, $host, $database, $username, $port ],
         \$password, \&parse_line, \&parse_line );
 
     my $ret = $?;
