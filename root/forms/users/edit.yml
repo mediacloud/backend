@@ -39,6 +39,13 @@ elements:
     cols: 30
     rows: 10
 
+  - type: Button
+    id: regenerate_api_token
+    name: regenerate_api_token
+    label: API token
+    default: Regenerate API token
+    size: 64
+
   - type: Checkbox
     id: active
     name: active

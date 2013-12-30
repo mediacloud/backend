@@ -219,6 +219,97 @@ sub add_functions
     $db->query( $sql );
 }
 
+# Path to where the "pgcrypto.sql" is located (on 8.4 and 9.0)
+sub _path_to_pgcrypto_sql_file_84_90()
+{
+    my $pg_config_share_dir = `pg_config --sharedir`;
+    $pg_config_share_dir =~ s/\n//;
+    my $pgcrypto_sql_file = "$pg_config_share_dir/contrib/pgcrypto.sql";
+    unless ( -e $pgcrypto_sql_file )
+    {
+        die "'pgcrypto' file does not exist at path: $pgcrypto_sql_file";
+    }
+
+    return $pgcrypto_sql_file;
+}
+
+sub _pgcrypto_extension_sql($)
+{
+    my ( $db ) = @_;
+
+    my $sql = '';
+
+    my $postgres_version = _postgresql_version( $db );
+    if ( $postgres_version =~ /^PostgreSQL 8/ or $postgres_version =~ /^PostgreSQL 9\.0/ )
+    {
+        # PostgreSQL 8.x and 9.0
+        my $pgcrypto_sql_file = _path_to_pgcrypto_sql_file_84_90;
+        open PGCRYPTO_SQL, "< $pgcrypto_sql_file" or die "Can't open $pgcrypto_sql_file : $!\n";
+        while ( <PGCRYPTO_SQL> )
+        {
+            $sql .= $_;
+        }
+        close PGCRYPTO_SQL;
+
+    }
+    else
+    {
+        # PostgreSQL 9.1+
+        $sql = 'CREATE EXTENSION IF NOT EXISTS pgcrypto';
+    }
+
+    return $sql;
+}
+
+sub _add_pgcrypto_extension($)
+{
+    my ( $db ) = @_;
+
+    say STDERR 'Adding "pgcrypto" extension...';
+
+    # Add "pgcrypto" extension
+    my $sql = _pgcrypto_extension_sql( $db );
+    $db->query( $sql );
+
+    unless ( _pgcrypto_is_installed( $db ) )
+    {
+        die "'pgcrypto' extension has not been installed.";
+    }
+}
+
+# Test if "pgcrypto" extension has been installed
+sub _pgcrypto_is_installed($)
+{
+    my ( $db ) = @_;
+
+    if ( $db->query( "SELECT 1 FROM pg_proc WHERE proname = 'gen_random_bytes'" )->hash )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+# Returns PostgreSQL version (e.g. "PostgreSQL 8.4.17 on i386-apple-darwin13.0.0, compiled by GCC Apple LLVM version 5.0 (clang-500.2.78) (based on LLVM 3.3svn), 64-bit")
+sub _postgresql_version($)
+{
+    my ( $db ) = @_;
+
+    my $postgres_version = $db->query( 'SELECT VERSION() AS version' )->hash;
+    $postgres_version = $postgres_version->{ version };
+    $postgres_version =~ s/^\s+//;
+    $postgres_version =~ s/\s+$//;
+
+    if ( $postgres_version !~ /^PostgreSQL \d.+?$/ )
+    {
+        die "Unable to parse PostgreSQL version: $postgres_version";
+    }
+
+    return $postgres_version;
+}
+
 # removes all relations belonging to a given schema
 # default schema is 'public'
 sub reset_schema($;$)
@@ -226,6 +317,8 @@ sub reset_schema($;$)
     my ( $db, $schema ) = @_;
 
     $schema ||= 'public';
+
+    my $postgres_version = _postgresql_version( $db );
 
     # TODO: should check for failure
     {
@@ -247,16 +340,11 @@ sub reset_schema($;$)
 
         $db->query( "DROP SCHEMA IF EXISTS $schema CASCADE" );
 
-        my $postgres_version = $db->query( 'SELECT VERSION() AS version' )->hash;
-        $postgres_version = $postgres_version->{ version };
-        $postgres_version =~ s/^\s+//;
-        $postgres_version =~ s/\s+$//;
-
-        unless ( $postgres_version =~ /^PostgreSQL 8/ )
+        unless ( $postgres_version =~ /^PostgreSQL 8/ or $postgres_version =~ /^PostgreSQL 9\.0/ )
         {
 
-            # Assume PostgreSQL 9+ ('DROP EXTENSION' is only available+required since that version)
-            $db->query( "DROP EXTENSION IF EXISTS plpgsql CASCADE" );
+            # Assume PostgreSQL 9.1+ ('DROP EXTENSION' is only available+required since that version)
+            $db->query( 'DROP EXTENSION IF EXISTS plpgsql CASCADE' );
         }
         $db->query( "DROP LANGUAGE IF EXISTS plpgsql CASCADE" );
 
@@ -353,19 +441,14 @@ sub recreate_db
 {
     my ( $label ) = @_;
 
-    {
-        my $do_not_check_schema_version = 1;
-        my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
+    my $do_not_check_schema_version = 1;
+    my $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
 
-        say STDERR "reset schema ...";
+    say STDERR "reset schema ...";
 
-        reset_all_schemas( $db );
-        say STDERR "add functions ...";
-        MediaWords::Pg::Schema::add_functions( $db );
-        say STDERR "add functions completed ...";
-
-        $db->disconnect;
-    }
+    reset_all_schemas( $db );
+    say STDERR "add functions ...";
+    MediaWords::Pg::Schema::add_functions( $db );
 
     my $script_dir = MediaWords::Util::Config->get_config()->{ mediawords }->{ script_dir } || $FindBin::Bin;
 
@@ -375,6 +458,9 @@ sub recreate_db
     my $load_dklab_postgresql_enum_result = load_sql_file( $label, "$script_dir/dklab_postgresql_enum_2009-02-26.sql" );
 
     die "Error adding dklab_postgresql_enum procecures" if ( $load_dklab_postgresql_enum_result );
+
+    say STDERR "Adding 'pgcrypto' extension...";
+    _add_pgcrypto_extension( $db );
 
     say STDERR "add mediacloud schema ...";
     my $load_sql_file_result = load_sql_file( $label, "$script_dir/mediawords.sql" );
@@ -445,6 +531,31 @@ sub upgrade_db($;$)
         }
 
         push( @sql_diff_files, $diff_filename );
+    }
+
+    # Install "pgcrypto"
+    unless ( _pgcrypto_is_installed( $db ) )
+    {
+        say STDERR "Adding 'pgcrypto' extension...";
+
+        if ( $echo_instead_of_executing )
+        {
+
+            my $pgcrypto_sql = _pgcrypto_extension_sql( $db );
+
+            print "-- --------------------------------\n";
+            print "-- 'pgcrypto' extension\n";
+            print "-- --------------------------------\n\n\n";
+
+            print $pgcrypto_sql;
+
+        }
+        else
+        {
+
+            _add_pgcrypto_extension( $db );
+
+        }
     }
 
     # Import diff files one-by-one

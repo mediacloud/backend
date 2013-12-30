@@ -42,6 +42,20 @@
         });
     });
 
+    // Confirm the API token regeneration
+    jQuery(function()
+    {
+        $("fieldset#editUser input[type=button]#regenerate_api_token").click(function()
+        {
+            if (confirm("Regenerate the API key?")) {
+
+                var url = "[% c.uri_for( '/admin/users/regenerate_api_token' ) %]?email=[% email | uri %]";
+                window.location.href = url;
+
+            }
+        });
+    });
+
     $(document).ready(function() {
 
         // Validate login form -- select empty form fields
