@@ -2,15 +2,22 @@
 % Author David Larochelle
 % December 13, 2013
 
-# Media
-  
+#API URLs
+
+## Media
+
+### api/v2/media/single/
 
 URL                                    Function
 ---------------------------------      ------------------------------------------------------------
 api/v2/media/single/\<media_id\>         Return the media source in which media_id equals \<media_id\>
 ---------------------------------      ------------------------------------------------------------
 
-Example:
+####Query Parameters 
+
+None.
+
+####Example
 Fetching Information on the New York Times
 
 URL: http://0.0.0.0:3000/api/v2/media/single/1
@@ -86,14 +93,14 @@ Response:
 ```
 
 
-##Query Parameters 
-
-None.
+### api/v2/media/list/
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
 api/v2/media/list                      Return multiple media sources 
 ---------------------------------      -------------------------------------------
+
+####Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter         Default         Notes
@@ -101,26 +108,53 @@ Parameter         Default         Notes
  last_media_id    0               return media sources with a 
                                   media_id is greater than this value
 
- rows             20              Number of media sources to return. Can not be larger than 100
+ rows             20              Number of media sources to return. Cannot be larger than 100
 --------------------------------------------------------------------------------------------------------
 
+####Example -- TDB
 
 
-# Media Sets
+## Media Sets
+
+###api/v2/media_set/single
 
 URL                                      Function
 ---------------------------------        ------------------------------------------------------------
 api/v2/media_set/single/\<media_sets_id\>         Return the media source in which media_sets_id equals \<media_sets_id\>
 ---------------------------------        ------------------------------------------------------------
 
-##Query Parameters 
+####Query Parameters 
 
 None.
+
+####Example
+
+http://0.0.0.0:5000/api/v2/media_sets/single/2
+
+```json
+{
+   'name': 'set name'
+   'media_sets_id': 2
+   'media': [
+      	    {       'name': 'source 1 name',
+	            'media_id': 'source 1 media id',
+		    'url': 'http://source1.com'
+            },
+      	    {       'name': 'source 2 name',
+	            'media_id': 'source 2 media id',
+		    'url': 'http://source2.com'
+            },
+	    ]
+}
+```
+###api/v2/media/list
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
 api/v2/media/list                      Return multiple media sources 
 ---------------------------------      -------------------------------------------
+
+####Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
@@ -131,130 +165,21 @@ Parameter             Default         Notes
  rows                  20              Number of media sets to return. Can not be larger than 100
 --------------------------------------------------------------------------------------------------------
 
-Example:
-http://0.0.0.0:5000/api/v2/media/list?last_media_id=1&rows=2
+####Example
 
-```json
-[
-  {
-    "url": "http:\/\/washingtonpost.com",
-    "sw_data_start_date": null,
-    "media_sets": [
-      {
-        "description": null,
-        "set_type": "medium",
-        "name": "Washington Post",
-        "media_sets_id": 18
-      }
-    ],
-    "moderation_notes": null,
-    "feeds_added": 1,
-    "media_source_tags": [
-      {
-        "tag_set": "media_type",
-        "tag": "newspapers",
-        "tag_sets_id": 1,
-        "tags_id": 1
-      },
-      {
-        "tag_sets_id": 4,
-        "tags_id": 6,
-        "tag": "pmcheck",
-        "tag_set": "workflow"
-      },
-      {
-        "tag_sets_id": 4,
-        "tags_id": 7,
-        "tag": "hrcheck",
-        "tag_set": "workflow"
-      },
-      {
-        "tags_id": 18,
-        "tag_sets_id": 3,
-        "tag": "7",
-        "tag_set": "usnewspapercirculation"
-      },
-      {
-        "tag_set": "word_cloud",
-        "tag": "include",
-        "tags_id": 6071565,
-        "tag_sets_id": 17
-      },
-      {
-        "tag_sets_id": 17,
-        "tags_id": 6729599,
-        "tag_set": "word_cloud",
-        "tag": "default"
-      },
-      {
-        "tag": "ap_english_us_top25_20100110",
-        "tag_set": "collection",
-        "tag_sets_id": 5,
-        "tags_id": 8875027
-      }
-    ],
-    "is_not_dup": null,
-    "name": "Washington Post",
-    "foreign_rss_links": 0,
-    "full_text_rss": null,
-    "sw_data_end_date": null,
-    "dup_media_id": null,
-    "use_pager": 0,
-    "moderated": 1,
-    "media_id": 2,
-    "unpaged_stories": 100,
-    "extract_author": 1
-  },
-  {
-    "url": "http:\/\/csmonitor.com",
-    "moderation_notes": null,
-    "media_sets": [
-      
-    ],
-    "feeds_added": 1,
-    "sw_data_start_date": "2000-01-02",
-    "sw_data_end_date": "2000-01-01",
-    "media_source_tags": [
-      {
-        "tag_sets_id": 1,
-        "tags_id": 1,
-        "tag_set": "media_type",
-        "tag": "newspapers"
-      },
-      {
-        "tag": "needs",
-        "tag_set": "workflow",
-        "tags_id": 110,
-        "tag_sets_id": 4
-      },
-      {
-        "tag_sets_id": 4,
-        "tags_id": 111,
-        "tag_set": "workflow",
-        "tag": "collection"
-      }
-    ],
-    "foreign_rss_links": 0,
-    "is_not_dup": null,
-    "name": "Christian Science Monitor",
-    "full_text_rss": null,
-    "dup_media_id": null,
-    "use_pager": 0,
-    "moderated": 1,
-    "media_id": 3,
-    "unpaged_stories": 100,
-    "extract_author": 0
-  }
-]
-```
 
-# Stories
 
+
+## Stories
+
+### api/v2/stories/single
 
 URL                                    Function
 ------------------------------------   ------------------------------------------------------------
 api/v2/stories/single/\<stories_id\>     Return story in which stories_id equals \<stories_id\>
 ------------------------------------   ------------------------------------------------------------
+
+####Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
@@ -262,7 +187,12 @@ Parameter             Default         Notes
  raw_1st_download     0                If non-zero include the full html of the first page of the story
 --------------------------------------------------------------------------------------------------------
 
+####Example
+
+Note: This fetches data on the Global Voices Story [Myanmar's new flag and new name](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) CC licensed story from November 2010.
+
 http://0.0.0.0:5000/api/v2/stories/stories_query/27456565
+
 
 ```json
 [
@@ -820,7 +750,7 @@ http://0.0.0.0:5000/api/v2/stories/stories_query/27456565
 ]
 ```
 
-##Multiple Stories
+###api/V2/stories/list_processed 
   
 To get information on multiple stories send get requests to `api/V2/stories/list_processed`
 
@@ -829,6 +759,8 @@ URL                                                                       Functi
 ---------------------------------      -------------------------------------------
 api/V2/stories/list_processed           Return multiple processed stories
 ---------------------------------      -------------------------------------------
+
+####Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Default         Notes
@@ -846,14 +778,20 @@ The ‘last_processed_id’ parameter can be used to page through these results.
 
 NOTE: stories_id and processed_id are separate values. The order in which stories are processed is different than the story_id order. The processing pipeline involves downloading, extracting, and vectoring stories. Since unprocessed stories are of little interest, we have introduced the processed_id field to allow users to stream all stories as they’re processed.
 
-# Story_subsets
+####Example -TBD
+
+## Story subsets
 
 These who want to only see a subset of stories can create a story subset stream by sending a put request to `api/v2/stories/subset/?data=\<JSON\> `where \<JSON_STRING\> is a URL encoded JSON representation of the story subset.
+
+###api/v2/stories/subset
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
 api/v2/stories/subset                    Creates a story subset. Must use a PUT request
 ---------------------------------      --------------------------------------------------
+
+####Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Notes
@@ -874,6 +812,8 @@ The put request will return the meta-data representation of the `story_subset` i
   
 It will take the backend system a while to generate the stream of stories for the newly created subset. There is a background daemon script (`mediawords_process_story_subsets.pl`) that detects newly created subsets and adds stories to them.
 
+####Example -- TBD
+
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
 api/v2/stories/subset                    show the status of a subset. Must use a GET request
@@ -882,14 +822,15 @@ api/v2/stories/subset                    show the status of a subset. Must use a
   
 To see the status of a given subset, the client sends a get request to `api/v2/stories/subset/<ID>` where `<ID>` is the database id that was returned in the put request above.  The returned object contains a `'ready'` field with a boolean value indicating that stories from the subset have been compiled.
   
-
-## Accessing a Subset of Stories
+###api/V2/stories/list_subset_processed
 
 URL                                                                       Function
 --------------------------------------------  ------------------------------------------------
 api/V2/stories/list_subset_processed/\<id\>     Return multiple processed stories
                                                 from a subset. \<id\> is the id of the subset
 --------------------------------------------  ------------------------------------------------
+
+####Query Parameters
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Default         Notes
@@ -906,6 +847,17 @@ Parameter                     Default         Notes
   
 This behaves similarly to the `list_processed` URL above except only stories from the given subset are returned.
 
+####Example -- TBD
+
+##Solr
+
+###query/sentences
+
+####TDB
+
+###query/wc
+
+####TDB
 
 # Output Format / JSON
   
@@ -926,9 +878,9 @@ data = r.json()
 ```
 
 
-# Example Usage
+# Code examples
 
-Create a CSV file with all media sources.
+##Create a CSV file with all media sources.
 
 ```python
 media = []
@@ -961,3 +913,4 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
     cwriter.writerows( media )
 
 ```
+
