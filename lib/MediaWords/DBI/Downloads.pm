@@ -456,7 +456,7 @@ sub get_medium($$)
     return $medium;
 }
 
-sub process_download_for_extractor($$$;$$)
+sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 

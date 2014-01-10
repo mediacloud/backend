@@ -65,7 +65,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4431;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4433;
     
 BEGIN
 
@@ -234,14 +234,52 @@ $$
 $$
 LANGUAGE 'plpgsql';
 
-CREATE OR REPLACE FUNCTION update_stories_updated_time_trigger () RETURNS trigger AS
+CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger () RETURNS trigger AS
 $$
-   DECLARE
-      path_change boolean;
-   BEGIN
-	UPDATE stories set db_row_last_updated = now() where stories_id = OLD.stories_id;
+    DECLARE
+        path_change boolean;
+        reference_stories_id integer default null;
+    BEGIN
+
+        IF TG_OP = 'INSERT' THEN
+            -- The "old" record doesn't exist
+            reference_stories_id = NEW.stories_id;
+        ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
+            reference_stories_id = OLD.stories_id;
+        ELSE
+            RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+        END IF;
+
+        UPDATE stories
+        SET db_row_last_updated = now()
+        WHERE stories_id = reference_stories_id;
 	RETURN NULL;
    END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION update_stories_updated_time_by_media_id_trigger () RETURNS trigger AS
+$$
+    DECLARE
+        path_change boolean;
+        reference_media_id integer default null;
+    BEGIN
+
+        IF TG_OP = 'INSERT' THEN
+            -- The "old" record doesn't exist
+            reference_media_id = NEW.media_id;
+        ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
+            reference_media_id = OLD.media_id;
+        ELSE
+            RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+        END IF;
+
+        UPDATE stories
+        SET db_row_last_updated = now()
+        WHERE media_id = reference_media_id;
+
+        RETURN NULL;
+    END;
 $$
 LANGUAGE 'plpgsql';
 
@@ -368,6 +406,7 @@ create table media_tags_map (
 
 DROP TRIGGER IF EXISTS media_tags_map_last_updated_trigger on media_tags_map CASCADE;
 CREATE TRIGGER media_tags_last_updated_trigger BEFORE INSERT OR UPDATE ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+CREATE TRIGGER media_tags_map_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_media_id_trigger();
 
 CREATE index media_tags_map_db_row_last_updated on media_tags_map ( db_row_last_updated );
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
@@ -569,6 +608,7 @@ create table media_sets_media_map (
 
 DROP TRIGGER IF EXISTS media_sets_media_map_last_updated_trigger on media_sets_media_map CASCADE;
 CREATE TRIGGER media_sets_media_map_last_updated_trigger BEFORE INSERT OR UPDATE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
+CREATE TRIGGER media_sets_media_map_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON media_sets_media_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_media_id_trigger();
 
 create index media_sets_media_map_set on media_sets_media_map ( media_sets_id );
 create index media_sets_media_map_media on media_sets_media_map ( media_id );
@@ -725,7 +765,7 @@ create index stories_db_row_last_updated on stories( db_row_last_updated );
 DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_update_story_sentences_last_updated_trigger AFTER UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
+CREATE TRIGGER stories_update_story_sentences_last_updated_trigger AFTER INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger() ;
 
 CREATE TYPE download_state AS ENUM ('error', 'fetching', 'pending', 'queued', 'success', 'feed_error', 'extractor_error');    
 CREATE TYPE download_type  AS ENUM ('Calais', 'calais', 'content', 'feed', 'spider_blog_home', 'spider_posting', 'spider_rss', 'spider_blog_friends_list', 'spider_validation_blog_home','spider_validation_rss','archival_only');    
@@ -848,7 +888,7 @@ create table stories_tags_map
 DROP TRIGGER IF EXISTS stories_tags_map_last_updated_trigger on stories_tags_map CASCADE;
 CREATE TRIGGER stories_tags_map_last_updated_trigger BEFORE INSERT OR UPDATE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
 DROP TRIGGER IF EXISTS stories_tags_map_update_stories_last_updated_trigger on stories_tags_map;
-CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger AFTER DELETE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_trigger();
+CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON stories_tags_map FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
 
 CREATE index stories_tags_map_db_row_last_updated on stories_tags_map ( db_row_last_updated );
 create unique index stories_tags_map_story on stories_tags_map (stories_id, tags_id);

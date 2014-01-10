@@ -36,7 +36,9 @@ use constant ALL_TAG => 'all';
 # ignore links that match this pattern
 my $_ignore_link_pattern =
   '(www.addtoany.com)|(novostimira.com)|(ads\.pheedo)|(www.dailykos.com\/user)|' .
-  '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)';
+  '(livejournal.com\/(tag|profile))|(sfbayview.com\/tag)|(absoluteastronomy.com)|' .
+  '(\/share.*http)|(digg.com\/submit)|(facebook.com.*mediacontentsharebutton)|' .
+  '(feeds.wordpress.com\/.*\/go)|(sharetodiaspora.github.io\/)';
 
 # cache of media by media id
 my $_media_cache = {};
@@ -436,7 +438,7 @@ sub extract_download
 
     return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
 
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 1, 1 ); };
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, "controversy", 1, 1, 1 ); };
     warn "extract error processing download $download->{ downloads_id }" if ( $@ );
 }
 
@@ -715,9 +717,9 @@ sub story_matches_controversy_pattern
 
     my $perl_re = $query_story_search->{ pattern };
     $perl_re =~ s/\[\[\:[\<\>]\:\]\]/[^a-z]/g;
-    if ( "$story->{ title } $story->{ description } $story->{ url } $story->{ redirect_url }" =~ /$perl_re/is )
+    for my $field ( qw/title description url redirect_url/ )
     {
-        return 1;
+        return $field if ( $story->{ $field } =~ /$perl_re/is );
     }
 
     return 0 if ( $metadata_only );
@@ -728,8 +730,9 @@ sub story_matches_controversy_pattern
 
     MediaWords::DBI::Stories::add_missing_story_sentences( $db, $story );
 
-    return story_sentence_matches_pattern( $db, $story, $query_story_search );
+    return story_sentence_matches_pattern( $db, $story, $query_story_search ) ? 'sentence' : 0;
 }
+
 
 # add to controversy_stories table
 sub add_to_controversy_stories
