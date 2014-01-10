@@ -530,7 +530,7 @@ EOF
         return;
     }
 
-    my $pattern = $c->req->param( 'pattern' );
+    my $pattern = $c->req->params->{ pattern };
 
     my $existing_search = $c->dbis->query(
         <<EOF,
@@ -552,8 +552,6 @@ EOF
         );
         return;
     }
-
-    my $pattern = $c->req->params->{ pattern };
 
     my $query_story_search = $c->dbis->create( 'query_story_searches', { queries_id => $queries_id, pattern => $pattern } );
 

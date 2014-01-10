@@ -147,6 +147,10 @@ This is not the latest dump of this controversy, created [% datetime.format( lat
     <tr>
         <td># Outgoing Story Links</td><td>[% story.outlink_count %] [% live_story_diff( 'outlink_count' ) | html %]</td>
     </tr>
+    <tr class="even">
+        <td>Controversy Field Matched</td>
+        <td>[% story.controversy_match | html %]
+    </tr>
 
 </table>
 
