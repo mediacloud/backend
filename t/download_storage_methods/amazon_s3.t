@@ -46,7 +46,7 @@ is( $s3_path, $expected_path, 'Object ID matches' );
 # Fetch content, compare
 #
 
-eval { $content_ref = $s3->fetch_content( $test_download ); };
+eval { $content_ref = $s3->fetch_content( $db, $test_download ); };
 ok( ( !$@ ), "Fetching download failed: $@" );
 ok( $content_ref, "Fetching download did not die but no content was returned" );
 is( $$content_ref, $test_content, "Content doesn't match." );
@@ -55,9 +55,9 @@ is( $$content_ref, $test_content, "Content doesn't match." );
 # Remove content, try fetching again
 #
 
-$s3->remove_content( $test_download );
+$s3->remove_content( $db, $test_download );
 $content_ref = undef;
-eval { $content_ref = $s3->fetch_content( $test_download ); };
+eval { $content_ref = $s3->fetch_content( $db, $test_download ); };
 ok( $@, "Fetching download that does not exist should have failed" );
 ok( ( !$content_ref ),
     "Fetching download that does not exist failed (as expected) but the content reference ($content_ref) was returned" );
@@ -65,7 +65,8 @@ ok( ( !$content_ref ),
 #
 # Check if Amazon S3 thinks that the content exists
 #
-ok( ( !$s3->content_exists( $test_download ) ), "content_exists() reports that content exists (although it shouldn't)" );
+ok( ( !$s3->content_exists( $db, $test_download ) ),
+    "content_exists() reports that content exists (although it shouldn't)" );
 
 #
 # Store content twice
@@ -83,18 +84,19 @@ $expected_path = 's3:' . $settings->{ downloads_folder_name } .
 is( $s3_path, $expected_path, 'Object ID matches' );
 
 # Fetch content again, compare
-eval { $content_ref = $s3->fetch_content( $test_download ); };
+eval { $content_ref = $s3->fetch_content( $db, $test_download ); };
 ok( ( !$@ ), "Fetching download failed: $@" );
 ok( $content_ref, "Fetching download did not die but no content was returned" );
 is( $$content_ref, $test_content, "Content doesn't match." );
 
 # Remove content, try fetching again
-$s3->remove_content( $test_download );
+$s3->remove_content( $db, $test_download );
 $content_ref = undef;
-eval { $content_ref = $s3->fetch_content( $test_download ); };
+eval { $content_ref = $s3->fetch_content( $db, $test_download ); };
 ok( $@, "Fetching download that does not exist should have failed" );
 ok( ( !$content_ref ),
     "Fetching download that does not exist failed (as expected) but the content reference ($content_ref) was returned" );
 
 # Check if Amazon S3 thinks that the content exists
-ok( ( !$s3->content_exists( $test_download ) ), "content_exists() reports that content exists (although it shouldn't)" );
+ok( ( !$s3->content_exists( $db, $test_download ) ),
+    "content_exists() reports that content exists (although it shouldn't)" );

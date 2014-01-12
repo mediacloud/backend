@@ -76,7 +76,7 @@ sub export_downloads
 
         last unless $download;
 
-        my $download_content = MediaWords::DBI::Downloads::fetch_content( $download );
+        my $download_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
         my $download_content_base64 = encode_base64( encode( "utf8", $$download_content ) );
 

@@ -61,7 +61,7 @@ sub main
         );
     }
 
-    extractAndScoreDownloads( \@downloads );
+    extractAndScoreDownloads( $db, \@downloads );
 
 }
 
@@ -84,10 +84,10 @@ sub text_length
     return $ret;
 }
 
-sub extractAndScoreDownloads
+sub extractAndScoreDownloads($$)
 {
 
-    my $downloads = shift;
+    my ( $db, $downloads ) = @_;
 
     my @downloads = @{ $downloads };
 
@@ -105,7 +105,7 @@ sub extractAndScoreDownloads
 
         my ( $story_line_count, $extra_line_count, $missing_line_count );
 
-        my $lines = $download->fetch_preprocessed_content_lines();
+        my $lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $db, $download );
 
         my $scores = MediaWords::Crawler::Extractor::score_lines(
             $lines,

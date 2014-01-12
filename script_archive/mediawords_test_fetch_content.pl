@@ -26,7 +26,7 @@ sub main
 
     for my $d ( @{ $downloads } )
     {
-        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $d );
+        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $d );
 
         print "$d->{url} [$d->{downloads_id}]:\n";
         print "****\n";

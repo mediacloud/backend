@@ -130,7 +130,7 @@ sub get_boingboing_links
 
     my $download = $db->query( "select * from downloads where stories_id = ?", $story->{ stories_id } )->hash;
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
+    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
     my $content = ${ $content_ref };
 
