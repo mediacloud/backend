@@ -52,10 +52,10 @@ sub test_extractor
 
     for my $download ( @downloads )
     {
-        say "Processing download $download->{downloads_id}";
+        say STDERR "Processing download $download->{downloads_id}";
         my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
 
-        say STDERR "Got extract_results:\n " . Dumper( $extract_results );
+        say "Got extract_results: " . Dumper( $extract_results );
     }
 }
 
