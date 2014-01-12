@@ -93,6 +93,7 @@ sub main
             SELECT *
             FROM downloads
             WHERE downloads_id IN (??)
+            ORDER BY downloads_id
 EOF
             @download_ids
         )->hashes;
@@ -107,6 +108,7 @@ EOF
             FROM downloads
             WHERE type = 'content'
               AND state = 'success'
+            ORDER BY downloads_id
 EOF
         )->hashes;
     }
