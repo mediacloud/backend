@@ -76,39 +76,44 @@ sub main
         'iterations=i'  => \$iterations
     ) or die;
 
-    unless ( $file || ( @download_ids ) )
-    {
-        die "no options given ";
-    }
-
     my $downloads;
 
-    say STDERR @download_ids;
+    if ( @download_ids or $file )
+    {
+        if ( $file )
+        {
+            open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
+            @download_ids = <DOWNLOAD_ID_FILE>;
+        }
 
-    if ( @download_ids )
-    {
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
-    }
-    elsif ( $file )
-    {
-        open( DOWNLOAD_ID_FILE, $file ) || die( "Could not open file: $file" );
-        @download_ids = <DOWNLOAD_ID_FILE>;
-        $downloads = $dbs->query( "SELECT * from downloads where downloads_id in (??)", @download_ids )->hashes;
+        say STDERR "Will extract download IDs: " . join( ', ', @download_ids );
+
+        $downloads = $dbs->query(
+            <<EOF,
+            SELECT *
+            FROM downloads
+            WHERE downloads_id IN (??)
+EOF
+            @download_ids
+        )->hashes;
     }
     else
     {
-        die "must specify file or downloads id";
+        say STDERR "Will extract *all* 'content' downloads";
 
         $downloads = $dbs->query(
-"SELECT * from downloads where downloads_id in (select distinct downloads_id from extractor_training_lines order by downloads_id)"
+            <<EOF
+            SELECT *
+            FROM downloads
+            WHERE type = 'content'
+              AND state = 'success'
+EOF
         )->hashes;
     }
 
-    say STDERR Dumper( $downloads );
+    die 'no downloads found ' unless scalar( @{ $downloads } );
 
-    die 'no downloads found ' unless scalar( @$downloads );
-
-    say STDERR scalar( @$downloads ) . ' downloads';
+    say STDERR "Will extract " . scalar( @{ $downloads } ) . " downloads.";
 
     foreach my $iteration ( 1 .. $iterations )
     {
