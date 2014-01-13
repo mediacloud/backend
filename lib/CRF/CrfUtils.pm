@@ -244,10 +244,6 @@ import cc.mallet.types.Sequence;
 
 public class model_runner {
 
-	public static void main(String[] args) throws Exception {
-		run_model(args[0], args[1]);
-	}
-
 	public static String[] run_model(String testFileName, String modelFileName)
 			throws Exception {
 
@@ -338,7 +334,7 @@ public class model_runner {
 			FileNotFoundException, ClassNotFoundException {
 		ObjectInputStream s = new ObjectInputStream(new FileInputStream(
 				modelFileName));
-		CRF crf = null;
+		CRF crf;
 		crf = (CRF) s.readObject();
 		s.close();
 		return crf;
@@ -363,10 +359,8 @@ public class model_runner {
 
 		if (!error) {
 			for (int j = 0; j < input.size(); j++) {
-				StringBuffer buf = new StringBuffer();
 				for (int a = 0; a < k; a++) {
 					String prediction = outputs[a].get(j).toString();
-					buf.append(prediction).append(" ");
 					sequenceResults.add(prediction + " ");
 				}
 			}
