@@ -81,7 +81,7 @@ sub run_model_with_tmp_file
 
     my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
 
-    my $foo = model_runner->run_model( $test_data_file_name, $model_file_name );
+    my $foo = ModelRunner->runModel( $test_data_file_name, $model_file_name );
 
     return $foo;
 }
@@ -108,7 +108,7 @@ sub run_model_inline_java_data_array
     if ( !defined( $crf ) )
     {
         say STDERR "Read model ";
-        $crf = model_runner->readModel( $model_file_name );
+        $crf = ModelRunner->readModel( $model_file_name );
     }
 
     return _run_model_on_array( $crf, $test_data_array );
@@ -188,7 +188,7 @@ sub _run_model_on_array
 
     my $test_data = join "\n", @{ $test_data_array };
 
-    my $foo = model_runner->run_model_string( $test_data, $crf );
+    my $foo = ModelRunner->runModelString( $test_data, $crf );
 
     return $foo;
 }
@@ -241,44 +241,51 @@ import cc.mallet.pipe.iterator.LineGroupIterator;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Sequence;
 
+public class ModelRunner {
 
-public class model_runner {
+    public static CRF readModel(String modelFileName) throws IOException,
+            FileNotFoundException, ClassNotFoundException {
+        
+        ObjectInputStream s = new ObjectInputStream(new FileInputStream(
+                modelFileName));
+        CRF crf = (CRF) s.readObject();
+        s.close();
+        return crf;
+    }
 
-	public static String[] run_model(String testFileName, String modelFileName)
-			throws Exception {
+    public static String[] runModel(String testFileName, String modelFileName)
+            throws Exception {
 
-		CRF crf = readModel(modelFileName);
-		InstanceList testData = readTestData(testFileName, crf);
+        CRF crf = readModel(modelFileName);
+        InstanceList testData = readTestData(testFileName, crf);
 
+        return runModelImpl(testData, crf);
+    }
 
-		return run_model_impl(testData, crf);
-	}
+    public static String[] runModelString(String testDataString, String modelFileName)
+            throws Exception {
+        CRF crf = readModel(modelFileName);
+        InstanceList testData = readTestDataFromString(testDataString, crf);
 
-	public static String[] run_model_string(String testDataString, String modelFileName)
-			throws Exception {
-		CRF crf = readModel(modelFileName);
-		InstanceList testData = readTestDataFromString(testDataString, crf);
+        return runModelImpl(testData, crf);
+    }
 
-		
-		return run_model_impl(testData, crf);
-	}
+    public static String[] runModelString(String testDataString, CRF crf)
+            throws Exception {
+        InstanceList testData = readTestDataFromString(testDataString, crf);
 
-	public static String[] run_model_string(String testDataString, CRF crf)
-			throws Exception {
-		InstanceList testData = readTestDataFromString(testDataString, crf);
+        return runCrfModel(testData, crf);
+    }
 
-		return run_crf_model(testData, crf);
-	}
+    private static String[] runModelImpl(InstanceList testData,
+            CRF model) throws IOException, FileNotFoundException,
+            ClassNotFoundException {
+        CRF crf = model;
 
-	private static String[] run_model_impl(InstanceList testData,
-			CRF model) throws IOException, FileNotFoundException,
-			ClassNotFoundException {
-		CRF crf = model;
+        return runCrfModel(testData, crf);
+    }
 
-		return run_crf_model(testData, crf);
-	}
-
-	private static String[] run_crf_model(InstanceList testData, CRF crf) {
+    private static String[] runCrfModel(InstanceList testData, CRF crf) {
         if (true) {
             Runtime rt = Runtime.getRuntime();
 
@@ -288,86 +295,72 @@ public class model_runner {
             System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
         }
 
-		ArrayList<String> results = new ArrayList<String>();
-		for (int i = 0; i < testData.size(); i++) {
-			Sequence input = (Sequence) testData.get(i).getData();
+        ArrayList<String> results = new ArrayList<String>();
+        for (int i = 0; i < testData.size(); i++) {
+            Sequence input = (Sequence) testData.get(i).getData();
 
-			ArrayList<String> predictions = predictSequence(crf, input);
+            ArrayList<String> predictions = predictSequence(crf, input);
 
-			results.addAll(predictions);
+            results.addAll(predictions);
+        }
 
-			// return results.toArray(new String[0]);
-			// return ret;
+        return results.toArray(new String[0]);
+    }
 
-		}
-		return results.toArray(new String[0]);
-	}
+    private static InstanceList readTestData(String testFileName, CRF crf)
+            throws FileNotFoundException {
 
-	private static InstanceList readTestData(String testFileName, CRF crf)
-			throws FileNotFoundException {
+        Reader testFile = new FileReader(new File(testFileName));
 
-		Reader testFile = new FileReader(new File(testFileName));
+        return instanceListFromReader(testFile, crf);
+    }
 
-		return instanceListFromReader(testFile, crf);
-	}
+    private static InstanceList readTestDataFromString(final String testData, CRF crf) {
 
-	private static InstanceList readTestDataFromString(final String testData, CRF crf)
-	{
+        Reader testFile = new StringReader(testData);
 
-		Reader testFile = new StringReader(testData);
+        return instanceListFromReader(testFile, crf);
+    }
 
-		return instanceListFromReader(testFile, crf);
-	}
+    private static InstanceList instanceListFromReader(Reader testFile, CRF crf) {
+        Pipe p = crf.getInputPipe();
+        p.setTargetProcessing(false);
+        InstanceList testData = new InstanceList(p);
+        testData.addThruPipe(
+                new LineGroupIterator(testFile,
+                        Pattern.compile("^\\s*$"), true));
+        return testData;
+    }
 
-	private static InstanceList instanceListFromReader(Reader testFile, CRF crf) {
-		Pipe p = crf.getInputPipe();
-//		p.getTargetAlphabet().lookupIndex(defaultOption.value);
-		p.setTargetProcessing(false);
-		InstanceList testData = new InstanceList(p);
-	      testData.addThruPipe(
-	          new LineGroupIterator(testFile,
-	            Pattern.compile("^\\s*$"), true));
-		return testData;
-	}
+    private static ArrayList<String> predictSequence(CRF crf,
+            Sequence input) {
 
-	public static CRF readModel(String modelFileName) throws IOException,
-			FileNotFoundException, ClassNotFoundException {
-		ObjectInputStream s = new ObjectInputStream(new FileInputStream(
-				modelFileName));
-		CRF crf;
-		crf = (CRF) s.readObject();
-		s.close();
-		return crf;
-	}
+        int nBestOption = 1;
 
-	private static ArrayList<String> predictSequence(CRF crf,
-			Sequence input) {
+        Sequence[] outputs = SimpleTagger.apply(crf, input, nBestOption);
+        int k = outputs.length;
 
-		ArrayList<String> sequenceResults = new ArrayList<String>();
-		int nBestOption = 1;
+        try {
+            for (int a = 0; a < k; a++) {
+                if (outputs[a].size() != input.size()) {
+                    throw new RuntimeException("Failed to decode input sequence " + input + ", answer " + a);
+                }
+            }
+        } catch (RuntimeException e) {
+            System.err.println("Exception: " + e.getMessage());
+            return new ArrayList<String>();
+        }
 
-		Sequence[] outputs = SimpleTagger.apply(crf, input, nBestOption);
-		int k = outputs.length;
-		boolean error = false;
-		for (int a = 0; a < k; a++) {
-			if (outputs[a].size() != input.size()) {
-				// logger.info("Failed to decode input sequence " + i
-				// + ", answer " + a);
-				error = true;
-			}
-		}
+        ArrayList<String> sequenceResults = new ArrayList<String>();
+        for (int j = 0; j < input.size(); j++) {
+            for (int a = 0; a < k; a++) {
+                String prediction = outputs[a].get(j).toString();
+                sequenceResults.add(prediction + " ");
+            }
+        }
 
-		if (!error) {
-			for (int j = 0; j < input.size(); j++) {
-				for (int a = 0; a < k; a++) {
-					String prediction = outputs[a].get(j).toString();
-					sequenceResults.add(prediction + " ");
-				}
-			}
-		}
-
-		return sequenceResults;
-	}
+        return sequenceResults;
+    }
 }
 
 END_JAVA
