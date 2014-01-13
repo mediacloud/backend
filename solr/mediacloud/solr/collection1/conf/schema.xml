@@ -121,7 +121,7 @@
 
    <field name="solr_import_date" type="date" indexed="true" stored="true"/>
 
-   <!-- language field from the story_sentences table -- 3 letter code -->
+   <!-- language field from the story_sentences table - 3 letter code -->
    <field name="language" type="string" indexed="true" stored="true"/>
 
    <field name="media_sets_id" type="int" indexed="true" stored="true" multiValued="true" />
