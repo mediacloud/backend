@@ -17,6 +17,15 @@ use File::Spec;
 use File::Basename;
 use MediaWords::Util::Config;
 
+use Inline (
+    Java  => 'STUDY',
+
+    # Increase memory available to Java to 1 GB because otherwise the extractor
+    # runs out of memory after 1000 extractions
+    EXTRA_JAVA_ARGS => '-Xmx1G'
+);
+
+
 my $class_path;
 
 my $pid_connected_to_jvm = $$;
