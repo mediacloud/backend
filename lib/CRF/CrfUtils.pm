@@ -241,8 +241,6 @@ import cc.mallet.pipe.iterator.LineGroupIterator;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Sequence;
 
-import java.lang.Runtime;
-
 
 public class model_runner {
 
