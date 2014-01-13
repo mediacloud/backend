@@ -300,6 +300,9 @@ import cc.mallet.pipe.iterator.LineGroupIterator;
 import cc.mallet.types.InstanceList;
 import cc.mallet.types.Sequence;
 
+import java.lang.Runtime;
+
+
 public class model_runner {
 
 	public static void main(String[] args) throws Exception {
@@ -341,6 +344,15 @@ public class model_runner {
 	}
 
 	private static String[] run_crf_model(InstanceList testData, CRF crf) {
+        if (false) {
+            Runtime rt = Runtime.getRuntime();
+
+            System.err.println("Used Memory: " + (rt.totalMemory() - rt.freeMemory()) / 1024 + " KB");
+            System.err.println("Free Memory: " + rt.freeMemory() / 1024 + " KB");
+            System.err.println("Total Memory: " + rt.totalMemory() / 1024 + " KB");
+            System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
+        }
+
 		ArrayList<String> results = new ArrayList<String>();
 		for (int i = 0; i < testData.size(); i++) {
 			Sequence input = (Sequence) testData.get(i).getData();
