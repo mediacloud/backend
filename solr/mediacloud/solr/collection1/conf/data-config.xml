@@ -5,7 +5,7 @@
 
     <entity name="story_sentences" 
             pk="story_sentences_id"
-            query="select story_sentences_id || '_ss' as id, 'ss' as field_type, * from story_sentences where '${dataimporter.request.clean}' != 'false'
+            query="select story_sentences_id || '_ss' as id, 'ss' as field_type, now() as solr_import_date, * from story_sentences where '${dataimporter.request.clean}' != 'false'
       OR db_row_last_updated &gt; '${dataimporter.last_index_time}' "
 	    >
       <entity name="media_sets_media_map" 
