@@ -62,7 +62,7 @@ sub export_downloads
           $db->query( " SELECT * from downloads where downloads_id >= ?  and type = 'feed' and state = 'success' limit 1 ",
             $cur_downloads_id )->hash();
 
-        my $download_content = MediaWords::DBI::Downloads::fetch_content( $download );
+        my $download_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
         my $download_content_base64 = encode_base64( encode( "utf8", $$download_content ) );
 

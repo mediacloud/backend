@@ -123,17 +123,25 @@ mediawords:
     user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
     owner: "mediawords@cyber.law.harvard.edu"
 
-    ### Uncomment one or more storage methods to store downloads to; default is just "localfile"
-    ### which would write downloads to separate gzipped files in /data/.
-    ### The path of the last download storage method listed below will be stored in the database.
+    ### Uncomment one or more storage methods to store downloads in.
+    ### Default is "postgresql" which stores downloads directly in the
+    ### PostgreSQL database.
+    ###
+    ### Very short downloads will be stored directly in the database, under
+    ### "downloads.path"
+    ###
+    ### The path of the last download storage method listed below will be
+    ### stored in "downloads.path" database column.
     #download_storage_locations:
-        ### store downloads to local files
+        ### store downloads in the PostgreSQL database, "raw_downloads" table
+        #- postgresql
+        ### store downloads in local files under "./data/content/" (see "data_dir" above)
         #- localfile
-        ### store downloads to Tar archives
+        ### store downloads in Tar archives
         #- tar
-        ### store downloads to Amazon S3
+        ### store downloads in Amazon S3
         #- amazon_s3
-        ## store downloads to a MongoDB GridFS database
+        ### store downloads in MongoDB GridFS database
         #- gridfs
 
     ### Uncomment both to force reading Tar and file downloads from GridFS

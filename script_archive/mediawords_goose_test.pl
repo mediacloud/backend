@@ -133,7 +133,7 @@ sub store_downloads
     {
         say "Processing download $download->{downloads_id}";
 
-        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
+        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $dbs, $download );
 
         my $extract_results;
         my $preprocessed_lines;
@@ -143,7 +143,7 @@ sub store_downloads
         for my $i ( 0 .. 100 )
         {
             say $i;
-            $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+            $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
             $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
 
             store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref );

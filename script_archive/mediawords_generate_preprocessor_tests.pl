@@ -79,7 +79,7 @@ sub stored_preprocessed_info
 
     for my $download ( @downloads )
     {
-        my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+        my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
 
         store_preprocessed_result( $download, $preprocessed_lines );
     }

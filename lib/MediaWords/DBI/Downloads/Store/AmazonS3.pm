@@ -189,9 +189,9 @@ sub _object_for_download($$)
 }
 
 # Returns true if a download already exists in a database
-sub content_exists($$)
+sub content_exists($$$)
 {
-    my ( $self, $download ) = @_;
+    my ( $self, $db, $download ) = @_;
 
     $self->_initialize_s3_or_die();
 
@@ -207,15 +207,15 @@ sub content_exists($$)
 }
 
 # Removes content
-sub remove_content($$)
+sub remove_content($$$)
 {
-    my ( $self, $download ) = @_;
+    my ( $self, $db, $download ) = @_;
 
     $self->_initialize_s3_or_die();
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_DELETING )
     {
-        unless ( $self->content_exists( $download ) )
+        unless ( $self->content_exists( $db, $download ) )
         {
             die "AmazonS3: download ID " . $download->{ downloads_id } . " does not exist.\n";
         }
@@ -237,7 +237,7 @@ sub store_content($$$$;$)
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_STORING )
     {
-        if ( $self->content_exists( $download ) )
+        if ( $self->content_exists( $db, $download ) )
         {
             say STDERR "AmazonS3: download ID " . $download->{ downloads_id } . " already exists, " .
               "will store a new version or overwrite (depending on whether or not versioning is enabled).\n";
@@ -295,15 +295,15 @@ sub store_content($$$$;$)
 }
 
 # Moose method
-sub fetch_content($$;$)
+sub fetch_content($$$;$)
 {
-    my ( $self, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
 
     $self->_initialize_s3_or_die();
 
     if ( AMAZON_S3_CHECK_IF_EXISTS_BEFORE_FETCHING )
     {
-        unless ( $self->content_exists( $download ) )
+        unless ( $self->content_exists( $db, $download ) )
         {
             die "AmazonS3: download ID " . $download->{ downloads_id } . " does not exist.\n";
         }
