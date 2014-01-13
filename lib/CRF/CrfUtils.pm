@@ -18,13 +18,12 @@ use File::Basename;
 use MediaWords::Util::Config;
 
 use Inline (
-    Java  => 'STUDY',
+    Java => 'STUDY',
 
     # Increase memory available to Java to 1 GB because otherwise the extractor
     # runs out of memory after 1000 extractions
     EXTRA_JAVA_ARGS => '-Xmx1G'
 );
-
 
 my $class_path;
 
@@ -353,7 +352,7 @@ public class model_runner {
 	}
 
 	private static String[] run_crf_model(InstanceList testData, CRF crf) {
-        if (false) {
+        if (true) {
             Runtime rt = Runtime.getRuntime();
 
             System.err.println("Used Memory: " + (rt.totalMemory() - rt.freeMemory()) / 1024 + " KB");
