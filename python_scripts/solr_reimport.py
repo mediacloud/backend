@@ -41,7 +41,7 @@ else:
 
 print "min_story_sentences_id: {} ".format( min_story_sentences_id)
 
-import_batch_size = 10000
+import_batch_size = 1000000
 
 while True:
     r = requests.get( 'http://localhost:8983/solr/collection1/dataimport?command=status&wt=json', headers = { 'Accept': 'application/json'})  
