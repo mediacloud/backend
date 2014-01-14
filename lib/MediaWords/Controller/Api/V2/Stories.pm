@@ -117,11 +117,11 @@ sub _add_data_to_stories
     return $stories;
 }
 
-sub stories_query : Local : ActionClass('REST')
+sub single : Local : ActionClass('REST')
 {
 }
 
-sub stories_query_GET : Local
+sub single_GET : Local
 {
     my ( $self, $c, $stories_id ) = @_;
 
@@ -148,7 +148,7 @@ sub all_processed_GET : Local
 {
     my ( $self, $c ) = @_;
 
-    say STDERR "starting stories_query_json";
+    say STDERR "starting all_processed";
 
     my $last_processed_stories_id = $c->req->param( 'last_processed_stories_id' );
     say STDERR "last_processed_stories_id: $last_processed_stories_id";
