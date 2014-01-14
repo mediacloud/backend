@@ -51,9 +51,10 @@ __PACKAGE__->config(
         'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
         'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
     },
+    json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 }
 );
 
-__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 1, space_after => 1 } );
+__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 } );
 
 use constant ROWS_PER_PAGE => 20;
 
@@ -115,13 +116,18 @@ sub list_GET : Local
 
     say STDERR "starting list_GET";
 
-    my $last_processed_media_id = $c->req->param( 'last_processed_media_id' );
-    say STDERR "last_processed_media_id: $last_processed_media_id";
+    my $last_media_id = $c->req->param( 'last_media_id' );
+    say STDERR "last_processed_media_id: $last_media_id";
 
-    $last_processed_media_id //= 0;
+    $last_media_id //= 0;
+
+    my $rows =  $c->req->param( 'rows' );
+    $rows //= ROWS_PER_PAGE;
+
+    say STDERR "rows $rows";
 
     my $media = $c->dbis->query( "select s.* from media s where media_id > ? ORDER by media_id asc limit ?",
-        $last_processed_media_id, ROWS_PER_PAGE )->hashes;
+        $last_media_id, $rows )->hashes;
 
     $self->_add_data_to_media( $c->dbis, $media );
 
