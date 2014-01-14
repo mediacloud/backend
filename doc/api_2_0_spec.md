@@ -93,7 +93,7 @@ Response:
 ```
 
 
-### api/v2/media/list/
+###api/v2/media/list/
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
@@ -147,6 +147,7 @@ http://0.0.0.0:5000/api/v2/media_sets/single/2
 	    ]
 }
 ```
+
 ###api/v2/media/list
 
 URL                                                                       Function
@@ -165,7 +166,7 @@ Parameter             Default         Notes
  rows                  20              Number of media sets to return. Can not be larger than 100
 --------------------------------------------------------------------------------------------------------
 
-####Example
+####Example - TBD
 
 
 
@@ -851,13 +852,33 @@ This behaves similarly to the `list_processed` URL above except only stories fro
 
 ##Solr
 
-###query/sentences
+###api/v2/solr/sentences
+
+####Query Parameters
+
+--------------------------------------------------------------------------------------------------------
+Parameter                     Default         Notes
+---------------------------   ----------      ----------------------------------------------------------
+ q                            N/A               q ( query ) parameter which is passed directly to Solr
+
+ fq                           null              fq (filter query) parameter which is passed directly to Solr
+
+ start                        0                 passed directly to Solr
+
+ rows                         1000              passed directly to Solr
+
+--------------------------------------------------------------------------------------------------------
+ 
 
 ####TDB
 
 ###query/wc
 
 ####TDB
+
+##Write Back API
+
+###TBD
 
 # Output Format / JSON
   
