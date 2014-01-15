@@ -801,7 +801,7 @@ sub layout_gexf
     $fh->close();
 
     my $cmd =
-"java -cp $FindBin::Bin/../java/build/jar/GephiLayout.jar:$FindBin::Bin/../java/lib/gephi-toolkit.jar edu.law.harvard.cyber.mediacloud.layout.GephiLayout $nolayout_path $layout_path";
+"java -cp $FindBin::Bin/../java/GephiLayout/build/jar/GephiLayout.jar:$FindBin::Bin/../java/GephiLayout/lib/gephi-toolkit.jar edu.law.harvard.cyber.mediacloud.layout.GephiLayout $nolayout_path $layout_path";
 
     # print STDERR "$cmd\n";
     system( $cmd );
