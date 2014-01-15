@@ -35,9 +35,9 @@ sub store_content($$$$)
 }
 
 # Moose method
-sub fetch_content($$)
+sub fetch_content($$$)
 {
-    my ( $self, $download ) = @_;
+    my ( $self, $db, $download ) = @_;
 
     my $ua = LWP::UserAgent->new;
 

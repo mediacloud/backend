@@ -51,11 +51,11 @@ sub get_story_children_for_feed_download
     return $story_children;
 }
 
-sub get_xml_element_for_download
+sub get_xml_element_for_download($$)
 {
-    my ( $download ) = @_;
+    my ( $db, $download ) = @_;
 
-    my $download_content_base64 = _get_base_64_encoded_download_content( $download );
+    my $download_content_base64 = _get_base_64_encoded_download_content( $db, $download );
 
     $download->{ encoded_download_content_base_64 } = $download_content_base64;
 
@@ -84,7 +84,7 @@ sub process_feed_download
         return;
     }
 
-    my $download_xml = get_xml_element_for_download( $download );
+    my $download_xml = get_xml_element_for_download( $db, $download );
 
     die if scalar( @{ $story_children } ) <= 0;
 
@@ -107,7 +107,7 @@ sub process_feed_download
 
         foreach my $story_download ( @{ $story_downloads } )
         {
-            $story_downloads_xml->appendChild( get_xml_element_for_download( $story_download ) );
+            $story_downloads_xml->appendChild( get_xml_element_for_download( $db, $story_download ) );
         }
 
         $story_xml->appendChild( $story_downloads_xml );
@@ -126,12 +126,12 @@ sub process_feed_download
     return $download_xml;
 }
 
-sub _get_base_64_encoded_download_content
+sub _get_base_64_encoded_download_content($$)
 {
 
-    my ( $download ) = @_;
+    my ( $db, $download ) = @_;
 
-    my $download_content = MediaWords::DBI::Downloads::fetch_content( $download );
+    my $download_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
     my $download_content_base64 = encode_base64( encode( "utf8", $$download_content ) );
 
@@ -192,7 +192,7 @@ sub export_downloads
 
         last unless $download;
 
-        # my $download_content_base64 = _get_base_64_encoded_download_content( $download );
+        # my $download_content_base64 = _get_base_64_encoded_download_content( $db, $download );
 
         $cur_downloads_id = $download->{ downloads_id } + 1;
 

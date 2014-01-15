@@ -161,7 +161,7 @@ EOF
     }
 }
 
-sub get_content_for_first_download
+sub get_content_for_first_download($$)
 {
     my ( $db, $story ) = @_;
 
@@ -174,7 +174,7 @@ sub get_content_for_first_download
         return;
     }
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $first_download );
+    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $first_download );
 
     return $content_ref;
 }
@@ -434,7 +434,7 @@ sub _has_full_text_rss
 }
 
 # query the download and call fetch_content
-sub fetch_content
+sub fetch_content($$)
 {
     my ( $db, $story ) = @_;
 
@@ -447,7 +447,7 @@ EOF
         $story->{ stories_id }
     )->hash;
 
-    return $download ? MediaWords::DBI::Downloads::fetch_content( $download ) : \'';
+    return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : \'';
 }
 
 # get the tags for the given module associated with the given story from the db
@@ -525,13 +525,13 @@ EOF
     return $download;
 }
 
-sub get_initial_download_content
+sub get_initial_download_content($$)
 {
     my ( $db, $story ) = @_;
 
     my $download = get_first_download_for_story( $db, $story );
 
-    my $content = MediaWords::DBI::Downloads::fetch_content( $download );
+    my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
     return $content;
 }
@@ -768,12 +768,12 @@ sub restore_download_content
 }
 
 # check to see whether the given download is broken
-sub download_is_broken
+sub download_is_broken($$)
 {
     my ( $db, $download ) = @_;
 
     my $content_ref;
-    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $download ); };
+    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
 
     return 0 if ( $content_ref && ( length( $$content_ref ) > 32 ) );
 

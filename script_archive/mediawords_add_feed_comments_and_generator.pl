@@ -45,7 +45,7 @@ sub main
             warn( "root download is not a feed: $download->{downloads_id}" );
         }
 
-        my $xml = MediaWords::DBI::Downloads::fetch_content( $download );
+        my $xml = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
         #print "xml:\n******\n\n$$xml\n\n*******\n";
 

@@ -124,9 +124,9 @@ sub _connect_to_mongodb_or_die($)
 }
 
 # Returns true if a download already exists in a database
-sub content_exists($$)
+sub content_exists($$$)
 {
-    my ( $self, $download ) = @_;
+    my ( $self, $db, $download ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
@@ -137,9 +137,9 @@ sub content_exists($$)
 }
 
 # Removes content
-sub remove_content($$)
+sub remove_content($$$)
 {
-    my ( $self, $download ) = @_;
+    my ( $self, $db, $download ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 
@@ -191,7 +191,7 @@ sub store_content($$$$;$)
             while ( my $file = $self->_mongodb_gridfs->find_one( { "filename" => $filename } ) )
             {
                 say STDERR "GridFS: Removing existing file '$filename'.";
-                $self->remove_content( $download );
+                $self->remove_content( $db, $download );
             }
 
             # Write
@@ -225,9 +225,9 @@ sub store_content($$$$;$)
 }
 
 # Moose method
-sub fetch_content($$;$)
+sub fetch_content($$$;$)
 {
-    my ( $self, $download, $skip_gunzip_and_decode ) = @_;
+    my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
 
     $self->_connect_to_mongodb_or_die();
 

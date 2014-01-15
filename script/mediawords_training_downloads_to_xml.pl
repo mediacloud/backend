@@ -54,7 +54,7 @@ sub main
 
         my $download_element = $doc->createElement( 'download' );
 
-        my $download_content = MediaWords::DBI::Downloads::fetch_content( $download );
+        my $download_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
         $download_element->setAttribute( 'downloads_id', $download->{ downloads_id } );
         my $data_section = XML::LibXML::CDATASection->new( encode_base64( $$download_content ) );

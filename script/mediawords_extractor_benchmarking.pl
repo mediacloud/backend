@@ -35,55 +35,10 @@ use MediaWords::Languages::en;
 
 #use XML::LibXML::Enhanced;
 
-my $_re_generate_cache = 0;
-
-Readonly my $output_dir => 'download_content_test_data';
-
-sub create_base64_encoded_element
-{
-    my ( $name, $content ) = @_;
-
-    my $ret = XML::LibXML::Element->new( $name );
-
-    my $data_section = XML::LibXML::CDATASection->new( encode_base64( encode( "utf8", $content ) ) );
-
-    $ret->appendChild( $data_section );
-
-    return $ret;
-}
-
-sub store_preprocessed_result
-{
-    my ( $download, $preprocessed_lines, $extract_results, $content_ref, $story ) = @_;
-
-    say STDERR "starting store_preprocessed_result";
-    say STDERR "downloads_id: " . $download->{ downloads_id };
-    say STDERR "STORY GUID $story->{ guid }";
-    say STDERR "STORY GUID $story->{ title }";
-    my $lines_concated = join "", map { $_ . "\n" } @{ $preprocessed_lines };
-
-    say STDERR "Preprocessed_lines:\n";
-
-    MediaWords::DBI::DownloadTexts::update_extractor_results_with_text_and_html( $extract_results );
-
-    say STDERR "EXTRACTED HTML $extract_results->{ extracted_html }";
-    say STDERR "EXTRACTED TEXT $extract_results->{ extracted_text }";
-
-    say STDERR "Starting get_sentences ";
-    my $lang = MediaWords::Languages::en->new();
-    my $sentences = $lang->get_sentences( $extract_results->{ extracted_text } ) || return;
-
-    say STDERR "Finished get_sentences ";
-
-    say Dumper( $sentences );
-
-    return;
-}
-
-sub store_downloads
+sub test_extractor
 {
 
-    my $downloads = shift;
+    my ( $downloads ) = @_;
 
     my @downloads = @{ $downloads };
 
@@ -98,32 +53,10 @@ sub store_downloads
     for my $download ( @downloads )
     {
         say "Processing download $download->{downloads_id}";
-
-        my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
         my $extract_results = MediaWords::DBI::Downloads::extractor_results_for_download( $dbs, $download );
 
         say STDERR "Got extract_results:\n " . Dumper( $extract_results );
-
-        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $dbs, $download );
-
-        my $story = $dbs->query( "select * from stories where stories_id = ?", $download->{ stories_id } )->hash;
-
-        store_preprocessed_result( $download, $preprocessed_lines, $extract_results, $content_ref, $story );
     }
-
-}
-
-sub create_download_element
-{
-    my ( $download ) = @_;
-
-    my $download_element = XML::LibXML::Element->new( 'download' );
-    foreach my $key ( sort keys %{ $download } )
-    {
-        $download_element->appendTextChild( $key, $download->{ $key } );
-    }
-
-    return $download_element;
 }
 
 # do a test run of the text extractor
@@ -135,10 +68,12 @@ sub main
     my $file;
     my @download_ids;
 
+    my $iterations = 1;
+
     GetOptions(
-        'file|f=s'                  => \$file,
-        'downloads|d=s'             => \@download_ids,
-        'regenerate_database_cache' => \$_re_generate_cache,
+        'file|f=s'      => \$file,
+        'downloads|d=s' => \@download_ids,
+        'iterations=i'  => \$iterations
     ) or die;
 
     unless ( $file || ( @download_ids ) )
@@ -174,7 +109,12 @@ sub main
     die 'no downloads found ' unless scalar( @$downloads );
 
     say STDERR scalar( @$downloads ) . ' downloads';
-    store_downloads( $downloads );
+
+    foreach my $iteration ( 1 .. $iterations )
+    {
+        say STDERR "iteration $iteration";
+        test_extractor( $downloads );
+    }
 }
 
 main();

@@ -14,6 +14,7 @@ use MediaWords::Solr;
 use MediaWords::CM::Dump;
 use MediaWords::CM::Mine;
 use MediaWords::DBI::Activities;
+use MediaWords::DBI::Stories;
 
 use constant ROWS_PER_PAGE => 25;
 
@@ -820,6 +821,9 @@ sub story : Local
         $latest_controversy_dump = _get_latest_controversy_dump( $db, $cdts );
     }
 
+    $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
+    $story->{ controversy_match } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $story  );
+    
     $db->commit;
 
     my $confirm_remove = $c->req->params->{ confirm_remove };

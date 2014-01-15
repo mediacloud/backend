@@ -1,6 +1,7 @@
 package MediaWords::DBI::Downloads::Store::DatabaseInline;
 
-# class for storing / loading downloads in remote locations via HTTP
+# class for storing / loading very short downloads directly in the
+# "downloads.path" column
 
 use strict;
 use warnings;
@@ -29,9 +30,9 @@ sub store_content($$$$)
 }
 
 # Moose method
-sub fetch_content($$)
+sub fetch_content($$$)
 {
-    my ( $self, $download ) = @_;
+    my ( $self, $db, $download ) = @_;
 
     my $content = $download->{ path };
     $content =~ s/content://;
