@@ -2,7 +2,6 @@ package org.mediacloud.crfutils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
@@ -46,7 +45,7 @@ public class ModelRunnerTest extends TestCase {
         String[] results = mr.runModelString(this.test_input);
         String resultsString = StringUtils.join(results, "\n");
 
-        Assert.assertEquals("CRF results are correct", test_output, resultsString);
+        assertEquals("CRF results are correct", test_output, resultsString);
 
     }
 
@@ -62,7 +61,7 @@ public class ModelRunnerTest extends TestCase {
 
         String resultsString = StringUtils.join(results, "\n");
 
-        Assert.assertEquals("CRF results are correct", test_output, resultsString);
+        assertEquals("CRF results are correct", test_output, resultsString);
     }
 
 }
