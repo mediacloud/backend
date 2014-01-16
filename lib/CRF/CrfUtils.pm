@@ -32,7 +32,7 @@ my $pid_connected_to_jvm = $$;
 
 my $use_jni = 0;
 
-my $crf;
+my $modelrunner;
 
 sub _mediacloud_root()
 {
@@ -102,9 +102,11 @@ sub run_model_with_tmp_file
 
     my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
 
-    my $foo = org::mediacloud::crfutils::ModelRunner->runModel( $test_data_file_name, $model_file_name );
+    my $mr = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
 
-    return $foo;
+    my $results = $mr->runModel( $test_data_file_name );
+
+    return $results;
 }
 
 sub run_model_with_separate_exec
@@ -122,17 +124,17 @@ sub run_model_inline_java_data_array
 {
     my ( $model_file_name, $test_data_array ) = @_;
 
-    #undef( $crf );
+    #undef( $modelrunner );
 
     _reconnect_to_jvm_if_necessary();
 
-    if ( !defined( $crf ) )
+    if ( !defined( $modelrunner ) )
     {
         say STDERR "Read model ";
-        $crf = org::mediacloud::crfutils::ModelRunner->readModel( $model_file_name );
+        $modelrunner = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
     }
 
-    return _run_model_on_array( $crf, $test_data_array );
+    return _run_model_on_array( $modelrunner, $test_data_array );
 }
 
 sub train_and_test
@@ -203,13 +205,13 @@ sub _create_tmp_file_from_array
 
 sub _run_model_on_array
 {
-    my ( $crf, $test_data_array ) = @_;
+    my ( $modelrunner, $test_data_array ) = @_;
 
     _reconnect_to_jvm_if_necessary();
 
     my $test_data = join "\n", @{ $test_data_array };
 
-    my $foo = org::mediacloud::crfutils::ModelRunner->runModelString( $test_data, $crf );
+    my $foo = $modelrunner->runModelString( $test_data );
 
     return $foo;
 }

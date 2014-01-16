@@ -20,49 +20,31 @@ import cc.mallet.types.Sequence;
 
 public class ModelRunner {
 
-    public static CRF readModel(String modelFileName) throws IOException,
+    private final CRF crf;
+
+    public ModelRunner(String modelFileName) throws IOException,
             FileNotFoundException, ClassNotFoundException {
-        
+
         ObjectInputStream s = new ObjectInputStream(new FileInputStream(
                 modelFileName));
-        CRF crf = (CRF) s.readObject();
+        crf = (CRF) s.readObject();
         s.close();
-        return crf;
     }
 
-    public static String[] runModel(String testFileName, String modelFileName)
-            throws Exception {
+    public String[] runModel(String testFileName) throws Exception {
 
-        CRF crf = readModel(modelFileName);
-        InstanceList testData = readTestData(testFileName, crf);
-
-        return runModelImpl(testData, crf);
+        InstanceList testData = readTestData(testFileName);
+        return runCrfModel(testData);
     }
 
-    public static String[] runModelString(String testDataString, String modelFileName)
-            throws Exception {
-        CRF crf = readModel(modelFileName);
-        InstanceList testData = readTestDataFromString(testDataString, crf);
+    public String[] runModelString(String testDataString) throws Exception {
 
-        return runModelImpl(testData, crf);
+        InstanceList testData = readTestDataFromString(testDataString);
+        return runCrfModel(testData);
     }
 
-    public static String[] runModelString(String testDataString, CRF crf)
-            throws Exception {
-        InstanceList testData = readTestDataFromString(testDataString, crf);
+    private String[] runCrfModel(InstanceList testData) {
 
-        return runCrfModel(testData, crf);
-    }
-
-    private static String[] runModelImpl(InstanceList testData,
-            CRF model) throws IOException, FileNotFoundException,
-            ClassNotFoundException {
-        CRF crf = model;
-
-        return runCrfModel(testData, crf);
-    }
-
-    private static String[] runCrfModel(InstanceList testData, CRF crf) {
         if (true) {
             Runtime rt = Runtime.getRuntime();
 
@@ -76,7 +58,7 @@ public class ModelRunner {
         for (int i = 0; i < testData.size(); i++) {
             Sequence input = (Sequence) testData.get(i).getData();
 
-            ArrayList<String> predictions = predictSequence(crf, input);
+            ArrayList<String> predictions = predictSequence(input);
 
             results.addAll(predictions);
         }
@@ -84,22 +66,20 @@ public class ModelRunner {
         return results.toArray(new String[0]);
     }
 
-    private static InstanceList readTestData(String testFileName, CRF crf)
-            throws FileNotFoundException {
+    private InstanceList readTestData(String testFileName) throws FileNotFoundException {
 
         Reader testFile = new FileReader(new File(testFileName));
-
-        return instanceListFromReader(testFile, crf);
+        return instanceListFromReader(testFile);
     }
 
-    private static InstanceList readTestDataFromString(final String testData, CRF crf) {
+    private InstanceList readTestDataFromString(final String testData) {
 
         Reader testFile = new StringReader(testData);
-
-        return instanceListFromReader(testFile, crf);
+        return instanceListFromReader(testFile);
     }
 
-    private static InstanceList instanceListFromReader(Reader testFile, CRF crf) {
+    private InstanceList instanceListFromReader(Reader testFile) {
+
         Pipe p = crf.getInputPipe();
         p.setTargetProcessing(false);
         InstanceList testData = new InstanceList(p);
@@ -109,8 +89,7 @@ public class ModelRunner {
         return testData;
     }
 
-    private static ArrayList<String> predictSequence(CRF crf,
-            Sequence input) {
+    private ArrayList<String> predictSequence(Sequence input) {
 
         int nBestOption = 1;
 
