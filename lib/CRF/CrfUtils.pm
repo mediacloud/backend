@@ -15,6 +15,7 @@ use Env qw(HOME);
 use File::Path qw(make_path remove_tree);
 use File::Spec;
 use File::Basename;
+use File::Slurp;
 use MediaWords::Util::Config;
 
 use Inline (
@@ -33,12 +34,32 @@ my $use_jni = 0;
 
 my $crf;
 
+sub _mediacloud_root()
+{
+    my $dirname = dirname( __FILE__ );
+
+    # If this package gets moved to a different location, the subroutine will
+    # stop reporting correct paths to MC root, so this is an attempt to warn
+    # about the problem early
+    if ( __PACKAGE__ ne 'CRF::CrfUtils' )
+    {
+        die 'Package name is not CRF::CrfUtils, the package was probably moved to a different location.' .
+          ' Please update _mediacloud_root() subroutine accordingly.';
+    }
+
+    # Assuming that this file resides in "lib/CRF/"
+    my $root = File::Spec->rel2abs( "$dirname/../../" );
+    unless ( $root )
+    {
+        die "Unable to determine absolute path to Media Cloud.";
+    }
+
+    return $root;
+}
+
 BEGIN
 {
-    my $_dirname      = dirname( __FILE__ );
-    my $_dirname_full = File::Spec->rel2abs( $_dirname );
-
-    my $jar_dir = "$_dirname_full/jars";
+    my $jar_dir = _mediacloud_root() . '/lib/CRF/jars';
 
     my $jars = [ 'mallet-deps.jar', 'mallet.jar' ];
 
@@ -81,7 +102,7 @@ sub run_model_with_tmp_file
 
     my $test_data_file_name = _create_tmp_file_from_array( $test_data_array );
 
-    my $foo = ModelRunner->runModel( $test_data_file_name, $model_file_name );
+    my $foo = org::mediacloud::crfutils::ModelRunner->runModel( $test_data_file_name, $model_file_name );
 
     return $foo;
 }
@@ -108,7 +129,7 @@ sub run_model_inline_java_data_array
     if ( !defined( $crf ) )
     {
         say STDERR "Read model ";
-        $crf = ModelRunner->readModel( $model_file_name );
+        $crf = org::mediacloud::crfutils::ModelRunner->readModel( $model_file_name );
     }
 
     return _run_model_on_array( $crf, $test_data_array );
@@ -188,7 +209,7 @@ sub _run_model_on_array
 
     my $test_data = join "\n", @{ $test_data_array };
 
-    my $foo = ModelRunner->runModelString( $test_data, $crf );
+    my $foo = org::mediacloud::crfutils::ModelRunner->runModelString( $test_data, $crf );
 
     return $foo;
 }
@@ -209,9 +230,7 @@ sub _run_model_inline_java
 
     say STDERR "classpath: $class_path";
 
-    open my $test_data_file_fh, '<', $test_data_file;
-
-    my @test_data_array = <$test_data_file_fh>;
+    my @test_data_array = read_file( $test_data_file );
 
     my $foo = run_model_inline_java_data_array( $model_file_name, \@test_data_array );
 
@@ -220,149 +239,25 @@ sub _run_model_inline_java
     exit();
 }
 
-use Inline
-  JAVA => <<'END_JAVA', AUTOSTUDY => 1, CLASSPATH => $class_path, JNI => $use_jni, PACKAGE => 'main';
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
-
-import cc.mallet.fst.CRF;
-import cc.mallet.fst.SimpleTagger;
-import cc.mallet.pipe.Pipe;
-import cc.mallet.pipe.iterator.LineGroupIterator;
-import cc.mallet.types.InstanceList;
-import cc.mallet.types.Sequence;
-
-public class ModelRunner {
-
-    public static CRF readModel(String modelFileName) throws IOException,
-            FileNotFoundException, ClassNotFoundException {
-        
-        ObjectInputStream s = new ObjectInputStream(new FileInputStream(
-                modelFileName));
-        CRF crf = (CRF) s.readObject();
-        s.close();
-        return crf;
+sub _crf_modelrunner_java_src()
+{
+    # Compile and prepare Java class from /java/CrfUtils/
+    my Readonly $crf_modelrunner_java_path =
+      _mediacloud_root() . '/java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
+    my $crf_modelrunner_java_src = read_file( $crf_modelrunner_java_path );
+    unless ( $crf_modelrunner_java_src )
+    {
+        die "Unable to read the ModelRunner Java class from $crf_modelrunner_java_path.";
     }
 
-    public static String[] runModel(String testFileName, String modelFileName)
-            throws Exception {
-
-        CRF crf = readModel(modelFileName);
-        InstanceList testData = readTestData(testFileName, crf);
-
-        return runModelImpl(testData, crf);
-    }
-
-    public static String[] runModelString(String testDataString, String modelFileName)
-            throws Exception {
-        CRF crf = readModel(modelFileName);
-        InstanceList testData = readTestDataFromString(testDataString, crf);
-
-        return runModelImpl(testData, crf);
-    }
-
-    public static String[] runModelString(String testDataString, CRF crf)
-            throws Exception {
-        InstanceList testData = readTestDataFromString(testDataString, crf);
-
-        return runCrfModel(testData, crf);
-    }
-
-    private static String[] runModelImpl(InstanceList testData,
-            CRF model) throws IOException, FileNotFoundException,
-            ClassNotFoundException {
-        CRF crf = model;
-
-        return runCrfModel(testData, crf);
-    }
-
-    private static String[] runCrfModel(InstanceList testData, CRF crf) {
-        if (true) {
-            Runtime rt = Runtime.getRuntime();
-
-            System.err.println("Used Memory: " + (rt.totalMemory() - rt.freeMemory()) / 1024 + " KB");
-            System.err.println("Free Memory: " + rt.freeMemory() / 1024 + " KB");
-            System.err.println("Total Memory: " + rt.totalMemory() / 1024 + " KB");
-            System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
-        }
-
-        ArrayList<String> results = new ArrayList<String>();
-        for (int i = 0; i < testData.size(); i++) {
-            Sequence input = (Sequence) testData.get(i).getData();
-
-            ArrayList<String> predictions = predictSequence(crf, input);
-
-            results.addAll(predictions);
-        }
-
-        return results.toArray(new String[0]);
-    }
-
-    private static InstanceList readTestData(String testFileName, CRF crf)
-            throws FileNotFoundException {
-
-        Reader testFile = new FileReader(new File(testFileName));
-
-        return instanceListFromReader(testFile, crf);
-    }
-
-    private static InstanceList readTestDataFromString(final String testData, CRF crf) {
-
-        Reader testFile = new StringReader(testData);
-
-        return instanceListFromReader(testFile, crf);
-    }
-
-    private static InstanceList instanceListFromReader(Reader testFile, CRF crf) {
-        Pipe p = crf.getInputPipe();
-        p.setTargetProcessing(false);
-        InstanceList testData = new InstanceList(p);
-        testData.addThruPipe(
-                new LineGroupIterator(testFile,
-                        Pattern.compile("^\\s*$"), true));
-        return testData;
-    }
-
-    private static ArrayList<String> predictSequence(CRF crf,
-            Sequence input) {
-
-        int nBestOption = 1;
-
-        Sequence[] outputs = SimpleTagger.apply(crf, input, nBestOption);
-        int k = outputs.length;
-
-        try {
-            for (int a = 0; a < k; a++) {
-                if (outputs[a].size() != input.size()) {
-                    throw new RuntimeException("Failed to decode input sequence " + input + ", answer " + a);
-                }
-            }
-        } catch (RuntimeException e) {
-            System.err.println("Exception: " + e.getMessage());
-            return new ArrayList<String>();
-        }
-
-        ArrayList<String> sequenceResults = new ArrayList<String>();
-        for (int j = 0; j < input.size(); j++) {
-            for (int a = 0; a < k; a++) {
-                String prediction = outputs[a].get(j).toString();
-                sequenceResults.add(prediction + " ");
-            }
-        }
-
-        return sequenceResults;
-    }
+    return $crf_modelrunner_java_src;
 }
 
-END_JAVA
+use Inline
+  Java      => _crf_modelrunner_java_src(),
+  AUTOSTUDY => 1,
+  CLASSPATH => $class_path,
+  JNI       => $use_jni,
+  PACKAGE   => 'main';
 
 1;
