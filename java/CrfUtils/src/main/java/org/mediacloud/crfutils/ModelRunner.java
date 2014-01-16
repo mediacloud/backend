@@ -44,15 +44,15 @@ public class ModelRunner {
 
     private String[] runCrfModel(InstanceList testData) {
 
-        if (true) {
-            Runtime rt = Runtime.getRuntime();
+        /*
+        Runtime rt = Runtime.getRuntime();
 
-            System.err.println("Used Memory: " + (rt.totalMemory() - rt.freeMemory()) / 1024 + " KB");
-            System.err.println("Free Memory: " + rt.freeMemory() / 1024 + " KB");
-            System.err.println("Total Memory: " + rt.totalMemory() / 1024 + " KB");
-            System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
-            System.err.println("");
-        }
+        System.err.println("Used Memory: " + (rt.totalMemory() - rt.freeMemory()) / 1024 + " KB");
+        System.err.println("Free Memory: " + rt.freeMemory() / 1024 + " KB");
+        System.err.println("Total Memory: " + rt.totalMemory() / 1024 + " KB");
+        System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
+        System.err.println("");
+        */
 
         ArrayList<String> results = new ArrayList<String>();
         for (int i = 0; i < testData.size(); i++) {
