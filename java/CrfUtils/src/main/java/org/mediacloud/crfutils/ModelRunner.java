@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import cc.mallet.fst.CRF;
-import cc.mallet.fst.SimpleTagger;
 import cc.mallet.pipe.Pipe;
 import cc.mallet.pipe.iterator.LineGroupIterator;
 import cc.mallet.types.InstanceList;
@@ -52,6 +51,7 @@ public class ModelRunner {
             System.err.println("Free Memory: " + rt.freeMemory() / 1024 + " KB");
             System.err.println("Total Memory: " + rt.totalMemory() / 1024 + " KB");
             System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
+            System.err.println("");
         }
 
         ArrayList<String> results = new ArrayList<String>();
@@ -91,9 +91,10 @@ public class ModelRunner {
 
     private ArrayList<String> predictSequence(Sequence input) {
 
-        int nBestOption = 1;
+        // That's how SimpleTagger.apply() implements it
+        Sequence[] outputs = new Sequence[1];
+        outputs[0] = crf.transduce(input);
 
-        Sequence[] outputs = SimpleTagger.apply(crf, input, nBestOption);
         int k = outputs.length;
 
         try {
