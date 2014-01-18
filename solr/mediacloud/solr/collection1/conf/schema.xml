@@ -117,8 +117,13 @@
    <field name="sentence"  type="text_general" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" /> 
    <field name="title" type="text_general" indexed="true" stored="true" multiValued="false"/>
 
-  <field name="publish_date" type="date" indexed="true" stored="true"/>
- 
+   <field name="publish_date" type="date" indexed="true" stored="true"/>
+
+   <field name="solr_import_date" type="date" indexed="true" stored="true"/>
+
+   <!-- language field from the story_sentences table - 3 letter code -->
+   <field name="language" type="string" indexed="true" stored="true"/>
+
    <field name="media_sets_id" type="int" indexed="true" stored="true" multiValued="true" />
    <field name="tags_id_stories" type="int" indexed="true" stored="true" multiValued="true" />
    <field name="tags_id_media" type="int" indexed="true" stored="true" multiValued="true" />
