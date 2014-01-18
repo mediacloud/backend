@@ -53,10 +53,10 @@ requires 'FCGI::ProcManager';
 requires 'Feed::Find';
 requires 'File::Touch';
 requires 'Gearman::JobScheduler', '0.11';
+requires 'HTML::CruftText', '0.02';    # git://github.com/pypt/p5-HTML-CruftText.git
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';
 requires 'GraphViz';
-requires 'HTML::CruftText';
 requires 'HTML::Entities';
 requires 'HTML::FormatText';
 requires 'HTML::FormFu';

@@ -16,7 +16,7 @@ use Text::Trim;
 use Time::HiRes;
 use List::MoreUtils qw(first_index indexes last_index);
 use Array::Compare;
-use HTML::CruftText;
+use HTML::CruftText 0.02;
 use Carp qw (confess);
 
 # CONSTANTS
