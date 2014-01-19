@@ -3666,10 +3666,10 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  HTML-CruftText-0.04
-    pathname: D/DR/DRLARO/HTML/HTML-CruftText-0.04.tar.gz
+  HTML-CruftText-0.05
+    pathname: D/DR/DRLARO/HTML/HTML-CruftText-0.05.tar.gz
     provides:
-      HTML::CruftText 0.04
+      HTML::CruftText 0.05
     requirements:
       ExtUtils::MakeMaker 0
       List::MoreUtils 0.33
