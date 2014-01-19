@@ -15,7 +15,7 @@ use Readonly;
 
 use Test::NoWarnings;
 use Test::More;
-use HTML::CruftText 0.02;
+use HTML::CruftText 0.04;
 
 Readonly my $test1_input =>
 
