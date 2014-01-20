@@ -27,7 +27,7 @@ if [[ "$CREATEUSER_RUN" == *"ERROR"* ]]; then
 fi
 
 # Create databases
-for db_name in "mediacloud" "mediacloud_test"; do
+for db_name in "mediacloud" "mediacloud_test" "mediacloud_gearman"; do
     echo "$db_name"
 
     echo "creating database '$db_name'"
