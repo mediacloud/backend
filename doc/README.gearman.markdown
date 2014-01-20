@@ -1,11 +1,11 @@
-Media Cloud + Gearman interoperability
-======================================
+# Media Cloud + Gearman interoperability
 
-Media Cloud uses [Gearman](http://gearman.org/) and [Gearman::JobScheduler](https://github.com/pypt/p5-Gearman-JobScheduler) for scheduling, enqueueing and running various background processes.
+Media Cloud uses [Gearman](http://gearman.org/) and
+[Gearman::JobScheduler](https://github.com/pypt/p5-Gearman-JobScheduler) for
+scheduling, enqueueing and running various background processes.
 
 
-Installing Gearman
-------------------
+## Installing Gearman
 
 On Ubuntu, install Gearman with:
 
@@ -17,26 +17,25 @@ On OS X, install Gearman with:
     brew install gearman
 
 
-Installing `Gearman-JobScheduler`
----------------------------------
+## Installing `Gearman-JobScheduler`
 
-`Gearman-JobScheduler` is a normal Carton dependency. Installation of it should be as easy as:
+`Gearman-JobScheduler` is a normal Carton dependency, so install it by running:
 
     ./script/run_carton.sh install --deployment
 
-If it doesn't work (likely because of an old "cpanm" version), install it manually:
 
-    $ source ./script/set_perl_brew_environment.sh 
-    $ cpanm -L local/ Module::Install
-    $ cpanm -L local/ git://github.com/pypt/p5-Gearman-JobScheduler.git@0.07
+## Configuring Gearman to use PostgreSQL for storing the job queue
 
+You need to set Gearman up to store its job queue in a permanent storage (as
+opposed to storing the queue in memory). If you do not do that, Media Cloud
+might be unable to correctly keep track of the currently enqueued / running /
+finished / failed jobs (see the `gearman_job_queue` table definition in
+`script/mediawords.sql` for the explanation).
 
-Configuring Gearman to use PostgreSQL for storing the job queue
----------------------------------------------------------------
-
-You need to set Gearman up to store its job queue in a permanent storage (as opposed to storing the queue in memory). If you do not do that, Media Cloud might be unable to correctly keep track of the currently enqueued / running / finished / failed jobs (see the `gearman_job_queue` table definition in `script/mediawords.sql` for the explanation).
-
-You might want Gearman to [store its job queue in PostgreSQL](http://gearman.org/manual:job_server#postgresql). To do that, create a PostgreSQL database `gearman` for storing the queue, and allow user `gearman` to access it:
+You might want Gearman to
+[store its job queue in PostgreSQL](http://gearman.org/manual:job_server#postgresql).
+To do that, create a PostgreSQL database `gearman` for storing the queue, and
+allow user `gearman` to access it:
 
     # sudo -u postgres createuser -D -A -P gearman
     Enter password for new role: 
@@ -48,7 +47,8 @@ Then, edit `/etc/default/gearman-job-server`:
 
     vim /etc/default/gearman-job-server
 
-and append PostgreSQL connection properties to `PARAMS` so that it reads something like this:
+and append PostgreSQL connection properties to `PARAMS` so that it reads
+something like this:
 
     # Parameters to pass to gearmand.
     PARAMS="--listen=127.0.0.1"
@@ -70,10 +70,10 @@ Lastly, restart `gearmand`:
      * Starting Gearman Server gearmand    [ OK ] 
 
 
-Testing Gearman
----------------
+## Testing Gearman
 
-To try things out, start a test Gearman worker which will count the lines of the input:
+To try things out, start a test Gearman worker which will count the lines of
+the input:
 
     $ gearman -w -f wc -- wc -l
 
@@ -105,10 +105,10 @@ and make sure it is being stored in the queue:
     (1 row)
 
 
-Monitoring Gearman
-------------------
+## Monitoring Gearman
 
-To monitor Gearman, you can use either the `gearadmin` tool or the "Gearman-Monitor" PHP script.
+To monitor Gearman, you can use either the `gearadmin` tool or the
+"Gearman-Monitor" PHP script.
 
 
 ### `gearadmin`
@@ -125,13 +125,13 @@ Run `gearadmin --help` for more options.
 
 ### "Gearman-Monitor"
 
-[Gearman-Monitor](https://github.com/yugene/Gearman-Monitor) is a tool to watch Gearman servers. 
+[Gearman-Monitor](https://github.com/yugene/Gearman-Monitor) is a tool to watch
+Gearman servers. 
 
 Screenshots: http://imgur.com/a/RjJWc
 
 
-Running jobs on Gearman with `Gearman::JobScheduler`
-----------------------------------------------------
+## Running jobs on Gearman with `Gearman::JobScheduler`
 
 A full example of a Gearman job is located in:
 
