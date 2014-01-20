@@ -97,6 +97,11 @@ sub set_defaults
     $config->{ gearman }->{ notifications }->{ from_address }   ||= 'gjs@mediacloud.org';
     $config->{ gearman }->{ notifications }->{ subject_prefix } ||= '[GJS]';
 
+    # Gearmand
+    $config->{ gearmand }->{ enabled }  ||= 'no';
+    $config->{ gearmand }->{ listen }   ||= '127.0.0.1';
+    $config->{ gearmand }->{ port }     ||= 4731;
+
     # Supervisor
     $config->{ supervisor }->{ childlogdir } ||= 'data/supervisor_logs/';
 

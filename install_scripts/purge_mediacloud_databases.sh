@@ -17,10 +17,10 @@ if [ $REPLY != "y" ]; then
 fi
 
 # Drop databases
-echo "DROPPING db mediacloud"
-run_dropdb mediacloud
-echo "DROPPING db mediacloud_test"
-run_dropdb mediacloud_test
+for db_name in "mediacloud" "mediacloud_test" "mediacloud_gearman"; do
+	echo "DROPPING db $db_name"
+	run_dropdb "$db_name"
+done
 
 set -u
 set -o errexit

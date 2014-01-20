@@ -47,13 +47,18 @@ database:
         #bucket_name             : "mediacloud_test"
         #downloads_folder_name   : "downloads_test"
 
-### Gearman (p5-Gearman-JobScheduler) configuration
+### Gearman worker (p5-Gearman-JobScheduler) configuration
 ### (to enable Gearman, add at least one server)
 #gearman:
 
     ### Gearman servers (required)
     #servers:
-    #    - "127.0.0.1:4730"
+        ### By default "gearmand" works on port 4730; "gearmand" run as a
+        ### Supervisord daemon (see below) runs on 4731.
+        ### It is recommended to use Media Cloud-provided Gearman instance
+        ### instead of relying on system's because of a persistent
+        ### (PostgreSQL-backed) job queue and Supervisord logging facilities.
+        #- "127.0.0.1:4731"
 
     ### Worker log directory (optional; default is "Sys::Path->logdir . '/gjs/'")
     #worker_log_dir: "data/gearman_worker_logs/"
@@ -70,6 +75,24 @@ database:
 
         ### Email subject prefix (optional; default is "[GJS]")
         #subject_prefix: "[GJS]"
+
+### Gearman server (gearmand) configuration
+#gearmand:
+
+    ### To enable your very own "gearmand" instance managed by Supervisord, set
+    ### the below to "yes"
+    #enabled: "no"
+
+    ### Host to listen to. You can set the above parameter to an empty string
+    ### so that Gearman will accept connections from anywhere; however, it is
+    ### highly advised use secure channels (e.g. a SSH tunnel) to make Gearman
+    ### accessible to "outside" instead.
+    #listen: "127.0.0.1"
+
+    ### Port to use in gearmand. Default port for vendor-provided Gearman
+    ### deployments is 4730, but Media Cloud runs its own Gearman instance via
+    ### Supervisord.
+    #port: 4731
 
 ### Supervisor (supervisord) configuration
 #supervisor:

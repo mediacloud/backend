@@ -73,7 +73,8 @@ EOF
 
     brew install \
         graphviz --with-bindings \
-        coreutils postgresql curl tidy libyaml berkeley-db4 gawk cpanminus
+        coreutils postgresql curl tidy libyaml berkeley-db4 gawk cpanminus \
+        gearman --with-postgresql
 
     # have to change dir or it think you are trying to install from the supervisor/ dir
     ( cd /tmp; easy_install supervisor )
