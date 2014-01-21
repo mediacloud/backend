@@ -395,7 +395,6 @@ my $banned_fields;
 
 sub get_feature_string_from_line_info($$;$)
 {
-
     my ( $line_info, $line_text, $top_words ) = @_;
 
     #say Dumper( $line_info );
@@ -424,7 +423,7 @@ sub get_feature_string_from_line_info($$;$)
 
         next if $feature_field eq 'class';
 
-        next if ( !defined( $line_info->{ $feature_field } ) );
+        next unless ( defined( $line_info->{ $feature_field } ) );
         next if ( $line_info->{ $feature_field } eq '0' );
         next if ( $line_info->{ $feature_field } eq '' );
 
@@ -434,9 +433,9 @@ sub get_feature_string_from_line_info($$;$)
 
         if ( $field_value eq '1' )
         {
-            $ret .= "$feature_field";
-            $ret .= "=" . $field_value;    # || 0;
-            $ret .= " ";
+            $ret .= $feature_field;
+            $ret .= '=' . $field_value;    # || 0;
+            $ret .= ' ';
         }
         else
         {
@@ -447,7 +446,7 @@ sub get_feature_string_from_line_info($$;$)
             my $last_feature = '';
             while ( $field_value < $val )
             {
-                $last_feature = "$feature_field" . "_lt_" . $val;
+                $last_feature = $feature_field . '_lt_' . $val;
                 $val /= 2;
             }
 
@@ -455,12 +454,12 @@ sub get_feature_string_from_line_info($$;$)
 
             while ( $field_value > $val )
             {
-                $last_feature = "$feature_field" . "_gt_" . $val;
+                $last_feature = $feature_field . '_gt_' . $val;
                 $val *= 2;
             }
 
             die if $last_feature eq '';
-            $ret .= "$last_feature ";
+            $ret .= $last_feature . ' ';
         }
 
     }
@@ -472,7 +471,7 @@ sub get_feature_string_from_line_info($$;$)
 
         next if ( defined( $top_words ) && ( !$top_words->{ $word } ) );
 
-        $ret .= "unigram_$word ";
+        $ret .= 'unigram_' . $word . ' ';
     }
 
     if ( defined( $line_info->{ class } ) )
