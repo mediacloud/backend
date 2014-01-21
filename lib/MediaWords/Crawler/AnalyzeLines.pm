@@ -295,7 +295,10 @@ sub get_info_for_lines($$$)
           " falling back to default language '$language_code'.";
     }
 
-    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code );
+    my $markers = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
+    my $auto_excluded_lines = MediaWords::Crawler::Extractor::find_auto_excluded_lines( $lines, $language_code, $markers );
+    my $has_clickprint      = HTML::CruftText::has_clickprint( $lines );
+    my $sphereit_map        = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
 
     my $info_for_lines = [];
 
@@ -304,12 +307,6 @@ sub get_info_for_lines($$$)
     $title_text =~ s/^\s*//;
     $title_text =~ s/\s*$//;
     $title_text =~ s/\s+/ /;
-
-    my $markers        = MediaWords::Crawler::Extractor::find_markers( $lines, $language_code );
-    my $has_clickprint = HTML::CruftText::has_clickprint( $lines );
-    my $sphereit_map   = MediaWords::Crawler::Extractor::get_sphereit_map( $markers, $language_code );
-
-    MediaWords::Crawler::Extractor::print_time( "find_markers" );
 
     for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
     {
