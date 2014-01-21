@@ -81,18 +81,14 @@ sub get_html_density($$)
     {
         die "Language is null for language code '$language_code'.\n";
     }
-    my $noise_words = $lang->get_noise_strings();
-    unless ( $noise_words )
+    my $noise_strings_regex = $lang->get_noise_strings_regex();
+    unless ( $noise_strings_regex )
     {
-        die "Noise words is null for language code '$language_code'.\n";
+        die "Noise strings regular expression is null for language code '$language_code'.\n";
     }
 
-    for my $noise_word ( @{ $noise_words } )
-    {
-        # Count the number of times "$noise_word" occurs in "$line"
-        my $noise_word_occurrences = () = $line =~ /\Q$noise_word\E/ig;
-        $html_length += ( $noise_word_occurrences * length( $noise_word ) );
-    }
+    my @noise_strings_matches = ( $line =~ /$noise_strings_regex/g );
+    map { $html_length += length( $_ ) } @noise_strings_matches;
 
     return ( $html_length / ( length( $line ) ) );
 }
