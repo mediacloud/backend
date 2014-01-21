@@ -18,7 +18,7 @@ use Readonly;
 
 use Test::NoWarnings;
 use Test::More;
-use HTML::CruftText 0.05;
+use HTML::CruftText 0.06;
 use Test::Deep;
 
 my $test_cases = [
