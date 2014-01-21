@@ -6392,6 +6392,13 @@ DISTRIBUTIONS
       Readonly::Scalar 1.03
     requirements:
       ExtUtils::MakeMaker 0
+  Readonly-XS-1.05
+    pathname: R/RO/ROODE/Readonly-XS-1.05.tar.gz
+    provides:
+      Readonly::XS 1.05
+    requirements:
+      ExtUtils::MakeMaker 0
+      Readonly 1.02
   Regexp-Assemble-0.35
     pathname: D/DL/DLAND/Regexp-Assemble-0.35.tar.gz
     provides:

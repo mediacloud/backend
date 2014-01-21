@@ -99,6 +99,7 @@ requires 'PDL';
 requires 'Perl::Tidy';
 requires 'RDF::Simple::Parser';
 requires 'Readonly';
+requires 'Readonly::XS';
 requires 'Regexp::Common';
 requires 'Regexp::Common::time';
 requires 'Smart::Comments';
