@@ -119,22 +119,11 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
   {
     "is_not_dup": null,
     "dup_media_id": null,
-    "media_source_tags": [
-      
-    ],
     "name": "Washington Post",
     "foreign_rss_links": 0,
     "url": "http:\/\/washingtonpost.com",
     "moderated": 1,
     "full_text_rss": null,
-    "media_sets": [
-      {
-        "name": "Washington Post",
-        "set_type": "medium",
-        "description": null,
-        "media_sets_id": 18
-      }
-    ],
     "feeds_added": 1,
     "sw_data_end_date": null,
     "sw_data_start_date": null,
@@ -143,6 +132,17 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
     "moderation_notes": null,
     "media_id": 2,
     "extract_author": 1
+    "media_source_tags": [
+      
+    ],
+    "media_sets": [
+      {
+        "name": "Washington Post",
+        "set_type": "medium",
+        "description": null,
+        "media_sets_id": 18
+      }
+    ],
   },
   {
     "unpaged_stories": 100,
@@ -155,11 +155,14 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
     "url": "http:\/\/csmonitor.com",
     "moderated": 1,
     "full_text_rss": null,
+    "feeds_added": 1,
+    "is_not_dup": null,
+    "foreign_rss_links": 0,
+    "dup_media_id": null,
+    "name": "Christian Science Monitor"
     "media_sets": [
       
     ],
-    "feeds_added": 1,
-    "is_not_dup": null,
     "media_source_tags": [
       {
         "tag_sets_id": 1,
@@ -180,9 +183,6 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
         "tag_set": "workflow"
       }
     ],
-    "foreign_rss_links": 0,
-    "dup_media_id": null,
-    "name": "Christian Science Monitor"
   }
 ]
 ```
@@ -207,17 +207,17 @@ http://mediacloud.org/api/v2/media_sets/single/2
 ```json
 [
    {
-     'name': 'set name'
-     'media_sets_id': 2
-     'media': 
+     "name": "set name"
+     "media_sets_id": 2
+     "media": 
      [
-      	    {       'name': 'source 1 name',
-	            'media_id': 'source 1 media id',
-		    'url': 'http://source1.com'
+      	    {       "name": "source 1 name",
+	            "media_id": "source 1 media id",
+		    "url": "http://source1.com"
             },
-      	    {       'name': 'source 2 name',
-	            'media_id': 'source 2 media id',
-		    'url': 'http://source2.com'
+      	    {       "name": "source 2 name",
+	            "media_id": "source 2 media id",
+		    "url": "http://source2.com"
             },
      ]
    }
@@ -249,17 +249,17 @@ URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 ```json
 [
    {
-     'name': 'set name'
-     'media_sets_id': 2
-     'media': 
+     "name": "set name",
+     "media_sets_id": "2",
+     "media": 
      [
-      	    {       'name': 'source 1 name',
-	            'media_id': 'source 1 media id',
-		    'url': 'http://source1.com'
+      	    {       "name": "source 1 name",
+	            "media_id": "source 1 media id",
+		    "url": "http://source1.com"
             },
-      	    {       'name': 'source 2 name',
-	            'media_id': 'source 2 media id',
-		    'url': 'http://source2.com'
+      	    {       "name": "source 2 name",
+	            "media_id": "source 2 media id",
+		    "url": "http://source2.com"
             },
      ]
    }
@@ -287,23 +287,23 @@ http://mediacloud.org/api/v2/dashboards/single/2
 ```json
 [
    {
-      'name':'dashboard 2',
-      'dashboards_id':2,
-      'media_sets':
+      "name":"dashboard 2",
+      "dashboards_id": "2",
+      "media_sets":
       [
       {
-         'name':'set name',
-         'media_sets_id':2,
-         'media':[
+         "name":"set name",
+         "media_sets_id": "2",
+         "media":[
             {
-               'name':'source 1 name',
-               'media_id':'source 1 media id',
-               'url':'http://source1.com'
+               "name":"source 1 name",
+               "media_id":"source 1 media id",
+               "url":"http://source1.com"
             },
             {
-               'name':'source 2 name',
-               'media_id':'source 2 media id',
-               'url':'http://source2.com'
+               "name":"source 2 name",
+               "media_id":"source 2 media id",
+               "url":"http://source2.com"
             },
 
          ]
@@ -338,23 +338,23 @@ URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 ```json
 [
    {
-      'name':'dashboard 2',
-      'dashboards_id':2,
-      'media_sets':
+      "name":"dashboard 2",
+      "dashboards_id":2,
+      "media_sets":
       [
       {
-         'name':'set name',
-         'media_sets_id':2,
-         'media':[
+         "name":"set name",
+         "media_sets_id":2,
+         "media":[
             {
-               'name':'source 1 name',
-               'media_id':'source 1 media id',
-               'url':'http://source1.com'
+               "name":"source 1 name",
+               "media_id":"source 1 media id",
+               "url":"http://source1.com"
             },
             {
-               'name':'source 2 name',
-               'media_id':'source 2 media id',
-               'url':'http://source2.com'
+               "name":"source 2 name",
+               "media_id":"source 2 media id",
+               "url":"http://source2.com"
             },
 
          ]
@@ -1686,8 +1686,7 @@ curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://media
 ## Output Format / JSON
   
 The format of the API responses is determine by the ‘Accept’ header on the request. The default is ‘application/json’. Other supported formats include 'text/html', 'text/x-json', and  'text/x-php-serialization'. It’s recommended that you explicitly set the ‘Accept’ header rather than relying on the default.
-
-  
+ 
 Here’s an example of setting the ‘Accept’ header in Python
 
 ```python  
