@@ -30,6 +30,17 @@ Response:
     "feeds_added": 1,
     "sw_data_end_date": null,
     "moderated": 1,
+    "unpaged_stories": 119,
+    "foreign_rss_links": 0,
+    "sw_data_start_date": null,
+    "extract_author": 1,
+    "name": "New York Times",
+    "media_id": 1,
+    "url": "http:\/\/nytimes.com",
+    "full_text_rss": null,
+    "dup_media_id": null,
+    "moderation_notes": null,
+    "use_pager": 0
     "media_source_tags": [
       {
         "tag_set": "media_type",
@@ -68,14 +79,6 @@ Response:
         "tag_sets_id": 5
       }
     ],
-    "unpaged_stories": 119,
-    "foreign_rss_links": 0,
-    "sw_data_start_date": null,
-    "extract_author": 1,
-    "name": "New York Times",
-    "media_id": 1,
-    "url": "http:\/\/nytimes.com",
-    "full_text_rss": null,
     "media_sets": [
       {
         "media_sets_id": 24,
@@ -83,10 +86,7 @@ Response:
         "set_type": "medium",
         "description": null
       }
-    ],
-    "dup_media_id": null,
-    "moderation_notes": null,
-    "use_pager": 0
+    ]
   }
 ]
 ```
@@ -287,20 +287,29 @@ http://mediacloud.org/api/v2/dashboards/single/2
 ```json
 [
    {
-     'name': 'set name'
-     'dashboards_id': 2
-     'media': 
-     [
-      	    {       'name': 'source 1 name',
-	            'media_id': 'source 1 media id',
-		    'url': 'http://source1.com'
+      'name':'dashboard 2',
+      'dashboards_id':2,
+      'media_sets':
+      [
+      {
+         'name':'set name',
+         'media_sets_id':2,
+         'media':[
+            {
+               'name':'source 1 name',
+               'media_id':'source 1 media id',
+               'url':'http://source1.com'
             },
-      	    {       'name': 'source 2 name',
-	            'media_id': 'source 2 media id',
-		    'url': 'http://source2.com'
+            {
+               'name':'source 2 name',
+               'media_id':'source 2 media id',
+               'url':'http://source2.com'
             },
-     ]
-   }
+
+         ]
+      }
+   ]
+}
 ]
 ```
 
@@ -329,23 +338,31 @@ URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 ```json
 [
    {
-     'name': 'set name'
-     'dashboards_id': 2
-     'media': 
-     [
-      	    {       'name': 'source 1 name',
-	            'media_id': 'source 1 media id',
-		    'url': 'http://source1.com'
+      'name':'dashboard 2',
+      'dashboards_id':2,
+      'media_sets':
+      [
+      {
+         'name':'set name',
+         'media_sets_id':2,
+         'media':[
+            {
+               'name':'source 1 name',
+               'media_id':'source 1 media id',
+               'url':'http://source1.com'
             },
-      	    {       'name': 'source 2 name',
-	            'media_id': 'source 2 media id',
-		    'url': 'http://source2.com'
+            {
+               'name':'source 2 name',
+               'media_id':'source 2 media id',
+               'url':'http://source2.com'
             },
-     ]
-   }
-]
-```
 
+         ]
+      }
+   ]
+}
+] 
+```
 
 ## Stories
 
