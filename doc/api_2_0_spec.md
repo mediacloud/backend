@@ -1538,7 +1538,7 @@ URL: http://mediacloud.org/api/v2/stories/list_processed/&last_processed_stories
 
 These who want to only see a subset of stories can create a story subset stream by sending a put request to `api/v2/stories/subset/?data=\<JSON\> `where \<JSON_STRING\> is a URL encoded JSON representation of the story subset.
 
-###api/v2/stories/subset
+###api/v2/stories/subset (PUT)
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
@@ -1574,6 +1574,8 @@ Create a story subset for the New York Times from January 1, 2014 to January 2, 
 curl -X PUT -d media_id=1 -d start_date=2014-01-01 -d end_date=2014-01-02 http://mediacloud.org/api/v2/stories/subset
 ```
 
+###api/v2/stories/subset (GET)
+
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
 api/v2/stories/subset                    show the status of a subset. Must use a GET request
@@ -1581,7 +1583,21 @@ api/v2/stories/subset                    show the status of a subset. Must use a
 
   
 To see the status of a given subset, the client sends a get request to `api/v2/stories/subset/<ID>` where `<ID>` is the database id that was returned in the put request above.  The returned object contains a `'ready'` field with a Boolean value indicating that stories from the subset have been compiled.
-  
+
+####Example 
+curl -X GET http://0:3000/api/v2/stories/subset/1
+```json
+{
+   "media_id":1,
+   "end_date":"2013-01-02 00:00:00-05",
+   "media_sets_id":null,
+   "start_date":"2013-01-01 00:00:00-05",
+   "last_processed_stories_id":"116335917",
+   "ready":1,
+   "story_subsets_id":"1"
+}
+```
+ 
 ###api/V2/stories/list_subset_processed
 
 URL                                                                       Function
@@ -1734,3 +1750,61 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 
 ```
 
+##Grab all processed stories from US Top 25 MSM as a stream
+
+This is broken down into multiple steps for convenience and because that's probably how a real user would do it. 
+
+###Find the media_sets_id
+
+First figure out the media_sets_id of the US top 25 msm.
+
+###Create a subset
+
+curl -X PUT -d media_set_id=1 http://mediacloud.org/api/v2/stories/subset
+
+Save the story_subsets_id
+
+###Wait until the subset is ready
+
+Below we show some python code to continuously determine whether the subset has been processed. Users could do something similar manually by issuing curl requests.
+
+```python
+import requests 
+import time
+
+while True:
+    r = requests.get( 'http://mediacloud.org/api/v2/stories/subset/' + story_subsets_id, headers = { 'Accept': 'application/json'} )
+    data = r.json()
+
+    if data['ready'] == '1':
+       break
+    else:
+       time.sleep 120
+
+print "subset {} is ready".format( story_subsets_id )
+```
+
+###Grab stories from the processed stream
+
+Since the subset is now processed we can obtain all of its stories by repeatedly list_subset_processed and changing the last_processed_stories_id parameter. This is shown in 
+the python code below where process_stories is a user provided function to process this data.
+
+```python
+import requests
+
+start = 0
+rows  = 100
+while True:
+      params = { 'last_processed_stories_id': start, 'rows': rows }
+
+      print "Fetching {} stories starting from {}".format( rows, start)
+      r = requests.get( 'http://mediacloud.org/api/v2/stories/list_subset_processed/' +  story_subsets_id, params = params, headers = { 'Accept': 'application/json'} )
+      stories = r.json()
+
+      if len(stories) == 0:
+      	 break
+
+      start += rows
+
+      process_stories( stories )
+```
