@@ -278,7 +278,13 @@ api/v2/dashboard/single/\<dashboards_id\>         Return the dashboard in which 
 
 ####Query Parameters 
 
-None.
+--------------------------------------------------------------------------------------------------------
+Parameter             Default         Notes
+-------------------   ----------      ----------------------------------------------------------------------
+ nested_data             1               if 0 return only the name and dashboards_id otherwise 
+                                         return nested information about the dashboard's media_sets 
+                                         and their media
+--------------------------------------------------------------------------------------------------------
 
 ####Example
 
@@ -329,6 +335,10 @@ Parameter             Default         Notes
                                        dashboards_id is greater than this value
 
  rows                  20              Number of dashboards to return. Can not be larger than 100
+
+ nested_data             1             if 0 return only the name and dashboards_id otherwise 
+                                       return nested information about the dashboard's media_sets 
+                                       and their media
 --------------------------------------------------------------------------------------------------------
 
 ####Example
@@ -1754,9 +1764,71 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 
 This is broken down into multiple steps for convenience and because that's probably how a real user would do it. 
 
-###Find the media_sets_id
+###Find the media set
 
-First figure out the media_sets_id of the US top 25 msm.
+We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run curl to get a quick list of the available dashboards.
+
+```
+curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
+```
+
+```json
+[
+ {"dashboards_id":1,"name":"US / English"}
+ {"dashboards_id":2,"name":"Russia"}
+ {"dashboards_id":3,"name":"test"}
+ {"dashboards_id":5,"name":"Russia Full Morningside 2010"}
+ {"dashboards_id":4,"name":"Russia Sampled Morningside 2010"}
+ {"dashboards_id":6,"name":"US Miscellaneous"}
+ {"dashboards_id":7,"name":"Nigeria"}
+ {"dashboards_id":101,"name":"techblogs"}
+ {"dashboards_id":116,"name":"US 2012 Election"}
+ {"dashboards_id":247,"name":"Russian Public Sphere"}
+ {"dashboards_id":463,"name":"lithanian"}
+ {"dashboards_id":481,"name":"Korean"}
+ {"dashboards_id":493,"name":"California"}
+ {"dashboards_id":773,"name":"Egypt"}
+]
+```
+
+The users sees the "US / English" dashboard with dashboards_id 1 and asks for more detailed information.
+
+```
+curl http://mediacloud.org/api/v2/dashboards/single/1
+```
+
+```json
+[
+   {
+      "name":"dashboard 2",
+      "dashboards_id": "2",
+      "media_sets":
+      [
+         {
+      	 "media_sets_id":1,
+	 "name":"Top 25 Mainstream Media",
+	 "description":"Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
+	 media:
+	   [
+	     NOT SHOWN FOR SPACE REASONS 
+	   ]
+	 },
+   	 {
+	 "media_sets_id":26,
+	 "name":"Popular Blogs",
+	 "description":"1000 most popular feeds in bloglines.",
+	  media:
+	   [
+	     NOT SHOWN FOR SPACE REASONS 
+	   ]
+   	   }
+   ]  
+]
+```
+
+*Note* the list of media are not shown for space reasons.
+
+After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with media_id 1.
 
 ###Create a subset
 
