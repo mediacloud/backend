@@ -272,6 +272,49 @@ URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
    }
 ]
 ```
+dddddd
+
+
+## Feeds
+
+###api/v2/feeds/single
+
+URL                                      Function
+---------------------------------        ------------------------------------------------------------
+api/v2/feeds/single/\<feeds_id\>         Return the feeds in which feeds_id equals \<feeds_id\>
+---------------------------------        ------------------------------------------------------------
+
+####Query Parameters 
+
+None.
+
+####Example -TBD
+
+http://mediacloud.org/api/v2/feedss/single/2
+
+
+###api/v2/feeds/list
+
+URL                                                                       Function
+---------------------------------      -------------------------------------------
+api/v2/feeds/list                         Return multiple media sets
+---------------------------------      -------------------------------------------
+
+####Query Parameters 
+
+--------------------------------------------------------------------------------------------------------
+Parameter             Default         Notes
+-------------------   ----------      ----------------------------------------------------------------------
+ last_feeds_id         0               return feed with 
+                                       feeds_id is greater than this value
+
+ rows                  20              Number of feeds to return. Can not be larger than 100
+--------------------------------------------------------------------------------------------------------
+
+####Example -- TBD
+
+URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
+
 
 
 ## Dashboards
