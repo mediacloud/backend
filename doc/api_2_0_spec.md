@@ -1880,3 +1880,20 @@ while True:
 
       process_stories( stories )
 ```
+
+##Grab all stories in the New York Times during October 2012
+
+###Find the media_id of the New York Times -- TODO
+
+####Create a subset
+curl -X PUT -d start_date=2012-10-01 -d end_date=2012-11-01 -d media_id=1 http://mediacloud.org/api/v2/stories/subset
+
+Save the story_subsets_id
+
+###Wait until the subset is ready
+
+See the 25 main stream media example above.
+
+###Grab stories from the processed stream
+
+See the 25 main stream media example above.
