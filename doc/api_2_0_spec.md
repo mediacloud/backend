@@ -213,7 +213,8 @@ http://mediacloud.org/api/v2/media_sets/single/2
 [
    {
      "name": "set name"
-     "media_sets_id": 2
+     "media_sets_id": 2,
+     "description": "media_set 2 description",
      "media": 
      [
       	    {       "name": "source 1 name",
@@ -256,6 +257,7 @@ URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
    {
      "name": "set name",
      "media_sets_id": "2",
+     "description": "media_set 2 description",
      "media": 
      [
       	    {       "name": "source 1 name",
