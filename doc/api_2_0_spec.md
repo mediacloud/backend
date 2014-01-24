@@ -1791,7 +1791,7 @@ curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
 ]
 ```
 
-The users sees the "US / English" dashboard with dashboards_id 1 and asks for more detailed information.
+The user sees the "US / English" dashboard with dashboards_id 1 and asks for more detailed information.
 
 ```
 curl http://mediacloud.org/api/v2/dashboards/single/1
@@ -1800,8 +1800,8 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 ```json
 [
    {
-      "name":"dashboard 2",
-      "dashboards_id": "2",
+      "name":"US / English",
+      "dashboards_id": "1",
       "media_sets":
       [
          {
@@ -1881,11 +1881,106 @@ while True:
       process_stories( stories )
 ```
 
+
+##Get word counts for top words for sentences matching 'trayvon' in U.S. Political Blogs during April 2012
+
+This is broken down into multiple steps for convenience and because that's probably how a real user would do it. 
+
+###Find the media set
+
+We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run curl to get a quick list of the available dashboards.
+
+```
+curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
+```
+
+```json
+[
+ {"dashboards_id":1,"name":"US / English"}
+ {"dashboards_id":2,"name":"Russia"}
+ {"dashboards_id":3,"name":"test"}
+ {"dashboards_id":5,"name":"Russia Full Morningside 2010"}
+ {"dashboards_id":4,"name":"Russia Sampled Morningside 2010"}
+ {"dashboards_id":6,"name":"US Miscellaneous"}
+ {"dashboards_id":7,"name":"Nigeria"}
+ {"dashboards_id":101,"name":"techblogs"}
+ {"dashboards_id":116,"name":"US 2012 Election"}
+ {"dashboards_id":247,"name":"Russian Public Sphere"}
+ {"dashboards_id":463,"name":"lithanian"}
+ {"dashboards_id":481,"name":"Korean"}
+ {"dashboards_id":493,"name":"California"}
+ {"dashboards_id":773,"name":"Egypt"}
+]
+```
+
+The user sees the "US / English" dashboard with dashboards_id 1 and asks for more detailed information.
+
+```
+curl http://mediacloud.org/api/v2/dashboards/single/1
+```
+
+```json
+[
+   {
+      "name":"dashboard 2",
+      "dashboards_id": "2",
+      "media_sets":
+      [
+         {
+      	 "media_sets_id":1,
+	 "name":"Top 25 Mainstream Media",
+	 "description":"Top 25 mainstream media sources by monthly unique users from the U.S. according to the Google AdPlanner service.",
+	 media:
+	   [
+	     NOT SHOWN FOR SPACE REASONS 
+	   ]
+	 },
+   	 {
+	 "media_sets_id":26,
+	 "name":"Popular Blogs",
+	 "description":"1000 most popular feeds in bloglines.",
+	  "media":
+	   [
+	     NOT SHOWN FOR SPACE REASONS 
+	   ]
+   	 },
+	 {
+	     "media_sets_id": 7125,
+             "name": "Political Blogs",
+	     "description": "1000 most influential U.S. political blogs according to Technorati, pruned of mainstream media sources.",
+	     "media":
+	   [
+	     NOT SHOWN FOR SPACE REASONS 
+	   ]
+
+	  }
+   ]  
+]
+```
+
+*Note* the list of media are not shown for space reasons.
+
+After looking at this output, the user decides that she is interested in the "Political Blogs" set with media_id 7125.
+
+###Make a request for the word counts based on media_sets_id and sentence text and date range
+
+One way to appropriately restrict the data is by setting the q parameter to restrict by sentence content and then the fq parameter twice to restrict by media_sets_id and publish_date.
+Below q is set to "sentence:trayvon" and fq is set to "media_sets_id:7135" and  "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". (Note that ":", "[", and "]" are URL encoded.)
+
+curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon&fq=media_sets_id%3A7125&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
+
+Alternatively, we could use a single large query by setting q to "sentence:trayvon AND media_sets_id:7135 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". 
+
+curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_id%3A7135+AND+publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D&fq=media_sets_id%3A7135&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
+
+*TODO* show output
+
 ##Grab all stories in the New York Times during October 2012
+
 
 ###Find the media_id of the New York Times -- TODO
 
-####Create a subset
+###Create a subset
 curl -X PUT -d start_date=2012-10-01 -d end_date=2012-11-01 -d media_id=1 http://mediacloud.org/api/v2/stories/subset
 
 Save the story_subsets_id
@@ -1897,3 +1992,4 @@ See the 25 main stream media example above.
 ###Grab stories from the processed stream
 
 See the 25 main stream media example above.
+
