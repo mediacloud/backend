@@ -116,73 +116,90 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 ```json
 [
-  {
-    "is_not_dup": null,
-    "dup_media_id": null,
     "name": "Washington Post",
-    "foreign_rss_links": 0,
     "url": "http:\/\/washingtonpost.com",
-    "moderated": 1,
-    "full_text_rss": null,
-    "feeds_added": 1,
-    "sw_data_end_date": null,
-    "sw_data_start_date": null,
-    "use_pager": 0,
-    "unpaged_stories": 100,
-    "moderation_notes": null,
     "media_id": 2,
-    "extract_author": 1
-    "media_source_tags": [
-      
-    ],
+  {
     "media_sets": [
       {
-        "name": "Washington Post",
-        "set_type": "medium",
         "description": null,
-        "media_sets_id": 18
+        "name": "Washington Post",
+        "media_sets_id": 18,
+        "set_type": "medium"
       }
     ],
-  },
-  {
-    "unpaged_stories": 100,
-    "extract_author": 0,
-    "media_id": 3,
-    "moderation_notes": null,
-    "sw_data_end_date": "2000-01-01",
-    "sw_data_start_date": "2000-01-02",
-    "use_pager": 0,
-    "url": "http:\/\/csmonitor.com",
-    "moderated": 1,
-    "full_text_rss": null,
-    "feeds_added": 1,
-    "is_not_dup": null,
-    "foreign_rss_links": 0,
-    "dup_media_id": null,
-    "name": "Christian Science Monitor"
-    "media_sets": [
-      
-    ],
     "media_source_tags": [
       {
-        "tag_sets_id": 1,
         "tags_id": 1,
         "tag": "newspapers",
+        "tag_sets_id": 1,
         "tag_set": "media_type"
       },
       {
+        "tag_set": "workflow",
         "tag_sets_id": 4,
+        "tag": "pmcheck",
+        "tags_id": 6
+      },
+      {
+        "tag": "hrcheck",
+        "tags_id": 7,
+        "tag_set": "workflow",
+        "tag_sets_id": 4
+      },
+      {
+        "tag": "7",
+        "tags_id": 18,
+        "tag_set": "usnewspapercirculation",
+        "tag_sets_id": 3
+      },
+      {
+        "tags_id": 6071565,
+        "tag": "include",
+        "tag_set": "word_cloud",
+        "tag_sets_id": 17
+      },
+      {
+        "tag_sets_id": 17,
+        "tag_set": "word_cloud",
+        "tag": "default",
+        "tags_id": 6729599
+      },
+      {
+        "tags_id": 8875027,
+        "tag": "ap_english_us_top25_20100110",
+        "tag_set": "collection",
+        "tag_sets_id": 5
+      }
+    ]
+  },
+  {
+    "url": "http:\/\/csmonitor.com",
+    "media_id": 3,
+    "media_sets": [
+      
+    ],
+    "name": "Christian Science Monitor",
+    "media_source_tags": [
+      {
+        "tag_sets_id": 1,
+        "tag_set": "media_type",
+        "tags_id": 1,
+        "tag": "newspapers"
+      },
+      {
         "tag": "needs",
         "tags_id": 110,
+        "tag_sets_id": 4,
         "tag_set": "workflow"
       },
       {
+        "tag_set": "workflow",
         "tag_sets_id": 4,
         "tags_id": 111,
-        "tag": "collection",
-        "tag_set": "workflow"
+        "tag": "collection"
       }
-    ],
+    ]
   }
 ]
 ```
