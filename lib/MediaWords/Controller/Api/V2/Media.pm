@@ -89,6 +89,29 @@ sub _add_data_to_media
 
 }
 
+#A list top level object fields to include by default in API results unless all_fields is true
+Readonly my $default_output_fields => [ qw ( name url media_id ) ];
+sub _purge_extra_fields:
+{
+    my ( $self, $obj ) = @_;
+
+    my $new_obj = {};
+
+    foreach my $default_output_field ( @ {$default_output_fields } )
+    {
+	$new_obj->{ $default_output_field } = $obj->{ $default_output_field };
+    }
+
+    return $new_obj;
+}
+
+sub _purge_extra_fields_obj_list
+{
+    my ( $self, $list ) = @_;
+
+    return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
+}
+
 sub single : Local : ActionClass('REST')
 {
 }
@@ -100,6 +123,15 @@ sub single_GET : Local
     my $query = "select s.* from media s where media_id = ? ";
 
     my $media = $c->dbis->query( $query, $media_id )->hashes();
+
+    my $all_fields = $c->req->param( 'all_fields' );
+    $all_fields   //= 0;
+
+    if ( ! $all_fields )
+    {
+	$media = $self->_purge_extra_fields_obj_list( $media );
+    }
+
 
     $self->_add_data_to_media( $c->dbis, $media );
 
@@ -117,17 +149,30 @@ sub list_GET : Local
     say STDERR "starting list_GET";
 
     my $last_media_id = $c->req->param( 'last_media_id' );
-    say STDERR "last_processed_media_id: $last_media_id";
+    say STDERR "last_media_id: $last_media_id";
 
     $last_media_id //= 0;
 
+    my $all_fields = $c->req->param( 'all_fields' );
+    $all_fields   //= 0;
+
     my $rows =  $c->req->param( 'rows' );
+    say STDERR "rows $rows";
+
     $rows //= ROWS_PER_PAGE;
 
-    say STDERR "rows $rows";
 
     my $media = $c->dbis->query( "select s.* from media s where media_id > ? ORDER by media_id asc limit ?",
         $last_media_id, $rows )->hashes;
+
+    if ( ! $all_fields )
+    {
+	say STDERR "Purging extra fields in";
+	say STDERR Dumper( $media );
+	$media = $self->_purge_extra_fields_obj_list( $media );
+	say STDERR "Purging result:";
+	say STDERR Dumper( $media );
+    }
 
     $self->_add_data_to_media( $c->dbis, $media );
 
