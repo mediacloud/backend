@@ -1658,6 +1658,8 @@ Fetch 10 sentences containing the word 'obama' from the New York Times
 
 URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=media_id%3A1
 
+*TODO* waiting for Solr import to complete to include output
+
 ###api/v2/solr/wc
 
 ####Query Parameters
@@ -1678,6 +1680,8 @@ Returns word frequency counts for all sentences returned by querying solr using 
 Obtain word frequency counts for all sentences containing the word 'obama' in the New York Times
 
 URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
+
+*TODO* waiting for Solr import to complete to include output
 
 
 ##Write Back API
