@@ -26,64 +26,52 @@ Response:
 ```json
 [
   {
-    "is_not_dup": null,
-    "feeds_added": 1,
-    "sw_data_end_date": null,
-    "moderated": 1,
-    "unpaged_stories": 119,
-    "foreign_rss_links": 0,
-    "sw_data_start_date": null,
-    "extract_author": 1,
+    "url": "http:\/\/nytimes.com",
     "name": "New York Times",
     "media_id": 1,
-    "url": "http:\/\/nytimes.com",
-    "full_text_rss": null,
-    "dup_media_id": null,
-    "moderation_notes": null,
-    "use_pager": 0
     "media_source_tags": [
       {
-        "tag_set": "media_type",
         "tags_id": 1,
-        "tag": "newspapers",
-        "tag_sets_id": 1
+        "tag_sets_id": 1,
+        "tag_set": "media_type",
+        "tag": "newspapers"
       },
       {
-        "tag": "3",
-        "tags_id": 109,
+        "tag_sets_id": 3,
         "tag_set": "usnewspapercirculation",
-        "tag_sets_id": 3
+        "tag": "3",
+        "tags_id": 109
       },
       {
-        "tag_set": "word_cloud",
         "tags_id": 6071565,
-        "tag": "include",
-        "tag_sets_id": 17
+        "tag_sets_id": 17,
+        "tag_set": "word_cloud",
+        "tag": "include"
       },
       {
-        "tag_set": "word_cloud",
         "tag": "default",
-        "tags_id": 6729599,
-        "tag_sets_id": 17
+        "tag_set": "word_cloud",
+        "tag_sets_id": 17,
+        "tags_id": 6729599
+      },
+      {
+        "tag": "adplanner_english_news_20090910",
+        "tag_set": "collection",
+        "tag_sets_id": 5,
+        "tags_id": 8874930
       },
       {
         "tag_sets_id": 5,
-        "tags_id": 8874930,
-        "tag": "adplanner_english_news_20090910",
-        "tag_set": "collection"
-      },
-      {
         "tag_set": "collection",
         "tag": "ap_english_us_top25_20100110",
-        "tags_id": 8875027,
-        "tag_sets_id": 5
+        "tags_id": 8875027
       }
     ],
     "media_sets": [
       {
+        "set_type": "medium",
         "media_sets_id": 24,
         "name": "New York Times",
-        "set_type": "medium",
         "description": null
       }
     ]
