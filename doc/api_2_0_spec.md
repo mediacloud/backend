@@ -290,8 +290,20 @@ None.
 
 ####Example -TBD
 
-http://mediacloud.org/api/v2/feedss/single/2
+http://mediacloud.org/api/v2/feeds/single/1
 
+```json
+[
+  {
+    "name": "Bits",
+    "url": "http:\/\/bits.blogs.nytimes.com\/rss2.xml",
+    "feeds_id": 1,
+    "feed_type": "syndicated",
+    "feed_status": "active",
+    "media_id": 1
+  }
+]
+```
 
 ###api/v2/feeds/list
 
@@ -311,11 +323,30 @@ Parameter             Default         Notes
  rows                  20              Number of feeds to return. Can not be larger than 100
 --------------------------------------------------------------------------------------------------------
 
-####Example -- TBD
+####Example
 
 URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
 
-
+```json
+[
+  {
+    "name": "DealBook",
+    "url": "http:\/\/dealbook.blogs.nytimes.com\/rss2.xml",
+    "feeds_id": 2,
+    "feed_type": "syndicated",
+    "feed_status": "active",
+    "media_id": 1
+  },
+  {
+    "name": "Essential Knowledge of the Day",
+    "url": "http:\/\/feeds.feedburner.com\/essentialknowledge",
+    "feeds_id": 3,
+    "feed_type": "syndicated",
+    "feed_status": "active",
+    "media_id": 1
+  }
+]
+```
 
 ## Dashboards
 
