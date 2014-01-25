@@ -472,6 +472,31 @@ Parameter             Default         Notes
  raw_1st_download     0                If non-zero include the full html of the first page of the story
 --------------------------------------------------------------------------------------------------------
 
+###Output description
+
+--------------------------------------------------------------------------------------------------------
+Field                    Description
+-------------------      ----------------------------------------------------------------------
+ title                    The story title as defined in the RSS feed. (May or may not contain
+                           HTML depending on the source)
+
+ description              The story description as defined in the RSS feed. (May or may not contain
+                           HTML depending on the source)
+
+ story_text
+
+ story_sentences
+
+ publish_date             The publish date of the story as specified in the RSS feed
+
+ collect_date             The date the RSS feed was actually downloaded
+
+ guid                     The GUID field in the RSS feed default to the URL if no GUID is specified?
+ 
+--------------------------------------------------------------------------------------------------------
+
+
+
 ####Example
 
 Note: This fetches data on the Global Voices Story [Myanmar's new flag and new name](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) CC licensed story from November 2010.
