@@ -36,24 +36,35 @@ public class ModelRunner {
         return runCrfModel(testData);
     }
 
+    public String runModelReturnString(String testFileName) throws Exception {
+
+        String[] results = runModel(testFileName);
+        return joinArrayToString("\n", results);
+    }
+
     public String[] runModelString(String testDataString) throws Exception {
 
         InstanceList testData = readTestDataFromString(testDataString);
         return runCrfModel(testData);
     }
 
+    public String runModelStringReturnString(String testDataString) throws Exception {
+
+        String[] results = runModelString(testDataString);
+        return joinArrayToString("\n", results);
+    }
+
     private String[] runCrfModel(InstanceList testData) {
 
         /*
-        Runtime rt = Runtime.getRuntime();
+         Runtime rt = Runtime.getRuntime();
 
-        System.err.println("Used Memory: " + (rt.totalMemory() - rt.freeMemory()) / 1024 + " KB");
-        System.err.println("Free Memory: " + rt.freeMemory() / 1024 + " KB");
-        System.err.println("Total Memory: " + rt.totalMemory() / 1024 + " KB");
-        System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
-        System.err.println("");
-        */
-
+         System.err.println("Used Memory: " + (rt.totalMemory() - rt.freeMemory()) / 1024 + " KB");
+         System.err.println("Free Memory: " + rt.freeMemory() / 1024 + " KB");
+         System.err.println("Total Memory: " + rt.totalMemory() / 1024 + " KB");
+         System.err.println("Max Memory: " + rt.maxMemory() / 1024 + " KB");
+         System.err.println("");
+         */
         ArrayList<String> results = new ArrayList<String>();
         for (int i = 0; i < testData.size(); i++) {
             Sequence input = (Sequence) testData.get(i).getData();
@@ -119,4 +130,19 @@ public class ModelRunner {
         return sequenceResults;
     }
 
+    private static String joinArrayToString(String glue, String[] array) {
+
+        int arrayLength = array.length;
+        if (arrayLength == 0) {
+            return null;
+        }
+
+        StringBuilder out = new StringBuilder();
+        out.append(array[0]);
+        for (int x = 1; x < arrayLength; ++x) {
+            out.append(glue).append(array[x]);
+        }
+
+        return out.toString();
+    }
 }

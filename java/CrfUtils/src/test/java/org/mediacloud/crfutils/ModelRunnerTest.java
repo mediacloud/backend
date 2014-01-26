@@ -49,6 +49,16 @@ public class ModelRunnerTest extends TestCase {
 
     }
 
+    public void testCRFReturnString() throws IOException, FileNotFoundException, ClassNotFoundException, Exception {
+
+        ModelRunner mr = new ModelRunner(extractor_model_path);
+
+        String resultsString = mr.runModelStringReturnString(this.test_input);
+
+        assertEquals("CRF results are correct", test_output, resultsString);
+
+    }
+
     public void testCRFMemory() throws IOException, FileNotFoundException, ClassNotFoundException, Exception {
 
         ModelRunner mr = new ModelRunner(extractor_model_path);
