@@ -14,8 +14,6 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use IO::Handle qw( flush );
 
-use Readonly;
-
 #use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 

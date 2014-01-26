@@ -200,7 +200,7 @@ EOF
         $num_rows = $num_rows->{ avg_row_count };
         say STDERR "Will run through ~$num_rows rows" . ( $resume_downloads_id ? ', minus offset.' : '.' );
 
-        my Readonly $chunk_size = 1000;
+        my $chunk_size = 1000;
 
         $rows_analyzed_since_resuming = 0;
         $downloads_found              = 0;
@@ -304,8 +304,8 @@ EOF
                     # Skipping gunzipping, decoding, encoding and gzipping again would improve the
                     # migration speed, but for the sake of trying MongoDBs stability and performance
                     # we go the full way.
-                    my Readonly $skip_gunzip_and_decode = 0;
-                    my Readonly $skip_encode_and_gzip   = 0;
+                    my $skip_gunzip_and_decode = 0;
+                    my $skip_encode_and_gzip   = 0;
 
                     # Fetch from Tar
                     my $content_ref;
@@ -369,7 +369,7 @@ sub main
     my $resume_downloads_id_log = undef;    # (optional) file into which a resume download ID should be written
     my $skipped_downloads_log   = undef;    # (optional) file into which skipped download IDs should be written
 
-    my Readonly $usage =
+    my $usage =
       'Usage: ' . $0 .
       ' [--resume_downloads_id_log=gridfs-resume-downloads_id.log]' . ' [--skipped_downloads_log=skipped-downloads.log]';
 

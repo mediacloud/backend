@@ -28,7 +28,6 @@ use JSON;
 use Time::HiRes;
 use XML::Simple qw(:strict);
 use Dir::Self;
-use Readonly;
 use File::stat;
 use MediaWords::Controller::Dashboard;
 

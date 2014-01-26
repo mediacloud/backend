@@ -29,7 +29,7 @@ sub main
 {
     my $import = 0;    # script should import the diff directly instead of echoing it out
 
-    my Readonly $usage = "Usage: $0 > schema-diff.sql\n   or: $0 --import";
+    my $usage = "Usage: $0 > schema-diff.sql\n   or: $0 --import";
 
     GetOptions( 'import' => \$import ) or die "$usage\n";
 

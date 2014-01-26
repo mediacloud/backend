@@ -20,7 +20,6 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
-use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use XML::LibXML;
@@ -36,7 +35,7 @@ use MIME::Base64;
 
 my $_re_generate_cache = 0;
 
-Readonly my $output_dir => 'download_content_test_data';
+my $output_dir = 'download_content_test_data';
 
 sub reextract_downloads
 {

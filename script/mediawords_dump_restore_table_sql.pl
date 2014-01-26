@@ -18,7 +18,6 @@ use MediaWords::CommonLibs;
 use DBIx::Simple::MediaWords;
 use XML::LibXML;
 use Getopt::Long;
-use Readonly;
 use Carp;
 use MIME::Base64;
 use Try::Tiny;
@@ -27,7 +26,7 @@ use MediaWords::Util::DatabaseRestore;
 sub main
 {
 
-    my Readonly $usage =
+    my $usage =
       'USAGE: ./mediawords_dump_restore_table_sql.pl --table_name foo --sql_dump_file dump_file --line_number_file file ';
 
     my ( $table_name, $sql_dump_file, $line_number_file, $output_file, $display_only );

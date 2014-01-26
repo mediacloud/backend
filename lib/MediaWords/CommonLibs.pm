@@ -22,21 +22,8 @@ sub import
     strict->import();
     Data::Dumper->export_to_level( 1,, @Data::Dumper::Export );
 
-    {
-        no strict;
-        require Readonly;
-        Readonly->export_to_level( 1, undef, @Readonly::Export );
-    }
-
     #List::Util->export_to_level( 1, , @List::Util::EXPORT_OK );
     #List::MoreUtils->export_to_level( 1,, @List::MoreUtils::EXPORT_OK );
-
-    {
-        no strict;
-        use Readonly;
-        MediaWords::CommonLibs->export_to_level( 1,, qw ( Readonly ) );
-    }
-
 }
 
 1;

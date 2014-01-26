@@ -14,7 +14,6 @@ use Data::Dumper;
 use Data::Serializer;
 use MediaWords::DB;
 use MediaWords::Util::Config;
-use Readonly;
 
 #use Tie::File;
 use Carp qw( croak confess );
@@ -22,12 +21,12 @@ use Carp qw( croak confess );
 # hash of { $download_media_id => { time => $last_request_time_for_media_id, pending => $pending_downloads }  }
 my $_downloads = {};
 
-Readonly my $download_timed_out_error_message => 'Download timed out by Fetcher::_timeout_stale_downloads';
+my $download_timed_out_error_message = 'Download timed out by Fetcher::_timeout_stale_downloads';
 
 my $_serializer;
 my $_downloads_count = 0;
 
-Readonly my $_debug_mode => 0;
+my $_debug_mode = 0;
 
 sub new
 {

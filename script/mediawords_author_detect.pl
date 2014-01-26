@@ -18,7 +18,6 @@ use MediaWords::CommonLibs;
 
 use XML::LibXML;
 use Getopt::Long;
-use Readonly;
 use Carp;
 use MediaWords::DBI::Authors;
 use MediaWords::DBI::Downloads;

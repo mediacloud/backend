@@ -11,17 +11,11 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Readonly;
-
 use Test::NoWarnings;
 use Test::More;
 use HTML::CruftText 0.06;
 
-Readonly my $test1_input =>
-
-  Readonly my $test1_output =>
-
-  my $test_cases = [
+my $test_cases = [
     {
         test_name  => 'empty_comment',
         test_input => <<'__END_TEST_CASE__',
@@ -186,7 +180,7 @@ ARTICLE TEXT
 
 __END_TEST_CASE__
     }
-  ];
+];
 
 my $tests = scalar @{ $test_cases } * 2;
 plan tests => $tests + 1;

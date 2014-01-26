@@ -28,13 +28,12 @@ use Data::Dumper;
 use Array::Compare;
 use Hash::Merge;
 use Carp;
-use Readonly;
 use TableCreationUtils;
 
 #Controls whether we do the
-Readonly my $_use_hard_coded_tag_sets_ids => 1;
+my $_use_hard_coded_tag_sets_ids = 1;
 
-Readonly my @_default_tag_sets_id => qw (11 13);
+my @_default_tag_sets_id = qw(11 13);
 
 sub get_country_code_to_tag_count
 {

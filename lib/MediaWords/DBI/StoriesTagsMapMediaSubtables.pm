@@ -10,14 +10,13 @@ use File::Path;
 use HTTP::Request;
 use IO::Uncompress::Gunzip;
 use IO::Compress::Gzip;
-use Readonly;
 use List::MoreUtils qw(any);
 use MediaWords::Crawler::Extractor;
 use MediaWords::DB;
 use MediaWords::Util::Config;
 use Carp;
 
-Readonly my $_tag_tag_schema => 'stories_tags_map_media_sub_tables';
+my $_tag_tag_schema = 'stories_tags_map_media_sub_tables';
 
 sub get_tag_tag_schema
 {

@@ -18,7 +18,6 @@ use MediaWords::CommonLibs;
 use DBIx::Simple::MediaWords;
 use XML::LibXML;
 use Getopt::Long;
-use Readonly;
 use Carp;
 use MediaWords::DBI::Downloads;
 use Data::Dumper;
@@ -181,7 +180,7 @@ sub main
     my $start_date;
     my $end_date;
 
-    my Readonly $usage = 'USAGE: ' . __FILE__ . ' --file=FILE_NAME [--start_date=DATE --end_date=DATE]';
+    my $usage = 'USAGE: ' . __FILE__ . ' --file=FILE_NAME [--start_date=DATE --end_date=DATE]';
 
     GetOptions(
         'file=s'       => \$output_file,

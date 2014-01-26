@@ -32,7 +32,6 @@ use JSON;
 use Time::HiRes;
 use XML::Simple qw(:strict);
 use Dir::Self;
-use Readonly;
 use CHI;
 use File::stat;
 use Data::Google::Visualization::DataTable::MediaWords;

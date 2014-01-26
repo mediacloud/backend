@@ -18,7 +18,6 @@ use MediaWords::CommonLibs;
 use DBIx::Simple::MediaWords;
 use Getopt::Long;
 use TableCreationUtils;
-use Readonly;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 
 sub get_stories_map_with_tags

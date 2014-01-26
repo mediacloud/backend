@@ -98,7 +98,7 @@ sub main
     my $input_file     = undef;                  # Input file to read gv-blogs.txt from
     my $collection_tag = 'gv_blogs_20130329';    # Collection tag to add to every medium
 
-    my Readonly $usage = "Usage: $0" . ' --input_file=gv-blogs.txt' . ' [--collection_tag=gv_blogs_20130329]';
+    my $usage = "Usage: $0" . ' --input_file=gv-blogs.txt' . ' [--collection_tag=gv_blogs_20130329]';
 
     GetOptions(
         'input_file=s'     => \$input_file,

@@ -24,8 +24,6 @@ use Lingua::Identify::CLD;
 use Domain::PublicSuffix;
 use URI;
 
-use Readonly;
-
 {
 
     # CLD instance
@@ -35,7 +33,7 @@ use Readonly;
     my $dps = Domain::PublicSuffix->new();
 
     # Language name -> ISO 690 code mappings
-    my Readonly %language_names_to_codes = (
+    my %language_names_to_codes = (
         "english"                              => "en",
         "danish"                               => "da",
         "dutch"                                => "nl",
@@ -198,7 +196,7 @@ use Readonly;
     );
 
     # Vice-versa
-    my Readonly %language_codes_to_names = reverse %language_names_to_codes;
+    my %language_codes_to_names = reverse %language_names_to_codes;
 
     # Returns an ISO 690 language code for the plain text passed as a parameter
     # Parameters:

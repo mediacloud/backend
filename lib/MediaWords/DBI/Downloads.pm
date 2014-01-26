@@ -38,7 +38,7 @@ my $_tar_store;
 my $_config;
 
 # Database inline content length limit
-Readonly my $INLINE_CONTENT_LENGTH => 256;
+my $INLINE_CONTENT_LENGTH = 256;
 
 # Constructor
 BEGIN

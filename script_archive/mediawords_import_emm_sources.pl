@@ -59,7 +59,7 @@ sub main
     my $input_file     = undef;                              # Input file to read emm_sources.xml from
     my $collection_tag = 'europe_media_monitor_20121015';    # Collection tag to add to every medium
 
-    my Readonly $usage = "Usage: $0" . ' --input_file=emm_sources.xml' . ' [--collection_tag=europe_media_monitor_20121015]';
+    my $usage = "Usage: $0" . ' --input_file=emm_sources.xml' . ' [--collection_tag=europe_media_monitor_20121015]';
 
     GetOptions(
         'input_file=s'     => \$input_file,

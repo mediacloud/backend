@@ -238,7 +238,7 @@ sub export_all_downloads
     #Make sure the file start and end ranges are multiples of 1000
     my $start_downloads_id = int( $min_downloads_id / 1000 ) * 1000;
 
-    Readonly my $download_batch_size => 100;
+    my $download_batch_size = 100;
 
     my $batch_number = 0;
 

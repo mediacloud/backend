@@ -19,7 +19,6 @@ use MediaWords::CommonLibs;
 use DBIx::Simple::MediaWords;
 use MediaWords::DBI::StoriesTagsMapMediaSubtables;
 use TableCreationUtils;
-use Readonly;
 use Term::Prompt;
 
 my $_stories_id_start       = 0000000;

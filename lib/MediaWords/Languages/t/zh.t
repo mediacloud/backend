@@ -32,8 +32,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Readonly;
-
 use Test::NoWarnings;
 use Test::More tests => 1 + 15 + 15 + 1 + 1;
 use utf8;

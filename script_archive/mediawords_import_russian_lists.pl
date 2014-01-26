@@ -32,7 +32,6 @@ use List::MoreUtils qw(any all none notall true false firstidx first_index
   firstval first_value lastval last_value each_array
   each_arrayref pairwise natatime mesh zip uniq minmax);
 use constant COLLECTION_TAG => 'russian_yandex_20100316';
-use Readonly;
 
 sub get_liveinternet_ru_rankings
 {
@@ -435,7 +434,7 @@ sub get_webomer_ru_rankings
 {
     my $ua = LWP::UserAgent->new;
 
-    Readonly my $csv_fields => [ 'url', 'name', 'охват', 'демография', 'ядро', 'доля поискового трафика' ];
+    my $csv_fields = [ 'url', 'name', 'охват', 'демография', 'ядро', 'доля поискового трафика' ];
 
     my $csv = _create_class_csv_from_field_list( $csv_fields );
 
@@ -473,7 +472,7 @@ sub get_webomer_ru_rankings
 
 	    #say join ',', @fields;
 
-	    Readonly my %CORRESPONDING => (
+	    my %CORRESPONDING = (
 					   'id' => 0,
 					   'url'=> 1,
 					   'name' => 2,

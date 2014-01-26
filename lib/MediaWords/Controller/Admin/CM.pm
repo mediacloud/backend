@@ -132,7 +132,7 @@ END
     my $latest_full_dump = get_latest_full_dump_with_time_slices( $db, $controversy_dumps, $controversy );
 
     # Latest activities
-    my Readonly $LATEST_ACTIVITIES_COUNT = 20;
+    my $LATEST_ACTIVITIES_COUNT = 20;
 
     # Latest activities which directly or indirectly reference "controversies.controversies_id" = $controversies_id
     my $sql_latest_activities =
@@ -822,8 +822,8 @@ sub story : Local
     }
 
     $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
-    $story->{ controversy_match } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $story  );
-    
+    $story->{ controversy_match } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $story );
+
     $db->commit;
 
     my $confirm_remove = $c->req->params->{ confirm_remove };
@@ -923,7 +923,8 @@ sub remove_stories : Local
 
     for my $stories_id ( @{ $stories_ids } )
     {
-        _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username, $c->req->params->{ reason } );
+        _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username,
+            $c->req->params->{ reason } );
     }
 
     my $status_msg = scalar( @{ $stories_ids } ) . " stories removed from controversy.";
@@ -1003,9 +1004,8 @@ END
         $db->begin;
 
         eval {
-            map {
-                _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id, $c->user->username, $reason )
-            } @{ $stories };
+            map { _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id, $c->user->username, $reason ) }
+              @{ $stories };
         };
         if ( $@ )
         {
@@ -1110,9 +1110,7 @@ sub _remove_story_from_controversy($$$$$$)
         MediaWords::CM::Mine::remove_story_from_controversy( $db, $stories_id, $controversies_id );
 
         # Log the activity
-        my $change = {
-            'stories_id' => $stories_id + 0
-        };
+        my $change = { 'stories_id' => $stories_id + 0 };
         unless (
             MediaWords::DBI::Activities::log_activity(
                 $db, 'cm_remove_story_from_controversy',

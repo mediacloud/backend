@@ -100,8 +100,7 @@ sub main
     my $output_file     = '-';                   # Corpus output file; default is STDOUT
     my $story_separator = '----------------';    # Delimiter to separate one story (article) from another
 
-    my Readonly $usage =
-      "Usage: $0" . ' --language=en' . ' [--output_file=corpus.txt]' . ' [--story_separator=----------------]';
+    my $usage = "Usage: $0" . ' --language=en' . ' [--output_file=corpus.txt]' . ' [--story_separator=----------------]';
 
     GetOptions(
         'language=s'        => \$language,

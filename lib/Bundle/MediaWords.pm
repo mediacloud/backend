@@ -235,8 +235,6 @@ Path::Class
 
 Pod::Usage
 
-Readonly
-
 Regexp::Common
 
 Smart::Comments

@@ -14,8 +14,6 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
-use Readonly;
-
 use Test::NoWarnings;
 use Test::More;
 use HTML::CruftText 0.06;

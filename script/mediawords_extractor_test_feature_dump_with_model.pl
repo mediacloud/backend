@@ -21,7 +21,6 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 
 use MediaWords::DBI::Downloads;
-use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::MoreUtils qw( uniq distinct each_array :all );
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );

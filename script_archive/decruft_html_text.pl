@@ -13,8 +13,6 @@ BEGIN
     $cwd = "$FindBin::Bin";
 }
 
-use Readonly;
-
 use Test::More;
 use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;

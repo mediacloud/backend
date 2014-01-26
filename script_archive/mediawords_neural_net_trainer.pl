@@ -15,19 +15,17 @@ use Getopt::Long;
 use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
-use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::MoreUtils qw(first_index);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use AI::NeuralNet::Simple;
-use Readonly;
 
 #results arrays
-Readonly my $required => [ 1, 0, 0 ];
-Readonly my $optional => [ 0, 1, 0 ];
-Readonly my $excluded => [ 0, 0, 1 ];
+my $required = [ 1, 0, 0 ];
+my $optional = [ 0, 1, 0 ];
+my $excluded = [ 0, 0, 1 ];
 
-Readonly my $input_array_indexes => {
+my $input_array_indexes = {
     html_density            => 0,
     discounted_html_density => 1,
     line_number             => 2,
