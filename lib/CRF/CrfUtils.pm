@@ -104,7 +104,9 @@ sub run_model_with_tmp_file
 
     my $mr = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
 
-    my $results = $mr->runModel( $test_data_file_name );
+    my $results_string = $mr->runModelReturnString( $test_data_file_name );
+
+    my $results = [ split("\n", $results_string) ];
 
     return $results;
 }
@@ -211,9 +213,11 @@ sub _run_model_on_array
 
     my $test_data = join "\n", @{ $test_data_array };
 
-    my $foo = $modelrunner->runModelString( $test_data );
+    my $results_string = $modelrunner->runModelStringReturnString( $test_data );
 
-    return $foo;
+    my $results = [ split("\n", $results_string) ];
+
+    return $results;
 }
 
 sub _run_model_inline_java
