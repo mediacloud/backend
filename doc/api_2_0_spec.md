@@ -483,9 +483,19 @@ Field                    Description
  description              The story description as defined in the RSS feed. (May or may not contain
                            HTML depending on the source)
 
- story_text
+ full_text_rss            1 if the text of the story was obtained through the RSS feed. 
+                          0 if the text of the story was optained by extracting the article text from the HTML
 
- story_sentences
+ story_text               The text of the story. If full_text_rss is non-zero, this is formed by HTML stripping the title, HTML 
+                          stripping the description, and concatenating them.
+                          If full_text_rss is non-zero, this is formed by extracting the article text from the HTML.
+
+ story_sentences          A list of sentences in the story. Generated from story_text by splitting it into sentences
+                          and removing any duplicate sentences oocuring within the same source for the same week
+
+ raw_1st_download         The contents of the first HTML page of the story. 
+                          Available regards of the value of full_text_rss.
+                          NOTE: only provided if the raw_1st_download parameter is non-zero.
 
  publish_date             The publish date of the story as specified in the RSS feed
 
