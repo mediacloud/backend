@@ -1,8 +1,21 @@
 #!/usr/bin/env perl
-
-# test MediaWords::Crawler::Extractor against manually extracted downloads
+#
+# test MediaWords::Crawler::Extractor's performance against manually extracted downloads
+#
+# Usage:
+#
+# ./script/run_with_carton.sh \
+#     ./script/mediawords_extractor_benchmarking.pl # extract only
+#
+# *or*
+#
+# MEDIAWORDS_EXTRACTOR_BENCHMARKING_VECTOR=1 \
+#     ./script/run_with_carton.sh \
+#     ./script/mediawords_extractor_benchmarking.pl # extract and vector
+#
 
 use strict;
+use warnings;
 
 BEGIN
 {
