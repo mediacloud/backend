@@ -104,9 +104,11 @@ sub run_model_with_tmp_file
 
     my $mr = new org::mediacloud::crfutils::ModelRunner( $model_file_name );
 
+    # Returning and using a single string from a Java method is way faster than
+    # returning and using an array of strings
     my $results_string = $mr->runModelReturnString( $test_data_file_name );
 
-    my $results = [ split("\n", $results_string) ];
+    my $results = [ split( "\n", $results_string ) ];
 
     return $results;
 }
@@ -213,9 +215,11 @@ sub _run_model_on_array
 
     my $test_data = join "\n", @{ $test_data_array };
 
+    # Returning and using a single string from a Java method is way faster than
+    # returning and using an array of strings
     my $results_string = $modelrunner->runModelStringReturnString( $test_data );
 
-    my $results = [ split("\n", $results_string) ];
+    my $results = [ split( "\n", $results_string ) ];
 
     return $results;
 }
