@@ -163,16 +163,15 @@ sub calculate_line_extraction_metrics($$$$$$)
 {
     my ( $i, $description, $line, $sphereit_map, $has_clickprint, $language_code ) = @_;
 
-    Readonly my $article_has_clickprint => $has_clickprint;    #<--- syntax error at (eval 980) line 11, near "Readonly my "
+    my $article_has_clickprint = $has_clickprint;
 
-    Readonly my $article_has_sphereit_map => defined( $sphereit_map );
-    Readonly my $sphereit_map_includes_line => ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
-    Readonly my $description_similarity_discount =>
-      get_description_similarity_discount( $line, $description, $language_code );
+    my $article_has_sphereit_map        = defined( $sphereit_map );
+    my $sphereit_map_includes_line      = ( defined( $sphereit_map ) && $sphereit_map->{ $i } );
+    my $description_similarity_discount = get_description_similarity_discount( $line, $description, $language_code );
 
     return ( $article_has_clickprint, $article_has_sphereit_map, $description_similarity_discount,
         $sphereit_map_includes_line );
-}    #<--- syntax error at (eval 980) line 18, near ";
+}
 
 #
 # New subroutine "get_copyright_count" extracted - Mon Feb 27 17:27:56 2012.
@@ -205,8 +204,8 @@ sub calculate_line_extraction_metrics_2($$$$)
 {
     my ( $line_text, $line, $title_text, $language_code ) = @_;
 
-    Readonly my $line_length => length( $line );    #<--- syntax error at (eval 983) line 8, near "Readonly my "
-    Readonly my $line_starts_with_title_text => lineStartsWithTitleText( $line_text, $title_text );
+    my $line_length = length( $line );
+    my $line_starts_with_title_text = lineStartsWithTitleText( $line_text, $title_text );
 
     return ( $line_length, $line_starts_with_title_text );
 }
