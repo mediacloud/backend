@@ -157,6 +157,11 @@ EOF
     if ( $extract_and_vector )
     {
         say STDERR "Will extract *and* vector downloads.";
+        say STDERR <<EOF;
+Please note that running this script in \"extract and vector\" mode will store
+extracted downloads in the database, so in order to repeat the performance test
+you will have to reinitialize the database with unextracted downloads.
+EOF
     }
     else
     {
