@@ -314,7 +314,7 @@ sub stories_query_GET : Local : PathPrefix( '/api' )
 
     say STDERR "Last_stories_id is $last_stories_id";
 
-    my $stories_to_return => min( $c->req->param( 'story_count' ) // 25, 1000 );
+    Readonly my $stories_to_return => min( $c->req->param( 'story_count' ) // 25, 1000 );
 
     my $query = " SELECT * FROM stories WHERE stories_id > ? ORDER by stories_id asc LIMIT ? ";
 

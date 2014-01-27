@@ -303,8 +303,8 @@ EOF
 }
 
 # Available verification modes
-my $FROM_GRIDFS_TO_POSTGRESQL = 1;
-my $FROM_POSTGRESQL_TO_GRIDFS = 2;
+my Readonly $FROM_GRIDFS_TO_POSTGRESQL = 1;
+my Readonly $FROM_POSTGRESQL_TO_GRIDFS = 2;
 
 sub verify_downloads($$$)
 {
@@ -393,7 +393,7 @@ sub main
     my $finish_downloads_id = 0;     # (optional) download's ID to finish at; if absent, will run until
                                      # the end of all downlads
 
-    my $usage =
+    my Readonly $usage =
       'Usage: ' . $0 . ' --mode=from_postgresql_to_gridfs|from_gridfs_to_postgresql' .
       ' [--start_downloads_id=i]' . ' [--finish_downloads_id=i]';
 

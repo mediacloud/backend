@@ -20,6 +20,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
+use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::MoreUtils qw( :all);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
@@ -245,7 +246,7 @@ sub dump_training_data_csv
         $csv->add_line( $line_not_autoexcluded );
     }
 
-    my $training_data_csv_filename = '/tmp/training_data.csv';
+    Readonly my $training_data_csv_filename => '/tmp/training_data.csv';
 
     open( my $csv_fh, '>', $training_data_csv_filename ) or die "cannot open > $training_data_csv_filename: $!";
 

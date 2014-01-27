@@ -22,6 +22,7 @@ use Data::Dumper;
 use Array::Compare;
 use Hash::Merge;
 use Carp;
+use Readonly;
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 use Text::Table;
@@ -35,7 +36,7 @@ sub node_list_to_hash
     return { map { $_->localname => $_->textContent } grep { $_->nodeType == 1 } ( @{ $node_list } ) };
 }
 
-my $_debug_mode = 0;
+Readonly my $_debug_mode => 0;
 
 sub generate_results_delta
 {

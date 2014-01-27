@@ -38,8 +38,8 @@ sub main()
         die "Usage: $0 urls_and_manual_dates_file.csv output_folder/\n";
     }
 
-    my $urls_and_manual_dates_file = $ARGV[ 0 ];
-    my $output_folder              = $ARGV[ 1 ];
+    my Readonly $urls_and_manual_dates_file = $ARGV[ 0 ];
+    my Readonly $output_folder              = $ARGV[ 1 ];
 
     unless ( -e $urls_and_manual_dates_file )
     {

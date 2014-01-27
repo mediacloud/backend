@@ -16,6 +16,7 @@ use HTML::Strip;
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use XML::LibXML;
@@ -28,7 +29,7 @@ use MIME::Base64;
 
 my $_re_generate_cache = 0;
 
-my $output_dir = 'expected_preprocessed_results';
+Readonly my $output_dir => 'expected_preprocessed_results';
 
 sub store_preprocessed_result
 {

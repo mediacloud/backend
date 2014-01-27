@@ -90,7 +90,7 @@ use MediaWords::CommonLibs;
 use JSON;
 use Array::Compare;
 
-my $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER = '##OBJECT_ID##';
+my Readonly $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER = '##OBJECT_ID##';
 
 =head1 LIST OF ACTIVITIES
 
@@ -109,7 +109,7 @@ the activity can be referenced by a foreign key.
 
 =cut
 
-my %ACTIVITIES = (
+Readonly::Hash my %ACTIVITIES => {
 
     # Activity name that identifies the activity:
     'cm_remove_story_from_controversy' => {
@@ -327,7 +327,7 @@ EOF
         }
     },
 
-);
+};
 
 =head1 METHODS
 
@@ -540,7 +540,7 @@ sub encode_activity_description($$)
 
     my $comp = Array::Compare->new;
 
-    unless ( $comp->compare( \@expected_parameters, \@actual_parameters ) )
+    unless ( $comp->compare(\@expected_parameters, \@actual_parameters) )
     {
         die "Expected parameters: " .
           join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .

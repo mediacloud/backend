@@ -145,7 +145,7 @@ sub user_add($)
     my $user_roles       = '';
     my $user_password    = undef;
 
-    my $user_add_usage =
+    my Readonly $user_add_usage =
       "Usage: $0" . ' --action=add' .
       ' --email=jdoe@cyber.law.harvard.edu' . ' --full_name="John Doe"' . ' [--notes="Media Cloud developer."]' .
       ' [--inactive]' . ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"]';
@@ -225,7 +225,7 @@ sub user_modify($)
     my $user_password     = undef;
     my $user_set_password = undef;
 
-    my $user_modify_usage =
+    my Readonly $user_modify_usage =
       "Usage: $0" . ' --action=modify' . ' --email=jdoe@cyber.law.harvard.edu' .
       ' [--full_name="John Doe"]' . ' [--notes="Media Cloud developer."]' . ' [--active|--inactive]' .
       ' [--roles="query-create,media-edit,stories-edit"]' . ' [--password="correct horse battery staple"|--set-password]';
@@ -353,7 +353,7 @@ sub user_delete($)
 
     my $user_email = undef;
 
-    my $user_delete_usage = "Usage: $0" . ' --action=delete' . ' --email=jdoe@cyber.law.harvard.edu';
+    my Readonly $user_delete_usage = "Usage: $0" . ' --action=delete' . ' --email=jdoe@cyber.law.harvard.edu';
 
     GetOptions( 'email=s' => \$user_email, ) or die "$user_delete_usage\n";
     die "$user_delete_usage\n" unless ( $user_email );
@@ -377,7 +377,7 @@ sub users_list($)
 {
     my ( $db ) = @_;
 
-    my $user_list_usage = "Usage: $0" . ' --action=list';
+    my Readonly $user_list_usage = "Usage: $0" . ' --action=list';
 
     GetOptions() or die "$user_list_usage\n";
 
@@ -405,7 +405,7 @@ sub user_show($)
 
     my $user_email = undef;
 
-    my $user_show_usage = "Usage: $0" . ' --action=show' . ' --email=jdoe@cyber.law.harvard.edu';
+    my Readonly $user_show_usage = "Usage: $0" . ' --action=show' . ' --email=jdoe@cyber.law.harvard.edu';
 
     GetOptions( 'email=s' => \$user_email, ) or die "$user_show_usage\n";
     die "$user_show_usage\n" unless ( $user_email );
@@ -435,7 +435,7 @@ sub user_roles($)
 {
     my ( $db ) = @_;
 
-    my $user_roles_usage = "Usage: $0" . ' --action=roles';
+    my Readonly $user_roles_usage = "Usage: $0" . ' --action=roles';
 
     GetOptions() or die "$user_roles_usage\n";
 
@@ -462,7 +462,7 @@ sub main
     my $action        = '';                                       # which action to take
     my @valid_actions = qw/add modify delete show list roles/;    # valid actions
 
-    my $usage = "Usage: $0" . ' --action=' . join( '|', @valid_actions ) . ' ...';
+    my Readonly $usage = "Usage: $0" . ' --action=' . join( '|', @valid_actions ) . ' ...';
 
     GetOptions( 'action=s' => \$action, ) or die "$usage\n";
     die "$usage\n" unless ( grep { $_ eq $action } @valid_actions );

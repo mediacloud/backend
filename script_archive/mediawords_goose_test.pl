@@ -20,6 +20,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
+use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
 use XML::LibXML;
@@ -39,9 +40,9 @@ use Time::HiRes qw ( time);
 
 my $_re_generate_cache = 0;
 
-my $output_dir = 'download_content_test_data';
+Readonly my $output_dir => 'download_content_test_data';
 
-my $goose_dir = '/space/mediacloud/goose/goose';
+Readonly my $goose_dir => '/space/mediacloud/goose/goose';
 
 sub create_base64_encoded_element
 {
@@ -91,7 +92,7 @@ sub extract_with_goose
 
     say STDERR "Directory '$temp_dir'";
 
-    my $raw_html_file = "$temp_dir/article.html";
+    Readonly my $raw_html_file => "$temp_dir/article.html";
 
     open( FILE, "> $raw_html_file" ) || die "$@";
 

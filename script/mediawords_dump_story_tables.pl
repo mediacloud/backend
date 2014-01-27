@@ -18,6 +18,7 @@ use MediaWords::CommonLibs;
 
 use DBIx::Simple::MediaWords;
 use TableCreationUtils;
+use Readonly;
 use File::Temp qw/ tempfile tempdir /;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use File::Copy;
@@ -122,25 +123,9 @@ sub dump_story_words
 
     my $dashboards_clause = get_dashboards_clause( 'story_sentence_words' );
 
-    my $select_query = <<"EOF";
-        SELECT stories_id,
-               media_id,
-               publish_day,
-               stem,
-               term,
-               SUM(stem_count) AS count
-        FROM story_sentence_words
-        WHERE stories_id >= ?
-          AND stories_id <= ?
-          $dashboards_clause
-        GROUP BY stories_id,
-                 media_id,
-                 publish_day,
-                 stem,
-                 term
-        ORDER BY stories_id,
-                 term
-EOF
+    Readonly my $select_query => "select stories_id, media_id, publish_day, stem, term, sum(stem_count)  as count from  " .
+"   story_sentence_words where stories_id >= ? and stories_id <= ? $dashboards_clause group by stories_id, media_id, publish_day, stem, term"
+      . "   order by stories_id, term                  ";
 
     $dbh->query_csv_dump( $output_file, " $select_query  limit 0 ", [ 0, 0 ], 1 );
 

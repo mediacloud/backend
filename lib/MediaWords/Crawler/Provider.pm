@@ -14,6 +14,7 @@ use Data::Dumper;
 use List::MoreUtils;
 use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
+use Readonly;
 use Time::Seconds;
 use Math::Random;
 
@@ -54,7 +55,7 @@ my $_setup = 0;
 #                                   pending => $pending_downloads }  }
 my $_downloads = {};
 
-my $download_timed_out_error_message = 'Download timed out by Fetcher::_timeout_stale_downloads';
+Readonly my $download_timed_out_error_message => 'Download timed out by Fetcher::_timeout_stale_downloads';
 
 my $_serializer;
 my $_downloads_count = 0;

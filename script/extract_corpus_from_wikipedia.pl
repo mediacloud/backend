@@ -25,6 +25,7 @@ BEGIN
 
 # 'use MediaWords::CommonLibs' and others are omitted in order to make this tool more universal.
 use Modern::Perl "2013";
+use Readonly;
 use Data::Dumper;
 
 use utf8;
@@ -271,7 +272,7 @@ sub main
     my $output_file     = '-';                   # Corpus output file; default is STDOUT
     my $story_separator = '----------------';    # Delimiter to separate one story (article) from another
 
-    my $usage =
+    my Readonly $usage =
       "Usage: $0" . ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' . '[--story_separator=----------------]';
 
     GetOptions(

@@ -19,12 +19,13 @@ use Date::Format;
 use Date::Parse;
 use Encode;
 use utf8;
+use Readonly;
 
 # minimum length of words in story_sentence_words
 use constant MIN_STEM_LENGTH => 3;
 
-my $sentence_study_table_prefix = 'sen_study_old_';
-my $sentence_study_table_suffix = '_2011_01_03_2011_01_10';
+Readonly my $sentence_study_table_prefix => 'sen_study_old_';
+Readonly my $sentence_study_table_suffix => '_2011_01_03_2011_01_10';
 
 # if story is a ref, return itself, otherwise treat it as a stories_id and query for the story ref
 sub _get_story

@@ -10,6 +10,7 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Readonly;
 use Data::Dumper;
 
 use Test::More;

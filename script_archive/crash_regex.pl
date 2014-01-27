@@ -10,6 +10,8 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Readonly;
+
 use utf8;
 
 use Data::Dumper;

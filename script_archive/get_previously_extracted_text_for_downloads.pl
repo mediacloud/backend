@@ -10,6 +10,8 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Readonly;
+
 #use Test::More qw (no_plan);
 use MediaWords::Crawler::Extractor qw (preprocess);
 use DBIx::Simple::MediaWords;

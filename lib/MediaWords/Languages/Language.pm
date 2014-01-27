@@ -28,7 +28,7 @@ use Cwd            ();
 #
 # LIST OF ENABLED LANGUAGES
 #
-my @_enabled_languages = (
+my Readonly @_enabled_languages = (
     'da',    # Danish
     'de',    # German
     'en',    # English

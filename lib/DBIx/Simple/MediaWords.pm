@@ -141,7 +141,7 @@ sub schema_is_up_to_date
     die "Invalid target schema version.\n" unless ( $target_schema_version );
 
     # Check if the current schema is up-to-date
-    my $ignore_schema_version_env_variable = 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
+    Readonly my $ignore_schema_version_env_variable => 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION';
     if ( $current_schema_version != $target_schema_version )
     {
         return _should_continue_with_outdated_schema( $current_schema_version, $target_schema_version,

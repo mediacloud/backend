@@ -8,6 +8,7 @@ use 5.18.1;
 
 use Text::CSV;
 use Class::CSV;
+use Readonly;
 use Data::Dumper;
 use File::Temp qw/ tempfile tempdir /;
 use Env qw(HOME);
@@ -251,7 +252,7 @@ sub _run_model_inline_java
 sub _crf_modelrunner_java_src()
 {
     # Compile and prepare Java class from /java/CrfUtils/
-    my $crf_modelrunner_java_path =
+    my Readonly $crf_modelrunner_java_path =
       _mediacloud_root() . '/java/CrfUtils/src/main/java/org/mediacloud/crfutils/ModelRunner.java';
     my $crf_modelrunner_java_src = read_file( $crf_modelrunner_java_path );
     unless ( $crf_modelrunner_java_src )

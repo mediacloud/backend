@@ -18,6 +18,7 @@ use MediaWords::CommonLibs;
 use DBIx::Simple::MediaWords;
 use XML::LibXML;
 use Getopt::Long;
+use Readonly;
 use Carp;
 use MIME::Base64;
 
@@ -26,7 +27,7 @@ sub main
 
     my $output_file;
 
-    my $usage = 'USAGE: ./mediawords_training_downloads_to_xml.pl --file=FILE_NAME ';
+    my Readonly $usage = 'USAGE: ./mediawords_training_downloads_to_xml.pl --file=FILE_NAME ';
 
     GetOptions( 'file=s' => \$output_file ) or die "$usage\n";
 

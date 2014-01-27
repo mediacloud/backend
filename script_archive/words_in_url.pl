@@ -30,7 +30,7 @@ sub process_url
 
     my ( $url ) = @_;
 
-    my $debug_print = 0;
+    Readonly my $debug_print => 0;
 
     print "$url\n" if $debug_print;
 

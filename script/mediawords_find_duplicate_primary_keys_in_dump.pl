@@ -22,7 +22,7 @@ use Getopt::Long;
 
 sub main
 {
-    my $usage =
+    my Readonly $usage =
 'USAGE: ./mediawords_find_duplicate_primary_keys_in_dump.pl --table_name foo --sql_dump_file dump_file --byte_offset_file file ';
 
     my ( $table_name, $sql_dump_file, $byte_offset_file );

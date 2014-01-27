@@ -10,6 +10,8 @@ BEGIN
     use lib "$FindBin::Bin/../lib";
 }
 
+use Readonly;
+
 #use Test::NoWarnings;
 use Test::More skip_all => 'Not working yet';
 use MediaWords::Crawler::Extractor qw (preprocess);
@@ -19,7 +21,7 @@ use XML::LibXML;
 use Encode;
 use MIME::Base64;
 
-my $output_dir = 'expected_preprocessed_results';
+Readonly my $output_dir => 'expected_preprocessed_results';
 
 sub get_preprocessed_lines_from_downloads_id
 {

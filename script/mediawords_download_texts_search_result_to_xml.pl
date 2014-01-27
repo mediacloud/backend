@@ -18,9 +18,10 @@ use MediaWords::CommonLibs;
 use DBIx::Simple::MediaWords;
 use XML::LibXML;
 use Getopt::Long;
+use Readonly;
 use Carp;
 
-my $download_text_wild_card_query_search = q{ to_tsvector('english', download_text) @@ to_tsquery('english', ?) };
+Readonly my $download_text_wild_card_query_search => q{ to_tsvector('english', download_text) @@ to_tsquery('english', ?) };
 
 sub addDownloadChild
 {
@@ -200,7 +201,7 @@ sub create_calais_tags_element
 {
     my ( $db, $story_id ) = @_;
 
-    my $calais_tag_sets_id = 13;
+    Readonly my $calais_tag_sets_id => 13;
 
     my $story_tag_rows = $db->query(
 "SELECT tags.tags_id, tags.tag FROM stories_tags_map, tags WHERE stories_tags_map.tags_id=tags.tags_id and stories_tags_map.stories_id = ? and tags.tag_sets_id = ? ",
@@ -264,7 +265,7 @@ sub main
     #                     'the federal reserve ',
     #                    );
 
-    my $usage =
+    my Readonly $usage =
       'USAGE: ./mediawords_serach_result_to_xml --file=FILE_NAME --or_query=QUERY  [--start_date=DATE --end_date=DATE]';
 
     GetOptions(
@@ -287,7 +288,7 @@ sub main
 
     print STDERR "starting -- search query " . localtime() . "\n";
 
-    my $full_ts_query_string = get_ts_or_query_from_list( \@or_query );
+    Readonly my $full_ts_query_string => get_ts_or_query_from_list( \@or_query );
 
     my $matching_articles;
 

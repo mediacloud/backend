@@ -11,6 +11,7 @@ BEGIN
 
 use DBIx::Simple::MediaWords;
 use MediaWords::DB;
+use Readonly;
 use Class::CSV;
 use Data::Dumper;
 
@@ -19,8 +20,7 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db();
 
-    my $aggregate_stats =
-      " max(similarity) as max_similarity, avg(similarity) as avg_similarity, " .
+    Readonly my $aggregate_stats => " max(similarity) as max_similarity, avg(similarity) as avg_similarity, " .
       "   min(similarity) as min_similarity,  avg(length(extracted_text)) as avg_extracted_length," .
       "   avg(length(html_strip(title || description))) as avg_rss_length,  " .
       "   avg(length(html_strip(description))) as avg_rss_description,  " .
@@ -29,11 +29,10 @@ sub main
       "   stddev_samp(length(html_strip(title || description))) as std_rss_length,   " .
       "   stddev_samp(length(extracted_text) - length(html_strip(title || description))) as std_length_diff";
 
-    my $story_restrictions =
-      "publish_date > now() - interval '2 weeks' and " .
+    Readonly my $story_restrictions => "publish_date > now() - interval '2 weeks' and " .
       " media_id in (select media_id from media_feed_counts where feed_count <= 2)";
 
-    my $story_extracted_text =
+    Readonly my $story_extracted_text =>
       "select stories_id,  array_to_string(array_agg(download_text), ' ') as extracted_text  from " .
       "  (select * from downloads natural join stories natural join download_texts " .
       "     where $story_restrictions  order by downloads_id) " .

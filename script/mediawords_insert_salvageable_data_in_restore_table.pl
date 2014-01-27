@@ -18,6 +18,7 @@ use MediaWords::CommonLibs;
 use DBIx::Simple::MediaWords;
 use XML::LibXML;
 use Getopt::Long;
+use Readonly;
 use Carp;
 use MIME::Base64;
 
@@ -33,7 +34,7 @@ sub test_opening_files
 sub main
 {
 
-    my $usage = 'USAGE: ./mediawords_insert_salvageable_data_in_restore_table.pl --table_name foo ';
+    my Readonly $usage = 'USAGE: ./mediawords_insert_salvageable_data_in_restore_table.pl --table_name foo ';
 
     my ( $table );
 
@@ -51,42 +52,22 @@ sub main
 
     my $restore_table = $table . '_restore';
 
-    my $back_records_to_test = 10000;
+    Readonly my $back_records_to_test => 10000;
 
-    my $restore_table_max_id_query = "SELECT MAX(${table}_id) FROM $restore_table ";
+    Readonly my $restore_table_max_id_query => "select max($table" . "_id) from $restore_table ";
 
-    my $table_id_range_query = <<"EOF";
+    Readonly my $table_id_range_query => "$table" .
+      "_id > ( ( $restore_table_max_id_query ) - $back_records_to_test ) and $table" .
+      "_id < ( $restore_table_max_id_query ) ";
 
-        ${table}_id > ( ( $restore_table_max_id_query ) - $back_records_to_test )
-    AND ${table}_id < ( $restore_table_max_id_query )
-
-EOF
-
-    my $sql_query = <<"EOF";
-
-        INSERT INTO $restore_table (
-            SELECT *
-            FROM $table
-            WHERE $table_id_range_query
-            EXCEPT
-                SELECT *
-                FROM $restore_table
-                WHERE $table_id_range_query
-        )
-
-EOF
+    Readonly my $sql_query =>
+"INSERT INTO $restore_table (select * from $table where $table_id_range_query EXCEPT select * from $restore_table where $table_id_range_query ) ";
 
     say STDERR "Starting SQL query at " . localtime() . " : '$sql_query'";
     $db->query( $sql_query );
 
-    my $restore_after_old_max_id_query = <<"EOF";
-
-        INSERT INTO $restore_table
-            SELECT *
-            FROM $table
-            WHERE ${table}_id > ( $restore_table_max_id_query )
-
-EOF
+    Readonly my $restore_after_old_max_id_query => "INSERT INTO $restore_table SELECT * FROM $table where $table" .
+      "_id > ( $restore_table_max_id_query ) ";
 
     #say STDERR "Starting SQL query at " . localtime() . " : '$restore_after_old_max_id_query'";
     #$db->query( $restore_after_old_max_id_query );

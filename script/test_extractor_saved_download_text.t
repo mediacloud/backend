@@ -13,6 +13,8 @@ BEGIN
     $cwd = "$FindBin::Bin";
 }
 
+use Readonly;
+
 ## TODO update the expected results for the new extractor
 
 use Test::More skip_all => 'TODO rewrite for the new extractor';
@@ -29,7 +31,7 @@ use MIME::Base64;
 use Carp qw (confess);
 use Data::Dumper;
 
-my $output_dir = "$cwd/download_content_test_data";
+Readonly my $output_dir => "$cwd/download_content_test_data";
 
 print "$output_dir\n";
 

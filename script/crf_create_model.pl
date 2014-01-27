@@ -14,13 +14,14 @@ use MediaWords::CommonLibs;
 
 use Text::CSV;
 use Class::CSV;
+use Readonly;
 use Data::Dumper;
 use File::Temp qw/ tempfile tempdir /;
 use Env qw(HOME);
 use File::Path qw(make_path remove_tree);
 use CRF::CrfUtils;
 
-my $folds = 10;
+Readonly my $folds => 10;
 
 sub main
 {

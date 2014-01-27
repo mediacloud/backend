@@ -31,7 +31,7 @@ sub main
 
     #my $db = MediaWords::DB::connect_to_db();
 
-    my $dbname = 'downloads';
+    Readonly my $dbname => 'downloads';
 
     my $db = Store::CouchDB->new();
 

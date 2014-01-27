@@ -35,6 +35,7 @@ use Time::HiRes;
 use XML::Simple qw(:strict);
 use Dir::Self;
 
+#use Readonly;
 use CHI;
 use File::stat;
 
@@ -156,8 +157,8 @@ sub _redirect_to_default_page
                       AND dashboards_id = ?
 EOF
                 $media_sets_id, $dashboard->{ dashboards_id }
-            )->hashes
-        }
+              )->hashes
+          }
     );
 
     if ( !$media_sets_id_in_dashboard )
@@ -767,7 +768,7 @@ sub _country_counts_to_csv_array
         map {
             uc( $lcm->country2code( $lcm->code2country( $_, 'en' ), 'LOCALE_CODE_ALPHA_3', 'en' ) ) =>
               $country_counts->{ $_ }
-        } ( sort keys %{ $country_counts } )
+          } ( sort keys %{ $country_counts } )
     };
 
     my $country_count_csv_array = [
@@ -1246,7 +1247,7 @@ sub faq : Local
 # base dir
 my $_base_dir    = __DIR__ . '/../../..';
 my $web_root_dir = "$_base_dir/root";
-my $dump_dir => "$web_root_dir/include/data_dumps";
+Readonly my $dump_dir => "$web_root_dir/include/data_dumps";
 
 sub get_data_dump_file_list
 {
@@ -1368,7 +1369,7 @@ sub data_dumps : Local
             my $file_date = $_;
             $file_date =~ s/media_word_story_.*dump_(.*)\.zip/$1/;
             [ $_, $file_date, _get_dump_file_info( $_ ) ]
-        } @$data_dump_files
+          } @$data_dump_files
     ];
 
     $data_dumps = [ sort { _unix_time_for_file( $a ) <=> _unix_time_for_file( $b ) } @{ $data_dumps } ];
@@ -1534,7 +1535,7 @@ sub author_publish_weeks_json : Local
             ORDER BY publish_week
 EOF
             $authors_id
-        )->flat
+          )->flat
     ];
 
     #say STDERR Dumper( $publish_weeks );

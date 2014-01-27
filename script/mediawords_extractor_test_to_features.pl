@@ -21,6 +21,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::HTML;
 
 use MediaWords::DBI::Downloads;
+use Readonly;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use List::MoreUtils qw( uniq distinct :all );
 use List::Compare::Functional qw (get_unique get_complement get_union_ref );
@@ -243,7 +244,7 @@ sub main
 
     my $top_words = get_top_words( $downloads );
 
-    my $blank_line_between_downloads = 1;
+    Readonly my $blank_line_between_downloads => 1;
 
     foreach my $download ( @{ $downloads } )
     {

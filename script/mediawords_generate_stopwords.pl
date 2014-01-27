@@ -515,7 +515,7 @@ sub main
     my $term_limit         = 0;                          # How many terms (words) to take into account (0 - no limit)
     my $stoplist_threshold = 1000;                       # How many stopwords to print
 
-    my $usage =
+    my Readonly $usage =
       "Usage: $0" . ' --corpus_name=corpus-simplewiki-20121129' .
       ' --language=lt' . ' --type=tf|idf|nidf' . ' [--input_file=wikipedia.xml]' . ' [--output_file=corpus.txt]' .
       '[--story_separator=----------------]' . ' [--term_limit=i]' . ' [--stoplist_threshold=i]';
