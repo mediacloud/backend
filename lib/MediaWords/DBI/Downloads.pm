@@ -476,6 +476,7 @@ sub process_download_for_extractor($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
+    # Extract
     say STDERR "[$process_num] extract: $download->{ downloads_id } $download->{ stories_id } $download->{ url }";
     my $download_text = MediaWords::DBI::DownloadTexts::create_from_download( $db, $download );
 
@@ -483,6 +484,7 @@ sub process_download_for_extractor($$$;$$$)
 
     return if ( $no_vector );
 
+    # Vector
     my $remaining_download =
       $db->query( "select downloads_id from downloads " . "where stories_id = ? and extracted = 'f' and type = 'content' ",
         $download->{ stories_id } )->hash;
@@ -508,6 +510,44 @@ sub process_download_for_extractor($$$;$$$)
     {
         say STDERR "[$process_num] pending more downloads ...";
     }
+}
+
+# Extract and vector the download; on error, store the error message in the
+# "downloads" table
+sub extract_and_vector($$$;$$$)
+{
+    my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
+
+    $db->begin_work;
+
+    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num ); };
+
+    if ( $@ )
+    {
+        my $downloads_id = $download->{ downloads_id };
+
+        say STDERR "extractor error processing download $downloads_id: $@";
+
+        $db->rollback;
+        $db->begin_work;
+
+        $db->query(
+            <<EOF,
+            UPDATE downloads
+            SET state = 'extractor_error',
+                error_message = ?
+            WHERE downloads_id = ?
+EOF
+            "extractor error: $@", $downloads_id
+        );
+
+        $db->commit;
+
+        return 0;
+    }
+
+    # Extraction succeeded
+    return 1;
 }
 
 1;
