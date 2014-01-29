@@ -129,6 +129,8 @@ sub single_GET : Local
 
     say STDERR "QUERY $query";
 
+    say STDERR Dumper($c->req);
+
     my $stories = $c->dbis->query( $query, $stories_id )->hashes();
 
     my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
@@ -140,11 +142,11 @@ sub single_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub all_processed : Local : ActionClass('REST')
+sub list_processed : Local : ActionClass('REST')
 {
 }
 
-sub all_processed_GET : Local
+sub list_processed_GET : Local
 {
     my ( $self, $c ) = @_;
 

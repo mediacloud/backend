@@ -89,6 +89,7 @@ sub _add_data_to_media
 
 }
 
+## TODO move these to a centralized location instead of copying them in every API class 
 #A list top level object fields to include by default in API results unless all_fields is true
 Readonly my $default_output_fields => [ qw ( name url media_id ) ];
 sub _purge_extra_fields:
