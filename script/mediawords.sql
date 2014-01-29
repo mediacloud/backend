@@ -3,6 +3,9 @@
 --
 
 -- CREATE LANGUAGE IF NOT EXISTS plpgsql
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE OR REPLACE FUNCTION create_language_plpgsql()
 RETURNS BOOLEAN AS $$
     CREATE LANGUAGE plpgsql;
@@ -65,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4434;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4435;
     
 BEGIN
 
