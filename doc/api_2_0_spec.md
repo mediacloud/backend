@@ -8,7 +8,7 @@
 #API URLs
 
 *Note* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to
-users of the API. If the all_fields parameter is provided and is non-zero, then a most complete list of fields will be returned.
+users of the API. If the all_fields parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the all_fields parameter on individual API descriptions.
 
 ## Media
 
@@ -253,7 +253,7 @@ Parameter             Default         Notes
  last_media_sets_id    0               Return media sets with 
                                        media_sets_id is greater than this value
 
- rows                  20              Number of media sets to return. Can not be larger than 100
+ rows                  20              Number of media sets to return. Cannot be larger than 100
 --------------------------------------------------------------------------------------------------------
 
 ####Example
@@ -368,7 +368,7 @@ api/v2/dashboard/single/\<dashboards_id\>         Return the dashboard in which 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
 -------------------   ----------      ----------------------------------------------------------------------
- nested_data             1               if 0 return only the name and dashboards_id otherwise 
+ nested_data             1               If 0 return only the name and dashboards_id otherwise 
                                          return nested information about the dashboard's media_sets 
                                          and their media
 --------------------------------------------------------------------------------------------------------
@@ -423,7 +423,7 @@ Parameter             Default         Notes
 
  rows                  20              Number of dashboards to return. Can not be larger than 100
 
- nested_data             1             If 0 return only the name and dashboards_id; otherwise 
+ nested_data            1              If 0 return only the name and dashboards_id; otherwise 
                                        return nested information about the dashboard's media_sets 
                                        and their media
 --------------------------------------------------------------------------------------------------------
@@ -466,7 +466,8 @@ URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 
 ###Output description
 
-The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list_processed
+The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list_processed in which
+ we felt clarification was necessary.
 
 --------------------------------------------------------------------------------------------------------
 Field                    Description
@@ -498,7 +499,7 @@ Field                    Description
 
  collect_date             The date the RSS feed was actually downloaded
 
- guid                     The GUID field in the RSS feed default to the URL if no GUID is specified?
+ guid                     The GUID field in the RSS feed. Defaults to the URL if no GUID is specified
  
 --------------------------------------------------------------------------------------------------------
 
@@ -1089,8 +1090,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
 
 ###api/V2/stories/list_processed 
   
-To get information on multiple stories send get requests to `api/V2/stories/list_processed`
-
+To get information on multiple stories, send get requests to `api/V2/stories/list_processed`
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
@@ -1706,7 +1706,7 @@ Parameter                     Notes
 
 --------------------------------------------------------------------------------------------------------
 
-*_Note:_* At least one of the above parameters must by provided.
+**Note:** At least one of the above parameters must by provided.
 
 The put request will return the meta-data representation of the `story_subset` including its database ID.
   
@@ -1727,6 +1727,7 @@ curl -X PUT -d media_id=1 -d start_date=2014-01-01 -d end_date=2014-01-02 http:/
    "media_sets_id":null,
    "start_date":"2014-01-01 00:00:00-00",
    "ready":0,
+   "custom_story_tag": null,
    "story_subsets_id":"1"
 }
 ```
@@ -1752,6 +1753,7 @@ curl -X GET http://0:3000/api/v2/stories/subset/1
    "media_sets_id":null,
    "start_date":"2013-01-01 00:00:00-05",
    "last_processed_stories_id":"116335917",
+   "custom_story_tag": null,
    "ready":1,
    "story_subsets_id":"1"
 }
@@ -14623,7 +14625,7 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 
 ##Write Back API
 
-This call allows users to push data into the Postgresql database.
+These calls allow users to push data into the Postgresql database.
 
 ###api/v2/stories/custom_tags (PUT)
 
@@ -14677,9 +14679,9 @@ curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://media
 
 ## Output Format / JSON
   
-The format of the API responses is determined by the ‘Accept’ header on the request. The default is ‘application/json’. Other supported formats include 'text/html', 'text/x-json', and  'text/x-php-serialization'. It’s recommended that you explicitly set the ‘Accept’ header rather than relying on the default.
+The format of the API responses is determined by the `Accept` header on the request. The default is `application/json`. Other supported formats include `text/html`, `text/x-json`, and `text/x-php-serialization`. It’s recommended that you explicitly set the `Accept` header rather than relying on the default.
  
-Here’s an example of setting the ‘Accept’ header in Python
+Here’s an example of setting the `Accept` header in Python
 
 ```python  
 import pkg_resources  
@@ -14792,7 +14794,7 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 ]
 ```
 
-*Note* the list of media are not shown for space reasons.
+*Note* the full list of media are not shown for space reasons.
 
 After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with media_id 1.
 
@@ -14804,7 +14806,7 @@ Save the story_subsets_id
 
 ###Wait until the subset is ready
 
-Below we show some python code to continuously determine whether the subset has been processed. Users could do something similar manually by issuing curl requests.
+Below we show some python code to continuously poll the server to determine whether the subset has been processed. Users could do something similar manually by issuing curl requests.
 
 ```python
 import requests 
@@ -14856,6 +14858,7 @@ Currently, the best way to do this is to create a CSV file with all media source
 Once you have this CSV file, manually search for the New York Times. You should find an entry for the New York Times at the top of the file with media_id 1.
 
 ###Create a subset
+
 curl -X PUT -d start_date=2012-10-01 -d end_date=2012-11-01 -d media_id=1 http://mediacloud.org/api/v2/stories/subset
 
 Save the story_subsets_id
@@ -14959,7 +14962,7 @@ Alternatively, we could use a single large query by setting q to "sentence:trayv
 
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_id%3A7125+AND+publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D&fq=media_sets_id%3A7135&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
 
-##Tag sentences in a story based on whether they have an odd or even number of characters
+##Tag sentences of a story based on whether they have an odd or even number of characters
 
 For simplicity, we assume that the user is interested in the story with stories_id 100
 
@@ -14985,7 +14988,7 @@ for story_sentence in story['story_sentences']:
 
 ```
 
-##Get word counts for top words for sentences matching with the custom sentence tag 'odd'
+##Get word counts for top words for sentences with the custom sentence tag 'odd'
 
 ###Make a request for the word counts based on the custom sentence tag 'odd'
 
