@@ -489,6 +489,9 @@ Field                    Description
 
  publish_date             The publish date of the story as specified in the RSS feed
 
+ custom_tags              A list containing the names of any tags that have been added to the
+                          story using the write-back API.
+
  collect_date             The date the RSS feed was actually downloaded
 
  guid                     The GUID field in the RSS feed default to the URL if no GUID is specified?
@@ -14626,11 +14629,36 @@ Set the custom tags on the story with stories_id 1000 to 'foo' and 'bar'
 
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/stories/custom_tags
 
+
+###api/v2/story_sentences/custom_tags
+
+URL                                                                       Function
+---------------------------------      --------------------------------------------------
+api/v2/story_sentences/custom_tags                    Add custom tags to a story sentence. Must be a PUT request
+---------------------------------      --------------------------------------------------
+
+####Query Parameters 
+
+--------------------------------------------------------------------------------------------------------
+Parameter                     Notes
+---------------------------   --------------------------------------------------------------------------
+ story_sentences_id            The id of the story sentence to which to add the custom tags
+
+ custom_tag                    Can be specified multiple times to add multiple tags to the story
+--------------------------------------------------------------------------------------------------------
+
+####Example
+
+Set the custom tags on the story sentence with story_sentences_id 1000 to 'foo' and 'bar'
+
+curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/story_sentences/custom_tags
+
+
 #Extended Examples
 
 ## Output Format / JSON
   
-The format of the API responses is determine by the ‘Accept’ header on the request. The default is ‘application/json’. Other supported formats include 'text/html', 'text/x-json', and  'text/x-php-serialization'. It’s recommended that you explicitly set the ‘Accept’ header rather than relying on the default.
+The format of the API responses is determined by the ‘Accept’ header on the request. The default is ‘application/json’. Other supported formats include 'text/html', 'text/x-json', and  'text/x-php-serialization'. It’s recommended that you explicitly set the ‘Accept’ header rather than relying on the default.
  
 Here’s an example of setting the ‘Accept’ header in Python
 
@@ -14913,3 +14941,52 @@ curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon&fq=media_sets_id
 Alternatively, we could use a single large query by setting q to "sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". 
 
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_id%3A7125+AND+publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D&fq=media_sets_id%3A7135&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
+
+##Tag sentences in a story based on whether they have an odd or even number of characters
+
+For simplicity, we assume that the user is interested in the story with stories_id 100
+
+```python
+
+stories_id = 100
+r = requests.get( 'http://mediacloud.org/api/v2/story/single/' + stories_id, headers = { 'Accept': 'application/json'} )
+data = r.json()
+story = data[0]
+
+for story_sentence in story['story_sentences']:
+    sentence_length = len( story_sentence['sentence'] )
+    story_sentences_id = story_sentence[ 'story_sentences_id' ]
+
+    custom_tags = set(story_sentence[ 'custom_tags' ])
+
+    if sentence_length %2 == 0:
+       custom_tags.append( 'odd' )
+    else:
+       custom_tags.append( 'even' )
+
+    r = requests.put( 'http://mediacloud.org/api/v2/story_sentences/custom_tags/' + stories_id, { 'custom_tags': custom_tags}, headers = { 'Accept': 'application/json'} )  
+
+```
+
+##Get word counts for top words for sentences matching with the custom sentence tag 'odd'
+
+###Make a request for the word counts based on the custom sentence tag 'odd'
+
+Below q is set to "custom_sentence_tag:odd". (Note that ":", "[", and "]" are URL encoded.)
+
+curl 'http://mediacloud.org/api/v2/solr/wc?q=custom_sentence_tag%3Afoobar'
+
+##Grab stories from 10 January 2014 with the custom tag 'foobar'
+
+###Create a subset
+curl -X PUT -d start_date=2014-01-10 -d end_date=2014-01-11 -d custom_story_tag=foobar http://mediacloud.org/api/v2/stories/subset
+
+Save the story_subsets_id
+
+###Wait until the subset is ready
+
+See the 25 msm example above.
+
+###Grab stories from the processed stream
+
+See the 25 msm example above.
