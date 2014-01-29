@@ -1,6 +1,10 @@
 % Media Cloud API Version 2
 % Author David Larochelle
 
+<!--- This file is intended to be parsed by the pandoc markdown engine.
+      It is not guaranteed to display correctly with other markdown engines.
+--->
+
 #API URLs
 
 *Note* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to
@@ -489,7 +493,7 @@ Field                    Description
 
  publish_date             The publish date of the story as specified in the RSS feed
 
- custom_tags              A list containing the names of any tags that have been added to the
+ custom_story_tags        A list containing the names of any tags that have been added to the
                           story using the write-back API.
 
  collect_date             The date the RSS feed was actually downloaded
@@ -540,6 +544,10 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
     "stories_id": 27456565,
     "story_texts_id": null,
     "story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   One million flags have been made by textile factories, according to sources within the Ministry of Defence.    The green color of the flag officially represents peace, yellow solidarity, and red valour. Myanmar also has a new name: It is now officially known as the Republic of the Union of Myanmar. It was previously known as the Union of Myanmar.   What are the reactions of Myanmar netizens?  dawn_1o9  doesn\u2019t like the new flag    Just received news that our country's flag has changed officially. And I say this here, and I say it loud: I DON'T LIKE THE NEW FLAG!!!   I feel no patriotism when I see this. And the color scheme is the same as Lithuanian flag minus the star, though the hue is different.   I am not the only one who feels like this though. Many are outraged. Personally, I feel like it is an insult.   \u201clooks like a cheap amateurish crap that came out from MS Paint\u201d - my friend's words: not mine.   This is the old flag. Blue stands for peace and stability, red stands for courage and bravery, 14 stars for the 14 states and divisions, the pinion stands for the work force of the country, and the rice stalk stands for the farmers in the country. I love this flag, and it will always be the flag of my country, no matter how much they change it    An interesting conversation in her blog about the topic     awoolham:  Yellow stands for than shwe (author\u2019s note: the leader of Myanmar), green stands for cash, red stands for blood of the people.    ei_angel:  What the!!\u2026They can't change it yet.  Man I hate that flag. Looks like Ethiopian flag or Ghana flag.  So the name has changed to RUM (Republic of the Union of MM) too?  I thought it would only be changed after all the 7 step has taken place.  And that's after the parliament's been called.      dawn_1o9:  @cafengocmy - It looks like a lot of African nation's flags too. With the flag before, Taiwan was the only country whose flag looked like ours. Now, it's about 3 or 4 flags: Ghana, Ethiopia, Lithuania, etc.   The commenter\u2019s reaction about the premature unveiling of the flag was the same sentiment of the opposition. The flag is supposed to be released only after the conduct of the November 7 elections. The opposition accuses the Myanmar military leaders of violating their own constitution.  Min Lwin  of the  Democratic Voice of Burma  adds more information     According to opposition politicians, Burmese law states that the 2008 constitution must come into force before any new flag is raised. This shouldn\u2019t happen until after the controversial 7 November elections.     All the old flags will be burnt. My guess is, the government is so anti-American that even having the same colors, albeit having socialist ideals, isn't going to work.   And in a couple of weeks, we will be voting. Some of us, for the first time in our lives. I voted two years ago at the consulate in Kolkata for the new constitution, in my late 20s, after growing up mostly in democratic countries.   Who will win? The government of course. Now that they're all civilians \u2014 emperors in new clothes, with their new flag. They're going to have the country, too, one way or another. No matter what the people say, do, or think let alone the rest of the world. It doesn't matter what I write here or what you comment, tweet, or who you share this with.    At the comment section of  The Irrawaddy , the conversation continues about the new flag  The new flag is look like exactly the same as the Shan State flag apart from the star instead of white circle inside.  What a shame Than Shwe copied another flag.  Clever move by the junta. It'll look great on T-shirts if tourism ever takes off, and who can really be angry with laid-back rastafarians?  But is the Irrawaddy going to recognise it? Or will \u201cBurma\u201d retain its flag as it fights to stay afloat in the march of history?    Indre : I'm sorry, but why did the government snatch Lithuania's national flag (yellow, green and red) and crossed it so curiously with Vietnam's (star in the center)?    Chindits:  This flag does not represent the country at all. A star?? You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
+    "custom_story_tags": [
+       "custom_tag_1",
+       "custom_tag_2"
+    ],
     "story_sentences": [
       {
         "language": null,
@@ -1693,6 +1701,9 @@ Parameter                     Notes
  media_id                     Only include stories from the media source indicated by media_id
 
  media_sets_id                Only include stories from the media set indicated by media_sets_id
+
+ custom_story_tag             only include stories in which custom_story_tag in one of the custom_story_tags
+
 --------------------------------------------------------------------------------------------------------
 
 *_Note:_* At least one of the above parameters must by provided.
@@ -1728,7 +1739,7 @@ api/v2/stories/subset                    show the status of a subset. Must use a
 ---------------------------------      --------------------------------------------------
 
   
-To see the status of a given subset, the client sends a get request to `api/v2/stories/subset/<ID>` where `<ID>` is the database id that was returned in the put request above.  The returned object contains a `'ready'` field with a Boolean value indicating that stories from the subset have been compiled.
+To see the status of a given subset, the client sends a get request to `api/v2/stories/subset/<ID>` where `<ID>` is the database id that was returned in the put request above. **The returned object contains a `ready` field with a Boolean value indicating that stories from the subset have been compiled.**
 
 ####Example 
 
@@ -1811,6 +1822,14 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
     "sentence": "Obama:",
     "sentence_number": 16,
     "stories_id": 79115414,
+    "custom_story_tags": [
+      "custom_tag_1",
+      "custom_tag_2"
+    ],
+    "custom_sentence_tags": [
+      "custom_tag_A",
+      "custom_tag_B"
+    ],
     "media_sets_id": [
       24,
       1,
@@ -14606,7 +14625,7 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 
 This call allows users to push data into the Postgresql database.
 
-###api/v2/stories/custom_tags
+###api/v2/stories/custom_tags (PUT)
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
@@ -14625,12 +14644,12 @@ Parameter                     Notes
 
 ####Example
 
-Set the custom tags on the story with stories_id 1000 to 'foo' and 'bar'
+Set custom_story_tags on the story with stories_id 1000 to 'foo' and 'bar'
 
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/stories/custom_tags
 
 
-###api/v2/story_sentences/custom_tags
+###api/v2/story_sentences/custom_tags (PUT)
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
@@ -14644,12 +14663,12 @@ Parameter                     Notes
 ---------------------------   --------------------------------------------------------------------------
  story_sentences_id            The id of the story sentence to which to add the custom tags
 
- custom_tag                    Can be specified multiple times to add multiple tags to the story
+ custom_tag                    Can be specified multiple times to add multiple tags to the story sentence
 --------------------------------------------------------------------------------------------------------
 
 ####Example
 
-Set the custom tags on the story sentence with story_sentences_id 1000 to 'foo' and 'bar'
+Set the custom_sentence_tags on the story sentence with story_sentences_id 1000 to 'foo' and 'bar'
 
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/story_sentences/custom_tags
 
@@ -14706,8 +14725,6 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
     cwriter.writerows( media )
 
 ```
-
-
 
 ##Grab all processed stories from US Top 25 MSM as a stream
 
