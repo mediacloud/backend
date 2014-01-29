@@ -14668,11 +14668,16 @@ Parameter                     Notes
  custom_tag                    Can be specified multiple times to add multiple tags to the story sentence
 --------------------------------------------------------------------------------------------------------
 
+**NOTE:**  when a story is re-processed, its story sentence objects are deleted and recreated. In practice, it is rare for stories to be 
+reprocessed. But if a story is reprocessed any custom tags attached to its story sentences will be lost. 
+(Custom tags on the story itself will persist reprocessing.)
+
 ####Example
 
 Set the custom_sentence_tags on the story sentence with story_sentences_id 1000 to 'foo' and 'bar'
 
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/story_sentences/custom_tags
+
 
 
 #Extended Examples
