@@ -10,12 +10,17 @@ def get_solr_location():
     return 'http://localhost:8983'
 
 def get_solr_collection_url_prefix():
-    return get_solr_location + '/solr/collection1'
+    return get_solr_location() + '/solr/collection1'
 
 def solr_request( path, params):
+    ipdb.set_trace()
     url = get_solr_collection_url_prefix() + '/' + path
+    print 'url: {}'.format( url )
     params['wt'] = 'json'
-    r = requests.get( url, params, headers = { 'Accept': 'application/json'})  
+    r = requests.get( url, params=params, headers = { 'Accept': 'application/json'}) 
+    print 'request url '
+    print r.url
+
     data = r.json()
 
     return data
@@ -34,7 +39,7 @@ def dataimport_delta_import():
         }
 
     ##Note: We're using the delta import through full import approach
-    return dataimport_command( 'full_import', params )
+    return dataimport_command( 'full-import', params )
 
 def dataimport_full_import():
     params = {
@@ -43,7 +48,12 @@ def dataimport_full_import():
         }
 
     ##Note: We're using the delta import through full import approach
-    return dataimport_command( 'full_import', params )
+    return dataimport_command( 'full-import', params )
     
 def dataimport_reload_config():
     return dataimport_command( 'reload' )
+
+print "starting"
+print dataimport_full_import()
+ipdb.set_trace()
+print "exiting"
