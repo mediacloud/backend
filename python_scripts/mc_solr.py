@@ -53,7 +53,3 @@ def dataimport_full_import():
 def dataimport_reload_config():
     return dataimport_command( 'reload' )
 
-print "starting"
-print dataimport_full_import()
-ipdb.set_trace()
-print "exiting"
