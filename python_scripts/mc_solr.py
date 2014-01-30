@@ -1,5 +1,4 @@
 import requests
-import ipdb
 import mc_config
 import psycopg2
 import psycopg2.extras
