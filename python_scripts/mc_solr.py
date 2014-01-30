@@ -13,7 +13,6 @@ def get_solr_collection_url_prefix():
     return get_solr_location() + '/solr/collection1'
 
 def solr_request( path, params):
-    ipdb.set_trace()
     url = get_solr_collection_url_prefix() + '/' + path
     print 'url: {}'.format( url )
     params['wt'] = 'json'
