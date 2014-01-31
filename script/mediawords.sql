@@ -68,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4435;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4436;
     
 BEGIN
 
@@ -315,6 +315,9 @@ create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 
+CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
+CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
+
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
     
 -- Feed statuses that determine whether the feed will be fetched
@@ -427,6 +430,7 @@ create table dashboards (
 );
 
 create unique index dashboards_name on dashboards ( name );
+CREATE INDEX dashboards_name_trgm on dashboards USING gin (name gin_trgm_ops);
 
 CREATE TYPE query_version_enum AS ENUM ('1.0');
 
@@ -495,6 +499,9 @@ create table media_sets (
     vectors_added               boolean     default false,
     include_in_dump             boolean     default true
 );
+
+CREATE INDEX media_sets_name_trgm on media_sets USING gin (name gin_trgm_ops);
+CREATE INDEX media_sets_description_trgm on media_sets USING gin (description gin_trgm_ops);
 
 CREATE VIEW media_sets_tt2_locale_format as select  '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' as tt2_value from media_sets where set_type = 'collection' order by media_sets_id;
 
