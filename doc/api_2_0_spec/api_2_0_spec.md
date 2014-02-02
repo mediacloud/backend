@@ -1332,3 +1332,18 @@ See the 25 msm example above.
 #### Grab stories from the processed stream
 
 See the 25 msm example above.
+
+
+
+<style type="text/css" media="all"><!--
+
+/* Word wrap long code samples so one doesn't have to do horizontal scrolling */
+pre.sourceCode, code {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+--></style>
