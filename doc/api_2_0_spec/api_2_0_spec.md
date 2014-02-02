@@ -7,17 +7,15 @@ Media Cloud API Version 2
 API URLs
 --------
 
-*Note* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to
-users of the API. If the all_fields parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the all_fields parameter on individual API descriptions.
+*Note* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the all_fields parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the all_fields parameter on individual API descriptions.
 
 ### Media
 
 #### api/v2/media/single/
 
-URL                                    Function
----------------------------------      ------------------------------------------------------------
-api/v2/media/single/\<media_id\>         Return the media source in which media_id equals \<media_id\>
----------------------------------      ------------------------------------------------------------
+| URL                              | Function
+| -------------------------------- | -------------------------------------------------------------
+| `api/v2/media/single/<media_id>` | Return the media source in which media_id equals `<media_id>`
 
 ##### Query Parameters 
 
@@ -90,21 +88,16 @@ Response:
 
 #### api/v2/media/list/
 
-URL                                                                       Function
----------------------------------      -------------------------------------------
-api/v2/media/list                      Return multiple media sources 
----------------------------------      -------------------------------------------
+| URL                 | Function
+| ------------------- | -----------------------------
+| `api/v2/media/list` | Return multiple media sources
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter         Default         Notes
----------------   ----------      ----------------------------------------------------------------------
- last_media_id    0               Return media sources with a 
-                                  media_id is greater than this value
-
- rows             20              Number of media sources to return. Cannot be larger than 100
---------------------------------------------------------------------------------------------------------
+| Parameter       | Default | Notes
+| --------------- | ------- | -----------------------------------------------------------------
+| `last_media_id` | 0       | Return media sources with a `media_id` is greater than this value
+| `rows`          | 20      | Number of media sources to return. Cannot be larger than 100
 
 ##### Example
 
@@ -204,12 +197,11 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 #### api/v2/media_set/single
 
-URL                                          Function
----------------------------------            ------------------------------------------------------------
-api/v2/media_set/single/\<media_sets_id\>         Return the media set in which media_sets_id equals \<media_sets_id\>
----------------------------------            ------------------------------------------------------------
+| URL                                       | Function
+| ----------------------------------------- | ----------------------------------------------------------------------
+| `api/v2/media_set/single/<media_sets_id>` | Return the media set in which `media_sets_id` equals `<media_sets_id>`
 
-##### Query Parameters 
+##### Query Parameters
 
 None.
 
@@ -240,21 +232,16 @@ http://mediacloud.org/api/v2/media_sets/single/2
 
 #### api/v2/media_sets/list
 
-URL                                                                       Function
----------------------------------      -------------------------------------------
-api/v2/media_sets/list                      Return multiple media sets
----------------------------------      -------------------------------------------
+| URL                      | Function
+| ------------------------ | --------------------------
+| `api/v2/media_sets/list` | Return multiple media sets
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter             Default         Notes
--------------------   ----------      ----------------------------------------------------------------------
- last_media_sets_id    0               Return media sets with 
-                                       media_sets_id is greater than this value
-
- rows                  20              Number of media sets to return. Cannot be larger than 100
---------------------------------------------------------------------------------------------------------
+| Parameter            | Default | Notes
+| -------------------- | ------- | -----------------------------------------------------------------
+| `last_media_sets_id` | 0       | Return media sets with `media_sets_id` is greater than this value
+| `rows`               | 20      | Number of media sets to return. Cannot be larger than 100
 
 ##### Example
 
@@ -285,10 +272,9 @@ URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 
 #### api/v2/feeds/single
 
-URL                                      Function
----------------------------------        ------------------------------------------------------------
-api/v2/feeds/single/\<feeds_id\>         Return the feeds in which feeds_id equals \<feeds_id\>
----------------------------------        ------------------------------------------------------------
+| URL                              | Function
+| -------------------------------- | --------------------------------------------------------
+| `api/v2/feeds/single/<feeds_id>` | Return the feeds in which `feeds_id` equals `<feeds_id>`
 
 ##### Query Parameters 
 
@@ -313,21 +299,16 @@ URL: http://mediacloud.org/api/v2/feeds/single/1
 
 #### api/v2/feeds/list
 
-URL                                                                       Function
----------------------------------      -------------------------------------------
-api/v2/feeds/list                         Return multiple media sets
----------------------------------      -------------------------------------------
+| URL                 | Function
+| ------------------- | --------------------------
+| `api/v2/feeds/list` | Return multiple media sets
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter             Default         Notes
--------------------   ----------      ----------------------------------------------------------------------
- last_feeds_id         0               Return feeda with 
-                                       feeds_id is greater than this value
-
- rows                  20              Number of feeds to return. Cannot be larger than 100
---------------------------------------------------------------------------------------------------------
+| Parameter       | Default | Notes
+| --------------- | ------- | -------------------------------------------------------
+| `last_feeds_id` | 0       | Return feeds with `feeds_id` is greater than this value
+| `rows`          | 20      | Number of feeds to return. Cannot be larger than 100
 
 ##### Example
 
@@ -358,20 +339,16 @@ URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
 
 #### api/v2/dashboard/single
 
-URL                                      Function
----------------------------------        ------------------------------------------------------------
-api/v2/dashboard/single/\<dashboards_id\>         Return the dashboard in which dashboards_id equals \<dashboards_id\>
----------------------------------        ------------------------------------------------------------
+| URL                                       | Function
+| ----------------------------------------- | ----------------------------------------------------------------------
+| `api/v2/dashboard/single/<dashboards_id>` | Return the dashboard in which `dashboards_id` equals `<dashboards_id>`
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter             Default         Notes
--------------------   ----------      ----------------------------------------------------------------------
- nested_data             1               If 0 return only the name and dashboards_id otherwise 
-                                         return nested information about the dashboard's media_sets 
-                                         and their media
---------------------------------------------------------------------------------------------------------
+| Parameter     | Default | Notes
+| ------------- | ------- | -------------------------------------------------------------------------------------
+| `nested_data` | 1       | If 0, return only the `name` and `dashboards_id`.
+|               |         | If 1, return nested information about the dashboard's `media_sets` and their `media`.
 
 ##### Example
 
@@ -408,25 +385,18 @@ http://mediacloud.org/api/v2/dashboards/single/2
 
 #### api/v2/dashboards/list
 
-URL                                                                       Function
----------------------------------      -------------------------------------------
-api/v2/dashboards/list                      Return multiple dashboards
----------------------------------      -------------------------------------------
+| URL                      | Function
+| ------------------------ | --------------------------
+| `api/v2/dashboards/list` | Return multiple dashboards
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter             Default         Notes
--------------------   ----------      ----------------------------------------------------------------------
- last_dashboards_id    0               Return dashboards in which 
-                                       dashboards_id greater than this value
-
- rows                  20              Number of dashboards to return. Can not be larger than 100
-
- nested_data            1              If 0 return only the name and dashboards_id; otherwise 
-                                       return nested information about the dashboard's media_sets 
-                                       and their media
---------------------------------------------------------------------------------------------------------
+| Parameter            | Default | Notes
+| -------------------- | ------- | -------------------------------------------------------------------------------------
+| `last_dashboards_id` | 0       | Return dashboards in which `dashboards_id` greater than this value
+| `rows`               | 20      | Number of dashboards to return. Can not be larger than 100
+| `nested_data`        | 1       | If 0, return only the `name` and `dashboards_id`.
+|                      |         | If 1, return nested information about the dashboard's `media_sets` and their `media`.
 
 ##### Example
 
@@ -463,63 +433,42 @@ URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 
 ### Stories
 
-
 #### Output description
 
-The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list_processed in which
- we felt clarification was necessary.
+The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list_processed in which we felt clarification was necessary.
 
---------------------------------------------------------------------------------------------------------
-Field                    Description
--------------------      ----------------------------------------------------------------------
- title                    The story title as defined in the RSS feed. (May or may not contain
-                           HTML depending on the source)
-
- description              The story description as defined in the RSS feed. (May or may not contain
-                           HTML depending on the source)
-
- full_text_rss            1 if the text of the story was obtained through the RSS feed. 
-                          0 if the text of the story was optained by extracting the article text from the HTML
-
- story_text               The text of the story. If full_text_rss is non-zero, this is formed by HTML stripping the title, HTML 
-                          stripping the description, and concatenating them.
-                          If full_text_rss is non-zero, this is formed by extracting the article text from the HTML.
-
- story_sentences          A list of sentences in the story. Generated from story_text by splitting it into sentences
-                          and removing any duplicate sentences oocuring within the same source for the same week
-
- raw_1st_download         The contents of the first HTML page of the story. 
-                          Available regards of the value of full_text_rss.
-                          NOTE: only provided if the raw_1st_download parameter is non-zero.
-
- publish_date             The publish date of the story as specified in the RSS feed
-
- custom_story_tags        A list containing the names of any tags that have been added to the
-                          story using the write-back API.
-
- collect_date             The date the RSS feed was actually downloaded
-
- guid                     The GUID field in the RSS feed. Defaults to the URL if no GUID is specified
- 
---------------------------------------------------------------------------------------------------------
+| Field               | Description
+| ------------------- | ----------------------------------------------------------------------
+| `title`             | The story title as defined in the RSS feed. May contain HTML (depending on the source).
+| `description`       | The story description as defined in the RSS feed. May contain HTML (depending on the source).
+| `full_text_rss`     | If 1, the text of the story was obtained through the RSS feed.
+|                     | If 0, the text of the story was obtained by extracting the article text from the HTML.
+| `story_text`        | The text of the story.
+|                     | If `full_text_rss` is non-zero, this is formed by stripping HTML from the title,
+|                     | description, and concatenating them.
+|                     | If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
+| `story_sentences`   | A list of sentences in the story.
+|                     | Generated from `story_text` by splitting it into sentences and removing any duplicate
+|                     | sentences occurring within the same source for the same week.
+| `raw_1st_download`  | The contents of the first HTML page of the story. Available regards of the value of `full_text_rss`.
+|                     | *Note:* only provided if the `raw_1st_download` parameter is non-zero.
+| `publish_date`      | The publish date of the story as specified in the RSS feed.
+| `custom_story_tags` | A list containing the names of any tags that have been added to the story using the write-back API.
+| `collect_date`      | The date the RSS feed was actually downloaded.
+| `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified.
 
 
 #### api/v2/stories/single
 
-URL                                    Function
-------------------------------------   ------------------------------------------------------------
-api/v2/stories/single/\<stories_id\>     Return story in which stories_id equals \<stories_id\>
-------------------------------------   ------------------------------------------------------------
+| URL                                  | Function
+| ------------------------------------ | ------------------------------------------------------
+| `api/v2/stories/single/<stories_id>` | Return story in which stories_id equals `<stories_id>`
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter             Default         Notes
--------------------   ----------      ----------------------------------------------------------------------
- raw_1st_download     0                If non-zero include the full html of the first page of the story
---------------------------------------------------------------------------------------------------------
-
-
+| Parameter          | Default | Notes
+| ------------------ | ------- | -----------------------------------------------------------------
+| `raw_1st_download` | 0       | If non-zero, include the full html of the first page of the story
 
 ##### Example
 
@@ -603,25 +552,18 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
   
 To get information on multiple stories, send get requests to `api/V2/stories/list_processed`
 
-URL                                                                       Function
----------------------------------      -------------------------------------------
-api/V2/stories/list_processed           Return multiple processed stories
----------------------------------      -------------------------------------------
+| URL                             | Function
+| ------------------------------- | ---------------------------------
+| `api/V2/stories/list_processed` | Return multiple processed stories
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter                     Default         Notes
----------------------------   ----------      ----------------------------------------------------------
- last_processed_stories_id    0               Return stories in which the processed_stories_id 
-                                                is greater than this value
+| Parameter                    | Default | Notes
+| ---------------------------- | ------- | ------------------------------------------------------------------------------
+| `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
+| `rows`                       | 20      | Number of stories to return. Can not be larger than 100.
+| `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
 
- rows                         20              Number of stories to return. Can not be larger than 100
-
- raw_1st_download             0               If non-zero include the full HTML of the first
-                                              page of the story
---------------------------------------------------------------------------------------------------------
-  
 The ‘last_processed_id’ parameter can be used to page through these results. The api will return 20 stories with a processed_id greater than this value.
 
 NOTE: stories_id and processed_id are separate values. The order in which stories are processed is different than the stories_id order. The processing pipeline involves downloading, extracting, and vectoring stories. Since unprocessed stories are of little interest, we have introduced the processed_id field to allow users to stream all stories as they’re processed.
@@ -704,28 +646,19 @@ Users who want to only see a subset of stories can create a story subset stream 
 
 #### api/v2/stories/subset (PUT)
 
-URL                                                                       Function
----------------------------------      --------------------------------------------------
-api/v2/stories/subset                    Creates a story subset. Must use a PUT request
----------------------------------      --------------------------------------------------
+| URL                     | Function
+| ----------------------- | -----------------------------------------------
+| `api/v2/stories/subset` | Creates a story subset. Must use a PUT request.
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter                     Notes
----------------------------   --------------------------------------------------------------------------
- start_date                   Only include stories with a publish date \>= start_date
-
- end_date                     Only include stories with a publish date \<= end_date
-
-
- media_id                     Only include stories from the media source indicated by media_id
-
- media_sets_id                Only include stories from the media set indicated by media_sets_id
-
- custom_story_tag             only include stories in which custom_story_tag in one of the custom_story_tags
-
---------------------------------------------------------------------------------------------------------
+| Parameter          | Notes
+| ------------------ | ----------------------------------------------------------------------------------
+| `start_date`       | Only include stories with a `publish date >= start_date`
+| `end_date`         | Only include stories with a `publish date <= end_date`
+| `media_id`         | Only include stories from the media source indicated by `media_id`
+| `media_sets_id`    | Only include stories from the media set indicated by `media_sets_id`
+| `custom_story_tag` | Only include stories in which `custom_story_tag` in one of the `custom_story_tags`
 
 **Note:** At least one of the above parameters must by provided.
 
@@ -755,12 +688,10 @@ curl -X PUT -d media_id=1 -d start_date=2014-01-01 -d end_date=2014-01-02 http:/
 
 #### api/v2/stories/subset (GET)
 
-URL                                                                       Function
----------------------------------      --------------------------------------------------
-api/v2/stories/subset                    show the status of a subset. Must use a GET request
----------------------------------      --------------------------------------------------
+| URL                     | Function
+| ----------------------- | ----------------------------------------------------
+| `api/v2/stories/subset` | Show the status of a subset. Must use a GET request.
 
-  
 To see the status of a given subset, the client sends a get request to `api/v2/stories/subset/<ID>` where `<ID>` is the database id that was returned in the put request above. **The returned object contains a `ready` field with a Boolean value indicating that stories from the subset have been compiled.**
 
 ##### Example 
@@ -782,27 +713,17 @@ curl -X GET http://0:3000/api/v2/stories/subset/1
  
 #### api/V2/stories/list_subset_processed
 
-URL                                           Function
---------------------------------------------  ------------------------------------------------
-
-api/V2/stories/list_subset_processed/\<id\>      Return multiple processed stories
-                                                 from a subset. \<id\> is the id of the subset
-
---------------------------------------------  ------------------------------------------------
+| URL                                         | Function
+| ------------------------------------------- | --------------------------------------------------------------------------------
+| `api/V2/stories/list_subset_processed/<id>` | Return multiple processed stories from a subset. `<id>` is the id of the subset.
 
 ##### Query Parameters
 
---------------------------------------------------------------------------------------------------------
-Parameter                     Default         Notes
----------------------------   ----------      ----------------------------------------------------------
- last_processed_stories_id    0               Return stories in which the processed_stories_id 
-                                                is greater than this value
-
- rows                         20              Number of stories to return. Cannot be larger than 100
-
- raw_1st_download             0               If non-zero include the full HTML of the first
-                                              page of the story
---------------------------------------------------------------------------------------------------------
+| Parameter                   | Default | Notes
+| --------------------------- | ------- | ------------------------------------------------------------------------------
+| `last_processed_stories_id` | 0       | Return stories in which the `processed_stories_id` is greater than this value.
+| `rows`                      | 20      | Number of stories to return. Cannot be larger than 100.
+| `raw_1st_download`          | 0       | If non-zero. include the full HTML of the first page of the story.
 
 This behaves similarly to the `list_processed` URL above except only stories from the given subset are returned.
 
@@ -812,16 +733,12 @@ This behaves similarly to the `list_processed` URL above except only stories fro
 
 ##### Query Parameters
 
---------------------------------------------------------------------------------------------------------
-Parameter                     Default         Notes
----------------------------   ----------      ----------------------------------------------------------
- q                            N/A               q ( query ) parameter which is passed directly to Solr
-
- fq                           null              fq (filter query) parameter which is passed directly to Solr
-
- start                        0                 passed directly to Solr
-
- rows                         1000              passed directly to Solr
+| Parameter | Default | Notes
+| --------- | ------- | ----------------------------------------------------------------
+| `q`       | n/a     | `q` ("query") parameter which is passed directly to Solr
+| `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
+| `start`   | 0       | passed directly to Solr
+| `rows`    | 1000    | passed directly to Solr
 
 --------------------------------------------------------------------------------------------------------
 
@@ -955,20 +872,16 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
 
 ##### Query Parameters
 
---------------------------------------------------------------------------------------------------------
-Parameter                     Default         Notes
----------------------------   ----------      ----------------------------------------------------------
- q                            N/A               q ( query ) parameter which is passed directly to Solr
-
- fq                           null              fq (filter query) parameter which is passed directly to Solr
-
---------------------------------------------------------------------------------------------------------
+| Parameter | Default | Notes
+| --------- | ------- | ----------------------------------------------------------------
+| `q`       | n/a     | `q` ("query") parameter which is passed directly to Solr
+| `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
 
 Returns word frequency counts for all sentences returned by querying solr using the q and fq parameters.
 
 See the [Solr documentation](http://wiki.apache.org/solr/CommonQueryParameters) for a detailed description of q and fq.
 
-####Example
+#### Example
 
 Obtain word frequency counts for all sentences containing the word 'obama' in the New York Times
 
@@ -1017,20 +930,16 @@ These calls allow users to push data into the Postgresql database.
 
 #### api/v2/stories/custom_tags (PUT)
 
-URL                                                                       Function
----------------------------------      --------------------------------------------------
-api/v2/stories/custom_tags                    Add custom tags to a story. Must be a PUT request
----------------------------------      --------------------------------------------------
+| URL                          | Function
+| ---------------------------- | --------------------------------------------------
+| `api/v2/stories/custom_tags` | Add custom tags to a story. Must be a PUT request.
 
-##### Query Parameters 
+##### Query Parameters
 
---------------------------------------------------------------------------------------------------------
-Parameter                     Notes
----------------------------   --------------------------------------------------------------------------
- stories_id                   The id of the story to which to add the custom tags
-
- custom_tag                   Can be specified multiple times to add multiple tags to the story
---------------------------------------------------------------------------------------------------------
+| Parameter    | Notes
+| ------------ | -----------------------------------------------------------------
+| `stories_id` | The ID of the story to which to add the custom tags
+| `custom_tag` | Can be specified multiple times to add multiple tags to the story
 
 ##### Example
 
@@ -1041,20 +950,16 @@ curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://media
 
 #### api/v2/story_sentences/custom_tags (PUT)
 
-URL                                                                       Function
----------------------------------      --------------------------------------------------
-api/v2/story_sentences/custom_tags                    Add custom tags to a story sentence. Must be a PUT request
----------------------------------      --------------------------------------------------
+| URL                                  | Function
+| ------------------------------------ | -----------------------------------------------------------
+| `api/v2/story_sentences/custom_tags` | Add custom tags to a story sentence. Must be a PUT request.
 
 ##### Query Parameters 
 
---------------------------------------------------------------------------------------------------------
-Parameter                     Notes
----------------------------   --------------------------------------------------------------------------
- story_sentences_id            The id of the story sentence to which to add the custom tags
-
- custom_tag                    Can be specified multiple times to add multiple tags to the story sentence
---------------------------------------------------------------------------------------------------------
+| Parameter            | Notes
+| -------------------- | --------------------------------------------------------------------------
+| `story_sentences_id` | The ID of the story sentence to which to add the custom tags
+| `custom_tag`         | Can be specified multiple times to add multiple tags to the story sentence
 
 **NOTE:**  when a story is re-processed, its story sentence objects are deleted and recreated. In practice, it is rare for stories to be 
 reprocessed. But if a story is reprocessed any custom tags attached to its story sentences will be lost. 
@@ -1065,7 +970,6 @@ reprocessed. But if a story is reprocessed any custom tags attached to its story
 Set the custom_sentence_tags on the story sentence with story_sentences_id 1000 to 'foo' and 'bar'
 
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/story_sentences/custom_tags
-
 
 
 Extended Examples
