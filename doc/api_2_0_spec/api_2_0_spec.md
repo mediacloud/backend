@@ -7,7 +7,7 @@ Media Cloud API Version 2
 API URLs
 --------
 
-*Note* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the all_fields parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the all_fields parameter on individual API descriptions.
+*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
 
 ### Media
 
@@ -303,7 +303,7 @@ URL: http://mediacloud.org/api/v2/feeds/single/1
 | ------------------- | --------------------------
 | `api/v2/feeds/list` | Return multiple media sets
 
-##### Query Parameters 
+##### Query Parameters
 
 | Parameter       | Default | Notes
 | --------------- | ------- | -------------------------------------------------------
@@ -555,9 +555,9 @@ To get information on multiple stories, send get requests to `api/V2/stories/lis
 | `rows`                       | 20      | Number of stories to return. Can not be larger than 100.
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
 
-The ‘last_processed_id’ parameter can be used to page through these results. The api will return 20 stories with a processed_id greater than this value.
+The `last_processed_id` parameter can be used to page through these results. The API will return 20 stories with a `processed_id` greater than this value.
 
-NOTE: stories_id and processed_id are separate values. The order in which stories are processed is different than the stories_id order. The processing pipeline involves downloading, extracting, and vectoring stories. Since unprocessed stories are of little interest, we have introduced the processed_id field to allow users to stream all stories as they’re processed.
+*Note:* `stories_id` and `processed_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Since unprocessed stories are of little interest, we have introduced the `processed_id` field to allow users to stream all stories as they're processed.
 
 ##### Example
 
@@ -651,7 +651,7 @@ Users who want to only see a subset of stories can create a story subset stream 
 | `media_sets_id`    | Only include stories from the media set indicated by `media_sets_id`
 | `custom_story_tag` | Only include stories in which `custom_story_tag` in one of the `custom_story_tags`
 
-**Note:** At least one of the above parameters must by provided.
+*Note:* At least one of the above parameters must by provided.
 
 The put request will return the meta-data representation of the `story_subset` including its database ID.
   
@@ -868,9 +868,9 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
 | `q`       | n/a     | `q` ("query") parameter which is passed directly to Solr
 | `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
 
-Returns word frequency counts for all sentences returned by querying solr using the q and fq parameters.
+Returns word frequency counts for all sentences returned by querying Solr using the `q` and `fq` parameters.
 
-See the [Solr documentation](http://wiki.apache.org/solr/CommonQueryParameters) for a detailed description of q and fq.
+See the [Solr documentation](http://wiki.apache.org/solr/CommonQueryParameters) for a detailed description of `q` and `fq`.
 
 #### Example
 
@@ -917,7 +917,7 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 
 ### Write Back API
 
-These calls allow users to push data into the Postgresql database.
+These calls allow users to push data into the PostgreSQL database.
 
 #### api/v2/stories/custom_tags (PUT)
 
@@ -934,9 +934,11 @@ These calls allow users to push data into the Postgresql database.
 
 ##### Example
 
-Set custom_story_tags on the story with stories_id 1000 to 'foo' and 'bar'
+Set `custom_story_tags` on the story with stories_id 1000 to 'foo' and 'bar'
 
+```
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/stories/custom_tags
+```
 
 
 #### api/v2/story_sentences/custom_tags (PUT)
@@ -952,15 +954,17 @@ curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://media
 | `story_sentences_id` | The ID of the story sentence to which to add the custom tags
 | `custom_tag`         | Can be specified multiple times to add multiple tags to the story sentence
 
-**NOTE:**  when a story is re-processed, its story sentence objects are deleted and recreated. In practice, it is rare for stories to be 
+*Note:*  when a story is re-processed, its story sentence objects are deleted and recreated. In practice, it is rare for stories to be 
 reprocessed. But if a story is reprocessed any custom tags attached to its story sentences will be lost. 
 (Custom tags on the story itself will persist reprocessing.)
 
 ##### Example
 
-Set the custom_sentence_tags on the story sentence with story_sentences_id 1000 to 'foo' and 'bar'
+Set the `custom_sentence_tags` on the story sentence with `story_sentences_id = 1000` to 'foo' and 'bar':
 
+```
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/story_sentences/custom_tags
+```
 
 
 Extended Examples
@@ -968,9 +972,9 @@ Extended Examples
 
 ### Output Format / JSON
   
-The format of the API responses is determined by the `Accept` header on the request. The default is `application/json`. Other supported formats include `text/html`, `text/x-json`, and `text/x-php-serialization`. It’s recommended that you explicitly set the `Accept` header rather than relying on the default.
+The format of the API responses is determined by the `Accept` header on the request. The default is `application/json`. Other supported formats include `text/html`, `text/x-json`, and `text/x-php-serialization`. It's recommended that you explicitly set the `Accept` header rather than relying on the default.
  
-Here’s an example of setting the `Accept` header in Python
+Here's an example of setting the `Accept` header in Python:
 
 ```python  
 import pkg_resources  
@@ -1048,7 +1052,7 @@ curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
 ]
 ```
 
-The user sees the "US / English" dashboard with dashboards_id 1 and asks for more detailed information.
+The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
 
 ```
 curl http://mediacloud.org/api/v2/dashboards/single/1
@@ -1083,23 +1087,25 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 ]
 ```
 
-*Note* the full list of media are not shown for space reasons.
+*Note:* the full list of media are not shown for space reasons.
 
-After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with media_id 1.
+After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with `media_id=1`.
 
 
 #### Create a subset
 
+```
 curl -X PUT -d media_set_id=1 http://mediacloud.org/api/v2/stories/subset
+```
 
-Save the story_subsets_id
+Save the `story_subsets_id`.
 
-###Wait until the subset is ready
+### Wait until the subset is ready
 
-Below we show some python code to continuously poll the server to determine whether the subset has been processed. Users could do something similar manually by issuing curl requests.
+Below we show some Python code to continuously poll the server to determine whether the subset has been processed. Users could do something similar manually by issuing curl requests.
 
 ```python
-import requests 
+import requests
 import time
 
 while True:
@@ -1117,8 +1123,9 @@ print "subset {} is ready".format( story_subsets_id )
 
 #### Grab stories from the processed stream
 
-Since the subset is now processed we can obtain all of its stories by repeatedly querying list_subset_processed and changing the last_processed_stories_id parameter. 
-This is shown in the Python code below where process_stories is a user provided function to process this data.
+Since the subset is now processed we can obtain all of its stories by repeatedly querying `list_subset_processed` and changing the `last_processed_stories_id` parameter. 
+
+This is shown in the Python code below where `process_stories` is a user provided function to process this data.
 
 ```python
 import requests
@@ -1143,18 +1150,20 @@ while True:
 
 ### Grab all stories in the New York Times during October 2012
 
-#### Find the media_id of the New York Times
+#### Find the `media_id` of the New York Times
 
 Currently, the best way to do this is to create a CSV file with all media sources as shown in the earlier example.
 
-Once you have this CSV file, manually search for the New York Times. You should find an entry for the New York Times at the top of the file with media_id 1.
+Once you have this CSV file, manually search for the New York Times. You should find an entry for the New York Times at the top of the file with `media_id = 1`.
 
 
 #### Create a subset
 
+```
 curl -X PUT -d start_date=2012-10-01 -d end_date=2012-11-01 -d media_id=1 http://mediacloud.org/api/v2/stories/subset
+```
 
-Save the story_subsets_id
+Save the `story_subsets_id`.
 
 
 #### Wait until the subset is ready
@@ -1199,7 +1208,7 @@ curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
 ]
 ```
 
-The user sees the "US / English" dashboard with dashboards_id 1 and asks for more detailed information.
+The user sees the "US / English" dashboard with `dashboards_id = 1` and asks for more detailed information.
 
 ```
 curl http://mediacloud.org/api/v2/dashboards/single/1
@@ -1244,26 +1253,31 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 ]
 ```
 
-*Note* the list of media are not shown for space reasons.
+*Note:* the list of media are not shown for space reasons.
 
-After looking at this output, the user decides that she is interested in the "Political Blogs" set with media_id 7125.
+After looking at this output, the user decides that she is interested in the "Political Blogs" set with `media_id = 7125`.
 
 
-#### Make a request for the word counts based on media_sets_id and sentence text and date range
+#### Make a request for the word counts based on `media_sets_id` and sentence text and date range
 
-One way to appropriately restrict the data is by setting the q parameter to restrict by sentence content and then the fq parameter twice to restrict by media_sets_id and publish_date.
-Below q is set to "sentence:trayvon" and fq is set to "media_sets_id:7125" and  "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". (Note that ":", "[", and "]" are URL encoded.)
+One way to appropriately restrict the data is by setting the `q` parameter to restrict by sentence content and then the `fq` parameter twice to restrict by `media_sets_id` and `publish_date`.
 
+Below `q` is set to "sentence:trayvon" and `fq` is set to "media_sets_id:7125" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". (Note that ":", "[", and "]" are URL encoded.)
+
+```
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon&fq=media_sets_id%3A7125&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
+```
 
-Alternatively, we could use a single large query by setting q to "sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". 
+Alternatively, we could use a single large query by setting `q` to "sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]":
 
+```
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_id%3A7125+AND+publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D&fq=media_sets_id%3A7135&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
+```
 
 
 ### Tag sentences of a story based on whether they have an odd or even number of characters
 
-For simplicity, we assume that the user is interested in the story with stories_id 100
+For simplicity, we assume that the user is interested in the story with `stories_id = 100`:
 
 ```python
 
@@ -1292,18 +1306,22 @@ for story_sentence in story['story_sentences']:
 
 #### Make a request for the word counts based on the custom sentence tag 'odd'
 
-Below q is set to "custom_sentence_tag:odd". (Note that ":", "[", and "]" are URL encoded.)
+Below `q` is set to "custom_sentence_tag:odd". (Note that ":", "[", and "]" are URL encoded.)
 
+```
 curl 'http://mediacloud.org/api/v2/solr/wc?q=custom_sentence_tag%3Afoobar'
+```
 
 
 ### Grab stories from 10 January 2014 with the custom tag 'foobar'
 
 #### Create a subset
 
+```
 curl -X PUT -d start_date=2014-01-10 -d end_date=2014-01-11 -d custom_story_tag=foobar http://mediacloud.org/api/v2/stories/subset
+```
 
-Save the story_subsets_id
+Save the `story_subsets_id`.
 
 
 #### Wait until the subset is ready
