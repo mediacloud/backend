@@ -347,8 +347,7 @@ URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
 
 | Parameter     | Default | Notes
 | ------------- | ------- | -------------------------------------------------------------------------------------
-| `nested_data` | 1       | If 0, return only the `name` and `dashboards_id`.
-|               |         | If 1, return nested information about the dashboard's `media_sets` and their `media`.
+| `nested_data` | 1       | If 0, return only the `name` and `dashboards_id`.<br />If 1, return nested information about the dashboard's `media_sets` and their `media`.
 
 ##### Example
 
@@ -395,8 +394,7 @@ http://mediacloud.org/api/v2/dashboards/single/2
 | -------------------- | ------- | -------------------------------------------------------------------------------------
 | `last_dashboards_id` | 0       | Return dashboards in which `dashboards_id` greater than this value
 | `rows`               | 20      | Number of dashboards to return. Can not be larger than 100
-| `nested_data`        | 1       | If 0, return only the `name` and `dashboards_id`.
-|                      |         | If 1, return nested information about the dashboard's `media_sets` and their `media`.
+| `nested_data`        | 1       | If 0, return only the `name` and `dashboards_id`.<br />If 1, return nested information about the dashboard's `media_sets` and their `media`.
 
 ##### Example
 
@@ -441,17 +439,10 @@ The following table describes the meaning and origin of fields returned by both 
 | ------------------- | ----------------------------------------------------------------------
 | `title`             | The story title as defined in the RSS feed. May contain HTML (depending on the source).
 | `description`       | The story description as defined in the RSS feed. May contain HTML (depending on the source).
-| `full_text_rss`     | If 1, the text of the story was obtained through the RSS feed.
-|                     | If 0, the text of the story was obtained by extracting the article text from the HTML.
-| `story_text`        | The text of the story.
-|                     | If `full_text_rss` is non-zero, this is formed by stripping HTML from the title,
-|                     | description, and concatenating them.
-|                     | If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
-| `story_sentences`   | A list of sentences in the story.
-|                     | Generated from `story_text` by splitting it into sentences and removing any duplicate
-|                     | sentences occurring within the same source for the same week.
-| `raw_1st_download`  | The contents of the first HTML page of the story. Available regards of the value of `full_text_rss`.
-|                     | *Note:* only provided if the `raw_1st_download` parameter is non-zero.
+| `full_text_rss`     | If 1, the text of the story was obtained through the RSS feed.<br />If 0, the text of the story was obtained by extracting the article text from the HTML.
+| `story_text`        | The text of the story.<br />If `full_text_rss` is non-zero, this is formed by stripping HTML from the title, description, and concatenating them.<br />If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
+| `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.
+| `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regards of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
 | `publish_date`      | The publish date of the story as specified in the RSS feed.
 | `custom_story_tags` | A list containing the names of any tags that have been added to the story using the write-back API.
 | `collect_date`      | The date the RSS feed was actually downloaded.
@@ -723,7 +714,7 @@ curl -X GET http://0:3000/api/v2/stories/subset/1
 | --------------------------- | ------- | ------------------------------------------------------------------------------
 | `last_processed_stories_id` | 0       | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                      | 20      | Number of stories to return. Cannot be larger than 100.
-| `raw_1st_download`          | 0       | If non-zero. include the full HTML of the first page of the story.
+| `raw_1st_download`          | 0       | If non-zero, include the full HTML of the first page of the story.
 
 This behaves similarly to the `list_processed` URL above except only stories from the given subset are returned.
 
@@ -737,8 +728,8 @@ This behaves similarly to the `list_processed` URL above except only stories fro
 | --------- | ------- | ----------------------------------------------------------------
 | `q`       | n/a     | `q` ("query") parameter which is passed directly to Solr
 | `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
-| `start`   | 0       | passed directly to Solr
-| `rows`    | 1000    | passed directly to Solr
+| `start`   | 0       | Passed directly to Solr
+| `rows`    | 1000    | Passed directly to Solr
 
 --------------------------------------------------------------------------------------------------------
 
