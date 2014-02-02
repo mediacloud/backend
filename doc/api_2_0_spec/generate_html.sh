@@ -1,4 +1,4 @@
 #!/bin/bash
 
-pandoc -s -S --toc api_2_0_spec.md -o api_2_0_spec.html
+pandoc -s -S --toc -c api_2_0_spec.css api_2_0_spec.md -o api_2_0_spec.html
 

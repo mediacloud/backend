@@ -5,19 +5,6 @@
       It is not guaranteed to display correctly with other markdown engines.
 --->
 
-<style type="text/css" media="all"><!--
-
-/* Word wrap long code samples so one doesn't have to do horizontal scrolling */
-pre.sourceCode {
-  white-space: pre-wrap;
-  white-space: -moz-pre-wrap;
-  white-space: -pre-wrap;
-  white-space: -o-pre-wrap;
-  word-wrap: break-word;
-}
-
---></style>
-
 #API URLs
 
 *Note* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to
