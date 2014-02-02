@@ -1,29 +1,29 @@
-% Media Cloud API Version 2
-% Author David Larochelle
+Media Cloud API Version 2
+=========================
 
-<!--- This file is intended to be parsed by the pandoc markdown engine.
-      It is not guaranteed to display correctly with other markdown engines.
---->
+**Author:** David Larochelle
 
-#API URLs
+
+API URLs
+--------
 
 *Note* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to
 users of the API. If the all_fields parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the all_fields parameter on individual API descriptions.
 
-## Media
+### Media
 
-### api/v2/media/single/
+#### api/v2/media/single/
 
 URL                                    Function
 ---------------------------------      ------------------------------------------------------------
 api/v2/media/single/\<media_id\>         Return the media source in which media_id equals \<media_id\>
 ---------------------------------      ------------------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 None.
 
-####Example
+##### Example
 
 Fetching information on the New York Times
 
@@ -88,14 +88,14 @@ Response:
 ```
 
 
-###api/v2/media/list/
+#### api/v2/media/list/
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
 api/v2/media/list                      Return multiple media sources 
 ---------------------------------      -------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter         Default         Notes
@@ -106,7 +106,7 @@ Parameter         Default         Notes
  rows             20              Number of media sources to return. Cannot be larger than 100
 --------------------------------------------------------------------------------------------------------
 
-####Example
+##### Example
 
 URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
@@ -200,20 +200,20 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 ]
 ```
 
-## Media Sets
+### Media Sets
 
-###api/v2/media_set/single
+#### api/v2/media_set/single
 
 URL                                          Function
 ---------------------------------            ------------------------------------------------------------
 api/v2/media_set/single/\<media_sets_id\>         Return the media set in which media_sets_id equals \<media_sets_id\>
 ---------------------------------            ------------------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 None.
 
-####Example
+##### Example
 
 http://mediacloud.org/api/v2/media_sets/single/2
 
@@ -238,14 +238,14 @@ http://mediacloud.org/api/v2/media_sets/single/2
 ]
 ```
 
-###api/v2/media_sets/list
+#### api/v2/media_sets/list
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
 api/v2/media_sets/list                      Return multiple media sets
 ---------------------------------      -------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
@@ -256,7 +256,7 @@ Parameter             Default         Notes
  rows                  20              Number of media sets to return. Cannot be larger than 100
 --------------------------------------------------------------------------------------------------------
 
-####Example
+##### Example
 
 URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 
@@ -281,20 +281,20 @@ URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 ]
 ```
 
-## Feeds
+### Feeds
 
-###api/v2/feeds/single
+#### api/v2/feeds/single
 
 URL                                      Function
 ---------------------------------        ------------------------------------------------------------
 api/v2/feeds/single/\<feeds_id\>         Return the feeds in which feeds_id equals \<feeds_id\>
 ---------------------------------        ------------------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 None.
 
-####Example
+##### Example
 
 URL: http://mediacloud.org/api/v2/feeds/single/1
 
@@ -311,14 +311,14 @@ URL: http://mediacloud.org/api/v2/feeds/single/1
 ]
 ```
 
-###api/v2/feeds/list
+#### api/v2/feeds/list
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
 api/v2/feeds/list                         Return multiple media sets
 ---------------------------------      -------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
@@ -329,7 +329,7 @@ Parameter             Default         Notes
  rows                  20              Number of feeds to return. Cannot be larger than 100
 --------------------------------------------------------------------------------------------------------
 
-####Example
+##### Example
 
 URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
 
@@ -354,16 +354,16 @@ URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
 ]
 ```
 
-## Dashboards
+### Dashboards
 
-###api/v2/dashboard/single
+#### api/v2/dashboard/single
 
 URL                                      Function
 ---------------------------------        ------------------------------------------------------------
 api/v2/dashboard/single/\<dashboards_id\>         Return the dashboard in which dashboards_id equals \<dashboards_id\>
 ---------------------------------        ------------------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
@@ -373,7 +373,7 @@ Parameter             Default         Notes
                                          and their media
 --------------------------------------------------------------------------------------------------------
 
-####Example
+##### Example
 
 http://mediacloud.org/api/v2/dashboards/single/2
 
@@ -406,14 +406,14 @@ http://mediacloud.org/api/v2/dashboards/single/2
 ]
 ```
 
-###api/v2/dashboards/list
+#### api/v2/dashboards/list
 
 URL                                                                       Function
 ---------------------------------      -------------------------------------------
 api/v2/dashboards/list                      Return multiple dashboards
 ---------------------------------      -------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
@@ -428,7 +428,7 @@ Parameter             Default         Notes
                                        and their media
 --------------------------------------------------------------------------------------------------------
 
-####Example
+##### Example
 
 URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 
@@ -461,10 +461,10 @@ URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 ] 
 ```
 
-## Stories
+### Stories
 
 
-###Output description
+#### Output description
 
 The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list_processed in which
  we felt clarification was necessary.
@@ -504,14 +504,14 @@ Field                    Description
 --------------------------------------------------------------------------------------------------------
 
 
-### api/v2/stories/single
+#### api/v2/stories/single
 
 URL                                    Function
 ------------------------------------   ------------------------------------------------------------
 api/v2/stories/single/\<stories_id\>     Return story in which stories_id equals \<stories_id\>
 ------------------------------------   ------------------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter             Default         Notes
@@ -521,7 +521,7 @@ Parameter             Default         Notes
 
 
 
-####Example
+##### Example
 
 Note: This fetches data on the CC licensed Global Voices Story ["Myanmar's new flag and new name"](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) from November 2010.
 
@@ -599,7 +599,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
 ]
 ```
 
-###api/V2/stories/list_processed 
+#### api/V2/stories/list_processed 
   
 To get information on multiple stories, send get requests to `api/V2/stories/list_processed`
 
@@ -608,7 +608,7 @@ URL                                                                       Functi
 api/V2/stories/list_processed           Return multiple processed stories
 ---------------------------------      -------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Default         Notes
@@ -626,7 +626,7 @@ The ‘last_processed_id’ parameter can be used to page through these results.
 
 NOTE: stories_id and processed_id are separate values. The order in which stories are processed is different than the stories_id order. The processing pipeline involves downloading, extracting, and vectoring stories. Since unprocessed stories are of little interest, we have introduced the processed_id field to allow users to stream all stories as they’re processed.
 
-####Example
+##### Example
 
 URL: http://mediacloud.org/api/v2/stories/list_processed/&last_processed_stories_id=86259158&rows=1
 
@@ -698,19 +698,18 @@ URL: http://mediacloud.org/api/v2/stories/list_processed/&last_processed_stories
 ]
 ```
 
-
-## Story subsets
+###  Story subsets
 
 Users who want to only see a subset of stories can create a story subset stream by sending a put request to `api/v2/stories/subset/`.
 
-###api/v2/stories/subset (PUT)
+#### api/v2/stories/subset (PUT)
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
 api/v2/stories/subset                    Creates a story subset. Must use a PUT request
 ---------------------------------      --------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Notes
@@ -734,7 +733,7 @@ The put request will return the meta-data representation of the `story_subset` i
   
 It will take the backend system a while to generate the stream of stories for the newly created subset. There is a background daemon script (`mediawords_process_story_subsets.pl`) that detects newly created subsets and adds stories to them.
 
-####Example
+##### Example
 
 Create a story subset for the New York Times from January 1, 2014 to January 2, 2014
 
@@ -754,7 +753,7 @@ curl -X PUT -d media_id=1 -d start_date=2014-01-01 -d end_date=2014-01-02 http:/
 }
 ```
 
-###api/v2/stories/subset (GET)
+#### api/v2/stories/subset (GET)
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
@@ -764,7 +763,7 @@ api/v2/stories/subset                    show the status of a subset. Must use a
   
 To see the status of a given subset, the client sends a get request to `api/v2/stories/subset/<ID>` where `<ID>` is the database id that was returned in the put request above. **The returned object contains a `ready` field with a Boolean value indicating that stories from the subset have been compiled.**
 
-####Example 
+##### Example 
 
 curl -X GET http://0:3000/api/v2/stories/subset/1
 
@@ -781,7 +780,7 @@ curl -X GET http://0:3000/api/v2/stories/subset/1
 }
 ```
  
-###api/V2/stories/list_subset_processed
+#### api/V2/stories/list_subset_processed
 
 URL                                           Function
 --------------------------------------------  ------------------------------------------------
@@ -791,7 +790,7 @@ api/V2/stories/list_subset_processed/\<id\>      Return multiple processed stori
 
 --------------------------------------------  ------------------------------------------------
 
-####Query Parameters
+##### Query Parameters
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Default         Notes
@@ -807,11 +806,11 @@ Parameter                     Default         Notes
 
 This behaves similarly to the `list_processed` URL above except only stories from the given subset are returned.
 
-##Solr
+### Solr
 
-###api/v2/solr/sentences
+#### api/v2/solr/sentences
 
-####Query Parameters
+##### Query Parameters
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Default         Notes
@@ -828,7 +827,7 @@ Parameter                     Default         Notes
 
 See the [Solr documentation](http://wiki.apache.org/solr/CommonQueryParameters) for a detailed description of these 4 parameters.
 
-####Example
+##### Example
 
 Fetch 10 sentences containing the word 'obama' from the New York Times
 
@@ -952,9 +951,9 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
 ]
 ```
 
-###api/v2/solr/wc
+#### api/v2/solr/wc
 
-####Query Parameters
+##### Query Parameters
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Default         Notes
@@ -1012,18 +1011,18 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 ```
 
 
-##Write Back API
+### Write Back API
 
 These calls allow users to push data into the Postgresql database.
 
-###api/v2/stories/custom_tags (PUT)
+#### api/v2/stories/custom_tags (PUT)
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
 api/v2/stories/custom_tags                    Add custom tags to a story. Must be a PUT request
 ---------------------------------      --------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Notes
@@ -1033,21 +1032,21 @@ Parameter                     Notes
  custom_tag                   Can be specified multiple times to add multiple tags to the story
 --------------------------------------------------------------------------------------------------------
 
-####Example
+##### Example
 
 Set custom_story_tags on the story with stories_id 1000 to 'foo' and 'bar'
 
 curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/stories/custom_tags
 
 
-###api/v2/story_sentences/custom_tags (PUT)
+#### api/v2/story_sentences/custom_tags (PUT)
 
 URL                                                                       Function
 ---------------------------------      --------------------------------------------------
 api/v2/story_sentences/custom_tags                    Add custom tags to a story sentence. Must be a PUT request
 ---------------------------------      --------------------------------------------------
 
-####Query Parameters 
+##### Query Parameters 
 
 --------------------------------------------------------------------------------------------------------
 Parameter                     Notes
@@ -1061,7 +1060,7 @@ Parameter                     Notes
 reprocessed. But if a story is reprocessed any custom tags attached to its story sentences will be lost. 
 (Custom tags on the story itself will persist reprocessing.)
 
-####Example
+##### Example
 
 Set the custom_sentence_tags on the story sentence with story_sentences_id 1000 to 'foo' and 'bar'
 
@@ -1069,9 +1068,10 @@ curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://media
 
 
 
-#Extended Examples
+Extended Examples
+-----------------
 
-## Output Format / JSON
+### Output Format / JSON
   
 The format of the API responses is determined by the `Accept` header on the request. The default is `application/json`. Other supported formats include `text/html`, `text/x-json`, and `text/x-php-serialization`. It’s recommended that you explicitly set the `Accept` header rather than relying on the default.
  
@@ -1088,7 +1088,7 @@ r = requests.get( 'http://mediacloud.org/api/stories/all_processed?last_processe
 data = r.json()
 ```
 
-##Create a CSV file with all media sources.
+### Create a CSV file with all media sources.
 
 ```python
 media = []
@@ -1122,11 +1122,11 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 
 ```
 
-##Grab all processed stories from US Top 25 MSM as a stream
+### Grab all processed stories from US Top 25 MSM as a stream
 
 This is broken down into multiple steps for convenience and because that's probably how a real user would do it. 
 
-###Find the media set
+#### Find the media set
 
 We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run curl to get a quick list of the available dashboards.
 
@@ -1192,7 +1192,8 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 
 After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with media_id 1.
 
-###Create a subset
+
+#### Create a subset
 
 curl -X PUT -d media_set_id=1 http://mediacloud.org/api/v2/stories/subset
 
@@ -1218,7 +1219,8 @@ while True:
 print "subset {} is ready".format( story_subsets_id )
 ```
 
-###Grab stories from the processed stream
+
+#### Grab stories from the processed stream
 
 Since the subset is now processed we can obtain all of its stories by repeatedly querying list_subset_processed and changing the last_processed_stories_id parameter. 
 This is shown in the Python code below where process_stories is a user provided function to process this data.
@@ -1243,33 +1245,39 @@ while True:
       process_stories( stories )
 ```
 
-##Grab all stories in the New York Times during October 2012
 
-###Find the media_id of the New York Times
+### Grab all stories in the New York Times during October 2012
+
+#### Find the media_id of the New York Times
 
 Currently, the best way to do this is to create a CSV file with all media sources as shown in the earlier example.
 
 Once you have this CSV file, manually search for the New York Times. You should find an entry for the New York Times at the top of the file with media_id 1.
 
-###Create a subset
+
+#### Create a subset
 
 curl -X PUT -d start_date=2012-10-01 -d end_date=2012-11-01 -d media_id=1 http://mediacloud.org/api/v2/stories/subset
 
 Save the story_subsets_id
 
-###Wait until the subset is ready
+
+#### Wait until the subset is ready
 
 See the 25 msm example above.
 
-###Grab stories from the processed stream
+
+#### Grab stories from the processed stream
 
 See the 25 msm example above.
 
-##Get word counts for top words for sentences matching 'trayvon' in U.S. Political Blogs during April 2012
+
+### Get word counts for top words for sentences matching 'trayvon' in U.S. Political Blogs during April 2012
 
 This is broken down into multiple steps for convenience and because that's probably how a real user would do it. 
 
-###Find the media set
+
+#### Find the media set
 
 We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run curl to get a quick list of the available dashboards.
 
@@ -1345,7 +1353,8 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 
 After looking at this output, the user decides that she is interested in the "Political Blogs" set with media_id 7125.
 
-###Make a request for the word counts based on media_sets_id and sentence text and date range
+
+#### Make a request for the word counts based on media_sets_id and sentence text and date range
 
 One way to appropriately restrict the data is by setting the q parameter to restrict by sentence content and then the fq parameter twice to restrict by media_sets_id and publish_date.
 Below q is set to "sentence:trayvon" and fq is set to "media_sets_id:7125" and  "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". (Note that ":", "[", and "]" are URL encoded.)
@@ -1356,7 +1365,8 @@ Alternatively, we could use a single large query by setting q to "sentence:trayv
 
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_id%3A7125+AND+publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D&fq=media_sets_id%3A7135&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
 
-##Tag sentences of a story based on whether they have an odd or even number of characters
+
+### Tag sentences of a story based on whether they have an odd or even number of characters
 
 For simplicity, we assume that the user is interested in the story with stories_id 100
 
@@ -1382,25 +1392,30 @@ for story_sentence in story['story_sentences']:
 
 ```
 
-##Get word counts for top words for sentences with the custom sentence tag 'odd'
 
-###Make a request for the word counts based on the custom sentence tag 'odd'
+### Get word counts for top words for sentences with the custom sentence tag 'odd'
+
+#### Make a request for the word counts based on the custom sentence tag 'odd'
 
 Below q is set to "custom_sentence_tag:odd". (Note that ":", "[", and "]" are URL encoded.)
 
 curl 'http://mediacloud.org/api/v2/solr/wc?q=custom_sentence_tag%3Afoobar'
 
-##Grab stories from 10 January 2014 with the custom tag 'foobar'
 
-###Create a subset
+### Grab stories from 10 January 2014 with the custom tag 'foobar'
+
+#### Create a subset
+
 curl -X PUT -d start_date=2014-01-10 -d end_date=2014-01-11 -d custom_story_tag=foobar http://mediacloud.org/api/v2/stories/subset
 
 Save the story_subsets_id
 
-###Wait until the subset is ready
+
+#### Wait until the subset is ready
 
 See the 25 msm example above.
 
-###Grab stories from the processed stream
+
+#### Grab stories from the processed stream
 
 See the 25 msm example above.
