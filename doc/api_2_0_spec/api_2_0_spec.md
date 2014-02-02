@@ -233,7 +233,7 @@ http://mediacloud.org/api/v2/media_sets/single/2
 ```json
 [
    {
-     "name": "set name"
+     "name": "set name",
      "media_sets_id": 2,
      "description": "media_set 2 description",
      "media": 
