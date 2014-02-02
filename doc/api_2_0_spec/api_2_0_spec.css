@@ -1,5 +1,5 @@
 /* Word wrap long code samples so one doesn't have to do horizontal scrolling */
-pre.sourceCode {
+pre.sourceCode, code {
   white-space: pre-wrap;
   white-space: -moz-pre-wrap;
   white-space: -pre-wrap;
