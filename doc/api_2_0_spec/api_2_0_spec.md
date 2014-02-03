@@ -702,11 +702,11 @@ curl -X GET http://0:3000/api/v2/stories/subset/1
 }
 ```
  
-#### api/V2/stories/list_subset_processed
+#### api/v2/stories/list_subset_processed
 
 | URL                                         | Function
 | ------------------------------------------- | --------------------------------------------------------------------------------
-| `api/V2/stories/list_subset_processed/<id>` | Return multiple processed stories from a subset. `<id>` is the id of the subset.
+| `api/v2/stories/list_subset_processed/<id>` | Return multiple processed stories from a subset. `<id>` is the id of the subset.
 
 ##### Query Parameters
 
