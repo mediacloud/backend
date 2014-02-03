@@ -1,5 +1,5 @@
 #
-# test MediaWords::Util::Text
+# Test MediaWords::Util::Text::get_similarity_score() by comparing it to Text::Similarity::Overlaps
 #
 
 use strict;
@@ -7,14 +7,58 @@ use warnings;
 
 use utf8;
 use Test::NoWarnings;
-use Test::More tests => 7 + 2;
+use Test::More tests => 5 + 4;
+
+# Run the comparison multiple times so that the performance difference is more obvious
+use constant TEST_ITERATIONS => 100;
 
 BEGIN
 {
     use FindBin;
     use lib "$FindBin::Bin/../lib";
 
+    use_ok( 'Time::HiRes' );
     use_ok( 'MediaWords::Util::Text' );
+    use_ok( 'Text::Similarity::Overlaps' );
+}
+
+# Helper to compare results from Text::Similarity::Overlaps and Media Cloud's implementation
+sub _compare_similarity_score($$$$$)
+{
+    my ( $identifier, $text_1, $text_2, $language, $score_epsilon ) = @_;
+
+    my $sim = Text::Similarity::Overlaps->new( { normalize => 1, verbose => 0 } );
+
+    my ( $expected_score, $actual_score );
+    my ( $time_before,    $time_after );
+
+    print STDERR "\n\n";
+    print STDERR "Identifier: $identifier\n";
+
+    # Text::Similarity::Overlaps
+    $time_before = Time::HiRes::time();
+    for ( my $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
+    {
+        $expected_score = $sim->getSimilarityStrings( $text_1, $text_2 );
+    }
+    $time_after = Time::HiRes::time();
+    print STDERR "Text::Similarity::Overlaps:\n";
+    printf STDERR "\tScore: %2.6f\n", $expected_score;
+    printf STDERR "\tTime: %2.6f\n", ( $time_after - $time_before );
+
+    # Media Cloud's implementation
+    $time_before = Time::HiRes::time();
+    for ( my $x = 0 ; $x < TEST_ITERATIONS ; ++$x )
+    {
+        $actual_score = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, $language );
+    }
+    $time_after = Time::HiRes::time();
+
+    print STDERR "MediaWords::Util::Text::get_similarity_score():\n";
+    printf STDERR "\tScore: %2.6f\n", $actual_score;
+    printf STDERR "\tTime: %2.6f\n", ( $time_after - $time_before );
+
+    cmp_ok( abs( $expected_score - $actual_score ), '<=', $score_epsilon, "$identifier: core is below the threshold" );
 }
 
 sub test_get_similarity_score()
@@ -26,14 +70,12 @@ sub test_get_similarity_score()
     # Identical texts
     $text_1 = 'The quick brown fox jumps over the lazy dog.';
     $text_2 = $text_1;
-    $score  = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, 'en' );
-    is( $score, 1, 'identical texts' );
+    _compare_similarity_score( '100% identical texts', $text_1, $text_2, 'en', 0 );    # no error margin in expected score
 
     # Texts that differ 100%
     $text_1 = 'One two three four five six seven eight nine ten.';
     $text_2 = 'Eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty.';
-    $score  = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, 'en' );
-    is( $score, 0, '100% different texts' );
+    _compare_similarity_score( '100% different texts', $text_1, $text_2, 'en', 0 );    # no error margin in expected score
 
     # Overlapping texts (text #1 is a part of text #2)
     $text_1 = <<EOF;
@@ -44,7 +86,6 @@ and divided by arches into stiff sections. The bedding was hardly able to cover
 it and seemed ready to slide off any moment. His many legs, pitifully thin
 compared with the size of the rest of him, waved about helplessly as he looked.
 EOF
-
     $text_2 = <<EOF;
 One morning, when Gregor Samsa woke from troubled dreams, he found himself
 transformed in his bed into a horrible vermin. He lay on his armour-like back,
@@ -61,18 +102,10 @@ recently cut out of an illustrated magazine and housed in a nice, gilded frame.
 It showed a lady fitted out with a fur hat and fur boa who sat upright, raising
 a heavy fur muff that covered the whole of her lower arm towards the viewer.
 EOF
-    $score = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, 'en' );
-
-    # Text::Similarity::Overlaps score is 0.625
-    cmp_ok( $score, '>=', 0.6, 'Overlapping texts #1' );
-    cmp_ok( $score, '<=', 0.7, 'Overlapping texts #2' );
+    _compare_similarity_score( 'overlapping texts', $text_1, $text_2, 'en', 0.1 );
 
     # Same texts but swapped
-    my $temp = $text_1;
-    $text_1 = $text_2;
-    $text_2 = $temp;
-    my $score_swapped = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, 'en' );
-    is( $score, $score_swapped, 'Swapped texts' );
+    _compare_similarity_score( 'overlapping texts (swapped)', $text_2, $text_1, 'en', 0.1 );
 
     # Non-English, non-ASCII text
     $text_1 = <<EOF;
@@ -105,11 +138,7 @@ EOF
 да, — и столы пели: Il mio tesoro 1 и не Il mio tesoro, а что-то лучше, и
 какие-то маленькие графинчики, и они же женщины», — вспоминал он.
 EOF
-    $score = MediaWords::Util::Text::get_similarity_score( $text_1, $text_2, 'ru' );
-
-    # Text::Similarity::Overlaps score is 0.177
-    cmp_ok( $score, '>=', 0,   'Non-English, non-ASCII texts #1' );
-    cmp_ok( $score, '<=', 0.2, 'Non-English, non-ASCII texts #2' );
+    _compare_similarity_score( 'non-English, non-ASCII texts', $text_2, $text_1, 'ru', 0.15 );
 }
 
 sub main()
