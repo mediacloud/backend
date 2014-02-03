@@ -64,6 +64,13 @@ sub run($$)
     return 1;
 }
 
+# write a single log because there are a lot of extraction jobs so it's
+# impractical to log each job into a separate file
+sub unify_logs()
+{
+    return 1;
+}
+
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
