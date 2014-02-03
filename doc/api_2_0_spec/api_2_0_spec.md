@@ -1,7 +1,6 @@
-**Title:** Media Cloud API Version 2
-
-**Author:** David Larochelle
-
+% Media Cloud API Version 2
+% David Larochelle
+%
 
 #API URLs
 
