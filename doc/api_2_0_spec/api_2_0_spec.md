@@ -539,13 +539,13 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
 ]
 ```
 
-#### api/V2/stories/list_processed 
+#### api/v2/stories/list_processed 
   
-To get information on multiple stories, send get requests to `api/V2/stories/list_processed`
+To get information on multiple stories, send get requests to `api/v2/stories/list_processed`
 
 | URL                             | Function
 | ------------------------------- | ---------------------------------
-| `api/V2/stories/list_processed` | Return multiple processed stories
+| `api/v2/stories/list_processed` | Return multiple processed stories
 
 ##### Query Parameters 
 
