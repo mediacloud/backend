@@ -53,7 +53,7 @@ requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
 requires 'File::Touch';
-requires 'Gearman::JobScheduler', '0.12';
+requires 'Gearman::JobScheduler', '0.13';
 requires 'Graph';
 requires 'Graph::Layout::Aesthetic';
 requires 'GraphViz';

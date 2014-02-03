@@ -3579,15 +3579,15 @@ DISTRIBUTIONS
       Font::Metrics::TimesRoman undef
     requirements:
       ExtUtils::MakeMaker 0
-  Gearman-JobScheduler-0.12
-    pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.12.tar.gz
+  Gearman-JobScheduler-0.13
+    pathname: L/LV/LVALIUKAS/Gearman-JobScheduler-0.13.tar.gz
     provides:
-      Gearman::JobScheduler 0.12
-      Gearman::JobScheduler::AbstractFunction 0.12
-      Gearman::JobScheduler::Admin 0.12
-      Gearman::JobScheduler::Configuration 0.12
-      Gearman::JobScheduler::ErrorLogTrapper 0.12
-      Gearman::JobScheduler::Worker 0.12
+      Gearman::JobScheduler 0.13
+      Gearman::JobScheduler::AbstractFunction 0.13
+      Gearman::JobScheduler::Admin 0.13
+      Gearman::JobScheduler::Configuration 0.13
+      Gearman::JobScheduler::ErrorLogTrapper 0.13
+      Gearman::JobScheduler::Worker 0.13
     requirements:
       Capture::Tiny 0
       Carp 0
