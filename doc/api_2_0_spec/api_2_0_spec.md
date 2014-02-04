@@ -8,6 +8,9 @@
 
 ## Media
 
+The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York 
+Times or Instapundit.  Every story belongs to a single media source.  Each media source can have zero or more feeds.
+
 ### api/v2/media/single/
 
 | URL                              | Function
@@ -192,6 +195,9 @@ URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
 ## Media Sets
 
+A Media Set is a collection of media sources, such as U.S. Top 25 Mainstream Media or Global Voices Cited Blogs.  Each 
+media source can belong to zero or more media sets.  Each Media Set belongs to exactly one dashboard.
+
 ### api/v2/media_set/single
 
 | URL                                       | Function
@@ -267,6 +273,13 @@ URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 
 ## Feeds
 
+A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded in between once
+an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new url found in the feed is 
+added to the feed's media source as a story.  Each time a web page feed is downloaded, that web page itself is added as
+a story for the feed's media source.
+
+Each feed belongs to a single media source.  Each story can belong to one or more feeds from the same media source.
+
 ### api/v2/feeds/single
 
 | URL                              | Function
@@ -288,7 +301,6 @@ URL: http://mediacloud.org/api/v2/feeds/single/1
     "url": "http:\/\/bits.blogs.nytimes.com\/rss2.xml",
     "feeds_id": 1,
     "feed_type": "syndicated",
-    "feed_status": "active",
     "media_id": 1
   }
 ]
@@ -333,6 +345,9 @@ URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
 ```
 
 ## Dashboards
+
+A dashboard is a collection of media sets, for example US/English or Russian.  Dashboards are useful for finding the core
+media sets related to some topic, usually a country.  Each media set can belong to only a single dashboard.
 
 ### api/v2/dashboard/single
 
@@ -428,9 +443,17 @@ URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 
 ## Stories
 
+Stories represents a single published piece of content.  Each unique url downloaded from any syndicated feed within 
+a single media source is represented by a single story.  Only one story may exist for a given title for each 24 hours 
+within a single media source.
+
+The story\_text of a story is either the content of the description field in the syndicated field or the extracted 
+text of the content downloaded from the story's url at the collect\_date, depending on whether our full text rss 
+detection system has determined whether the full text of each story can be found in the rss of a given media source.
+
 ### Output description
 
-The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list_processed in which we felt clarification was necessary.
+The following table describes the meaning and origin of fields returned by both api/v2/stories/single and api/v2/stories/list in which we felt clarification was necessary.
 
 | Field               | Description
 | ------------------- | ----------------------------------------------------------------------
@@ -441,7 +464,7 @@ The following table describes the meaning and origin of fields returned by both 
 | `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.
 | `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regards of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
 | `publish_date`      | The publish date of the story as specified in the RSS feed.
-| `custom_story_tags` | A list containing the names of any tags that have been added to the story using the write-back API.
+| `tags` | A list of any tags associated with this story, including those written through the write-back api.
 | `collect_date`      | The date the RSS feed was actually downloaded.
 | `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified.
 
@@ -471,7 +494,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
     "db_row_last_updated": null,
     "full_text_rss": 0,
     "description": "<p>Both the previously current and now current Burmese flags look ugly and ridiculous!  Burma once had a flag that was actually better looking.  Also Taiwan&#8217;s flag needs to change!  it is a party state flag representing the republic of china since 1911 and Taiwan\/Formosa was Japanese colony since 1895.  A new flag representing the land, people and history of Taiwan needs to be given birth to and flown!<\/p>\n",
-    "language": null,
+    "language": "en",
     "title": "Comment on Myanmar's new flag and new name by kc",
     "fully_extracted": 1,
     "collect_date": "2010-11-24 15:33:39",
@@ -482,19 +505,17 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
     "stories_id": 27456565,
     "story_texts_id": null,
     "story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   <SENTENCES SKIPPED BECAUSE OF SPACE REASONS> You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
-    "custom_story_tags": [
-       "custom_tag_1",
-       "custom_tag_2"
-    ],
+    "tags": [ 1234235 ],
     "story_sentences": [
       {
-        "language": null,
+        "language": "en",
         "db_row_last_updated": null,
         "sentence": "Myanmar's new flag and new name The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.",
         "sentence_number": 0,
         "story_sentences_id": "525687757",
         "media_id": 1144,
         "stories_id": 27456565,
+        "tags": [ 123 ],
         "publish_date": "2010-11-24 04:05:00"
       },
       {
@@ -503,14 +524,16 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "media_id": 1144,
         "stories_id": 27456565,
         "publish_date": "2010-11-24 04:05:00",
-        "language": null,
+        "language": "en",
         "db_row_last_updated": null,
+        "tags": [ 123 ],
         "sentence": "The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday."
       },
       // SENTENCES SKIPPED BECAUSE OF SPACE REASONS
       {
-        "language": null,
+        "language": "en",
         "db_row_last_updated": null,
+        "tags": [ 123 ],
         "sentence": "You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force.",
         "story_sentences_id": "525687808",
         "sentence_number": 51,
@@ -526,198 +549,66 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "story_sentences_id": "525687809",
         "db_row_last_updated": null,
         "sentence": "This flag represent only the armed forces.",
-        "language": null
+        "tags": [ 123 ],
+        "language": "en"
       }
-    ],
-    "story_tags": [
-      
     ],
   }
 ]
 ```
 
-### api/v2/stories/list_processed 
+### api/v2/stories/list
   
-To get information on multiple stories, send get requests to `api/v2/stories/list_processed`
+To get information on multiple stories, send get requests to `api/v2/stories/list`
 
 | URL                             | Function
 | ------------------------------- | ---------------------------------
-| `api/v2/stories/list_processed` | Return multiple processed stories
+| `api/v2/stories/list` | Return multiple processed stories
 
 #### Query Parameters 
 
 | Parameter                    | Default | Notes
 | ---------------------------- | ------- | ------------------------------------------------------------------------------
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
-| `rows`                       | 20      | Number of stories to return. Can not be larger than 100.
+| `rows`                       | 20      | Number of stories to return.
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
+| `q`                          | null    | If specified, return only results that match the given solr query.  Only on q parameter may be included.
+| `fq`                         | null    | If specified, file results by the given solr query.  More than one fq parameter may be included.
 
-The `last_processed_id` parameter can be used to page through these results. The API will return 20 stories with a `processed_id` greater than this value.
+The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
+`processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, 
+the user must make a series of calls to api/v2/stories/list in which last\_processed\_stories\_id for each 
+call is set to the processed\_stories\_id of the last story in the previous call to the api.
 
-*Note:* `stories_id` and `processed_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Since unprocessed stories are of little interest, we have introduced the `processed_id` field to allow users to stream all stories as they're processed.
+*Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
+the order they are processed by the system.
 
-#### Example
+The `q` and `fq` parameters specify queries to be sent to a solr server that indexes all Media Cloud stories.  The solr
+server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual 
+sentences.  The api/v2/stories/list call searches for sentences matching the `q` and/or `fq` parameters if specified and
+the stories that include at least one sentence returned by the specified query.
 
-URL: http://mediacloud.org/api/v2/stories/list_processed/&last_processed_stories_id=86259158&rows=1
-
-```json
-[
-  {
-    "processed_stories_id": "86259159",
-    "story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   <SENTENCES SKIPPED BECAUSE OF SPACE REASONS> You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
-    "guid": "http:\/\/globalvoicesonline.org\/?p=169660#comment-1733161",
-    "publish_date": "2010-11-24 04:05:00",
-    "media_id": 1144,
-    "stories_id": 27456565,
-    "story_texts_id": null,
-    "story_sentences": [
-      {
-        "language": null,
-        "db_row_last_updated": null,
-        "sentence": "Myanmar's new flag and new name The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.",
-        "sentence_number": 0,
-        "story_sentences_id": "525687757",
-        "media_id": 1144,
-        "stories_id": 27456565,
-        "publish_date": "2010-11-24 04:05:00"
-      },
-      {
-        "sentence_number": 1,
-        "story_sentences_id": "525687758",
-        "media_id": 1144,
-        "stories_id": 27456565,
-        "publish_date": "2010-11-24 04:05:00",
-        "language": null,
-        "db_row_last_updated": null,
-        "sentence": "The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday."
-      },
-      // SENTENCES SKIPPED BECAUSE OF SPACE REASONS
-      {
-        "language": null,
-        "db_row_last_updated": null,
-        "sentence": "You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force.",
-        "story_sentences_id": "525687808",
-        "sentence_number": 51,
-        "publish_date": "2010-11-24 04:05:00",
-        "stories_id": 27456565,
-        "media_id": 1144
-      },
-      {
-        "media_id": 1144,
-        "stories_id": 27456565,
-        "publish_date": "2010-11-24 04:05:00",
-        "sentence_number": 52,
-        "story_sentences_id": "525687809",
-        "db_row_last_updated": null,
-        "sentence": "This flag represent only the armed forces.",
-        "language": null
-      }
-    ],
-    "db_row_last_updated": null,
-    "story_tags": [
-      
-    ],
-    "full_text_rss": 0,
-    "description": "<p>Both the previously current and now current Burmese flags look ugly and ridiculous!  Burma once had a flag that was actually better looking.  Also Taiwan&#8217;s flag needs to change!  it is a party state flag representing the republic of china since 1911 and Taiwan\/Formosa was Japanese colony since 1895.  A new flag representing the land, people and history of Taiwan needs to be given birth to and flown!<\/p>\n",
-    "language": null,
-    "title": "Comment on Myanmar's new flag and new name by kc",
-    "fully_extracted": 1,
-    "collect_date": "2010-11-24 15:33:39",
-    "url": "http:\/\/globalvoicesonline.org\/2010\/10\/26\/myanmars-new-flag-and-new-name\/comment-page-1\/#comment-1733161"
-  }
-]
-```
-
-##  Story subsets
-
-Users who want to only see a subset of stories can create a story subset stream by sending a put request to `api/v2/stories/subset/`.
-
-### api/v2/stories/subset (PUT)
-
-| URL                     | Function
-| ----------------------- | -----------------------------------------------
-| `api/v2/stories/subset` | Creates a story subset. Must use a PUT request.
-
-#### Query Parameters 
-
-| Parameter          | Notes
-| ------------------ | ----------------------------------------------------------------------------------
-| `start_date`       | Only include stories with a `publish date >= start_date`
-| `end_date`         | Only include stories with a `publish date <= end_date`
-| `media_id`         | Only include stories from the media source indicated by `media_id`
-| `media_sets_id`    | Only include stories from the media set indicated by `media_sets_id`
-| `custom_story_tag` | Only include stories in which `custom_story_tag` in one of the `custom_story_tags`
-
-*Note:* At least one of the above parameters must by provided.
-
-The put request will return the meta-data representation of the `story_subset` including its database ID.
-  
-It will take the backend system a while to generate the stream of stories for the newly created subset. There is a background daemon script (`mediawords_process_story_subsets.pl`) that detects newly created subsets and adds stories to them.
+The `q` and `fq` parameters are passed directly through to solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  The fields that may be queries consists of all the fields in the example return value in the api/v2/sentences/list call below.
 
 #### Example
 
-Create a story subset for the New York Times from January 1, 2014 to January 2, 2014
+The output of these calls is in exactly the same format as for the api/v2/stories/single call.
 
-```
-curl -X PUT -d media_id=1 -d start_date=2014-01-01 -d end_date=2014-01-02 http://mediacloud.org/api/v2/stories/subset
-```
+URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
-```json
-{
-   "media_id":1,
-   "end_date":"2014-01-02 00:00:00-00",
-   "media_sets_id":null,
-   "start_date":"2014-01-01 00:00:00-00",
-   "ready":0,
-   "custom_story_tag": null,
-   "story_subsets_id":"1"
-}
-```
+Return a stream of all stories processed by Media Cloud, greater than the last_processed_stories_id.
 
-### api/v2/stories/subset (GET)
+URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
 
-| URL                     | Function
-| ----------------------- | ----------------------------------------------------
-| `api/v2/stories/subset` | Show the status of a subset. Must use a GET request.
+Return a stream of all New York Times stories mentioning Obama greater than the given last_processed_stories_id.
 
-To see the status of a given subset, the client sends a get request to `api/v2/stories/subset/<ID>` where `<ID>` is the database id that was returned in the put request above. **The returned object contains a `ready` field with a Boolean value indicating that stories from the subset have been compiled.**
+## Sentences
 
-#### Example 
+The story_text of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
+the same media source in the same week are dropped (the large majority of those duplicate sentences are 
+navigational snippets wrongly included in the extracted text by the extractor algorithm).
 
-curl -X GET http://0:3000/api/v2/stories/subset/1
-
-```json
-{
-   "media_id":1,
-   "end_date":"2013-01-02 00:00:00-05",
-   "media_sets_id":null,
-   "start_date":"2013-01-01 00:00:00-05",
-   "last_processed_stories_id":"116335917",
-   "custom_story_tag": null,
-   "ready":1,
-   "story_subsets_id":"1"
-}
-```
- 
-### api/v2/stories/list_subset_processed
-
-| URL                                         | Function
-| ------------------------------------------- | --------------------------------------------------------------------------------
-| `api/v2/stories/list_subset_processed/<id>` | Return multiple processed stories from a subset. `<id>` is the id of the subset.
-
-#### Query Parameters
-
-| Parameter                   | Default | Notes
-| --------------------------- | ------- | ------------------------------------------------------------------------------
-| `last_processed_stories_id` | 0       | Return stories in which the `processed_stories_id` is greater than this value.
-| `rows`                      | 20      | Number of stories to return. Cannot be larger than 100.
-| `raw_1st_download`          | 0       | If non-zero, include the full HTML of the first page of the story.
-
-This behaves similarly to the `list_processed` URL above except only stories from the given subset are returned.
-
-## Solr
-
-### api/v2/solr/sentences
+### api/v2/sentences/list
 
 #### Query Parameters
 
@@ -730,7 +621,7 @@ This behaves similarly to the `list_processed` URL above except only stories fro
 
 --------------------------------------------------------------------------------------------------------
 
-See the [Solr documentation](http://wiki.apache.org/solr/CommonQueryParameters) for a detailed description of these 4 parameters.
+These parameters are passed directly through to solr (see above).
 
 #### Example
 
@@ -750,14 +641,6 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
     "sentence": "Obama:",
     "sentence_number": 16,
     "stories_id": 79115414,
-    "custom_story_tags": [
-      "custom_tag_1",
-      "custom_tag_2"
-    ],
-    "custom_sentence_tags": [
-      "custom_tag_A",
-      "custom_tag_B"
-    ],
     "media_sets_id": [
       24,
       1,
@@ -775,6 +658,9 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
       8878051,
       8878085
     ],
+    "tags_id_sentence": [
+      23452345
+     ]
     "_version_": 1.4579959345877e+18
   },
   {
@@ -856,7 +742,9 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
 ]
 ```
 
-### api/v2/solr/wc
+## Word Counting
+
+### api/v2/wc
 
 #### Query Parameters
 
@@ -867,7 +755,7 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
 
 Returns word frequency counts for all sentences returned by querying Solr using the `q` and `fq` parameters.
 
-See the [Solr documentation](http://wiki.apache.org/solr/CommonQueryParameters) for a detailed description of `q` and `fq`.
+See above /api/v2/stories/list for solr query syntax.
 
 ### Example
 
@@ -911,58 +799,204 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 ]
 ```
 
+## Tags and Tag Sets
+
+Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consist of a short snippet of text, 
+a tags\_id, and tag\_sets_id.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
+of related tags.  Each tag set consists of a tag_sets_id and a name.
+
+For example, the 'gv_country' tag set includes 'japan', 'brazil', 'haiti' and so on tags.  Each of these tags is associated with
+some number of media sources (indicating that the given media source has been cited in a story tagged with the given country
+in a global voices post).
+
+### api/v2/tags/single/
+
+| URL                              | Function
+| -------------------------------- | -------------------------------------------------------------
+| `api/v2/tags/single/<tags_id>`   | Return the tag in which tags_id equals `<tags_id>`
+
+#### Query Parameters 
+
+None.
+
+#### Example
+
+Fetching information on the tag 8876989.
+
+URL: http://mediacloud.org/api/v2/tags/single/8876989
+
+Response:
+
+```json
+[
+  {
+    "tags_id": 8876989,
+    "tag": "japan",
+    "tag_sets_id": 597
+   }
+]
+```
+
+
+### api/v2/tags/list/
+
+| URL                 | Function
+| ------------------- | -----------------------------
+| `api/v2/tags/list`  | Return multiple tags
+
+#### Query Parameters 
+
+| Parameter       | Default    | Notes
+| --------------- | ---------- | -----------------------------------------------------------------
+| `last_tags_id`  | 0          | Return tags with a `tags_id` is greater than this value
+| `tag_sets_id`   | (required) | Return tags belonging to the given tag set.
+| `rows`          | 20         | Number of tags to return. Cannot be larger than 100
+
+#### Example
+
+URL: http://mediacloud.org/api/v2/tags/list?last_tags_id=1&rows=2&tag_sets_id=597
+
+```json
+[
+  {
+    "tags_id": 8876989,
+    "tag": "japan",
+    "tag_sets_id": 597,
+   }
+  {
+    "tags_id": 8876990,
+    "tag": "brazil",
+    "tag_sets_id": 597
+   }
+]
+```
+
+### api/v2/tag_sets/single/
+
+| URL                                    | Function
+| -------------------------------------- | -------------------------------------------------------------
+| `api/v2/tag_sets/single/<tag_sets_id>` | Return the tag set in which tag_sets_id equals `<tag_sets_id>`
+
+#### Query Parameters 
+
+None.
+
+#### Example
+
+Fetching information on the tag set 597.
+
+URL: http://mediacloud.org/api/v2/tag_sets/single/597
+
+Response:
+
+```json
+[
+  {
+    "tag_sets_id": 597,
+    "name": "gv_country"
+   }
+]
+```
+
+### api/v2/tag_sets/list/
+
+| URL                     | Function
+| ----------------------- | -----------------------------
+| `api/v2/tag_sets/list`  | Return all tag_sets
+
+#### Query Parameters 
+
+None.
+
+#### Example
+
+URL: http://mediacloud.org/api/v2/tag_Sets/list
+
+```json
+[
+  {
+    "tag_sets_id": 597,
+    "name": "gv_country"
+   },
+   // additional tag sets skipped for space
+]
+```
 
 ## Write Back API
 
 These calls allow users to push data into the PostgreSQL database.
 
-### api/v2/stories/custom_tags (PUT)
+### api/v2/stories/put_tags (PUT)
 
 | URL                          | Function
 | ---------------------------- | --------------------------------------------------
-| `api/v2/stories/custom_tags` | Add custom tags to a story. Must be a PUT request.
+| `api/v2/stories/put_tags`    | Add tags to a story. Must be a PUT request.
 
 #### Query Parameters
 
 | Parameter    | Notes
 | ------------ | -----------------------------------------------------------------
-| `stories_id` | The ID of the story to which to add the custom tags
-| `custom_tag` | Can be specified multiple times to add multiple tags to the story
+| `story_tag`  | The stories_id and associated tag in `stories_id,tag` format.  Can be specified more than once.
+
+Each story_tag parameter associated a single story with a single tag.  To associated a story with more than one tag,
+include this parameter multiple times.  A single call can include multiple stories as well as multiple tags.  Users
+are encouraged to batch writes for multiple stories into a single call to avoid web server overhead of many small
+web service calls.
+
+The story_tag parameter consists of the stories_id and the tag information, separated by a comma.  The tag part of 
+the parameter value can be in one of two formats -- either the tags_id of the tag or the tag set name and tag
+in `<tag set>:<tag>` format, for example `gv_country:japan`.
+    
+If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that 
+name will be created owned by the current user.  If the tag does not exist, a new tag will be created 
+within the given tag set.
+
+A user may only write put tags (or create new tags) within a tag set owned by that user.
 
 #### Example
 
-Set `custom_story_tags` on the story with stories_id 1000 to 'foo' and 'bar'
+story_tag=2340,03948309458
+story_tag=2340,gv_country:brazil
+story_tag=2340,gv_country:japan
+
+Add tag id 5678 to story id 1234.
 
 ```
-curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/stories/custom_tags
+curl -X PUT -d story_tag=1234,5678 http://mediacloud.org/api/v2/stories/put_tags
 ```
 
+Add the gv_country:japan and the gv_country:brazil tags to story 1234 and the gv_country:japan tag to 
+story 5678.
 
-### api/v2/story_sentences/custom_tags (PUT)
+```
+curl -X PUT -d story_tag=1234,gv_country:japan -d story_tag=1234,gv_country:brazil -d story_tag=5678,gv_country:japan http://mediacloud.org/api/v2/stories/put_tags
+```
+
+### api/v2/sentences/put_tags (PUT)
 
 | URL                                  | Function
 | ------------------------------------ | -----------------------------------------------------------
-| `api/v2/story_sentences/custom_tags` | Add custom tags to a story sentence. Must be a PUT request.
+| `api/v2/sentences/put_tags`          | Add tags to a story sentence. Must be a PUT request.
 
 #### Query Parameters 
 
 | Parameter            | Notes
 | -------------------- | --------------------------------------------------------------------------
-| `story_sentences_id` | The ID of the story sentence to which to add the custom tags
-| `custom_tag`         | Can be specified multiple times to add multiple tags to the story sentence
+| `sentence_tag`       | The story_sentences_id and associated tag in `story_sentences_id,tag` format.  Can be specified more than once.
 
-*Note:*  when a story is re-processed, its story sentence objects are deleted and recreated. In practice, it is rare for stories to be 
-reprocessed. But if a story is reprocessed any custom tags attached to its story sentences will be lost. 
-(Custom tags on the story itself will persist reprocessing.)
+The format of sentences write back call is the same as for the stories write back call above, but with the story_sentences_id
+substituted for the stories_id.  As with the stories write back call, users are strongly encouraged to 
+included multiple sentences (including sentences for multiple stories) in a single call to avoid
+web service overhead.
 
 #### Example
 
-Set the `custom_sentence_tags` on the story sentence with `story_sentences_id = 1000` to 'foo' and 'bar':
+Add the gv_country:japan and the gv_country:brazil tags to story sentence 12345678 and the gv_country:japan tag to 
+story sentence 56781234.
 
 ```
-curl -X PUT -d stories_id=10000 -d custom_tag=foo -d custom_tag=bar http://mediacloud.org/api/v2/story_sentences/custom_tags
+curl -X PUT -d sentene_tag=12345678,gv_country:japan -d sentence_tag=12345678,gv_country:brazil -d sentence_tag=56781234,gv_country:japan http://mediacloud.org/api/v2/sentences/put_tags
 ```
-
 
 # Extended Examples
 
