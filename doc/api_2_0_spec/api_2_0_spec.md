@@ -6,6 +6,15 @@
 
 *Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
 
+## Authentication
+
+Every call below includes a `key` parameter which will authenticate the user to the API service.  The key parameter is excluded
+from the examples in the below sections for brevity.
+
+### Example
+
+http://mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
+
 ## Media
 
 The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York 
@@ -310,18 +319,17 @@ URL: http://mediacloud.org/api/v2/feeds/single/1
 
 | URL                 | Function
 | ------------------- | --------------------------
-| `api/v2/feeds/list` | Return multiple media sets
+| `api/v2/feeds/list` | Return multiple feeds
 
 #### Query Parameters
 
-| Parameter       | Default | Notes
-| --------------- | ------- | -------------------------------------------------------
-| `last_feeds_id` | 0       | Return feeds with `feeds_id` is greater than this value
-| `rows`          | 20      | Number of feeds to return. Cannot be larger than 100
+| Parameter            | Default    | Notes
+| -------------------- | ---------- | -----------------------------------------------------------------
+| `media_id`           | (required) | Return feeds belonging to the media source
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/feeds/list?rows=1&last_feeds_id=1
+URL: http://mediacloud.org/api/v2/feeds/list?media_id=1
 
 ```json
 [
