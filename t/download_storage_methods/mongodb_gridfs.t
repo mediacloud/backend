@@ -76,7 +76,7 @@ ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object
 # Fetch content, compare
 #
 
-eval { $content_ref = $gridfs->fetch_content( $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
 ok( ( !$@ ), "Fetching download failed: $@" );
 ok( $content_ref, "Fetching download did not die but no content was returned" );
 is( $$content_ref, $test_content, "Content doesn't match." );
@@ -85,9 +85,9 @@ is( $$content_ref, $test_content, "Content doesn't match." );
 # Remove content, try fetching again
 #
 
-$gridfs->remove_content( $test_download );
+$gridfs->remove_content( $db, $test_download );
 $content_ref = undef;
-eval { $content_ref = $gridfs->fetch_content( $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
 ok( $@, "Fetching download that does not exist should have failed" );
 ok( ( !$content_ref ),
     "Fetching download that does not exist failed (as expected) but the content reference ($content_ref) was returned" );
@@ -95,7 +95,8 @@ ok( ( !$content_ref ),
 #
 # Check GridFS thinks that the content exists
 #
-ok( ( !$gridfs->content_exists( $test_download ) ), "content_exists() reports that content exists (although it shouldn't)" );
+ok( ( !$gridfs->content_exists( $db, $test_download ) ),
+    "content_exists() reports that content exists (although it shouldn't)" );
 
 #
 # Store content twice
@@ -111,18 +112,19 @@ ok( $gridfs_id,                                                          'Object
 ok( length( $gridfs_id ) == length( 'gridfs:5152138e3e7062d55800057c' ), 'Object ID is of the valid size' );
 
 # Fetch content again, compare
-eval { $content_ref = $gridfs->fetch_content( $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
 ok( ( !$@ ), "Fetching download failed: $@" );
 ok( $content_ref, "Fetching download did not die but no content was returned" );
 is( $$content_ref, $test_content, "Content doesn't match." );
 
 # Remove content, try fetching again
-$gridfs->remove_content( $test_download );
+$gridfs->remove_content( $db, $test_download );
 $content_ref = undef;
-eval { $content_ref = $gridfs->fetch_content( $test_download ); };
+eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
 ok( $@, "Fetching download that does not exist should have failed" );
 ok( ( !$content_ref ),
     "Fetching download that does not exist failed (as expected) but the content reference ($content_ref) was returned" );
 
 # Check GridFS thinks that the content exists
-ok( ( !$gridfs->content_exists( $test_download ) ), "content_exists() reports that content exists (although it shouldn't)" );
+ok( ( !$gridfs->content_exists( $db, $test_download ) ),
+    "content_exists() reports that content exists (although it shouldn't)" );

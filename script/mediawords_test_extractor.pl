@@ -104,8 +104,8 @@ sub get_story_level_extractor_results
 
 sub analyze_download
 {
-    my ( $download, my $dbs ) = @_;
-    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
+    my ( $download, $dbs ) = @_;
+    my $preprocessed_lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $dbs, $download );
 
     my $line_info = MediaWords::Util::ExtractorTest::get_line_analysis_info( $download, $dbs, $preprocessed_lines );
 

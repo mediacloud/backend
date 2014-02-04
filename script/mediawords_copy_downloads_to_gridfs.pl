@@ -292,7 +292,7 @@ EOF
                     ++$downloads_found;
 
                     # Skip the download if it already exists in MongoDB
-                    if ( $gridfs_store->content_exists( $download ) )
+                    if ( $gridfs_store->content_exists( $db, $download ) )
                     {
 
                         say STDERR "Download " . $download->{ downloads_id } . " already exists, skipping.";
@@ -311,7 +311,7 @@ EOF
                     my $content_ref;
                     eval {
                         say STDERR "Fetching download..." if ( _verbose() );
-                        $content_ref = $store->fetch_content( $download, $skip_gunzip_and_decode );
+                        $content_ref = $store->fetch_content( $db, $download, $skip_gunzip_and_decode );
                         say STDERR "Done fetching download." if ( _verbose() );
                     };
                     if ( $@ or ( !$content_ref ) )

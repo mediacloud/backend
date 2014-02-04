@@ -78,16 +78,16 @@ sub get_line_analysis_info
 
 my $_processed_lines_cache = {};
 
-sub get_preprocessed_content_lines_for_download
+sub get_preprocessed_content_lines_for_download($$)
 {
-    ( my $download ) = @_;
+    my ( $db, $download ) = @_;
 
     if ( defined( $_processed_lines_cache->{ $download->{ downloads_id } } ) )
     {
         return $_processed_lines_cache->{ $download->{ downloads_id } };
     }
 
-    my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+    my $preprocessed_lines = MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $db, $download );
 
     $_processed_lines_cache = { $download->{ downloads_id } => $preprocessed_lines };
 
@@ -126,10 +126,10 @@ sub store_extractor_line_scores
 }
 
 #returns the sum of the string length for each line the training table says should be in the story.
-sub get_character_count_for_story
+sub get_character_count_for_story($$$)
 {
-    ( my $download, my $line_should_be_in_story ) = @_;
-    my $lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $download );
+    my ( $db, $download, $line_should_be_in_story ) = @_;
+    my $lines = MediaWords::Util::ExtractorTest::get_preprocessed_content_lines_for_download( $db, $download );
     my $story_characters = sum( map { html_stripped_text_length( $lines->[ $_ ] ) } keys %{ $line_should_be_in_story } );
 
     return $story_characters;

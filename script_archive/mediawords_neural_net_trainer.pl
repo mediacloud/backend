@@ -97,7 +97,7 @@ sub store_extractor_line_scores
 
 sub get_extractor_scores_for_lines
 {
-    ( my $story_title, my $story_description, my $download, my $dbs ) = @_;
+    my ( $story_title, $story_description, $download, $dbs ) = @_;
 
     my $ret;
 
@@ -108,7 +108,7 @@ sub get_extractor_scores_for_lines
 
     if ( !defined( $ret ) || !@{ $ret } )
     {
-        my $lines = get_preprocessed_content_lines_for_download( $download );
+        my $lines = get_preprocessed_content_lines_for_download( $dbs, $download );
         $ret = MediaWords::Crawler::Extractor::score_lines( $lines, $story_title, $story_description, );
         store_extractor_line_scores( $ret, $lines, $download, $dbs );
     }
