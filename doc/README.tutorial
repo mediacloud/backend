@@ -30,14 +30,14 @@ from the source.
 * Run script/mediawords_crawl.pl and watch for a few minutes as the crawler
   fetches first the feeds and then the stories within the feeds.
 
-* Run script/mediawords_extract_and_vector.pl in a separate window.  Once the 
-  crawler has downloaded some stories, you should see the extractor finding
-  downloads and extracting and tagging them.
+* Run script/mediawords_extract_and_vector_locally.pl in a separate window.
+  Once the crawler has downloaded some stories, you should see the extractor
+  finding downloads and extracting and tagging them.
   
-* (mediawords_crawl.pl and mediawords_extract_and_vector.pl are both designed as
-  daemons that should run in the background writing to a log file
-  in a production system.  They will automagically find new content as
-  it is created.)
+* (mediawords_crawl.pl and mediawords_extract_and_vector_locally.pl are both
+  designed as daemons that should run in the background writing to a log file
+  in a production system.  They will automagically find new content as it is
+  created.)
   ('eg. nohup mediawords_crawl.pl &> /var/log/mediacloud_crawl.lo &')
   
 * Return to the home page of the web app.  Click on the the 'feeds' link

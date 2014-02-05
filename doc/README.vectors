@@ -22,8 +22,8 @@ All of the vectoring code is in MediaWords::StoryVectors.  The relevant MediaWor
 
 * update_story_sentence_words_and_language( $db, $stories_id ) - Given a single story, fill in the story vectors for that story
   and identify a language for the whole story and separate sentences.
-  This is called from mediawords_extract_and_vector.pl via MediaWords::DBI::Stories::add_vectors() for each story immediately after it is extracted.  This is where the guts of the vectoring system are -- if you want to know the details of the sentence parsing, tokenizing, stemming, etc, look here.  This gets called automatically every time a story is extracted via
-  script/mediawords_extract_and_vector.pl.
+  This is called from mediawords_extract_and_vector_locally.pl via MediaWords::DBI::Stories::add_vectors() for each story immediately after it is extracted.  This is where the guts of the vectoring system are -- if you want to know the details of the sentence parsing, tokenizing, stemming, etc, look here.  This gets called automatically every time a story is extracted via
+  script/mediawords_extract_and_vector_locally.pl.
 
 * update_aggregate_words( $db ) - Update all of the aggregate vector tables for all days up to but not including the current
   day for which no data already exists.  If the day is in the middle of a week, also update the weekly tables for the 

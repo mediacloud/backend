@@ -16,8 +16,8 @@ Here's a brief road map of the code included in this release:
 * script/mediawords_crawl.pl - crawl the web for the feeds entered into the
   web application.
 
-* script/mediawords_extract_and_vector.pl  - extract the substantive text from and
-  add tags to all newly downloaded content.
+* script/mediawords_extract_and_vector_locally.pl  - extract the substantive
+  text from and add tags to all newly downloaded content.
   
 * script/mediawords_update_story_vectors.pl - index all extracted text in
   the postgres full text search system and create the word index that 
