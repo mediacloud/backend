@@ -100,7 +100,7 @@ sub view : Local
     }
     else
     {
-        eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $download ) };
+        eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $c->dbis, $download ) };
     }
 
     if ( !$content_ref || !$$content_ref )

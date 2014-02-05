@@ -38,7 +38,7 @@ sub addDownloadChild
     $download->appendTextChild( 'host', $row->{ host } );
 
     print STDERR "Starting fetch_content\n";
-    my $download_content = MediaWords::DBI::Downloads::fetch_content( $row );
+    my $download_content = MediaWords::DBI::Downloads::fetch_content( $db, $row );
 
     my $data_section = XML::LibXML::CDATASection->new( encode_base64( encode( "utf8", $$download_content ) ) );
 

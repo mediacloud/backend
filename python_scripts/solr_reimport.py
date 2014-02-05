@@ -39,6 +39,10 @@ if result == None:
 else:
     min_story_sentences_id = int(result['value'])
 
+print "min_story_sentences_id: {} ".format( min_story_sentences_id)
+
+import_batch_size = 1000000
+
 while True:
     r = requests.get( 'http://localhost:8983/solr/collection1/dataimport?command=status&wt=json', headers = { 'Accept': 'application/json'})  
     data = r.json()
@@ -51,17 +55,21 @@ while True:
                    { 'name': pg_last_import_id_var, 'value': min_story_sentences_id - 1 } )
         
 
+        conn.commit()
+
+        print "Updating db_row_last_updated time for story sentences {}".format(min_story_sentences_id)
+
         cursor.execute(
             """UPDATE story_sentences set db_row_last_updated = now() where """ 
             """ story_sentences_id > (select value::integer from database_variables where name = %s ) """ 
-            """and story_sentences_id <= (select value::integer from database_variables where name = %s ) + 1000000 """,
-            (  pg_last_import_id_var,  pg_last_import_id_var) )
+            """and story_sentences_id <= (select value::integer from database_variables where name = %s ) + %s """,
+            (  pg_last_import_id_var,  pg_last_import_id_var, import_batch_size) )
 
-        conn.commit
+        conn.commit()
 
         print "importing with min_story_sentences_id {} ...".format( min_story_sentences_id )
 
-        min_story_sentences_id += 1000000
+        min_story_sentences_id += import_batch_size
 
         requests.get( 'http://localhost:8983/solr/collection1/dataimport?command=full-import&commit=true&clean=false' )
     else:

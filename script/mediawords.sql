@@ -3,6 +3,9 @@
 --
 
 -- CREATE LANGUAGE IF NOT EXISTS plpgsql
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE OR REPLACE FUNCTION create_language_plpgsql()
 RETURNS BOOLEAN AS $$
     CREATE LANGUAGE plpgsql;
@@ -65,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4433;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4436;
     
 BEGIN
 
@@ -312,6 +315,9 @@ create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_moderated on media(moderated);
 
+CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
+CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
+
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
     
 -- Feed statuses that determine whether the feed will be fetched
@@ -428,6 +434,7 @@ create table dashboards (
 );
 
 create unique index dashboards_name on dashboards ( name );
+CREATE INDEX dashboards_name_trgm on dashboards USING gin (name gin_trgm_ops);
 
 CREATE TYPE query_version_enum AS ENUM ('1.0');
 
@@ -496,6 +503,9 @@ create table media_sets (
     vectors_added               boolean     default false,
     include_in_dump             boolean     default true
 );
+
+CREATE INDEX media_sets_name_trgm on media_sets USING gin (name gin_trgm_ops);
+CREATE INDEX media_sets_description_trgm on media_sets USING gin (description gin_trgm_ops);
 
 CREATE VIEW media_sets_tt2_locale_format as select  '[% c.loc("' || COALESCE( name, '') || '") %]' || E'\n' ||  '[% c.loc("' || COALESCE (description, '') || '") %] ' as tt2_value from media_sets where set_type = 'collection' order by media_sets_id;
 
@@ -870,6 +880,19 @@ CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads ( site_fro
 -- CREATE INDEX downloads_sites_index_downloads_id on downloads (site_from_host( host ), downloads_id);
 
 CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from downloads_media;
+
+
+--
+-- Raw downloads stored in the database (if the "postgresql" download storage
+-- method is enabled)
+--
+CREATE TABLE raw_downloads (
+    raw_downloads_id    SERIAL      PRIMARY KEY,
+    downloads_id        INTEGER     NOT NULL REFERENCES downloads ON DELETE CASCADE,
+    raw_data            BYTEA       NOT NULL
+);
+CREATE UNIQUE INDEX raw_downloads_downloads_id ON raw_downloads (downloads_id);
+
 
 create table feeds_stories_map
  (
@@ -1922,9 +1945,20 @@ return pg_cancel_backend(cancel_pid);
 END;
 $$;
 
+
 --
 -- Authentication
 --
+
+-- Generate random API token
+CREATE FUNCTION generate_api_token() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
+DECLARE
+    token VARCHAR(64);
+BEGIN
+    SELECT encode(digest(gen_random_bytes(256), 'sha256'), 'hex') INTO token;
+    RETURN token;
+END;
+$$;
 
 -- List of users
 CREATE TABLE auth_users (
@@ -1934,13 +1968,17 @@ CREATE TABLE auth_users (
     -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
     password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
 
+    -- API authentication token
+    -- (must be 64 bytes in order to prevent someone from resetting it to empty string somehow)
+    api_token       VARCHAR(64)     UNIQUE NOT NULL DEFAULT generate_api_token() CONSTRAINT api_token_64_characters CHECK(LENGTH(api_token) = 64),
+
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
     active          BOOLEAN NOT NULL DEFAULT true,
 
     -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
     -- salt_len=>64) or NULL
-    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
+    password_reset_token_hash TEXT  UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
 
     -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
     -- attempts in order to prevent brute-force attacks

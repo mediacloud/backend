@@ -265,7 +265,7 @@ sub find_or_create_download_text
 
     print STDERR "create download text\n";
 
-    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $download );
+    my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
     my $content = ${ $content_ref };
 

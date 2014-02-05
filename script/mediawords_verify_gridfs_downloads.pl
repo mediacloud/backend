@@ -211,7 +211,7 @@ EOF
 
             # Fetch download
             my $content_ref;
-            eval { $content_ref = $store->fetch_content( $db_download ); };
+            eval { $content_ref = $store->fetch_content( $_db, $db_download ); };
             if ( $@ or ( !$content_ref ) )
             {
                 return ( $storage_method, undef );
@@ -230,6 +230,7 @@ EOF
 
         my $_gridfs_store = undef;
         my $_files_cursor = undef;
+        my $_db           = undef;
 
         sub new($)
         {
@@ -269,6 +270,8 @@ EOF
                 die "Unable to connect to MongoDB ($host:$port/$database_name).\n";
             }
 
+            $_db = MediaWords::DB::connect_to_db;
+
             return bless {}, $class;
         }
 
@@ -288,7 +291,7 @@ EOF
 
             # Fetch download
             my $content_ref;
-            eval { $content_ref = $_gridfs_store->fetch_content( $download ); };
+            eval { $content_ref = $_gridfs_store->fetch_content( $_db, $download ); };
             if ( $@ or ( !$content_ref ) )
             {
                 return ( 'gridfs', undef );

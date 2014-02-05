@@ -31,7 +31,7 @@ sub get_preprocessed_lines_from_downloads_id
 
     die unless $download;
 
-    return MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $download );
+    return MediaWords::DBI::Downloads::fetch_preprocessed_content_lines( $dbs, $download );
 }
 
 TODO:
