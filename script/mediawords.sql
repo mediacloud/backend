@@ -1941,9 +1941,20 @@ return pg_cancel_backend(cancel_pid);
 END;
 $$;
 
+
 --
 -- Authentication
 --
+
+-- Generate random API token
+CREATE FUNCTION generate_api_token() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
+DECLARE
+    token VARCHAR(64);
+BEGIN
+    SELECT encode(digest(gen_random_bytes(256), 'sha256'), 'hex') INTO token;
+    RETURN token;
+END;
+$$;
 
 -- List of users
 CREATE TABLE auth_users (
@@ -1953,13 +1964,17 @@ CREATE TABLE auth_users (
     -- Salted hash of a password (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64)
     password_hash   TEXT    NOT NULL CONSTRAINT password_hash_sha256 CHECK(LENGTH(password_hash) = 137),
 
+    -- API authentication token
+    -- (must be 64 bytes in order to prevent someone from resetting it to empty string somehow)
+    api_token       VARCHAR(64)     UNIQUE NOT NULL DEFAULT generate_api_token() CONSTRAINT api_token_64_characters CHECK(LENGTH(api_token) = 64),
+
     full_name       TEXT    NOT NULL,
     notes           TEXT    NULL,
     active          BOOLEAN NOT NULL DEFAULT true,
 
     -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
     -- salt_len=>64) or NULL
-    password_reset_token_hash TEXT UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
+    password_reset_token_hash TEXT  UNIQUE NULL CONSTRAINT password_reset_token_hash_sha256 CHECK(LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
 
     -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
     -- attempts in order to prevent brute-force attacks

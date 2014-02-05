@@ -12,6 +12,9 @@ use warnings;
 # Post-unsuccessful login delay (in seconds)
 use constant POST_UNSUCCESSFUL_LOGIN_DELAY => 1;
 
+# API token HTTP GET parameter
+use constant API_TOKEN_PARAMETER => 'api';
+
 use Digest::SHA qw/sha256_hex/;
 use Crypt::SaltedHash;
 use MediaWords::Util::Mail;
@@ -150,6 +153,7 @@ sub user_info($$)
         SELECT auth_users_id,
                email,
                full_name,
+               api_token,
                notes,
                active
         FROM auth_users
@@ -197,13 +201,15 @@ EOF
     }
 }
 
-# Fetch a hash of basic user information, password hash and an array of assigned roles; returns 0 on error
+# Fetch a hash of basic user information, password hash and an array of assigned roles.
+# Fetches both active and deactivated users; checking whether or not the user is active is left to the controller.
+# Returns 0 on error.
+# This subroutine is used by Catalyst::Authentication::Store::MediaWords for authenticating users
 sub user_auth($$)
 {
     my ( $db, $email ) = @_;
 
     # Check if user exists; if so, fetch user info, password hash and a list of roles.
-    # Checking whether or not the user is active is left to the controller.
     my $user = $db->query(
         <<"EOF",
         SELECT auth_users.auth_users_id,
@@ -236,6 +242,55 @@ EOF
     $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
 
     return $user;
+}
+
+# Fetch a hash of basic user information and an array of assigned roles based on the API token.
+# Only active users are fetched.
+# Returns 0 on error
+sub user_for_api_token($$)
+{
+    my ( $db, $api_token ) = @_;
+
+    my $user = $db->query(
+        <<"EOF",
+        SELECT auth_users.auth_users_id,
+               auth_users.email,
+               ARRAY_TO_STRING(ARRAY_AGG(role), ' ') AS roles
+        FROM auth_users
+            LEFT JOIN auth_users_roles_map
+                ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
+            LEFT JOIN auth_roles
+                ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
+        WHERE auth_users.api_token = LOWER(?)
+          AND active = true
+        GROUP BY auth_users.auth_users_id,
+                 auth_users.email
+        ORDER BY auth_users.auth_users_id
+        LIMIT 1
+EOF
+        $api_token
+    )->hash;
+
+    if ( !( ref( $user ) eq 'HASH' and $user->{ auth_users_id } ) )
+    {
+        return 0;
+    }
+
+    # Make an array out of list of roles
+    $user->{ roles } = [ split( ' ', $user->{ roles } ) ];
+
+    return $user;
+}
+
+# Same as above, just with the Catalyst's $c object
+sub user_for_api_token_catalyst($)
+{
+    my $c = shift;
+
+    my $dbis      = $c->dbis;
+    my $api_token = $c->request->param( API_TOKEN_PARAMETER . '' );
+
+    return user_for_api_token( $dbis, $api_token );
 }
 
 # Post-successful login database tasks
@@ -807,6 +862,38 @@ EOF
     {
         return 'The password has been changed, but I was unable to send an email notifying you about the change.';
     }
+
+    # Success
+    return '';
+}
+
+# Regenerate API token
+sub regenerate_api_token_or_return_error_message($$)
+{
+    my ( $db, $email ) = @_;
+
+    if ( !$email )
+    {
+        return 'Email address is empty.';
+    }
+
+    # Check if user exists
+    my $userinfo = MediaWords::DBI::Auth::user_info( $db, $email );
+    if ( !$userinfo )
+    {
+        return "User with email address '$email' does not exist.";
+    }
+
+    # Regenerate API token
+    $db->query(
+        <<"EOF",
+        UPDATE auth_users
+        -- DEFAULT points to a generation function
+        SET api_token = DEFAULT
+        WHERE email = ?
+EOF
+        $email
+    );
 
     # Success
     return '';

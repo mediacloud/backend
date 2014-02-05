@@ -39,6 +39,7 @@ sub index : Path : Args(0)
     $c->stash->{ c }         = $c;
     $c->stash->{ email }     = $userinfo->{ email };
     $c->stash->{ full_name } = $userinfo->{ full_name };
+    $c->stash->{ api_token } = $userinfo->{ api_token };
     $c->stash->{ notes }     = $userinfo->{ notes };
     $c->stash( template => 'auth/profile.tt2' );
 
@@ -79,6 +80,33 @@ sub index : Path : Args(0)
         $c->stash( status_msg => "Your password has been changed. An email was sent to " .
               "'" . $c->user->username . "' to inform you about this change." );
     }
+}
+
+# regenerate API token
+sub regenerate_api_token : Local
+{
+    my ( $self, $c ) = @_;
+
+    # Fetch readonly information about the user
+    my $userinfo = MediaWords::DBI::Auth::user_info( $c->dbis, $c->user->username );
+    if ( !$userinfo )
+    {
+        die 'Unable to find currently logged in user in the database.';
+    }
+
+    my $email = $c->user->username;
+
+    # Delete user
+    my $regenerate_api_token_error_message =
+      MediaWords::DBI::Auth::regenerate_api_token_or_return_error_message( $c->dbis, $email );
+    if ( $regenerate_api_token_error_message )
+    {
+        $c->response->redirect( $c->uri_for( '/admin/profile', { error_msg => $regenerate_api_token_error_message } ) );
+        return;
+    }
+
+    $c->response->redirect( $c->uri_for( '/admin/profile', { status_msg => "API token has been regenerated." } ) );
+
 }
 
 =head1 AUTHOR
