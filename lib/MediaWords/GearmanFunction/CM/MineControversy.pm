@@ -44,6 +44,10 @@ use MediaWords::CommonLibs;
 use MediaWords::CM::Mine;
 use MediaWords::DB;
 
+# This should be safe because Gearman::JobScheduler's workers don't support
+# fork()s anymore
+my $db = MediaWords::DB::connect_to_db();
+
 # Run job
 sub run($;$)
 {
@@ -58,8 +62,6 @@ sub run($;$)
     {
         die "'controversies_id' is not set.";
     }
-
-    my $db = MediaWords::DB::connect_to_db;
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
       or die( "Unable to find controversy '$controversies_id'" );

@@ -53,6 +53,10 @@ use DBIx::Simple::MediaWords;
 use Feed::Scrape::MediaWords;
 use MediaWords::DB;
 
+# This should be safe because Gearman::JobScheduler's workers don't support
+# fork()s anymore
+my $db = MediaWords::DB::connect_to_db();
+
 # Run job
 sub run($;$)
 {
@@ -63,8 +67,6 @@ sub run($;$)
     {
         die "'media_id' is undefined.";
     }
-
-    my $db = MediaWords::DB::connect_to_db();
 
     $db->begin_work;
 
@@ -120,8 +122,6 @@ sub run($;$)
     );
 
     $db->commit;
-
-    $db->disconnect;
 }
 
 no Moose;    # gets rid of scaffolding
