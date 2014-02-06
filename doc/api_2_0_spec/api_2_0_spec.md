@@ -4,7 +4,7 @@
 
 #API URLs
 
-*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a most complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
+*Note:* by default the API only returns a subset of the available fields in returned objects. The returned fields are those that we consider to be the most relevant to users of the API. If the `all_fields` parameter is provided and is non-zero, then a more complete list of fields will be returned. For space reasons, we do not list the `all_fields` parameter on individual API descriptions.
 
 ## Authentication
 
@@ -105,7 +105,7 @@ Response:
 
 | Parameter       | Default | Notes
 | --------------- | ------- | -----------------------------------------------------------------
-| `last_media_id` | 0       | Return media sources with a `media_id` is greater than this value
+| `last_media_id` | 0       | Return media sources with a `media_id` greater than this value
 | `rows`          | 20      | Number of media sources to return. Cannot be larger than 100
 
 #### Example
@@ -230,12 +230,12 @@ http://mediacloud.org/api/v2/media_sets/single/2
      "media": 
      [
       	    {       "name": "source 1 name",
-	            "media_id": "source 1 media id",
-		    "url": "http://source1.com"
+                    "media_id": "source 1 media id",
+                    "url": "http://source1.com"
             },
       	    {       "name": "source 2 name",
-	            "media_id": "source 2 media id",
-		    "url": "http://source2.com"
+                    "media_id": "source 2 media id",
+                    "url": "http://source2.com"
             },
      ]
    }
@@ -259,26 +259,7 @@ http://mediacloud.org/api/v2/media_sets/single/2
 
 URL: http://mediacloud.org/api/v2/media_sets/list?rows=1&last_media_sets_id=1
 
-```json
-[
-   {
-     "name": "set name",
-     "media_sets_id": "2",
-     "description": "media_set 2 description",
-     "media": 
-     [
-      	    {       "name": "source 1 name",
-	            "media_id": "source 1 media id",
-		    "url": "http://source1.com"
-            },
-      	    {       "name": "source 2 name",
-	            "media_id": "source 2 media id",
-		    "url": "http://source2.com"
-            },
-     ]
-   }
-]
-```
+Output is the same as the api/v2/media_set/single example above.
 
 ## Feeds
 
@@ -293,7 +274,7 @@ Each feed belongs to a single media source.  Each story can belong to one or mor
 
 | URL                              | Function
 | -------------------------------- | --------------------------------------------------------
-| `api/v2/feeds/single/<feeds_id>` | Return the feeds in which `feeds_id` equals `<feeds_id>`
+| `api/v2/feeds/single/<feeds_id>` | Return the feed in which `feeds_id` equals `<feeds_id>`
 
 #### Query Parameters 
 
@@ -413,41 +394,14 @@ http://mediacloud.org/api/v2/dashboards/single/2
 | Parameter            | Default | Notes
 | -------------------- | ------- | -------------------------------------------------------------------------------------
 | `last_dashboards_id` | 0       | Return dashboards in which `dashboards_id` greater than this value
-| `rows`               | 20      | Number of dashboards to return. Can not be larger than 100
+| `rows`               | 20      | Number of dashboards to return. Cannot be larger than 100
 | `nested_data`        | 1       | If 0, return only the `name` and `dashboards_id`.<br />If 1, return nested information about the dashboard's `media_sets` and their `media`.
 
 #### Example
 
 URL: http://mediacloud.org/api/v2/dashboards/list?rows=1&last_dashboards_id=1
 
-```json
-[
-   {
-      "name":"dashboard 2",
-      "dashboards_id":2,
-      "media_sets":
-      [
-      {
-         "name":"set name",
-         "media_sets_id":2,
-         "media":[
-            {
-               "name":"source 1 name",
-               "media_id":"source 1 media id",
-               "url":"http://source1.com"
-            },
-            {
-               "name":"source 2 name",
-               "media_id":"source 2 media id",
-               "url":"http://source2.com"
-            },
-
-         ]
-      }
-   ]
-}
-] 
-```
+Output is the same as the api/v2/dashboard/single example above.
 
 ## Stories
 
@@ -468,20 +422,20 @@ The following table describes the meaning and origin of fields returned by both 
 | `title`             | The story title as defined in the RSS feed. May contain HTML (depending on the source).
 | `description`       | The story description as defined in the RSS feed. May contain HTML (depending on the source).
 | `full_text_rss`     | If 1, the text of the story was obtained through the RSS feed.<br />If 0, the text of the story was obtained by extracting the article text from the HTML.
-| `story_text`        | The text of the story.<br />If `full_text_rss` is non-zero, this is formed by stripping HTML from the title, description, and concatenating them.<br />If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
+| `story_text`        | The text of the story.<br />If `full_text_rss` is non-zero, this is formed by stripping HTML from the title and description and concatenating them.<br />If `full_text_rss` is zero, this is formed by extracting the article text from the HTML.
 | `story_sentences`   | A list of sentences in the story.<br />Generated from `story_text` by splitting it into sentences and removing any duplicate sentences occurring within the same source for the same week.
-| `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regards of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
+| `raw_1st_download`  | The contents of the first HTML page of the story.<br />Available regardless of the value of `full_text_rss`.<br />*Note:* only provided if the `raw_1st_download` parameter is non-zero.
 | `publish_date`      | The publish date of the story as specified in the RSS feed.
 | `tags` | A list of any tags associated with this story, including those written through the write-back api.
 | `collect_date`      | The date the RSS feed was actually downloaded.
-| `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified.
+| `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified in the RSS feed.
 
 
 ### api/v2/stories/single
 
 | URL                                  | Function
 | ------------------------------------ | ------------------------------------------------------
-| `api/v2/stories/single/<stories_id>` | Return story in which stories_id equals `<stories_id>`
+| `api/v2/stories/single/<stories_id>` | Return the story in which stories_id equals `<stories_id>`
 
 #### Query Parameters 
 
@@ -567,8 +521,6 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
 
 ### api/v2/stories/list
   
-To get information on multiple stories, send get requests to `api/v2/stories/list`
-
 | URL                             | Function
 | ------------------------------- | ---------------------------------
 | `api/v2/stories/list` | Return multiple processed stories
@@ -580,13 +532,13 @@ To get information on multiple stories, send get requests to `api/v2/stories/lis
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                       | 20      | Number of stories to return.
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
-| `q`                          | null    | If specified, return only results that match the given solr query.  Only on q parameter may be included.
-| `fq`                         | null    | If specified, file results by the given solr query.  More than one fq parameter may be included.
+| `q`                          | null    | If specified, return only results that match the given solr query.  Only one `q` parameter may be included.
+| `fq`                         | null    | If specified, file results by the given solr query.  More than one `fq` parameter may be included.
 
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
 `processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, 
-the user must make a series of calls to api/v2/stories/list in which last\_processed\_stories\_id for each 
-call is set to the processed\_stories\_id of the last story in the previous call to the api.
+the user must make a series of calls to api/v2/stories/list in which `last_processed_stories_id` for each 
+call is set to the `processed_stories_id` of the last story in the previous call to the api.
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
 the order they are processed by the system.
@@ -813,7 +765,7 @@ Media Cloud associates tags with media sources, stories, and individual sentence
 a tags\_id, and tag\_sets_id.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
 of related tags.  Each tag set consists of a tag_sets_id and a name.
 
-For example, the 'gv_country' tag set includes 'japan', 'brazil', 'haiti' and so on tags.  Each of these tags is associated with
+For example, the 'gv_country' tag set includes the tags 'japan', 'brazil', 'haiti' and so on.  Each of these tags is associated with
 some number of media sources (indicating that the given media source has been cited in a story tagged with the given country
 in a global voices post).
 
@@ -918,7 +870,7 @@ None.
 
 #### Example
 
-URL: http://mediacloud.org/api/v2/tag_Sets/list
+URL: http://mediacloud.org/api/v2/tag_sets/list
 
 ```json
 [
@@ -963,10 +915,6 @@ A user may only write put tags (or create new tags) within a tag set owned by th
 
 #### Example
 
-story_tag=2340,03948309458
-story_tag=2340,gv_country:brazil
-story_tag=2340,gv_country:japan
-
 Add tag id 5678 to story id 1234.
 
 ```
@@ -992,7 +940,7 @@ curl -X PUT -d story_tag=1234,gv_country:japan -d story_tag=1234,gv_country:braz
 | -------------------- | --------------------------------------------------------------------------
 | `sentence_tag`       | The story_sentences_id and associated tag in `story_sentences_id,tag` format.  Can be specified more than once.
 
-The format of sentences write back call is the same as for the stories write back call above, but with the story_sentences_id
+The format of the sentences write back call is the same as for the stories write back call above, but with the story_sentences_id
 substituted for the stories_id.  As with the stories write back call, users are strongly encouraged to 
 included multiple sentences (including sentences for multiple stories) in a single call to avoid
 web service overhead.
@@ -1127,41 +1075,11 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 
 *Note:* the full list of media are not shown for space reasons.
 
-After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with `media_id=1`.
+After looking at this output, the user decides that she is interested in the "Top 25 Mainstream Media" set with `media_sets_id=1`.
 
+### Grab stories by querying stories/list
 
-### Create a subset
-
-```
-curl -X PUT -d media_set_id=1 http://mediacloud.org/api/v2/stories/subset
-```
-
-Save the `story_subsets_id`.
-
-## Wait until the subset is ready
-
-Below we show some Python code to continuously poll the server to determine whether the subset has been processed. Users could do something similar manually by issuing curl requests.
-
-```python
-import requests
-import time
-
-while True:
-    r = requests.get( 'http://mediacloud.org/api/v2/stories/subset/' + story_subsets_id, headers = { 'Accept': 'application/json'} )
-    data = r.json()
-
-    if data['ready'] == '1':
-       break
-    else:
-       time.sleep 120
-
-print "subset {} is ready".format( story_subsets_id )
-```
-
-
-### Grab stories from the processed stream
-
-Since the subset is now processed we can obtain all of its stories by repeatedly querying `list_subset_processed` and changing the `last_processed_stories_id` parameter. 
+We can obtain all stories by repeatedly querying `api/v2/stories/list` using the `q` parameter to restrict to `media_sets_id` 1 and changing the `last_processed_stories_id` parameter. 
 
 This is shown in the Python code below where `process_stories` is a user provided function to process this data.
 
@@ -1171,10 +1089,10 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows }
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'media_sets_id:1' }
 
       print "Fetching {} stories starting from {}".format( rows, start)
-      r = requests.get( 'http://mediacloud.org/api/v2/stories/list_subset_processed/' +  story_subsets_id, params = params, headers = { 'Accept': 'application/json'} )
+      r = requests.get( 'http://mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
       stories = r.json()
 
       if len(stories) == 0:
@@ -1194,25 +1112,32 @@ Currently, the best way to do this is to create a CSV file with all media source
 
 Once you have this CSV file, manually search for the New York Times. You should find an entry for the New York Times at the top of the file with `media_id = 1`.
 
+### Grab stories by querying stories/list
 
-### Create a subset
+We can obtain the desired stories by repeatedly querying `api/v2/stories/list` using the `q` parameter to restrict to `media_id` to 1 and  the `fq` parameter to restrict by date range. We repeatedly change the `last_processed_stories_id` parameter to obtain all stories.
 
+This is shown in the Python code below where `process_stories` is a user provided function to process this data.
+
+```python
+import requests
+
+start = 0
+rows  = 100
+while True:
+      params = { 'last_processed_stories_id': start, 
+      'rows': rows, 'q': 'media_set_id:1', 'fq': 'publish_date:[2010-10-01T00:00:00Z TO 2010-11-01T00:00:00Z]'  }
+
+      print "Fetching {} stories starting from {}".format( rows, start)
+      r = requests.get( 'http://mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      stories = r.json()
+
+      if len(stories) == 0:
+      	 break
+
+      start += rows
+
+      process_stories( stories )
 ```
-curl -X PUT -d start_date=2012-10-01 -d end_date=2012-11-01 -d media_id=1 http://mediacloud.org/api/v2/stories/subset
-```
-
-Save the `story_subsets_id`.
-
-
-### Wait until the subset is ready
-
-See the 25 msm example above.
-
-
-### Grab stories from the processed stream
-
-See the 25 msm example above.
-
 
 ## Get word counts for top words for sentences matching 'trayvon' in U.S. Political Blogs during April 2012
 
@@ -1291,12 +1216,12 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 ]
 ```
 
-*Note:* the list of media are not shown for space reasons.
+*Note:* the full list of media are not shown for space reasons.
 
 After looking at this output, the user decides that she is interested in the "Political Blogs" set with `media_id = 7125`.
 
 
-### Make a request for the word counts based on `media_sets_id` and sentence text and date range
+### Make a request for the word counts based on `media_sets_id`, sentence text and date range
 
 One way to appropriately restrict the data is by setting the `q` parameter to restrict by sentence content and then the `fq` parameter twice to restrict by `media_sets_id` and `publish_date`.
 
@@ -1315,7 +1240,7 @@ curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_i
 
 ## Tag sentences of a story based on whether they have an odd or even number of characters
 
-For simplicity, we assume that the user is interested in the story with `stories_id = 100`:
+For simplicity, we assume that the user is interested in the story with `stories_id = 100` and is using a tag set called 'ts'.
 
 ```python
 
@@ -1324,49 +1249,115 @@ r = requests.get( 'http://mediacloud.org/api/v2/story/single/' + stories_id, hea
 data = r.json()
 story = data[0]
 
+custom_tags = []
+tag_set_name = 'ts'
 for story_sentence in story['story_sentences']:
     sentence_length = len( story_sentence['sentence'] )
     story_sentences_id = story_sentence[ 'story_sentences_id' ]
 
-    custom_tags = set(story_sentence[ 'custom_tags' ])
-
     if sentence_length %2 == 0:
-       custom_tags.append( 'odd' )
+       tag_name = 'even'
     else:
-       custom_tags.append( 'even' )
+       tag_name = 'odd'
 
-    r = requests.put( 'http://mediacloud.org/api/v2/story_sentences/custom_tags/' + stories_id, { 'custom_tags': custom_tags}, headers = { 'Accept': 'application/json'} )  
-
-```
+    custom_tags.append( '{},{}:{}'.format( story_sentences_id, tag_set_name, tag_name )
 
 
-## Get word counts for top words for sentences with the custom sentence tag 'odd'
-
-### Make a request for the word counts based on the custom sentence tag 'odd'
-
-Below `q` is set to "custom_sentence_tag:odd". (Note that ":", "[", and "]" are URL encoded.)
+r = requests.put( 'http://mediacloud.org/api/v2/sentences/put_tags/', { 'custom_tags': custom_tags}, headers = { 'Accept': 'application/json'} )  
 
 ```
-curl 'http://mediacloud.org/api/v2/solr/wc?q=custom_sentence_tag%3Afoobar'
+
+## Get word counts for top words for sentences with the tag 'odd' in tag_set 'ts'
+
+
+###Find the tag_sets_id for 'ts'
+
+The user requests a list of all tag sets.
+
+```
+curl http://mediacloud.org/api/v2/tag_sets/list
 ```
 
+```json
+[
+  {
+    "tag_sets_id": 597,
+    "name": "gv_country"
+   },
+   // additional tag sets skipped for space
+  {
+    "tag_sets_id": 800,
+    "name": "ts"
+   },
 
-## Grab stories from 10 January 2014 with the custom tag 'foobar'
+]
+```
 
-### Create a subset
+Looking through the output, the user seeing that the tag_sets_id is 800.
+
+###Find the tags_id for 'odd' given the tag_sets_id
+
+The following Python function shows how to find a tags_id given a tag_sets_id
+
+```python
+def find_tags_id( tag_name, tag_sets_id):
+   last_tags_id = 0
+   rows  = 100
+   while True:
+      params = { 'last_tags_id': last_tags_id, 'rows': rows }
+      print "start:{} rows:{}".format( start, rows)
+      r = requests.get( 'http://mediacloud.org/api/v2/tags/list/' + tag_sets_id , params = params, headers = { 'Accept': 'application/json'} )
+      tags = r.json()
+
+      if len(tags) == 0:
+         break
+
+      for tag in tags:
+          if tag['tag'] == tag_name:
+	     return tag['tags_id']
+
+          last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
+
+   return -1
+   
+```
+
+###Request a word count using the tags_id
+
+Assume that the user determined that the user found out that the tags_id was 12345678 using the above code.
 
 ```
-curl -X PUT -d start_date=2014-01-10 -d end_date=2014-01-11 -d custom_story_tag=foobar http://mediacloud.org/api/v2/stories/subset
+curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence_tags%3A12345678'
 ```
 
-Save the `story_subsets_id`.
+## Grab stories from 10 January 2014 with the tag 'foo:bar'
 
+### Find the tag_sets_id for 'foo'
 
-### Wait until the subset is ready
+See the Get word counts for top words for sentences with the tag ‘odd’ in tag_set ‘ts’ example above.
 
-See the 25 msm example above.
+### Find the tags_id for 'bar' given the tag_sets_id
 
+### Grab stories by querying stories/list
 
-### Grab stories from the processed stream
+We assume the tags_id is 678910
 
-See the 25 msm example above.
+```
+import requests
+
+start = 0
+rows  = 100
+while True:
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'story_tags:678910' }
+
+      print "Fetching {} stories starting from {}".format( rows, start)
+      r = requests.get( 'http://mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
+      stories = r.json()
+
+      if len(stories) == 0:
+         break
+
+      start = stories[ -1 ][ 'processed_stories_id' ]
+
+      process_stories( stories )
+```
