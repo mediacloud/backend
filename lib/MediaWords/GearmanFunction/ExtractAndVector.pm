@@ -28,6 +28,10 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
 
+# This should be safe because Gearman::JobScheduler's workers don't support
+# fork()s anymore
+my $db = MediaWords::DB::connect_to_db();
+
 # extract + vector the download; die() and / or return false on error
 sub run($$)
 {
@@ -38,8 +42,6 @@ sub run($$)
     {
         die "'downloads_id' is undefined.";
     }
-
-    my $db = MediaWords::DB::connect_to_db();
 
     my $download = $db->find_by_id( 'downloads', $downloads_id );
     unless ( $download->{ downloads_id } )

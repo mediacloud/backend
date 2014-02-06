@@ -28,6 +28,10 @@ use MediaWords::CommonLibs;
 use MediaWords::CM::Dump;
 use MediaWords::DB;
 
+# This should be safe because Gearman::JobScheduler's workers don't support
+# fork()s anymore
+my $db = MediaWords::DB::connect_to_db();
+
 # Run job
 sub run($;$)
 {
@@ -38,8 +42,6 @@ sub run($;$)
     {
         die "'controversies_id' is undefined.";
     }
-
-    my $db = MediaWords::DB::connect_to_db();
 
     # No transaction started because apparently dump_controversy() does start one itself
     MediaWords::CM::Dump::dump_controversy( $db, $controversies_id );
