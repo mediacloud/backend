@@ -13,7 +13,7 @@ log() {
 }
 
 gearmand_is_enabled() {
-    local gearmand_is_enabled=`./script/run_with_carton.sh ./script/mediawords_query_config.pl //gearmand/enabled`
+    local gearmand_is_enabled=`./script/run_with_carton.sh ./script/mediawords_query_config.pl "//gearmand/enabled"`
     if [ "$gearmand_is_enabled" == "yes" ]; then
         return 0    # "true" in Bash
     else
@@ -51,10 +51,10 @@ fi
 
 # Read PostgreSQL configuration from mediawords.yml
 # (scope of the following exports is local)
-export PGHOST=`./script/run_with_carton.sh ./script/mediawords_query_config.pl "//database[label!='test']/host"`
+export PGHOST=`./script/run_with_carton.sh ./script/mediawords_query_config.pl "//database[1]/host"`
 export PGPORT=5432
-export PGUSER=`./script/run_with_carton.sh ./script/mediawords_query_config.pl "//database[label!='test']/user"`
-export PGPASSWORD=`./script/run_with_carton.sh ./script/mediawords_query_config.pl "//database[label!='test']/pass"`
+export PGUSER=`./script/run_with_carton.sh ./script/mediawords_query_config.pl "//database[1]/user"`
+export PGPASSWORD=`./script/run_with_carton.sh ./script/mediawords_query_config.pl "//database[1]/pass"`
 export PGDATABASE="mediacloud_gearman"
 
 GEARMAND_PARAMS=""
@@ -65,4 +65,5 @@ GEARMAND_PARAMS="$GEARMAND_PARAMS --libpq-table=queue"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --verbose INFO"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --log-file stderr"
 
+echo "Executing: gearmand $GEARMAND_PARAMS"
 gearmand $GEARMAND_PARAMS
