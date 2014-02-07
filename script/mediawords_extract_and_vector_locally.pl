@@ -34,7 +34,7 @@ use MediaWords::GearmanFunction::ExtractAndVector;
 # downloads are extracted by a total of num_total_jobs processings
 # a total of num_total_processes, with a unique 1-indexed job_number
 # for each job
-sub extract_text
+sub extract_text($$$$)
 {
     my ( $process_num, $num_total_processes, $num_total_jobs, $job_number ) = @_;
 
@@ -77,8 +77,10 @@ EOF
             if ( $@ or ( !$return_value ) )
             {
 
-                # Probably the download was not found
-                die "Extractor died: $@\n";
+                # Probably the download was not found (Gearman function will
+                # take care of writing an error message to the database, so we
+                # only output an error here)
+                say STDERR "Extractor died while processing download " . $download->{ downloads_id } . ": $@\n";
 
             }
 
