@@ -17,6 +17,15 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+    # persistent "gearmand" queue
+    - label : "gearman"
+      type  : "pg"
+      host  : "localhost"
+      db    : "mediacloud_gearman"
+      user  : "mediaclouduser"
+      pass  : "mediacloud"
+
+
 ### MongoDB connection settings for storing downloads in GridFS
 #mongodb_gridfs:
     ### Production database
