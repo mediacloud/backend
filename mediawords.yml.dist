@@ -1,8 +1,11 @@
 ---
 name: MediaWords
 
-### database settings. at least one database connection must be defined
+### database settings. at least one database connection must be defined. the
+### main "production" database should be the first one below.
 database:
+
+    # production
     - label : "LABEL"
       type  : "pg"
       host  : "localhost"
@@ -10,6 +13,7 @@ database:
       user  : "mediaclouduser"
       pass  : "mediacloud"
 
+    # unit tests
     - label : "test"
       type  : "pg"
       host  : "localhost"
