@@ -467,7 +467,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
     "stories_id": 27456565,
     "story_texts_id": null,
     "story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   <SENTENCES SKIPPED BECAUSE OF SPACE REASONS> You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
-    "tags": [ 1234235 ],
+    "story_tags": [ 1234235 ],
     "story_sentences": [
       {
         "language": "en",
@@ -477,7 +477,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "story_sentences_id": "525687757",
         "media_id": 1144,
         "stories_id": 27456565,
-        "tags": [ 123 ],
+        "sentence_tags": [ 123 ],
         "publish_date": "2010-11-24 04:05:00"
       },
       {
@@ -488,14 +488,14 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "publish_date": "2010-11-24 04:05:00",
         "language": "en",
         "db_row_last_updated": null,
-        "tags": [ 123 ],
+        "sentence_tags": [ 123 ],
         "sentence": "The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday."
       },
       // SENTENCES SKIPPED BECAUSE OF SPACE REASONS
       {
         "language": "en",
         "db_row_last_updated": null,
-        "tags": [ 123 ],
+        "sentence_tags": [ 123 ],
         "sentence": "You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force.",
         "story_sentences_id": "525687808",
         "sentence_number": 51,
@@ -511,7 +511,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "story_sentences_id": "525687809",
         "db_row_last_updated": null,
         "sentence": "This flag represent only the armed forces.",
-        "tags": [ 123 ],
+        "sentence_tags": [ 123 ],
         "language": "en"
       }
     ],
@@ -558,7 +558,7 @@ URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
 Return a stream of all stories processed by Media Cloud, greater than the last_processed_stories_id.
 
-URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence%3Aobama+AND+media_id%3A1
 
 Return a stream of all New York Times stories mentioning Obama greater than the given last_processed_stories_id.
 
@@ -740,7 +740,7 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
     "stem": "romnei",
     "term": "romney"
   },
-  // WORDS SKIPPED BECAUSE OF SPACE REASONS
+  // WORDS SKIPPED FOR SPACE REASONS
   {
     "count": 22,
     "stem": "swell",
@@ -761,8 +761,8 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 
 ## Tags and Tag Sets
 
-Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consist of a short snippet of text, 
-a tags\_id, and tag\_sets_id.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
+Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consists of a short snippet of text, 
+a tags\_id, and tag\_sets\_id.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
 of related tags.  Each tag set consists of a tag_sets_id and a name.
 
 For example, the 'gv_country' tag set includes the tags 'japan', 'brazil', 'haiti' and so on.  Each of these tags is associated with
@@ -898,9 +898,9 @@ These calls allow users to push data into the PostgreSQL database.
 | ------------ | -----------------------------------------------------------------
 | `story_tag`  | The stories_id and associated tag in `stories_id,tag` format.  Can be specified more than once.
 
-Each story_tag parameter associated a single story with a single tag.  To associated a story with more than one tag,
+Each story_tag parameter associates a single story with a single tag.  To associate a story with more than one tag,
 include this parameter multiple times.  A single call can include multiple stories as well as multiple tags.  Users
-are encouraged to batch writes for multiple stories into a single call to avoid web server overhead of many small
+are encouraged to batch writes for multiple stories into a single call to avoid the web server overhead of many small
 web service calls.
 
 The story_tag parameter consists of the stories_id and the tag information, separated by a comma.  The tag part of 
@@ -1098,7 +1098,7 @@ while True:
       if len(stories) == 0:
       	 break
 
-      start += rows
+      start = stories[ -1 ][ 'processed_stories_id' ]
 
       process_stories( stories )
 ```
@@ -1134,7 +1134,7 @@ while True:
       if len(stories) == 0:
       	 break
 
-      start += rows
+      start = stories[ -1 ][ 'processed_stories_id' ]
 
       process_stories( stories )
 ```
@@ -1293,7 +1293,7 @@ curl http://mediacloud.org/api/v2/tag_sets/list
 ]
 ```
 
-Looking through the output, the user seeing that the tag_sets_id is 800.
+Looking through the output, the user sees that the tag_sets_id is 800.
 
 ###Find the tags_id for 'odd' given the tag_sets_id
 
@@ -1314,7 +1314,7 @@ def find_tags_id( tag_name, tag_sets_id):
 
       for tag in tags:
           if tag['tag'] == tag_name:
-	     return tag['tags_id']
+             return tag['tags_id']
 
           last_tags_id = max( tag[ 'tags_id' ], last_tags_id )
 
@@ -1324,7 +1324,7 @@ def find_tags_id( tag_name, tag_sets_id):
 
 ###Request a word count using the tags_id
 
-Assume that the user determined that the user found out that the tags_id was 12345678 using the above code.
+Assume that the user determined that the tags_id was 12345678 using the above code.
 
 ```
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence_tags%3A12345678'
@@ -1334,13 +1334,15 @@ curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence_tags%3A12345678'
 
 ### Find the tag_sets_id for 'foo'
 
-See the Get word counts for top words for sentences with the tag ‘odd’ in tag_set ‘ts’ example above.
+See the "Get Word Counts for Top Words for Sentences with the Tag ‘odd’ in tag_set ‘ts’" example above.
 
 ### Find the tags_id for 'bar' given the tag_sets_id
 
+See the "Get Word Counts for Top Words for Sentences with the Tag ‘odd’ in tag_set ‘ts’" example above.
+
 ### Grab stories by querying stories/list
 
-We assume the tags_id is 678910
+We assume the tags_id is 678910.
 
 ```
 import requests
