@@ -24,7 +24,7 @@ Times or Instapundit.  Every story belongs to a single media source.  Each media
 
 | URL                              | Function
 | -------------------------------- | -------------------------------------------------------------
-| `api/v2/media/single/<media_id>` | Return the media source in which media_id equals `<media_id>`
+| `api/v2/media/single/<media_id>` | Return the media source in which `media_id` equals `<media_id>`
 
 #### Query Parameters 
 
@@ -409,8 +409,8 @@ Stories represents a single published piece of content.  Each unique URL downloa
 a single media source is represented by a single story.  Only one story may exist for a given title for each 24 hours 
 within a single media source.
 
-The story\_text of a story is either the content of the description field in the syndicated field or the extracted 
-text of the content downloaded from the story's URL at the collect\_date, depending on whether our full text RSS 
+The `story_text` of a story is either the content of the description field in the syndicated field or the extracted 
+text of the content downloaded from the story's URL at the `collect_date`, depending on whether our full text RSS 
 detection system has determined whether the full text of each story can be found in the RSS of a given media source.
 
 ### Output description
@@ -435,7 +435,7 @@ The following table describes the meaning and origin of fields returned by both 
 
 | URL                                  | Function
 | ------------------------------------ | ------------------------------------------------------
-| `api/v2/stories/single/<stories_id>` | Return the story in which stories_id equals `<stories_id>`
+| `api/v2/stories/single/<stories_id>` | Return the story in which `stories_id` equals `<stories_id>`
 
 #### Query Parameters 
 
@@ -556,15 +556,15 @@ The output of these calls is in exactly the same format as for the api/v2/storie
 
 URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
-Return a stream of all stories processed by Media Cloud, greater than the last_processed_stories_id.
+Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
 URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence%3Aobama+AND+media_id%3A1
 
-Return a stream of all stories from The New York Times mentioning Obama greater than the given last_processed_stories_id.
+Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
 ## Sentences
 
-The story_text of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
+The `story_text` of every story processed by Media Cloud is parsed into individual sentences.  Duplicate sentences within
 the same media source in the same week are dropped (the large majority of those duplicate sentences are 
 navigational snippets wrongly included in the extracted text by the extractor algorithm).
 
@@ -719,7 +719,7 @@ See above /api/v2/stories/list for Solr query syntax.
 
 ### Example
 
-Obtain word frequency counts for all sentences containing the word 'obama' in The New York Times
+Obtain word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
 URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 
@@ -762,10 +762,10 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 ## Tags and Tag Sets
 
 Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consists of a short snippet of text, 
-a tags\_id, and tag\_sets\_id.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
-of related tags.  Each tag set consists of a tag_sets_id and a name.
+a `tags_id`, and `tag_sets_id`.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
+of related tags.  Each tag set consists of a `tag_sets_id` and a name.
 
-For example, the 'gv_country' tag set includes the tags 'japan', 'brazil', 'haiti' and so on.  Each of these tags is associated with
+For example, the `'gv_country'` tag set includes the tags `'japan'`, `'brazil'`, `'haiti'` and so on.  Each of these tags is associated with
 some number of media sources (indicating that the given media source has been cited in a story tagged with the given country
 in a Global Voices post).
 
@@ -773,7 +773,7 @@ in a Global Voices post).
 
 | URL                              | Function
 | -------------------------------- | -------------------------------------------------------------
-| `api/v2/tags/single/<tags_id>`   | Return the tag in which tags_id equals `<tags_id>`
+| `api/v2/tags/single/<tags_id>`   | Return the tag in which `tags_id` equals `<tags_id>`
 
 #### Query Parameters 
 
@@ -835,7 +835,7 @@ URL: http://mediacloud.org/api/v2/tags/list?last_tags_id=1&rows=2&tag_sets_id=59
 
 | URL                                    | Function
 | -------------------------------------- | -------------------------------------------------------------
-| `api/v2/tag_sets/single/<tag_sets_id>` | Return the tag set in which tag_sets_id equals `<tag_sets_id>`
+| `api/v2/tag_sets/single/<tag_sets_id>` | Return the tag set in which `tag_sets_id` equals `<tag_sets_id>`
 
 #### Query Parameters 
 
@@ -862,7 +862,7 @@ Response:
 
 | URL                     | Function
 | ----------------------- | -----------------------------
-| `api/v2/tag_sets/list`  | Return all tag_sets
+| `api/v2/tag_sets/list`  | Return all `tag_sets`
 
 #### Query Parameters 
 
@@ -896,15 +896,15 @@ These calls allow users to push data into the PostgreSQL database.
 
 | Parameter    | Notes
 | ------------ | -----------------------------------------------------------------
-| `story_tag`  | The stories_id and associated tag in `stories_id,tag` format.  Can be specified more than once.
+| `story_tag`  | The `stories_id` and associated tag in `stories_id,tag` format.  Can be specified more than once.
 
-Each story_tag parameter associates a single story with a single tag.  To associate a story with more than one tag,
+Each `story_tag` parameter associates a single story with a single tag.  To associate a story with more than one tag,
 include this parameter multiple times.  A single call can include multiple stories as well as multiple tags.  Users
 are encouraged to batch writes for multiple stories into a single call to avoid the web server overhead of many small
 web service calls.
 
-The story_tag parameter consists of the stories_id and the tag information, separated by a comma.  The tag part of 
-the parameter value can be in one of two formats -- either the tags_id of the tag or the tag set name and tag
+The `story_tag` parameter consists of the `stories_id` and the tag information, separated by a comma.  The tag part of 
+the parameter value can be in one of two formats -- either the `tags_id` of the tag or the tag set name and tag
 in `<tag set>:<tag>` format, for example `gv_country:japan`.
     
 If the tag is specified in the latter format and the given tag set does not exist, a new tag set with that 
@@ -915,13 +915,13 @@ A user may only write put tags (or create new tags) within a tag set owned by th
 
 #### Example
 
-Add tag id 5678 to story id 1234.
+Add tag ID 5678 to story ID 1234.
 
 ```
 curl -X PUT -d story_tag=1234,5678 http://mediacloud.org/api/v2/stories/put_tags
 ```
 
-Add the gv_country:japan and the gv_country:brazil tags to story 1234 and the gv_country:japan tag to 
+Add the `gv_country:japan` and the `gv_country:brazil` tags to story 1234 and the `gv_country:japan` tag to 
 story 5678.
 
 ```
@@ -938,16 +938,16 @@ curl -X PUT -d story_tag=1234,gv_country:japan -d story_tag=1234,gv_country:braz
 
 | Parameter            | Notes
 | -------------------- | --------------------------------------------------------------------------
-| `sentence_tag`       | The story_sentences_id and associated tag in `story_sentences_id,tag` format.  Can be specified more than once.
+| `sentence_tag`       | The `story_sentences_id` and associated tag in `story_sentences_id,tag` format.  Can be specified more than once.
 
-The format of the sentences write back call is the same as for the stories write back call above, but with the story_sentences_id
-substituted for the stories_id.  As with the stories write back call, users are strongly encouraged to 
+The format of the sentences write back call is the same as for the stories write back call above, but with the `story_sentences_id`
+substituted for the `stories_id`.  As with the stories write back call, users are strongly encouraged to 
 included multiple sentences (including sentences for multiple stories) in a single call to avoid
 web service overhead.
 
 #### Example
 
-Add the gv_country:japan and the gv_country:brazil tags to story sentence 12345678 and the gv_country:japan tag to 
+Add the `gv_country:japan` and the `gv_country:brazil` tags to story sentence 12345678 and the `gv_country:japan` tag to 
 story sentence 56781234.
 
 ```
@@ -1079,7 +1079,7 @@ After looking at this output, the user decides that she is interested in the "To
 
 ### Grab stories by querying stories/list
 
-We can obtain all stories by repeatedly querying `api/v2/stories/list` using the `q` parameter to restrict to `media_sets_id` 1 and changing the `last_processed_stories_id` parameter. 
+We can obtain all stories by repeatedly querying api/v2/stories/list using the `q` parameter to restrict to `media_sets_id = 1` and changing the `last_processed_stories_id` parameter. 
 
 This is shown in the Python code below where `process_stories` is a user provided function to process this data.
 
@@ -1225,13 +1225,13 @@ After looking at this output, the user decides that she is interested in the "Po
 
 One way to appropriately restrict the data is by setting the `q` parameter to restrict by sentence content and then the `fq` parameter twice to restrict by `media_sets_id` and `publish_date`.
 
-Below `q` is set to "sentence:trayvon" and `fq` is set to "media_sets_id:7125" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]". (Note that ":", "[", and "]" are URL encoded.)
+Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"media_sets_id:7125" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
 ```
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon&fq=media_sets_id%3A7125&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
 ```
 
-Alternatively, we could use a single large query by setting `q` to "sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]":
+Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
 ```
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_id%3A7125+AND+publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D&fq=media_sets_id%3A7135&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
@@ -1240,7 +1240,7 @@ curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence%3Atrayvon+AND+media_sets_i
 
 ## Tag sentences of a story based on whether they have an odd or even number of characters
 
-For simplicity, we assume that the user is interested in the story with `stories_id = 100` and is using a tag set called 'ts'.
+For simplicity, we assume that the user is interested in the story with `stories_id = 100` and is using a tag set called `'ts'`.
 
 ```python
 
@@ -1267,10 +1267,10 @@ r = requests.put( 'http://mediacloud.org/api/v2/sentences/put_tags/', { 'custom_
 
 ```
 
-## Get word counts for top words for sentences with the tag 'odd' in tag_set 'ts'
+## Get word counts for top words for sentences with the tag `'odd'` in `tag_set = 'ts'`
 
 
-###Find the tag_sets_id for 'ts'
+###Find the `tag_sets_id` for `'ts'`
 
 The user requests a list of all tag sets.
 
@@ -1293,11 +1293,11 @@ curl http://mediacloud.org/api/v2/tag_sets/list
 ]
 ```
 
-Looking through the output, the user sees that the tag_sets_id is 800.
+Looking through the output, the user sees that the `tag_sets_id` is 800.
 
-###Find the tags_id for 'odd' given the tag_sets_id
+###Find the `tags_id` for `'odd'` given the `tag_sets_id`
 
-The following Python function shows how to find a tags_id given a tag_sets_id
+The following Python function shows how to find a `tags_id` given a `tag_sets_id`
 
 ```python
 def find_tags_id( tag_name, tag_sets_id):
@@ -1322,27 +1322,27 @@ def find_tags_id( tag_name, tag_sets_id):
    
 ```
 
-###Request a word count using the tags_id
+###Request a word count using the `tags_id`
 
-Assume that the user determined that the tags_id was 12345678 using the above code.
+Assume that the user determined that the `tags_id` was 12345678 using the above code.
 
 ```
 curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence_tags%3A12345678'
 ```
 
-## Grab stories from 10 January 2014 with the tag 'foo:bar'
+## Grab stories from 10 January 2014 with the tag `'foo:bar'`
 
-### Find the tag_sets_id for 'foo'
+### Find the `tag_sets_id` for `'foo'`
 
-See the "Get Word Counts for Top Words for Sentences with the Tag ‘odd’ in tag_set ‘ts’" example above.
+See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `tag_set = 'ts'`" example above.
 
-### Find the tags_id for 'bar' given the tag_sets_id
+### Find the `tags_id` for `'bar'` given the `tag_sets_id`
 
-See the "Get Word Counts for Top Words for Sentences with the Tag ‘odd’ in tag_set ‘ts’" example above.
+See the "Get Word Counts for Top Words for Sentences with the Tag `'odd'` in `tag_set = 'ts'`" example above.
 
 ### Grab stories by querying stories/list
 
-We assume the tags_id is 678910.
+We assume the `tags_id` is 678910.
 
 ```
 import requests
