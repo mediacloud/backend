@@ -17,7 +17,7 @@ http://mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 
 ## Media
 
-The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York 
+The Media API calls provide information about media sources.  A media source is a publisher of content, such as The New York 
 Times or Instapundit.  Every story belongs to a single media source.  Each media source can have zero or more feeds.
 
 ### api/v2/media/single/
@@ -32,7 +32,7 @@ None.
 
 #### Example
 
-Fetching information on the New York Times
+Fetching information on The New York Times
 
 URL: http://mediacloud.org/api/v2/media/single/1
 
@@ -264,7 +264,7 @@ Output is the same as the api/v2/media_set/single example above.
 ## Feeds
 
 A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded in between once
-an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new url found in the feed is 
+an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new URL found in the feed is 
 added to the feed's media source as a story.  Each time a web page feed is downloaded, that web page itself is added as
 a story for the feed's media source.
 
@@ -405,13 +405,13 @@ Output is the same as the api/v2/dashboard/single example above.
 
 ## Stories
 
-Stories represents a single published piece of content.  Each unique url downloaded from any syndicated feed within 
+Stories represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within 
 a single media source is represented by a single story.  Only one story may exist for a given title for each 24 hours 
 within a single media source.
 
 The story\_text of a story is either the content of the description field in the syndicated field or the extracted 
-text of the content downloaded from the story's url at the collect\_date, depending on whether our full text rss 
-detection system has determined whether the full text of each story can be found in the rss of a given media source.
+text of the content downloaded from the story's URL at the collect\_date, depending on whether our full text RSS 
+detection system has determined whether the full text of each story can be found in the RSS of a given media source.
 
 ### Output description
 
@@ -441,11 +441,11 @@ The following table describes the meaning and origin of fields returned by both 
 
 | Parameter          | Default | Notes
 | ------------------ | ------- | -----------------------------------------------------------------
-| `raw_1st_download` | 0       | If non-zero, include the full html of the first page of the story
+| `raw_1st_download` | 0       | If non-zero, include the full HTML of the first page of the story
 
 #### Example
 
-Note: This fetches data on the CC licensed Global Voices Story ["Myanmar's new flag and new name"](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) from November 2010.
+Note: This fetches data on the CC licensed Global Voices story ["Myanmar's new flag and new name"](http://globalvoicesonline.org/2010/10/26/myanmars-new-flag-and-new-name/#comment-1733161) from November 2010.
 
 URL: http://mediacloud.org/api/v2/stories/single/27456565
 
@@ -532,23 +532,23 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                       | 20      | Number of stories to return.
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
-| `q`                          | null    | If specified, return only results that match the given solr query.  Only one `q` parameter may be included.
-| `fq`                         | null    | If specified, file results by the given solr query.  More than one `fq` parameter may be included.
+| `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
+| `fq`                         | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
 
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
 `processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, 
 the user must make a series of calls to api/v2/stories/list in which `last_processed_stories_id` for each 
-call is set to the `processed_stories_id` of the last story in the previous call to the api.
+call is set to the `processed_stories_id` of the last story in the previous call to the API.
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
 the order they are processed by the system.
 
-The `q` and `fq` parameters specify queries to be sent to a solr server that indexes all Media Cloud stories.  The solr
+The `q` and `fq` parameters specify queries to be sent to a Solr server that indexes all Media Cloud stories.  The Solr
 server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual 
-sentences.  The api/v2/stories/list call searches for sentences matching the `q` and/or `fq` parameters if specified and
+sentences.  The api/v2/stories/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  The fields that may be queries consists of all the fields in the example return value in the api/v2/sentences/list call below.
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  The fields that may be queries consists of all the fields in the example return value in the api/v2/sentences/list call below.
 
 #### Example
 
@@ -560,7 +560,7 @@ Return a stream of all stories processed by Media Cloud, greater than the last_p
 
 URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence%3Aobama+AND+media_id%3A1
 
-Return a stream of all New York Times stories mentioning Obama greater than the given last_processed_stories_id.
+Return a stream of all stories from The New York Times mentioning Obama greater than the given last_processed_stories_id.
 
 ## Sentences
 
@@ -581,11 +581,11 @@ navigational snippets wrongly included in the extracted text by the extractor al
 
 --------------------------------------------------------------------------------------------------------
 
-These parameters are passed directly through to solr (see above).
+These parameters are passed directly through to Solr (see above).
 
 #### Example
 
-Fetch 10 sentences containing the word 'obama' from the New York Times
+Fetch 10 sentences containing the word 'obama' from The New York Times
 
 URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=media_id%3A1
 
@@ -715,11 +715,11 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
 
 Returns word frequency counts for all sentences returned by querying Solr using the `q` and `fq` parameters.
 
-See above /api/v2/stories/list for solr query syntax.
+See above /api/v2/stories/list for Solr query syntax.
 
 ### Example
 
-Obtain word frequency counts for all sentences containing the word 'obama' in the New York Times
+Obtain word frequency counts for all sentences containing the word 'obama' in The New York Times
 
 URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 
@@ -767,7 +767,7 @@ of related tags.  Each tag set consists of a tag_sets_id and a name.
 
 For example, the 'gv_country' tag set includes the tags 'japan', 'brazil', 'haiti' and so on.  Each of these tags is associated with
 some number of media sources (indicating that the given media source has been cited in a story tagged with the given country
-in a global voices post).
+in a Global Voices post).
 
 ### api/v2/tags/single/
 
@@ -1013,7 +1013,7 @@ This is broken down into multiple steps for convenience and because that's proba
 
 ### Find the media set
 
-We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run curl to get a quick list of the available dashboards.
+We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
 
 ```
 curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
@@ -1104,13 +1104,13 @@ while True:
 ```
 
 
-## Grab all stories in the New York Times during October 2012
+## Grab all stories in The New York Times during October 2012
 
-### Find the `media_id` of the New York Times
+### Find the `media_id` of The New York Times
 
 Currently, the best way to do this is to create a CSV file with all media sources as shown in the earlier example.
 
-Once you have this CSV file, manually search for the New York Times. You should find an entry for the New York Times at the top of the file with `media_id = 1`.
+Once you have this CSV file, manually search for The New York Times. You should find an entry for The New York Times at the top of the file with `media_id = 1`.
 
 ### Grab stories by querying stories/list
 
@@ -1146,7 +1146,7 @@ This is broken down into multiple steps for convenience and because that's proba
 
 ### Find the media set
 
-We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run curl to get a quick list of the available dashboards.
+We assume that the user is new to Media Cloud. They're interested in what sources we have available. They run cURL to get a quick list of the available dashboards.
 
 ```
 curl http://mediacloud.org/api/v2/dashboards/list&nested_data=0
