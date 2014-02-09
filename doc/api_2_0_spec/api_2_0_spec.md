@@ -951,7 +951,7 @@ Add the gv_country:japan and the gv_country:brazil tags to story sentence 123456
 story sentence 56781234.
 
 ```
-curl -X PUT -d sentene_tag=12345678,gv_country:japan -d sentence_tag=12345678,gv_country:brazil -d sentence_tag=56781234,gv_country:japan http://mediacloud.org/api/v2/sentences/put_tags
+curl -X PUT -d sentence_tag=12345678,gv_country:japan -d sentence_tag=12345678,gv_country:brazil -d sentence_tag=56781234,gv_country:japan http://mediacloud.org/api/v2/sentences/put_tags
 ```
 
 # Extended Examples
