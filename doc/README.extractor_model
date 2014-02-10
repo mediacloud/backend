@@ -1,4 +1,5 @@
-Regenerated the model based on the full data:
+These are some rouch instructions for regenerating the extractor model.
+The instructions assume that the file /home/dlarochelle/R/machine_learning/training_download_information.dat contains a Perl Store representation of download objects.
 
 Steps :
 
