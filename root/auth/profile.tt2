@@ -11,6 +11,14 @@
     <label for="full_name">Full name:</label>
     <input type="text" name="full_name" id="full_name" value="[% full_name | html %]" size="40" readonly="readonly" /><br />
 
+    <label for="api_token">API token:</label>
+    <div id="api_token" style="display: inline-block">
+        <span>[% api_token | html %]</span>
+        <br />
+        <input type="button" name="regenerate_api_token" id="regenerate_api_token" value="Regenerate API token" />
+    </div>
+    <br />
+
     <label for="notes">Notes:</label>
     <textarea name="notes" id="notes" cols="30" rows="10" readonly="readonly">[% notes | html %]</textarea><br />
 </div>
@@ -56,6 +64,20 @@
             }
             if (hasError == true) {
                 return false;
+            }
+        });
+    });
+
+    // Confirm the API token regeneration
+    jQuery(function()
+    {
+        $("div.formNameValue input[type=button]#regenerate_api_token").click(function()
+        {
+            if (confirm("Regenerate the API key?")) {
+
+                var url = "[% c.uri_for( '/admin/profile/regenerate_api_token' ) %]";
+                window.location.href = url;
+
             }
         });
     });
