@@ -518,8 +518,6 @@ sub extract_and_vector($$$;$$$)
 {
     my ( $db, $download, $process_num, $no_dedup_sentences, $no_vector ) = @_;
 
-    $db->begin_work;
-
     eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $process_num ); };
 
     if ( $@ )
@@ -529,7 +527,6 @@ sub extract_and_vector($$$;$$$)
         say STDERR "extractor error processing download $downloads_id: $@";
 
         $db->rollback;
-        $db->begin_work;
 
         $db->query(
             <<EOF,
@@ -547,6 +544,8 @@ EOF
     }
 
     # Extraction succeeded
+	$db->commit;
+
     return 1;
 }
 

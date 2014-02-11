@@ -44,6 +44,7 @@ sub run($$)
     {
         # Postpone connecting to the database so that compile test doesn't do that
         $db = MediaWords::DB::connect_to_db();
+        $db->dbh->{ AutoCommit } = 0;
     }
 
     my $downloads_id = $args->{ downloads_id };
