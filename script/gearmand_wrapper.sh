@@ -57,7 +57,11 @@ fi
 # Read PostgreSQL configuration from mediawords.yml
 # (scope of the following exports is local)
 export PGHOST=`$QUERY_CONFIG "//database[label='gearman']/host"`
-export PGPORT=5432
+PGPORT=`$QUERY_CONFIG "//database[label='gearman']/port" 2> /dev/null || echo -n`
+if [[ -z "$PGPORT" ]]; then
+    PGPORT=5432
+fi
+export PGPORT="$PGPORT"
 export PGUSER=`$QUERY_CONFIG "//database[label='gearman']/user"`
 export PGPASSWORD=`$QUERY_CONFIG "//database[label='gearman']/pass"`
 export PGDATABASE=`$QUERY_CONFIG "//database[label='gearman']/db"`
