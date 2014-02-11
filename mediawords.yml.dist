@@ -9,6 +9,7 @@ database:
     - label : "LABEL"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud"
       user  : "mediaclouduser"
       pass  : "mediacloud"
@@ -17,6 +18,7 @@ database:
     - label : "test"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud_test"
       user  : "mediaclouduser"
       pass  : "mediacloud"
@@ -25,6 +27,7 @@ database:
     - label : "gearman"
       type  : "pg"
       host  : "localhost"
+      port  : 5432
       db    : "mediacloud_gearman"
       user  : "mediaclouduser"
       pass  : "mediacloud"
