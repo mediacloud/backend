@@ -12,7 +12,9 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::GearmanFunction';
+
+# Don't log each and every extraction job into the database
+with 'Gearman::JobScheduler::AbstractFunction';
 
 BEGIN
 {
@@ -27,6 +29,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Downloads;
+use MediaWords::Util::GearmanJobSchedulerConfiguration;
 
 # Having a global database object should be safe because
 # Gearman::JobScheduler's workers don't support fork()s anymore
@@ -77,6 +80,12 @@ sub run($$)
 sub unify_logs()
 {
     return 1;
+}
+
+# (Gearman::JobScheduler::AbstractFunction implementation) Return default configuration
+sub configuration()
+{
+    return MediaWords::Util::GearmanJobSchedulerConfiguration->instance;
 }
 
 no Moose;    # gets rid of scaffolding
