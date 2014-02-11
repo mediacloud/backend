@@ -17,7 +17,7 @@ http://mediacloud.org/api/v2/media/single/1?key=KRN4T5JGJ2A
 
 ## Media
 
-The Media API calls provide information about media sources.  A media source is a publisher of content, such as The New York 
+The Media api calls provide information about media sources.  A media source is a publisher of content, such as the New York 
 Times or Instapundit.  Every story belongs to a single media source.  Each media source can have zero or more feeds.
 
 ### api/v2/media/single/
@@ -44,7 +44,7 @@ Response:
     "url": "http:\/\/nytimes.com",
     "name": "New York Times",
     "media_id": 1,
-    "media_source_tags": [
+    "tags": [
       {
         "tags_id": 1,
         "tag_sets_id": 1,
@@ -112,100 +112,12 @@ Response:
 
 URL: http://mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 
-```json
-[
-    "name": "Washington Post",
-    "url": "http:\/\/washingtonpost.com",
-    "media_id": 2,
-  {
-    "media_sets": [
-      {
-        "description": null,
-        "name": "Washington Post",
-        "media_sets_id": 18,
-        "set_type": "medium"
-      }
-    ],
-    "media_source_tags": [
-      {
-        "tags_id": 1,
-        "tag": "newspapers",
-        "tag_sets_id": 1,
-        "tag_set": "media_type"
-      },
-      {
-        "tag_set": "workflow",
-        "tag_sets_id": 4,
-        "tag": "pmcheck",
-        "tags_id": 6
-      },
-      {
-        "tag": "hrcheck",
-        "tags_id": 7,
-        "tag_set": "workflow",
-        "tag_sets_id": 4
-      },
-      {
-        "tag": "7",
-        "tags_id": 18,
-        "tag_set": "usnewspapercirculation",
-        "tag_sets_id": 3
-      },
-      {
-        "tags_id": 6071565,
-        "tag": "include",
-        "tag_set": "word_cloud",
-        "tag_sets_id": 17
-      },
-      {
-        "tag_sets_id": 17,
-        "tag_set": "word_cloud",
-        "tag": "default",
-        "tags_id": 6729599
-      },
-      {
-        "tags_id": 8875027,
-        "tag": "ap_english_us_top25_20100110",
-        "tag_set": "collection",
-        "tag_sets_id": 5
-      }
-    ]
-  },
-  {
-    "url": "http:\/\/csmonitor.com",
-    "media_id": 3,
-    "media_sets": [
-      
-    ],
-    "name": "Christian Science Monitor",
-    "media_source_tags": [
-      {
-        "tag_sets_id": 1,
-        "tag_set": "media_type",
-        "tags_id": 1,
-        "tag": "newspapers"
-      },
-      {
-        "tag": "needs",
-        "tags_id": 110,
-        "tag_sets_id": 4,
-        "tag_set": "workflow"
-      },
-      {
-        "tag_set": "workflow",
-        "tag_sets_id": 4,
-        "tags_id": 111,
-        "tag": "collection"
-      }
-    ]
-  }
-]
-```
+Output format is the same as for api/v2/media/single above.
 
 ## Media Sets
 
-A Media Set is a collection of media sources, such as U.S. Top 25 Mainstream Media or Global Voices Cited Blogs.  Each 
-media source can belong to zero or more media sets.  Each Media Set belongs to exactly one dashboard.
+A media set is a collection of media sources, such as U.S. Top 25 Mainstream Media or Global Voices Cited Blogs.  Each 
+media source can belong to zero or more media sets.  Each media set belongs to zero or more dashboards.
 
 ### api/v2/media_set/single
 
@@ -263,7 +175,7 @@ Output is the same as the api/v2/media_set/single example above.
 
 ## Feeds
 
-A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded in between once
+A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded between once
 an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new URL found in the feed is 
 added to the feed's media source as a story.  Each time a web page feed is downloaded, that web page itself is added as
 a story for the feed's media source.
@@ -274,7 +186,7 @@ Each feed belongs to a single media source.  Each story can belong to one or mor
 
 | URL                              | Function
 | -------------------------------- | --------------------------------------------------------
-| `api/v2/feeds/single/<feeds_id>` | Return the feed in which `feeds_id` equals `<feeds_id>`
+| `api/v2/feeds/single/<feeds_id>` | Return the feed for which `feeds_id` equals `<feeds_id>`
 
 #### Query Parameters 
 
@@ -312,37 +224,18 @@ URL: http://mediacloud.org/api/v2/feeds/single/1
 
 URL: http://mediacloud.org/api/v2/feeds/list?media_id=1
 
-```json
-[
-  {
-    "name": "DealBook",
-    "url": "http:\/\/dealbook.blogs.nytimes.com\/rss2.xml",
-    "feeds_id": 2,
-    "feed_type": "syndicated",
-    "feed_status": "active",
-    "media_id": 1
-  },
-  {
-    "name": "Essential Knowledge of the Day",
-    "url": "http:\/\/feeds.feedburner.com\/essentialknowledge",
-    "feeds_id": 3,
-    "feed_type": "syndicated",
-    "feed_status": "active",
-    "media_id": 1
-  }
-]
-```
+Output format is the same as for api/v2/feeds/single above.
 
 ## Dashboards
 
 A dashboard is a collection of media sets, for example US/English or Russian.  Dashboards are useful for finding the core
-media sets related to some topic, usually a country.  Each media set can belong to only a single dashboard.
+media sets related to some topic, usually a country.  Each media set can belong to zero or more dashboards.
 
 ### api/v2/dashboard/single
 
 | URL                                       | Function
 | ----------------------------------------- | ----------------------------------------------------------------------
-| `api/v2/dashboard/single/<dashboards_id>` | Return the dashboard in which `dashboards_id` equals `<dashboards_id>`
+| `api/v2/dashboard/single/<dashboards_id>` | Return the dashboard for which `dashboards_id` equals `<dashboards_id>`
 
 #### Query Parameters 
 
@@ -405,13 +298,14 @@ Output is the same as the api/v2/dashboard/single example above.
 
 ## Stories
 
-Stories represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within 
-a single media source is represented by a single story.  Only one story may exist for a given title for each 24 hours 
+A story represents a single published piece of content.  Each unique URL downloaded from any syndicated feed within 
+a single media source is represented by a single story.  For example, a single New York Times newspaper story is a 
+Media Cloud story, as is a single Instapundit blog post.  Only one story may exist for a given title for each 24 hours 
 within a single media source.
 
 The `story_text` of a story is either the content of the description field in the syndicated field or the extracted 
 text of the content downloaded from the story's URL at the `collect_date`, depending on whether our full text RSS 
-detection system has determined whether the full text of each story can be found in the RSS of a given media source.
+detection system has determined that the full text of each story can be found in the RSS of a given media source.
 
 ### Output description
 
@@ -435,7 +329,7 @@ The following table describes the meaning and origin of fields returned by both 
 
 | URL                                  | Function
 | ------------------------------------ | ------------------------------------------------------
-| `api/v2/stories/single/<stories_id>` | Return the story in which `stories_id` equals `<stories_id>`
+| `api/v2/stories/single/<stories_id>` | Return the story for which `stories_id` equals `<stories_id>`
 
 #### Query Parameters 
 
@@ -467,7 +361,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
     "stories_id": 27456565,
     "story_texts_id": null,
     "story_text": " \t\t\t\t\t\tMyanmar's new flag and new name\t\t    The new flag, designated in the 2008 Constitution, has a central star set against a yellow, green and red background.   The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday.   <SENTENCES SKIPPED BECAUSE OF SPACE REASONS> You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force. This flag represent only the armed forces.  ",
-    "story_tags": [ 1234235 ],
+    "tags": [ 1234235 ],
     "story_sentences": [
       {
         "language": "en",
@@ -477,7 +371,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "story_sentences_id": "525687757",
         "media_id": 1144,
         "stories_id": 27456565,
-        "sentence_tags": [ 123 ],
+        "tags": [ 123 ],
         "publish_date": "2010-11-24 04:05:00"
       },
       {
@@ -488,14 +382,14 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "publish_date": "2010-11-24 04:05:00",
         "language": "en",
         "db_row_last_updated": null,
-        "sentence_tags": [ 123 ],
+        "tags": [ 123 ],
         "sentence": "The old flags will be lowered by government department officials who were born on a Tuesday, while the new flags will be raised by officials born on a Wednesday."
       },
       // SENTENCES SKIPPED BECAUSE OF SPACE REASONS
       {
         "language": "en",
         "db_row_last_updated": null,
-        "sentence_tags": [ 123 ],
+        "tags": [ 123 ],
         "sentence": "You know That big white star is also the only star on the colors of Myanmar's tatmadaw, navy, air force and police force.",
         "story_sentences_id": "525687808",
         "sentence_number": 51,
@@ -511,7 +405,7 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
         "story_sentences_id": "525687809",
         "db_row_last_updated": null,
         "sentence": "This flag represent only the armed forces.",
-        "sentence_tags": [ 123 ],
+        "tags": [ 123 ],
         "language": "en"
       }
     ],
@@ -541,14 +435,15 @@ the user must make a series of calls to api/v2/stories/list in which `last_proce
 call is set to the `processed_stories_id` of the last story in the previous call to the API.
 
 *Note:* `stories_id` and `processed_stories_id` are separate values. The order in which stories are processed is different than the `stories_id` order. The processing pipeline involves downloading, extracting, and vectoring stories. Requesting by the `processed_stories_id` field guarantees that the user will receive every story (matching the query criteria if present) in
-the order they are processed by the system.
+the order it is processed by the system.
 
 The `q` and `fq` parameters specify queries to be sent to a Solr server that indexes all Media Cloud stories.  The Solr
 server provides full text search indexing of each sentence collected by Media Cloud.  All content is stored as individual 
 sentences.  The api/v2/stories/list call searches for sentences matching the `q` and / or `fq` parameters if specified and
 the stories that include at least one sentence returned by the specified query.
 
-The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  The fields that may be queries consists of all the fields in the example return value in the api/v2/sentences/list call below.
+The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  All the return fields (in the example return value in the api/v2/sentences/list call below) may be used 
+as solr query parameters, for example 'sentence:obama AND media_id:1'.
 
 #### Example
 
@@ -558,7 +453,7 @@ URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence%3Aobama+AND+media_id%3A1
+URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
@@ -706,14 +601,18 @@ URL:  http://mediacloud.org/api/v2/solr/sentences?q=sentence%3Aobama&rows=10&fq=
 
 ### api/v2/wc
 
+Returns word frequency counts of the 5000 most commwords in all sentences returned by 
+querying Solr using the `q` and `fq` parameters, with stopwords removed.  Words are stemmed
+before being counted.  For each word, the call returns the stem and the full term most used 
+with the given stem (for example, in the below example, 'romnei' is the stem that appeared 
+7969 times and 'romney' is the word that was most commonly stemmed into 'romnei').
+
 #### Query Parameters
 
 | Parameter | Default | Notes
 | --------- | ------- | ----------------------------------------------------------------
 | `q`       | n/a     | `q` ("query") parameter which is passed directly to Solr
 | `fq`      | `null`  | `fq` ("filter query") parameter which is passed directly to Solr
-
-Returns word frequency counts for all sentences returned by querying Solr using the `q` and `fq` parameters.
 
 See above /api/v2/stories/list for Solr query syntax.
 
@@ -763,9 +662,10 @@ URL:  http://mediacloud.org/api/v2/solr/wc?q=sentence%3Aobama&fq=media_id%3A1
 
 Media Cloud associates tags with media sources, stories, and individual sentences.  A tag consists of a short snippet of text, 
 a `tags_id`, and `tag_sets_id`.  Each tag belongs to a single tag set.  The tag set provides a separate name space for a group
-of related tags.  Each tag set consists of a `tag_sets_id` and a name.
+of related tags.  Each tag has a unique name ('tag') within its tag set.  Each tag set consists of a tag_sets_id and a uniaue 
+name.
 
-For example, the `'gv_country'` tag set includes the tags `'japan'`, `'brazil'`, `'haiti'` and so on.  Each of these tags is associated with
+For example, the `'gv_country'` tag set includes the tags `japan`, `brazil`, `haiti` and so on.  Each of these tags is associated with
 some number of media sources (indicating that the given media source has been cited in a story tagged with the given country
 in a Global Voices post).
 
@@ -1327,7 +1227,7 @@ def find_tags_id( tag_name, tag_sets_id):
 Assume that the user determined that the `tags_id` was 12345678 using the above code.
 
 ```
-curl 'http://mediacloud.org/api/v2/solr/wc?q=sentence_tags%3A12345678'
+curl 'http://mediacloud.org/api/v2/solr/wc?q=tags%3A12345678'
 ```
 
 ## Grab stories from 10 January 2014 with the tag `'foo:bar'`
@@ -1350,7 +1250,7 @@ import requests
 start = 0
 rows  = 100
 while True:
-      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'story_tags:678910' }
+      params = { 'last_processed_stories_id': start, 'rows': rows, 'q': 'tags_id_stories:678910' }
 
       print "Fetching {} stories starting from {}".format( rows, start)
       r = requests.get( 'http://mediacloud.org/api/v2/stories/list/', params = params, headers = { 'Accept': 'application/json'} )
