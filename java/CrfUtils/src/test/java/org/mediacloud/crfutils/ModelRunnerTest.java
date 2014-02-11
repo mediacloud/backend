@@ -2,6 +2,7 @@ package org.mediacloud.crfutils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
@@ -10,6 +11,8 @@ import org.apache.commons.lang.StringUtils;
 public class ModelRunnerTest extends TestCase {
 
     private final String test_extractor_model_filename = "test_extractor_model";
+    private final String test_input_txt = "test_input.txt";
+    private final String test_output_txt = "test_output.txt";
 
     private final String extractor_model_path;
 
@@ -32,10 +35,24 @@ public class ModelRunnerTest extends TestCase {
 
     public ModelRunnerTest() throws IOException {
 
-        this.extractor_model_path = ModelRunnerTest.class.getResource(test_extractor_model_filename).getPath();
+        URL extractorModelURL = ModelRunnerTest.class.getResource(test_extractor_model_filename);
+        if (null == extractorModelURL) {
+            throw new IOException("Unable to find test extractor model '" + test_extractor_model_filename + "'");
+        }
+        this.extractor_model_path = extractorModelURL.getPath();
+        if (null == this.extractor_model_path) {
+            throw new IOException("Unable to determine extractor model path for text extractor model '" + test_extractor_model_filename + "'");
+        }
 
-        this.test_input = getResourceAsString("test_input.txt");
-        this.test_output = getResourceAsString("test_output.txt");
+        this.test_input = getResourceAsString(test_input_txt);
+        if (null == this.test_input) {
+            throw new IOException("Unable to read test input file '" + test_input_txt + "'");
+        }
+
+        this.test_output = getResourceAsString(test_output_txt);
+        if (null == this.test_output) {
+            throw new IOException("Unable to read test output file '" + test_output_txt + "'");
+        }
     }
 
     public void testCRF() throws IOException, FileNotFoundException, ClassNotFoundException, Exception {
