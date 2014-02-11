@@ -1163,7 +1163,7 @@ for story_sentence in story['story_sentences']:
     custom_tags.append( '{},{}:{}'.format( story_sentences_id, tag_set_name, tag_name )
 
 
-r = requests.put( 'http://mediacloud.org/api/v2/sentences/put_tags/', { 'custom_tags': custom_tags}, headers = { 'Accept': 'application/json'} )  
+r = requests.put( 'http://mediacloud.org/api/v2/sentences/put_tags/', { 'sentence_tag': custom_tags }, headers = { 'Accept': 'application/json'} )  
 
 ```
 
