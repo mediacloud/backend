@@ -7,6 +7,30 @@
     <name>CrfUtils</name>
 
     <packaging>jar</packaging>
+    
+    <build>
+        <testResources>
+            
+            <!-- Use a "live" Media Cloud extractor model from lib/CRF/models/ for testing -->
+            <testResource>
+                <directory>${basedir}/../../lib/CRF/models/</directory>
+                <targetPath>org/mediacloud/crfutils</targetPath>
+                <includes>
+                    <include>extractor_model</include>
+                </includes>
+            </testResource>
+            
+            <!-- Include "test input" and "expected output" files too -->
+            <testResource>
+                <directory>src/test/resources/org/mediacloud/crfutils/</directory>
+                <targetPath>org/mediacloud/crfutils</targetPath>
+                <includes>
+                    <include>test_input.txt</include>
+                    <include>test_output.txt</include>
+                </includes>
+            </testResource>
+        </testResources>
+    </build>
   
     <dependencies>
         
