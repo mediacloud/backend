@@ -323,6 +323,7 @@ The following table describes the meaning and origin of fields returned by both 
 | `tags` | A list of any tags associated with this story, including those written through the write-back api.
 | `collect_date`      | The date the RSS feed was actually downloaded.
 | `guid`              | The GUID field in the RSS feed. Defaults to the URL if no GUID is specified in the RSS feed.
+| `corenlp`           | The raw json result from running the story text through the CoreNLP pipeline.
 
 
 ### api/v2/stories/single
@@ -336,6 +337,7 @@ The following table describes the meaning and origin of fields returned by both 
 | Parameter          | Default | Notes
 | ------------------ | ------- | -----------------------------------------------------------------
 | `raw_1st_download` | 0       | If non-zero, include the full HTML of the first page of the story
+| `corenlp`          | 0       | If non-zero, include the corenlp json document with each story and each sentence
 
 #### Example
 
@@ -426,8 +428,10 @@ URL: http://mediacloud.org/api/v2/stories/single/27456565
 | `last_processed_stories_id`  | 0       | Return stories in which the `processed_stories_id` is greater than this value.
 | `rows`                       | 20      | Number of stories to return.
 | `raw_1st_download`           | 0       | If non-zero, include the full HTML of the first page of the story.
+| `corenlp`                    | 0       | If non-zero, include the corenlp json document with each story and each sentence
 | `q`                          | null    | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included.
 | `fq`                         | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included.
+
 
 The `last_processed_stories_id` parameter can be used to page through these results. The API will return stories with a 
 `processed_stories_id` greater than this value.  To get a continuous stream of stories as they are processed by Media Cloud, 
