@@ -56,9 +56,11 @@ __PACKAGE__->config(
 
 __PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 } );
 
+
+
 =head1 AUTHOR
 
-Alexandra J. Sternburg
+David Larochelle
 
 =head1 LICENSE
 

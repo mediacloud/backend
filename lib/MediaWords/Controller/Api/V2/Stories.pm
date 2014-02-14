@@ -253,7 +253,7 @@ sub subset_GET : Local
 
 =head1 AUTHOR
 
-Alexandra J. Sternburg
+David Larochelle
 
 =head1 LICENSE
 
