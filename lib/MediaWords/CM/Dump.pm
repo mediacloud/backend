@@ -353,12 +353,19 @@ END
     $tag_clause_list = ", $tag_clause_list" if ( $tag_clause_list );
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
-select distinct s.stories_id, s.title, s.url, s.publish_date, 
+select distinct s.stories_id, s.title, s.url,
+        case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
         slc.inlink_count, slc.outlink_count $tag_clause_list
-	from dump_stories s, dump_media m, dump_story_link_counts slc 
-	where s.media_id = m.media_id and s.stories_id = slc.stories_id
-	order by slc.inlink_count;
+	from dump_stories s
+	    join dump_media m on ( s.media_id = m.media_id )
+	    join dump_story_link_counts slc on ( s.stories_id = slc.stories_id ) 
+	    left join (
+	        stories_tags_map stm
+                join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
+                join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_invalid' ) )
+            on ( stm.stories_id = s.stories_id )
+	order by slc.inlink_count
 END
 
     return $csv;

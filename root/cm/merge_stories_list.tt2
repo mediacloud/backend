@@ -1,0 +1,26 @@
+[% PROCESS cm/header.tt2 title="Merge Stories List" %]
+
+<fieldset>
+
+<form action="[% c.uri_for( '/admin/cm/merge_stories_list/' _ controversy.controversies_id ) %]" method="POST" >
+
+<div class="text label">
+
+<label>List of Story IDs</label>
+<textarea name="stories_ids" rows="16" cols="32">
+&lt;keep_id&gt;,&lt;delete_id&gt;
+</textarea>
+List of story ids to merge.
+
+</div>
+
+<div class="submit">
+<input type="submit" name="submit" value="Merge" />
+
+</div>
+
+</form>
+
+</fieldset>
+
+[% INCLUDE dashboard/footer.tt2 %]
