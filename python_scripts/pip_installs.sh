@@ -10,3 +10,4 @@ sudo pip install joblib
 sudo pip install bitly_api
 sudo pip install ipython[all]
 sudo pip install psycopg2
+sudo pip install choice

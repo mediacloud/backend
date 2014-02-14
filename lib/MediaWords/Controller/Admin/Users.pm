@@ -59,6 +59,33 @@ sub delete : Local
     $c->stash->{ template }      = 'users/delete.tt2';
 }
 
+# regenerate API token
+sub regenerate_api_token : Local
+{
+    my ( $self, $c ) = @_;
+
+    my $email = $c->request->param( 'email' );
+    if ( !$email )
+    {
+        $c->response->redirect( $c->uri_for( '/admin/users/list', { error_msg => "Empty email address." } ) );
+        return;
+    }
+
+    # Delete user
+    my $regenerate_api_token_error_message =
+      MediaWords::DBI::Auth::regenerate_api_token_or_return_error_message( $c->dbis, $email );
+    if ( $regenerate_api_token_error_message )
+    {
+        $c->response->redirect(
+            $c->uri_for( '/admin/users/edit', { email => $email, error_msg => $regenerate_api_token_error_message } ) );
+        return;
+    }
+
+    $c->response->redirect(
+        $c->uri_for( '/admin/users/edit', { email => $email, status_msg => "API token has been regenerated." } ) );
+
+}
+
 # delete user
 sub delete_do : Local
 {
@@ -280,6 +307,9 @@ sub edit : Local
 
         my $el_roles = $form->get_element( { name => 'roles', type => 'Checkboxgroup' } );
         $el_roles->options( \@roles_options );
+
+        my $el_regenerate_api_token = $form->get_element( { name => 'regenerate_api_token', type => 'Button' } );
+        $el_regenerate_api_token->comment( $userinfo->{ api_token } );
 
         $form->default_values(
             {

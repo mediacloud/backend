@@ -7,10 +7,10 @@
 #    [ --controversy < controversy id or name > ] [ --source < source description > ]
 #
 # the csv must include 'url' and 'source' headers.  the csv must also include a 'controversy' header
-# unless a default controversy is specified on the commabnd line. the csv may also include
+# unless a default controversy is specified on the command line. the csv may also include
 # an 'assume_match' column, which indicates whether the controversy mining process
 # should assume that the given url matches the controversy and should be
-# 1 or 0 (the default is 0).  if there
+# 1 or 0 (the default is 0).
 
 use strict;
 
