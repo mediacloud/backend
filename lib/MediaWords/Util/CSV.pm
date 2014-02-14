@@ -55,6 +55,19 @@ sub send_hashes_as_csv_page
     $c->res->body( $encoded_output );
 }
 
+# given a csv string without headers, return a list of lists of values
+sub get_csv_string_as_matrix
+{
+    my ( $string ) = @_;
+    
+    my $csv = Text::CSV->new ( { binary => 1 } );
+    
+    my $fh;
+    open( $fh, '<', \$string);
+    
+    return $csv->getline_all( $fh );
+}
+
 # given a file name, open the file, parse it as a csv, and return a list of hashes.
 # assumes that the csv includes a header line.  If normalize_column_names is true,
 # lowercase and underline column names ( 'Media type' -> 'media_type' )
