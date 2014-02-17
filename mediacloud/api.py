@@ -8,6 +8,7 @@ class MediaCloud(object):
     Simple client library for the nascent MediaCloud story feed API
     '''
 
+    V2_API_URL = "http://www.mediacloud.org/api/v2/"
     API_URL = "http://mediacloud.org/admin/api/"
     SOLR_URL = "http://mediacloud.org/admin/query/"
     DEFAULT_STORY_COUNT = 25
@@ -23,6 +24,12 @@ class MediaCloud(object):
         Return the lastest fully processed 20 stories (ie. with sentences pulled out)
         '''
         return self._queryForJson(self.API_URL+'stories/all_processed', { 'page':page } )
+
+    def storyDetails(self, story_id):
+        '''
+        Return full informatino about one story
+        '''
+        return self._queryForJson(self.V2_API_URL+'stories/stories_query/'+str(story_id))[0]
 
     def _queryForJson(self, url, params={}, http_method='GET'):
         '''

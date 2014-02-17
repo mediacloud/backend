@@ -52,5 +52,12 @@ class ApiTest(unittest.TestCase):
     	for story_id, sentences in stories.iteritems():
     		self.assertTrue( len(sentences) > 0 )
 
+    def testStoryDetails(self):
+        mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
+        story = mc.storyDetails(169440976)
+        self.assertTrue(story is not None)
+        self.assertEquals(story['media_id'],1)
+        self.assertEquals(story['url'],'http://www-nc.nytimes.com/2005/12/16/politics/16program.html?=scp=1&sq=James%20Risen%20nsa%20surveillance&st=cse&_r=6&')
+
     def suite():
         return unittest.makeSuite(ApiTest, 'test')
