@@ -29,7 +29,7 @@ class ApiTest(unittest.TestCase):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
     	results = mc.sentencesMatching('( mars OR robot )', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
     	self.assertEquals(int(results['responseHeader']['status']),0)
-    	self.assertEquals(int(results['response']['numFound']),6739)
+    	self.assertEquals(int(results['response']['numFound']),6742)
     	self.assertEquals(len(results['response']['docs']), 5000)
 
     def testSentencesMatchingPaging(self):
@@ -38,12 +38,12 @@ class ApiTest(unittest.TestCase):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
     	# test limiting rows returned
     	results = mc.sentencesMatching(query_str, filter_str,0,100)
-    	self.assertEquals(int(results['response']['numFound']), 6739)
+    	self.assertEquals(int(results['response']['numFound']), 6742)
     	self.assertEquals(len(results['response']['docs']), 100)
     	# test starting offset
     	results = mc.sentencesMatching(query_str, filter_str,6700)
-    	self.assertEquals(int(results['response']['numFound']), 6739)
-    	self.assertEquals(len(results['response']['docs']), 39)
+    	self.assertEquals(int(results['response']['numFound']), 6742)
+    	self.assertEquals(len(results['response']['docs']), 42)
 
     def testSentencesMatchingByStory(self):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
