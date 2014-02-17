@@ -60,5 +60,5 @@ Notice you get a `mediacloud-api.log` that tells you about each query it runs.
 Distribution
 ------------
 
-To build the distributon, run `python setup.py sdist` and a compressed file will be created in 
-the `dist` directory.
+To build the distributon, update the version numbers in `mediacloud/__init__.py` and `setup.py`.
+Then run `python setup.py sdist` and a compressed file will be created in the `dist` directory.
