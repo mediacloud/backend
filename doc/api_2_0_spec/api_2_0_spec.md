@@ -1127,7 +1127,7 @@ curl http://mediacloud.org/api/v2/dashboards/single/1
 
 *Note:* the full list of media are not shown for space reasons.
 
-After looking at this output, the user decides that she is interested in the "Political Blogs" set with `media_id = 7125`.
+After looking at this output, the user decides that she is interested in the "Political Blogs" set with `media_sets_id = 7125`.
 
 
 ### Make a request for the word counts based on `media_sets_id`, sentence text and date range
