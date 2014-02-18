@@ -125,6 +125,8 @@ sub list_GET : Local
 
     say STDERR "starting list_GET";
 
+    return unless $self->_valid_api_key( $c );
+
     my $last_media_id = $c->req->param( 'last_media_id' );
     say STDERR "last_media_id: $last_media_id";
 
