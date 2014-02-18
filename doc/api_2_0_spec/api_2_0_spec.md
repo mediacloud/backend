@@ -770,6 +770,11 @@ Response:
 
 #### Query Parameters 
 
+| Parameter          | Default | Notes
+| ------------------ | ------- | -----------------------------------------------------------------
+| `last_tag_sets_id` | 0       | Return tag sets with a `tag_sets_id` greater than this value
+| `rows`             | 20      | Number of tag sets to return. Cannot be larger than 100
+
 None.
 
 #### Example
