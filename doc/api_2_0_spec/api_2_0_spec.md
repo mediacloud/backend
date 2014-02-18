@@ -457,7 +457,7 @@ URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
+URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence%3Aobama+AND+media_id%3A1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
