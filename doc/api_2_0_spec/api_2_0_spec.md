@@ -793,7 +793,7 @@ URL: http://mediacloud.org/api/v2/tag_sets/list
 
 ## Write Back API
 
-These calls allow users to push data into the PostgreSQL database.
+These calls allow users to push data into the PostgreSQL database. This data will then be imported from Postgresql into Solr.
 
 ### api/v2/stories/put_tags (PUT)
 
