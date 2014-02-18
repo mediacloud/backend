@@ -31,8 +31,8 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
         BEGIN
            IF NOT EXISTS (
               SELECT *
-              FROM   pg_catalog.pg_user
-              WHERE  usename = '$db_credentials_user') THEN
+              FROM   pg_roles
+              WHERE  rolname = '$db_credentials_user') THEN
 
               CREATE ROLE $db_credentials_user WITH SUPERUSER PASSWORD '$db_credentials_pass';
            END IF;
