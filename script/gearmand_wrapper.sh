@@ -39,6 +39,7 @@ gearmand_is_installed() {
 # ---
 #
 
+echo "Testing environment..."
 if ! gearmand_is_enabled; then
     log "'gearmand' is not enabled."
     log "Please enable it in 'mediawords.yml' by setting /gearmand/enabled to 'yes'."
@@ -54,6 +55,7 @@ if ! gearmand_is_installed; then
     exit 1
 fi
 
+echo "Reading configuration..."
 # Read PostgreSQL configuration from mediawords.yml
 # (scope of the following exports is local)
 export PGHOST=`$QUERY_CONFIG "//database[label='gearman']/host"`
