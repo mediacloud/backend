@@ -34,7 +34,7 @@ for db_selector in "${DB_CREDENTIALS_SELECTORS[@]}"; do
               FROM   pg_roles
               WHERE  rolname = '$db_credentials_user') THEN
 
-              CREATE ROLE $db_credentials_user WITH SUPERUSER PASSWORD '$db_credentials_pass';
+              CREATE ROLE $db_credentials_user WITH SUPERUSER LOGIN PASSWORD '$db_credentials_pass';
            END IF;
         END
         \$body\$;
