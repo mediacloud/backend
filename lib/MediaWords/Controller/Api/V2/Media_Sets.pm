@@ -30,7 +30,7 @@ Catalyst Controller.
 
 =cut
 
-BEGIN { extends 'Catalyst::Controller::REST' }
+BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     'default'   => 'application/json',
