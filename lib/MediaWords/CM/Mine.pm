@@ -733,7 +733,6 @@ sub story_matches_controversy_pattern
     return story_sentence_matches_pattern( $db, $story, $query_story_search ) ? 'sentence' : 0;
 }
 
-
 # add to controversy_stories table
 sub add_to_controversy_stories
 {
