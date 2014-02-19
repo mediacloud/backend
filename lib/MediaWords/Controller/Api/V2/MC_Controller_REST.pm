@@ -3,6 +3,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::StorySubsets;
+use MediaWords::DBI::Auth;
 
 use strict;
 use warnings;
@@ -56,23 +57,19 @@ __PACKAGE__->config(
 
 __PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 } );
 
-sub _valid_api_key
+sub invalid_key : Local
 {
-    my ( $self, $c ) = @_;
+    my ( $self, $c) = @_;
 
-    my $api_auth = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
+    say STDERR "invalid key";
 
-    if (! $api_auth) {
-	$self->status_forbidden(
-	    $c,
-	    message => "Invalid key. Access denied",
-	    );
-	return ;
-    }
+    $self->status_forbidden(
+	$c,
+	message => "Invalid key. Access denied",
+	);
 
-    return $api_auth;
+    return ;
 }
-
 
 =head1 AUTHOR
 
