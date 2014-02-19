@@ -59,12 +59,12 @@ sub send_hashes_as_csv_page
 sub get_csv_string_as_matrix
 {
     my ( $string ) = @_;
-    
-    my $csv = Text::CSV->new ( { binary => 1 } );
-    
+
+    my $csv = Text::CSV->new( { binary => 1 } );
+
     my $fh;
-    open( $fh, '<', \$string);
-    
+    open( $fh, '<', \$string );
+
     return $csv->getline_all( $fh );
 }
 

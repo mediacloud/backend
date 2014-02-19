@@ -822,8 +822,8 @@ sub story : Local
     }
 
     $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
-    $story->{ controversy_match } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $story  );
-    
+    $story->{ controversy_match } = MediaWords::CM::Mine::story_matches_controversy_pattern( $db, $controversy, $story );
+
     $db->commit;
 
     my $confirm_remove = $c->req->params->{ confirm_remove };
@@ -923,7 +923,8 @@ sub remove_stories : Local
 
     for my $stories_id ( @{ $stories_ids } )
     {
-        _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username, $c->req->params->{ reason } );
+        _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username,
+            $c->req->params->{ reason } );
     }
 
     my $status_msg = scalar( @{ $stories_ids } ) . " stories removed from controversy.";
@@ -1003,9 +1004,8 @@ END
         $db->begin;
 
         eval {
-            map {
-                _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id, $c->user->username, $reason )
-            } @{ $stories };
+            map { _remove_story_from_controversy( $db, $_->{ stories_id }, $controversies_id, $c->user->username, $reason ) }
+              @{ $stories };
         };
         if ( $@ )
         {
@@ -1105,14 +1105,12 @@ sub _remove_story_from_controversy($$$$$)
     $reason ||= '';
 
     eval {
-        
+
         # Do the change
         MediaWords::CM::Mine::remove_story_from_controversy( $db, $stories_id, $controversies_id );
 
         # Log the activity
-        my $change = {
-            'stories_id' => $stories_id + 0
-        };
+        my $change = { 'stories_id' => $stories_id + 0 };
         unless (
             MediaWords::DBI::Activities::log_activity(
                 $db, 'cm_remove_story_from_controversy',
@@ -1238,13 +1236,13 @@ sub merge_media : Local : FormConfig
 sub _merge_stories
 {
     my ( $c, $controversy, $story, $to_story, $reason ) = @_;
-    
+
     $reason ||= '';
-    
+
     my $db = $c->dbis;
-    
+
     return 1 if ( $story->{ stories_id } == $to_story->{ stories_id } );
-    
+
     eval { MediaWords::CM::Mine::merge_dup_story( $db, $controversy, $story, $to_story ); };
     if ( $@ )
     {
@@ -1256,11 +1254,12 @@ sub _merge_stories
 
     # Log the activity
     my $change = { stories_id => $story->{ stories_id }, to_stories_id => $to_story->{ stories_id } };
-    
-    my $logged = MediaWords::DBI::Activities::log_activity(
-        $db, 'cm_story_merge', $c->user->username, $controversy->{ controversies_id },
+
+    my $logged =
+      MediaWords::DBI::Activities::log_activity( $db, 'cm_story_merge', $c->user->username,
+        $controversy->{ controversies_id },
         $reason, $change );
-        
+
     if ( !$logged )
     {
         $db->rollback;
@@ -1268,7 +1267,7 @@ sub _merge_stories
         print STDERR "Unable to log the activity of merging stories.\n";
         return 0;
     }
-    
+
     return 1;
 }
 
@@ -1335,11 +1334,12 @@ sub merge_stories : Local : FormConfig
     if ( !$stories_merged )
     {
         $status_msg = 'There was an error merging the stories.';
-    } 
-    else {
+    }
+    else
+    {
         $status_msg = 'The stories have been merged in this controversy.';
     }
-    
+
     my $u = $c->uri_for( "/admin/cm/story/$to_stories_id", { cdts => $cdts_id, status_msg => $status_msg, l => 1 } );
     $c->response->redirect( $u );
 }
@@ -1476,19 +1476,19 @@ sub delete_stories : Local
     my $db = $c->dbis;
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
-        || die( "unable to find controversy '$controversies_id'" );
-    
+      || die( "unable to find controversy '$controversies_id'" );
+
     my $stories_ids_list = $c->req->params->{ stories_ids } || '';
     my $stories_ids = [ grep { /^\d+$/ } split( /\s+/, $stories_ids_list ) ];
 
     if ( !@{ $stories_ids } )
     {
-        $c->stash->{ error_msg } = 'no valid story ids in list' if ( $stories_ids_list );
+        $c->stash->{ error_msg }   = 'no valid story ids in list' if ( $stories_ids_list );
         $c->stash->{ controversy } = $controversy;
-        $c->stash->{ template } = 'cm/delete_stories.tt2';
+        $c->stash->{ template }    = 'cm/delete_stories.tt2';
         return;
     }
-    
+
     for my $stories_id ( @{ $stories_ids } )
     {
         _remove_story_from_controversy( $db, $stories_id, $controversies_id, $c->user->username, 'batch removal' );
@@ -1498,7 +1498,7 @@ sub delete_stories : Local
     $c->res->redirect( $c->uri_for( "/admin/cm/view/$controversies_id", { status_msg => $status_msg } ) );
 }
 
-# merge list of stories, in keep_id,delete_id format 
+# merge list of stories, in keep_id,delete_id format
 sub merge_stories_list : Local
 {
     my ( $self, $c, $controversies_id ) = @_;
@@ -1506,34 +1506,34 @@ sub merge_stories_list : Local
     my $db = $c->dbis;
 
     my $controversy = $db->find_by_id( 'controversies', $controversies_id )
-        || die( "unable to find controversy '$controversies_id'" );
-    
+      || die( "unable to find controversy '$controversies_id'" );
+
     my $stories_ids_list = $c->req->params->{ stories_ids } || '';
 
     if ( !$stories_ids_list )
     {
         $c->stash->{ controversy } = $controversy;
-        $c->stash->{ template } = 'cm/merge_stories_list.tt2';
+        $c->stash->{ template }    = 'cm/merge_stories_list.tt2';
         return;
     }
 
-    my $stories_ids_pairs = MediaWords::Util::CSV::get_csv_string_as_matrix( $stories_ids_list ); 
-        
+    my $stories_ids_pairs = MediaWords::Util::CSV::get_csv_string_as_matrix( $stories_ids_list );
+
     $db->begin;
-    
+
     my $stories_merged = 1;
     for my $stories_id_pair ( @{ $stories_ids_pairs } )
     {
         my ( $keep_stories_id, $delete_stories_id ) = @{ $stories_id_pair };
         print STDERR "$delete_stories_id -> $keep_stories_id\n";
 
-        my $keep_story = $db->find_by_id( 'stories', $keep_stories_id );
+        my $keep_story   = $db->find_by_id( 'stories', $keep_stories_id );
         my $delete_story = $db->find_by_id( 'stories', $delete_stories_id );
-        
+
         $stories_merged = _merge_stories( $c, $controversy, $delete_story, $keep_story );
         last unless ( $stories_merged );
     }
-    
+
     $db->commit if ( $stories_merged );
 
     my $status_msg;
@@ -1541,12 +1541,13 @@ sub merge_stories_list : Local
     {
         $status_msg = 'The stories have been merged in this controversy.';
     }
-    else {
+    else
+    {
         $status_msg = 'There was an error merging the stories.';
     }
-    
+
     my $u = $c->uri_for( "/admin/cm/view/$controversies_id", { status_msg => $status_msg } );
     $c->response->redirect( $u );
 }
-    
+
 1;

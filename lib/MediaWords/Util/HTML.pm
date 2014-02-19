@@ -23,16 +23,14 @@ use Tie::Cache;
 
 use constant MAX_SEGMENT_LENGTH => 14000;
 
-
 # Cache output of html_strip() because it is likely that it is going to be called multiple times from extractor
 my %_html_strip_cache;
 tie %_html_strip_cache, 'Tie::Cache', {
-    MaxCount => 1024,           # 1024 entries
-    MaxBytes => 1024 * 1024     # 1 MB of space
+    MaxCount => 1024,          # 1024 entries
+    MaxBytes => 1024 * 1024    # 1 MB of space
 };
 
-memoize 'html_strip', SCALAR_CACHE => [HASH => \%_html_strip_cache];
-
+memoize 'html_strip', SCALAR_CACHE => [ HASH => \%_html_strip_cache ];
 
 # provide a procedural interface to HTML::Strip
 # use HTML::StripPP instead of HTML::Strip b/c HTML::Strip mucks up the encoding
@@ -45,7 +43,7 @@ sub html_strip($)
         return '';
     }
 
-    my $html_length = length($html);
+    my $html_length = length( $html );
 
     if ( ( $html_length > MAX_SEGMENT_LENGTH ) )
     {
