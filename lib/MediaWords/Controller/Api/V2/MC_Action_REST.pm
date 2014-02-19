@@ -34,21 +34,21 @@ Light wrapper class over Catalyst::Controller::REST
 
 BEGIN { extends 'Catalyst::Action::REST' }
 
-sub execute {
+sub execute
+{
     my $self = shift;
-    my ($controller, $c, @args) = @_;
+    my ( $controller, $c, @args ) = @_;
 
     #say STDERR "before code";
 
     return unless $self->_valid_api_key( $c );
 
-    my $r = $self->next::method(@_);
+    my $r = $self->next::method( @_ );
 
     #say STDERR "after code";
     # put your 'after' code here
     return $r;
 }
-
 
 sub _valid_api_key
 {
@@ -56,20 +56,21 @@ sub _valid_api_key
 
     my $api_auth = MediaWords::DBI::Auth::user_for_api_token_catalyst( $c );
 
-    if (! $api_auth) {
+    if ( !$api_auth )
+    {
 
-	say STDERR "invalid key";
+        say STDERR "invalid key";
 
-	my $controller = $c->component( $self->class );
+        my $controller = $c->component( $self->class );
 
-	my $code = $controller->action_for('invalid_key');
+        my $code = $controller->action_for( 'invalid_key' );
 
-	$c->forward( $code,  $c->request->args ); 
+        $c->forward( $code, $c->request->args );
 
-	$c->detach();
+        $c->detach();
 
-	return 0;
-     }
+        return 0;
+    }
 
     return $api_auth;
 }

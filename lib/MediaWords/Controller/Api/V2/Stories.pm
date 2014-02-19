@@ -129,7 +129,7 @@ sub single_GET : Local
 
     say STDERR "QUERY $query";
 
-    say STDERR Dumper($c->req);
+    say STDERR Dumper( $c->req );
 
     my $stories = $c->dbis->query( $query, $stories_id )->hashes();
 

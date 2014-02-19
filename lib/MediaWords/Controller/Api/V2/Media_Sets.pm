@@ -51,10 +51,10 @@ __PACKAGE__->config(
         'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
         'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
     },
-    json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 }
+    json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 }
 );
 
-__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 } );
+__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 } );
 
 use constant ROWS_PER_PAGE => 20;
 
@@ -68,18 +68,19 @@ sub _add_data_to_media_sets
     die "Not yet implemented";
 }
 
-## TODO move these to a centralized location instead of copying them in every API class 
+## TODO move these to a centralized location instead of copying them in every API class
 #A list top level object fields to include by default in API results unless all_fields is true
 Readonly my $default_output_fields => [ qw ( name media_sets_id description ) ];
-sub _purge_extra_fields:
+
+sub _purge_extra_fields :
 {
     my ( $self, $obj ) = @_;
 
     my $new_obj = {};
 
-    foreach my $default_output_field ( @ {$default_output_fields } )
+    foreach my $default_output_field ( @{ $default_output_fields } )
     {
-	$new_obj->{ $default_output_field } = $obj->{ $default_output_field };
+        $new_obj->{ $default_output_field } = $obj->{ $default_output_field };
     }
 
     return $new_obj;
@@ -105,13 +106,12 @@ sub single_GET : Local
     my $media_sets = $c->dbis->query( $query, $media_sets_id )->hashes();
 
     my $all_fields = $c->req->param( 'all_fields' );
-    $all_fields   //= 0;
+    $all_fields //= 0;
 
-    if ( ! $all_fields )
+    if ( !$all_fields )
     {
-	$media_sets = $self->_purge_extra_fields_obj_list( $media_sets );
+        $media_sets = $self->_purge_extra_fields_obj_list( $media_sets );
     }
-
 
     #$self->_add_data_to_media_sets( $c->dbis, $media_sets );
 
@@ -134,24 +134,24 @@ sub list_GET : Local
     $last_media_sets_id //= 0;
 
     my $all_fields = $c->req->param( 'all_fields' );
-    $all_fields   //= 0;
+    $all_fields //= 0;
 
-    my $rows =  $c->req->param( 'rows' );
+    my $rows = $c->req->param( 'rows' );
     say STDERR "rows $rows";
 
     $rows //= ROWS_PER_PAGE;
 
-
-    my $media_sets = $c->dbis->query( "select s.* from media_sets s where media_sets_id > ? ORDER by media_sets_id asc limit ?",
+    my $media_sets =
+      $c->dbis->query( "select s.* from media_sets s where media_sets_id > ? ORDER by media_sets_id asc limit ?",
         $last_media_sets_id, $rows )->hashes;
 
-    if ( ! $all_fields )
+    if ( !$all_fields )
     {
-	say STDERR "Purging extra fields in";
-	say STDERR Dumper( $media_sets );
-	$media_sets = $self->_purge_extra_fields_obj_list( $media_sets );
-	say STDERR "Purging result:";
-	say STDERR Dumper( $media_sets );
+        say STDERR "Purging extra fields in";
+        say STDERR Dumper( $media_sets );
+        $media_sets = $self->_purge_extra_fields_obj_list( $media_sets );
+        say STDERR "Purging result:";
+        say STDERR Dumper( $media_sets );
     }
 
     #$self->_add_data_to_media_sets( $c->dbis, $media_sets );

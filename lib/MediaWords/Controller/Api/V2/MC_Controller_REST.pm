@@ -52,23 +52,20 @@ __PACKAGE__->config(
         'text/x-config-general'    => [ 'Data::Serializer', 'Config::General' ],
         'text/x-php-serialization' => [ 'Data::Serializer', 'PHP::Serialization' ],
     },
-    json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 }
+    json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 }
 );
 
-__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1,  space_after => 2 } );
+__PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before => 2, indent => 1, space_after => 2 } );
 
 sub invalid_key : Local
 {
-    my ( $self, $c) = @_;
+    my ( $self, $c ) = @_;
 
     say STDERR "invalid key";
 
-    $self->status_forbidden(
-	$c,
-	message => "Invalid key. Access denied",
-	);
+    $self->status_forbidden( $c, message => "Invalid key. Access denied", );
 
-    return ;
+    return;
 }
 
 =head1 AUTHOR
