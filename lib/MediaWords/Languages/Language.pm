@@ -28,7 +28,7 @@ use Cwd            ();
 #
 # LIST OF ENABLED LANGUAGES
 #
-my Readonly @_enabled_languages = (
+my @_enabled_languages = (
     'da',    # Danish
     'de',    # German
     'en',    # English
@@ -163,6 +163,9 @@ has 'cached_long_stop_words'  => ( is => 'rw', default => 0 );
 has 'cached_tiny_stop_word_stems'  => ( is => 'rw', default => 0 );
 has 'cached_short_stop_word_stems' => ( is => 'rw', default => 0 );
 has 'cached_long_stop_word_stems'  => ( is => 'rw', default => 0 );
+
+# Cached noise strings regular expression
+has 'cached_noise_strings_regex' => ( is => 'rw', default => 0 );
 
 # Instances of each of the enabled languages (e.g. MediaWords::Languages::en, MediaWords::Languages::lt, ...)
 my %_lang_instances;
@@ -349,6 +352,28 @@ sub get_long_stop_word_stems
     }
 
     return $self->cached_long_stop_word_stems;
+}
+
+sub get_noise_strings_regex
+{
+    my $self = shift;
+
+    if ( $self->cached_noise_strings_regex == 0 )
+    {
+        my $noise_strings = $self->get_noise_strings();
+
+        my @noise_strings_escaped;
+        for my $noise_string ( @{ $noise_strings } )
+        {
+            push( @noise_strings_escaped, "\b\Q$noise_string\E\b" );
+        }
+        my $noise_strings_regex = '(' . join( '|', @noise_strings_escaped ) . ')';
+        $noise_strings_regex = qr/$noise_strings_regex/is;
+
+        $self->cached_noise_strings_regex( $noise_strings_regex );
+    }
+
+    return $self->cached_noise_strings_regex;
 }
 
 # Returns an instance of Locale::Country::Multilingual for the language code

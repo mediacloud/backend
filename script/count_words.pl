@@ -46,15 +46,22 @@ sub count_stems
 
     for my $line ( @_ )
     {
-        while ( $line =~ m~(\w[\w']*)~g )
+        # very long lines tend to be noise -- html text and the like
+        $line = substr( $line, 0, 256 );
+
+        Encode::_utf8_on( $line );
+        while ( $line =~ m~(\w[\w]*)~g )
         {
-            my $word = decode( 'utf8', lc( $1 ) );
-            my @stems = ( $word );
+            my $word = lc( $1 );
+            if ( length( $word ) > 2 )
+            {
+                my @stems = ( $word );
 
-            $stemmer->stem_in_place( @stems );
+                $stemmer->stem_in_place( @stems );
 
-            $words->{ $stems[ 0 ] }->[ 0 ]++;
-            $words->{ $stems[ 0 ] }->[ 1 ]->{ $word }++;
+                $words->{ $stems[ 0 ] }->[ 0 ]++;
+                $words->{ $stems[ 0 ] }->[ 1 ]->{ $word }++;
+            }
         }
     }
 
@@ -263,10 +270,21 @@ sub get_solr_word_count_json
     my $line_block_size = $num_sentences / $num_threads;
     $line_block_size = ( $line_block_size > MAX_LINE_BLOCK_SIZE ) ? MAX_LINE_BLOCK_SIZE : $line_block_size;
 
+    # only use each line once
+    my $dup_lines = {};
+
     # start up one thread for each block of lines, start merging the results back into the
     # current thread at $num_threads threads previous to the current thread
     while ( my $lines = get_lines_from_socket( $socket, $line_block_size ) )
     {
+        for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
+        {
+            my $dup = ++$dup_lines->{ $lines->[ $i ] };
+            if ( $dup > 1 )
+            {
+                $lines->[ $i ] = '';
+            }
+        }
         my $thread = threads->create( \&count_stems, @{ $lines } );
         push( @{ $threads }, $thread );
 

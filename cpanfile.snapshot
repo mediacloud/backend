@@ -41,7 +41,6 @@ DISTRIBUTIONS
       App::FatPacker::Trace undef
     requirements:
       ExtUtils::MakeMaker 0
-      perl 5.008000
   App-cpanminus-1.7001
     pathname: M/MI/MIYAGAWA/App-cpanminus-1.7001.tar.gz
     provides:
@@ -169,7 +168,6 @@ DISTRIBUTIONS
       CGI::Simple::Util 1.113
     requirements:
       IO::Scalar 0
-      Module::Build 0.36
       Test::More 0
   CGI-Struct-1.21
     pathname: F/FU/FULLERMD/CGI-Struct-1.21.tar.gz
@@ -253,27 +251,6 @@ DISTRIBUTIONS
       Module::Metadata 0
       strict 0
       warnings 0
-  CPAN-Meta-Requirements-2.125
-    pathname: D/DA/DAGOLDEN/CPAN-Meta-Requirements-2.125.tar.gz
-    provides:
-      CPAN::Meta::Requirements 2.125
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 6.17
-      Scalar::Util 0
-      strict 0
-      version 0.77
-      warnings 0
-  CPAN-Meta-YAML-0.010
-    pathname: D/DA/DAGOLDEN/CPAN-Meta-YAML-0.010.tar.gz
-    provides:
-      CPAN::Meta::YAML 0.010
-    requirements:
-      Carp 0
-      Exporter 0
-      ExtUtils::MakeMaker 6.17
-      Scalar::Util 0
-      warnings 0
   Cache-Cache-1.06
     pathname: J/JS/JSWARTZ/Cache-Cache-1.06.tar.gz
     provides:
@@ -332,18 +309,6 @@ DISTRIBUTIONS
       File::Temp 0
       IO::Handle 0
       Scalar::Util 0
-      strict 0
-      warnings 0
-  Carp-1.32
-    pathname: Z/ZE/ZEFRAM/Carp-1.32.tar.gz
-    provides:
-      Carp 1.32
-      Carp::Heavy 1.32
-    requirements:
-      Exporter 0
-      ExtUtils::MakeMaker 0
-      IPC::Open3 1.0103
-      Test::More 0
       strict 0
       warnings 0
   Carp-Assert-0.20
@@ -445,6 +410,7 @@ DISTRIBUTIONS
     requirements:
       Catalyst::Runtime 5.80030
       Class::Inspector 1.13
+      Config::General 0
       ExtUtils::MakeMaker 6.59
       HTML::Parser 0
       JSON 2.12
@@ -455,6 +421,7 @@ DISTRIBUTIONS
       Params::Validate 0.76
       Test::More 0.88
       URI::Find 0
+      XML::Simple 0
       namespace::autoclean 0
       perl 5.008001
   Catalyst-Action-RenderView-0.16
@@ -3244,41 +3211,6 @@ DISTRIBUTIONS
       Scalar::Util 0
       Test::More 0
       perl 5.006
-  Encode-2.55
-    pathname: D/DA/DANKOGAI/Encode-2.55.tar.gz
-    provides:
-      Encode 2.55
-      Encode::Alias 2.18
-      Encode::Byte 2.04
-      Encode::CJKConstants 2.02
-      Encode::CN 2.03
-      Encode::CN::HZ 2.07
-      Encode::Config 2.05
-      Encode::EBCDIC 2.02
-      Encode::Encoder 2.03
-      Encode::Encoding 2.07
-      Encode::GSM0338 2.05
-      Encode::Guess 2.06
-      Encode::Internal 2.55
-      Encode::JP 2.04
-      Encode::JP::H2Z 2.02
-      Encode::JP::JIS7 2.05
-      Encode::KR 2.03
-      Encode::KR::2022_KR 2.03
-      Encode::MIME::Header 2.15
-      Encode::MIME::Header::ISO_2022_JP 1.04
-      Encode::MIME::Name 1.01
-      Encode::Symbol 2.02
-      Encode::TW 2.03
-      Encode::UTF_EBCDIC 2.55
-      Encode::Unicode 2.09
-      Encode::Unicode::UTF7 2.08
-      Encode::utf8 2.55
-      encoding 2.12
-    requirements:
-      Exporter 5.57
-      ExtUtils::MakeMaker 0
-      parent 0.221
   Encode-HanConvert-0.35
     pathname: A/AU/AUDREYT/Encode-HanConvert-0.35.tar.gz
     provides:
@@ -3295,7 +3227,7 @@ DISTRIBUTIONS
       Module::Install::WriteAll 0.77
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 6.82
+      ExtUtils::MakeMaker 6.66
   Encode-Locale-1.03
     pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
     provides:
@@ -3407,47 +3339,6 @@ DISTRIBUTIONS
       File::Temp 0
       Module::Build 0.36
       Test::More 0
-  ExtUtils-MakeMaker-6.82
-    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.82.tar.gz
-    provides:
-      DynaLoader 6.82
-      ExtUtils::Command::MM 6.82
-      ExtUtils::Liblist 6.82
-      ExtUtils::Liblist::Kid 6.82
-      ExtUtils::MM 6.82
-      ExtUtils::MM_AIX 6.82
-      ExtUtils::MM_Any 6.82
-      ExtUtils::MM_BeOS 6.82
-      ExtUtils::MM_Cygwin 6.82
-      ExtUtils::MM_DOS 6.82
-      ExtUtils::MM_Darwin 6.82
-      ExtUtils::MM_MacOS 6.82
-      ExtUtils::MM_NW5 6.82
-      ExtUtils::MM_OS2 6.82
-      ExtUtils::MM_QNX 6.82
-      ExtUtils::MM_UWIN 6.82
-      ExtUtils::MM_Unix 6.82
-      ExtUtils::MM_VMS 6.82
-      ExtUtils::MM_VOS 6.82
-      ExtUtils::MM_Win32 6.82
-      ExtUtils::MM_Win95 6.82
-      ExtUtils::MY 6.82
-      ExtUtils::MakeMaker 6.82
-      ExtUtils::MakeMaker::Config 6.82
-      ExtUtils::MakeMaker::_version 6.82
-      ExtUtils::Mkbootstrap 6.82
-      ExtUtils::Mksymlists 6.82
-      ExtUtils::testlib 6.82
-      MM 6.82
-      MY 6.82
-      in 6.82
-    requirements:
-      Data::Dumper 0
-      DirHandle 0
-      File::Basename 0
-      File::Spec 0.8
-      Pod::Man 0
-      perl 5.006
   FCGI-0.74
     pathname: F/FL/FLORA/FCGI-0.74.tar.gz
     provides:
@@ -3626,26 +3517,6 @@ DISTRIBUTIONS
       Filesys::Notify::Simple 0.12
     requirements:
       ExtUtils::MakeMaker 6.30
-  Filter-Simple-0.88
-    pathname: S/SM/SMUELLER/Filter-Simple-0.88.tar.gz
-    provides:
-      Demo1 0.01
-      Demo2a 0.01
-      Demo2b 0.01
-      DemoData 0.01
-      DemoRevCat 0.01
-      DemoSwear 0.01
-      DemoUnPod 0.01
-      Demo_Data 0.01
-      Demo_Exporter 0.01
-      Demo_Importer 0.01
-      Demo_REM 0.01
-      DotsForArrows undef
-      Filter::Simple 0.88
-    requirements:
-      ExtUtils::MakeMaker 0
-      Filter::Util::Call 0
-      Text::Balanced 1.97
   Font-AFM-1.20
     pathname: G/GA/GAAS/Font-AFM-1.20.tar.gz
     provides:
@@ -3711,15 +3582,6 @@ DISTRIBUTIONS
       Storable 0
       Test::More 0
       perl 5.006
-  Getopt-Long-2.42
-    pathname: J/JV/JV/Getopt-Long-2.42.tar.gz
-    provides:
-      Getopt::Long 2.42
-      Getopt::Long::CallBack 2.42
-      Getopt::Long::Parser 2.42
-    requirements:
-      ExtUtils::MakeMaker 0
-      Pod::Usage 1.14
   Getopt-Long-Descriptive-0.096
     pathname: R/RJ/RJBS/Getopt-Long-Descriptive-0.096.tar.gz
     provides:
@@ -3771,26 +3633,6 @@ DISTRIBUTIONS
       Scalar::Util 0
       Storable 2.05
       Test::More 0
-  Graph-Layout-Aesthetic-0.12
-    pathname: T/TH/THOSPEL/Graph-Layout-Aesthetic-0.12.tar.gz
-    provides:
-      Graph::Layout::Aesthetic 0.12
-      Graph::Layout::Aesthetic::Force 0.01
-      Graph::Layout::Aesthetic::Force::Centripetal 0.02
-      Graph::Layout::Aesthetic::Force::MinEdgeIntersect 0.02
-      Graph::Layout::Aesthetic::Force::MinEdgeIntersect2 0.02
-      Graph::Layout::Aesthetic::Force::MinEdgeLength 0.02
-      Graph::Layout::Aesthetic::Force::MinLevelVariance 0.02
-      Graph::Layout::Aesthetic::Force::NodeEdgeRepulsion 0.02
-      Graph::Layout::Aesthetic::Force::NodeRepulsion 0.02
-      Graph::Layout::Aesthetic::Force::ParentLeft 0.02
-      Graph::Layout::Aesthetic::Force::Perl 0.01
-      Graph::Layout::Aesthetic::Include 0.02
-      Graph::Layout::Aesthetic::Monitor::GnuPlot 0.02
-      Graph::Layout::Aesthetic::Topology 0.02
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0.11
   GraphViz-2.14
     pathname: R/RS/RSAVAGE/GraphViz-2.14.tgz
     provides:
@@ -3824,10 +3666,10 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  HTML-CruftText-0.01
-    pathname: D/DR/DRLARO/HTML/HTML-CruftText-0.01.tar.gz
+  HTML-CruftText-0.02
+    pathname: D/DR/DRLARO/HTML-CruftText-0.02.tar.gz
     provides:
-      HTML::CruftText 0.01
+      HTML::CruftText 0.02
     requirements:
       ExtUtils::MakeMaker 0
       List::MoreUtils 0.33
@@ -4461,12 +4303,6 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Net::SSLeay 1.46
       Scalar::Util 0
-  IO-String-1.08
-    pathname: G/GA/GAAS/IO-String-1.08.tar.gz
-    provides:
-      IO::String 1.08
-    requirements:
-      ExtUtils::MakeMaker 0
   IO-stringy-2.110
     pathname: D/DS/DSKOLL/IO-stringy-2.110.tar.gz
     provides:
@@ -4609,15 +4445,6 @@ DISTRIBUTIONS
       JSON::PP 2.27202
       Test::More 0.88
       Test::Without::Module 0.17
-  JSON-PP-2.27203
-    pathname: M/MA/MAKAMAKA/JSON-PP-2.27203.tar.gz
-    provides:
-      JSON::PP 2.27203
-      JSON::PP::Boolean 2.27203
-      JSON::PP::IncrParser 2.27203
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0
   JSON-XS-3.01
     pathname: M/ML/MLEHMANN/JSON-XS-3.01.tar.gz
     provides:
@@ -4823,7 +4650,7 @@ DISTRIBUTIONS
     requirements:
       Carp 0
       Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 6.82
+      ExtUtils::MakeMaker 6.66
       File::Spec 0
       Symbol 0
       Test::More 0
@@ -5273,10 +5100,10 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
-  Module-ScanDeps-1.11
-    pathname: R/RS/RSCHUPP/Module-ScanDeps-1.11.tar.gz
+  Module-ScanDeps-1.12
+    pathname: R/RS/RSCHUPP/Module-ScanDeps-1.12.tar.gz
     provides:
-      Module::ScanDeps 1.11
+      Module::ScanDeps 1.12
       Module::ScanDeps::Cache undef
       Module::ScanDeps::DataFeed undef
     requirements:
@@ -5285,6 +5112,7 @@ DISTRIBUTIONS
       File::Temp 0
       Module::Build::ModuleInfo 0
       Test::More 0
+      Test::Requires 0
       perl 5.008001
       version 0
   Module-Util-1.09
@@ -5798,7 +5626,7 @@ DISTRIBUTIONS
   MooseX-Types-DateTime-MoreCoercions-0.11
     pathname: I/IL/ILMARI/MooseX-Types-DateTime-MoreCoercions-0.11.tar.gz
     provides:
-      MooseX::Types::DateTime::MoreCoercions 0.11
+      MooseX::Types::DateTime::MoreCoercions undef
     requirements:
       DateTime 0.4302
       DateTime::Duration 0.4302
@@ -6300,18 +6128,6 @@ DISTRIBUTIONS
       strict 0
       vars 0
       warnings 0
-  Parse-CPAN-Meta-1.4409
-    pathname: D/DA/DAGOLDEN/Parse-CPAN-Meta-1.4409.tar.gz
-    provides:
-      Parse::CPAN::Meta 1.4409
-    requirements:
-      CPAN::Meta::YAML 0.008
-      Carp 0
-      Exporter 0
-      ExtUtils::MakeMaker 6.30
-      File::Spec 0.80
-      JSON::PP 2.27200
-      strict 0
   Parse-RecDescent-1.967009
     pathname: J/JT/JTBRAUN/Parse-RecDescent-1.967009.tar.gz
     provides:
@@ -6368,25 +6184,6 @@ DISTRIBUTIONS
       overload 0
       strict 0
       warnings 0
-  PathTools-3.40
-    pathname: S/SM/SMUELLER/PathTools-3.40.tar.gz
-    provides:
-      Cwd 3.40
-      File::Spec 3.40
-      File::Spec::Cygwin 3.40
-      File::Spec::Epoc 3.40
-      File::Spec::Functions 3.40
-      File::Spec::Mac 3.40
-      File::Spec::OS2 3.40
-      File::Spec::Unix 3.40
-      File::Spec::VMS 3.40
-      File::Spec::Win32 3.40
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 0
-      File::Basename 0
-      Scalar::Util 0
-      Test 0
   Perl-Tidy-20130922
     pathname: S/SH/SHANCOCK/Perl-Tidy-20130922.tar.gz
     provides:
@@ -6595,6 +6392,13 @@ DISTRIBUTIONS
       Readonly::Scalar 1.03
     requirements:
       ExtUtils::MakeMaker 0
+  Readonly-XS-1.05
+    pathname: R/RO/ROODE/Readonly-XS-1.05.tar.gz
+    provides:
+      Readonly::XS 1.05
+    requirements:
+      ExtUtils::MakeMaker 0
+      Readonly 1.02
   Regexp-Assemble-0.35
     pathname: D/DL/DLAND/Regexp-Assemble-0.35.tar.gz
     provides:
@@ -7096,7 +6900,6 @@ DISTRIBUTIONS
     provides:
       Test::Exception 0.32
     requirements:
-      Module::Build 0.38
       Sub::Uplevel 0.18
       Test::Builder 0.7
       Test::Builder::Tester 1.07
@@ -7125,60 +6928,59 @@ DISTRIBUTIONS
       Test::Builder::Tester 1.04
       Test::Manifest 1.14
       Test::More 0.95
-  Test-Harness-3.29
-    pathname: O/OV/OVID/Test-Harness-3.29.tar.gz
+  Test-Harness-3.30
+    pathname: L/LE/LEONT/Test-Harness-3.30.tar.gz
     provides:
-      App::Prove 3.29
-      App::Prove::State 3.29
-      App::Prove::State::Result 3.29
-      App::Prove::State::Result::Test 3.29
-      TAP::Base 3.29
-      TAP::Formatter::Base 3.29
-      TAP::Formatter::Color 3.29
-      TAP::Formatter::Console 3.29
-      TAP::Formatter::Console::ParallelSession 3.29
-      TAP::Formatter::Console::Session 3.29
-      TAP::Formatter::File 3.29
-      TAP::Formatter::File::Session 3.29
-      TAP::Formatter::Session 3.29
-      TAP::Harness 3.29
-      TAP::Harness::Env 3.29
-      TAP::Object 3.29
-      TAP::Parser 3.29
-      TAP::Parser::Aggregator 3.29
-      TAP::Parser::Grammar 3.29
-      TAP::Parser::Iterator 3.29
-      TAP::Parser::Iterator::Array 3.29
-      TAP::Parser::Iterator::Process 3.29
-      TAP::Parser::Iterator::Stream 3.29
-      TAP::Parser::IteratorFactory 3.29
-      TAP::Parser::Multiplexer 3.29
-      TAP::Parser::Result 3.29
-      TAP::Parser::Result::Bailout 3.29
-      TAP::Parser::Result::Comment 3.29
-      TAP::Parser::Result::Plan 3.29
-      TAP::Parser::Result::Pragma 3.29
-      TAP::Parser::Result::Test 3.29
-      TAP::Parser::Result::Unknown 3.29
-      TAP::Parser::Result::Version 3.29
-      TAP::Parser::Result::YAML 3.29
-      TAP::Parser::ResultFactory 3.29
-      TAP::Parser::Scheduler 3.29
-      TAP::Parser::Scheduler::Job 3.29
-      TAP::Parser::Scheduler::Spinner 3.29
-      TAP::Parser::Source 3.29
-      TAP::Parser::SourceHandler 3.29
-      TAP::Parser::SourceHandler::Executable 3.29
-      TAP::Parser::SourceHandler::File 3.29
-      TAP::Parser::SourceHandler::Handle 3.29
-      TAP::Parser::SourceHandler::Perl 3.29
-      TAP::Parser::SourceHandler::RawTAP 3.29
-      TAP::Parser::YAMLish::Reader 3.29
-      TAP::Parser::YAMLish::Writer 3.29
-      Test::Harness 3.29
+      App::Prove 3.30
+      App::Prove::State 3.30
+      App::Prove::State::Result 3.30
+      App::Prove::State::Result::Test 3.30
+      TAP::Base 3.30
+      TAP::Formatter::Base 3.30
+      TAP::Formatter::Color 3.30
+      TAP::Formatter::Console 3.30
+      TAP::Formatter::Console::ParallelSession 3.30
+      TAP::Formatter::Console::Session 3.30
+      TAP::Formatter::File 3.30
+      TAP::Formatter::File::Session 3.30
+      TAP::Formatter::Session 3.30
+      TAP::Harness 3.30
+      TAP::Harness::Env 3.30
+      TAP::Object 3.30
+      TAP::Parser 3.30
+      TAP::Parser::Aggregator 3.30
+      TAP::Parser::Grammar 3.30
+      TAP::Parser::Iterator 3.30
+      TAP::Parser::Iterator::Array 3.30
+      TAP::Parser::Iterator::Process 3.30
+      TAP::Parser::Iterator::Stream 3.30
+      TAP::Parser::IteratorFactory 3.30
+      TAP::Parser::Multiplexer 3.30
+      TAP::Parser::Result 3.30
+      TAP::Parser::Result::Bailout 3.30
+      TAP::Parser::Result::Comment 3.30
+      TAP::Parser::Result::Plan 3.30
+      TAP::Parser::Result::Pragma 3.30
+      TAP::Parser::Result::Test 3.30
+      TAP::Parser::Result::Unknown 3.30
+      TAP::Parser::Result::Version 3.30
+      TAP::Parser::Result::YAML 3.30
+      TAP::Parser::ResultFactory 3.30
+      TAP::Parser::Scheduler 3.30
+      TAP::Parser::Scheduler::Job 3.30
+      TAP::Parser::Scheduler::Spinner 3.30
+      TAP::Parser::Source 3.30
+      TAP::Parser::SourceHandler 3.30
+      TAP::Parser::SourceHandler::Executable 3.30
+      TAP::Parser::SourceHandler::File 3.30
+      TAP::Parser::SourceHandler::Handle 3.30
+      TAP::Parser::SourceHandler::Perl 3.30
+      TAP::Parser::SourceHandler::RawTAP 3.30
+      TAP::Parser::YAMLish::Reader 3.30
+      TAP::Parser::YAMLish::Writer 3.30
+      Test::Harness 3.30
     requirements:
       ExtUtils::MakeMaker 0
-      parent 0
   Test-LongString-0.15
     pathname: R/RG/RGARCIA/Test-LongString-0.15.tar.gz
     provides:
@@ -7556,6 +7358,12 @@ DISTRIBUTIONS
       Scalar::Util 0
       Sub::Quote 0
       overload 0
+  Tie-Cache-0.19
+    pathname: C/CH/CHAMAS/Tie-Cache-0.19.tar.gz
+    provides:
+      Tie::Cache 0.17
+    requirements:
+      ExtUtils::MakeMaker 0
   Tie-IxHash-1.23
     pathname: C/CH/CHORNY/Tie-IxHash-1.23.tar.gz
     provides:
@@ -8212,54 +8020,7 @@ DISTRIBUTIONS
     provides:
       aliased 0.31
     requirements:
-      Module::Build 0.40
       Test::More 0
-  autodie-2.22
-    pathname: P/PJ/PJF/autodie-2.22.tar.gz
-    provides:
-      Caller_helper undef
-      Fatal 2.22
-      Hints_pod_examples undef
-      Hints_provider_does undef
-      Hints_provider_easy_does_it undef
-      Hints_provider_isa undef
-      Hints_test undef
-      OtherTypes undef
-      Some::Module undef
-      autodie 2.22
-      autodie::Scope::Guard 2.22
-      autodie::exception 2.22
-      autodie::exception::system 2.22
-      autodie::hints 2.22
-      autodie::hints::provider undef
-      autodie::skip 2.22
-      autodie::test::au undef
-      autodie::test::au::exception undef
-      autodie::test::badname undef
-      autodie::test::missing undef
-      autodie_skippy undef
-      autodie_test_module undef
-      autodie_unskippy undef
-      lethal undef
-      my::autodie undef
-      pujHa::ghach undef
-      pujHa::ghach::Dotlh undef
-    requirements:
-      B 0
-      Carp 0
-      Config 0
-      Exporter 0
-      ExtUtils::MakeMaker 6.30
-      Fcntl 0
-      POSIX 0
-      Scalar::Util 0
-      Tie::RefHash 0
-      base 0
-      constant 0
-      if 0
-      overload 0
-      strict 0
-      warnings 0
   boolean-0.30
     pathname: I/IN/INGY/boolean-0.30.tar.gz
     provides:

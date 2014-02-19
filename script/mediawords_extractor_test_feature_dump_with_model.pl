@@ -104,7 +104,7 @@ sub main
     {
         chomp( $line );
 
-        last if $downloads > 0;
+        #last if $downloads > 0;
 
         if ( $line eq '' )
         {
@@ -137,7 +137,6 @@ sub main
             $current_file_lines = [];
 
             $downloads++;
-            last;
         }
         else
         {

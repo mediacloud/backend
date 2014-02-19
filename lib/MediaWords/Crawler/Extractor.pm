@@ -16,7 +16,7 @@ use Text::Trim;
 use Time::HiRes;
 use List::MoreUtils qw(first_index indexes last_index);
 use Array::Compare;
-use HTML::CruftText;
+use HTML::CruftText 0.02;
 use Carp qw (confess);
 
 # CONSTANTS
@@ -115,11 +115,14 @@ sub print_time
     $_last_time = $t;
 }
 
-sub find_auto_excluded_lines($$)
+sub find_auto_excluded_lines($$;$)
 {
-    my ( $lines, $language_code ) = @_;
+    my ( $lines, $language_code, $markers ) = @_;
 
-    my $markers = find_markers( $lines, $language_code );
+    unless ( $markers )
+    {
+        $markers = find_markers( $lines, $language_code );
+    }
     my $sphereit_map = get_sphereit_map( $markers, $language_code );
 
     my $ret = [];
