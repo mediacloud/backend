@@ -93,7 +93,7 @@ sub _purge_extra_fields_obj_list
     return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
 }
 
-sub single : Local : ActionClass('REST')
+sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 
@@ -118,7 +118,7 @@ sub single_GET : Local
     $self->status_ok( $c, entity => $media_sets );
 }
 
-sub list : Local : ActionClass('REST')
+sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 

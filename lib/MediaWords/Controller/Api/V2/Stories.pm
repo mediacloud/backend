@@ -117,7 +117,7 @@ sub _add_data_to_stories
     return $stories;
 }
 
-sub single : Local : ActionClass('REST')
+sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 
@@ -142,7 +142,7 @@ sub single_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub list_processed : Local : ActionClass('REST')
+sub list_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 
@@ -172,7 +172,7 @@ sub list_processed_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub subset_processed : Local : ActionClass('REST')
+sub subset_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 
@@ -204,7 +204,7 @@ sub subset_processed_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub subset : Local : ActionClass('REST')
+sub subset : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 
