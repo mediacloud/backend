@@ -3,7 +3,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::StorySubsets;
-
+use MediaWords::Controller::Api::V2::MC_Action_REST;
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
@@ -89,13 +89,15 @@ sub _purge_extra_fields_obj_list
     return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
 }
 
-sub single : Local : ActionClass('REST')
+sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 
 sub single_GET : Local
 {
     my ( $self, $c, $media_id ) = @_;
+
+    #return unless $self->_valid_api_key( $c );
 
     my $query = "select s.* from media s where media_id = ? ";
 
@@ -115,7 +117,7 @@ sub single_GET : Local
     $self->status_ok( $c, entity => $media );
 }
 
-sub list : Local : ActionClass('REST')
+sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
 
@@ -125,7 +127,7 @@ sub list_GET : Local
 
     say STDERR "starting list_GET";
 
-    return unless $self->_valid_api_key( $c );
+    #return unless $self->_valid_api_key( $c );
 
     my $last_media_id = $c->req->param( 'last_media_id' );
     say STDERR "last_media_id: $last_media_id";
