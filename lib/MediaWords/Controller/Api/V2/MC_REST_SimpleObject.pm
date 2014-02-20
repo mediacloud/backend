@@ -84,6 +84,18 @@ sub single_GET : Local
     $self->status_ok( $c, entity => $items );
 }
 
+sub list_query_filter_field
+{
+    return;
+}
+
+sub list_api_requires_filter_field
+{
+    my ( $self ) = @_;
+
+    return defined($self->list_query_filter_field() ) && $self->list_query_filter_field();
+}
+
 sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
@@ -113,9 +125,34 @@ sub list_GET : Local
 
     $rows //= ROWS_PER_PAGE;
 
-    my $query = "select * from $table_name where $id_field > ? ORDER by $id_field asc limit ? ";
+    my $list;
 
-    my $list = $c->dbis->query( $query , $last_id, $rows )->hashes;
+    if ( $self->list_api_requires_filter_field() )
+    {
+	my $query_filter_field_name = $self->list_query_filter_field();
+
+	my $filter_field_value = $c->req->param( $query_filter_field_name );
+
+	if (!defined( $filter_field_value ) )
+	{
+	    $self->status_bad_request(
+		$c,
+		message => "Missing required param $query_filter_field_name",
+		);
+
+	    return;
+	}
+
+	my $query = "select * from $table_name where $id_field > ? and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
+
+	$list = $c->dbis->query( $query , $last_id, $filter_field_value, $rows )->hashes;
+    }
+    else
+    {
+	my $query = "select * from $table_name where $id_field > ? ORDER by $id_field asc limit ? ";
+
+	$list = $c->dbis->query( $query , $last_id, $rows )->hashes;
+    }
 
     # if ( ! $all_fields )
     # {
