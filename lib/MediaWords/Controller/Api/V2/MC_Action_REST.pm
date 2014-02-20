@@ -15,6 +15,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use MediaWords::Util::Config;
 
 =head1 NAME
 
@@ -41,7 +42,10 @@ sub execute
 
     #say STDERR "before code";
 
-    return unless $self->_valid_api_key( $c );
+    if ( MediaWords::Util::Config::get_config->{ mediawords }->{ allow_unauthenticated_api_requests } ne 'yes' )
+    {
+	return unless $self->_valid_api_key( $c );
+    }
 
     my $r = $self->next::method( @_ );
 
