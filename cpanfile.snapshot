@@ -3227,7 +3227,7 @@ DISTRIBUTIONS
       Module::Install::WriteAll 0.77
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 6.66
+      ExtUtils::MakeMaker 6.82
   Encode-Locale-1.03
     pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
     provides:
@@ -3339,6 +3339,47 @@ DISTRIBUTIONS
       File::Temp 0
       Module::Build 0.36
       Test::More 0
+  ExtUtils-MakeMaker-6.88
+    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.88.tar.gz
+    provides:
+      DynaLoader 6.88
+      ExtUtils::Command::MM 6.88
+      ExtUtils::Liblist 6.88
+      ExtUtils::Liblist::Kid 6.88
+      ExtUtils::MM 6.88
+      ExtUtils::MM_AIX 6.88
+      ExtUtils::MM_Any 6.88
+      ExtUtils::MM_BeOS 6.88
+      ExtUtils::MM_Cygwin 6.88
+      ExtUtils::MM_DOS 6.88
+      ExtUtils::MM_Darwin 6.88
+      ExtUtils::MM_MacOS 6.88
+      ExtUtils::MM_NW5 6.88
+      ExtUtils::MM_OS2 6.88
+      ExtUtils::MM_QNX 6.88
+      ExtUtils::MM_UWIN 6.88
+      ExtUtils::MM_Unix 6.88
+      ExtUtils::MM_VMS 6.88
+      ExtUtils::MM_VOS 6.88
+      ExtUtils::MM_Win32 6.88
+      ExtUtils::MM_Win95 6.88
+      ExtUtils::MY 6.88
+      ExtUtils::MakeMaker 6.88
+      ExtUtils::MakeMaker::Config 6.88
+      ExtUtils::MakeMaker::_version 6.88
+      ExtUtils::Mkbootstrap 6.88
+      ExtUtils::Mksymlists 6.88
+      ExtUtils::testlib 6.88
+      MM 6.88
+      MY 6.88
+      in 6.88
+    requirements:
+      Data::Dumper 0
+      DirHandle 0
+      File::Basename 0
+      File::Spec 0.8
+      Pod::Man 0
+      perl 5.006
   FCGI-0.74
     pathname: F/FL/FLORA/FCGI-0.74.tar.gz
     provides:

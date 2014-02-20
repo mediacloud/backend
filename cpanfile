@@ -48,6 +48,7 @@ requires 'Domain::PublicSuffix';
 requires 'Email::MIME';
 requires 'Email::Sender::Simple';
 requires 'Encode::HanConvert';
+requires 'ExtUtils::MakeMaker';
 requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'Feed::Find';
