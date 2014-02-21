@@ -457,7 +457,7 @@ URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=8625915
 
 Return a stream of all stories processed by Media Cloud, greater than the `last_processed_stories_id`.
 
-URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence%3Aobama+AND+media_id%3A1
+URL: http://mediacloud.org/api/v2/stories/list?last_processed_stories_id=2523432&q=sentence:obama+AND+media_id:1
 
 Return a stream of all stories from The New York Times mentioning `'obama'` greater than the given `last_processed_stories_id`.
 
@@ -486,7 +486,7 @@ These parameters are passed directly through to Solr (see above).
 
 Fetch 10 sentences containing the word 'obama' from The New York Times
 
-URL:  http://mediacloud.org/api/v2/sentences/list?q=sentence%3Aobama&rows=10&fq=media_id%3A1
+URL:  http://mediacloud.org/api/v2/sentences/list?q=sentence:obama&rows=10&fq=media_id:1
 
 ```json
 [
@@ -624,7 +624,7 @@ See above /api/v2/stories/list for Solr query syntax.
 
 Obtain word frequency counts for all sentences containing the word `'obama'` in The New York Times
 
-URL:  http://mediacloud.org/api/v2/wc?q=sentence%3Aobama&fq=media_id%3A1
+URL:  http://mediacloud.org/api/v2/wc?q=sentence:obama&fq=media_id:1
 
 ```json
 [
@@ -1137,13 +1137,13 @@ One way to appropriately restrict the data is by setting the `q` parameter to re
 Below `q` is set to `"sentence:trayvon"` and `fq` is set to `"media_sets_id:7125" and "publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`. (Note that ":", "[", and "]" are URL encoded.)
 
 ```
-curl 'http://mediacloud.org/api/v2/wc?q=sentence%3Atrayvon&fq=media_sets_id%3A7125&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
+curl 'http://mediacloud.org/api/v2/wc?q=sentence:trayvon&fq=media_sets_id:7125&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 Alternatively, we could use a single large query by setting `q` to `"sentence:trayvon AND media_sets_id:7125 AND publish_date:[2012-04-01T00:00:00.000Z TO 2013-05-01T00:00:00.000Z]"`:
 
 ```
-curl 'http://mediacloud.org/api/v2/wc?q=sentence%3Atrayvon+AND+media_sets_id%3A7125+AND+publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D&fq=media_sets_id%3A7135&fq=publish_date%3A%5B2012-04-01T00%3A00%3A00.000Z+TO+2013-05-01T00%3A00%3A00.000Z%5D'
+curl 'http://mediacloud.org/api/v2/wc?q=sentence:trayvon+AND+media_sets_id:7125+AND+publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D&fq=media_sets_id:7135&fq=publish_date:%5B2012-04-01T00:00:00.000Z+TO+2013-05-01T00:00:00.000Z%5D'
 ```
 
 
@@ -1236,7 +1236,7 @@ def find_tags_id( tag_name, tag_sets_id):
 Assume that the user determined that the `tags_id` was 12345678 using the above code.
 
 ```
-curl 'http://mediacloud.org/api/v2/wc?q=tags%3A12345678'
+curl 'http://mediacloud.org/api/v2/wc?q=tags:12345678'
 ```
 
 ## Grab stories from 10 January 2014 with the tag `'foo:bar'`
