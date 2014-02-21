@@ -447,7 +447,7 @@ sentences.  The api/v2/stories/list call searches for sentences matching the `q`
 the stories that include at least one sentence returned by the specified query.
 
 The `q` and `fq` parameters are passed directly through to Solr.  Documentation of the format of the `q` and `fq` parameters is [here](http://lucene.apache.org/core/4_6_1/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description).  All the return fields (in the example return value in the api/v2/sentences/list call below) may be used 
-as solr query parameters, for example 'sentence:obama AND media_id:1'.
+as solr query parameters, for example 'sentence:obama AND media_id:1'. Be aware that ':' is usually replaced with '%3A' in programmatically generated URLs.
 
 #### Example
 
