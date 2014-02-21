@@ -234,8 +234,6 @@ sub _run_model_inline_java
 
     my $expected_results_fh = $output_fhs->{ expected_results_fh };
 
-    my $create_model_script_path = "$HOME/Applications/mallet-2.0.7/run_simple_tagger.sh";
-
     say STDERR "generating predictions";
 
     say STDERR "classpath: $class_path";
