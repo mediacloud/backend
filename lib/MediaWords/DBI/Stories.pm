@@ -727,7 +727,7 @@ END
             <<"EOF",
             SELECT *
             FROM stories
-            WHERE title = ?
+            WHERE md5(title) = md5(?)
                   AND media_id = ?
                   AND publish_date BETWEEN ?::DATE AND ?::DATE FOR UPDATE
 EOF
