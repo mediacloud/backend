@@ -692,6 +692,7 @@ END
 
     if ( !$db_story )
     {
+        return 0 if ( $stories->{ title } eq '(no title)' );
 
         my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $story->{ publish_date } ) );
 
@@ -723,13 +724,14 @@ END
 
         #say STDERR "Searching for story by title";
 
+        # we do the goofy "publish_date + interval '1 second'" to force postgres to use the stories_title_hash index
         $db_story = $dbs->query(
             <<"EOF",
             SELECT *
             FROM stories
             WHERE md5(title) = md5(?)
                   AND media_id = ?
-                  AND publish_date BETWEEN ?::DATE AND ?::DATE FOR UPDATE
+                  AND publish_date + interval '1 second' BETWEEN ?::DATE AND ?::DATE FOR UPDATE
 EOF
             $title,
             $story->{ media_id },
