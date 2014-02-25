@@ -30,4 +30,7 @@ $CPANM CPAN~2.00
 $CPANM Carton~1.0.9
 
 $CPANM List::MoreUtils
+
+# Install profiler and tools
 $CPANM Devel::NYTProf
+$CPANM lib::core::only

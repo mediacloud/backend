@@ -591,13 +591,13 @@ sub _get_top_500_weekly_words_impl
     my $date_clause             = _get_weekly_date_clause( $query, 'w' );
     my $tw_date_clause          = _get_weekly_date_clause( $query, 'tw' );
 
-    # TO DO DRL temporarily commenting this out since Inline python is commented out in MediaWords::Solr::WordCounts::word_count 
-    #
-    # my $ret = MediaWords::Solr::WordCounts::word_count( $query, $query->{ start_date }, 500 );
-    #
-    # say STDERR Dumper( $ret );
-    #
-    # return $ret;
+ # TO DO DRL temporarily commenting this out since Inline python is commented out in MediaWords::Solr::WordCounts::word_count
+ #
+ # my $ret = MediaWords::Solr::WordCounts::word_count( $query, $query->{ start_date }, 500 );
+ #
+ # say STDERR Dumper( $ret );
+ #
+ # return $ret;
 
     # we have to divide stem_count by the number of media_sets to get the correct ratio b/c
     # the query below sum()s the stem for all media_sets

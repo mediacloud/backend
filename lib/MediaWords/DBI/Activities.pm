@@ -536,7 +536,7 @@ sub encode_activity_description($$)
 
     my $comp = Array::Compare->new;
 
-    unless ( $comp->compare(\@expected_parameters, \@actual_parameters) )
+    unless ( $comp->compare( \@expected_parameters, \@actual_parameters ) )
     {
         die "Expected parameters: " .
           join( ' ', @expected_parameters ) . "\n" . "Actual parameters: " .
