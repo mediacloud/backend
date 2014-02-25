@@ -172,6 +172,57 @@ sub list_processed_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
+
+sub _add_story_tags
+{
+    my ( $self, $c, $story_tags ) = @_;
+
+    foreach my $story_tag ( @$story_tags )
+    {
+        say STDERR "story_tag $story_tag";
+
+        my ( $stories_id, $tag) = split ',', $story_tag;
+	
+	my $tags_id = $tag;
+
+	say STDERR "$stories_id, $tags_id";
+
+	$c->dbis->query( "INSERT INTO stories_tags_map( stories_id, tags_id) VALUES (?, ? )", $stories_id, $tags_id );
+    }
+}
+
+sub put_tags : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+{
+}
+
+sub put_tags_PUT : Local
+{
+    my ( $self, $c ) = @_;
+    my $subset = $c->req->data;
+
+
+    my $story_tag = $c->req->params->{ 'story_tag' };
+
+    my $story_tags;
+
+    if ( ref $story_tag )
+    {
+       $story_tags = $story_tag;
+    }
+    else
+    {
+       $story_tags = [ $story_tag ];
+    }
+
+    say STDERR Dumper( $story_tags );
+
+    $self->_add_story_tags( $c, $story_tags );
+
+    $self->status_ok( $c, entity => $story_tags );
+
+    return;
+}
+
 # sub subset_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 # {
 # }
