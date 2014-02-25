@@ -172,37 +172,37 @@ sub list_processed_GET : Local
     $self->status_ok( $c, entity => $stories );
 }
 
-sub subset_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
-{
-}
+# sub subset_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
+# {
+# }
 
-sub subset_processed_GET : Local
-{
-    my ( $self, $c, $story_subsets_id ) = @_;
+# sub subset_processed_GET : Local
+# {
+#     my ( $self, $c, $story_subsets_id ) = @_;
 
-    my $last_processed_stories_id = $c->req->param( 'last_processed_stories_id' );
+#     my $last_processed_stories_id = $c->req->param( 'last_processed_stories_id' );
 
-    $last_processed_stories_id //= 0;
+#     $last_processed_stories_id //= 0;
 
-    say STDERR "last_processed_stories_id: $last_processed_stories_id";
+#     say STDERR "last_processed_stories_id: $last_processed_stories_id";
 
-    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
+#     my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
 
-    $show_raw_1st_download //= 0;
+#     $show_raw_1st_download //= 0;
 
-    my $query =
-      "select s.*, ps.processed_stories_id from stories s, processed_stories ps, story_subsets_processed_stories_map sspsm  "
-      . "where s.stories_id = ps.stories_id and ps.processed_stories_id = sspsm.processed_stories_id and sspsm.story_subsets_id = ? and ps.processed_stories_id > ? "
-      . "order by ps.processed_stories_id  asc limit ?";
+#     my $query =
+#       "select s.*, ps.processed_stories_id from stories s, processed_stories ps, story_subsets_processed_stories_map sspsm  "
+#       . "where s.stories_id = ps.stories_id and ps.processed_stories_id = sspsm.processed_stories_id and sspsm.story_subsets_id = ? and ps.processed_stories_id > ? "
+#       . "order by ps.processed_stories_id  asc limit ?";
 
-    say STDERR "QUERY $query";
+#     say STDERR "QUERY $query";
 
-    my $stories = $c->dbis->query( $query, $story_subsets_id, $last_processed_stories_id, ROWS_PER_PAGE )->hashes();
+#     my $stories = $c->dbis->query( $query, $story_subsets_id, $last_processed_stories_id, ROWS_PER_PAGE )->hashes();
 
-    $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
+#     $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
 
-    $self->status_ok( $c, entity => $stories );
-}
+#     $self->status_ok( $c, entity => $stories );
+# }
 
 sub subset : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
@@ -229,27 +229,27 @@ sub subset_PUT : Local
 
 }
 
-sub subset_GET : Local
-{
-    my ( $self, $c, $id ) = @_;
-    my $subset = $c->req->data;
+# sub subset_GET : Local
+# {
+#     my ( $self, $c, $id ) = @_;
+#     my $subset = $c->req->data;
 
-    my $story_subset = $c->dbis->find_by_id( 'story_subsets', $id );
+#     my $story_subset = $c->dbis->find_by_id( 'story_subsets', $id );
 
-    if ( !defined( $story_subset ) )
-    {
-        $self->status_not_found( $c, message => "no story_subset $id", );
-    }
-    else
-    {
-        $self->status_created(
-            $c,
-            location => $c->req->uri->as_string,
-            entity   => $story_subset,
-        );
-    }
+#     if ( !defined( $story_subset ) )
+#     {
+#         $self->status_not_found( $c, message => "no story_subset $id", );
+#     }
+#     else
+#     {
+#         $self->status_created(
+#             $c,
+#             location => $c->req->uri->as_string,
+#             entity   => $story_subset,
+#         );
+#     }
 
-}
+# }
 
 =head1 AUTHOR
 
