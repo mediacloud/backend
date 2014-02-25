@@ -6,7 +6,7 @@ elements:
 
 [% FOREACH tag_set IN tag_sets -%]
       - type: Src
-        content_xml: <h2>[% tag_set.name | html %]</h2>
+        content_xml: "<h2>[% tag_set.name | html %]</h2>"
     
       - type: Fieldset
         attributes:
@@ -17,7 +17,7 @@ elements:
 [% FOREACH tag IN tag_set.tags -%]
           - type: Checkbox
             name: tags
-            label_xml: [% tag.tag | html %]
+            label_xml: "[% tag.tag | html %]"
             value: [% tag.tags_id %]
 [% IF tags_lookup.item(tag.tags_id) -%]
             checked: 1

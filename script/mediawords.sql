@@ -68,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4436;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4437;
     
 BEGIN
 
@@ -767,10 +767,10 @@ create unique index stories_guid on stories(guid, media_id);
 create index stories_url on stories (url);
 create index stories_publish_date on stories (publish_date);
 create index stories_collect_date on stories (collect_date);
-create index stories_title_pubdate on stories(title, publish_date);
 create index stories_md on stories(media_id, date_trunc('day'::text, publish_date));
 create index stories_language on stories(language);
 create index stories_db_row_last_updated on stories( db_row_last_updated );
+create index stories_title_hash on stories( md5( title ) );
 
 DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
