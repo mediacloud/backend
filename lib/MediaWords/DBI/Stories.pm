@@ -692,7 +692,7 @@ END
 
     if ( !$db_story )
     {
-        return 0 if ( $stories->{ title } eq '(no title)' );
+        return 0 if ( $story->{ title } eq '(no title)' );
 
         my $date = DateTime->from_epoch( epoch => Date::Parse::str2time( $story->{ publish_date } ) );
 
