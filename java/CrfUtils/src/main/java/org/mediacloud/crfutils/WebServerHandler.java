@@ -7,8 +7,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
@@ -43,14 +41,14 @@ public class WebServerHandler implements Container {
                 response.setValue("Server", "CRFUtils/1.0");
                 response.setDate("Date", time);
                 response.setDate("Last-Modified", time);
-                
+
                 if (!"POST".equals(request.getMethod())) {
                     response.setStatus(Status.METHOD_NOT_ALLOWED);
                     body.println("Not POST.");
                     body.close();
                     return;
                 }
-                
+
                 String postData = request.getContent();
                 if (postData.isEmpty()) {
                     response.setStatus(Status.BAD_REQUEST);
@@ -58,7 +56,7 @@ public class WebServerHandler implements Container {
                     body.close();
                     return;
                 }
-                
+
                 try {
                     body.println(modelRunner.runModelStringReturnString(postData));
                 } catch (Exception ex) {
@@ -67,9 +65,9 @@ public class WebServerHandler implements Container {
                     body.close();
                     return;
                 }
-                
+
                 body.close();
-                
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -86,7 +84,7 @@ public class WebServerHandler implements Container {
 
     @Override
     public void handle(Request request, Response response) {
-        
+
         Task task = new Task(request, response, modelRunner);
 
         executor.execute(task);

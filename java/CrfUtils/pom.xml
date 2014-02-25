@@ -81,6 +81,7 @@
                     <include>test_output.txt</include>
                 </includes>
             </testResource>
+            
         </testResources>
     </build>
   
