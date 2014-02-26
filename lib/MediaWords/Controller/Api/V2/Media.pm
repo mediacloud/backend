@@ -80,49 +80,6 @@ sub default_output_fields
     return [ qw ( name url media_id ) ];
 }
 
-sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
-{
-}
-
-sub list_GET : Local
-{
-    my ( $self, $c ) = @_;
-
-    say STDERR "starting list_GET";
-
-    #return unless $self->_valid_api_key( $c );
-
-    my $last_media_id = $c->req->param( 'last_media_id' );
-    say STDERR "last_media_id: $last_media_id";
-
-    $last_media_id //= 0;
-
-    my $all_fields = $c->req->param( 'all_fields' );
-    $all_fields //= 0;
-
-    my $rows = $c->req->param( 'rows' );
-    say STDERR "rows $rows";
-
-    $rows //= ROWS_PER_PAGE;
-
-    my $media =
-      $c->dbis->query( "select s.* from media s where media_id > ? ORDER by media_id asc limit ?", $last_media_id, $rows )
-      ->hashes;
-
-    if ( !$all_fields )
-    {
-        say STDERR "Purging extra fields in";
-        say STDERR Dumper( $media );
-        $media = $self->_purge_extra_fields_obj_list( $media );
-        say STDERR "Purging result:";
-        say STDERR Dumper( $media );
-    }
-
-    $self->_add_nested_data( $c->dbis, $media );
-
-    $self->status_ok( $c, entity => $media );
-}
-
 =head1 AUTHOR
 
 David Larochelle
