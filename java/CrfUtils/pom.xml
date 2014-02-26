@@ -11,8 +11,14 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
+        <!-- Software package versions to use -->
         <malletVersion>2.0.7</malletVersion>
         <simpleFrameworkVersion>5.1.6</simpleFrameworkVersion>
+        
+        <!-- Default properties -->
+        <crf.httpPort>8441</crf.httpPort> <!-- Default HTTP user port -->
+        <crf.numberOfThreads>32</crf.numberOfThreads> <!-- Number of threads to spawn -->
+            
     </properties>
     
     <build>
@@ -43,6 +49,16 @@
                 </executions>
                 <configuration>
                     <mainClass>org.mediacloud.crfutils.WebServerHandler</mainClass>
+                    <systemProperties>
+                        <systemProperty>
+                            <key>crf.httpPort</key>
+                            <value>${crf.httpPort}</value>
+                        </systemProperty>
+                        <systemProperty>
+                            <key>crf.numberOfThreads</key>
+                            <value>${crf.numberOfThreads}</value>
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
             </plugin>
             

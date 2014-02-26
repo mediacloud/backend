@@ -13,7 +13,11 @@ To start the webserver:
     cd java/CrfUtils/
     mvn compile
     mvn test
-    mvn exec:java
+    mvn exec:java -Dcrf.httpPort=1234 -Dcrf.numberOfThreads=16
+
+To change HTTP port to listen to or number of threads:
+
+    mvn exec:java -Dcrf.httpPort=1234 -Dcrf.numberOfThreads=16
 
 To try the webserver:
 

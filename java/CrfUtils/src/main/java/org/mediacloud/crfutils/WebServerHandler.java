@@ -91,12 +91,39 @@ public class WebServerHandler implements Container {
     }
 
     public static void main(String[] list) throws Exception {
-        Container container = new WebServerHandler(32);
+
+        // Read properties
+        String strNumberOfThreads = System.getProperty("crf.numberOfThreads");
+        if (null == strNumberOfThreads || strNumberOfThreads.isEmpty()) {
+            throw new Exception("crf.numberOfThreads is null or empty.");
+        }
+        final int numberOfThreads = Integer.parseInt(strNumberOfThreads);
+        if (numberOfThreads < 1) {
+            throw new Exception("crf.numberOfThreads is below 1.");
+        }
+
+        String strHttpPort = System.getProperty("crf.httpPort");
+        if (null == strHttpPort || strHttpPort.isEmpty()) {
+            throw new Exception("crf.httpPort is null or empty.");
+        }
+        final int httpPort = Integer.parseInt(strHttpPort);
+        if (httpPort < 1) {
+            throw new Exception("crf.httpPort is below 1.");
+        }
+
+        System.err.println("Will spawn " + numberOfThreads + " threads.");
+        System.err.println("Will listen to port " + httpPort + ".");
+
+        System.err.println("Setting up...");
+        Container container = new WebServerHandler(numberOfThreads);
         Server server = new ContainerServer(container);
         Connection connection = new SocketConnection(server);
-        SocketAddress address = new InetSocketAddress(8441);
+        SocketAddress address = new InetSocketAddress(httpPort);
+        System.err.println("Done.");
 
         connection.connect(address);
+
+        System.err.println("Make POST requests to 127.0.0.1:" + httpPort + " with the text you want to be processed.");
     }
 
 }
