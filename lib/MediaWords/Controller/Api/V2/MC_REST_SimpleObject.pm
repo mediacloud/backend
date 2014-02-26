@@ -62,6 +62,11 @@ sub default_output_fields
     return;
 }
 
+sub has_nested_data
+{
+    return;
+}
+
 sub get_table_name
 {
     die "Method not implemented";
@@ -81,7 +86,20 @@ sub single_GET : Local
 
     my $query = "select * from $table_name where $id_field = ? ";
 
+    my $all_fields = $c->req->param( 'all_fields' );
+    $all_fields //= 0;
+
     my $items = $c->dbis->query( $query, $id )->hashes();
+
+    if ( $self->default_output_fields() && !$all_fields )
+    {
+        $items = $self->_purge_extra_fields_obj_list( $items );
+    }
+
+    if ( $self->has_nested_data() )
+    {
+	$self->_add_nested_data( $c->dbis, $items );
+    }
 
     $self->status_ok( $c, entity => $items );
 }
