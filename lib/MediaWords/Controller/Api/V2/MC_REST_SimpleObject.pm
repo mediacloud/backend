@@ -85,6 +85,8 @@ sub _process_result_list
     {
 	$self->_add_nested_data( $c->dbis, $items );
     }
+
+    return $items;
 }
 
 sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
@@ -106,7 +108,7 @@ sub single_GET : Local
 
     my $items = $c->dbis->query( $query, $id )->hashes();
 
-    $self->_process_result_list( $c, $items, $all_fields );
+    $items = $self->_process_result_list( $c, $items, $all_fields );
 
     $self->status_ok( $c, entity => $items );
 }
@@ -181,7 +183,7 @@ sub list_GET : Local
 	$list = $c->dbis->query( $query , $last_id, $rows )->hashes;
     }
 
-    $self->_process_result_list( $c, $list, $all_fields );
+    $list = $self->_process_result_list( $c, $list, $all_fields );
 
     $self->status_ok( $c, entity => $list );
 }
