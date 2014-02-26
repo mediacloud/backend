@@ -36,29 +36,31 @@ use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
-# ## TODO move these to a centralized location instead of copying them in every API class 
-# #A list top level object fields to include by default in API results unless all_fields is true
-# Readonly my $default_output_fields => [ qw ( name url media_id ) ];
-# sub _purge_extra_fields:
-# {
-#     my ( $self, $obj ) = @_;
+sub _purge_extra_fields :
+{
+    my ( $self, $obj ) = @_;
 
-#     my $new_obj = {};
+    my $new_obj = {};
 
-#     foreach my $default_output_field ( @ {$default_output_fields } )
-#     {
-# 	$new_obj->{ $default_output_field } = $obj->{ $default_output_field };
-#     }
+    foreach my $default_output_field ( @{ $self->default_output_fields() } )
+    {
+        $new_obj->{ $default_output_field } = $obj->{ $default_output_field };
+    }
 
-#     return $new_obj;
-# }
+    return $new_obj;
+}
 
-# sub _purge_extra_fields_obj_list
-# {
-#     my ( $self, $list ) = @_;
+sub _purge_extra_fields_obj_list
+{
+    my ( $self, $list ) = @_;
 
-#     return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
-# }
+    return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
+}
+
+sub default_output_fields
+{
+    return;
+}
 
 sub get_table_name
 {
