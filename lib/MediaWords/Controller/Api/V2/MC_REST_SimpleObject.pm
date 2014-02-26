@@ -72,6 +72,21 @@ sub get_table_name
     die "Method not implemented";
 }
 
+sub _process_result_list
+{
+    my ( $self, $c, $items, $all_fields ) = @_;
+
+    if ( $self->default_output_fields() && !$all_fields )
+    {
+        $items = $self->_purge_extra_fields_obj_list( $items );
+    }
+
+    if ( $self->has_nested_data() )
+    {
+	$self->_add_nested_data( $c->dbis, $items );
+    }
+}
+
 sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
@@ -91,15 +106,7 @@ sub single_GET : Local
 
     my $items = $c->dbis->query( $query, $id )->hashes();
 
-    if ( $self->default_output_fields() && !$all_fields )
-    {
-        $items = $self->_purge_extra_fields_obj_list( $items );
-    }
-
-    if ( $self->has_nested_data() )
-    {
-	$self->_add_nested_data( $c->dbis, $items );
-    }
+    $self->_process_result_list( $c, $items, $all_fields );
 
     $self->status_ok( $c, entity => $items );
 }
@@ -174,16 +181,7 @@ sub list_GET : Local
 	$list = $c->dbis->query( $query , $last_id, $rows )->hashes;
     }
 
-    # if ( ! $all_fields )
-    # {
-    # 	say STDERR "Purging extra fields in";
-    # 	say STDERR Dumper( $media );
-    # 	$media = $self->_purge_extra_fields_obj_list( $media );
-    # 	say STDERR "Purging result:";
-    # 	say STDERR Dumper( $media );
-    # }
-
-    # $self->_add_data_to_media( $c->dbis, $media );
+    $self->_process_result_list( $c, $list, $all_fields );
 
     $self->status_ok( $c, entity => $list );
 }
