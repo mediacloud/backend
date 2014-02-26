@@ -30,7 +30,7 @@ Catalyst Controller.
 
 =cut
 
-BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
+BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
     'default'   => 'application/json',
@@ -58,6 +58,90 @@ __PACKAGE__->config( json_options => { relaxed => 1, pretty => 1, space_before =
 use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
+
+sub has_extra_data
+{
+    return 1;
+}
+
+sub has_nested_data
+{
+    return 1;
+}
+
+sub get_table_name
+{
+    return "stories";
+}
+
+sub add_extra_data
+{
+    my ( $self, $c, $items ) = @_;
+
+    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
+
+    $show_raw_1st_download //= 0;
+
+    if ( $show_raw_1st_download )
+    {
+        foreach my $story ( @{ $items } )
+        {
+            my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
+
+            if ( !defined( $content_ref ) )
+            {
+                $story->{ first_raw_download_file }->{ missing } = 'true';
+            }
+            else
+            {
+
+                #say STDERR "got content_ref $$content_ref";
+
+                $story->{ first_raw_download_file } = $$content_ref;
+            }
+        }
+    }
+
+    return $items;
+}
+
+sub _add_nested_data
+{
+
+    my ( $self, $db, $stories ) = @_;
+
+    foreach my $story ( @{ $stories } )
+    {
+        my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $db, $story );
+        $story->{ story_text } = $story_text;
+    }
+
+    foreach my $story ( @{ $stories } )
+    {
+        my $fully_extracted = MediaWords::DBI::Stories::is_fully_extracted( $db, $story );
+        $story->{ fully_extracted } = $fully_extracted;
+    }
+
+    foreach my $story ( @{ $stories } )
+    {
+        my $story_sentences =
+          $db->query( "SELECT * from story_sentences where stories_id = ? ORDER by sentence_number", $story->{ stories_id } )
+          ->hashes;
+        $story->{ story_sentences } = $story_sentences;
+    }
+
+    foreach my $story ( @{ $stories } )
+    {
+        say STDERR "adding story tags ";
+        my $story_tags = $db->query(
+"select tags.tags_id, tags.tag, tag_sets.tag_sets_id, tag_sets.name as tag_set from stories_tags_map natural join tags natural join tag_sets where stories_id = ? ORDER by tags_id",
+            $story->{ stories_id }
+        )->hashes;
+        $story->{ story_tags } = $story_tags;
+    }
+
+    return $stories;
+}
 
 sub _add_data_to_stories
 {
@@ -115,31 +199,6 @@ sub _add_data_to_stories
     }
 
     return $stories;
-}
-
-sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
-{
-}
-
-sub single_GET : Local
-{
-    my ( $self, $c, $stories_id ) = @_;
-
-    my $query = "select s.* from stories s where stories_id = ? ";
-
-    say STDERR "QUERY $query";
-
-    say STDERR Dumper( $c->req );
-
-    my $stories = $c->dbis->query( $query, $stories_id )->hashes();
-
-    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
-
-    $show_raw_1st_download //= 0;
-
-    $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
-
-    $self->status_ok( $c, entity => $stories );
 }
 
 sub list_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
