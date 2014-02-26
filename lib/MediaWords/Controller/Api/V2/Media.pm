@@ -36,6 +36,16 @@ use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
+sub get_table_name
+{
+    return "media";
+}
+
+sub has_nested_data
+{
+    return 1;
+}
+
 sub _add_nested_data
 {
 
@@ -68,39 +78,6 @@ sub _add_nested_data
 sub default_output_fields
 {
     return [ qw ( name url media_id ) ];
-}
-
-## TODO move these to a centralized location instead of copying them in every API class
-#A list top level object fields to include by default in API results unless all_fields is true
-#Readonly my $default_output_fields => [ qw ( name url media_id ) ];
-
-
-
-sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
-{
-}
-
-sub single_GET : Local
-{
-    my ( $self, $c, $media_id ) = @_;
-
-    #return unless $self->_valid_api_key( $c );
-
-    my $query = "select s.* from media s where media_id = ? ";
-
-    my $media = $c->dbis->query( $query, $media_id )->hashes();
-
-    my $all_fields = $c->req->param( 'all_fields' );
-    $all_fields //= 0;
-
-    if ( !$all_fields )
-    {
-        $media = $self->_purge_extra_fields_obj_list( $media );
-    }
-
-    $self->_add_nested_data( $c->dbis, $media );
-
-    $self->status_ok( $c, entity => $media );
 }
 
 sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
