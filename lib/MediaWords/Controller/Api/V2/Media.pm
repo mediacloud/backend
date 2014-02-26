@@ -30,13 +30,13 @@ Catalyst Controller.
 
 =cut
 
-BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
+BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 use constant ROWS_PER_PAGE => 20;
 
 use MediaWords::Tagger;
 
-sub _add_data_to_media
+sub _add_nested_data
 {
 
     my ( $self, $db, $media ) = @_;
@@ -65,30 +65,16 @@ sub _add_data_to_media
 
 }
 
+sub default_output_fields
+{
+    return [ qw ( name url media_id ) ];
+}
+
 ## TODO move these to a centralized location instead of copying them in every API class
 #A list top level object fields to include by default in API results unless all_fields is true
-Readonly my $default_output_fields => [ qw ( name url media_id ) ];
+#Readonly my $default_output_fields => [ qw ( name url media_id ) ];
 
-sub _purge_extra_fields :
-{
-    my ( $self, $obj ) = @_;
 
-    my $new_obj = {};
-
-    foreach my $default_output_field ( @{ $default_output_fields } )
-    {
-        $new_obj->{ $default_output_field } = $obj->{ $default_output_field };
-    }
-
-    return $new_obj;
-}
-
-sub _purge_extra_fields_obj_list
-{
-    my ( $self, $list ) = @_;
-
-    return [ map { $self->_purge_extra_fields( $_ ) } @{ $list } ];
-}
 
 sub single : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
@@ -112,7 +98,7 @@ sub single_GET : Local
         $media = $self->_purge_extra_fields_obj_list( $media );
     }
 
-    $self->_add_data_to_media( $c->dbis, $media );
+    $self->_add_nested_data( $c->dbis, $media );
 
     $self->status_ok( $c, entity => $media );
 }
@@ -155,7 +141,7 @@ sub list_GET : Local
         say STDERR Dumper( $media );
     }
 
-    $self->_add_data_to_media( $c->dbis, $media );
+    $self->_add_nested_data( $c->dbis, $media );
 
     $self->status_ok( $c, entity => $media );
 }
