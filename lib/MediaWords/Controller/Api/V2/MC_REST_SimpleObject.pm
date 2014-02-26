@@ -83,7 +83,14 @@ sub _process_result_list
 
     if ( $self->has_nested_data() )
     {
-	$self->_add_nested_data( $c->dbis, $items );
+
+	my $nested_data = $c->req->param( 'nested_data' );
+	$nested_data //= 1;
+
+	if ( $nested_data )
+	{
+	    $self->_add_nested_data( $c->dbis, $items );
+	}
     }
 
     return $items;
