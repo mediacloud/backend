@@ -72,6 +72,16 @@ sub get_table_name
     die "Method not implemented";
 }
 
+sub has_extra_data
+{
+    return;
+}
+
+sub add_extra_data
+{
+    return;
+}
+
 sub _process_result_list
 {
     my ( $self, $c, $items, $all_fields ) = @_;
@@ -79,6 +89,11 @@ sub _process_result_list
     if ( $self->default_output_fields() && !$all_fields )
     {
         $items = $self->_purge_extra_fields_obj_list( $items );
+    }
+
+    if ($self->has_extra_data() )
+    {
+	$items = $self->add_extra_data( $c, $items );
     }
 
     if ( $self->has_nested_data() )
