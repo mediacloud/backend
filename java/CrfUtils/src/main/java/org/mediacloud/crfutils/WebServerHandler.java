@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
@@ -115,12 +116,27 @@ public class WebServerHandler implements Container {
             }
         }
     }
+    
+    class SimpleThreadFactory implements ThreadFactory {
+        
+        private int counter = 0;
+        private final String THREAD_NAME_PREFIX = "http";
+        
+        @Override
+        public Thread newThread(Runnable r) {
+            System.err.println("New thread: " + r.toString());
+            return new Thread(r, THREAD_NAME_PREFIX + "-" + (counter++));
+        }
+        
+    }
 
     private final Executor executor;
     private final ModelRunner modelRunner;
+    private final SimpleThreadFactory threadFactory;
 
     public WebServerHandler(int size) throws IOException, FileNotFoundException, ClassNotFoundException {
-        this.executor = Executors.newFixedThreadPool(size);
+        this.threadFactory = new SimpleThreadFactory();
+        this.executor = Executors.newFixedThreadPool(size, this.threadFactory);
         this.modelRunner = new ModelRunner("../../lib/CRF/models/extractor_model");
     }
 
