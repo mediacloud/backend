@@ -26,7 +26,7 @@ public class WebServerHandler implements Container {
         private final Response response;
         private final Request request;
         private final ModelRunner modelRunner;
-        
+
         private final static String dateFormat = "[dd/MMM/yyyy:HH:mm:ss Z]";
         private final static SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
 
@@ -35,9 +35,9 @@ public class WebServerHandler implements Container {
             this.request = request;
             this.modelRunner = modelRunner;
         }
-        
+
         private static void printAccessLog(Request request, Response response, long responseLength) {
-                        
+
             String referrer = request.getValue("Referrer");
             if (null == referrer || referrer.isEmpty()) {
                 referrer = "-";
@@ -56,16 +56,16 @@ public class WebServerHandler implements Container {
             logLine.append(responseLength).append(" ");
             logLine.append("\"").append(referrer).append("\" ");
             logLine.append("\"").append(request.getValue("User-Agent")).append("\"");
-            
+
             System.out.println(logLine);
         }
 
         @Override
         public void run() {
             try {
-                
+
                 String stringResponse = null;
-                
+
                 long time = System.currentTimeMillis();
                 response.setContentType("text/plain");
                 response.setValue("Server", "CRFUtils/1.0");
@@ -81,7 +81,7 @@ public class WebServerHandler implements Container {
                     if (null == postData || postData.isEmpty()) {
                         response.setStatus(Status.BAD_REQUEST);
                         stringResponse = "Empty POST.\n";
-                        
+
                     } else {
 
                         try {
@@ -89,21 +89,21 @@ public class WebServerHandler implements Container {
                             if (null == crfResults) {
                                 throw new Exception("CRF processing results are nil.");
                             }
-                            
+
                             response.setStatus(Status.OK);
                             stringResponse = crfResults;
-                            
+
                         } catch (Exception ex) {
                             String errorMessage = "Unable to extract: " + ex.getMessage();
-                            
+
                             response.setStatus(Status.INTERNAL_SERVER_ERROR);
                             stringResponse = errorMessage;
                             System.err.println(errorMessage);
                         }
-                    
+
                     }
                 }
-                
+
                 PrintStream body = response.getPrintStream();
                 body.print(stringResponse);
                 body.close();
