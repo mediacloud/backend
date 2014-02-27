@@ -187,13 +187,12 @@ public class WebServerHandler implements Container {
     public static void main(String[] list) throws Exception {
 
         // Read properties
-        String strNumberOfThreads = System.getProperty("crf.numberOfThreads");
-        if (null == strNumberOfThreads || strNumberOfThreads.isEmpty()) {
-            throw new Exception("crf.numberOfThreads is null or empty.");
+        String httpListen = System.getProperty("crf.httpListen");
+        if (null == httpListen) {
+            throw new Exception("crf.httpListen is null.");
         }
-        final int numberOfThreads = Integer.parseInt(strNumberOfThreads);
-        if (numberOfThreads < 1) {
-            throw new Exception("crf.numberOfThreads is below 1.");
+        if (httpListen.isEmpty()) {
+            httpListen = "0.0.0.0";
         }
 
         String strHttpPort = System.getProperty("crf.httpPort");
@@ -205,19 +204,29 @@ public class WebServerHandler implements Container {
             throw new Exception("crf.httpPort is below 1.");
         }
 
-        System.err.println("Will spawn " + numberOfThreads + " threads.");
-        System.err.println("Will listen to port " + httpPort + ".");
+        String strNumberOfThreads = System.getProperty("crf.numberOfThreads");
+        if (null == strNumberOfThreads || strNumberOfThreads.isEmpty()) {
+            throw new Exception("crf.numberOfThreads is null or empty.");
+        }
+        final int numberOfThreads = Integer.parseInt(strNumberOfThreads);
+        if (numberOfThreads < 1) {
+            throw new Exception("crf.numberOfThreads is below 1.");
+        }
 
+        System.err.println("Will listen to " + httpListen + ":" + httpPort + ".");
+        System.err.println("Will spawn " + numberOfThreads + " threads.");
+
+        // Start the CRF model runner web service
         System.err.println("Setting up...");
         Container container = new WebServerHandler(numberOfThreads);
         Server server = new ContainerServer(container);
         Connection connection = new SocketConnection(server);
-        SocketAddress address = new InetSocketAddress(httpPort);
+        SocketAddress address = new InetSocketAddress(httpListen, httpPort);
         System.err.println("Done.");
 
         connection.connect(address);
 
-        System.err.println("Make POST requests to 127.0.0.1:" + httpPort + " with the text you want to be processed.");
+        System.err.println("Make POST requests to 127.0.0.1:" + httpPort + " with the text you want to run the CRF model against.");
     }
 
 }

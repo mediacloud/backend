@@ -16,6 +16,7 @@
         <simpleFrameworkVersion>5.1.6</simpleFrameworkVersion>
         
         <!-- Default properties -->
+        <crf.httpListen>127.0.0.1</crf.httpListen> <!-- Host to listen to -->
         <crf.httpPort>8441</crf.httpPort> <!-- Default HTTP user port -->
         <crf.numberOfThreads>32</crf.numberOfThreads> <!-- Number of threads to spawn -->
             
@@ -50,6 +51,10 @@
                 <configuration>
                     <mainClass>org.mediacloud.crfutils.WebServerHandler</mainClass>
                     <systemProperties>
+                        <systemProperty>
+                            <key>crf.httpListen</key>
+                            <value>${crf.httpListen}</value>
+                        </systemProperty>
                         <systemProperty>
                             <key>crf.httpPort</key>
                             <value>${crf.httpPort}</value>
