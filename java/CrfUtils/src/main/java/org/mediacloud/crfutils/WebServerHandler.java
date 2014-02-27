@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -24,11 +26,38 @@ public class WebServerHandler implements Container {
         private final Response response;
         private final Request request;
         private final ModelRunner modelRunner;
+        
+        private final static String dateFormat = "[dd/MMM/yyyy:HH:mm:ss Z]";
+        private final static SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
 
         public Task(Request request, Response response, ModelRunner modelRunner) {
             this.response = response;
             this.request = request;
             this.modelRunner = modelRunner;
+        }
+        
+        private static void printAccessLog(Request request, Response response, long responseLength) {
+                        
+            String referrer = request.getValue("Referrer");
+            if (null == referrer || referrer.isEmpty()) {
+                referrer = "-";
+            }
+
+            StringBuilder logLine = new StringBuilder();
+            logLine.append(request.getClientAddress().getHostString());
+            logLine.append(" ");
+            logLine.append(dateFormatter.format(new Date()));
+            logLine.append(" \"");
+            logLine.append(request.getMethod()).append(" ");
+            logLine.append(request.getPath()).append(" ");
+            logLine.append("HTTP/").append(request.getMajor()).append(".").append(request.getMinor());
+            logLine.append("\" ");
+            logLine.append(response.getStatus().code).append(" ");
+            logLine.append(responseLength).append(" ");
+            logLine.append("\"").append(referrer).append("\" ");
+            logLine.append("\"").append(request.getValue("User-Agent")).append("\"");
+            
+            System.out.println(logLine);
         }
 
         @Override
@@ -78,6 +107,8 @@ public class WebServerHandler implements Container {
                 PrintStream body = response.getPrintStream();
                 body.print(stringResponse);
                 body.close();
+
+                printAccessLog(request, response, stringResponse.getBytes().length);
 
             } catch (IOException e) {
                 e.printStackTrace();
