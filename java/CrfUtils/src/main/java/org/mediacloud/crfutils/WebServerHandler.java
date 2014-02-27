@@ -91,7 +91,7 @@ public class WebServerHandler implements Container {
                             }
 
                             response.setStatus(Status.OK);
-                            stringResponse = crfResults;
+                            stringResponse = crfResults + "\n";
 
                         } catch (Exception ex) {
                             String errorMessage = "Unable to extract: " + ex.getMessage();
