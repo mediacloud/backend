@@ -117,6 +117,36 @@ database:
     ### Cloud's root; must already exist)
     #childlogdir: "data/supervisor_logs/"
 
+### CRF model runner web service
+#crf_web_service:
+
+    ### To enable the CRF model runner web service, set the below to "yes".
+    ###
+    ### If the service is enabled, Supervisord will start a CRF model runner
+    ### web service which will then be used by extractor.
+    ###
+    ### If the service is disabled, Supervisord will *not* start a CRF model
+    ### runner web service, and extractor will use Inline::Java to run the CRF
+    ### model instead.
+    #enabled: "no"
+
+    ### Host to listen to.
+    ###
+    ### You can set the above parameter to an empty string so that CRF model
+    ### runner web service will accept connections from anywhere. However, it
+    ### is highly advised use secure channels (e.g. a SSH tunnel) to make CRF
+    ### model runner accessible to "outside" instead.
+    #listen: "127.0.0.1"
+
+    ### Port to use for running the CRF model runner web service.
+    #port: 8441
+
+    ### Number of threads the CRF model runner web service should spawn.
+    ###
+    ### More threads will serve more model runner requests per seconds, but
+    ### will take up more memory.
+    #number_of_threads: 32
+
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email
     #bug_email : ""
