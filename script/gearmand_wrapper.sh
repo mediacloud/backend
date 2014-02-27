@@ -82,4 +82,4 @@ GEARMAND_PARAMS="$GEARMAND_PARAMS --verbose INFO"
 GEARMAND_PARAMS="$GEARMAND_PARAMS --log-file stderr"
 
 echo "Executing: gearmand $GEARMAND_PARAMS"
-gearmand $GEARMAND_PARAMS
+exec gearmand $GEARMAND_PARAMS
