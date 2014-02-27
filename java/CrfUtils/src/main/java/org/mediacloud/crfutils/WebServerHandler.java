@@ -34,38 +34,49 @@ public class WebServerHandler implements Container {
         @Override
         public void run() {
             try {
-                PrintStream body = response.getPrintStream();
-
+                
+                String stringResponse = null;
+                
                 long time = System.currentTimeMillis();
-                response.setValue("Content-Type", "text/plain");
+                response.setContentType("text/plain");
                 response.setValue("Server", "CRFUtils/1.0");
                 response.setDate("Date", time);
                 response.setDate("Last-Modified", time);
 
                 if (!"POST".equals(request.getMethod())) {
                     response.setStatus(Status.METHOD_NOT_ALLOWED);
-                    body.println("Not POST.");
-                    body.close();
-                    return;
-                }
+                    stringResponse = "Not POST.\n";
+                } else {
 
-                String postData = request.getContent();
-                if (postData.isEmpty()) {
-                    response.setStatus(Status.BAD_REQUEST);
-                    body.println("Empty POST.");
-                    body.close();
-                    return;
-                }
+                    String postData = request.getContent();
+                    if (null == postData || postData.isEmpty()) {
+                        response.setStatus(Status.BAD_REQUEST);
+                        stringResponse = "Empty POST.\n";
+                        
+                    } else {
 
-                try {
-                    body.println(modelRunner.runModelStringReturnString(postData));
-                } catch (Exception ex) {
-                    response.setStatus(Status.INTERNAL_SERVER_ERROR);
-                    body.println("Unable to extract: " + ex.getMessage());
-                    body.close();
-                    return;
+                        try {
+                            String crfResults = modelRunner.runModelStringReturnString(postData);
+                            if (null == crfResults) {
+                                throw new Exception("CRF processing results are nil.");
+                            }
+                            
+                            response.setStatus(Status.OK);
+                            stringResponse = crfResults;
+                            
+                        } catch (Exception ex) {
+                            String errorMessage = "Unable to extract: " + ex.getMessage();
+                            
+                            response.setStatus(Status.INTERNAL_SERVER_ERROR);
+                            stringResponse = errorMessage;
+                            System.err.println(errorMessage);
+                        }
+                    
+                    }
                 }
-
+                
+                PrintStream body = response.getPrintStream();
+                body.print(stringResponse);
                 body.close();
 
             } catch (IOException e) {
