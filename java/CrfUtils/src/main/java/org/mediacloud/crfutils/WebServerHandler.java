@@ -1,8 +1,9 @@
 package org.mediacloud.crfutils;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.text.SimpleDateFormat;
@@ -26,15 +27,36 @@ public class WebServerHandler implements Container {
 
         private final Response response;
         private final Request request;
-        private final ModelRunner modelRunner;
+
+        // One modelRunner per thread
+        private static final ThreadLocal< ModelRunner> threadLocal
+                = new ThreadLocal< ModelRunner>() {
+                    @Override
+                    protected ModelRunner initialValue() {
+
+                        ModelRunner modelRunner;
+
+                        try {
+                            System.err.println("Creating new CRF model runner for thread " + Thread.currentThread().getName());
+                            modelRunner = new ModelRunner("../../lib/CRF/models/extractor_model");
+                        } catch (IOException e) {
+                            System.err.println("Unable to initialize CRF model runner: " + e.getMessage());
+                            return null;
+                        } catch (ClassNotFoundException e) {
+                            System.err.println("Unable to find CRF model runner class: " + e.getMessage());
+                            return null;
+                        }
+
+                        return modelRunner;
+                    }
+                };
 
         private final static String dateFormat = "[dd/MMM/yyyy:HH:mm:ss Z]";
         private final static SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
 
-        public Task(Request request, Response response, ModelRunner modelRunner) {
+        public Task(Request request, Response response) {
             this.response = response;
             this.request = request;
-            this.modelRunner = modelRunner;
         }
 
         private static void printAccessLog(Request request, Response response, long responseLength) {
@@ -45,6 +67,7 @@ public class WebServerHandler implements Container {
             }
 
             StringBuilder logLine = new StringBuilder();
+            logLine.append("[").append(Thread.currentThread().getName()).append("] ");
             logLine.append(request.getClientAddress().getHostString());
             logLine.append(" ");
             logLine.append(dateFormatter.format(new Date()));
@@ -59,6 +82,14 @@ public class WebServerHandler implements Container {
             logLine.append("\"").append(request.getValue("User-Agent")).append("\"");
 
             System.out.println(logLine);
+        }
+
+        private static String exceptionStackTraceToString(Exception e) {
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            return sw.toString();
         }
 
         @Override
@@ -86,6 +117,12 @@ public class WebServerHandler implements Container {
                     } else {
 
                         try {
+
+                            ModelRunner modelRunner = threadLocal.get();
+                            if (null == modelRunner) {
+                                throw new Exception("Unable to initialize CRF model runner.");
+                            }
+
                             String crfResults = modelRunner.runModelStringReturnString(postData);
                             if (null == crfResults) {
                                 throw new Exception("CRF processing results are nil.");
@@ -94,12 +131,12 @@ public class WebServerHandler implements Container {
                             response.setStatus(Status.OK);
                             stringResponse = crfResults + "\n";
 
-                        } catch (Exception ex) {
-                            String errorMessage = "Unable to extract: " + ex.getMessage();
+                        } catch (Exception e) {
+
+                            String errorMessage = "Unable to extract: " + exceptionStackTraceToString(e);
 
                             response.setStatus(Status.INTERNAL_SERVER_ERROR);
                             stringResponse = errorMessage;
-                            System.err.println(errorMessage);
                         }
 
                     }
@@ -112,38 +149,37 @@ public class WebServerHandler implements Container {
                 printAccessLog(request, response, stringResponse.getBytes().length);
 
             } catch (IOException e) {
-                e.printStackTrace();
+
+                String errorMessage = exceptionStackTraceToString(e);
+                System.err.println("Request failed: " + errorMessage);
             }
         }
     }
-    
+
     class SimpleThreadFactory implements ThreadFactory {
-        
+
         private int counter = 0;
         private final String THREAD_NAME_PREFIX = "http";
-        
+
         @Override
         public Thread newThread(Runnable r) {
-            System.err.println("New thread: " + r.toString());
             return new Thread(r, THREAD_NAME_PREFIX + "-" + (counter++));
         }
-        
+
     }
 
     private final Executor executor;
-    private final ModelRunner modelRunner;
     private final SimpleThreadFactory threadFactory;
 
-    public WebServerHandler(int size) throws IOException, FileNotFoundException, ClassNotFoundException {
+    public WebServerHandler(int size) {
         this.threadFactory = new SimpleThreadFactory();
         this.executor = Executors.newFixedThreadPool(size, this.threadFactory);
-        this.modelRunner = new ModelRunner("../../lib/CRF/models/extractor_model");
     }
 
     @Override
     public void handle(Request request, Response response) {
 
-        Task task = new Task(request, response, modelRunner);
+        Task task = new Task(request, response);
 
         executor.execute(task);
     }
