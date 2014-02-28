@@ -41,6 +41,7 @@ DISTRIBUTIONS
       App::FatPacker::Trace undef
     requirements:
       ExtUtils::MakeMaker 0
+      perl 5.008000
   App-cpanminus-1.7001
     pathname: M/MI/MIYAGAWA/App-cpanminus-1.7001.tar.gz
     provides:
@@ -168,6 +169,7 @@ DISTRIBUTIONS
       CGI::Simple::Util 1.113
     requirements:
       IO::Scalar 0
+      Module::Build 0.36
       Test::More 0
   CGI-Struct-1.21
     pathname: F/FU/FULLERMD/CGI-Struct-1.21.tar.gz
@@ -410,10 +412,10 @@ DISTRIBUTIONS
     requirements:
       Catalyst::Runtime 5.80030
       Class::Inspector 1.13
-      Config::General 0
       ExtUtils::MakeMaker 6.59
       HTML::Parser 0
       JSON 2.12
+      JSON::XS 2.2222
       LWP::UserAgent 2.033
       MRO::Compat 0.10
       Module::Pluggable::Object 0
@@ -1223,7 +1225,7 @@ DISTRIBUTIONS
       DBD::SQLite::dr 1.40
     requirements:
       DBI 1.57
-      ExtUtils::MakeMaker 6.48
+      ExtUtils::MakeMaker 0
       File::Spec 0.82
       Test::Builder 0.86
       Test::More 0.47
@@ -2973,6 +2975,7 @@ DISTRIBUTIONS
       Dir::Self 0.11
     requirements:
       Carp 0
+      ExtUtils::MakeMaker 6.48
       File::Spec 0
       strict 0
   Dist-CheckConflicts-0.09
@@ -3227,7 +3230,7 @@ DISTRIBUTIONS
       Module::Install::WriteAll 0.77
     requirements:
       Encode 1.41
-      ExtUtils::MakeMaker 6.82
+      ExtUtils::MakeMaker 6.9
   Encode-Locale-1.03
     pathname: G/GA/GAAS/Encode-Locale-1.03.tar.gz
     provides:
@@ -3339,40 +3342,40 @@ DISTRIBUTIONS
       File::Temp 0
       Module::Build 0.36
       Test::More 0
-  ExtUtils-MakeMaker-6.88
-    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.88.tar.gz
+  ExtUtils-MakeMaker-6.90
+    pathname: B/BI/BINGOS/ExtUtils-MakeMaker-6.90.tar.gz
     provides:
-      DynaLoader 6.88
-      ExtUtils::Command::MM 6.88
-      ExtUtils::Liblist 6.88
-      ExtUtils::Liblist::Kid 6.88
-      ExtUtils::MM 6.88
-      ExtUtils::MM_AIX 6.88
-      ExtUtils::MM_Any 6.88
-      ExtUtils::MM_BeOS 6.88
-      ExtUtils::MM_Cygwin 6.88
-      ExtUtils::MM_DOS 6.88
-      ExtUtils::MM_Darwin 6.88
-      ExtUtils::MM_MacOS 6.88
-      ExtUtils::MM_NW5 6.88
-      ExtUtils::MM_OS2 6.88
-      ExtUtils::MM_QNX 6.88
-      ExtUtils::MM_UWIN 6.88
-      ExtUtils::MM_Unix 6.88
-      ExtUtils::MM_VMS 6.88
-      ExtUtils::MM_VOS 6.88
-      ExtUtils::MM_Win32 6.88
-      ExtUtils::MM_Win95 6.88
-      ExtUtils::MY 6.88
-      ExtUtils::MakeMaker 6.88
-      ExtUtils::MakeMaker::Config 6.88
-      ExtUtils::MakeMaker::_version 6.88
-      ExtUtils::Mkbootstrap 6.88
-      ExtUtils::Mksymlists 6.88
-      ExtUtils::testlib 6.88
-      MM 6.88
-      MY 6.88
-      in 6.88
+      DynaLoader 6.90
+      ExtUtils::Command::MM 6.90
+      ExtUtils::Liblist 6.90
+      ExtUtils::Liblist::Kid 6.90
+      ExtUtils::MM 6.90
+      ExtUtils::MM_AIX 6.90
+      ExtUtils::MM_Any 6.90
+      ExtUtils::MM_BeOS 6.90
+      ExtUtils::MM_Cygwin 6.90
+      ExtUtils::MM_DOS 6.90
+      ExtUtils::MM_Darwin 6.90
+      ExtUtils::MM_MacOS 6.90
+      ExtUtils::MM_NW5 6.90
+      ExtUtils::MM_OS2 6.90
+      ExtUtils::MM_QNX 6.90
+      ExtUtils::MM_UWIN 6.90
+      ExtUtils::MM_Unix 6.90
+      ExtUtils::MM_VMS 6.90
+      ExtUtils::MM_VOS 6.90
+      ExtUtils::MM_Win32 6.90
+      ExtUtils::MM_Win95 6.90
+      ExtUtils::MY 6.90
+      ExtUtils::MakeMaker 6.90
+      ExtUtils::MakeMaker::Config 6.90
+      ExtUtils::MakeMaker::_version 6.90
+      ExtUtils::Mkbootstrap 6.90
+      ExtUtils::Mksymlists 6.90
+      ExtUtils::testlib 6.90
+      MM 6.90
+      MY 6.90
+      in 6.90
     requirements:
       Data::Dumper 0
       DirHandle 0
@@ -4308,7 +4311,6 @@ DISTRIBUTIONS
       File::Spec 3.27
       File::Temp 0.16
       IO::File 0
-      Module::Build 0.36
       Symbol 0
       Test::More 0.62
   IO-HTML-1.00
@@ -4691,7 +4693,7 @@ DISTRIBUTIONS
     requirements:
       Carp 0
       Class::Data::Inheritable 0
-      ExtUtils::MakeMaker 6.66
+      ExtUtils::MakeMaker 6.9
       File::Spec 0
       Symbol 0
       Test::More 0
@@ -4978,12 +4980,13 @@ DISTRIBUTIONS
       Text::ParseWords 0
       perl 5.006001
       version 0.87
-  Module-Build-Tiny-0.030
-    pathname: L/LE/LEONT/Module-Build-Tiny-0.030.tar.gz
+  Module-Build-Tiny-0.035
+    pathname: L/LE/LEONT/Module-Build-Tiny-0.035.tar.gz
     provides:
-      Module::Build::Tiny 0.030
+      Module::Build::Tiny 0.035
     requirements:
       CPAN::Meta 0
+      DynaLoader 0
       Exporter 5.57
       ExtUtils::CBuilder 0
       ExtUtils::Config 0.003
@@ -4995,10 +4998,9 @@ DISTRIBUTIONS
       File::Find 0
       File::Path 0
       File::Spec::Functions 0
-      Getopt::Long 0
+      Getopt::Long 2.36
       JSON::PP 2
       Pod::Man 0
-      TAP::Harness 3.29
       TAP::Harness::Env 0
       perl 5.006
       strict 0
@@ -5141,10 +5143,10 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
-  Module-ScanDeps-1.12
-    pathname: R/RS/RSCHUPP/Module-ScanDeps-1.12.tar.gz
+  Module-ScanDeps-1.13
+    pathname: R/RS/RSCHUPP/Module-ScanDeps-1.13.tar.gz
     provides:
-      Module::ScanDeps 1.12
+      Module::ScanDeps 1.13
       Module::ScanDeps::Cache undef
       Module::ScanDeps::DataFeed undef
     requirements:
@@ -5667,7 +5669,7 @@ DISTRIBUTIONS
   MooseX-Types-DateTime-MoreCoercions-0.11
     pathname: I/IL/ILMARI/MooseX-Types-DateTime-MoreCoercions-0.11.tar.gz
     provides:
-      MooseX::Types::DateTime::MoreCoercions undef
+      MooseX::Types::DateTime::MoreCoercions 0.11
     requirements:
       DateTime 0.4302
       DateTime::Duration 0.4302
@@ -6174,7 +6176,6 @@ DISTRIBUTIONS
     provides:
       Parse::RecDescent 1.967009
     requirements:
-      ExtUtils::MakeMaker 6.5702
       Test::More 0
       Text::Balanced 1.95
   Path-Class-0.32
@@ -6503,6 +6504,7 @@ DISTRIBUTIONS
       Role::Tiny::With undef
     requirements:
       Exporter 5.57
+      ExtUtils::MakeMaker 0
       Test::Fatal 0.003
       Test::More 0.96
   SQL-Abstract-1.74
@@ -7159,6 +7161,19 @@ DISTRIBUTIONS
       Test::Requires 0
       Time::HiRes 0
       perl 5.008
+  Test-Simple-1.001002
+    pathname: R/RJ/RJBS/Test-Simple-1.001002.tar.gz
+    provides:
+      Test::Builder 1.001002
+      Test::Builder::IO::Scalar 2.110
+      Test::Builder::Module 1.001002
+      Test::More 1.001002
+      Test::Simple 1.001002
+    requirements:
+      ExtUtils::MakeMaker 0
+      Scalar::Util 1.13
+      Test::Harness 2.03
+      perl 5.006
   Test-Strict-0.22
     pathname: S/SZ/SZABGAB/Test-Strict-0.22.tar.gz
     provides:
@@ -8043,17 +8058,19 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 6.59
       perl 5.006
-  YAML-Tiny-1.56
-    pathname: E/ET/ETHER/YAML-Tiny-1.56.tar.gz
+  YAML-Tiny-1.61
+    pathname: E/ET/ETHER/YAML-Tiny-1.61.tar.gz
     provides:
-      YAML::Tiny 1.56
+      YAML::Tiny 1.61
     requirements:
+      B 0
       Carp 0
       Exporter 0
       ExtUtils::MakeMaker 6.30
-      Module::Build::Tiny 0.027
+      Fcntl 0
+      Module::Build::Tiny 0.035
       Scalar::Util 0
-      perl 5.006
+      perl 5.008001
       strict 0
       warnings 0
   aliased-0.31
@@ -8061,6 +8078,7 @@ DISTRIBUTIONS
     provides:
       aliased 0.31
     requirements:
+      Module::Build 0.40
       Test::More 0
   boolean-0.30
     pathname: I/IN/INGY/boolean-0.30.tar.gz
