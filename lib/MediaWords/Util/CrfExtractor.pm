@@ -13,6 +13,7 @@ use IPC::Open2;
 use Text::Trim;
 use File::Spec;
 use File::Basename;
+use CRF::CrfUtils;
 
 use Moose;
 
@@ -28,32 +29,6 @@ BEGIN
     $_model_file_name = "$_dirname_full/../../CRF/models/extractor_model";
 
     #say STDERR "model_file: $_model_file_name";
-}
-
-# Loading of CRF::CrfUtils is postponed because it compiles + loads a Java
-# class with JVM and that in turn slows down scripts that don't have anything
-# to do with extraction
-my $_crf_crfutils_loaded = 0;
-
-sub _load_crf_crfutils()
-{
-    unless ( $_crf_crfutils_loaded )
-    {
-        my $module = 'CRF::CrfUtils';
-
-        eval {
-            ( my $file = $module ) =~ s|::|/|g;
-            require $file . '.pm';
-            $module->import();
-            1;
-        } or do
-        {
-            my $error = $@;
-            die "Unable to load $module: $error";
-        };
-
-        $_crf_crfutils_loaded = 1;
-    }
 }
 
 sub getScoresAndLines
@@ -105,8 +80,6 @@ sub get_extracted_lines_with_crf
     $model_file_name = $_model_file_name;
 
     #say STDERR "using model file: '$model_file_name'";
-
-    _load_crf_crfutils();
 
     my $predictions = CRF::CrfUtils::run_model_inline_java_data_array( $model_file_name, $feature_strings );
 
