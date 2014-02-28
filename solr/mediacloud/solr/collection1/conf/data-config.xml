@@ -37,7 +37,7 @@
       </entity>
       <entity name="processed_stories" 
               pk="processed_stories_id"
-              query="select CAST ( processed_stories_id AS integer ) , CAST ( stories_id AS integer) from processed_stories"
+              query="select processed_stories_id, stories_id from processed_stories"
               processor="SqlEntityProcessor"
               cacheImpl="SortedMapBackedCache"
 	      cacheKey="stories_id"
