@@ -184,7 +184,12 @@ public class WebServerHandler implements Container {
         executor.execute(task);
     }
 
+    private final static int DEFAULT_HTTP_PORT = 8441;
+
     public static void main(String[] list) throws Exception {
+
+        String httpListenHost;
+        int httpListenPort;
 
         // Read properties
         String httpListen = System.getProperty("crf.httpListen");
@@ -192,16 +197,22 @@ public class WebServerHandler implements Container {
             throw new Exception("crf.httpListen is null.");
         }
         if (httpListen.isEmpty()) {
-            httpListen = "0.0.0.0";
+            httpListen = "0.0.0.0:8441";
         }
 
-        String strHttpPort = System.getProperty("crf.httpPort");
-        if (null == strHttpPort || strHttpPort.isEmpty()) {
-            throw new Exception("crf.httpPort is null or empty.");
+        if (httpListen.contains(":")) {
+            httpListenHost = httpListen.split(":")[0];
+            httpListenPort = Integer.parseInt(httpListen.split(":")[1]);
+        } else {
+            httpListenHost = httpListen;
+            httpListenPort = DEFAULT_HTTP_PORT;
         }
-        final int httpPort = Integer.parseInt(strHttpPort);
-        if (httpPort < 1) {
-            throw new Exception("crf.httpPort is below 1.");
+
+        if (httpListenHost.isEmpty()) {
+            throw new Exception("Unable to determine host to listen to from crf.httpListen = " + httpListen);
+        }
+        if (httpListenPort < 1) {
+            throw new Exception("Unable to determine port to listen to from crf.httpListen = " + httpListen);
         }
 
         String strNumberOfThreads = System.getProperty("crf.numberOfThreads");
@@ -213,7 +224,7 @@ public class WebServerHandler implements Container {
             throw new Exception("crf.numberOfThreads is below 1.");
         }
 
-        System.err.println("Will listen to " + httpListen + ":" + httpPort + ".");
+        System.err.println("Will listen to " + httpListenHost + ":" + httpListenPort + ".");
         System.err.println("Will spawn " + numberOfThreads + " threads.");
 
         // Start the CRF model runner web service
@@ -221,12 +232,12 @@ public class WebServerHandler implements Container {
         Container container = new WebServerHandler(numberOfThreads);
         Server server = new ContainerServer(container);
         Connection connection = new SocketConnection(server);
-        SocketAddress address = new InetSocketAddress(httpListen, httpPort);
+        SocketAddress address = new InetSocketAddress(httpListenHost, httpListenPort);
         System.err.println("Done.");
 
         connection.connect(address);
 
-        System.err.println("Make POST requests to 127.0.0.1:" + httpPort + " with the text you want to run the CRF model against.");
+        System.err.println("Make POST requests to 127.0.0.1:" + httpListenPort + " with the text you want to run the CRF model against.");
     }
 
 }

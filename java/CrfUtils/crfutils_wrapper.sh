@@ -59,14 +59,12 @@ fi
 
 echo "Reading configuration..."
 CRF_LISTEN=`$QUERY_CONFIG "//crf_web_service/listen"`
-CRF_PORT=`$QUERY_CONFIG "//crf_web_service/port"`
 CRF_NUMBER_OF_THREADS=`$QUERY_CONFIG "//crf_web_service/number_of_threads"`
 
 MVN_PARAMS="compile exec:java"
 if [[ ! -z "$CRF_LISTEN" ]]; then
     MVN_PARAMS="$MVN_PARAMS -Dcrf.httpListen=$CRF_LISTEN"
 fi
-MVN_PARAMS="$MVN_PARAMS -Dcrf.httpPort=$CRF_PORT"
 MVN_PARAMS="$MVN_PARAMS -Dcrf.numberOfThreads=$CRF_NUMBER_OF_THREADS"
 
 echo "Executing: mvn $MVN_PARAMS"

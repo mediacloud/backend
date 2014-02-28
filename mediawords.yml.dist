@@ -130,16 +130,15 @@ database:
     ### model instead.
     #enabled: "no"
 
-    ### Host to listen to.
+    ### Host(:port) the CRF model runner web service should to listen to.
     ###
     ### You can set the above parameter to an empty string so that CRF model
     ### runner web service will accept connections from anywhere. However, it
     ### is highly advised use secure channels (e.g. a SSH tunnel) to make CRF
     ### model runner accessible to "outside" instead.
-    #listen: "127.0.0.1"
-
-    ### Port to use for running the CRF model runner web service.
-    #port: 8441
+    ###
+    ### Default port is 8441.
+    #listen: "127.0.0.1:8441"
 
     ### Number of threads the CRF model runner web service should spawn.
     ###
