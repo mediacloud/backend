@@ -35,17 +35,15 @@
 	      cacheLookup="story_sentences.stories_id"
               >
       </entity>
-<!--
       <entity name="processed_stories" 
               pk="processed_stories_id"
-              query="select CAST ( processed_stories_id AS varchar ) , CAST ( stories_id AS varchar) from processed_stories"
+              query="select CAST ( processed_stories_id AS integer ) , CAST ( stories_id AS integer) from processed_stories"
               processor="SqlEntityProcessor"
               cacheImpl="SortedMapBackedCache"
 	      cacheKey="stories_id"
 	      cacheLookup="story_sentences.stories_id"
               >
       </entity>
--->
     </entity>
   </document>
 </dataConfig>
