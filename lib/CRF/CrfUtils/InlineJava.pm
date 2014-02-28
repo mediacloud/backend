@@ -210,6 +210,12 @@ sub _run_model_on_array($$)
 
     my $test_data = join "\n", @{ $test_data_array };
 
+    # If test data is empty
+    unless ( $test_data )
+    {
+        return [];
+    }
+
     # Returning and using a single string from a Java method is way faster than
     # returning and using an array of strings
     my $results_string = $modelrunner->runModelStringReturnString( $test_data );
