@@ -21,12 +21,17 @@ with 'MediaWords::Util::Extractor';
 
 my $_model_file_name;
 
-BEGIN
+sub get_path_to_extractor_model()
 {
     my $_dirname      = dirname( __FILE__ );
     my $_dirname_full = File::Spec->rel2abs( $_dirname );
 
-    $_model_file_name = "$_dirname_full/../../CRF/models/extractor_model";
+    return "$_dirname_full/../../CRF/models/extractor_model";
+}
+
+BEGIN
+{
+    $_model_file_name = get_path_to_extractor_model();
 
     #say STDERR "model_file: $_model_file_name";
 }
@@ -90,14 +95,20 @@ sub get_extracted_lines_with_crf
     #say STDERR Dumper( $feature_strings );
     #say STDERR ( Dumper( $predictions ) );
 
-    die unless scalar( @$predictions ) == scalar( @$feature_strings );
+    unless ( scalar( @$predictions ) == scalar( @$feature_strings ) )
+    {
+        die "Prediction count is not equal to the feature string count.\n";
+    }
 
     my $line_index       = 0;
     my $prediction_index = 0;
 
     my @extracted_lines;
 
-    die unless scalar( @$predictions ) <= scalar( @$line_infos );
+    unless ( scalar( @$predictions ) <= scalar( @$line_infos ) )
+    {
+        die "Prediction count is bigger than the line info count.\n";
+    }
 
     while ( $line_index < scalar( @{ $line_infos } ) )
     {
@@ -109,11 +120,11 @@ sub get_extracted_lines_with_crf
 
         my $prediction = rtrim $predictions->[ $prediction_index ];
 
-        die "Invalid prediction: '$prediction' for line index $line_index and prediction_index $prediction_index " .
-          Dumper( $predictions )
-          unless ( $prediction eq 'excluded' )
-          or ( $prediction eq 'required' )
-          or ( $prediction eq 'optional' );
+        unless ( $prediction eq 'excluded' or $prediction eq 'required' or $prediction eq 'optional' )
+        {
+            die 'Invalid prediction: "' . $prediction . '" for line index ' .
+              $line_index . ' and prediction_index ' . $prediction_index . ': ' . Dumper( $predictions );
+        }
 
         #say STDERR "$prediction";
         if ( $prediction ne 'excluded' )
