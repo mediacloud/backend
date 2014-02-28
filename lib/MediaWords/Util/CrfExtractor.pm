@@ -21,6 +21,8 @@ with 'MediaWords::Util::Extractor';
 
 my $_model_file_name;
 
+# FIXME: make path to the extractor model configurable because that way Java
+# wouldn't have to use hardcoded path to the extractor model
 sub get_path_to_extractor_model()
 {
     my $_dirname      = dirname( __FILE__ );
