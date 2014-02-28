@@ -1,5 +1,9 @@
 package CRF::CrfUtils::InlineJava;
 
+#
+# Package to access CRF model runner via Inline::Java
+#
+
 use strict;
 use warnings;
 

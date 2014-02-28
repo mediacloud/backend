@@ -26,13 +26,6 @@ sub _load_and_return_crf_module()
 
         if ( $config->{ crf_web_service }->{ enabled } eq 'yes' )
         {
-
-            my $crf_server = $config->{ crf_web_service }->{ server };
-            unless ( $crf_server )
-            {
-                die "Unable to determine CRF model runner web service server to connect to.";
-            }
-
             $module = 'CRF::CrfUtils::WebService';
         }
         else
@@ -48,7 +41,7 @@ sub _load_and_return_crf_module()
         } or do
         {
             my $error = $@;
-            die "Unable to load $module: $error";
+            _fatal_error( "Unable to load $module: $error" );
         };
 
         $_active_crf_module = $module;
@@ -109,6 +102,28 @@ sub train_and_test($$)
     my $module = _load_and_return_crf_module();
 
     return $module->train_and_test( $files, $output_fhs, $iterations );
+}
+
+# Helper
+sub _fatal_error($)
+{
+    # There are errors that cannot be classified as extractor errors (that
+    # would get logged into the database). For example, if the whole CRF model
+    # runner web service is down, no extractions of any kind can happen anyway,
+    # so it's not worthwhile to write a gazillion "extractor error: CRF web
+    # service is down" errors to the database.
+    #
+    # Instead, we go the radical way of killing the whole extractor process. It
+    # is more likely that someone will notice that the CRF model runner web
+    # service is malfunctioning if the extractor gets shut down.
+    #
+    # Usual die() wouldn't work here because it is (might be) wrapped into an
+    # eval{}.
+
+    my $error_message = shift;
+
+    say STDERR $error_message;
+    exit 1;
 }
 
 1;
