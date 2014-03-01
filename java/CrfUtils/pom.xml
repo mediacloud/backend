@@ -9,6 +9,20 @@
     <packaging>jar</packaging>
     
     <build>
+        
+        <resources>
+            
+            <!-- Mallet logging.properties file -->
+            <resource>
+                <directory>src/main/resources/cc/mallet/util</directory>
+                <targetPath>cc/mallet/util/resources/</targetPath>
+                <includes>
+                    <include>logging.properties</include>
+                </includes>
+            </resource>
+            
+        </resources>
+
         <testResources>
             
             <!-- Use a "live" Media Cloud extractor model from lib/CRF/models/ for testing -->
