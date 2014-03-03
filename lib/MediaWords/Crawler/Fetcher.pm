@@ -37,6 +37,7 @@ sub do_fetch
 
     $ua->from( $config->{ mediawords }->{ owner } );
     $ua->agent( $config->{ mediawords }->{ user_agent } );
+    $ua->cookie_jar( {} );
 
     $ua->timeout( 20 );
     $ua->max_size( 1024 * 1024 );
