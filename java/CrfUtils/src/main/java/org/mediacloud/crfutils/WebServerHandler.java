@@ -77,7 +77,7 @@ public class WebServerHandler implements Container {
 
             StringBuilder logLine = new StringBuilder();
             logLine.append("[").append(Thread.currentThread().getName()).append("] ");
-            logLine.append(request.getClientAddress().getHostString());
+            logLine.append(request.getClientAddress().getHostName());
             logLine.append(" ");
             logLine.append(dateFormatter.format(new Date()));
             logLine.append(" \"");
