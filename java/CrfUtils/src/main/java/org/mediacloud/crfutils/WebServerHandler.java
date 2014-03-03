@@ -23,6 +23,15 @@ import org.simpleframework.transport.connect.SocketConnection;
 
 public class WebServerHandler implements Container {
 
+    // Path to CRF model (absolute or relative to java/CrfUtils/)
+    private final static String CRF_MODEL_PATH = "../../lib/CRF/models/extractor_model";
+
+    // Server identifier
+    private final static String SERVER_IDENTIFIER = "CRFUtils/1.0";
+
+    // Default HTTP port to listen no (if there isn't one set in the configuration)
+    private final static int DEFAULT_HTTP_PORT = 8441;
+
     public static class Task implements Runnable {
 
         private final Response response;
@@ -38,7 +47,7 @@ public class WebServerHandler implements Container {
 
                         try {
                             System.err.println("Creating new CRF model runner for thread " + Thread.currentThread().getName());
-                            modelRunner = new ModelRunner("../../lib/CRF/models/extractor_model");
+                            modelRunner = new ModelRunner(CRF_MODEL_PATH);
                         } catch (IOException e) {
                             System.err.println("Unable to initialize CRF model runner: " + e.getMessage());
                             return null;
@@ -100,7 +109,7 @@ public class WebServerHandler implements Container {
 
                 long time = System.currentTimeMillis();
                 response.setContentType("text/plain");
-                response.setValue("Server", "CRFUtils/1.0");
+                response.setValue("Server", SERVER_IDENTIFIER);
                 response.setDate("Date", time);
                 response.setDate("Last-Modified", time);
 
@@ -183,8 +192,6 @@ public class WebServerHandler implements Container {
 
         executor.execute(task);
     }
-
-    private final static int DEFAULT_HTTP_PORT = 8441;
 
     public static void main(String[] list) throws Exception {
 
