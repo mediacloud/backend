@@ -15,6 +15,7 @@ use LWP::UserAgent;
 use HTTP::Request;
 use HTTP::Status qw(:constants);
 use Encode;
+use URI;
 
 use Data::Dumper;
 
@@ -32,26 +33,37 @@ sub _fatal_error($)
     CRF::CrfUtils::_fatal_error( $error_message );
 }
 
-sub _crf_server_host()
+sub _crf_server_url()
 {
     my $config     = MediaWords::Util::Config->get_config();
-    my $crf_server = $config->{ crf_web_service }->{ server };
+    my $crf_server_url = $config->{ crf_web_service }->{ server_url };
 
-    unless ( $crf_server )
+    unless ( $crf_server_url )
     {
-        _fatal_error( "Unable to determine CRF model runner web service server to connect to." );
+        _fatal_error( "Unable to determine CRF model runner web service URL to use." );
     }
 
-    unless ( $crf_server =~ /:/ )
-    {
-
-        $crf_server .= ':' . DEFAULT_CRF_PORT;
+    # Validate URL
+    my $uri;
+    eval {
+        $uri = URI->new($crf_server_url)->canonical;
+    };
+    if ($@) {
+        _fatal_error("Invalid CRF model runner web service URI: $crf_server_url");
     }
 
-    return $crf_server;
+    # If someone forgot to explicitly set the port
+    my $default_protocol_port = $uri->default_port; # e.g. 80
+    if ($uri->port == $default_protocol_port and ($crf_server_url !~ /:$default_protocol_port/)) {
+        warn("CRF model runner web service URL's port was not set, to I'm setting it to " . DEFAULT_CRF_PORT);
+        $uri->port(DEFAULT_CRF_PORT);
+    }
+
+    return $uri->as_string;
 }
 
-my $_crf_server = _crf_server_host();
+my $_crf_server_url = _crf_server_url();
+say STDERR "CRF model runner web service URL: $_crf_server_url";
 
 #
 # CRF::CrfUtils "implementation"
@@ -124,12 +136,12 @@ sub run_model_inline_java_data_array($$$)
     $ua->timeout( HTTP_TIMEOUT );
     $ua->agent( HTTP_USER_AGENT );
 
-    unless ( $_crf_server )
+    unless ( $_crf_server_url )
     {
-        _fatal_error( "Unable to determine CRF model runner web service server to connect to." );
+        _fatal_error( "Unable to determine CRF model runner web service URL to use." );
     }
 
-    my $request = HTTP::Request->new( POST => 'http://' . $_crf_server . '/crf' );
+    my $request = HTTP::Request->new( POST => $_crf_server_url );
     $request->content_type( 'text/plain; charset=utf8' );
     $request->content( $test_data_encoded );
 

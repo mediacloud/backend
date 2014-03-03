@@ -104,7 +104,7 @@ sub set_defaults
 
     # CRF model runner web service
     $config->{ crf_web_service }->{ enabled }           ||= 'no';
-    $config->{ crf_web_service }->{ server }            ||= '127.0.0.1:8441';
+    $config->{ crf_web_service }->{ server_url }        ||= 'http://127.0.0.1:8441/crf';
     $config->{ crf_web_service }->{ listen }            ||= '127.0.0.1:8441';
     $config->{ crf_web_service }->{ number_of_threads } ||= 32;
 
