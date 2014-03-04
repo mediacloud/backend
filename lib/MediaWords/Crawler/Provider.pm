@@ -146,7 +146,9 @@ sub _add_stale_feeds
     $dbs->query( <<END );
 create temporary table feeds_to_queue as 
     select feeds_id, url from feeds 
-        where $constraint and lower( url ) like 'http%'
+        where $constraint and 
+            feed_status = 'active' and 
+            lower( url ) like 'http%'
 END
 
     $dbs->query( <<END );
