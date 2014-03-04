@@ -75,11 +75,17 @@ sub search_for_stories_ids
 {
     my ( $params ) = @_;
 
+    # say STDERR "MediaWords::Solr::search_for_stories_ids";
+
     $params = { %{ $params } };
 
     $params->{ fl } = 'stories_id';
 
+    # say STDERR Dumper( $params );
+
     my $response = query( $params );
+
+    # say STDERR Dumper( $response );
 
     my $uniq_stories_ids =  [ uniq ( map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ) ];
 
