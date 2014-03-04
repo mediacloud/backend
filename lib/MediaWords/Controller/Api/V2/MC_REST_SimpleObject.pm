@@ -147,6 +147,38 @@ sub list_api_requires_filter_field
     return defined($self->list_query_filter_field() ) && $self->list_query_filter_field();
 }
 
+sub _fetch_list
+{
+    my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
+
+    my $list; 
+
+    if ( $self->list_api_requires_filter_field() )
+    {
+	my $query_filter_field_name = $self->list_query_filter_field();
+
+	my $filter_field_value = $c->req->param( $query_filter_field_name );
+
+	if (!defined( $filter_field_value ) )
+	{
+	    die "Missing required param $query_filter_field_name";
+	}
+
+	my $query = "select * from $table_name where $id_field > ? and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
+
+	$list = $c->dbis->query( $query , $last_id, $filter_field_value, $rows )->hashes;
+    }
+    else
+    {
+	my $query = "select * from $table_name where $id_field > ? ORDER by $id_field asc limit ? ";
+
+	$list = $c->dbis->query( $query , $last_id, $rows )->hashes;
+    }
+
+    return $list;    
+}
+
+
 sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
@@ -178,31 +210,15 @@ sub list_GET : Local
 
     my $list;
 
-    if ( $self->list_api_requires_filter_field() )
+    eval { $list = $self->_fetch_list(  $c, $last_id, $table_name, $id_field, $rows ); };
+
+    if ( $@ )
     {
-	my $query_filter_field_name = $self->list_query_filter_field();
-
-	my $filter_field_value = $c->req->param( $query_filter_field_name );
-
-	if (!defined( $filter_field_value ) )
-	{
-	    $self->status_bad_request(
-		$c,
-		message => "Missing required param $query_filter_field_name",
-		);
-
-	    return;
-	}
-
-	my $query = "select * from $table_name where $id_field > ? and $query_filter_field_name = ? ORDER by $id_field asc limit ? ";
-
-	$list = $c->dbis->query( $query , $last_id, $filter_field_value, $rows )->hashes;
-    }
-    else
-    {
-	my $query = "select * from $table_name where $id_field > ? ORDER by $id_field asc limit ? ";
-
-	$list = $c->dbis->query( $query , $last_id, $rows )->hashes;
+	$self->status_bad_request(
+	    $c,
+	    message => $@
+	    );
+	return;
     }
 
     $list = $self->_process_result_list( $c, $list, $all_fields );
