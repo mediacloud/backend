@@ -270,7 +270,7 @@ sub get_story_title_from_content
 
     if ( $_[ 0 ] =~ m~<title>([^<]+)</title>~si ) { return $1; }
 
-    return $_[ 1 ];
+    return '(no title)';
 }
 
 # handle feeds of type 'web_page' by just creating a story to associate
