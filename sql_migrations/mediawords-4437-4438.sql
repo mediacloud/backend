@@ -14,23 +14,10 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-create table media_stats (
-    media_stats_id              serial      primary key,
-    media_id                    int         not null references media on delete cascade,
-    num_stories                 int         not null,
-    num_sentences               int         not null,
-    mean_num_sentences          int         not null,
-    mean_text_length            int         not null,
-    num_stories_with_sentences  int         not null,
-    num_stories_with_text       int         not null,
-    stat_date                   date        not null
-);
+SET search_path = public, pg_catalog;
 
-create index media_stats_medium on media_stats( media_id );
-
---
--- 2 of 2. Reset the database version.
---
+ALTER TABLE processed_stories
+	ALTER COLUMN stories_id TYPE int  /* TYPE change - table: processed_stories original: bigint             not null references stories on delete cascade new: int             not null references stories on delete cascade */
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
@@ -51,6 +38,8 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+--
+-- 2 of 2. Reset the database version.
+--
 SELECT set_database_schema_version();
-
 

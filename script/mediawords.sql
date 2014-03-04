@@ -68,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4438;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4439;
     
 BEGIN
 
@@ -1761,7 +1761,7 @@ create trigger stories_update_live_story after update on stories
                                         
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
-    stories_id                  bigint             not null references stories on delete cascade
+    stories_id                  int             not null references stories on delete cascade
 );
 
 create index processed_stories_story on processed_stories ( stories_id );
