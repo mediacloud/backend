@@ -225,7 +225,7 @@ sub stories_checksum_matches_feed
 
     my $story_url_concat = join( '|', map { $_->{ url } } @{ $stories } );
 
-    my $checksum = Digest::MD5::md5_hex( $story_url_concat );
+    my $checksum = Digest::MD5::md5_hex( encode( 'utf8', $story_url_concat ) );
 
     my ( $matches ) = $db->query( <<END, $feeds_id, $checksum )->flat;
 select 1 from feeds where feeds_id = ? and last_checksum = ?
