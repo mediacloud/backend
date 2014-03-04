@@ -685,9 +685,9 @@ SELECT *
         AND media_id = ?
 END
     };
-    die( "query error: $@\n" . Dumper( $story->{ guid }, $story->{ media_id } ) ) if ( $@ )
+    die( "query error: $@\n" . Dumper( $story->{ guid }, $story->{ media_id } ) ) if ( $@ );
 
-      $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
+    $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
 select * from stories where guid = ? and media_id = ?
 END
 
