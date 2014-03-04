@@ -1,28 +1,32 @@
 --
 -- This is a Media Cloud PostgreSQL schema difference file (a "diff") between schema
--- versions 4439 and 4440.
+-- versions 4440 and 4441.
 --
 -- If you are running Media Cloud with a database that was set up with a schema version
--- 4439, and you would like to upgrade both the Media Cloud and the
--- database to be at version 4440, import this SQL file:
+-- 4440, and you would like to upgrade both the Media Cloud and the
+-- database to be at version 4441, import this SQL file:
 --
---     psql mediacloud < mediawords-4439-4440.sql
+--     psql mediacloud < mediawords-4440-4441.sql
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
-
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
+create index stories_publish_day on stories ( publish_day );
+    
+create index downloads_feed_download_time on downloads ( feeds_id, download_time );
 
-SET search_path = public, pg_catalog;
+--
+-- 2 of 2. Reset the database version.
+--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4440;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4441;
     
 BEGIN
 
@@ -36,15 +40,6 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-DROP TRIGGER IF EXISTS processed_stories_update_stories_last_updated_trigger ON processed_stories;
-
-CREATE TRIGGER processed_stories_update_stories_last_updated_trigger
-	AFTER INSERT OR UPDATE OR DELETE ON processed_stories
-	FOR EACH ROW
-	EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
-
---
--- 2 of 2. Reset the database version.
---
 SELECT set_database_schema_version();
+
 
