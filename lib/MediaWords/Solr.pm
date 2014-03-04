@@ -12,6 +12,7 @@ use List::Util;
 
 use MediaWords::Languages::Language;
 use MediaWords::Util::Web;
+use List::MoreUtils qw ( uniq );
 
 # execute a query on the solr server using the given params.
 # return the raw encoded json from solr
@@ -80,10 +81,9 @@ sub search_for_stories_ids
 
     my $response = query( $params );
 
-    my $stories_id_lookup = {};
-    map { $stories_id_lookup->{ $_->{ stories_id } } = 1 } @{ $response->{ response }->{ docs } };
+    my $uniq_stories_ids =  [ uniq ( map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ) ];
 
-    return [ keys( %{ $stories_id_lookup } ) ];
+    return $uniq_stories_ids;
 }
 
 # execute the query and return only the number of documents found
