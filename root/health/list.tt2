@@ -1,0 +1,37 @@
+[% title = 'Media Health' %]
+[% INCLUDE include/header.tt2 %]
+
+<table>
+    <tr>
+        <th>Tag</th>
+        <th>Media Sets</th>
+        <th>Media</th>        
+        <th>Healthy Media</th>
+        <th>Stories</th>
+        <th>w Text</th>
+        <th>w Sentences</th>
+        <th>Num Sentences</th>
+    </tr>
+    
+    [% FOREACH tag IN tags -%]
+
+        <tr [% IF even %]class="even"[% END %]>
+            <td><a href="[% c.uri_for( '/admin/health/tag/' _ tag.tags_id ) %]">[% tag.tag | html %]</a></td>
+            <td>[% tag.media_set_names | html %]</td>
+            <td>[% tag.num_media %]</td>
+            <td>[% tag.num_healthy_media %] ([% tag.percent_healthy_media %]%)</td>
+            <td>[% tag.num_stories %]</td>
+            <td>[% tag.num_stories_with_text %]</td>
+            <td>[% tag.num_stories_with_sentences %]</td>
+            <td>[% tag.num_sentences %]</td>        
+            
+        </tr>
+
+        [%  SET even = !even %]
+
+    [% END # FOREACH stories -%]
+
+</table>
+
+
+[% INCLUDE include/footer.tt2 %]

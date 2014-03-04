@@ -89,6 +89,8 @@ sub get_links_from_html
 
         next if ( $link->{ href } =~ $_ignore_link_pattern );
 
+        $link =~ s/www-nc.nytimes/www.nytimes/i;
+
         push( @{ $links }, { url => $link->{ href } } );
     }
 

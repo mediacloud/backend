@@ -11,11 +11,10 @@
       <entity name="media_sets_media_map" 
               pk="media_sets_media_map_id"
               query="select * from media_sets_media_map"
-              processor="CachedSqlEntityProcessor"
+              processor="SqlEntityProcessor"
+	      cacheImpl="SortedMapBackedCache"
 	      cacheKey="media_id"
 	      cacheLookup="story_sentences.media_id"
-              deltaQuery="select media_sets_media_map_id, media_id::varchar from media_sets_media_map where db_row_last_updated &gt; '${dih.last_index_time}'"
-              parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_sets_media_map.media_id}"
               >
       </entity>
       <entity name="media_tags_map" 
@@ -23,19 +22,26 @@
               query="select tags_id as tags_id_media, * from media_tags_map"
 	      cacheKey="media_id"
 	      cacheLookup="story_sentences.media_id"
-	      processor="CachedSqlEntityProcessor"
-              deltaQuery="select media_tags_map_id, media_id::varchar from media_tags_map where db_row_last_updated &gt; '${dih.last_index_time}' "
-              parentDeltaQuery="select story_sentences_id as id from story_sentences where media_id = ${media_tags_map.media_id}"
+              processor="SqlEntityProcessor"
+	      cacheImpl="SortedMapBackedCache"
               >
       </entity>
       <entity name="stories_tags_map" 
               pk="stories_tags_map_id"
               query="select tags_id as tags_id_stories, * from stories_tags_map"
-              processor="CachedSqlEntityProcessor"
+              processor="SqlEntityProcessor"
+	      cacheImpl="SortedMapBackedCache"
 	      cacheKey="stories_id"
 	      cacheLookup="story_sentences.stories_id"
-              deltaQuery="select stories_tags_map_id, stories_id::varchar from stories_tags_map where db_row_last_updated &gt; '${dih.last_index_time}' "
-              parentDeltaQuery="select story_sentences_id as id from story_sentences where stories_id = ${stories_tags_map.stories_id}"
+              >
+      </entity>
+      <entity name="processed_stories" 
+              pk="processed_stories_id"
+              query="select processed_stories_id, stories_id from processed_stories"
+              processor="SqlEntityProcessor"
+              cacheImpl="SortedMapBackedCache"
+	      cacheKey="stories_id"
+	      cacheLookup="story_sentences.stories_id"
               >
       </entity>
     </entity>
