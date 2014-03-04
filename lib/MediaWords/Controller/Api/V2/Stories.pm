@@ -306,38 +306,6 @@ sub _fetch_list
     return $list;    
 }
 
-
-sub list_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
-{
-}
-
-sub list_processed_GET : Local
-{
-    my ( $self, $c ) = @_;
-
-    say STDERR "starting all_processed";
-
-    my $last_processed_stories_id = $c->req->param( 'last_processed_stories_id' );
-    say STDERR "last_processed_stories_id: $last_processed_stories_id";
-
-    $last_processed_stories_id //= 0;
-
-    my $show_raw_1st_download = $c->req->param( 'raw_1st_download' );
-
-    $show_raw_1st_download //= 0;
-
-    my $stories = $c->dbis->query(
-        "select s.*, ps.processed_stories_id from stories s, processed_stories ps where s.stories_id = ps.stories_id " .
-          " AND processed_stories_id > ? order by processed_stories_id  asc limit ?",
-        $last_processed_stories_id, ROWS_PER_PAGE
-    )->hashes;
-
-    $self->_add_data_to_stories( $c->dbis, $stories, $show_raw_1st_download );
-
-    $self->status_ok( $c, entity => $stories );
-}
-
-
 sub _add_story_tags
 {
     my ( $self, $c, $story_tags ) = @_;
