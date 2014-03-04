@@ -179,6 +179,19 @@ sub _fetch_list
 }
 
 
+sub _get_list_last_id_param_name
+{
+    my ( $self, $c ) = @_;
+
+    my $table_name = $self->get_table_name();
+
+    my $id_field = $table_name . "_id";
+
+    my $last_id_param_name = 'last_' . $id_field;
+
+    return $last_id_param_name;
+}
+
 sub list : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
 }
@@ -193,7 +206,7 @@ sub list_GET : Local
 
     my $id_field = $table_name . "_id";
 
-    my $last_id_param_name = 'last_' . $id_field;
+    my $last_id_param_name = $self->_get_list_last_id_param_name( $c );
 
     my $last_id = $c->req->param( $last_id_param_name );
     $last_id //= 0;
