@@ -13,6 +13,7 @@ use Moose;
 use namespace::autoclean;
 use List::Compare;
 use Carp;
+use MediaWords::Solr;
 
 =head1 NAME
 
@@ -200,6 +201,48 @@ sub _add_data_to_stories
 
     return $stories;
 }
+
+sub _get_object_ids
+{
+    my ( $self, $c, $last_id, $rows ) = @_;
+
+    my $next_id = $last_id + 1;
+
+    my $params = {};
+
+    $params->{ q } = '*:*';
+
+    $params->{ fq } = "processed_stories_id:[ $next_id TO * ]";
+
+    $params->{sort} = "processed_stories_id asc";
+
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $params );
+
+    return $stories_ids;
+}
+
+sub _fetch_list
+{
+    my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
+
+    my $stories_ids = $self->_get_object_ids( $c, $last_id, $rows );
+
+    #say STDERR Dumper( $stories_ids );
+
+    my $query =  "select stories.*, processed_stories.processed_stories_id from stories natural join processed_stories where $id_field in (??) ORDER by $id_field asc ";
+    
+    my @values =  @ {$stories_ids };
+
+    #say STDERR Dumper( [ @values ] );
+
+    say STDERR $query;
+
+
+    my $list = $c->dbis->query( $query , @values )->hashes;
+
+    return $list;    
+}
+
 
 sub list_processed : Local : ActionClass('+MediaWords::Controller::Api::V2::MC_Action_REST')
 {
