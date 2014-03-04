@@ -202,23 +202,83 @@ sub _add_data_to_stories
     return $stories;
 }
 
+sub _max_processed_stories_id
+{
+    my ( $self, $c) = @_;
+
+    my $params = {};
+
+    $params->{ q } = '*:*';
+
+    $params->{sort} = "processed_stories_id desc";
+
+    $params->{ rows } = 1;
+
+    my $processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params ); 
+
+    my $max_processed_stories_id = $processed_stories_ids->[ 0 ];
+
+    return $max_processed_stories_id;
+}
+
 sub _get_object_ids
 {
     my ( $self, $c, $last_id, $rows ) = @_;
 
     my $next_id = $last_id + 1;
 
-    my $params = {};
+    my $q = $c->req->param( 'q' );
 
-    $params->{ q } = '*:*';
+    $q //= '*:*';
 
-    $params->{ fq } = "processed_stories_id:[ $next_id TO * ]";
+    my $fq = $c->req->params->{ fq };
 
-    $params->{sort} = "processed_stories_id asc";
+    $fq //= [];
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $params );
+    if ( ! ref( $fq ) )
+    {
+	$fq = [ $fq ];
+    }
 
-    return $stories_ids;
+    my $processed_stories_ids = [];
+
+    my $max_processed_stories_id = $self->_max_processed_stories_id ( $c );
+
+    say STDERR "max_processed_stories_id = $max_processed_stories_id";
+
+    while ( $next_id <= $max_processed_stories_id && scalar( @$processed_stories_ids ) < $rows )
+    {
+	my $params = {};
+	say STDERR ( Dumper ( $processed_stories_ids ) );
+
+	say STDERR ( $next_id );
+	
+	$params->{ q } = $q;
+	
+	$params->{ fq } = [ @{$fq}, "processed_stories_id:[ $next_id TO * ]" ];
+	
+	$params->{sort} = "processed_stories_id asc";
+	
+	$params->{ rows } = $rows;
+
+	say STDERR ( Dumper ( $params ) );
+
+	my $new_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $params );
+
+	say STDERR Dumper( $new_stories_ids );
+
+	last if scalar ( @ { $new_stories_ids } ) == 0;
+
+	push $processed_stories_ids, @{ $new_stories_ids };
+
+	die unless scalar( @$processed_stories_ids );
+
+	$next_id = $processed_stories_ids->[ -1 ] + 1;
+    }
+
+    say STDERR Dumper( $processed_stories_ids );
+
+    return $processed_stories_ids;
 }
 
 sub _fetch_list
@@ -229,14 +289,17 @@ sub _fetch_list
 
     #say STDERR Dumper( $stories_ids );
 
-    my $query =  "select stories.*, processed_stories.processed_stories_id from stories natural join processed_stories where $id_field in (??) ORDER by $id_field asc ";
+    my $query =  "select stories.*, processed_stories.processed_stories_id from stories natural join processed_stories where processed_stories_id in (??) ORDER by $id_field asc ";
     
     my @values =  @ {$stories_ids };
+
+    return [] unless scalar( @values );
 
     #say STDERR Dumper( [ @values ] );
 
     say STDERR $query;
 
+    
 
     my $list = $c->dbis->query( $query , @values )->hashes;
 
