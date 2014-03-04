@@ -68,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4437;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4438;
     
 BEGIN
 
@@ -318,6 +318,20 @@ create index media_moderated on media(moderated);
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
 
+create table media_stats (
+    media_stats_id              serial      primary key,
+    media_id                    int         not null references media on delete cascade,
+    num_stories                 int         not null,
+    num_sentences               int         not null,
+    mean_num_sentences          int         not null,
+    mean_text_length            int         not null,
+    num_stories_with_sentences  int         not null,
+    num_stories_with_text       int         not null,
+    stat_date                   date        not null
+);
+
+create index media_stats_medium on media_stats( media_id );
+    
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
     
 -- Feed statuses that determine whether the feed will be fetched
