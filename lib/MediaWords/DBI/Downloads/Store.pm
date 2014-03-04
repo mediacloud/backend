@@ -11,7 +11,7 @@ use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
 use Encode;
-use IO::Compress::Gzip;
+use IO::Compress::Gzip qw(:constants);
 use IO::Uncompress::Gunzip;
 use MediaWords::Util::Config;
 
@@ -43,7 +43,7 @@ sub encode_and_gzip($$;$)
 
     my $gzipped_content;
 
-    if ( !( IO::Compress::Gzip::gzip \$encoded_content => \$gzipped_content ) )
+    if ( !( IO::Compress::Gzip::gzip \$encoded_content => \$gzipped_content, -Level => Z_BEST_COMPRESSION, Minimal => 1 ) )
     {
         if ( $content_id )
         {
