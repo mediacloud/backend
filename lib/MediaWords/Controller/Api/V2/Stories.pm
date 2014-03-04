@@ -202,6 +202,13 @@ sub _add_data_to_stories
     return $stories;
 }
 
+sub _get_list_last_id_param_name
+{
+    my ( $self, $c ) = @_;
+
+    return "last_processed_stories_id";
+}
+
 sub _max_processed_stories_id
 {
     my ( $self, $c) = @_;
