@@ -784,7 +784,7 @@ create index stories_md on stories(media_id, date_trunc('day'::text, publish_dat
 create index stories_language on stories(language);
 create index stories_db_row_last_updated on stories( db_row_last_updated );
 create index stories_title_hash on stories( md5( title ) );
-create index stories_publish_day on stories( publish_day );
+create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
 DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
