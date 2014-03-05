@@ -17,8 +17,8 @@ class ApiTest(unittest.TestCase):
     def testWordCount(self):
     	mc = mediacloud.api.MediaCloud( self._config.get('api','user'), self._config.get('api','pass') )
     	term_freq = mc.wordCount('robots', '+publish_date:[2013-01-01T00:00:00Z TO 2013-02-01T00:00:00Z] AND +media_sets_id:1')
-    	self.assertEquals(len(term_freq),1840)
-        self.assertEquals(term_freq[3]['term'],u'drones')
+    	self.assertEquals(len(term_freq),1616)
+        self.assertEquals(term_freq[3]['term'],u'science')
         # verify sorted in desc order
         last_count = 10000000000
         for freq in term_freq:
@@ -57,7 +57,7 @@ class ApiTest(unittest.TestCase):
         story = mc.storyDetails(169440976)
         self.assertTrue(story is not None)
         self.assertEquals(story['media_id'],1)
-        self.assertEquals(story['url'],'http://www-nc.nytimes.com/2005/12/16/politics/16program.html?=scp=1&sq=James%20Risen%20nsa%20surveillance&st=cse&_r=6&')
+        self.assertEquals(story['url'],'http://www.nytimes.com/2005/12/16/politics/16program.html')
 
     def suite():
         return unittest.makeSuite(ApiTest, 'test')
