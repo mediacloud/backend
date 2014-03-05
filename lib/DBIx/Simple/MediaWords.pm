@@ -68,7 +68,10 @@ sub _should_continue_with_outdated_schema($$$)
 {
     my ( $current_schema_version, $target_schema_version, $ignore_schema_version_env_variable ) = @_;
 
-    if ( exists $ENV{ $ignore_schema_version_env_variable } )
+    my $config_ignore_schema_version =
+      MediaWords::Util::Config->get_config()->{ mediawords }->{ ignore_schema_version } || '';
+
+    if ( ( $config_ignore_schema_version eq 'yes' ) || exists $ENV{ $ignore_schema_version_env_variable } )
     {
         say STDERR <<"EOF";
 
