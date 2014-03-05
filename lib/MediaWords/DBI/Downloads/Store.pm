@@ -90,7 +90,7 @@ sub gunzip_and_decode($$;$)
 #
 # Parameters: database connection, download hashref
 # Returns: parent download hashref or undef
-sub get_parent_download($$$)
+sub _get_parent_download($$$)
 {
     my ( $self, $db, $download ) = @_;
 
@@ -118,7 +118,7 @@ sub get_download_path($$$;$)
 
     my @path = ( sprintf( "%06d", $feed->{ media_id } ), sprintf( "%06d", $feed->{ feeds_id } ), @date );
 
-    for ( my $p = $self->get_parent_download( $db, $download ) ; $p ; $p = $self->get_parent_download( $db, $p ) )
+    for ( my $p = $self->_get_parent_download( $db, $download ) ; $p ; $p = $self->_get_parent_download( $db, $p ) )
     {
         push( @path, $p->{ downloads_id } );
     }
