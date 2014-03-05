@@ -115,6 +115,7 @@ public class WebServerHandler implements Container {
 
                 if (!"POST".equals(request.getMethod())) {
                     response.setStatus(Status.METHOD_NOT_ALLOWED);
+                    response.setValue("Allow", "POST");
                     stringResponse = "Not POST.\n";
                 } else {
 
