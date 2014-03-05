@@ -31,18 +31,49 @@ Catalyst Controller.
 
 =cut
 
-# how many successful downloads does each feed have?
-sub get_feed_download_counts
+# attach data indicating activity within feed to each feed:
+# num_stories,
+# most_recent_story_publish_date,
+# most_recent_download_state
+sub _attach_activity_data
 {
-    my ( $self, $c, $medium ) = @_;
-
-    return $c->dbis->query( <<END )->map;
-select d.feeds_id as feeds_id, count(downloads_id) as download_count 
-    from downloads d, feeds f
-    where f.media_id = ?
-    group by d.feeds_id
+    my  ( $db, $feeds ) = @_;
+    
+    return unless ( @{ $feeds } );
+    
+    my $feed_story_data = $db->query( <<END, $feeds->[ 0 ]->{ media_id } )->hashes;
+select count(*) num_stories, fsm.feeds_id 
+    from feeds_stories_map fsm 
+        join feeds f on ( f.feeds_id = fsm.feeds_id ) 
+    where f.media_id = ? 
+    group by fsm.feeds_id;
 END
 
+    my $feed_story_data_lookup = {};
+    map { $feed_story_data_lookup->{ $_->{ feeds_id } } = $_ } @{ $feed_story_data };
+
+    for my $feed ( @{ $feeds } ) 
+    {
+        my $fsd = $feed_story_data_lookup->{ $feed->{ feeds_id } };
+        $feed->{ num_stories } = $fsd ? $fsd->{ num_stories } : 0;
+
+        ( $feed->{ most_recent_download_state } ) = $db->query( <<END, $feed->{ feeds_id } )->flat;
+select state 
+    from downloads d
+    where feeds_id = ? and state not in ( 'pending', 'fetching' ) 
+    order by download_time desc limit 1;
+END
+
+        ( $feed->{ most_recent_story_publish_date } ) = $db->query( <<END, $feed->{ feeds_id } )->flat;
+select publish_date 
+    from stories s
+        join feeds_stories_map fsm on ( s.stories_id = fsm.stories_id )
+    where fsm.feeds_id = ? 
+    order by fsm.stories_id desc limit 1;
+END
+
+
+    }
 }
 
 sub list : Local
@@ -88,10 +119,12 @@ END
         )->flat;
     }
 
+    # attach data indicating activity within feed to each feed
+    _attach_activity_data( $c->dbis, $feeds );
+
     # set variables to access within the template
 
     # FIXME: this is too slow -hal
-    #$c->stash->{feed_download_counts} = $self->get_feed_download_counts($c, $medium);
     $c->stash->{ showing_all_feeds } = $c->request->param( 'all' );
     $c->stash->{ medium }            = $medium;
     $c->stash->{ feeds }             = $feeds;

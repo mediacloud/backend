@@ -6,10 +6,12 @@
     <tr>
         <th>name</th>
         <th>live url</th>
-[% IF showing_skipped_feeds %]
-	<th>status</th>
-[% END %]
+	    <th>status</th>
+	    <th>type</th>
         <th>tags</th>
+        <th>num stories</th>
+        <th>most recent story</th>
+        <th>most recent download</th>
         [% IF c.acl_user_can_visit('/admin/feeds/edit') %]
             <th>edit</th>
         [% END -%]
@@ -35,7 +37,6 @@
 
         <td><a href="[% feed.url %]">view&nbsp;live</a></td>
 
-[% IF showing_skipped_feeds %]
 	<td>
 		[% IF feed.feed_status == 'active' %]
 			<strong>active</strong>
@@ -47,7 +48,8 @@
 			<span style="color: gray; font-style: italic">skipped</span>
 		[% END %]
 	</td>
-[% END %]
+	    
+	    <td>[% feed.feed_type | html %]</td>
 
         <td>
             <div style="font-size: 80%;">
@@ -57,6 +59,10 @@
                 [% END -%]
             </div>
         </td>
+        
+        <td>[% feed.num_stories || 0 %]</td>
+        <td>[% feed.most_recent_story_publish_date || '(none)' | html %]</td>
+        <td>[% feed.most_recent_download_state | html %]</td>
 
         [% IF c.acl_user_can_visit('/admin/feeds/edit') %]
             <td><a href="[% c.uri_for('/admin/feeds/edit/') _ feed.feeds_id %]">edit</a></td>

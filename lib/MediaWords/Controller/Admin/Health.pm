@@ -150,18 +150,53 @@ sub list : Local
     my $db = $c->dbis;
     
     my $tags = $db->query( <<END )->hashes;
-select t.* 
-    from tags t 
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id ) 
-    where ts.name = 'collection' and 
-        t.tag like '%egypt%'
-    order by tags_id
+with collection_tags as (
+    
+    select t.* 
+        from tags t 
+            join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
+        where ts.name = 'collection'
+)
+        
+select t.*, s.*,
+        media_set_names
+    from collection_tags t
+    
+        left join (
+            select 
+                mtm.tags_id,
+                count( distinct mtm.media_id ) num_media,
+                ( sum( 
+                    case when ms.stat_date > now() - interval '1 month' 
+                        then 1 
+                        else 0 end ) * 100 / count(*) )::int percent_current_media,
+                sum( ms.num_stories ) num_stories,
+                sum( ms.num_stories_with_text ) num_stories_with_text,
+                sum( ms.num_sentences ) num_sentences,
+                sum( ms.num_stories_with_sentences ) num_stories_with_sentences
+            from 
+                media_tags_map mtm
+                    left join media_stats ms on ( ms.media_id = mtm.media_id )
+            group by mtm.tags_id
+            
+        ) s on ( t.tags_id = s.tags_id )
+        
+        left join (
+            select ms.tags_id,
+                array_to_string( array_agg( d.name || ':' || ms.name ), '; ' ) media_set_names
+            from media_sets ms
+                join dashboard_media_sets dms on ( dms.media_sets_id = ms.media_sets_id )
+                join dashboards d on ( d.dashboards_id = dms.dashboards_id ) 
+            where ms.tags_id is not null
+            group by ms.tags_id
+        ) ms on ( t.tags_id = ms.tags_id )
+
+    order by media_set_names, t.tags_id
 END
-#        t.tag like '%ap_english%'
 
     for my $tag ( @{ $tags } )
     {
-        _assign_health_data_to_tag( $db, $tag );
+        # _assign_health_data_to_tag( $db, $tag );
         _assign_media_set_to_tag( $db, $tag );
     }
     

@@ -63,7 +63,7 @@
                 N/A
             [% END %]
         </td>
-        <td>[% d.error_message.substr(0,64) | html %]</td>
+        <td>[% d.error_message | html %]</td>
     </tr>
 
     [%  SET even = !even %]
