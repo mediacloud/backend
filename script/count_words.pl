@@ -6,26 +6,16 @@ package SolrCountServer;
 
 use strict;
 
-BEGIN
-{
-    use FindBin;
-    use lib "$FindBin::Bin/../lib";
-}
-
 use threads qw(stringify);
 use threads::shared;
 
 use Data::Dumper;
-use Encode;
 use HTTP::Request::Common;
 use HTTP::Server::Simple::CGI;
 use IO::Socket::INET;
 use JSON;
 use LWP::UserAgent;
-use Lingua::Stem;
 use URI::Escape;
-
-use MediaWords::Util::FastEnStem;
 
 use base qw(HTTP::Server::Simple::CGI);
 
@@ -59,20 +49,6 @@ sub blank_dup_lines
         $threaded ? lock( $dup_lines ) : undef;
         $dup_lines->{ $_ } ? ( $_ = '' ) : ( $dup_lines->{ $_ } = 1 );
     } @{ $lines };
-    # # get rid of duplicate lines
-    # for ( my $i = 0 ; $i < @{ $lines } ; $i++ )
-    # {
-    #     # must lock if threaded
-    #     $lock_dup_lines->( $dup_lines );
-    #             
-    #     if ( $dup_lines->{ $lines->[ $i ] } )
-    #     {
-    #         $lines->[ $i ] = '';
-    #     }
-    #     else {
-    #         $dup_lines->{ $lines->[ $i ] } = 1;
-    #     }
-    # }
 }
 
 # parse the text and return a count of stems and terms in the sentence in the
@@ -102,7 +78,7 @@ sub count_stems
         # control characters and such, but it is much faster than using \w because
         # \w requires encoding the line for extended unicode characters, and encoding
         # is very slow
-        $line =~ s/[[:punct:][:space:]]+/ /g;
+        $line =~ s/[[:punct:][:space:]]/ /og;
 
         # split performance much better than a regex match for each word.
         # for some reason, the single map / grep / split line works better
@@ -116,14 +92,12 @@ sub count_stems
     my @unique_words = keys( %{ $words } );
     my @stems = @unique_words;
 
-    # we have to use the slower Lingua::Stem rather than Lingua::Stem::Snowball because
-    # the latter seg faults with threading
-    # my $stemmer = Lingua::Stem->new( -locale => 'EN' );
-    # $stemmer->stem_in_place( @stems );
-    
-    # replace Lingua::Stem::EN with our own copied version that assumes that
-    # every word is lower case and does not have punctuation
-    MediaWords::Util::FastEnStem::stem_in_place( @stems );
+    # Lingua::Stem::Snowball is an order of magnitude faster than Lingua::Stem,
+    # but LSS is not threadsafe unless we wait until we are within a thread
+    # to import it
+    require Lingua::Stem::Snowball;
+    my $stemmer = Lingua::Stem::Snowball->new( lang => 'en' );
+    $stemmer->stem_in_place( \@stems );
 
     my $stem_counts = {};
     for ( my $i = 0; $i < @stems; $i++ )
