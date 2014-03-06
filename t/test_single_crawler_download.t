@@ -427,7 +427,7 @@ sub main
 
             $DB::single = 2;
 
-            my $feed_download = MediaWords::Crawler::Provider::_create_download_for_feed( $feed, $db );
+            my $feed_download = MediaWords::Test::DB::create_download_for_feed( $feed, $db );
 
             my $crawler = MediaWords::Crawler::Engine->new();
 
