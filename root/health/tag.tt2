@@ -1,4 +1,4 @@
-[% title = 'Media Health: ' _ tag.name | html %]
+[% title = 'Media Health: ' _ tag.tag | html %]
 [% INCLUDE include/header.tt2 %]
 
 <table>
@@ -17,7 +17,7 @@
 
         <tr [% IF even %]class="even"[% END %]>
             <td><a href="[% c.uri_for( '/admin/health/medium/' _ medium.media_id ) %]">[% medium.name | html %]</a></td>
-            <td><a href="[% medium.url | html %]">[% medium.url | html %]</a></td>
+            <td><a href="[% medium.url | html %]">[% medium.url.substr( 0, 32 ) | html %]</a></td>
             <td>[% medium.status %]</td>
             <td>[% medium.num_stories %]</td>
             <td>[% medium.num_stories_with_text %]</td>
