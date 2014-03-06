@@ -1,4 +1,4 @@
-package MediaWords::DBI::Downloads::Store::GridFS;
+package MediaWords::KeyValueStore::GridFS;
 
 # class for storing / loading downloads in GridFS (MongoDB)
 
@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::DBI::Downloads::Store';
+with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
@@ -34,23 +34,37 @@ has '_mongodb_gridfs'   => ( is => 'rw' );
 # Process PID (to prevent forks attempting to clone the MongoDB accessor objects)
 has '_pid' => ( is => 'rw', default => 0 );
 
-# True if the package should connect to the MongoDB GridFS database used for testing
-has '_use_testing_database' => ( is => 'rw', default => 0 );
+# Configuration
+has '_conf_host'          => ( is => 'rw' );
+has '_conf_port'          => ( is => 'rw' );
+has '_conf_database_name' => ( is => 'rw' );
 
 # Constructor
-sub BUILD
+sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # Get settings
-    if ( $args->{ use_testing_database } )
+    # Get arguments
+    unless ( $args->{ database_name } )
     {
-        $self->_use_testing_database( 1 );
+        die "Please provide 'database_name' argument.\n";
     }
-    else
+    my $gridfs_database_name = $args->{ database_name };
+
+    # Get configuration
+    my $config      = MediaWords::Util::Config::get_config;
+    my $gridfs_host = $config->{ mongodb_gridfs }->{ host };
+    my $gridfs_port = $config->{ mongodb_gridfs }->{ port };
+
+    unless ( $gridfs_host and $gridfs_port )
     {
-        $self->_use_testing_database( 0 );
+        die "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
     }
+
+    # Store configuration
+    $self->_conf_host( $gridfs_host );
+    $self->_conf_port( $gridfs_port );
+    $self->_conf_database_name( $gridfs_database_name );
 
     $self->_pid( $$ );
 }
@@ -67,45 +81,20 @@ sub _connect_to_mongodb_or_die($)
     }
 
     # Get settings
-    my $mongo_settings;
-    if ( $self->_use_testing_database )
-    {
-        $mongo_settings = MediaWords::Util::Config::get_config->{ mongodb_gridfs }->{ test };
-        unless ( defined( $mongo_settings ) )
-        {
-            die "GridFS: Testing MongoDB database is not configured.\n";
-        }
-        say STDERR "GridFS: Will use testing MongoDB database.";
-    }
-    else
-    {
-        $mongo_settings = MediaWords::Util::Config::get_config->{ mongodb_gridfs }->{ mediawords };
-    }
-
-    unless ( defined( $mongo_settings ) )
-    {
-        die "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
-    }
-
-    # Check settings
-    my $host          = $mongo_settings->{ host };
-    my $port          = $mongo_settings->{ port };
-    my $database_name = $mongo_settings->{ database };
-
-    unless ( defined( $host ) and defined( $port ) and defined( $database_name ) )
-    {
-        die "GridFS: MongoDB connection settings in mediawords.yml are not configured properly.\n";
-    }
-
     # Connect
     $self->_mongodb_client(
-        MongoDB::MongoClient->new( host => $host, port => $port, query_timeout => MONGODB_QUERY_TIMEOUT ) );
+        MongoDB::MongoClient->new(
+            host          => $self->_conf_host,
+            port          => $self->_conf_port,
+            query_timeout => MONGODB_QUERY_TIMEOUT
+        )
+    );
     unless ( $self->_mongodb_client )
     {
         die "GridFS: Unable to connect to MongoDB.\n";
     }
 
-    $self->_mongodb_database( $self->_mongodb_client->get_database( $database_name ) );
+    $self->_mongodb_database( $self->_mongodb_client->get_database( $self->_conf_database_name ) );
     unless ( $self->_mongodb_database )
     {
         die "GridFS: Unable to choose a MongoDB database.\n";
@@ -120,10 +109,11 @@ sub _connect_to_mongodb_or_die($)
     # Save PID
     $self->_pid( $$ );
 
-    say STDERR "GridFS: Connected to GridFS download storage at '$host:$port/$database_name' for PID $$.";
+    say STDERR "GridFS: Connected to GridFS download storage at '" .
+      $self->_conf_host . ":" . $self->_conf_port . "/" . $self->_conf_database_name . "' for PID $$.";
 }
 
-# Returns true if a download already exists in a database
+# Moose method
 sub content_exists($$$)
 {
     my ( $self, $db, $download ) = @_;
@@ -136,7 +126,7 @@ sub content_exists($$$)
     return ( defined $file );
 }
 
-# Removes content
+# Moose method
 sub remove_content($$$)
 {
     my ( $self, $db, $download ) = @_;

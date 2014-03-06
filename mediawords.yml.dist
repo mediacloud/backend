@@ -26,18 +26,16 @@ database:
       pass  : "mediacloud"
 
 
-### MongoDB connection settings for storing downloads in GridFS
+### MongoDB connection settings
 #mongodb_gridfs:
-    ### Production database
-    #mediawords:
-        #host      : "localhost" 
-        #port      : "27017" 
-        #database  : "mediacloud_downloads_gridfs"
-    ### Testing database
+    #host : "localhost"
+    #port : "27017"
+    ### Database for storing raw downloads
+    #downloads:
+        #database_name : "mediacloud_downloads_gridfs"
+    ### Database for testing
     #test:
-        #host      : "localhost" 
-        #port      : "27017" 
-        #database  : "mediacloud_downloads_gridfs_test"
+        #database_name : "mediacloud_downloads_gridfs_test"
 
 ### Amazon S3 connection settings
 #amazon_s3:
@@ -46,15 +44,15 @@ database:
     #access_key_id       : "AKIAIOSFODNN7EXAMPLE"
     #secret_access_key   : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 
-    ### Production bucket
-    #mediawords:
-        #bucket_name             : "mediacloud"
-        #downloads_folder_name   : "downloads"
+    ### Bucket for storing downloads
+    #downloads:
+        #bucket_name    : "mediacloud"
+        #directory_name : "downloads"
 
-    ### Testing bucket
+    ### Bucket for testing
     #test:
-        #bucket_name             : "mediacloud_test"
-        #downloads_folder_name   : "downloads_test"
+        #bucket_name    : "mediacloud_test"
+        #directory_name : "downloads_test"
 
 ### Gearman worker (p5-Gearman-JobScheduler) configuration
 ### (to enable Gearman, add at least one server)

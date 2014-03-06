@@ -1,4 +1,4 @@
-package MediaWords::DBI::Downloads::Store::Tar;
+package MediaWords::KeyValueStore::Tar;
 
 # class for storing / loading downloads in tar archives
 
@@ -6,19 +6,31 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::DBI::Downloads::Store';
+with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 
+use MediaWords::Util::Paths;
 use Archive::Tar::Indexed;
 
+# Configuration
+has '_conf_data_content_dir' => ( is => 'rw' );
+
 # Constructor
-sub BUILD
+sub BUILD($$)
 {
     my ( $self, $args ) = @_;
 
-    # say STDERR "New Tar download storage.";
+    # Get arguments
+    unless ( $args->{ data_content_dir } )
+    {
+        die "Please provide 'data_content_dir' argument.\n";
+    }
+    my $data_content_dir = $args->{ data_content_dir };
+
+    # Store configuration
+    $self->_conf_data_content_dir( $data_content_dir );
 }
 
 # get the name of the tar file for the download
@@ -38,10 +50,10 @@ sub store_content($$$$;$)
 {
     my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
 
-    my $download_path = $self->get_download_path( $db, $download, $skip_encode_and_gzip );
+    my $download_path = MediaWords::Util::Paths::get_download_path( $db, $download, $skip_encode_and_gzip );
 
     my $tar_file = _get_tar_file( $db, $download );
-    my $tar_path = $self->get_data_content_dir . $tar_file;
+    my $tar_path = $self->_conf_data_content_dir . $tar_file;
 
     # Encode + gzip
     my $content_to_store;
@@ -82,7 +94,7 @@ sub fetch_content($$$;$)
 
     my ( $starting_block, $num_blocks, $tar_file, $download_file ) = ( $1, $2, $3, $4 );
 
-    my $tar_path = $self->get_data_content_dir . $tar_file;
+    my $tar_path = $self->_conf_data_content_dir . $tar_file;
 
     # Read from Tar
     my $gzipped_content_ref = Archive::Tar::Indexed::read_file( $tar_path, $download_file, $starting_block, $num_blocks );
@@ -99,6 +111,26 @@ sub fetch_content($$$;$)
     }
 
     return \$decoded_content;
+}
+
+# Moose method
+sub remove_content($$$)
+{
+    my ( $self, $db, $download ) = @_;
+
+    die "Not sure how to remove Tar content for download " . $download->{ downloads_id } . "\n";
+
+    return 0;
+}
+
+# Moose method
+sub content_exists($$$)
+{
+    my ( $self, $db, $download ) = @_;
+
+    die "Not sure how to check whether Tar content exists for download " . $download->{ downloads_id } . "\n";
+
+    return 0;
 }
 
 no Moose;    # gets rid of scaffolding

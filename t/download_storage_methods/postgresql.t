@@ -10,7 +10,7 @@ BEGIN
     use lib "$FindBin::Bin/../";
 }
 
-use MediaWords::DBI::Downloads::Store::PostgreSQL;
+use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::Test::DB;
 use Data::Dumper;
 
@@ -148,7 +148,7 @@ sub main()
             binmode( STDOUT, ':utf8' );
             binmode( STDERR, ':utf8' );
 
-            my $postgresql = MediaWords::DBI::Downloads::Store::PostgreSQL->new();
+            my $postgresql = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
 
             _create_mock_download( $db, MOCK_DOWNLOADS_ID );
 

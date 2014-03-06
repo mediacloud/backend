@@ -11,13 +11,14 @@ use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::StoryVectors;
-use MediaWords::DBI::Downloads::Store::AmazonS3;
-use MediaWords::DBI::Downloads::Store::DatabaseInline;
-use MediaWords::DBI::Downloads::Store::GridFS;
-use MediaWords::DBI::Downloads::Store::LocalFile;
-use MediaWords::DBI::Downloads::Store::PostgreSQL;
-use MediaWords::DBI::Downloads::Store::Remote;
-use MediaWords::DBI::Downloads::Store::Tar;
+use MediaWords::Util::Paths;
+use MediaWords::KeyValueStore::AmazonS3;
+use MediaWords::KeyValueStore::DatabaseInline;
+use MediaWords::KeyValueStore::GridFS;
+use MediaWords::KeyValueStore::LocalFile;
+use MediaWords::KeyValueStore::PostgreSQL;
+use MediaWords::KeyValueStore::Remote;
+use MediaWords::KeyValueStore::Tar;
 use Carp;
 use MediaWords::Util::ExtractorFactory;
 use MediaWords::Util::HeuristicExtractor;
@@ -26,34 +27,24 @@ use MediaWords::Util::CrfExtractor;
 use Data::Dumper;
 
 # Download store instances
-my $_amazon_s3_store;
 my $_databaseinline_store;
-my $_gridfs_store;
 my $_localfile_store;
 my $_postgresql_store;
-my $_remote_store;
 my $_tar_store;
-
-# Reference to configuration
-my $_config;
+my $_amazon_s3_store;    # might be nil if not configured
+my $_gridfs_store;       # might be nil if not configured
+my $_remote_store;       # might be nil if not configured
 
 # Database inline content length limit
-Readonly my $INLINE_CONTENT_LENGTH => 256;
+use constant INLINE_CONTENT_LENGTH => 256;
 
 # Constructor
 BEGIN
 {
-    $_amazon_s3_store      = MediaWords::DBI::Downloads::Store::AmazonS3->new();
-    $_databaseinline_store = MediaWords::DBI::Downloads::Store::DatabaseInline->new();
-    $_gridfs_store         = MediaWords::DBI::Downloads::Store::GridFS->new();
-    $_localfile_store      = MediaWords::DBI::Downloads::Store::LocalFile->new();
-    $_postgresql_store     = MediaWords::DBI::Downloads::Store::PostgreSQL->new();
-    $_remote_store         = MediaWords::DBI::Downloads::Store::Remote->new();
-    $_tar_store            = MediaWords::DBI::Downloads::Store::Tar->new();
-
     # Early sanity check on configuration
-    $_config = MediaWords::Util::Config::get_config;
-    my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
     if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
         die "No download storage methods are configured.\n";
@@ -67,6 +58,65 @@ BEGIN
         }
     }
 
+    my %enabled_download_storage_locations = map { $_ => 1 } @{ $download_storage_locations };
+
+    # Test if all enabled storage locations are also configured
+    if ( exists( $enabled_download_storage_locations{ 'amazon_s3' } ) )
+    {
+        unless ( $config->{ amazon_s3 } )
+        {
+            die "'amazon_s3' storage location is enabled, but Amazon S3 is not configured.\n";
+        }
+    }
+    if ( exists( $enabled_download_storage_locations{ 'gridfs' } ) )
+    {
+        unless ( $config->{ mongodb_gridfs } )
+        {
+            die "'gridfs' storage location is enabled, but MongoDB GridFS is not configured.\n";
+        }
+    }
+
+    # Initialize key value stores for downloads
+    if ( $config->{ amazon_s3 } )
+    {
+        $_amazon_s3_store = MediaWords::KeyValueStore::AmazonS3->new(
+            {
+                bucket_name    => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
+                directory_name => $config->{ amazon_s3 }->{ downloads }->{ directory_name }
+            }
+        );
+    }
+
+    $_databaseinline_store = MediaWords::KeyValueStore::DatabaseInline->new(
+        {
+            # no arguments are needed
+        }
+    );
+
+    if ( $config->{ mongodb_gridfs } )
+    {
+        $_gridfs_store = MediaWords::KeyValueStore::GridFS->new(
+            { database_name => $config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+    }
+
+    $_localfile_store =
+      MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
+
+    $_postgresql_store = MediaWords::KeyValueStore::PostgreSQL->new( { table_name => 'raw_downloads' } );
+
+    if ( $config->{ mediawords }->{ fetch_remote_content_url } )
+    {
+        $_remote_store = MediaWords::KeyValueStore::Remote->new(
+            {
+                url      => $config->{ mediawords }->{ fetch_remote_content_url },
+                username => $config->{ mediawords }->{ fetch_remote_content_user },
+                password => $config->{ mediawords }->{ fetch_remote_content_password }
+            }
+        );
+    }
+
+    $_tar_store =
+      MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 }
 
 # Returns arrayref of stores for writing new downloads to
@@ -76,8 +126,12 @@ sub _download_stores_for_writing($)
 
     my $stores = [];
 
-    if ( length( $$content_ref ) < $INLINE_CONTENT_LENGTH )
+    if ( length( $$content_ref ) < INLINE_CONTENT_LENGTH )
     {
+        unless ( $_databaseinline_store )
+        {
+            die "DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
+        }
 
         # Inline
         #say STDERR "Will store inline.";
@@ -85,13 +139,19 @@ sub _download_stores_for_writing($)
     }
     else
     {
-        my $download_storage_locations = $_config->{ mediawords }->{ download_storage_locations };
+        my $config = MediaWords::Util::Config::get_config;
+
+        my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
         foreach my $download_storage_location ( @{ $download_storage_locations } )
         {
             my $location = lc( $download_storage_location );
 
             if ( $location eq 'amazon_s3' )
             {
+                unless ( $_amazon_s3_store )
+                {
+                    die "AmazonS3 store is not initialized, although it is required by _download_stores_for_writing().\n";
+                }
 
                 #say STDERR "Will store to Amazon S3.";
                 push( @{ $stores }, $_amazon_s3_store );
@@ -99,6 +159,10 @@ sub _download_stores_for_writing($)
             }
             elsif ( $location eq 'gridfs' )
             {
+                unless ( $_gridfs_store )
+                {
+                    die "GridFS store is not initialized, although it is required by _download_stores_for_writing().\n";
+                }
 
                 #say STDERR "Will store to GridFS.";
                 push( @{ $stores }, $_gridfs_store );
@@ -106,6 +170,11 @@ sub _download_stores_for_writing($)
             }
             elsif ( $location eq 'localfile' )
             {
+                unless ( $_localfile_store )
+                {
+                    die
+"DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
+                }
 
                 #say STDERR "Will store to local files.";
                 push( @{ $stores }, $_localfile_store );
@@ -113,6 +182,11 @@ sub _download_stores_for_writing($)
             }
             elsif ( $location eq 'postgresql' )
             {
+                unless ( $_postgresql_store )
+                {
+                    die
+"DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
+                }
 
                 #say STDERR "Will store to PostgreSQL.";
                 push( @{ $stores }, $_postgresql_store );
@@ -120,6 +194,11 @@ sub _download_stores_for_writing($)
             }
             elsif ( $location eq 'tar' )
             {
+                unless ( $_tar_store )
+                {
+                    die
+"DatabaseInline store is not initialized, although it is required by _download_stores_for_writing().\n";
+                }
 
                 #say STDERR "Will store to Tar.";
                 push( @{ $stores }, $_tar_store );
@@ -147,9 +226,17 @@ sub _download_store_for_reading($)
 
     my $store;
 
-    my $fetch_remote = $_config->{ mediawords }->{ fetch_remote_content } || 'no';
+    my $config = MediaWords::Util::Config::get_config;
+
+    my $fetch_remote = $config->{ mediawords }->{ fetch_remote_content } || 'no';
     if ( $fetch_remote eq 'yes' )
     {
+        unless ( $_remote_store )
+        {
+            die
+"Remote store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+              . $download->{ downloads_id } . ".\n";
+        }
 
         # Remote
         $store = $_remote_store;
@@ -163,24 +250,48 @@ sub _download_store_for_reading($)
         }
         elsif ( $path =~ /^content:(.*)/ )
         {
+            unless ( $_databaseinline_store )
+            {
+                die
+"DatabaseInline store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                  . $download->{ downloads_id } . ".\n";
+            }
 
             # Inline content
             $store = $_databaseinline_store;
         }
         elsif ( $path =~ /^gridfs:(.*)/ )
         {
+            unless ( $_gridfs_store )
+            {
+                die
+"GridFS store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                  . $download->{ downloads_id } . ".\n";
+            }
 
             # GridFS
             $store = $_gridfs_store;
         }
         elsif ( $path =~ /^postgresql:(.*)/ )
         {
+            unless ( $_postgresql_store )
+            {
+                die
+"PostgreSQL store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                  . $download->{ downloads_id } . ".\n";
+            }
 
             # PostgreSQL
             $store = $_postgresql_store;
         }
         elsif ( $path =~ /^s3:(.*)/ )
         {
+            unless ( $_amazon_s3_store )
+            {
+                die
+"AmazonS3 store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                  . $download->{ downloads_id } . ".\n";
+            }
 
             # Amazon S3
             $store = $_amazon_s3_store;
@@ -189,14 +300,27 @@ sub _download_store_for_reading($)
         {
 
             # Tar
-            if ( lc( $_config->{ mediawords }->{ read_tar_downloads_from_gridfs } ) eq 'yes' )
+            if ( lc( $config->{ mediawords }->{ read_tar_downloads_from_gridfs } ) eq 'yes' )
             {
+                unless ( $_gridfs_store )
+                {
+                    die
+"GridFS store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                      . $download->{ downloads_id } . ".\n";
+                }
 
                 # Force reading Tar downloads from GridFS (after the migration)
                 $store = $_gridfs_store;
             }
             else
             {
+                unless ( $_tar_store )
+                {
+                    die
+"Tar store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                      . $download->{ downloads_id } . ".\n";
+                }
+
                 $store = $_tar_store;
             }
         }
@@ -204,14 +328,27 @@ sub _download_store_for_reading($)
         {
 
             # Local file
-            if ( lc( $_config->{ mediawords }->{ read_file_downloads_from_gridfs } ) eq 'yes' )
+            if ( lc( $config->{ mediawords }->{ read_file_downloads_from_gridfs } ) eq 'yes' )
             {
+                unless ( $_gridfs_store )
+                {
+                    die
+"GridFS store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                      . $download->{ downloads_id } . ".\n";
+                }
 
                 # Force reading file downloads from GridFS (after the migration)
                 $store = $_gridfs_store;
             }
             else
             {
+                unless ( $_localfile_store )
+                {
+                    die
+"LocalFile store is not initialized, although it is required by _download_store_for_reading() for fetching download "
+                      . $download->{ downloads_id } . ".\n";
+                }
+
                 $store = $_localfile_store;
             }
 
@@ -231,6 +368,8 @@ sub fetch_content($$)
     carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }"
       unless $download->{ state } eq 'success';
 
+    my $config = MediaWords::Util::Config::get_config;
+
     my $store = _download_store_for_reading( $download );
     unless ( defined $store )
     {
@@ -242,7 +381,7 @@ sub fetch_content($$)
     {
 
         # horrible hack to fix old content that is not stored in unicode
-        my $ascii_hack_downloads_id = $_config->{ mediawords }->{ ascii_hack_downloads_id };
+        my $ascii_hack_downloads_id = $config->{ mediawords }->{ ascii_hack_downloads_id };
         if ( $ascii_hack_downloads_id && ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
         {
             $$content_ref =~ s/[^[:ascii:]]/ /g;
@@ -252,6 +391,8 @@ sub fetch_content($$)
     }
     else
     {
+        warn "Unable to fetch content for download " . $download->{ downloads_id } . "\n";
+
         my $ret = '';
         return \$ret;
     }
@@ -427,7 +568,7 @@ sub store_content_determinedly
     my $interval = 1;
     while ( 1 )
     {
-        eval { MediaWords::DBI::Downloads::store_content( $db, $download, \$content ) };
+        eval { store_content( $db, $download, \$content ) };
         return unless ( $@ );
 
         if ( $interval < 33 )

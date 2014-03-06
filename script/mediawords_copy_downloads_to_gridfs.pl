@@ -24,9 +24,11 @@ BEGIN
 use MediaWords::DB;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
-use MediaWords::DBI::Downloads::Store::LocalFile;
-use MediaWords::DBI::Downloads::Store::Tar;
-use MediaWords::DBI::Downloads::Store::GridFS;
+use MediaWords::Util::Config;
+use MediaWords::Util::Paths;
+use MediaWords::KeyValueStore::LocalFile;
+use MediaWords::KeyValueStore::Tar;
+use MediaWords::KeyValueStore::GridFS;
 use Getopt::Long;
 
 {
@@ -177,11 +179,15 @@ sub _write_downloads_id_resume_log($$)
         $global_resume_downloads_id     = 0;
 
         # Source stores
-        my $tar_store       = MediaWords::DBI::Downloads::Store::Tar->new();
-        my $localfile_store = MediaWords::DBI::Downloads::Store::LocalFile->new();
+        my $tar_store =
+          MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
+        my $localfile_store =
+          MediaWords::KeyValueStore::LocalFile->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
         # Target store
-        my $gridfs_store = MediaWords::DBI::Downloads::Store::GridFS->new();
+        my $config       = MediaWords::Util::Config::get_config;
+        my $gridfs_store = MediaWords::KeyValueStore::GridFS->new(
+            { database_name => $config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
 
         $db = MediaWords::DB::connect_to_db;
 

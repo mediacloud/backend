@@ -1,9 +1,15 @@
 use strict;
-
-use MediaWords::Util::Config;
-use IO::Socket;
+use warnings;
 
 use Test::More;
+
+use Data::Dumper;
+use MongoDB;
+use MongoDB::GridFS;
+use MediaWords::KeyValueStore::GridFS;
+use MediaWords::DB;
+use MediaWords::Util::Config;
+use IO::Socket;
 
 sub host_port_is_available($$)
 {
@@ -26,14 +32,14 @@ sub host_port_is_available($$)
     }
 }
 
-my $mongodb_settings = MediaWords::Util::Config::get_config->{ mongodb_gridfs }->{ test };
-unless ( $mongodb_settings )
+my $config = MediaWords::Util::Config::get_config;
+unless ( $config->{ mongodb_gridfs }->{ test } )
 {
     plan skip_all => "MongoDB's testing database is not configured";
 }
 else
 {
-    unless ( host_port_is_available( $mongodb_settings->{ host }, $mongodb_settings->{ port } ) )
+    unless ( host_port_is_available( $config->{ mongodb_gridfs }->{ host }, $config->{ mongodb_gridfs }->{ port } ) )
     {
         # Skipping test if "mongod" is not running because the point of this test is to validate
         # download storage handler and not service availability
@@ -45,13 +51,8 @@ else
     }
 }
 
-use Data::Dumper;
-use MongoDB;
-use MongoDB::GridFS;
-use MediaWords::DBI::Downloads::Store::GridFS;
-use MediaWords::DB;
-
-my $gridfs = MediaWords::DBI::Downloads::Store::GridFS->new( { use_testing_database => 1 } );
+my $gridfs =
+  MediaWords::KeyValueStore::GridFS->new( { database_name => $config->{ mongodb_gridfs }->{ test }->{ database_name } } );
 ok( $gridfs, "MongoDB initialized" );
 
 my $db = MediaWords::DB::connect_to_db;
@@ -89,8 +90,7 @@ $gridfs->remove_content( $db, $test_download );
 $content_ref = undef;
 eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
 ok( $@, "Fetching download that does not exist should have failed" );
-ok( ( !$content_ref ),
-    "Fetching download that does not exist failed (as expected) but the content reference ($content_ref) was returned" );
+ok( ( !$content_ref ), "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
 #
 # Check GridFS thinks that the content exists
@@ -102,7 +102,7 @@ ok( ( !$gridfs->content_exists( $db, $test_download ) ),
 # Store content twice
 #
 
-my $gridfs_id;
+$gridfs_id = undef;
 eval {
     $gridfs_id = $gridfs->store_content( $db, $test_download, \$test_content );
     $gridfs_id = $gridfs->store_content( $db, $test_download, \$test_content );
@@ -122,8 +122,7 @@ $gridfs->remove_content( $db, $test_download );
 $content_ref = undef;
 eval { $content_ref = $gridfs->fetch_content( $db, $test_download ); };
 ok( $@, "Fetching download that does not exist should have failed" );
-ok( ( !$content_ref ),
-    "Fetching download that does not exist failed (as expected) but the content reference ($content_ref) was returned" );
+ok( ( !$content_ref ), "Fetching download that does not exist failed (as expected) but the content reference was returned" );
 
 # Check GridFS thinks that the content exists
 ok( ( !$gridfs->content_exists( $db, $test_download ) ),

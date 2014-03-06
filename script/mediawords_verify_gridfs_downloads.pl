@@ -50,10 +50,11 @@ use MediaWords::DB;
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use MediaWords::Util::Config;
-use MediaWords::DBI::Downloads::Store::DatabaseInline;
-use MediaWords::DBI::Downloads::Store::LocalFile;
-use MediaWords::DBI::Downloads::Store::Tar;
-use MediaWords::DBI::Downloads::Store::GridFS;
+use MediaWords::Util::Paths;
+use MediaWords::KeyValueStore::DatabaseInline;
+use MediaWords::KeyValueStore::LocalFile;
+use MediaWords::KeyValueStore::Tar;
+use MediaWords::KeyValueStore::GridFS;
 use MongoDB;
 use Getopt::Long;
 use Data::Dumper;
@@ -89,11 +90,20 @@ use Data::Dumper;
 
             say STDERR "Initializing PostgreSQL accessor.";
 
+            my $config = MediaWords::Util::Config::get_config;
+
             # Create stores for reading
-            $_inline_store    = MediaWords::DBI::Downloads::Store::DatabaseInline->new();
-            $_tar_store       = MediaWords::DBI::Downloads::Store::Tar->new();
-            $_gridfs_store    = MediaWords::DBI::Downloads::Store::GridFS->new();
-            $_localfile_store = MediaWords::DBI::Downloads::Store::LocalFile->new();
+            $_inline_store = MediaWords::KeyValueStore::DatabaseInline->new(
+                {
+                    # no arguments are needed
+                }
+            );
+            $_tar_store =
+              MediaWords::KeyValueStore::Tar->new( { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
+            $_gridfs_store = MediaWords::KeyValueStore::GridFS->new(
+                { database_name => $config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
+            $_localfile_store = MediaWords::KeyValueStore::LocalFile->new(
+                { data_content_dir => MediaWords::Util::Paths::get_data_content_dir } );
 
             # Connect to database
             $_db = MediaWords::DB::connect_to_db;
@@ -238,8 +248,11 @@ EOF
 
             say STDERR "Initializing GridFS accessor.";
 
+            my $config = MediaWords::Util::Config::get_config;
+
             # GridFS store
-            $_gridfs_store = MediaWords::DBI::Downloads::Store::GridFS->new();
+            $_gridfs_store = MediaWords::KeyValueStore::GridFS->new(
+                { database_name => $config->{ mongodb_gridfs }->{ downloads }->{ database_name } } );
 
             # Separate connection to MongoDB to fetch filenames sequentially
             # Get settings

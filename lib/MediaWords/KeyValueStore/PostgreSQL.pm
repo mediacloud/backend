@@ -1,4 +1,4 @@
-package MediaWords::DBI::Downloads::Store::PostgreSQL;
+package MediaWords::KeyValueStore::PostgreSQL;
 
 # class for storing / loading downloads in PostgreSQL, "raw_downloads" table
 
@@ -6,19 +6,29 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::DBI::Downloads::Store';
+with 'MediaWords::KeyValueStore';
 
 use Modern::Perl "2013";
 use MediaWords::CommonLibs;
 use DBD::Pg qw(:pg_types);
 
-# Table name to store downloads to
-use constant RAW_DOWNLOADS_TABLE => 'raw_downloads';
+# Configuration
+has '_conf_table_name' => ( is => 'rw' );
 
 # Constructor
-sub BUILD
+sub BUILD($$)
 {
     my ( $self, $args ) = @_;
+
+    # Get arguments
+    unless ( $args->{ table_name } )
+    {
+        die "Please provide 'table_name' argument.\n";
+    }
+    my $table_name = $args->{ table_name };
+
+    # Store configuration
+    $self->_conf_table_name( $table_name );
 }
 
 # Moose method
@@ -27,7 +37,7 @@ sub store_content($$$$;$)
     my ( $self, $db, $download, $content_ref, $skip_encode_and_gzip ) = @_;
 
     my $downloads_id = $download->{ downloads_id };
-    my $table_name   = RAW_DOWNLOADS_TABLE;
+    my $table_name   = $self->_conf_table_name;
 
     # Encode + gzip
     my $content_to_store;
@@ -84,7 +94,7 @@ sub fetch_content($$$;$)
     my ( $self, $db, $download, $skip_gunzip_and_decode ) = @_;
 
     my $downloads_id = $download->{ downloads_id };
-    my $table_name   = RAW_DOWNLOADS_TABLE;
+    my $table_name   = $self->_conf_table_name;
 
     my $gzipped_content = $db->query(
         <<"EOF",
@@ -116,13 +126,13 @@ EOF
     return \$decoded_content;
 }
 
-# Removes content
+# Moose method
 sub remove_content($$$)
 {
     my ( $self, $db, $download ) = @_;
 
     my $downloads_id = $download->{ downloads_id };
-    my $table_name   = RAW_DOWNLOADS_TABLE;
+    my $table_name   = $self->_conf_table_name;
 
     $db->query(
         <<"EOF",
@@ -131,15 +141,17 @@ sub remove_content($$$)
 EOF
         $downloads_id
     );
+
+    return 1;
 }
 
-# Returns true if a download already exists in a database
+# Moose method
 sub content_exists($$$)
 {
     my ( $self, $db, $download ) = @_;
 
     my $downloads_id = $download->{ downloads_id };
-    my $table_name   = RAW_DOWNLOADS_TABLE;
+    my $table_name   = $self->_conf_table_name;
 
     my $download_exists = $db->query(
         <<"EOF",
