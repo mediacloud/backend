@@ -68,7 +68,7 @@ DECLARE
     
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4437;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4441;
     
 BEGIN
 
@@ -318,6 +318,20 @@ create index media_moderated on media(moderated);
 CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
 CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
 
+create table media_stats (
+    media_stats_id              serial      primary key,
+    media_id                    int         not null references media on delete cascade,
+    num_stories                 int         not null,
+    num_sentences               int         not null,
+    mean_num_sentences          int         not null,
+    mean_text_length            int         not null,
+    num_stories_with_sentences  int         not null,
+    num_stories_with_text       int         not null,
+    stat_date                   date        not null
+);
+
+create index media_stats_medium on media_stats( media_id );
+    
 create type feed_feed_type AS ENUM ( 'syndicated', 'web_page' );
     
 -- Feed statuses that determine whether the feed will be fetched
@@ -761,7 +775,6 @@ create table stories (
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
--- create index stories_media on stories (media_id, guid);
 create index stories_media_id on stories (media_id);
 create unique index stories_guid on stories(guid, media_id);
 create index stories_url on stories (url);
@@ -771,6 +784,7 @@ create index stories_md on stories(media_id, date_trunc('day'::text, publish_dat
 create index stories_language on stories(language);
 create index stories_db_row_last_updated on stories( db_row_last_updated );
 create index stories_title_hash on stories( md5( title ) );
+create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
 DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
 CREATE TRIGGER stories_last_updated_trigger BEFORE INSERT OR UPDATE ON stories FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger() ;
@@ -828,6 +842,8 @@ create index downloads_parent on downloads (parent);
 -- create unique index downloads_host_fetching 
 --     on downloads(host, (case when state='fetching' then 1 else null end));
 create index downloads_time on downloads (download_time);
+    
+create index downloads_feed_download_time on downloads ( feeds_id, download_time );
 
 -- create index downloads_sequence on downloads (sequence);
 create index downloads_type on downloads (type);
@@ -1747,10 +1763,11 @@ create trigger stories_update_live_story after update on stories
                                         
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
-    stories_id                  bigint             not null references stories on delete cascade
+    stories_id                  int             not null references stories on delete cascade
 );
 
 create index processed_stories_story on processed_stories ( stories_id );
+CREATE TRIGGER processed_stories_update_stories_last_updated_trigger AFTER INSERT OR UPDATE OR DELETE ON processed_stories FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
 
 create table story_subsets (
     story_subsets_id        bigserial          primary key,

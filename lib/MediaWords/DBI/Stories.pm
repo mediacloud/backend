@@ -676,15 +676,16 @@ sub is_new
 {
     my ( $dbs, $story ) = @_;
 
-    my $db_story = $dbs->query(
-        <<"EOF",
-        SELECT *
-        FROM stories
-        WHERE guid = ?
-              AND media_id = ?
-EOF
-        $story->{ guid }, $story->{ media_id }
-    )->hash;
+    my $db_story;
+    eval {
+        $db_story = $dbs->query( <<"END", $story->{ guid }, $story->{ media_id } )->hash;
+SELECT *
+    FROM stories
+    WHERE guid = ?
+        AND media_id = ?
+END
+    };
+    die( "query error: $@\n" . Dumper( $story->{ guid }, $story->{ media_id } ) ) if ( $@ );
 
     $db_story ||= $dbs->query( <<END, $story->{ guid }, $story->{ media_id } )->hash;
 select * from stories where guid = ? and media_id = ?

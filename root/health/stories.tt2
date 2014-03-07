@@ -1,0 +1,32 @@
+[% title = 'Media Health: Stories ' _ medium.name _ ' ' _ date | html %]
+[% INCLUDE include/header.tt2 %]
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>URL</th>
+        <th>Date</th>
+        <th>Text Length</th>
+        <th>Num Sentences</th>
+    </tr>
+    
+    [% FOREACH story IN stories -%]
+
+        <tr [% IF even %]class="even"[% END %]>
+            <td><a href="[% c.uri_for( '/admin/stories/view/' _ story.stories_id ) %]">[% story.stories_id %]</a></td>
+            <td>[% story.title.substr( 0, 48 ) | html %]</td>
+            <td><a href="[% story.url | html%]">[% story.url.substr( 0, 32 ) | html %]</a></td>
+            <td>[% story.publish_date | html %]</td>
+            <td>[% story.text_length | html %]</td>
+            <td>[% story.num_sentences | html %]</td>
+        </tr>
+
+        [%  SET even = !even %]
+
+    [% END # FOREACH stories -%]
+
+</table>
+
+
+[% INCLUDE include/footer.tt2 %]

@@ -141,56 +141,49 @@ sub _add_stale_feeds
     my $constraint = "((last_attempted_download_time IS NULL " . "OR (last_attempted_download_time < (NOW() - interval ' " .
       STALE_FEED_INTERVAL . " seconds')) OR $last_new_story_time_clause ) " . "AND url ~ 'https?://')";
 
-    my $feeds = $dbs->query( <<END )->hashes;
-UPDATE feeds SET last_attempted_download_time = now()
-    WHERE $constraint
-    RETURNING *
+    $dbs->query( "drop table if exists feeds_to_queue" );
+
+    $dbs->query( <<END );
+create temporary table feeds_to_queue as 
+    select feeds_id, url from feeds 
+        where $constraint and 
+            feed_status = 'active' and 
+            lower( url ) like 'http%'
 END
 
-  DOWNLOAD:
-    for my $feed ( @{ $feeds } )
+    $dbs->query( <<END );
+UPDATE feeds SET last_attempted_download_time = now()
+    WHERE feeds_id in ( select feeds_id from feeds_to_queue )
+END
+
+    my $downloads = $dbs->query( <<END )->hashes;
+insert into downloads 
+    ( feeds_id, url, host, type, sequence, state, priority, download_time, extracted )
+    select 
+            feeds_id,
+            url,
+            lower( substring( url from '.*://([^/]*)' ) ),
+            'feed',
+            1,
+            'pending',
+            0,
+            now(),
+            false
+        from feeds_to_queue
+    returning *
+END
+
+    for my $download ( @{ $downloads } )
     {
-        ##TODO add a constraint to the fields table in the database to ensure that the URL is valid
-        next DOWNLOAD if ( !$feed->{ url } || !( $feed->{ url } =~ /^https?:\/\//i ) );
-
-        my $download = _create_download_for_feed( $feed, $dbs );
-
-        $download->{ _media_id } = $feed->{ media_id };
-
+        my $medium = $dbs->query( "select media_id from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
+        $download->{ _media_id } = $medium->{ media_id };
         $self->{ downloads }->_queue_download( $download );
     }
 
+    $dbs->query( "drop table feeds_to_queue" );
+
     print STDERR "end _add_stale_feeds\n";
 
-}
-
-sub _create_download_for_feed
-{
-    my ( $feed, $dbs ) = @_;
-
-    my $priority = 0;
-    if ( !$feed->{ last_attempted_download_time } )
-    {
-        $priority = 10;
-    }
-
-    my $host = lc( ( URI::Split::uri_split( $feed->{ url } ) )[ 1 ] );
-    my $download = $dbs->create(
-        'downloads',
-        {
-            feeds_id      => $feed->{ feeds_id },
-            url           => $feed->{ url },
-            host          => $host,
-            type          => 'feed',
-            sequence      => 1,
-            state         => 'pending',
-            priority      => $priority,
-            download_time => 'now()',
-            extracted     => 'f'
-        }
-    );
-
-    return $download;
 }
 
 #TODO combine _queue_download_list & _queue_download_list_per_site_limit

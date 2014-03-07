@@ -57,6 +57,15 @@ sub _get_stories_from_feed_contents
     };
 }
 
+# if $v is a scalar, return $v, else return undef.
+# we need to do this to make sure we don't get a ref back from a feed object field
+sub _no_ref
+{
+    my ( $v ) = @_;
+
+    return ref( $v ) ? undef : $v;
+}
+
 sub _get_stories_from_feed_contents_impl
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
@@ -74,23 +83,24 @@ sub _get_stories_from_feed_contents_impl
   ITEM:
     for my $item ( @{ $items } )
     {
-        my $url  = $item->link() || $item->guid();
-        my $guid = $item->guid() || $item->link();
 
-        if ( !$url && !$guid )
-        {
-            next ITEM;
-        }
+        my $url  = _no_ref( $item->link() ) || _no_ref( $item->guid() );
+        my $guid = _no_ref( $item->guid() ) || _no_ref( $item->link() );
+
+        next ITEM unless ( $url );
+
+        $url  = substr( $url,  0, 1024 );
+        $guid = substr( $guid, 0, 1024 );
 
         $url =~ s/[\n\r\s]//g;
 
         my $publish_date;
 
-        if ( $item->pubDate() )
+        if ( _no_ref( $item->pubDate() ) )
         {
             try
             {
-                my $date_string = $item->pubDate();
+                my $date_string = _no_ref( $item->pubDate() );
 
                 $date_string =~ s/(\d\d\d\d-\d\d-\d\dT\d\d\:\d\d\:\d\d)-\d\d\d\:\d\d/$1/;
 
@@ -110,16 +120,14 @@ sub _get_stories_from_feed_contents_impl
         # if ( !$story )
         $num_new_stories++;
 
-        my $description = ref( $item->description ) ? ( '' ) : ( $item->description || '' );
-
         my $story = {
             url          => $url,
             guid         => $guid,
             media_id     => $media_id,
             publish_date => $publish_date,
             collect_date => DateTime->now->datetime,
-            title        => $item->title() || '(no title)',
-            description  => $description,
+            title        => _no_ref( $item->title ) || '(no title)',
+            description  => _no_ref( $item->description ),
         };
 
         push @{ $ret }, $story;
@@ -225,7 +233,7 @@ sub stories_checksum_matches_feed
 
     my $story_url_concat = join( '|', map { $_->{ url } } @{ $stories } );
 
-    my $checksum = Digest::MD5::md5_hex( $story_url_concat );
+    my $checksum = Digest::MD5::md5_hex( encode( 'utf8', $story_url_concat ) );
 
     my ( $matches ) = $db->query( <<END, $feeds_id, $checksum )->flat;
 select 1 from feeds where feeds_id = ? and last_checksum = ?
@@ -270,7 +278,7 @@ sub get_story_title_from_content
 
     if ( $_[ 0 ] =~ m~<title>([^<]+)</title>~si ) { return $1; }
 
-    return $_[ 1 ];
+    return '(no title)';
 }
 
 # handle feeds of type 'web_page' by just creating a story to associate
@@ -280,7 +288,7 @@ sub handle_web_page_content
     my ( $dbs, $download, $decoded_content, $feed ) = @_;
 
     my $title = get_story_title_from_content( $decoded_content );
-    my $guid  = time . ":" . $download->{ url };
+    my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );
 
     my $story = $dbs->create(
         'stories',

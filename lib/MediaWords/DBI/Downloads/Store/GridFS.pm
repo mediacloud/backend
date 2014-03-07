@@ -23,8 +23,8 @@ use constant MONGODB_QUERY_TIMEOUT => 60 * 1000;
 # MongoDB's number of read / write retries
 # (in case waiting 60 seconds for the read / write to happen doesn't help, the instance should
 #  retry writing a couple of times)
-use constant MONGODB_READ_RETRIES  => 3;
-use constant MONGODB_WRITE_RETRIES => 3;
+use constant MONGODB_READ_RETRIES  => 10;
+use constant MONGODB_WRITE_RETRIES => 10;
 
 # MongoDB client, GridFS instance (lazy-initialized to prevent multiple forks using the same object)
 has '_mongodb_client'   => ( is => 'rw' );

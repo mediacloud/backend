@@ -302,3 +302,6 @@ mediawords:
     
     # url for solr queries
     # solr_select_url: http://localhost:8983/solr/collection1/select
+    
+    # set to "yes" to skip requirement to run on the correct database schema version
+    # ignore_schema_version: "no"
