@@ -157,7 +157,7 @@ sub _download_store_for_reading($)
     else
     {
         my $path = $download->{ path };
-        if ( !$download->{ path } || ( $download->{ state } ne "success" ) )
+        if ( !$path )
         {
             $store = undef;
         }
@@ -228,7 +228,7 @@ sub fetch_content($$)
 
     carp "fetch_content called with invalid download " unless exists $download->{ downloads_id };
 
-    confess "attempt to fetch content for unsuccessful download $download->{ downloads_id } "
+    carp "attempt to fetch content for unsuccessful download $download->{ downloads_id }  / $download->{ state }"
       unless $download->{ state } eq 'success';
 
     my $store = _download_store_for_reading( $download );
