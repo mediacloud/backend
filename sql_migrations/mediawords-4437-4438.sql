@@ -17,7 +17,9 @@
 SET search_path = public, pg_catalog;
 
 ALTER TABLE processed_stories
-	ALTER COLUMN stories_id TYPE int  /* TYPE change - table: processed_stories original: bigint             not null references stories on delete cascade new: int             not null references stories on delete cascade */
+    ALTER COLUMN stories_id TYPE int;   -- TYPE change - table: processed_stories
+                                        -- original:    bigint not null references stories on delete cascade
+                                        -- new:         int not null references stories on delete cascade
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
