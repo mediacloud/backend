@@ -57,6 +57,15 @@ sub _get_stories_from_feed_contents
     };
 }
 
+# if $v is a scalar, return $v, else return undef.
+# we need to do this to make sure we don't get a ref back from a feed object field
+sub _no_ref
+{
+    my ( $v ) = @_;
+
+    return ref( $v ) ? undef : $v;
+}
+
 sub _get_stories_from_feed_contents_impl
 {
     my ( $decoded_content, $media_id, $download_time ) = @_;
@@ -74,8 +83,9 @@ sub _get_stories_from_feed_contents_impl
   ITEM:
     for my $item ( @{ $items } )
     {
-        my $url  = $item->link() || $item->guid();
-        my $guid = $item->guid() || $item->link();
+
+        my $url  = _no_ref( $item->link() ) || _no_ref( $item->guid() );
+        my $guid = _no_ref( $item->guid() ) || _no_ref( $item->link() );
 
         next ITEM unless ( $url );
 
@@ -86,11 +96,11 @@ sub _get_stories_from_feed_contents_impl
 
         my $publish_date;
 
-        if ( $item->pubDate() )
+        if ( _no_ref( $item->pubDate() ) )
         {
             try
             {
-                my $date_string = $item->pubDate();
+                my $date_string = _no_ref( $item->pubDate() );
 
                 $date_string =~ s/(\d\d\d\d-\d\d-\d\dT\d\d\:\d\d\:\d\d)-\d\d\d\:\d\d/$1/;
 
@@ -110,16 +120,14 @@ sub _get_stories_from_feed_contents_impl
         # if ( !$story )
         $num_new_stories++;
 
-        my $description = ref( $item->description ) ? ( '' ) : ( $item->description || '' );
-
         my $story = {
             url          => $url,
             guid         => $guid,
             media_id     => $media_id,
             publish_date => $publish_date,
             collect_date => DateTime->now->datetime,
-            title        => $item->title() || '(no title)',
-            description  => $description,
+            title        => _no_ref( $item->title ) || '(no title)',
+            description  => _no_ref( $item->description ),
         };
 
         push @{ $ret }, $story;
