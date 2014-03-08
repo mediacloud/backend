@@ -15,8 +15,8 @@
 
         <tr [% IF even %]class="even"[% END %]>
             <td><a href="[% c.uri_for( '/admin/stories/view/' _ story.stories_id ) %]">[% story.stories_id %]</a></td>
-            <td>[% story.title | html %]</td>
-            <td>[% story.url | html %]</td>
+            <td>[% story.title.substr( 0, 48 ) | html %]</td>
+            <td><a href="[% story.url | html%]">[% story.url.substr( 0, 32 ) | html %]</a></td>
             <td>[% story.publish_date | html %]</td>
             <td>[% story.text_length | html %]</td>
             <td>[% story.num_sentences | html %]</td>

@@ -229,4 +229,6 @@ mediawords:
     # WARNING DO NOT enable on a production or Internet connected instance
     # allow_unauthenticated_api_requests: yes
 
+    # set to "yes" to skip requirement to run on the correct database schema version
+    # ignore_schema_version: "no"
 

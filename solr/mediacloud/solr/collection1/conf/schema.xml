@@ -114,7 +114,7 @@
    <field name="stories_id" type="int" indexed="true" stored="true" required="true" multiValued="false" /> 
    <field name="sentence_number" type="int" indexed="true" stored="true" required="false" multiValued="false" /> 
 
-   <field name="processed_stories_id" type="long" indexed="true" stored="true" required="true" multiValued="true" /> 
+   <field name="processed_stories_id" type="long" indexed="true" stored="true" required="true" multiValued="false" /> 
 
    <field name="sentence"  type="text_general" indexed="true" stored="true" termVectors="true" termPositions="true" termOffsets="true" /> 
    <field name="title" type="text_general" indexed="true" stored="true" multiValued="false"/>
