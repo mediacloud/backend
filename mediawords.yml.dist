@@ -36,6 +36,9 @@ database:
     ### Database for testing
     #test:
         #database_name : "mediacloud_downloads_gridfs_test"
+    ### (optional) Database for storing CoreNLP annotator results
+    #corenlp:
+        #database_name : "mediacloud_corenlp"
 
 ### Amazon S3 connection settings
 #amazon_s3:
@@ -107,6 +110,27 @@ database:
     ### The log directory for child process logs (absolute or relative to Media
     ### Cloud's root; must already exist)
     #childlogdir: "data/supervisor_logs/"
+
+### CoreNLP annotator
+#corenlp:
+
+    ### Enable CoreNLP processing
+    ### If enabled, CoreNLP processing will happen after every "content"
+    ### download extraction
+    #enabled: "no"
+
+    ### Annotator URL
+    #annotator_url: "http://www.example.com:8080/corenlp/annotator"
+
+    ### Annotator timeout (in seconds)
+    ### If you annotate huge chunks of text or the CoreNLP annotator is busy in
+    ### general, you might want to increase this value even more because
+    ### otherwise the Gearman worker will exit() often.
+    #annotator_timeout: 600
+
+    ###
+    ### Also see: "mongodb_gridfs/corenlp/database_name" configuration property above
+    ###
 
 #mail:
     # Email address to receive bug report emails; leave empty for no bug reports via email

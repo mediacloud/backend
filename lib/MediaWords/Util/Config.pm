@@ -205,12 +205,17 @@ sub set_defaults
     $config->{ gearman }->{ notifications }->{ subject_prefix } ||= '[GJS]';
 
     # Gearmand
-    $config->{ gearmand }->{ enabled }  ||= 'no';
-    $config->{ gearmand }->{ listen }   ||= '127.0.0.1';
-    $config->{ gearmand }->{ port }     ||= 4731;
+    $config->{ gearmand }->{ enabled } ||= 'no';
+    $config->{ gearmand }->{ listen }  ||= '127.0.0.1';
+    $config->{ gearmand }->{ port }    ||= 4731;
 
     # Supervisor
     $config->{ supervisor }->{ childlogdir } ||= 'data/supervisor_logs/';
+
+    # CoreNLP annotator
+    $config->{ corenlp }->{ enabled }           ||= 'no';
+    $config->{ corenlp }->{ annotator_url }     ||= '';
+    $config->{ corenlp }->{ annotator_timeout } ||= 600;
 
     my $auth = {
         default_realm => 'users',
