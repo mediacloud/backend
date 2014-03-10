@@ -35,7 +35,7 @@ sub fetch_content($$$)
     my ( $self, $db, $download ) = @_;
 
     my $content = $download->{ path };
-    $content =~ s/content://;
+    $content =~ s/^content://;
     return \$content;
 }
 
